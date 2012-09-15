@@ -40,11 +40,27 @@ public class Book implements Comparable<Book> {
 		if (obj == this) return true;
 		if (obj instanceof Book) {
 			Book other = (Book)obj;
-			// two books are the same if they are from the same bible
-			// and they have the same code
 			if (this.bible.equals(other.bible) && this.code.equals(other.code)) {
 				return true;
 			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Returns true if the given book is the same as this book.
+	 * <p>
+	 * This does a reference comparison so that a book from another
+	 * Bible will be the same as this book as long as they are both
+	 * "Acts" for example.
+	 * @param book the book
+	 * @return boolean
+	 */
+	public boolean isSameBook(Book book) {
+		if (book == null) return false;
+		if (book == this) return true;
+		if (this.code.equals(book.code)) {
+			return true;
 		}
 		return false;
 	}

@@ -16,7 +16,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 
 import javax.swing.BorderFactory;
@@ -92,6 +91,8 @@ public class Praisenter extends JFrame implements ActionListener {
 	 * Default constructor.
 	 */
 	private Praisenter() {
+		super(Messages.getString("praisenter"));
+		
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
 		
@@ -516,12 +517,30 @@ public class Praisenter extends JFrame implements ActionListener {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				// show the loading dialog for the user is allowed to do anything
-				PreloadDialog dialog = new PreloadDialog();
-				
-				// show the main app
-				dialog.praisenter.setVisible(true);
-				dialog.praisenter.toFront();
+				try {
+					// preload and get the praisenter instance
+					Praisenter praisenter = PreloadDialog.preload();
+					if (praisenter == null) {
+						// this will only happen if the praisenter
+						// was not created on the EDT in the pre-loader
+						// which could be possible if the waiting thread
+						// was interrupted
+						praisenter = new Praisenter();
+					}
+					// show the main app
+					praisenter.setVisible(true);
+					praisenter.toFront();
+				} catch (Exception e) {
+					LOGGER.error(e);
+					ExceptionDialog.show(
+							null, 
+							Messages.getString("exception.startup.title"), 
+							Messages.getString("exception.startup.text"), 
+							e);
+					// this relies on the fact that the ExceptionDialog is
+					// application modal (i.e. blocks)
+					System.exit(0);
+				}
 			}
 		});
 	}
@@ -668,6 +687,27 @@ public class Praisenter extends JFrame implements ActionListener {
 		/** The main application window */
 		private Praisenter praisenter;
 		
+		/** The exception */
+		private Exception exception;
+		
+		/**
+		 * Shows the preload dialog and creates the instance of Praisenter.
+		 * <p>
+		 * This method will throw an exception only in the case that the application
+		 * cannot continue.
+		 * @return {@link Praisenter}
+		 * @throws Exception a unrecoverable error
+		 */
+		private static final Praisenter preload() throws Exception {
+			PreloadDialog dialog = new PreloadDialog();
+			
+			if (dialog.exception != null) {
+				throw dialog.exception;
+			}
+			
+			return dialog.praisenter;
+		}
+		
 		/**
 		 * Default constructor.
 		 */
@@ -684,7 +724,7 @@ public class Praisenter extends JFrame implements ActionListener {
 			this.lblLoading = new JLabel(Messages.getString("dialog.preload.title"));
 			
 			// create a label
-			this.lblLoadingText = new JLabel(FontManager.getFontFamilyNames()[0]);
+			this.lblLoadingText = new JLabel(" ");
 			this.lblLoadingText.setMinimumSize(new Dimension(0, 30));
 			
 			// layout the loading
@@ -738,7 +778,13 @@ public class Praisenter extends JFrame implements ActionListener {
 					} catch (InterruptedException e) {}
 					
 					// begin the tasks
-					verifyDatabaseConnection();
+					try {
+						verifyDatabaseConnection();
+					} catch (DataException ex) {
+						exception = ex;
+						close();
+						return;
+					}
 					preloadFonts();
 					preloadMainApplicationWindow();
 					
@@ -798,9 +844,9 @@ public class Praisenter extends JFrame implements ActionListener {
 		
 		/**
 		 * Verifies the database connections.
+		 * @throws DataException if the connection to the data store(s) could not be made
 		 */
-		private void verifyDatabaseConnection() {
-			// TODO don't continue if the dbs aren't available; we need to show a message then exit
+		private void verifyDatabaseConnection() throws DataException {
 			// set the initial status
 			try {
 				SwingUtilities.invokeAndWait(new Runnable() {
@@ -810,18 +856,10 @@ public class Praisenter extends JFrame implements ActionListener {
 						barProgress.setValue(0);
 					}
 				});
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			} catch (Exception e) {}
 			
 			// check the bible data store
-			try {
-				Bibles.getBibleCount();
-			} catch (DataException e) {
-				e.printStackTrace();
-			}
+			Bibles.getBibleCount();
 			
 			try {
 				SwingUtilities.invokeAndWait(new Runnable() {
@@ -830,18 +868,10 @@ public class Praisenter extends JFrame implements ActionListener {
 						barProgress.setValue(33);
 					}
 				});
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			} catch (Exception e) {}
 			
 			// check the songs data store
-			try {
-				Songs.getSong(0);
-			} catch (DataException e) {
-				e.printStackTrace();
-			}
+			Songs.getSong(0);
 			
 			try {
 				SwingUtilities.invokeAndWait(new Runnable() {
@@ -850,11 +880,7 @@ public class Praisenter extends JFrame implements ActionListener {
 						barProgress.setValue(66);
 					}
 				});
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			} catch (Exception e) {}
 			
 			// check the songs data store
 			Errors.getErrorMessageCount();
@@ -866,11 +892,7 @@ public class Praisenter extends JFrame implements ActionListener {
 						barProgress.setValue(100);
 					}
 				});
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			} catch (Exception e) {}
 		}
 		
 		// main app
@@ -887,29 +909,15 @@ public class Praisenter extends JFrame implements ActionListener {
 						lblLoadingText.setText("");
 						lblLoadingText.setFont(FontManager.getDefaultFont());
 						barProgress.setValue(0);
-					}
-				});
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			
-			// create the main app window
-			this.praisenter = new Praisenter();
-			
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
+						
+						// create the main app window
+						// needs to be run on the EDT
+						praisenter = new Praisenter();
+						
 						barProgress.setValue(100);
 					}
 				});
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			} catch (Exception e) {}
 		}
 		
 		// font loading
@@ -929,11 +937,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		private void preloadFonts() {
 			try {
 				SwingUtilities.invokeAndWait(this.fontUpdateTask.set(null, 0));
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			} catch (Exception e) {}
 			// this will load the font family names
 			String[] families = FontManager.getFontFamilyNames();
 			// get the default label font size
@@ -949,11 +953,7 @@ public class Praisenter extends JFrame implements ActionListener {
 				// update the progress bar on the EDT
 				try {
 					SwingUtilities.invokeAndWait(this.fontUpdateTask.set(font, (int)Math.floor(cur / max * 100)));
-				} catch (InvocationTargetException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				} catch (Exception e) {}
 			}
 		}
 		

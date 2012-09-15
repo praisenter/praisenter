@@ -110,7 +110,7 @@ public class UnboundBibleImporter {
 							LOGGER.info("Reading UnboundBible .zip file contents: " + bookFileName);
 							books = readBooks(zis);
 						} catch (UnrecognizedFormatException e) {
-							throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.unbound.unrecognizedFormat"), bookFileName), e);
+							throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.unrecognizedFormat"), bookFileName), e);
 						} catch (NumberFormatException e) {
 							throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.numberFormat"), bookFileName), e);
 						}
@@ -120,7 +120,7 @@ public class UnboundBibleImporter {
 							LOGGER.info("Reading UnboundBible .zip file contents: " + verseFileName);
 							verses = readVerses(bible, zis);
 						} catch (UnrecognizedFormatException e) {
-							throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.unbound.unrecognizedFormat"), verseFileName), e);
+							throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.unrecognizedFormat"), verseFileName), e);
 						} catch (NumberFormatException e) {
 							throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.numberFormat"), verseFileName), e);
 						}
@@ -133,6 +133,12 @@ public class UnboundBibleImporter {
 				throw new DataImportException(Messages.getString("bible.import.fileNotFound"), e);
 			} catch (IOException e) {
 				throw new DataImportException(Messages.getString("bible.import.io"), e);
+			}
+			
+			// check for missing files
+			if (books.size() == 0 && verses.size() == 0) {
+				LOGGER.error("The file did not contain any books or verses. Import failed.");
+				throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.unrecognizedFormat"), file.getName()));
 			}
 			
 			LOGGER.info("Importing new bible: " + bible.name);

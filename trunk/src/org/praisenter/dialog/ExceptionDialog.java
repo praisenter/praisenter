@@ -59,7 +59,7 @@ public class ExceptionDialog extends JDialog implements MouseListener, ActionLis
 	 * @param exception the exception
 	 */
 	private ExceptionDialog(Window owner, String title, String message, Exception exception) {
-		super(owner, title, ModalityType.MODELESS);
+		super(owner, title, ModalityType.APPLICATION_MODAL);
 		this.setIconImage(null);
 		// set the size
 		this.setPreferredSize(new Dimension(500, 400));
