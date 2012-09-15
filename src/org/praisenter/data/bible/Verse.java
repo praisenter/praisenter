@@ -72,6 +72,26 @@ public class Verse implements Comparable<Verse> {
 		return false;
 	}
 	
+	/**
+	 * Returns true if the given verse is the same
+	 * verse as this verse.
+	 * <p>
+	 * This does a reference comparison so that a verse
+	 * from one bible to another will return true.
+	 * @param verse the verse
+	 * @return boolean
+	 */
+	public boolean isSameVerse(Verse verse) {
+		if (verse == null) return false;
+		if (verse == this) return true;
+		if (verse.book.code.equals(this.book.code) &&
+			verse.chapter == this.chapter &&
+			verse.verse == this.verse) {
+			return true;
+		}
+		return false;
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */

@@ -2,6 +2,7 @@ package org.praisenter.data.song;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -49,11 +50,11 @@ public class ChurchViewSongImporter {
 		} catch (ParserConfigurationException e) {
 			LOGGER.error(e);
 			// throw a translated error
-			throw new DataImportException(Messages.getString("songs.import.unrecognizedFormat"), e);
+			throw new DataImportException(MessageFormat.format(Messages.getString("songs.import.unrecognizedFormat"), file.getName()), e);
 		} catch (SAXException e) {
 			LOGGER.error(e);
 			// throw a translated error
-			throw new DataImportException(Messages.getString("songs.import.unrecognizedFormat"), e);
+			throw new DataImportException(MessageFormat.format(Messages.getString("songs.import.unrecognizedFormat"), file.getName()), e);
 		} catch (IOException e) {
 			LOGGER.error(e);
 			// throw a translated error

@@ -189,13 +189,22 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 						try {
 							boolean ia = GeneralSettings.getInstance().isApocryphaIncluded();
 							List<Book> books = Bibles.getBooks(bible, ia);
+							Book selected = (Book)cmbBooks.getSelectedItem();
+							int index = 0;
+							int i = 0;
 							cmbBooks.removeAllItems();
 							for (Book book : books) {
 								cmbBooks.addItem(book);
+								// see if the previously selected book is in this
+								// book listing
+								if (selected.isSameBook(book)) {
+									index = i;
+								}
+								i++;
 							}
 							// select the first book
 							if (books.size() > 0) {
-								cmbBooks.setSelectedIndex(0);
+								cmbBooks.setSelectedIndex(index);
 							} else {
 								cmbBooks.setSelectedItem(null);
 							}
@@ -220,7 +229,9 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 			int id = gSettings.getDefaultBibleId();
 			if (id > 0) {
 				bible = Bibles.getBible(id);
-			} else if (bibles != null && bibles.length > 0) {
+			}
+			// the default bible wasn't found
+			if (bible == null && bibles != null && bibles.length > 0) {
 				bible = bibles[0];
 			}
 			
