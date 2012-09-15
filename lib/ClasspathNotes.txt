@@ -1,0 +1,9 @@
+Library					  |	Required?	  | License	File						| Use/Description
+--------------------------+---------------+-------------------------------------+-------------------------------------------------------
+commons-codec-1.6.jar	  |	Required	  | licenses/apache-license-1.0.txt		| Runtime/Apache Commons Codec for base64 encoding/decoding
+derby.jar				  |	Required	  |	licenses/apache-license-1.0.txt		| Runtime/Derby database engine
+derbyclient.jar			  |	Not Required  |	licenses/apache-license-1.0.txt		| NA/Derby client engine (for networked derby)
+derbynet.jar			  |	Not Required  |	licenses/apache-license-1.0.txt		| NA/Derby server engine (for networked derby)
+derbytools.jar			  |	Not Required  |	licenses/apache-license-1.0.txt		| NA/Derby tools
+log4j-1.2.17.jar		  |	Required	  |	licenses/apache-license-1.0.txt		| Runtime/Apache Log4j for application logging
+mail.jar				  |	Required	  |	licenses/javamail-license.txt		| Runtime/JavaMail API for sending error reports
