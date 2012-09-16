@@ -16,8 +16,9 @@ import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
 import org.praisenter.display.Display;
-import org.praisenter.panel.display.CachingDisplayPanel;
+import org.praisenter.panel.TransitionDisplayPanel;
 import org.praisenter.settings.GeneralSettings;
+import org.praisenter.transitions.Transition;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -94,15 +95,16 @@ public class DisplayWindow {
 	/**
 	 * Hides the given {@link DisplayWindow}.
 	 * @param window the display window
+	 * @param transition the transition
 	 */
-	public static final void hide(DisplayWindow window) {
+	public static final void hide(DisplayWindow window, Transition transition) {
 		// check for null
 		if (window == null) return;
 		
 		// hiding of the window depends on the translucency support
 		if (window.device.isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT)) {
 			// then we can just clear the display
-			window.pnlDisplay.setDisplay(null);
+			window.pnlDisplay.clear(transition);
 		} else if (window.device.isWindowTranslucencySupported(WindowTranslucency.TRANSLUCENT)) {
 			// then we can set the opacity
 			window.dialog.setOpacity(0.0f);
@@ -115,14 +117,15 @@ public class DisplayWindow {
 	
 	/**
 	 * Hides all the {@link DisplayWindow}s.
+	 * @param transition the transition
 	 */
-	public static final synchronized void hide() {
+	public static final synchronized void hide(Transition transition) {
 		Iterator<String> keys = WINDOWS.keySet().iterator();
 		while (keys.hasNext()) {
 			DisplayWindow window = WINDOWS.get(keys.next());
 	
 			if (window.visible) {
-				hide(window);
+				hide(window, transition);
 			}
 			
 			// make sure the display is still valid
@@ -138,9 +141,10 @@ public class DisplayWindow {
 	 * If the window is already visible the display is simply changed.
 	 * @param window the display window to show
 	 * @param display the display to show
+	 * @param transition the transition
 	 * @return boolean true if the display was successfully shown
 	 */
-	public static final ShowResult show(DisplayWindow window, Display display) {
+	public static final ShowResult show(DisplayWindow window, Display display, Transition transition) {
 		// check for null
 		if (window == null) return ShowResult.DEVICE_NOT_VALID;
 		
@@ -165,7 +169,7 @@ public class DisplayWindow {
 		window.dialog.toFront();
 		
 		// set the display of the window
-		window.pnlDisplay.setDisplay(display);
+		window.pnlDisplay.send(display, transition);
 		
 		return ShowResult.NORMAL;
 	}
@@ -207,7 +211,7 @@ public class DisplayWindow {
 	private GraphicsDevice device;
 	
 	/** The component */
-	private CachingDisplayPanel pnlDisplay;
+	private TransitionDisplayPanel pnlDisplay;
 	
 	/** True if the surface is visible */
 	private boolean visible;
@@ -262,7 +266,7 @@ public class DisplayWindow {
 		Container container = this.dialog.getContentPane();
 		container.setLayout(new BorderLayout());
 		
-		this.pnlDisplay = new CachingDisplayPanel();
+		this.pnlDisplay = new TransitionDisplayPanel();
 		container.add(this.pnlDisplay, BorderLayout.CENTER);
 		
 		// make sure the panel is resized to fit the layout
