@@ -996,6 +996,8 @@ public class Praisenter extends JFrame implements ActionListener {
 					if (this.font.canDisplayUpTo(text) < 0) {
 						// set the font
 						lblLoadingText.setFont(this.font);
+					} else {
+						lblLoadingText.setFont(FontManager.getDefaultFont());
 					}
 					// set the text to the font family name
 					lblLoadingText.setText(text);

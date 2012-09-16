@@ -1,5 +1,3 @@
-url http://praisenter.org/
-
 Fade out (fade in)
 
 Nursery overlay
@@ -11,7 +9,7 @@ Transitions
 Video backgrounds (avi, mov, mp4, mod, mpg, mpeg, wmv, mp2)
 	I'm thinking use FFMPEG to convert the selected media to the simplest format.
 	Then use Java to read the image data from that format.
-	FFMPEG is GPL or LGPL. We would most likely use the GPL. I think it can be distributed with my app.
+	FFMPEG is GPL or LGPL. We would most likely need the GPL. I think it can be distributed with my app.
 
 Song queues
 
@@ -20,3 +18,11 @@ Multiple consecutive verses can be placed on one screen
 	
 Provide a lyrics look up functionality
 	No acceptable services available at this time for christian lyrics.
+
+	
+Install:
+
+
+Diagrams
+
+config -> select -> display -> transition -> active

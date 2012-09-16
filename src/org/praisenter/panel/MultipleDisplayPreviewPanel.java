@@ -1,4 +1,4 @@
-package org.praisenter.panel.display;
+package org.praisenter.panel;
 
 import java.awt.Color;
 import java.awt.Dimension;
