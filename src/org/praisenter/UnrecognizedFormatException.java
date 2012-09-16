@@ -1,4 +1,4 @@
-package org.praisenter.data;
+package org.praisenter;
 
 /**
  * Exception thrown when a file does not match the expected format.

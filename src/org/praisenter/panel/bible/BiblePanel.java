@@ -584,8 +584,8 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		// create the search results label
 		this.lblBibleSearchResults = new JLabel();
-		this.lblBibleSearchResults.setVerticalAlignment(SwingConstants.TOP);
-		this.lblBibleSearchResults.setMinimumSize(new Dimension(0, 30));
+		this.lblBibleSearchResults.setHorizontalAlignment(SwingConstants.RIGHT);
+		this.lblBibleSearchResults.setMinimumSize(new Dimension(200, 0));
 		this.lblBibleSearchResults.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 5));
 		
 		// create the search results table
@@ -692,11 +692,10 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				.addGroup(layout.createSequentialGroup()
 						.addComponent(this.txtBibleSearch)
 						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.lblBibleSearchResults))
 				.addGroup(layout.createSequentialGroup()
-						.addComponent(scrBibleSearchResults))
-				.addGroup(layout.createSequentialGroup()
-						.addComponent(this.lblBibleSearchResults)));
+						.addComponent(scrBibleSearchResults)));
 		
 		// setup the vertical layout
 		layout.setVerticalGroup(layout.createSequentialGroup()
@@ -723,9 +722,9 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtBibleSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addComponent(scrBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 	}
 	
 	/* (non-Javadoc)
