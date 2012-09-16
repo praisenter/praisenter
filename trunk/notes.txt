@@ -1,8 +1,4 @@
-Fade out (fade in)
-
 Nursery overlay
-
-Transitions
 
 2nd language bible under english
 
@@ -19,10 +15,12 @@ Multiple consecutive verses can be placed on one screen
 Provide a lyrics look up functionality
 	No acceptable services available at this time for christian lyrics.
 
-	
-Install:
+database lookups
+	we could add a next/prev id to each verse after they have all been added
+	add debugging log statemtents to track time usage on lookups vs. rendering (profile)
 
-
-Diagrams
-
-config -> select -> display -> transition -> active
+INSTALL
+I think install can be done by the application jar (for now)
+	- we need to package a .zip of a fresh db
+	- we need to package dependent .jar files
+	- we need to create local folders (config, database, lib, licenses, etc)

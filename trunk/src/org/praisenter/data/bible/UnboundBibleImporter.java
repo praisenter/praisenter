@@ -23,9 +23,9 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 import org.apache.log4j.Logger;
+import org.praisenter.UnrecognizedFormatException;
 import org.praisenter.data.ConnectionFactory;
 import org.praisenter.data.DataImportException;
-import org.praisenter.data.UnrecognizedFormatException;
 import org.praisenter.resources.Messages;
 
 /**

@@ -527,6 +527,7 @@ public class Praisenter extends JFrame implements ActionListener {
 						// was interrupted
 						praisenter = new Praisenter();
 					}
+					// TODO break the preloading code up into more classes
 					// show the main app
 					praisenter.setVisible(true);
 					praisenter.toFront();
@@ -779,14 +780,17 @@ public class Praisenter extends JFrame implements ActionListener {
 					
 					// begin the tasks
 					try {
-						verifyDatabaseConnection();
+						verifyDataConnections();
 					} catch (DataException ex) {
+						// we need to stop immediately if we get an
+						// error connection to the data stores
 						exception = ex;
 						close();
 						return;
 					}
 					preloadFonts();
 					preloadMainApplicationWindow();
+					// TODO attempt to send saved errors
 					
 					// PLACE OTHER PRELOADING TASKS HERE
 					
@@ -846,7 +850,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		 * Verifies the database connections.
 		 * @throws DataException if the connection to the data store(s) could not be made
 		 */
-		private void verifyDatabaseConnection() throws DataException {
+		private void verifyDataConnections() throws DataException {
 			// set the initial status
 			try {
 				SwingUtilities.invokeAndWait(new Runnable() {
