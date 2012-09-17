@@ -14,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.text.NumberFormat;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
@@ -21,20 +22,25 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import org.apache.log4j.Logger;
+import org.praisenter.control.SelectTextFocusListener;
 import org.praisenter.data.DataException;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Bibles;
 import org.praisenter.icons.Icons;
+import org.praisenter.panel.TransitionListCellRenderer;
 import org.praisenter.panel.bible.BibleListCellRenderer;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.SettingsException;
+import org.praisenter.transitions.Transition;
+import org.praisenter.transitions.Transitions;
 import org.praisenter.utilities.DelayCloseWindowTask;
 import org.praisenter.utilities.WindowUtilities;
 
@@ -74,6 +80,11 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 	
 	/** The checkbox to include/exclude the apocrypha */
 	private JCheckBox chkIncludeApocrypha;
+	
+	private JComboBox<Transition> cmbSendTransitions;
+	private JFormattedTextField txtSendTransitions;
+	private JComboBox<Transition> cmbClearTransitions;
+	private JFormattedTextField txtClearTransitions;
 	
 	/**
 	 * Minimal constructor.
@@ -149,6 +160,35 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 		this.chkIncludeApocrypha = new JCheckBox();
 		this.chkIncludeApocrypha.setSelected(settings.isApocryphaIncluded());
 		
+		boolean transitionsSupported = settings.getPrimaryOrDefaultDisplay().isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT);
+		
+		JLabel lblSendTransition = new JLabel(Messages.getString("panel.general.defaultSendTransition"));
+		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
+		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForSimpleClassName(settings.getDefaultSendTransition()));
+		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
+		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
+		this.txtSendTransitions.setValue(settings.getDefaultSendTransitionDuration());
+		this.txtSendTransitions.setColumns(3);
+		
+		JLabel lblClearTransition = new JLabel(Messages.getString("panel.general.defaultClearTransition"));
+		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
+		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForSimpleClassName(settings.getDefaultClearTransition()));
+		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
+		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
+		this.txtClearTransitions.setValue(settings.getDefaultClearTransitionDuration());
+		this.txtClearTransitions.setColumns(3);
+		
+		if (!transitionsSupported) {
+			this.cmbSendTransitions.setEnabled(false);
+			this.txtSendTransitions.setEnabled(false);
+			this.cmbClearTransitions.setEnabled(false);
+			this.txtClearTransitions.setEnabled(false);
+		}
+		
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
@@ -161,14 +201,23 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 						.addGroup(layout.createParallelGroup()
 								.addComponent(lblPrimaryDisplay)
 								.addComponent(lblDefaultBible)
-								.addComponent(lblIncludeApocrypha))
+								.addComponent(lblIncludeApocrypha)
+								.addComponent(lblSendTransition)
+								.addComponent(lblClearTransition))
 						.addGroup(layout.createParallelGroup()
 								.addGroup(layout.createSequentialGroup()
 										.addComponent(this.cmbDevices)
 										.addComponent(btnIdentify))
 								.addComponent(this.lblTranslucency)
 								.addComponent(this.cmbBibles)
-								.addComponent(this.chkIncludeApocrypha))));
+								.addComponent(this.chkIncludeApocrypha)
+								.addGroup(layout.createSequentialGroup()
+										.addGroup(layout.createParallelGroup()
+												.addComponent(this.cmbSendTransitions)
+												.addComponent(this.cmbClearTransitions))
+										.addGroup(layout.createParallelGroup()
+												.addComponent(this.txtSendTransitions)
+												.addComponent(this.txtClearTransitions))))));
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(this.lblDisplayNotFound)
@@ -182,7 +231,15 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 						.addComponent(this.cmbBibles))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblIncludeApocrypha)
-						.addComponent(this.chkIncludeApocrypha)));
+						.addComponent(this.chkIncludeApocrypha))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblSendTransition)
+						.addComponent(this.cmbSendTransitions)
+						.addComponent(this.txtSendTransitions))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblClearTransition)
+						.addComponent(this.cmbClearTransitions)
+						.addComponent(this.txtClearTransitions)));
 	}
 	
 	/* (non-Javadoc)
@@ -260,6 +317,10 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 		this.settings.setPrimaryDisplay((GraphicsDevice)this.cmbDevices.getSelectedItem());
 		this.settings.setDefaultBibleId(((Bible)this.cmbBibles.getSelectedItem()).getId());
 		this.settings.setApocryphaIncluded(this.chkIncludeApocrypha.isSelected());
+		this.settings.setDefaultSendTransition(((Transition)this.cmbSendTransitions.getSelectedItem()).getClass().getSimpleName());
+		this.settings.setDefaultSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());
+		this.settings.setDefaultClearTransition(((Transition)this.cmbClearTransitions.getSelectedItem()).getClass().getSimpleName());
+		this.settings.setDefaultClearTransitionDuration(((Number)this.txtClearTransitions.getValue()).intValue());
 		// save the settings to the persistent store
 		this.settings.save();
 	}

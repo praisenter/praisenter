@@ -100,6 +100,15 @@ public abstract class Transition implements ActionListener, Cloneable {
 	public abstract void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1);
 	
 	/**
+	 * Returns the unique id for a transition type.
+	 * <p>
+	 * Each instance of the same subclass of {@link Transition} must
+	 * have the same id (in most cases). 
+	 * @return int
+	 */
+	public abstract int getTransitionId();
+	
+	/**
 	 * Starts this transition.
 	 * @param component the component to repaint
 	 */

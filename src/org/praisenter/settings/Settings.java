@@ -199,6 +199,8 @@ public abstract class Settings {
 	
 	/**
 	 * Returns the setting as a rectangle object for the given key.
+	 * <p>
+	 * Returns the null if not set.
 	 * @param key the key
 	 * @return Rectangle
 	 */
@@ -230,6 +232,8 @@ public abstract class Settings {
 	
 	/**
 	 * Returns the setting as a Dimension object for the given key.
+	 * <p>
+	 * Returns the null if not set.
 	 * @param key the key
 	 * @return Dimension
 	 */
@@ -262,9 +266,7 @@ public abstract class Settings {
 	/**
 	 * Returns the setting as a GraphicsDevice object for the given key.
 	 * <p>
-	 * Returns the secondary device if not set.
-	 * <p>
-	 * Returns the primary device if no secondary device is available.
+	 * Returns the null if not set.
 	 * @param key the key
 	 * @return GraphicsDevice
 	 */
@@ -429,7 +431,7 @@ public abstract class Settings {
 	/**
 	 * Returns the setting as a boolean for the given key.
 	 * <p>
-	 * Returns false if the setting is not set.
+	 * Returns null if the setting is not set.
 	 * @param key the key
 	 * @return boolean
 	 */
@@ -446,9 +448,9 @@ public abstract class Settings {
 			if (string != null && string.trim().length() > 0) {
 				// get the boolean
 				object = string.trim();
+				// set the setting
+				this.settings.put(key, object);
 			}
-			// set the setting
-			this.settings.put(key, object);
 		}
 		
 		return (String)object;

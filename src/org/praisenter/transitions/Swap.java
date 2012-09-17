@@ -14,6 +14,12 @@ import org.praisenter.resources.Messages;
  * @since 1.0.0
  */
 public class Swap extends Transition implements Cloneable {
+	/** The Swap-in id */
+	protected static final int IN_ID = 0;
+	
+	/** The Swap-out id */
+	protected static final int OUT_ID = 1;
+	
 	/**
 	 * Minimal constructor.
 	 * @param type the transition type
@@ -38,6 +44,17 @@ public class Swap extends Transition implements Cloneable {
 		// swap immediately displays the next slide
 		g2d.drawImage(image1, 0, 0, null);
 		this.stop();
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.transitions.Transition#getTransitionId()
+	 */
+	@Override
+	public int getTransitionId() {
+		if (this.type == Type.IN) {
+			return IN_ID;
+		}
+		return OUT_ID;
 	}
 	
 	/* (non-Javadoc)

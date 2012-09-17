@@ -64,6 +64,7 @@ import org.praisenter.transitions.FadeOut;
 import org.praisenter.transitions.Swap;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transition.Type;
+import org.praisenter.transitions.Transitions;
 import org.praisenter.utilities.StringUtilities;
 import org.praisenter.utilities.WindowUtilities;
 
@@ -383,21 +384,22 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		// setup the transition lists
 		boolean transitionsSupported = gSettings.getPrimaryOrDefaultDisplay().isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT);
 		
-		// TODO add to default settings (just one default for all send/clear)
-		this.cmbSendTransitions = new JComboBox<Transition>(new Transition[] { new Swap(Type.IN), new FadeIn(400) });
+		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForSimpleClassName(gSettings.getDefaultSendTransition()));
 		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtSendTransitions.setValue(400);
+		this.txtSendTransitions.setValue(gSettings.getDefaultSendTransitionDuration());
 		this.txtSendTransitions.setColumns(3);
 		
-		this.cmbClearTransitions = new JComboBox<Transition>(new Transition[] { new Swap(Type.OUT), new FadeOut(400) });
+		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForSimpleClassName(gSettings.getDefaultClearTransition()));
 		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtClearTransitions.setValue(400);
+		this.txtClearTransitions.setValue(gSettings.getDefaultClearTransitionDuration());
 		this.txtClearTransitions.setColumns(3);
 		
 		if (!transitionsSupported) {
