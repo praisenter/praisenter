@@ -22,6 +22,7 @@ import org.praisenter.utilities.FontManager;
  * @since 1.0.0
  */
 public final class BibleDisplaySettings extends DisplaySettings<BibleDisplaySettings, BibleDisplay> {
+	// TODO i dont like that these settings are so specific to displays
 	/** The file name */
 	private static final String FILE_NAME = "BibleDisplaySettings.properties";
 	

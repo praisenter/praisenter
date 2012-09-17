@@ -6,6 +6,7 @@ import java.awt.GraphicsDevice;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.praisenter.transitions.Swap;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -35,6 +36,18 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	/** Property key for the primary display size */
 	private static final String KEY_PRIMARY_DISPLAY_SIZE = "Display.Primary.Size";
 	
+	/** Property key for the default send transition */
+	private static final String KEY_DEFAULT_SEND_TRANSITION = "Send.Transition.Default";
+	
+	/** Property key for the default send transition duration */
+	private static final String KEY_DEFAULT_SEND_TRANSITION_DURATION = "Send.Transition.Duration.Default";
+	
+	/** Property key for the default clear transition */
+	private static final String KEY_DEFAULT_CLEAR_TRANSITION = "Clear.Transition.Default";
+	
+	/** Property key for the default clear transition duration */
+	private static final String KEY_DEFAULT_CLEAR_TRANSITION_DURATION = "Clear.Transition.Duration.Default";
+
 	/** Property key for the default bible id */
 	private static final String KEY_DEFAULT_BIBLE_ID = "Bible.Default";
 	
@@ -238,5 +251,45 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	 */
 	public void setApocryphaIncluded(boolean flag) throws SettingsException {
 		this.setSetting(KEY_INCLUDE_APOCRYPHA, flag);
+	}
+	
+	public String getDefaultSendTransition() {
+		String st = this.getStringSetting(KEY_DEFAULT_SEND_TRANSITION);
+		if (st == null) {
+			st = Swap.class.getSimpleName();
+		}
+		return st;
+	}
+	
+	public void setDefaultSendTransition(String name) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_SEND_TRANSITION, name);
+	}
+	
+	public String getDefaultClearTransition() {
+		String ct = this.getStringSetting(KEY_DEFAULT_CLEAR_TRANSITION);
+		if (ct == null) {
+			ct = Swap.class.getSimpleName();
+		}
+		return ct;
+	}
+	
+	public void setDefaultClearTransition(String name) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION, name);
+	}
+	
+	public int getDefaultSendTransitionDuration() {
+		return this.getIntegerSetting(KEY_DEFAULT_SEND_TRANSITION_DURATION);
+	}
+	
+	public void setDefaultSendTransitionDuration(int duration) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_SEND_TRANSITION_DURATION, duration);
+	}
+
+	public int getDefaultClearTransitionDuration() {
+		return this.getIntegerSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION);
+	}
+	
+	public void setDefaultClearTransitionDuration(int duration) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION, duration);
 	}
 }

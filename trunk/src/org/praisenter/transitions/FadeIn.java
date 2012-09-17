@@ -14,6 +14,9 @@ import org.praisenter.resources.Messages;
  * @since 1.0.0
  */
 public class FadeIn extends Transition {
+	/** The fade in id */
+	protected static final int ID = 10;
+	
 	/**
 	 * Minimal constructor.
 	 * @param duration the fade duration in milliseconds
@@ -48,6 +51,14 @@ public class FadeIn extends Transition {
 			this.stop();
 		}
 		g2d.setComposite(composite);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.transitions.Transition#getTransitionId()
+	 */
+	@Override
+	public int getTransitionId() {
+		return ID;
 	}
 	
 	/* (non-Javadoc)
