@@ -791,6 +791,7 @@ public class Praisenter extends JFrame implements ActionListener {
 					preloadFonts();
 					preloadMainApplicationWindow();
 					// TODO attempt to send saved errors
+					// TODO verify config files (except for log4j)
 					
 					// PLACE OTHER PRELOADING TASKS HERE
 					
