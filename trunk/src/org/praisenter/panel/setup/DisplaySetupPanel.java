@@ -20,25 +20,21 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.JPanel;
 
-import org.praisenter.display.ColorBackgroundComponent;
 import org.praisenter.display.Display;
 import org.praisenter.display.FloatingDisplayComponent;
-import org.praisenter.display.ImageBackgroundComponent;
-import org.praisenter.settings.ColorBackgroundSettings;
-import org.praisenter.settings.DisplaySettings;
-import org.praisenter.settings.ImageBackgroundSettings;
+import org.praisenter.settings.RootSettings;
 import org.praisenter.settings.SettingsException;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
  * Panel used to manage a display.
  * @author William Bittle
- * @param <E> the {@link DisplaySettings} type
+ * @param <E> the {@link RootSettings} type
  * @param <T> the {@link Display} type
  * @version 1.0.0
  * @since 1.0.0
  */
-public abstract class DisplaySetupPanel<E extends DisplaySettings<E, T>, T extends Display> extends JPanel implements MouseMotionListener, MouseListener, PropertyChangeListener {
+public abstract class DisplaySetupPanel<E extends RootSettings<E>, T extends Display> extends JPanel implements SetupPanel, MouseMotionListener, MouseListener, PropertyChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -3587523680958177637L;
 	
@@ -126,7 +122,7 @@ public abstract class DisplaySetupPanel<E extends DisplaySettings<E, T>, T exten
 		this.displaySize = displaySize;
 		
 		// create a display for preview and setup
-		this.display = settings.getDisplay(displaySize);
+		this.display = this.getDisplay(settings, displaySize);
 		
 		Dimension previewSize = new Dimension(400, 200);
 		this.pnlDisplayPreview = new JPanel() {
@@ -137,7 +133,6 @@ public abstract class DisplaySetupPanel<E extends DisplaySettings<E, T>, T exten
 			}
 		};
 		this.pnlDisplayPreview.setMinimumSize(previewSize);
-		this.pnlDisplayPreview.setPreferredSize(previewSize);
 		this.pnlDisplayPreview.addMouseListener(this);
 		this.pnlDisplayPreview.addMouseMotionListener(this);
 		
@@ -151,6 +146,20 @@ public abstract class DisplaySetupPanel<E extends DisplaySettings<E, T>, T exten
 	}
 	
 	/**
+	 * Returns a new display for the given settings and display size.
+	 * @param settings the settings
+	 * @param displaySize the display size
+	 * @return T
+	 */
+	protected abstract T getDisplay(E settings, Dimension displaySize);
+	
+	/**
+	 * Sets all settings using the current state of the components.
+	 * @throws SettingsException if an exception occurs while assigning a setting
+	 */
+	protected abstract void setSettingsFromComponents() throws SettingsException;
+
+	/**
 	 * Returns the first component that is at the given point.
 	 * @param displayPoint the Display space point
 	 * @return {@link FloatingDisplayComponent}
@@ -163,32 +172,14 @@ public abstract class DisplaySetupPanel<E extends DisplaySettings<E, T>, T exten
 	 * @return boolean
 	 */
 	protected abstract boolean isInsideAny(Point displayPoint);
-	
-	/**
-	 * Saves the settings configured by this panel.
-	 * @throws SettingsException if an exception occurs while assigning a setting
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.panel.setup.SetupPanel#saveSettings()
 	 */
+	@Override
 	public void saveSettings() throws SettingsException {
 		// set the settings using the components
 		this.setSettingsFromComponents();
-		// save the settings to the persistent store
-		this.settings.save();
-	}
-	
-	/**
-	 * Sets all settings using the current state of the components.
-	 * @throws SettingsException if an exception occurs while assigning a setting
-	 */
-	protected void setSettingsFromComponents() throws SettingsException {
-		// copy the color background settings
-		ColorBackgroundSettings cSet = this.settings.getColorBackgroundSettings();
-		ColorBackgroundComponent cCom = this.display.getColorBackgroundComponent();
-		cSet.setSettings(cCom);
-		
-		// copy the image background settings
-		ImageBackgroundSettings iSet = this.settings.getImageBackgroundSettings();
-		ImageBackgroundComponent iCom = this.display.getImageBackgroundComponent();
-		iSet.setSettings(iCom);
 	}
 	
 	/**

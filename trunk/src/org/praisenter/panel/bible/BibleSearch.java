@@ -16,6 +16,9 @@ public class BibleSearch implements Cloneable {
 	/** The text to search */
 	private String text;
 	
+	/** True if the apocrypha should be included in the search (if available) */
+	private boolean apocryphaIncluded;
+	
 	/** The search type */
 	private BibleSearchType type;
 	
@@ -26,12 +29,15 @@ public class BibleSearch implements Cloneable {
 	 * Minimal constructor.
 	 * @param bible the {@link Bible} to search
 	 * @param text the text to search for
+	 * @param apocryphaIncluded true if the apocrypha should be included in the search (if available)
 	 * @param type the search type
 	 * @param callback the code to run after the search has completed
 	 */
-	public BibleSearch(Bible bible, String text, BibleSearchType type, BibleSearchThread.Callback callback) {
+	public BibleSearch(Bible bible, String text, boolean apocryphaIncluded, 
+			BibleSearchType type, BibleSearchThread.Callback callback) {
 		this.bible = bible;
 		this.text = text;
+		this.apocryphaIncluded = apocryphaIncluded;
 		this.type = type;
 		this.callback = callback;
 	}
@@ -50,6 +56,15 @@ public class BibleSearch implements Cloneable {
 	 */
 	public String getText() {
 		return this.text;
+	}
+	
+	/**
+	 * Returns true if the apocrypha should be included in the
+	 * search (if available in the current bible).
+	 * @return boolean
+	 */
+	public boolean isApocryphaIncluded() {
+		return this.apocryphaIncluded;
 	}
 	
 	/**
@@ -73,6 +88,6 @@ public class BibleSearch implements Cloneable {
 	 */
 	@Override
 	public BibleSearch clone() {
-		return new BibleSearch(this.bible, this.text, this.type, this.callback);
+		return new BibleSearch(this.bible, this.text, this.apocryphaIncluded, this.type, this.callback);
 	}
 }

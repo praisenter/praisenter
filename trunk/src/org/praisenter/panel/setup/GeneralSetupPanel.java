@@ -14,12 +14,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.beans.PropertyChangeEvent;
 import java.text.NumberFormat;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
@@ -28,14 +29,9 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import org.apache.log4j.Logger;
 import org.praisenter.control.SelectTextFocusListener;
-import org.praisenter.data.DataException;
-import org.praisenter.data.bible.Bible;
-import org.praisenter.data.bible.Bibles;
 import org.praisenter.icons.Icons;
 import org.praisenter.panel.TransitionListCellRenderer;
-import org.praisenter.panel.bible.BibleListCellRenderer;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.SettingsException;
@@ -50,12 +46,9 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class GeneralSetupPanel extends JPanel implements ActionListener, ItemListener {
+public class GeneralSetupPanel extends JPanel implements SetupPanel, ActionListener, ItemListener {
 	/** The version id */
 	private static final long serialVersionUID = 8936112479746612291L;
-	
-	/** The class level logger */
-	private static final Logger LOGGER = Logger.getLogger(GeneralSetupPanel.class);
 	
 	/** Property name of the display drop down */
 	public static final String DISPLAY_PROPERTY = "gspDisplay";
@@ -66,6 +59,8 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 	/** The settings being modified */
 	private GeneralSettings settings;
 	
+	// screens
+	
 	/** The available devices */
 	private JComboBox<GraphicsDevice> cmbDevices;
 	
@@ -75,15 +70,18 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 	/** The label for translucency support */
 	private JLabel lblTranslucency;
 	
-	/** The available bibles */
-	private JComboBox<Bible> cmbBibles;
+	// transitions
 	
-	/** The checkbox to include/exclude the apocrypha */
-	private JCheckBox chkIncludeApocrypha;
-	
+	/** The combo box of send transitions */
 	private JComboBox<Transition> cmbSendTransitions;
+	
+	/** The text box for the send transition duration */
 	private JFormattedTextField txtSendTransitions;
+	
+	/** The combo box of clear transitions */
 	private JComboBox<Transition> cmbClearTransitions;
+	
+	/** The text box for the clear transition duration */
 	private JFormattedTextField txtClearTransitions;
 	
 	/**
@@ -99,12 +97,12 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 		this.lblDisplayNotFound.setVerticalTextPosition(SwingConstants.TOP);
 		if (settings.getPrimaryDisplay() == null) {
 			// show the primary display message
-			this.lblDisplayNotFound.setText(Messages.getString("panel.display.missing.warning"));
+			this.lblDisplayNotFound.setText(Messages.getString("panel.general.setup.display.missing.warning"));
 			this.lblDisplayNotFound.setIcon(Icons.WARNING);
 		}
 		
-		JLabel lblPrimaryDisplay = new JLabel(Messages.getString("panel.display.label.primaryDisplay"));
-		lblPrimaryDisplay.setToolTipText(Messages.getString("panel.display.label.primaryDisplay.tooltip"));
+		JLabel lblPrimaryDisplay = new JLabel(Messages.getString("panel.general.setup.display.primaryDisplay"));
+		lblPrimaryDisplay.setToolTipText(Messages.getString("panel.general.setup.display.primaryDisplay.tooltip"));
 		
 		// drop down for the primary display device
 		this.cmbDevices = new JComboBox<GraphicsDevice>(this.devices);
@@ -115,8 +113,8 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 		this.cmbDevices.addItemListener(this);
 		
 		// button for the identify 
-		JButton btnIdentify = new JButton(Messages.getString("panel.display.button.identify"));
-		btnIdentify.setToolTipText(Messages.getString("panel.display.button.identify.tooltip"));
+		JButton btnIdentify = new JButton(Messages.getString("panel.general.setup.display.identify"));
+		btnIdentify.setToolTipText(Messages.getString("panel.general.setup.display.identify.tooltip"));
 		btnIdentify.addActionListener(this);
 		btnIdentify.setActionCommand("identify");
 		
@@ -125,57 +123,50 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 		this.lblTranslucency.setVerticalTextPosition(SwingConstants.TOP);
 		// check if the primary display is translucent
 		if (!primary.isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT)) {
-			this.lblTranslucency.setText(Messages.getString("panel.display.translucent.warning"));
+			this.lblTranslucency.setText(Messages.getString("panel.general.setup.display.translucent.warning"));
 			this.lblTranslucency.setIcon(Icons.WARNING);
 		}
 		
-		// general bible settings
-		JLabel lblDefaultBible = new JLabel(Messages.getString("panel.general.defaultBible"));
-		Bible[] bibles = null;
-		try {
-			bibles = Bibles.getBibles().toArray(new Bible[0]);
-		} catch (DataException e) {
-			LOGGER.error("Bibles could not be retrieved:", e);
-		}
-		// check for null
-		if (bibles == null) {
-			this.cmbBibles = new JComboBox<Bible>();
-		} else {
-			this.cmbBibles = new JComboBox<Bible>(bibles);
-		}
-		this.cmbBibles.setRenderer(new BibleListCellRenderer());
-		// get the default value
-		Bible bible = null;
-		try {
-			bible = Bibles.getBible(settings.getDefaultBibleId());
-		} catch (DataException e) {
-			LOGGER.error("Default bible could not be retrieved:", e);
-		}
-		if (bible != null) {
-			// set the default value
-			this.cmbBibles.setSelectedItem(bible);
-		}
-		JLabel lblIncludeApocrypha = new JLabel(Messages.getString("panel.general.includeApocrypha"));
-		lblIncludeApocrypha.setToolTipText(Messages.getString("panel.general.includeApocrypha.tooltip"));
-		this.chkIncludeApocrypha = new JCheckBox();
-		this.chkIncludeApocrypha.setSelected(settings.isApocryphaIncluded());
+		// create the layout
+		JPanel pnlDisplays = new JPanel();
+		pnlDisplays.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.general.setup.display.title")));
+		GroupLayout layout = new GroupLayout(pnlDisplays);
+		pnlDisplays.setLayout(layout);
+		
+		layout.setAutoCreateGaps(true);
+		layout.setHorizontalGroup(layout.createParallelGroup()
+				.addComponent(this.lblDisplayNotFound)
+				.addGroup(layout.createSequentialGroup()
+						.addComponent(lblPrimaryDisplay)
+						.addGroup(layout.createParallelGroup()
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.cmbDevices, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(btnIdentify))
+								.addComponent(this.lblTranslucency))));
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addComponent(this.lblDisplayNotFound)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblPrimaryDisplay)
+						.addComponent(this.cmbDevices, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnIdentify))
+				.addComponent(this.lblTranslucency));
 		
 		boolean transitionsSupported = settings.getPrimaryOrDefaultDisplay().isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT);
 		
-		JLabel lblSendTransition = new JLabel(Messages.getString("panel.general.defaultSendTransition"));
+		JLabel lblSendTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultSend"));
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForSimpleClassName(settings.getDefaultSendTransition()));
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(settings.getDefaultSendTransition()));
 		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtSendTransitions.setValue(settings.getDefaultSendTransitionDuration());
 		this.txtSendTransitions.setColumns(3);
 		
-		JLabel lblClearTransition = new JLabel(Messages.getString("panel.general.defaultClearTransition"));
+		JLabel lblClearTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultClear"));
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForSimpleClassName(settings.getDefaultClearTransition()));
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(settings.getDefaultClearTransition()));
 		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
@@ -189,57 +180,46 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 			this.txtClearTransitions.setEnabled(false);
 		}
 		
-		GroupLayout layout = new GroupLayout(this);
+		// create the transitions layout
+		JPanel pnlTransitions = new JPanel();
+		pnlTransitions.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.general.setup.transition.title")));
+		layout = new GroupLayout(pnlTransitions);
+		pnlTransitions.setLayout(layout);
+		
+		layout.setAutoCreateGaps(true);
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup()
+						.addComponent(lblSendTransition)
+						.addComponent(lblClearTransition))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(this.cmbSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup()
+						.addComponent(lblSendTransition)
+						.addComponent(this.cmbSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(lblClearTransition)
+						.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+		
+		// create the main layout
+		layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 		
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.lblDisplayNotFound)
-				.addGroup(layout.createSequentialGroup()
-						.addGroup(layout.createParallelGroup()
-								.addComponent(lblPrimaryDisplay)
-								.addComponent(lblDefaultBible)
-								.addComponent(lblIncludeApocrypha)
-								.addComponent(lblSendTransition)
-								.addComponent(lblClearTransition))
-						.addGroup(layout.createParallelGroup()
-								.addGroup(layout.createSequentialGroup()
-										.addComponent(this.cmbDevices)
-										.addComponent(btnIdentify))
-								.addComponent(this.lblTranslucency)
-								.addComponent(this.cmbBibles)
-								.addComponent(this.chkIncludeApocrypha)
-								.addGroup(layout.createSequentialGroup()
-										.addGroup(layout.createParallelGroup()
-												.addComponent(this.cmbSendTransitions)
-												.addComponent(this.cmbClearTransitions))
-										.addGroup(layout.createParallelGroup()
-												.addComponent(this.txtSendTransitions)
-												.addComponent(this.txtClearTransitions))))));
-		
+				.addComponent(pnlDisplays, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(pnlTransitions, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.lblDisplayNotFound)
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblPrimaryDisplay)
-						.addComponent(this.cmbDevices)
-						.addComponent(btnIdentify))
-				.addComponent(this.lblTranslucency)
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblDefaultBible)
-						.addComponent(this.cmbBibles))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblIncludeApocrypha)
-						.addComponent(this.chkIncludeApocrypha))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblSendTransition)
-						.addComponent(this.cmbSendTransitions)
-						.addComponent(this.txtSendTransitions))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblClearTransition)
-						.addComponent(this.cmbClearTransitions)
-						.addComponent(this.txtClearTransitions)));
+				.addComponent(pnlDisplays)
+				.addComponent(pnlTransitions));
 	}
 	
 	/* (non-Javadoc)
@@ -298,7 +278,7 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 			if (!device.isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT)) {
 				// if this isn't available, then the translucent color/image backgrounds may not
 				// work as expected
-				this.lblTranslucency.setText(Messages.getString("panel.display.translucent.warning"));
+				this.lblTranslucency.setText(Messages.getString("panel.general.setup.display.translucent.warning"));
 				this.lblTranslucency.setIcon(Icons.WARNING);
 			} else {
 				this.lblTranslucency.setText("");
@@ -308,22 +288,26 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 		}
 	}
 	
-	/**
-	 * Saves the settings configured by this panel.
-	 * @throws SettingsException if an exception occurs while assigning a setting
+	/* (non-Javadoc)
+	 * @see org.praisenter.panel.setup.SetupPanel#saveSettings()
 	 */
+	@Override
 	public void saveSettings() throws SettingsException {
 		// set the settings
 		this.settings.setPrimaryDisplay((GraphicsDevice)this.cmbDevices.getSelectedItem());
-		this.settings.setDefaultBibleId(((Bible)this.cmbBibles.getSelectedItem()).getId());
-		this.settings.setApocryphaIncluded(this.chkIncludeApocrypha.isSelected());
-		this.settings.setDefaultSendTransition(((Transition)this.cmbSendTransitions.getSelectedItem()).getClass().getSimpleName());
+		this.settings.setDefaultSendTransition(((Transition)this.cmbSendTransitions.getSelectedItem()).getTransitionId());
 		this.settings.setDefaultSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());
-		this.settings.setDefaultClearTransition(((Transition)this.cmbClearTransitions.getSelectedItem()).getClass().getSimpleName());
+		this.settings.setDefaultClearTransition(((Transition)this.cmbClearTransitions.getSelectedItem()).getTransitionId());
 		this.settings.setDefaultClearTransitionDuration(((Number)this.txtClearTransitions.getValue()).intValue());
 		// save the settings to the persistent store
 		this.settings.save();
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent evt) {}
 	
 	/**
 	 * Returns the device index.
@@ -347,7 +331,7 @@ public class GeneralSetupPanel extends JPanel implements ActionListener, ItemLis
 	private final String getDeviceName(GraphicsDevice device) {
 		DisplayMode mode = device.getDisplayMode();
 		StringBuilder sb = new StringBuilder();
-		sb.append(Messages.getString("panel.display.name"))
+		sb.append(Messages.getString("panel.general.setup.display.name"))
 		  .append(getDeviceIndex(device) + 1)
 		  .append(" ").append(mode.getWidth())
 		  .append("x").append(mode.getHeight())

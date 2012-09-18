@@ -14,7 +14,6 @@ import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.BibleSearchType;
 import org.praisenter.data.bible.Bibles;
 import org.praisenter.data.bible.Verse;
-import org.praisenter.settings.GeneralSettings;
 
 /**
  * Thread used to search the bible.
@@ -64,9 +63,9 @@ public class BibleSearchThread extends Thread {
 					// if we have a queued search then execute it
 					Bible bible = search.getBible();
 					String text = search.getText();
+					boolean ia = search.isApocryphaIncluded();
 					BibleSearchType type = search.getType();
 					Callback callback = search.getCallback();
-					boolean ia = GeneralSettings.getInstance().isApocryphaIncluded();
 					
 					// assign the search
 					callback.search = search;

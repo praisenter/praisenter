@@ -68,7 +68,7 @@ public class ImageBackgroundSetupPanel extends JPanel implements ActionListener,
 	public ImageBackgroundSetupPanel(ImageBackgroundComponent component) {
 		this.component = component;
 		
-		this.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), Messages.getString("display.basic.background.image")));
+		this.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.image.setup.title")));
 		
 		// image
 		this.btnSelect = new JButton(Messages.getString("panel.image.setup.browse"));
@@ -97,7 +97,6 @@ public class ImageBackgroundSetupPanel extends JPanel implements ActionListener,
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		layout.setAutoCreateGaps(true);
-		layout.setAutoCreateContainerGaps(true);
 		
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
