@@ -1,5 +1,8 @@
 package org.praisenter.transitions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.praisenter.transitions.Transition.Type;
 
 /**
@@ -9,33 +12,52 @@ import org.praisenter.transitions.Transition.Type;
  * @since 1.0.0
  */
 public class Transitions {
-	// TODO i don't like the way that the transitions are modifiable from these arrays
-	/** The list of "in" transitions */
-	public static final Transition[] IN = new Transition[] {
-		new Swap(Type.IN),
-		new FadeIn(400)
+	/** The list of all transitions */
+	public static final Transition[] ALL = new Transition[] {
+		// the defaults are the first two
+		new SwapIn(),
+		new SwapOut(),
+		new FadeIn(),
+		new FadeOut()
 	};
+	
+	/** The list of "in" transitions */
+	public static final Transition[] IN = getTransitions(Type.IN);
 	
 	/** The list of "out" transitions */
-	public static final Transition[] OUT = new Transition[] {
-		new Swap(Type.OUT),
-		new FadeOut(400)
-	};
+	public static final Transition[] OUT = getTransitions(Type.OUT);
+	
+	/** The default "in" transition */
+	public static final Transition DEFAULT_IN_TRANSITION = ALL[0];
+	
+	/** The default "out" transition */
+	public static final Transition DEFAULT_OUT_TRANSITION = ALL[1];
 	
 	/**
-	 * Returns a transition, from the {@link #IN} or {@link #OUT} arrays, that matches the
-	 * given simple class name.
-	 * @param simpleName the simple class name
-	 * @return {@link Transition}
+	 * Returns an array of {@link Transition}s of the given type.
+	 * @param type the transition type
+	 * @return {@link Transition}[]
 	 */
-	public static final Transition getTransitionForSimpleClassName(String simpleName) {
-		for (Transition transition : IN) {
-			if (transition.getClass().getSimpleName().equalsIgnoreCase(simpleName)) {
-				return transition;
+	private static final Transition[] getTransitions(Type type) {
+		List<Transition> transitions = new ArrayList<Transition>();
+		for (Transition transition : ALL) {
+			if (transition.type == type) {
+				transitions.add(transition);
 			}
 		}
-		for (Transition transition : OUT) {
-			if (transition.getClass().getSimpleName().equalsIgnoreCase(simpleName)) {
+		return transitions.toArray(new Transition[0]);
+	}
+	
+	/**
+	 * Returns a transition for the given id.
+	 * <p>
+	 * Returns null if the transition id is not found.
+	 * @param id the transition id
+	 * @return {@link Transition}
+	 */
+	public static final Transition getTransitionForId(int id) {
+		for (Transition transition : ALL) {
+			if (transition.getTransitionId() == id) {
 				return transition;
 			}
 		}

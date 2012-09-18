@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import org.praisenter.display.Display;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transition.Type;
+import org.praisenter.transitions.TransitionAnimator;
 
 /**
  * Panel used for display on a selected device.
@@ -37,7 +38,7 @@ public class TransitionDisplayPanel extends JPanel {
 	protected BufferedImage image1;
 	
 	/** The transition to apply from display to display */
-	protected Transition transition;
+	protected TransitionAnimator transitionAnimator;
 	
 	/** True if the panel is clear */
 	protected boolean clear;
@@ -56,18 +57,18 @@ public class TransitionDisplayPanel extends JPanel {
 	/**
 	 * Shows the given display using the given transition.
 	 * @param display the display to send
-	 * @param transition the transition; can be null
+	 * @param transitionAnimator the transition; can be null
 	 */
-	public void send(Display display, Transition transition) {
+	public void send(Display display, TransitionAnimator transitionAnimator) {
 		this.clear = false;
 		
 		// stop the old transition just in case it's still in progress
-		if (this.transition != null) {
-			this.transition.stop();
+		if (this.transitionAnimator != null) {
+			this.transitionAnimator.stop();
 		}
 		
 		// set the transition
-		this.transition = transition;
+		this.transitionAnimator = transitionAnimator;
 		
 		// make sure our offscreen images are still the correct size
 		this.validateOffscreenImages();
@@ -94,9 +95,9 @@ public class TransitionDisplayPanel extends JPanel {
 		tg2d.dispose();
 		
 		// make sure the transition is not null
-		if (this.transition != null) {
+		if (this.transitionAnimator != null) {
 			// start it
-			this.transition.start(this);
+			this.transitionAnimator.start(this);
 		} else {
 			this.repaint();
 		}
@@ -104,20 +105,20 @@ public class TransitionDisplayPanel extends JPanel {
 	
 	/**
 	 * Clears the panel using the given transition.
-	 * @param transition the transition; can be null
+	 * @param transitionAnimator the transition; can be null
 	 */
-	public void clear(Transition transition) {
+	public void clear(TransitionAnimator transitionAnimator) {
 		if (!this.clear) {
 			// stop the old transition just in case it's still in progress
-			if (this.transition != null) {
-				this.transition.stop();
+			if (this.transitionAnimator != null) {
+				this.transitionAnimator.stop();
 			}
 	
 			// set the transition
-			this.transition = transition;
+			this.transitionAnimator = transitionAnimator;
 			
 			// make sure the transition is not null
-			if (this.transition != null) {
+			if (this.transitionAnimator != null) {
 				// render what's currently in image1 to image0
 				// this saves the last display's rendering so we
 				// can apply transitions
@@ -127,7 +128,7 @@ public class TransitionDisplayPanel extends JPanel {
 				
 				this.clearImage(this.image1);
 				// start it
-				this.transition.start(this);
+				this.transitionAnimator.start(this);
 			} else {
 				this.clearImage(this.image0);
 				this.clearImage(this.image1);
@@ -174,9 +175,10 @@ public class TransitionDisplayPanel extends JPanel {
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		
-		if (this.transition != null) {
-			if (this.transition.isComplete()) {
-				if (this.transition.getType() == Type.IN) {
+		if (this.transitionAnimator != null) {
+			Transition transition = transitionAnimator.getTransition();
+			if (this.transitionAnimator.isComplete()) {
+				if (transition.getType() == Type.IN) {
 					g.drawImage(this.image1, 0, 0, null);
 				} else {
 					if (!this.clear) {
@@ -185,7 +187,7 @@ public class TransitionDisplayPanel extends JPanel {
 					}
 				}
 			} else {
-				this.transition.render((Graphics2D)g, this.image0, this.image1);
+				transition.render((Graphics2D)g, this.image0, this.image1, this.transitionAnimator.getPercentComplete());
 			}
 		} else {
 			if (!this.clear) {

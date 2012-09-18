@@ -6,7 +6,6 @@ import java.awt.GraphicsDevice;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.praisenter.transitions.Swap;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -48,12 +47,6 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	/** Property key for the default clear transition duration */
 	private static final String KEY_DEFAULT_CLEAR_TRANSITION_DURATION = "Clear.Transition.Duration.Default";
 
-	/** Property key for the default bible id */
-	private static final String KEY_DEFAULT_BIBLE_ID = "Bible.Default";
-	
-	/** Property key to include/exclude the apocrypha books */
-	private static final String KEY_INCLUDE_APOCRYPHA = "Bible.IncludeApocrypha";
-	
 	/**
 	 * Returns the instance of the {@link GeneralSettings}.
 	 * @return {@link GeneralSettings}
@@ -124,8 +117,6 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 		} else {
 			this.setPrimaryDisplay(null);
 		}
-		this.setApocryphaIncluded(false);
-		this.setDefaultBibleId(0);
 	}
 	
 	/* (non-Javadoc)
@@ -218,77 +209,69 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	}
 	
 	/**
-	 * Returns the default bible id.
-	 * <p>
-	 * Returns zero if not set.
-	 * @return the default bible id
+	 * Returns the default send transition id.
+	 * @return int
 	 */
-	public int getDefaultBibleId() {
-		return this.getIntegerSetting(KEY_DEFAULT_BIBLE_ID);
+	public int getDefaultSendTransition() {
+		return this.getIntegerSetting(KEY_DEFAULT_SEND_TRANSITION);
 	}
 	
 	/**
-	 * Sets the default bible id.
-	 * @param id the bible id
+	 * Sets the default send transition.
+	 * @param id the transition id
 	 * @throws SettingsException if an exception occurs while assigning the setting
 	 */
-	public void setDefaultBibleId(int id) throws SettingsException {
-		this.setSetting(KEY_DEFAULT_BIBLE_ID, id);
+	public void setDefaultSendTransition(int id) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_SEND_TRANSITION, id);
 	}
 	
 	/**
-	 * Returns true if the apocrypha should be included.
-	 * @return boolean
+	 * Returns the default clear transition.
+	 * @return int
 	 */
-	public boolean isApocryphaIncluded() {
-		return this.getBooleanSetting(KEY_INCLUDE_APOCRYPHA);
+	public int getDefaultClearTransition() {
+		return this.getIntegerSetting(KEY_DEFAULT_CLEAR_TRANSITION);
 	}
 	
 	/**
-	 * Sets whether the apocrypha should be included or not.
-	 * @param flag true if the apocrypha should be included
+	 * Sets the default clear transition.
+	 * @param id the transition id
 	 * @throws SettingsException if an exception occurs while assigning the setting
 	 */
-	public void setApocryphaIncluded(boolean flag) throws SettingsException {
-		this.setSetting(KEY_INCLUDE_APOCRYPHA, flag);
+	public void setDefaultClearTransition(int id) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION, id);
 	}
 	
-	public String getDefaultSendTransition() {
-		String st = this.getStringSetting(KEY_DEFAULT_SEND_TRANSITION);
-		if (st == null) {
-			st = Swap.class.getSimpleName();
-		}
-		return st;
-	}
-	
-	public void setDefaultSendTransition(String name) throws SettingsException {
-		this.setSetting(KEY_DEFAULT_SEND_TRANSITION, name);
-	}
-	
-	public String getDefaultClearTransition() {
-		String ct = this.getStringSetting(KEY_DEFAULT_CLEAR_TRANSITION);
-		if (ct == null) {
-			ct = Swap.class.getSimpleName();
-		}
-		return ct;
-	}
-	
-	public void setDefaultClearTransition(String name) throws SettingsException {
-		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION, name);
-	}
-	
+	/**
+	 * Returns the default send transition duration.
+	 * @return int
+	 */
 	public int getDefaultSendTransitionDuration() {
 		return this.getIntegerSetting(KEY_DEFAULT_SEND_TRANSITION_DURATION);
 	}
 	
+	/**
+	 * Sets the default send transition duration.
+	 * @param duration the duration in milliseconds
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
 	public void setDefaultSendTransitionDuration(int duration) throws SettingsException {
 		this.setSetting(KEY_DEFAULT_SEND_TRANSITION_DURATION, duration);
 	}
 
+	/**
+	 * Returns the default clear transition duration.
+	 * @return int
+	 */
 	public int getDefaultClearTransitionDuration() {
 		return this.getIntegerSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION);
 	}
 	
+	/**
+	 * Sets the default clear transition duration.
+	 * @param duration the duration in milliseconds
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
 	public void setDefaultClearTransitionDuration(int duration) throws SettingsException {
 		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION, duration);
 	}

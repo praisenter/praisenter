@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -19,10 +20,10 @@ import javax.swing.JTabbedPane;
 
 import org.apache.log4j.Logger;
 import org.praisenter.control.BottomButtonPanel;
-import org.praisenter.panel.setup.BibleDisplaySetupPanel;
+import org.praisenter.panel.setup.BibleSetupPanel;
 import org.praisenter.panel.setup.GeneralSetupPanel;
 import org.praisenter.resources.Messages;
-import org.praisenter.settings.BibleDisplaySettings;
+import org.praisenter.settings.BibleSettings;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.SettingsException;
 import org.praisenter.settings.SettingsListener;
@@ -49,8 +50,8 @@ public class SetupDialog extends JDialog implements ActionListener {
 	/** The panel for the general settings */
 	private GeneralSetupPanel pnlGeneralSettings;
 	
-	/** The panel for setting up the bible display */
-	private BibleDisplaySetupPanel pnlBibleDisplaySettings;
+	/** The panel for the bible settings */
+	private BibleSetupPanel pnlBibleSettings;
 	
 	/**
 	 * Minimal constructor.
@@ -63,7 +64,7 @@ public class SetupDialog extends JDialog implements ActionListener {
 		
 		// get the settings
 		GeneralSettings gSettings = GeneralSettings.getInstance();
-		BibleDisplaySettings bSettings = BibleDisplaySettings.getInstance();
+		BibleSettings bSettings = BibleSettings.getInstance();
 		
 		// for the setup panel we need to use the display size of the currently selected device
 		// which we can get from the settings
@@ -73,10 +74,13 @@ public class SetupDialog extends JDialog implements ActionListener {
 		
 		// create the settings panels
 		this.pnlGeneralSettings = new GeneralSetupPanel(gSettings);
-		this.pnlBibleDisplaySettings = new BibleDisplaySetupPanel(bSettings, size);
+		this.pnlBibleSettings = new BibleSetupPanel(bSettings, size);
 		
 		// set the panels to listen for property change events from the general panel
-		this.pnlGeneralSettings.addPropertyChangeListener(GeneralSetupPanel.DISPLAY_PROPERTY, this.pnlBibleDisplaySettings);
+		// since the general panel contains the setup for the displays
+		this.pnlGeneralSettings.addPropertyChangeListener(GeneralSetupPanel.DISPLAY_PROPERTY, this.pnlBibleSettings);
+		
+		this.pnlBibleSettings.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		
 		// create the bottom buttons
 		
@@ -100,11 +104,11 @@ public class SetupDialog extends JDialog implements ActionListener {
 		// create the tab container
 
 		JTabbedPane pneTabs = new JTabbedPane();
-		pneTabs.addTab(Messages.getString("dialog.setup.bible"), this.pnlBibleDisplaySettings);
+		pneTabs.addTab(Messages.getString("dialog.setup.general"), this.pnlGeneralSettings);
+		pneTabs.addTab(Messages.getString("dialog.setup.bible"), this.pnlBibleSettings);
 		
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
-		container.add(this.pnlGeneralSettings, BorderLayout.PAGE_START);
 		container.add(pneTabs, BorderLayout.CENTER);
 		container.add(pnlBottom, BorderLayout.PAGE_END);
 		
@@ -121,7 +125,7 @@ public class SetupDialog extends JDialog implements ActionListener {
 		if ("save".equals(command)) {
 			try {
 				this.pnlGeneralSettings.saveSettings();
-				this.pnlBibleDisplaySettings.saveSettings();
+				this.pnlBibleSettings.saveSettings();
 				// notify of the settings changes
 				this.notifySettingsSaved();
 				// show a success message

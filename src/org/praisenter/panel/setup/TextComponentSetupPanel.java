@@ -148,23 +148,28 @@ public class TextComponentSetupPanel extends JPanel implements ItemListener, Cha
 		this.cmbFontScaleType.addItemListener(this);
 		
 		// alignments
+		TextAlignment alignment = component.getTextAlignment();
 		this.tglTextAlignmentLeft = new JToggleButton(Icons.ALIGN_LEFT);
 		this.tglTextAlignmentLeft.setActionCommand("align-left");
-		this.tglTextAlignmentLeft.addActionListener(this);
 		this.tglTextAlignmentLeft.setToolTipText(Messages.getString("panel.text.setup.align.left"));
+		this.tglTextAlignmentLeft.setSelected(alignment == TextAlignment.LEFT);
 		this.tglTextAlignmentCenter = new JToggleButton(Icons.ALIGN_CENTER);
 		this.tglTextAlignmentCenter.setActionCommand("align-center");
-		this.tglTextAlignmentCenter.addActionListener(this);
 		this.tglTextAlignmentCenter.setToolTipText(Messages.getString("panel.text.setup.align.center"));
+		this.tglTextAlignmentCenter.setSelected(alignment == TextAlignment.CENTER);
 		this.tglTextAlignmentRight = new JToggleButton(Icons.ALIGN_RIGHT);
 		this.tglTextAlignmentRight.setActionCommand("align-right");
-		this.tglTextAlignmentRight.addActionListener(this);
 		this.tglTextAlignmentRight.setToolTipText(Messages.getString("panel.text.setup.align.right"));
+		this.tglTextAlignmentRight.setSelected(alignment == TextAlignment.RIGHT);
 		
 		ButtonGroup bgAlignment = new ButtonGroup();
 		bgAlignment.add(this.tglTextAlignmentLeft);
 		bgAlignment.add(this.tglTextAlignmentCenter);
 		bgAlignment.add(this.tglTextAlignmentRight);
+		
+		this.tglTextAlignmentLeft.addActionListener(this);
+		this.tglTextAlignmentCenter.addActionListener(this);
+		this.tglTextAlignmentRight.addActionListener(this);
 		
 		JPanel pnlAlignment = new JPanel();
 		pnlAlignment.setLayout(new BorderLayout());
@@ -198,7 +203,6 @@ public class TextComponentSetupPanel extends JPanel implements ItemListener, Cha
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		layout.setAutoCreateGaps(true);
-		layout.setAutoCreateContainerGaps(true);
 		
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				// column 1

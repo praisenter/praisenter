@@ -51,19 +51,17 @@ import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.dialog.ExceptionDialog;
 import org.praisenter.display.BibleDisplay;
+import org.praisenter.display.Displays;
 import org.praisenter.display.TextComponent;
 import org.praisenter.icons.Icons;
 import org.praisenter.panel.MultipleDisplayPreviewPanel;
 import org.praisenter.panel.TransitionListCellRenderer;
 import org.praisenter.resources.Messages;
-import org.praisenter.settings.BibleDisplaySettings;
+import org.praisenter.settings.BibleSettings;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.SettingsListener;
-import org.praisenter.transitions.FadeIn;
-import org.praisenter.transitions.FadeOut;
-import org.praisenter.transitions.Swap;
 import org.praisenter.transitions.Transition;
-import org.praisenter.transitions.Transition.Type;
+import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
 import org.praisenter.utilities.StringUtilities;
 import org.praisenter.utilities.WindowUtilities;
@@ -158,15 +156,15 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	public BiblePanel() {
 		// get the settings
 		GeneralSettings gSettings = GeneralSettings.getInstance();
-		BibleDisplaySettings bSettings = BibleDisplaySettings.getInstance();
+		BibleSettings bSettings = BibleSettings.getInstance();
 		
 		// get the display size
 		Dimension displaySize = gSettings.getPrimaryDisplaySize();
 		
 		// create the displays
-		this.prevVerseDisplay = bSettings.getDisplay(displaySize);
-		this.currVerseDisplay = bSettings.getDisplay(displaySize);
-		this.nextVerseDisplay = bSettings.getDisplay(displaySize);
+		this.prevVerseDisplay = Displays.getDisplay(bSettings, displaySize);
+		this.currVerseDisplay = Displays.getDisplay(bSettings, displaySize);
+		this.nextVerseDisplay = Displays.getDisplay(bSettings, displaySize);
 		
 		// create the preview panel
 		this.pnlPreview = new MultipleDisplayPreviewPanel();
@@ -206,7 +204,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 					if (bible != null) {
 						// load up all the books
 						try {
-							boolean ia = GeneralSettings.getInstance().isApocryphaIncluded();
+							boolean ia = BibleSettings.getInstance().isApocryphaIncluded();
 							List<Book> books = Bibles.getBooks(bible, ia);
 							Book selected = (Book)cmbBooks.getSelectedItem();
 							int index = 0;
@@ -245,7 +243,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		// get the default bible
 		Bible bible = null;
 		try {
-			int id = gSettings.getDefaultBibleId();
+			int id = bSettings.getDefaultBibleId();
 			if (id > 0) {
 				bible = Bibles.getBible(id);
 			}
@@ -260,7 +258,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		if (bible != null) {
 			try {
-				boolean ia = gSettings.isApocryphaIncluded();
+				boolean ia = bSettings.isApocryphaIncluded();
 				books = Bibles.getBooks(bible, ia);
 			} catch (DataException ex) {
 				LOGGER.error("An error occurred when trying to get the listing of books for the bible: " + bible.getName(), ex);
@@ -386,7 +384,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForSimpleClassName(gSettings.getDefaultSendTransition()));
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(gSettings.getDefaultSendTransition()));
 		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
@@ -395,7 +393,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForSimpleClassName(gSettings.getDefaultClearTransition()));
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(gSettings.getDefaultClearTransition()));
 		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
@@ -744,12 +742,12 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		// get the display size
 		Dimension displaySize = gSettings.getPrimaryDisplaySize();
 		
-		BibleDisplaySettings bSettings = BibleDisplaySettings.getInstance();
+		BibleSettings bSettings = BibleSettings.getInstance();
 		
 		// create new displays using the new settings
-		BibleDisplay pDisplay = bSettings.getDisplay(displaySize);
-		BibleDisplay cDisplay = bSettings.getDisplay(displaySize);
-		BibleDisplay nDisplay = bSettings.getDisplay(displaySize);
+		BibleDisplay pDisplay = Displays.getDisplay(bSettings, displaySize);
+		BibleDisplay cDisplay = Displays.getDisplay(bSettings, displaySize);
+		BibleDisplay nDisplay = Displays.getDisplay(bSettings, displaySize);
 		
 		// copy over the text values
 		this.copyTextValues(this.prevVerseDisplay, pDisplay);
@@ -803,7 +801,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		Object c = this.txtChapter.getValue();
 		Object v = this.txtVerse.getValue();
 		
-		boolean ia = GeneralSettings.getInstance().isApocryphaIncluded();
+		boolean ia = BibleSettings.getInstance().isApocryphaIncluded();
 		
 		if (b != null && b instanceof Book &&
 			c != null && c instanceof Number &&
@@ -836,14 +834,11 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				}
 			} else if ("send".equals(e.getActionCommand())) {
 				// get the transition
-				Transition transition = ((Transition)this.cmbSendTransitions.getSelectedItem()).clone();
-				Object d = this.txtSendTransitions.getValue();
-				if (d != null && d instanceof Number) {
-					int duration = ((Number)d).intValue();
-					transition.setDuration(duration);
-				}
+				Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
+				int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
+				TransitionAnimator ta = new TransitionAnimator(transition, duration);
 				DisplayWindow primary = DisplayWindow.getPrimaryDisplay();
-				ShowResult result = DisplayWindow.show(primary, this.currVerseDisplay, transition);
+				ShowResult result = DisplayWindow.show(primary, this.currVerseDisplay, ta);
 				if (result == ShowResult.DEVICE_NOT_VALID) {
 					// the device is no longer available
 					LOGGER.warn("The primary display doesn't exist.");
@@ -855,14 +850,11 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				}
 			} else if ("clear".equals(e.getActionCommand())) {
 				// get the transition
-				Transition transition = ((Transition)this.cmbClearTransitions.getSelectedItem()).clone();
-				Object d = this.txtClearTransitions.getValue();
-				if (d != null && d instanceof Number) {
-					int duration = ((Number)d).intValue();
-					transition.setDuration(duration);
-				}
+				Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
+				int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
+				TransitionAnimator ta = new TransitionAnimator(transition, duration);
 				DisplayWindow primary = DisplayWindow.getPrimaryDisplay();
-				DisplayWindow.hide(primary, transition.clone());
+				DisplayWindow.hide(primary, ta);
 			} else if ("prev".equals(e.getActionCommand())) {
 				try {
 					Verse text = Bibles.getPreviousVerse(bible, book.getCode(), chapter, verse, ia);
@@ -953,7 +945,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				}
 				
 				// execute the search
-				BibleSearch search = new BibleSearch(bible, text, type, new BibleSearchCallback());
+				BibleSearch search = new BibleSearch(bible, text, ia, type, new BibleSearchCallback());
 				this.bibleSearchThread.queueSearch(search);
 			}
 		}
@@ -975,7 +967,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	 * @throws DataException if an exception occurs while loading the next and previous verses
 	 */
 	private void updateVerseDisplays(Verse verse) throws DataException {
-		boolean ia = GeneralSettings.getInstance().isApocryphaIncluded();
+		boolean ia = BibleSettings.getInstance().isApocryphaIncluded();
 		// set the current verse text
 		this.currVerseDisplay.setVerse(verse);
 		// then get the previous and next verses as well
