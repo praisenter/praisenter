@@ -39,7 +39,13 @@ public class BibleSetupPanel extends JPanel implements SetupPanel {
 	protected BibleSettings settings;
 
 	/** The available bibles */
-	private JComboBox<Bible> cmbBibles;
+	private JComboBox<Bible> cmbBiblesPrimary;
+	
+	/** The secondary bible listing */
+	private JComboBox<Bible> cmbBiblesSecondary;
+	
+	/** The checkbox to use the secondary bible */
+	private JCheckBox chkUseSecondaryBible;
 	
 	/** The checkbox to include/exclude the apocrypha */
 	private JCheckBox chkIncludeApocrypha;
@@ -53,6 +59,7 @@ public class BibleSetupPanel extends JPanel implements SetupPanel {
 	 * @param displaySize the target display size
 	 */
 	public BibleSetupPanel(BibleSettings settings, Dimension displaySize) {
+		this.settings = settings;
 		// general bible settings
 		JLabel lblDefaultBible = new JLabel(Messages.getString("panel.bible.setup.defaultBible"));
 		Bible[] bibles = null;
@@ -63,26 +70,51 @@ public class BibleSetupPanel extends JPanel implements SetupPanel {
 		}
 		// check for null
 		if (bibles == null) {
-			this.cmbBibles = new JComboBox<Bible>();
+			this.cmbBiblesPrimary = new JComboBox<Bible>();
 		} else {
-			this.cmbBibles = new JComboBox<Bible>(bibles);
+			this.cmbBiblesPrimary = new JComboBox<Bible>(bibles);
 		}
-		this.cmbBibles.setRenderer(new BibleListCellRenderer());
+		this.cmbBiblesPrimary.setRenderer(new BibleListCellRenderer());
 		// get the default value
 		Bible bible = null;
 		try {
-			bible = Bibles.getBible(settings.getDefaultBibleId());
+			bible = Bibles.getBible(settings.getDefaultPrimaryBibleId());
 		} catch (DataException e) {
 			LOGGER.error("Default bible could not be retrieved:", e);
 		}
 		if (bible != null) {
 			// set the default value
-			this.cmbBibles.setSelectedItem(bible);
+			this.cmbBiblesPrimary.setSelectedItem(bible);
 		}
 		JLabel lblIncludeApocrypha = new JLabel(Messages.getString("panel.bible.setup.includeApocrypha"));
 		lblIncludeApocrypha.setToolTipText(Messages.getString("panel.bible.setup.includeApocrypha.tooltip"));
 		this.chkIncludeApocrypha = new JCheckBox();
 		this.chkIncludeApocrypha.setSelected(settings.isApocryphaIncluded());
+		
+		// the secondary bible
+		JLabel lblDefaultSecondaryBible = new JLabel(Messages.getString("panel.bible.setup.defaultSecondaryBible"));
+		if (bibles == null) {
+			this.cmbBiblesSecondary = new JComboBox<Bible>();
+		} else {
+			this.cmbBiblesSecondary = new JComboBox<Bible>(bibles);
+		}
+		this.cmbBiblesSecondary.setRenderer(new BibleListCellRenderer());
+		// get the default value
+		bible = null;
+		try {
+			bible = Bibles.getBible(settings.getDefaultSecondaryBibleId());
+		} catch (DataException e) {
+			LOGGER.error("Default bible could not be retrieved:", e);
+		}
+		if (bible != null) {
+			// set the default value
+			this.cmbBiblesSecondary.setSelectedItem(bible);
+		}
+		
+		JLabel lblUseSecondaryBible = new JLabel(Messages.getString("panel.bible.setup.useSecondaryBible"));
+		lblUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.setup.useSecondaryBible.tooltip"));
+		this.chkUseSecondaryBible = new JCheckBox();
+		this.chkUseSecondaryBible.setSelected(settings.isSecondaryBibleInUse());
 		
 		// create the bible display panel
 		this.pnlDisplay = new BibleDisplaySetupPanel(settings, displaySize);
@@ -98,14 +130,24 @@ public class BibleSetupPanel extends JPanel implements SetupPanel {
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
 						.addComponent(lblDefaultBible)
+						.addComponent(lblDefaultSecondaryBible)
+						.addComponent(lblUseSecondaryBible)
 						.addComponent(lblIncludeApocrypha))
 				.addGroup(layout.createParallelGroup()
-						.addComponent(this.cmbBibles, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.chkUseSecondaryBible)
 						.addComponent(this.chkIncludeApocrypha)));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
 						.addComponent(lblDefaultBible)
-						.addComponent(this.cmbBibles, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(lblDefaultSecondaryBible)
+						.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(lblUseSecondaryBible)
+						.addComponent(this.chkUseSecondaryBible))
 				.addGroup(layout.createParallelGroup()
 						.addComponent(lblIncludeApocrypha)
 						.addComponent(this.chkIncludeApocrypha)));
@@ -121,7 +163,18 @@ public class BibleSetupPanel extends JPanel implements SetupPanel {
 	@Override
 	public void saveSettings() throws SettingsException {
 		// save this panel's settings
-		this.settings.setDefaultBibleId(((Bible)this.cmbBibles.getSelectedItem()).getId());
+		Bible primary = (Bible)this.cmbBiblesPrimary.getSelectedItem();
+		if (primary == null) {
+			primary = (Bible)this.cmbBiblesPrimary.getItemAt(0);
+		}
+		Bible secondary = (Bible)this.cmbBiblesSecondary.getSelectedItem();
+		if (secondary == null) {
+			secondary = (Bible)this.cmbBiblesSecondary.getItemAt(0);
+		}
+		
+		if (primary != null) this.settings.setDefaultPrimaryBibleId(primary.getId());
+		if (secondary != null) this.settings.setDefaultSecondaryBibleId(secondary.getId());
+		this.settings.setSecondaryBibleInUse(this.chkUseSecondaryBible.isSelected());
 		this.settings.setApocryphaIncluded(this.chkIncludeApocrypha.isSelected());
 		// save the display panel's settings
 		this.pnlDisplay.saveSettings();

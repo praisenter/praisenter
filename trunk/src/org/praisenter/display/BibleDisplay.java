@@ -48,6 +48,20 @@ public class BibleDisplay extends Display {
 	}
 	
 	/**
+	 * Convenience method for setting the texts for the given bible verse.
+	 * <p>
+	 * This method allows a verse from multiple bibles to be displayed on
+	 * one bible display.
+	 * @param verse1 the primary bible verse
+	 * @param verse2 the secondary bible verse
+	 */
+	public void setVerse(Verse verse1, Verse verse2) {
+		this.scriptureTitleComponent.setText(verse1.getBook().getName() + " " + verse1.getChapter() + ":" + verse1.getVerse());
+		// just split them by 2 new lines
+		this.scriptureTextComponent.setText(verse1.getText() + "\n\n" + verse2.getText());
+	}
+	
+	/**
 	 * Convenience method for clearing the text of the display.
 	 */
 	public void clearVerse() {
