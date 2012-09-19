@@ -96,10 +96,12 @@ public class TextRenderer {
 		LineBreakMeasurer measurer = new LineBreakMeasurer(it, g2d.getFontRenderContext());
 	    
 		// compute the height by laying out the lines
+		boolean isLastLayoutNewLine = false;
 	    while (measurer.getPosition() < text.length()) {
 	    	// get the expected ending character for this line
 	    	int bindex = measurer.getPosition();
 	    	int offset = measurer.nextOffset(width);
+	    	boolean isTerminatedByNewLine = false;
 	    	// see if there are any line break characters in this line
 	    	for (int i = bindex; i < offset; i++) {
 	    		char c = text.charAt(i);
@@ -107,6 +109,7 @@ public class TextRenderer {
 	    			// we found one so we need to break here instead
 	    			// of at the next offset
 	    			offset = i;
+	    			isTerminatedByNewLine = true;
 	    			break;
 	    		}
 	    	}
@@ -115,9 +118,26 @@ public class TextRenderer {
 	    	if (offset > bindex) {
 	    		// get the text up to the line break character
 	    		layout = measurer.nextLayout(width, offset, false);
+	    		isLastLayoutNewLine = false;
+	    	} else if (offset == bindex && isTerminatedByNewLine) {
+	    		// the line was terminated by a new line
+	    		// move the position by one (to skip over the new line)
+	    		measurer.setPosition(bindex + 1);
+	    		// check if the last layout was terminated by a new line
+	    		if (isLastLayoutNewLine) {
+		    		// this will happen if a new line is found and the last
+	    			// line was terminated by a new line
+		    		layout = new TextLayout(" ", g2d.getFont(), g2d.getFontRenderContext());
+		    		isLastLayoutNewLine = true;
+	    		} else {
+		    		isLastLayoutNewLine = true;
+		    		// dont put anything into the layout just yet
+	    			continue;
+	    		}
 	    	} else {
 	    		// get the whole line as measured
 	    		layout = measurer.nextLayout(width);
+	    		isLastLayoutNewLine = false;
 	    	}
 	    	
 	    	y += (layout.getAscent());
@@ -170,10 +190,12 @@ public class TextRenderer {
 	    
 		// compute the height by laying out the lines
 	    float h = 0;
+	    boolean isLastLayoutNewLine = false;
 	    while (measurer.getPosition() < text.length()) {
 	    	// get the expected ending character for this line
 	    	int bindex = measurer.getPosition();
 	    	int offset = measurer.nextOffset(width);
+	    	boolean isTerminatedByNewLine = false;
 	    	// see if there are any line break characters in this line
 	    	for (int i = bindex; i < offset; i++) {
 	    		char c = text.charAt(i);
@@ -181,6 +203,7 @@ public class TextRenderer {
 	    			// we found one so we need to break here instead
 	    			// of at the next offset
 	    			offset = i;
+	    			isTerminatedByNewLine = true;
 	    			break;
 	    		}
 	    	}
@@ -189,9 +212,23 @@ public class TextRenderer {
 	    	if (offset > bindex) {
 	    		// get the text up to the line break character
 	    		layout = measurer.nextLayout(width, offset, false);
+	    		isLastLayoutNewLine = false;
+	    	} else if (offset == bindex && isTerminatedByNewLine) {
+	    		measurer.setPosition(bindex + 1);
+	    		if (isLastLayoutNewLine) {
+		    		// this will happen if a new line is found and the last
+	    			// line was terminated by a new line
+		    		layout = new TextLayout(" ", font, fontRenderContext);
+		    		isLastLayoutNewLine = true;
+	    		} else {
+	    			isLastLayoutNewLine = true;
+	    			// dont put anything into the layout just yet
+	    			continue;
+	    		}
 	    	} else {
 	    		// get the whole line as measured
 	    		layout = measurer.nextLayout(width);
+	    		isLastLayoutNewLine = false;
 	    	}
 	    	// accumulate this lines height
 	    	h += layout.getAscent() + layout.getDescent() + layout.getLeading();

@@ -274,7 +274,7 @@ public class UnboundBibleImporter {
 				
 				connection.commit();
 				
-				LOGGER.info("Bible indexes rebuild successfully.");
+				LOGGER.info("Bible indexes rebuilt successfully.");
 			} catch (SQLException e) {
 				// roll back any index changes we have done thus far
 				connection.rollback();

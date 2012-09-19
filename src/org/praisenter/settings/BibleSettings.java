@@ -29,8 +29,14 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	// settings keys
 	
 	/** Property key for the default bible id */
-	private static final String KEY_DEFAULT_BIBLE_ID = "Bible.Default";
+	private static final String KEY_DEFAULT_PRIMARY_BIBLE_ID = "Bible.Primary.Default";
 	
+	/** Property key for the default secondary bible id */
+	private static final String KEY_DEFAULT_SECONDARY_BIBLE_ID = "Bible.Secondary.Default";
+	
+	/** Property key to use/not use a second bible */
+	private static final String KEY_USE_SECONDARY_BIBLE = "Bible.Secondary.Use";
+
 	/** Property key to include/exclude the apocrypha books */
 	private static final String KEY_INCLUDE_APOCRYPHA = "Bible.IncludeApocrypha";
 	
@@ -93,7 +99,9 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	@Override
 	public void setDefaultSettings() throws SettingsException {
 		this.setApocryphaIncluded(false);
-		this.setDefaultBibleId(0);
+		this.setDefaultPrimaryBibleId(0);
+		this.setDefaultSecondaryBibleId(0);
+		this.setSecondaryBibleInUse(false);
 		
 		this.colorBackgroundSettings.setColor(Color.BLUE);
 		this.colorBackgroundSettings.setVisible(true);
@@ -163,8 +171,8 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	 * Returns zero if not set.
 	 * @return the default bible id
 	 */
-	public int getDefaultBibleId() {
-		return this.getIntegerSetting(KEY_DEFAULT_BIBLE_ID);
+	public int getDefaultPrimaryBibleId() {
+		return this.getIntegerSetting(KEY_DEFAULT_PRIMARY_BIBLE_ID);
 	}
 	
 	/**
@@ -172,10 +180,46 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	 * @param id the bible id
 	 * @throws SettingsException if an exception occurs while assigning the setting
 	 */
-	public void setDefaultBibleId(int id) throws SettingsException {
-		this.setSetting(KEY_DEFAULT_BIBLE_ID, id);
+	public void setDefaultPrimaryBibleId(int id) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_PRIMARY_BIBLE_ID, id);
+	}
+
+	/**
+	 * Returns the default secondary bible id.
+	 * <p>
+	 * Returns zero if not set.
+	 * @return the default secondary bible id
+	 */
+	public int getDefaultSecondaryBibleId() {
+		return this.getIntegerSetting(KEY_DEFAULT_SECONDARY_BIBLE_ID);
 	}
 	
+	/**
+	 * Sets the default secondary bible id.
+	 * @param id the bible id
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setDefaultSecondaryBibleId(int id) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_SECONDARY_BIBLE_ID, id);
+	}
+	
+	/**
+	 * Returns true if the secondary bible should be used in addition to the primary.
+	 * @return boolean
+	 */
+	public boolean isSecondaryBibleInUse() {
+		return this.getBooleanSetting(KEY_USE_SECONDARY_BIBLE);
+	}
+	
+	/**
+	 * Sets whether the secondary bible should be used in addition to the primary.
+	 * @param flag true if the secondary bible should be used
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setSecondaryBibleInUse(boolean flag) throws SettingsException {
+		this.setSetting(KEY_USE_SECONDARY_BIBLE, flag);
+	}
+
 	/**
 	 * Returns true if the apocrypha should be included.
 	 * @return boolean

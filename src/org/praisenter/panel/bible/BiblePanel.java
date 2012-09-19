@@ -23,6 +23,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ComboBoxEditor;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
@@ -72,7 +73,6 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-// TODO add option for second bible translation
 public class BiblePanel extends JPanel implements ActionListener, SettingsListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;
@@ -82,8 +82,14 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	
 	// normal bible lookup
 	
-	/** The combo box of bibles */
-	private JComboBox<Bible> cmbBibles;
+	/** The primary bible combo box */
+	private JComboBox<Bible> cmbBiblesPrimary;
+	
+	/** The secondary bible combo box */
+	private JComboBox<Bible> cmbBiblesSecondary;
+	
+	/** The checkbox to use the secondary bible in addition to the first */
+	private JCheckBox chkUseSecondaryBible;
 	
 	/** The combo box of books (for the selected bible) */
 	private JComboBox<Book> cmbBooks;
@@ -185,13 +191,15 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		}
 		
 		// the bible combobox
+		JLabel lblPrimaryBible = new JLabel(Messages.getString("panel.bible.primary"));
+		lblPrimaryBible.setToolTipText(Messages.getString("panel.bible.primary.tooltip"));
 		if (bibles == null) {
-			this.cmbBibles = new JComboBox<Bible>();
+			this.cmbBiblesPrimary = new JComboBox<Bible>();
 		} else {
-			this.cmbBibles = new JComboBox<Bible>(bibles);
+			this.cmbBiblesPrimary = new JComboBox<Bible>(bibles);
 		}
-		this.cmbBibles.setRenderer(new BibleListCellRenderer());
-		this.cmbBibles.addItemListener(new ItemListener() {
+		this.cmbBiblesPrimary.setRenderer(new BibleListCellRenderer());
+		this.cmbBiblesPrimary.addItemListener(new ItemListener() {
 			/* (non-Javadoc)
 			 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
 			 */
@@ -200,7 +208,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				// only perform the following when the event is a selected event
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					// look up the number of chapters in the book
-					Bible bible = (Bible)cmbBibles.getSelectedItem();
+					Bible bible = (Bible)cmbBiblesPrimary.getSelectedItem();
 					if (bible != null) {
 						// load up all the books
 						try {
@@ -238,12 +246,26 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 			}
 		});
 		
+		// secondary bible
+		JLabel lblSecondaryBible = new JLabel(Messages.getString("panel.bible.secondary"));
+		lblSecondaryBible.setToolTipText(Messages.getString("panel.bible.secondary.tooltip"));
+		if (bibles == null) {
+			this.cmbBiblesSecondary = new JComboBox<Bible>();
+		} else {
+			this.cmbBiblesSecondary = new JComboBox<Bible>(bibles);
+		}
+		this.cmbBiblesSecondary.setRenderer(new BibleListCellRenderer());
+		
+		this.chkUseSecondaryBible = new JCheckBox(Messages.getString("panel.bible.secondary.use"));
+		this.chkUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.secondary.use.tooltip"));
+		this.chkUseSecondaryBible.setSelected(bSettings.isSecondaryBibleInUse());
+		
 		// get the books
 		List<Book> books = new ArrayList<Book>();
 		// get the default bible
 		Bible bible = null;
 		try {
-			int id = bSettings.getDefaultBibleId();
+			int id = bSettings.getDefaultPrimaryBibleId();
 			if (id > 0) {
 				bible = Bibles.getBible(id);
 			}
@@ -655,7 +677,20 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		// default any fields
 		if (bible != null) {
-			this.cmbBibles.setSelectedItem(bible);
+			this.cmbBiblesPrimary.setSelectedItem(bible);
+		} else if (bibles != null && bibles.length > 0) {
+			this.cmbBiblesPrimary.setSelectedIndex(0);
+		}
+		bible = null;
+		try {
+			bible = Bibles.getBible(bSettings.getDefaultSecondaryBibleId());
+		} catch (DataException e) {
+			LOGGER.error("Default secondary bible could not be retrieved: ", e);
+		}
+		if (bible != null) {
+			this.cmbBiblesSecondary.setSelectedItem(bible);
+		} else if (bibles != null && bibles.length > 0) {
+			this.cmbBiblesSecondary.setSelectedIndex(0);
 		}
 		if (books != null && books.size() > 0) {
 			this.cmbBooks.setSelectedIndex(0);
@@ -672,7 +707,14 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				.addComponent(this.pnlPreview)
 				.addGroup(layout.createSequentialGroup()
 						.addGroup(layout.createParallelGroup()
-								.addComponent(this.cmbBibles, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addGroup(layout.createSequentialGroup()
+										.addGroup(layout.createParallelGroup()
+												.addComponent(lblPrimaryBible)
+												.addComponent(lblSecondaryBible))
+										.addGroup(layout.createParallelGroup()
+												.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+												.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+												.addComponent(this.chkUseSecondaryBible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
 								.addGroup(layout.createSequentialGroup()
 										.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
 												.addComponent(this.cmbBooks, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -702,7 +744,13 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				.addComponent(this.pnlPreview)
 				.addGroup(layout.createParallelGroup()
 						.addGroup(layout.createSequentialGroup()
-								.addComponent(this.cmbBibles, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addGroup(layout.createParallelGroup()
+										.addComponent(lblPrimaryBible)
+										.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addGroup(layout.createParallelGroup()
+										.addComponent(lblSecondaryBible)
+										.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(this.chkUseSecondaryBible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 										.addGroup(layout.createSequentialGroup()
 												.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
@@ -796,7 +844,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		Bible bible = (Bible)cmbBibles.getSelectedItem();
+		Bible bible = (Bible)cmbBiblesPrimary.getSelectedItem();
 		Object b = this.cmbBooks.getSelectedItem();
 		Object c = this.txtChapter.getValue();
 		Object v = this.txtVerse.getValue();
@@ -968,11 +1016,48 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	 */
 	private void updateVerseDisplays(Verse verse) throws DataException {
 		boolean ia = BibleSettings.getInstance().isApocryphaIncluded();
-		// set the current verse text
-		this.currVerseDisplay.setVerse(verse);
 		// then get the previous and next verses as well
 		Verse prev = Bibles.getPreviousVerse(verse, ia);
 		Verse next = Bibles.getNextVerse(verse, ia);
+		
+		// check the secondary bible
+		if (this.chkUseSecondaryBible.isSelected()) {
+			// get the secondary bible's text
+			Bible bible = (Bible)this.cmbBiblesSecondary.getSelectedItem();
+			// as long as they aren't the same bible
+			if (bible != null && !bible.equals(verse.getBible())) {
+				try {
+					// get the secondary bible verses
+					Verse v2 = Bibles.getVerse(bible, verse.getBook().getCode(), verse.getChapter(), verse.getVerse());
+					Verse v2p = Bibles.getPreviousVerse(v2, ia);
+					Verse v2n = Bibles.getNextVerse(v2, ia);
+					// set the current verse text
+					this.currVerseDisplay.setVerse(verse, v2);
+					// set the previous verse
+					if (prev != null) {
+						this.prevVerseDisplay.setVerse(prev, v2p);
+					} else {
+						this.prevVerseDisplay.clearVerse();
+					}
+					// set the next verse
+					if (next != null) {
+						this.nextVerseDisplay.setVerse(next, v2n);
+					} else {
+						this.nextVerseDisplay.clearVerse();
+					}
+					// repaint the preview
+					this.pnlPreview.repaint();
+					return;
+				} catch (DataException e) {
+					// the secondary bible isn't as important as the primary
+					// we should just log the error if the secondary throws an excpetion
+					LOGGER.error("An error occurred while retrieving the previous, current, and next verses from the secondary bible: ", e);
+				}
+			}
+		}
+		
+		// set the current verse text
+		this.currVerseDisplay.setVerse(verse);
 		// set the previous verse
 		if (prev != null) {
 			this.prevVerseDisplay.setVerse(prev);
@@ -994,7 +1079,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	 */
 	private void updateLabels() {
 		// look up the number of verses in the chapter
-		Bible bible = (Bible)cmbBibles.getSelectedItem();
+		Bible bible = (Bible)cmbBiblesPrimary.getSelectedItem();
 		Book book = (Book)cmbBooks.getSelectedItem();
 		Object chap = txtChapter.getValue();
 		Object vers = txtVerse.getValue();
