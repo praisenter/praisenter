@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 
 import javax.swing.GroupLayout;
@@ -186,16 +187,33 @@ public class ApplicationLoader {
 						Messages.getString("exception.startup.text"), 
 						ex);
 				// don't continue any further
-				return;
+				System.exit(1);
 			}
 	
-			// TODO attempt to send saved errors
+			// send saved errors
+			sendSavedErrorReports();
 			
 			// load all fonts
 			preloadFonts();
 			
 			// load the main application window
-			preloadMainApplicationWindow();
+			try {
+				preloadMainApplicationWindow();
+			} catch (Exception ex) {
+				// an error occurred trying to build
+				// the main application window
+				close();
+				// log the error
+				LOGGER.error(ex);
+				// show an error dialog
+				ExceptionDialog.show(
+						null, 
+						Messages.getString("exception.startup.title"), 
+						Messages.getString("exception.startup.text"), 
+						ex);
+				// don't continue any further
+				System.exit(1);
+			}
 		}
 		
 		// update the label to show completed
@@ -232,26 +250,36 @@ public class ApplicationLoader {
 	}
 	
 	/**
-	 * Preloads the main application window.
+	 * Attempts to send any saved error reports.
 	 */
-	private void preloadMainApplicationWindow() {
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					lblLoading.setText(Messages.getString("dialog.preload.app"));
-					lblLoadingText.setText("");
-					barProgress.setValue(0);
-					
-					// create the main app window
-					// needs to be run on the EDT
-					praisenter = new Praisenter();
-					praisenter.setVisible(true);
-					
-					barProgress.setValue(100);
-				}
-			});
-		} catch (Exception e) {}
+	private void sendSavedErrorReports() {
+		// set the initial status
+		updateProgress(true, 0, Messages.getString("dialog.preload.errorReports"), "");
+		Errors.sendErrorMessages();
+		updateProgress(true, 100);
+	}
+	
+	/**
+	 * Preloads the main application window.
+	 * @throws InterruptedException if the thread was interrupted before completing execution
+	 * @throws InvocationTargetException if the thread encountered an error
+	 */
+	private void preloadMainApplicationWindow() throws InterruptedException, InvocationTargetException {
+		SwingUtilities.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				lblLoading.setText(Messages.getString("dialog.preload.app"));
+				lblLoadingText.setText("");
+				barProgress.setValue(0);
+				
+				// create the main app window
+				// needs to be run on the EDT
+				praisenter = new Praisenter();
+				praisenter.setVisible(true);
+				
+				barProgress.setValue(100);
+			}
+		});
 	}
 	
 	/**

@@ -115,7 +115,7 @@ public abstract class Display {
 	 * @param graphics the graphics object
 	 */
 	public void render(Graphics2D graphics) {
-		// TODO allow ordering of the backgrounds
+		// TODO allow ordering of the backgrounds; or allow compositing by making a single background type with color/image/gradient/ordering etc.
 		
 		// render the base background
 		if (this.colorBackground != null) {
