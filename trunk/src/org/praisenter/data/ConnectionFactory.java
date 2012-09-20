@@ -7,9 +7,10 @@ import java.sql.SQLException;
 import java.util.Enumeration;
 
 import org.apache.derby.jdbc.EmbeddedDriver;
+import org.praisenter.Constants;
 
 /**
- * Simple connnection factory for obtaining connections to the various
+ * Simple connection factory for obtaining connections to the various
  * data storage locations.
  * @author William Bittle
  * @version 1.0.0
@@ -55,7 +56,7 @@ public class ConnectionFactory {
 	 * @throws SQLException if an exception occurs when getting a connection
 	 */
 	public static final Connection getBibleConnection() throws SQLException {
-		return getConnection("jdbc:derby:database/praisenter");
+		return getConnection("jdbc:derby:" + Constants.DATABASE_FILE_LOCATION + "/" + Constants.DATABASE_FILE_NAME);
 	}
 	
 	/**
@@ -64,7 +65,7 @@ public class ConnectionFactory {
 	 * @throws SQLException if an exception occurs when getting a connection
 	 */
 	public static final Connection getSongsConnection() throws SQLException {
-		return getConnection("jdbc:derby:database/praisenter");
+		return getConnection("jdbc:derby:" + Constants.DATABASE_FILE_LOCATION + "/" + Constants.DATABASE_FILE_NAME);
 	}
 
 	/**
@@ -73,6 +74,6 @@ public class ConnectionFactory {
 	 * @throws SQLException if an exception occurs when getting a connection
 	 */
 	public static final Connection getErrorsConnection() throws SQLException {
-		return getConnection("jdbc:derby:database/praisenter");
+		return getConnection("jdbc:derby:" + Constants.DATABASE_FILE_LOCATION + "/" + Constants.DATABASE_FILE_NAME);
 	}
 }

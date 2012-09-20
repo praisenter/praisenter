@@ -78,6 +78,9 @@ public class TaskProgressDialog extends JDialog {
 		this.pack();
 		
 		// start the background thread
+		// since this dialog is application modal its imperative
+		// that the worker thread be started before the dialog
+		// is set to visible
 		this.start();
 		
 		// make sure we are in the center of the parent window
@@ -115,14 +118,14 @@ public class TaskProgressDialog extends JDialog {
 				try {
 					Thread.sleep(500);
 					// just eat the exception if we get one
-				} catch (InterruptedException e) {}
+				} catch (Exception e) {}
 				
 				// once the task is complete then
 				// close the modal and resume normal
 				// application flow
 				close();
 			}
-		}, "FileImportThread");
+		}, "TaskProgressThread");
 		// don't block the closing of the app by this thread
 		thread.setDaemon(true);
 		// start the task thread
@@ -141,9 +144,9 @@ public class TaskProgressDialog extends JDialog {
 			@Override
 			public void run() {
 				// close it
-				TaskProgressDialog.this.setVisible(false);
+				setVisible(false);
 				// then dispose of the resources
-				TaskProgressDialog.this.dispose();
+				dispose();
 			}
 		});
 	}

@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.Properties;
 
+import org.praisenter.Constants;
 import org.praisenter.display.FontScaleType;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
@@ -21,7 +22,7 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	private static final String FILE_NAME = "BibleSettings.properties";
 	
 	/** The settings file location and name */
-	private static final String FILE_NAME_LOCATION = "config/" + FILE_NAME;
+	private static final String FILE_NAME_LOCATION = Constants.CONFIGURATION_FILE_LOCATION + "/" + FILE_NAME;
 	
 	/** The instance of the settings */
 	private static final BibleSettings instance = BibleSettings.loadSettings();
