@@ -211,17 +211,19 @@ public class Errors {
 	 * Attempts to send the stored error messages.
 	 */
 	public static final void sendErrorMessages() {
-		try {
-			// get all the stored messages
-			List<ErrorMessage> messages = getErrorMessages();
-			ErrorMessage[] array = messages.toArray(new ErrorMessage[0]);
-			// email the messages
-			emailErrorMessages(array);
-			// clear the messages
-			clearErrorMessages();
-		} catch (Exception e) {
-			// just log the error
-			LOGGER.error(e);
+		if (SMTP_ENABLED) {
+			try {
+				// get all the stored messages
+				List<ErrorMessage> messages = getErrorMessages();
+				ErrorMessage[] array = messages.toArray(new ErrorMessage[0]);
+				// email the messages
+				emailErrorMessages(array);
+				// clear the messages
+				clearErrorMessages();
+			} catch (Exception e) {
+				// just log the error
+				LOGGER.error(e);
+			}
 		}
 	}
 	

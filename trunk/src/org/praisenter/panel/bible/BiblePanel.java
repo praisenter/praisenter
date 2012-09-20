@@ -222,7 +222,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 								cmbBooks.addItem(book);
 								// see if the previously selected book is in this
 								// book listing
-								if (selected.isSameBook(book)) {
+								if (selected != null && selected.isSameBook(book)) {
 									index = i;
 								}
 								i++;
@@ -679,7 +679,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		if (bible != null) {
 			this.cmbBiblesPrimary.setSelectedItem(bible);
 		} else if (bibles != null && bibles.length > 0) {
-			this.cmbBiblesPrimary.setSelectedIndex(0);
+			this.cmbBiblesPrimary.setSelectedItem(bibles[0]);
 		}
 		bible = null;
 		try {
@@ -690,10 +690,10 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		if (bible != null) {
 			this.cmbBiblesSecondary.setSelectedItem(bible);
 		} else if (bibles != null && bibles.length > 0) {
-			this.cmbBiblesSecondary.setSelectedIndex(0);
+			this.cmbBiblesSecondary.setSelectedItem(bibles[0]);
 		}
 		if (books != null && books.size() > 0) {
-			this.cmbBooks.setSelectedIndex(0);
+			this.cmbBooks.setSelectedItem(books.get(0));
 		}
 		
 		// create the layout
@@ -1112,34 +1112,33 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 						Verse v = Bibles.getVerse(bible, book.getCode(), chapter, verse);
 						if (v != null) {
 							lblFound.setIcon(Icons.FOUND);
-							lblFound.setText(Messages.getString("panel.bible.valid"));
+							lblFound.setToolTipText("");
 						} else {
 							lblFound.setIcon(Icons.NOT_FOUND);
-							lblFound.setText(Messages.getString("panel.bible.invalid"));
 							lblFound.setToolTipText(MessageFormat.format(Messages.getString("panel.bible.data.verseNotFound"), bible.getName(), book.getName(), chapter, verse));
 						}
 					} catch (DataException ex) {
 						LOGGER.error(MessageFormat.format(Messages.getString("panel.bible.data.validate.exception.text"), bible.getName(), book.getName(), chapter, verse), ex);
 						lblFound.setIcon(null);
-						lblFound.setText("");
+						lblFound.setToolTipText("");
 					}
 				} else {
 					// clear labels if not enough info is given
 					lblFound.setIcon(null);
-					lblFound.setText("");
+					lblFound.setToolTipText("");
 				}
 			} else {
 				// clear labels if not enough info is given
 				lblVerseCount.setText("");
 				lblFound.setIcon(null);
-				lblFound.setText("");
+				lblFound.setToolTipText("");
 			}
 		} else {
 			// clear labels if not enough info is given
 			lblChapterCount.setText(MessageFormat.format(Messages.getString("panel.bible.chapterCount"), ""));
 			lblVerseCount.setText("");
 			lblFound.setIcon(null);
-			lblFound.setText("");
+			lblFound.setToolTipText("");
 		}
 	}
 	

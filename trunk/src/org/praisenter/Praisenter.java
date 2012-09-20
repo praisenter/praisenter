@@ -70,7 +70,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
 		
-		// TODO add a way to save a service; the service type will be used to store queued songs and verses
+		// TODO add a way to save a service; this could be used to store queued songs and verses
 		
 		// TODO add menu option to export bibles and songs (probably xml format)
 		
@@ -106,22 +106,27 @@ public class Praisenter extends JFrame implements ActionListener {
 			mnuExportErrors.addActionListener(this);
 			mnuExport.add(mnuExportErrors);
 
-			// TODO split the import sub menus by type (bible, songs, etc)
-			
 			// import menu
-			
-			JMenu mnuImport = new JMenu(Messages.getString("menu.file.import"));
-			mnuFile.add(mnuImport);
-			
-			JMenuItem mnuImportUBBible = new JMenuItem(Messages.getString("menu.file.import.bible.unbound"));
-			mnuImportUBBible.setActionCommand("importUBBible");
-			mnuImportUBBible.addActionListener(this);
-			mnuImport.add(mnuImportUBBible);
-			
-			JMenuItem mnuImportCVSongs = new JMenuItem(Messages.getString("menu.file.import.songs.churchview"));
-			mnuImportCVSongs.setActionCommand("importCVSongs");
-			mnuImportCVSongs.addActionListener(this);
-			mnuImport.add(mnuImportCVSongs);
+			{
+				JMenu mnuImport = new JMenu(Messages.getString("menu.file.import"));
+				mnuFile.add(mnuImport);
+				
+				JMenu mnuImportBible = new JMenu(Messages.getString("menu.file.import.bible"));
+				mnuImport.add(mnuImportBible);
+				
+				JMenu mnuImportSongs = new JMenu(Messages.getString("menu.file.import.songs"));
+				mnuImport.add(mnuImportSongs);
+				
+				JMenuItem mnuImportUBBible = new JMenuItem(Messages.getString("menu.file.import.bible.unbound"));
+				mnuImportUBBible.setActionCommand("importUBBible");
+				mnuImportUBBible.addActionListener(this);
+				mnuImportBible.add(mnuImportUBBible);
+				
+				JMenuItem mnuImportCVSongs = new JMenuItem(Messages.getString("menu.file.import.songs.churchview"));
+				mnuImportCVSongs.setActionCommand("importCVSongs");
+				mnuImportCVSongs.addActionListener(this);
+				mnuImportSongs.add(mnuImportCVSongs);
+			}
 			
 			if (Main.isDebug()) {
 				// look and feel menu
