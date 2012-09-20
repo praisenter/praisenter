@@ -6,6 +6,7 @@ import java.awt.GraphicsDevice;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.praisenter.Constants;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -22,7 +23,7 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	private static final String FILE_NAME = "GeneralSettings.properties";
 	
 	/** The settings file location and name */
-	private static final String FILE_NAME_LOCATION = "config/" + FILE_NAME;
+	private static final String FILE_NAME_LOCATION = Constants.CONFIGURATION_FILE_LOCATION + "/" + FILE_NAME;
 	
 	/** The instance of the settings */
 	private static final GeneralSettings instance = GeneralSettings.loadSettings();
