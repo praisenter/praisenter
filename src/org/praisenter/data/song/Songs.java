@@ -192,6 +192,38 @@ public class Songs {
 			throw new DataException(e);
 		}
 	}
+
+	/**
+	 * Executes the given sql returning the count.
+	 * @param sql the sql query
+	 * @return int the count
+	 * @throws DataException if any exception occurs during processing
+	 */
+	private static final int getCountBySql(String sql) throws DataException {
+		// execute the query
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 Statement statement = connection.createStatement();
+			 ResultSet result = statement.executeQuery(sql);)
+		{
+			if (result.next()) {
+				// interpret the result
+				return result.getInt(1);
+			} 
+			
+			return 0;
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
+	}
+	
+	/**
+	 * Returns the number of songs in the data store.
+	 * @return int
+	 * @throws DataException if an exception occurs during execution
+	 */
+	public static final int getSongCount() throws DataException {
+		return Songs.getCountBySql("SELECT COUNT(*) FROM songs");
+	}
 	
 	/**
 	 * Returns the song for the given id.

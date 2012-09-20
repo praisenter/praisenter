@@ -27,10 +27,13 @@ import javax.swing.UIManager.LookAndFeelInfo;
 
 import org.apache.log4j.Logger;
 import org.praisenter.control.ZipFileFilter;
+import org.praisenter.data.DataException;
 import org.praisenter.data.DataImportException;
 import org.praisenter.data.bible.UnboundBibleImporter;
 import org.praisenter.data.errors.Errors;
 import org.praisenter.data.song.ChurchViewSongImporter;
+import org.praisenter.data.song.SongExporter;
+import org.praisenter.data.song.Songs;
 import org.praisenter.dialog.ExceptionDialog;
 import org.praisenter.dialog.SetupDialog;
 import org.praisenter.icons.Icons;
@@ -72,8 +75,6 @@ public class Praisenter extends JFrame implements ActionListener {
 		
 		// TODO add a way to save a service; this could be used to store queued songs and verses
 		
-		// TODO add menu option to export bibles and songs (probably xml format)
-		
 		// create the bible panel
 		this.pnlBible = new BiblePanel();
 		this.pnlBible.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -98,13 +99,20 @@ public class Praisenter extends JFrame implements ActionListener {
 			mnuWindow.add(mnuPreferences);
 
 			// export menu
-			JMenu mnuExport = new JMenu(Messages.getString("menu.file.export"));
-			mnuFile.add(mnuExport);
-			
-			JMenuItem mnuExportErrors = new JMenuItem(Messages.getString("menu.file.export.errors"));
-			mnuExportErrors.setActionCommand("exportErrors");
-			mnuExportErrors.addActionListener(this);
-			mnuExport.add(mnuExportErrors);
+			{
+				JMenu mnuExport = new JMenu(Messages.getString("menu.file.export"));
+				mnuFile.add(mnuExport);
+				
+				JMenuItem mnuExportErrors = new JMenuItem(Messages.getString("menu.file.export.errors"));
+				mnuExportErrors.setActionCommand("exportErrors");
+				mnuExportErrors.addActionListener(this);
+				mnuExport.add(mnuExportErrors);
+				
+				JMenuItem mnuExportSongs = new JMenuItem(Messages.getString("menu.file.export.songs"));
+				mnuExportSongs.setActionCommand("exportSongs");
+				mnuExportSongs.addActionListener(this);
+				mnuExport.add(mnuExportSongs);
+			}
 
 			// import menu
 			{
@@ -126,6 +134,8 @@ public class Praisenter extends JFrame implements ActionListener {
 				mnuImportCVSongs.setActionCommand("importCVSongs");
 				mnuImportCVSongs.addActionListener(this);
 				mnuImportSongs.add(mnuImportCVSongs);
+				
+				// TODO add option to import PraisenterSongs.xml file format
 			}
 			
 			if (Main.isDebug()) {
@@ -183,6 +193,17 @@ public class Praisenter extends JFrame implements ActionListener {
 			this.importUnboundBible();
 		} else if ("importCVSongs".equals(command)) {
 			this.importChurchViewSongDatabase();
+		} else if ("exportSongs".equals(command)) {
+			try {
+				this.exportSongs();
+			} catch (Exception e) {
+				LOGGER.error("An error occurred while exporting the songs:", e);
+				ExceptionDialog.show(
+						this,
+						Messages.getString("dialog.export.songs.error.title"), 
+						Messages.getString("dialog.export.songs.error.text"), 
+						e);
+			}
 		}
 	}
 	
@@ -332,6 +353,81 @@ public class Praisenter extends JFrame implements ActionListener {
 			JOptionPane.showMessageDialog(this, 
 					Messages.getString("dialog.export.errors.none.text"), 
 					Messages.getString("dialog.export.errors.none.title"), 
+					JOptionPane.INFORMATION_MESSAGE);
+		}
+	}
+	
+	/**
+	 * Exports the entire song database to an xml file.
+	 * @throws IOException thrown if an IO error occurs
+	 * @throws DataException if an exception occurs getting the data
+	 */
+	@SuppressWarnings("serial")
+	private void exportSongs() throws IOException, DataException {
+		// see if we even need to export anything
+		if (Songs.getSongCount() > 0) {
+			// create a class to show a "are you sure" message when over writing an existing file
+			JFileChooser fileBrowser = new JFileChooser() {
+				/* (non-Javadoc)
+				 * @see javax.swing.JFileChooser#approveSelection()
+				 */
+				@Override
+				public void approveSelection() {
+					if (getDialogType() == SAVE_DIALOG) {
+						File selectedFile = getSelectedFile();
+						if ((selectedFile != null) && selectedFile.exists()) {
+							int response = JOptionPane.showConfirmDialog(
+											this,
+											MessageFormat.format(Messages.getString("dialog.export.songs.warning.text"), selectedFile.getName()),
+											Messages.getString("dialog.export.songs.warning.title"),
+											JOptionPane.YES_NO_OPTION,
+											JOptionPane.WARNING_MESSAGE);
+							if (response != JOptionPane.YES_OPTION)
+								return;
+						}
+					}
+	
+					super.approveSelection();
+				}
+			};
+			fileBrowser.setMultiSelectionEnabled(false);
+			fileBrowser.setDialogTitle(Messages.getString("dialog.export.songs.title"));
+			fileBrowser.setSelectedFile(new File(Messages.getString("dialog.export.songs.defaultFileName")));
+			
+			int option = fileBrowser.showSaveDialog(this);
+			// check the option
+			if (option == JFileChooser.APPROVE_OPTION) {
+				File file = fileBrowser.getSelectedFile();
+				// export the errors
+				String text = SongExporter.exportSongs();
+				
+				// see if its a new one or it already exists
+				if (file.exists()) {
+					// overwrite the file
+					FileWriter fw = new FileWriter(file);
+					fw.write(text);
+					fw.close();
+					JOptionPane.showMessageDialog(this, 
+							Messages.getString("dialog.export.songs.success.text"), 
+							Messages.getString("dialog.export.songs.success.title"), 
+							JOptionPane.INFORMATION_MESSAGE);
+				} else {
+					// create a new file
+					if (file.createNewFile()) {
+						FileWriter fw = new FileWriter(file);
+						fw.write(text);
+						fw.close();
+						JOptionPane.showMessageDialog(this, 
+								Messages.getString("dialog.export.songs.success.text"), 
+								Messages.getString("dialog.export.songs.success.title"), 
+								JOptionPane.INFORMATION_MESSAGE);
+					}
+				}
+			}
+		} else {
+			JOptionPane.showMessageDialog(this, 
+					Messages.getString("dialog.export.songs.none.text"), 
+					Messages.getString("dialog.export.songs.none.title"), 
 					JOptionPane.INFORMATION_MESSAGE);
 		}
 	}
