@@ -1,6 +1,7 @@
 Library					  |	Required?	  | License	File						| Use/Description
 --------------------------+---------------+-------------------------------------+-------------------------------------------------------
 commons-codec-1.6.jar	  |	Required	  | licenses/apache-license-1.0.txt		| Runtime/Apache Commons Codec for base64 encoding/decoding
+commons-lang3-3.1.jar	  |	Required	  | licenses/apache-license-1.0.txt		| Runtime/Apache Commons lang for xml escaping/unescaping
 derby.jar				  |	Required	  |	licenses/apache-license-1.0.txt		| Runtime/Derby database engine
 log4j-1.2.17.jar		  |	Required	  |	licenses/apache-license-1.0.txt		| Runtime/Apache Log4j for application logging
 mail.jar				  |	Required	  |	licenses/javamail-license.txt		| Runtime/JavaMail API for sending error reports

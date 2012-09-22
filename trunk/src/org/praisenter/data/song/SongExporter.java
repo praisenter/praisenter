@@ -1,7 +1,9 @@
 package org.praisenter.data.song;
 
+import java.text.DateFormat;
 import java.util.List;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.praisenter.data.DataException;
 import org.praisenter.utilities.XmlFormatter;
 
@@ -12,6 +14,8 @@ import org.praisenter.utilities.XmlFormatter;
  * @since 1.0.0
  */
 public class SongExporter {
+	/** The output date format */
+	protected static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 	
 	/**
 	 * Exports the songs to an XML string.
@@ -42,9 +46,9 @@ public class SongExporter {
 		
 		sb.append("<Song>")
 		  .append("<Id>").append(song.id).append("</Id>")
-		  .append("<Title>").append(song.title).append("</Title>")
-		  .append("<Notes>").append(song.notes).append("</Notes>")
-		  .append("<DateAdded>").append(song.dateAdded).append("</DateAdded>")
+		  .append("<Title>").append(StringEscapeUtils.escapeXml(song.title)).append("</Title>")
+		  .append("<Notes>").append(StringEscapeUtils.escapeXml(song.notes)).append("</Notes>")
+		  .append("<DateAdded>").append(DATE_FORMAT.format(song.dateAdded)).append("</DateAdded>")
 		  .append("<Parts>");
 		for (SongPart part : song.parts) {
 			sb.append(toXml(part));
@@ -67,8 +71,8 @@ public class SongExporter {
 		  .append("<Id>").append(part.id).append("</Id>")
 		  .append("<Type>").append(part.type).append("</Type>")
 		  .append("<Index>").append(part.partIndex).append("</Index>")
-		  .append("<Name>").append(part.partName).append("</Name>")
-		  .append("<Text>").append(part.text).append("</Text>")
+		  .append("<Name>").append(StringEscapeUtils.escapeXml(part.partName)).append("</Name>")
+		  .append("<Text>").append(StringEscapeUtils.escapeXml(part.text)).append("</Text>")
 		  .append("<FontSize>").append(part.fontSize).append("</FontSize>")
 		  .append("</SongPart>");
 		

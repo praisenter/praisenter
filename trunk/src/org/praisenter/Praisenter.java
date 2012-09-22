@@ -31,7 +31,7 @@ import org.praisenter.data.DataException;
 import org.praisenter.data.DataImportException;
 import org.praisenter.data.bible.UnboundBibleImporter;
 import org.praisenter.data.errors.Errors;
-import org.praisenter.data.song.ChurchViewSongImporter;
+import org.praisenter.data.song.SongImporter;
 import org.praisenter.data.song.SongExporter;
 import org.praisenter.data.song.Songs;
 import org.praisenter.dialog.ExceptionDialog;
@@ -130,12 +130,16 @@ public class Praisenter extends JFrame implements ActionListener {
 				mnuImportUBBible.addActionListener(this);
 				mnuImportBible.add(mnuImportUBBible);
 				
+				// TODO add option to import PraisenterSongs.xml file format
+				JMenuItem mnuImportPraisenter = new JMenuItem(Messages.getString("menu.file.import.songs.praisenter"));
+				mnuImportPraisenter.setActionCommand("importPraisenterSongs");
+				mnuImportPraisenter.addActionListener(this);
+				mnuImportSongs.add(mnuImportPraisenter);
+				
 				JMenuItem mnuImportCVSongs = new JMenuItem(Messages.getString("menu.file.import.songs.churchview"));
 				mnuImportCVSongs.setActionCommand("importCVSongs");
 				mnuImportCVSongs.addActionListener(this);
 				mnuImportSongs.add(mnuImportCVSongs);
-				
-				// TODO add option to import PraisenterSongs.xml file format
 			}
 			
 			if (Main.isDebug()) {
@@ -204,6 +208,8 @@ public class Praisenter extends JFrame implements ActionListener {
 						Messages.getString("dialog.export.songs.error.text"), 
 						e);
 			}
+		} else if ("importPraisenterSongs".equals(command)) {
+			this.importPraisenterSongDatabase();
 		}
 	}
 	
@@ -500,6 +506,69 @@ public class Praisenter extends JFrame implements ActionListener {
 	/**
 	 * Attempts to import the user selected church view song file.
 	 */
+	private void importPraisenterSongDatabase() {
+		JFileChooser fileBrowser = new JFileChooser();
+		fileBrowser.setDialogTitle(Messages.getString("dialog.open.title"));
+		fileBrowser.setMultiSelectionEnabled(false);
+		int option = fileBrowser.showOpenDialog(this);
+		// check the option
+		if (option == JFileChooser.APPROVE_OPTION) {
+			// get the selected file
+			File file = fileBrowser.getSelectedFile();
+			// make sure it exists and its a file
+			if (file.exists() && file.isFile()) {
+				// make sure they are sure
+				option = JOptionPane.showConfirmDialog(this, 
+						Messages.getString("dialog.import.songs.prompt.text"), 
+						MessageFormat.format(Messages.getString("dialog.import.songs.prompt.title"), file.getName()), 
+						JOptionPane.YES_NO_CANCEL_OPTION);
+				// check the user's choice
+				if (option == JOptionPane.YES_OPTION) {
+					// we need to execute this in a separate process
+					// and show a progress monitor
+					ImportFileTask task = new ImportFileTask(file) {
+						@Override
+						public void run() {
+							try {
+								// import the bible
+								SongImporter.importPraisenterSongs(getFile());
+								setSuccessful(true);
+							} catch (DataImportException e) {
+								// handle the exception
+								handleException(e);
+							}
+						}
+					};
+					// show a task progress bar
+					TaskProgressDialog.show(
+							this, 
+							Messages.getString("importing"), 
+							task);
+					// show a message either way
+					if (task.isSuccessful()) {
+						// show a success message
+						JOptionPane.showMessageDialog(this, 
+								Messages.getString("dialog.import.songs.success.text"), 
+								Messages.getString("dialog.import.songs.success.title"), 
+								JOptionPane.INFORMATION_MESSAGE);
+					} else {
+						Exception e = task.getException();
+						// show an error message
+						ExceptionDialog.show(
+								this,
+								Messages.getString("dialog.import.songs.failed.title"), 
+								Messages.getString("dialog.import.songs.failed.text"), 
+								e);
+						LOGGER.error("An error occurred while importing a ChurchView song database:", e);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Attempts to import the user selected church view song file.
+	 */
 	private void importChurchViewSongDatabase() {
 		JFileChooser fileBrowser = new JFileChooser();
 		fileBrowser.setDialogTitle(Messages.getString("dialog.open.title"));
@@ -525,7 +594,7 @@ public class Praisenter extends JFrame implements ActionListener {
 						public void run() {
 							try {
 								// import the bible
-								ChurchViewSongImporter.importSongs(getFile());
+								SongImporter.importChurchViewSongs(getFile());
 								setSuccessful(true);
 							} catch (DataImportException e) {
 								// handle the exception
