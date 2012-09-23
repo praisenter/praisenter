@@ -27,6 +27,8 @@ import org.praisenter.settings.BibleSettings;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.SettingsException;
 import org.praisenter.settings.SettingsListener;
+import org.praisenter.tasks.AbstractTask;
+import org.praisenter.tasks.TaskProgressDialog;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -124,9 +126,23 @@ public class SetupDialog extends JDialog implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
 		if ("save".equals(command)) {
-			try {
-				this.pnlGeneralSettings.saveSettings();
-				this.pnlBibleSettings.saveSettings();
+			// create a task to perform the save
+			AbstractTask task = new AbstractTask() {
+				@Override
+				public void run() {
+					try {
+						pnlGeneralSettings.saveSettings();
+						pnlBibleSettings.saveSettings();
+						this.setSuccessful(true);
+					} catch (SettingsException ex) {
+						this.handleException(ex);
+					}
+				}
+			};
+			
+			// execute the save on another thread and show a progress bar
+			TaskProgressDialog.show(this, Messages.getString("dialog.setup.save.task.title"), task);
+			if (task.isSuccessful()) {
 				// notify of the settings changes
 				this.notifySettingsSaved();
 				// show a success message
@@ -135,13 +151,13 @@ public class SetupDialog extends JDialog implements ActionListener {
 						Messages.getString("dialog.setup.save.success.text"), 
 						Messages.getString("dialog.setup.save.success.title"), 
 						JOptionPane.INFORMATION_MESSAGE);
-			} catch (SettingsException ex) {
+			} else {
+				LOGGER.error(task.getException());
 				ExceptionDialog.show(
 						this, 
 						Messages.getString("dialog.setup.save.exception.title"), 
 						Messages.getString("dialog.setup.save.exception.text"), 
-						ex);
-				LOGGER.error(ex);
+						task.getException());
 			}
 		} else if ("cancel".equals(command)) {
 			// don't save the settings and just close the dialog

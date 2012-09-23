@@ -57,8 +57,9 @@ public class ExceptionDialog extends JDialog implements MouseListener, ActionLis
 	 * @param title the dialog title
 	 * @param message the message
 	 * @param exception the exception
+	 * @param sendEnabled true if the send error report button should be enabled
 	 */
-	private ExceptionDialog(Window owner, String title, String message, Exception exception) {
+	private ExceptionDialog(Window owner, String title, String message, Exception exception, boolean sendEnabled) {
 		super(owner, title, ModalityType.APPLICATION_MODAL);
 		this.setIconImage(null);
 		// set the size
@@ -95,6 +96,7 @@ public class ExceptionDialog extends JDialog implements MouseListener, ActionLis
 		JButton btnSendErrorReport = new JButton(Messages.getString("dialog.exception.sendErrorReport"));
 		btnSendErrorReport.setActionCommand("send");
 		btnSendErrorReport.addActionListener(this);
+		btnSendErrorReport.setEnabled(sendEnabled);
 		
 		Container container = this.getContentPane();
 		GroupLayout layout = new GroupLayout(container);
@@ -218,10 +220,42 @@ public class ExceptionDialog extends JDialog implements MouseListener, ActionLis
 	 * @param title the dialog title
 	 * @param message the message
 	 * @param e the exception
+	 * @param sendEnabled true if the send error report button should be enabled
+	 */
+	public static final void show(Component owner, String title, String message, Exception e, boolean sendEnabled) {
+		// create the dialog
+		ExceptionDialog dialog = new ExceptionDialog(WindowUtilities.getParentWindow(owner), title, message, e, sendEnabled);
+		dialog.setLocationRelativeTo(owner);
+		// show the dialog
+		dialog.setVisible(true);
+	}
+	
+	/**
+	 * Shows a new exception dialog.
+	 * @param owner the dialog owner
+	 * @param title the dialog title
+	 * @param message the message
+	 * @param e the exception
 	 */
 	public static final void show(Window owner, String title, String message, Exception e) {
 		// create the dialog
-		ExceptionDialog dialog = new ExceptionDialog(owner, title, message, e);
+		ExceptionDialog dialog = new ExceptionDialog(owner, title, message, e, true);
+		dialog.setLocationRelativeTo(owner);
+		// show the dialog
+		dialog.setVisible(true);
+	}
+	
+	/**
+	 * Shows a new exception dialog.
+	 * @param owner the dialog owner
+	 * @param title the dialog title
+	 * @param message the message
+	 * @param e the exception
+	 * @param sendEnabled true if the send error report button should be enabled
+	 */
+	public static final void show(Window owner, String title, String message, Exception e, boolean sendEnabled) {
+		// create the dialog
+		ExceptionDialog dialog = new ExceptionDialog(owner, title, message, e, sendEnabled);
 		dialog.setLocationRelativeTo(owner);
 		// show the dialog
 		dialog.setVisible(true);

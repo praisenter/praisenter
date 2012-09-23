@@ -26,13 +26,14 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
 import org.apache.log4j.Logger;
+import org.praisenter.control.CheckExistsFileChooser;
 import org.praisenter.control.ZipFileFilter;
 import org.praisenter.data.DataException;
 import org.praisenter.data.DataImportException;
 import org.praisenter.data.bible.UnboundBibleImporter;
 import org.praisenter.data.errors.Errors;
-import org.praisenter.data.song.SongImporter;
 import org.praisenter.data.song.SongExporter;
+import org.praisenter.data.song.SongImporter;
 import org.praisenter.data.song.Songs;
 import org.praisenter.dialog.ExceptionDialog;
 import org.praisenter.dialog.SetupDialog;
@@ -40,6 +41,8 @@ import org.praisenter.icons.Icons;
 import org.praisenter.panel.bible.BiblePanel;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.SettingsListener;
+import org.praisenter.tasks.FileTask;
+import org.praisenter.tasks.TaskProgressDialog;
 
 /**
  * Main window for the Praisenter application.
@@ -74,6 +77,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		container.setLayout(new BorderLayout());
 		
 		// TODO add a way to save a service; this could be used to store queued songs and verses
+		// TODO add tooltips to menu items
 		
 		// create the bible panel
 		this.pnlBible = new BiblePanel();
@@ -130,7 +134,6 @@ public class Praisenter extends JFrame implements ActionListener {
 				mnuImportUBBible.addActionListener(this);
 				mnuImportBible.add(mnuImportUBBible);
 				
-				// TODO add option to import PraisenterSongs.xml file format
 				JMenuItem mnuImportPraisenter = new JMenuItem(Messages.getString("menu.file.import.songs.praisenter"));
 				mnuImportPraisenter.setActionCommand("importPraisenterSongs");
 				mnuImportPraisenter.addActionListener(this);
@@ -142,14 +145,14 @@ public class Praisenter extends JFrame implements ActionListener {
 				mnuImportSongs.add(mnuImportCVSongs);
 			}
 			
-			if (Main.isDebug()) {
+			if (Main.isDebugEnabled()) {
 				// look and feel menu
 				this.mnuLookAndFeel = new JMenu(Messages.getString("menu.window.laf"));
 				this.createLookAndFeelMenuItems(this.mnuLookAndFeel);
 				mnuWindow.add(this.mnuLookAndFeel);
 			}
 			
-			if (Main.isDebug()) {
+			if (Main.isDebugEnabled()) {
 				// show size
 				JMenuItem mnuSize = new JMenuItem(Messages.getString("menu.window.size"));
 				mnuSize.setActionCommand("size");
@@ -187,27 +190,13 @@ public class Praisenter extends JFrame implements ActionListener {
 		} else if ("size".equals(command)) {
 			this.showCurrentWindowSize();
 		} else if ("exportErrors".equals(command)) {
-			// show a file save dialog
-			try {
-				this.exportSavedErrorReports();
-			} catch (Exception e) {
-				LOGGER.error("An error occurred while exporting the saved error reports:", e);
-			}
+			this.exportSavedErrorReports();
 		} else if ("importUBBible".equals(command)) {
 			this.importUnboundBible();
 		} else if ("importCVSongs".equals(command)) {
 			this.importChurchViewSongDatabase();
 		} else if ("exportSongs".equals(command)) {
-			try {
-				this.exportSongs();
-			} catch (Exception e) {
-				LOGGER.error("An error occurred while exporting the songs:", e);
-				ExceptionDialog.show(
-						this,
-						Messages.getString("dialog.export.songs.error.title"), 
-						Messages.getString("dialog.export.songs.error.text"), 
-						e);
-			}
+			this.exportSongs();
 		} else if ("importPraisenterSongs".equals(command)) {
 			this.importPraisenterSongDatabase();
 		}
@@ -291,36 +280,12 @@ public class Praisenter extends JFrame implements ActionListener {
 	
 	/**
 	 * Saves any saved error reports into the user selected file.
-	 * @throws IOException thrown if an IO error occurs
 	 */
-	@SuppressWarnings("serial")
-	private void exportSavedErrorReports() throws IOException {
+	private void exportSavedErrorReports() {
 		// see if we even need to export anything
 		if (Errors.getErrorMessageCount() > 0) {
 			// create a class to show a "are you sure" message when over writing an existing file
-			JFileChooser fileBrowser = new JFileChooser() {
-				/* (non-Javadoc)
-				 * @see javax.swing.JFileChooser#approveSelection()
-				 */
-				@Override
-				public void approveSelection() {
-					if (getDialogType() == SAVE_DIALOG) {
-						File selectedFile = getSelectedFile();
-						if ((selectedFile != null) && selectedFile.exists()) {
-							int response = JOptionPane.showConfirmDialog(
-											this,
-											MessageFormat.format(Messages.getString("dialog.export.errors.warning.text"), selectedFile.getName()),
-											Messages.getString("dialog.export.errors.warning.title"),
-											JOptionPane.YES_NO_OPTION,
-											JOptionPane.WARNING_MESSAGE);
-							if (response != JOptionPane.YES_OPTION)
-								return;
-						}
-					}
-	
-					super.approveSelection();
-				}
-			};
+			JFileChooser fileBrowser = new CheckExistsFileChooser();
 			fileBrowser.setMultiSelectionEnabled(false);
 			fileBrowser.setDialogTitle(Messages.getString("dialog.export.errors.title"));
 			fileBrowser.setSelectedFile(new File(Messages.getString("dialog.export.errors.defaultFileName")));
@@ -329,30 +294,42 @@ public class Praisenter extends JFrame implements ActionListener {
 			// check the option
 			if (option == JFileChooser.APPROVE_OPTION) {
 				File file = fileBrowser.getSelectedFile();
-				// export the errors
-				String text = Errors.exportErrorMessages();
+				// create a new file task
+				FileTask task = new FileTask(file) {
+					@Override
+					public void run() {
+						File file = this.getFile();
+						// export the error messages to a string
+						String text = Errors.exportErrorMessages();
+						// see if the file exists
+						if (!file.exists()) {
+							try {
+								file.createNewFile();
+							} catch (IOException ex) {
+								this.handleException(ex);
+								return;
+							}
+						}
+						try (FileWriter fw = new FileWriter(file)) {
+							fw.write(text);
+							this.setSuccessful(true);
+						} catch (IOException ex) {
+							this.handleException(ex);
+						}
+					}
+				};
 				
-				// see if its a new one or it already exists
-				if (file.exists()) {
-					// overwrite the file
-					FileWriter fw = new FileWriter(file);
-					fw.write(text);
-					fw.close();
+				// run the task
+				TaskProgressDialog.show(this, Messages.getString("exporting"), task);
+				
+				// check the task result
+				if (task.isSuccessful()) {
 					JOptionPane.showMessageDialog(this, 
 							Messages.getString("dialog.export.errors.success.text"), 
 							Messages.getString("dialog.export.errors.success.title"), 
 							JOptionPane.INFORMATION_MESSAGE);
 				} else {
-					// create a new file
-					if (file.createNewFile()) {
-						FileWriter fw = new FileWriter(file);
-						fw.write(text);
-						fw.close();
-						JOptionPane.showMessageDialog(this, 
-								Messages.getString("dialog.export.errors.success.text"), 
-								Messages.getString("dialog.export.errors.success.title"), 
-								JOptionPane.INFORMATION_MESSAGE);
-					}
+					LOGGER.error("An error occurred while exporting the saved error reports:", task.getException());
 				}
 			}
 		} else {
@@ -365,37 +342,18 @@ public class Praisenter extends JFrame implements ActionListener {
 	
 	/**
 	 * Exports the entire song database to an xml file.
-	 * @throws IOException thrown if an IO error occurs
-	 * @throws DataException if an exception occurs getting the data
 	 */
-	@SuppressWarnings("serial")
-	private void exportSongs() throws IOException, DataException {
+	private void exportSongs() {
+		// get the song count
+		int songCount = 0;
+		try {
+			songCount = Songs.getSongCount();
+		} catch (DataException e) {}
+		
 		// see if we even need to export anything
-		if (Songs.getSongCount() > 0) {
+		if (songCount > 0) {
 			// create a class to show a "are you sure" message when over writing an existing file
-			JFileChooser fileBrowser = new JFileChooser() {
-				/* (non-Javadoc)
-				 * @see javax.swing.JFileChooser#approveSelection()
-				 */
-				@Override
-				public void approveSelection() {
-					if (getDialogType() == SAVE_DIALOG) {
-						File selectedFile = getSelectedFile();
-						if ((selectedFile != null) && selectedFile.exists()) {
-							int response = JOptionPane.showConfirmDialog(
-											this,
-											MessageFormat.format(Messages.getString("dialog.export.songs.warning.text"), selectedFile.getName()),
-											Messages.getString("dialog.export.songs.warning.title"),
-											JOptionPane.YES_NO_OPTION,
-											JOptionPane.WARNING_MESSAGE);
-							if (response != JOptionPane.YES_OPTION)
-								return;
-						}
-					}
-	
-					super.approveSelection();
-				}
-			};
+			JFileChooser fileBrowser = new CheckExistsFileChooser();
 			fileBrowser.setMultiSelectionEnabled(false);
 			fileBrowser.setDialogTitle(Messages.getString("dialog.export.songs.title"));
 			fileBrowser.setSelectedFile(new File(Messages.getString("dialog.export.songs.defaultFileName")));
@@ -404,30 +362,51 @@ public class Praisenter extends JFrame implements ActionListener {
 			// check the option
 			if (option == JFileChooser.APPROVE_OPTION) {
 				File file = fileBrowser.getSelectedFile();
-				// export the errors
-				String text = SongExporter.exportSongs();
+				// create a new file task
+				FileTask task = new FileTask(file) {
+					@Override
+					public void run() {
+						try {
+							File file = this.getFile();
+							// export the errors
+							String text = SongExporter.exportSongs();
+							// see if the file exists
+							if (!file.exists()) {
+								try {
+									file.createNewFile();
+								} catch (IOException ex) {
+									this.handleException(ex);
+									return;
+								}
+							}
+							try (FileWriter fw = new FileWriter(file)) {
+								fw.write(text);
+								this.setSuccessful(true);
+							} catch (IOException ex) {
+								this.handleException(ex);
+							}
+						} catch (DataException ex) {
+							this.handleException(ex);
+						}
+					}
+				};
 				
-				// see if its a new one or it already exists
-				if (file.exists()) {
-					// overwrite the file
-					FileWriter fw = new FileWriter(file);
-					fw.write(text);
-					fw.close();
+				// run the task
+				TaskProgressDialog.show(this, Messages.getString("exporting"), task);
+				
+				// check the task result
+				if (task.isSuccessful()) {
 					JOptionPane.showMessageDialog(this, 
 							Messages.getString("dialog.export.songs.success.text"), 
 							Messages.getString("dialog.export.songs.success.title"), 
 							JOptionPane.INFORMATION_MESSAGE);
 				} else {
-					// create a new file
-					if (file.createNewFile()) {
-						FileWriter fw = new FileWriter(file);
-						fw.write(text);
-						fw.close();
-						JOptionPane.showMessageDialog(this, 
-								Messages.getString("dialog.export.songs.success.text"), 
-								Messages.getString("dialog.export.songs.success.title"), 
-								JOptionPane.INFORMATION_MESSAGE);
-					}
+					LOGGER.error("An error occurred while exporting the songs:", task.getException());
+					ExceptionDialog.show(
+							this,
+							Messages.getString("dialog.export.songs.error.title"), 
+							Messages.getString("dialog.export.songs.error.text"), 
+							task.getException());
 				}
 			}
 		} else {
@@ -463,7 +442,7 @@ public class Praisenter extends JFrame implements ActionListener {
 				if (option == JOptionPane.YES_OPTION) {
 					// we need to execute this in a separate process
 					// and show a progress monitor
-					ImportFileTask task = new ImportFileTask(file) {
+					FileTask task = new FileTask(file) {
 						@Override
 						public void run() {
 							try {
@@ -526,7 +505,7 @@ public class Praisenter extends JFrame implements ActionListener {
 				if (option == JOptionPane.YES_OPTION) {
 					// we need to execute this in a separate process
 					// and show a progress monitor
-					ImportFileTask task = new ImportFileTask(file) {
+					FileTask task = new FileTask(file) {
 						@Override
 						public void run() {
 							try {
@@ -589,7 +568,7 @@ public class Praisenter extends JFrame implements ActionListener {
 				if (option == JOptionPane.YES_OPTION) {
 					// we need to execute this in a separate process
 					// and show a progress monitor
-					ImportFileTask task = new ImportFileTask(file) {
+					FileTask task = new FileTask(file) {
 						@Override
 						public void run() {
 							try {

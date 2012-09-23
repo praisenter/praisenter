@@ -1,4 +1,4 @@
-package org.praisenter;
+package org.praisenter.tasks;
 
 import java.awt.Container;
 import java.awt.Dimension;

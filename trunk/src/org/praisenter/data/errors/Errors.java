@@ -338,7 +338,10 @@ public class Errors {
 				  .append("\n");
 			}
 			
-			clearErrorMessages();
+			if (messages.size() > 0) {
+				// don't hit the db if there were no messages
+				clearErrorMessages();
+			}
 		} catch (Exception e) {
 			// just log the error
 			LOGGER.error(e);

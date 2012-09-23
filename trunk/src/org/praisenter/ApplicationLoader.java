@@ -67,7 +67,7 @@ public class ApplicationLoader {
 	 */
 	private ApplicationLoader() {
 		// create a new dialog
-		this.dialog = new JDialog(null, Messages.getString("dialog.preload.title"), ModalityType.APPLICATION_MODAL);
+		this.dialog = new JDialog(null, Messages.getString("dialog.preload.title"), ModalityType.MODELESS);
 		// make sure closing the modal doesn't work (since we can't remove the close button)
 		this.dialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		
@@ -152,12 +152,12 @@ public class ApplicationLoader {
 			public void run() {
 				// close it
 				dialog.setVisible(false);
-				// then dispose of the resources
-				dialog.dispose();
 				// bring the main app window to the front
 				if (praisenter != null) {
 					praisenter.toFront();
 				}
+				// then dispose of the resources
+				dialog.dispose();
 			}
 		});
 	}
@@ -185,7 +185,10 @@ public class ApplicationLoader {
 						null, 
 						Messages.getString("exception.startup.title"), 
 						Messages.getString("exception.startup.text"), 
-						ex);
+						ex,
+						// if we can't get to the database then they
+						// won't be able to send the error report
+						false);
 				// don't continue any further
 				System.exit(1);
 			}
@@ -219,9 +222,6 @@ public class ApplicationLoader {
 		// update the label to show completed
 		updateProgress(true, 100, Messages.getString("dialog.preload.complete"), "");
 		
-		// wait a bit to allow the user to see
-		// that the loading has completed
-		sleep(500);
 		// once the tasks are complete then
 		// close the modal and resume normal
 		// application flow

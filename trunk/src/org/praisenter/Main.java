@@ -59,7 +59,7 @@ public class Main {
 	 * Returns true if the -debug argument was passed to startup.
 	 * @return boolean
 	 */
-	public static final boolean isDebug() {
+	public static final boolean isDebugEnabled() {
 		return DEBUG;
 	}
 	

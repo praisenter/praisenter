@@ -1,17 +1,12 @@
-package org.praisenter;
-
-import java.io.File;
+package org.praisenter.tasks;
 
 /**
- * Represents a file import task.
+ * Represents an arbitrary long running task.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public abstract class ImportFileTask implements Runnable {
-	/** The file to import */
-	private File file;
-	
+public abstract class AbstractTask implements Runnable {
 	/** True if the task was successful */
 	private boolean successful;
 
@@ -19,11 +14,9 @@ public abstract class ImportFileTask implements Runnable {
 	private Exception exception;
 	
 	/**
-	 * Minimal constructor.
-	 * @param file the file
+	 * Default constructor.
 	 */
-	public ImportFileTask(File file) {
-		this.file = file;
+	public AbstractTask() {
 		this.successful = false;
 		this.exception = null;
 	}
@@ -43,14 +36,6 @@ public abstract class ImportFileTask implements Runnable {
 	 */
 	protected void setSuccessful(boolean successful) {
 		this.successful = successful;
-	}
-	
-	/**
-	 * Returns the file to import.
-	 * @return File
-	 */
-	public File getFile() {
-		return this.file;
 	}
 	
 	/**
