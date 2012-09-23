@@ -35,15 +35,12 @@ public class SongImporter {
 			List<Song> songs = PraisenterSongReader.fromXml(file);
 			LOGGER.info("Praisenter song file read successfully: " + file.getName());
 			
-			// insert the songs into the database
-			for (Song song : songs) {
-				try {
-					// save the song
-					Songs.saveSong(song);
-				} catch (DataException e) {
-					// just throw this error
-					throw new DataImportException(e);
-				}
+			try {
+				// save the song
+				Songs.saveSongs(songs);
+			} catch (DataException e) {
+				// just throw this error
+				throw new DataImportException(e);
 			}
 			
 			LOGGER.info("Praisenter song file imported successfully: " + file.getName());
@@ -75,14 +72,12 @@ public class SongImporter {
 			LOGGER.info("ChurchView song file read successfully: " + file.getName());
 			
 			// insert the songs into the database
-			for (Song song : songs) {
-				try {
-					// save the song
-					Songs.saveSong(song);
-				} catch (DataException e) {
-					// just throw this error
-					throw new DataImportException(e);
-				}
+			try {
+				// save the song
+				Songs.saveSongs(songs);
+			} catch (DataException e) {
+				// just throw this error
+				throw new DataImportException(e);
 			}
 			
 			LOGGER.info("ChurchView song file imported successfully: " + file.getName());
