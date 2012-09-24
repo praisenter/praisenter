@@ -83,7 +83,7 @@ public class TextComponent extends FloatingDisplayComponent {
 			if (this.image == null || this.boundsIncreased) {
 				// create a compatible image
 				GraphicsConfiguration gc = graphics.getDeviceConfiguration();
-				this.image =  gc.createCompatibleImage(this.width, this.height, Transparency.BITMASK);
+				this.image =  gc.createCompatibleImage(this.width, this.height, Transparency.TRANSLUCENT);
 				// flag that we have changed the image to match the bounds
 				this.boundsIncreased = false;
 			}

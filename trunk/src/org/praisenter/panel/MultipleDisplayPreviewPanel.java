@@ -50,6 +50,7 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 		this.setBorder(BorderFactory.createLoweredBevelBorder());
 		
 		// TODO may need to be able to specify a layout or allow scrolling... maybe row/col settings?
+		// TODO allow named displays (next/prev/current verses, song part names, etc)
 	}
 	
 	/**
@@ -185,9 +186,9 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 			// create a scaling transform
 			AffineTransform at = AffineTransform.getScaleInstance(scale, scale);
 			
-			// set the scaling type to best quality
+			// set the scaling type to fastest
 			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-			// set the rendering type to best quality
+			// set the rendering type to fastest
 			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 			
 			// apply the new transform

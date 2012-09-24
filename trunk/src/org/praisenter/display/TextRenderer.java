@@ -102,24 +102,14 @@ public class TextRenderer {
 	    	int bindex = measurer.getPosition();
 	    	int offset = measurer.nextOffset(width);
 	    	boolean isTerminatedByNewLine = false;
-	    	// see if there are any line break characters in this line
-	    	for (int i = bindex; i < offset; i++) {
-	    		char c = text.charAt(i);
-	    		if (c == TextRenderer.LINE_SEPARATOR) {
-	    			// we found one so we need to break here instead
-	    			// of at the next offset
-	    			offset = i;
-	    			isTerminatedByNewLine = true;
-	    			break;
-	    		}
+	    	int index = text.indexOf(TextRenderer.LINE_SEPARATOR, bindex);
+	    	if (index >= 0) {
+	    		offset = index;
+	    		isTerminatedByNewLine = true;
 	    	}
 	    	TextLayout layout;
 	    	// check the offset against the beginning index
-	    	if (offset > bindex) {
-	    		// get the text up to the line break character
-	    		layout = measurer.nextLayout(width, offset, false);
-	    		isLastLayoutNewLine = false;
-	    	} else if (offset == bindex && isTerminatedByNewLine) {
+	    	if (offset == bindex && isTerminatedByNewLine) {
 	    		// the line was terminated by a new line
 	    		// move the position by one (to skip over the new line)
 	    		measurer.setPosition(bindex + 1);
@@ -136,7 +126,7 @@ public class TextRenderer {
 	    		}
 	    	} else {
 	    		// get the whole line as measured
-	    		layout = measurer.nextLayout(width);
+	    		layout = measurer.nextLayout(width, offset, false);
 	    		isLastLayoutNewLine = false;
 	    	}
 	    	
@@ -158,9 +148,9 @@ public class TextRenderer {
 	    	} else {
 	    		// default to center
 	    		if (leftToRight) {
-	    			dx = (width - layout.getVisibleAdvance()) / 2.0f;
+	    			dx = (width - layout.getVisibleAdvance()) * 0.5f;
 	    		} else {
-	    			dx = (width + layout.getAdvance()) / 2.0f - layout.getAdvance();
+	    			dx = (width + layout.getAdvance()) * 0.5f - layout.getAdvance();
 	    		}
 	    	}
 	        
@@ -197,23 +187,14 @@ public class TextRenderer {
 	    	int offset = measurer.nextOffset(width);
 	    	boolean isTerminatedByNewLine = false;
 	    	// see if there are any line break characters in this line
-	    	for (int i = bindex; i < offset; i++) {
-	    		char c = text.charAt(i);
-	    		if (c == TextRenderer.LINE_SEPARATOR) {
-	    			// we found one so we need to break here instead
-	    			// of at the next offset
-	    			offset = i;
-	    			isTerminatedByNewLine = true;
-	    			break;
-	    		}
+	    	int index = text.indexOf(TextRenderer.LINE_SEPARATOR, bindex);
+	    	if (index >= 0) {
+	    		offset = index;
+	    		isTerminatedByNewLine = true;
 	    	}
 	    	TextLayout layout;
 	    	// check the offset against the beginning index
-	    	if (offset > bindex) {
-	    		// get the text up to the line break character
-	    		layout = measurer.nextLayout(width, offset, false);
-	    		isLastLayoutNewLine = false;
-	    	} else if (offset == bindex && isTerminatedByNewLine) {
+	    	if (offset == bindex && isTerminatedByNewLine) {
 	    		measurer.setPosition(bindex + 1);
 	    		if (isLastLayoutNewLine) {
 		    		// this will happen if a new line is found and the last
@@ -227,7 +208,7 @@ public class TextRenderer {
 	    		}
 	    	} else {
 	    		// get the whole line as measured
-	    		layout = measurer.nextLayout(width);
+	    		layout = measurer.nextLayout(width, offset, false);
 	    		isLastLayoutNewLine = false;
 	    	}
 	    	// accumulate this lines height
@@ -289,12 +270,12 @@ public class TextRenderer {
 				// compute an estimated next size if the maximum begins with Float.MAX_VALUE
 				// this is to help convergence to a safe maximum
 				float rmax = (max == Float.MAX_VALUE ? height * (cur / h) : max);
-				cur = (float)Math.ceil((cur + rmax) / 2.0f);
+				cur = (float)Math.ceil((cur + rmax) * 0.5f);
 				font = font.deriveFont(cur);
 			} else {
 				// we need to binary search down
 				max = cur;
-				cur = (float)Math.floor((min + cur) / 2.0f);
+				cur = (float)Math.floor((min + cur) * 0.5f);
 				// do a check for minimum font size
 				if (cur <= 1.0f) break;
 				font = font.deriveFont(cur);
@@ -383,9 +364,9 @@ public class TextRenderer {
     	} else {
     		// default to center
     		if (leftToRight) {
-    			dx = (width - layout.getVisibleAdvance()) / 2.0f;
+    			dx = (width - layout.getVisibleAdvance()) * 0.5f;
     		} else {
-    			dx = (width + layout.getAdvance()) / 2.0f - layout.getAdvance();
+    			dx = (width + layout.getAdvance()) * 0.5f - layout.getAdvance();
     		}
     	}
         
