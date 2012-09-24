@@ -16,6 +16,7 @@ import org.apache.log4j.xml.DOMConfigurator;
 import org.praisenter.settings.BibleSettings;
 import org.praisenter.settings.GeneralSettings;
 // TODO add text to the README.txt about how to install (unzip the distributable)
+// TODO add license to all files; add license file
 /**
  * This class is the application entry point.
  * @author William Bittle

@@ -702,6 +702,8 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		layout.setAutoCreateContainerGaps(false);
 		layout.setAutoCreateGaps(true);
 		
+		// TODO fix send/clear buttons (too tall)
+		
 		// setup the horizontal layout
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addComponent(this.pnlPreview)
