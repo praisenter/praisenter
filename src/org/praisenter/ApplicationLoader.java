@@ -20,8 +20,10 @@ import org.praisenter.data.DataException;
 import org.praisenter.data.bible.Bibles;
 import org.praisenter.data.errors.Errors;
 import org.praisenter.data.song.Songs;
+import org.praisenter.dialog.EnterPasswordDialog;
 import org.praisenter.dialog.ExceptionDialog;
 import org.praisenter.resources.Messages;
+import org.praisenter.settings.ErrorReportingSettings;
 import org.praisenter.utilities.FontManager;
 
 /**
@@ -255,7 +257,18 @@ public class ApplicationLoader {
 	private void sendSavedErrorReports() {
 		// set the initial status
 		updateProgress(true, 0, Messages.getString("dialog.preload.errorReports"), "");
-		Errors.sendErrorMessages();
+		// see if there are any error reports to send
+		if (Errors.getErrorMessageCount() > 0) {
+			// if so then see if the reporting is enabled
+			if (ErrorReportingSettings.getInstance().isErrorReportingEnabled()) {
+				// if so, then ask the user for their smtp password
+				String pass = EnterPasswordDialog.show(null);
+				// see if they entered a password
+				if (pass != null) {
+					Errors.sendErrorMessages(pass);
+				}
+			}
+		}
 		updateProgress(true, 100);
 	}
 	

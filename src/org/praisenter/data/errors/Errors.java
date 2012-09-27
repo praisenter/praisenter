@@ -1,9 +1,5 @@
 package org.praisenter.data.errors;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,6 +25,7 @@ import javax.mail.internet.MimeMessage;
 import org.apache.log4j.Logger;
 import org.praisenter.data.ConnectionFactory;
 import org.praisenter.data.DataException;
+import org.praisenter.settings.ErrorReportingSettings;
 
 /**
  * Class used for error reporting.
@@ -42,47 +39,6 @@ public class Errors {
 	
 	/** The insert message sql */
 	private static final String INSERT_MESSAGE_SQL = "INSERT INTO errors (java_version,java_vendor,os,architecture,message,stacktrace,contact,description,added_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-	
-	/** The smtp properties */
-	private static final Properties SMTP_SETTINGS = loadSmtpSettings();
-	
-	/** True if smtp is enabled */
-	private static final boolean SMTP_ENABLED = SMTP_SETTINGS != null ? Boolean.parseBoolean(SMTP_SETTINGS.getProperty("smtp.enabled")) : false;
-	
-	/** The authenticator for the SMTP session */
-	private static final Authenticator AUTHENTICATOR = new Authenticator() {
-		/* (non-Javadoc)
-		 * @see javax.mail.Authenticator#getPasswordAuthentication()
-		 */
-		@Override
-		protected PasswordAuthentication getPasswordAuthentication() {
-			if (SMTP_SETTINGS != null) {
-				return new PasswordAuthentication(
-						SMTP_SETTINGS.getProperty("smtp.username"),
-						SMTP_SETTINGS.getProperty("smtp.password"));
-			} else {
-				LOGGER.info("SMTP settings not found. Cannot send error reports (they will be saved instead).");
-			}
-			return super.getPasswordAuthentication();
-		}
-	};
-	
-	/**
-	 * Loads the smtp settings.
-	 * @return Properties
-	 */
-	private static final Properties loadSmtpSettings() {
-		try {
-			Properties properties = new Properties();
-			properties.load(new FileReader(new File("config/ErrorReportSettings.properties")));
-			return properties;
-		} catch (FileNotFoundException e) {
-			LOGGER.error(e);
-		} catch (IOException e) {
-			LOGGER.error(e);
-		}
-		return null;
-	}
 	
 	/**
 	 * Returns the list of stored error messages that still require sending.
@@ -150,20 +106,21 @@ public class Errors {
 	 * <p>
 	 * Returns true if the message was sent or false if the message was
 	 * stored.
+	 * @param smtpPassword the SMTP password
 	 * @param message the message text
 	 * @param exception the exception
 	 * @param contact the contact
 	 * @param description the contact's description of the problem
 	 * @return boolean
 	 */
-	public static final boolean sendErrorMessage(String message, Exception exception, String contact, String description) {
+	public static final boolean sendErrorMessage(String smtpPassword, String message, Exception exception, String contact, String description) {
 		// create the error message
 		ErrorMessage em = new ErrorMessage(message, exception, contact, description);
 		// see if reporting is enabled
-		if (SMTP_ENABLED) {
+		if (ErrorReportingSettings.getInstance().isErrorReportingEnabled() && smtpPassword != null) {
 			// if so, attempt to email the message
 			try {
-				emailErrorMessages(em);
+				emailErrorMessages(smtpPassword, em);
 				return true;
 			} catch (Exception ex) {
 				// just log the error
@@ -209,15 +166,16 @@ public class Errors {
 	
 	/**
 	 * Attempts to send the stored error messages.
+	 * @param smtpPassword the SMTP password
 	 */
-	public static final void sendErrorMessages() {
-		if (SMTP_ENABLED) {
+	public static final void sendErrorMessages(String smtpPassword) {
+		if (ErrorReportingSettings.getInstance().isErrorReportingEnabled()) {
 			try {
 				// get all the stored messages
 				List<ErrorMessage> messages = getErrorMessages();
 				ErrorMessage[] array = messages.toArray(new ErrorMessage[0]);
 				// email the messages
-				emailErrorMessages(array);
+				emailErrorMessages(smtpPassword, array);
 				// clear the messages
 				clearErrorMessages();
 			} catch (Exception e) {
@@ -229,31 +187,38 @@ public class Errors {
 	
 	/**
 	 * Emails the given error messages.
+	 * @param pass the smtp password
 	 * @param messages the error messages
 	 * @throws InvalidConfigurationException if the smtp configuration is invalid
 	 * @throws MessagingException if an error occurs in the mail api
 	 */
-	private static final void emailErrorMessages(ErrorMessage... messages) throws InvalidConfigurationException, MessagingException {
+	private static final void emailErrorMessages(String pass, ErrorMessage... messages) throws InvalidConfigurationException, MessagingException {
+		// get the settings
+		ErrorReportingSettings settings = ErrorReportingSettings.getInstance();
 		// setup all the properties
-		String host = SMTP_SETTINGS.getProperty("smtp.host");
-		String port = SMTP_SETTINGS.getProperty("smtp.port");
-	    String auth = SMTP_SETTINGS.getProperty("smtp.authenticate");
-	    String user = SMTP_SETTINGS.getProperty("smtp.username");
-	    String pass = SMTP_SETTINGS.getProperty("smtp.password");
-	    String tls = SMTP_SETTINGS.getProperty("smtp.starttls.enabled");
-	    String fromEmail = SMTP_SETTINGS.getProperty("smtp.email");
-	    String toEmail = SMTP_SETTINGS.getProperty("smtp.to");
+		String host = settings.getSmtpHost();
+		int port = settings.getSmtpPort();
+	    boolean auth = settings.isSmtpAuthenticateEnabled();
+	    String user = settings.getAccountUsername();
+	    boolean tls = settings.isSmtpStartTlsEnabled();
+	    String fromEmail = settings.getAccountEmail();
+	    String toEmail = settings.getReportToEmail();
 	    
 	    Properties props = System.getProperties();
-	    props.put("mail.smtp.starttls.enable", tls);
+	    
+	    if (tls) props.put("mail.smtp.starttls.enable", tls);
+	    if (auth) props.put("mail.smtp.auth", auth);
+	    
 	    props.put("mail.smtp.host", host);
-	    props.put("mail.smtp.user", user);
-	    props.put("mail.smtp.password", pass);
 	    props.put("mail.smtp.port", port);
-	    props.put("mail.smtp.auth", auth);
+	    
+	    Authenticator authenticator = null;
+	    if (auth) {
+	    	authenticator = new SmtpAuthenticator(user, pass);
+	    }
 	    
 	    // get a mail session
-	    Session session = Session.getDefaultInstance(props, AUTHENTICATOR);
+	    Session session = Session.getDefaultInstance(props, authenticator);
 	    
 	    MimeMessage message = new MimeMessage(session);
 	    // set the from
@@ -301,13 +266,7 @@ public class Errors {
 	    message.setContent(sb.toString(), "text/html");
 	    
 	    // send the email
-	    Transport transport = session.getTransport("smtp");
-	    transport.connect(host, user, pass);
-	    transport.sendMessage(message, message.getAllRecipients());
-	    try {
-	    	// close the transport and just eat the exceptions
-	    	transport.close();
-	    } catch (MessagingException e) {}
+	    Transport.send(message);
 	}
 	
 	/**
@@ -361,6 +320,38 @@ public class Errors {
 				
 		} catch (SQLException e) {
 			LOGGER.error(e);
+		}
+	}
+	
+	/**
+	 * Custom authenticator for STMP settings.
+	 * @author William Bittle
+	 * @version 1.0.0
+	 * @since 1.0.0
+	 */
+	private static class SmtpAuthenticator extends Authenticator {
+		/** The username */
+		private String username;
+		
+		/** The password */
+		private String password;
+		
+		/**
+		 * Full constructor.
+		 * @param username the username
+		 * @param password the password
+		 */
+		public SmtpAuthenticator(String username, String password) {
+			this.username = username;
+			this.password = password;
+		}
+		
+		/* (non-Javadoc)
+		 * @see javax.mail.Authenticator#getPasswordAuthentication()
+		 */
+		@Override
+		protected PasswordAuthentication getPasswordAuthentication() {
+			return new PasswordAuthentication(this.username, this.password);
 		}
 	}
 }

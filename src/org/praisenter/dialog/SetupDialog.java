@@ -75,7 +75,7 @@ public class SetupDialog extends JDialog implements ActionListener {
 		Dimension size = WindowUtilities.getDimension(device.getDisplayMode());
 		
 		// create the settings panels
-		// TODO add smtp settings
+		// FIXME add smtp settings
 		this.pnlGeneralSettings = new GeneralSetupPanel(gSettings);
 		this.pnlBibleSettings = new BibleSetupPanel(bSettings, size);
 		

@@ -8,25 +8,26 @@ import java.awt.image.BufferedImage;
 import org.praisenter.resources.Messages;
 
 /**
- * Represents a fade-out {@link Transition}.
+ * Represents a fade-in {@link Transition}.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class FadeOut extends Transition {
+public class Fade extends Transition {
 	/**
-	 * Default constructor.
+	 * Full constructor.
+	 * @param type the transition type
 	 */
-	public FadeOut() {
-		super(Messages.getString("transition.fadeOut"), Type.OUT);
-	}
+	public Fade(Type type) {
+		super(Messages.getString("transition.fade"), type);
+	} 
 
 	/* (non-Javadoc)
 	 * @see org.praisenter.transitions.Transition#getTransitionId()
 	 */
 	@Override
 	public int getTransitionId() {
-		return 21;
+		return 20;
 	}
 	
 	/* (non-Javadoc)
@@ -35,10 +36,21 @@ public class FadeOut extends Transition {
 	@Override
 	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
 		// apply alpha composite
-		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float)Math.max(1.0 - pc, 0.0));
+		float alpha = 0.0f;
+		if (this.type == Transition.Type.IN) {
+			g2d.drawImage(image0, 0, 0, null);
+			alpha = (float)Math.min(pc, 1.0);
+		} else {
+			alpha = (float)Math.max(1.0 - pc, 0.0);
+		}
+		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
 		Composite composite = g2d.getComposite();
 		g2d.setComposite(ac);
-		g2d.drawImage(image0, 0, 0, null);
+		if (this.type == Transition.Type.IN) {
+			g2d.drawImage(image1, 0, 0, null);
+		} else  {
+			g2d.drawImage(image0, 0, 0, null);
+		}
 		g2d.setComposite(composite);
 	}
 }

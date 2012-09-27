@@ -23,6 +23,17 @@ public class Displays {
 	 * @return {@link BibleDisplay}
 	 */
 	public static final BibleDisplay getDisplay(BibleSettings settings, Dimension displaySize) {
+		return getDisplay(settings, null, displaySize);
+	}
+	
+	/**
+	 * Creates a new {@link BibleDisplay} from the given {@link BibleSettings}.
+	 * @param settings the settings
+	 * @param name the display name
+	 * @param displaySize the target display size
+	 * @return {@link BibleDisplay}
+	 */
+	public static final BibleDisplay getDisplay(BibleSettings settings, String name, Dimension displaySize) {
 		// get the minimum dimension (typically the height)
 		int maxd = displaySize.height;
 		if (maxd > displaySize.width) {
@@ -32,7 +43,7 @@ public class Displays {
 		// set the default screen to text component padding
 		final int margin = (int)Math.floor((double)maxd * 0.04);
 		
-		BibleDisplay display = new BibleDisplay(displaySize);
+		BibleDisplay display = name == null ? new BibleDisplay(displaySize) : new BibleDisplay(name, displaySize);
 		
 		// get sub settings
 		ColorBackgroundSettings cSet = settings.getColorBackgroundSettings();

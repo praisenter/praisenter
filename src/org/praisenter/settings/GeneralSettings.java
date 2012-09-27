@@ -120,12 +120,6 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.settings.RootSettings#setProperties(java.util.Properties)
-	 */
-	@Override
-	protected void setParialSettingsProperties(Properties properties) {}
-	
 	// settings methods
 	
 	/**

@@ -48,23 +48,25 @@ public class BibleDisplaySetupPanel extends DisplaySetupPanel<BibleSettings, Bib
 		// put the preview panel in a flow layout
 		JPanel pnlPreview = new JPanel();
 		pnlPreview.setLayout(new BorderLayout());
-		pnlPreview.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.display.setup.preview")));
+		pnlPreview.setBorder(BorderFactory.createTitledBorder(
+				BorderFactory.createCompoundBorder(
+						BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()),
+						BorderFactory.createEmptyBorder(5, 0, 0, 0)),
+				Messages.getString("panel.display.setup.preview")));
 		pnlPreview.add(this.pnlDisplayPreview);
 		
 		TextComponentSetupPanel pnlTitle = new TextComponentSetupPanel(this.display.getScriptureTitleComponent());
-		pnlTitle.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.bible.setup.title.name")));
+		pnlTitle.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.bible.setup.title.name")));
 		pnlTitle.addPropertyChangeListener(this);
 		
 		TextComponentSetupPanel pnlText = new TextComponentSetupPanel(this.display.getScriptureTextComponent());
-		pnlText.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.bible.setup.text.name")));
+		pnlText.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.bible.setup.text.name")));
 		pnlText.addPropertyChangeListener(this);
 		
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
-		layout.setAutoCreateContainerGaps(true);
-		
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.pnlColorBackground, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)

@@ -26,6 +26,15 @@ public class BibleDisplay extends Display {
 		super(displaySize);
 	}
 	
+	/**
+	 * Optional constructor.
+	 * @param name the dislay name
+	 * @param displaySize the target display size
+	 */
+	public BibleDisplay(String name, Dimension displaySize) {
+		super(name, displaySize);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.display.Display#render(java.awt.Graphics2D)
 	 */

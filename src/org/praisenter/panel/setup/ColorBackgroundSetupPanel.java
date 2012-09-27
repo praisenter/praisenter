@@ -43,7 +43,7 @@ public class ColorBackgroundSetupPanel extends JPanel implements ActionListener,
 	public ColorBackgroundSetupPanel(ColorBackgroundComponent component) {
 		this.component = component;
 		
-		this.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.color.setup.title")));
+		this.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.color.setup.title")));
 		
 		// color
 		this.btnSelect = new JButton(Icons.COLOR);
@@ -57,8 +57,9 @@ public class ColorBackgroundSetupPanel extends JPanel implements ActionListener,
 		
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
-		layout.setAutoCreateGaps(true);
 		
+		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
 						.addComponent(this.btnSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)

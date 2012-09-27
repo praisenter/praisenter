@@ -94,11 +94,13 @@ public class GeneralSetupPanel extends JPanel implements SetupPanel, ActionListe
 		GraphicsDevice primary = settings.getPrimaryOrDefaultDisplay();
 		
 		this.lblDisplayNotFound = new JLabel();
-		this.lblDisplayNotFound.setVerticalTextPosition(SwingConstants.TOP);
+		this.lblDisplayNotFound.setVisible(false);
 		if (settings.getPrimaryDisplay() == null) {
 			// show the primary display message
+			this.lblDisplayNotFound.setVerticalTextPosition(SwingConstants.TOP);
 			this.lblDisplayNotFound.setText(Messages.getString("panel.general.setup.display.missing.warning"));
 			this.lblDisplayNotFound.setIcon(Icons.WARNING);
+			this.lblDisplayNotFound.setVisible(true);
 		}
 		
 		JLabel lblPrimaryDisplay = new JLabel(Messages.getString("panel.general.setup.display.primaryDisplay"));
@@ -120,20 +122,23 @@ public class GeneralSetupPanel extends JPanel implements SetupPanel, ActionListe
 		
 		// translucency label
 		this.lblTranslucency = new JLabel();
-		this.lblTranslucency.setVerticalTextPosition(SwingConstants.TOP);
+		this.lblTranslucency.setVisible(false);
 		// check if the primary display is translucent
 		if (!primary.isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT)) {
+			this.lblTranslucency.setVerticalTextPosition(SwingConstants.TOP);
 			this.lblTranslucency.setText(Messages.getString("panel.general.setup.display.translucent.warning"));
 			this.lblTranslucency.setIcon(Icons.WARNING);
+			this.lblTranslucency.setVisible(true);
 		}
 		
 		// create the layout
 		JPanel pnlDisplays = new JPanel();
-		pnlDisplays.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.general.setup.display.title")));
+		pnlDisplays.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.general.setup.display.title")));
 		GroupLayout layout = new GroupLayout(pnlDisplays);
 		pnlDisplays.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addComponent(this.lblDisplayNotFound)
 				.addGroup(layout.createSequentialGroup()
@@ -156,7 +161,7 @@ public class GeneralSetupPanel extends JPanel implements SetupPanel, ActionListe
 		JLabel lblSendTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultSend"));
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(settings.getDefaultSendTransition()));
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(settings.getDefaultSendTransition(), Transition.Type.IN));
 		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
@@ -166,7 +171,7 @@ public class GeneralSetupPanel extends JPanel implements SetupPanel, ActionListe
 		JLabel lblClearTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultClear"));
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(settings.getDefaultClearTransition()));
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(settings.getDefaultClearTransition(), Transition.Type.OUT));
 		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
@@ -182,11 +187,12 @@ public class GeneralSetupPanel extends JPanel implements SetupPanel, ActionListe
 		
 		// create the transitions layout
 		JPanel pnlTransitions = new JPanel();
-		pnlTransitions.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.general.setup.transition.title")));
+		pnlTransitions.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.general.setup.transition.title")));
 		layout = new GroupLayout(pnlTransitions);
 		pnlTransitions.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
 						.addComponent(lblSendTransition)
@@ -198,11 +204,11 @@ public class GeneralSetupPanel extends JPanel implements SetupPanel, ActionListe
 						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblSendTransition)
 						.addComponent(this.cmbSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGroup(layout.createParallelGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblClearTransition)
 						.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));

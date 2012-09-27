@@ -2,22 +2,29 @@ package org.praisenter.panel;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.LinearGradientPaint;
-import java.awt.Paint;
 import java.awt.RenderingHints;
+import java.awt.Transparency;
+import java.awt.font.FontRenderContext;
+import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 import org.praisenter.display.Display;
-import org.praisenter.utilities.ColorUtilities;
+import org.praisenter.utilities.FontManager;
 
 /**
  * Represents a panel that shows a preview of multiple displays.
@@ -37,20 +44,38 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 	/** Spacing between the displays */
 	private static final int SPACING = 10;
 	
+	/** Key to get the cached background image */
+	private static final String KEY_BACKGROUND = "key.background";
+	
+	/** True if the display name should be shown */
+	private boolean showDisplayNames;
+	
 	/** The displays to render */
 	private List<Display> displays;
+	
+	/** The map of cached images */
+	private Map<String, BufferedImage> cachedImages; 
 	
 	/**
 	 * Default constructor.
 	 */
 	public MultipleDisplayPreviewPanel() {
+		this(true);
+	}
+	
+	/**
+	 * Optional constructor.
+	 * @param showDisplayNames true if the display names should be shown
+	 */
+	public MultipleDisplayPreviewPanel(boolean showDisplayNames) {
+		this.showDisplayNames = showDisplayNames;
 		this.displays = new ArrayList<Display>();
+		this.cachedImages = new HashMap<String, BufferedImage>();
 		
 		// add a border to this panel
 		this.setBorder(BorderFactory.createLoweredBevelBorder());
 		
 		// TODO may need to be able to specify a layout or allow scrolling... maybe row/col settings?
-		// TODO allow named displays (next/prev/current verses, song part names, etc)
 	}
 	
 	/**
@@ -68,6 +93,7 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 	 * @return boolean
 	 */
 	public boolean removeDisplay(Display display) {
+		this.cachedImages.remove(display.getName());
 		return this.displays.remove(display);
 	}
 	
@@ -104,12 +130,19 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 			double pw = (double)maximum / (double)size.width;
 			double ph = (double)maximum / (double)size.height;
 			
+			int th = 0;
+			if (this.showDisplayNames) {
+				Font font = FontManager.getDefaultFont();
+				TextLayout layout = new TextLayout(display.getName(), font, new FontRenderContext(new AffineTransform(), true, false));
+				th = (int)Math.ceil(layout.getAscent() + layout.getDescent() + layout.getLeading()) + SPACING;
+			}
+			
 			double sc = pw < ph ? pw : ph;
 			
 			w += (int)Math.ceil(sc * (double)size.width);
-			int th = (int)Math.ceil(size.height * sc) + SPACING * 4;
-			if (h < th) {
-				h = th;
+			int dh = (int)Math.ceil(size.height * sc) + SPACING * 4 + th;
+			if (h < dh) {
+				h = dh;
 			}
 		}
 		
@@ -139,9 +172,15 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 		final int aw = size.width - (SPACING) * (n - 1) - SPACING * 4;
 		final int ah = size.height - SPACING * 4;
 		
+		FontMetrics metrics = g.getFontMetrics(FontManager.getDefaultFont());
+		int mh = 0; 
+		if (this.showDisplayNames) {
+			mh = metrics.getHeight();
+		}
+		
 		// the width/height of each display
 		final int dw = aw / n;
-		final int dh = ah;
+		final int dh = ah - mh;
 		
 		// save the old transform
 		AffineTransform oldTransform = g2d.getTransform();
@@ -165,7 +204,7 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 		}
 		
 		// apply the y translation
-		g2d.translate((aw - w) / 2.0 + SPACING * 2, SPACING * 2);
+		g2d.translate((aw - w) / 2.0 + SPACING * 2, SPACING * 2 + mh);
 		
 		// preferably the displays are all the same aspect ratio
 		// but we can't guarantee it
@@ -180,6 +219,18 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 			
 			// use the most significant scale factor
 			final double scale = pw < ph ? pw : ph;
+			
+			if (this.showDisplayNames) {
+				this.paintDisplayName(g2d, display.getName(), (int)Math.ceil(tw * scale));
+//				Font oFont = g2d.getFont();
+//				g2d.setFont(FontManager.getDefaultFont());
+//				g2d.setColor(Color.BLACK);
+//				
+//				String name = display.getName();
+//				g2d.drawString(name, ((int)Math.ceil(tw * scale) - metrics.stringWidth(name)) / 2, -ty);
+//				
+//				g2d.setFont(oFont);
+			}
 			
 			// the sub old transform
 			AffineTransform ot = g2d.getTransform();
@@ -216,20 +267,66 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 	 * @param g2d the graphics to paint to
 	 */
 	private void paintGradientBackground(Graphics2D g2d) {
+		BufferedImage image = this.cachedImages.get(KEY_BACKGROUND);
 		Dimension size = this.getSize();
+		// see if we need to re-render the image
+		if (image == null || image.getWidth() != size.width || image.getHeight() != size.height) {
+			// create a new image of the right size
+			image = g2d.getDeviceConfiguration().createCompatibleImage(size.width, size.height, Transparency.OPAQUE);
+			
+			Graphics2D ig2d = image.createGraphics();
+			Color color1 = new Color(181, 189, 200);
+			Color color2 = new Color( 40,  52,  59);
+			// paint the background to the image
+			LinearGradientPaint gradient = new LinearGradientPaint(
+					new Point2D.Float(0, 0), 
+					new Point2D.Float(0, size.height - 2),
+					new float[] { 0.0f, 1.0f },
+					new Color[] { color1, color2 });
+			
+			ig2d.setPaint(gradient);
+			ig2d.fillRect(0, 0, size.width, size.height);
+			ig2d.dispose();
+			
+			this.cachedImages.put(KEY_BACKGROUND, image);
+		}
 		
-		// paint the background
-		Paint oldPaint = g2d.getPaint();
-		LinearGradientPaint gradient = new LinearGradientPaint(
-				new Point2D.Float(0, 0), 
-				new Point2D.Float(0, size.height - 2),
-				new float[] { 0.0f, 1.0f },
-				new Color[] { this.getBackground(), ColorUtilities.getColor(this.getBackground(), 0.80f) });
+		// render the image
+		g2d.drawImage(image, 0, 0, null);
+	}
+	
+	/**
+	 * Paints the display name at the current position
+	 * @param g2d the graphics to paint to
+	 * @param name the display name
+	 * @param w the width of the display (to center the text)
+	 */
+	private void paintDisplayName(Graphics2D g2d, String name, int w) {
+		BufferedImage image = this.cachedImages.get(name);
+		FontMetrics metrics = g2d.getFontMetrics(FontManager.getDefaultFont());
+		int ih = metrics.getHeight();
+		int iw = metrics.stringWidth(name);
+		// see if we need to re-render the image
+		if (image == null || image.getWidth() != iw || image.getHeight() != ih) {
+			// create a new image of the right size
+			image = g2d.getDeviceConfiguration().createCompatibleImage(iw, ih, Transparency.TRANSLUCENT);
+			
+			Graphics2D ig2d = image.createGraphics();
+			
+			ig2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+			ig2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			ig2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			ig2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			
+			ig2d.setFont(FontManager.getDefaultFont());
+			ig2d.setColor(Color.BLACK);
+			ig2d.drawString(name, 0, metrics.getAscent());
+			ig2d.dispose();
+			
+			this.cachedImages.put(name, image);
+		}
 		
-		g2d.setPaint(gradient);
-		g2d.fillRect(0, 0, size.width - 3, size.height - 2);
-		
-		// reset the paint
-		g2d.setPaint(oldPaint);
+		// render the image
+		g2d.drawImage(image, (w - iw) / 2, -(ih + SPACING), null);
 	}
 }
