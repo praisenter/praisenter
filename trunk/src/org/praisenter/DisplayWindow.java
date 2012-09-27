@@ -272,6 +272,6 @@ public class DisplayWindow {
 		// make sure the panel is resized to fit the layout
 		this.dialog.pack();
 		
-		// TODO add nursery overlay
+		// FIXME add nursery overlay
 	}
 }

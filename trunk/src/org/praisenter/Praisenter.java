@@ -77,7 +77,9 @@ public class Praisenter extends JFrame implements ActionListener {
 		container.setLayout(new BorderLayout());
 		
 		// TODO add a way to save a service; this could be used to store queued songs and verses
-		// TODO add tooltips to menu items
+		
+		// create the notification panel
+		
 		
 		// create the bible panel
 		this.pnlBible = new BiblePanel();
@@ -131,16 +133,19 @@ public class Praisenter extends JFrame implements ActionListener {
 				
 				JMenuItem mnuImportUBBible = new JMenuItem(Messages.getString("menu.file.import.bible.unbound"));
 				mnuImportUBBible.setActionCommand("importUBBible");
+				mnuImportUBBible.setToolTipText(Messages.getString("menu.file.import.bible.unbound.tooltip"));
 				mnuImportUBBible.addActionListener(this);
 				mnuImportBible.add(mnuImportUBBible);
 				
 				JMenuItem mnuImportPraisenter = new JMenuItem(Messages.getString("menu.file.import.songs.praisenter"));
 				mnuImportPraisenter.setActionCommand("importPraisenterSongs");
+				mnuImportPraisenter.setToolTipText(Messages.getString("menu.file.import.songs.praisenter.tooltip"));
 				mnuImportPraisenter.addActionListener(this);
 				mnuImportSongs.add(mnuImportPraisenter);
 				
 				JMenuItem mnuImportCVSongs = new JMenuItem(Messages.getString("menu.file.import.songs.churchview"));
 				mnuImportCVSongs.setActionCommand("importCVSongs");
+				mnuImportCVSongs.setToolTipText(Messages.getString("menu.file.import.songs.churchview.tooltip"));
 				mnuImportCVSongs.addActionListener(this);
 				mnuImportSongs.add(mnuImportCVSongs);
 			}

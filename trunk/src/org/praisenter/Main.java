@@ -14,9 +14,10 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.praisenter.settings.BibleSettings;
+import org.praisenter.settings.ErrorReportingSettings;
 import org.praisenter.settings.GeneralSettings;
-// TODO add text to the README.txt about how to install (unzip the distributable)
-// TODO add license to all files; add license file
+// FIXME add text to the README.txt about how to install (unzip the distributable)
+// FIXME add license to all files
 /**
  * This class is the application entry point.
  * @author William Bittle
@@ -81,10 +82,13 @@ public class Main {
 		// initialize default look and feel
 		initializeDefaultLookAndFeel();
 		
-		// initialize general settings (if necessary)
+		// initialize error reporting settings
+		ErrorReportingSettings.getInstance();
+		
+		// initialize general settings
 		GeneralSettings.getInstance();
 		
-		// initialize bible settings (if necessary)
+		// initialize bible settings
 		BibleSettings.getInstance();
 	}
 	

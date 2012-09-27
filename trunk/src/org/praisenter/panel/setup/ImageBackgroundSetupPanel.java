@@ -68,7 +68,7 @@ public class ImageBackgroundSetupPanel extends JPanel implements ActionListener,
 	public ImageBackgroundSetupPanel(ImageBackgroundComponent component) {
 		this.component = component;
 		
-		this.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.image.setup.title")));
+		this.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.image.setup.title")));
 		
 		// image
 		this.btnSelect = new JButton(Messages.getString("panel.image.setup.browse"));
@@ -96,8 +96,9 @@ public class ImageBackgroundSetupPanel extends JPanel implements ActionListener,
 		
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
-		layout.setAutoCreateGaps(true);
 		
+		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
 						.addComponent(this.btnSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -106,7 +107,7 @@ public class ImageBackgroundSetupPanel extends JPanel implements ActionListener,
 						.addComponent(this.chkVisible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.btnSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbScaleType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbScaleQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)

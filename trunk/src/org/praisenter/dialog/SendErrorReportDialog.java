@@ -23,6 +23,7 @@ import org.praisenter.control.BottomButtonPanel;
 import org.praisenter.data.errors.Errors;
 import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
+import org.praisenter.settings.ErrorReportingSettings;
 
 /**
  * Dialog used to obtain more information from the user
@@ -51,6 +52,7 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 	 * Minimal constructor.
 	 * @param owner the dialog owner
 	 */
+	// FIXME prompt for password
 	private SendErrorReportDialog(Window owner) {
 		super(owner, Messages.getString("dialog.error.report"), ModalityType.APPLICATION_MODAL);
 		this.send = false;
@@ -138,8 +140,14 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 		dialog.setVisible(true);
 		
 		if (dialog.send) {
+			String password = null;
+			if (ErrorReportingSettings.getInstance().isErrorReportingEnabled()) {
+				// prompt the user for a password
+				password = EnterPasswordDialog.show(null);
+			}
 			// start a new thread to send the email/add to the datastore
 			Thread thread = new Thread(new SendErrorReportTask(
+					password,
 					message, 
 					exception, 
 					dialog.txtContact.getText(), 
@@ -164,6 +172,9 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 	 * @since 1.0.0
 	 */
 	private static class SendErrorReportTask implements Runnable {
+		/** The smtp password */
+		private String password;
+		
 		/** The message */
 		private String message;
 		
@@ -178,12 +189,14 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 		
 		/**
 		 * Full constructor.
+		 * @param password the SMTP password
 		 * @param message the message
 		 * @param exception the exception
 		 * @param contact the contact person
 		 * @param description the description of the problem
 		 */
-		private SendErrorReportTask(String message, Exception exception, String contact, String description) {
+		private SendErrorReportTask(String password, String message, Exception exception, String contact, String description) {
+			this.password = password;
 			this.message = message;
 			this.exception = exception;
 			this.contact = contact;
@@ -196,7 +209,7 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 		@Override
 		public void run() {
 			LOGGER.debug("Sending error message: " + this.message);
-			boolean sent = Errors.sendErrorMessage(this.message, this.exception, this.contact, this.description);
+			boolean sent = Errors.sendErrorMessage(this.password, this.message, this.exception, this.contact, this.description);
 			if (sent) {
 				LOGGER.info("Error message sent.");
 			} else {

@@ -70,7 +70,7 @@ public abstract class RootSettings<T extends RootSettings<T>> extends Settings {
 	 * Sets the properties for any {@link PartialSettings}.
 	 * @param properties the properties
 	 */
-	protected abstract void setParialSettingsProperties(Properties properties);
+	protected void setParialSettingsProperties(Properties properties) {}
 	
 	/**
 	 * Loads the saved settings from the file into this settings object.

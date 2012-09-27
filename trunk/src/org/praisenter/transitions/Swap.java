@@ -13,20 +13,21 @@ import org.praisenter.resources.Messages;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SwapOut extends Transition {
+public class Swap extends Transition {
 	/**
-	 * Default constructor.
+	 * Full constructor.
+	 * @param type the transition type
 	 */
-	public SwapOut() {
-		super(Messages.getString("transition.swap"), Type.OUT);
-	}
-
+	public Swap(Type type) {
+		super(Messages.getString("transition.swap"), type);
+	} 
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.transitions.Transition#getTransitionId()
 	 */
 	@Override
 	public int getTransitionId() {
-		return 11;
+		return 10;
 	}
 	
 	/* (non-Javadoc)

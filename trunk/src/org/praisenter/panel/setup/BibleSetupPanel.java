@@ -113,7 +113,8 @@ public class BibleSetupPanel extends JPanel implements SetupPanel {
 		
 		JLabel lblUseSecondaryBible = new JLabel(Messages.getString("panel.bible.setup.useSecondaryBible"));
 		lblUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.setup.useSecondaryBible.tooltip"));
-		this.chkUseSecondaryBible = new JCheckBox();
+		this.chkUseSecondaryBible = new JCheckBox(Messages.getString("panel.bible.setup.useSecondaryBible"));
+		this.chkUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.setup.useSecondaryBible.tooltip"));
 		this.chkUseSecondaryBible.setSelected(settings.isSecondaryBibleInUse());
 		
 		// create the bible display panel
@@ -121,34 +122,32 @@ public class BibleSetupPanel extends JPanel implements SetupPanel {
 		
 		// setup the layout
 		JPanel pnlGeneral = new JPanel();
-		pnlGeneral.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.bible.setup.general")));
+		pnlGeneral.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.bible.setup.general")));
 		pnlGeneral.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		
 		GroupLayout layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
 		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
 						.addComponent(lblDefaultBible)
 						.addComponent(lblDefaultSecondaryBible)
-						.addComponent(lblUseSecondaryBible)
 						.addComponent(lblIncludeApocrypha))
 				.addGroup(layout.createParallelGroup()
 						.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.chkUseSecondaryBible)
-						.addComponent(this.chkIncludeApocrypha)));
+						.addComponent(this.chkIncludeApocrypha))
+				.addComponent(this.chkUseSecondaryBible));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblDefaultBible)
-						.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGroup(layout.createParallelGroup()
+						.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.chkUseSecondaryBible))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblDefaultSecondaryBible)
 						.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGroup(layout.createParallelGroup()
-						.addComponent(lblUseSecondaryBible)
-						.addComponent(this.chkUseSecondaryBible))
-				.addGroup(layout.createParallelGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblIncludeApocrypha)
 						.addComponent(this.chkIncludeApocrypha)));
 		

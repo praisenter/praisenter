@@ -12,8 +12,10 @@ import javax.swing.Timer;
  * @version 1.0.0
  * @since 1.0.0
  */
-// TODO add new class for easing type (right now its linear)
 public class TransitionAnimator implements ActionListener {
+	/** The easing function */
+	protected static final Easing EASING = new CubicEasing();
+	
 	/** The transition to animate */
 	protected Transition transition;
 	
@@ -52,8 +54,7 @@ public class TransitionAnimator implements ActionListener {
 		this.transition = transition;
 		this.duration = milliToNano(duration);
 		this.timer = new Timer(0, this);
-		this.timer.setDelay(50);
-		if (duration == 0 || transition instanceof SwapIn || transition instanceof SwapOut) {
+		if (duration == 0 || transition instanceof Swap) {
 			this.timer.setRepeats(false);
 		}
 		this.component = null;
@@ -127,7 +128,17 @@ public class TransitionAnimator implements ActionListener {
 		long dt = t1 - this.time;
 		
 		// compute the percent complete
-		this.percentComplete = (double)dt / (double)this.duration;
+		if (this.duration > 0) {
+			// do the ease in/out depending on the transition type
+			if (this.transition.type == Transition.Type.IN) {
+				this.percentComplete = EASING.easeIn(dt, this.duration);
+			} else {
+				this.percentComplete = EASING.easeOut(dt, this.duration);
+			}
+		} else {
+			// a duration of zero basically means swap
+			this.percentComplete = 1.0;
+		}
 		
 		if (this.component != null) {
 			this.component.repaint();
