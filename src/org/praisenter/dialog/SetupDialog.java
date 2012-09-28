@@ -21,9 +21,11 @@ import javax.swing.JTabbedPane;
 import org.apache.log4j.Logger;
 import org.praisenter.control.BottomButtonPanel;
 import org.praisenter.panel.setup.BibleSetupPanel;
+import org.praisenter.panel.setup.ErrorReportingSetupPanel;
 import org.praisenter.panel.setup.GeneralSetupPanel;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.BibleSettings;
+import org.praisenter.settings.ErrorReportingSettings;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.SettingsException;
 import org.praisenter.settings.SettingsListener;
@@ -54,6 +56,9 @@ public class SetupDialog extends JDialog implements ActionListener {
 	
 	/** The panel for the bible settings */
 	private BibleSetupPanel pnlBibleSettings;
+
+	/** The panel for error reporting settings */
+	private ErrorReportingSetupPanel pnlErrorReportingSettings;
 	
 	/**
 	 * Minimal constructor.
@@ -67,6 +72,7 @@ public class SetupDialog extends JDialog implements ActionListener {
 		// get the settings
 		GeneralSettings gSettings = GeneralSettings.getInstance();
 		BibleSettings bSettings = BibleSettings.getInstance();
+		ErrorReportingSettings eSettings = ErrorReportingSettings.getInstance();
 		
 		// for the setup panel we need to use the display size of the currently selected device
 		// which we can get from the settings
@@ -75,9 +81,9 @@ public class SetupDialog extends JDialog implements ActionListener {
 		Dimension size = WindowUtilities.getDimension(device.getDisplayMode());
 		
 		// create the settings panels
-		// FIXME add smtp settings
 		this.pnlGeneralSettings = new GeneralSetupPanel(gSettings);
 		this.pnlBibleSettings = new BibleSetupPanel(bSettings, size);
+		this.pnlErrorReportingSettings = new ErrorReportingSetupPanel(eSettings);
 		
 		// set the panels to listen for property change events from the general panel
 		// since the general panel contains the setup for the displays
@@ -109,6 +115,7 @@ public class SetupDialog extends JDialog implements ActionListener {
 		JTabbedPane pneTabs = new JTabbedPane();
 		pneTabs.addTab(Messages.getString("dialog.setup.general"), this.pnlGeneralSettings);
 		pneTabs.addTab(Messages.getString("dialog.setup.bible"), this.pnlBibleSettings);
+		pneTabs.addTab(Messages.getString("dialog.setup.error"), this.pnlErrorReportingSettings);
 		
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
@@ -133,6 +140,7 @@ public class SetupDialog extends JDialog implements ActionListener {
 					try {
 						pnlGeneralSettings.saveSettings();
 						pnlBibleSettings.saveSettings();
+						pnlErrorReportingSettings.saveSettings();
 						this.setSuccessful(true);
 					} catch (SettingsException ex) {
 						this.handleException(ex);
