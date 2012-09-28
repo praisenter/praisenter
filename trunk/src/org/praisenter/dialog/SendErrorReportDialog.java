@@ -52,7 +52,6 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 	 * Minimal constructor.
 	 * @param owner the dialog owner
 	 */
-	// FIXME prompt for password
 	private SendErrorReportDialog(Window owner) {
 		super(owner, Messages.getString("dialog.error.report"), ModalityType.APPLICATION_MODAL);
 		this.send = false;

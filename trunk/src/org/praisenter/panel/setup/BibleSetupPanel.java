@@ -1,7 +1,5 @@
 package org.praisenter.panel.setup;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 
@@ -123,7 +121,6 @@ public class BibleSetupPanel extends JPanel implements SetupPanel {
 		// setup the layout
 		JPanel pnlGeneral = new JPanel();
 		pnlGeneral.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.bible.setup.general")));
-		pnlGeneral.setAlignmentX(Component.RIGHT_ALIGNMENT);
 		
 		GroupLayout layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
@@ -151,9 +148,16 @@ public class BibleSetupPanel extends JPanel implements SetupPanel {
 						.addComponent(lblIncludeApocrypha)
 						.addComponent(this.chkIncludeApocrypha)));
 		
-		this.setLayout(new BorderLayout());
-		this.add(pnlGeneral, BorderLayout.PAGE_START);
-		this.add(this.pnlDisplay, BorderLayout.CENTER);
+		layout = new GroupLayout(this);
+		this.setLayout(layout);
+		
+		layout.setAutoCreateGaps(true);
+		layout.setHorizontalGroup(layout.createParallelGroup()
+				.addComponent(pnlGeneral, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(this.pnlDisplay, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addComponent(pnlGeneral)
+				.addComponent(this.pnlDisplay));
 	}
 
 	/* (non-Javadoc)
