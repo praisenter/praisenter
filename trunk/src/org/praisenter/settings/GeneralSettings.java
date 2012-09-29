@@ -83,6 +83,14 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.settings.RootSettings#getFileName()
+	 */
+	@Override
+	protected String getFileName() {
+		return GeneralSettings.FILE_NAME;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.settings.Settings#getFileNameLocation()
 	 */
 	@Override
@@ -179,6 +187,7 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 			GraphicsDevice device = this.getPrimaryOrDefaultDisplay();
 			try {
 				this.setPrimaryDisplay(device);
+				return this.getDimensionSetting(GeneralSettings.KEY_PRIMARY_DISPLAY_SIZE);
 			} catch (SettingsException e) {
 				// just log the error
 				LOGGER.error(e);

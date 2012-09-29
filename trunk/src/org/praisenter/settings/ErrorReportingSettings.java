@@ -81,6 +81,14 @@ public final class ErrorReportingSettings extends RootSettings<ErrorReportingSet
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.settings.RootSettings#getFileName()
+	 */
+	@Override
+	protected String getFileName() {
+		return ErrorReportingSettings.FILE_NAME;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.settings.Settings#getFileNameLocation()
 	 */
 	@Override

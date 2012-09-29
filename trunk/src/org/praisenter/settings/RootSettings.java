@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -46,6 +47,12 @@ public abstract class RootSettings<T extends RootSettings<T>> extends Settings {
 	 * @return {@link Settings}
 	 */
 	protected abstract T getSingletonInstance();
+	
+	/**
+	 * Returns the file name.
+	 * @return String
+	 */
+	protected abstract String getFileName();
 	
 	/**
 	 * Returns the file name and location for this settings class
@@ -90,6 +97,7 @@ public abstract class RootSettings<T extends RootSettings<T>> extends Settings {
 				this.properties = properties;
 				this.setParialSettingsProperties(properties);
 				// exit (no need to save)
+				LOGGER.info("Configuration file [" + this.getFileNameLocation() + "] found and loaded successfully.");
 				return;
 			} catch (FileNotFoundException e) {
 				LOGGER.error("The configuration file: '" + file.getAbsolutePath() + "' cannot be read from or is a directory.", e);
@@ -98,16 +106,47 @@ public abstract class RootSettings<T extends RootSettings<T>> extends Settings {
 			}
 		}
 		
-		// set default props
-		try {
-			this.setDefaultSettings();
-		} catch (SettingsException e) {
-			LOGGER.error(e);
+		// then check for the default config in the classpath
+		LOGGER.warn("Configuration file [" + this.getFileNameLocation() + "] was not found. Using default configuration.");
+		InputStream is = RootSettings.class.getResourceAsStream("/" + this.getFileName());
+		if (is != null) {
+			try {
+				// then use the classpath config
+				Properties properties = new Properties();
+				// load the settings from file
+				properties.load(new BufferedInputStream(is));
+				// set the properties
+				this.properties = properties;
+				this.setParialSettingsProperties(properties);
+				LOGGER.info("Classpath configuration file [" + this.getFileName() + "] was found and loaded successfully.");
+				
+				// save the config to a file
+				try {
+					this.save();
+					LOGGER.info("Classpath configuration file [" + this.getFileName() + "] was copied to [" + this.getFileNameLocation() + "] successfully.");
+				} catch (SettingsException e) {
+					LOGGER.error(e);
+				}
+				return;
+			}  catch (IOException e) {
+				LOGGER.error("An IO error occurred when reading the file: 'classpath/" + this.getFileName() + "'", e);
+			}
+		} else {
+			LOGGER.warn("Classpath configuration file [" + this.getFileName() + "] was not found.");
 		}
 		
-		// save the config to a file
+		// then use default configuration
 		try {
-			this.save();
+			// set default props
+			this.setDefaultSettings();
+			
+			// save the config to a file
+			try {
+				this.save();
+				LOGGER.info("Default configuration file [" + this.getFileName() + "] was saved to [" + this.getFileNameLocation() + "] successfully.");
+			} catch (SettingsException e) {
+				LOGGER.error(e);
+			}
 		} catch (SettingsException e) {
 			LOGGER.error(e);
 		}
@@ -143,7 +182,7 @@ public abstract class RootSettings<T extends RootSettings<T>> extends Settings {
 		File file = new File(fileNameLocation);
 		// see if it exists
 		if (!file.exists()) {
-			LOGGER.info("File: [" + file.getAbsolutePath() + "] was not found.  Using default settings.");
+			LOGGER.info("File: [" + file.getAbsolutePath() + "] was not found. Creating new file.");
 			// if not then create it
 			try {
 				if (file.createNewFile()) {

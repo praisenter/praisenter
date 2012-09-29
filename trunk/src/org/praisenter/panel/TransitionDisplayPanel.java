@@ -26,8 +26,6 @@ import org.praisenter.transitions.TransitionAnimator;
  * @since 1.0.0
  */
 public class TransitionDisplayPanel extends JPanel {
-	// TODO this will be an issue when we begin to use video backgrounds
-	
 	/** The version id */
 	private static final long serialVersionUID = -944011695590655744L;
 	
