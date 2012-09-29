@@ -7,18 +7,18 @@ import java.awt.image.BufferedImage;
 import org.praisenter.resources.Messages;
 
 /**
- * Represents a swipe left {@link Transition}.
+ * Represents a swipe up {@link Transition}.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SwipeLeft extends Transition {
+public class SwipeUp extends Transition {
 	/**
 	 * Full constructor.
 	 * @param type the transition type
 	 */
-	public SwipeLeft(Type type) {
-		super(Messages.getString("transition.swipeLeft"), type);
+	public SwipeUp(Type type) {
+		super(Messages.getString("transition.swipeUp"), type);
 	} 
 
 	/* (non-Javadoc)
@@ -26,7 +26,7 @@ public class SwipeLeft extends Transition {
 	 */
 	@Override
 	public int getTransitionId() {
-		return 31;
+		return 32;
 	}
 	
 	/* (non-Javadoc)
@@ -35,10 +35,10 @@ public class SwipeLeft extends Transition {
 	@Override
 	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
 		Shape shape = g2d.getClip();
-		g2d.setClip(0, 0, image0.getWidth() - (int)Math.ceil(image0.getWidth() * pc), image0.getHeight());
+		g2d.setClip(0, 0, image0.getWidth(), image0.getHeight() - (int)Math.ceil(image0.getHeight() * pc));
 		g2d.drawImage(image0, 0, 0, null);
 		if (this.type == Transition.Type.IN) {
-			g2d.setClip(image1.getWidth() - (int)Math.ceil(image1.getWidth() * pc), 0, image1.getWidth(), image1.getHeight());
+			g2d.setClip(0, image1.getHeight() - (int)Math.ceil(image1.getHeight() * pc), image1.getWidth(), image1.getHeight());
 			g2d.drawImage(image1, 0, 0, null);
 		}
 		g2d.setClip(shape);

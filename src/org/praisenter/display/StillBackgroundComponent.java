@@ -10,42 +10,49 @@ import java.awt.image.BufferedImage;
 import org.praisenter.utilities.ImageUtilities;
 
 /**
- * Represents an image background for a {@link Display}.
+ * Represents an still background for a {@link Display}.
+ * <p>
+ * A still background can be an image or color or both composited together.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-// TODO rename this to StillBackgroundComponent
 public class StillBackgroundComponent extends BackgroundComponent {
 	// color settings
 	
 	/** The color to use */
 	protected Color color;
 
-	protected boolean colorVisible;
-	
 	/** The color composite type */
 	protected CompositeType colorCompositeType;
+	
+	/** True if the color is visible */
+	protected boolean colorVisible;
 	
 	// image settings
 	
 	/** The image */
 	protected BufferedImage image;
 
-	protected boolean imageVisible;
-	
 	/** The image scale type */
 	protected ScaleType imageScaleType;
 	
 	/** The scaling quality */
 	protected ScaleQuality imageScaleQuality;
-	
+
+	/** True if the image is visible */
+	protected boolean imageVisible;
+		
 	// cached info
 	
-	protected boolean imageConverted;
+	/** A scaled version of the image */
+	protected BufferedImage scaledImage;
 	
-	/** The scaled image */
+	/** The cached version of the entire composite */
 	protected BufferedImage cachedImage;
+
+	/** True if the original image has been converted */
+	protected boolean imageConverted;
 	
 	/**
 	 * Minimal constructor.
@@ -56,16 +63,17 @@ public class StillBackgroundComponent extends BackgroundComponent {
 		super(name, size);
 		// default color is fully transparent
 		this.color = Color.WHITE;
-		this.colorVisible = false;
 		this.colorCompositeType = CompositeType.UNDERLAY;
+		this.colorVisible = false;
 		
 		this.image = null;
-		this.imageVisible = false;
 		this.imageScaleType = ScaleType.NONUNIFORM;
 		this.imageScaleQuality = ScaleQuality.BILINEAR;
+		this.imageVisible = false;
 		
-		this.imageConverted = false;
+		this.scaledImage = null;
 		this.cachedImage = null;
+		this.imageConverted = false;
 	}
 	
 	/* (non-Javadoc)
@@ -117,24 +125,25 @@ public class StillBackgroundComponent extends BackgroundComponent {
 			}
 			// render a scaled version of the image
 			if (this.imageVisible && this.image != null) {
-				// now scale (these method will return images with the same
-				// color model as the one passed in)
-				if (this.imageScaleType == ScaleType.UNIFORM) {
-					ImageUtilities.drawUniformScaledImage(this.image, dw, dh, this.imageScaleQuality.getQuality(), this.cachedImage);
-//					this.scaledImage = ImageUtilities.getUniformScaledImage(this.image, dw, dh, this.scaleQuality.getQuality());
-				} else if (this.imageScaleType == ScaleType.NONUNIFORM) {
-					ImageUtilities.drawNonUniformScaledImage(this.image, dw, dh, this.imageScaleQuality.getQuality(), this.cachedImage);
-//					this.scaledImage = ImageUtilities.getNonUniformScaledImage(this.image, dw, dh, this.scaleQuality.getQuality());
-				} else {
-//					this.scaledImage = this.image;
-					// scaling type was none, so dont scale
-					// center the image
-					int iw = this.image.getWidth();
-					int ih = this.image.getHeight();
-					int x = (dw - iw) / 2;
-					int y = (dh - ih) / 2;
-					ig.drawImage(this.image, x,  y, null);
+				// see if the scaled version needs to be created
+				if (this.scaledImage == null) {
+					// now scale (these method will return images with the same
+					// color model as the one passed in)
+					if (this.imageScaleType == ScaleType.UNIFORM) {
+						this.scaledImage = ImageUtilities.getUniformScaledImage(this.image, dw, dh, this.imageScaleQuality.getQuality());
+					} else if (this.imageScaleType == ScaleType.NONUNIFORM) {
+						this.scaledImage = ImageUtilities.getNonUniformScaledImage(this.image, dw, dh, this.imageScaleQuality.getQuality());
+					} else {
+						// scaling type was none, so dont scale
+						this.scaledImage = this.image;
+					}
 				}
+				// center the image
+				int iw = this.scaledImage.getWidth();
+				int ih = this.scaledImage.getHeight();
+				int x = (dw - iw) / 2;
+				int y = (dh - ih) / 2;
+				ig.drawImage(this.scaledImage, x,  y, null);
 			}
 			// check the color composite type
 			if (this.colorVisible && this.colorCompositeType == CompositeType.OVERLAY) {
@@ -147,94 +156,60 @@ public class StillBackgroundComponent extends BackgroundComponent {
 			this.setDirty(false);
 		}
 		
-//		// see if the scaled image has been created or
-//		// if the bounds have changed
-//		if (this.isDirty() || this.scaledImage == null) {
-//			GraphicsConfiguration gc = graphics.getDeviceConfiguration();
-//			// see if we need to conver the image (or verify its the same
-//			// color/data model
-//			if (!this.imageConverted) {
-//				// the image set here may or may not be in this device's best format
-//				// to avoid the cost of converting the image on each render, we go
-//				// ahead and convert the given image to an image of the same size
-//				// that is compatible with this display
-//				BufferedImage original = this.image;
-//				this.image = gc.createCompatibleImage(original.getWidth(), original.getHeight(), original.getTransparency());
-//				// blit the original to the new one (this performs the color/data model conversion)
-//				Graphics2D ig = this.image.createGraphics();
-//				ig.drawImage(original, 0, 0, null);
-//				ig.dispose();
-//				// set the converted flag
-//				this.imageConverted = true;
-//			}
-//			// create the scaled image surface
-//			this.scaledImage = gc.createCompatibleImage(dw, dh, this.image.getTransparency());
-//			Graphics2D ig = this.scaledImage.createGraphics();
-//			// check the color composite type
-//			if (this.useColor && this.colorCompositeType == CompositeType.UNDERLAY) {
-//				// render the color to the image first
-//				ig.setColor(this.color);
-//				ig.fillRect(0, 0, dw, dh);
-//			}
-//			// render the scaled image
-//			
-//			// check the color composite type
-//			if (this.useColor && this.colorCompositeType == CompositeType.OVERLAY) {
-//				// render the color to the image first
-//				ig.setColor(this.color);
-//				ig.fillRect(0, 0, dw, dh);
-//			}
-//			// now scale (these method will return images with the same
-//			// color model as the one passed in)
-//			if (this.scaleType == ScaleType.UNIFORM) {
-//				this.scaledImage = ImageUtilities.getUniformScaledImage(this.image, dw, dh, this.scaleQuality.getQuality());
-//			} else if (this.scaleType == ScaleType.NONUNIFORM) {
-//				this.scaledImage = ImageUtilities.getNonUniformScaledImage(this.image, dw, dh, this.scaleQuality.getQuality());
-//			} else {
-//				// scaling type was none, so dont scale
-//				this.scaledImage = this.image;
-//			}
-//			this.setDirty(false);
-//		}
-		
 		// check visibility
 		if (this.visible) {
-			// this will always center the image
-//			int sw = this.scaledImage.getWidth();
-//			int sh = this.scaledImage.getHeight();
-//			
-//			int x = (dw - sw) / 2;
-//			int y = (dh - sh) / 2;
-			
 			graphics.drawImage(this.cachedImage, 0, 0, null);
 		}
 	}
 
 	// color
 	
-
+	/**
+	 * Returns the color.
+	 * @return Color
+	 */
 	public Color getColor() {
-		return color;
+		return this.color;
 	}
 
+	/**
+	 * Sets the color.
+	 * @param color the color
+	 */
 	public void setColor(Color color) {
 		this.color = color;
 		this.setDirty(true);
 	}
 
+	/**
+	 * Returns the color composite type.
+	 * @return {@link CompositeType}
+	 */
 	public CompositeType getColorCompositeType() {
-		return colorCompositeType;
+		return this.colorCompositeType;
 	}
-
+	
+	/**
+	 * Sets the color composite type.
+	 * @param colorCompositeType the composite type
+	 */
 	public void setColorCompositeType(CompositeType colorCompositeType) {
 		this.colorCompositeType = colorCompositeType;
 		this.setDirty(true);
 	}
-
+	
+	/**
+	 * Returns true if the color is visible.
+	 * @return boolean
+	 */
 	public boolean isColorVisible() {
-		return colorVisible;
+		return this.colorVisible;
 	}
 
+	/**
+	 * Sets the color's visibility.
+	 * @param flag true if the color should be visible
+	 */
 	public void setColorVisible(boolean flag) {
 		this.colorVisible = flag;
 		this.setDirty(true);
@@ -256,14 +231,24 @@ public class StillBackgroundComponent extends BackgroundComponent {
 	 */
 	public void setImage(BufferedImage image) {
 		this.image = image;
+		this.scaledImage = null;
+		this.cachedImage = null;
 		this.imageConverted = false;
 		this.setDirty(true);
 	}
 
+	/**
+	 * Returns true if the image is visible.
+	 * @return boolean
+	 */
 	public boolean isImageVisible() {
-		return imageVisible;
+		return this.imageVisible;
 	}
 
+	/**
+	 * Sets the image's visibility.
+	 * @param flag true if the image should be visible
+	 */
 	public void setImageVisible(boolean flag) {
 		this.imageVisible = flag;
 		this.setDirty(true);
@@ -283,6 +268,7 @@ public class StillBackgroundComponent extends BackgroundComponent {
 	 */
 	public void setImageScaleType(ScaleType scaleType) {
 		this.imageScaleType = scaleType;
+		this.scaledImage = null;
 		this.setDirty(true);
 	}
 	
@@ -300,6 +286,7 @@ public class StillBackgroundComponent extends BackgroundComponent {
 	 */
 	public void setImageScaleQuality(ScaleQuality scaleQuality) {
 		this.imageScaleQuality = scaleQuality;
+		this.scaledImage = null;
 		this.setDirty(true);
 	}
 }

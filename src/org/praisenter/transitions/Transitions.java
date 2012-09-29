@@ -13,7 +13,9 @@ public class Transitions {
 		new Swap(Transition.Type.IN),
 		new Fade(Transition.Type.IN),
 		new SwipeRight(Transition.Type.IN),
-		new SwipeLeft(Transition.Type.IN)
+		new SwipeLeft(Transition.Type.IN),
+		new SwipeUp(Transition.Type.IN),
+		new SwipeDown(Transition.Type.IN)
 	};
 	
 	/** The list of "out" transitions */
@@ -21,7 +23,9 @@ public class Transitions {
 		new Swap(Transition.Type.OUT),
 		new Fade(Transition.Type.OUT),
 		new SwipeRight(Transition.Type.OUT),
-		new SwipeLeft(Transition.Type.OUT)
+		new SwipeLeft(Transition.Type.OUT),
+		new SwipeUp(Transition.Type.OUT),
+		new SwipeDown(Transition.Type.OUT)
 	};
 	
 	/** The default "in" transition */

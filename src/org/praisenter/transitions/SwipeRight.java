@@ -7,7 +7,7 @@ import java.awt.image.BufferedImage;
 import org.praisenter.resources.Messages;
 
 /**
- * Represents a swipe {@link Transition}.
+ * Represents a swipe right {@link Transition}.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
@@ -35,13 +35,11 @@ public class SwipeRight extends Transition {
 	@Override
 	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
 		Shape shape = g2d.getClip();
+		g2d.setClip((int)Math.ceil(image0.getWidth() * pc), 0, image0.getWidth(), image0.getHeight());
+		g2d.drawImage(image0, 0, 0, null);
 		if (this.type == Transition.Type.IN) {
-			g2d.drawImage(image0, 0, 0, null);
 			g2d.setClip(0, 0, (int)Math.ceil(image1.getWidth() * pc), image1.getHeight());
 			g2d.drawImage(image1, 0, 0, null);
-		} else {
-			g2d.setClip((int)Math.ceil(image0.getWidth() * pc), 0, image0.getWidth(), image0.getHeight());
-			g2d.drawImage(image0, 0, 0, null);
 		}
 		g2d.setClip(shape);
 	}
