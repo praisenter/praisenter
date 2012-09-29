@@ -72,11 +72,8 @@ public abstract class DisplaySetupPanel<E extends RootSettings<E>, T extends Dis
 	/** The panel used to preview the changes */
 	protected JPanel pnlDisplayPreview;
 	
-	/** The panel to setup the color background */
-	protected ColorBackgroundSetupPanel pnlColorBackground;
-	
-	/** The panel to setup the image background */
-	protected ImageBackgroundSetupPanel pnlImageBackground;
+	/** The panel to setup the still background */
+	protected StillBackgroundSetupPanel pnlStillBackground;
 	
 	// mouse commands
 	
@@ -136,13 +133,9 @@ public abstract class DisplaySetupPanel<E extends RootSettings<E>, T extends Dis
 		this.pnlDisplayPreview.addMouseListener(this);
 		this.pnlDisplayPreview.addMouseMotionListener(this);
 		
-		// add the color background panel
-		this.pnlColorBackground = new ColorBackgroundSetupPanel(this.display.getColorBackgroundComponent());
-		this.pnlColorBackground.addPropertyChangeListener(this);
-		
 		// add the image background panel
-		this.pnlImageBackground = new ImageBackgroundSetupPanel(this.display.getImageBackgroundComponent());
-		this.pnlImageBackground.addPropertyChangeListener(this);
+		this.pnlStillBackground = new StillBackgroundSetupPanel(this.display.getStillBackgroundComponent());
+		this.pnlStillBackground.addPropertyChangeListener(this);
 	}
 	
 	/**

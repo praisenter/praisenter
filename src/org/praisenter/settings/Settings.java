@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
 
 import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.log4j.Logger;
+import org.praisenter.display.CompositeType;
 import org.praisenter.display.FontScaleType;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
@@ -426,6 +427,38 @@ public abstract class Settings {
 		}
 		
 		return (TextAlignment)object;
+	}
+	
+	/**
+	 * Returns the setting as a {@link CompositeType} enum for the given key.
+	 * <p>
+	 * Returns {@link CompositeType#UNDERLAY} if the setting is not set.
+	 * @param key the key
+	 * @return {@link CompositeType}
+	 */
+	protected CompositeType getCompositeTypeSetting(String key) {
+		// get the setting
+		Object object = this.settings.get(key);
+		// check if its null
+		if (object == NULL || object == null) {
+			// default the object
+			object = CompositeType.UNDERLAY;
+			// get the string from the properties
+			String string = this.properties.getProperty(key);
+			// make sure we can parse it
+			if (string != null && string.trim().length() > 0) {
+				// get the enum
+				try {
+					object = CompositeType.valueOf(string.trim());
+				} catch (IllegalArgumentException e) {
+					LOGGER.warn("Unable to parse setting: " + key + " value: " + string, e);
+				}
+			}
+			// set it 
+			this.settings.put(key, object);
+		}
+		
+		return (CompositeType)object;
 	}
 	
 	/**

@@ -12,13 +12,13 @@ import org.praisenter.resources.Messages;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SwipeRight extends Transition {
+public class SwipeLeft extends Transition {
 	/**
 	 * Full constructor.
 	 * @param type the transition type
 	 */
-	public SwipeRight(Type type) {
-		super(Messages.getString("transition.swipeRight"), type);
+	public SwipeLeft(Type type) {
+		super(Messages.getString("transition.swipeLeft"), type);
 	} 
 
 	/* (non-Javadoc)
@@ -26,7 +26,7 @@ public class SwipeRight extends Transition {
 	 */
 	@Override
 	public int getTransitionId() {
-		return 30;
+		return 31;
 	}
 	
 	/* (non-Javadoc)
@@ -37,10 +37,10 @@ public class SwipeRight extends Transition {
 		Shape shape = g2d.getClip();
 		if (this.type == Transition.Type.IN) {
 			g2d.drawImage(image0, 0, 0, null);
-			g2d.setClip(0, 0, (int)Math.ceil(image1.getWidth() * pc), image1.getHeight());
+			g2d.setClip(image1.getWidth() - (int)Math.ceil(image1.getWidth() * pc), 0, image1.getWidth(), image1.getHeight());
 			g2d.drawImage(image1, 0, 0, null);
 		} else {
-			g2d.setClip((int)Math.ceil(image0.getWidth() * pc), 0, image0.getWidth(), image0.getHeight());
+			g2d.setClip(0, 0, image0.getWidth() - (int)Math.ceil(image0.getWidth() * pc), image0.getHeight());
 			g2d.drawImage(image0, 0, 0, null);
 		}
 		g2d.setClip(shape);

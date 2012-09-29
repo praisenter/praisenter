@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.util.Properties;
 
 import org.praisenter.Constants;
+import org.praisenter.display.CompositeType;
 import org.praisenter.display.FontScaleType;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
@@ -62,11 +63,8 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 		return settings;
 	}
 	
-	/** The {@link PartialSettings} for the color background */
-	protected ColorBackgroundSettings colorBackgroundSettings;
-	
 	/** The {@link PartialSettings} for the image background */
-	protected ImageBackgroundSettings imageBackgroundSettings;
+	protected StillBackgroundSettings stillBackgroundSettings;
 	
 	/** The scripture title {@link PartialSettings} */
 	protected TextSettings scriptureTitleSettings;
@@ -88,8 +86,7 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	 */
 	private BibleSettings(Properties properties) {
 		super(properties);
-		this.colorBackgroundSettings = new ColorBackgroundSettings("ColorBackground", this);
-		this.imageBackgroundSettings = new ImageBackgroundSettings("ImageBackground", this);
+		this.stillBackgroundSettings = new StillBackgroundSettings("StillBackground", this);
 		this.scriptureTitleSettings = new TextSettings("ScriptureTitle", this);
 		this.scriptureTextSettings = new TextSettings("ScriptureText", this);
 	}
@@ -104,13 +101,14 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 		this.setDefaultSecondaryBibleId(0);
 		this.setSecondaryBibleInUse(false);
 		
-		this.colorBackgroundSettings.setColor(Color.BLUE);
-		this.colorBackgroundSettings.setVisible(true);
-		
-		this.imageBackgroundSettings.setImage(null);
-		this.imageBackgroundSettings.setScaleQuality(ScaleQuality.BILINEAR);
-		this.imageBackgroundSettings.setScaleType(ScaleType.NONUNIFORM);
-		this.imageBackgroundSettings.setVisible(true);
+		this.stillBackgroundSettings.setColor(Color.BLUE);
+		this.stillBackgroundSettings.setColorCompositeType(CompositeType.UNDERLAY);
+		this.stillBackgroundSettings.setColorVisible(true);
+		this.stillBackgroundSettings.setImage(null);
+		this.stillBackgroundSettings.setImageVisible(false);
+		this.stillBackgroundSettings.setImageScaleQuality(ScaleQuality.BILINEAR);
+		this.stillBackgroundSettings.setImageScaleType(ScaleType.NONUNIFORM);
+		this.stillBackgroundSettings.setVisible(true);
 		
 		this.scriptureTitleSettings.setTextColor(Color.YELLOW);
 		this.scriptureTitleSettings.setTextFont(FontManager.getDefaultFont().deriveFont(Font.BOLD, 50));
@@ -160,8 +158,7 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	 */
 	@Override
 	protected void setParialSettingsProperties(Properties properties) {
-		this.colorBackgroundSettings.properties = properties;
-		this.imageBackgroundSettings.properties = properties;
+		this.stillBackgroundSettings.properties = properties;
 		this.scriptureTitleSettings.properties = properties;
 		this.scriptureTextSettings.properties = properties;
 	}
@@ -239,19 +236,11 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	}
 	
 	/**
-	 * Returns the color background {@link PartialSettings}.
-	 * @return {@link ColorBackgroundSettings}
-	 */
-	public ColorBackgroundSettings getColorBackgroundSettings() {
-		return colorBackgroundSettings;
-	}
-	
-	/**
 	 * Returns the image background {@link PartialSettings}.
-	 * @return {@link ImageBackgroundSettings}
+	 * @return {@link StillBackgroundSettings}
 	 */
-	public ImageBackgroundSettings getImageBackgroundSettings() {
-		return imageBackgroundSettings;
+	public StillBackgroundSettings getStillBackgroundSettings() {
+		return stillBackgroundSettings;
 	}
 	
 	/**
