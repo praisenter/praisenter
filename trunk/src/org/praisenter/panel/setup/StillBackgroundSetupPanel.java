@@ -20,6 +20,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
@@ -83,9 +84,10 @@ public class StillBackgroundSetupPanel extends JPanel implements ActionListener,
 	public StillBackgroundSetupPanel(StillBackgroundComponent component) {
 		this.component = component;
 		
-		this.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.image.setup.title")));
+		this.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.still.setup.title")));
 		
 		// color
+		JLabel lblColor = new JLabel(Messages.getString("panel.color.setup.title"));
 		this.btnColorSelect = new JButton(Icons.COLOR);
 		this.btnColorSelect.setToolTipText(Messages.getString("panel.color.setup.browse"));
 		this.btnColorSelect.addActionListener(this);
@@ -103,6 +105,7 @@ public class StillBackgroundSetupPanel extends JPanel implements ActionListener,
 		this.chkColorVisible.addChangeListener(this);
 		
 		// image
+		JLabel lblImage = new JLabel(Messages.getString("panel.image.setup.title"));
 		this.btnImageSelect = new JButton(Messages.getString("panel.image.setup.browse"));
 		this.btnImageSelect.setToolTipText(Messages.getString("panel.image.setup.browse.tooltip"));
 		this.btnImageSelect.addActionListener(this);
@@ -135,24 +138,30 @@ public class StillBackgroundSetupPanel extends JPanel implements ActionListener,
 		
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
-		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addGroup(layout.createSequentialGroup()
-						.addComponent(this.btnColorSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.cmbColorCompositeType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.chkColorVisible))
-				.addGroup(layout.createSequentialGroup()
-						.addComponent(this.btnImageSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.cmbImageScaleType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.cmbImageScaleQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.chkImageVisible))
-				.addComponent(this.chkVisible));
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup()
+						.addComponent(lblColor)
+						.addComponent(lblImage))
+				.addGroup(layout.createParallelGroup()
+					.addGroup(layout.createSequentialGroup()
+							.addComponent(this.btnColorSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(this.cmbColorCompositeType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(this.chkColorVisible))
+					.addGroup(layout.createSequentialGroup()
+							.addComponent(this.btnImageSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(this.cmbImageScaleType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(this.cmbImageScaleQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(this.chkImageVisible))
+					.addComponent(this.chkVisible)));
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblColor)
 						.addComponent(this.btnColorSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbColorCompositeType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.chkColorVisible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblImage)
 						.addComponent(this.btnImageSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbImageScaleType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbImageScaleQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)

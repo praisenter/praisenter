@@ -77,6 +77,8 @@ public class TransitionDisplayPanel extends JPanel {
 		// this saves the last display's rendering so we
 		// can apply transitions
 		Graphics2D tg2d = this.image0.createGraphics();
+		tg2d.setBackground(new Color(0, 0, 0, 0));
+		tg2d.clearRect(0, 0, this.image0.getWidth(), this.image0.getHeight());
 		tg2d.drawImage(this.image1, 0, 0, null);
 		tg2d.dispose();
 		

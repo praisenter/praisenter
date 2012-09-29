@@ -155,11 +155,18 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	/** The next verse display */
 	private BibleDisplay nextVerseDisplay;
 	
+	// state
+	
+	/** True if a verse is ready for display */
+	private boolean verseReady;
+	
 	/**
 	 * Default constructor.
 	 */
 	@SuppressWarnings("serial")
 	public BiblePanel() {
+		this.verseReady = false;
+		
 		// get the settings
 		GeneralSettings gSettings = GeneralSettings.getInstance();
 		BibleSettings bSettings = BibleSettings.getInstance();
@@ -855,7 +862,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 							ex);
 					LOGGER.error(message, ex);
 				}
-			} else if ("send".equals(e.getActionCommand())) {
+			} else if ("send".equals(e.getActionCommand()) && this.verseReady) {
 				// get the transition
 				Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
 				int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
@@ -990,6 +997,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	 * @throws DataException if an exception occurs while loading the next and previous verses
 	 */
 	private void updateVerseDisplays(Verse verse) throws DataException {
+		this.verseReady = true;
 		boolean ia = BibleSettings.getInstance().isApocryphaIncluded();
 		// then get the previous and next verses as well
 		Verse prev = Bibles.getPreviousVerse(verse, ia);
@@ -1087,7 +1095,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 						Verse v = Bibles.getVerse(bible, book.getCode(), chapter, verse);
 						if (v != null) {
 							lblFound.setIcon(Icons.FOUND);
-							lblFound.setToolTipText("");
+							lblFound.setToolTipText(null);
 						} else {
 							lblFound.setIcon(Icons.NOT_FOUND);
 							lblFound.setToolTipText(MessageFormat.format(Messages.getString("panel.bible.data.verseNotFound"), bible.getName(), book.getName(), chapter, verse));
@@ -1095,25 +1103,25 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 					} catch (DataException ex) {
 						LOGGER.error(MessageFormat.format(Messages.getString("panel.bible.data.validate.exception.text"), bible.getName(), book.getName(), chapter, verse), ex);
 						lblFound.setIcon(null);
-						lblFound.setToolTipText("");
+						lblFound.setToolTipText(null);
 					}
 				} else {
 					// clear labels if not enough info is given
 					lblFound.setIcon(null);
-					lblFound.setToolTipText("");
+					lblFound.setToolTipText(null);
 				}
 			} else {
 				// clear labels if not enough info is given
 				lblVerseCount.setText("");
 				lblFound.setIcon(null);
-				lblFound.setToolTipText("");
+				lblFound.setToolTipText(null);
 			}
 		} else {
 			// clear labels if not enough info is given
 			lblChapterCount.setText(MessageFormat.format(Messages.getString("panel.bible.chapterCount"), ""));
 			lblVerseCount.setText("");
 			lblFound.setIcon(null);
-			lblFound.setToolTipText("");
+			lblFound.setToolTipText(null);
 		}
 	}
 	

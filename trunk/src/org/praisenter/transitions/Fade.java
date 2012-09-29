@@ -36,19 +36,16 @@ public class Fade extends Transition {
 	@Override
 	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
 		// apply alpha composite
-		float alpha = 0.0f;
+		Composite composite = g2d.getComposite();
 		if (this.type == Transition.Type.IN) {
 			g2d.drawImage(image0, 0, 0, null);
-			alpha = (float)Math.min(pc, 1.0);
-		} else {
-			alpha = (float)Math.max(1.0 - pc, 0.0);
-		}
-		AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
-		Composite composite = g2d.getComposite();
-		g2d.setComposite(ac);
-		if (this.type == Transition.Type.IN) {
+			// fade in the new
+			float alpha = (float)Math.min(pc, 1.0);
+			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
 			g2d.drawImage(image1, 0, 0, null);
-		} else  {
+		} else {
+			float alpha = (float)Math.min(pc, 1.0);
+			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f - alpha));
 			g2d.drawImage(image0, 0, 0, null);
 		}
 		g2d.setComposite(composite);
