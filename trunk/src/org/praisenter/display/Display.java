@@ -11,7 +11,7 @@ import org.praisenter.resources.Messages;
  * @version 1.0.0
  */
 public abstract class Display {
-	/** The default screen padding; used for setup of a default bible display */
+	/** The default screen padding; used for setup of a default display */
 	public static final int DEFAULT_SCREEN_PADDING = 30;
 	
 	// general
@@ -24,11 +24,8 @@ public abstract class Display {
 	
 	// backgrounds
 	
-	/** The color background component */
-	protected ColorBackgroundComponent colorBackground;
-	
-	/** The image background component */
-	protected ImageBackgroundComponent imageBackground;
+	/** The still background component */
+	protected StillBackgroundComponent stillBackground;
 	
 	/**
 	 * Minimal constructor.
@@ -46,26 +43,16 @@ public abstract class Display {
 	public Display(String name, Dimension displaySize) {
 		this.name = name;
 		this.displaySize = displaySize;
-		this.colorBackground = null;
-		this.imageBackground = null;
+		this.stillBackground = null;
 	}
 	
 	/**
-	 * Creates a new {@link ColorBackgroundComponent} for this display.
+	 * Creates a new {@link StillBackgroundComponent} for this display.
 	 * @param name the name of the component
-	 * @return {@link ColorBackgroundComponent}
+	 * @return {@link StillBackgroundComponent}
 	 */
-	public ColorBackgroundComponent createColorBackgroundComponent(String name) {
-		return new ColorBackgroundComponent(name, this.displaySize);
-	}
-	
-	/**
-	 * Creates a new {@link ImageBackgroundComponent} for this display.
-	 * @param name the name of the component
-	 * @return {@link ImageBackgroundComponent}
-	 */
-	public ImageBackgroundComponent createImageBackgroundComponent(String name) {
-		return new ImageBackgroundComponent(name, this.displaySize);
+	public StillBackgroundComponent createStillBackgroundComponent(String name) {
+		return new StillBackgroundComponent(name, this.displaySize);
 	}
 
 	/**
@@ -99,46 +86,26 @@ public abstract class Display {
 	public void setDisplaySize(Dimension displaySize) {
 		// set the size
 		this.displaySize = displaySize;
-		// set the size of the base background
-		if (this.colorBackground != null) {
-			this.colorBackground.setSize(displaySize);
-		}
 		// set the size of the main background
-		if (this.imageBackground != null) {
-			this.imageBackground.setSize(displaySize);
+		if (this.stillBackground != null) {
+			this.stillBackground.setSize(displaySize);
 		}
 	}
 	
 	/**
-	 * Returns the color background for this {@link Display}.
-	 * @return {@link ColorBackgroundComponent}
+	 * Returns the still background for this {@link Display}.
+	 * @return {@link StillBackgroundComponent}
 	 */
-	public ColorBackgroundComponent getColorBackgroundComponent() {
-		return this.colorBackground;
+	public StillBackgroundComponent getStillBackgroundComponent() {
+		return this.stillBackground;
 	}
 	
 	/**
-	 * Sets the color background for this {@link Display}.
-	 * @param background the color background
-	 */
-	public void setColorBackgroundComponent(ColorBackgroundComponent background) {
-		this.colorBackground = background;
-	}
-	
-	/**
-	 * Returns the image background for this {@link Display}.
-	 * @return {@link ImageBackgroundComponent}
-	 */
-	public ImageBackgroundComponent getImageBackgroundComponent() {
-		return this.imageBackground;
-	}
-	
-	/**
-	 * Sets the image background for this {@link Display}.
+	 * Sets the still background for this {@link Display}.
 	 * @param background the image background
 	 */
-	public void setImageBackgroundComponent(ImageBackgroundComponent background) {
-		this.imageBackground = background;
+	public void setStillBackgroundComponent(StillBackgroundComponent background) {
+		this.stillBackground = background;
 	}
 	
 	/**
@@ -146,15 +113,9 @@ public abstract class Display {
 	 * @param graphics the graphics object
 	 */
 	public void render(Graphics2D graphics) {
-		// TODO allow ordering of the backgrounds; or allow compositing by making a single background type with color/image/gradient/ordering etc.
-		
-		// render the base background
-		if (this.colorBackground != null) {
-			this.colorBackground.render(graphics);
-		}
 		// render the main background
-		if (this.imageBackground != null) {
-			this.imageBackground.render(graphics);
+		if (this.stillBackground != null) {
+			this.stillBackground.render(graphics);
 		}
 	}
 }

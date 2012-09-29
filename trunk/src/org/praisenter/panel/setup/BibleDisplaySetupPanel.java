@@ -9,16 +9,14 @@ import javax.swing.GroupLayout;
 import javax.swing.JPanel;
 
 import org.praisenter.display.BibleDisplay;
-import org.praisenter.display.ColorBackgroundComponent;
 import org.praisenter.display.Displays;
 import org.praisenter.display.FloatingDisplayComponent;
-import org.praisenter.display.ImageBackgroundComponent;
+import org.praisenter.display.StillBackgroundComponent;
 import org.praisenter.display.TextComponent;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.BibleSettings;
-import org.praisenter.settings.ColorBackgroundSettings;
-import org.praisenter.settings.ImageBackgroundSettings;
 import org.praisenter.settings.SettingsException;
+import org.praisenter.settings.StillBackgroundSettings;
 import org.praisenter.settings.TextSettings;
 
 /**
@@ -69,16 +67,14 @@ public class BibleDisplaySetupPanel extends DisplaySetupPanel<BibleSettings, Bib
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.pnlColorBackground, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(this.pnlImageBackground, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(this.pnlStillBackground, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addComponent(pnlTitle)
 						.addComponent(pnlText))
 				.addComponent(pnlPreview));
 		
 		layout.setVerticalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
-						.addComponent(this.pnlColorBackground)
-						.addComponent(this.pnlImageBackground)
+						.addComponent(this.pnlStillBackground)
 						.addComponent(pnlTitle)
 						.addComponent(pnlText))
 				.addComponent(pnlPreview));
@@ -97,15 +93,10 @@ public class BibleDisplaySetupPanel extends DisplaySetupPanel<BibleSettings, Bib
 	 */
 	@Override
 	protected void setSettingsFromComponents() throws SettingsException {
-		// copy the color background settings
-		ColorBackgroundSettings cSet = this.settings.getColorBackgroundSettings();
-		ColorBackgroundComponent cCom = this.display.getColorBackgroundComponent();
-		cSet.setSettings(cCom);
-		
-		// copy the image background settings
-		ImageBackgroundSettings iSet = this.settings.getImageBackgroundSettings();
-		ImageBackgroundComponent iCom = this.display.getImageBackgroundComponent();
-		iSet.setSettings(iCom);
+		// copy the still background settings
+		StillBackgroundSettings sSet = this.settings.getStillBackgroundSettings();
+		StillBackgroundComponent sCom = this.display.getStillBackgroundComponent();
+		sSet.setSettings(sCom);
 		
 		// save the title settings
 		TextSettings tSet = this.settings.getScriptureTitleSettings();

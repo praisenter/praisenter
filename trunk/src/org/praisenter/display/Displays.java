@@ -5,8 +5,7 @@ import java.awt.Rectangle;
 
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.BibleSettings;
-import org.praisenter.settings.ColorBackgroundSettings;
-import org.praisenter.settings.ImageBackgroundSettings;
+import org.praisenter.settings.StillBackgroundSettings;
 import org.praisenter.settings.TextSettings;
 
 /**
@@ -46,22 +45,20 @@ public class Displays {
 		BibleDisplay display = name == null ? new BibleDisplay(displaySize) : new BibleDisplay(name, displaySize);
 		
 		// get sub settings
-		ColorBackgroundSettings cSet = settings.getColorBackgroundSettings();
-		ImageBackgroundSettings iSet = settings.getImageBackgroundSettings();
+		StillBackgroundSettings sSet = settings.getStillBackgroundSettings();
 		TextSettings tSet = settings.getScriptureTitleSettings();
 		TextSettings bSet = settings.getScriptureTextSettings(); 
 		
-		// create the default color background
-		ColorBackgroundComponent colorBackground = display.createColorBackgroundComponent("BackgroundColor");
-		colorBackground.setColor(cSet.getColor());
-		colorBackground.setVisible(cSet.isVisible());
-		
-		// create an empty image background
-		ImageBackgroundComponent imageBackground = display.createImageBackgroundComponent("BackgroundImage");
-		imageBackground.setImage(iSet.getImage());
-		imageBackground.setScaleQuality(iSet.getScaleQuality());
-		imageBackground.setScaleType(iSet.getScaleType());
-		imageBackground.setVisible(iSet.isVisible());
+		// create a still background
+		StillBackgroundComponent stillBackground = display.createStillBackgroundComponent("Background");
+		stillBackground.setColor(sSet.getColor());
+		stillBackground.setColorCompositeType(sSet.getColorCompositeType());
+		stillBackground.setColorVisible(sSet.isColorVisible());
+		stillBackground.setImage(sSet.getImage());
+		stillBackground.setImageScaleQuality(sSet.getImageScaleQuality());
+		stillBackground.setImageScaleType(sSet.getImageScaleType());
+		stillBackground.setImageVisible(sSet.isImageVisible());
+		stillBackground.setVisible(sSet.isVisible());
 		
 		// compute the default width, height and position
 		final int h = displaySize.height - margin * 2;
@@ -102,8 +99,7 @@ public class Displays {
 		text.setTextFont(bSet.getTextFont());
 		text.setVisible(bSet.isVisible());
 		
-		display.setColorBackgroundComponent(colorBackground);
-		display.setImageBackgroundComponent(imageBackground);
+		display.setStillBackgroundComponent(stillBackground);
 		display.setScriptureTitleComponent(titleText);
 		display.setScriptureTextComponent(text);
 		

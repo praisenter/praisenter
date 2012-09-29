@@ -1,5 +1,6 @@
 package org.praisenter.panel.setup;
 
+import java.awt.Graphics;
 import java.beans.PropertyChangeEvent;
 import java.text.NumberFormat;
 
@@ -13,6 +14,7 @@ import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.praisenter.control.WaterMark;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.ErrorReportingSettings;
 import org.praisenter.settings.SettingsException;
@@ -57,6 +59,7 @@ public class ErrorReportingSetupPanel extends JPanel implements SetupPanel, Chan
 	 * Minimal constructor.
 	 * @param settings the settings to modify
 	 */
+	@SuppressWarnings("serial")
 	public ErrorReportingSetupPanel(ErrorReportingSettings settings) {
 		this.settings = settings;
 		boolean enabled = settings.isErrorReportingEnabled();
@@ -76,7 +79,14 @@ public class ErrorReportingSetupPanel extends JPanel implements SetupPanel, Chan
 		
 		JLabel lblSmtpHost = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.host"));
 		lblSmtpHost.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.host.tooltip"));
-		this.txtSmtpHost = new JTextField();
+		this.txtSmtpHost = new JTextField() {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				// paint a watermark over the text box
+				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.setup.reporting.smtp.host.example"));
+			}
+		};
 		this.txtSmtpHost.setText(settings.getSmtpHost());
 		this.txtSmtpHost.setColumns(30);
 		this.txtSmtpHost.setEnabled(enabled);
@@ -96,7 +106,14 @@ public class ErrorReportingSetupPanel extends JPanel implements SetupPanel, Chan
 		
 		JLabel lblUsername = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.user"));
 		lblUsername.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.user.tooltip"));
-		this.txtUsername = new JTextField();
+		this.txtUsername = new JTextField() {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				// paint a watermark over the text box
+				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.setup.reporting.smtp.user.example"));
+			}
+		};
 		this.txtUsername.setText(settings.getAccountUsername());
 		this.txtUsername.setColumns(20);
 		this.txtUsername.setEnabled(enabled);
@@ -104,7 +121,14 @@ public class ErrorReportingSetupPanel extends JPanel implements SetupPanel, Chan
 		
 		JLabel lblEmail = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.email"));
 		lblEmail.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.email.tooltip"));
-		this.txtEmail = new JTextField();
+		this.txtEmail = new JTextField() {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				// paint a watermark over the text box
+				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.setup.reporting.smtp.email.example"));
+			}
+		};
 		this.txtEmail.setText(settings.getAccountEmail());
 		this.txtEmail.setColumns(50);
 		this.txtEmail.setEnabled(enabled);
