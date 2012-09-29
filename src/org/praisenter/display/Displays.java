@@ -64,7 +64,7 @@ public class Displays {
 		final int h = displaySize.height - margin * 2;
 		final int w = displaySize.width - margin * 2;
 		
-		final int tth = (int)Math.ceil((double)h * 0.25);
+		final int tth = (int)Math.ceil((double)h * 0.15);
 		final int th = h - tth - margin;
 		
 		// create the title text component

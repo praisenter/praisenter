@@ -130,6 +130,14 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	}
 
 	/* (non-Javadoc)
+	 * @see org.praisenter.settings.RootSettings#getFileName()
+	 */
+	@Override
+	protected String getFileName() {
+		return BibleSettings.FILE_NAME;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.settings.Settings#getFileNameLocation()
 	 */
 	@Override
