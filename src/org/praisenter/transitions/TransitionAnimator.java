@@ -6,6 +6,9 @@ import java.awt.event.ActionListener;
 
 import javax.swing.Timer;
 
+import org.praisenter.transitions.easing.CubicEasing;
+import org.praisenter.transitions.easing.Easing;
+
 /**
  * Represents an animator for a transtion.
  * @author William Bittle

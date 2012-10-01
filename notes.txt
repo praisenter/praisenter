@@ -1,4 +1,8 @@
 Nursery overlay
+	Changed to notification window
+	maybe use a copy of transitiondisplaypanel
+	maybe place the panel on top of the transition display panel
+	or just make a new window (add the code to show/hide in display window)
 
 Video backgrounds (avi, mov, mp4, mod, mpg, mpeg, wmv, mp2)
 	I'm thinking use FFMPEG to convert the selected media to the simplest format.

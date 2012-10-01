@@ -3,6 +3,7 @@ package org.praisenter;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -20,29 +22,37 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
 import org.apache.log4j.Logger;
-import org.praisenter.control.CheckExistsFileChooser;
-import org.praisenter.control.ZipFileFilter;
 import org.praisenter.data.DataException;
 import org.praisenter.data.DataImportException;
 import org.praisenter.data.bible.UnboundBibleImporter;
+import org.praisenter.data.bible.ui.BiblePanel;
 import org.praisenter.data.errors.Errors;
+import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.data.song.SongExporter;
 import org.praisenter.data.song.SongImporter;
 import org.praisenter.data.song.Songs;
-import org.praisenter.dialog.ExceptionDialog;
-import org.praisenter.dialog.SetupDialog;
+import org.praisenter.display.DisplayFactory;
+import org.praisenter.display.NotificationDisplay;
+import org.praisenter.display.ui.Screens;
 import org.praisenter.icons.Icons;
-import org.praisenter.panel.bible.BiblePanel;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.SettingsListener;
+import org.praisenter.settings.ui.SettingsDialog;
 import org.praisenter.tasks.FileTask;
 import org.praisenter.tasks.TaskProgressDialog;
+import org.praisenter.transitions.Fade;
+import org.praisenter.transitions.SwipeLeft;
+import org.praisenter.transitions.Transition;
+import org.praisenter.transitions.TransitionAnimator;
+import org.praisenter.ui.CheckExistsFileChooser;
+import org.praisenter.ui.ZipFileFilter;
 
 /**
  * Main window for the Praisenter application.
@@ -79,7 +89,10 @@ public class Praisenter extends JFrame implements ActionListener {
 		// TODO add a way to save a service; this could be used to store queued songs and verses
 		
 		// create the notification panel
-		
+		JTextField txtNotification = new JTextField();
+		JButton btnSendNotification = new JButton();
+		btnSendNotification.setActionCommand("sendNotification");
+		btnSendNotification.addActionListener(this);
 		
 		// create the bible panel
 		this.pnlBible = new BiblePanel();
@@ -88,6 +101,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		JTabbedPane tabs = new JTabbedPane();
 		tabs.addTab(Messages.getString("bible"), this.pnlBible);
 		
+		container.add(btnSendNotification, BorderLayout.PAGE_START);
 		container.add(tabs, BorderLayout.CENTER);
 		
 		// create the main menu bar
@@ -191,7 +205,7 @@ public class Praisenter extends JFrame implements ActionListener {
 			this.changeLookAndFeel(command);
 		} else if ("preferences".equals(command)) {
 			// show the preferences dialog
-			SetupDialog.show(this, new SettingsListener[] { this.pnlBible });
+			SettingsDialog.show(this, new SettingsListener[] { this.pnlBible });
 		} else if ("size".equals(command)) {
 			this.showCurrentWindowSize();
 		} else if ("exportErrors".equals(command)) {
@@ -204,6 +218,11 @@ public class Praisenter extends JFrame implements ActionListener {
 			this.exportSongs();
 		} else if ("importPraisenterSongs".equals(command)) {
 			this.importPraisenterSongDatabase();
+		} else if ("sendNotification".equals(command)) {
+			Screens.getPrimaryNotificationOverlay().send(DisplayFactory.getDisplay(new Dimension(1280, 300)),
+					new TransitionAnimator(new Fade(Transition.Type.IN), 400),
+					new TransitionAnimator(new SwipeLeft(Transition.Type.OUT), 400),
+					1000);
 		}
 	}
 	

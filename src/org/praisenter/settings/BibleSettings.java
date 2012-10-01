@@ -67,10 +67,10 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	protected StillBackgroundSettings stillBackgroundSettings;
 	
 	/** The scripture title {@link PartialSettings} */
-	protected TextSettings scriptureTitleSettings;
+	protected TextComponentSettings scriptureTitleSettings;
 	
 	/** The scripture text {@link PartialSettings} */
-	protected TextSettings scriptureTextSettings;
+	protected TextComponentSettings scriptureTextSettings;
 	
 	
 	/**
@@ -87,8 +87,8 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	private BibleSettings(Properties properties) {
 		super(properties);
 		this.stillBackgroundSettings = new StillBackgroundSettings("StillBackground", this);
-		this.scriptureTitleSettings = new TextSettings("ScriptureTitle", this);
-		this.scriptureTextSettings = new TextSettings("ScriptureText", this);
+		this.scriptureTitleSettings = new TextComponentSettings("ScriptureTitle", this);
+		this.scriptureTextSettings = new TextComponentSettings("ScriptureText", this);
 	}
 	
 	/* (non-Javadoc)
@@ -253,17 +253,17 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	
 	/**
 	 * Returns the scripture title {@link PartialSettings}.
-	 * @return {@link TextSettings}
+	 * @return {@link TextComponentSettings}
 	 */
-	public TextSettings getScriptureTitleSettings() {
+	public TextComponentSettings getScriptureTitleSettings() {
 		return this.scriptureTitleSettings;
 	}
 	
 	/**
 	 * Returns the scripture text {@link PartialSettings}.
-	 * @return {@link TextSettings}
+	 * @return {@link TextComponentSettings}
 	 */
-	public TextSettings getScriptureTextSettings() {
+	public TextComponentSettings getScriptureTextSettings() {
 		return this.scriptureTextSettings;
 	}
 }
