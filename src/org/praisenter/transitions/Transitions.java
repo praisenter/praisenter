@@ -1,5 +1,8 @@
 package org.praisenter.transitions;
 
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsDevice.WindowTranslucency;
+
 /**
  * Helper class for transitions.
  * @author William Bittle
@@ -55,5 +58,14 @@ public class Transitions {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Returns true if transitions are supported by the given device.
+	 * @param device the device
+	 * @return boolean
+	 */
+	public static final boolean isTransitionSupportAvailable(GraphicsDevice device) {
+		return device.isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT);
 	}
 }

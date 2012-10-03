@@ -3,10 +3,7 @@ package org.praisenter.display;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
 import java.awt.RenderingHints;
-import java.awt.Transparency;
-import java.awt.image.BufferedImage;
 
 /**
  * Represents a component that displays text.
@@ -14,10 +11,7 @@ import java.awt.image.BufferedImage;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class TextComponent extends FloatingDisplayComponent {
-	/** A fully transparent color (used for clearing the image) */
-	private static final Color TRANSPARENT = new Color(0, 0, 0, 0);
-	
+public class TextComponent extends GraphicsComponent {
 	/** The text */
 	protected String text;
 	
@@ -37,18 +31,11 @@ public class TextComponent extends FloatingDisplayComponent {
 	protected boolean textWrapped;
 	
 	/** The inner component padding */
+	// TODO move padding to graphics component
 	protected int padding;
-	
+	// TODO add text shadow (color, direction, width, visible)
 	/** True if this text component is a placeholder for some text */
 	protected boolean placeholder;
-	
-	// caching
-	
-	/** The cached rendering of the component */
-	protected BufferedImage image;
-	
-	/** True if the bounds have changed */
-	protected boolean boundsIncreased;
 	
 	/**
 	 * Minimal constructor.
@@ -75,24 +62,24 @@ public class TextComponent extends FloatingDisplayComponent {
 	 */
 	@Override
 	public void render(Graphics2D graphics) {
+		boolean dirty = this.isDirty();
+		
+		// render the super class
+		//	1. this will reset the dirty flag
+		//	2. this will regenerate the cached image
+		super.render(graphics);
+		
 		// see if the component has changed or the cached image is null
-		if (this.isDirty() || this.image == null) {
-			// only create a new offscreen image if the current image
-			// is null or the width and height of the bounds have increased
-			// past the image's width and height
-			if (this.image == null || this.boundsIncreased) {
-				// create a compatible image
-				GraphicsConfiguration gc = graphics.getDeviceConfiguration();
-				this.image =  gc.createCompatibleImage(this.width, this.height, Transparency.TRANSLUCENT);
-				// flag that we have changed the image to match the bounds
-				this.boundsIncreased = false;
-			}
+		if (dirty) {
 			// get the graphics
-			Graphics2D g2d = this.image.createGraphics();
+			Graphics2D g2d = this.cachedImage.createGraphics();
 			
-			// clear the whole image using transparent
-			g2d.setBackground(TRANSPARENT);
-			g2d.clearRect(0, 0, this.image.getWidth(), this.image.getHeight());
+			// setup the render quality to as high as possible
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 			
 			// get the x and y render locations
 			int x = this.padding;
@@ -148,6 +135,9 @@ public class TextComponent extends FloatingDisplayComponent {
 				// turn on text anti-aliasing
 				g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 				
+				// we need to set the clip here so that if the cachedImage is actually larger
+				// than this component, that the text doesn't spill over
+				g2d.setClip(x, y, rw, rh);
 				// set the text color
 				g2d.setColor(this.textColor);
 				if (this.textWrapped) {
@@ -167,24 +157,7 @@ public class TextComponent extends FloatingDisplayComponent {
 		// check if we should render this component
 		if (this.visible) {
 			// draw the cached image
-			graphics.drawImage(this.image, this.x, this.y, null);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.display.FloatingDisplayComponent#resize(int, int)
-	 */
-	@Override
-	public void resize(int dw, int dh) {
-		// resize the component
-		super.resize(dw, dh);
-		// only re-create the buffered image when the bounds
-		// are increased
-		if (this.image != null) {
-			if (this.width > this.image.getWidth() || this.height > this.image.getHeight()) {
-				// re-allocate the buffer
-				this.boundsIncreased = true;
-			}
+			graphics.drawImage(this.cachedImage, this.x, this.y, null);
 		}
 	}
 	

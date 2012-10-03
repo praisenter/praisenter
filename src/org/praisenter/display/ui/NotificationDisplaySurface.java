@@ -1,16 +1,11 @@
 package org.praisenter.display.ui;
 
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
-import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import org.praisenter.display.Display;
@@ -18,24 +13,17 @@ import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
 
 /**
- * Panel used for display on a selected device.
- * <p>
- * This panel accepts a display and renders it to a local buffered image.
- * From thereon, the image is used to render the panel.  If the underlying
- * display is updated, this panel will not update.
+ * Represents a special display surface supporting notifications.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class NotificationPanel extends JPanel implements ActionListener {
+public class NotificationDisplaySurface extends DisplaySurface implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = -944011695590655744L;
 	
 	/** The cached image */
 	protected BufferedImage image;
-	
-	/** A cached blank image */
-	protected BufferedImage blank;
 	
 	/** The transition coming in */
 	protected TransitionAnimator in;
@@ -43,27 +31,48 @@ public class NotificationPanel extends JPanel implements ActionListener {
 	/** The transition going out */
 	protected TransitionAnimator out;
 	
+	/** The timer for the wait period */
 	protected Timer waitTimer;
 	
+	/** The current notification state */
 	protected NotificationState state;
 	
 	/**
 	 * Default constructor.
 	 */
-	protected NotificationPanel() {
+	protected NotificationDisplaySurface() {
+		super();
 		this.image = null;
 		this.in = null;
 		this.out = null;
+		// default state is in
 		this.state = NotificationState.IN;
+		// setup the wait timer to not repeat and to fire immediately when started
 		this.waitTimer = new Timer(0, this);
 		this.waitTimer.setActionCommand("waitComplete");
 		this.waitTimer.setRepeats(false);
-		this.setOpaque(false);
-		this.setBackground(new Color(0, 0, 0, 0));
 	}
 	
+	/**
+	 * Sends the notification display and shows for the given wait period.
+	 * @param display the notification display
+	 * @param waitPeriod the wait period
+	 */
+	public void send(Display display, int waitPeriod) {
+		this.send(display, null, null, waitPeriod);
+	}
+	
+	/**
+	 * Sends the notification display and shows for the given wait period.
+	 * @param display the notification display
+	 * @param in the transition in animator
+	 * @param out the transition out animator
+	 * @param waitPeriod the wait period
+	 */
 	public void send(Display display, TransitionAnimator in, TransitionAnimator out, int waitPeriod) {
+		// set the state to the initial state
 		this.state = NotificationState.IN;
+		// stop the wait timer if necessary
 		this.waitTimer.stop();
 		
 		// stop the old transitions just in case they are still in progress
@@ -80,21 +89,10 @@ public class NotificationPanel extends JPanel implements ActionListener {
 		this.waitTimer.setInitialDelay(waitPeriod);
 		
 		// make sure our offscreen image is still the correct size
-		this.validateOffscreenImage();
+		this.image = DisplaySurface.validateOffscreenImage(this.image, this);
 		
 		// paint the display to the image
-		Graphics2D tg2d = this.image.createGraphics();
-		// make the rendering the best quality
-		tg2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		tg2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-		tg2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		tg2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-		// set the background color to 100% transparent so that it clears
-		// the image when we call clearRect
-		tg2d.setBackground(new Color(0, 0, 0, 0));
-		tg2d.clearRect(0, 0, this.getSize().width, this.getSize().height);
-		display.render(tg2d);
-		tg2d.dispose();
+		DisplaySurface.renderDisplay(display, this.image);
 		
 		// make sure the transition is not null
 		if (this.in != null) {
@@ -105,41 +103,22 @@ public class NotificationPanel extends JPanel implements ActionListener {
 		}
 	}
 	
-	/**
-	 * Verifies the offscreen image is created an sized appropriately.
-	 */
-	protected void validateOffscreenImage() {
-		Dimension size = this.getSize();
-
-		if (this.image == null || size.width != this.image.getWidth() || size.height != this.image.getHeight()) {
-			this.image = this.getGraphicsConfiguration().createCompatibleImage(this.getSize().width, this.getSize().height, Transparency.TRANSLUCENT);
-		}
-	}
-	
-	/**
-	 * Clears the given image.
-	 * @param image the image
-	 */
-	protected void clearImage(BufferedImage image) {
-		Graphics2D g2d = image.createGraphics();
-		// set the background color to 100% transparent so that it clears
-		// the image when we call clearRect
-		g2d.setBackground(new Color(0, 0, 0, 0));
-		g2d.clearRect(0, 0, image.getWidth(), image.getHeight());
-		g2d.dispose();
-	}
-	
 	/* (non-Javadoc)
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if ("waitComplete".equals(e.getActionCommand())) {
+			// stop the wait timer
 			this.waitTimer.stop();
+			// set the new state
 			this.state = NotificationState.OUT;
+			// see if there is an out transition
 			if (this.out != null) {
+				// if so, then start the out transition
 				this.out.start(this);
 			} else {
+				// if not, then just call repaint
 				this.repaint();
 			}
 		}
@@ -152,36 +131,52 @@ public class NotificationPanel extends JPanel implements ActionListener {
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		
+		// check if the state is "in"
 		if (this.state == NotificationState.IN) {
+			// if so, then check if the "in" transition is null
 			if (this.in == null) {
+				// if it is, then jump to the "wait" state
 				this.state = NotificationState.WAIT;
 				this.waitTimer.start();
 			} else {
+				// if its not, then check if the "in" transition is complete
 				if (!this.in.isComplete()) {
+					// if its not complete, then render it
 					Transition transition = this.in.getTransition();
-					transition.render((Graphics2D)g, this.blank, this.image, this.in.getPercentComplete());
+					transition.render((Graphics2D)g, null, this.image, this.in.getPercentComplete());
 				} else {
+					// if its complete then jump to the "wait" state
 					this.state = NotificationState.WAIT;
 					this.waitTimer.start();
 				}
 			}
 		}
 		
+		// check if we are in the "wait" state
 		if (this.state == NotificationState.WAIT) {
+			// if so, simply render the notification
 			g.drawImage(this.image, 0, 0, null);
 		}
 		
+		// check if we are in the "out" state
 		if (this.state == NotificationState.OUT) {
+			// if so, then check if the "out" transition is null
 			if (this.out == null) {
+				// if it is, then jump to the "done" state
 				this.state = NotificationState.DONE;
-				this.firePropertyChange("TransitionStateChanged", null, NotificationState.DONE);
+				// let the notification window know that we are done
+				this.firePropertyChange(NotificationDisplayWindow.PROPERTY_TRANSITION_STATE, null, NotificationState.DONE);
 			} else {
+				// if its not, then check if the "out" transition is complete
 				if (!this.out.isComplete()) {
+					// if its not complete, then render it
 					Transition transition = this.out.getTransition();
-					transition.render((Graphics2D)g, this.image, this.blank, this.out.getPercentComplete());
+					transition.render((Graphics2D)g, this.image, null, this.out.getPercentComplete());
 				} else {
+					// if it is, then jump to the "done" state
 					this.state = NotificationState.DONE;
-					this.firePropertyChange("TransitionStateChanged", null, NotificationState.DONE);
+					// let the notification window know that we are done
+					this.firePropertyChange(NotificationDisplayWindow.PROPERTY_TRANSITION_STATE, null, NotificationState.DONE);
 				}
 			}
 		}

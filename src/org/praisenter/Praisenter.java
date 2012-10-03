@@ -3,7 +3,6 @@ package org.praisenter;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -14,7 +13,6 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -22,7 +20,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -38,19 +35,13 @@ import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.data.song.SongExporter;
 import org.praisenter.data.song.SongImporter;
 import org.praisenter.data.song.Songs;
-import org.praisenter.display.DisplayFactory;
-import org.praisenter.display.NotificationDisplay;
-import org.praisenter.display.ui.Screens;
 import org.praisenter.icons.Icons;
+import org.praisenter.notification.ui.NotificationPanel;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.SettingsListener;
 import org.praisenter.settings.ui.SettingsDialog;
 import org.praisenter.tasks.FileTask;
 import org.praisenter.tasks.TaskProgressDialog;
-import org.praisenter.transitions.Fade;
-import org.praisenter.transitions.SwipeLeft;
-import org.praisenter.transitions.Transition;
-import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.ui.CheckExistsFileChooser;
 import org.praisenter.ui.ZipFileFilter;
 
@@ -77,6 +68,9 @@ public class Praisenter extends JFrame implements ActionListener {
 	/** The bible panel */
 	private BiblePanel pnlBible;
 	
+	/** The notification panel */
+	private NotificationPanel pnlNotification;
+	
 	/**
 	 * Default constructor.
 	 */
@@ -89,10 +83,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		// TODO add a way to save a service; this could be used to store queued songs and verses
 		
 		// create the notification panel
-		JTextField txtNotification = new JTextField();
-		JButton btnSendNotification = new JButton();
-		btnSendNotification.setActionCommand("sendNotification");
-		btnSendNotification.addActionListener(this);
+		this.pnlNotification = new NotificationPanel();
 		
 		// create the bible panel
 		this.pnlBible = new BiblePanel();
@@ -101,7 +92,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		JTabbedPane tabs = new JTabbedPane();
 		tabs.addTab(Messages.getString("bible"), this.pnlBible);
 		
-		container.add(btnSendNotification, BorderLayout.PAGE_START);
+		container.add(pnlNotification, BorderLayout.PAGE_START);
 		container.add(tabs, BorderLayout.CENTER);
 		
 		// create the main menu bar
@@ -218,11 +209,6 @@ public class Praisenter extends JFrame implements ActionListener {
 			this.exportSongs();
 		} else if ("importPraisenterSongs".equals(command)) {
 			this.importPraisenterSongDatabase();
-		} else if ("sendNotification".equals(command)) {
-			Screens.getPrimaryNotificationOverlay().send(DisplayFactory.getDisplay(new Dimension(1280, 300)),
-					new TransitionAnimator(new Fade(Transition.Type.IN), 400),
-					new TransitionAnimator(new SwipeLeft(Transition.Type.OUT), 400),
-					1000);
 		}
 	}
 	

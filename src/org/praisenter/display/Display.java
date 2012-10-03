@@ -9,6 +9,7 @@ import org.praisenter.resources.Messages;
  * Represents a generic display with sub components.
  * @author William Bittle
  * @version 1.0.0
+ * @since 1.0.0
  */
 public abstract class Display {
 	/** The default screen padding; used for setup of a default display */
@@ -21,11 +22,6 @@ public abstract class Display {
 	
 	/** The display size */
 	protected Dimension displaySize;
-	
-	// backgrounds
-	
-	/** The still background component */
-	protected StillBackgroundComponent stillBackground;
 	
 	/**
 	 * Minimal constructor.
@@ -43,18 +39,8 @@ public abstract class Display {
 	public Display(String name, Dimension displaySize) {
 		this.name = name;
 		this.displaySize = displaySize;
-		this.stillBackground = null;
 	}
 	
-	/**
-	 * Creates a new {@link StillBackgroundComponent} for this display.
-	 * @param name the name of the component
-	 * @return {@link StillBackgroundComponent}
-	 */
-	public StillBackgroundComponent createStillBackgroundComponent(String name) {
-		return new StillBackgroundComponent(name, this.displaySize);
-	}
-
 	/**
 	 * Returns the display name.
 	 * @return String
@@ -84,28 +70,7 @@ public abstract class Display {
 	 * @param displaySize the display size
 	 */
 	public void setDisplaySize(Dimension displaySize) {
-		// set the size
 		this.displaySize = displaySize;
-		// set the size of the main background
-		if (this.stillBackground != null) {
-			this.stillBackground.setSize(displaySize);
-		}
-	}
-	
-	/**
-	 * Returns the still background for this {@link Display}.
-	 * @return {@link StillBackgroundComponent}
-	 */
-	public StillBackgroundComponent getStillBackgroundComponent() {
-		return this.stillBackground;
-	}
-	
-	/**
-	 * Sets the still background for this {@link Display}.
-	 * @param background the image background
-	 */
-	public void setStillBackgroundComponent(StillBackgroundComponent background) {
-		this.stillBackground = background;
 	}
 	
 	/**
@@ -113,9 +78,6 @@ public abstract class Display {
 	 * @param graphics the graphics object
 	 */
 	public void render(Graphics2D graphics) {
-		// render the main background
-		if (this.stillBackground != null) {
-			this.stillBackground.render(graphics);
-		}
+		// nothing to do by default
 	}
 }

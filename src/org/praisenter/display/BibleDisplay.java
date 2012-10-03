@@ -11,7 +11,7 @@ import org.praisenter.data.bible.Verse;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class BibleDisplay extends Display {
+public class BibleDisplay extends FullScreenDisplay {
 	/** Additional reference to the title component */
 	protected TextComponent scriptureTitleComponent;
 	
@@ -36,7 +36,7 @@ public class BibleDisplay extends Display {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.display.Display#render(java.awt.Graphics2D)
+	 * @see org.praisenter.display.FullScreenDisplay#render(java.awt.Graphics2D)
 	 */
 	@Override
 	public void render(Graphics2D graphics) {

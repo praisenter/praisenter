@@ -24,6 +24,7 @@ import org.praisenter.resources.Messages;
 import org.praisenter.settings.BibleSettings;
 import org.praisenter.settings.ErrorReportingSettings;
 import org.praisenter.settings.GeneralSettings;
+import org.praisenter.settings.NotificationSettings;
 import org.praisenter.settings.SettingsException;
 import org.praisenter.settings.SettingsListener;
 import org.praisenter.tasks.AbstractTask;
@@ -54,7 +55,10 @@ public class SettingsDialog extends JDialog implements ActionListener {
 	
 	/** The panel for the bible settings */
 	private BibleSettingsPanel pnlBibleSettings;
-
+	
+	/** The panel for the notification settings */
+	private NotificationSettingsPanel pnlNotificationSettings;
+	
 	/** The panel for error reporting settings */
 	private ErrorReportingSetupPanel pnlErrorReportingSettings;
 	
@@ -70,6 +74,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
 		// get the settings
 		GeneralSettings gSettings = GeneralSettings.getInstance();
 		BibleSettings bSettings = BibleSettings.getInstance();
+		NotificationSettings nSettings = NotificationSettings.getInstance();
 		ErrorReportingSettings eSettings = ErrorReportingSettings.getInstance();
 		
 		// for the setup panel we need to use the display size of the currently selected device
@@ -81,11 +86,13 @@ public class SettingsDialog extends JDialog implements ActionListener {
 		// create the settings panels
 		this.pnlGeneralSettings = new GeneralSettingsPanel(gSettings);
 		this.pnlBibleSettings = new BibleSettingsPanel(bSettings, size);
+		this.pnlNotificationSettings = new NotificationSettingsPanel(nSettings, size);
 		this.pnlErrorReportingSettings = new ErrorReportingSetupPanel(eSettings);
 		
 		// set the panels to listen for property change events from the general panel
 		// since the general panel contains the setup for the displays
 		this.pnlGeneralSettings.addPropertyChangeListener(GeneralSettingsPanel.DISPLAY_PROPERTY, this.pnlBibleSettings);
+		this.pnlNotificationSettings.addPropertyChangeListener(GeneralSettingsPanel.DISPLAY_PROPERTY, this.pnlNotificationSettings);
 		
 		this.pnlBibleSettings.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		
@@ -113,6 +120,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
 		JTabbedPane pneTabs = new JTabbedPane();
 		pneTabs.addTab(Messages.getString("dialog.setup.general"), this.pnlGeneralSettings);
 		pneTabs.addTab(Messages.getString("dialog.setup.bible"), this.pnlBibleSettings);
+		pneTabs.addTab(Messages.getString("dialog.setup.notification"), this.pnlNotificationSettings);
 		pneTabs.addTab(Messages.getString("dialog.setup.error"), this.pnlErrorReportingSettings);
 		
 		Container container = this.getContentPane();
@@ -138,6 +146,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
 					try {
 						pnlGeneralSettings.saveSettings();
 						pnlBibleSettings.saveSettings();
+						pnlNotificationSettings.saveSettings();
 						pnlErrorReportingSettings.saveSettings();
 						this.setSuccessful(true);
 					} catch (SettingsException ex) {

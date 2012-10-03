@@ -5,9 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -19,16 +17,17 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.DefaultEditor;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.praisenter.display.FontScaleType;
 import org.praisenter.display.TextAlignment;
@@ -45,12 +44,20 @@ import org.praisenter.utilities.FontManager;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class TextComponentSettingsPanel extends JPanel implements ItemListener, ChangeListener, ActionListener {
+public class TextComponentSettingsPanel extends GraphicsComponentSettingsPanel<TextComponent> {
 	/** The version id */
 	private static final long serialVersionUID = 3293259447883381709L;
 
-	/** The text component to setup */
-	protected TextComponent component;
+	// labels
+	
+	/** The font family label */
+	protected JLabel lblFontFamily;
+	
+	/** The font size label */
+	protected JLabel lblFontSize;
+	
+	/** The layout label */
+	protected JLabel lblLayout;
 	
 	// controls
 	
@@ -62,6 +69,9 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 	
 	/** The toggle button for italic */
 	protected JToggleButton tglItalic;
+	
+	/** The bold/italic panel */
+	protected JPanel pnlBoldItalic;
 	
 	/** The font size spinner */
 	protected JSpinner spnFontSize;
@@ -78,6 +88,9 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 	/** The text alignment right toggle button */
 	protected JToggleButton tglTextAlignmentRight;
 	
+	/** The text alignment panel */
+	protected JPanel pnlTextAlignment;
+	
 	/** The wrap text check box */
 	protected JCheckBox chkWrapText;
 	
@@ -87,24 +100,35 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 	/** The visible check box */
 	protected JCheckBox chkVisible;
 	
+	/** The text color button */
+	protected JButton btnTextColor;
+	
 	/**
 	 * Full constructor.
 	 * @param component the text component to setup
 	 */
 	public TextComponentSettingsPanel(TextComponent component) {
+		super(component);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.settings.ui.GraphicsComponentSettingsPanel#buildControls()
+	 */
+	@Override
+	protected void buildControls() {
+		// build the super controls
+		super.buildControls();
 		// TODO for non-placeholder components the text should come from the settings
-		this.component = component;
 		
-		// labels
-		
-		JLabel lblFontFamily = new JLabel(Messages.getString("panel.text.setup.fontFamily"));
-		JLabel lblFontSize = new JLabel(Messages.getString("panel.text.setup.fontSize"));
-		JLabel lblLayout = new JLabel(Messages.getString("panel.text.setup.layout"));
+		// build the text component controls
+		this.lblFontFamily = new JLabel(Messages.getString("panel.text.setup.fontFamily"));
+		this.lblFontSize = new JLabel(Messages.getString("panel.text.setup.fontSize"));
+		this.lblLayout = new JLabel(Messages.getString("panel.text.setup.layout"));
 		
 		// the font family selection
 		Font font = this.component.getTextFont();
 		if (font == null) {
-			font = TextComponentSettings.DEFALUT_FONT;
+			font = TextComponentSettings.DEFAULT_FONT;
 		}
 		String[] fonts = FontManager.getFontFamilyNames();
 		this.cmbFontFamilies = new JComboBox<String>(fonts);
@@ -126,10 +150,10 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 		this.tglItalic.setActionCommand("italic");
 		this.tglItalic.addActionListener(this);
 		
-		JPanel pnlBoldItalic = new JPanel();
-		pnlBoldItalic.setLayout(new BorderLayout());
-		pnlBoldItalic.add(this.tglBold, BorderLayout.LINE_START);
-		pnlBoldItalic.add(this.tglItalic, BorderLayout.LINE_END);
+		this.pnlBoldItalic = new JPanel();
+		this.pnlBoldItalic.setLayout(new BorderLayout());
+		this.pnlBoldItalic.add(this.tglBold, BorderLayout.LINE_START);
+		this.pnlBoldItalic.add(this.tglItalic, BorderLayout.LINE_END);
 		
 		// the font size
 		int fontSize = font.getSize();
@@ -171,11 +195,11 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 		this.tglTextAlignmentCenter.addActionListener(this);
 		this.tglTextAlignmentRight.addActionListener(this);
 		
-		JPanel pnlAlignment = new JPanel();
-		pnlAlignment.setLayout(new BorderLayout());
-		pnlAlignment.add(this.tglTextAlignmentLeft, BorderLayout.LINE_START);
-		pnlAlignment.add(this.tglTextAlignmentCenter, BorderLayout.CENTER);
-		pnlAlignment.add(this.tglTextAlignmentRight, BorderLayout.LINE_END);
+		this.pnlTextAlignment = new JPanel();
+		this.pnlTextAlignment.setLayout(new BorderLayout());
+		this.pnlTextAlignment.add(this.tglTextAlignmentLeft, BorderLayout.LINE_START);
+		this.pnlTextAlignment.add(this.tglTextAlignmentCenter, BorderLayout.CENTER);
+		this.pnlTextAlignment.add(this.tglTextAlignmentRight, BorderLayout.LINE_END);
 		
 		// text wrap
 		this.chkWrapText = new JCheckBox(Messages.getString("panel.text.setup.wrapping"), this.component.isTextWrapped());
@@ -183,10 +207,10 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 		this.chkWrapText.addChangeListener(this);
 		
 		// text color
-		JButton btnTextColor = new JButton(Icons.COLOR);
-		btnTextColor.setToolTipText(Messages.getString("panel.text.setup.color"));
-		btnTextColor.addActionListener(this);
-		btnTextColor.setActionCommand("textColor");
+		this.btnTextColor = new JButton(Icons.COLOR);
+		this.btnTextColor.setToolTipText(Messages.getString("panel.text.setup.color"));
+		this.btnTextColor.addActionListener(this);
+		this.btnTextColor.setActionCommand("textColor");
 		
 		this.spnPadding = new JSpinner(new SpinnerNumberModel(this.component.getPadding(), 0, Integer.MAX_VALUE, 1));
 		this.spnPadding.addChangeListener(this);
@@ -199,55 +223,89 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 		this.chkVisible = new JCheckBox(Messages.getString("panel.text.setup.visible"), this.component.isVisible());
 		this.chkVisible.setToolTipText(Messages.getString("panel.text.setup.visible.tooltip"));
 		this.chkVisible.addChangeListener(this);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.settings.ui.GraphicsComponentSettingsPanel#buildLayout()
+	 */
+	@Override
+	protected void buildLayout() {
+		// don't build the super classes layout, we need something different
+		
+		JTabbedPane tabs = new JTabbedPane();
+		
+		JPanel pnlTextComponent = new JPanel();
+		this.buildTextComponentLayout(pnlTextComponent);
+		tabs.addTab(Messages.getString("panel.text.setup.name"), pnlTextComponent);
+		
+		JPanel pnlGraphicsComponent = new JPanel();
+		this.buildGraphicsComponentLayout(pnlGraphicsComponent);
+		tabs.addTab(Messages.getString("panel.setup.background.name"), pnlGraphicsComponent);
 		
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
+		
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+				.addComponent(tabs)
+				.addComponent(this.chkVisible));
+		layout.setVerticalGroup(layout.createParallelGroup()
+				.addComponent(tabs)
+				.addComponent(this.chkVisible));
+		
+		this.add(tabs);
+	}
+	
+	/**
+	 * Builds the layout for the text component.
+	 * @param component the component to place the layout
+	 */
+	protected void buildTextComponentLayout(JComponent component) {
+		GroupLayout layout = new GroupLayout(component);
+		component.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				// column 1
 				.addGroup(layout.createParallelGroup()
-						.addComponent(lblFontFamily)
-						.addComponent(lblFontSize)
-						.addComponent(lblLayout))
+						.addComponent(this.lblFontFamily)
+						.addComponent(this.lblFontSize)
+						.addComponent(this.lblLayout))
 				// column 2
 				.addGroup(layout.createParallelGroup()
 						// font row
 						.addGroup(layout.createSequentialGroup()
 								.addComponent(this.cmbFontFamilies)
-								.addComponent(pnlBoldItalic, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(btnTextColor, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(this.pnlBoldItalic, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(this.btnTextColor, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 						// size row
 						.addGroup(layout.createSequentialGroup()
 								.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.cmbFontScaleType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 						// layout row
 						.addGroup(layout.createSequentialGroup()
-								.addComponent(pnlAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(this.pnlTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.chkWrapText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.chkVisible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))));
+								.addComponent(this.chkWrapText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))));
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				// font row
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblFontFamily)
+						.addComponent(this.lblFontFamily)
 						.addComponent(this.cmbFontFamilies, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(pnlBoldItalic, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnTextColor, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(this.pnlBoldItalic, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.btnTextColor, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				// size row
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblFontSize)
+						.addComponent(this.lblFontSize)
 						.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbFontScaleType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				// layout row
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblLayout)
-						.addComponent(pnlAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.lblLayout)
+						.addComponent(this.pnlTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.chkWrapText)
-						.addComponent(this.chkVisible)));
+						.addComponent(this.chkWrapText)));
 	}
 	
 	/* (non-Javadoc)
@@ -255,12 +313,14 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 	 */
 	@Override
 	public void itemStateChanged(ItemEvent event) {
+		// send to the super class first
+		super.itemStateChanged(event);
 		Object source = event.getSource();
 		if (source == this.cmbFontFamilies) {
 			String family = (String)this.cmbFontFamilies.getSelectedItem();
 			Font old = this.component.getTextFont();
 			if (old == null) {
-				old = TextComponentSettings.DEFALUT_FONT;
+				old = TextComponentSettings.DEFAULT_FONT;
 			}
 			Font font = new Font(family, old.getStyle(), old.getSize());
 			this.component.setTextFont(font);
@@ -278,6 +338,8 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 	 */
 	@Override
 	public void stateChanged(ChangeEvent event) {
+		// send to the super class first
+		super.stateChanged(event);
 		Object source = event.getSource();
 		if (source == this.chkWrapText) {
 			boolean old = this.component.isTextWrapped();
@@ -296,7 +358,7 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 				float size = nnv.floatValue();
 				Font old = this.component.getTextFont();
 				if (old == null) {
-					old = TextComponentSettings.DEFALUT_FONT;
+					old = TextComponentSettings.DEFAULT_FONT;
 				}
 				Font font = old.deriveFont(size);
 				this.component.setTextFont(font);
@@ -319,6 +381,8 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 	 */
 	@Override
 	public void actionPerformed(ActionEvent event) {
+		// send to the super class first
+		super.actionPerformed(event);
 		String command = event.getActionCommand();
 		if ("textColor".equals(command)) {
 			Color old = this.component.getTextColor();
@@ -341,7 +405,7 @@ public class TextComponentSettingsPanel extends JPanel implements ItemListener, 
 			}
 			Font old = this.component.getTextFont();
 			if (old == null) {
-				old = TextComponentSettings.DEFALUT_FONT;
+				old = TextComponentSettings.DEFAULT_FONT;
 			}
 			Font font = old.deriveFont(style);
 			this.component.setTextFont(font);

@@ -1,8 +1,16 @@
 package org.praisenter.utilities;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.RenderingHints;
+import java.awt.Transparency;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -83,6 +91,38 @@ public class ImageUtilities {
 	}
 	
 	/**
+	 * Returns an image with the given image tiled onto it.
+	 * @param image the image to tile
+	 * @param gc the graphics configuration
+	 * @param w the rectangle width
+	 * @param h the rectangle height
+	 * @return BufferedImage
+	 */
+	public static final BufferedImage getTiledImage(BufferedImage image, GraphicsConfiguration gc, int w, int h) {
+		// create a new image of the right size
+		BufferedImage tiled = gc.createCompatibleImage(w, h, Transparency.OPAQUE);
+		
+		int tw = image.getWidth();
+		int th = image.getHeight();
+		int x = 0;
+		int y = 0;
+		int xn = w / tw + 1;
+		int yn = h / th + 1;
+		Graphics2D ig2d = tiled.createGraphics();
+		// tile the image
+		for (int i = 0; i < xn; i++) {
+			for (int j = 0; j < yn; j++) {
+				ig2d.drawImage(image, x, y, null);
+				y += th;
+			}
+			x += tw;
+			y = 0;
+		}
+		ig2d.dispose();
+		return tiled;
+	}
+	
+	/**
 	 * Returns a non-uniformly scaled image of the given image.
 	 * @param image the image to scale
 	 * @param tw the target width
@@ -133,5 +173,45 @@ public class ImageUtilities {
 	    // attempt to resize it
 	    AffineTransformOp scale = new AffineTransformOp(AffineTransform.getScaleInstance(s, s), quality);
 	    return scale.filter(image, null);
+	}
+	
+	/**
+	 * Returns a drop shadow for the given rectangle specified by the given width and height.
+	 * @param gc the graphics configuration
+	 * @param w the rectangle width
+	 * @param h the rectangle height
+	 * @param sw the 
+	 * @return BufferedImage
+	 */
+	public static final BufferedImage getDropShadowImage(GraphicsConfiguration gc, double w, double h, int sw) {
+		// create a new image of the right size
+		BufferedImage image = gc.createCompatibleImage((int)Math.ceil(w + 2.0 * sw), (int)Math.ceil(h + 2.0 * sw), Transparency.TRANSLUCENT);
+					
+		Graphics2D ig2d = image.createGraphics();
+		ig2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		ig2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		
+		// render the shadow rectangle
+		ig2d.setColor(Color.BLACK);
+		ig2d.fill(new Rectangle2D.Double(sw, sw, w, h));
+		ig2d.dispose();
+		
+		// perform the linear blur
+		ConvolveOp op = ImageUtilities.getLinearBlurOp(sw);
+		return op.filter(image, null);
+	}
+	
+	/**
+	 * Returns a linear blur ConvoleOp.
+	 * @param size the blur size
+	 * @return ConvolveOp
+	 */
+	public static final ConvolveOp getLinearBlurOp(int size) {
+	    float[] data = new float[size * size];
+	    float value = 1.0f / (float) (size * size);
+	    for (int i = 0; i < data.length; i++) {
+	        data[i] = value;
+	    }
+	    return new ConvolveOp(new Kernel(size, size, data));
 	}
 }
