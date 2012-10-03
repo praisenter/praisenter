@@ -38,6 +38,7 @@ public class Fade extends Transition {
 		// apply alpha composite
 		Composite composite = g2d.getComposite();
 		if (this.type == Transition.Type.IN) {
+			// draw the old
 			g2d.drawImage(image0, 0, 0, null);
 			// fade in the new
 			float alpha = (float)Math.min(pc, 1.0);

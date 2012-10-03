@@ -2,8 +2,6 @@ package org.praisenter.settings;
 
 import java.util.Properties;
 
-import org.praisenter.Constants;
-
 /**
  * Error reporting settings.
  * @author William Bittle
@@ -13,9 +11,6 @@ import org.praisenter.Constants;
 public final class ErrorReportingSettings extends RootSettings<ErrorReportingSettings> {
 	/** The file name */
 	private static final String FILE_NAME = "ErrorReportingSettings.properties";
-	
-	/** The settings file location and name */
-	private static final String FILE_NAME_LOCATION = Constants.CONFIGURATION_FILE_LOCATION + "/" + FILE_NAME;
 	
 	/** The instance of the settings */
 	private static final ErrorReportingSettings instance = ErrorReportingSettings.loadSettings();
@@ -89,15 +84,7 @@ public final class ErrorReportingSettings extends RootSettings<ErrorReportingSet
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#getFileNameLocation()
-	 */
-	@Override
-	protected String getFileNameLocation() {
-		return ErrorReportingSettings.FILE_NAME_LOCATION;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#getNewInstance()
+	 * @see org.praisenter.settings.RootSettings#getNewInstance()
 	 */
 	@Override
 	protected ErrorReportingSettings getNewInstance() {
@@ -105,7 +92,7 @@ public final class ErrorReportingSettings extends RootSettings<ErrorReportingSet
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#getSingletonInstance()
+	 * @see org.praisenter.settings.RootSettings#getSingletonInstance()
 	 */
 	@Override
 	protected ErrorReportingSettings getSingletonInstance() {
@@ -113,7 +100,7 @@ public final class ErrorReportingSettings extends RootSettings<ErrorReportingSet
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#setDefaultSettings()
+	 * @see org.praisenter.settings.RootSettings#setDefaultSettings()
 	 */
 	@Override
 	public void setDefaultSettings() throws SettingsException {

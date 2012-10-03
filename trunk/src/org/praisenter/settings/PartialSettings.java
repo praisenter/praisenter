@@ -18,11 +18,27 @@ public abstract class PartialSettings extends Settings {
 	
 	/**
 	 * Minimal constructor.
+	 * <p>
+	 * Please use the {@link #PartialSettings(String, RootSettings)} to specify
+	 * the prefix for the partial settings.  This is useful when there are multiple
+	 * {@link PartialSettings} in one settings group to avoid key collisions.
+	 * @param root the settings this grouping belongs to
+	 */
+	protected PartialSettings(RootSettings<?> root) {
+		this(null, root);
+	}
+	
+	/**
+	 * Optional constructor.
 	 * @param prefix the settings property prefix
 	 * @param root the settings this grouping belongs to
 	 */
 	protected PartialSettings(String prefix, RootSettings<?> root) {
 		super(root.properties);
-		this.prefix = prefix + PartialSettings.PREFIX_DELIMETER;
+		if (prefix == null || prefix.length() == 0) {
+			this.prefix = "";
+		} else {
+			this.prefix = prefix + PartialSettings.PREFIX_DELIMETER;
+		}
 	}
 }

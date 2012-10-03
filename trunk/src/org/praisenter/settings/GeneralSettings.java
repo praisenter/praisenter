@@ -6,7 +6,6 @@ import java.awt.GraphicsDevice;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.praisenter.Constants;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -21,9 +20,6 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	
 	/** The file name */
 	private static final String FILE_NAME = "GeneralSettings.properties";
-	
-	/** The settings file location and name */
-	private static final String FILE_NAME_LOCATION = Constants.CONFIGURATION_FILE_LOCATION + "/" + FILE_NAME;
 	
 	/** The instance of the settings */
 	private static final GeneralSettings instance = GeneralSettings.loadSettings();
@@ -91,15 +87,7 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#getFileNameLocation()
-	 */
-	@Override
-	protected String getFileNameLocation() {
-		return GeneralSettings.FILE_NAME_LOCATION;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#getNewInstance()
+	 * @see org.praisenter.settings.RootSettings#getNewInstance()
 	 */
 	@Override
 	protected GeneralSettings getNewInstance() {
@@ -107,7 +95,7 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#getSingletonInstance()
+	 * @see org.praisenter.settings.RootSettings#getSingletonInstance()
 	 */
 	@Override
 	protected GeneralSettings getSingletonInstance() {
@@ -115,7 +103,7 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#setDefaultSettings()
+	 * @see org.praisenter.settings.RootSettings#setDefaultSettings()
 	 */
 	@Override
 	public void setDefaultSettings() throws SettingsException {

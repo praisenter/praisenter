@@ -16,6 +16,7 @@ import org.apache.log4j.xml.DOMConfigurator;
 import org.praisenter.settings.BibleSettings;
 import org.praisenter.settings.ErrorReportingSettings;
 import org.praisenter.settings.GeneralSettings;
+import org.praisenter.settings.NotificationSettings;
 // FIXME add text to the README.txt about how to install (unzip the distributable)
 // FIXME add license to all files
 /**
@@ -87,6 +88,9 @@ public class Main {
 		
 		// initialize general settings
 		GeneralSettings.getInstance();
+		
+		// initialize notification settings
+		NotificationSettings.getInstance();
 		
 		// initialize bible settings
 		BibleSettings.getInstance();

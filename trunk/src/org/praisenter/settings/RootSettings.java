@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.praisenter.Constants;
 
 /**
  * Represents a grouping of settings that has its own file.
@@ -59,7 +60,9 @@ public abstract class RootSettings<T extends RootSettings<T>> extends Settings {
 	 * persistent store.
 	 * @return String
 	 */
-	protected abstract String getFileNameLocation();
+	protected String getFileNameLocation() {
+		return Constants.CONFIGURATION_FILE_LOCATION + "/" + this.getFileName();
+	}
 
 	/**
 	 * Returns a new instance of this settings object.

@@ -12,24 +12,25 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.display.CompositeType;
-import org.praisenter.display.StillBackgroundComponent;
+import org.praisenter.display.GraphicsComponent;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
 import org.praisenter.icons.Icons;
@@ -39,19 +40,30 @@ import org.praisenter.ui.ImageFilePreview;
 
 /**
  * Panel used to setup an image background.
+ * @param <E> the {@link GraphicsComponent} type
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class StillBackgroundSettingsPanel extends JPanel implements ActionListener, ItemListener, ChangeListener {
+public class GraphicsComponentSettingsPanel<E extends GraphicsComponent> extends JPanel implements ActionListener, ItemListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -8394312426259802361L;
 
 	/** The class logger */
-	private static final Logger LOGGER = Logger.getLogger(StillBackgroundSettingsPanel.class);
+	private static final Logger LOGGER = Logger.getLogger(GraphicsComponentSettingsPanel.class);
 	
-	/** The {@link StillBackgroundComponent} to setup */
-	protected StillBackgroundComponent component;
+	/** The {@link GraphicsComponent} to setup */
+	protected E component;
+	
+	// labels
+	
+	/** The color settings label */
+	protected JLabel lblColor;
+	
+	/** The image settings label */
+	protected JLabel lblImage;
+	
+	// controls
 	
 	/** The button to select the image from the file system */
 	protected JButton btnImageSelect;
@@ -81,13 +93,24 @@ public class StillBackgroundSettingsPanel extends JPanel implements ActionListen
 	 * Minimal constructor.
 	 * @param component the component to setup
 	 */
-	public StillBackgroundSettingsPanel(StillBackgroundComponent component) {
+	public GraphicsComponentSettingsPanel(E component) {
 		this.component = component;
 		
-		this.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.still.setup.title")));
+//		this.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.still.setup.title")));
 		
+		// build all the controls
+		this.buildControls();
+		
+		// build the layout
+		this.buildLayout();
+	}
+	
+	/**
+	 * Override this method to build additional controls.
+	 */
+	protected void buildControls() {
 		// color
-		JLabel lblColor = new JLabel(Messages.getString("panel.color.setup.title"));
+		this.lblColor = new JLabel(Messages.getString("panel.color.setup.title"));
 		this.btnColorSelect = new JButton(Icons.COLOR);
 		this.btnColorSelect.setToolTipText(Messages.getString("panel.color.setup.browse"));
 		this.btnColorSelect.addActionListener(this);
@@ -97,15 +120,15 @@ public class StillBackgroundSettingsPanel extends JPanel implements ActionListen
 		this.cmbColorCompositeType = new JComboBox<CompositeType>(CompositeType.values());
 		this.cmbColorCompositeType.setToolTipText(Messages.getString("panel.color.setup.compositeType"));
 		this.cmbColorCompositeType.setRenderer(new CompositeTypeRenderer());
-		this.cmbColorCompositeType.setSelectedItem(this.component.getColorCompositeType());
+		this.cmbColorCompositeType.setSelectedItem(this.component.getBackgroundColorCompositeType());
 		this.cmbColorCompositeType.addItemListener(this);
 		
 		// color visibility
-		this.chkColorVisible = new JCheckBox(Messages.getString("panel.color.setup.visible"), this.component.isColorVisible());
+		this.chkColorVisible = new JCheckBox(Messages.getString("panel.setup.visible"), this.component.isBackgroundColorVisible());
 		this.chkColorVisible.addChangeListener(this);
 		
 		// image
-		JLabel lblImage = new JLabel(Messages.getString("panel.image.setup.title"));
+		this.lblImage = new JLabel(Messages.getString("panel.image.setup.title"));
 		this.btnImageSelect = new JButton(Messages.getString("panel.image.setup.browse"));
 		this.btnImageSelect.setToolTipText(Messages.getString("panel.image.setup.browse.tooltip"));
 		this.btnImageSelect.addActionListener(this);
@@ -115,33 +138,63 @@ public class StillBackgroundSettingsPanel extends JPanel implements ActionListen
 		this.cmbImageScaleType = new JComboBox<ScaleType>(ScaleType.values());
 		this.cmbImageScaleType.setToolTipText(Messages.getString("panel.image.setup.scaleType"));
 		this.cmbImageScaleType.setRenderer(new ScaleTypeRenderer());
-		this.cmbImageScaleType.setSelectedItem(this.component.getImageScaleType());
+		this.cmbImageScaleType.setSelectedItem(this.component.getBackgroundImageScaleType());
 		this.cmbImageScaleType.addItemListener(this);
 		
 		// image scale quality
 		this.cmbImageScaleQuality = new JComboBox<ScaleQuality>(ScaleQuality.values());
 		this.cmbImageScaleQuality.setToolTipText(Messages.getString("panel.image.setup.scaleQuality"));
 		this.cmbImageScaleQuality.setRenderer(new ScaleQualityRenderer());
-		this.cmbImageScaleQuality.setSelectedItem(this.component.getImageScaleQuality());
+		this.cmbImageScaleQuality.setSelectedItem(this.component.getBackgroundImageScaleQuality());
 		this.cmbImageScaleQuality.addItemListener(this);
 		
 		// image visible
-		this.chkImageVisible = new JCheckBox(Messages.getString("panel.image.setup.visible"), this.component.isImageVisible());
+		this.chkImageVisible = new JCheckBox(Messages.getString("panel.setup.visible"), this.component.isBackgroundImageVisible());
 		this.chkImageVisible.addChangeListener(this);
 		
 		// overall visibility
-		this.chkVisible = new JCheckBox(Messages.getString("panel.still.setup.visible"), this.component.isVisible());
+		this.chkVisible = new JCheckBox(Messages.getString("panel.setup.visible"), this.component.isVisible());
 		this.chkVisible.addChangeListener(this);
+	}
+	
+	/**
+	 * Override this method to build a custom layout.
+	 * @see #buildGraphicsComponentLayout(JComponent)
+	 */
+	protected void buildLayout() {
+		JTabbedPane tabs = new JTabbedPane();
+		
+		JPanel pnlGraphicsComponent = new JPanel();
+		this.buildGraphicsComponentLayout(pnlGraphicsComponent);
+		tabs.addTab(Messages.getString("panel.setup.background.name"), pnlGraphicsComponent);
 		
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
+		
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+				.addComponent(tabs)
+				.addComponent(this.chkVisible));
+		layout.setVerticalGroup(layout.createParallelGroup()
+				.addComponent(tabs)
+				.addComponent(this.chkVisible));
+		
+		this.add(tabs);
+	}
+	
+	/**
+	 * Builds the default graphics component layout to the given component.
+	 * @param component the component
+	 */
+	protected void buildGraphicsComponentLayout(JComponent component) {
+		GroupLayout layout = new GroupLayout(component);
+		component.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
-						.addComponent(lblColor)
-						.addComponent(lblImage))
+						.addComponent(this.lblColor)
+						.addComponent(this.lblImage))
 				.addGroup(layout.createParallelGroup()
 					.addGroup(layout.createSequentialGroup()
 							.addComponent(this.btnColorSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -151,22 +204,20 @@ public class StillBackgroundSettingsPanel extends JPanel implements ActionListen
 							.addComponent(this.btnImageSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 							.addComponent(this.cmbImageScaleType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 							.addComponent(this.cmbImageScaleQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addComponent(this.chkImageVisible))
-					.addComponent(this.chkVisible)));
+							.addComponent(this.chkImageVisible))));
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblColor)
+						.addComponent(this.lblColor)
 						.addComponent(this.btnColorSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbColorCompositeType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.chkColorVisible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblImage)
+						.addComponent(this.lblImage)
 						.addComponent(this.btnImageSelect, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbImageScaleType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbImageScaleQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.chkImageVisible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(this.chkVisible));
+						.addComponent(this.chkImageVisible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 	}
 	
 	/* (non-Javadoc)
@@ -195,9 +246,9 @@ public class StillBackgroundSettingsPanel extends JPanel implements ActionListen
 				File file = fc.getSelectedFile();
 				// attempt to load the image
 				try {
-					BufferedImage old = this.component.getImage();
+					BufferedImage old = this.component.getBackgroundImage();
 					BufferedImage image = ImageIO.read(file);
-					this.component.setImage(image);
+					this.component.setBackgroundImage(image);
 					this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, image);
 				} catch (IOException ex) {
 					ExceptionDialog.show(
@@ -209,11 +260,11 @@ public class StillBackgroundSettingsPanel extends JPanel implements ActionListen
 				}
 			}
 		} else if ("color-select".equals(command)) {
-			Color old = this.component.getColor();
+			Color old = this.component.getBackgroundColor();
 			// show the color chooser
 			Color color = JColorChooser.showDialog(this, Messages.getString("panel.color.setup.browse"), old);
 			if (color != null) {
-				this.component.setColor(color);
+				this.component.setBackgroundColor(color);
 				this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, color);
 			}
 		}
@@ -226,19 +277,19 @@ public class StillBackgroundSettingsPanel extends JPanel implements ActionListen
 	public void itemStateChanged(ItemEvent e) {
 		if (e.getSource() == this.cmbImageScaleType) {
 			// the scale type was changed
-			ScaleType old = this.component.getImageScaleType();
+			ScaleType old = this.component.getBackgroundImageScaleType();
 			ScaleType type = (ScaleType)e.getItem();
-			this.component.setImageScaleType(type);
+			this.component.setBackgroundImageScaleType(type);
 			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, type);
 		} else if (e.getSource() == this.cmbImageScaleQuality) {
-			ScaleQuality old = this.component.getImageScaleQuality();
+			ScaleQuality old = this.component.getBackgroundImageScaleQuality();
 			ScaleQuality quality = (ScaleQuality)e.getItem();
-			this.component.setImageScaleQuality(quality);
+			this.component.setBackgroundImageScaleQuality(quality);
 			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, quality);
 		} else if (e.getSource() == this.cmbColorCompositeType) {
-			CompositeType old = this.component.getColorCompositeType();
+			CompositeType old = this.component.getBackgroundColorCompositeType();
 			CompositeType type = (CompositeType)e.getItem();
-			this.component.setColorCompositeType(type);
+			this.component.setBackgroundColorCompositeType(type);
 			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, type);
 		}
 	}
@@ -250,14 +301,14 @@ public class StillBackgroundSettingsPanel extends JPanel implements ActionListen
 	public void stateChanged(ChangeEvent e) {
 		Object source = e.getSource();
 		if (source == this.chkImageVisible) {
-			boolean old = this.component.isImageVisible();
+			boolean old = this.component.isBackgroundImageVisible();
 			boolean flag = this.chkImageVisible.isSelected();
-			this.component.setImageVisible(flag);
+			this.component.setBackgroundImageVisible(flag);
 			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, flag);
 		} else if (source == this.chkColorVisible) {
-			boolean old = this.component.isColorVisible();
+			boolean old = this.component.isBackgroundColorVisible();
 			boolean flag = this.chkColorVisible.isSelected();
-			this.component.setColorVisible(flag);
+			this.component.setBackgroundColorVisible(flag);
 			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, flag);
 		} else if (source == this.chkVisible) {
 			boolean old = this.component.isVisible();

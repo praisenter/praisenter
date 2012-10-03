@@ -2,7 +2,6 @@ package org.praisenter.settings;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.Rectangle;
 
 import org.praisenter.display.FontScaleType;
 import org.praisenter.display.TextAlignment;
@@ -15,9 +14,9 @@ import org.praisenter.utilities.FontManager;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class TextComponentSettings extends ComponentSettings<TextComponent> {
+public class TextComponentSettings extends GraphicsComponentSettings<TextComponent> {
 	/** The default font applied to a {@link TextComponent} */
-	public static final Font DEFALUT_FONT = FontManager.getDefaultFont().deriveFont(Font.PLAIN, 40.0f);
+	public static final Font DEFAULT_FONT = FontManager.getDefaultFont().deriveFont(Font.PLAIN, 40.0f);
 
 	/** The title text color key */
 	private static final String KEY_TEXT_COLOR = "Text.Color";
@@ -34,17 +33,19 @@ public class TextComponentSettings extends ComponentSettings<TextComponent> {
 	/** The title text wrapped key */
 	private static final String KEY_TEXT_WRAPPED = "Text.Wrapped";
 	
-	/** The title bounds key */
-	private static final String KEY_BOUNDS = "Bounds";
-	
 	/** The title padding key */
 	private static final String KEY_PADDING = "Padding";
 	
-	/** The title visible key */
-	private static final String KEY_VISIBLE = "Visible";
-	
 	/**
 	 * Minimal constructor.
+	 * @param root the settings this grouping belongs to
+	 */
+	public TextComponentSettings(RootSettings<?> root) {
+		super(null, root);
+	}
+	
+	/**
+	 * Optional constructor.
 	 * @param prefix the settings property prefix
 	 * @param root the settings this grouping belongs to
 	 */
@@ -53,18 +54,20 @@ public class TextComponentSettings extends ComponentSettings<TextComponent> {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.ComponentSettings#setSettings(org.praisenter.display.DisplayComponent)
+	 * @see org.praisenter.settings.GraphicsComponentSettings#setSettings(org.praisenter.display.GraphicsComponent)
 	 */
 	@Override
 	public void setSettings(TextComponent component) throws SettingsException {
-		this.setBounds(component.getBounds());
+		// set the super settings
+		super.setSettings(component);
+		
+		// text settings
 		this.setPadding(component.getPadding());
 		this.setTextAlignment(component.getTextAlignment());
 		this.setTextColor(component.getTextColor());
 		this.setTextFont(component.getTextFont());
 		this.setTextFontScaleType(component.getTextFontScaleType());
 		this.setTextWrapped(component.isTextWrapped());
-		this.setVisible(component.isVisible());
 	}
 	
 	/**
@@ -153,23 +156,6 @@ public class TextComponentSettings extends ComponentSettings<TextComponent> {
 	}
 	
 	/**
-	 * Returns the bounds of the text component.
-	 * @return Rectangle
-	 */
-	public Rectangle getBounds() {
-		return this.getRectangleSetting(this.prefix + TextComponentSettings.KEY_BOUNDS);
-	}
-	
-	/**
-	 * Sets the bounds of the text component.
-	 * @param bounds the bounds
-	 * @throws SettingsException if the setting failed to be assigned
-	 */
-	public void setBounds(Rectangle bounds) throws SettingsException {
-		this.setSetting(this.prefix + TextComponentSettings.KEY_BOUNDS, bounds);
-	}
-	
-	/**
 	 * Returns the text component's internal padding.
 	 * @return int
 	 */
@@ -184,22 +170,5 @@ public class TextComponentSettings extends ComponentSettings<TextComponent> {
 	 */
 	public void setPadding(int padding) throws SettingsException {
 		this.setSetting(this.prefix + TextComponentSettings.KEY_PADDING, padding);
-	}
-	
-	/**
-	 * Returns true if the text component is visible.
-	 * @return boolean
-	 */
-	public boolean isVisible() {
-		return this.getBooleanSetting(this.prefix + TextComponentSettings.KEY_VISIBLE);
-	}
-	
-	/**
-	 * Sets the text component to visible or not.
-	 * @param flag true if the text component should be visible
-	 * @throws SettingsException if the setting failed to be assigned
-	 */
-	public void setVisible(boolean flag) throws SettingsException {
-		this.setSetting(this.prefix + TextComponentSettings.KEY_VISIBLE, flag);
 	}
 }

@@ -1,15 +1,13 @@
 package org.praisenter.display;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Rectangle;
-import java.awt.MultipleGradientPaint.ColorSpaceType;
 
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.BibleSettings;
-import org.praisenter.settings.StillBackgroundSettings;
+import org.praisenter.settings.GraphicsComponentSettings;
+import org.praisenter.settings.NotificationSettings;
 import org.praisenter.settings.TextComponentSettings;
-import org.praisenter.utilities.FontManager;
 
 /**
  * Helper class to create displays from settings.
@@ -48,26 +46,26 @@ public class DisplayFactory {
 		BibleDisplay display = name == null ? new BibleDisplay(displaySize) : new BibleDisplay(name, displaySize);
 		
 		// get sub settings
-		StillBackgroundSettings sSet = settings.getStillBackgroundSettings();
+		GraphicsComponentSettings<GraphicsComponent> bSet = settings.getBackgroundSettings();
 		TextComponentSettings tSet = settings.getScriptureTitleSettings();
-		TextComponentSettings bSet = settings.getScriptureTextSettings(); 
+		TextComponentSettings xSet = settings.getScriptureTextSettings(); 
 		
-		// create a still background
-		StillBackgroundComponent stillBackground = display.createStillBackgroundComponent("Background");
-		stillBackground.setColor(sSet.getColor());
-		stillBackground.setColorCompositeType(sSet.getColorCompositeType());
-		stillBackground.setColorVisible(sSet.isColorVisible());
-		stillBackground.setImage(sSet.getImage());
-		stillBackground.setImageScaleQuality(sSet.getImageScaleQuality());
-		stillBackground.setImageScaleType(sSet.getImageScaleType());
-		stillBackground.setImageVisible(sSet.isImageVisible());
-		stillBackground.setVisible(sSet.isVisible());
+		// create a background
+		GraphicsComponent background = display.createBackgroundComponent("Background");
+		background.setBackgroundColor(bSet.getBackgroundColor());
+		background.setBackgroundColorCompositeType(bSet.getBackgroundColorCompositeType());
+		background.setBackgroundColorVisible(bSet.isBackgroundColorVisible());
+		background.setBackgroundImage(bSet.getBackgroundImage());
+		background.setBackgroundImageScaleQuality(bSet.getBackgroundImageScaleQuality());
+		background.setBackgroundImageScaleType(bSet.getBackgroundImageScaleType());
+		background.setBackgroundImageVisible(bSet.isBackgroundImageVisible());
+		background.setVisible(bSet.isVisible());
 		
 		// compute the default width, height and position
 		final int h = displaySize.height - margin * 2;
 		final int w = displaySize.width - margin * 2;
 		
-		final int tth = (int)Math.ceil((double)h * 0.15);
+		final int tth = (int)Math.ceil((double)h * 0.20);
 		final int th = h - tth - margin;
 		
 		// create the title text component
@@ -76,33 +74,56 @@ public class DisplayFactory {
 			titleBounds = new Rectangle(margin, margin, w, tth);
 		}
 		TextComponent titleText = new TextComponent("ScriptureTitle", Messages.getString("display.bible.title.defaultText"), titleBounds.width, titleBounds.height, true);
+		// general
 		titleText.setX(titleBounds.x);
 		titleText.setY(titleBounds.y);
+		titleText.setVisible(tSet.isVisible());
+		// color
+		titleText.setBackgroundColor(tSet.getBackgroundColor());
+		titleText.setBackgroundColorCompositeType(tSet.getBackgroundColorCompositeType());
+		titleText.setBackgroundColorVisible(tSet.isBackgroundColorVisible());
+		// image
+		titleText.setBackgroundImage(tSet.getBackgroundImage());
+		titleText.setBackgroundImageScaleQuality(tSet.getBackgroundImageScaleQuality());
+		titleText.setBackgroundImageScaleType(tSet.getBackgroundImageScaleType());
+		titleText.setBackgroundImageVisible(tSet.isBackgroundImageVisible());
+		// text
 		titleText.setTextColor(tSet.getTextColor());
 		titleText.setTextAlignment(tSet.getTextAlignment());
 		titleText.setTextFontScaleType(tSet.getTextFontScaleType());
 		titleText.setTextWrapped(tSet.isTextWrapped());
 		titleText.setPadding(tSet.getPadding());
 		titleText.setTextFont(tSet.getTextFont());
-		titleText.setVisible(tSet.isVisible());
+		
 		
 		// create the text component
-		Rectangle textBounds = bSet.getBounds();
+		Rectangle textBounds = xSet.getBounds();
 		if (textBounds == null) {
 			textBounds = new Rectangle(margin, tth + margin * 2, w, th);
 		}
 		TextComponent text = new TextComponent("ScriptureText", Messages.getString("display.bible.body.defaultText"), textBounds.width, textBounds.height, true);
+		// general
 		text.setX(textBounds.x);
 		text.setY(textBounds.y);
-		text.setTextColor(bSet.getTextColor());
-		text.setTextAlignment(bSet.getTextAlignment());
-		text.setTextFontScaleType(bSet.getTextFontScaleType());
-		text.setTextWrapped(bSet.isTextWrapped());
-		text.setPadding(bSet.getPadding());
-		text.setTextFont(bSet.getTextFont());
-		text.setVisible(bSet.isVisible());
+		text.setVisible(xSet.isVisible());
+		// color
+		text.setBackgroundColor(xSet.getBackgroundColor());
+		text.setBackgroundColorCompositeType(xSet.getBackgroundColorCompositeType());
+		text.setBackgroundColorVisible(xSet.isBackgroundColorVisible());
+		// image
+		text.setBackgroundImage(xSet.getBackgroundImage());
+		text.setBackgroundImageScaleQuality(xSet.getBackgroundImageScaleQuality());
+		text.setBackgroundImageScaleType(xSet.getBackgroundImageScaleType());
+		text.setBackgroundImageVisible(xSet.isBackgroundImageVisible());
+		// text
+		text.setTextColor(xSet.getTextColor());
+		text.setTextAlignment(xSet.getTextAlignment());
+		text.setTextFontScaleType(xSet.getTextFontScaleType());
+		text.setTextWrapped(xSet.isTextWrapped());
+		text.setPadding(xSet.getPadding());
+		text.setTextFont(xSet.getTextFont());
 		
-		display.setStillBackgroundComponent(stillBackground);
+		display.setBackgroundComponent(background);
 		display.setScriptureTitleComponent(titleText);
 		display.setScriptureTextComponent(text);
 		
@@ -111,11 +132,14 @@ public class DisplayFactory {
 	
 	/**
 	 * Creates a new {@link NotificationDisplay}.
+	 * @param settings the settings
 	 * @param displaySize the target display size
+	 * @param text the text to show in the display
 	 * @return {@link NotificationDisplay}
 	 */
-	// TODO create configuration
-	public static final NotificationDisplay getDisplay(Dimension displaySize) {
+	public static final NotificationDisplay getDisplay(NotificationSettings settings, Dimension displaySize, String text) {
+		TextComponentSettings tSet = settings.getTextSettings();
+		
 		NotificationDisplay display = new NotificationDisplay(displaySize);
 		
 		// get the minimum dimension (typically the height)
@@ -124,40 +148,39 @@ public class DisplayFactory {
 			// the width is smaller so use it
 			maxd = displaySize.width;
 		}
-		// set the default screen to text component padding
-		final int margin = (int)Math.floor((double)maxd * 0.04);
+
+		final int h = displaySize.height;
+		final int w = displaySize.width;
+		// compute the default height
+		final int th = (int)Math.ceil((double)h * 0.30);
 		
-		final int h = displaySize.height - margin * 2;
-		final int w = displaySize.width - margin * 2;
+		Rectangle bounds = tSet.getBounds();
+		if (bounds == null) {
+			bounds = new Rectangle(0, 0, w, th);
+		}
+		TextComponent textComponent = new TextComponent("Text", text, bounds.width, bounds.height, true);
+		// general
+		textComponent.setX(bounds.x);
+		textComponent.setY(bounds.y);
+		textComponent.setVisible(true);
+		// color
+		textComponent.setBackgroundColor(tSet.getBackgroundColor());
+		textComponent.setBackgroundColorCompositeType(tSet.getBackgroundColorCompositeType());
+		textComponent.setBackgroundColorVisible(tSet.isBackgroundColorVisible());
+		// image
+		textComponent.setBackgroundImage(tSet.getBackgroundImage());
+		textComponent.setBackgroundImageScaleQuality(tSet.getBackgroundImageScaleQuality());
+		textComponent.setBackgroundImageScaleType(tSet.getBackgroundImageScaleType());
+		textComponent.setBackgroundImageVisible(tSet.isBackgroundImageVisible());
+		// text
+		textComponent.setTextColor(tSet.getTextColor());
+		textComponent.setTextAlignment(tSet.getTextAlignment());
+		textComponent.setTextFontScaleType(tSet.getTextFontScaleType());
+		textComponent.setTextWrapped(tSet.isTextWrapped());
+		textComponent.setPadding(tSet.getPadding());
+		textComponent.setTextFont(tSet.getTextFont());
 		
-		final int tth = (int)Math.ceil((double)h * 0.30);
-		
-		// create a still background
-		StillBackgroundComponent stillBackground = display.createStillBackgroundComponent("Background");
-		stillBackground.setColor(new Color(0, 0, 0, 100));
-		stillBackground.setColorCompositeType(CompositeType.OVERLAY);
-		stillBackground.setColorVisible(true);
-		stillBackground.setImage(null);
-		stillBackground.setImageScaleQuality(ScaleQuality.BICUBIC);
-		stillBackground.setImageScaleType(ScaleType.NONUNIFORM);
-		stillBackground.setImageVisible(false);
-		stillBackground.setVisible(true);
-		
-		// TODO default text; translate
-		Rectangle bounds = new Rectangle(margin, margin, w, tth);
-		TextComponent text = new TextComponent("Text", "test", bounds.width, bounds.height, true);
-		text.setX(bounds.x);
-		text.setY(bounds.y);
-		text.setTextColor(Color.WHITE);
-		text.setTextAlignment(TextAlignment.CENTER);
-		text.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
-		text.setTextWrapped(true);
-		text.setPadding(30);
-		text.setTextFont(FontManager.getDefaultFont());
-		text.setVisible(true);
-		
-		display.stillBackground = stillBackground;
-		display.textComponent = text;
+		display.setTextComponent(textComponent);
 		
 		return display;
 	}

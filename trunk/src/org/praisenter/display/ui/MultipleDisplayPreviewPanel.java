@@ -6,13 +6,12 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.LinearGradientPaint;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,9 +21,10 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
-import org.apache.log4j.Logger;
 import org.praisenter.display.Display;
+import org.praisenter.images.Images;
 import org.praisenter.utilities.FontManager;
+import org.praisenter.utilities.ImageUtilities;
 
 /**
  * Represents a panel that shows a preview of multiple displays.
@@ -38,14 +38,8 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 	/** The version id */
 	private static final long serialVersionUID = -6376569581892016128L;
 	
-	/** The class level logger */
-	private static final Logger LOGGER = Logger.getLogger(MultipleDisplayPreviewPanel.class);
-	
 	/** Spacing between the displays */
 	private static final int SPACING = 10;
-	
-	/** Key to get the cached background image */
-	private static final String KEY_BACKGROUND = "key.background";
 	
 	/** True if the display name should be shown */
 	private boolean showDisplayNames;
@@ -139,8 +133,8 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 			
 			double sc = pw < ph ? pw : ph;
 			
-			w += (int)Math.ceil(sc * (double)size.width);
-			int dh = (int)Math.ceil(size.height * sc) + SPACING * 4 + th;
+			w += (int)Math.ceil(sc * (double)size.width) + 4;
+			int dh = (int)Math.ceil(size.height * sc) + SPACING * 4 + th + 4;
 			if (h < dh) {
 				h = dh;
 			}
@@ -159,11 +153,6 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 		
 		Graphics2D g2d = (Graphics2D)g;
 		Dimension size = this.getSize();
-		
-		long t0 = System.nanoTime();
-		
-		// paint the background
-		this.paintGradientBackground(g2d);
 		
 		// determine the size of each display
 		final int n = this.displays.size();
@@ -204,7 +193,7 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 		}
 		
 		// apply the y translation
-		g2d.translate((aw - w) / 2.0 + SPACING * 2, SPACING * 2 + mh);
+		g2d.translate((aw - w) / 2.0 + SPACING * 2 + 2, SPACING * 2 + mh + 2);
 		
 		// preferably the displays are all the same aspect ratio
 		// but we can't guarantee it
@@ -219,27 +208,33 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 			
 			// use the most significant scale factor
 			final double scale = pw < ph ? pw : ph;
+			double bw = tw * scale;
+			double bh = th * scale;
 			
 			if (this.showDisplayNames) {
 				this.paintDisplayName(g2d, display.getName(), (int)Math.ceil(tw * scale));
-//				Font oFont = g2d.getFont();
-//				g2d.setFont(FontManager.getDefaultFont());
-//				g2d.setColor(Color.BLACK);
-//				
-//				String name = display.getName();
-//				g2d.drawString(name, ((int)Math.ceil(tw * scale) - metrics.stringWidth(name)) / 2, -ty);
-//				
-//				g2d.setFont(oFont);
 			}
+			
+			final int sw = 12;
+			this.paintShadow(g2d, display.getName(), bw, bh, sw);
+			
+			// paint the borders
+			g2d.setColor(Color.GRAY);
+			g2d.fill(new Rectangle2D.Double(-2, -2, bw + 4, bh + 4));
+			g2d.setColor(Color.WHITE);
+			g2d.fill(new Rectangle2D.Double(-1, -1, bw + 2, bh + 2));
+			
+			this.paintTransparentBackground(g2d, display.getName(), bw, bh);
 			
 			// the sub old transform
 			AffineTransform ot = g2d.getTransform();
 			// create a scaling transform
 			AffineTransform at = AffineTransform.getScaleInstance(scale, scale);
 			
-			// set the scaling type to fastest
+			// use the fastest rendering possible
 			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-			// set the rendering type to fastest
+			g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 			
 			// apply the new transform
@@ -252,43 +247,50 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 			g2d.setTransform(ot);
 			
 			// apply the x translation of the width
-			g2d.translate(tw * scale + SPACING, 0);
+			g2d.translate(bw + SPACING + 2, 0);
 		}
 		
 		// reset the transform
 		g2d.setTransform(oldTransform);
-		
-		long t1 = System.nanoTime();
-		LOGGER.debug("MultipleDisplayPreviewPanel render time: " + (double)(t1 - t0) / 1000000000.0 + " seconds");
 	}
 	
 	/**
-	 * Paints a gradient to the given graphics object.
+	 * Paints a drop shadow for the given display.
 	 * @param g2d the graphics to paint to
+	 * @param name the display name
+	 * @param w the width of the display
+	 * @param h the height of the display
+	 * @param sw the shadow width
 	 */
-	private void paintGradientBackground(Graphics2D g2d) {
-		BufferedImage image = this.cachedImages.get(KEY_BACKGROUND);
-		Dimension size = this.getSize();
+	private void paintShadow(Graphics2D g2d, String name, double w, double h, int sw) {
+		BufferedImage image = this.cachedImages.get("SHADOW_" + name);
+		
 		// see if we need to re-render the image
-		if (image == null || image.getWidth() != size.width || image.getHeight() != size.height) {
+		if (image == null || image.getWidth() != w || image.getHeight() != h) {
 			// create a new image of the right size
-			image = g2d.getDeviceConfiguration().createCompatibleImage(size.width, size.height, Transparency.OPAQUE);
-			
-			Graphics2D ig2d = image.createGraphics();
-			Color color1 = new Color(181, 189, 200);
-			Color color2 = new Color( 40,  52,  59);
-			// paint the background to the image
-			LinearGradientPaint gradient = new LinearGradientPaint(
-					new Point2D.Float(0, 0), 
-					new Point2D.Float(0, size.height - 2),
-					new float[] { 0.0f, 1.0f },
-					new Color[] { color1, color2 });
-			
-			ig2d.setPaint(gradient);
-			ig2d.fillRect(0, 0, size.width, size.height);
-			ig2d.dispose();
-			
-			this.cachedImages.put(KEY_BACKGROUND, image);
+			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), w, h, sw);
+			this.cachedImages.put(name, image);
+		}
+		
+		// render the image
+		g2d.drawImage(image, -sw, -sw, null);
+	}
+	
+	/**
+	 * Paints a drop shadow for the given display.
+	 * @param g2d the graphics to paint to
+	 * @param name the display name
+	 * @param w the width of the display
+	 * @param h the height of the display
+	 */
+	private void paintTransparentBackground(Graphics2D g2d, String name, double w, double h) {
+		BufferedImage image = this.cachedImages.get("BACKGROUND_" + name);
+		
+		// see if we need to re-render the image
+		if (image == null || image.getWidth() != w || image.getHeight() != h) {
+			// create a new image of the right size
+			image = ImageUtilities.getTiledImage(Images.TRANSPARENT_BACKGROUND, g2d.getDeviceConfiguration(), (int)Math.ceil(w), (int)Math.ceil(h));
+			this.cachedImages.put(name, image);
 		}
 		
 		// render the image
@@ -302,7 +304,7 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 	 * @param w the width of the display (to center the text)
 	 */
 	private void paintDisplayName(Graphics2D g2d, String name, int w) {
-		BufferedImage image = this.cachedImages.get(name);
+		BufferedImage image = this.cachedImages.get("DISPLAY_" + name);
 		FontMetrics metrics = g2d.getFontMetrics(FontManager.getDefaultFont());
 		int ih = metrics.getHeight();
 		int iw = metrics.stringWidth(name);

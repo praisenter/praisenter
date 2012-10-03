@@ -3,7 +3,6 @@ package org.praisenter.data.bible.ui;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.GraphicsDevice.WindowTranslucency;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -48,9 +47,9 @@ import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.display.BibleDisplay;
 import org.praisenter.display.DisplayFactory;
 import org.praisenter.display.TextComponent;
+import org.praisenter.display.ui.DisplayWindows;
 import org.praisenter.display.ui.MultipleDisplayPreviewPanel;
-import org.praisenter.display.ui.Screen;
-import org.praisenter.display.ui.Screens;
+import org.praisenter.display.ui.StandardDisplayWindow;
 import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.BibleSettings;
@@ -73,6 +72,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
+// FIXME this panel is far too tall
 public class BiblePanel extends JPanel implements ActionListener, SettingsListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;
@@ -388,7 +388,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		this.lblFound = new JLabel("");
 		
 		// setup the transition lists
-		boolean transitionsSupported = gSettings.getPrimaryOrDefaultDisplay().isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT);
+		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(gSettings.getPrimaryOrDefaultDisplay());
 		
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
@@ -867,7 +867,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
 				int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
 				TransitionAnimator ta = new TransitionAnimator(transition, duration);
-				Screen primary = Screens.getPrimary();
+				StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
 				boolean failed = false;
 				if (primary != null) {
 					primary.send(this.currVerseDisplay, ta);
@@ -888,11 +888,12 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
 				int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
 				TransitionAnimator ta = new TransitionAnimator(transition, duration);
-				Screen primary = Screens.getPrimary();
+				StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
 				if (primary != null) {
 					primary.clear(ta);
 				}
 			} else if ("prev".equals(e.getActionCommand())) {
+				// FIXME prev/next can be a lot faster by only getting the verse needed and shifting the others
 				try {
 					Verse text = Bibles.getPreviousVerse(bible, book.getCode(), chapter, verse, ia);
 					if (text != null) {

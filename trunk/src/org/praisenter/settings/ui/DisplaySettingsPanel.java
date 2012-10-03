@@ -15,15 +15,21 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
 import org.praisenter.display.Display;
-import org.praisenter.display.FloatingDisplayComponent;
+import org.praisenter.display.GraphicsComponent;
+import org.praisenter.images.Images;
 import org.praisenter.settings.RootSettings;
 import org.praisenter.settings.SettingsException;
+import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -39,13 +45,19 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 	private static final long serialVersionUID = -3587523680958177637L;
 	
 	/** The resize gap (the additional gap area to allow resizing) */
-	private static final int RESIZE_GAP = 25;
+	private static final int RESIZE_GAP = 30;
 	
 	/** The component line width */
 	private static final int LINE_WIDTH = 2;
 	
 	/** Half the line width */
-	private static final int HALF_LINE_WIDTH = (int)Math.ceil((double)LINE_WIDTH / 2.0);
+	private static final int HALF_LINE_WIDTH = LINE_WIDTH / 2;
+	
+	/** The shadow width */
+	private static final int SHADOW_WIDTH = 8;
+	
+	/** The total border width */
+	private static final int TOTAL_BORDER_WIDTH	= 4;
 	
 	/** The dash length */
 	private static final float DASH_LENGTH = 5.0f;
@@ -71,9 +83,6 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 	
 	/** The panel used to preview the changes */
 	protected JPanel pnlDisplayPreview;
-	
-	/** The panel to setup the still background */
-	protected StillBackgroundSettingsPanel pnlStillBackground;
 	
 	// mouse commands
 	
@@ -105,7 +114,10 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 	// temporary
 	
 	/** The component the mouse is over */
-	private FloatingDisplayComponent mouseOverComponent;
+	private GraphicsComponent mouseOverComponent;
+
+	/** The map of cached images */
+	private Map<String, BufferedImage> cachedImages; 
 	
 	/**
 	 * Minimal constructor.
@@ -117,6 +129,8 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 		// set the settings and size
 		this.settings = settings;
 		this.displaySize = displaySize;
+		
+		this.cachedImages = new HashMap<String, BufferedImage>();
 		
 		// create a display for preview and setup
 		this.display = this.getDisplay(settings, displaySize);
@@ -132,10 +146,6 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 		this.pnlDisplayPreview.setMinimumSize(previewSize);
 		this.pnlDisplayPreview.addMouseListener(this);
 		this.pnlDisplayPreview.addMouseMotionListener(this);
-		
-		// add the image background panel
-		this.pnlStillBackground = new StillBackgroundSettingsPanel(this.display.getStillBackgroundComponent());
-		this.pnlStillBackground.addPropertyChangeListener(this);
 	}
 	
 	/**
@@ -155,9 +165,9 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 	/**
 	 * Returns the first component that is at the given point.
 	 * @param displayPoint the Display space point
-	 * @return {@link FloatingDisplayComponent}
+	 * @return {@link GraphicsComponent}
 	 */
-	protected abstract FloatingDisplayComponent getFloatingDisplayComponent(Point displayPoint);
+	protected abstract GraphicsComponent getGraphicsComponent(Point displayPoint);
 
 	/**
 	 * Returns true if the given display point is inside any component.
@@ -183,7 +193,8 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 	 */
 	protected Point getDisplayPoint(Point panelPoint) {
 		Point point = new Point();
-		point.setLocation(panelPoint.x / this.scale, panelPoint.y / this.scale);
+		// translate by the shadow width and border width
+		point.setLocation((panelPoint.x - SHADOW_WIDTH - 2) / this.scale, (panelPoint.y - SHADOW_WIDTH - 2) / this.scale);
 		return point;
 	}
 
@@ -193,7 +204,7 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 	 * @param component the component
 	 * @return boolean
 	 */
-	protected boolean isInside(Point displayPoint, FloatingDisplayComponent component) {
+	protected boolean isInside(Point displayPoint, GraphicsComponent component) {
 		// get the bounds
 		Rectangle bounds = component.getBounds();
 		// expand the bounds by the line width
@@ -225,9 +236,10 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 			Dimension ds = this.displaySize;
 			int dw = ds.width;
 			int dh = ds.height;
+			
 			// get this panel's size
-			int cw = this.pnlDisplayPreview.getWidth();
-			int ch = this.pnlDisplayPreview.getHeight();
+			int cw = this.pnlDisplayPreview.getWidth() - SHADOW_WIDTH * 2 - TOTAL_BORDER_WIDTH;
+			int ch = this.pnlDisplayPreview.getHeight() - SHADOW_WIDTH * 2 - TOTAL_BORDER_WIDTH;
 			
 			// get the size ratios
 			double pw = (double)cw / (double)dw;
@@ -238,12 +250,32 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 			if (pw < ph) {
 				this.scale = pw;
 			}
+			double bw = dw * this.scale;
+			double bh = dh * this.scale;
+			
+			// paint the shadow background
+			this.paintShadow(graphics, "SHADOW", bw + TOTAL_BORDER_WIDTH, bh + TOTAL_BORDER_WIDTH, SHADOW_WIDTH);
+			
+			graphics.translate(SHADOW_WIDTH + 2, SHADOW_WIDTH + 2);
+			
+			// paint the borders
+			graphics.setColor(Color.GRAY);
+			graphics.fill(new Rectangle2D.Double(-2, -2, bw + TOTAL_BORDER_WIDTH, bh + TOTAL_BORDER_WIDTH));
+			graphics.setColor(Color.WHITE);
+			graphics.fill(new Rectangle2D.Double(-1, -1, bw + 2, bh + 2));
+			
+			// tile the transparent background
+			this.paintTransparentBackground(graphics, "BACKGROUND", bw, bh);
 			
 			// apply a scaling transform
 			AffineTransform ot = graphics.getTransform();
 			graphics.transform(AffineTransform.getScaleInstance(this.scale, this.scale));
-			// make sure we use the fastest scaling transform
+			
+			// use the fastest rendering possible
 			graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+			graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
+			graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+			graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 			
 			// render the display
 			this.display.render(graphics);
@@ -257,19 +289,62 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 			// only draw a border for the hovered component
 			if (this.mouseOverComponent != null) {
 				Rectangle b = this.mouseOverComponent.getBounds();
-				// TODO may need to change the color of the border depending on the color(s) of the background (image, video, color)
+				// FIXME need to change the color of the border depending on the color(s) of the background (image, video, color)
 				// wrap the text component in a green border
 				// make sure this green border is inside the bounds of the rectangle
 				// so that the resizing makes more sense
 				graphics.setColor(BORDER_COLOR);
 				graphics.drawRect(
-						(int)Math.ceil(b.x * this.scale), 
-						(int)Math.ceil(b.y * this.scale), 
-						(int)Math.ceil(b.width * this.scale), 
-						(int)Math.ceil(b.height * this.scale));
+						(int)Math.ceil(b.x * this.scale) + HALF_LINE_WIDTH, 
+						(int)Math.ceil(b.y * this.scale) + HALF_LINE_WIDTH, 
+						(int)Math.ceil(b.width * this.scale) - LINE_WIDTH, 
+						(int)Math.ceil(b.height * this.scale) - LINE_WIDTH);
 			}
 			graphics.setStroke(oStroke);
 		}
+	}
+	
+	/**
+	 * Paints a drop shadow for the given display.
+	 * @param g2d the graphics to paint to
+	 * @param name the display name
+	 * @param w the width of the display
+	 * @param h the height of the display
+	 * @param sw the shadow width
+	 */
+	private void paintShadow(Graphics2D g2d, String name, double w, double h, int sw) {
+		BufferedImage image = this.cachedImages.get(name);
+		
+		// see if we need to re-render the image
+		if (image == null || image.getWidth() != w || image.getHeight() != h) {
+			// create a new image of the right size
+			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), w, h, sw);
+			this.cachedImages.put(name, image);
+		}
+		
+		// render the image
+		g2d.drawImage(image, 0, 0, null);
+	}
+	
+	/**
+	 * Paints a drop shadow for the given display.
+	 * @param g2d the graphics to paint to
+	 * @param name the display name
+	 * @param w the width of the display
+	 * @param h the height of the display
+	 */
+	private void paintTransparentBackground(Graphics2D g2d, String name, double w, double h) {
+		BufferedImage image = this.cachedImages.get(name);
+		
+		// see if we need to re-render the image
+		if (image == null || image.getWidth() != w || image.getHeight() != h) {
+			// create a new image of the right size
+			image = ImageUtilities.getTiledImage(Images.TRANSPARENT_BACKGROUND, g2d.getDeviceConfiguration(), (int)Math.ceil(w), (int)Math.ceil(h));
+			this.cachedImages.put(name, image);
+		}
+		
+		// render the image
+		g2d.drawImage(image, 0, 0, null);
 	}
 	
 	/* (non-Javadoc)
@@ -330,14 +405,14 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 			if (!this.mouseCommandGroup.isCommandActive()) {
 				// convert the point to display space
 				Point point = this.getDisplayPoint(e.getPoint());
-				FloatingDisplayComponent component = null;
+				GraphicsComponent component = null;
 				// see if we are still over the same component
 				if (this.mouseOverComponent != null && this.isInside(point, this.mouseOverComponent)) {
 					// then set the component as the one we are still over
 					component = this.mouseOverComponent;
 				} else {
 					// otherwise see if we are over a different one
-					component = this.getFloatingDisplayComponent(point);
+					component = this.getGraphicsComponent(point);
 				}
 				// make sure we found one
 				if (component != null) {
@@ -412,14 +487,14 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 		if (!this.mouseCommandGroup.isCommandActive()) {
 			// convert the point to display space
 			Point point = this.getDisplayPoint(e.getPoint());
-			FloatingDisplayComponent component = null;
+			GraphicsComponent component = null;
 			// see if we are still over the same component
 			if (this.mouseOverComponent != null && this.isInside(point, this.mouseOverComponent)) {
 				// then set the component as the one we are still over
 				component = this.mouseOverComponent;
 			} else {
 				// otherwise see if we are over a different one
-				component = this.getFloatingDisplayComponent(point);
+				component = this.getGraphicsComponent(point);
 			}
 			// make sure we found one
 			if (component != null) {

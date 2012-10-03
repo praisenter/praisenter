@@ -9,6 +9,9 @@ import java.awt.Color;
  * @since 1.0.0
  */
 public class ColorUtilities {
+	/** A fully transparent color (used for clearing the image) */
+	public static final Color TRANSPARENT = new Color(0, 0, 0, 0);
+	
 	/**
 	 * Uses the method described at http://alienryderflex.com/hsp.html to get
 	 * the <u>perceived</u> brightness of a color.

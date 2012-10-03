@@ -2,10 +2,10 @@ package org.praisenter.settings.ui;
 
 import java.awt.Point;
 
-import org.praisenter.display.FloatingDisplayComponent;
+import org.praisenter.display.GraphicsComponent;
 
 /**
- * Represents a resize width {@link Command} on a {@link FloatingDisplayComponent}.
+ * Represents a resize width {@link Command} on a {@link GraphicsComponent}.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0

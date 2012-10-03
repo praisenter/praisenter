@@ -4,12 +4,13 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.Properties;
 
-import org.praisenter.Constants;
 import org.praisenter.display.CompositeType;
 import org.praisenter.display.FontScaleType;
+import org.praisenter.display.GraphicsComponent;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
 import org.praisenter.display.TextAlignment;
+import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.FontManager;
 
 /**
@@ -21,9 +22,6 @@ import org.praisenter.utilities.FontManager;
 public final class BibleSettings extends RootSettings<BibleSettings> {
 	/** The file name */
 	private static final String FILE_NAME = "BibleSettings.properties";
-	
-	/** The settings file location and name */
-	private static final String FILE_NAME_LOCATION = Constants.CONFIGURATION_FILE_LOCATION + "/" + FILE_NAME;
 	
 	/** The instance of the settings */
 	private static final BibleSettings instance = BibleSettings.loadSettings();
@@ -64,7 +62,7 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	}
 	
 	/** The {@link PartialSettings} for the image background */
-	protected StillBackgroundSettings stillBackgroundSettings;
+	protected GraphicsComponentSettings<GraphicsComponent> backgroundSettings;
 	
 	/** The scripture title {@link PartialSettings} */
 	protected TextComponentSettings scriptureTitleSettings;
@@ -86,13 +84,14 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	 */
 	private BibleSettings(Properties properties) {
 		super(properties);
-		this.stillBackgroundSettings = new StillBackgroundSettings("StillBackground", this);
+		// no prefix for the background
+		this.backgroundSettings = new GraphicsComponentSettings<GraphicsComponent>("Background", this);
 		this.scriptureTitleSettings = new TextComponentSettings("ScriptureTitle", this);
 		this.scriptureTextSettings = new TextComponentSettings("ScriptureText", this);
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#setDefaultSettings()
+	 * @see org.praisenter.settings.RootSettings#setDefaultSettings()
 	 */
 	@Override
 	public void setDefaultSettings() throws SettingsException {
@@ -101,32 +100,67 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 		this.setDefaultSecondaryBibleId(0);
 		this.setSecondaryBibleInUse(false);
 		
-		this.stillBackgroundSettings.setColor(Color.BLUE);
-		this.stillBackgroundSettings.setColorCompositeType(CompositeType.UNDERLAY);
-		this.stillBackgroundSettings.setColorVisible(true);
-		this.stillBackgroundSettings.setImage(null);
-		this.stillBackgroundSettings.setImageVisible(false);
-		this.stillBackgroundSettings.setImageScaleQuality(ScaleQuality.BILINEAR);
-		this.stillBackgroundSettings.setImageScaleType(ScaleType.NONUNIFORM);
-		this.stillBackgroundSettings.setVisible(true);
+		// background
+		{
+			// general
+			// don't default bounds
+			this.backgroundSettings.setVisible(true);
+			// color
+			this.backgroundSettings.setBackgroundColor(Color.BLUE);
+			this.backgroundSettings.setBackgroundColorCompositeType(CompositeType.UNDERLAY);
+			this.backgroundSettings.setBackgroundColorVisible(true);
+			// image
+			this.backgroundSettings.setBackgroundImage(null);
+			this.backgroundSettings.setBackgroundImageVisible(false);
+			this.backgroundSettings.setBackgroundImageScaleQuality(ScaleQuality.BILINEAR);
+			this.backgroundSettings.setBackgroundImageScaleType(ScaleType.NONUNIFORM);
+		}
 		
-		this.scriptureTitleSettings.setTextColor(Color.YELLOW);
-		this.scriptureTitleSettings.setTextFont(FontManager.getDefaultFont().deriveFont(Font.BOLD, 50));
-		this.scriptureTitleSettings.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
-		this.scriptureTitleSettings.setTextAlignment(TextAlignment.LEFT);
-		this.scriptureTitleSettings.setTextWrapped(false);
-		this.scriptureTitleSettings.setBounds(null);
-		this.scriptureTitleSettings.setPadding(0);
-		this.scriptureTitleSettings.setVisible(true);
+		// scripture title
+		{
+			// general
+			this.scriptureTitleSettings.setBounds(null);
+			this.scriptureTitleSettings.setVisible(true);
+			// color
+			this.scriptureTitleSettings.setBackgroundColor(ColorUtilities.TRANSPARENT);
+			this.scriptureTitleSettings.setBackgroundColorCompositeType(CompositeType.UNDERLAY);
+			this.scriptureTitleSettings.setBackgroundColorVisible(false);
+			// image
+			this.scriptureTitleSettings.setBackgroundImage(null);
+			this.scriptureTitleSettings.setBackgroundImageVisible(false);
+			this.scriptureTitleSettings.setBackgroundImageScaleQuality(ScaleQuality.BILINEAR);
+			this.scriptureTitleSettings.setBackgroundImageScaleType(ScaleType.NONUNIFORM);
+			// text
+			this.scriptureTitleSettings.setTextColor(Color.WHITE);
+			this.scriptureTitleSettings.setTextFont(FontManager.getDefaultFont().deriveFont(Font.BOLD, 50));
+			this.scriptureTitleSettings.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
+			this.scriptureTitleSettings.setTextAlignment(TextAlignment.LEFT);
+			this.scriptureTitleSettings.setTextWrapped(false);
+			this.scriptureTitleSettings.setPadding(0);
+		}
 		
-		this.scriptureTextSettings.setTextColor(Color.WHITE);
-		this.scriptureTextSettings.setTextFont(FontManager.getDefaultFont().deriveFont(Font.BOLD, 40));
-		this.scriptureTextSettings.setTextFontScaleType(FontScaleType.BEST_FIT);
-		this.scriptureTextSettings.setTextAlignment(TextAlignment.CENTER);
-		this.scriptureTextSettings.setTextWrapped(true);
-		this.scriptureTextSettings.setBounds(null);
-		this.scriptureTextSettings.setPadding(0);
-		this.scriptureTextSettings.setVisible(true);
+		// scripture text
+		{
+			// general
+			this.scriptureTextSettings.setBounds(null);
+			this.scriptureTextSettings.setVisible(true);
+			// color
+			this.scriptureTextSettings.setBackgroundColor(ColorUtilities.TRANSPARENT);
+			this.scriptureTextSettings.setBackgroundColorCompositeType(CompositeType.UNDERLAY);
+			this.scriptureTextSettings.setBackgroundColorVisible(false);
+			// image
+			this.scriptureTextSettings.setBackgroundImage(null);
+			this.scriptureTextSettings.setBackgroundImageVisible(false);
+			this.scriptureTextSettings.setBackgroundImageScaleQuality(ScaleQuality.BILINEAR);
+			this.scriptureTextSettings.setBackgroundImageScaleType(ScaleType.NONUNIFORM);
+			// text
+			this.scriptureTextSettings.setTextColor(Color.WHITE);
+			this.scriptureTextSettings.setTextFont(FontManager.getDefaultFont().deriveFont(Font.BOLD, 40));
+			this.scriptureTextSettings.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
+			this.scriptureTextSettings.setTextAlignment(TextAlignment.CENTER);
+			this.scriptureTextSettings.setTextWrapped(true);
+			this.scriptureTextSettings.setPadding(0);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -138,15 +172,7 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#getFileNameLocation()
-	 */
-	@Override
-	protected String getFileNameLocation() {
-		return BibleSettings.FILE_NAME_LOCATION;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#getNewInstance()
+	 * @see org.praisenter.settings.RootSettings#getNewInstance()
 	 */
 	@Override
 	protected BibleSettings getNewInstance() {
@@ -154,7 +180,7 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.Settings#getSingletonInstance()
+	 * @see org.praisenter.settings.RootSettings#getSingletonInstance()
 	 */
 	@Override
 	protected BibleSettings getSingletonInstance() {
@@ -166,7 +192,7 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	 */
 	@Override
 	protected void setParialSettingsProperties(Properties properties) {
-		this.stillBackgroundSettings.properties = properties;
+		this.backgroundSettings.properties = properties;
 		this.scriptureTitleSettings.properties = properties;
 		this.scriptureTextSettings.properties = properties;
 	}
@@ -245,10 +271,10 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	
 	/**
 	 * Returns the image background {@link PartialSettings}.
-	 * @return {@link StillBackgroundSettings}
+	 * @return {@link GraphicsComponentSettings}
 	 */
-	public StillBackgroundSettings getStillBackgroundSettings() {
-		return stillBackgroundSettings;
+	public GraphicsComponentSettings<GraphicsComponent> getBackgroundSettings() {
+		return backgroundSettings;
 	}
 	
 	/**

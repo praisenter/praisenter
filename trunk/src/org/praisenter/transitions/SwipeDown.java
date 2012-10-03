@@ -35,9 +35,11 @@ public class SwipeDown extends Transition {
 	@Override
 	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
 		Shape shape = g2d.getClip();
-		g2d.setClip(0, (int)Math.ceil(image0.getHeight() * pc), image0.getWidth(), image0.getHeight());
-		g2d.drawImage(image0, 0, 0, null);
-		if (this.type == Transition.Type.IN) {
+		if (image0 != null) {
+			g2d.setClip(0, (int)Math.ceil(image0.getHeight() * pc), image0.getWidth(), image0.getHeight());
+			g2d.drawImage(image0, 0, 0, null);
+		}
+		if (this.type == Transition.Type.IN && image1 != null) {
 			g2d.setClip(0, 0, image1.getWidth(), (int)Math.ceil(image1.getHeight() * pc));
 			g2d.drawImage(image1, 0, 0, null);
 		}

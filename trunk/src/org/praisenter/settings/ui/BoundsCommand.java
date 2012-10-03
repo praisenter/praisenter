@@ -2,10 +2,10 @@ package org.praisenter.settings.ui;
 
 import java.awt.Point;
 
-import org.praisenter.display.FloatingDisplayComponent;
+import org.praisenter.display.GraphicsComponent;
 
 /**
- * Represents a {@link Command} that modifies the position and size of a {@link FloatingDisplayComponent}.
+ * Represents a {@link Command} that modifies the position and size of a {@link GraphicsComponent}.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
@@ -15,14 +15,14 @@ public abstract class BoundsCommand extends Command {
 	protected Point start;
 	
 	/** The component */
-	protected FloatingDisplayComponent component;
+	protected GraphicsComponent component;
 	
 	/**
 	 * Called when the action is begun.
 	 * @param start the starting location
 	 * @param component the component being modified
 	 */
-	public synchronized void begin(Point start, FloatingDisplayComponent component) {
+	public synchronized void begin(Point start, GraphicsComponent component) {
 		this.active = true;
 		this.start = start;
 		this.component = component;
@@ -55,9 +55,9 @@ public abstract class BoundsCommand extends Command {
 	
 	/**
 	 * Returns the component being modified.
-	 * @return {@link FloatingDisplayComponent}
+	 * @return {@link GraphicsComponent}
 	 */
-	public FloatingDisplayComponent getComponent() {
+	public GraphicsComponent getComponent() {
 		return this.component;
 	}
 }
