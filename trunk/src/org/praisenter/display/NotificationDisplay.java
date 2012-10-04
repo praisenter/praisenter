@@ -21,24 +21,22 @@ public class NotificationDisplay extends Display {
 		super(displaySize);
 	}
 	
-	/**
-	 * Optional constructor.
-	 * @param name the dislay name
-	 * @param displaySize the target display size
-	 */
-	public NotificationDisplay(String name, Dimension displaySize) {
-		super(name, displaySize);
-	}
-	
 	/* (non-Javadoc)
 	 * @see org.praisenter.display.Display#render(java.awt.Graphics2D)
 	 */
 	@Override
 	public void render(Graphics2D graphics) {
-		// render the backgrounds
-		super.render(graphics);
 		// render the text components
-		this.textComponent.render(graphics);
+		if (this.textComponent != null) {
+			this.textComponent.render(graphics);
+		}
+	}
+	
+	@Override
+	public void invalidate() {
+		if (this.textComponent != null) {
+			this.textComponent.invalidate();
+		}
 	}
 	
 	/**

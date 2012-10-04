@@ -91,8 +91,8 @@ public class SettingsDialog extends JDialog implements ActionListener {
 		
 		// set the panels to listen for property change events from the general panel
 		// since the general panel contains the setup for the displays
-		this.pnlGeneralSettings.addPropertyChangeListener(GeneralSettingsPanel.DISPLAY_PROPERTY, this.pnlBibleSettings);
-		this.pnlNotificationSettings.addPropertyChangeListener(GeneralSettingsPanel.DISPLAY_PROPERTY, this.pnlNotificationSettings);
+		this.pnlGeneralSettings.addPropertyChangeListener(GeneralSettingsPanel.PRIMARY_DISPLAY_PROPERTY, this.pnlBibleSettings);
+		this.pnlNotificationSettings.addPropertyChangeListener(GeneralSettingsPanel.PRIMARY_DISPLAY_PROPERTY, this.pnlNotificationSettings);
 		
 		this.pnlBibleSettings.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		

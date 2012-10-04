@@ -253,6 +253,9 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 			double bw = dw * this.scale;
 			double bh = dh * this.scale;
 			
+			// FIXME move the preview generation code into common file
+			// FIXME the transparent background is still visible sometimes
+			
 			// paint the shadow background
 			this.paintShadow(graphics, "SHADOW", bw + TOTAL_BORDER_WIDTH, bh + TOTAL_BORDER_WIDTH, SHADOW_WIDTH);
 			
@@ -357,7 +360,7 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 		if (DISPLAY_COMPONENT_PROPERTY.equals(p)) {
 			// repaint the preview
 			this.repaint();
-		} else if (GeneralSettingsPanel.DISPLAY_PROPERTY.equals(p)) {
+		} else if (GeneralSettingsPanel.PRIMARY_DISPLAY_PROPERTY.equals(p)) {
 			// the display was updated so we need to update the preview panel
 			GraphicsDevice device = (GraphicsDevice)event.getNewValue();
 			Dimension size = WindowUtilities.getDimension(device.getDisplayMode());
@@ -366,6 +369,10 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 			// set the size of the display (so that it resizes its components)
 			this.display.setDisplaySize(size);
 			// repaint the preview panel
+			this.pnlDisplayPreview.repaint();
+		} else if (GeneralSettingsPanel.RENDER_QUALITY_PROPERTY.equals(p)) {
+			// we need to update the preview
+			this.pnlDisplayPreview.invalidate();
 			this.pnlDisplayPreview.repaint();
 		}
 	}

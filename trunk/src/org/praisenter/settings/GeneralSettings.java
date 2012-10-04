@@ -6,6 +6,7 @@ import java.awt.GraphicsDevice;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.praisenter.display.RenderQuality;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -43,7 +44,10 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	
 	/** Property key for the default clear transition duration */
 	private static final String KEY_DEFAULT_CLEAR_TRANSITION_DURATION = "Clear.Transition.Duration.Default";
-
+	
+	/** Property key for the render quality */
+	private static final String KEY_RENDER_QUALITY = "Display.Render.Quality";
+	
 	/**
 	 * Returns the instance of the {@link GeneralSettings}.
 	 * @return {@link GeneralSettings}
@@ -198,6 +202,23 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 		Dimension size = WindowUtilities.getDimension(mode);
 		// set the setting
 		this.setSetting(GeneralSettings.KEY_PRIMARY_DISPLAY_SIZE, size);
+	}
+	
+	/**
+	 * Returns the render quality.
+	 * @return {@link RenderQuality}
+	 */
+	public RenderQuality getRenderQuality() {
+		return this.getRenderQualitySetting(KEY_RENDER_QUALITY);
+	}
+	
+	/**
+	 * Sets the render quality.
+	 * @param quality the render quality
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setRenderQuality(RenderQuality quality) throws SettingsException {
+		this.setSetting(KEY_RENDER_QUALITY, quality);
 	}
 	
 	/**

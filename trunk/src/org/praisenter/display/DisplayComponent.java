@@ -1,7 +1,11 @@
 package org.praisenter.display;
 
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.RenderingHints;
 import java.util.UUID;
+
+import org.praisenter.settings.GeneralSettings;
 
 /**
  * An abstract component used on a {@link Display}.
@@ -32,10 +36,66 @@ public abstract class DisplayComponent {
 	}
 	
 	/**
+	 * Returns the target device's graphics configuration.
+	 * <p>
+	 * If the target doesn't exist or hasn't been assigned we use the default display.
+	 * @return GraphicsConfiguration
+	 */
+	protected static final GraphicsConfiguration getTargetGraphicsConfiguration() {
+		return GeneralSettings.getInstance().getPrimaryOrDefaultDisplay().getDefaultConfiguration();
+	}
+	
+	/**
+	 * Method to set the render quality on the given graphics object.
+	 * @param graphics the graphics
+	 */
+	protected static final void setRenderQuality(Graphics2D graphics) {
+		// setup the render quality as high as possible
+		RenderQuality quality = GeneralSettings.getInstance().getRenderQuality();
+		if (quality == RenderQuality.HIGH) {
+			graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+			graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			graphics.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+		} else if (quality == RenderQuality.MEDIUM) {
+			graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_DEFAULT);
+			graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_DEFAULT);
+			graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_DEFAULT);
+			graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_DEFAULT);
+			graphics.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_DEFAULT);
+		} else {
+			graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+			graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+			graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+			graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
+			graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+			graphics.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
+		}
+	}
+	
+	/**
 	 * Renders the component to the given graphics object.
 	 * @param graphics the graphics object to render to
 	 */
 	public abstract void render(Graphics2D graphics);
+	
+	/**
+	 * Renders the graphics component to the given graphics object.
+	 * <p>
+	 * Override this method to render additional graphics (be sure to call the super method).
+	 * @param graphics the graphics object to render to
+	 */
+	protected abstract void renderComponent(Graphics2D graphics);
+	
+	/**
+	 * Invalidates any cached resources.
+	 */
+	public void invalidate() {
+		this.dirty = true;
+	}
 	
 	/**
 	 * Returns true if this component has been changed 

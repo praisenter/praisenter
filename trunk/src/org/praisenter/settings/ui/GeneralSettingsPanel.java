@@ -29,6 +29,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import org.praisenter.display.RenderQuality;
 import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.GeneralSettings;
@@ -51,7 +52,10 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 	private static final long serialVersionUID = 8936112479746612291L;
 	
 	/** Property name of the display drop down */
-	public static final String DISPLAY_PROPERTY = "gspDisplay";
+	public static final String PRIMARY_DISPLAY_PROPERTY = "PrimaryDisplay";
+	
+	/** Property name of the render quality drop down */
+	public static final String RENDER_QUALITY_PROPERTY = "RenderQuality";
 	
 	/** The list of devices (not static so that it will pick up new devices) */
 	private GraphicsDevice[] devices = WindowUtilities.getScreenDevices();
@@ -69,6 +73,9 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 	
 	/** The label for translucency support */
 	private JLabel lblTranslucency;
+	
+	/** The render qualities */
+	private JComboBox<RenderQuality> cmbRenderQualities;
 	
 	// transitions
 	
@@ -131,6 +138,13 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 			this.lblTranslucency.setVisible(true);
 		}
 		
+		JLabel lblRenderQuality = new JLabel(Messages.getString("panel.general.setup.quality"));
+		lblRenderQuality.setToolTipText(Messages.getString("panel.general.setup.quality.tooltip"));
+		this.cmbRenderQualities = new JComboBox<RenderQuality>(RenderQuality.values());
+		this.cmbRenderQualities.setRenderer(new RenderQualityRenderer());
+		this.cmbRenderQualities.setSelectedItem(settings.getRenderQuality());
+		this.cmbRenderQualities.addItemListener(this);
+		
 		// create the layout
 		JPanel pnlDisplays = new JPanel();
 		pnlDisplays.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.general.setup.display.title")));
@@ -142,19 +156,25 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addComponent(this.lblDisplayNotFound)
 				.addGroup(layout.createSequentialGroup()
-						.addComponent(lblPrimaryDisplay)
+						.addGroup(layout.createParallelGroup()
+								.addComponent(lblPrimaryDisplay)
+								.addComponent(lblRenderQuality))
 						.addGroup(layout.createParallelGroup()
 								.addGroup(layout.createSequentialGroup()
 										.addComponent(this.cmbDevices, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(btnIdentify))
-								.addComponent(this.lblTranslucency))));
+								.addComponent(this.lblTranslucency)
+								.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(this.lblDisplayNotFound)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblPrimaryDisplay)
 						.addComponent(this.cmbDevices, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnIdentify))
-				.addComponent(this.lblTranslucency));
+				.addComponent(this.lblTranslucency)
+				.addGroup(layout.createParallelGroup()
+						.addComponent(lblRenderQuality)
+						.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		
 		boolean transitionsSupported = settings.getPrimaryOrDefaultDisplay().isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT);
 		
@@ -278,19 +298,22 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		if (e.getStateChange() == ItemEvent.SELECTED) {
-			// get the new value
-			GraphicsDevice device = (GraphicsDevice)e.getItem();
-			// test for translucency support
-			if (!device.isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT)) {
-				// if this isn't available, then the translucent color/image backgrounds may not
-				// work as expected
-				this.lblTranslucency.setText(Messages.getString("panel.general.setup.display.translucent.warning"));
-				this.lblTranslucency.setIcon(Icons.WARNING);
-			} else {
-				this.lblTranslucency.setText("");
-				this.lblTranslucency.setIcon(null);
+			if (e.getSource() == this.cmbDevices) {
+				// get the new value
+				GraphicsDevice device = (GraphicsDevice)e.getItem();
+				// test for translucency support
+				if (!device.isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT)) {
+					// if this device doesn't support translucency, then the translucent color/image backgrounds will not work
+					this.lblTranslucency.setText(Messages.getString("panel.general.setup.display.translucent.warning"));
+					this.lblTranslucency.setIcon(Icons.WARNING);
+				} else {
+					this.lblTranslucency.setText("");
+					this.lblTranslucency.setIcon(null);
+				}
+				this.firePropertyChange(PRIMARY_DISPLAY_PROPERTY, null, device);
+			} else if (e.getSource() == this.cmbRenderQualities) {
+				this.firePropertyChange(RENDER_QUALITY_PROPERTY, null, e.getItem());
 			}
-			this.firePropertyChange(DISPLAY_PROPERTY, null, device);
 		}
 	}
 	
@@ -305,6 +328,7 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 		this.settings.setDefaultSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());
 		this.settings.setDefaultClearTransition(((Transition)this.cmbClearTransitions.getSelectedItem()).getTransitionId());
 		this.settings.setDefaultClearTransitionDuration(((Number)this.txtClearTransitions.getValue()).intValue());
+		this.settings.setRenderQuality((RenderQuality)this.cmbRenderQualities.getSelectedItem());
 		// save the settings to the persistent store
 		this.settings.save();
 	}
@@ -367,6 +391,40 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 				GraphicsDevice device = (GraphicsDevice)value;
 				
 				this.setText(getDeviceName(device));
+			}
+			
+			return this;
+		}
+	}
+	
+	/**
+	 * Renderer for showing render qualities.
+	 * @author William Bittle
+	 * @version 1.0.0
+	 * @since 1.0.0
+	 */
+	private class RenderQualityRenderer extends DefaultListCellRenderer {
+		/** The version id */
+		private static final long serialVersionUID = 3065297114501982402L;
+		
+		/* (non-Javadoc)
+		 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
+		 */
+		@Override
+		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+			if (value instanceof RenderQuality) {
+				RenderQuality quality = (RenderQuality)value;
+				if (quality == RenderQuality.HIGH) {
+					this.setText(Messages.getString("panel.general.setup.quality.high"));
+					this.setToolTipText(Messages.getString("panel.general.setup.quality.high.tooltip"));
+				} else if (quality == RenderQuality.MEDIUM) {
+					this.setText(Messages.getString("panel.general.setup.quality.medium"));
+					this.setToolTipText(Messages.getString("panel.general.setup.quality.medium.tooltip"));
+				} else {
+					this.setText(Messages.getString("panel.general.setup.quality.low"));
+					this.setToolTipText(Messages.getString("panel.general.setup.quality.low.tooltip"));
+				}
 			}
 			
 			return this;
