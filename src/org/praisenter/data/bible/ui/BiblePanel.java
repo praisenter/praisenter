@@ -29,8 +29,10 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.LayoutStyle;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.table.TableModel;
@@ -48,7 +50,6 @@ import org.praisenter.display.BibleDisplay;
 import org.praisenter.display.DisplayFactory;
 import org.praisenter.display.TextComponent;
 import org.praisenter.display.ui.DisplayWindows;
-import org.praisenter.display.ui.MultipleDisplayPreviewPanel;
 import org.praisenter.display.ui.StandardDisplayWindow;
 import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
@@ -72,7 +73,6 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-// FIXME this panel is far too tall
 public class BiblePanel extends JPanel implements ActionListener, SettingsListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;
@@ -144,28 +144,19 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	// preview
 	
 	/** The preview panel */
-	private MultipleDisplayPreviewPanel pnlPreview;
-	
-	/** The previous verse display */
-	private BibleDisplay prevVerseDisplay;
-	
-	/** The current verse display */
-	private BibleDisplay currVerseDisplay;
-	
-	/** The next verse display */
-	private BibleDisplay nextVerseDisplay;
+	private BibleDisplayPreviewPanel pnlPreview;
 	
 	// state
 	
-	/** True if a verse is ready for display */
-	private boolean verseReady;
+	/** True if the user has found a verse */
+	private boolean verseFound;
 	
 	/**
 	 * Default constructor.
 	 */
 	@SuppressWarnings("serial")
 	public BiblePanel() {
-		this.verseReady = false;
+		this.verseFound = false;
 		
 		// get the settings
 		GeneralSettings gSettings = GeneralSettings.getInstance();
@@ -174,16 +165,11 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		// get the display size
 		Dimension displaySize = gSettings.getPrimaryDisplaySize();
 		
-		// create the displays
-		this.prevVerseDisplay = DisplayFactory.getDisplay(bSettings, Messages.getString("panel.bible.preview.previous"), displaySize);
-		this.currVerseDisplay = DisplayFactory.getDisplay(bSettings, Messages.getString("panel.bible.preview.current"), displaySize);
-		this.nextVerseDisplay = DisplayFactory.getDisplay(bSettings, Messages.getString("panel.bible.preview.next"), displaySize);
-		
 		// create the preview panel
-		this.pnlPreview = new MultipleDisplayPreviewPanel();
-		this.pnlPreview.addDisplay(this.prevVerseDisplay);
-		this.pnlPreview.addDisplay(this.currVerseDisplay);
-		this.pnlPreview.addDisplay(this.nextVerseDisplay);
+		this.pnlPreview = new BibleDisplayPreviewPanel();
+		this.pnlPreview.setPreviousVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
+		this.pnlPreview.setCurrentVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
+		this.pnlPreview.setNextVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
 		
 		this.pnlPreview.setMinimumSize(300);
 		
@@ -535,6 +521,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 						.addComponent(pnlSendClearButtons)));
 		
 		// create the queue table
+		JLabel lblSavedVerses = new JLabel(Messages.getString("panel.bible.savedVerses"));
 		this.tblSavedVerses = new JTable(new MutableBibleTableModel()) {
 			@Override
 			public String getToolTipText(MouseEvent event) {
@@ -591,7 +578,8 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		// wrap the saved verses table in a scroll pane
 		JScrollPane scrSavedVerses = new JScrollPane(this.tblSavedVerses);
-		scrSavedVerses.setPreferredSize(new Dimension(0, 200));
+		scrSavedVerses.setMinimumSize(new Dimension(400, 100));
+		scrSavedVerses.setMaximumSize(new Dimension(Short.MAX_VALUE, 250));
 		
 		// need two buttons for the saved verses
 		JButton btnRemoveSelected = new JButton(Messages.getString("panel.bible.removeSelected"));
@@ -636,7 +624,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		// create the search results label
 		this.lblBibleSearchResults = new JLabel();
 		this.lblBibleSearchResults.setHorizontalAlignment(SwingConstants.RIGHT);
-		this.lblBibleSearchResults.setMinimumSize(new Dimension(200, 0));
+		this.lblBibleSearchResults.setMinimumSize(new Dimension(120, 0));
 		this.lblBibleSearchResults.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 5));
 		
 		// create the search results table
@@ -696,7 +684,8 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		// wrap the search table in a scroll pane
 		JScrollPane scrBibleSearchResults = new JScrollPane(this.tblBibleSearchResults);
-		scrBibleSearchResults.setPreferredSize(new Dimension(0, 150));
+		scrBibleSearchResults.setMinimumSize(new Dimension(400, 100));
+		scrBibleSearchResults.setMaximumSize(new Dimension(Short.MAX_VALUE, 250));
 		
 		// default any fields
 		if (bible != null) {
@@ -719,6 +708,8 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 			this.cmbBooks.setSelectedItem(books.get(0));
 		}
 		
+		JSeparator sepTables = new JSeparator(JSeparator.HORIZONTAL);
+		
 		// create the layout
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
@@ -729,32 +720,43 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addComponent(this.pnlPreview)
 				.addComponent(pnlLookupPanel)
-				.addComponent(scrSavedVerses)
+				.addComponent(sepTables)
 				.addGroup(layout.createSequentialGroup()
-						.addComponent(btnRemoveSelected)
-						.addComponent(btnRemoveAll))
-				.addGroup(layout.createSequentialGroup()
-						.addComponent(this.txtBibleSearch)
-						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.lblBibleSearchResults))
-				.addGroup(layout.createSequentialGroup()
-						.addComponent(scrBibleSearchResults)));
+						.addGroup(layout.createParallelGroup()
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(lblSavedVerses)
+										.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+										.addComponent(btnRemoveSelected)
+										.addComponent(btnRemoveAll))
+								.addComponent(scrSavedVerses, 400, 400, Short.MAX_VALUE))
+						.addGroup(layout.createParallelGroup()
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.txtBibleSearch)
+										.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.lblBibleSearchResults))
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(scrBibleSearchResults, 400, 400, Short.MAX_VALUE)))));
 		
 		// setup the vertical layout
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(this.pnlPreview)
 				.addComponent(pnlLookupPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(scrSavedVerses, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(sepTables, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addGroup(layout.createParallelGroup()
-						.addComponent(btnRemoveSelected, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnRemoveAll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.txtBibleSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+						.addGroup(layout.createSequentialGroup()
+								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+										.addComponent(lblSavedVerses)
+										.addComponent(btnRemoveSelected, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(btnRemoveAll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(scrSavedVerses, 250, 250, 400))
+						.addGroup(layout.createSequentialGroup()
+								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+										.addComponent(this.txtBibleSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(scrBibleSearchResults, 250, 250, 400))));
 	}
 	
 	/* (non-Javadoc)
@@ -774,32 +776,28 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		BibleSettings bSettings = BibleSettings.getInstance();
 		
-		// create new displays using the new settings
-		BibleDisplay pDisplay = DisplayFactory.getDisplay(bSettings, Messages.getString("panel.bible.preview.previous"), displaySize);
-		BibleDisplay cDisplay = DisplayFactory.getDisplay(bSettings, Messages.getString("panel.bible.preview.current"), displaySize);
-		BibleDisplay nDisplay = DisplayFactory.getDisplay(bSettings, Messages.getString("panel.bible.preview.next"), displaySize);
+		// create new displays using the new settings (this will also reset the render qualities)
+		BibleDisplay pDisplay = DisplayFactory.getDisplay(bSettings, displaySize);
+		BibleDisplay cDisplay = DisplayFactory.getDisplay(bSettings, displaySize);
+		BibleDisplay nDisplay = DisplayFactory.getDisplay(bSettings, displaySize);
 		
 		// copy over the text values
-		this.copyTextValues(this.prevVerseDisplay, pDisplay);
-		this.copyTextValues(this.currVerseDisplay, cDisplay);
-		this.copyTextValues(this.nextVerseDisplay, nDisplay);
+		this.copyTextValues(this.pnlPreview.getPreviousVerseDisplay(), pDisplay);
+		this.copyTextValues(this.pnlPreview.getCurrentVerseDisplay(), cDisplay);
+		this.copyTextValues(this.pnlPreview.getNextVerseDisplay(), nDisplay);
 		
-		// remove the old displays from the preview panel
-		this.pnlPreview.removeDisplay(this.prevVerseDisplay);
-		this.pnlPreview.removeDisplay(this.currVerseDisplay);
-		this.pnlPreview.removeDisplay(this.nextVerseDisplay);
+		// set the new displays
+		this.pnlPreview.setPreviousVerseDisplay(pDisplay);
+		this.pnlPreview.setCurrentVerseDisplay(cDisplay);
+		this.pnlPreview.setNextVerseDisplay(nDisplay);
 		
-		// re-assign the preview displays
-		this.prevVerseDisplay = pDisplay;
-		this.currVerseDisplay = cDisplay;
-		this.nextVerseDisplay = nDisplay;
-		
-		// add the new displays to the preview panel
-		this.pnlPreview.addDisplay(this.prevVerseDisplay);
-		this.pnlPreview.addDisplay(this.currVerseDisplay);
-		this.pnlPreview.addDisplay(this.nextVerseDisplay);
-		
-		this.pnlPreview.setMinimumSize(300);
+		// resize the view using the current size's minimum dimension
+		Dimension size = this.pnlPreview.getSize();
+		if (size.width < size.height) {
+			this.pnlPreview.setMinimumSize(size.width);
+		} else {
+			this.pnlPreview.setMinimumSize(size.height);
+		}
 		
 		// redraw the preview panel
 		this.pnlPreview.repaint();
@@ -826,13 +824,15 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		String command = e.getActionCommand();
+		
 		Bible bible = (Bible)cmbBiblesPrimary.getSelectedItem();
 		Object b = this.cmbBooks.getSelectedItem();
 		Object c = this.txtChapter.getValue();
 		Object v = this.txtVerse.getValue();
-		
 		boolean ia = BibleSettings.getInstance().isApocryphaIncluded();
 		
+		// dont bother with any of these actions unless we have what we need
 		if (b != null && b instanceof Book &&
 			c != null && c instanceof Number &&
 			v != null && v instanceof Number) {
@@ -842,131 +842,23 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 			int chapter = ((Number)c).intValue();
 			int verse = ((Number)v).intValue();
 			
-			if ("find".equals(e.getActionCommand())) {
-				try {
-					// get the verse
-					Verse text = Bibles.getVerse(bible, book.getCode(), chapter, verse);
-					if (text != null) {
-						// update the displays
-						this.updateVerseDisplays(text);
-					} else {
-						LOGGER.info("No verse found for: " + bible.getName() + " " + book.getName() + " " + chapter + ":" + verse);
-						this.currVerseDisplay.clearVerse();
-					}
-				} catch (DataException ex) {
-					String message = MessageFormat.format(Messages.getString("panel.bible.data.find.exception.text"), bible.getName(), book.getName(), chapter, verse);
-					ExceptionDialog.show(
-							BiblePanel.this, 
-							Messages.getString("panel.bible.data.find.exception.title"), 
-							message, 
-							ex);
-					LOGGER.error(message, ex);
-				}
-			} else if ("send".equals(e.getActionCommand()) && this.verseReady) {
-				// get the transition
-				Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
-				int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
-				TransitionAnimator ta = new TransitionAnimator(transition, duration);
-				StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
-				boolean failed = false;
-				if (primary != null) {
-					primary.send(this.currVerseDisplay, ta);
-				} else {
-					failed = true;
-				}
-				if (failed) {
-					// the device is no longer available
-					LOGGER.warn("The primary display doesn't exist.");
-					JOptionPane.showMessageDialog(
-							this, 
-							Messages.getString("dialog.device.primary.missing.text"), 
-							Messages.getString("dialog.device.primary.missing.title"), 
-							JOptionPane.WARNING_MESSAGE);
-				}
-			} else if ("clear".equals(e.getActionCommand())) {
-				// get the transition
-				Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
-				int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
-				TransitionAnimator ta = new TransitionAnimator(transition, duration);
-				StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
-				if (primary != null) {
-					primary.clear(ta);
-				}
-			} else if ("prev".equals(e.getActionCommand())) {
-				// FIXME prev/next can be a lot faster by only getting the verse needed and shifting the others
-				try {
-					Verse text = Bibles.getPreviousVerse(bible, book.getCode(), chapter, verse, ia);
-					if (text != null) {
-						// change fields to new verse data
-						this.cmbBooks.setSelectedItem(text.getBook());
-						this.txtChapter.setValue(text.getChapter());
-						this.txtVerse.setValue(text.getVerse());
-						// update the displays
-						this.updateVerseDisplays(text);
-					} else {
-						LOGGER.info("No previous verse exists for: " + bible.getName() + " " + book.getName() + " " + chapter + ":" + verse);
-					}
-				} catch (DataException ex) {
-					String message = MessageFormat.format(Messages.getString("panel.bible.data.previous.exception.text"), bible.getName(), book.getName(), chapter, verse);
-					ExceptionDialog.show(
-							WindowUtilities.getParentWindow(BiblePanel.this), 
-							Messages.getString("panel.bible.data.previous.exception.title"), 
-							message, 
-							ex);
-					LOGGER.error(message, ex);
-				}
-			} else if ("next".equals(e.getActionCommand())) {
-				try {
-					Verse text = Bibles.getNextVerse(bible, book.getCode(), chapter, verse, ia);
-					if (text != null) {
-						// change fields to new verse data
-						this.cmbBooks.setSelectedItem(text.getBook());
-						this.txtChapter.setValue(text.getChapter());
-						this.txtVerse.setValue(text.getVerse());
-						// update the displays
-						this.updateVerseDisplays(text);
-					} else {
-						LOGGER.info("No next verse exists for: " + bible.getName() + " " + book.getName() + " " + chapter + ":" + verse);
-					}
-				} catch (DataException ex) {
-					String message = MessageFormat.format(Messages.getString("panel.bible.data.next.exception.text"), bible.getName(), book.getName(), chapter, verse);
-					ExceptionDialog.show(
-							WindowUtilities.getParentWindow(BiblePanel.this), 
-							Messages.getString("panel.bible.data.next.exception.title"), 
-							message, 
-							ex);
-					LOGGER.error(message, ex);
-				}
-			} else if ("add".equals(e.getActionCommand())) {
-				try {
-					Verse text = Bibles.getVerse(bible, book.getCode(), chapter, verse);
-					if (text != null) {
-						// change fields to new verse data
-						this.cmbBooks.setSelectedItem(text.getBook());
-						this.txtChapter.setValue(text.getChapter());
-						this.txtVerse.setValue(text.getVerse());
-						// update the displays
-						this.updateVerseDisplays(text);
-						// add the verse to the queue
-						MutableBibleTableModel model = (MutableBibleTableModel)this.tblSavedVerses.getModel();
-						model.addRow(text);
-					} else {
-						LOGGER.info("No next verse exists for: " + bible.getName() + " " + book.getName() + " " + chapter + ":" + verse);
-					}
-				} catch (DataException ex) {
-					String message = MessageFormat.format(Messages.getString("panel.bible.data.next.exception.text"), bible.getName(), book.getName(), chapter, verse);
-					ExceptionDialog.show(
-							WindowUtilities.getParentWindow(BiblePanel.this), 
-							Messages.getString("panel.bible.data.next.exception.title"), 
-							message, 
-							ex);
-					LOGGER.error(message, ex);
-				}
+			if ("find".equals(command)) {
+				this.findVerseAction(bible, book, chapter, verse);
+			} else if ("prev".equals(command)) {
+				this.getPreviousVerseAction(bible, book, chapter, verse, ia);
+			} else if ("next".equals(command)) {
+				this.getNextVerseAction(bible, book, chapter, verse, ia);
+			} else if ("add".equals(command)) {
+				this.addVerseAction(bible, book, chapter, verse);
+			} else if ("send".equals(command) && this.verseFound) {
+				this.sendVerseAction();
+			} else if ("clear".equals(command)) {
+				this.clearVerseAction();
 			}
 		}
 		
 		// check for search
-		if ("search".equals(e.getActionCommand())) {
+		if ("search".equals(command)) {
 			// grab the text from the text box
 			String text = this.txtBibleSearch.getText();
 			// get the bible search type
@@ -988,14 +880,193 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 			}
 		}
 		// check for remove selected
-		else if ("remove-selected".equals(e.getActionCommand())) {
+		else if ("remove-selected".equals(command)) {
 			MutableBibleTableModel model = (MutableBibleTableModel)this.tblSavedVerses.getModel();
 			model.removeSelectedRows();
 		}
 		// check for remove all
-		else if ("remove-all".equals(e.getActionCommand())) {
+		else if ("remove-all".equals(command)) {
 			MutableBibleTableModel model = (MutableBibleTableModel)this.tblSavedVerses.getModel();
 			model.removeAllRows();
+		}
+	}
+	
+	/**
+	 * Finds the given verse.
+	 * @param bible the bible
+	 * @param book the book
+	 * @param chapter the chapter
+	 * @param verse the verse
+	 */
+	private void findVerseAction(Bible bible, Book book, int chapter, int verse) {
+		try {
+			// get the verse
+			Verse text = Bibles.getVerse(bible, book.getCode(), chapter, verse);
+			if (text != null) {
+				// update the displays
+				this.updateVerseDisplays(text);
+			} else {
+				this.verseFound = false;
+			}
+		} catch (DataException ex) {
+			String message = MessageFormat.format(Messages.getString("panel.bible.data.find.exception.text"), bible.getName(), book.getName(), chapter, verse);
+			ExceptionDialog.show(
+					BiblePanel.this, 
+					Messages.getString("panel.bible.data.find.exception.title"), 
+					message, 
+					ex);
+			LOGGER.error(message, ex);
+		}
+	}
+	
+	/**
+	 * Moves the preview to the previous verse.
+	 * @param bible the bible
+	 * @param book the book
+	 * @param chapter the chapter
+	 * @param verse the verse
+	 * @param includeApocrypha true to include the apocrypha books
+	 */
+	private void getPreviousVerseAction(Bible bible, Book book, int chapter, int verse, boolean includeApocrypha) {
+		// to be more efficient we can shift the verse displays right by one and only get
+		// the current verse's previous-previous
+		try {
+			// get the current verse
+			Verse curr = Bibles.getVerse(bible, book.getCode(), chapter, verse);
+			if (curr == null) {
+				this.verseFound = false;
+				return;
+			}
+			// get the previous verse
+			Verse prev = Bibles.getPreviousVerse(curr, includeApocrypha);
+			// if prev is null (we are at the beginning, there is nothing to do)
+			if (prev != null) {
+				this.verseFound = true;
+				// change fields to new verse data
+				this.cmbBooks.setSelectedItem(prev.getBook());
+				this.txtChapter.setValue(prev.getChapter());
+				this.txtVerse.setValue(prev.getVerse());
+				// get the previous-previous
+				Verse prev2 = Bibles.getPreviousVerse(prev, includeApocrypha);
+				this.shiftVerseDisplays(-1, prev2);
+			}
+		} catch (DataException ex) {
+			String message = MessageFormat.format(Messages.getString("panel.bible.data.previous.exception.text"), bible.getName(), book.getName(), chapter, verse);
+			ExceptionDialog.show(
+					WindowUtilities.getParentWindow(BiblePanel.this), 
+					Messages.getString("panel.bible.data.previous.exception.title"), 
+					message, 
+					ex);
+			LOGGER.error(message, ex);
+		}
+	}
+	
+	/**
+	 * Moves the preview to the next verse.
+	 * @param bible the bible
+	 * @param book the book
+	 * @param chapter the chapter
+	 * @param verse the verse
+	 * @param includeApocrypha true to include the apocrypha books
+	 */
+	private void getNextVerseAction(Bible bible, Book book, int chapter, int verse, boolean includeApocrypha) {
+		try {
+			// get the current verse
+			Verse curr = Bibles.getVerse(bible, book.getCode(), chapter, verse);
+			if (curr == null) {
+				this.verseFound = false;
+				return;
+			}
+			// get the next verse
+			Verse next = Bibles.getNextVerse(curr, includeApocrypha);
+			if (next != null) {
+				this.verseFound = true;
+				// change fields to new verse data
+				this.cmbBooks.setSelectedItem(next.getBook());
+				this.txtChapter.setValue(next.getChapter());
+				this.txtVerse.setValue(next.getVerse());
+				// get the previous-previous
+				Verse next2 = Bibles.getNextVerse(next, includeApocrypha);
+				this.shiftVerseDisplays(+1, next2);
+			}
+		} catch (DataException ex) {
+			String message = MessageFormat.format(Messages.getString("panel.bible.data.next.exception.text"), bible.getName(), book.getName(), chapter, verse);
+			ExceptionDialog.show(
+					WindowUtilities.getParentWindow(BiblePanel.this), 
+					Messages.getString("panel.bible.data.next.exception.title"), 
+					message, 
+					ex);
+			LOGGER.error(message, ex);
+		}
+	}
+	
+	/**
+	 * Adds the current verse to the list of saved verses.
+	 * @param bible the bible
+	 * @param book the book
+	 * @param chapter the chapter
+	 * @param verse the verse
+	 */
+	private void addVerseAction(Bible bible, Book book, int chapter, int verse) {
+		try {
+			Verse text = Bibles.getVerse(bible, book.getCode(), chapter, verse);
+			if (text != null) {
+				// change fields to new verse data
+				this.cmbBooks.setSelectedItem(text.getBook());
+				this.txtChapter.setValue(text.getChapter());
+				this.txtVerse.setValue(text.getVerse());
+				// update the displays
+				this.updateVerseDisplays(text);
+				// add the verse to the queue
+				MutableBibleTableModel model = (MutableBibleTableModel)this.tblSavedVerses.getModel();
+				model.addRow(text);
+			} else {
+				this.verseFound = false;
+			}
+		} catch (DataException ex) {
+			String message = MessageFormat.format(Messages.getString("panel.bible.data.next.exception.text"), bible.getName(), book.getName(), chapter, verse);
+			ExceptionDialog.show(
+					WindowUtilities.getParentWindow(BiblePanel.this), 
+					Messages.getString("panel.bible.data.next.exception.title"), 
+					message, 
+					ex);
+			LOGGER.error(message, ex);
+		}
+	}
+	
+	/**
+	 * Sends the current verse display to the primary display.
+	 */
+	private void sendVerseAction() {
+		// get the transition
+		Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
+		int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
+		TransitionAnimator ta = new TransitionAnimator(transition, duration);
+		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
+		if (primary != null) {
+			primary.send(this.pnlPreview.getCurrentVerseDisplay(), ta);
+		} else {
+			// the device is no longer available
+			LOGGER.warn("The primary display doesn't exist.");
+			JOptionPane.showMessageDialog(
+					this, 
+					Messages.getString("dialog.device.primary.missing.text"), 
+					Messages.getString("dialog.device.primary.missing.title"), 
+					JOptionPane.WARNING_MESSAGE);
+		}
+	}
+	
+	/**
+	 * Clears the primary display.
+	 */
+	private void clearVerseAction() {
+		// get the transition
+		Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
+		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
+		TransitionAnimator ta = new TransitionAnimator(transition, duration);
+		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
+		if (primary != null) {
+			primary.clear(ta);
 		}
 	}
 	
@@ -1005,11 +1076,16 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	 * @throws DataException if an exception occurs while loading the next and previous verses
 	 */
 	private void updateVerseDisplays(Verse verse) throws DataException {
-		this.verseReady = true;
+		this.verseFound = true;
 		boolean ia = BibleSettings.getInstance().isApocryphaIncluded();
 		// then get the previous and next verses as well
 		Verse prev = Bibles.getPreviousVerse(verse, ia);
 		Verse next = Bibles.getNextVerse(verse, ia);
+		
+		// get the displays to update
+		BibleDisplay dPrev = this.pnlPreview.getPreviousVerseDisplay();
+		BibleDisplay dCurr = this.pnlPreview.getCurrentVerseDisplay();
+		BibleDisplay dNext = this.pnlPreview.getNextVerseDisplay();
 		
 		// check the secondary bible
 		if (this.chkUseSecondaryBible.isSelected()) {
@@ -1023,18 +1099,18 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 					Verse v2p = Bibles.getPreviousVerse(v2, ia);
 					Verse v2n = Bibles.getNextVerse(v2, ia);
 					// set the current verse text
-					this.currVerseDisplay.setVerse(verse, v2);
+					dCurr.setVerse(verse, v2);
 					// set the previous verse
 					if (prev != null) {
-						this.prevVerseDisplay.setVerse(prev, v2p);
+						dPrev.setVerse(prev, v2p);
 					} else {
-						this.prevVerseDisplay.clearVerse();
+						dPrev.clearVerse();
 					}
 					// set the next verse
 					if (next != null) {
-						this.nextVerseDisplay.setVerse(next, v2n);
+						dNext.setVerse(next, v2n);
 					} else {
-						this.nextVerseDisplay.clearVerse();
+						dNext.clearVerse();
 					}
 					// repaint the preview
 					this.pnlPreview.repaint();
@@ -1048,19 +1124,82 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		}
 		
 		// set the current verse text
-		this.currVerseDisplay.setVerse(verse);
+		dCurr.setVerse(verse);
 		// set the previous verse
 		if (prev != null) {
-			this.prevVerseDisplay.setVerse(prev);
+			dPrev.setVerse(prev);
 		} else {
-			this.prevVerseDisplay.clearVerse();
+			dPrev.clearVerse();
 		}
 		// set the next verse
 		if (next != null) {
-			this.nextVerseDisplay.setVerse(next);
+			dNext.setVerse(next);
 		} else {
-			this.nextVerseDisplay.clearVerse();
+			dNext.clearVerse();
 		}
+		// repaint the preview
+		this.pnlPreview.repaint();
+	}
+	
+	/**
+	 * Updates the bible displays for the new current verse.
+	 * @param direction the direction to shift the displays; &lt; 0 to shift left; &gt; 0 to shift right
+	 * @param verse the prev-prev or next-next verse
+	 * @throws DataException if an exception occurs while loading the next and previous verses
+	 */
+	private void shiftVerseDisplays(int direction, Verse verse) throws DataException {
+		BibleDisplay display = null;
+		// shift the displays
+		{
+			// shift them and assign the one we will modify
+			if (direction < 0) {
+				display = this.pnlPreview.getNextVerseDisplay();
+				this.pnlPreview.setNextVerseDisplay(this.pnlPreview.getCurrentVerseDisplay());
+				this.pnlPreview.setCurrentVerseDisplay(this.pnlPreview.getPreviousVerseDisplay());
+				this.pnlPreview.setPreviousVerseDisplay(display);
+			} else {
+				display = this.pnlPreview.getPreviousVerseDisplay();
+				this.pnlPreview.setPreviousVerseDisplay(this.pnlPreview.getCurrentVerseDisplay());
+				this.pnlPreview.setCurrentVerseDisplay(this.pnlPreview.getNextVerseDisplay());
+				this.pnlPreview.setNextVerseDisplay(display);
+			}
+		}
+		
+		// check for null
+		if (verse == null) {
+			// clear the verse
+			display.clearVerse();
+			// repaint the preview
+			this.pnlPreview.repaint();
+			// don't continue
+			return;
+		}
+		
+		// check the secondary bible
+		if (this.chkUseSecondaryBible.isSelected()) {
+			// get the secondary bible's text
+			Bible bible = (Bible)this.cmbBiblesSecondary.getSelectedItem();
+			// as long as they aren't the same bible
+			if (bible != null && !bible.equals(verse.getBible())) {
+				try {
+					// get the secondary bible verses
+					Verse v2 = Bibles.getVerse(bible, verse.getBook().getCode(), verse.getChapter(), verse.getVerse());
+					if (v2 != null) {
+						// set the verses
+						display.setVerse(verse, v2);
+						// repaint the preview
+						this.pnlPreview.repaint();
+						return;
+					}
+				} catch (DataException e) {
+					// the secondary bible isn't as important as the primary
+					// we should just log the error if the secondary throws an excpetion
+					LOGGER.error("An error occurred while retrieving the previous, current, and next verses from the secondary bible: ", e);
+				}
+			}
+		}
+		
+		display.setVerse(verse);
 		// repaint the preview
 		this.pnlPreview.repaint();
 	}

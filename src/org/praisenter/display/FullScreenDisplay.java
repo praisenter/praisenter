@@ -24,14 +24,24 @@ public abstract class FullScreenDisplay extends Display {
 		this.background = null;
 	}
 	
-	/**
-	 * Optional constructor.
-	 * @param name the display name
-	 * @param displaySize the target display size
+	/* (non-Javadoc)
+	 * @see org.praisenter.display.Display#render(java.awt.Graphics2D)
 	 */
-	public FullScreenDisplay(String name, Dimension displaySize) {
-		super(name, displaySize);
-		this.background = null;
+	public void render(Graphics2D graphics) {
+		// render the main background
+		if (this.background != null) {
+			this.background.render(graphics);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.display.Display#invalidate()
+	 */
+	@Override
+	public void invalidate() {
+		if (this.background != null) {
+			this.background.invalidate();
+		}
 	}
 	
 	/**
@@ -69,16 +79,5 @@ public abstract class FullScreenDisplay extends Display {
 	 */
 	public void setBackgroundComponent(GraphicsComponent background) {
 		this.background = background;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.display.Display#render(java.awt.Graphics2D)
-	 */
-	public void render(Graphics2D graphics) {
-		super.render(graphics);
-		// render the main background
-		if (this.background != null) {
-			this.background.render(graphics);
-		}
 	}
 }

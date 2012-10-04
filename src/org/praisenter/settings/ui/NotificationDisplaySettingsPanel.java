@@ -60,12 +60,12 @@ public class NotificationDisplaySettingsPanel extends DisplaySettingsPanel<Notif
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
-						.addComponent(pnlTitle))
+						.addComponent(pnlTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addComponent(pnlPreview));
 		
 		layout.setVerticalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
-						.addComponent(pnlTitle))
+						.addComponent(pnlTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addComponent(pnlPreview));
 	}
 	

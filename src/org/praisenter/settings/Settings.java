@@ -20,6 +20,7 @@ import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.log4j.Logger;
 import org.praisenter.display.CompositeType;
 import org.praisenter.display.FontScaleType;
+import org.praisenter.display.RenderQuality;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
 import org.praisenter.display.TextAlignment;
@@ -459,6 +460,38 @@ public abstract class Settings {
 		}
 		
 		return (CompositeType)object;
+	}
+
+	/**
+	 * Returns the setting as a {@link RenderQuality} enum for the given key.
+	 * <p>
+	 * Returns {@link RenderQuality#HIGH} if the setting is not set.
+	 * @param key the key
+	 * @return {@link RenderQuality}
+	 */
+	protected RenderQuality getRenderQualitySetting(String key) {
+		// get the setting
+		Object object = this.settings.get(key);
+		// check if its null
+		if (object == NULL || object == null) {
+			// default the object
+			object = RenderQuality.HIGH;
+			// get the string from the properties
+			String string = this.properties.getProperty(key);
+			// make sure we can parse it
+			if (string != null && string.trim().length() > 0) {
+				// get the enum
+				try {
+					object = RenderQuality.valueOf(string.trim());
+				} catch (IllegalArgumentException e) {
+					LOGGER.warn("Unable to parse setting: " + key + " value: " + string, e);
+				}
+			}
+			// set it 
+			this.settings.put(key, object);
+		}
+		
+		return (RenderQuality)object;
 	}
 	
 	/**

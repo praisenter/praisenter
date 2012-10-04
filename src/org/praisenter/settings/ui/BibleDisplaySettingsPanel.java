@@ -69,17 +69,18 @@ public class BibleDisplaySettingsPanel extends FullScreenDisplaySettingsPanel<Bi
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.pnlBackground, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(pnlTitle)
-						.addComponent(pnlText))
-				.addComponent(pnlPreview));
+				.addGroup(layout.createParallelGroup()
+						.addComponent(this.pnlBackground, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(pnlTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(pnlText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						// only resize the preview
+				.addComponent(pnlPreview, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		
 		layout.setVerticalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
-						.addComponent(this.pnlBackground)
-						.addComponent(pnlTitle)
-						.addComponent(pnlText))
+						.addComponent(this.pnlBackground, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(pnlTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(pnlText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addComponent(pnlPreview));
 	}
 	

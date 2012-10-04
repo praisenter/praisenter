@@ -26,15 +26,6 @@ public class BibleDisplay extends FullScreenDisplay {
 		super(displaySize);
 	}
 	
-	/**
-	 * Optional constructor.
-	 * @param name the dislay name
-	 * @param displaySize the target display size
-	 */
-	public BibleDisplay(String name, Dimension displaySize) {
-		super(name, displaySize);
-	}
-	
 	/* (non-Javadoc)
 	 * @see org.praisenter.display.FullScreenDisplay#render(java.awt.Graphics2D)
 	 */
@@ -43,8 +34,27 @@ public class BibleDisplay extends FullScreenDisplay {
 		// render the backgrounds
 		super.render(graphics);
 		// render the text components
-		this.scriptureTitleComponent.render(graphics);
-		this.scriptureTextComponent.render(graphics);
+		if (this.scriptureTitleComponent != null) {
+			this.scriptureTitleComponent.render(graphics);
+		}
+		if (this.scriptureTextComponent != null) {
+			this.scriptureTextComponent.render(graphics);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.display.Display#invalidate()
+	 */
+	@Override
+	public void invalidate() {
+		super.invalidate();
+		
+		if (this.scriptureTitleComponent != null) {
+			this.scriptureTitleComponent.invalidate();
+		}
+		if (this.scriptureTextComponent != null) {
+			this.scriptureTextComponent.invalidate();
+		}
 	}
 	
 	/**
@@ -52,8 +62,12 @@ public class BibleDisplay extends FullScreenDisplay {
 	 * @param verse the verse
 	 */
 	public void setVerse(Verse verse) {
-		this.scriptureTitleComponent.setText(verse.getBook().getName() + " " + verse.getChapter() + ":" + verse.getVerse());
-		this.scriptureTextComponent.setText(verse.getText());
+		if (this.scriptureTitleComponent != null) {
+			this.scriptureTitleComponent.setText(verse.getBook().getName() + " " + verse.getChapter() + ":" + verse.getVerse());
+		}
+		if (this.scriptureTextComponent != null) {
+			this.scriptureTextComponent.setText(verse.getText());
+		}
 	}
 	
 	/**
@@ -65,17 +79,25 @@ public class BibleDisplay extends FullScreenDisplay {
 	 * @param verse2 the secondary bible verse
 	 */
 	public void setVerse(Verse verse1, Verse verse2) {
-		this.scriptureTitleComponent.setText(verse1.getBook().getName() + " " + verse1.getChapter() + ":" + verse1.getVerse());
-		// just split them by 2 new lines
-		this.scriptureTextComponent.setText(verse1.getText() + "\n\n" + verse2.getText());
+		if (this.scriptureTitleComponent != null) {
+			this.scriptureTitleComponent.setText(verse1.getBook().getName() + " " + verse1.getChapter() + ":" + verse1.getVerse());
+		}
+		if (this.scriptureTextComponent != null) {
+			// just split them by 2 new lines
+			this.scriptureTextComponent.setText(verse1.getText() + "\n\n" + verse2.getText());
+		}
 	}
 	
 	/**
 	 * Convenience method for clearing the text of the display.
 	 */
 	public void clearVerse() {
-		this.scriptureTitleComponent.setText("");
-		this.scriptureTextComponent.setText("");
+		if (this.scriptureTitleComponent != null) {
+			this.scriptureTitleComponent.setText("");
+		}
+		if (this.scriptureTextComponent != null) {
+			this.scriptureTextComponent.setText("");
+		}
 	}
 	
 	/**

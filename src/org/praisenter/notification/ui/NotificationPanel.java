@@ -10,12 +10,14 @@ import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.praisenter.display.DisplayFactory;
 import org.praisenter.display.NotificationDisplay;
 import org.praisenter.display.ui.DisplayWindows;
+import org.praisenter.display.ui.NotificationDisplayWindow;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.NotificationSettings;
@@ -130,7 +132,7 @@ public class NotificationPanel extends JPanel implements ActionListener {
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
-				.addComponent(this.txtText)
+				.addComponent(this.txtText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.txtWaitPeriod, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.cmbInTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.txtInTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -165,7 +167,17 @@ public class NotificationPanel extends JPanel implements ActionListener {
 			// get the wait duration
 			int wait = ((Number)this.txtWaitPeriod.getValue()).intValue();
 			// send the notification
-			DisplayWindows.getPrimaryNotificationWindow().send(this.display, in, out, wait);
+			NotificationDisplayWindow window = DisplayWindows.getPrimaryNotificationWindow();
+			if (window != null) {
+				window.send(this.display, in, out, wait);
+			} else {
+				// the device is no longer available
+				JOptionPane.showMessageDialog(
+						this, 
+						Messages.getString("dialog.device.primary.missing.text"), 
+						Messages.getString("dialog.device.primary.missing.title"), 
+						JOptionPane.WARNING_MESSAGE);
+			}
 		}
 	}
 }

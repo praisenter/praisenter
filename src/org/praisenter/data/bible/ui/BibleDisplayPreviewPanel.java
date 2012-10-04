@@ -1,4 +1,4 @@
-package org.praisenter.display.ui;
+package org.praisenter.data.bible.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -21,31 +21,35 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
+import org.praisenter.display.BibleDisplay;
 import org.praisenter.display.Display;
 import org.praisenter.images.Images;
+import org.praisenter.resources.Messages;
 import org.praisenter.utilities.FontManager;
 import org.praisenter.utilities.ImageUtilities;
 
 /**
- * Represents a panel that shows a preview of multiple displays.
- * <p>
- * This panel will attempt to fit the displays into its size.
+ * Represents a panel that shows a preview of bible displays
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class MultipleDisplayPreviewPanel extends JPanel {
+public class BibleDisplayPreviewPanel extends JPanel {
 	/** The version id */
 	private static final long serialVersionUID = -6376569581892016128L;
 	
 	/** Spacing between the displays */
 	private static final int SPACING = 10;
 	
-	/** True if the display name should be shown */
-	private boolean showDisplayNames;
+	/** The previous, current, and next verse display names */
+	private static final String[] DISPLAY_NAMES = new String[] {
+		Messages.getString("panel.bible.preview.previous"),
+		Messages.getString("panel.bible.preview.current"),
+		Messages.getString("panel.bible.preview.next")
+	};
 	
 	/** The displays to render */
-	private List<Display> displays;
+	private List<BibleDisplay> displays;
 	
 	/** The map of cached images */
 	private Map<String, BufferedImage> cachedImages; 
@@ -53,7 +57,7 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 	/**
 	 * Default constructor.
 	 */
-	public MultipleDisplayPreviewPanel() {
+	public BibleDisplayPreviewPanel() {
 		this(true);
 	}
 	
@@ -61,34 +65,65 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 	 * Optional constructor.
 	 * @param showDisplayNames true if the display names should be shown
 	 */
-	public MultipleDisplayPreviewPanel(boolean showDisplayNames) {
-		this.showDisplayNames = showDisplayNames;
-		this.displays = new ArrayList<Display>();
+	public BibleDisplayPreviewPanel(boolean showDisplayNames) {
+		this.displays = new ArrayList<BibleDisplay>();
+		this.displays.add(null);
+		this.displays.add(null);
+		this.displays.add(null);
 		this.cachedImages = new HashMap<String, BufferedImage>();
 		
 		// add a border to this panel
 		this.setBorder(BorderFactory.createLoweredBevelBorder());
 		
-		// TODO may need to be able to specify a layout or allow scrolling... maybe row/col settings?
+		// FIXME move most of this code into an abstract preview panel
 	}
 	
 	/**
-	 * Adds a display to this preview panel.
+	 * Sets the previous verse display.
 	 * @param display the display
 	 */
-	public void addDisplay(Display display) {
-		this.displays.add(display);
+	public void setPreviousVerseDisplay(BibleDisplay display) {
+		this.displays.set(0, display);
 	}
 	
 	/**
-	 * Removes the given display from this preview panel and returns
-	 * true if successful.
+	 * Sets the current verse display.
 	 * @param display the display
-	 * @return boolean
 	 */
-	public boolean removeDisplay(Display display) {
-		this.cachedImages.remove(display.getName());
-		return this.displays.remove(display);
+	public void setCurrentVerseDisplay(BibleDisplay display) {
+		this.displays.set(1, display);
+	}
+	
+	/**
+	 * Sets the next verse display.
+	 * @param display the display
+	 */
+	public void setNextVerseDisplay(BibleDisplay display) {
+		this.displays.set(2, display);
+	}
+	
+	/**
+	 * Returns the previous verse display.
+	 * @return {@link BibleDisplay}
+	 */
+	public BibleDisplay getPreviousVerseDisplay() {
+		return this.displays.get(0);
+	}
+	
+	/**
+	 * Returns the current verse display.
+	 * @return {@link BibleDisplay}
+	 */
+	public BibleDisplay getCurrentVerseDisplay() {
+		return this.displays.get(1);	
+	}
+	
+	/**
+	 * Returns the next verse display.
+	 * @return {@link BibleDisplay}
+	 */
+	public BibleDisplay getNextVerseDisplay() {
+		return this.displays.get(2);
 	}
 	
 	/**
@@ -125,11 +160,9 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 			double ph = (double)maximum / (double)size.height;
 			
 			int th = 0;
-			if (this.showDisplayNames) {
-				Font font = FontManager.getDefaultFont();
-				TextLayout layout = new TextLayout(display.getName(), font, new FontRenderContext(new AffineTransform(), true, false));
-				th = (int)Math.ceil(layout.getAscent() + layout.getDescent() + layout.getLeading()) + SPACING;
-			}
+			Font font = FontManager.getDefaultFont();
+			TextLayout layout = new TextLayout(DISPLAY_NAMES[i], font, new FontRenderContext(new AffineTransform(), true, false));
+			th = (int)Math.ceil(layout.getAscent() + layout.getDescent() + layout.getLeading()) + SPACING;
 			
 			double sc = pw < ph ? pw : ph;
 			
@@ -162,10 +195,7 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 		final int ah = size.height - SPACING * 4;
 		
 		FontMetrics metrics = g.getFontMetrics(FontManager.getDefaultFont());
-		int mh = 0; 
-		if (this.showDisplayNames) {
-			mh = metrics.getHeight();
-		}
+		int mh = metrics.getHeight();
 		
 		// the width/height of each display
 		final int dw = aw / n;
@@ -211,12 +241,10 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 			double bw = tw * scale;
 			double bh = th * scale;
 			
-			if (this.showDisplayNames) {
-				this.paintDisplayName(g2d, display.getName(), (int)Math.ceil(tw * scale));
-			}
+			this.paintDisplayName(g2d, DISPLAY_NAMES[i], (int)Math.ceil(tw * scale));
 			
 			final int sw = 12;
-			this.paintShadow(g2d, display.getName(), bw, bh, sw);
+			this.paintShadow(g2d, bw, bh, sw);
 			
 			// paint the borders
 			g2d.setColor(Color.GRAY);
@@ -224,7 +252,7 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 			g2d.setColor(Color.WHITE);
 			g2d.fill(new Rectangle2D.Double(-1, -1, bw + 2, bh + 2));
 			
-			this.paintTransparentBackground(g2d, display.getName(), bw, bh);
+			this.paintTransparentBackground(g2d, bw, bh);
 			
 			// the sub old transform
 			AffineTransform ot = g2d.getTransform();
@@ -257,19 +285,18 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 	/**
 	 * Paints a drop shadow for the given display.
 	 * @param g2d the graphics to paint to
-	 * @param name the display name
 	 * @param w the width of the display
 	 * @param h the height of the display
 	 * @param sw the shadow width
 	 */
-	private void paintShadow(Graphics2D g2d, String name, double w, double h, int sw) {
-		BufferedImage image = this.cachedImages.get("SHADOW_" + name);
+	private void paintShadow(Graphics2D g2d, double w, double h, int sw) {
+		BufferedImage image = this.cachedImages.get("SHADOW");
 		
 		// see if we need to re-render the image
 		if (image == null || image.getWidth() != w || image.getHeight() != h) {
 			// create a new image of the right size
 			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), w, h, sw);
-			this.cachedImages.put(name, image);
+			this.cachedImages.put("SHADOW", image);
 		}
 		
 		// render the image
@@ -279,18 +306,17 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 	/**
 	 * Paints a drop shadow for the given display.
 	 * @param g2d the graphics to paint to
-	 * @param name the display name
 	 * @param w the width of the display
 	 * @param h the height of the display
 	 */
-	private void paintTransparentBackground(Graphics2D g2d, String name, double w, double h) {
-		BufferedImage image = this.cachedImages.get("BACKGROUND_" + name);
+	private void paintTransparentBackground(Graphics2D g2d, double w, double h) {
+		BufferedImage image = this.cachedImages.get("BACKGROUND");
 		
 		// see if we need to re-render the image
 		if (image == null || image.getWidth() != w || image.getHeight() != h) {
 			// create a new image of the right size
 			image = ImageUtilities.getTiledImage(Images.TRANSPARENT_BACKGROUND, g2d.getDeviceConfiguration(), (int)Math.ceil(w), (int)Math.ceil(h));
-			this.cachedImages.put(name, image);
+			this.cachedImages.put("BACKGROUND", image);
 		}
 		
 		// render the image
@@ -304,7 +330,7 @@ public class MultipleDisplayPreviewPanel extends JPanel {
 	 * @param w the width of the display (to center the text)
 	 */
 	private void paintDisplayName(Graphics2D g2d, String name, int w) {
-		BufferedImage image = this.cachedImages.get("DISPLAY_" + name);
+		BufferedImage image = this.cachedImages.get(name);
 		FontMetrics metrics = g2d.getFontMetrics(FontManager.getDefaultFont());
 		int ih = metrics.getHeight();
 		int iw = metrics.stringWidth(name);
