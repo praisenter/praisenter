@@ -14,6 +14,9 @@ import org.praisenter.resources.Messages;
  * @since 1.0.0
  */
 public class Swap extends Transition {
+	/** The {@link Swap} transition id */
+	public static final int ID = 10;
+	
 	/**
 	 * Full constructor.
 	 * @param type the transition type
@@ -27,7 +30,7 @@ public class Swap extends Transition {
 	 */
 	@Override
 	public int getTransitionId() {
-		return 10;
+		return ID;
 	}
 	
 	/* (non-Javadoc)

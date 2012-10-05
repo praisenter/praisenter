@@ -321,7 +321,7 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 		// see if we need to re-render the image
 		if (image == null || image.getWidth() != w || image.getHeight() != h) {
 			// create a new image of the right size
-			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), w, h, sw);
+			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), (int)Math.ceil(w), (int)Math.ceil(h), sw);
 			this.cachedImages.put(name, image);
 		}
 		

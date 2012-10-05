@@ -33,18 +33,6 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	/** Property key for the primary display size */
 	private static final String KEY_PRIMARY_DISPLAY_SIZE = "Display.Primary.Size";
 	
-	/** Property key for the default send transition */
-	private static final String KEY_DEFAULT_SEND_TRANSITION = "Send.Transition.Default";
-	
-	/** Property key for the default send transition duration */
-	private static final String KEY_DEFAULT_SEND_TRANSITION_DURATION = "Send.Transition.Duration.Default";
-	
-	/** Property key for the default clear transition */
-	private static final String KEY_DEFAULT_CLEAR_TRANSITION = "Clear.Transition.Default";
-	
-	/** Property key for the default clear transition duration */
-	private static final String KEY_DEFAULT_CLEAR_TRANSITION_DURATION = "Clear.Transition.Duration.Default";
-	
 	/** Property key for the render quality */
 	private static final String KEY_RENDER_QUALITY = "Display.Render.Quality";
 	
@@ -219,73 +207,5 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	 */
 	public void setRenderQuality(RenderQuality quality) throws SettingsException {
 		this.setSetting(KEY_RENDER_QUALITY, quality);
-	}
-	
-	/**
-	 * Returns the default send transition id.
-	 * @return int
-	 */
-	public int getDefaultSendTransition() {
-		return this.getIntegerSetting(KEY_DEFAULT_SEND_TRANSITION);
-	}
-	
-	/**
-	 * Sets the default send transition.
-	 * @param id the transition id
-	 * @throws SettingsException if an exception occurs while assigning the setting
-	 */
-	public void setDefaultSendTransition(int id) throws SettingsException {
-		this.setSetting(KEY_DEFAULT_SEND_TRANSITION, id);
-	}
-	
-	/**
-	 * Returns the default clear transition.
-	 * @return int
-	 */
-	public int getDefaultClearTransition() {
-		return this.getIntegerSetting(KEY_DEFAULT_CLEAR_TRANSITION);
-	}
-	
-	/**
-	 * Sets the default clear transition.
-	 * @param id the transition id
-	 * @throws SettingsException if an exception occurs while assigning the setting
-	 */
-	public void setDefaultClearTransition(int id) throws SettingsException {
-		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION, id);
-	}
-	
-	/**
-	 * Returns the default send transition duration.
-	 * @return int
-	 */
-	public int getDefaultSendTransitionDuration() {
-		return this.getIntegerSetting(KEY_DEFAULT_SEND_TRANSITION_DURATION);
-	}
-	
-	/**
-	 * Sets the default send transition duration.
-	 * @param duration the duration in milliseconds
-	 * @throws SettingsException if an exception occurs while assigning the setting
-	 */
-	public void setDefaultSendTransitionDuration(int duration) throws SettingsException {
-		this.setSetting(KEY_DEFAULT_SEND_TRANSITION_DURATION, duration);
-	}
-
-	/**
-	 * Returns the default clear transition duration.
-	 * @return int
-	 */
-	public int getDefaultClearTransitionDuration() {
-		return this.getIntegerSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION);
-	}
-	
-	/**
-	 * Sets the default clear transition duration.
-	 * @param duration the duration in milliseconds
-	 * @throws SettingsException if an exception occurs while assigning the setting
-	 */
-	public void setDefaultClearTransitionDuration(int duration) throws SettingsException {
-		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION, duration);
 	}
 }

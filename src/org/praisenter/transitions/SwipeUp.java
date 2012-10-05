@@ -13,6 +13,9 @@ import org.praisenter.resources.Messages;
  * @since 1.0.0
  */
 public class SwipeUp extends Transition {
+	/** The {@link SwipeUp} transition id */
+	public static final int ID = 32;
+	
 	/**
 	 * Full constructor.
 	 * @param type the transition type
@@ -26,7 +29,7 @@ public class SwipeUp extends Transition {
 	 */
 	@Override
 	public int getTransitionId() {
-		return 32;
+		return ID;
 	}
 	
 	/* (non-Javadoc)

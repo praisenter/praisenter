@@ -13,6 +13,9 @@ import org.praisenter.resources.Messages;
  * @since 1.0.0
  */
 public class SwipeRight extends Transition {
+	/** The {@link SwipeRight} transition id */
+	public static final int ID = 30;
+	
 	/**
 	 * Full constructor.
 	 * @param type the transition type
@@ -26,7 +29,7 @@ public class SwipeRight extends Transition {
 	 */
 	@Override
 	public int getTransitionId() {
-		return 30;
+		return ID;
 	}
 	
 	/* (non-Javadoc)

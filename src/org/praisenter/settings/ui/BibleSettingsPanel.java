@@ -1,12 +1,15 @@
 package org.praisenter.settings.ui;
 
 import java.awt.Dimension;
+import java.awt.GraphicsDevice.WindowTranslucency;
 import java.beans.PropertyChangeEvent;
+import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -18,7 +21,12 @@ import org.praisenter.data.bible.ui.BibleListCellRenderer;
 import org.praisenter.display.BibleDisplay;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.BibleSettings;
+import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.SettingsException;
+import org.praisenter.transitions.Transition;
+import org.praisenter.transitions.Transitions;
+import org.praisenter.transitions.ui.TransitionListCellRenderer;
+import org.praisenter.ui.SelectTextFocusListener;
 
 /**
  * Panel used to set the {@link BibleSettings}.
@@ -50,6 +58,20 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 	
 	/** The panel used to setup the {@link BibleDisplay} */
 	protected BibleDisplaySettingsPanel pnlDisplay;
+
+	// transitions
+	
+	/** The combo box of send transitions */
+	private JComboBox<Transition> cmbSendTransitions;
+	
+	/** The text box for the send transition duration */
+	private JFormattedTextField txtSendTransitions;
+	
+	/** The combo box of clear transitions */
+	private JComboBox<Transition> cmbClearTransitions;
+	
+	/** The text box for the clear transition duration */
+	private JFormattedTextField txtClearTransitions;
 	
 	/**
 	 * Minimal constructor.
@@ -115,6 +137,63 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 		this.chkUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.setup.useSecondaryBible.tooltip"));
 		this.chkUseSecondaryBible.setSelected(settings.isSecondaryBibleInUse());
 		
+		// transitions
+		boolean transitionsSupported = GeneralSettings.getInstance().getPrimaryOrDefaultDisplay().isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT);
+		
+		JLabel lblSendTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultSend"));
+		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
+		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(settings.getDefaultSendTransition(), Transition.Type.IN));
+		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
+		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
+		this.txtSendTransitions.setValue(settings.getDefaultSendTransitionDuration());
+		this.txtSendTransitions.setColumns(3);
+		
+		JLabel lblClearTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultClear"));
+		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
+		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(settings.getDefaultClearTransition(), Transition.Type.OUT));
+		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
+		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
+		this.txtClearTransitions.setValue(settings.getDefaultClearTransitionDuration());
+		this.txtClearTransitions.setColumns(3);
+		
+		if (!transitionsSupported) {
+			this.cmbSendTransitions.setEnabled(false);
+			this.txtSendTransitions.setEnabled(false);
+			this.cmbClearTransitions.setEnabled(false);
+			this.txtClearTransitions.setEnabled(false);
+		}
+		
+		JPanel pnlTransitions = new JPanel();
+		pnlTransitions.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.general.setup.transition.title")));
+		GroupLayout layout = new GroupLayout(pnlTransitions);
+		pnlTransitions.setLayout(layout);
+		
+		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup()
+						.addComponent(lblSendTransition)
+						.addComponent(lblClearTransition))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(this.cmbSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblSendTransition)
+						.addComponent(this.cmbSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblClearTransition)
+						.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+
 		// create the bible display panel
 		this.pnlDisplay = new BibleDisplaySettingsPanel(settings, displaySize);
 		
@@ -122,7 +201,7 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 		JPanel pnlGeneral = new JPanel();
 		pnlGeneral.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.bible.setup.general")));
 		
-		GroupLayout layout = new GroupLayout(pnlGeneral);
+		layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
@@ -154,9 +233,11 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addComponent(pnlGeneral, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(pnlTransitions, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(this.pnlDisplay, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(pnlGeneral)
+				.addComponent(pnlGeneral, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(pnlTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.pnlDisplay));
 	}
 
@@ -179,6 +260,11 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 		if (secondary != null) this.settings.setDefaultSecondaryBibleId(secondary.getId());
 		this.settings.setSecondaryBibleInUse(this.chkUseSecondaryBible.isSelected());
 		this.settings.setApocryphaIncluded(this.chkIncludeApocrypha.isSelected());
+		// transitions
+		this.settings.setDefaultSendTransition(((Transition)this.cmbSendTransitions.getSelectedItem()).getTransitionId());
+		this.settings.setDefaultSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());
+		this.settings.setDefaultClearTransition(((Transition)this.cmbClearTransitions.getSelectedItem()).getTransitionId());
+		this.settings.setDefaultClearTransitionDuration(((Number)this.txtClearTransitions.getValue()).intValue());
 		// save the display panel's settings
 		this.pnlDisplay.saveSettings();
 		// save the settings to persistent store

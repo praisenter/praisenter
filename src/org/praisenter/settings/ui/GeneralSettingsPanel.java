@@ -15,7 +15,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
-import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -23,7 +22,6 @@ import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -35,10 +33,6 @@ import org.praisenter.resources.Messages;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.SettingsException;
 import org.praisenter.tasks.DelayCloseWindowTask;
-import org.praisenter.transitions.Transition;
-import org.praisenter.transitions.Transitions;
-import org.praisenter.transitions.ui.TransitionListCellRenderer;
-import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -76,20 +70,6 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 	
 	/** The render qualities */
 	private JComboBox<RenderQuality> cmbRenderQualities;
-	
-	// transitions
-	
-	/** The combo box of send transitions */
-	private JComboBox<Transition> cmbSendTransitions;
-	
-	/** The text box for the send transition duration */
-	private JFormattedTextField txtSendTransitions;
-	
-	/** The combo box of clear transitions */
-	private JComboBox<Transition> cmbClearTransitions;
-	
-	/** The text box for the clear transition duration */
-	private JFormattedTextField txtClearTransitions;
 	
 	/**
 	 * Minimal constructor.
@@ -176,63 +156,6 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 						.addComponent(lblRenderQuality)
 						.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		
-		boolean transitionsSupported = settings.getPrimaryOrDefaultDisplay().isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT);
-		
-		JLabel lblSendTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultSend"));
-		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
-		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(settings.getDefaultSendTransition(), Transition.Type.IN));
-		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
-		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
-		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtSendTransitions.setValue(settings.getDefaultSendTransitionDuration());
-		this.txtSendTransitions.setColumns(3);
-		
-		JLabel lblClearTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultClear"));
-		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
-		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(settings.getDefaultClearTransition(), Transition.Type.OUT));
-		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
-		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
-		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtClearTransitions.setValue(settings.getDefaultClearTransitionDuration());
-		this.txtClearTransitions.setColumns(3);
-		
-		if (!transitionsSupported) {
-			this.cmbSendTransitions.setEnabled(false);
-			this.txtSendTransitions.setEnabled(false);
-			this.cmbClearTransitions.setEnabled(false);
-			this.txtClearTransitions.setEnabled(false);
-		}
-		
-		// create the transitions layout
-		JPanel pnlTransitions = new JPanel();
-		pnlTransitions.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.general.setup.transition.title")));
-		layout = new GroupLayout(pnlTransitions);
-		pnlTransitions.setLayout(layout);
-		
-		layout.setAutoCreateGaps(true);
-		layout.setAutoCreateContainerGaps(true);
-		layout.setHorizontalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup()
-						.addComponent(lblSendTransition)
-						.addComponent(lblClearTransition))
-				.addGroup(layout.createParallelGroup()
-						.addComponent(this.cmbSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGroup(layout.createParallelGroup()
-						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblSendTransition)
-						.addComponent(this.cmbSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblClearTransition)
-						.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
-		
 		// create the main layout
 		layout = new GroupLayout(this);
 		this.setLayout(layout);
@@ -241,11 +164,9 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 		layout.setAutoCreateContainerGaps(true);
 		
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(pnlDisplays, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(pnlTransitions, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+				.addComponent(pnlDisplays, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(pnlDisplays)
-				.addComponent(pnlTransitions));
+				.addComponent(pnlDisplays));
 	}
 	
 	/* (non-Javadoc)
@@ -324,10 +245,6 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 	public void saveSettings() throws SettingsException {
 		// set the settings
 		this.settings.setPrimaryDisplay((GraphicsDevice)this.cmbDevices.getSelectedItem());
-		this.settings.setDefaultSendTransition(((Transition)this.cmbSendTransitions.getSelectedItem()).getTransitionId());
-		this.settings.setDefaultSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());
-		this.settings.setDefaultClearTransition(((Transition)this.cmbClearTransitions.getSelectedItem()).getTransitionId());
-		this.settings.setDefaultClearTransitionDuration(((Number)this.txtClearTransitions.getValue()).intValue());
 		this.settings.setRenderQuality((RenderQuality)this.cmbRenderQualities.getSelectedItem());
 		// save the settings to the persistent store
 		this.settings.save();

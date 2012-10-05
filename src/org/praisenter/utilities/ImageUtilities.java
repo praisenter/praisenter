@@ -6,7 +6,6 @@ import java.awt.GraphicsConfiguration;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
@@ -100,7 +99,7 @@ public class ImageUtilities {
 	 */
 	public static final BufferedImage getTiledImage(BufferedImage image, GraphicsConfiguration gc, int w, int h) {
 		// create a new image of the right size
-		BufferedImage tiled = gc.createCompatibleImage(w, h, Transparency.OPAQUE);
+		BufferedImage tiled = gc.createCompatibleImage(w, h, Transparency.BITMASK);
 		
 		int tw = image.getWidth();
 		int th = image.getHeight();
@@ -183,9 +182,9 @@ public class ImageUtilities {
 	 * @param sw the 
 	 * @return BufferedImage
 	 */
-	public static final BufferedImage getDropShadowImage(GraphicsConfiguration gc, double w, double h, int sw) {
+	public static final BufferedImage getDropShadowImage(GraphicsConfiguration gc, int w, int h, int sw) {
 		// create a new image of the right size
-		BufferedImage image = gc.createCompatibleImage((int)Math.ceil(w + 2.0 * sw), (int)Math.ceil(h + 2.0 * sw), Transparency.TRANSLUCENT);
+		BufferedImage image = gc.createCompatibleImage(w + 2 * sw, h + 2 * sw, Transparency.TRANSLUCENT);
 					
 		Graphics2D ig2d = image.createGraphics();
 		ig2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -193,7 +192,7 @@ public class ImageUtilities {
 		
 		// render the shadow rectangle
 		ig2d.setColor(Color.BLACK);
-		ig2d.fill(new Rectangle2D.Double(sw, sw, w, h));
+		ig2d.fillRect(sw, sw, w, h);
 		ig2d.dispose();
 		
 		// perform the linear blur

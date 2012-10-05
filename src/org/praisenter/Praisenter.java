@@ -12,7 +12,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.MessageFormat;
 
-import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -87,7 +86,6 @@ public class Praisenter extends JFrame implements ActionListener {
 		
 		// create the bible panel
 		this.pnlBible = new BiblePanel();
-		this.pnlBible.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		
 		JTabbedPane tabs = new JTabbedPane();
 		tabs.addTab(Messages.getString("bible"), this.pnlBible);

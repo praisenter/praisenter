@@ -97,20 +97,20 @@ public class NotificationPanel extends JPanel implements ActionListener {
 		
 		this.cmbInTransition = new JComboBox<Transition>(Transitions.IN);
 		this.cmbInTransition.setRenderer(new TransitionListCellRenderer());
-		this.cmbInTransition.setSelectedItem(Transitions.getTransitionForId(gSettings.getDefaultSendTransition(), Transition.Type.IN));
+		this.cmbInTransition.setSelectedItem(Transitions.getTransitionForId(nSettings.getDefaultSendTransition(), Transition.Type.IN));
 		this.txtInTransition = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtInTransition.addFocusListener(new SelectTextFocusListener(this.txtInTransition));
 		this.txtInTransition.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtInTransition.setValue(gSettings.getDefaultSendTransitionDuration());
+		this.txtInTransition.setValue(nSettings.getDefaultSendTransitionDuration());
 		this.txtInTransition.setColumns(3);
 		
 		this.cmbOutTransition = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbOutTransition.setRenderer(new TransitionListCellRenderer());
-		this.cmbOutTransition.setSelectedItem(Transitions.getTransitionForId(gSettings.getDefaultClearTransition(), Transition.Type.OUT));
+		this.cmbOutTransition.setSelectedItem(Transitions.getTransitionForId(nSettings.getDefaultClearTransition(), Transition.Type.OUT));
 		this.txtOutTransition = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtOutTransition.addFocusListener(new SelectTextFocusListener(this.txtOutTransition));
 		this.txtOutTransition.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtOutTransition.setValue(gSettings.getDefaultClearTransitionDuration());
+		this.txtOutTransition.setValue(nSettings.getDefaultClearTransitionDuration());
 		this.txtOutTransition.setColumns(3);
 		
 		if (!transitionsSupported) {
