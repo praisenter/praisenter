@@ -9,6 +9,8 @@ import org.praisenter.display.FontScaleType;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
 import org.praisenter.display.TextAlignment;
+import org.praisenter.transitions.SwipeLeft;
+import org.praisenter.transitions.SwipeRight;
 import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.FontManager;
 
@@ -29,6 +31,18 @@ public final class NotificationSettings extends RootSettings<NotificationSetting
 	
 	/** Property key for the default wait period */
 	private static final String KEY_DEFAULT_WAIT_PERIOD = "Notification.WaitPeriod";
+	
+	/** Property key for the default send transition */
+	private static final String KEY_DEFAULT_SEND_TRANSITION = "Notification.Send.Transition.Default";
+	
+	/** Property key for the default send transition duration */
+	private static final String KEY_DEFAULT_SEND_TRANSITION_DURATION = "Notification.Send.Transition.Duration.Default";
+	
+	/** Property key for the default clear transition */
+	private static final String KEY_DEFAULT_CLEAR_TRANSITION = "Notification.Clear.Transition.Default";
+	
+	/** Property key for the default clear transition duration */
+	private static final String KEY_DEFAULT_CLEAR_TRANSITION_DURATION = "Notification.Clear.Transition.Duration.Default";
 	
 	/**
 	 * Returns the instance of the {@link NotificationSettings}.
@@ -76,6 +90,13 @@ public final class NotificationSettings extends RootSettings<NotificationSetting
 	 */
 	@Override
 	public void setDefaultSettings() throws SettingsException {
+		this.setDefaultWaitPeriod(2000);
+		
+		this.setDefaultSendTransition(SwipeLeft.ID);
+		this.setDefaultSendTransitionDuration(400);
+		this.setDefaultClearTransition(SwipeRight.ID);
+		this.setDefaultClearTransitionDuration(300);
+		
 		// general
 		this.textSettings.setBounds(null);
 		this.textSettings.setVisible(true);
@@ -152,5 +173,73 @@ public final class NotificationSettings extends RootSettings<NotificationSetting
 	 */
 	public void setDefaultWaitPeriod(int millis) throws SettingsException {
 		this.setSetting(KEY_DEFAULT_WAIT_PERIOD, millis);
+	}
+
+	/**
+	 * Returns the default send transition id.
+	 * @return int
+	 */
+	public int getDefaultSendTransition() {
+		return this.getIntegerSetting(KEY_DEFAULT_SEND_TRANSITION);
+	}
+	
+	/**
+	 * Sets the default send transition.
+	 * @param id the transition id
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setDefaultSendTransition(int id) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_SEND_TRANSITION, id);
+	}
+	
+	/**
+	 * Returns the default clear transition.
+	 * @return int
+	 */
+	public int getDefaultClearTransition() {
+		return this.getIntegerSetting(KEY_DEFAULT_CLEAR_TRANSITION);
+	}
+	
+	/**
+	 * Sets the default clear transition.
+	 * @param id the transition id
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setDefaultClearTransition(int id) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION, id);
+	}
+	
+	/**
+	 * Returns the default send transition duration.
+	 * @return int
+	 */
+	public int getDefaultSendTransitionDuration() {
+		return this.getIntegerSetting(KEY_DEFAULT_SEND_TRANSITION_DURATION);
+	}
+	
+	/**
+	 * Sets the default send transition duration.
+	 * @param duration the duration in milliseconds
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setDefaultSendTransitionDuration(int duration) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_SEND_TRANSITION_DURATION, duration);
+	}
+
+	/**
+	 * Returns the default clear transition duration.
+	 * @return int
+	 */
+	public int getDefaultClearTransitionDuration() {
+		return this.getIntegerSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION);
+	}
+	
+	/**
+	 * Sets the default clear transition duration.
+	 * @param duration the duration in milliseconds
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setDefaultClearTransitionDuration(int duration) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION, duration);
 	}
 }

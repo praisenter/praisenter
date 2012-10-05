@@ -14,6 +14,9 @@ import org.praisenter.resources.Messages;
  * @since 1.0.0
  */
 public class Fade extends Transition {
+	/** The {@link Fade} transition id */
+	public static final int ID = 20;
+	
 	/**
 	 * Full constructor.
 	 * @param type the transition type
@@ -27,7 +30,7 @@ public class Fade extends Transition {
 	 */
 	@Override
 	public int getTransitionId() {
-		return 20;
+		return ID;
 	}
 	
 	/* (non-Javadoc)

@@ -10,6 +10,7 @@ import org.praisenter.display.GraphicsComponent;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
 import org.praisenter.display.TextAlignment;
+import org.praisenter.transitions.Fade;
 import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.FontManager;
 
@@ -39,6 +40,18 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 
 	/** Property key to include/exclude the apocrypha books */
 	private static final String KEY_INCLUDE_APOCRYPHA = "Bible.IncludeApocrypha";
+	
+	/** Property key for the default send transition */
+	private static final String KEY_DEFAULT_SEND_TRANSITION = "Bible.Send.Transition.Default";
+	
+	/** Property key for the default send transition duration */
+	private static final String KEY_DEFAULT_SEND_TRANSITION_DURATION = "Bible.Send.Transition.Duration.Default";
+	
+	/** Property key for the default clear transition */
+	private static final String KEY_DEFAULT_CLEAR_TRANSITION = "Bible.Clear.Transition.Default";
+	
+	/** Property key for the default clear transition duration */
+	private static final String KEY_DEFAULT_CLEAR_TRANSITION_DURATION = "Bible.Clear.Transition.Duration.Default";
 	
 	/**
 	 * Returns the instance of the {@link BibleSettings}.
@@ -99,6 +112,11 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 		this.setDefaultPrimaryBibleId(0);
 		this.setDefaultSecondaryBibleId(0);
 		this.setSecondaryBibleInUse(false);
+		
+		this.setDefaultSendTransition(Fade.ID);
+		this.setDefaultSendTransitionDuration(400);
+		this.setDefaultClearTransition(Fade.ID);
+		this.setDefaultClearTransitionDuration(300);
 		
 		// background
 		{
@@ -291,5 +309,73 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	 */
 	public TextComponentSettings getScriptureTextSettings() {
 		return this.scriptureTextSettings;
+	}
+	
+	/**
+	 * Returns the default send transition id.
+	 * @return int
+	 */
+	public int getDefaultSendTransition() {
+		return this.getIntegerSetting(KEY_DEFAULT_SEND_TRANSITION);
+	}
+	
+	/**
+	 * Sets the default send transition.
+	 * @param id the transition id
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setDefaultSendTransition(int id) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_SEND_TRANSITION, id);
+	}
+	
+	/**
+	 * Returns the default clear transition.
+	 * @return int
+	 */
+	public int getDefaultClearTransition() {
+		return this.getIntegerSetting(KEY_DEFAULT_CLEAR_TRANSITION);
+	}
+	
+	/**
+	 * Sets the default clear transition.
+	 * @param id the transition id
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setDefaultClearTransition(int id) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION, id);
+	}
+	
+	/**
+	 * Returns the default send transition duration.
+	 * @return int
+	 */
+	public int getDefaultSendTransitionDuration() {
+		return this.getIntegerSetting(KEY_DEFAULT_SEND_TRANSITION_DURATION);
+	}
+	
+	/**
+	 * Sets the default send transition duration.
+	 * @param duration the duration in milliseconds
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setDefaultSendTransitionDuration(int duration) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_SEND_TRANSITION_DURATION, duration);
+	}
+
+	/**
+	 * Returns the default clear transition duration.
+	 * @return int
+	 */
+	public int getDefaultClearTransitionDuration() {
+		return this.getIntegerSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION);
+	}
+	
+	/**
+	 * Sets the default clear transition duration.
+	 * @param duration the duration in milliseconds
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setDefaultClearTransitionDuration(int duration) throws SettingsException {
+		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION, duration);
 	}
 }

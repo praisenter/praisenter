@@ -30,9 +30,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.LayoutStyle;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.table.TableModel;
@@ -49,6 +49,7 @@ import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.display.BibleDisplay;
 import org.praisenter.display.DisplayFactory;
 import org.praisenter.display.TextComponent;
+import org.praisenter.display.ui.InlineDisplayPreviewPanel;
 import org.praisenter.display.ui.DisplayWindows;
 import org.praisenter.display.ui.StandardDisplayWindow;
 import org.praisenter.icons.Icons;
@@ -144,7 +145,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	// preview
 	
 	/** The preview panel */
-	private BibleDisplayPreviewPanel pnlPreview;
+	private InlineDisplayPreviewPanel pnlPreview;
 	
 	// state
 	
@@ -166,12 +167,13 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		Dimension displaySize = gSettings.getPrimaryDisplaySize();
 		
 		// create the preview panel
-		this.pnlPreview = new BibleDisplayPreviewPanel();
+		this.pnlPreview = new InlineDisplayPreviewPanel();
+		this.pnlPreview.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder("")));
 		this.pnlPreview.setPreviousVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
 		this.pnlPreview.setCurrentVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
 		this.pnlPreview.setNextVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
 		
-		this.pnlPreview.setMinimumSize(300);
+		this.pnlPreview.setMinimumSize(250);
 		
 		// normal bible lookup
 		
@@ -378,20 +380,20 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(gSettings.getDefaultSendTransition(), Transition.Type.IN));
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(bSettings.getDefaultSendTransition(), Transition.Type.IN));
 		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtSendTransitions.setValue(gSettings.getDefaultSendTransitionDuration());
+		this.txtSendTransitions.setValue(bSettings.getDefaultSendTransitionDuration());
 		this.txtSendTransitions.setColumns(3);
 		
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(gSettings.getDefaultClearTransition(), Transition.Type.OUT));
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(bSettings.getDefaultClearTransition(), Transition.Type.OUT));
 		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtClearTransitions.setValue(gSettings.getDefaultClearTransitionDuration());
+		this.txtClearTransitions.setValue(bSettings.getDefaultClearTransitionDuration());
 		this.txtClearTransitions.setColumns(3);
 		
 		if (!transitionsSupported) {
@@ -472,6 +474,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		// create a panel and layout for all the lookup controls
 		JPanel pnlLookupPanel = new JPanel();
+		pnlLookupPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		subLayout = new GroupLayout(pnlLookupPanel);
 		pnlLookupPanel.setLayout(subLayout);
 		
@@ -521,7 +524,6 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 						.addComponent(pnlSendClearButtons)));
 		
 		// create the queue table
-		JLabel lblSavedVerses = new JLabel(Messages.getString("panel.bible.savedVerses"));
 		this.tblSavedVerses = new JTable(new MutableBibleTableModel()) {
 			@Override
 			public String getToolTipText(MouseEvent event) {
@@ -578,8 +580,6 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		// wrap the saved verses table in a scroll pane
 		JScrollPane scrSavedVerses = new JScrollPane(this.tblSavedVerses);
-		scrSavedVerses.setMinimumSize(new Dimension(400, 100));
-		scrSavedVerses.setMaximumSize(new Dimension(Short.MAX_VALUE, 250));
 		
 		// need two buttons for the saved verses
 		JButton btnRemoveSelected = new JButton(Messages.getString("panel.bible.removeSelected"));
@@ -624,7 +624,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		// create the search results label
 		this.lblBibleSearchResults = new JLabel();
 		this.lblBibleSearchResults.setHorizontalAlignment(SwingConstants.RIGHT);
-		this.lblBibleSearchResults.setMinimumSize(new Dimension(120, 0));
+		this.lblBibleSearchResults.setMinimumSize(new Dimension(200, 0));
 		this.lblBibleSearchResults.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 5));
 		
 		// create the search results table
@@ -684,8 +684,48 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		// wrap the search table in a scroll pane
 		JScrollPane scrBibleSearchResults = new JScrollPane(this.tblBibleSearchResults);
-		scrBibleSearchResults.setMinimumSize(new Dimension(400, 100));
-		scrBibleSearchResults.setMaximumSize(new Dimension(Short.MAX_VALUE, 250));
+		
+		// create the saved verses/bible search panels
+		JPanel pnlSavedVerses = new JPanel();
+		GroupLayout svLayout = new GroupLayout(pnlSavedVerses);
+		pnlSavedVerses.setLayout(svLayout);
+		svLayout.setAutoCreateContainerGaps(true);
+		svLayout.setAutoCreateGaps(true);
+		svLayout.setHorizontalGroup(svLayout.createParallelGroup()
+				.addGroup(svLayout.createSequentialGroup()
+						.addComponent(btnRemoveSelected)
+						.addComponent(btnRemoveAll))
+				.addComponent(scrSavedVerses, 400, 400, Short.MAX_VALUE));
+		svLayout.setVerticalGroup(svLayout.createSequentialGroup()
+				.addGroup(svLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(btnRemoveSelected, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnRemoveAll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addComponent(scrSavedVerses, 150, 200, 400));
+		
+		JPanel pnlBibleSearch = new JPanel();
+		GroupLayout bsLayout = new GroupLayout(pnlBibleSearch);
+		pnlBibleSearch.setLayout(bsLayout);
+		bsLayout.setAutoCreateContainerGaps(true);
+		bsLayout.setAutoCreateGaps(true);
+		bsLayout.setHorizontalGroup(bsLayout.createParallelGroup()
+				.addGroup(bsLayout.createSequentialGroup()
+						.addComponent(this.txtBibleSearch)
+						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.lblBibleSearchResults))
+				.addGroup(bsLayout.createSequentialGroup()
+						.addComponent(scrBibleSearchResults, 400, 400, Short.MAX_VALUE)));
+		bsLayout.setVerticalGroup(bsLayout.createSequentialGroup()
+				.addGroup(bsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.txtBibleSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addComponent(scrBibleSearchResults, 150, 200, 400));
+		
+		JTabbedPane tableTabs = new JTabbedPane();
+		tableTabs.addTab(Messages.getString("panel.bible.savedVerses"), pnlSavedVerses);
+		tableTabs.addTab(Messages.getString("panel.bible.bibleSearch"), pnlBibleSearch);
 		
 		// default any fields
 		if (bible != null) {
@@ -713,7 +753,6 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		// create the layout
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
-		layout.setAutoCreateContainerGaps(false);
 		layout.setAutoCreateGaps(true);
 		
 		// setup the horizontal layout
@@ -721,42 +760,14 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				.addComponent(this.pnlPreview)
 				.addComponent(pnlLookupPanel)
 				.addComponent(sepTables)
-				.addGroup(layout.createSequentialGroup()
-						.addGroup(layout.createParallelGroup()
-								.addGroup(layout.createSequentialGroup()
-										.addComponent(lblSavedVerses)
-										.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-										.addComponent(btnRemoveSelected)
-										.addComponent(btnRemoveAll))
-								.addComponent(scrSavedVerses, 400, 400, Short.MAX_VALUE))
-						.addGroup(layout.createParallelGroup()
-								.addGroup(layout.createSequentialGroup()
-										.addComponent(this.txtBibleSearch)
-										.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(this.lblBibleSearchResults))
-								.addGroup(layout.createSequentialGroup()
-										.addComponent(scrBibleSearchResults, 400, 400, Short.MAX_VALUE)))));
+				.addComponent(tableTabs));
 		
 		// setup the vertical layout
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(this.pnlPreview)
 				.addComponent(pnlLookupPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(sepTables, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addGroup(layout.createParallelGroup()
-						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-										.addComponent(lblSavedVerses)
-										.addComponent(btnRemoveSelected, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(btnRemoveAll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-								.addComponent(scrSavedVerses, 250, 250, 400))
-						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-										.addComponent(this.txtBibleSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-								.addComponent(scrBibleSearchResults, 250, 250, 400))));
+				.addComponent(tableTabs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 	}
 	
 	/* (non-Javadoc)

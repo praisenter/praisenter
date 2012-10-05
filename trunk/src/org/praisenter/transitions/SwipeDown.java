@@ -13,6 +13,9 @@ import org.praisenter.resources.Messages;
  * @since 1.0.0
  */
 public class SwipeDown extends Transition {
+	/** The {@link SwipeDown} transition id */
+	public static final int ID = 33;
+	
 	/**
 	 * Full constructor.
 	 * @param type the transition type
@@ -26,7 +29,7 @@ public class SwipeDown extends Transition {
 	 */
 	@Override
 	public int getTransitionId() {
-		return 33;
+		return ID;
 	}
 	
 	/* (non-Javadoc)

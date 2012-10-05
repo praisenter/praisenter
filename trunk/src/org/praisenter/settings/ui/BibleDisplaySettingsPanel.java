@@ -69,10 +69,11 @@ public class BibleDisplaySettingsPanel extends FullScreenDisplaySettingsPanel<Bi
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup()
-						.addComponent(this.pnlBackground, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(pnlTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(pnlText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				// don't allow the group to resize
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+						.addComponent(this.pnlBackground)
+						.addComponent(pnlTitle)
+						.addComponent(pnlText))
 						// only resize the preview
 				.addComponent(pnlPreview, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		
