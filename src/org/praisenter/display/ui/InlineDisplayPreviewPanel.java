@@ -150,7 +150,7 @@ public class InlineDisplayPreviewPanel<E extends Display> extends MultipleDispla
 		AffineTransform oldTransform = g2d.getTransform();
 		
 		// apply the y translation
-		g2d.translate(bounds.x + (bounds.width - tw) * 0.5, bounds.y);
+		g2d.translate(bounds.x + (bounds.width - tw) / 2, bounds.y);
 		
 		// preferably the displays are all the same aspect ratio
 		// but we can't guarantee it

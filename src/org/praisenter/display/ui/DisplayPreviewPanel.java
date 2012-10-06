@@ -309,14 +309,9 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 		// see if we need to re-render the image
 		if (image == null || image.getWidth() != iw || image.getHeight() != ih) {
 			// create a new image of the right size
-			image = g2d.getDeviceConfiguration().createCompatibleImage(iw, ih, Transparency.TRANSLUCENT);
+			image = g2d.getDeviceConfiguration().createCompatibleImage(iw, ih, Transparency.BITMASK);
 			
 			Graphics2D ig2d = image.createGraphics();
-			
-			ig2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-			ig2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			ig2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-			ig2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			
 			ig2d.setFont(FontManager.getDefaultFont());
 			ig2d.setColor(Color.BLACK);

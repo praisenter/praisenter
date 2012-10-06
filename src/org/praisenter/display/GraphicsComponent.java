@@ -144,7 +144,7 @@ public class GraphicsComponent extends DisplayComponent {
 		this.boundsChangeType = null;
 		
 		// make sure the cached image is created
-		if (this.isDirty() || this.cachedCompositeImage == null) {
+		if (this.isDirty()) {
 			// render to the cached image
 			Graphics2D ig = this.cachedCompositeImage.createGraphics();
 			
