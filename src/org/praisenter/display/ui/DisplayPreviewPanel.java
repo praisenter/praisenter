@@ -68,6 +68,9 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	protected boolean includeDisplayName;
 	
 	// caching
+
+	/** The map of cached shadow images */
+	protected Map<String, BufferedImage> shadowImageCache;
 	
 	/** The map of cached images */
 	protected Map<String, BufferedImage> imageCache;
@@ -79,6 +82,7 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	 */
 	public DisplayPreviewPanel(int nameSpacing, boolean includeDisplayName) {
 		// create the image cache
+		this.shadowImageCache = new HashMap<String, BufferedImage>();
 		this.imageCache = new HashMap<String, BufferedImage>();
 		
 		this.nameSpacing = nameSpacing;
@@ -105,8 +109,8 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	 */
 	@Override
 	public void componentResized(ComponentEvent event) {
-		// when the panel is resized we need to clear the image caches
-		this.imageCache.clear();
+		// when the panel is resized we need to clear the shadow image cache
+		this.shadowImageCache.clear();
 	}
 	
 	/* (non-Javadoc)
@@ -261,13 +265,13 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	 */
 	private void renderShadow(Graphics2D g2d, int w, int h, int sw) {
 		String key = SHADOW_CACHE_PREFIX + "_" + w + "_" + h;
-		BufferedImage image = this.imageCache.get(key);
+		BufferedImage image = this.shadowImageCache.get(key);
 		
 		// see if we need to re-render the image
 		if (image == null || image.getWidth() < w || image.getHeight() < h) {
 			// create a new image of the right size
 			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), w, h, sw);
-			this.imageCache.put(key, image);
+			this.shadowImageCache.put(key, image);
 		}
 		
 		// render the image
@@ -281,7 +285,7 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	 * @param h the height of the display
 	 */
 	private void renderTransparentBackground(Graphics2D g2d, int w, int h) {
-		String key = BACKGROUND_CACHE_PREFIX + "_" + w + "_" + h;
+		String key = BACKGROUND_CACHE_PREFIX;
 		BufferedImage image = this.imageCache.get(key);
 		
 		// see if we need to re-render the image
@@ -291,8 +295,11 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 			this.imageCache.put(key, image);
 		}
 		
+		Shape oClip = g2d.getClip();
+		g2d.setClip(0, 0, w, h);
 		// render the image
 		g2d.drawImage(image, 0, 0, null);
+		g2d.setClip(oClip);
 	}
 	
 	/**

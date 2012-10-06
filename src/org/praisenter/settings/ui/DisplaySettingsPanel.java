@@ -32,7 +32,7 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 	private static final long serialVersionUID = -3587523680958177637L;
 	
 	/** The resize gap (the additional gap area to allow resizing) */
-	private static final int RESIZE_GAP = 30;
+	private static final int RESIZE_GAP = 50;
 	
 	/** Property used to notify of a display component change */
 	protected static final String DISPLAY_COMPONENT_PROPERTY = "DisplayComponent";

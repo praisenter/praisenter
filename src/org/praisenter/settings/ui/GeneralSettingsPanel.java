@@ -161,8 +161,6 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 		tabs.addTab(Messages.getString("panel.bible.setup.general"), pnlDisplays);
 		
 		JLabel lblMessage = new JLabel(Messages.getString("panel.general.setup.message"));
-		Font font = lblMessage.getFont();
-		lblMessage.setFont(font.deriveFont(font.getSize2D() * 1.5f));
 		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 		
 		// create the main layout

@@ -1,7 +1,6 @@
 package org.praisenter.settings.ui;
 
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GraphicsDevice.WindowTranslucency;
 import java.beans.PropertyChangeEvent;
 import java.text.NumberFormat;
@@ -153,8 +152,6 @@ public class NotificationSettingsPanel extends JPanel implements SettingsPanel {
 		tabs.addTab(Messages.getString("panel.general.setup.transition.title"), pnlTransitions);
 		
 		JLabel lblMessage = new JLabel(Messages.getString("panel.notification.setup.message"));
-		Font font = lblMessage.getFont();
-		lblMessage.setFont(font.deriveFont(font.getSize2D() * 1.5f));
 		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 		
 		layout = new GroupLayout(this);

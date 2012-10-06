@@ -1,6 +1,5 @@
 package org.praisenter.settings.ui;
 
-import java.awt.Font;
 import java.awt.Graphics;
 import java.beans.PropertyChangeEvent;
 import java.text.NumberFormat;
@@ -27,7 +26,7 @@ import org.praisenter.ui.WaterMark;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class ErrorReportingSetupPanel extends JPanel implements SettingsPanel, ChangeListener {
+public class ErrorReportingSettingsPanel extends JPanel implements SettingsPanel, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -5002874015442951124L;
 	
@@ -62,7 +61,7 @@ public class ErrorReportingSetupPanel extends JPanel implements SettingsPanel, C
 	 * @param settings the settings to modify
 	 */
 	@SuppressWarnings("serial")
-	public ErrorReportingSetupPanel(ErrorReportingSettings settings) {
+	public ErrorReportingSettingsPanel(ErrorReportingSettings settings) {
 		this.settings = settings;
 		boolean enabled = settings.isErrorReportingEnabled();
 		
@@ -205,8 +204,6 @@ public class ErrorReportingSetupPanel extends JPanel implements SettingsPanel, C
 		tabs2.addTab(Messages.getString("panel.error.setup.smtp"), pnlSmtp);
 		
 		JLabel lblMessage = new JLabel(Messages.getString("panel.error.setup.message"));
-		Font font = lblMessage.getFont();
-		lblMessage.setFont(font.deriveFont(font.getSize2D() * 1.5f));
 		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 		
 		layout = new GroupLayout(this);
