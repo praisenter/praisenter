@@ -155,28 +155,33 @@ public class NotificationPanel extends JPanel implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		if ("send".equals(event.getActionCommand())) {
-			// set the text on the display
-			this.display.getTextComponent().setText(this.txtText.getText());
-			// create the transition animators
-			TransitionAnimator in = new TransitionAnimator(
-					(Transition)this.cmbInTransition.getSelectedItem(),
-					((Number)this.txtInTransition.getValue()).intValue());
-			TransitionAnimator out = new TransitionAnimator(
-					(Transition)this.cmbOutTransition.getSelectedItem(),
-					((Number)this.txtOutTransition.getValue()).intValue());
-			// get the wait duration
-			int wait = ((Number)this.txtWaitPeriod.getValue()).intValue();
-			// send the notification
-			NotificationDisplayWindow window = DisplayWindows.getPrimaryNotificationWindow();
-			if (window != null) {
-				window.send(this.display, in, out, wait);
-			} else {
-				// the device is no longer available
-				JOptionPane.showMessageDialog(
-						this, 
-						Messages.getString("dialog.device.primary.missing.text"), 
-						Messages.getString("dialog.device.primary.missing.title"), 
-						JOptionPane.WARNING_MESSAGE);
+			// get the text
+			String text = this.txtText.getText();
+			// check the text length
+			if (text != null && !text.trim().isEmpty()) {
+				// set the text on the display
+				this.display.getTextComponent().setText(text);
+				// create the transition animators
+				TransitionAnimator in = new TransitionAnimator(
+						(Transition)this.cmbInTransition.getSelectedItem(),
+						((Number)this.txtInTransition.getValue()).intValue());
+				TransitionAnimator out = new TransitionAnimator(
+						(Transition)this.cmbOutTransition.getSelectedItem(),
+						((Number)this.txtOutTransition.getValue()).intValue());
+				// get the wait duration
+				int wait = ((Number)this.txtWaitPeriod.getValue()).intValue();
+				// send the notification
+				NotificationDisplayWindow window = DisplayWindows.getPrimaryNotificationWindow();
+				if (window != null) {
+					window.send(this.display, in, out, wait);
+				} else {
+					// the device is no longer available
+					JOptionPane.showMessageDialog(
+							this, 
+							Messages.getString("dialog.device.primary.missing.text"), 
+							Messages.getString("dialog.device.primary.missing.title"), 
+							JOptionPane.WARNING_MESSAGE);
+				}
 			}
 		}
 	}

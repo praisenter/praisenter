@@ -7,6 +7,9 @@ package org.praisenter.transitions.easing;
  * @since 1.0.0
  */
 public class QuadraticEasing implements Easing {
+	/** The id for the easing */
+	public static final int ID = 20;
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.transitions.Easing#easeIn(long, long)
 	 */
@@ -39,5 +42,13 @@ public class QuadraticEasing implements Easing {
 		}
 		t -= 1.0;
 		return -(t * (t - 2.0) - 1.0) * 0.5;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.transitions.easing.Easing#getEasingId()
+	 */
+	@Override
+	public int getEasingId() {
+		return ID;
 	}
 }

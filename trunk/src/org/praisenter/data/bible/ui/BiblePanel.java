@@ -49,7 +49,6 @@ import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.display.BibleDisplay;
 import org.praisenter.display.DisplayFactory;
 import org.praisenter.display.TextComponent;
-import org.praisenter.display.ui.InlineDisplayPreviewPanel;
 import org.praisenter.display.ui.DisplayWindows;
 import org.praisenter.display.ui.StandardDisplayWindow;
 import org.praisenter.icons.Icons;
@@ -145,7 +144,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	// preview
 	
 	/** The preview panel */
-	private InlineDisplayPreviewPanel pnlPreview;
+	private BibleDisplayPreviewPanel pnlPreview;
 	
 	// state
 	
@@ -167,7 +166,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		Dimension displaySize = gSettings.getPrimaryDisplaySize();
 		
 		// create the preview panel
-		this.pnlPreview = new InlineDisplayPreviewPanel();
+		this.pnlPreview = new BibleDisplayPreviewPanel();
 		this.pnlPreview.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder("")));
 		this.pnlPreview.setPreviousVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
 		this.pnlPreview.setCurrentVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));

@@ -3,192 +3,153 @@ package org.praisenter.display.ui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Transparency;
-import java.awt.font.FontRenderContext;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.swing.JPanel;
 
-import org.praisenter.display.BibleDisplay;
 import org.praisenter.display.Display;
 import org.praisenter.images.Images;
 import org.praisenter.utilities.FontManager;
 import org.praisenter.utilities.ImageUtilities;
 
-public abstract class DisplayPreviewPanel extends JPanel {
+/**
+ * Generic display preview panel containing the methods required to display
+ * a preview of a display.
+ * @author William Bittle
+ * @version 1.0.0
+ * @since 1.0.0
+ */
+public abstract class DisplayPreviewPanel extends JPanel implements ComponentListener {
+	/** The version id */
+	private static final long serialVersionUID = -5823617514354905867L;
+
+	/** The outer border color */
 	protected static final Color OUTER_BORDER_COLOR = Color.GRAY.darker();
+	
+	/** The inner border color */
 	protected static final Color INNER_BORDER_COLOR = Color.WHITE;
+	
+	/** The outer border width */
 	protected static final int OUTER_BORDER_WIDTH = 1;
+	
+	/** The inner border width */
 	protected static final int INNER_BORDER_WIDTH = 1;
+	
+	/** The total border width */
 	protected static final int TOTAL_BORDER_WIDTH = OUTER_BORDER_WIDTH + INNER_BORDER_WIDTH;
-	protected static final int SHADOW_WIDTH = 6;
+	
+	/** The shadow width */
+	protected static final int SHADOW_WIDTH = 8;
+	
+	/** The shadow caching prefix */
 	protected static final String SHADOW_CACHE_PREFIX = "SHADOW";
+	
+	/** The transparent background caching prefix */
 	protected static final String BACKGROUND_CACHE_PREFIX = "BACKGROUND";
 	
-	/** The displays to render */
-	protected List<BibleDisplay> displays;
+	// fields
 	
-	/** The spacing between the displays */
-	protected int innerSpacing;
-	
+	/** The spacing between the display and the name */
 	protected int nameSpacing;
-	protected boolean includeDisplayNames;
+	
+	/** True if display names should be included */
+	protected boolean includeDisplayName;
 	
 	// caching
 	
 	/** The map of cached images */
-	protected Map<String, BufferedImage> cachedImages;
-	
-	public DisplayPreviewPanel() {
-		this.displays = new ArrayList<BibleDisplay>();
-		this.cachedImages = new HashMap<String, BufferedImage>();
-		this.innerSpacing = 20;
-		this.nameSpacing = 5;
-		this.includeDisplayNames = true;
-	}
-
-	/**
-	 * Sets the minimum size of this component to the computed
-	 * size using the given maximum display dimension.
-	 * @param maximum the maximum dimension of a display
-	 */
-	public void setMinimumSize(int maximum) {
-		Dimension size = this.getComputedSize(maximum);
-		if (size != null) {
-			this.setMinimumSize(size);
-		}
-	}
+	protected Map<String, BufferedImage> imageCache;
 	
 	/**
-	 * Returns a dimension that will fit the displays given the maximum
-	 * display dimension.
-	 * @param maximum the maximum display dimension
-	 * @return Dimension
+	 * Full constructor.
+	 * @param nameSpacing the spacing between the display and its name
+	 * @param includeDisplayName true if the display name should be rendered
 	 */
-	protected Dimension getComputedSize(int maximum) {
-		int n = this.displays.size();
-
-		// FIXME what should we return here?
-		// FIXME this is only for inline display
-		if (n == 0) return null;
+	public DisplayPreviewPanel(int nameSpacing, boolean includeDisplayName) {
+		// create the image cache
+		this.imageCache = new HashMap<String, BufferedImage>();
 		
-		Insets insets = this.getInsets();
+		this.nameSpacing = nameSpacing;
+		this.includeDisplayName = includeDisplayName;
 		
-		double m = maximum;
-		double w = insets.left + insets.right;
-		double h = 0;
-		
-		// loop over the displays
-		for (int i = 0; i < n; i++) {
-			// get the display size
-			Display display = this.displays.get(i);
-			Dimension size = display.getDisplaySize();
-			
-			// compute the width/height scales
-			double pw = m / size.getWidth();
-			double ph = m / size.getHeight();
-			
-			// use the scaling factor that will scale the most
-			double sc = pw < ph ? pw : ph;
-			
-			// compute the width of the display with all the features
-			double dw = sc * size.getWidth();
-			double dh = sc * size.getHeight();
-			// increment the width
-			w += dw;
-			// only choose the largest height
-			if (dh > h) {
-				h = dh;
-			}
-		}
-		
-		h += insets.top + insets.bottom;
-		if (this.includeDisplayNames) {
-			Rectangle2D bounds = FontManager.getDefaultFont().getMaxCharBounds(new FontRenderContext(new AffineTransform(), true, false));
-			h += bounds.getHeight() + this.nameSpacing;
-		}
-		
-		return new Dimension((int)Math.ceil(w), (int)Math.ceil(h));
+		// have this panel listen for itself resizing
+		this.addComponentListener(this);
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see java.awt.event.ComponentListener#componentHidden(java.awt.event.ComponentEvent)
+	 */
 	@Override
-	protected void paintComponent(Graphics graphics) {
-		super.paintComponent(graphics);
-		
-		Graphics2D g2d = (Graphics2D)graphics;
+	public void componentHidden(ComponentEvent event) {}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.ComponentListener#componentMoved(java.awt.event.ComponentEvent)
+	 */
+	@Override
+	public void componentMoved(ComponentEvent event) {}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.ComponentListener#componentResized(java.awt.event.ComponentEvent)
+	 */
+	@Override
+	public void componentResized(ComponentEvent event) {
+		// when the panel is resized we need to clear the image caches
+		this.imageCache.clear();
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.ComponentListener#componentShown(java.awt.event.ComponentEvent)
+	 */
+	@Override
+	public void componentShown(ComponentEvent event) {}
+
+	/**
+	 * Returns the total available bounds for rendering.
+	 * @return Rectangle
+	 */
+	protected Rectangle getTotalAvailableRenderingBounds() {
 		Dimension size = this.getSize();
 		Insets insets = this.getInsets();
-		
-		// determine the size of each display
-		final int n = this.displays.size();
-		
-		// the available rendering width/height
-		final int taw = size.width - insets.left - insets.right - this.innerSpacing * (n - 1);
-		final int tah = size.height - insets.top - insets.bottom;
-		int x = insets.left;
-		int y = insets.top;
-		
-		this.renderDisplays(g2d, x, y, taw, tah);
+		return new Rectangle(
+				insets.left,
+				insets.top,
+				size.width - insets.left - insets.right,
+				size.height - insets.top - insets.bottom);
 	}
-	
-	protected abstract void renderDisplays(Graphics2D g2d, int x, int y, int taw, int tah);
 	
 	/**
 	 * Renders the given display to the given graphics object.
-	 * <p>
-	 * The available width and height are used to render the display name, shadows, and borders.
-	 * <p>
-	 * The full available width and height may not be used, so this method returns the computed 
-	 * integer bounds of the used area.
 	 * @param g2d the graphics object to render to
 	 * @param display the display to render
 	 * @param name the display name to render
-	 * @param adw the available display width
-	 * @param adh the available display height
-	 * @return Rectangle the bounds of the rendered display
+	 * @param metrics the display preview metrics
 	 */
-	protected Rectangle renderDisplay(Graphics2D g2d, Display display, String name, double adw, double adh) {
-		// get the width and height of the actual display
-		double radw = adw - TOTAL_BORDER_WIDTH * 2.0 - SHADOW_WIDTH * 2.0;
-		double radh = adh - TOTAL_BORDER_WIDTH * 2.0 - SHADOW_WIDTH * 2.0;
-		
-		// get the scaled of the display
-		Dimension size = display.getDisplaySize();
-		double sw = radw / size.getWidth();
-		double sh = radh / size.getHeight();
-		double scale = sw < sh ? sw : sh;
-		
-		// compute the display width and height
-		double dw = scale * size.getWidth();
-		double dh = scale * size.getHeight();
-		
-		// to get pixel perfect results we need to truncate the image by one to be safe
-		int idw = (int)Math.ceil(dw) - 1;
-		int idh = (int)Math.ceil(dh) - 1;
+	protected void renderDisplay(Graphics2D g2d, Display display, String name, DisplayPreviewMetrics metrics) {
+		final int idw = metrics.width;
+		final int idh = metrics.height;
+		final int th = metrics.textHeight;
+		final double scale = metrics.scale;
 		
 		// save the old transform
 		AffineTransform ot = g2d.getTransform();
 
-		if (this.includeDisplayNames) {
+		if (this.includeDisplayName && name != null) {
 			// render the text
 			this.renderDisplayName(g2d, name, idw);
-			
-			// translate
-			FontMetrics metrics = g2d.getFontMetrics();
-			int th = metrics.getMaxAscent() + metrics.getMaxDescent() + metrics.getLeading();
-			g2d.translate(0, th + this.nameSpacing);
+
+			g2d.translate(0, th);
 		}
 		
 		// render the shadow using the display width/height
@@ -231,8 +192,64 @@ public abstract class DisplayPreviewPanel extends JPanel {
 		
 		// re-apply the old transform
 		g2d.setTransform(ot);
+	}
+	
+	/**
+	 * Returns the offset of a display.
+	 * <p>
+	 * The offset is the total border width + the shadow width.
+	 * @return Point
+	 */
+	protected Point getDisplayOffset() {
+		return new Point(
+				TOTAL_BORDER_WIDTH + SHADOW_WIDTH,
+				TOTAL_BORDER_WIDTH + SHADOW_WIDTH);
+	}
+	
+	/**
+	 * Returns the actual rendered display metrics.
+	 * @param g2d the graphics object target
+	 * @param display the display
+	 * @param adw the available width (for name, shadow, and borders)
+	 * @param adh the available height (for name, shadow, and borders)
+	 * @return {@link DisplayPreviewMetrics}
+	 */
+	protected DisplayPreviewMetrics getDisplayMetrics(Graphics2D g2d, Display display, int adw, int adh) {
+		int th = 0;
+		// get the text height
+		if (this.includeDisplayName) {
+			// get the text height
+			FontMetrics metrics = g2d.getFontMetrics();
+			th = metrics.getMaxAscent() + metrics.getMaxDescent() + metrics.getLeading() + this.nameSpacing;
+		}
 		
-		return new Rectangle(0, 0, idw, idh);
+		// get the real width and height of the display area
+		final double radw = adw - TOTAL_BORDER_WIDTH * 2.0 - SHADOW_WIDTH * 2.0;
+		final double radh = adh - TOTAL_BORDER_WIDTH * 2.0 - SHADOW_WIDTH * 2.0 - th;
+		
+		// get the scaled of the display
+		Dimension size = display.getDisplaySize();
+		final double sw = radw / size.getWidth();
+		final double sh = radh / size.getHeight();
+		final double scale = sw < sh ? sw : sh;
+		
+		// compute the display width and height
+		final double dw = scale * size.getWidth();
+		final double dh = scale * size.getHeight();
+		
+		// to get pixel perfect results we need to truncate the image by one to be safe
+		final int idw = (int)Math.ceil(dw) - 1;
+		final int idh = (int)Math.ceil(dh) - 1;
+		
+		DisplayPreviewMetrics metrics = new DisplayPreviewMetrics();
+		metrics.scale = scale;
+		metrics.width = idw;
+		metrics.height = idh;
+		metrics.textHeight = th;
+		metrics.totalWidth = idw;
+		metrics.totalHeight = idh + th;
+		
+		return metrics;
 	}
 	
 	/**
@@ -244,13 +261,13 @@ public abstract class DisplayPreviewPanel extends JPanel {
 	 */
 	private void renderShadow(Graphics2D g2d, int w, int h, int sw) {
 		String key = SHADOW_CACHE_PREFIX + "_" + w + "_" + h;
-		BufferedImage image = this.cachedImages.get(key);
+		BufferedImage image = this.imageCache.get(key);
 		
 		// see if we need to re-render the image
 		if (image == null || image.getWidth() < w || image.getHeight() < h) {
 			// create a new image of the right size
 			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), w, h, sw);
-			this.cachedImages.put(key, image);
+			this.imageCache.put(key, image);
 		}
 		
 		// render the image
@@ -265,13 +282,13 @@ public abstract class DisplayPreviewPanel extends JPanel {
 	 */
 	private void renderTransparentBackground(Graphics2D g2d, int w, int h) {
 		String key = BACKGROUND_CACHE_PREFIX + "_" + w + "_" + h;
-		BufferedImage image = this.cachedImages.get(key);
+		BufferedImage image = this.imageCache.get(key);
 		
 		// see if we need to re-render the image
 		if (image == null || image.getWidth() < w || image.getHeight() < h) {
 			// create a new image of the right size
 			image = ImageUtilities.getTiledImage(Images.TRANSPARENT_BACKGROUND, g2d.getDeviceConfiguration(), w, h);
-			this.cachedImages.put(key, image);
+			this.imageCache.put(key, image);
 		}
 		
 		// render the image
@@ -285,7 +302,7 @@ public abstract class DisplayPreviewPanel extends JPanel {
 	 * @param w the width of the display (to center the text)
 	 */
 	private void renderDisplayName(Graphics2D g2d, String name, int w) {
-		BufferedImage image = this.cachedImages.get(name);
+		BufferedImage image = this.imageCache.get(name);
 		FontMetrics metrics = g2d.getFontMetrics(FontManager.getDefaultFont());
 		int ih = metrics.getHeight();
 		int iw = metrics.stringWidth(name);
@@ -306,10 +323,42 @@ public abstract class DisplayPreviewPanel extends JPanel {
 			ig2d.drawString(name, 0, metrics.getAscent());
 			ig2d.dispose();
 			
-			this.cachedImages.put(name, image);
+			this.imageCache.put(name, image);
 		}
 		
 		// render the image
 		g2d.drawImage(image, (w - iw) / 2, 0, null);
+	}
+	
+	/**
+	 * Returns the spacing between the display and its name.
+	 * @return int
+	 */
+	public int getNameSpacing() {
+		return nameSpacing;
+	}
+
+	/**
+	 * Sets the spacing between the display and its name.
+	 * @param nameSpacing the spacing in pixels
+	 */
+	public void setNameSpacing(int nameSpacing) {
+		this.nameSpacing = nameSpacing;
+	}
+	
+	/**
+	 * Returns true if the display name is rendered.
+	 * @return boolean
+	 */
+	public boolean isIncludeDisplayName() {
+		return includeDisplayName;
+	}
+
+	/**
+	 * Toggles rendering of the display name.
+	 * @param flag true if the display name should be rendered
+	 */
+	public void setIncludeDisplayName(boolean flag) {
+		this.includeDisplayName = flag;
 	}
 }

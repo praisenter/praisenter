@@ -38,4 +38,10 @@ public interface Easing {
 	 * @return double
 	 */
 	public double easeInOut(long time, long duration);
+
+	/**
+	 * Returns a unique easing id for an easing sub class.
+	 * @return int
+	 */
+	public abstract int getEasingId();
 }

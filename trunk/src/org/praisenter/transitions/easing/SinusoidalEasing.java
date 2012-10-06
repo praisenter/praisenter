@@ -1,33 +1,22 @@
 package org.praisenter.transitions.easing;
 
 /**
- * Standard linear easing.
+ * Sinusoidal easing from http://gizma.com/easing/.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class LinearEasing implements Easing {
+public class SinusoidalEasing implements Easing {
 	/** The id for the easing */
-	public static final int ID = 10;
-	
-	/**
-	 * The linear easing function.
-	 * <p>
-	 * Returns the percentage of completion of the easing function.
-	 * @param time the current time (the total elapsed time)
-	 * @param duration the easing duration
-	 * @return double
-	 */
-	private static final double ease(long time, long duration) {
-		return (double)time / (double)duration;
-	}
+	public static final int ID = 60;
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.transitions.Easing#easeIn(long, long)
 	 */
 	@Override
 	public double easeIn(long time, long duration) {
-		return ease(time, duration);
+		double t = (double)time / (double)duration;
+		return -Math.cos(t * Math.PI * 0.5) + 1.0;
 	}
 	
 	/* (non-Javadoc)
@@ -35,7 +24,8 @@ public class LinearEasing implements Easing {
 	 */
 	@Override
 	public double easeOut(long time, long duration) {
-		return ease(time, duration);
+		double t = (double)time / (double)duration;
+		return Math.sin(t * Math.PI * 0.5);
 	}
 	
 	/* (non-Javadoc)
@@ -43,7 +33,8 @@ public class LinearEasing implements Easing {
 	 */
 	@Override
 	public double easeInOut(long time, long duration) {
-		return ease(time, duration);
+		double t = (double)time / ((double)duration * 0.5);
+		return -(Math.cos(t * Math.PI) - 1) * 0.5;
 	}
 	
 	/* (non-Javadoc)

@@ -152,7 +152,7 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 						.addComponent(this.cmbDevices, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnIdentify))
 				.addComponent(this.lblTranslucency)
-				.addGroup(layout.createParallelGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblRenderQuality)
 						.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		

@@ -43,7 +43,7 @@ public class StandardDisplayWindow extends DisplayWindow<StandardDisplaySurface>
 		Container container = this.dialog.getContentPane();
 		container.setLayout(new BorderLayout());
 		
-		// TODO for now we aren't worrying about video display surfaces
+		// TODO - VIDEO for now we aren't worrying about video display surfaces
 		this.surface = new StillDisplaySurface();
 		container.add(this.surface, BorderLayout.CENTER);
 		

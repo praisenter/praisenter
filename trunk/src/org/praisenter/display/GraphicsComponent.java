@@ -58,7 +58,7 @@ public class GraphicsComponent extends DisplayComponent {
 	/** True if the image is visible */
 	protected boolean backgroundImageVisible;
 	
-	// TODO add video settings
+	// TODO - VIDEO add video settings
 	
 	// cached info
 
