@@ -94,7 +94,10 @@ public class SettingsDialog extends JDialog implements ActionListener {
 		this.pnlGeneralSettings.addPropertyChangeListener(GeneralSettingsPanel.PRIMARY_DISPLAY_PROPERTY, this.pnlBibleSettings);
 		this.pnlNotificationSettings.addPropertyChangeListener(GeneralSettingsPanel.PRIMARY_DISPLAY_PROPERTY, this.pnlNotificationSettings);
 		
-		this.pnlBibleSettings.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		this.pnlGeneralSettings.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+		this.pnlBibleSettings.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+		this.pnlNotificationSettings.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+		this.pnlErrorReportingSettings.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		
 		// create the bottom buttons
 		
@@ -223,5 +226,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
 		
 		dialog.setLocationRelativeTo(owner);
 		dialog.setVisible(true);
+		
+		dialog.dispose();
 	}
 }

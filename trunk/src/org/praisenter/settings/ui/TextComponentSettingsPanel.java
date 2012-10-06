@@ -10,6 +10,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
@@ -23,7 +24,6 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.DefaultEditor;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SpinnerNumberModel;
@@ -232,27 +232,35 @@ public class TextComponentSettingsPanel extends GraphicsComponentSettingsPanel<T
 	protected void buildLayout() {
 		// don't build the super classes layout, we need something different
 		
-		JTabbedPane tabs = new JTabbedPane();
+		JPanel pnlDisplayComponent = new JPanel();
+		pnlDisplayComponent.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.setup.general.name")),
+				BorderFactory.createEmptyBorder(5, 0, 0, 0)));
+		this.buildDisplayComponentLayout(pnlDisplayComponent);
 		
 		JPanel pnlTextComponent = new JPanel();
+		pnlTextComponent.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.text.setup.name")),
+				BorderFactory.createEmptyBorder(5, 0, 0, 0)));
 		this.buildTextComponentLayout(pnlTextComponent);
-		tabs.addTab(Messages.getString("panel.text.setup.name"), pnlTextComponent);
 		
 		JPanel pnlGraphicsComponent = new JPanel();
+		pnlGraphicsComponent.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.setup.background.name")),
+				BorderFactory.createEmptyBorder(5, 0, 0, 0)));
 		this.buildGraphicsComponentLayout(pnlGraphicsComponent);
-		tabs.addTab(Messages.getString("panel.setup.background.name"), pnlGraphicsComponent);
 		
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
-		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-				.addComponent(tabs)
-				.addComponent(this.chkVisible));
-		layout.setVerticalGroup(layout.createParallelGroup()
-				.addComponent(tabs)
-				.addComponent(this.chkVisible));
-		
-		this.add(tabs);
+		layout.setHorizontalGroup(layout.createParallelGroup()
+				.addComponent(pnlDisplayComponent, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(pnlGraphicsComponent, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(pnlTextComponent, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addComponent(pnlDisplayComponent)
+				.addComponent(pnlGraphicsComponent)
+				.addComponent(pnlTextComponent));
 	}
 	
 	/**

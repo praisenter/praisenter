@@ -92,6 +92,7 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 		this.pnlDisplayPreview = new DisplaySettingsPreviewPanel();
 		this.pnlDisplayPreview.setDisplay(this.display);
 		this.pnlDisplayPreview.setMinimumSize(previewSize);
+		this.pnlDisplayPreview.setPreferredSize(previewSize);
 		this.pnlDisplayPreview.addMouseListener(this);
 		this.pnlDisplayPreview.addMouseMotionListener(this);
 	}

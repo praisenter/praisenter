@@ -1,6 +1,7 @@
 package org.praisenter.settings.ui;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GraphicsDevice.WindowTranslucency;
 import java.beans.PropertyChangeEvent;
 import java.text.NumberFormat;
@@ -12,6 +13,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 import org.apache.log4j.Logger;
 import org.praisenter.data.DataException;
@@ -34,7 +36,6 @@ import org.praisenter.ui.SelectTextFocusListener;
  * @version 1.0.0
  * @since 1.0.0
  */
-// FIXME fix the layouts of the bible and notification settings panels to be less big
 public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 	/** The verison id */
 	private static final long serialVersionUID = 460972285830298448L;
@@ -169,7 +170,7 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 		}
 		
 		JPanel pnlTransitions = new JPanel();
-		pnlTransitions.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.general.setup.transition.title")));
+		pnlTransitions.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		GroupLayout layout = new GroupLayout(pnlTransitions);
 		pnlTransitions.setLayout(layout);
 		
@@ -200,7 +201,7 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 		
 		// setup the layout
 		JPanel pnlGeneral = new JPanel();
-		pnlGeneral.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.bible.setup.general")));
+		pnlGeneral.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		
 		layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
@@ -228,17 +229,26 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 						.addComponent(lblIncludeApocrypha)
 						.addComponent(this.chkIncludeApocrypha)));
 		
+		JTabbedPane tabs = new JTabbedPane();
+		tabs.addTab(Messages.getString("panel.bible.setup.general"), pnlGeneral);
+		tabs.addTab(Messages.getString("panel.general.setup.transition.title"), pnlTransitions);
+		
+		JLabel lblMessage = new JLabel(Messages.getString("panel.bible.setup.message"));
+		Font font = lblMessage.getFont();
+		lblMessage.setFont(font.deriveFont(font.getSize2D() * 1.5f));
+		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		
 		layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(pnlGeneral, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(pnlTransitions, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(lblMessage)
+				.addComponent(tabs, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(this.pnlDisplay, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(pnlGeneral, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(pnlTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(lblMessage)
+				.addComponent(tabs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.pnlDisplay));
 	}
 

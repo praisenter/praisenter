@@ -1,5 +1,6 @@
 package org.praisenter.settings.ui;
 
+import java.awt.Font;
 import java.awt.Graphics;
 import java.beans.PropertyChangeEvent;
 import java.text.NumberFormat;
@@ -10,6 +11,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -134,7 +136,7 @@ public class ErrorReportingSetupPanel extends JPanel implements SettingsPanel, C
 		this.txtEmail.setEnabled(enabled);
 		
 		JPanel pnlGeneral = new JPanel();
-		pnlGeneral.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.error.setup.general")));
+		pnlGeneral.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		GroupLayout layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
 		
@@ -153,7 +155,7 @@ public class ErrorReportingSetupPanel extends JPanel implements SettingsPanel, C
 				.addComponent(lblReporting));
 		
 		JPanel pnlSmtp = new JPanel();
-		pnlSmtp.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.error.setup.smtp")));
+		pnlSmtp.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		layout = new GroupLayout(pnlSmtp);
 		pnlSmtp.setLayout(layout);
 		
@@ -196,16 +198,28 @@ public class ErrorReportingSetupPanel extends JPanel implements SettingsPanel, C
 						.addComponent(lblEmail)
 						.addComponent(this.txtEmail, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		
+		JTabbedPane tabs1 = new JTabbedPane();
+		tabs1.addTab(Messages.getString("panel.error.setup.general"), pnlGeneral);
+		
+		JTabbedPane tabs2 = new JTabbedPane();
+		tabs2.addTab(Messages.getString("panel.error.setup.smtp"), pnlSmtp);
+		
+		JLabel lblMessage = new JLabel(Messages.getString("panel.error.setup.message"));
+		Font font = lblMessage.getFont();
+		lblMessage.setFont(font.deriveFont(font.getSize2D() * 1.5f));
+		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		
 		layout = new GroupLayout(this);
 		this.setLayout(layout);
-		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-						.addComponent(pnlGeneral)
-						.addComponent(pnlSmtp));
+				.addComponent(lblMessage)
+				.addComponent(tabs1)
+				.addComponent(tabs2));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(pnlGeneral)
-				.addComponent(pnlSmtp));
+				.addComponent(lblMessage)
+				.addComponent(tabs1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(tabs2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 	}
 	
 	/* (non-Javadoc)

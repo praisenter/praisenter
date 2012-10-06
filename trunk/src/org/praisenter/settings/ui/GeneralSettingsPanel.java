@@ -25,6 +25,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import org.praisenter.display.RenderQuality;
@@ -127,7 +128,7 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 		
 		// create the layout
 		JPanel pnlDisplays = new JPanel();
-		pnlDisplays.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.general.setup.display.title")));
+		pnlDisplays.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		GroupLayout layout = new GroupLayout(pnlDisplays);
 		pnlDisplays.setLayout(layout);
 		
@@ -156,17 +157,25 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 						.addComponent(lblRenderQuality)
 						.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		
+		JTabbedPane tabs = new JTabbedPane();
+		tabs.addTab(Messages.getString("panel.bible.setup.general"), pnlDisplays);
+		
+		JLabel lblMessage = new JLabel(Messages.getString("panel.general.setup.message"));
+		Font font = lblMessage.getFont();
+		lblMessage.setFont(font.deriveFont(font.getSize2D() * 1.5f));
+		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		
 		// create the main layout
 		layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
-		layout.setAutoCreateContainerGaps(true);
-		
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(pnlDisplays, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+				.addComponent(lblMessage)
+				.addComponent(tabs));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(pnlDisplays));
+				.addComponent(lblMessage)
+				.addComponent(tabs));
 	}
 	
 	/* (non-Javadoc)

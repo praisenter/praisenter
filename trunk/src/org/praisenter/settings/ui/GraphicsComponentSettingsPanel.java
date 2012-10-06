@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -23,7 +24,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -63,6 +63,9 @@ public class GraphicsComponentSettingsPanel<E extends GraphicsComponent> extends
 	/** The image settings label */
 	protected JLabel lblImage;
 	
+	/** The visible label */
+	protected JLabel lblVisible;
+	
 	// controls
 	
 	/** The button to select the image from the file system */
@@ -95,8 +98,6 @@ public class GraphicsComponentSettingsPanel<E extends GraphicsComponent> extends
 	 */
 	public GraphicsComponentSettingsPanel(E component) {
 		this.component = component;
-		
-//		this.setBorder(BorderFactory.createTitledBorder(Messages.getString("panel.still.setup.title")));
 		
 		// build all the controls
 		this.buildControls();
@@ -153,7 +154,9 @@ public class GraphicsComponentSettingsPanel<E extends GraphicsComponent> extends
 		this.chkImageVisible.addChangeListener(this);
 		
 		// overall visibility
-		this.chkVisible = new JCheckBox(Messages.getString("panel.setup.visible"), this.component.isVisible());
+		this.lblVisible = new JLabel(Messages.getString("panel.setup.visible"));
+		this.chkVisible = new JCheckBox();
+		this.chkVisible.setSelected(this.component.isVisible());
 		this.chkVisible.addChangeListener(this);
 	}
 	
@@ -162,23 +165,49 @@ public class GraphicsComponentSettingsPanel<E extends GraphicsComponent> extends
 	 * @see #buildGraphicsComponentLayout(JComponent)
 	 */
 	protected void buildLayout() {
-		JTabbedPane tabs = new JTabbedPane();
+		JPanel pnlDisplayComponent = new JPanel();
+		pnlDisplayComponent.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.setup.general.name")),
+				BorderFactory.createEmptyBorder(5, 0, 0, 0)));
+		this.buildDisplayComponentLayout(pnlDisplayComponent);
 		
 		JPanel pnlGraphicsComponent = new JPanel();
+		pnlGraphicsComponent.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.setup.background.name")),
+				BorderFactory.createEmptyBorder(5, 0, 0, 0)));
 		this.buildGraphicsComponentLayout(pnlGraphicsComponent);
-		tabs.addTab(Messages.getString("panel.setup.background.name"), pnlGraphicsComponent);
 		
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
-		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-				.addComponent(tabs)
-				.addComponent(this.chkVisible));
-		layout.setVerticalGroup(layout.createParallelGroup()
-				.addComponent(tabs)
-				.addComponent(this.chkVisible));
+		layout.setHorizontalGroup(layout.createParallelGroup()
+				.addComponent(pnlDisplayComponent, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(pnlGraphicsComponent, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addComponent(pnlDisplayComponent)
+				.addComponent(pnlGraphicsComponent));
+	}
+	
+	/**
+	 * Builds the default graphics component layout to the given component.
+	 * @param component the component
+	 */
+	protected void buildDisplayComponentLayout(JComponent component) {
+		GroupLayout layout = new GroupLayout(component);
+		component.setLayout(layout);
 		
-		this.add(tabs);
+		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup()
+						.addComponent(this.lblVisible))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(this.chkVisible)));
+		
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblVisible)
+						.addComponent(this.chkVisible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 	}
 	
 	/**
