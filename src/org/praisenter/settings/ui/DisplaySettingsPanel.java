@@ -1,35 +1,22 @@
 package org.praisenter.settings.ui;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.JPanel;
 
 import org.praisenter.display.Display;
 import org.praisenter.display.GraphicsComponent;
-import org.praisenter.images.Images;
 import org.praisenter.settings.RootSettings;
 import org.praisenter.settings.SettingsException;
-import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -46,24 +33,6 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 	
 	/** The resize gap (the additional gap area to allow resizing) */
 	private static final int RESIZE_GAP = 30;
-	
-	/** The component line width */
-	private static final int LINE_WIDTH = 2;
-	
-	/** Half the line width */
-	private static final int HALF_LINE_WIDTH = LINE_WIDTH / 2;
-	
-	/** The shadow width */
-	private static final int SHADOW_WIDTH = 8;
-	
-	/** The total border width */
-	private static final int TOTAL_BORDER_WIDTH	= 4;
-	
-	/** The dash length */
-	private static final float DASH_LENGTH = 5.0f;
-	
-	/** The border color */
-	private static final Color BORDER_COLOR = Color.YELLOW;
 	
 	/** Property used to notify of a display component change */
 	protected static final String DISPLAY_COMPONENT_PROPERTY = "DisplayComponent";
@@ -82,7 +51,7 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 	// components
 	
 	/** The panel used to preview the changes */
-	protected JPanel pnlDisplayPreview;
+	protected DisplaySettingsPreviewPanel pnlDisplayPreview;
 	
 	// mouse commands
 	
@@ -106,43 +75,22 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 			this.resizeHeightCommand
 	});
 	
-	// computed
-	
-	/** The scale factor from Display coordinates to this components coordinates */
-	private double scale = 1.0;
-	
-	// temporary
-	
-	/** The component the mouse is over */
-	private GraphicsComponent mouseOverComponent;
-
-	/** The map of cached images */
-	private Map<String, BufferedImage> cachedImages; 
-	
 	/**
 	 * Minimal constructor.
 	 * @param settings the display settings to setup
 	 * @param displaySize the display target size
 	 */
-	@SuppressWarnings("serial")
 	public DisplaySettingsPanel(E settings, Dimension displaySize) {
 		// set the settings and size
 		this.settings = settings;
 		this.displaySize = displaySize;
 		
-		this.cachedImages = new HashMap<String, BufferedImage>();
-		
 		// create a display for preview and setup
 		this.display = this.getDisplay(settings, displaySize);
 		
 		Dimension previewSize = new Dimension(400, 200);
-		this.pnlDisplayPreview = new JPanel() {
-			@Override
-			protected void paintComponent(Graphics g) {
-				super.paintComponent(g);
-				paintPreivew((Graphics2D)g);
-			}
-		};
+		this.pnlDisplayPreview = new DisplaySettingsPreviewPanel();
+		this.pnlDisplayPreview.setDisplay(this.display);
 		this.pnlDisplayPreview.setMinimumSize(previewSize);
 		this.pnlDisplayPreview.addMouseListener(this);
 		this.pnlDisplayPreview.addMouseMotionListener(this);
@@ -186,19 +134,6 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 	}
 	
 	/**
-	 * Returns the equivalent point in Display space from the given
-	 * panel space point.
-	 * @param panelPoint the panel point
-	 * @return Point
-	 */
-	protected Point getDisplayPoint(Point panelPoint) {
-		Point point = new Point();
-		// translate by the shadow width and border width
-		point.setLocation((panelPoint.x - SHADOW_WIDTH - 2) / this.scale, (panelPoint.y - SHADOW_WIDTH - 2) / this.scale);
-		return point;
-	}
-
-	/**
 	 * Returns true if the given display point is inside the given component.
 	 * @param displayPoint the Display space point
 	 * @param component the component
@@ -208,10 +143,10 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 		// get the bounds
 		Rectangle bounds = component.getBounds();
 		// expand the bounds by the line width
-		int bx = bounds.x - HALF_LINE_WIDTH + 2;
-		int by = bounds.y - HALF_LINE_WIDTH + 2;
-		int bw = bounds.width + HALF_LINE_WIDTH + 2;
-		int bh = bounds.height + HALF_LINE_WIDTH + 2;
+		int bx = bounds.x;
+		int by = bounds.y;
+		int bw = bounds.width;
+		int bh = bounds.height;
 		
 		int px = displayPoint.x;
 		int py = displayPoint.y;
@@ -223,131 +158,6 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 		}
 		
 		return false;
-	}
-	
-	/**
-	 * Paints the preview to the given graphics object.
-	 * @param graphics the graphics object to paint to
-	 */
-	protected void paintPreivew(Graphics2D graphics) {
-		// paint the display
-		if (this.display != null) {
-			// get the display size
-			Dimension ds = this.displaySize;
-			int dw = ds.width;
-			int dh = ds.height;
-			
-			// get this panel's size
-			int cw = this.pnlDisplayPreview.getWidth() - SHADOW_WIDTH * 2 - TOTAL_BORDER_WIDTH;
-			int ch = this.pnlDisplayPreview.getHeight() - SHADOW_WIDTH * 2 - TOTAL_BORDER_WIDTH;
-			
-			// get the size ratios
-			double pw = (double)cw / (double)dw;
-			double ph = (double)ch / (double)dh;
-			
-			// choose the most dramatic scale
-			this.scale = ph;
-			if (pw < ph) {
-				this.scale = pw;
-			}
-			double bw = dw * this.scale;
-			double bh = dh * this.scale;
-			
-			// FIXME move the preview generation code into common file
-			// FIXME the transparent background is still visible sometimes
-			
-			// paint the shadow background
-			this.paintShadow(graphics, "SHADOW", bw + TOTAL_BORDER_WIDTH, bh + TOTAL_BORDER_WIDTH, SHADOW_WIDTH);
-			
-			graphics.translate(SHADOW_WIDTH + 2, SHADOW_WIDTH + 2);
-			
-			// paint the borders
-			graphics.setColor(Color.GRAY);
-			graphics.fill(new Rectangle2D.Double(-2, -2, bw + TOTAL_BORDER_WIDTH, bh + TOTAL_BORDER_WIDTH));
-			graphics.setColor(Color.WHITE);
-			graphics.fill(new Rectangle2D.Double(-1, -1, bw + 2, bh + 2));
-			
-			// tile the transparent background
-			this.paintTransparentBackground(graphics, "BACKGROUND", bw, bh);
-			
-			// apply a scaling transform
-			AffineTransform ot = graphics.getTransform();
-			graphics.transform(AffineTransform.getScaleInstance(this.scale, this.scale));
-			
-			// use the fastest rendering possible
-			graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-			graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
-			graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-			graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
-			
-			// render the display
-			this.display.render(graphics);
-			
-			graphics.setTransform(ot);
-			
-			// render the bounds of floating components
-			Stroke oStroke = graphics.getStroke();
-			// set the line width
-			graphics.setStroke(new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, HALF_LINE_WIDTH, new float[] { DASH_LENGTH }, 0));
-			// only draw a border for the hovered component
-			if (this.mouseOverComponent != null) {
-				Rectangle b = this.mouseOverComponent.getBounds();
-				// FIXME need to change the color of the border depending on the color(s) of the background (image, video, color)
-				// wrap the text component in a green border
-				// make sure this green border is inside the bounds of the rectangle
-				// so that the resizing makes more sense
-				graphics.setColor(BORDER_COLOR);
-				graphics.drawRect(
-						(int)Math.ceil(b.x * this.scale) + HALF_LINE_WIDTH, 
-						(int)Math.ceil(b.y * this.scale) + HALF_LINE_WIDTH, 
-						(int)Math.ceil(b.width * this.scale) - LINE_WIDTH, 
-						(int)Math.ceil(b.height * this.scale) - LINE_WIDTH);
-			}
-			graphics.setStroke(oStroke);
-		}
-	}
-	
-	/**
-	 * Paints a drop shadow for the given display.
-	 * @param g2d the graphics to paint to
-	 * @param name the display name
-	 * @param w the width of the display
-	 * @param h the height of the display
-	 * @param sw the shadow width
-	 */
-	private void paintShadow(Graphics2D g2d, String name, double w, double h, int sw) {
-		BufferedImage image = this.cachedImages.get(name);
-		
-		// see if we need to re-render the image
-		if (image == null || image.getWidth() != w || image.getHeight() != h) {
-			// create a new image of the right size
-			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), (int)Math.ceil(w), (int)Math.ceil(h), sw);
-			this.cachedImages.put(name, image);
-		}
-		
-		// render the image
-		g2d.drawImage(image, 0, 0, null);
-	}
-	
-	/**
-	 * Paints a drop shadow for the given display.
-	 * @param g2d the graphics to paint to
-	 * @param name the display name
-	 * @param w the width of the display
-	 * @param h the height of the display
-	 */
-	private void paintTransparentBackground(Graphics2D g2d, String name, double w, double h) {
-		BufferedImage image = this.cachedImages.get(name);
-		
-		// see if we need to re-render the image
-		if (image == null || image.getWidth() != w || image.getHeight() != h) {
-			// create a new image of the right size
-			image = ImageUtilities.getTiledImage(Images.TRANSPARENT_BACKGROUND, g2d.getDeviceConfiguration(), (int)Math.ceil(w), (int)Math.ceil(h));
-			this.cachedImages.put(name, image);
-		}
-		
-		// render the image
-		g2d.drawImage(image, 0, 0, null);
 	}
 	
 	/* (non-Javadoc)
@@ -372,7 +182,7 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 			this.pnlDisplayPreview.repaint();
 		} else if (GeneralSettingsPanel.RENDER_QUALITY_PROPERTY.equals(p)) {
 			// we need to update the preview
-			this.pnlDisplayPreview.invalidate();
+			this.display.invalidate();
 			this.pnlDisplayPreview.repaint();
 		}
 	}
@@ -396,7 +206,7 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 	public void mouseExited(MouseEvent e) {
 		if (!this.mouseCommandGroup.isCommandActive()) {
 			this.setCursor(Cursor.getDefaultCursor());
-			this.mouseOverComponent = null;
+			this.pnlDisplayPreview.setMouseOverComponent(null);
 			this.repaint();
 		}
 	}
@@ -411,12 +221,13 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 			// make sure no other command is active
 			if (!this.mouseCommandGroup.isCommandActive()) {
 				// convert the point to display space
-				Point point = this.getDisplayPoint(e.getPoint());
+				Point point = this.pnlDisplayPreview.getDisplayPoint(e.getPoint());
+				GraphicsComponent current = this.pnlDisplayPreview.getMouseOverComponent();
 				GraphicsComponent component = null;
 				// see if we are still over the same component
-				if (this.mouseOverComponent != null && this.isInside(point, this.mouseOverComponent)) {
+				if (current != null && this.isInside(point, current)) {
 					// then set the component as the one we are still over
-					component = this.mouseOverComponent;
+					component = current;
 				} else {
 					// otherwise see if we are over a different one
 					component = this.getGraphicsComponent(point);
@@ -468,7 +279,7 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 		// see if any mouse command is active
 		if (this.mouseCommandGroup.isCommandActive()) {
 			// convert the point to display space
-			Point end = this.getDisplayPoint(e.getPoint());
+			Point end = this.pnlDisplayPreview.getDisplayPoint(e.getPoint());
 			// check if we are still over a component
 			if (this.moveCommand.isActive()) {
 				// move the component
@@ -493,12 +304,13 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 		// make sure no other command is active in this group
 		if (!this.mouseCommandGroup.isCommandActive()) {
 			// convert the point to display space
-			Point point = this.getDisplayPoint(e.getPoint());
+			Point point = this.pnlDisplayPreview.getDisplayPoint(e.getPoint());
+			GraphicsComponent current = this.pnlDisplayPreview.getMouseOverComponent();
 			GraphicsComponent component = null;
 			// see if we are still over the same component
-			if (this.mouseOverComponent != null && this.isInside(point, this.mouseOverComponent)) {
+			if (current != null && this.isInside(point, current)) {
 				// then set the component as the one we are still over
-				component = this.mouseOverComponent;
+				component = current;
 			} else {
 				// otherwise see if we are over a different one
 				component = this.getGraphicsComponent(point);
@@ -506,8 +318,8 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 			// make sure we found one
 			if (component != null) {
 				// set the hover component
-				if (component != this.mouseOverComponent) {
-					this.mouseOverComponent = component;
+				if (component != current) {
+					this.pnlDisplayPreview.setMouseOverComponent(component);
 					this.repaint();
 				}
 				// get the bounds
@@ -529,7 +341,7 @@ public abstract class DisplaySettingsPanel<E extends RootSettings<E>, T extends 
 				}
 			} else {
 				this.repaint();
-				this.mouseOverComponent = null;
+				this.pnlDisplayPreview.setMouseOverComponent(null);
 				this.setCursor(Cursor.getDefaultCursor());
 			}
 		}

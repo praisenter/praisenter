@@ -8,6 +8,7 @@ import javax.swing.Timer;
 
 import org.praisenter.transitions.easing.CubicEasing;
 import org.praisenter.transitions.easing.Easing;
+import org.praisenter.transitions.easing.Easings;
 
 /**
  * Represents an animator for a transtion.
@@ -17,7 +18,7 @@ import org.praisenter.transitions.easing.Easing;
  */
 public class TransitionAnimator implements ActionListener {
 	/** The easing function */
-	protected static final Easing EASING = new CubicEasing();
+	protected static final Easing EASING = Easings.getEasingForId(CubicEasing.ID);
 	
 	/** The transition to animate */
 	protected Transition transition;

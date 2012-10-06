@@ -1,33 +1,23 @@
 package org.praisenter.transitions.easing;
 
 /**
- * Standard linear easing.
+ * Exponential easing from http://gizma.com/easing/.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class LinearEasing implements Easing {
+public class ExponentialEasing implements Easing {
 	/** The id for the easing */
-	public static final int ID = 10;
-	
-	/**
-	 * The linear easing function.
-	 * <p>
-	 * Returns the percentage of completion of the easing function.
-	 * @param time the current time (the total elapsed time)
-	 * @param duration the easing duration
-	 * @return double
-	 */
-	private static final double ease(long time, long duration) {
-		return (double)time / (double)duration;
-	}
+	public static final int ID = 70;
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.transitions.Easing#easeIn(long, long)
 	 */
 	@Override
 	public double easeIn(long time, long duration) {
-		return ease(time, duration);
+		double t = (double)time / (double)duration;
+		// 2^(10 * (t - 1))
+		return Math.pow(2.0, 10.0 * (t - 1));
 	}
 	
 	/* (non-Javadoc)
@@ -35,7 +25,8 @@ public class LinearEasing implements Easing {
 	 */
 	@Override
 	public double easeOut(long time, long duration) {
-		return ease(time, duration);
+		double t = (double)time / (double)duration;
+		return -Math.pow(2.0, -10.0 * t) + 1.0;
 	}
 	
 	/* (non-Javadoc)
@@ -43,7 +34,12 @@ public class LinearEasing implements Easing {
 	 */
 	@Override
 	public double easeInOut(long time, long duration) {
-		return ease(time, duration);
+		double t = (double)time / ((double)duration * 0.5);
+		if (t < 1.0) {
+			return Math.pow(2.0, 10.0 * (t - 1)) * 0.5;
+		}
+		t -= 1.0;
+		return (-Math.pow(2.0, 10.0 * t) + 2.0) * 0.5;
 	}
 	
 	/* (non-Javadoc)

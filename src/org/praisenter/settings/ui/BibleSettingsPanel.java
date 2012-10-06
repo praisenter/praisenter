@@ -34,6 +34,7 @@ import org.praisenter.ui.SelectTextFocusListener;
  * @version 1.0.0
  * @since 1.0.0
  */
+// FIXME fix the layouts of the bible and notification settings panels to be less big
 public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 	/** The verison id */
 	private static final long serialVersionUID = 460972285830298448L;
