@@ -1,6 +1,7 @@
 package org.praisenter.data.bible;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -178,11 +179,26 @@ public class Bibles {
 	 * @throws DataException if an exception occurs while retrieving the data
 	 */
 	public static final int getChapterCount(Bible bible, String bookCode) throws DataException {
-		// build the query
+		// create the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT MAX(chapter) FROM bible_verses WHERE bible_id = ").append(bible.id)
-		  .append(" AND book_code = '").append(bookCode).append("'");
-		return getCountBySql(sb.toString());
+		sb.append("SELECT MAX(chapter) FROM bible_verses WHERE bible_id = ? ")
+		  .append("AND book_code = ?");
+		
+		// execute the query
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, bible.id);
+			statement.setString(2, bookCode);
+
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return result.getInt(1);
+			}
+			
+			return 0;
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
 	}
 	
 	// verses
@@ -197,18 +213,33 @@ public class Bibles {
 	 * @throws DataException if an exception occurs while retrieving the data
 	 */
 	public static final Verse getVerse(Bible bible, String bookCode, int chapter, int verse) throws DataException {
-		// build the query
+		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verses")
-		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
-		  .append(" WHERE bible_verses.bible_id = ").append(bible.id)
-		  .append(" AND book_code = '").append(bookCode)
-		  .append("' AND chapter = ").append(chapter)
-		  .append(" AND verse = ").append(verse);
+		  .append("FROM bible_verses ")
+		  .append("INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id ")
+		  .append("WHERE bible_verses.bible_id = ? ")
+		  .append("AND book_code = ? ")
+		  .append("AND chapter = ? ")
+		  .append("AND verse = ?");
 		
 		// execute the query
-		return getVerseBySql(bible, sb.toString());
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, bible.id);
+			statement.setString(2, bookCode);
+			statement.setInt(3, chapter);
+			statement.setInt(4, verse);
+			
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return getVerse(bible, result);
+			}
+			
+			return null;
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
 	}
 	
 	/**
@@ -229,21 +260,35 @@ public class Bibles {
 	 * @throws DataException if an exception occurs while retrieving the data
 	 */
 	public static final Verse getNextVerse(Verse verse, boolean includeApocrypha) throws DataException {
-		// build the query
+		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verses")
-		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
-		  .append(" WHERE bible_verses.bible_id = ").append(verse.bible.id);
+		  .append("FROM bible_verses ")
+		  .append("INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id ")
+		  .append("WHERE bible_verses.bible_id = ? ");
 		if (!includeApocrypha) {
-			sb.append(" AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
+			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
-		sb.append(" AND order_by = ")
-		  	.append(" (SELECT MIN(order_by) FROM bible_verses WHERE bible_id = ").append(verse.bible.id)
-		  	.append(" AND order_by > ").append(verse.order).append(")");
+		sb.append("AND order_by = ")
+		  .append("(SELECT MIN(order_by) FROM bible_verses WHERE bible_id = ? ")
+		  .append("AND order_by > ?)");
 		
 		// execute the query
-		return getVerseBySql(verse.bible, sb.toString());
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, verse.bible.id);
+			statement.setInt(2, verse.bible.id);
+			statement.setInt(3, verse.order);
+			
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return getVerse(verse.bible, result);
+			}
+			
+			return null;
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
 	}
 	
 	/**
@@ -270,27 +315,42 @@ public class Bibles {
 	 * @throws DataException if an exception occurs while retrieving the data
 	 */
 	public static final Verse getNextVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws DataException {
-		// build the query
+		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verses")
-		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
-		  .append(" WHERE bible_verses.bible_id = ").append(bible.id);
+		  .append("FROM bible_verses ")
+		  .append("INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id ")
+		  .append("WHERE bible_verses.bible_id = ? ");
 		if (!includeApocrypha) {
-			sb.append(" AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
+			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
-		sb.append(" AND order_by = ")
-		  	.append(" (SELECT MIN(order_by) FROM bible_verses WHERE bible_id = ").append(bible.id)
-		  	.append(" AND order_by > ")
-		  	  // get the given verse's order by
-		  	  .append(" (SELECT order_by FROM bible_verses WHERE bible_id = ").append(bible.id)
-		  	  .append(" AND book_code = '").append(bookCode)
-		  	  .append("' AND chapter = ").append(chapter)
-		  	  .append(" AND verse = ").append(verse)
-		  	  .append("))");
+		sb.append("AND order_by = ")
+		  .append("(SELECT MIN(order_by) FROM bible_verses WHERE bible_id = ? ")
+		  .append("AND order_by > ")
+		  .append("(SELECT order_by FROM bible_verses WHERE bible_id = ? ")
+		  .append("AND book_code = ? ")
+		  .append("AND chapter = ? ")
+		  .append("AND verse = ?))");
 		
 		// execute the query
-		return getVerseBySql(bible, sb.toString());
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, bible.id);
+			statement.setInt(2, bible.id);
+			statement.setInt(3, bible.id);
+			statement.setString(4, bookCode);
+			statement.setInt(5, chapter);
+			statement.setInt(6, verse);
+			
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return getVerse(bible, result);
+			}
+			
+			return null;
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
 	}
 	
 	/**
@@ -311,21 +371,35 @@ public class Bibles {
 	 * @throws DataException if an exception occurs while retrieving the data
 	 */
 	public static final Verse getPreviousVerse(Verse verse, boolean includeApocrypha) throws DataException {
-		// build the query
+		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verses")
-		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
-		  .append(" WHERE bible_verses.bible_id = ").append(verse.bible.id);
+		  .append("FROM bible_verses ")
+		  .append("INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id ")
+		  .append("WHERE bible_verses.bible_id = ? ");
 		if (!includeApocrypha) {
-			sb.append(" AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
+			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
-		sb.append(" AND order_by = ")
-		  	.append(" (SELECT MAX(order_by) FROM bible_verses WHERE bible_id = ").append(verse.bible.id)
-		  	.append(" AND order_by < ").append(verse.order).append(")");
+		sb.append("AND order_by = ")
+		  .append("(SELECT MAX(order_by) FROM bible_verses WHERE bible_id = ? ")
+		  .append("AND order_by < ?)");
 		
 		// execute the query
-		return getVerseBySql(verse.bible, sb.toString());
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, verse.bible.id);
+			statement.setInt(2, verse.bible.id);
+			statement.setInt(3, verse.order);
+			
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return getVerse(verse.bible, result);
+			}
+			
+			return null;
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
 	}
 	
 	/**
@@ -352,27 +426,42 @@ public class Bibles {
 	 * @throws DataException if an exception occurs while retrieving the data
 	 */
 	public static final Verse getPreviousVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws DataException {
-		// build the query
+		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verses")
-		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
-		  .append(" WHERE bible_verses.bible_id = ").append(bible.id);
+		  .append("FROM bible_verses ")
+		  .append("INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id ")
+		  .append("WHERE bible_verses.bible_id = ? ");
 		if (!includeApocrypha) {
-			sb.append(" AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
+			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
-		sb.append(" AND order_by = ")
-		  	.append(" (SELECT MAX(order_by) FROM bible_verses WHERE bible_id = ").append(bible.id)
-		  	.append(" AND order_by < ")
-		  	  // get the given verse's order by
-		  	  .append(" (SELECT order_by FROM bible_verses WHERE bible_id = ").append(bible.id)
-		  	  .append(" AND book_code = '").append(bookCode)
-		  	  .append("' AND chapter = ").append(chapter)
-		  	  .append(" AND verse = ").append(verse)
-		  	  .append("))");
+		sb.append("AND order_by = ")
+		  .append("(SELECT MAX(order_by) FROM bible_verses WHERE bible_id = ? ")
+		  .append("AND order_by < ")
+		  .append("(SELECT order_by FROM bible_verses WHERE bible_id = ? ")
+		  .append("AND book_code = ? ")
+		  .append("AND chapter = ? ")
+		  .append("AND verse = ?))");
 		
 		// execute the query
-		return getVerseBySql(bible, sb.toString());
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, bible.id);
+			statement.setInt(2, bible.id);
+			statement.setInt(3, bible.id);
+			statement.setString(4, bookCode);
+			statement.setInt(5, chapter);
+			statement.setInt(6, verse);
+			
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return getVerse(bible, result);
+			}
+			
+			return null;
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
 	}
 	
 	/**
@@ -724,12 +813,25 @@ public class Bibles {
 	public static final int getVerseCount(Bible bible, boolean includeApocrypha) throws DataException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ").append(bible.id);
+		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ");
 		if (!includeApocrypha) {
-			sb.append(" AND book_code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
+			sb.append("AND book_code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
-		
-		return getCountBySql(sb.toString());
+
+		// execute the query
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, bible.id);
+
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return result.getInt(1);
+			}
+			
+			return 0;
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
 	}
 	
 	/**
@@ -742,10 +844,24 @@ public class Bibles {
 	public static final int getVerseCount(Bible bible, String bookCode) throws DataException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ").append(bible.id)
-		  .append(" AND book_code = '").append(bookCode).append("'");
+		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ")
+		  .append("AND book_code = ?");
 		
-		return getCountBySql(sb.toString());
+		// execute the query
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, bible.id);
+			statement.setString(2, bookCode);
+
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return result.getInt(1);
+			}
+			
+			return 0;
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
 	}
 
 	/**
@@ -759,11 +875,26 @@ public class Bibles {
 	public static final int getVerseCount(Bible bible, String bookCode, int chapter) throws DataException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ").append(bible.id)
-		  .append(" AND book_code = '").append(bookCode)
-		  .append("' AND chapter = ").append(chapter);
+		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ")
+		  .append("AND book_code = ? ")
+		  .append("AND chapter = ?");
 		
-		return getCountBySql(sb.toString());
+		// execute the query
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, bible.id);
+			statement.setString(2, bookCode);
+			statement.setInt(3, chapter);
+
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return result.getInt(1);
+			}
+			
+			return 0;
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
 	}
 	
 	// internal methods
@@ -898,31 +1029,6 @@ public class Bibles {
 		}
 		
 		return null;
-	}
-	
-	/**
-	 * Executes the given sql returning a {@link Verse}.
-	 * @param bible the bible
-	 * @param sql the sql query
-	 * @return {@link Verse}
-	 * @throws DataException if any exception occurs during processing
-	 */
-	private static final Verse getVerseBySql(Bible bible, String sql) throws DataException {
-		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet result = statement.executeQuery(sql);)
-		{
-			Verse verse = null;
-			if (result.next()) {
-				// interpret the result
-				verse = getVerse(bible, result);
-			} 
-			
-			return verse;
-		} catch (SQLException e) {
-			throw new DataException(e);
-		}
 	}
 	
 	/**
