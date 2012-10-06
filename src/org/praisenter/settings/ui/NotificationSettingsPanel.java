@@ -1,6 +1,7 @@
 package org.praisenter.settings.ui;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GraphicsDevice.WindowTranslucency;
 import java.beans.PropertyChangeEvent;
 import java.text.NumberFormat;
@@ -11,6 +12,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 import org.praisenter.display.NotificationDisplay;
 import org.praisenter.resources.Messages;
@@ -102,7 +104,7 @@ public class NotificationSettingsPanel extends JPanel implements SettingsPanel {
 		}
 		
 		JPanel pnlTransitions = new JPanel();
-		pnlTransitions.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.general.setup.transition.title")));
+		pnlTransitions.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		GroupLayout layout = new GroupLayout(pnlTransitions);
 		pnlTransitions.setLayout(layout);
 		
@@ -133,7 +135,7 @@ public class NotificationSettingsPanel extends JPanel implements SettingsPanel {
 		
 		// setup the layout
 		JPanel pnlGeneral = new JPanel();
-		pnlGeneral.setBorder(BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.notification.setup.general")));
+		pnlGeneral.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		
 		layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
@@ -146,17 +148,26 @@ public class NotificationSettingsPanel extends JPanel implements SettingsPanel {
 				.addComponent(lblDefaultWaitPeriod)
 				.addComponent(this.txtDefaultWaitPeriod, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		
+		JTabbedPane tabs = new JTabbedPane();
+		tabs.addTab(Messages.getString("panel.notification.setup.general"), pnlGeneral);
+		tabs.addTab(Messages.getString("panel.general.setup.transition.title"), pnlTransitions);
+		
+		JLabel lblMessage = new JLabel(Messages.getString("panel.notification.setup.message"));
+		Font font = lblMessage.getFont();
+		lblMessage.setFont(font.deriveFont(font.getSize2D() * 1.5f));
+		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		
 		layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(pnlGeneral, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(pnlTransitions, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(lblMessage)
+				.addComponent(tabs, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(this.pnlDisplay, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(pnlGeneral, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(pnlTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(lblMessage)
+				.addComponent(tabs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.pnlDisplay));
 	}
 

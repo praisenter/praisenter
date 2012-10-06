@@ -1,12 +1,11 @@
 package org.praisenter.settings.ui;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Point;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
-import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 
 import org.praisenter.display.BibleDisplay;
 import org.praisenter.display.DisplayFactory;
@@ -42,47 +41,38 @@ public class BibleDisplaySettingsPanel extends FullScreenDisplaySettingsPanel<Bi
 	public BibleDisplaySettingsPanel(BibleSettings settings, Dimension displaySize) {
 		super(settings, displaySize);
 		
-		// put the preview panel in a flow layout
-		JPanel pnlPreview = new JPanel();
-		pnlPreview.setLayout(new BorderLayout());
-		pnlPreview.setBorder(BorderFactory.createTitledBorder(
-				BorderFactory.createCompoundBorder(
-						BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()),
-						BorderFactory.createEmptyBorder(5, 0, 0, 0)),
-				Messages.getString("panel.display.setup.preview")));
-		pnlPreview.add(this.pnlDisplayPreview);
+		this.pnlDisplayPreview.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 0));
 		
 		TextComponentSettingsPanel pnlTitle = new TextComponentSettingsPanel(this.display.getScriptureTitleComponent());
-		pnlTitle.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.bible.setup.title.name")),
-				BorderFactory.createEmptyBorder(5, 0, 0, 0)));
+		pnlTitle.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		pnlTitle.addPropertyChangeListener(this);
 		
 		TextComponentSettingsPanel pnlText = new TextComponentSettingsPanel(this.display.getScriptureTextComponent());
-		pnlText.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.bible.setup.text.name")),
-				BorderFactory.createEmptyBorder(5, 0, 0, 0)));
+		pnlText.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		pnlText.addPropertyChangeListener(this);
+		
+		JTabbedPane tabs = new JTabbedPane();
+		tabs.addTab(Messages.getString("panel.setup.background.name"), this.pnlBackground);
+		tabs.addTab(Messages.getString("panel.bible.setup.title.name"), pnlTitle);
+		tabs.addTab(Messages.getString("panel.bible.setup.text.name"), pnlText);
+		
+		JTabbedPane pTabs = new JTabbedPane();
+		pTabs.addTab(Messages.getString("panel.display.setup.preview"), this.pnlDisplayPreview);
 		
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
-		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				// don't allow the group to resize
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-						.addComponent(this.pnlBackground)
-						.addComponent(pnlTitle)
-						.addComponent(pnlText))
+						.addComponent(tabs))
 						// only resize the preview
-				.addComponent(pnlPreview, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+				.addComponent(pTabs, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		
 		layout.setVerticalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
-						.addComponent(this.pnlBackground, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(pnlTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(pnlText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(pnlPreview));
+						.addComponent(tabs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addComponent(pTabs));
 	}
 	
 	/* (non-Javadoc)

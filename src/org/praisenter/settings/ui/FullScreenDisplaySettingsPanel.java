@@ -6,7 +6,6 @@ import javax.swing.BorderFactory;
 
 import org.praisenter.display.FullScreenDisplay;
 import org.praisenter.display.GraphicsComponent;
-import org.praisenter.resources.Messages;
 import org.praisenter.settings.RootSettings;
 
 /**
@@ -34,9 +33,7 @@ public abstract class FullScreenDisplaySettingsPanel<E extends RootSettings<E>, 
 		
 		// add the image background panel
 		this.pnlBackground = new GraphicsComponentSettingsPanel<GraphicsComponent>(((FullScreenDisplay)this.display).getBackgroundComponent());
-		this.pnlBackground.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createTitledBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, this.getBackground().darker()), Messages.getString("panel.setup.background.name")),
-				BorderFactory.createEmptyBorder(5, 0, 0, 0)));
+		this.pnlBackground.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		this.pnlBackground.addPropertyChangeListener(this);
 	}
 }
