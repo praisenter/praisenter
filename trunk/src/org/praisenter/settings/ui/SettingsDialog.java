@@ -60,7 +60,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
 	private NotificationSettingsPanel pnlNotificationSettings;
 	
 	/** The panel for error reporting settings */
-	private ErrorReportingSetupPanel pnlErrorReportingSettings;
+	private ErrorReportingSettingsPanel pnlErrorReportingSettings;
 	
 	/**
 	 * Minimal constructor.
@@ -87,7 +87,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
 		this.pnlGeneralSettings = new GeneralSettingsPanel(gSettings);
 		this.pnlBibleSettings = new BibleSettingsPanel(bSettings, size);
 		this.pnlNotificationSettings = new NotificationSettingsPanel(nSettings, size);
-		this.pnlErrorReportingSettings = new ErrorReportingSetupPanel(eSettings);
+		this.pnlErrorReportingSettings = new ErrorReportingSettingsPanel(eSettings);
 		
 		// set the panels to listen for property change events from the general panel
 		// since the general panel contains the setup for the displays

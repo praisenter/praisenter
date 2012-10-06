@@ -3,6 +3,7 @@ package org.praisenter.settings.ui;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -61,9 +62,11 @@ public class DisplaySettingsPreviewPanel extends SingleDisplayPreviewPanel {
 	 */
 	public Point getDisplayPoint(Point panelPoint) {
 		Point point = new Point();
+		// translate by this panels insets
+		Insets insets = this.getInsets();
 		// translate by the shadow width and border width
 		Point offset = this.getDisplayOffset();
-		point.setLocation((panelPoint.x - offset.x) / this.scale, (panelPoint.y - offset.y) / this.scale);
+		point.setLocation((panelPoint.x - offset.x - insets.left) / this.scale, (panelPoint.y - offset.y - insets.top) / this.scale);
 		return point;
 	}
 	
