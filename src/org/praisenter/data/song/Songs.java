@@ -285,34 +285,62 @@ public class Songs {
 		return songs;
 	}
 	
+	// FIXME this is broken and should be removed or fixed
+//	
+//	/**
+//	 * Returns the list of matching songs for the given search criteria.
+//	 * <p>
+//	 * This will search song title and song part text.
+//	 * @param search the search criteria
+//	 * @return List&lt;{@link Song}&gt;
+//	 * @throws DataException if an exception occurs during execution
+//	 */
+//	public static final List<Song> searchSongs(String search) throws DataException {
+//		String needle = search.trim().toUpperCase().replaceAll("'", "''");
+//		StringBuilder sb = new StringBuilder();
+//		sb.append("SELECT songs.id as id, title, added_date, notes FROM songs")
+//		.append(" LEFT OUTER JOIN song_parts ON songs.id = song_parts.song_id")
+//		.append(" WHERE searchable_title LIKE '%").append(needle).append("%'")
+//		.append(" OR searchable_text LIKE '%").append(needle).append("%'");
+//		
+//		// get the songs
+//		List<Song> songs = Songs.getSongsBySql(sb.toString());
+//		
+//		// loop over the songs
+//		for (Song song : songs) {
+//			song.parts = Songs.getSongPartsBySql("SELECT * FROM song_parts WHERE song_id = " + song.id + " ORDER BY part_type, part_index");
+//		}
+//		
+//		// return the song
+//		return songs;
+//	}
+	
 	/**
 	 * Returns the list of matching songs for the given search criteria.
 	 * <p>
-	 * This will search song title and song part text.
+	 * This will search song title and song part text but will only return the song data.
 	 * @param search the search criteria
 	 * @return List&lt;{@link Song}&gt;
 	 * @throws DataException if an exception occurs during execution
 	 */
-	public static final List<Song> searchSongs(String search) throws DataException {
+	public static final List<Song> searchSongsWithoutParts(String search) throws DataException {
 		String needle = search.trim().toUpperCase().replaceAll("'", "''");
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT songs.id as id, title, added_date, notes FROM songs")
-		.append(" LEFT OUTER JOIN song_parts ON songs.id = song_parts.song_id")
-		.append(" WHERE searchable_title LIKE '%").append(needle).append("%'")
-		.append(" OR searchable_text LIKE '%").append(needle).append("%'");
+		sb.append("SELECT SONGS.ID, TITLE, NOTES, ADDED_DATE FROM ( ")
+		  .append("SELECT DISTINCT ID FROM ( ")
+		  .append("SELECT ID FROM SONGS WHERE searchable_title LIKE '%").append(needle).append("%' ")
+		  .append("UNION ")
+		  .append("SELECT DISTINCT SONG_ID AS ID FROM SONG_PARTS WHERE searchable_text LIKE '%").append(needle).append("%' ")
+		  .append(") AS T1) AS T2 ") 
+		  .append("JOIN SONGS ON SONGS.ID = T2.ID");
 		
 		// get the songs
 		List<Song> songs = Songs.getSongsBySql(sb.toString());
 		
-		// loop over the songs
-		for (Song song : songs) {
-			song.parts = Songs.getSongPartsBySql("SELECT * FROM song_parts WHERE song_id = " + song.id + " ORDER BY part_type, part_index");
-		}
-		
 		// return the song
 		return songs;
 	}
-	
+			
 	/**
 	 * Saves the given song.
 	 * @param song the song to save
