@@ -34,6 +34,7 @@ import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.data.song.SongExporter;
 import org.praisenter.data.song.SongImporter;
 import org.praisenter.data.song.Songs;
+import org.praisenter.data.song.ui.SongsPanel;
 import org.praisenter.icons.Icons;
 import org.praisenter.notification.ui.NotificationPanel;
 import org.praisenter.resources.Messages;
@@ -70,6 +71,9 @@ public class Praisenter extends JFrame implements ActionListener {
 	/** The notification panel */
 	private NotificationPanel pnlNotification;
 	
+	/** The song panel */
+	private SongsPanel pnlSongs;
+	
 	/**
 	 * Default constructor.
 	 */
@@ -87,8 +91,12 @@ public class Praisenter extends JFrame implements ActionListener {
 		// create the bible panel
 		this.pnlBible = new BiblePanel();
 		
+		// create the songs panel
+		this.pnlSongs = new SongsPanel();
+		
 		JTabbedPane tabs = new JTabbedPane();
 		tabs.addTab(Messages.getString("bible"), this.pnlBible);
+		tabs.addTab(Messages.getString("songs"), this.pnlSongs);
 		
 		container.add(pnlNotification, BorderLayout.PAGE_START);
 		container.add(tabs, BorderLayout.CENTER);

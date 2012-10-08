@@ -162,11 +162,25 @@ public class Bibles {
 	public static final int getBookCount(Bible bible, boolean includeApocrypha) throws DataException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(code) FROM bible_books WHERE bible_id = ").append(bible.id);
+		sb.append("SELECT COUNT(code) FROM bible_books WHERE bible_id = ? ");
 		if (!includeApocrypha) {
-			sb.append(" AND code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
+			sb.append("AND code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
-		return getCountBySql(sb.toString());
+		
+		// execute the query
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, bible.id);
+
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return result.getInt(1);
+			}
+			
+			return 0;
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
 	}
 	
 	// chapters
