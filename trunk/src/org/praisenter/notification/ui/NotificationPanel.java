@@ -87,10 +87,12 @@ public class NotificationPanel extends JPanel implements ActionListener {
 			}
 		};
 		this.txtText.setColumns(20);
+		this.txtText.addFocusListener(new SelectTextFocusListener(this.txtText));
 		
 		this.txtWaitPeriod = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtWaitPeriod.setValue(nSettings.getDefaultWaitPeriod());
 		this.txtWaitPeriod.setColumns(5);
+		this.txtWaitPeriod.addFocusListener(new SelectTextFocusListener(this.txtWaitPeriod));
 		
 		// setup the transition lists
 		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(gSettings.getPrimaryOrDefaultDisplay());

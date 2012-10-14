@@ -70,8 +70,8 @@ public class SongExporter {
 		sb.append("<SongPart>")
 		  .append("<Id>").append(part.id).append("</Id>")
 		  .append("<Type>").append(part.type).append("</Type>")
-		  .append("<Index>").append(part.partIndex).append("</Index>")
-		  .append("<Name>").append(StringEscapeUtils.escapeXml(part.partName)).append("</Name>")
+		  .append("<Index>").append(part.index).append("</Index>")
+		  .append("<Order>").append(part.order).append("</Order>")
 		  .append("<Text>").append(StringEscapeUtils.escapeXml(part.text)).append("</Text>")
 		  .append("<FontSize>").append(part.fontSize).append("</FontSize>")
 		  .append("</SongPart>");

@@ -1,6 +1,7 @@
 package org.praisenter.data.song;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -59,23 +60,71 @@ public class Song {
 		this.dateAdded = dateAdded;
 		this.parts = new ArrayList<SongPart>();
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof Song) {
+			Song song = (Song)obj;
+			if (song.id == this.id) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return this.id;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Song[Id=").append(this.id)
+		  .append("|Title=").append(this.title)
+		  .append("|Notes=").append(this.notes)
+		  .append("|DateAdded=").append(this.dateAdded)
+		  .append("]");
+		return sb.toString();
+	}
+	
+	/**
+	 * Returns true if this song is a new song (that has not been saved).
+	 * @return boolean
+	 */
+	public boolean isNew() {
+		return this.id == Song.NEW_SONG_ID;
+	}
 	
 	/**
 	 * Creates a new song part for this song, adds it to the list of song
 	 * parts and return it.
 	 * @param type the song part type
-	 * @param partName the song part name
 	 * @param text the song part text
 	 * @return {@link SongPart}
 	 */
-	public SongPart addSongPart(SongPartType type, String partName, String text) {
+	public SongPart addSongPart(SongPartType type, String text) {
 		SongPart last = this.getLastSongPart(type);
 		int index = SongPart.BEGINNING_INDEX;
 		if (last != null) {
-			index = last.partIndex + 1;
+			index = last.index + 1;
 		}
-		SongPart part = new SongPart(type, partName, text, index);
+		SongPart part = new SongPart(type, index, text);
+		// set the song id
+		part.songId = this.id;
 		this.parts.add(part);
+		Collections.sort(this.parts);
 		return part;
 	}
 	
@@ -93,10 +142,11 @@ public class Song {
 		// get the last part of this part's type
 		SongPart last = this.getLastSongPart(part.type);
 		if (last != null) {
-			part.partIndex = last.partIndex + 1;
+			part.index = last.index + 1;
 		}
 		// add the song part
 		this.parts.add(part);
+		Collections.sort(this.parts);
 	}
 	
 	/**
@@ -110,7 +160,7 @@ public class Song {
 	public SongPart getSongPart(SongPartType type, int index) {
 		for (SongPart part : this.parts) {
 			if (part.getType() == type) {
-				if (part.getPartIndex() == index) {
+				if (part.getIndex() == index) {
 					return part;
 				}
 			}
@@ -130,7 +180,7 @@ public class Song {
 		SongPart last = null;
 		for (SongPart part : this.parts) {
 			if (part.getType() == type) {
-				if (part.getPartIndex() > index) {
+				if (part.getIndex() > index) {
 					last = part;
 				}
 			}

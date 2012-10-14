@@ -109,8 +109,8 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	/** The found/not-found verse label */
 	private JLabel lblFound;
 	
-	/** The table of saved verses */
-	private JTable tblSavedVerses;
+	/** The table of queued verses */
+	private JTable tblVerseQueue;
 	
 	/** The combo box of transitions for sending */
 	private JComboBox<Transition> cmbSendTransitions;
@@ -522,8 +522,8 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 										.addComponent(pnlLookupButtons, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
 						.addComponent(pnlSendClearButtons)));
 		
-		// create the queue table
-		this.tblSavedVerses = new JTable(new MutableBibleTableModel()) {
+		// create the verse queue table
+		this.tblVerseQueue = new JTable(new MutableBibleTableModel()) {
 			@Override
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
@@ -542,19 +542,19 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				return super.getToolTipText(event);
 			}
 		};
-		this.tblSavedVerses.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		this.tblSavedVerses.setColumnSelectionAllowed(false);
-		this.tblSavedVerses.setCellSelectionEnabled(false);
-		this.tblSavedVerses.setRowSelectionAllowed(true);
-		this.tblSavedVerses.addMouseListener(new MouseAdapter() {
+		this.tblVerseQueue.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		this.tblVerseQueue.setColumnSelectionAllowed(false);
+		this.tblVerseQueue.setCellSelectionEnabled(false);
+		this.tblVerseQueue.setRowSelectionAllowed(true);
+		this.tblVerseQueue.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// make sure its a double click
 				if (e.getClickCount() == 2) {
 					// get the selected row
-					int row = tblSavedVerses.rowAtPoint(e.getPoint());
+					int row = tblVerseQueue.rowAtPoint(e.getPoint());
 					// get the data
-					BibleTableModel model = (BibleTableModel)tblSavedVerses.getModel();
+					BibleTableModel model = (BibleTableModel)tblVerseQueue.getModel();
 					Verse verse = model.getRow(row);
 					// set the selection
 					cmbBooks.setSelectedItem(verse.getBook());
@@ -569,18 +569,18 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 					} catch (DataException ex) {
 						// just log this exception because the user
 						// should still be able to click the preview button
-						LOGGER.error("An error occurred while updating the verse displays from a saved verse: ", ex);
+						LOGGER.error("An error occurred while updating the verse displays from a queued verse: ", ex);
 					}
 				}
 			}
 		});
-		this.tblSavedVerses.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		this.setSavedVersesTableWidths();
+		this.tblVerseQueue.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		this.setVerseQueueTableWidths();
 		
-		// wrap the saved verses table in a scroll pane
-		JScrollPane scrSavedVerses = new JScrollPane(this.tblSavedVerses);
+		// wrap the verse queue table in a scroll pane
+		JScrollPane scrVerseQueue = new JScrollPane(this.tblVerseQueue);
 		
-		// need two buttons for the saved verses
+		// need two buttons for the verse queue
 		JButton btnRemoveSelected = new JButton(Messages.getString("panel.bible.removeSelected"));
 		btnRemoveSelected.setToolTipText(Messages.getString("panel.bible.removeSelected.tooltip"));
 		btnRemoveSelected.addActionListener(this);
@@ -608,6 +608,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		};
 		this.txtBibleSearch.setActionCommand("search");
 		this.txtBibleSearch.addActionListener(this);
+		this.txtBibleSearch.addFocusListener(new SelectTextFocusListener(this.txtBibleSearch));
 		
 		this.cmbBibleSearchType = new JComboBox<BibleSearchType>(BibleSearchType.values());
 		this.cmbBibleSearchType.setRenderer(new BibleSearchTypeListCellRenderer());
@@ -684,22 +685,22 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		// wrap the search table in a scroll pane
 		JScrollPane scrBibleSearchResults = new JScrollPane(this.tblBibleSearchResults);
 		
-		// create the saved verses/bible search panels
-		JPanel pnlSavedVerses = new JPanel();
-		GroupLayout svLayout = new GroupLayout(pnlSavedVerses);
-		pnlSavedVerses.setLayout(svLayout);
+		// create the verse queue/bible search panels
+		JPanel pnlVerseQueue = new JPanel();
+		GroupLayout svLayout = new GroupLayout(pnlVerseQueue);
+		pnlVerseQueue.setLayout(svLayout);
 		svLayout.setAutoCreateContainerGaps(true);
 		svLayout.setAutoCreateGaps(true);
 		svLayout.setHorizontalGroup(svLayout.createParallelGroup()
 				.addGroup(svLayout.createSequentialGroup()
 						.addComponent(btnRemoveSelected)
 						.addComponent(btnRemoveAll))
-				.addComponent(scrSavedVerses, 400, 400, Short.MAX_VALUE));
+				.addComponent(scrVerseQueue, 400, 400, Short.MAX_VALUE));
 		svLayout.setVerticalGroup(svLayout.createSequentialGroup()
 				.addGroup(svLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(btnRemoveSelected, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnRemoveAll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrSavedVerses, 150, 200, 400));
+				.addComponent(scrVerseQueue, 150, 200, 400));
 		
 		JPanel pnlBibleSearch = new JPanel();
 		GroupLayout bsLayout = new GroupLayout(pnlBibleSearch);
@@ -723,7 +724,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				.addComponent(scrBibleSearchResults, 150, 200, 400));
 		
 		JTabbedPane tableTabs = new JTabbedPane();
-		tableTabs.addTab(Messages.getString("panel.bible.savedVerses"), pnlSavedVerses);
+		tableTabs.addTab(Messages.getString("panel.bible.verseQueue"), pnlVerseQueue);
 		tableTabs.addTab(Messages.getString("panel.bible.bibleSearch"), pnlBibleSearch);
 		
 		// default any fields
@@ -891,12 +892,12 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		}
 		// check for remove selected
 		else if ("remove-selected".equals(command)) {
-			MutableBibleTableModel model = (MutableBibleTableModel)this.tblSavedVerses.getModel();
+			MutableBibleTableModel model = (MutableBibleTableModel)this.tblVerseQueue.getModel();
 			model.removeSelectedRows();
 		}
 		// check for remove all
 		else if ("remove-all".equals(command)) {
-			MutableBibleTableModel model = (MutableBibleTableModel)this.tblSavedVerses.getModel();
+			MutableBibleTableModel model = (MutableBibleTableModel)this.tblVerseQueue.getModel();
 			model.removeAllRows();
 		}
 	}
@@ -1011,7 +1012,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	}
 	
 	/**
-	 * Adds the current verse to the list of saved verses.
+	 * Adds the current verse to the list of queued verses.
 	 * @param bible the bible
 	 * @param book the book
 	 * @param chapter the chapter
@@ -1028,7 +1029,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				// update the displays
 				this.updateVerseDisplays(text);
 				// add the verse to the queue
-				MutableBibleTableModel model = (MutableBibleTableModel)this.tblSavedVerses.getModel();
+				MutableBibleTableModel model = (MutableBibleTableModel)this.tblVerseQueue.getModel();
 				model.addRow(text);
 			} else {
 				this.verseFound = false;
@@ -1295,17 +1296,17 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	}
 	
 	/**
-	 * Sets the table column widths for the saved verses table.
+	 * Sets the table column widths for the verse queue table.
 	 */
-	private void setSavedVersesTableWidths() {
-		this.tblSavedVerses.getColumnModel().getColumn(0).setMaxWidth(35);
-		this.tblSavedVerses.getColumnModel().getColumn(0).setPreferredWidth(35);
-		this.tblSavedVerses.getColumnModel().getColumn(1).setMaxWidth(150);
-		this.tblSavedVerses.getColumnModel().getColumn(1).setPreferredWidth(110);
-		this.tblSavedVerses.getColumnModel().getColumn(2).setMaxWidth(35);
-		this.tblSavedVerses.getColumnModel().getColumn(2).setPreferredWidth(35);
-		this.tblSavedVerses.getColumnModel().getColumn(3).setMaxWidth(35);
-		this.tblSavedVerses.getColumnModel().getColumn(3).setPreferredWidth(35);
+	private void setVerseQueueTableWidths() {
+		this.tblVerseQueue.getColumnModel().getColumn(0).setMaxWidth(35);
+		this.tblVerseQueue.getColumnModel().getColumn(0).setPreferredWidth(35);
+		this.tblVerseQueue.getColumnModel().getColumn(1).setMaxWidth(150);
+		this.tblVerseQueue.getColumnModel().getColumn(1).setPreferredWidth(110);
+		this.tblVerseQueue.getColumnModel().getColumn(2).setMaxWidth(35);
+		this.tblVerseQueue.getColumnModel().getColumn(2).setPreferredWidth(35);
+		this.tblVerseQueue.getColumnModel().getColumn(3).setMaxWidth(35);
+		this.tblVerseQueue.getColumnModel().getColumn(3).setPreferredWidth(35);
 	}
 	
 	/**

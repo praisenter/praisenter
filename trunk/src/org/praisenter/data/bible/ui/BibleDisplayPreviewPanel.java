@@ -25,11 +25,19 @@ public class BibleDisplayPreviewPanel extends InlineDisplayPreviewPanel<BibleDis
 	 * Default constructor.
 	 */
 	public BibleDisplayPreviewPanel() {
-		super(20, 5, DISPLAY_NAMES);
+		super(20, 5);
 		
 		this.displays.add(null);
 		this.displays.add(null);
 		this.displays.add(null);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.display.ui.MultipleDisplayPreviewPanel#getDisplayName(org.praisenter.display.Display, int)
+	 */
+	@Override
+	protected String getDisplayName(BibleDisplay display, int index) {
+		return DISPLAY_NAMES[index];
 	}
 	
 	/**

@@ -290,8 +290,6 @@ public abstract class Settings {
 						this.settings.put(key, device);
 						// return it
 						return device;
-					} else {
-						LOGGER.warn("Display device: [" + string + "] not found.");
 					}
 				} catch (Exception e) {
 					LOGGER.warn("Unable to parse setting: " + key + " value: " + string, e);

@@ -175,16 +175,20 @@ public class PraisenterSongReader extends DefaultHandler {
 			if (this.dataBuilder != null) {
 				String data = this.dataBuilder.toString().trim();
 				try {
-					this.part.setPartIndex(Integer.parseInt(data));
+					this.part.setIndex(Integer.parseInt(data));
 				} catch (NumberFormatException e) {
 					throw new SAXException("Unable to parse part index: ", e);
 				}
 			}
-		} else if ("Name".equalsIgnoreCase(qName)) {
+		} else if ("Order".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				String data = this.dataBuilder.toString().trim();
-				this.part.setPartName(StringEscapeUtils.unescapeXml(data));
+				try {
+					this.part.setOrder(Integer.parseInt(data));
+				} catch (NumberFormatException e) {
+					throw new SAXException("Unable to parse part order: ", e);
+				}
 			}
 		} else if ("Text".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating

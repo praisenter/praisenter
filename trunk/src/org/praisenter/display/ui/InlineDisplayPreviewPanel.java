@@ -4,12 +4,9 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Rectangle;
-import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 
 import org.praisenter.display.Display;
-import org.praisenter.utilities.FontManager;
 
 /**
  * Represents a panel that shows a preview of displays on one line.
@@ -18,22 +15,17 @@ import org.praisenter.utilities.FontManager;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class InlineDisplayPreviewPanel<E extends Display> extends MultipleDisplayPreviewPanel<E> {
+public abstract class InlineDisplayPreviewPanel<E extends Display> extends MultipleDisplayPreviewPanel<E> {
 	/** The version id */
 	private static final long serialVersionUID = -6376569581892016128L;
 
-	/** The list of display names */
-	protected String[] displayNames;
-	
 	/**
 	 * Constructor to create an {@link InlineDisplayPreviewPanel} with display names.
 	 * @param innerSpacing the display inner spacing
 	 * @param nameSpacing the spacing between the display and its name
-	 * @param displayNames the display names
 	 */
-	public InlineDisplayPreviewPanel(int innerSpacing, int nameSpacing, String... displayNames) {
+	public InlineDisplayPreviewPanel(int innerSpacing, int nameSpacing) {
 		super(innerSpacing, nameSpacing, true);
-		this.displayNames = displayNames;
 	}
 	
 	/**
@@ -42,7 +34,6 @@ public class InlineDisplayPreviewPanel<E extends Display> extends MultipleDispla
 	 */
 	public InlineDisplayPreviewPanel(int innerSpacing) {
 		super(innerSpacing, 0, false);
-		this.displayNames = null;
 	}
 	
 	/**
@@ -69,12 +60,9 @@ public class InlineDisplayPreviewPanel<E extends Display> extends MultipleDispla
 		// if there are no displays, then just return null
 		if (n == 0) return null;
 		
-		// get the insets
-		Insets insets = this.getInsets();
-		
 		// estimate the total width and total height
 		double m = maximum;
-		double w = insets.left + insets.right;
+		double w = 0;
 		double h = 0;
 		
 		// loop over the displays
@@ -101,26 +89,7 @@ public class InlineDisplayPreviewPanel<E extends Display> extends MultipleDispla
 			}
 		}
 		
-		h += insets.top + insets.bottom;
-		if (this.includeDisplayName) {
-			// estimate the text height
-			Rectangle2D bounds = FontManager.getDefaultFont().getMaxCharBounds(new FontRenderContext(new AffineTransform(), true, false));
-			h += bounds.getHeight() + this.nameSpacing;
-		}
-		
 		return new Dimension((int)Math.ceil(w), (int)Math.ceil(h));
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.display.ui.DisplayPreviewPanel#getTotalAvailableRenderingBounds()
-	 */
-	@Override
-	protected Rectangle getTotalAvailableRenderingBounds() {
-		Rectangle bounds = super.getTotalAvailableRenderingBounds();
-		int n = this.displays.size();
-		// for inline displays we need to remove the inner spacing
-		bounds.width -= this.innerSpacing * (n - 1);
-		return bounds;
 	}
 	
 	/* (non-Javadoc)
@@ -134,34 +103,36 @@ public class InlineDisplayPreviewPanel<E extends Display> extends MultipleDispla
 		if (n == 0) return;
 		
 		// the width/height of each display
-		final int adw = bounds.width / n;
+		final int w = (bounds.width - this.innerSpacing * (n - 1));
+		final int adw = w / n;
 		final int adh = bounds.height;
+//		System.out.println("Render: " + bounds.width);
 		
 		// compute the display metrics for all the displays
 		// also compute the total width
 		DisplayPreviewMetrics[] metrics = new DisplayPreviewMetrics[n];
-		int tw = this.innerSpacing * (n - 1) / 2;
+		int tw = this.innerSpacing * (n - 1);
 		for (int i = 0; i < n; i++) {
 			metrics[i] = this.getDisplayMetrics(g2d, this.displays.get(i), adw, adh);
 			tw += metrics[i].totalWidth;
+			System.out.println("Render: " + metrics[i].totalWidth + " " + metrics[i].totalHeight);
 		}
+		System.out.println("Render: " + tw);
 		
 		// save the old transform
 		AffineTransform oldTransform = g2d.getTransform();
 		
 		// apply the y translation
-		g2d.translate(bounds.x + (bounds.width - tw) / 2, bounds.y);
+		int px = bounds.width > tw ? (bounds.width - tw) / 2 : 0;
+		g2d.translate(bounds.x + px, bounds.y);
 		
 		// preferably the displays are all the same aspect ratio
 		// but we can't guarantee it
 		for (int i = 0; i < n; i++) {
-			Display display = this.displays.get(i);
+			E display = this.displays.get(i);
 			DisplayPreviewMetrics displayMetrics = metrics[i];
 			
-			String name = null;
-			if (this.displayNames != null && this.displayNames.length > i) {
-				name = this.displayNames[i];
-			}
+			String name = this.getDisplayName(display, i);
 			this.renderDisplay(g2d, display, name, displayMetrics);
 			
 			// apply the x translation of the width

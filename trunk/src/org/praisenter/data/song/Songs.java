@@ -104,9 +104,9 @@ public class Songs {
 					result.getInt("id"),
 					result.getInt("song_id"),
 					Songs.getPartTypeForString(result.getString("part_type")),
-					result.getString("part_name"),
-					result.getString("text"),
 					result.getInt("part_index"),
+					result.getString("text"),
+					result.getInt("order_by"),
 					result.getInt("font_size"));
 		} catch (SQLException e) {
 			throw new DataException("An error occurred when interpreting the song part result.", e);
@@ -242,6 +242,7 @@ public class Songs {
 			sb.append("SELECT * FROM song_parts WHERE song_id = ").append(id);
 			// get the song parts
 			song.parts = Songs.getSongPartsBySql(sb.toString());
+			Collections.sort(song.parts);
 		}
 		
 		// return the song
@@ -258,7 +259,7 @@ public class Songs {
 		List<Song> songs = Songs.getSongsBySql("SELECT * FROM songs ORDER BY id");
 		
 		// get the song parts
-		List<SongPart> parts = Songs.getSongPartsBySql("SELECT * FROM song_parts ORDER BY song_id, part_type, part_index");
+		List<SongPart> parts = Songs.getSongPartsBySql("SELECT * FROM song_parts ORDER BY song_id");
 		
 		// loop over the songs
 		for (Song song : songs) {
@@ -276,6 +277,7 @@ public class Songs {
 					break;
 				}
 			}
+			Collections.sort(song.parts);
 		}
 		
 		// sort by title
@@ -284,36 +286,6 @@ public class Songs {
 		// return the songs
 		return songs;
 	}
-	
-	// FIXME this is broken and should be removed or fixed
-//	
-//	/**
-//	 * Returns the list of matching songs for the given search criteria.
-//	 * <p>
-//	 * This will search song title and song part text.
-//	 * @param search the search criteria
-//	 * @return List&lt;{@link Song}&gt;
-//	 * @throws DataException if an exception occurs during execution
-//	 */
-//	public static final List<Song> searchSongs(String search) throws DataException {
-//		String needle = search.trim().toUpperCase().replaceAll("'", "''");
-//		StringBuilder sb = new StringBuilder();
-//		sb.append("SELECT songs.id as id, title, added_date, notes FROM songs")
-//		.append(" LEFT OUTER JOIN song_parts ON songs.id = song_parts.song_id")
-//		.append(" WHERE searchable_title LIKE '%").append(needle).append("%'")
-//		.append(" OR searchable_text LIKE '%").append(needle).append("%'");
-//		
-//		// get the songs
-//		List<Song> songs = Songs.getSongsBySql(sb.toString());
-//		
-//		// loop over the songs
-//		for (Song song : songs) {
-//			song.parts = Songs.getSongPartsBySql("SELECT * FROM song_parts WHERE song_id = " + song.id + " ORDER BY part_type, part_index");
-//		}
-//		
-//		// return the song
-//		return songs;
-//	}
 	
 	/**
 	 * Returns the list of matching songs for the given search criteria.
@@ -326,13 +298,16 @@ public class Songs {
 	public static final List<Song> searchSongsWithoutParts(String search) throws DataException {
 		String needle = search.trim().toUpperCase().replaceAll("'", "''");
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT SONGS.ID, TITLE, NOTES, ADDED_DATE FROM ( ")
-		  .append("SELECT DISTINCT ID FROM ( ")
-		  .append("SELECT ID FROM SONGS WHERE searchable_title LIKE '%").append(needle).append("%' ")
+		sb.append("SELECT songs.id, title, notes, added_date FROM ( ")
+		  // only get the distinct ids
+		  .append("SELECT DISTINCT id FROM ( ")
+		  // search the titles
+		  .append("SELECT id FROM songs WHERE searchable_title LIKE '%").append(needle).append("%' ")
 		  .append("UNION ")
-		  .append("SELECT DISTINCT SONG_ID AS ID FROM SONG_PARTS WHERE searchable_text LIKE '%").append(needle).append("%' ")
-		  .append(") AS T1) AS T2 ") 
-		  .append("JOIN SONGS ON SONGS.ID = T2.ID");
+		  // search the text
+		  .append("SELECT DISTINCT song_id AS id FROM song_parts WHERE searchable_text LIKE '%").append(needle).append("%' ")
+		  .append(") AS t1) AS t2 ") 
+		  .append("JOIN songs ON songs.id = t2.id ORDER BY searchable_title");
 		
 		// get the songs
 		List<Song> songs = Songs.getSongsBySql(sb.toString());
@@ -365,6 +340,33 @@ public class Songs {
 			// this could happen if we couldnt get a connection or
 			// the auto-commit flag could not be set
 			throw new DataException(MessageFormat.format(Messages.getString("songs.save.failed"), song.title), e);
+		}
+	}
+	
+	/**
+	 * Saves the given song part.
+	 * @param songPart the song part to save
+	 * @throws DataException if an exception occurs during execution
+	 */
+	public static final void saveSongPart(SongPart songPart) throws DataException {
+		try (Connection connection = ConnectionFactory.getSongsConnection()) {
+			// start a transaction
+			connection.setAutoCommit(false);
+			try {
+				// attempt to save the song part
+				saveSongPart(songPart, connection);
+				// commit the transaction
+				connection.commit();
+			} catch (SQLException e) {
+				// rollback any changes
+				connection.rollback();
+				// throw an exception
+				throw new DataException(MessageFormat.format(Messages.getString("songs.part.save.failed"), songPart.getType().getName(), songPart.getIndex(), songPart.getSongId()), e);
+			}
+		} catch (SQLException e) {
+			// this could happen if we couldnt get a connection or
+			// the auto-commit flag could not be set
+			throw new DataException(MessageFormat.format(Messages.getString("songs.part.save.failed"), songPart.getType().getName(), songPart.getIndex(), songPart.getSongId()), e);
 		}
 	}
 	
@@ -415,56 +417,53 @@ public class Songs {
 		// check for a new song
 		if (song.getId() == Song.NEW_SONG_ID) {
 			// perform an insert
-			try (PreparedStatement statement = connection.prepareStatement("INSERT INTO songs (title, notes, added_date) VALUES(?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-				statement.setString(1, truncate(song.title, 100));
-				statement.setClob(2, new StringReader(song.notes));
-				statement.setTimestamp(3, new Timestamp(song.dateAdded.getTime()));
-				// execute the insert
-				int n = statement.executeUpdate();
-				// make sure it worked
-				if (n > 0) {
-					// get the generated id
-					ResultSet result = statement.getGeneratedKeys();
-					if (result.next()) {
-						// get the song id
-						int id = result.getInt(1);
-						song.id = id;
-					}
+			PreparedStatement statement = connection.prepareStatement("INSERT INTO songs (title, notes, added_date) VALUES(?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+			statement.setString(1, truncate(song.title, 100));
+			statement.setClob(2, new StringReader(song.notes));
+			statement.setTimestamp(3, new Timestamp(song.dateAdded.getTime()));
+			// execute the insert
+			int n = statement.executeUpdate();
+			// make sure it worked
+			if (n > 0) {
+				// get the generated id
+				ResultSet result = statement.getGeneratedKeys();
+				if (result.next()) {
+					// get the song id
+					int id = result.getInt(1);
+					song.id = id;
 				} else {
-					// throw an exception
 					throw new SQLException("Failed to save the song, no auto-id generated.");
 				}
-			} catch (SQLException e) {
-				throw e;
+			} else {
+				// throw an exception
+				throw new SQLException("Failed to save the song, no auto-id generated.");
 			}
 		} else {
 			// perform an update
-			try (PreparedStatement statement = connection.prepareStatement("UPDATE songs SET title = ?, notes = ? WHERE id = ?")) {
-				statement.setString(1, truncate(song.title, 100));
-				statement.setClob(2, new StringReader(song.notes));
-				statement.setInt(3, song.id);
-				int n = statement.executeUpdate();
-				if (n <= 0) {
-					// throw an exception
-					throw new SQLException("Failed to save the song, the update was unsuccessful.");
-				}
-			} catch (SQLException e) {
-				throw e;
+			PreparedStatement statement = connection.prepareStatement("UPDATE songs SET title = ?, notes = ? WHERE id = ?");
+			statement.setString(1, truncate(song.title, 100));
+			statement.setClob(2, new StringReader(song.notes));
+			statement.setInt(3, song.id);
+			int n = statement.executeUpdate();
+			if (n <= 0) {
+				// throw an exception
+				throw new SQLException("Failed to save the song, the update was unsuccessful.");
 			}
 		}
 		
 		// then save the song parts
 		if (song.id != Song.NEW_SONG_ID) {
+			// delete any existing song parts
+			PreparedStatement statement = connection.prepareStatement("DELETE FROM song_parts WHERE song_id = ?");
+			statement.setInt(1, song.id);
+			statement.executeUpdate();
+			
 			// loop over the song parts
 			for (SongPart part : song.parts) {
 				// assign the song id
 				part.songId = song.id;
 				// save the part
-				try {
-					Songs.saveSongPart(connection, part);
-				} catch (SQLException e) {
-					throw new SQLException("Song part failed to be saved: ", e);
-				}
+				Songs.saveSongPart(part, connection);
 			}
 		} else {
 			// throw an exception
@@ -474,68 +473,38 @@ public class Songs {
 	
 	/**
 	 * Saves the given song part and returns true if successful.
-	 * @param connection the connection
 	 * @param songPart the song part
-	 * @return boolean
+	 * @param connection the connection
 	 * @throws SQLException if an exception occurs during execution
 	 */
-	private static final boolean saveSongPart(Connection connection, SongPart songPart) throws SQLException {
-		// check the song part id
-		if (songPart.getId() == SongPart.NEW_SONG_PART_ID) {
-			// then its a new song part
-			if (songPart.getSongId() == Song.NEW_SONG_ID) {
-				// the song id is not set so we can't save this part
-				throw new SQLException("Failed to save song part due to invalid song id: " + songPart.songId);
-			} else {
-				// perform an insert
-				try (PreparedStatement statement = connection.prepareStatement("INSERT INTO song_parts (song_id, part_type, part_name, part_index, text, font_size) VALUES(?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
-					statement.setInt(1, songPart.songId);
-					statement.setString(2, Songs.getStringForPartType(songPart.type));
-					statement.setString(3, truncate(songPart.partName, 30));
-					statement.setInt(4, songPart.partIndex);
-					statement.setClob(5, new StringReader(songPart.text));
-					statement.setInt(6, songPart.fontSize);
-					
-					int n = statement.executeUpdate();
-					if (n > 0) {
-						ResultSet result = statement.getGeneratedKeys();
-						if (result.next()) {
-							// get the song part id
-							int id = result.getInt(1);
-							songPart.id = id;
-							return true;
-						}
-					} else {
-						throw new SQLException("Failed to save song part due to no generated song part id.");
-					}
-				} catch (SQLException e) {
-					throw e;
-				}
-			}
+	private static final void saveSongPart(SongPart songPart, Connection connection) throws SQLException {
+		if (songPart.getSongId() == Song.NEW_SONG_ID) {
+			// the song id is not set so we can't save this part
+			throw new SQLException("Failed to save song part due to invalid song id: " + songPart.songId);
 		} else {
-			// the song part already exists
-			if (songPart.getSongId() == Song.NEW_SONG_ID) {
-				// the song id is not set so we can't save this part
-				throw new SQLException("Failed to save song part due to invalid song id: " + songPart.songId);
-			} else {
-				try (PreparedStatement statement = connection.prepareStatement("UPDATE song_parts SET part_type = ?, part_name = ?, part_index = ?, text = ?, font_size = ? WHERE id = ?")) {
-					statement.setString(1, Songs.getStringForPartType(songPart.type));
-					statement.setString(2, truncate(songPart.partName, 30));
-					statement.setInt(3, songPart.partIndex);
-					statement.setClob(4, new StringReader(songPart.text));
-					statement.setInt(5, songPart.fontSize);
-					statement.setInt(6, songPart.id);
-					
-					int n = statement.executeUpdate();
-					if (n <= 0) {
-						throw new SQLException("Failed to save song part. The update was unsuccessful.");
-					}
-				} catch (SQLException e) {
-					throw e;
+			// perform an insert
+			PreparedStatement statement = connection.prepareStatement("INSERT INTO song_parts (song_id, part_type, part_index, order_by, font_size, text) VALUES(?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+			statement.setInt(1, songPart.songId);
+			statement.setString(2, Songs.getStringForPartType(songPart.type));
+			statement.setInt(3, songPart.index);
+			statement.setInt(4, songPart.order);
+			statement.setInt(5, songPart.fontSize);
+			statement.setClob(6, new StringReader(songPart.text));
+			
+			int n = statement.executeUpdate();
+			if (n > 0) {
+				ResultSet result = statement.getGeneratedKeys();
+				if (result.next()) {
+					// get the song part id
+					int id = result.getInt(1);
+					songPart.id = id;
+				} else {
+					throw new SQLException("Failed to save song part due to no generated song part id.");
 				}
+			} else {
+				throw new SQLException("Failed to save song part due to no generated song part id.");
 			}
 		}
-		return false;
 	}
 	
 	/**
@@ -559,18 +528,30 @@ public class Songs {
 	public static final boolean deleteSong(int id) throws DataException {
 		// check the id
 		if (id != Song.NEW_SONG_ID) {
-			try (Connection connection = ConnectionFactory.getSongsConnection();
-				 Statement statement = connection.createStatement();)
+			try (Connection connection = ConnectionFactory.getSongsConnection())
 			{
-				// its possible that this one will return 0 if there are no song parts
-				statement.executeUpdate("DELETE FROM song_parts WHERE song_id = " + id);
-				// so only check this one
-				int n = statement.executeUpdate("DELETE FROM songs WHERE id = " + id);
-				if (n > 0) {
-					return true;
+				connection.setAutoCommit(false);
+				
+				try {
+					PreparedStatement statement = connection.prepareStatement("DELETE FROM song_parts WHERE song_id = ?");
+					statement.setInt(1, id);
+					statement.executeUpdate();
+					
+					statement = connection.prepareStatement("DELETE FROM songs WHERE id = ?");
+					statement.setInt(1, id);
+					int n = statement.executeUpdate();
+					if (n <= 0) {
+						// throw an exception
+						throw new SQLException("Failed to delete song.");
+					}
+				} catch (SQLException e) {
+					// rollback any changes
+					connection.rollback();
+					// throw an exception
+					throw new DataException(Messages.getString("songs.delete.failed"), e);
 				}
 			} catch (SQLException e) {
-				throw new DataException(Messages.getString("songs.save.failed"), e);
+				throw new DataException(Messages.getString("songs.delete.failed"), e);
 			}
 		}
 		return false;

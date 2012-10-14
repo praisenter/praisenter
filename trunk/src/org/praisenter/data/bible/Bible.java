@@ -66,10 +66,10 @@ public class Bible implements Comparable<Bible> {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Bible[id=").append(this.id)
-		  .append("|name=").append(this.name)
-		  .append("|language=").append(this.language)
-		  .append("|source=").append(this.source)
+		sb.append("Bible[Id=").append(this.id)
+		  .append("|Name=").append(this.name)
+		  .append("|Language=").append(this.language)
+		  .append("|Source=").append(this.source)
 		  .append("]");
 		return sb.toString();
 	}
