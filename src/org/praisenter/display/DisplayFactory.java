@@ -7,6 +7,7 @@ import org.praisenter.resources.Messages;
 import org.praisenter.settings.BibleSettings;
 import org.praisenter.settings.GraphicsComponentSettings;
 import org.praisenter.settings.NotificationSettings;
+import org.praisenter.settings.SongSettings;
 import org.praisenter.settings.TextComponentSettings;
 
 /**
@@ -15,6 +16,7 @@ import org.praisenter.settings.TextComponentSettings;
  * @version 1.0.0
  * @since 1.0.0
  */
+// TODO allow background sharing of components; this could improve performance significantly
 public class DisplayFactory {
 	/**
 	 * Creates a new {@link BibleDisplay} from the given {@link BibleSettings}.
@@ -170,6 +172,76 @@ public class DisplayFactory {
 		textComponent.setTextFont(tSet.getTextFont());
 		
 		display.setTextComponent(textComponent);
+		
+		return display;
+	}
+	
+	/**
+	 * Creates a new {@link SongDisplay} from the given {@link SongSettings}.
+	 * @param settings the settings
+	 * @param displaySize the target display size
+	 * @return {@link SongDisplay}
+	 */
+	public static final SongDisplay getDisplay(SongSettings settings, Dimension displaySize) {
+		// get the minimum dimension (typically the height)
+		int maxd = displaySize.height;
+		if (maxd > displaySize.width) {
+			// the width is smaller so use it
+			maxd = displaySize.width;
+		}
+		// set the default screen to text component padding
+		final int margin = (int)Math.floor((double)maxd * 0.04);
+		
+		SongDisplay display = new SongDisplay(displaySize);
+		
+		// get sub settings
+		GraphicsComponentSettings<GraphicsComponent> bSet = settings.getBackgroundSettings();
+		TextComponentSettings tSet = settings.getTextSettings();
+		
+		// create a background
+		GraphicsComponent background = display.createBackgroundComponent("Background");
+		background.setBackgroundColor(bSet.getBackgroundColor());
+		background.setBackgroundColorCompositeType(bSet.getBackgroundColorCompositeType());
+		background.setBackgroundColorVisible(bSet.isBackgroundColorVisible());
+		background.setBackgroundImage(bSet.getBackgroundImage());
+		background.setBackgroundImageScaleQuality(bSet.getBackgroundImageScaleQuality());
+		background.setBackgroundImageScaleType(bSet.getBackgroundImageScaleType());
+		background.setBackgroundImageVisible(bSet.isBackgroundImageVisible());
+		background.setVisible(bSet.isVisible());
+		
+		// compute the default width, height and position
+		final int h = displaySize.height - margin * 2;
+		final int w = displaySize.width - margin * 2;
+		
+		// create the title text component
+		Rectangle textBounds = tSet.getBounds();
+		if (textBounds == null) {
+			textBounds = new Rectangle(margin, margin, w, h);
+		}
+		TextComponent text = new TextComponent("Text", Messages.getString("display.song.defaultText"), textBounds.width, textBounds.height, true);
+		// general
+		text.setX(textBounds.x);
+		text.setY(textBounds.y);
+		text.setVisible(tSet.isVisible());
+		// color
+		text.setBackgroundColor(tSet.getBackgroundColor());
+		text.setBackgroundColorCompositeType(tSet.getBackgroundColorCompositeType());
+		text.setBackgroundColorVisible(tSet.isBackgroundColorVisible());
+		// image
+		text.setBackgroundImage(tSet.getBackgroundImage());
+		text.setBackgroundImageScaleQuality(tSet.getBackgroundImageScaleQuality());
+		text.setBackgroundImageScaleType(tSet.getBackgroundImageScaleType());
+		text.setBackgroundImageVisible(tSet.isBackgroundImageVisible());
+		// text
+		text.setTextColor(tSet.getTextColor());
+		text.setTextAlignment(tSet.getTextAlignment());
+		text.setTextFontScaleType(tSet.getTextFontScaleType());
+		text.setTextWrapped(tSet.isTextWrapped());
+		text.setPadding(tSet.getPadding());
+		text.setTextFont(tSet.getTextFont());
+		
+		display.setBackgroundComponent(background);
+		display.setTextComponent(text);
 		
 		return display;
 	}

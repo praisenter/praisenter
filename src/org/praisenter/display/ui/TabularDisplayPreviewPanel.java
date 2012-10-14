@@ -1,43 +1,45 @@
 package org.praisenter.display.ui;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+
+import javax.swing.JScrollPane;
 
 import org.praisenter.display.Display;
 import org.praisenter.utilities.FontManager;
 
 /**
- * Represents a panel that shows a preview of displays in a
- * tabular format.
+ * Represents a panel that shows a preview of displays in a tabular format.
  * @param <E> the display type
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class TabularDisplayPreviewPanel<E extends Display> extends MultipleDisplayPreviewPanel<E> {
+public abstract class TabularDisplayPreviewPanel<E extends Display> extends MultipleDisplayPreviewPanel<E> {
 	/** The version id */
 	private static final long serialVersionUID = -6376569581892016128L;
 
 	protected int columns;
 	
-	/** The list of display names */
-	protected String[] displayNames;
+	protected JScrollPane scroller;
 	
 	/**
 	 * Constructor to create an {@link TabularDisplayPreviewPanel} with display names.
 	 * @param innerSpacing the display inner spacing
 	 * @param nameSpacing the spacing between the display and its name
-	 * @param displayNames the display names
 	 */
-	public TabularDisplayPreviewPanel(int columns, int innerSpacing, int nameSpacing, String... displayNames) {
+	public TabularDisplayPreviewPanel(int columns, int innerSpacing, int nameSpacing) {
 		super(innerSpacing, nameSpacing, true);
 		this.columns = columns;
-		this.displayNames = displayNames;
 	}
 	
 	/**
@@ -45,19 +47,7 @@ public class TabularDisplayPreviewPanel<E extends Display> extends MultipleDispl
 	 * @param innerSpacing the display inner spacing
 	 */
 	public TabularDisplayPreviewPanel(int columns, int innerSpacing) {
-		this(columns, innerSpacing, 0, (String[])null);
-	}
-	
-	/**
-	 * Sets the minimum size of this component to the computed
-	 * size using the given maximum display dimension.
-	 * @param maximum the maximum dimension of a display
-	 */
-	public void setMinimumSize(int maximum) {
-		Dimension size = this.getComputedSize(maximum);
-		if (size != null) {
-			this.setMinimumSize(size);
-		}
+		this(columns, innerSpacing, 0);
 	}
 	
 	/**
@@ -67,19 +57,29 @@ public class TabularDisplayPreviewPanel<E extends Display> extends MultipleDispl
 	 * @return Dimension
 	 */
 	// FIXME this will set the size of the panel so that all displays can fit, this panel should then be placed in a scrollpane
-	protected Dimension getComputedSize(int maximum) {
+	// FIXME this isnt quite the way i want it.  The slides need to be sized as if they were using the inline display
+	public Dimension getComputedSize(int maximum) {
 		int n = this.displays.size();
 
 		// if there are no displays, then just return null
 		if (n == 0) return null;
 		
-		// get the insets
-		Insets insets = this.getInsets();
-		
 		// estimate the total width and total height
 		double m = maximum;
-		double w = insets.left + insets.right;
-		double h = insets.top + insets.bottom;
+		double w = 0;
+		double h = 0;
+		
+		double rw = 0.0;
+		double rh = 0.0;
+		
+		double tw = maximum;
+		if (this.scroller != null) {
+			Insets insets = this.getInsets();
+			//FIXME this should be the JScrollPane
+//			Component container = this.getParent().getParent();
+			tw = this.scroller.getSize().getWidth();
+			tw /= this.columns;
+		}
 		
 		// loop over the displays
 		for (int i = 0; i < n; i++) {
@@ -88,43 +88,36 @@ public class TabularDisplayPreviewPanel<E extends Display> extends MultipleDispl
 			Dimension size = display.getDisplaySize();
 			
 			// compute the width/height scales
-			double pw = m / size.getWidth();
-			double ph = m / size.getHeight();
+			double sc = tw / size.getWidth();
+//			double ph = m / size.getHeight();
 			
 			// use the scaling factor that will scale the most
-			double sc = pw < ph ? pw : ph;
+//			double sc = pw < ph ? pw : ph;
 			
 			// compute the width of the display with all the features
 			double dw = sc * size.getWidth();
 			double dh = sc * size.getHeight();
 			// increment the width
-			w += dw;
-			h += dh;
+			rw += dw;
+			// take the max height for the row
+			rh = rh < dh ? dh : rh;
+			if ((i + 1) % this.columns == 0) {
+				// only take the maximum row width
+				w = w < rw ? rw : w;
+				rw = 0.0;
+				// increment the height
+				h += rh;
+				rh = 0.0;
+			}
 		}
 		
-		if (this.includeDisplayName) {
-			// estimate the text height
-			Rectangle2D bounds = FontManager.getDefaultFont().getMaxCharBounds(new FontRenderContext(new AffineTransform(), true, false));
-			h += (bounds.getHeight() + this.nameSpacing) * (this.getNumberOfRows() - 1);
-		}
-		
+//		w += this.innerSpacing * (this.columns - 1) + insets.left + insets.right;
+		h += rh;
 		return new Dimension((int)Math.ceil(w), (int)Math.ceil(h));
 	}
 	
 	protected int getNumberOfRows() {
 		return (int)Math.ceil((double)this.displays.size() / (double)this.columns);
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.display.ui.DisplayPreviewPanel#getTotalAvailableRenderingBounds()
-	 */
-	@Override
-	protected Rectangle getTotalAvailableRenderingBounds() {
-		Rectangle bounds = super.getTotalAvailableRenderingBounds();
-		// for tabular displays we need to remove the inner spacing
-		bounds.width -= this.innerSpacing * (this.columns - 1);
-		bounds.height -= this.innerSpacing * (this.getNumberOfRows() - 1);
-		return bounds;
 	}
 	
 	/* (non-Javadoc)
@@ -137,47 +130,83 @@ public class TabularDisplayPreviewPanel<E extends Display> extends MultipleDispl
 		// if there are no displays to render then just return
 		if (n == 0) return;
 		
+		int rows = this.getNumberOfRows();
+		final int w = bounds.width - this.innerSpacing * (this.columns - 1);
+		final int h = bounds.height - this.innerSpacing * (rows - 1);
+		
 		// the width/height of each display
-		final int adw = bounds.width / this.columns;
-		final int adh = bounds.height;
+		final int adw = w / this.columns;
+		final int adh = h / rows;
 		
 		// compute the display metrics for all the displays
 		// also compute the total width
 		DisplayPreviewMetrics[] metrics = new DisplayPreviewMetrics[n];
-		int tw = this.innerSpacing * (this.columns - 1) / 2;
+		int tw = 0;
+		int rw = 0;
+		int mrw = 0;
 		for (int i = 0; i < n; i++) {
 			metrics[i] = this.getDisplayMetrics(g2d, this.displays.get(i), adw, adh);
-			tw += metrics[i].totalWidth;
+			rw += metrics[i].totalWidth;
+			if ((i + 1) % this.columns == 0) {
+				// keep the maximum row width
+				mrw = mrw < rw ? rw : mrw;
+				rw = 0;
+			}
 		}
+		tw += mrw;
 		
 		// save the old transform
 		AffineTransform oldTransform = g2d.getTransform();
 		
 		// apply the y translation
-		g2d.translate(bounds.x + (bounds.width - tw) / 2, bounds.y);
+		g2d.translate(bounds.x + (w - tw - this.innerSpacing) / 2, bounds.y);
 		
 		// preferably the displays are all the same aspect ratio
 		// but we can't guarantee it
+		int x = 0;
+		int mh = 0;
 		for (int i = 0; i < n; i++) {
-			Display display = this.displays.get(i);
+			E display = this.displays.get(i);
 			DisplayPreviewMetrics displayMetrics = metrics[i];
 			
-			String name = null;
-			if (this.displayNames != null && this.displayNames.length > i) {
-				name = this.displayNames[i];
-			}
+			String name = this.getDisplayName(display, i);
 			this.renderDisplay(g2d, display, name, displayMetrics);
 			
+			// use the maximum height
+			mh = mh < displayMetrics.totalHeight ? displayMetrics.totalHeight : mh;
+			
+			int dx = displayMetrics.totalWidth + this.innerSpacing;
 			if ((i + 1) % this.columns == 0) {
 				// FIXME the x coordinate needs to be reset to bounds.x + (bounds.width - tw) / 2
-				g2d.translate(displayMetrics.totalWidth + this.innerSpacing, displayMetrics.totalHeight + this.innerSpacing);
+				// i think keeping a total of the x translation and then translating back will do the job
+				g2d.translate(-x, mh + this.innerSpacing);
+				x = 0;
+				mh = 0;
 			} else {
+				x += dx;
 				// apply the x translation of the width
-				g2d.translate(displayMetrics.totalWidth + this.innerSpacing, 0);
+				g2d.translate(dx, 0);
 			}
 		}
 		
 		// reset the transform
 		g2d.setTransform(oldTransform);
+	}
+	
+	public void setScrollPane(JScrollPane scroller) {
+		this.scroller = scroller;
+		this.scroller.addComponentListener(new ComponentListener() {
+			@Override
+			public void componentShown(ComponentEvent e) {}
+			@Override
+			public void componentResized(ComponentEvent e) {
+				Dimension size = getComputedSize(300);
+				setPreferredSize(size);
+			}
+			@Override
+			public void componentMoved(ComponentEvent e) {}
+			@Override
+			public void componentHidden(ComponentEvent e) {}
+		});
 	}
 }

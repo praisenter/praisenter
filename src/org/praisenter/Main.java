@@ -17,6 +17,7 @@ import org.praisenter.settings.BibleSettings;
 import org.praisenter.settings.ErrorReportingSettings;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.NotificationSettings;
+import org.praisenter.settings.SongSettings;
 // FIXME add text to the README.txt about how to install (unzip the distributable)
 // FIXME add license to all files
 /**
@@ -94,6 +95,9 @@ public class Main {
 		
 		// initialize bible settings
 		BibleSettings.getInstance();
+		
+		// initialize song settings
+		SongSettings.getInstance();
 	}
 	
 	/**

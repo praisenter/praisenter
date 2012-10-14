@@ -75,16 +75,6 @@ public class BibleSearchThread extends Thread {
 					try {
 						// search the verses
 						verses = Bibles.searchVerses(bible, text, type, ia);
-//						verses = bible.searchVerses(text, type);
-//						verses = bible.searchVerses(1, text);
-//						verses = bible.searchVerses(text, BibleSearchType.ANY_WORD);
-//						verses = bible.searchVerses(testament, text);
-//						verses = bible.searchVerses(bookId, chapter, text);
-//						verses = bible.searchVerses(1, text, BibleSearchType.);
-//						verses = bible.searchVerses(Testament.OLD, text, BibleSearchType.PHRASE);
-//						verses = bible.searchVerses(1, 1, text, BibleSearchType.PHRASE);
-//						verses = bible.searchVersesByLocation(text);
-//						verses = bible.searchBooks(text);
 						// assign the verses
 						callback.result = verses;
 					} catch (DataException ex) {

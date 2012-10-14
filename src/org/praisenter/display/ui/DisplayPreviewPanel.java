@@ -166,7 +166,7 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 		this.renderTransparentBackground(g2d, idw, idh);
 		
 		Shape clip = g2d.getClip();
-		g2d.setClip(0, 0, idw, idh);
+		g2d.clipRect(0, 0, idw, idh);
 		
 		// create a scaling transform
 		AffineTransform ot2 = g2d.getTransform();
@@ -212,7 +212,7 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	
 	/**
 	 * Returns the actual rendered display metrics.
-	 * @param g2d the graphics object target
+	 * @param g2d the graphics object
 	 * @param display the display
 	 * @param adw the available width (for name, shadow, and borders)
 	 * @param adh the available height (for name, shadow, and borders)
@@ -223,8 +223,9 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 		// get the text height
 		if (this.includeDisplayName) {
 			// get the text height
-			FontMetrics metrics = g2d.getFontMetrics();
-			th = metrics.getMaxAscent() + metrics.getMaxDescent() + metrics.getLeading() + this.nameSpacing;
+//			FontMetrics fontMetrics = g2d.getFontMetrics();
+			// FIXME this should be a static field
+			th = 30 + this.nameSpacing;
 		}
 		
 		// get the real width and height of the display area
@@ -296,7 +297,7 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 		}
 		
 		Shape oClip = g2d.getClip();
-		g2d.setClip(0, 0, w, h);
+		g2d.clipRect(0, 0, w, h);
 		// render the image
 		g2d.drawImage(image, 0, 0, null);
 		g2d.setClip(oClip);

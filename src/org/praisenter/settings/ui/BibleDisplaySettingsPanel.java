@@ -27,12 +27,6 @@ public class BibleDisplaySettingsPanel extends FullScreenDisplaySettingsPanel<Bi
 	/** The version id */
 	private static final long serialVersionUID = -5766205823834580532L;
 
-	/** The scripture title property name */
-	protected static final String PROPERTY_SCRIPTURE_TITLE = "ScriptureTitle";
-	
-	/** The scripture text property name */
-	protected static final String PROPERTY_SCRIPTURE_TEXT = "ScriptureText";
-	
 	/**
 	 * Minimal constructor.
 	 * @param settings the bible display settings

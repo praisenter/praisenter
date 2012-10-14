@@ -172,16 +172,14 @@ public class ChurchViewSongReader extends DefaultHandler {
 					SongPart sp = new SongPart();
 					sp.setType(type);
 					sp.setText(text);
-					sp.setPartName(qName);
+					sp.setOrder(1);
 					if (qName.startsWith("Verse") || qName.startsWith("Chorus")) {
 						Matcher matcher = SONG_PART_PATTERN.matcher(qName);
 						if (matcher.matches()) {
-							String name = matcher.group(1);
 							String n = matcher.group(2);
 							try {
 								int index = Integer.parseInt(n);
-								sp.setPartIndex(index);
-								sp.setPartName(name + " " + index);
+								sp.setIndex(index);
 							} catch (NumberFormatException e) {
 								throw new SAXException("Unable to parse the song part index: '" + n + "' as an integer.");
 							}

@@ -67,4 +67,12 @@ public abstract class MultipleDisplayPreviewPanel<E extends Display> extends Dis
 	 * @param bounds the total available rendering bounds
 	 */
 	protected abstract void renderDisplays(Graphics2D g2d, Rectangle bounds);
+	
+	/**
+	 * Returns the display name for the given display
+	 * @param display the display
+	 * @param index the display index
+	 * @return String
+	 */
+	protected abstract String getDisplayName(E display, int index);
 }

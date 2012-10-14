@@ -27,6 +27,7 @@ import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.NotificationSettings;
 import org.praisenter.settings.SettingsException;
 import org.praisenter.settings.SettingsListener;
+import org.praisenter.settings.SongSettings;
 import org.praisenter.tasks.AbstractTask;
 import org.praisenter.tasks.TaskProgressDialog;
 import org.praisenter.ui.BottomButtonPanel;
@@ -55,6 +56,9 @@ public class SettingsDialog extends JDialog implements ActionListener {
 	
 	/** The panel for the bible settings */
 	private BibleSettingsPanel pnlBibleSettings;
+
+	/** The panel for the song settings */
+	private SongSettingsPanel pnlSongSettings;
 	
 	/** The panel for the notification settings */
 	private NotificationSettingsPanel pnlNotificationSettings;
@@ -74,6 +78,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
 		// get the settings
 		GeneralSettings gSettings = GeneralSettings.getInstance();
 		BibleSettings bSettings = BibleSettings.getInstance();
+		SongSettings sSettings = SongSettings.getInstance();
 		NotificationSettings nSettings = NotificationSettings.getInstance();
 		ErrorReportingSettings eSettings = ErrorReportingSettings.getInstance();
 		
@@ -86,16 +91,19 @@ public class SettingsDialog extends JDialog implements ActionListener {
 		// create the settings panels
 		this.pnlGeneralSettings = new GeneralSettingsPanel(gSettings);
 		this.pnlBibleSettings = new BibleSettingsPanel(bSettings, size);
+		this.pnlSongSettings = new SongSettingsPanel(sSettings, size);
 		this.pnlNotificationSettings = new NotificationSettingsPanel(nSettings, size);
 		this.pnlErrorReportingSettings = new ErrorReportingSettingsPanel(eSettings);
 		
 		// set the panels to listen for property change events from the general panel
 		// since the general panel contains the setup for the displays
 		this.pnlGeneralSettings.addPropertyChangeListener(GeneralSettingsPanel.PRIMARY_DISPLAY_PROPERTY, this.pnlBibleSettings);
-		this.pnlNotificationSettings.addPropertyChangeListener(GeneralSettingsPanel.PRIMARY_DISPLAY_PROPERTY, this.pnlNotificationSettings);
+		this.pnlGeneralSettings.addPropertyChangeListener(GeneralSettingsPanel.PRIMARY_DISPLAY_PROPERTY, this.pnlNotificationSettings);
+		this.pnlGeneralSettings.addPropertyChangeListener(GeneralSettingsPanel.PRIMARY_DISPLAY_PROPERTY, this.pnlSongSettings);
 		
 		this.pnlGeneralSettings.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		this.pnlBibleSettings.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+		this.pnlSongSettings.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		this.pnlNotificationSettings.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		this.pnlErrorReportingSettings.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		
@@ -123,6 +131,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
 		JTabbedPane pneTabs = new JTabbedPane();
 		pneTabs.addTab(Messages.getString("dialog.setup.general"), this.pnlGeneralSettings);
 		pneTabs.addTab(Messages.getString("dialog.setup.bible"), this.pnlBibleSettings);
+		pneTabs.addTab(Messages.getString("dialog.setup.song"), this.pnlSongSettings);
 		pneTabs.addTab(Messages.getString("dialog.setup.notification"), this.pnlNotificationSettings);
 		pneTabs.addTab(Messages.getString("dialog.setup.error"), this.pnlErrorReportingSettings);
 		
@@ -149,6 +158,7 @@ public class SettingsDialog extends JDialog implements ActionListener {
 					try {
 						pnlGeneralSettings.saveSettings();
 						pnlBibleSettings.saveSettings();
+						pnlSongSettings.saveSettings();
 						pnlNotificationSettings.saveSettings();
 						pnlErrorReportingSettings.saveSettings();
 						this.setSuccessful(true);

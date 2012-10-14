@@ -22,14 +22,21 @@ public class MutableSongTableModel extends SongTableModel {
 	/** The list of selection status */
 	protected List<Boolean> selectedItems = new ArrayList<Boolean>();
 	
+	/**
+	 * Default constructor.
+	 */
 	public MutableSongTableModel() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
+	/**
+	 * Full constructor.
+	 * @param songs the list of songs
+	 */
 	public MutableSongTableModel(List<Song> songs) {
 		super(songs);
-		for(Song song : songs) {
+		// add a selected boolean for each song
+		for(int i = 0; i < songs.size(); i++) {
 			this.selectedItems.add(false);
 		}
 	}
@@ -55,6 +62,29 @@ public class MutableSongTableModel extends SongTableModel {
 	}
 	
 	/**
+	 * Adds the given songs to this table model.
+	 * @param songs the songs
+	 */
+	public void addRows(List<Song> songs) {
+		if (songs != null && songs.size() > 0) {
+			// make sure the songs array is not null
+			if (this.songs == null) {
+				// if it is, then create it
+				this.songs = new ArrayList<Song>();
+			}
+			int size = this.songs.size();
+			// add all the songs
+			this.songs.addAll(songs);
+			// create all the selected bools
+			for (int i = 0; i < songs.size(); i++) {
+				this.selectedItems.add(false);
+			}
+			// let the listener know about the added rows
+			this.fireTableRowsInserted(size, size + songs.size() - 2);
+		}
+	}
+
+	/**
 	 * Removes the given row.
 	 * @param rowIndex the row to remove
 	 */
@@ -69,11 +99,50 @@ public class MutableSongTableModel extends SongTableModel {
 			this.fireTableRowsDeleted(rowIndex, rowIndex);
 		}
 	}
+
+	/**
+	 * Removes the given row.
+	 * @param song the song row to remove
+	 */
+	public void removeRow(Song song) {
+		// make sure the row exists
+		if (this.songs != null) {
+			int rowIndex = this.songs.indexOf(song);
+			if (rowIndex >= 0) {
+				// remove the row
+				this.songs.remove(rowIndex);
+				// remove its corresponding selection row
+				this.selectedItems.remove(rowIndex);
+				// let the listeners know that the table had a row deleted
+				this.fireTableRowsDeleted(rowIndex, rowIndex);
+			}
+		}
+	}
 	
 	/**
-	 * Removes all the currently selected rows.
+	 * Updates the given row.
+	 * @param song the song row to update
 	 */
-	public void removeSelectedRows() {
+	public void updateRow(Song song) {
+		// make sure the row exists
+		if (this.songs != null) {
+			int rowIndex = this.songs.indexOf(song);
+			if (rowIndex >= 0) {
+				// remove the row
+				this.songs.set(rowIndex, song);
+				// let the listeners know that the table had a row deleted
+				this.fireTableRowsUpdated(rowIndex, rowIndex);
+			}
+		}
+	}
+	
+	/**
+	 * Removes all the currently selected rows
+	 * and returns them.
+	 * @return List&lt;{@link Song}&gt;
+	 */
+	public List<Song> removeSelectedRows() {
+		List<Song> songs = new ArrayList<Song>();
 		// make sure there are some rows
 		if (this.songs != null && this.songs.size() > 0) {
 			// loop over the selected items list and store
@@ -94,16 +163,20 @@ public class MutableSongTableModel extends SongTableModel {
 			// remove all the indexes that were selected
 			for (int j : indices) {
 				// remove the verse
-				this.songs.remove(j);
+				Song song = this.songs.remove(j);
 				// remove its corresponding selection row
 				this.selectedItems.remove(j);
+				// add the song to the removed list
+				songs.add(song);
 			}
 			// let the listeners know that we have changed the
 			// table in some way
 			this.fireTableDataChanged();
 		}
+		
+		return songs;
 	}
-	
+
 	/**
 	 * Removes all the rows.
 	 */
@@ -119,7 +192,44 @@ public class MutableSongTableModel extends SongTableModel {
 			this.fireTableDataChanged();
 		}
 	}
+	
+	/**
+	 * Returns all the currently selected rows.
+	 * @return List&lt;{@link Song}&gt;
+	 */
+	public List<Song> getSelectedRows() {
+		List<Song> songs = new ArrayList<Song>();
+		for (int i = 0; i < this.songs.size(); i++) {
+			if (this.selectedItems.get(i)) {
+				songs.add(this.songs.get(i));
+			}
+		}
+		return songs;
+	}
 
+	/**
+	 * Returns true if any song is selected.
+	 * @return boolean
+	 */
+	public boolean isSongSelected() {
+		for (Boolean bool : this.selectedItems) {
+			if (bool) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * De-selects all selected rows.
+	 */
+	public void deselectAll() {
+		for (int i = 0; i < this.selectedItems.size(); i++) {
+			this.selectedItems.set(i, false);
+		}
+		this.fireTableDataChanged();
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.panel.bible.BibleTableModel#getColumnCount()
 	 */

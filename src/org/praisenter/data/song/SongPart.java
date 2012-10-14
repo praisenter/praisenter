@@ -1,12 +1,16 @@
 package org.praisenter.data.song;
 
+import java.text.MessageFormat;
+
+import org.praisenter.resources.Messages;
+
 /**
  * Represents a part of a {@link Song}; a verse for example.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SongPart {
+public class SongPart implements Comparable<SongPart> {
 	/** The new song id */
 	protected static final int NEW_SONG_PART_ID = -1;
 	
@@ -24,15 +28,15 @@ public class SongPart {
 	
 	/** The song part type */
 	protected SongPartType type;
-	
-	/** The song part name; typically something like 'Chorus 1' */
-	protected String partName;
-	
+
 	/** The song part index; for sorting of like part types */
-	protected int partIndex;
+	protected int index;
 	
 	/** The song part text */
 	protected String text;
+	
+	/** The song part order */
+	protected int order;
 	
 	/** The song part font size */
 	protected int fontSize;
@@ -41,28 +45,26 @@ public class SongPart {
 	 * Default constructor.
 	 */
 	public SongPart() {
-		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, SongPartType.OTHER, "", "", SongPart.BEGINNING_INDEX, SongPart.DEFAULT_FONT_SIZE);
+		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, SongPartType.CHORUS, SongPart.BEGINNING_INDEX, "", 0, SongPart.DEFAULT_FONT_SIZE);
 	}
 	
 	/**
 	 * Optional constructor.
 	 * @param type the song part type
-	 * @param partName the part name; typically something like 'Chorus 1'
 	 * @param text the part text
 	 */
-	public SongPart(SongPartType type, String partName, String text) {
-		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, type, partName, text, SongPart.BEGINNING_INDEX, SongPart.DEFAULT_FONT_SIZE);
+	public SongPart(SongPartType type, String text) {
+		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, type, SongPart.BEGINNING_INDEX, text, 0, SongPart.DEFAULT_FONT_SIZE);
 	}
 	
 	/**
 	 * Optional constructor.
 	 * @param type the song part type
-	 * @param partName the part name; typically something like 'Chorus 1'
-	 * @param text the part text
 	 * @param index the part index
+	 * @param text the part text
 	 */
-	public SongPart(SongPartType type, String partName, String text, int index) {
-		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, type, partName, text, index, SongPart.DEFAULT_FONT_SIZE);
+	public SongPart(SongPartType type, int index, String text) {
+		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, type, index, text, 0, SongPart.DEFAULT_FONT_SIZE);
 	}
 	
 	/**
@@ -70,18 +72,18 @@ public class SongPart {
 	 * @param id the part id
 	 * @param songId the song id
 	 * @param type the song part type
-	 * @param partName the part name; typically something like 'Chorus 1'
-	 * @param partIndex the part index
+	 * @param index the part index
 	 * @param text the part text
+	 * @param order the part order
 	 * @param fontSize the the part font size
 	 */
-	protected SongPart(int id, int songId, SongPartType type, String partName, String text, int partIndex, int fontSize) {
+	protected SongPart(int id, int songId, SongPartType type, int index, String text, int order, int fontSize) {
 		this.id = id;
 		this.songId = songId;
 		this.type = type;
-		this.partName = partName;
-		this.partIndex = partIndex;
+		this.index = index;
 		this.text = text;
+		this.order = order;
 		this.fontSize = fontSize;
 	}
 	
@@ -95,10 +97,81 @@ public class SongPart {
 		this.id = SongPart.NEW_SONG_PART_ID;
 		this.songId = part.songId;
 		this.type = part.type;
-		this.partName = part.partName;
-		this.partIndex = part.partIndex;
+		this.index = part.index;
 		this.text = part.text;
+		this.order = part.order;
 		this.fontSize = part.fontSize;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(SongPart o) {
+		// sort by order first
+		int diff = this.order - o.order;
+		if (diff == 0) {
+			// sort by type next
+			diff = this.type.compareTo(o.type);
+			if (diff == 0) {
+				// sort by index next
+				diff = this.index - o.index;
+				if (diff == 0) {
+					// sort by text next
+					diff = this.text.compareTo(o.text);
+				}
+			}
+		}
+		return diff;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof SongPart) {
+			SongPart part = (SongPart)obj;
+			if (part.id == this.id) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return this.id;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("SongPart[Id=").append(this.id)
+		  .append("|SongId=").append(this.songId)
+		  .append("|Type=").append(this.type)
+		  .append("|Index=").append(this.index)
+		  .append("|Text=").append(this.text)
+		  .append("|Order=").append(this.order)
+		  .append("|FontSize=").append(this.fontSize)
+		  .append("]");
+		return sb.toString();
+	}
+	
+	/**
+	 * Returns the name for this part.
+	 * @return String
+	 */
+	public String getName() {
+		return MessageFormat.format(Messages.getString("song.part.name.pattern"), this.type.getName(), this.index);
 	}
 	
 	/**
@@ -150,35 +223,35 @@ public class SongPart {
 	}
 	
 	/**
-	 * Returns the song part name.
-	 * @return String
-	 */
-	public String getPartName() {
-		return this.partName;
-	}
-	
-	/**
-	 * Set song part name.
-	 * @param partName the song part name
-	 */
-	public void setPartName(String partName) {
-		this.partName = partName;
-	}
-	
-	/**
 	 * Returns the song part index.
 	 * @return int
 	 */
-	public int getPartIndex() {
-		return this.partIndex;
+	public int getIndex() {
+		return this.index;
 	}
 	
 	/**
 	 * Sets the song part index.
 	 * @param partIndex the song part index
 	 */
-	public void setPartIndex(int partIndex) {
-		this.partIndex = partIndex;
+	public void setIndex(int partIndex) {
+		this.index = partIndex;
+	}
+	
+	/**
+	 * Returns the part order.
+	 * @return int
+	 */
+	public int getOrder() {
+		return this.order;
+	}
+	
+	/**
+	 * Sets the part order
+	 * @param order the order
+	 */
+	public void setOrder(int order) {
+		this.order = order;
 	}
 	
 	/**

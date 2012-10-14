@@ -259,7 +259,7 @@ public class Errors {
 		    	  .append("<tr><td style='background-color: #00FF66; border: 1px solid #000000; padding: 5px;'>Timestamp</td><td style='border: 1px solid #000000; padding: 5px;'>").append(error.timestamp).append("</td></tr>")
 	    	  .append("</table>")
 	    	  .append("<p>").append(error.description).append("<p>")
-	    	  .append("<p>").append(error.stacktrace.replaceAll("\\n\\r?", "<br />")).append("<p>");
+	    	  .append("<p>").append(error.stacktrace.replaceAll("(\\r\\n)|(\\r)|(\\n)", "<br />")).append("<p>");
 	    }
 	    
 	    // set the content
