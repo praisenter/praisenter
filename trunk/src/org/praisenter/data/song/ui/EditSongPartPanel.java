@@ -26,7 +26,7 @@ import org.praisenter.ui.SelectTextFocusListener;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SongPartPanel extends JPanel implements ItemListener, PropertyChangeListener, DocumentListener {
+public class EditSongPartPanel extends JPanel implements ItemListener, PropertyChangeListener, DocumentListener {
 	/** The version id */
 	private static final long serialVersionUID = -6670959052726030508L;
 	
@@ -55,12 +55,11 @@ public class SongPartPanel extends JPanel implements ItemListener, PropertyChang
 	 * @param song the song the part is on
 	 * @param part the song part to edit; can be null
 	 */
-	public SongPartPanel(Song song, SongPart part) {
+	public EditSongPartPanel(Song song, SongPart part) {
 		this.song = song;
 		this.part = part;
 		this.notificationsDisabled = true;
 		
-		// FIXME for now we only allowing these modifications; later we may need to add/remove some fields from the SongPart class
 		SongPartType type = SongPartType.CHORUS;
 		int index = 1;
 		String text = "";

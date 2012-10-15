@@ -2,7 +2,6 @@ package org.praisenter.display.ui;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 
@@ -106,7 +105,6 @@ public abstract class InlineDisplayPreviewPanel<E extends Display> extends Multi
 		final int w = (bounds.width - this.innerSpacing * (n - 1));
 		final int adw = w / n;
 		final int adh = bounds.height;
-//		System.out.println("Render: " + bounds.width);
 		
 		// compute the display metrics for all the displays
 		// also compute the total width
@@ -115,9 +113,7 @@ public abstract class InlineDisplayPreviewPanel<E extends Display> extends Multi
 		for (int i = 0; i < n; i++) {
 			metrics[i] = this.getDisplayMetrics(g2d, this.displays.get(i), adw, adh);
 			tw += metrics[i].totalWidth;
-			System.out.println("Render: " + metrics[i].totalWidth + " " + metrics[i].totalHeight);
 		}
-		System.out.println("Render: " + tw);
 		
 		// save the old transform
 		AffineTransform oldTransform = g2d.getTransform();

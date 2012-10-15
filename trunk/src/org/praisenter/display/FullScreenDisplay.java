@@ -2,6 +2,7 @@ package org.praisenter.display;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 
 /**
  * Represents a full screen display with a background.
@@ -31,6 +32,16 @@ public abstract class FullScreenDisplay extends Display {
 		// render the main background
 		if (this.background != null) {
 			this.background.render(graphics);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.display.Display#prepare(java.awt.GraphicsConfiguration)
+	 */
+	@Override
+	public void prepare(GraphicsConfiguration configuration) {
+		if (this.background != null) {
+			this.background.prepare(configuration);
 		}
 	}
 	

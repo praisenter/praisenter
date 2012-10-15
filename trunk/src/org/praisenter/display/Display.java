@@ -2,6 +2,7 @@ package org.praisenter.display;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 
 /**
  * Represents a generic display with sub components.
@@ -31,6 +32,15 @@ public abstract class Display {
 	 * @param graphics the graphics object
 	 */
 	public abstract void render(Graphics2D graphics);
+	
+	/**
+	 * Prepares the display for rendering.
+	 * <p>
+	 * This is useful when a display is complex and requires time to render.  This allows
+	 * the display to be rendered on a background thread.
+	 * @param configuration the target device graphics configuration
+	 */
+	public abstract void prepare(GraphicsConfiguration configuration);
 	
 	/**
 	 * Invalidates any cached resources for this display.

@@ -2,6 +2,7 @@ package org.praisenter.display;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 
 /**
  * Represents a display for showing a notification.
@@ -32,6 +33,20 @@ public class NotificationDisplay extends Display {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.display.Display#prepare(java.awt.GraphicsConfiguration)
+	 */
+	@Override
+	public void prepare(GraphicsConfiguration configuration) {
+		// prepare the text component
+		if (this.textComponent != null) {
+			this.textComponent.prepare(configuration);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.display.Display#invalidate()
+	 */
 	@Override
 	public void invalidate() {
 		if (this.textComponent != null) {

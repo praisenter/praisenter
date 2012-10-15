@@ -11,27 +11,40 @@ import javax.swing.JScrollPane;
 import org.praisenter.display.Display;
 
 /**
- * Represents a panel that shows a preview of displays on one line.
- * @param <E> the display type
+ * A custom scroll panel for an {@link InlineDisplayPreviewPanel}.
+ * @param <E> the {@link InlineDisplayPreviewPanel} type
+ * @param <K> the {@link Display} type
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
 public class ScrollableInlineDisplayPreviewPanel<E extends InlineDisplayPreviewPanel<K>, K extends Display> extends JScrollPane {
 	/** The version id */
+	private static final long serialVersionUID = 3567536561127877599L;
 	
+	/** The panel to scroll */
 	protected E panel;
 
+	/**
+	 * Minimal constructor.
+	 * @param panel the panel to scroll
+	 */
 	public ScrollableInlineDisplayPreviewPanel(E panel) {
+		// pass the panel as the view
 		super(panel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		
+		// set the panel
 		this.panel = panel;
+		// set the initial panel size
 		this.setPanelSize();
+		
+		// listen for component resize events
 		this.addComponentListener(new ComponentListener() {
 			@Override
 			public void componentShown(ComponentEvent e) {}
 			@Override
 			public void componentResized(ComponentEvent e) {
+				// on resize of the scroll panel, recompute the bounds of the panel
 				setPanelSize();
 			}
 			@Override
@@ -41,23 +54,37 @@ public class ScrollableInlineDisplayPreviewPanel<E extends InlineDisplayPreviewP
 		});
 	}
 	
+	/**
+	 * Recomputes the panel size.
+	 */
 	public void updatePanelSize() {
-		setPanelSize();
+		this.setPanelSize();
 	}
 	
+	/**
+	 * Sets the size of the panel to the computed size.
+	 */
 	protected void setPanelSize() {
 		Dimension size = this.getComputedPanelSize();
+		this.panel.setSize(size);
 		this.panel.setMinimumSize(size);
 		this.panel.setPreferredSize(size);
+		this.panel.setMaximumSize(size);
 	}
 	
+	/**
+	 * Computes the size of the panel depending on the size
+	 * of this scroll panel.
+	 * @return {@link Dimension}
+	 */
 	protected Dimension getComputedPanelSize() {
 		// get the size of this scroll pane
 		Dimension size = this.getSize();
 		Insets insets = this.panel.getInsets();
 		
 		// we want to use the height of the scroll pane as the height of the slides
-		int sh = size.height - this.getHorizontalScrollBar().getSize().height;
+		int sbh = this.getHorizontalScrollBar().getSize().height;
+		int sh = size.height - sbh;
 		
 		// we need to compute the real width of the panel using the maximum height
 		int n = this.panel.displays.size();
@@ -68,28 +95,54 @@ public class ScrollableInlineDisplayPreviewPanel<E extends InlineDisplayPreviewP
 		// estimate the total width
 		int rh = sh - insets.bottom - insets.top;
 		int w = this.panel.innerSpacing * (n - 1) + insets.left + insets.right;
+		int h = 0;
 		
 		// loop over the displays
 		for (int i = 0; i < n; i++) {
 			// get the display size
 			Display display = this.panel.displays.get(i);
-			Dimension ds = display.getDisplaySize();
 			
-			// compute height scale and use that metric for the width
-//			double sc = rh / ds.getHeight();
-			
-			// compute the width of the display with all the features
-//			double dw = sc * ds.getWidth();
-			
+			// attempt to size based on the height of the scrollable panel
 			DisplayPreviewMetrics metrics = this.panel.getDisplayMetrics((Graphics2D)null, display, Integer.MAX_VALUE, rh);
 			int dw = metrics.totalWidth;
-			System.out.println("Computed: " + dw + " " + metrics.totalHeight);
+			int dh = metrics.totalHeight;
 			// increment the width
 			w += dw;
+			// take max height
+			h = h < dh ? dh : h;
 		}
 		
-		System.out.println("Computed: " + w);
+		// add in the insets
+		h += insets.bottom + insets.top;
 		
-		return new Dimension(w, sh);
+		return new Dimension(w, h);
+	}
+	
+	/**
+	 * Sets the loading status of this scrollable preview panel.
+	 * <p>
+	 * Use the {@link #updatePanelSize()} and {@link #repaint()} methods to update
+	 * the scrollable preview panel without the loading animation.
+	 * @param flag true if the preview is loading
+	 */
+	public void setLoading(boolean flag) {
+		if (flag) {
+			// set the size of the view we are scrolling to the size
+			// of this scroller panel
+			// this will make the loading animation appear in the center
+			// of the viewable area (as opposed to the center of the view's area)
+			Dimension size = new Dimension(this.getSize());
+			this.panel.setSize(size);
+			this.panel.setMinimumSize(size);
+			this.panel.setPreferredSize(size);
+			this.panel.setMaximumSize(size);
+		} else {
+			// if we are done loading then we need to resize the
+			// view and reset the horizontal scrollbar position
+			this.updatePanelSize();
+			this.getHorizontalScrollBar().setValue(0);
+		}
+		// finally set the loading status on the view
+		this.panel.setLoading(flag);
 	}
 }

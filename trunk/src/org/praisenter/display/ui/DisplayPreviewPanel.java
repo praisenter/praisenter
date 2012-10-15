@@ -1,8 +1,10 @@
 package org.praisenter.display.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
@@ -17,6 +19,8 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.praisenter.display.Display;
@@ -59,6 +63,9 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	/** The transparent background caching prefix */
 	protected static final String BACKGROUND_CACHE_PREFIX = "BACKGROUND";
 	
+	/** The available height for the display text */
+	protected static final int TEXT_HEIGHT = 20;
+	
 	// fields
 	
 	/** The spacing between the display and the name */
@@ -75,6 +82,14 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	/** The map of cached images */
 	protected Map<String, BufferedImage> imageCache;
 	
+	// loading
+	
+	/** Label for showing a loading animated gif */
+	protected JLabel lblLoading;
+	
+	/** True if a loading animation should be shown rather than the displays */
+	private boolean loading;
+	
 	/**
 	 * Full constructor.
 	 * @param nameSpacing the spacing between the display and its name
@@ -87,6 +102,16 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 		
 		this.nameSpacing = nameSpacing;
 		this.includeDisplayName = includeDisplayName;
+		
+		ImageIcon icon = new ImageIcon(DisplayPreviewPanel.class.getResource("/org/praisenter/icons/loading.gif"));
+		this.lblLoading = new JLabel(icon, JLabel.CENTER);
+		this.lblLoading.setVisible(false);
+		this.lblLoading.setHorizontalAlignment(JLabel.CENTER);
+		this.lblLoading.setVerticalAlignment(JLabel.CENTER);
+		
+		this.setLayout(new BorderLayout());
+		this.add(this.lblLoading, BorderLayout.CENTER);
+		this.loading = false;
 		
 		// have this panel listen for itself resizing
 		this.addComponentListener(this);
@@ -119,6 +144,27 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	@Override
 	public void componentShown(ComponentEvent event) {}
 
+	@Override
+	protected void paintComponent(Graphics graphics) {
+		super.paintComponent(graphics);
+		
+		if (!this.loading) {
+			Graphics2D g2d = (Graphics2D)graphics;
+			
+			// setup fast rendering
+			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+			g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
+			g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+			
+			// the available rendering width/height
+			Rectangle bounds = this.getTotalAvailableRenderingBounds();
+			
+			this.paintPreview(g2d, bounds);
+		}
+	}
+
 	/**
 	 * Returns the total available bounds for rendering.
 	 * @return Rectangle
@@ -126,12 +172,21 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	protected Rectangle getTotalAvailableRenderingBounds() {
 		Dimension size = this.getSize();
 		Insets insets = this.getInsets();
+		int w = size.width;
+		int h = size.height;
 		return new Rectangle(
 				insets.left,
 				insets.top,
-				size.width - insets.left - insets.right,
-				size.height - insets.top - insets.bottom);
+				w - insets.left - insets.right,
+				h - insets.top - insets.bottom);
 	}
+	
+	/**
+	 * Paints the preview.
+	 * @param graphics the grahpics objec to paint to
+	 * @param bounds the available paint bounds
+	 */
+	protected abstract void paintPreview(Graphics2D graphics, Rectangle bounds);
 	
 	/**
 	 * Renders the given display to the given graphics object.
@@ -222,15 +277,14 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 		int th = 0;
 		// get the text height
 		if (this.includeDisplayName) {
-			// get the text height
-//			FontMetrics fontMetrics = g2d.getFontMetrics();
-			// FIXME this should be a static field
-			th = 30 + this.nameSpacing;
+			th = TEXT_HEIGHT + this.nameSpacing;
 		}
 		
 		// get the real width and height of the display area
-		final double radw = adw - TOTAL_BORDER_WIDTH * 2.0 - SHADOW_WIDTH * 2.0;
-		final double radh = adh - TOTAL_BORDER_WIDTH * 2.0 - SHADOW_WIDTH * 2.0 - th;
+		final int border = TOTAL_BORDER_WIDTH * 2;
+		final int shadow = SHADOW_WIDTH * 2;
+		final double radw = adw - border - shadow;
+		final double radh = adh - border - shadow - th;
 		
 		// get the scaled of the display
 		Dimension size = display.getDisplaySize();
@@ -251,8 +305,8 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 		metrics.width = idw;
 		metrics.height = idh;
 		metrics.textHeight = th;
-		metrics.totalWidth = idw;
-		metrics.totalHeight = idh + th;
+		metrics.totalWidth = idw + border + shadow;
+		metrics.totalHeight = idh + border + shadow + th;
 		
 		return metrics;
 	}
@@ -334,6 +388,19 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	}
 	
 	/**
+	 * Sets the loading status of this preview panel.
+	 * <p>
+	 * Use the {@link #repaint()} method to update the preview without the 
+	 * loading animation.
+	 * @param flag true if the preview is loading
+	 */
+	public void setLoading(boolean flag) {
+		this.loading = flag;
+		this.lblLoading.setVisible(flag);
+		this.repaint();
+	}
+	
+	/**
 	 * Returns the spacing between the display and its name.
 	 * @return int
 	 */
@@ -342,26 +409,10 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	}
 
 	/**
-	 * Sets the spacing between the display and its name.
-	 * @param nameSpacing the spacing in pixels
-	 */
-	public void setNameSpacing(int nameSpacing) {
-		this.nameSpacing = nameSpacing;
-	}
-	
-	/**
 	 * Returns true if the display name is rendered.
 	 * @return boolean
 	 */
 	public boolean isIncludeDisplayName() {
 		return includeDisplayName;
-	}
-
-	/**
-	 * Toggles rendering of the display name.
-	 * @param flag true if the display name should be rendered
-	 */
-	public void setIncludeDisplayName(boolean flag) {
-		this.includeDisplayName = flag;
 	}
 }

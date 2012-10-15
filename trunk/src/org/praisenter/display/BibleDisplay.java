@@ -2,6 +2,7 @@ package org.praisenter.display;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 
 import org.praisenter.data.bible.Verse;
 
@@ -39,6 +40,22 @@ public class BibleDisplay extends FullScreenDisplay {
 		}
 		if (this.scriptureTextComponent != null) {
 			this.scriptureTextComponent.render(graphics);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.display.Display#prepare(java.awt.GraphicsConfiguration)
+	 */
+	@Override
+	public void prepare(GraphicsConfiguration configuration) {
+		// prepare the super class stuff
+		super.prepare(configuration);
+		// prepare the text components
+		if (this.scriptureTitleComponent != null) {
+			this.scriptureTitleComponent.prepare(configuration);
+		}
+		if (this.scriptureTextComponent != null) {
+			this.scriptureTextComponent.prepare(configuration);
 		}
 	}
 	
