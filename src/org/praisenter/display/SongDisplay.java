@@ -2,6 +2,7 @@ package org.praisenter.display;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
 
 /**
  * Represents a display for showing songs.
@@ -31,6 +32,19 @@ public class SongDisplay extends FullScreenDisplay {
 		// render the text components
 		if (this.textComponent != null) {
 			this.textComponent.render(graphics);
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.display.Display#prepare(java.awt.GraphicsConfiguration)
+	 */
+	@Override
+	public void prepare(GraphicsConfiguration configuration) {
+		// prepare the super class stuff
+		super.prepare(configuration);
+		// prepare the text components
+		if (this.textComponent != null) {
+			this.textComponent.prepare(configuration);
 		}
 	}
 	

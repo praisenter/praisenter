@@ -1,6 +1,5 @@
 package org.praisenter.data.song.ui;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 

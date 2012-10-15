@@ -36,16 +36,6 @@ public abstract class DisplayComponent {
 	}
 	
 	/**
-	 * Returns the target device's graphics configuration.
-	 * <p>
-	 * If the target doesn't exist or hasn't been assigned we use the default display.
-	 * @return GraphicsConfiguration
-	 */
-	protected static final GraphicsConfiguration getTargetGraphicsConfiguration() {
-		return GeneralSettings.getInstance().getPrimaryOrDefaultDisplay().getDefaultConfiguration();
-	}
-	
-	/**
 	 * Method to set the render quality on the given graphics object.
 	 * @param graphics the graphics
 	 */
@@ -81,6 +71,25 @@ public abstract class DisplayComponent {
 	 * @param graphics the graphics object to render to
 	 */
 	public abstract void render(Graphics2D graphics);
+	
+	/**
+	 * Renders the component to the given graphics object but uses the given graphics configuration to
+	 * generate the graphics.
+	 * <p>
+	 * This method is useful when the component is rendered to one configuration, but needs to be cached
+	 * for speed for another configuration.
+	 * @param graphics the graphics to render to
+	 * @param configuration the target graphics configuration
+	 */
+	public abstract void render(Graphics2D graphics, GraphicsConfiguration configuration);
+	
+	/**
+	 * Prepares the display component for rendering using the given graphics configuration.
+	 * <p>
+	 * Use this method to prepare the component for display on a different thread.
+	 * @param configuration the target graphics configuration
+	 */
+	public abstract void prepare(GraphicsConfiguration configuration);
 	
 	/**
 	 * Renders the graphics component to the given graphics object.

@@ -13,5 +13,4 @@ import org.praisenter.utilities.ImageUtilities;
 public class Images {
 	/** Transparent background */
 	public static final BufferedImage TRANSPARENT_BACKGROUND = ImageUtilities.getImageFromClassPathSuppressExceptions("/org/praisenter/images/transparent.png");
-
 }

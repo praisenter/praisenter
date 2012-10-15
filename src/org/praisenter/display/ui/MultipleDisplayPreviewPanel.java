@@ -1,9 +1,7 @@
 package org.praisenter.display.ui;
 
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,25 +37,10 @@ public abstract class MultipleDisplayPreviewPanel<E extends Display> extends Dis
 	}
 
 	/* (non-Javadoc)
-	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
+	 * @see org.praisenter.display.ui.DisplayPreviewPanel#paintPreview(java.awt.Graphics2D, java.awt.Rectangle)
 	 */
 	@Override
-	protected void paintComponent(Graphics graphics) {
-		super.paintComponent(graphics);
-		
-		Graphics2D g2d = (Graphics2D)graphics;
-		
-		// setup fast rendering
-		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
-		g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-		g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
-		g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-		
-		// the available rendering bounds
-		Rectangle bounds = this.getTotalAvailableRenderingBounds();
-		
-		// call the render displays method passing the total available width and height
+	protected void paintPreview(Graphics2D g2d, Rectangle bounds) {
 		this.renderDisplays(g2d, bounds);
 	}
 	

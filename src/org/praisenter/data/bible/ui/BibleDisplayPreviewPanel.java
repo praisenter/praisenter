@@ -25,7 +25,7 @@ public class BibleDisplayPreviewPanel extends InlineDisplayPreviewPanel<BibleDis
 	 * Default constructor.
 	 */
 	public BibleDisplayPreviewPanel() {
-		super(20, 5);
+		super(10, 5);
 		
 		this.displays.add(null);
 		this.displays.add(null);

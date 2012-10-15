@@ -1,6 +1,6 @@
 package org.praisenter.data.song.ui;
 
-import java.awt.Dimension;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Point;
@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.util.List;
 
@@ -21,20 +22,17 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableModel;
 
 import org.apache.log4j.Logger;
 import org.praisenter.data.DataException;
 import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.data.song.Song;
-import org.praisenter.data.song.SongPart;
 import org.praisenter.data.song.Songs;
-import org.praisenter.display.DisplayFactory;
 import org.praisenter.display.SongDisplay;
 import org.praisenter.display.ui.ScrollableInlineDisplayPreviewPanel;
 import org.praisenter.resources.Messages;
-import org.praisenter.settings.GeneralSettings;
-import org.praisenter.settings.SongSettings;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.ui.WaterMark;
 import org.praisenter.utilities.StringUtilities;
@@ -61,7 +59,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	
 	// current song
 	
-	private SongPanel pnlSong;
+	private EditSongPanel pnlSong;
 	
 	// song searching
 	
@@ -80,7 +78,6 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	// preview
 	
 	private SongDisplayPreviewPanel pnlPreview;
-//	private JScrollPane scrPreview;
 	private ScrollableInlineDisplayPreviewPanel<SongDisplayPreviewPanel, SongDisplay> scrPreview;
 	
 	/**
@@ -88,13 +85,13 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	 */
 	@SuppressWarnings("serial")
 	public SongsPanel() {
-		// FIXME add preview panel
 		this.pnlPreview = new SongDisplayPreviewPanel();
-		this.pnlPreview.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		this.pnlPreview.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 		this.scrPreview = new ScrollableInlineDisplayPreviewPanel<SongDisplayPreviewPanel, SongDisplay>(this.pnlPreview);
+		this.scrPreview.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 		
 		// create current song section
-		this.pnlSong = new SongPanel(null);
+		this.pnlSong = new EditSongPanel(null);
 		this.pnlSong.addSongListener(this);
 		
 		// create and start the song search thread
@@ -290,11 +287,11 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(scrPreview)
+				.addComponent(this.scrPreview)
 				.addComponent(this.pnlSong)
 				.addComponent(bottomTabs));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(scrPreview, 200, 300, Short.MAX_VALUE)
+				.addComponent(this.scrPreview, 200, 300, Short.MAX_VALUE)
 				.addComponent(this.pnlSong)
 				.addComponent(bottomTabs));
 	}
@@ -369,28 +366,25 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	private void setSong(Song song) {
 		// update the song panel
 		pnlSong.setSong(song);
+		
 		// update the displays
-		Dimension displaySize = GeneralSettings.getInstance().getPrimaryDisplaySize();
-		SongSettings settings = SongSettings.getInstance();
-		this.pnlPreview.removeDisplays();
-		for (SongPart part : song.getParts()) {
-			SongDisplay display = DisplayFactory.getDisplay(settings, displaySize);
-			display.getTextComponent().setText(part.getText());
-			display.getTextComponent().setTextFont(display.getTextComponent().getTextFont().deriveFont((float)part.getFontSize()));
-			this.pnlPreview.addDisplay(display, part.getName());
-		}
-		this.scrPreview.updatePanelSize();
-		this.scrPreview.revalidate();
-		this.pnlPreview.revalidate();
-		this.pnlPreview.repaint();
+		Thread thread = new Thread(new RenderSongTask(song));
+		thread.setDaemon(true);
+		thread.start();
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.data.song.ui.SongListener#songAdded(org.praisenter.data.song.Song)
+	 */
 	@Override
 	public void songAdded(Song song) {
 		MutableSongTableModel model = (MutableSongTableModel)this.tblSongQueue.getModel();
 		model.addRow(song);
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.data.song.ui.SongListener#songChanged(org.praisenter.data.song.Song)
+	 */
 	@Override
 	public void songChanged(Song song) {
 		// update the search/song queue tables (really only the title needs to be updated)
@@ -401,6 +395,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		model.updateRow(song);
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.data.song.ui.SongListener#songDeleted(org.praisenter.data.song.Song)
+	 */
 	@Override
 	public void songDeleted(Song song) {
 		// update the search/song queue tables
@@ -466,6 +463,61 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 						ex);
 				LOGGER.error(message, ex);
 			}
+		}
+	}
+	
+	/**
+	 * Represents a task to update the song preview panel.
+	 * <p>
+	 * Rendering of songs may take some time depending on the number of parts they have.  This
+	 * task will pre-generate the previews and then update the preview panel when complete.
+	 * @author William Bittle
+	 * @version 1.0.0
+	 * @since 1.0.0
+	 */
+	private class RenderSongTask implements Runnable {
+		/** The song to render */
+		private Song song;
+		
+		/**
+		 * Minimal constructor.
+		 * @param song the song to render
+		 */
+		public RenderSongTask(Song song) {
+			this.song = song;
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Runnable#run()
+		 */
+		@Override
+		public void run() {
+			// set the loading state of the scroll preview panel
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+					@Override
+					public void run() {
+						scrPreview.setLoading(true);
+					}
+				});
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			// update the displays
+			pnlPreview.setSong(song);
+			
+			// update the preview panel
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					scrPreview.setLoading(false);
+				}
+			});
 		}
 	}
 }

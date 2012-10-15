@@ -41,7 +41,7 @@ import org.praisenter.utilities.StringUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SongPanel extends JPanel implements ActionListener, DocumentListener, SongListener {
+public class EditSongPanel extends JPanel implements ActionListener, DocumentListener, SongListener {
 	/** The version id */
 	private static final long serialVersionUID = -6559268693745087405L;
 	
@@ -71,7 +71,7 @@ public class SongPanel extends JPanel implements ActionListener, DocumentListene
 	// song parts
 	
 	/** The song part edit panel */
-	private SongPartPanel pnlSongPart;
+	private EditSongPartPanel pnlSongPart;
 	
 	// editing
 	
@@ -85,13 +85,12 @@ public class SongPanel extends JPanel implements ActionListener, DocumentListene
 	 * @param song the song to edit/show; can be null
 	 */
 	@SuppressWarnings("serial")
-	public SongPanel(Song song) {
+	public EditSongPanel(Song song) {
 		this.song = song;
 		this.songChanged = false;
 		this.notificationsDisabled = true;
 		
-		// FIXME add save button
-		
+		// FIXME this save button needs to update the song preview
 		this.btnSave = new JButton(Messages.getString("panel.song.save"));
 		this.btnSave.setActionCommand("save");
 		this.btnSave.addActionListener(this);
@@ -100,7 +99,7 @@ public class SongPanel extends JPanel implements ActionListener, DocumentListene
 		btnNew.setActionCommand("new");
 		btnNew.addActionListener(this);
 		
-		this.pnlSongPart = new SongPartPanel(song, null);
+		this.pnlSongPart = new EditSongPartPanel(song, null);
 		this.pnlSongPart.addSongListener(this);
 		
 		String title = "";
@@ -175,7 +174,7 @@ public class SongPanel extends JPanel implements ActionListener, DocumentListene
 					SongPartTableModel model = (SongPartTableModel)tblSongParts.getModel();
 					SongPart part = model.getRow(row);
 					// set the part panel up
-					pnlSongPart.setSongPart(SongPanel.this.song, part);
+					pnlSongPart.setSongPart(EditSongPanel.this.song, part);
 				}
 			}
 		});
