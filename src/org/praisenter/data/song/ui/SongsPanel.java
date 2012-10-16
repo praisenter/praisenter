@@ -10,9 +10,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
@@ -29,6 +35,8 @@ import org.apache.log4j.Logger;
 import org.praisenter.data.DataException;
 import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.data.song.Song;
+import org.praisenter.data.song.SongPart;
+import org.praisenter.data.song.SongPartType;
 import org.praisenter.data.song.Songs;
 import org.praisenter.display.SongDisplay;
 import org.praisenter.display.ui.ScrollableInlineDisplayPreviewPanel;
@@ -80,6 +88,11 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	private SongDisplayPreviewPanel pnlPreview;
 	private ScrollableInlineDisplayPreviewPanel<SongDisplayPreviewPanel, SongDisplay> scrPreview;
 	
+	// display
+	
+	private Map<String, JButton> buttons;
+	private JPanel pnlQuickSend;
+	
 	/**
 	 * Default constructor.
 	 */
@@ -89,6 +102,12 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		this.pnlPreview.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 		this.scrPreview = new ScrollableInlineDisplayPreviewPanel<SongDisplayPreviewPanel, SongDisplay>(this.pnlPreview);
 		this.scrPreview.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+		
+		
+		
+		this.buttons = new HashMap<String, JButton>();
+		this.pnlQuickSend = new JPanel();
+		
 		
 		// create current song section
 		this.pnlSong = new EditSongPanel(null);
@@ -288,12 +307,54 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addComponent(this.scrPreview)
+				.addComponent(this.pnlQuickSend, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.pnlSong)
 				.addComponent(bottomTabs));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(this.scrPreview, 200, 300, Short.MAX_VALUE)
+				.addComponent(this.pnlQuickSend, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.pnlSong)
 				.addComponent(bottomTabs));
+	}
+	
+	private void createSongPartLayout(Song song, JPanel panel) {
+		panel.removeAll();
+		// create a list for each part type
+		SortedMap<SongPartType, List<SongPart>> types = new TreeMap<SongPartType, List<SongPart>>();
+		for (SongPart part : song.getParts()) {
+			List<SongPart> parts = types.get(part.getType());
+			if (parts == null) {
+				parts = new ArrayList<SongPart>();
+				types.put(part.getType(), parts);
+			}
+			parts.add(part);
+		}
+		// get the max number of columns
+		int n = 0;
+		for (List<SongPart> parts : types.values()) {
+			int s = parts.size();
+			n = n < s ? s : n;
+		}
+		System.out.println(n);
+		// set the layout
+		panel.setLayout(new GridLayout(types.size(), n));
+		// create the buttons in order
+		int c = 0;
+		for (List<SongPart> parts : types.values()) {
+			for (SongPart part : parts) {
+				String name = part.getName();
+				JButton button = new JButton(name);
+				button.setActionCommand("send=" + name);
+				button.addActionListener(this);
+				panel.add(button);
+				c++;
+			}
+			for (int i = c; i < n; i++) {
+				// add gaps
+				panel.add(Box.createHorizontalBox());
+			}
+			c = 0;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -366,6 +427,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	private void setSong(Song song) {
 		// update the song panel
 		pnlSong.setSong(song);
+		this.createSongPartLayout(song, this.pnlQuickSend);
+		this.pnlQuickSend.revalidate();
+		this.pnlQuickSend.repaint();
 		
 		// update the displays
 		Thread thread = new Thread(new RenderSongTask(song));
