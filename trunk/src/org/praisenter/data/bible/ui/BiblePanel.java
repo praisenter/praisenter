@@ -1,5 +1,6 @@
 package org.praisenter.data.bible.ui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -167,7 +168,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		// create the preview panel
 		this.pnlPreview = new BibleDisplayPreviewPanel();
-		this.pnlPreview.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder("")));
+		this.pnlPreview.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY), BorderFactory.createEmptyBorder(15, 15, 15, 15)));
 		this.pnlPreview.setPreviousVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
 		this.pnlPreview.setCurrentVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
 		this.pnlPreview.setNextVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
