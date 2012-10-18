@@ -171,7 +171,11 @@ public class SongPart implements Comparable<SongPart> {
 	 * @return String
 	 */
 	public String getName() {
-		return MessageFormat.format(Messages.getString("song.part.name.pattern"), this.type.getName(), this.index);
+		SongPartType type = this.type;
+		if (type == null) {
+			type = SongPartType.OTHER;
+		}
+		return MessageFormat.format(Messages.getString("song.part.name.pattern"), type.getName(), this.index);
 	}
 	
 	/**

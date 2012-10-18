@@ -17,15 +17,15 @@ public enum SongPartType {
 	
 	/** Bridge part */
 	BRIDGE(Messages.getString("song.part.type.bridge")),
-	
-	/** End part */
-	END(Messages.getString("song.part.type.end")),
-	
+
+	/** Tag part */
+	TAG(Messages.getString("song.part.type.tag")),
+
 	/** Vamp part */
 	VAMP(Messages.getString("song.part.type.vamp")),
 	
-	/** Tag part */
-	TAG(Messages.getString("song.part.type.tag")),
+	/** End part */
+	END(Messages.getString("song.part.type.end")),
 	
 	/** Other part */
 	OTHER(Messages.getString("song.part.type.other"));

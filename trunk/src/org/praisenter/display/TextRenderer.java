@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
  * @version 1.0.0
  * @since 1.0.0
  */
+// FIXME need to add options for vertical alignment of text
 public class TextRenderer {
 	/** The static logger */
 	private static final Logger LOGGER = Logger.getLogger(TextRenderer.class);

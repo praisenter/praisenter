@@ -298,22 +298,22 @@ public class Songs {
 	public static final List<Song> searchSongsWithoutParts(String search) throws DataException {
 		String needle = search.trim().toUpperCase().replaceAll("'", "''");
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT songs.id, title, notes, added_date FROM ( ")
-		  // only get the distinct ids
-		  .append("SELECT DISTINCT id FROM ( ")
-		  // search the titles
-		  .append("SELECT id FROM songs WHERE searchable_title LIKE '%").append(needle).append("%' ")
-		  .append("UNION ")
-		  // search the text
-		  .append("SELECT DISTINCT song_id AS id FROM song_parts WHERE searchable_text LIKE '%").append(needle).append("%' ")
-		  .append(") AS t1) AS t2 ") 
-		  .append("JOIN songs ON songs.id = t2.id ORDER BY searchable_title");
+
+		// search song titles
+		sb.append("SELECT id, title, title AS notes, added_date FROM songs WHERE searchable_title LIKE '%").append(needle).append("%' ");
+		List<Song> songTitles = Songs.getSongsBySql(sb.toString());
 		
-		// get the songs
-		List<Song> songs = Songs.getSongsBySql(sb.toString());
+		// search song parts
+		sb.delete(0, sb.length());
+		sb.append("SELECT songs.id, title, text AS notes, added_date FROM song_parts INNER JOIN songs ON song_parts.song_id = songs.id WHERE searchable_text LIKE '%").append(needle).append("%' ");
+		List<Song> songTexts = Songs.getSongsBySql(sb.toString());
 		
-		// return the song
-		return songs;
+		// merge the lists
+		songTitles.addAll(songTexts);
+		Collections.sort(songTitles);
+		
+		// return the songs
+		return songTitles;
 	}
 			
 	/**

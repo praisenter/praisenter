@@ -11,7 +11,7 @@ import java.util.List;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class Song {
+public class Song implements Comparable<Song> {
 	/** The id assigned to new songs */
 	protected static final int NEW_SONG_ID = -1;
 	
@@ -97,6 +97,24 @@ public class Song {
 		  .append("|DateAdded=").append(this.dateAdded)
 		  .append("]");
 		return sb.toString();
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(Song o) {
+		// sort by title first
+		int diff = this.title.compareToIgnoreCase(o.title);
+		if (diff == 0) {
+			// then sort by date added
+			diff = this.dateAdded.compareTo(o.dateAdded);
+			if (diff == 0) {
+				// finally sort by id
+				diff = this.id - o.id;
+			}
+		}
+		return diff;
 	}
 	
 	/**

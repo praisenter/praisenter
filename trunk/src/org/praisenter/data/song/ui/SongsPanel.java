@@ -1,26 +1,23 @@
 package org.praisenter.data.song.ui;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.text.NumberFormat;
 import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -39,8 +36,16 @@ import org.praisenter.data.song.SongPart;
 import org.praisenter.data.song.SongPartType;
 import org.praisenter.data.song.Songs;
 import org.praisenter.display.SongDisplay;
+import org.praisenter.display.ui.DisplayWindows;
 import org.praisenter.display.ui.ScrollableInlineDisplayPreviewPanel;
+import org.praisenter.display.ui.StandardDisplayWindow;
 import org.praisenter.resources.Messages;
+import org.praisenter.settings.GeneralSettings;
+import org.praisenter.settings.SongSettings;
+import org.praisenter.transitions.Transition;
+import org.praisenter.transitions.TransitionAnimator;
+import org.praisenter.transitions.Transitions;
+import org.praisenter.transitions.ui.TransitionListCellRenderer;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.ui.WaterMark;
 import org.praisenter.utilities.StringUtilities;
@@ -67,7 +72,13 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	
 	// current song
 	
-	private EditSongPanel pnlSong;
+	/** The currently selected song */
+	private Song song;
+	
+	// FIXME we need to place this elsewhere; it take up way too much room
+	// FIXME we need to do something with the editing
+//	private EditSongPanel pnlSong;
+	// FIXME we need to make sure that song parts are unique using song part type and index
 	
 	// song searching
 	
@@ -85,33 +96,155 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	
 	// preview
 	
+	/** The song preview panel */
 	private SongDisplayPreviewPanel pnlPreview;
+	
+	/** The preview panel scroller */
 	private ScrollableInlineDisplayPreviewPanel<SongDisplayPreviewPanel, SongDisplay> scrPreview;
 	
 	// display
 	
-	private Map<String, JButton> buttons;
-	private JPanel pnlQuickSend;
+	/** The song title and notes label */
+	private JLabel lblSongTitle;
+	
+	/** The quick send panel for the standard song parts */
+	private SongQuickSendPanel pnlQuickSend;
+	
+	/** The combo box of all song parts */
+	private JComboBox<SongPart> cmbParts;
+	
+	/** The send button for the selected song part */
+	private JButton btnSend;
+	
+	/** The clear button */
+	private JButton btnClear;
+	
+	/** The combo box of transitions for sending */
+	private JComboBox<Transition> cmbSendTransitions;
+	
+	/** The text box of send transition duration */
+	private JFormattedTextField txtSendTransitions;
+	
+	/** The combo box of transitions for clearing */
+	private JComboBox<Transition> cmbClearTransitions;
+	
+	/** The text box of clear transition duration */
+	private JFormattedTextField txtClearTransitions;
 	
 	/**
 	 * Default constructor.
 	 */
 	@SuppressWarnings("serial")
 	public SongsPanel() {
+		GeneralSettings gSettings = GeneralSettings.getInstance();
+		SongSettings sSettings = SongSettings.getInstance();
+		
+		// song preview
+		
 		this.pnlPreview = new SongDisplayPreviewPanel();
-		this.pnlPreview.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+		this.pnlPreview.setBorder(BorderFactory.createEmptyBorder(15, 15, 20, 15));
 		this.scrPreview = new ScrollableInlineDisplayPreviewPanel<SongDisplayPreviewPanel, SongDisplay>(this.pnlPreview);
 		this.scrPreview.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 		
+		// FIXME we need a way to delete songs
+		// FIXME we need a way to add songs to the song queue
+//		JButton btnDeleteSelected = new JButton(Messages.getString("panel.song.deleteSelected"));
+//		btnDeleteSelected.setActionCommand("delete");
+//		btnDeleteSelected.addActionListener(this);
+//		
+//		JButton btnAdd = new JButton(Messages.getString("panel.song.add"));
+//		btnAdd.setActionCommand("add");
+//		btnAdd.addActionListener(this);
 		
+		// current song and sending
 		
-		this.buttons = new HashMap<String, JButton>();
-		this.pnlQuickSend = new JPanel();
+		this.lblSongTitle = new JLabel(MessageFormat.format(Messages.getString("panel.songs.current.pattern"), Messages.getString("panel.songs.default.title"), ""));
+		this.lblSongTitle.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
+		this.pnlQuickSend = new SongQuickSendPanel(this);
 		
+		this.cmbParts = new JComboBox<SongPart>(new SongPart[] { new SongPart() });
+		this.cmbParts.setRenderer(new SongPartCellRenderer());
+		this.cmbParts.setEnabled(false);
 		
-		// create current song section
-		this.pnlSong = new EditSongPanel(null);
-		this.pnlSong.addSongListener(this);
+		this.btnSend = new JButton(Messages.getString("panel.songs.send"));
+		this.btnSend.setToolTipText(Messages.getString("panel.songs.send.tooltip"));
+		this.btnSend.addActionListener(this);
+		this.btnSend.setActionCommand("send");
+		btnSend.setFont(btnSend.getFont().deriveFont(Font.BOLD, btnSend.getFont().getSize2D() + 3.0f));
+		
+		this.btnClear = new JButton(Messages.getString("panel.songs.clear"));
+		this.btnClear.setToolTipText(Messages.getString("panel.songs.clear.tooltip"));
+		this.btnClear.addActionListener(this);
+		this.btnClear.setActionCommand("clear");
+		
+		// setup the transition lists
+		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(gSettings.getPrimaryOrDefaultDisplay());
+		
+		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
+		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(sSettings.getDefaultSendTransition(), Transition.Type.IN));
+		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
+		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
+		this.txtSendTransitions.setValue(sSettings.getDefaultSendTransitionDuration());
+		this.txtSendTransitions.setColumns(3);
+		
+		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
+		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(sSettings.getDefaultClearTransition(), Transition.Type.OUT));
+		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
+		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
+		this.txtClearTransitions.setValue(sSettings.getDefaultClearTransitionDuration());
+		this.txtClearTransitions.setColumns(3);
+		
+		if (!transitionsSupported) {
+			this.cmbSendTransitions.setEnabled(false);
+			this.txtSendTransitions.setEnabled(false);
+			this.cmbClearTransitions.setEnabled(false);
+			this.txtClearTransitions.setEnabled(false);
+		}
+		
+		JPanel pnlSending = new JPanel();
+		GroupLayout sendLayout = new GroupLayout(pnlSending);
+		pnlSending.setLayout(sendLayout);
+		sendLayout.setAutoCreateContainerGaps(true);
+		sendLayout.setAutoCreateGaps(true);
+		sendLayout.setHorizontalGroup(sendLayout.createSequentialGroup()
+				.addGroup(sendLayout.createParallelGroup()
+						.addComponent(this.lblSongTitle)
+						.addComponent(this.pnlQuickSend))
+				.addGroup(sendLayout.createParallelGroup()
+						.addComponent(this.cmbParts, 155, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addGroup(sendLayout.createSequentialGroup()
+								.addGroup(sendLayout.createParallelGroup()
+										.addGroup(sendLayout.createSequentialGroup()
+												.addComponent(this.cmbSendTransitions)
+												.addComponent(this.txtSendTransitions))
+										.addComponent(this.btnSend, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+								.addGroup(sendLayout.createParallelGroup()
+									.addGroup(sendLayout.createSequentialGroup()
+											.addComponent(this.cmbClearTransitions)
+											.addComponent(this.txtClearTransitions))
+									.addComponent(this.btnClear, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))));
+		sendLayout.setVerticalGroup(sendLayout.createSequentialGroup()
+				.addGroup(sendLayout.createParallelGroup()
+						.addComponent(this.lblSongTitle)
+						.addComponent(this.cmbParts, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(sendLayout.createParallelGroup()
+						.addComponent(this.pnlQuickSend)
+						.addGroup(sendLayout.createSequentialGroup()
+								.addGroup(sendLayout.createParallelGroup()
+										.addComponent(this.cmbSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(this.btnSend, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+						.addGroup(sendLayout.createSequentialGroup()
+								.addGroup(sendLayout.createParallelGroup()
+										.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(this.btnClear, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))));
+		
+		// searching
 		
 		// create and start the song search thread
 		this.songSearchThread = new SongSearchThread();
@@ -125,13 +258,15 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.songs.search.watermark"));
 			}
 		};
+		this.txtSongSearch.setActionCommand("search");
+		this.txtSongSearch.addActionListener(this);
 		this.txtSongSearch.addFocusListener(new SelectTextFocusListener(this.txtSongSearch));
 		
 		JButton btnSongSearch = new JButton(Messages.getString("panel.songs.search"));
 		btnSongSearch.setActionCommand("search");
 		btnSongSearch.addActionListener(this);
 		
-		this.tblSongSearchResults = new JTable(new MutableSongTableModel()) {
+		this.tblSongSearchResults = new JTable(new SongSearchTableModel()) {
 			@Override
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
@@ -144,7 +279,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 					// get the song title
 					String text = object.toString();
 					// split the lines by 50 characters
-					return StringUtilities.addLineBreaksAtInterval(text, 50);
+					return StringUtilities.addLineBreaksAtInterval(text, 50, true);
 				}
 				
 				return super.getToolTipText(event);
@@ -158,21 +293,26 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				// make sure its a double click
-				if (e.getClickCount() > 0) {
+				if (e.getClickCount() > 0 && e.getButton() == MouseEvent.BUTTON1) {
 					// assume single click
 					// go to the data store and get the full song detail
 					// get the selected row
 					int row = tblSongSearchResults.rowAtPoint(e.getPoint());
 					// get the data
-					SongTableModel model = (SongTableModel)tblSongSearchResults.getModel();
+					SongSearchTableModel model = (SongSearchTableModel)tblSongSearchResults.getModel();
 					Song song = model.getRow(row);
-					try {
-						// overwrite the song local variable
-						song = Songs.getSong(song.getId());
-						setSong(song);
-					} catch (DataException ex) {
-						// TODO Auto-generated catch block
-						ex.printStackTrace();
+					// see if its the same song
+					if (SongsPanel.this.song == null || (song.getId() != SongsPanel.this.song.getId())) {
+						// if its not the same song then load it up
+						try {
+							// overwrite the song local variable
+							song = Songs.getSong(song.getId());
+							setSong(song);
+						} catch (DataException ex) {
+							// just log this exception because the user
+							// should still be able to click on the row again
+							LOGGER.error("An error occurred while selecting a song from the song search list: ", ex);
+						}
 					}
 				}
 			}
@@ -180,14 +320,6 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		this.tblSongSearchResults.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 		this.setSongSearchTableWidths();
 		JScrollPane scrSongsSearchResults = new JScrollPane(this.tblSongSearchResults);
-
-		JButton btnDeleteSelected = new JButton(Messages.getString("panel.song.deleteSelected"));
-		btnDeleteSelected.setActionCommand("delete");
-		btnDeleteSelected.addActionListener(this);
-		
-		JButton btnAdd = new JButton(Messages.getString("panel.song.add"));
-		btnAdd.setActionCommand("add");
-		btnAdd.addActionListener(this);
 		
 		// search layout
 		JPanel pnlSongSearch = new JPanel();
@@ -200,18 +332,12 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 				.addGroup(ssLayout.createSequentialGroup()
 						.addComponent(this.txtSongSearch)
 						.addComponent(btnSongSearch))
-				.addGroup(ssLayout.createSequentialGroup()
-						.addComponent(btnDeleteSelected)
-						.addComponent(btnAdd))
-				.addComponent(scrSongsSearchResults, 100, 200, 200));
+				.addComponent(scrSongsSearchResults, 400, 400, Short.MAX_VALUE));
 		ssLayout.setVerticalGroup(ssLayout.createSequentialGroup()
 				.addGroup(ssLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtSongSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnSongSearch))
-				.addGroup(ssLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(btnDeleteSelected)
-						.addComponent(btnAdd))
-				.addComponent(scrSongsSearchResults, 100, 200, 200));
+				.addComponent(scrSongsSearchResults, 200, 200, Short.MAX_VALUE));
 		
 		// the song queue
 		this.tblSongQueue = new JTable(new MutableSongTableModel()) {
@@ -241,7 +367,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				// make sure its a double click
-				if (e.getClickCount() > 0) {
+				if (e.getClickCount() > 0 && e.getButton() == MouseEvent.BUTTON1) {
 					// assume single click
 					// go to the data store and get the full song detail
 					// get the selected row
@@ -254,8 +380,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 						song = Songs.getSong(song.getId());
 						setSong(song);
 					} catch (DataException ex) {
-						// TODO Auto-generated catch block
-						ex.printStackTrace();
+						// just log this exception because the user
+						// should still be able to click on the row again
+						LOGGER.error("An error occurred while selecting a song from the song queue list: ", ex);
 					}
 				}
 			}
@@ -283,78 +410,30 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 				.addGroup(sqLayout.createSequentialGroup()
 						.addComponent(btnRemoveSelected)
 						.addComponent(btnRemoveAll))
-				.addComponent(scrSongQueueResults, 100, 200, 200));
+				.addComponent(scrSongQueueResults, 400, 400, Short.MAX_VALUE));
 		sqLayout.setVerticalGroup(sqLayout.createSequentialGroup()
 				.addGroup(sqLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(btnRemoveSelected)
 						.addComponent(btnRemoveAll))
-				.addComponent(scrSongQueueResults, 100, 200, 200));
+				.addComponent(scrSongQueueResults, 200, 200, Short.MAX_VALUE));
 		
 		// song search/queue tabs
-		JTabbedPane tabSongQueue = new JTabbedPane();
-		tabSongQueue.addTab(Messages.getString("panel.songs.tab.queue"), pnlSongQueue);
-		JTabbedPane tabSongSearch = new JTabbedPane();
-		tabSongSearch.addTab(Messages.getString("panel.songs.tab.search"), pnlSongSearch);
-		
-		JPanel bottomTabs = new JPanel();
-		bottomTabs.setLayout(new GridLayout(1, 2));
-		bottomTabs.add(tabSongQueue);
-		bottomTabs.add(tabSongSearch);
+		JTabbedPane tabBottom = new JTabbedPane();
+		tabBottom.addTab(Messages.getString("panel.songs.tab.search"), pnlSongSearch);
+		tabBottom.addTab(Messages.getString("panel.songs.tab.queue"), pnlSongQueue);
 		
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.scrPreview)
-				.addComponent(this.pnlQuickSend, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(this.pnlSong)
-				.addComponent(bottomTabs));
+				.addComponent(this.scrPreview, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(pnlSending, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(tabBottom));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(this.scrPreview, 200, 300, Short.MAX_VALUE)
-				.addComponent(this.pnlQuickSend, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(this.pnlSong)
-				.addComponent(bottomTabs));
-	}
-	
-	private void createSongPartLayout(Song song, JPanel panel) {
-		panel.removeAll();
-		// create a list for each part type
-		SortedMap<SongPartType, List<SongPart>> types = new TreeMap<SongPartType, List<SongPart>>();
-		for (SongPart part : song.getParts()) {
-			List<SongPart> parts = types.get(part.getType());
-			if (parts == null) {
-				parts = new ArrayList<SongPart>();
-				types.put(part.getType(), parts);
-			}
-			parts.add(part);
-		}
-		// get the max number of columns
-		int n = 0;
-		for (List<SongPart> parts : types.values()) {
-			int s = parts.size();
-			n = n < s ? s : n;
-		}
-		System.out.println(n);
-		// set the layout
-		panel.setLayout(new GridLayout(types.size(), n));
-		// create the buttons in order
-		int c = 0;
-		for (List<SongPart> parts : types.values()) {
-			for (SongPart part : parts) {
-				String name = part.getName();
-				JButton button = new JButton(name);
-				button.setActionCommand("send=" + name);
-				button.addActionListener(this);
-				panel.add(button);
-				c++;
-			}
-			for (int i = c; i < n; i++) {
-				// add gaps
-				panel.add(Box.createHorizontalBox());
-			}
-			c = 0;
-		}
+				.addComponent(pnlSending, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(tabBottom, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 	}
 
 	/* (non-Javadoc)
@@ -364,49 +443,34 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
 		if ("search".equals(command)) {
-			// grab the text from the text box
-			String text = this.txtSongSearch.getText();
-			if (text != null && text.length() > 0) {
-				// execute the search in another thread
-				// its possible that the search thread was interrupted or stopped
-				// so make sure its still running
-				if (!this.songSearchThread.isAlive()) {
-					// if the current thread is no longer alive (running) then
-					// create another and start it
-					this.songSearchThread = new SongSearchThread();
-					this.songSearchThread.start();
-				}
-				
-				// execute the search
-				SongSearch search = new SongSearch(text, new SongSearchCallback());
-				this.songSearchThread.queueSearch(search);
-			}
+			this.searchSongsAction();
 		} else if ("delete".equals(command)) {
-			MutableSongTableModel model = (MutableSongTableModel)this.tblSongSearchResults.getModel();
-			// only prompt if there is a song selected
-			if (model.isSongSelected()) {
-				// verify the user wants to do it
-				int choice = JOptionPane.showConfirmDialog(
-						this, 
-						Messages.getString("panel.songs.delete.message"),
-						Messages.getString("panel.songs.delete.title"), 
-						JOptionPane.YES_NO_CANCEL_OPTION);
-				if (choice == JOptionPane.YES_OPTION) {
-					// remove the rows from the table
-					List<Song> songs = model.removeSelectedRows();
-					// remove the songs from the data store
-					for (Song song : songs) {
-						try {
-							Songs.deleteSong(song.getId());
-							this.songDeleted(song);
-						} catch (DataException ex) {
-							// TODO Auto-generated catch block
-							ex.printStackTrace();
-							break;
-						}
-					}
-				}
-			}
+			// FIXME the delete should go somewhere else
+//			MutableSongTableModel model = (MutableSongTableModel)this.tblSongSearchResults.getModel();
+//			// only prompt if there is a song selected
+//			if (model.isSongSelected()) {
+//				// verify the user wants to do it
+//				int choice = JOptionPane.showConfirmDialog(
+//						this, 
+//						Messages.getString("panel.songs.delete.message"),
+//						Messages.getString("panel.songs.delete.title"), 
+//						JOptionPane.YES_NO_CANCEL_OPTION);
+//				if (choice == JOptionPane.YES_OPTION) {
+//					// remove the rows from the table
+//					List<Song> songs = model.removeSelectedRows();
+//					// remove the songs from the data store
+//					for (Song song : songs) {
+//						try {
+//							Songs.deleteSong(song.getId());
+//							this.songDeleted(song);
+//						} catch (DataException ex) {
+//							// TODO Auto-generated catch block
+//							ex.printStackTrace();
+//							break;
+//						}
+//					}
+//				}
+//			}
 		} else if ("remove".equals(command)) {
 			MutableSongTableModel model = (MutableSongTableModel)this.tblSongQueue.getModel();
 			model.removeSelectedRows();
@@ -414,25 +478,167 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			MutableSongTableModel model = (MutableSongTableModel)this.tblSongQueue.getModel();
 			model.removeAllRows();
 		} else if ("add".equals(command)) {
-			MutableSongTableModel sModel = (MutableSongTableModel)this.tblSongSearchResults.getModel();
-			List<Song> selected = sModel.getSelectedRows();
-			if (selected.size() > 0) {
-				MutableSongTableModel qModel = (MutableSongTableModel)this.tblSongQueue.getModel();
-				qModel.addRows(selected);
-			}
-			sModel.deselectAll();
+//			MutableSongTableModel sModel = (MutableSongTableModel)this.tblSongSearchResults.getModel();
+//			List<Song> selected = sModel.getSelectedRows();
+//			if (selected.size() > 0) {
+//				MutableSongTableModel qModel = (MutableSongTableModel)this.tblSongQueue.getModel();
+//				qModel.addRows(selected);
+//			}
+//			sModel.deselectAll();
+		} else if (command.startsWith("quickSend=")) {
+			this.quickSendAction(command);
+		} else if ("send".equals(command)) {
+			this.sendAction();
+		} else if ("clear".equals(command)) {
+			this.clearAction();
 		}
 	}
 	
-	private void setSong(Song song) {
-		// update the song panel
-		pnlSong.setSong(song);
-		this.createSongPartLayout(song, this.pnlQuickSend);
-		this.pnlQuickSend.revalidate();
-		this.pnlQuickSend.repaint();
+	/**
+	 * Performs a search of the song data store using the text in the
+	 * song search textbox.
+	 */
+	private void searchSongsAction() {
+		// grab the text from the text box
+		String text = this.txtSongSearch.getText();
+		if (text != null && text.length() > 0) {
+			// execute the search in another thread
+			// its possible that the search thread was interrupted or stopped
+			// so make sure its still running
+			if (!this.songSearchThread.isAlive()) {
+				// if the current thread is no longer alive (running) then
+				// create another and start it
+				this.songSearchThread = new SongSearchThread();
+				this.songSearchThread.start();
+			}
+			
+			// execute the search
+			SongSearch search = new SongSearch(text, new SongSearchCallback());
+			this.songSearchThread.queueSearch(search);
+		}
+	}
+	
+	/**
+	 * Determines the display to send and sends it to the primary display.
+	 * @param command the command
+	 */
+	private void quickSendAction(String command) {
+		String[] parts = command.split("=");
+		parts = parts[1].split("\\|");
 		
-		// update the displays
-		Thread thread = new Thread(new RenderSongTask(song));
+		SongPartType type = SongPartType.valueOf(parts[0]);
+		int index = Integer.parseInt(parts[1]);
+		SongPartKey key = new SongPartKey(type, index);
+		
+		// set the currently selected item in the parts combo box
+		int n = this.cmbParts.getItemCount();
+		for (int i = 0; i < n; i++) {
+			SongPart part = this.cmbParts.getItemAt(i);
+			if (part.getType() == type && part.getIndex() == index) {
+				this.cmbParts.setSelectedItem(part);
+				break;
+			}
+		}
+		
+		SongDisplay display = this.pnlPreview.getDisplay(key);
+		if (display != null) {
+			this.sendDisplay(display);
+		}
+	}
+	
+	/**
+	 * Sends the currently selected song part to the primary display.
+	 */
+	private void sendAction() {
+		SongPart part = (SongPart)this.cmbParts.getSelectedItem();
+		if (part != null) {
+			SongDisplay display = this.pnlPreview.getDisplay(part);
+			if (display != null) {
+				this.sendDisplay(display);
+			}
+		}
+	}
+	
+	/**
+	 * Sends the given {@link SongDisplay} to the primary display.
+	 * <p>
+	 * This method uses the current values of the send transition combo box and
+	 * textbox.
+	 * @param display the display to send
+	 */
+	private void sendDisplay(SongDisplay display) {
+		// get the transition
+		Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
+		int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
+		TransitionAnimator ta = new TransitionAnimator(transition, duration);
+		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
+		if (primary != null) {
+			primary.send(display, ta);
+		} else {
+			// the device is no longer available
+			LOGGER.warn("The primary display doesn't exist.");
+			JOptionPane.showMessageDialog(
+					this, 
+					Messages.getString("dialog.device.primary.missing.text"), 
+					Messages.getString("dialog.device.primary.missing.title"), 
+					JOptionPane.WARNING_MESSAGE);
+		}
+	}
+	
+	/**
+	 * Clears the primary display.
+	 */
+	private void clearAction() {
+		// get the transition
+		Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
+		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
+		TransitionAnimator ta = new TransitionAnimator(transition, duration);
+		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
+		if (primary != null) {
+			primary.clear(ta);
+		}
+	}
+	
+	/**
+	 * Sets the current song.
+	 * @param song the song
+	 */
+	private void setSong(Song song) {
+		// assign the song
+		this.song = song;
+		
+		this.cmbParts.setEnabled(false);
+		this.btnSend.setEnabled(false);
+		this.pnlQuickSend.setButtonsEnabled(false);
+		// update the labels
+		String notes = song.getNotes();
+		final int maxLength = 25;
+		if (notes != null && notes.length() > 0) {
+			// replace new lines with spaces
+			notes = notes.replaceAll("(\\r\\n)|(\\r)|(\\n)", " ");
+			// truncate if too long
+			if (notes.length() > maxLength) {
+				notes = notes.substring(0, maxLength - 1);
+				notes += "...";
+			}
+		}
+		// set the song label text
+		this.lblSongTitle.setText(MessageFormat.format(Messages.getString("panel.songs.current.pattern"), song.getTitle(), notes));
+		// set the song label tooltip
+		if (song.getNotes() != null && song.getNotes().length() > 0) {
+			this.lblSongTitle.setToolTipText(StringUtilities.addLineBreaksAtInterval(song.getNotes(), 50, true));
+		} else {
+			this.lblSongTitle.setToolTipText(null);
+		}
+		// update the part combo box
+		this.cmbParts.removeAllItems();
+		for (SongPart part : song.getParts()) {
+			this.cmbParts.addItem(part);
+		}
+		// set the loading status
+		this.scrPreview.setLoading(true);
+		// update the current song
+		Thread thread = new Thread(new UpdateCurrentSongTask(song));
 		thread.setDaemon(true);
 		thread.start();
 	}
@@ -472,19 +678,18 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		model.removeRow(song);
 		
 		// see if the current song is the deleted one
-		Song oSong = this.pnlSong.getSong();
-		if (oSong != null && oSong.equals(song)) {
-			this.pnlSong.setSong(null);
-		}
+//		Song oSong = this.pnlSong.getSong();
+//		if (oSong != null && oSong.equals(song)) {
+//			this.pnlSong.setSong(null);
+//		}
 	}
 	
 	/**
 	 * Sets the table column widths for the song search results table.
 	 */
 	private void setSongSearchTableWidths() {
-		this.tblSongSearchResults.getColumnModel().getColumn(0).setMaxWidth(35);
-		this.tblSongSearchResults.getColumnModel().getColumn(0).setPreferredWidth(35);
-		this.tblSongSearchResults.getColumnModel().getColumn(1).setPreferredWidth(100);
+		this.tblSongSearchResults.getColumnModel().getColumn(0).setMaxWidth(200);
+		this.tblSongSearchResults.getColumnModel().getColumn(0).setPreferredWidth(200);
 	}
 	
 	/**
@@ -513,9 +718,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			SongSearch search = this.getSearch();
 			if (ex == null) {
 				if (songs != null && songs.size() > 0) {
-					tblSongSearchResults.setModel(new MutableSongTableModel(songs));
+					tblSongSearchResults.setModel(new SongSearchTableModel(songs));
 				} else {
-					tblSongSearchResults.setModel(new MutableSongTableModel());
+					tblSongSearchResults.setModel(new SongSearchTableModel());
 				}
 				setSongSearchTableWidths();
 			} else {
@@ -531,15 +736,17 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	}
 	
 	/**
-	 * Represents a task to update the song preview panel.
+	 * Represents a task to update the song preview panel and song controls.
 	 * <p>
 	 * Rendering of songs may take some time depending on the number of parts they have.  This
 	 * task will pre-generate the previews and then update the preview panel when complete.
+	 * <p>
+	 * We need to wait on the generated previews before we can send any of the displays too.
 	 * @author William Bittle
 	 * @version 1.0.0
 	 * @since 1.0.0
 	 */
-	private class RenderSongTask implements Runnable {
+	private class UpdateCurrentSongTask implements Runnable {
 		/** The song to render */
 		private Song song;
 		
@@ -547,7 +754,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		 * Minimal constructor.
 		 * @param song the song to render
 		 */
-		public RenderSongTask(Song song) {
+		public UpdateCurrentSongTask(Song song) {
 			this.song = song;
 		}
 		
@@ -556,30 +763,23 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		 */
 		@Override
 		public void run() {
-			// set the loading state of the scroll preview panel
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-					@Override
-					public void run() {
-						scrPreview.setLoading(true);
-					}
-				});
-			} catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
 			// update the displays
-			pnlPreview.setSong(song);
+			pnlPreview.setSong(this.song);
 			
 			// update the preview panel
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
 					scrPreview.setLoading(false);
+					
+					// update the state of the send controls
+					if (song.getParts().size() > 0) {
+						cmbParts.setEnabled(true);
+						btnSend.setEnabled(true);
+					}
+					
+					// update the quick send panel
+					pnlQuickSend.setButtonsEnabled(song);
 				}
 			});
 		}
