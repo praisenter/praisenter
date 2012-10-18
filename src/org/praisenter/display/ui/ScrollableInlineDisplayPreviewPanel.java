@@ -31,7 +31,7 @@ public class ScrollableInlineDisplayPreviewPanel<E extends InlineDisplayPreviewP
 	 */
 	public ScrollableInlineDisplayPreviewPanel(E panel) {
 		// pass the panel as the view
-		super(panel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		super(panel, JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		
 		// set the panel
 		this.panel = panel;
@@ -66,10 +66,13 @@ public class ScrollableInlineDisplayPreviewPanel<E extends InlineDisplayPreviewP
 	 */
 	protected void setPanelSize() {
 		Dimension size = this.getComputedPanelSize();
-		this.panel.setSize(size);
 		this.panel.setMinimumSize(size);
 		this.panel.setPreferredSize(size);
 		this.panel.setMaximumSize(size);
+		// revalidate the panel after the size has been set
+		// so that the panel's layout is resized and the panel
+		// is redrawn to the correct sizing
+		this.panel.revalidate();
 	}
 	
 	/**
@@ -81,10 +84,7 @@ public class ScrollableInlineDisplayPreviewPanel<E extends InlineDisplayPreviewP
 		// get the size of this scroll pane
 		Dimension size = this.getSize();
 		Insets insets = this.panel.getInsets();
-		
-		// we want to use the height of the scroll pane as the height of the slides
-		int sbh = this.getHorizontalScrollBar().getSize().height;
-		int sh = size.height - sbh;
+		int sh = size.height;
 		
 		// we need to compute the real width of the panel using the maximum height
 		int n = this.panel.displays.size();
@@ -132,7 +132,6 @@ public class ScrollableInlineDisplayPreviewPanel<E extends InlineDisplayPreviewP
 			// this will make the loading animation appear in the center
 			// of the viewable area (as opposed to the center of the view's area)
 			Dimension size = new Dimension(this.getSize());
-			this.panel.setSize(size);
 			this.panel.setMinimumSize(size);
 			this.panel.setPreferredSize(size);
 			this.panel.setMaximumSize(size);

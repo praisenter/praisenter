@@ -3,7 +3,9 @@ package org.praisenter.data.song.ui;
 import java.awt.Dimension;
 import java.awt.GraphicsDevice;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongPart;
@@ -26,12 +28,16 @@ public class SongDisplayPreviewPanel extends InlineDisplayPreviewPanel<SongDispl
 	/** The list of song part names */
 	private List<String> names;
 	
+	/** A mapping of the song parts to their respective displays */
+	private Map<SongPartKey, SongDisplay> map;
+	
 	/**
 	 * Default constructor.
 	 */
 	public SongDisplayPreviewPanel() {
 		super(10, 5);
 		this.names = new ArrayList<String>();
+		this.map = new HashMap<SongPartKey, SongDisplay>();
 	}
 	
 	/* (non-Javadoc)
@@ -61,9 +67,32 @@ public class SongDisplayPreviewPanel extends InlineDisplayPreviewPanel<SongDispl
 			display.getTextComponent().setText(part.getText());
 			display.getTextComponent().setTextFont(display.getTextComponent().getTextFont().deriveFont((float)part.getFontSize()));
 			display.prepare(device.getDefaultConfiguration());
-			//this.addDisplay(display, part.getName());
 			this.displays.add(display);
+			this.map.put(new SongPartKey(part.getType(), part.getIndex()), display);
 			this.names.add(part.getName());
 		}
+	}
+	
+	/**
+	 * Returns the display for the given song part.
+	 * <p>
+	 * Returns null if the display does not exist.
+	 * @param part the song part
+	 * @return {@link SongDisplay}
+	 */
+	public SongDisplay getDisplay(SongPart part) {
+		SongPartKey key = new SongPartKey(part.getType(), part.getIndex());
+		return this.getDisplay(key);
+	}
+	
+	/**
+	 * Returns the display for the given song part key.
+	 * <p>
+	 * Returns null if the display does not exist.
+	 * @param key the key
+	 * @return {@link SongDisplay}
+	 */
+	public SongDisplay getDisplay(SongPartKey key) {
+		return this.map.get(key);
 	}
 }

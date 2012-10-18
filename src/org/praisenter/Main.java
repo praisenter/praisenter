@@ -203,7 +203,7 @@ public class Main {
 		    }
 		} catch (Exception ex) {
 			// completely ignore the error and just use the default look and feel
-			LOGGER.info("Failed to change the look and feel to Nimbus. Continuing wity default look and feel.", ex);
+			LOGGER.info("Failed to change the look and feel to Nimbus. Continuing with default look and feel.", ex);
 		}
 		
 		if (defaultLookAndFeelName == null || defaultLookAndFeelName.isEmpty()) {

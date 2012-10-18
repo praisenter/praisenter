@@ -42,6 +42,9 @@ public class ChurchViewSongReader extends DefaultHandler {
 	/** Date format to parse the dates */
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 	
+	/** Scale factor for the font size */
+	private static final double FONT_SIZE_SCALE = 1.5;
+	
 	/**
 	 * Returns a new list of songs from the given file.
 	 * @param file the file to read from
@@ -222,7 +225,7 @@ public class ChurchViewSongReader extends DefaultHandler {
 					String s = this.dataBuilder.toString().trim();
 					try {
 						int size = Integer.parseInt(s);
-						part.setFontSize(size);
+						part.setFontSize((int)Math.floor(size * FONT_SIZE_SCALE));
 					} catch (NumberFormatException e) {
 						throw new SAXException("Unable to parse the font size: '" + s + "' as an integer.", e);
 					}

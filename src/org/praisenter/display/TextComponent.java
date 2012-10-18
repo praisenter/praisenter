@@ -125,9 +125,13 @@ public class TextComponent extends GraphicsComponent {
 	 * @param boundsChangeType the type of change to the bounds; null if no change
 	 */
 	protected void cacheTextImage(GraphicsConfiguration configuration, BoundsChangeType boundsChangeType) {
-		// if the bounds haven't changed then we dont need to worry about updating the text
-		// but if the bounds did change we need update the image if the text scale type is not none
-		boolean boundsUpdate = boundsChangeType != null && this.textFontScaleType != FontScaleType.NONE;
+		boolean boundsUpdate = false;
+		if (this.textFontScaleType == FontScaleType.NONE) {
+			boundsUpdate = boundsChangeType == BoundsChangeType.INCREASED || boundsChangeType == BoundsChangeType.CHANGED;
+		} else {
+			boundsUpdate = boundsChangeType != null;
+		}
+		
 		// see if we need to re-render the text image
 		if (this.cachedTextImage == null || this.textUpdateRequired || boundsUpdate) {
 			// compute the real width

@@ -74,6 +74,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
+// TODO use a splitpane for the preview vs. controls height
 public class BiblePanel extends JPanel implements ActionListener, SettingsListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;
@@ -551,7 +552,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// make sure its a double click
-				if (e.getClickCount() == 2) {
+				if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
 					// get the selected row
 					int row = tblVerseQueue.rowAtPoint(e.getPoint());
 					// get the data
@@ -656,7 +657,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// make sure its a double click
-				if (e.getClickCount() == 2) {
+				if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
 					// get the selected row
 					int row = tblBibleSearchResults.rowAtPoint(e.getPoint());
 					// get the data
@@ -701,7 +702,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 				.addGroup(svLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(btnRemoveSelected, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnRemoveAll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrVerseQueue, 150, 200, 400));
+				.addComponent(scrVerseQueue, 200, 200, 300));
 		
 		JPanel pnlBibleSearch = new JPanel();
 		GroupLayout bsLayout = new GroupLayout(pnlBibleSearch);
@@ -722,7 +723,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrBibleSearchResults, 150, 200, 400));
+				.addComponent(scrBibleSearchResults, 200, 200, 300));
 		
 		JTabbedPane tableTabs = new JTabbedPane();
 		tableTabs.addTab(Messages.getString("panel.bible.verseQueue"), pnlVerseQueue);
