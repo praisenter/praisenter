@@ -544,6 +544,9 @@ public class Songs {
 						// throw an exception
 						throw new SQLException("Failed to delete song.");
 					}
+					
+					// commit the changes
+					connection.commit();
 				} catch (SQLException e) {
 					// rollback any changes
 					connection.rollback();

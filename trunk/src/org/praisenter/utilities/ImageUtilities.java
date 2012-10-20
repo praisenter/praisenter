@@ -183,6 +183,19 @@ public class ImageUtilities {
 	 * @return BufferedImage
 	 */
 	public static final BufferedImage getDropShadowImage(GraphicsConfiguration gc, int w, int h, int sw) {
+		return getDropShadowImage(gc, w, h, sw, Color.BLACK);
+	}
+	
+	/**
+	 * Returns a drop shadow for the given rectangle specified by the given width and height.
+	 * @param gc the graphics configuration
+	 * @param w the rectangle width
+	 * @param h the rectangle height
+	 * @param sw the 
+	 * @param color the shadow color
+	 * @return BufferedImage
+	 */
+	public static final BufferedImage getDropShadowImage(GraphicsConfiguration gc, int w, int h, int sw, Color color) {
 		// create a new image of the right size
 		BufferedImage image = gc.createCompatibleImage(w + 2 * sw, h + 2 * sw, Transparency.TRANSLUCENT);
 					
@@ -191,7 +204,7 @@ public class ImageUtilities {
 		ig2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		
 		// render the shadow rectangle
-		ig2d.setColor(Color.BLACK);
+		ig2d.setColor(color);
 		ig2d.fillRect(sw, sw, w, h);
 		ig2d.dispose();
 		

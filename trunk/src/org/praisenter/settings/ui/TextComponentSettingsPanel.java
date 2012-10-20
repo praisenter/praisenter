@@ -30,8 +30,9 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 
 import org.praisenter.display.FontScaleType;
-import org.praisenter.display.TextAlignment;
+import org.praisenter.display.HorizontalTextAlignment;
 import org.praisenter.display.TextComponent;
+import org.praisenter.display.VerticalTextAlignment;
 import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.TextComponentSettings;
@@ -79,17 +80,29 @@ public class TextComponentSettingsPanel extends GraphicsComponentSettingsPanel<T
 	/** The font size scale type combo box */
 	protected JComboBox<FontScaleType> cmbFontScaleType;
 	
-	/** The text alignment left toggle button */
-	protected JToggleButton tglTextAlignmentLeft;
+	/** The horizontal text alignment left toggle button */
+	protected JToggleButton tglHorizontalTextAlignmentLeft;
 	
-	/** The text alignment center toggle button */
-	protected JToggleButton tglTextAlignmentCenter;
+	/** The horizontal text alignment center toggle button */
+	protected JToggleButton tglHorizontalTextAlignmentCenter;
 	
-	/** The text alignment right toggle button */
-	protected JToggleButton tglTextAlignmentRight;
+	/** The horizontal text alignment right toggle button */
+	protected JToggleButton tglHorizontalTextAlignmentRight;
 	
-	/** The text alignment panel */
-	protected JPanel pnlTextAlignment;
+	/** The vertical text alignment top toggle button */
+	protected JToggleButton tglVerticalTextAlignmentTop;
+	
+	/** The vertical text alignment center toggle button */
+	protected JToggleButton tglVerticalTextAlignmentCenter;
+	
+	/** The vertical text alignment bottom toggle button */
+	protected JToggleButton tglVerticalTextAlignmentBottom;
+	
+	/** The horizontal text alignment panel */
+	protected JPanel pnlHorizontalTextAlignment;
+
+	/** The vertical text alignment panel */
+	protected JPanel pnlVerticalTextAlignment;
 	
 	/** The wrap text check box */
 	protected JCheckBox chkWrapText;
@@ -172,34 +185,63 @@ public class TextComponentSettingsPanel extends GraphicsComponentSettingsPanel<T
 		this.cmbFontScaleType.addItemListener(this);
 		
 		// alignments
-		TextAlignment alignment = component.getTextAlignment();
-		this.tglTextAlignmentLeft = new JToggleButton(Icons.ALIGN_LEFT);
-		this.tglTextAlignmentLeft.setActionCommand("align-left");
-		this.tglTextAlignmentLeft.setToolTipText(Messages.getString("panel.text.setup.align.left"));
-		this.tglTextAlignmentLeft.setSelected(alignment == TextAlignment.LEFT);
-		this.tglTextAlignmentCenter = new JToggleButton(Icons.ALIGN_CENTER);
-		this.tglTextAlignmentCenter.setActionCommand("align-center");
-		this.tglTextAlignmentCenter.setToolTipText(Messages.getString("panel.text.setup.align.center"));
-		this.tglTextAlignmentCenter.setSelected(alignment == TextAlignment.CENTER);
-		this.tglTextAlignmentRight = new JToggleButton(Icons.ALIGN_RIGHT);
-		this.tglTextAlignmentRight.setActionCommand("align-right");
-		this.tglTextAlignmentRight.setToolTipText(Messages.getString("panel.text.setup.align.right"));
-		this.tglTextAlignmentRight.setSelected(alignment == TextAlignment.RIGHT);
+		HorizontalTextAlignment halignment = this.component.getHorizontalTextAlignment();
+		this.tglHorizontalTextAlignmentLeft = new JToggleButton(Icons.HORIZONTAL_ALIGN_LEFT);
+		this.tglHorizontalTextAlignmentLeft.setActionCommand("align-h-left");
+		this.tglHorizontalTextAlignmentLeft.setToolTipText(Messages.getString("panel.text.setup.align.horizontal.left"));
+		this.tglHorizontalTextAlignmentLeft.setSelected(halignment == HorizontalTextAlignment.LEFT);
+		this.tglHorizontalTextAlignmentCenter = new JToggleButton(Icons.HORIZONTAL_ALIGN_CENTER);
+		this.tglHorizontalTextAlignmentCenter.setActionCommand("align-h-center");
+		this.tglHorizontalTextAlignmentCenter.setToolTipText(Messages.getString("panel.text.setup.align.horizontal.center"));
+		this.tglHorizontalTextAlignmentCenter.setSelected(halignment == HorizontalTextAlignment.CENTER);
+		this.tglHorizontalTextAlignmentRight = new JToggleButton(Icons.HORIZONTAL_ALIGN_RIGHT);
+		this.tglHorizontalTextAlignmentRight.setActionCommand("align-h-right");
+		this.tglHorizontalTextAlignmentRight.setToolTipText(Messages.getString("panel.text.setup.align.horizontal.right"));
+		this.tglHorizontalTextAlignmentRight.setSelected(halignment == HorizontalTextAlignment.RIGHT);
 		
-		ButtonGroup bgAlignment = new ButtonGroup();
-		bgAlignment.add(this.tglTextAlignmentLeft);
-		bgAlignment.add(this.tglTextAlignmentCenter);
-		bgAlignment.add(this.tglTextAlignmentRight);
+		ButtonGroup bgHorizontalAlignment = new ButtonGroup();
+		bgHorizontalAlignment.add(this.tglHorizontalTextAlignmentLeft);
+		bgHorizontalAlignment.add(this.tglHorizontalTextAlignmentCenter);
+		bgHorizontalAlignment.add(this.tglHorizontalTextAlignmentRight);
 		
-		this.tglTextAlignmentLeft.addActionListener(this);
-		this.tglTextAlignmentCenter.addActionListener(this);
-		this.tglTextAlignmentRight.addActionListener(this);
+		this.tglHorizontalTextAlignmentLeft.addActionListener(this);
+		this.tglHorizontalTextAlignmentCenter.addActionListener(this);
+		this.tglHorizontalTextAlignmentRight.addActionListener(this);
 		
-		this.pnlTextAlignment = new JPanel();
-		this.pnlTextAlignment.setLayout(new BorderLayout());
-		this.pnlTextAlignment.add(this.tglTextAlignmentLeft, BorderLayout.LINE_START);
-		this.pnlTextAlignment.add(this.tglTextAlignmentCenter, BorderLayout.CENTER);
-		this.pnlTextAlignment.add(this.tglTextAlignmentRight, BorderLayout.LINE_END);
+		this.pnlHorizontalTextAlignment = new JPanel();
+		this.pnlHorizontalTextAlignment.setLayout(new BorderLayout());
+		this.pnlHorizontalTextAlignment.add(this.tglHorizontalTextAlignmentLeft, BorderLayout.LINE_START);
+		this.pnlHorizontalTextAlignment.add(this.tglHorizontalTextAlignmentCenter, BorderLayout.CENTER);
+		this.pnlHorizontalTextAlignment.add(this.tglHorizontalTextAlignmentRight, BorderLayout.LINE_END);
+		
+		VerticalTextAlignment valignment = this.component.getVerticalTextAlignment();
+		this.tglVerticalTextAlignmentTop = new JToggleButton(Icons.VERTICAL_ALIGN_TOP);
+		this.tglVerticalTextAlignmentTop.setActionCommand("align-v-top");
+		this.tglVerticalTextAlignmentTop.setToolTipText(Messages.getString("panel.text.setup.align.vertical.top"));
+		this.tglVerticalTextAlignmentTop.setSelected(valignment == VerticalTextAlignment.TOP);
+		this.tglVerticalTextAlignmentCenter = new JToggleButton(Icons.VERTICAL_ALIGN_CENTER);
+		this.tglVerticalTextAlignmentCenter.setActionCommand("align-v-center");
+		this.tglVerticalTextAlignmentCenter.setToolTipText(Messages.getString("panel.text.setup.align.vertical.center"));
+		this.tglVerticalTextAlignmentCenter.setSelected(valignment == VerticalTextAlignment.CENTER);
+		this.tglVerticalTextAlignmentBottom = new JToggleButton(Icons.VERTICAL_ALIGN_BOTTOM);
+		this.tglVerticalTextAlignmentBottom.setActionCommand("align-v-bottom");
+		this.tglVerticalTextAlignmentBottom.setToolTipText(Messages.getString("panel.text.setup.align.vertical.bottom"));
+		this.tglVerticalTextAlignmentBottom.setSelected(valignment == VerticalTextAlignment.BOTTOM);
+		
+		ButtonGroup bgVerticalAlignment = new ButtonGroup();
+		bgVerticalAlignment.add(this.tglVerticalTextAlignmentTop);
+		bgVerticalAlignment.add(this.tglVerticalTextAlignmentCenter);
+		bgVerticalAlignment.add(this.tglVerticalTextAlignmentBottom);
+		
+		this.tglVerticalTextAlignmentTop.addActionListener(this);
+		this.tglVerticalTextAlignmentCenter.addActionListener(this);
+		this.tglVerticalTextAlignmentBottom.addActionListener(this);
+		
+		this.pnlVerticalTextAlignment = new JPanel();
+		this.pnlVerticalTextAlignment.setLayout(new BorderLayout());
+		this.pnlVerticalTextAlignment.add(this.tglVerticalTextAlignmentTop, BorderLayout.LINE_START);
+		this.pnlVerticalTextAlignment.add(this.tglVerticalTextAlignmentCenter, BorderLayout.CENTER);
+		this.pnlVerticalTextAlignment.add(this.tglVerticalTextAlignmentBottom, BorderLayout.LINE_END);
 		
 		// text wrap
 		this.chkWrapText = new JCheckBox(Messages.getString("panel.text.setup.wrapping"), this.component.isTextWrapped());
@@ -292,9 +334,12 @@ public class TextComponentSettingsPanel extends GraphicsComponentSettingsPanel<T
 								.addComponent(this.cmbFontScaleType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 						// layout row
 						.addGroup(layout.createSequentialGroup()
-								.addComponent(this.pnlTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(this.pnlHorizontalTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.chkWrapText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))));
+								.addComponent(this.chkWrapText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+					    // layout row 2
+						.addComponent(this.pnlVerticalTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						));
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				// font row
@@ -311,9 +356,12 @@ public class TextComponentSettingsPanel extends GraphicsComponentSettingsPanel<T
 				// layout row
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblLayout)
-						.addComponent(this.pnlTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.pnlHorizontalTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.chkWrapText)));
+						.addComponent(this.chkWrapText))
+				// layout row 2
+				.addComponent(this.pnlVerticalTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				);
 	}
 	
 	/* (non-Javadoc)
@@ -418,18 +466,30 @@ public class TextComponentSettingsPanel extends GraphicsComponentSettingsPanel<T
 			Font font = old.deriveFont(style);
 			this.component.setTextFont(font);
 			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, font);
-		} else if ("align-left".equals(command)) {
-			TextAlignment old = this.component.getTextAlignment();
-			this.component.setTextAlignment(TextAlignment.LEFT);
-			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, TextAlignment.LEFT);
-		} else if ("align-center".equals(command)) {
-			TextAlignment old = this.component.getTextAlignment();
-			this.component.setTextAlignment(TextAlignment.CENTER);
-			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, TextAlignment.CENTER);
-		} else if ("align-right".equals(command)) {
-			TextAlignment old = this.component.getTextAlignment();
-			this.component.setTextAlignment(TextAlignment.RIGHT);
-			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, TextAlignment.RIGHT);
+		} else if ("align-h-left".equals(command)) {
+			HorizontalTextAlignment old = this.component.getHorizontalTextAlignment();
+			this.component.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT);
+			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, HorizontalTextAlignment.LEFT);
+		} else if ("align-h-center".equals(command)) {
+			HorizontalTextAlignment old = this.component.getHorizontalTextAlignment();
+			this.component.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
+			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, HorizontalTextAlignment.CENTER);
+		} else if ("align-h-right".equals(command)) {
+			HorizontalTextAlignment old = this.component.getHorizontalTextAlignment();
+			this.component.setHorizontalTextAlignment(HorizontalTextAlignment.RIGHT);
+			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, HorizontalTextAlignment.RIGHT);
+		} else if ("align-v-top".equals(command)) {
+			VerticalTextAlignment old = this.component.getVerticalTextAlignment();
+			this.component.setVerticalTextAlignment(VerticalTextAlignment.TOP);
+			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, VerticalTextAlignment.TOP);
+		} else if ("align-v-center".equals(command)) {
+			VerticalTextAlignment old = this.component.getVerticalTextAlignment();
+			this.component.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
+			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, VerticalTextAlignment.CENTER);
+		} else if ("align-v-bottom".equals(command)) {
+			VerticalTextAlignment old = this.component.getVerticalTextAlignment();
+			this.component.setVerticalTextAlignment(VerticalTextAlignment.BOTTOM);
+			this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, VerticalTextAlignment.BOTTOM);
 		}
 	}
 	

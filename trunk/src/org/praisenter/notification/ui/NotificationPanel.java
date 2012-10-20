@@ -66,6 +66,9 @@ public class NotificationPanel extends JPanel implements ActionListener {
 	/** The send button */
 	protected JButton btnSend;
 	
+	/** The manual clear button */
+	protected JButton btnClear;
+	
 	/**
 	 * Default constructor.
 	 */
@@ -90,6 +93,7 @@ public class NotificationPanel extends JPanel implements ActionListener {
 		this.txtText.addFocusListener(new SelectTextFocusListener(this.txtText));
 		
 		this.txtWaitPeriod = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtWaitPeriod.setToolTipText(Messages.getString("panel.notification.wait.tooltip"));
 		this.txtWaitPeriod.setValue(nSettings.getDefaultWaitPeriod());
 		this.txtWaitPeriod.setColumns(5);
 		this.txtWaitPeriod.addFocusListener(new SelectTextFocusListener(this.txtWaitPeriod));
@@ -100,6 +104,7 @@ public class NotificationPanel extends JPanel implements ActionListener {
 		this.cmbInTransition = new JComboBox<Transition>(Transitions.IN);
 		this.cmbInTransition.setRenderer(new TransitionListCellRenderer());
 		this.cmbInTransition.setSelectedItem(Transitions.getTransitionForId(nSettings.getDefaultSendTransition(), Transition.Type.IN));
+		this.cmbInTransition.setToolTipText(Messages.getString("panel.notification.send.inTransition"));
 		this.txtInTransition = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtInTransition.addFocusListener(new SelectTextFocusListener(this.txtInTransition));
 		this.txtInTransition.setToolTipText(Messages.getString("transition.duration.tooltip"));
@@ -109,6 +114,7 @@ public class NotificationPanel extends JPanel implements ActionListener {
 		this.cmbOutTransition = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbOutTransition.setRenderer(new TransitionListCellRenderer());
 		this.cmbOutTransition.setSelectedItem(Transitions.getTransitionForId(nSettings.getDefaultClearTransition(), Transition.Type.OUT));
+		this.cmbOutTransition.setToolTipText(Messages.getString("panel.notification.send.outTransition"));
 		this.txtOutTransition = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtOutTransition.addFocusListener(new SelectTextFocusListener(this.txtOutTransition));
 		this.txtOutTransition.setToolTipText(Messages.getString("transition.duration.tooltip"));
@@ -127,6 +133,11 @@ public class NotificationPanel extends JPanel implements ActionListener {
 		this.btnSend.addActionListener(this);
 		this.btnSend.setActionCommand("send");
 		
+		this.btnClear = new JButton(Messages.getString("panel.notification.clear"));
+		this.btnClear.setToolTipText(Messages.getString("panel.notification.clear.tooltip"));
+		this.btnClear.setActionCommand("clear");
+		this.btnClear.addActionListener(this);
+		
 		// set the layout
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
@@ -140,7 +151,8 @@ public class NotificationPanel extends JPanel implements ActionListener {
 				.addComponent(this.txtInTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.cmbOutTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.txtOutTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(this.btnSend));
+				.addComponent(this.btnSend)
+				.addComponent(this.btnClear));
 		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 				.addComponent(this.txtText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.txtWaitPeriod, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -148,7 +160,8 @@ public class NotificationPanel extends JPanel implements ActionListener {
 				.addComponent(this.txtInTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.cmbOutTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.txtOutTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(this.btnSend, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+				.addComponent(this.btnSend, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(this.btnClear, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 	}
 	
 	/* (non-Javadoc)
@@ -184,6 +197,17 @@ public class NotificationPanel extends JPanel implements ActionListener {
 							Messages.getString("dialog.device.primary.missing.title"), 
 							JOptionPane.WARNING_MESSAGE);
 				}
+			}
+		} else if ("clear".equals(event.getActionCommand())) {
+			// create the out transition animator
+			TransitionAnimator animator = new TransitionAnimator(
+					(Transition)this.cmbOutTransition.getSelectedItem(),
+					((Number)this.txtOutTransition.getValue()).intValue());
+			// get the notification display window
+			NotificationDisplayWindow window = DisplayWindows.getPrimaryNotificationWindow();
+			if (window != null) {
+				// clear it
+				window.clear(animator);
 			}
 		}
 	}

@@ -552,7 +552,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// make sure its a double click
-				if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
+				if (e.getClickCount() >= 2 && e.getButton() == MouseEvent.BUTTON1) {
 					// get the selected row
 					int row = tblVerseQueue.rowAtPoint(e.getPoint());
 					// get the data
@@ -657,7 +657,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// make sure its a double click
-				if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
+				if (e.getClickCount() >= 2 && e.getButton() == MouseEvent.BUTTON1) {
 					// get the selected row
 					int row = tblBibleSearchResults.rowAtPoint(e.getPoint());
 					// get the data

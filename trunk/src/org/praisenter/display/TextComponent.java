@@ -28,8 +28,11 @@ public class TextComponent extends GraphicsComponent {
 	/** The text font */
 	protected Font textFont;
 	
-	/** The text alignment */
-	protected TextAlignment textAlignment;
+	/** The horizontal text alignment */
+	protected HorizontalTextAlignment horizontalTextAlignment;
+	
+	/** The vertical text alignment */
+	protected VerticalTextAlignment verticalTextAlignment; 
 	
 	/** The font scale type */
 	protected FontScaleType textFontScaleType;
@@ -66,7 +69,8 @@ public class TextComponent extends GraphicsComponent {
 		this.text = text;
 		this.textColor = Color.BLACK;
 		this.textFont = null;
-		this.textAlignment = TextAlignment.CENTER;
+		this.horizontalTextAlignment = HorizontalTextAlignment.CENTER;
+		this.verticalTextAlignment = VerticalTextAlignment.TOP;
 		this.textFontScaleType = FontScaleType.REDUCE_SIZE_ONLY;
 		this.textWrapped = true;
 		this.padding = 5;
@@ -166,41 +170,61 @@ public class TextComponent extends GraphicsComponent {
 				String text = this.text;
 				// make sure the line break characters are correct
 				text = text.replaceAll("(\\r\\n)|(\\r)", String.valueOf(TextRenderer.LINE_SEPARATOR));
+				// get the text metrics
+				TextMetrics metrics = null;
 				// check the font scaling method
 				if (this.textFontScaleType == FontScaleType.REDUCE_SIZE_ONLY) {
 					// check the wrap flag
-					float size = 0.0f;
 					if (this.textWrapped) {
 						// get a scaled font size to fit the width and height but is maxed at the current font size
-						size = TextRenderer.getFittingParagraphFontSize(font, ig.getFontRenderContext(), text, rw, rh);
+						metrics = TextRenderer.getFittingParagraphMetrics(font, ig.getFontRenderContext(), text, rw, rh);
 					} else {
 						// get a scaled font size to fit the entire line on one line
-						size = TextRenderer.getFittingLineFontSize(font, ig.getFontRenderContext(), text, rw, rh);
+						metrics = TextRenderer.getFittingLineMetrics(font, ig.getFontRenderContext(), text, rw, rh);
 					}
-					ig.setFont(font.deriveFont(size));
 				} else if (this.textFontScaleType == FontScaleType.BEST_FIT) {
 					// check the wrap flag
-					float size = 0.0f;
 					if (this.textWrapped) {
 						// get a scaled font size to fit the width and height but is maxed at the current font size
-						size = TextRenderer.getFittingParagraphFontSize(font, Float.MAX_VALUE, ig.getFontRenderContext(), text, rw, rh);
+						metrics = TextRenderer.getFittingParagraphMetrics(font, Float.MAX_VALUE, ig.getFontRenderContext(), text, rw, rh);
 					} else {
 						// get a scaled font size to fit the entire line on one line
-						size = TextRenderer.getFittingLineFontSize(font, Float.MAX_VALUE, ig.getFontRenderContext(), text, rw, rh);
+						metrics = TextRenderer.getFittingLineMetrics(font, Float.MAX_VALUE, ig.getFontRenderContext(), text, rw, rh);
 					}
-					ig.setFont(font.deriveFont(size));
+				} else {
+					// get the bounds without modifying the font size
+					TextBounds bounds = null;
+					if (this.textWrapped) {
+						bounds = TextRenderer.getParagraphBounds(text, font, ig.getFontRenderContext(), rw);
+					} else {
+						bounds = TextRenderer.getLineBounds(font, ig.getFontRenderContext(), text);
+					}
+					metrics = new TextMetrics(font.getSize2D(), bounds.width, bounds.height);
+				}
+				
+				// see if we need to derive the font
+				if (font.getSize2D() != metrics.fontSize) {
+					ig.setFont(font.deriveFont(metrics.fontSize));
 				} else {
 					ig.setFont(font);
+				}
+				
+				// vertical align top is easy, just render at y=0
+				float y = 0;
+				if (this.verticalTextAlignment == VerticalTextAlignment.CENTER) {
+					y = ((float)rh - metrics.height) / 2.0f;
+				} else if (this.verticalTextAlignment == VerticalTextAlignment.BOTTOM) {
+					y = (float)rh - metrics.height;
 				}
 				
 				// set the text color
 				ig.setColor(this.textColor);
 				if (this.textWrapped) {
 					// render the text as a paragraph
-					TextRenderer.renderParagraph(ig, text, this.textAlignment, 0, 0, rw);
+					TextRenderer.renderParagraph(ig, text, this.horizontalTextAlignment, 0, y, rw);
 				} else {
 					// render the text as a line
-					TextRenderer.renderLine(ig, text, this.textAlignment, 0, 0, rw);
+					TextRenderer.renderLine(ig, text, this.horizontalTextAlignment, 0, y, rw);
 				}
 			}
 			
@@ -280,19 +304,37 @@ public class TextComponent extends GraphicsComponent {
 	}
 	
 	/**
-	 * Returns the text alignment.
-	 * @return {@link TextAlignment}
+	 * Returns the horizontal text alignment.
+	 * @return {@link HorizontalTextAlignment}
 	 */
-	public TextAlignment getTextAlignment() {
-		return this.textAlignment;
+	public HorizontalTextAlignment getHorizontalTextAlignment() {
+		return this.horizontalTextAlignment;
 	}
 	
 	/**
-	 * Sets the text alignment.
+	 * Sets the horizontal text alignment.
 	 * @param alignment the alignment
 	 */
-	public void setTextAlignment(TextAlignment alignment) {
-		this.textAlignment = alignment;
+	public void setHorizontalTextAlignment(HorizontalTextAlignment alignment) {
+		this.horizontalTextAlignment = alignment;
+		this.textUpdateRequired = true;
+		this.setDirty(true);
+	}
+
+	/**
+	 * Returns the vertical text alignment.
+	 * @return {@link VerticalTextAlignment}
+	 */
+	public VerticalTextAlignment getVerticalTextAlignment() {
+		return this.verticalTextAlignment;
+	}
+	
+	/**
+	 * Sets the vertical text alignment.
+	 * @param alignment the alignment
+	 */
+	public void setVerticalTextAlignment(VerticalTextAlignment alignment) {
+		this.verticalTextAlignment = alignment;
 		this.textUpdateRequired = true;
 		this.setDirty(true);
 	}

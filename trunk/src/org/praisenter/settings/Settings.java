@@ -23,7 +23,8 @@ import org.praisenter.display.FontScaleType;
 import org.praisenter.display.RenderQuality;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
-import org.praisenter.display.TextAlignment;
+import org.praisenter.display.HorizontalTextAlignment;
+import org.praisenter.display.VerticalTextAlignment;
 import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.utilities.WindowUtilities;
 
@@ -397,26 +398,26 @@ public abstract class Settings {
 	}
 	
 	/**
-	 * Returns the setting as a {@link TextAlignment} enum for the given key.
+	 * Returns the setting as a {@link HorizontalTextAlignment} enum for the given key.
 	 * <p>
-	 * Returns {@link TextAlignment#CENTER} if the setting is not set.
+	 * Returns {@link HorizontalTextAlignment#CENTER} if the setting is not set.
 	 * @param key the key
-	 * @return {@link TextAlignment}
+	 * @return {@link HorizontalTextAlignment}
 	 */
-	protected TextAlignment getTextAlignmentSetting(String key) {
+	protected HorizontalTextAlignment getHorizontalTextAlignmentSetting(String key) {
 		// get the setting
 		Object object = this.settings.get(key);
 		// check if its null
 		if (object == NULL || object == null) {
 			// default the object
-			object = TextAlignment.CENTER;
+			object = HorizontalTextAlignment.CENTER;
 			// get the string from the properties
 			String string = this.properties.getProperty(key);
 			// make sure we can parse it
 			if (string != null && string.trim().length() > 0) {
 				// get the enum
 				try {
-					object = TextAlignment.valueOf(string.trim());
+					object = HorizontalTextAlignment.valueOf(string.trim());
 				} catch (IllegalArgumentException e) {
 					LOGGER.warn("Unable to parse setting: " + key + " value: " + string, e);
 				}
@@ -425,7 +426,39 @@ public abstract class Settings {
 			this.settings.put(key, object);
 		}
 		
-		return (TextAlignment)object;
+		return (HorizontalTextAlignment)object;
+	}
+	
+	/**
+	 * Returns the setting as a {@link VerticalTextAlignment} enum for the given key.
+	 * <p>
+	 * Returns {@link VerticalTextAlignment#CENTER} if the setting is not set.
+	 * @param key the key
+	 * @return {@link VerticalTextAlignment}
+	 */
+	protected VerticalTextAlignment getVerticalTextAlignmentSetting(String key) {
+		// get the setting
+		Object object = this.settings.get(key);
+		// check if its null
+		if (object == NULL || object == null) {
+			// default the object
+			object = VerticalTextAlignment.CENTER;
+			// get the string from the properties
+			String string = this.properties.getProperty(key);
+			// make sure we can parse it
+			if (string != null && string.trim().length() > 0) {
+				// get the enum
+				try {
+					object = VerticalTextAlignment.valueOf(string.trim());
+				} catch (IllegalArgumentException e) {
+					LOGGER.warn("Unable to parse setting: " + key + " value: " + string, e);
+				}
+			}
+			// set it 
+			this.settings.put(key, object);
+		}
+		
+		return (VerticalTextAlignment)object;
 	}
 	
 	/**

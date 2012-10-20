@@ -1,5 +1,6 @@
 package org.praisenter.data.song.ui;
 
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
@@ -78,6 +79,25 @@ public class SongSearchTableModel extends AbstractTableModel {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Removes all rows of the given song.
+	 * @param song the song to remove
+	 */
+	public void remove(Song song) {
+		// make sure the row exists
+		if (this.songs != null) {
+			Iterator<Song> it = this.songs.iterator();
+			while (it.hasNext()) {
+				Song s = it.next();
+				if (s.getId() == song.getId()) {
+					it.remove();
+				}
+			}
+			// let the listeners know that the table had a row deleted
+			this.fireTableDataChanged();
+		}
 	}
 	
 	/**

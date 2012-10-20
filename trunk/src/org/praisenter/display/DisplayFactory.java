@@ -80,7 +80,8 @@ public class DisplayFactory {
 		titleText.setBackgroundImageVisible(tSet.isBackgroundImageVisible());
 		// text
 		titleText.setTextColor(tSet.getTextColor());
-		titleText.setTextAlignment(tSet.getTextAlignment());
+		titleText.setHorizontalTextAlignment(tSet.getHorizontalTextAlignment());
+		titleText.setVerticalTextAlignment(tSet.getVerticalTextAlignment());
 		titleText.setTextFontScaleType(tSet.getTextFontScaleType());
 		titleText.setTextWrapped(tSet.isTextWrapped());
 		titleText.setPadding(tSet.getPadding());
@@ -108,7 +109,8 @@ public class DisplayFactory {
 		text.setBackgroundImageVisible(xSet.isBackgroundImageVisible());
 		// text
 		text.setTextColor(xSet.getTextColor());
-		text.setTextAlignment(xSet.getTextAlignment());
+		text.setHorizontalTextAlignment(xSet.getHorizontalTextAlignment());
+		text.setVerticalTextAlignment(xSet.getVerticalTextAlignment());
 		text.setTextFontScaleType(xSet.getTextFontScaleType());
 		text.setTextWrapped(xSet.isTextWrapped());
 		text.setPadding(xSet.getPadding());
@@ -165,7 +167,8 @@ public class DisplayFactory {
 		textComponent.setBackgroundImageVisible(tSet.isBackgroundImageVisible());
 		// text
 		textComponent.setTextColor(tSet.getTextColor());
-		textComponent.setTextAlignment(tSet.getTextAlignment());
+		textComponent.setHorizontalTextAlignment(tSet.getHorizontalTextAlignment());
+		textComponent.setVerticalTextAlignment(tSet.getVerticalTextAlignment());
 		textComponent.setTextFontScaleType(tSet.getTextFontScaleType());
 		textComponent.setTextWrapped(tSet.isTextWrapped());
 		textComponent.setPadding(tSet.getPadding());
@@ -234,7 +237,8 @@ public class DisplayFactory {
 		text.setBackgroundImageVisible(tSet.isBackgroundImageVisible());
 		// text
 		text.setTextColor(tSet.getTextColor());
-		text.setTextAlignment(tSet.getTextAlignment());
+		text.setHorizontalTextAlignment(tSet.getHorizontalTextAlignment());
+		text.setVerticalTextAlignment(tSet.getVerticalTextAlignment());
 		text.setTextFontScaleType(tSet.getTextFontScaleType());
 		text.setTextWrapped(tSet.isTextWrapped());
 		text.setPadding(tSet.getPadding());

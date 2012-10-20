@@ -64,7 +64,7 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 	protected static final String BACKGROUND_CACHE_PREFIX = "BACKGROUND";
 	
 	/** The available height for the display text */
-	protected static final int TEXT_HEIGHT = 20;
+	protected static final int TEXT_HEIGHT = 15;
 	
 	// fields
 	
@@ -325,7 +325,7 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 		// see if we need to re-render the image
 		if (image == null || image.getWidth() < w || image.getHeight() < h) {
 			// create a new image of the right size
-			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), w, h, sw);
+			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), w, h, sw, Color.DARK_GRAY);
 			this.shadowImageCache.put(key, image);
 		}
 		
