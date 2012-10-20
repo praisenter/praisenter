@@ -4,8 +4,9 @@ import java.awt.Color;
 import java.awt.Font;
 
 import org.praisenter.display.FontScaleType;
-import org.praisenter.display.TextAlignment;
+import org.praisenter.display.HorizontalTextAlignment;
 import org.praisenter.display.TextComponent;
+import org.praisenter.display.VerticalTextAlignment;
 import org.praisenter.utilities.FontManager;
 
 /**
@@ -18,22 +19,25 @@ public class TextComponentSettings extends GraphicsComponentSettings<TextCompone
 	/** The default font applied to a {@link TextComponent} */
 	public static final Font DEFAULT_FONT = FontManager.getDefaultFont().deriveFont(Font.PLAIN, 40.0f);
 
-	/** The title text color key */
+	/** The text color key */
 	private static final String KEY_TEXT_COLOR = "Text.Color";
 	
-	/** The title text font key */
+	/** The text font key */
 	private static final String KEY_TEXT_FONT = "Text.Font";
 	
-	/** The title text font scale type key */
+	/** The text font scale type key */
 	private static final String KEY_TEXT_FONT_SCALE_TYPE = "Text.FontScaleType";
 	
-	/** The title text alignment key */
-	private static final String KEY_TEXT_ALIGNMENT = "Text.Alignment";
+	/** The horizontal text alignment key */
+	private static final String KEY_HORIZONTAL_TEXT_ALIGNMENT = "Text.Alignment.Horizontal";
 	
-	/** The title text wrapped key */
+	/** The vertical text alignment key */
+	private static final String KEY_VERTICAL_TEXT_ALIGNMENT = "Text.Alignment.Vertical";
+	
+	/** The text wrapped key */
 	private static final String KEY_TEXT_WRAPPED = "Text.Wrapped";
 	
-	/** The title padding key */
+	/** The padding key */
 	private static final String KEY_PADDING = "Padding";
 	
 	/**
@@ -63,7 +67,8 @@ public class TextComponentSettings extends GraphicsComponentSettings<TextCompone
 		
 		// text settings
 		this.setPadding(component.getPadding());
-		this.setTextAlignment(component.getTextAlignment());
+		this.setHorizontalTextAlignment(component.getHorizontalTextAlignment());
+		this.setVerticalTextAlignment(component.getVerticalTextAlignment());
 		this.setTextColor(component.getTextColor());
 		this.setTextFont(component.getTextFont());
 		this.setTextFontScaleType(component.getTextFontScaleType());
@@ -122,20 +127,37 @@ public class TextComponentSettings extends GraphicsComponentSettings<TextCompone
 	}
 	
 	/**
-	 * Returns the text alignment.
-	 * @return {@link TextAlignment}
+	 * Returns the horizontal text alignment.
+	 * @return {@link HorizontalTextAlignment}
 	 */
-	public TextAlignment getTextAlignment() {
-		return this.getTextAlignmentSetting(this.prefix + TextComponentSettings.KEY_TEXT_ALIGNMENT);
+	public HorizontalTextAlignment getHorizontalTextAlignment() {
+		return this.getHorizontalTextAlignmentSetting(this.prefix + TextComponentSettings.KEY_HORIZONTAL_TEXT_ALIGNMENT);
 	}
 	
 	/**
-	 * Sets the text alignment.
+	 * Sets the horizontal text alignment.
 	 * @param alignment the text alignment
 	 * @throws SettingsException if the setting failed to be assigned
 	 */
-	public void setTextAlignment(TextAlignment alignment) throws SettingsException {
-		this.setSetting(this.prefix + TextComponentSettings.KEY_TEXT_ALIGNMENT, alignment);
+	public void setHorizontalTextAlignment(HorizontalTextAlignment alignment) throws SettingsException {
+		this.setSetting(this.prefix + TextComponentSettings.KEY_HORIZONTAL_TEXT_ALIGNMENT, alignment);
+	}
+	
+	/**
+	 * Returns the vertical text alignment.
+	 * @return {@link VerticalTextAlignment}
+	 */
+	public VerticalTextAlignment getVerticalTextAlignment() {
+		return this.getVerticalTextAlignmentSetting(this.prefix + TextComponentSettings.KEY_VERTICAL_TEXT_ALIGNMENT);
+	}
+	
+	/**
+	 * Sets the vertical text alignment.
+	 * @param alignment the text alignment
+	 * @throws SettingsException if the setting failed to be assigned
+	 */
+	public void setVerticalTextAlignment(VerticalTextAlignment alignment) throws SettingsException {
+		this.setSetting(this.prefix + TextComponentSettings.KEY_VERTICAL_TEXT_ALIGNMENT, alignment);
 	}
 	
 	/**

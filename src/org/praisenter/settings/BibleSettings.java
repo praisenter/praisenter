@@ -9,7 +9,8 @@ import org.praisenter.display.FontScaleType;
 import org.praisenter.display.GraphicsComponent;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
-import org.praisenter.display.TextAlignment;
+import org.praisenter.display.HorizontalTextAlignment;
+import org.praisenter.display.VerticalTextAlignment;
 import org.praisenter.transitions.Fade;
 import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.FontManager;
@@ -152,7 +153,8 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 			this.scriptureTitleSettings.setTextColor(Color.WHITE);
 			this.scriptureTitleSettings.setTextFont(FontManager.getDefaultFont().deriveFont(Font.BOLD, 50));
 			this.scriptureTitleSettings.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
-			this.scriptureTitleSettings.setTextAlignment(TextAlignment.LEFT);
+			this.scriptureTitleSettings.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT);
+			this.scriptureTitleSettings.setVerticalTextAlignment(VerticalTextAlignment.TOP);
 			this.scriptureTitleSettings.setTextWrapped(false);
 			this.scriptureTitleSettings.setPadding(0);
 		}
@@ -175,7 +177,8 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 			this.scriptureTextSettings.setTextColor(Color.WHITE);
 			this.scriptureTextSettings.setTextFont(FontManager.getDefaultFont().deriveFont(Font.BOLD, 40));
 			this.scriptureTextSettings.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
-			this.scriptureTextSettings.setTextAlignment(TextAlignment.CENTER);
+			this.scriptureTextSettings.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
+			this.scriptureTextSettings.setVerticalTextAlignment(VerticalTextAlignment.TOP);
 			this.scriptureTextSettings.setTextWrapped(true);
 			this.scriptureTextSettings.setPadding(0);
 		}

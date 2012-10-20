@@ -20,14 +20,23 @@ public class Icons {
 	/** Item selected indicator icon */
 	public static final ImageIcon SELECTED = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/selected.png");
 	
-	/** Align text left icon */
-	public static final ImageIcon ALIGN_LEFT = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/align-left.png");
+	/** Horizontal align text left icon */
+	public static final ImageIcon HORIZONTAL_ALIGN_LEFT = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/halign-left.png");
 	
-	/** Align text center icon */
-	public static final ImageIcon ALIGN_CENTER = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/align-center.png");
+	/** Horizontal align text center icon */
+	public static final ImageIcon HORIZONTAL_ALIGN_CENTER = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/halign-center.png");
 	
-	/** Align text right icon */
-	public static final ImageIcon ALIGN_RIGHT = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/align-right.png");
+	/** Horizontal align text right icon */
+	public static final ImageIcon HORIZONTAL_ALIGN_RIGHT = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/halign-right.png");
+	
+	/** Vertical align text top icon */
+	public static final ImageIcon VERTICAL_ALIGN_TOP = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/valign-top.png");
+	
+	/** Vertical align text center icon */
+	public static final ImageIcon VERTICAL_ALIGN_CENTER = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/valign-center.png");
+	
+	/** Vertical align text bottom icon */
+	public static final ImageIcon VERTICAL_ALIGN_BOTTOM = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/valign-bottom.png");
 	
 	/** Bold text icon */
 	public static final ImageIcon BOLD = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/bold.png");

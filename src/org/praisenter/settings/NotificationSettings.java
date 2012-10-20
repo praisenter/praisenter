@@ -8,7 +8,8 @@ import org.praisenter.display.CompositeType;
 import org.praisenter.display.FontScaleType;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
-import org.praisenter.display.TextAlignment;
+import org.praisenter.display.HorizontalTextAlignment;
+import org.praisenter.display.VerticalTextAlignment;
 import org.praisenter.transitions.SwipeLeft;
 import org.praisenter.transitions.SwipeRight;
 import org.praisenter.utilities.ColorUtilities;
@@ -113,7 +114,8 @@ public final class NotificationSettings extends RootSettings<NotificationSetting
 		this.textSettings.setTextColor(Color.WHITE);
 		this.textSettings.setTextFont(FontManager.getDefaultFont().deriveFont(Font.BOLD, 50));
 		this.textSettings.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
-		this.textSettings.setTextAlignment(TextAlignment.CENTER);
+		this.textSettings.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
+		this.textSettings.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
 		this.textSettings.setTextWrapped(true);
 		this.textSettings.setPadding(0);
 	}

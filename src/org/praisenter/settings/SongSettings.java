@@ -9,7 +9,8 @@ import org.praisenter.display.FontScaleType;
 import org.praisenter.display.GraphicsComponent;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
-import org.praisenter.display.TextAlignment;
+import org.praisenter.display.HorizontalTextAlignment;
+import org.praisenter.display.VerticalTextAlignment;
 import org.praisenter.transitions.Fade;
 import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.FontManager;
@@ -130,7 +131,8 @@ public final class SongSettings extends RootSettings<SongSettings> {
 			this.textSettings.setTextColor(Color.WHITE);
 			this.textSettings.setTextFont(FontManager.getDefaultFont().deriveFont(Font.BOLD, 50));
 			this.textSettings.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
-			this.textSettings.setTextAlignment(TextAlignment.LEFT);
+			this.textSettings.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
+			this.textSettings.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
 			this.textSettings.setTextWrapped(false);
 			this.textSettings.setPadding(0);
 		}

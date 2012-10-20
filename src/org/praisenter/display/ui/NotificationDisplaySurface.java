@@ -46,7 +46,7 @@ public class NotificationDisplaySurface extends DisplaySurface implements Action
 		this.in = null;
 		this.out = null;
 		// default state is in
-		this.state = NotificationState.IN;
+		this.state = NotificationState.DONE;
 		// setup the wait timer to not repeat and to fire immediately when started
 		this.waitTimer = new Timer(0, this);
 		this.waitTimer.setActionCommand("waitComplete");
@@ -100,6 +100,41 @@ public class NotificationDisplaySurface extends DisplaySurface implements Action
 			this.in.start(this);
 		} else {
 			this.repaint();
+		}
+	}
+	
+	/**
+	 * Clears the current notification.
+	 * <p>
+	 * The notifications are automatically cleared when the waitPeriod is met.  This
+	 * method is here to clear the notification before that period has elapsed.
+	 * <p>
+	 * If the notification is already in the out transition this method will do nothing.
+	 * @param animator the animator to use
+	 */
+	public void clear(TransitionAnimator animator) {
+		// stop the wait timer if necessary
+		this.waitTimer.stop();
+		
+		// stop the in transition
+		if (this.in != null) {
+			this.in.stop();
+		}
+		 
+		if (this.state == NotificationState.IN || this.state == NotificationState.WAIT) {
+			// since we aren't in the out state, then make sure the out transition is not running
+			if (this.out != null) {
+				this.out.stop();
+			}
+			
+			// set the out transition
+			this.out = animator;
+			this.state = NotificationState.OUT;
+			if (this.out != null) {
+				this.out.start(this);
+			} else {
+				this.repaint();
+			}
 		}
 	}
 	

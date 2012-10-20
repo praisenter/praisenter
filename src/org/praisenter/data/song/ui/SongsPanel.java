@@ -146,16 +146,6 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		this.scrPreview = new ScrollableInlineDisplayPreviewPanel<SongDisplayPreviewPanel, SongDisplay>(this.pnlPreview);
 		this.scrPreview.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 		
-		// FIXME we need a way to delete songs
-		// FIXME we need a way to add songs to the song queue
-//		JButton btnDeleteSelected = new JButton(Messages.getString("panel.song.deleteSelected"));
-//		btnDeleteSelected.setActionCommand("delete");
-//		btnDeleteSelected.addActionListener(this);
-//		
-//		JButton btnAdd = new JButton(Messages.getString("panel.song.add"));
-//		btnAdd.setActionCommand("add");
-//		btnAdd.addActionListener(this);
-		
 		// current song and sending
 		
 		this.lblSongTitle = new JLabel(MessageFormat.format(Messages.getString("panel.songs.current.pattern"), Messages.getString("panel.songs.default.title"), ""));
@@ -170,7 +160,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		this.btnSend.setToolTipText(Messages.getString("panel.songs.send.tooltip"));
 		this.btnSend.addActionListener(this);
 		this.btnSend.setActionCommand("send");
-		btnSend.setFont(btnSend.getFont().deriveFont(Font.BOLD, btnSend.getFont().getSize2D() + 3.0f));
+		this.btnSend.setFont(this.btnSend.getFont().deriveFont(Font.BOLD, this.btnSend.getFont().getSize2D() + 3.0f));
 		
 		this.btnClear = new JButton(Messages.getString("panel.songs.clear"));
 		this.btnClear.setToolTipText(Messages.getString("panel.songs.clear.tooltip"));
@@ -266,6 +256,16 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		btnSongSearch.setActionCommand("search");
 		btnSongSearch.addActionListener(this);
 		
+		JButton btnAdd = new JButton(Messages.getString("panel.song.add"));
+		btnAdd.setToolTipText(Messages.getString("panel.song.add.tooltip"));
+		btnAdd.setActionCommand("add");
+		btnAdd.addActionListener(this);
+		
+		JButton btnDelete = new JButton(Messages.getString("panel.song.delete"));
+		btnDelete.setToolTipText(Messages.getString("panel.song.delete.tooltip"));
+		btnDelete.setActionCommand("delete");
+		btnDelete.addActionListener(this);
+		
 		this.tblSongSearchResults = new JTable(new SongSearchTableModel()) {
 			@Override
 			public String getToolTipText(MouseEvent event) {
@@ -291,9 +291,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		this.tblSongSearchResults.setRowSelectionAllowed(true);
 		this.tblSongSearchResults.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseReleased(MouseEvent e) {
+			public void mouseClicked(MouseEvent e) {
 				// make sure its a double click
-				if (e.getClickCount() > 0 && e.getButton() == MouseEvent.BUTTON1) {
+				if (e.getClickCount() >= 2 && e.getButton() == MouseEvent.BUTTON1) {
 					// assume single click
 					// go to the data store and get the full song detail
 					// get the selected row
@@ -331,12 +331,16 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		ssLayout.setHorizontalGroup(ssLayout.createParallelGroup()
 				.addGroup(ssLayout.createSequentialGroup()
 						.addComponent(this.txtSongSearch)
-						.addComponent(btnSongSearch))
+						.addComponent(btnSongSearch)
+						.addComponent(btnAdd)
+						.addComponent(btnDelete))
 				.addComponent(scrSongsSearchResults, 400, 400, Short.MAX_VALUE));
 		ssLayout.setVerticalGroup(ssLayout.createSequentialGroup()
 				.addGroup(ssLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtSongSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSongSearch))
+						.addComponent(btnSongSearch)
+						.addComponent(btnAdd)
+						.addComponent(btnDelete))
 				.addComponent(scrSongsSearchResults, 200, 200, Short.MAX_VALUE));
 		
 		// the song queue
@@ -365,9 +369,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		this.tblSongQueue.setRowSelectionAllowed(true);
 		this.tblSongQueue.addMouseListener(new MouseAdapter() {
 			@Override
-			public void mouseReleased(MouseEvent e) {
+			public void mouseClicked(MouseEvent e) {
 				// make sure its a double click
-				if (e.getClickCount() > 0 && e.getButton() == MouseEvent.BUTTON1) {
+				if (e.getClickCount() >= 2 && e.getButton() == MouseEvent.BUTTON1) {
 					// assume single click
 					// go to the data store and get the full song detail
 					// get the selected row
@@ -375,14 +379,17 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 					// get the data
 					SongTableModel model = (SongTableModel)tblSongQueue.getModel();
 					Song song = model.getRow(row);
-					try {
-						// overwrite the song local variable
-						song = Songs.getSong(song.getId());
-						setSong(song);
-					} catch (DataException ex) {
-						// just log this exception because the user
-						// should still be able to click on the row again
-						LOGGER.error("An error occurred while selecting a song from the song queue list: ", ex);
+					// see if its the same song
+					if (SongsPanel.this.song == null || (song.getId() != SongsPanel.this.song.getId())) {
+						try {
+							// overwrite the song local variable
+							song = Songs.getSong(song.getId());
+							setSong(song);
+						} catch (DataException ex) {
+							// just log this exception because the user
+							// should still be able to click on the row again
+							LOGGER.error("An error occurred while selecting a song from the song queue list: ", ex);
+						}
 					}
 				}
 			}
@@ -445,32 +452,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		if ("search".equals(command)) {
 			this.searchSongsAction();
 		} else if ("delete".equals(command)) {
-			// FIXME the delete should go somewhere else
-//			MutableSongTableModel model = (MutableSongTableModel)this.tblSongSearchResults.getModel();
-//			// only prompt if there is a song selected
-//			if (model.isSongSelected()) {
-//				// verify the user wants to do it
-//				int choice = JOptionPane.showConfirmDialog(
-//						this, 
-//						Messages.getString("panel.songs.delete.message"),
-//						Messages.getString("panel.songs.delete.title"), 
-//						JOptionPane.YES_NO_CANCEL_OPTION);
-//				if (choice == JOptionPane.YES_OPTION) {
-//					// remove the rows from the table
-//					List<Song> songs = model.removeSelectedRows();
-//					// remove the songs from the data store
-//					for (Song song : songs) {
-//						try {
-//							Songs.deleteSong(song.getId());
-//							this.songDeleted(song);
-//						} catch (DataException ex) {
-//							// TODO Auto-generated catch block
-//							ex.printStackTrace();
-//							break;
-//						}
-//					}
-//				}
-//			}
+			this.deleteSongAction();
 		} else if ("remove".equals(command)) {
 			MutableSongTableModel model = (MutableSongTableModel)this.tblSongQueue.getModel();
 			model.removeSelectedRows();
@@ -478,13 +460,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			MutableSongTableModel model = (MutableSongTableModel)this.tblSongQueue.getModel();
 			model.removeAllRows();
 		} else if ("add".equals(command)) {
-//			MutableSongTableModel sModel = (MutableSongTableModel)this.tblSongSearchResults.getModel();
-//			List<Song> selected = sModel.getSelectedRows();
-//			if (selected.size() > 0) {
-//				MutableSongTableModel qModel = (MutableSongTableModel)this.tblSongQueue.getModel();
-//				qModel.addRows(selected);
-//			}
-//			sModel.deselectAll();
+			this.addSongToSongQueueAction();
 		} else if (command.startsWith("quickSend=")) {
 			this.quickSendAction(command);
 		} else if ("send".equals(command)) {
@@ -515,6 +491,59 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			// execute the search
 			SongSearch search = new SongSearch(text, new SongSearchCallback());
 			this.songSearchThread.queueSearch(search);
+		}
+	}
+	
+	/**
+	 * Deletes the selected song in the song search table.
+	 */
+	private void deleteSongAction() {
+		SongSearchTableModel model = (SongSearchTableModel)this.tblSongSearchResults.getModel();
+		int row = this.tblSongSearchResults.getSelectedRow();
+		// only prompt if there is a song selected
+		if (row >= 0) {
+			// get the song
+			Song song = model.getRow(row);
+			// verify the user wants to do it
+			int choice = JOptionPane.showConfirmDialog(
+					this, 
+					MessageFormat.format(Messages.getString("panel.song.delete.message"), song.getTitle(), song.getId()),
+					Messages.getString("panel.song.delete.title"), 
+					JOptionPane.YES_NO_CANCEL_OPTION);
+			if (choice == JOptionPane.YES_OPTION) {
+				// remove the row(s) from the search results table
+				model.remove(song);
+				// remove the song from the data store
+				try {
+					Songs.deleteSong(song.getId());
+					// clear the current song preview (if needed)
+					// clear the song from the song queue (if there)
+					this.songDeleted(song);
+				} catch (DataException ex) {
+					// show an exception dialog
+					ExceptionDialog.show(
+							this, 
+							Messages.getString("panel.song.delete.exception.title"), 
+							MessageFormat.format(Messages.getString("panel.song.delete.exception.text"), song.getTitle(), song.getId()), 
+							ex);
+					// log the error
+					LOGGER.error("Error deleting song: ", ex);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Adds the selected song in the song search table to the song queue table.
+	 */
+	private void addSongToSongQueueAction() {
+		SongSearchTableModel model = (SongSearchTableModel)this.tblSongSearchResults.getModel();
+		int row = this.tblSongSearchResults.getSelectedRow();
+		// only prompt if there is a song selected
+		if (row >= 0) {
+			Song song = model.getRow(row);
+			MutableSongTableModel qModel = (MutableSongTableModel)this.tblSongQueue.getModel();
+			qModel.addRow(song);
 		}
 	}
 	
@@ -610,37 +639,51 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		this.cmbParts.setEnabled(false);
 		this.btnSend.setEnabled(false);
 		this.pnlQuickSend.setButtonsEnabled(false);
-		// update the labels
-		String notes = song.getNotes();
-		final int maxLength = 25;
-		if (notes != null && notes.length() > 0) {
-			// replace new lines with spaces
-			notes = notes.replaceAll("(\\r\\n)|(\\r)|(\\n)", " ");
-			// truncate if too long
-			if (notes.length() > maxLength) {
-				notes = notes.substring(0, maxLength - 1);
-				notes += "...";
-			}
-		}
-		// set the song label text
-		this.lblSongTitle.setText(MessageFormat.format(Messages.getString("panel.songs.current.pattern"), song.getTitle(), notes));
-		// set the song label tooltip
-		if (song.getNotes() != null && song.getNotes().length() > 0) {
-			this.lblSongTitle.setToolTipText(StringUtilities.addLineBreaksAtInterval(song.getNotes(), 50, true));
-		} else {
-			this.lblSongTitle.setToolTipText(null);
-		}
+		
 		// update the part combo box
 		this.cmbParts.removeAllItems();
-		for (SongPart part : song.getParts()) {
-			this.cmbParts.addItem(part);
+		
+		if (song != null) {
+			// update the labels
+			String notes = song.getNotes();
+			final int maxLength = 25;
+			if (notes != null && notes.length() > 0) {
+				// replace new lines with spaces
+				notes = notes.replaceAll("(\\r\\n)|(\\r)|(\\n)", " ");
+				// truncate if too long
+				if (notes.length() > maxLength) {
+					notes = notes.substring(0, maxLength - 1);
+					notes += "...";
+				}
+			}
+			// set the song label text
+			this.lblSongTitle.setText(MessageFormat.format(Messages.getString("panel.songs.current.pattern"), song.getTitle(), notes));
+			// set the song label tooltip
+			if (song.getNotes() != null && song.getNotes().length() > 0) {
+				this.lblSongTitle.setToolTipText(StringUtilities.addLineBreaksAtInterval(song.getNotes(), 50, true));
+			} else {
+				this.lblSongTitle.setToolTipText(null);
+			}
+			for (SongPart part : song.getParts()) {
+				this.cmbParts.addItem(part);
+			}
+			// set the loading status
+			this.scrPreview.setLoading(true);
+			// update the current song
+			Thread thread = new Thread(new UpdateCurrentSongTask(song));
+			thread.setDaemon(true);
+			thread.start();
+		} else {
+			// set the song label text
+			this.lblSongTitle.setText(MessageFormat.format(Messages.getString("panel.songs.current.pattern"), Messages.getString("panel.songs.default.title"), ""));
+			this.lblSongTitle.setToolTipText(null);
+			// add one dummy item to the parts combo box
+			this.cmbParts.addItem(new SongPart());
+			// clear the preview
+			this.pnlPreview.setSong(null);
+			this.scrPreview.updatePanelSize();
+			this.pnlPreview.repaint();
 		}
-		// set the loading status
-		this.scrPreview.setLoading(true);
-		// update the current song
-		Thread thread = new Thread(new UpdateCurrentSongTask(song));
-		thread.setDaemon(true);
-		thread.start();
 	}
 	
 	/* (non-Javadoc)
@@ -670,12 +713,16 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	 */
 	@Override
 	public void songDeleted(Song song) {
-		// update the search/song queue tables
-		MutableSongTableModel model = (MutableSongTableModel)this.tblSongSearchResults.getModel();
+		// update the song queue table
+		MutableSongTableModel model = (MutableSongTableModel)this.tblSongQueue.getModel();
 		model.removeRow(song);
 		
-		model = (MutableSongTableModel)this.tblSongQueue.getModel();
-		model.removeRow(song);
+		// clear the preview panel
+		if (this.song != null && this.song.getId() == song.getId()) {
+			this.setSong(null);
+		}
+		
+		// FIXME clear the edit song panel
 		
 		// see if the current song is the deleted one
 //		Song oSong = this.pnlSong.getSong();

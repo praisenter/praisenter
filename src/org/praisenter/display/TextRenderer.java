@@ -17,7 +17,6 @@ import org.apache.log4j.Logger;
  * @version 1.0.0
  * @since 1.0.0
  */
-// FIXME need to add options for vertical alignment of text
 public class TextRenderer {
 	/** The static logger */
 	private static final Logger LOGGER = Logger.getLogger(TextRenderer.class);
@@ -39,7 +38,7 @@ public class TextRenderer {
 	 * @param width the maximum width
 	 */
 	public static final void renderParagraph(Graphics2D g2d, String text, float width) {
-		TextRenderer.renderParagraph(g2d, text, TextAlignment.CENTER, 0, 0, width);
+		TextRenderer.renderParagraph(g2d, text, HorizontalTextAlignment.CENTER, 0, 0, width);
 	}
 	
 	/**
@@ -56,7 +55,7 @@ public class TextRenderer {
 	 * @param width the maximum width
 	 */
 	public static final void renderParagraph(Graphics2D g2d, String text, float x, float y, float width) {
-		TextRenderer.renderParagraph(g2d, text, TextAlignment.CENTER, x, y, width);
+		TextRenderer.renderParagraph(g2d, text, HorizontalTextAlignment.CENTER, x, y, width);
 	}
 	
 	/**
@@ -71,7 +70,7 @@ public class TextRenderer {
 	 * @param alignment the text alignment
 	 * @param width the maximum width
 	 */
-	public static final void renderParagraph(Graphics2D g2d, String text, TextAlignment alignment, float width) {
+	public static final void renderParagraph(Graphics2D g2d, String text, HorizontalTextAlignment alignment, float width) {
 		TextRenderer.renderParagraph(g2d, text, alignment, 0, 0, width);
 	}
 	
@@ -87,7 +86,7 @@ public class TextRenderer {
 	 * @param y the y coordinate
 	 * @param width the maximum width
 	 */
-	public static final void renderParagraph(Graphics2D g2d, String text, TextAlignment alignment, float x, float y, float width) {
+	public static final void renderParagraph(Graphics2D g2d, String text, HorizontalTextAlignment alignment, float x, float y, float width) {
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
 		as.addAttribute(TextAttribute.FONT, g2d.getFont());
@@ -134,13 +133,13 @@ public class TextRenderer {
 	    	y += (layout.getAscent());
 	    	float dx = 0; 
 	    	boolean leftToRight = layout.isLeftToRight();
-	    	if (alignment == TextAlignment.LEFT) {
+	    	if (alignment == HorizontalTextAlignment.LEFT) {
 	    		if (leftToRight) {
 	    			dx = 0;
 	    		} else {
 	    			dx = layout.getVisibleAdvance() - layout.getAdvance();
 	    		}
-	    	} else if (alignment == TextAlignment.RIGHT) {
+	    	} else if (alignment == HorizontalTextAlignment.RIGHT) {
 	    		if (leftToRight) {
 	    			dx = width - layout.getVisibleAdvance();
 	    		} else {
@@ -161,16 +160,16 @@ public class TextRenderer {
 	}
 	
 	/**
-	 * Returns the height of the given text laid out as a paragraph with a maximum width.
+	 * Returns the bounds of the given text laid out as a paragraph with a maximum width.
 	 * <p>
 	 * This method will break on new line characters specified by {@link TextRenderer#LINE_SEPARATOR}.
 	 * @param text the string
 	 * @param font the font
 	 * @param fontRenderContext the font rendering context
 	 * @param width the maximum width
-	 * @return float
+	 * @return {@link TextBounds}
 	 */
-	public static final float getParagraphHeight(String text, Font font, FontRenderContext fontRenderContext, float width) {
+	public static final TextBounds getParagraphBounds(String text, Font font, FontRenderContext fontRenderContext, float width) {
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
 		as.addAttribute(TextAttribute.FONT, font);
@@ -181,6 +180,7 @@ public class TextRenderer {
 	    
 		// compute the height by laying out the lines
 	    float h = 0;
+	    float w = 0;
 	    boolean isLastLayoutNewLine = false;
 	    while (measurer.getPosition() < text.length()) {
 	    	// get the expected ending character for this line
@@ -214,19 +214,23 @@ public class TextRenderer {
 	    	}
 	    	// accumulate this lines height
 	    	h += layout.getAscent() + layout.getDescent() + layout.getLeading();
+	    	// keep the maximum width
+	    	float tw = layout.getAdvance();
+	    	w = w < tw ? tw : w;
 	    }
 	    
-	    // return the height
-	    return h;
+	    // return the bounds
+	    return new TextBounds(w, h);
 	}
 	
 	/**
-	 * Returns the font size that fills the given width and height with the 
-	 * font size bounded by the given font's current size.
-	 * <p>
-	 * This method assumes the current font size specified in font is the maximum font size.
+	 * Returns the {@link TextMetrics} that fills the given width and height with the 
+	 * font size bounded by the given maximum.  Will always return a font size
+	 * of 1.0 or greater.
 	 * <p>
 	 * This method will break on new line characters specified by {@link TextRenderer#LINE_SEPARATOR}.
+	 * <p>
+	 * This method will reduce the font only.
 	 * @param font the initial font
 	 * @param fontRenderContext the font rendering context
 	 * @param text the text
@@ -234,59 +238,62 @@ public class TextRenderer {
 	 * @param height the height of the bounds
 	 * @return float
 	 */
-	public static final float getFittingParagraphFontSize(Font font, FontRenderContext fontRenderContext, String text, float width, float height) {
-		return TextRenderer.getFittingParagraphFontSize(font, font.getSize2D(), fontRenderContext, text, width, height);
+	public static final TextMetrics getFittingParagraphMetrics(Font font, FontRenderContext fontRenderContext, String text, float width, float height) {
+		return TextRenderer.getFittingParagraphMetrics(font, font.getSize2D(), fontRenderContext, text, width, height);
 	}
 	
 	/**
-	 * Returns the font size that fills the given width and height with the 
+	 * Returns the {@link TextMetrics} that fills the given width and height with the 
 	 * font size bounded by the given maximum.  Will always return a font size
 	 * of 1.0 or greater.
 	 * <p>
 	 * This method will break on new line characters specified by {@link TextRenderer#LINE_SEPARATOR}.
 	 * @param font the initial font
-	 * @param max the maximum font size; use Float.MAX_VALUE to specify no maximum size
+	 * @param max the maximum font size; use Float.MAX_VALUE to specify no maximum size; use the font's current size for reduction only
 	 * @param fontRenderContext the font rendering context
 	 * @param text the text
 	 * @param width the width of the bounds
 	 * @param height the height of the bounds
 	 * @return float
 	 */
-	public static final float getFittingParagraphFontSize(Font font, float max, FontRenderContext fontRenderContext, String text, float width, float height) {
+	public static final TextMetrics getFittingParagraphMetrics(Font font, float max, FontRenderContext fontRenderContext, String text, float width, float height) {
 		// get the current font size
 		float cur = font.getSize2D();
 		// clamp the beginning size to 1
 		if (cur < 1.0f) cur = 1.0f;
 		// get the initial paragraph height
-		float h = getParagraphHeight(text, font, fontRenderContext, width);
+		TextBounds bounds = getParagraphBounds(text, font, fontRenderContext, width);
 		// loop until the text fills the area
 		// the if condition allows REDUCE_FONT_ONLY to exit early
-		float min = (h <= height && max != Float.MAX_VALUE) ? max : 1.0f;
+		float min = (bounds.height <= height && max != Float.MAX_VALUE) ? max : 1.0f;
 		int i = 0;
-		while (h > height || max - min > 1.0f) {
+		while (bounds.height > height || max - min > 1.0f) {
 			// check the paragraph height against the maximum height
-			if (h < height) {
+			if (bounds.height < height) {
 				// we need to binary search up
 				min = cur;
 				// compute an estimated next size if the maximum begins with Float.MAX_VALUE
 				// this is to help convergence to a safe maximum
-				float rmax = (max == Float.MAX_VALUE ? height * (cur / h) : max);
+				float rmax = (max == Float.MAX_VALUE ? height * (cur / bounds.height) : max);
 				cur = (float)Math.ceil((cur + rmax) * 0.5f);
 				font = font.deriveFont(cur);
 			} else {
 				// we need to binary search down
 				max = cur;
-				cur = (float)Math.floor((min + cur) * 0.5f);
+				// get the next test font size
+				float temp = (float)Math.floor((min + cur) * 0.5f);
 				// do a check for minimum font size
-				if (cur <= 1.0f) break;
+				if (temp <= 1.0f) break;
+				// its not the minimum so continue
+				cur = temp;
 				font = font.deriveFont(cur);
 			}
 			// get the new paragraph height for the new font size
-			h = getParagraphHeight(text, font, fontRenderContext, width);
+			bounds = getParagraphBounds(text, font, fontRenderContext, width);
 			i++;
 		}
 		LOGGER.debug("Font fitting iterations: " + i);
-		return cur;
+		return new TextMetrics(cur, bounds.width, bounds.height);
 	}
 	
 	// line methods
@@ -300,7 +307,7 @@ public class TextRenderer {
 	 * @param width the maximum width
 	 */
 	public static final void renderLine(Graphics2D g2d, String text, int width) {
-		TextRenderer.renderLine(g2d, text, TextAlignment.CENTER, 0, 0, width);
+		TextRenderer.renderLine(g2d, text, HorizontalTextAlignment.CENTER, 0, 0, width);
 	}
 	
 	/**
@@ -314,7 +321,7 @@ public class TextRenderer {
 	 * @param width the maximum width
 	 */
 	public static final void renderLine(Graphics2D g2d, String text, float x, float y, int width) {
-		TextRenderer.renderLine(g2d, text, TextAlignment.CENTER, x, y, width);
+		TextRenderer.renderLine(g2d, text, HorizontalTextAlignment.CENTER, x, y, width);
 	}
 	
 	/**
@@ -326,7 +333,7 @@ public class TextRenderer {
 	 * @param alignment the text alignment
 	 * @param width the maximum width
 	 */
-	public static final void renderLine(Graphics2D g2d, String text, TextAlignment alignment, int width) {
+	public static final void renderLine(Graphics2D g2d, String text, HorizontalTextAlignment alignment, int width) {
 		TextRenderer.renderLine(g2d, text, alignment, 0, 0, width);
 	}
 	
@@ -340,7 +347,7 @@ public class TextRenderer {
 	 * @param y the y coordinate
 	 * @param width the maximum width
 	 */
-	public static final void renderLine(Graphics2D g2d, String text, TextAlignment alignment, float x, float y, int width) {
+	public static final void renderLine(Graphics2D g2d, String text, HorizontalTextAlignment alignment, float x, float y, int width) {
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
 		as.addAttribute(TextAttribute.FONT, g2d.getFont());
@@ -350,13 +357,13 @@ public class TextRenderer {
 		
 		float dx = 0; 
     	boolean leftToRight = layout.isLeftToRight();
-    	if (alignment == TextAlignment.LEFT) {
+    	if (alignment == HorizontalTextAlignment.LEFT) {
     		if (leftToRight) {
     			dx = 0;
     		} else {
     			dx = layout.getVisibleAdvance() - layout.getAdvance();
     		}
-    	} else if (alignment == TextAlignment.RIGHT) {
+    	} else if (alignment == HorizontalTextAlignment.RIGHT) {
     		if (leftToRight) {
     			dx = width - layout.getVisibleAdvance();
     		} else {
@@ -375,31 +382,52 @@ public class TextRenderer {
 	}
 	
 	/**
-	 * Returns the font size required to fit the given text on one line.
-	 * <p>
-	 * This method assumes the current font size specified in font is the maximum font size.
+	 * Returns the bounds of a single line of text.
 	 * @param font the text font
 	 * @param fontRenderContext the font rendering context
 	 * @param text the text
-	 * @param width the width to fit the text in
-	 * @param height the height to fit the text in
-	 * @return float
+	 * @return {@link TextBounds}
 	 */
-	public static final float getFittingLineFontSize(Font font, FontRenderContext fontRenderContext, String text, float width, float height) {
-		return TextRenderer.getFittingLineFontSize(font, font.getSize2D(), fontRenderContext, text, width, height);
+	public static final TextBounds getLineBounds(Font font, FontRenderContext fontRenderContext, String text) {
+		// create an attributed string and assign the font
+		AttributedString as = new AttributedString(text);
+		as.addAttribute(TextAttribute.FONT, font);
+		// get the character iterator
+		AttributedCharacterIterator it = as.getIterator();
+		TextLayout layout = new TextLayout(it, fontRenderContext);
+		// get the single line text width
+		float tw = layout.getVisibleAdvance();
+		float th = layout.getAscent() + layout.getDescent() + layout.getLeading();
+		// return the metrics
+		return new TextBounds(tw, th);
 	}
 	
 	/**
-	 * Returns the font size required to fit the given text on one line.
+	 * Returns the metrics of a single line of text reducing the text
+	 * to fit the given bounds if necessary.
 	 * @param font the text font
-	 * @param max the maximum; use Float.MAX_VALUE to specify no maximum size
 	 * @param fontRenderContext the font rendering context
 	 * @param text the text
 	 * @param width the width to fit the text in
 	 * @param height the height to fit the text in
-	 * @return float
+	 * @return {@link TextMetrics}
 	 */
-	public static final float getFittingLineFontSize(Font font, float max, FontRenderContext fontRenderContext, String text, float width, float height) {
+	public static final TextMetrics getFittingLineMetrics(Font font, FontRenderContext fontRenderContext, String text, float width, float height) {
+		return TextRenderer.getFittingLineMetrics(font, font.getSize2D(), fontRenderContext, text, width, height);
+	}
+	
+	/**
+	 * Returns the metrics of a single line of text reducing or increasing the text
+	 * to fit the given bounds if necessary.
+	 * @param font the text font
+	 * @param max the maximum; use Float.MAX_VALUE to specify no maximum size; use the current font size to allow only reduction
+	 * @param fontRenderContext the font rendering context
+	 * @param text the text
+	 * @param width the width to fit the text in
+	 * @param height the height to fit the text in
+	 * @return {@link TextMetrics}
+	 */
+	public static final TextMetrics getFittingLineMetrics(Font font, float max, FontRenderContext fontRenderContext, String text, float width, float height) {
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
 		as.addAttribute(TextAttribute.FONT, font);
@@ -418,8 +446,8 @@ public class TextRenderer {
 		// if the scaling factor is less than one (the size must be reduced)
 		// or the maximum size is unbounded, then scale the current font size
 		if (factor < 1.0 || max == Float.MAX_VALUE) {
-			return cur * factor;
+			cur *= factor;
 		}
-		return cur;
+		return new TextMetrics(cur, tw, th);
 	}
 }

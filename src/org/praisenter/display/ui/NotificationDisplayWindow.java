@@ -85,6 +85,17 @@ public class NotificationDisplayWindow extends DisplayWindow<NotificationDisplay
 		}
 	}
 	
+	/**
+	 * Clears the current notification using the given animator.
+	 * <p>
+	 * If the notification is already transitioning out, this method will
+	 * do nothing.
+	 * @param animator the animator to use
+	 */
+	public void clear(TransitionAnimator animator) {
+		this.surface.clear(animator);
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
 	 */

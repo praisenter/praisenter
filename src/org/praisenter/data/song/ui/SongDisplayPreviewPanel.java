@@ -56,20 +56,22 @@ public class SongDisplayPreviewPanel extends InlineDisplayPreviewPanel<SongDispl
 		this.displays.clear();
 		this.names.clear();
 		
-		GeneralSettings gSettings = GeneralSettings.getInstance();
-		SongSettings sSettings = SongSettings.getInstance();
-		
-		Dimension displaySize = gSettings.getPrimaryDisplaySize();
-		GraphicsDevice device = gSettings.getPrimaryOrDefaultDisplay();
-		
-		for (SongPart part : song.getParts()) {
-			SongDisplay display = DisplayFactory.getDisplay(sSettings, displaySize);
-			display.getTextComponent().setText(part.getText());
-			display.getTextComponent().setTextFont(display.getTextComponent().getTextFont().deriveFont((float)part.getFontSize()));
-			display.prepare(device.getDefaultConfiguration());
-			this.displays.add(display);
-			this.map.put(new SongPartKey(part.getType(), part.getIndex()), display);
-			this.names.add(part.getName());
+		if (song != null) {
+			GeneralSettings gSettings = GeneralSettings.getInstance();
+			SongSettings sSettings = SongSettings.getInstance();
+			
+			Dimension displaySize = gSettings.getPrimaryDisplaySize();
+			GraphicsDevice device = gSettings.getPrimaryOrDefaultDisplay();
+			
+			for (SongPart part : song.getParts()) {
+				SongDisplay display = DisplayFactory.getDisplay(sSettings, displaySize);
+				display.getTextComponent().setText(part.getText());
+				display.getTextComponent().setTextFont(display.getTextComponent().getTextFont().deriveFont((float)part.getFontSize()));
+				display.prepare(device.getDefaultConfiguration());
+				this.displays.add(display);
+				this.map.put(new SongPartKey(part.getType(), part.getIndex()), display);
+				this.names.add(part.getName());
+			}
 		}
 	}
 	
