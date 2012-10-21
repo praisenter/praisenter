@@ -63,21 +63,15 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(SongsPanel.class);
 	
-	// need a song search
-	// need a song queue
 	// need song edit caps.
-	// need song preview caps.
-	// need song send caps.
-	// think about fast sending (what should we do here? hot keys etc.)
 	
 	// current song
 	
 	/** The currently selected song */
 	private Song song;
 	
-	// FIXME we need to place this elsewhere; it take up way too much room
-	// FIXME we need to do something with the editing
-//	private EditSongPanel pnlSong;
+	/** The edit song panel */
+	private EditSongPanel pnlEditSong;
 	// FIXME we need to make sure that song parts are unique using song part type and index
 	
 	// song searching
@@ -218,7 +212,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 											.addComponent(this.txtClearTransitions))
 									.addComponent(this.btnClear, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))));
 		sendLayout.setVerticalGroup(sendLayout.createSequentialGroup()
-				.addGroup(sendLayout.createParallelGroup()
+				.addGroup(sendLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblSongTitle)
 						.addComponent(this.cmbParts, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(sendLayout.createParallelGroup()
@@ -424,10 +418,15 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 						.addComponent(btnRemoveAll))
 				.addComponent(scrSongQueueResults, 200, 200, Short.MAX_VALUE));
 		
+		// edit panel
+		this.pnlEditSong = new EditSongPanel(null);
+		this.pnlEditSong.addSongListener(this);
+		
 		// song search/queue tabs
 		JTabbedPane tabBottom = new JTabbedPane();
 		tabBottom.addTab(Messages.getString("panel.songs.tab.search"), pnlSongSearch);
 		tabBottom.addTab(Messages.getString("panel.songs.tab.queue"), pnlSongQueue);
+		tabBottom.addTab(Messages.getString("panel.songs.tab.editSong"), this.pnlEditSong);
 		
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
@@ -671,6 +670,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			this.scrPreview.setLoading(true);
 			// update the current song
 			Thread thread = new Thread(new UpdateCurrentSongTask(song));
+			thread.setName("RenderPreviewThread");
 			thread.setDaemon(true);
 			thread.start();
 		} else {
@@ -683,6 +683,8 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			this.pnlPreview.setSong(null);
 			this.scrPreview.updatePanelSize();
 			this.pnlPreview.repaint();
+			// clear the edit song panel
+			this.pnlEditSong.setSong(null);
 		}
 	}
 	
@@ -700,12 +702,12 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	 */
 	@Override
 	public void songChanged(Song song) {
-		// update the search/song queue tables (really only the title needs to be updated)
-		MutableSongTableModel model = (MutableSongTableModel)this.tblSongSearchResults.getModel();
+		// update the song queue table (really only the title needs to be updated)
+		MutableSongTableModel model = (MutableSongTableModel)this.tblSongQueue.getModel();
 		model.updateRow(song);
 		
-		model = (MutableSongTableModel)this.tblSongQueue.getModel();
-		model.updateRow(song);
+		// update the preview panel
+		this.setSong(song);
 	}
 	
 	/* (non-Javadoc)
@@ -717,18 +719,16 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		MutableSongTableModel model = (MutableSongTableModel)this.tblSongQueue.getModel();
 		model.removeRow(song);
 		
-		// clear the preview panel
+		// clear the preview and edit panels
 		if (this.song != null && this.song.getId() == song.getId()) {
 			this.setSong(null);
+		} else {
+			// it could be that the song we deleted was in the edit song panel only
+			// which happens when its a new song
+			if (this.pnlEditSong.getSong().getId() == song.getId()) {
+				this.pnlEditSong.setSong(null);
+			}
 		}
-		
-		// FIXME clear the edit song panel
-		
-		// see if the current song is the deleted one
-//		Song oSong = this.pnlSong.getSong();
-//		if (oSong != null && oSong.equals(song)) {
-//			this.pnlSong.setSong(null);
-//		}
 	}
 	
 	/**
@@ -827,6 +827,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 					
 					// update the quick send panel
 					pnlQuickSend.setButtonsEnabled(song);
+					
+					// update the song edit panel
+					pnlEditSong.setSong(song);
 				}
 			});
 		}

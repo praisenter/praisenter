@@ -78,6 +78,7 @@ public class EditSongPanel extends JPanel implements ActionListener, DocumentLis
 	/** True if the song has been changed but not saved */
 	private boolean songChanged;
 
+	/** True if notifications are disabled */
 	private boolean notificationsDisabled;
 	
 	/**
@@ -288,11 +289,16 @@ public class EditSongPanel extends JPanel implements ActionListener, DocumentLis
 		return this.song;
 	}
 	
+	public boolean isSongChanged() {
+		return this.songChanged;
+	}
+	
 	/**
 	 * Sets the current song.
 	 * @param song the song; can be null
 	 */
 	public void setSong(Song song) {
+		// FIXME move this to the songs panel
 		// check if the current song was changed first
 		if (this.songChanged) {
 			int choice = JOptionPane.showConfirmDialog(
@@ -307,7 +313,7 @@ public class EditSongPanel extends JPanel implements ActionListener, DocumentLis
 					Songs.saveSong(this.song);
 					this.notifySongListeners(isNew);
 				} catch (DataException e) {
-					// TODO Auto-generated catch block
+					// FIXME Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -404,7 +410,7 @@ public class EditSongPanel extends JPanel implements ActionListener, DocumentLis
 				this.notifySongListeners(isNew);
 				this.setSongChanged(false);
 			} catch (DataException e) {
-				// TODO Auto-generated catch block
+				// FIXME Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -427,6 +433,10 @@ public class EditSongPanel extends JPanel implements ActionListener, DocumentLis
 		}
 	}
 	
+	/**
+	 * Adds a new song listener to this edit song panel.
+	 * @param listener the song listener
+	 */
 	public void addSongListener(SongListener listener) {
 		this.listenerList.add(SongListener.class, listener);
 	}
