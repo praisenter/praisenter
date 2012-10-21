@@ -8,9 +8,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -90,6 +94,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	
 	// preview
 	
+	/** The song preview thread */
+	private SongPreivewThread previewThread;
+	
 	/** The song preview panel */
 	private SongDisplayPreviewPanel pnlPreview;
 	
@@ -139,6 +146,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		this.pnlPreview.setBorder(BorderFactory.createEmptyBorder(15, 15, 20, 15));
 		this.scrPreview = new ScrollableInlineDisplayPreviewPanel<SongDisplayPreviewPanel, SongDisplay>(this.pnlPreview);
 		this.scrPreview.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+		
+		// song preview thread
+		this.previewThread = new SongPreivewThread();
+		this.previewThread.start();
 		
 		// current song and sending
 		
@@ -632,6 +643,38 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	 * @param song the song
 	 */
 	private void setSong(Song song) {
+		// check if the current song was changed first
+		if (this.pnlEditSong.isSongChanged()) {
+			int choice = JOptionPane.showConfirmDialog(
+					this, 
+					MessageFormat.format(Messages.getString("panel.song.switch.confirm.message"), this.song.getTitle()), 
+					Messages.getString("panel.song.switch.confirm.title"), 
+					JOptionPane.YES_NO_CANCEL_OPTION);
+			if (choice == JOptionPane.YES_OPTION) {
+				// then save the song
+				try {
+					boolean isNew = this.song.isNew();
+					Songs.saveSong(this.song);
+					if (isNew) {
+						this.songAdded(this.song);
+					} else {
+						this.songChanged(this.song);
+					}
+				} catch (DataException e) {
+					// if the song fails to be saved then show a message
+					// and dont continue
+					ExceptionDialog.show(
+							this, 
+							Messages.getString("panel.songs.save.exception.title"), 
+							MessageFormat.format(Messages.getString("panel.songs.save.exception.text"), this.song.getTitle()), 
+							e);
+					LOGGER.error("Failed to save song: ", e);
+					return;
+				}
+			}
+		}
+				
+		
 		// assign the song
 		this.song = song;
 		
@@ -669,10 +712,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			// set the loading status
 			this.scrPreview.setLoading(true);
 			// update the current song
-			Thread thread = new Thread(new UpdateCurrentSongTask(song));
-			thread.setName("RenderPreviewThread");
-			thread.setDaemon(true);
-			thread.start();
+			this.previewThread.queueSong(song);
 		} else {
 			// set the song label text
 			this.lblSongTitle.setText(MessageFormat.format(Messages.getString("panel.songs.current.pattern"), Messages.getString("panel.songs.default.title"), ""));
@@ -786,23 +826,36 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	 * Represents a task to update the song preview panel and song controls.
 	 * <p>
 	 * Rendering of songs may take some time depending on the number of parts they have.  This
-	 * task will pre-generate the previews and then update the preview panel when complete.
+	 * thread will pre-generate the previews and then update the preview panel when complete.
 	 * <p>
-	 * We need to wait on the generated previews before we can send any of the displays too.
+	 * We need to wait on the generated previews before we can send any of the displays.
 	 * @author William Bittle
 	 * @version 1.0.0
 	 * @since 1.0.0
 	 */
-	private class UpdateCurrentSongTask implements Runnable {
-		/** The song to render */
+	private class SongPreivewThread extends Thread {
+		/** The blocking queue */
+		private final BlockingQueue<Song> songQueue;
+		
+		/** The current song */
 		private Song song;
 		
 		/**
-		 * Minimal constructor.
-		 * @param song the song to render
+		 * Default constructor.
 		 */
-		public UpdateCurrentSongTask(Song song) {
-			this.song = song;
+		public SongPreivewThread() {
+			super("SongPreviewThread");
+			this.setDaemon(true);
+			this.songQueue = new ArrayBlockingQueue<Song>(10);
+			this.song = null;
+		}
+
+		/**
+		 * Queues a new song to be shown.
+		 * @param song the song
+		 */
+		public void queueSong(Song song) {
+			this.songQueue.add(song);
 		}
 		
 		/* (non-Javadoc)
@@ -810,28 +863,54 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		 */
 		@Override
 		public void run() {
-			// update the displays
-			pnlPreview.setSong(this.song);
-			
-			// update the preview panel
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					scrPreview.setLoading(false);
-					
-					// update the state of the send controls
-					if (song.getParts().size() > 0) {
-						cmbParts.setEnabled(true);
-						btnSend.setEnabled(true);
+			// make the thread run always
+			while (true) {
+				try {
+					// poll for any queued searches
+					this.song = this.songQueue.poll(1000, TimeUnit.MILLISECONDS);
+					// if no queued search then just continue
+					if (this.song != null) {
+						// update the displays (this method should not
+						// do anything that should normally be done on the EDT)
+						pnlPreview.setSong(this.song);
+						
+						// update the preview panel
+						try {
+							// we need to block this thread until this code
+							// runs since we will get problems if another song
+							// is in the queue
+							SwingUtilities.invokeAndWait(new Runnable() {
+								@Override
+								public void run() {
+									scrPreview.setLoading(false);
+									
+									// update the state of the send controls
+									if (song.getParts().size() > 0) {
+										cmbParts.setEnabled(true);
+										btnSend.setEnabled(true);
+									}
+									
+									// update the quick send panel
+									pnlQuickSend.setButtonsEnabled(song);
+									
+									// update the song edit panel
+									pnlEditSong.setSong(song);
+									
+									// null out the song
+									song = null;
+								}
+							});
+						} catch (InvocationTargetException e) {
+							// in this case just continue
+							LOGGER.warn("An error occurred while updating the song preview on the EDT: ", e);
+						}
 					}
-					
-					// update the quick send panel
-					pnlQuickSend.setButtonsEnabled(song);
-					
-					// update the song edit panel
-					pnlEditSong.setSong(song);
+				} catch (InterruptedException ex) {
+					// if the song search thread is interrupted then just stop it
+					LOGGER.info("SongPreviewThread was interrupted. Stopping thread.", ex);
+					break;
 				}
-			});
+			}
 		}
 	}
 }
