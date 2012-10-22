@@ -1062,7 +1062,7 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 			// the device is no longer available
 			LOGGER.warn("The primary display doesn't exist.");
 			JOptionPane.showMessageDialog(
-					this, 
+					WindowUtilities.getParentWindow(this), 
 					Messages.getString("dialog.device.primary.missing.text"), 
 					Messages.getString("dialog.device.primary.missing.title"), 
 					JOptionPane.WARNING_MESSAGE);
@@ -1309,6 +1309,38 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		this.tblVerseQueue.getColumnModel().getColumn(2).setPreferredWidth(35);
 		this.tblVerseQueue.getColumnModel().getColumn(3).setMaxWidth(35);
 		this.tblVerseQueue.getColumnModel().getColumn(3).setPreferredWidth(35);
+	}
+	
+	/**
+	 * Called when a bible is imported.
+	 */
+	public void onBibleImport() {
+		// get the selected items
+		Bible b1 = (Bible)this.cmbBiblesPrimary.getSelectedItem();
+		Bible b2 = (Bible)this.cmbBiblesSecondary.getSelectedItem();
+		// add the bibles back
+		try {
+			// get the new list of bibles
+			List<Bible> bibles = Bibles.getBibles();
+			// remove all the current items in the lists
+			this.cmbBiblesPrimary.removeAllItems();
+			this.cmbBiblesSecondary.removeAllItems();
+			// add the bibles to the lists
+			for (Bible bible : bibles) {
+				this.cmbBiblesPrimary.addItem(bible);
+				this.cmbBiblesSecondary.addItem(bible);
+			}
+			// reset the selected items
+			this.cmbBiblesPrimary.setSelectedItem(b1);
+			this.cmbBiblesSecondary.setSelectedItem(b2);
+		} catch (DataException e) {
+			ExceptionDialog.show(
+					WindowUtilities.getParentWindow(this), 
+					Messages.getString("bible.import.updateUI.title"), 
+					Messages.getString("bible.import.updateUI.text"), 
+					e);
+			LOGGER.error("An error occurred while updating the bible dropdowns after a successful bible import: ", e);
+		}
 	}
 	
 	/**

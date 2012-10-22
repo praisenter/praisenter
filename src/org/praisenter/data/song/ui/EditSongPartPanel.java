@@ -2,27 +2,27 @@ package org.praisenter.data.song.ui;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongPart;
 import org.praisenter.data.song.SongPartType;
+import org.praisenter.resources.Messages;
 import org.praisenter.ui.SelectTextFocusListener;
 
 /**
@@ -31,11 +31,14 @@ import org.praisenter.ui.SelectTextFocusListener;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class EditSongPartPanel extends JPanel implements ItemListener, PropertyChangeListener, DocumentListener, ChangeListener {
+public class EditSongPartPanel extends JPanel implements ItemListener, DocumentListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -6670959052726030508L;
 	
 	// data
+	
+	/** The song containing the song part */
+	private Song song;
 	
 	/** The song part being edited */
 	private SongPart part;
@@ -46,7 +49,7 @@ public class EditSongPartPanel extends JPanel implements ItemListener, PropertyC
 	private JComboBox<SongPartType> cmbPartTypes;
 	
 	/** The part index */
-	private JFormattedTextField txtPartIndex;
+	private JSpinner spnPartIndex;
 	
 	/** The font size spinner */
 	private JSpinner spnFontSize;
@@ -61,9 +64,11 @@ public class EditSongPartPanel extends JPanel implements ItemListener, PropertyC
 	
 	/**
 	 * Full constructor.
+	 * @param song the song containing the part; can be null
 	 * @param part the song part to edit; can be null
 	 */
-	public EditSongPartPanel(SongPart part) {
+	public EditSongPartPanel(Song song, SongPart part) {
+		this.song = song;
 		this.part = part;
 		this.notificationsDisabled = true;
 		
@@ -71,30 +76,35 @@ public class EditSongPartPanel extends JPanel implements ItemListener, PropertyC
 		int index = 1;
 		int fontSize = 80;
 		String text = "";
+		int[] takenIndices = null;
 		boolean edit = false;
 		
-		if (part != null) {
+		if (song != null && part != null) {
 			type = part.getType();
 			index = part.getIndex();
 			fontSize = part.getFontSize();
 			text = part.getText();
+			takenIndices = this.getTakenIndices(part.getType());
 			edit = true;
 		}
 		
 		this.cmbPartTypes = new JComboBox<SongPartType>(SongPartType.values());
+		this.cmbPartTypes.setToolTipText(Messages.getString("panel.song.type.tooltip"));
 		this.cmbPartTypes.setRenderer(new SongPartTypeCellRenderer());
 		this.cmbPartTypes.setSelectedItem(type);
 		this.cmbPartTypes.setEnabled(edit);
 		this.cmbPartTypes.addItemListener(this);
 		
-		this.txtPartIndex = new JFormattedTextField(NumberFormat.getIntegerInstance());
-		this.txtPartIndex.addFocusListener(new SelectTextFocusListener(this.txtPartIndex));
-		this.txtPartIndex.setValue(index);
-		this.txtPartIndex.setColumns(3);
-		this.txtPartIndex.setEnabled(edit);
-		this.txtPartIndex.addPropertyChangeListener("value", this);
+		this.spnPartIndex = new JSpinner(new SongPartIndexSpinnerModel(index, takenIndices));
+		this.spnPartIndex.setToolTipText(Messages.getString("panel.song.index.tooltip"));
+		this.spnPartIndex.setEnabled(edit);
+		this.spnPartIndex.addChangeListener(this);
+		JTextField txtPartIndex = ((DefaultEditor)this.spnPartIndex.getEditor()).getTextField();
+		txtPartIndex.setColumns(2);
+		txtPartIndex.addFocusListener(new SelectTextFocusListener(txtPartIndex));
 		
 		this.spnFontSize = new JSpinner(new SpinnerNumberModel(fontSize, 1, Integer.MAX_VALUE, 1));
+		this.spnFontSize.setToolTipText(Messages.getString("panel.song.fontSize.tooltip"));
 		this.spnFontSize.setEnabled(edit);
 		this.spnFontSize.addChangeListener(this);
 		JTextField txtFontSize = ((DefaultEditor)this.spnFontSize.getEditor()).getTextField();
@@ -118,13 +128,13 @@ public class EditSongPartPanel extends JPanel implements ItemListener, PropertyC
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
 						.addComponent(this.cmbPartTypes)
-						.addComponent(this.txtPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addComponent(pneText, 100, 200, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
 						.addComponent(this.cmbPartTypes, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.txtPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addComponent(pneText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 	}
@@ -138,28 +148,12 @@ public class EditSongPartPanel extends JPanel implements ItemListener, PropertyC
 	public void itemStateChanged(ItemEvent e) {
 		if (e.getSource() == this.cmbPartTypes) {
 			SongPartType type = (SongPartType)this.cmbPartTypes.getSelectedItem();
-			if (this.part != null) {
+			if (this.song != null && this.part != null) {
 				this.part.setType(type);
+				// we need to also update the song index model with the new restricted indexes
+				SongPartIndexSpinnerModel model = (SongPartIndexSpinnerModel)this.spnPartIndex.getModel();
+				model.setExcludedIndices(this.getTakenIndices(type));
 				this.notifySongPartListeners();
-			}
-		}
-	}
-	
-	// part index
-	
-	/* (non-Javadoc)
-	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-	 */
-	@Override
-	public void propertyChange(PropertyChangeEvent evt) {
-		if (evt.getSource() == this.txtPartIndex) {
-			Object o = evt.getNewValue();
-			if (o instanceof Number) {
-				Number n = (Number)o;
-				if (this.part != null) {
-					this.part.setIndex(n.intValue());
-					this.notifySongPartListeners();
-				}
 			}
 		}
 	}
@@ -201,7 +195,7 @@ public class EditSongPartPanel extends JPanel implements ItemListener, PropertyC
 		}
 	}
 	
-	// font size
+	// part index / font size
 	
 	/* (non-Javadoc)
 	 * @see javax.swing.event.ChangeListener#stateChanged(javax.swing.event.ChangeEvent)
@@ -212,6 +206,12 @@ public class EditSongPartPanel extends JPanel implements ItemListener, PropertyC
 			Object value = this.spnFontSize.getValue();
 			if (this.part != null && value != null && value instanceof Number) {
 				this.part.setFontSize(((Number)value).intValue());
+				this.notifySongPartListeners();
+			}
+		} else if (e.getSource() == this.spnPartIndex) {
+			Object value = this.spnPartIndex.getValue();
+			if (this.part != null && value != null && value instanceof Number) {
+				this.part.setIndex(((Number)value).intValue());
 				this.notifySongPartListeners();
 			}
 		}
@@ -227,35 +227,43 @@ public class EditSongPartPanel extends JPanel implements ItemListener, PropertyC
 	
 	/**
 	 * Sets the current {@link SongPart} to edit.
+	 * @param song the song containing the part; can be null
 	 * @param part the song part; can be null
 	 */
-	public void setSongPart(SongPart part) {
+	public void setSongPart(Song song, SongPart part) {
+		this.song = song;
 		this.part = part;
 		
 		SongPartType type = SongPartType.CHORUS;
 		int index = 1;
 		int fontSize = 80;
 		String text = "";
+		int[] takenIndices = null;
 		boolean edit = false;
 		
-		if (part != null) {
+		if (song != null && part != null) {
 			type = part.getType();
 			index = part.getIndex();
 			fontSize = part.getFontSize();
 			text = part.getText();
+			takenIndices = this.getTakenIndices(part.getType());
 			edit = true;
 		}
 		
 		this.notificationsDisabled = true;
 		
 		this.cmbPartTypes.setSelectedItem(type);
-		this.txtPartIndex.setValue(index);
+		// get the model and update it (creating a new model makes the spinner recreate some
+		// stuff like the textbox)
+		SongPartIndexSpinnerModel model = (SongPartIndexSpinnerModel)this.spnPartIndex.getModel();
+		model.setExcludedIndices(takenIndices);
+		model.setValue(index);
 		this.spnFontSize.setValue(fontSize);
 		this.txtPartText.setText(text);
 		this.txtPartText.setCaretPosition(0);
 		
 		this.cmbPartTypes.setEnabled(edit);
-		this.txtPartIndex.setEnabled(edit);
+		this.spnPartIndex.setEnabled(edit);
 		this.spnFontSize.setEnabled(edit);
 		this.txtPartText.setEnabled(edit);
 		
@@ -282,5 +290,26 @@ public class EditSongPartPanel extends JPanel implements ItemListener, PropertyC
 	 */
 	public void addSongPartListener(SongPartListener listener) {
 		this.listenerList.add(SongPartListener.class, listener);
+	}
+
+	/**
+	 * Returns the part indices that are already taken by other parts.
+	 * @param type the song part type
+	 * @return int[]
+	 */
+	private int[] getTakenIndices(SongPartType type) {
+		Song song = this.song;
+		// loop over the song parts
+		List<Integer> indices = new ArrayList<>(); 
+		for (SongPart p : song.getParts()) {
+			if (p != this.part && p.getType() == type) {
+				indices.add(p.getIndex());
+			}
+		}
+		int[] taken = new int[indices.size()];
+		for (int i = 0; i < indices.size(); i++) {
+			taken[i] = indices.get(i);
+		}
+		return taken;
 	}
 }
