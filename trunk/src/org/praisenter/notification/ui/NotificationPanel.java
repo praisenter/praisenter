@@ -27,6 +27,7 @@ import org.praisenter.transitions.Transitions;
 import org.praisenter.transitions.ui.TransitionListCellRenderer;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.ui.WaterMark;
+import org.praisenter.utilities.WindowUtilities;
 
 /**
  * Panel used to send notifications.
@@ -192,7 +193,7 @@ public class NotificationPanel extends JPanel implements ActionListener {
 				} else {
 					// the device is no longer available
 					JOptionPane.showMessageDialog(
-							this, 
+							WindowUtilities.getParentWindow(this), 
 							Messages.getString("dialog.device.primary.missing.text"), 
 							Messages.getString("dialog.device.primary.missing.title"), 
 							JOptionPane.WARNING_MESSAGE);

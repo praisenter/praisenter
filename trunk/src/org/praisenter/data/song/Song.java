@@ -199,6 +199,7 @@ public class Song implements Comparable<Song> {
 		for (SongPart part : this.parts) {
 			if (part.getType() == type) {
 				if (part.getIndex() > index) {
+					index = part.getIndex();
 					last = part;
 				}
 			}

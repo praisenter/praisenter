@@ -27,6 +27,7 @@ import org.praisenter.display.Display;
 import org.praisenter.images.Images;
 import org.praisenter.utilities.FontManager;
 import org.praisenter.utilities.ImageUtilities;
+import org.praisenter.utilities.LookAndFeelUtilities;
 
 /**
  * Generic display preview panel containing the methods required to display
@@ -103,7 +104,7 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 		this.nameSpacing = nameSpacing;
 		this.includeDisplayName = includeDisplayName;
 		
-		ImageIcon icon = new ImageIcon(DisplayPreviewPanel.class.getResource("/org/praisenter/icons/loading.gif"));
+		ImageIcon icon = this.getLoadingIcon();
 		this.lblLoading = new JLabel(icon, JLabel.CENTER);
 		this.lblLoading.setVisible(false);
 		this.lblLoading.setHorizontalAlignment(JLabel.CENTER);
@@ -117,6 +118,36 @@ public abstract class DisplayPreviewPanel extends JPanel implements ComponentLis
 		this.addComponentListener(this);
 	}
 
+	/**
+	 * Returns the loading icon for the current look and feel.
+	 * @return ImageIcon
+	 */
+	private ImageIcon getLoadingIcon() {
+		if (LookAndFeelUtilities.IsNimbusLookAndFeel()) {
+			return new ImageIcon(DisplayPreviewPanel.class.getResource("/org/praisenter/icons/loading-nimbus.gif"));
+		} else if (LookAndFeelUtilities.IsMetalLookAndFeel()) {
+			return new ImageIcon(DisplayPreviewPanel.class.getResource("/org/praisenter/icons/loading-metal.gif"));
+		} else {
+			return new ImageIcon(DisplayPreviewPanel.class.getResource("/org/praisenter/icons/loading-generic.gif"));
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see javax.swing.JPanel#updateUI()
+	 */
+	@Override
+	public void updateUI() {
+		// call the super method
+		super.updateUI();
+		// since this method could be called before the label has been created
+		// we need to have a null check here
+		if (this.lblLoading != null) {
+			// reset the image icon of the loading label
+			ImageIcon icon = this.getLoadingIcon();
+			this.lblLoading.setIcon(icon);
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.awt.event.ComponentListener#componentHidden(java.awt.event.ComponentEvent)
 	 */

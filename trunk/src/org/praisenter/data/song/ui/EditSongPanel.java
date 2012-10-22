@@ -1,26 +1,34 @@
 package org.praisenter.data.song.ui;
 
 import java.awt.CardLayout;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.AbstractTableModel;
@@ -37,6 +45,7 @@ import org.praisenter.resources.Messages;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.ui.WaterMark;
 import org.praisenter.utilities.StringUtilities;
+import org.praisenter.utilities.WindowUtilities;
 
 /**
  * Panel used to edit a song.
@@ -69,6 +78,9 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 	
 	/** The text box for the song title */
 	private JTextField txtTitle;
+	
+	/** The song id */
+	private JLabel lblId;
 	
 	/** The text box for the song notes */
 	private JTextArea txtNotes;
@@ -114,26 +126,34 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 		String title = "";
 		String notes = "";
 		List<SongPart> parts = null;
+		String id = "";
 		boolean edit = false;
 		
 		if (song != null) {
 			title = song.getTitle();
 			notes = song.getNotes();
 			parts = song.getParts();
+			if (!song.isNew()) {
+				id = String.valueOf(song.getId());
+			} else {
+				id = Messages.getString("panel.song.newId");
+			}
 			edit = true;
 		} else {
 			parts = new ArrayList<SongPart>();
 		}
 		
-		this.pnlEditPart = new EditSongPartPanel(null);
+		this.pnlEditPart = new EditSongPartPanel(null, null);
 		this.pnlEditPart.addSongPartListener(this);
 		
 		this.btnSave = new JButton(Messages.getString("panel.song.save"));
+		this.btnSave.setToolTipText(Messages.getString("panel.song.save.tooltip"));
 		this.btnSave.setActionCommand("save");
 		this.btnSave.addActionListener(this);
 		this.btnSave.setEnabled(edit);
 		
 		JButton btnNew = new JButton(Messages.getString("panel.song.new"));
+		btnNew.setToolTipText(Messages.getString("panel.song.new.tooltip"));
 		btnNew.setActionCommand("new");
 		btnNew.addActionListener(this);
 		
@@ -147,6 +167,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 		};
 		this.txtTitle.addFocusListener(new SelectTextFocusListener(this.txtTitle));
 		this.txtTitle.setText(title);
+		this.txtTitle.setToolTipText(Messages.getString("panel.song.title.tooltip"));
 		this.txtTitle.setEnabled(edit);
 		this.txtTitle.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
@@ -162,6 +183,10 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 				updateSongTitle(txtTitle.getText());
 			}
 		});
+		
+		this.lblId = new JLabel(id);
+		this.lblId.setHorizontalAlignment(SwingConstants.CENTER);
+		this.lblId.setMinimumSize(new Dimension(40, 0));
 		
 		this.tblSongParts = new JTable() {
 			@Override
@@ -199,7 +224,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 					SongPartTableModel model = (SongPartTableModel)tblSongParts.getModel();
 					SongPart part = model.getRow(row);
 					// set the part panel up
-					pnlEditPart.setSongPart(part);
+					pnlEditPart.setSongPart(EditSongPanel.this.song, part);
 					// switch back to the parts card
 					btnNotes.setSelected(false);
 					CardLayout layout = (CardLayout)pnlCards.getLayout();
@@ -209,22 +234,27 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 			}
 		});
 		this.tblSongParts.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		// disable the default F2 functionality of the JTable
+		this.tblSongParts.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "none");
 		JScrollPane scrSongParts = new JScrollPane(this.tblSongParts);
 		
 		this.tblSongParts.setModel(new MutableSongPartTableModel(parts));
 		this.setSongPartTableWidths();
 		
 		this.btnAddPart = new JButton(Messages.getString("panel.song.part.new"));
+		this.btnAddPart.setToolTipText(Messages.getString("panel.song.part.new.tooltip"));
 		this.btnAddPart.setActionCommand("addPart");
 		this.btnAddPart.addActionListener(this);
 		this.btnAddPart.setEnabled(edit);
 		
 		this.btnDeleteSelectedParts = new JButton(Messages.getString("panel.song.part.deleteSelected"));
+		this.btnDeleteSelectedParts.setToolTipText(Messages.getString("panel.song.part.deleteSelected.tooltip"));
 		this.btnDeleteSelectedParts.setActionCommand("deleteSelectedParts");
 		this.btnDeleteSelectedParts.addActionListener(this);
 		this.btnDeleteSelectedParts.setEnabled(edit);
 		
 		this.btnNotes = new JToggleButton(Messages.getString("panel.songs.notes"));
+		this.btnNotes.setToolTipText(Messages.getString("panel.songs.notes.tooltip"));
 		this.btnNotes.setActionCommand("notes");
 		this.btnNotes.addActionListener(this);
 		this.btnNotes.setEnabled(edit);
@@ -266,6 +296,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
 						.addComponent(this.txtTitle)
+						.addComponent(this.lblId)
 						.addComponent(btnNew)
 						.addComponent(this.btnSave))
 				.addGroup(layout.createSequentialGroup()
@@ -277,8 +308,9 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 										.addComponent(this.btnNotes))
 								.addComponent(this.pnlCards))));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.lblId)
 						.addComponent(btnNew)
 						.addComponent(this.btnSave))
 				.addGroup(layout.createParallelGroup()
@@ -395,19 +427,26 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 		String title = "";
 		String notes = "";
 		List<SongPart> parts = null;
+		String id = "";
 		boolean edit = false;
 		
-		this.pnlEditPart.setSongPart(null);
+		this.pnlEditPart.setSongPart(null, null);
 		if (song != null) {
 			title = song.getTitle();
 			notes = song.getNotes();
 			parts = song.getParts();
+			if (!song.isNew()) {
+				id = String.valueOf(song.getId());
+			} else {
+				id = Messages.getString("panel.song.newId");
+			}
 			edit = true;
 		} else {
 			parts = new ArrayList<SongPart>();
 		}
 		
 		this.txtTitle.setText(title);
+		this.lblId.setText(id);
 		this.txtNotes.setText(notes);
 		this.txtNotes.setCaretPosition(0);
 		
@@ -447,7 +486,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 				int index = this.tblSongParts.getRowCount() - 1;
 				this.tblSongParts.getSelectionModel().setSelectionInterval(index, index);
 				// set the editing part to the new part
-				this.pnlEditPart.setSongPart(part);
+				this.pnlEditPart.setSongPart(this.song, part);
 			}
 		} else if ("deleteSelectedParts".equals(command)) {
 			if (this.song != null) {
@@ -457,11 +496,14 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 				// remove the parts from the song
 				Iterator<SongPart> it = this.song.getParts().iterator();
 				boolean sDeleted = false;
+				SongPart ePart = this.pnlEditPart.getSongPart();
 				while (it.hasNext()) {
 					SongPart cp = it.next();
 					for (SongPart part : parts) {
-						if (cp.equals(part)) {
-							if (part.equals(this.pnlEditPart.getSongPart())) {
+						// here we need to compare on type & index to make sure we delete the right ones
+						if (cp.getType() == part.getType() && cp.getIndex() == part.getIndex()) {
+							// see if we are editing the deleted one
+							if (ePart != null && part.getType() == ePart.getType() && part.getIndex() == ePart.getIndex()) {
 								sDeleted = true;
 							}
 							it.remove();
@@ -470,7 +512,14 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 				}
 				if (sDeleted) {
 					// the selected line was deleted so null out the part panel
-					this.pnlEditPart.setSongPart(null);
+					this.pnlEditPart.setSongPart(null, null);
+				} else if (ePart != null) {
+					// the current part we are on was not deleted, but it needs to be
+					// updated with the new taken indices
+					this.pnlEditPart.setSongPart(this.song, ePart);
+					// re-select the row
+					int row = model.getRowIndex(ePart);
+					this.tblSongParts.getSelectionModel().setSelectionInterval(row, row);
 				}
 				// only set the song has changed if we really deleted a part
 				if (parts.size() > 0) {
@@ -478,13 +527,46 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 				}
 			}
 		} else if ("new".equals(command)) {
-			this.song = new Song();
-			this.setSong(this.song);
+			// check if the current song has changed first
+			if (this.isSongChanged()) {
+				int choice = JOptionPane.showConfirmDialog(
+						WindowUtilities.getParentWindow(this), 
+						MessageFormat.format(Messages.getString("panel.song.switch.confirm.message"), this.song.getTitle()), 
+						Messages.getString("panel.song.switch.confirm.title"), 
+						JOptionPane.YES_NO_CANCEL_OPTION);
+				if (choice == JOptionPane.YES_OPTION) {
+					// then save the song
+					try {
+						boolean isNew = this.song.isNew();
+						Collections.sort(this.song.getParts());
+						Songs.saveSong(this.song);
+						this.notifySongListeners(isNew);
+					} catch (DataException e) {
+						// if the song fails to be saved then show a message
+						// and dont continue
+						ExceptionDialog.show(
+								this, 
+								Messages.getString("panel.songs.save.exception.title"), 
+								MessageFormat.format(Messages.getString("panel.songs.save.exception.text"), this.song.getTitle()), 
+								e);
+						LOGGER.error("Failed to save song: ", e);
+						return;
+					}
+				} else if (choice == JOptionPane.CANCEL_OPTION) {
+					// don't continue
+					return;
+				}
+			}
+			// create a new song and setup the panel to edit it
+			this.setSong(new Song());
 			this.setSongChanged(true);
 		} else if ("save".equals(command)) {
 			try {
 				boolean isNew = this.song.isNew();
+				Collections.sort(this.song.getParts());
 				Songs.saveSong(this.song);
+				// update the id label
+				this.lblId.setText(String.valueOf(this.song.getId()));
 				this.setSongChanged(false);
 				this.notifySongListeners(isNew);
 			} catch (DataException e) {

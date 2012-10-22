@@ -6,11 +6,13 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -20,6 +22,7 @@ import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -28,6 +31,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableModel;
@@ -53,6 +57,7 @@ import org.praisenter.transitions.ui.TransitionListCellRenderer;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.ui.WaterMark;
 import org.praisenter.utilities.StringUtilities;
+import org.praisenter.utilities.WindowUtilities;
 
 /**
  * Main ui for song manipulation and display.
@@ -76,7 +81,6 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	
 	/** The edit song panel */
 	private EditSongPanel pnlEditSong;
-	// FIXME we need to make sure that song parts are unique using song part type and index
 	
 	// song searching
 	
@@ -160,6 +164,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		this.cmbParts = new JComboBox<SongPart>(new SongPart[] { new SongPart() });
 		this.cmbParts.setRenderer(new SongPartCellRenderer());
 		this.cmbParts.setEnabled(false);
+		this.cmbParts.setToolTipText(Messages.getString("panel.songs.part.list"));
 		
 		this.btnSend = new JButton(Messages.getString("panel.songs.send"));
 		this.btnSend.setToolTipText(Messages.getString("panel.songs.send.tooltip"));
@@ -258,6 +263,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		this.txtSongSearch.addFocusListener(new SelectTextFocusListener(this.txtSongSearch));
 		
 		JButton btnSongSearch = new JButton(Messages.getString("panel.songs.search"));
+		btnSongSearch.setToolTipText(Messages.getString("panel.songs.search.tooltip"));
 		btnSongSearch.setActionCommand("search");
 		btnSongSearch.addActionListener(this);
 		
@@ -323,6 +329,8 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			}
 		});
 		this.tblSongSearchResults.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		// disable the default F2 functionality of the JTable
+		this.tblSongSearchResults.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "none");
 		this.setSongSearchTableWidths();
 		JScrollPane scrSongsSearchResults = new JScrollPane(this.tblSongSearchResults);
 		
@@ -400,14 +408,18 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			}
 		});
 		this.tblSongQueue.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		// disable the default F2 functionality of the JTable
+		this.tblSongQueue.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "none");
 		this.setSongQueueTableWidths();
 		JScrollPane scrSongQueueResults = new JScrollPane(this.tblSongQueue);
 		
 		JButton btnRemoveSelected = new JButton(Messages.getString("panel.song.queue.remove"));
+		btnRemoveSelected.setToolTipText(Messages.getString("panel.song.queue.remove.tooltip"));
 		btnRemoveSelected.setActionCommand("remove");
 		btnRemoveSelected.addActionListener(this);
 		
 		JButton btnRemoveAll = new JButton(Messages.getString("panel.song.queue.removeAll"));
+		btnRemoveAll.setToolTipText(Messages.getString("panel.song.queue.removeAll.tooltip"));
 		btnRemoveAll.setActionCommand("removeAll");
 		btnRemoveAll.addActionListener(this);
 		
@@ -451,8 +463,35 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 				.addComponent(this.scrPreview, 200, 300, Short.MAX_VALUE)
 				.addComponent(pnlSending, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(tabBottom, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+		
+		// setup hot keys for quick sending
+		SongQuickSendAction[] actions = SongQuickSendPanel.getQuickSendActions(this);
+		for (int i = 0; i < actions.length; i++) {
+			SongQuickSendAction action = actions[i];
+			String name = "QuickSend_" + i;
+			this.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(action.keyStroke, name);
+			this.getActionMap().put(name, action);
+		}
 	}
-
+	
+	/* (non-Javadoc)
+	 * @see javax.swing.JPanel#updateUI()
+	 */
+	@Override
+	public void updateUI() {
+		// before we update the ui, clear the current song
+		if (this.scrPreview != null && this.pnlPreview != null) {
+			this.pnlPreview.setSong(null);
+			this.scrPreview.updatePanelSize();
+		}
+		// call the super method
+		super.updateUI();
+		// after the ui is updated, re-generate the song layout
+		if (this.scrPreview != null && this.pnlPreview != null && this.song != null) {
+			this.previewThread.queueSong(this.song);
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
@@ -516,7 +555,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 			Song song = model.getRow(row);
 			// verify the user wants to do it
 			int choice = JOptionPane.showConfirmDialog(
-					this, 
+					WindowUtilities.getParentWindow(this), 
 					MessageFormat.format(Messages.getString("panel.song.delete.message"), song.getTitle(), song.getId()),
 					Messages.getString("panel.song.delete.title"), 
 					JOptionPane.YES_NO_CANCEL_OPTION);
@@ -646,7 +685,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 		// check if the current song was changed first
 		if (this.pnlEditSong.isSongChanged()) {
 			int choice = JOptionPane.showConfirmDialog(
-					this, 
+					WindowUtilities.getParentWindow(this), 
 					MessageFormat.format(Messages.getString("panel.song.switch.confirm.message"), this.song.getTitle()), 
 					Messages.getString("panel.song.switch.confirm.title"), 
 					JOptionPane.YES_NO_CANCEL_OPTION);
@@ -654,6 +693,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 				// then save the song
 				try {
 					boolean isNew = this.song.isNew();
+					Collections.sort(this.song.getParts());
 					Songs.saveSong(this.song);
 					if (isNew) {
 						this.songAdded(this.song);
@@ -671,6 +711,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 					LOGGER.error("Failed to save song: ", e);
 					return;
 				}
+			} else if (choice == JOptionPane.CANCEL_OPTION) {
+				// don't continue
+				return;
 			}
 		}
 				

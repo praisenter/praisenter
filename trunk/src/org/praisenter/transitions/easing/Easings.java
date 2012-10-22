@@ -6,7 +6,7 @@ package org.praisenter.transitions.easing;
  * @version 1.0.0
  * @since 1.0.0
  */
-// TODO allow easings to be setup in settings; i dont think it would be useful at display time
+// FIXME allow easings to be setup in settings; i dont think it would be useful at display time
 public class Easings {
 	/** The array of supported easings */
 	public static final Easing[] EASINGS = new Easing[] {

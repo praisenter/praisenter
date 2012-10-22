@@ -18,6 +18,7 @@ import org.praisenter.settings.ErrorReportingSettings;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.NotificationSettings;
 import org.praisenter.settings.SongSettings;
+import org.praisenter.utilities.LookAndFeelUtilities;
 // FIXME add text to the README.txt about how to install (unzip the distributable)
 // FIXME add license to all files
 /**
@@ -32,6 +33,14 @@ public class Main {
 	
 	/** True if the -debug command line argument was passed in */
 	private static boolean DEBUG = false;
+	
+	/**
+	 * Returns true if the -debug argument was passed to startup.
+	 * @return boolean
+	 */
+	public static final boolean isDebugEnabled() {
+		return DEBUG;
+	}
 	
 	/**
 	 * Entry point into the app.
@@ -57,14 +66,6 @@ public class Main {
 		
 		// load the application
 		ApplicationLoader.load();
-	}
-	
-	/**
-	 * Returns true if the -debug argument was passed to startup.
-	 * @return boolean
-	 */
-	public static final boolean isDebugEnabled() {
-		return DEBUG;
 	}
 	
 	/**
@@ -192,7 +193,7 @@ public class Main {
 		String defaultLookAndFeelName = defaultLookAndFeelClassName;
 		try {
 		    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-		        if ("Nimbus".equals(info.getName())) {
+		        if (LookAndFeelUtilities.NIMBUS.equalsIgnoreCase(info.getName())) {
 		        	LOGGER.info("Nimbus look and feel found and applied.");
 		            UIManager.setLookAndFeel(info.getClassName());
 		            return;

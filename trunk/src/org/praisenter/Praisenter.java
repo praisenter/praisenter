@@ -107,13 +107,13 @@ public class Praisenter extends JFrame implements ActionListener {
 			
 			// main menus
 			JMenu mnuFile = new JMenu(Messages.getString("menu.file"));
-			JMenu mnuWindow = new JMenu(Messages.getString("menu.window"));
+			barMenu.add(mnuFile);
 			
 			// preferences menu
 			JMenuItem mnuPreferences = new JMenuItem(Messages.getString("menu.window.preferences"));
 			mnuPreferences.setActionCommand("preferences");
 			mnuPreferences.addActionListener(this);
-			mnuWindow.add(mnuPreferences);
+			mnuFile.add(mnuPreferences);
 
 			// export menu
 			{
@@ -162,22 +162,21 @@ public class Praisenter extends JFrame implements ActionListener {
 			}
 			
 			if (Main.isDebugEnabled()) {
+				JMenu mnuWindow = new JMenu(Messages.getString("menu.window"));
+				barMenu.add(mnuWindow);
+				
+				// show size
+				JMenuItem mnuSize = new JMenuItem(Messages.getString("menu.window.size"));
+				mnuSize.setActionCommand("size");
+				mnuSize.addActionListener(this);
+				mnuWindow.add(mnuSize);
+				
 				// look and feel menu
 				this.mnuLookAndFeel = new JMenu(Messages.getString("menu.window.laf"));
 				this.createLookAndFeelMenuItems(this.mnuLookAndFeel);
 				mnuWindow.add(this.mnuLookAndFeel);
 			}
 			
-			if (Main.isDebugEnabled()) {
-				// show size
-				JMenuItem mnuSize = new JMenuItem(Messages.getString("menu.window.size"));
-				mnuSize.setActionCommand("size");
-				mnuSize.addActionListener(this);
-				mnuWindow.add(mnuSize);
-			}
-			
-			barMenu.add(mnuFile);
-			barMenu.add(mnuWindow);
 			this.setJMenuBar(barMenu);
 		}
 		
@@ -483,6 +482,8 @@ public class Praisenter extends JFrame implements ActionListener {
 								Messages.getString("dialog.import.bible.success.text"), 
 								Messages.getString("dialog.import.bible.success.title"), 
 								JOptionPane.INFORMATION_MESSAGE);
+						// update the bible panel
+						this.pnlBible.onBibleImport();
 					} else {
 						Exception e = task.getException();
 						// show an error message

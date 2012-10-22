@@ -45,7 +45,7 @@ public class SongPart implements Comparable<SongPart> {
 	 * Default constructor.
 	 */
 	public SongPart() {
-		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, SongPartType.CHORUS, SongPart.BEGINNING_INDEX, "", 0, SongPart.DEFAULT_FONT_SIZE);
+		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, SongPartType.CHORUS, SongPart.BEGINNING_INDEX, "", 1, SongPart.DEFAULT_FONT_SIZE);
 	}
 	
 	/**
@@ -54,7 +54,7 @@ public class SongPart implements Comparable<SongPart> {
 	 * @param text the part text
 	 */
 	public SongPart(SongPartType type, String text) {
-		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, type, SongPart.BEGINNING_INDEX, text, 0, SongPart.DEFAULT_FONT_SIZE);
+		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, type, SongPart.BEGINNING_INDEX, text, 1, SongPart.DEFAULT_FONT_SIZE);
 	}
 	
 	/**
@@ -64,7 +64,7 @@ public class SongPart implements Comparable<SongPart> {
 	 * @param text the part text
 	 */
 	public SongPart(SongPartType type, int index, String text) {
-		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, type, index, text, 0, SongPart.DEFAULT_FONT_SIZE);
+		this(SongPart.NEW_SONG_PART_ID, Song.NEW_SONG_ID, type, index, text, 1, SongPart.DEFAULT_FONT_SIZE);
 	}
 	
 	/**
@@ -101,6 +101,14 @@ public class SongPart implements Comparable<SongPart> {
 		this.text = part.text;
 		this.order = part.order;
 		this.fontSize = part.fontSize;
+	}
+
+	/**
+	 * Returns true if this song part is a new song part (that has not been saved).
+	 * @return boolean
+	 */
+	public boolean isNew() {
+		return this.id == SongPart.NEW_SONG_PART_ID;
 	}
 	
 	/* (non-Javadoc)
