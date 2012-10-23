@@ -12,6 +12,7 @@ import org.praisenter.display.ScaleType;
 import org.praisenter.display.HorizontalTextAlignment;
 import org.praisenter.display.VerticalTextAlignment;
 import org.praisenter.transitions.Fade;
+import org.praisenter.transitions.easing.CubicEasing;
 import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.FontManager;
 
@@ -48,11 +49,17 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	/** Property key for the default send transition duration */
 	private static final String KEY_DEFAULT_SEND_TRANSITION_DURATION = "Bible.Send.Transition.Duration.Default";
 	
+	/** Property key for the send transition easing */
+	private static final String KEY_SEND_EASING = "Bible.Send.Easing";
+	
 	/** Property key for the default clear transition */
 	private static final String KEY_DEFAULT_CLEAR_TRANSITION = "Bible.Clear.Transition.Default";
 	
 	/** Property key for the default clear transition duration */
 	private static final String KEY_DEFAULT_CLEAR_TRANSITION_DURATION = "Bible.Clear.Transition.Duration.Default";
+	
+	/** Property key for the clear transition easing */
+	private static final String KEY_CLEAR_EASING = "Bible.Clear.Easing";
 	
 	/**
 	 * Returns the instance of the {@link BibleSettings}.
@@ -116,8 +123,11 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 		
 		this.setDefaultSendTransition(Fade.ID);
 		this.setDefaultSendTransitionDuration(400);
+		this.setSendEasing(CubicEasing.ID);
+		
 		this.setDefaultClearTransition(Fade.ID);
 		this.setDefaultClearTransitionDuration(300);
+		this.setClearEasing(CubicEasing.ID);
 		
 		// background
 		{
@@ -380,5 +390,39 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 	 */
 	public void setDefaultClearTransitionDuration(int duration) throws SettingsException {
 		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION, duration);
+	}
+	
+	/**
+	 * Returns the send transition easing.
+	 * @return int
+	 */
+	public int getSendEasing() {
+		return this.getIntegerSetting(KEY_SEND_EASING);
+	}
+	
+	/**
+	 * Sets the send transition easing.
+	 * @param id the easing id
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setSendEasing(int id) throws SettingsException {
+		this.setSetting(KEY_SEND_EASING, id);
+	}
+
+	/**
+	 * Returns the clear transition easing.
+	 * @return int
+	 */
+	public int getClearEasing() {
+		return this.getIntegerSetting(KEY_CLEAR_EASING);
+	}
+	
+	/**
+	 * Sets the clear transition easing.
+	 * @param id the easing id
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setClearEasing(int id) throws SettingsException {
+		this.setSetting(KEY_CLEAR_EASING, id);
 	}
 }

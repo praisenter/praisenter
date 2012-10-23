@@ -1,14 +1,23 @@
 package org.praisenter.transitions.easing;
 
+import org.praisenter.resources.Messages;
+
 /**
  * Quartic easing from http://gizma.com/easing/.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class QuarticEasing implements Easing {
+public class QuarticEasing extends AbstractEasing {
 	/** The id for the easing */
 	public static final int ID = 40;
+
+	/**
+	 * Default constructor.
+	 */
+	public QuarticEasing() {
+		super(Messages.getString("easing.quartic"));
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.transitions.Easing#easeIn(long, long)

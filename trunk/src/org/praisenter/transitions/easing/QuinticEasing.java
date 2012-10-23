@@ -1,14 +1,23 @@
 package org.praisenter.transitions.easing;
 
+import org.praisenter.resources.Messages;
+
 /**
  * Quintic easing from http://gizma.com/easing/.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class QuinticEasing implements Easing {
+public class QuinticEasing extends AbstractEasing {
 	/** The id for the easing */
 	public static final int ID = 50;
+
+	/**
+	 * Default constructor.
+	 */
+	public QuinticEasing() {
+		super(Messages.getString("easing.quintic"));
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.transitions.Easing#easeIn(long, long)

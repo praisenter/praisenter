@@ -49,10 +49,13 @@ import org.praisenter.display.ui.ScrollableInlineDisplayPreviewPanel;
 import org.praisenter.display.ui.StandardDisplayWindow;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.GeneralSettings;
+import org.praisenter.settings.SettingsListener;
 import org.praisenter.settings.SongSettings;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
+import org.praisenter.transitions.easing.Easing;
+import org.praisenter.transitions.easing.Easings;
 import org.praisenter.transitions.ui.TransitionListCellRenderer;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.ui.WaterMark;
@@ -65,7 +68,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SongsPanel extends JPanel implements ActionListener, SongListener {
+public class SongsPanel extends JPanel implements ActionListener, SongListener, SettingsListener {
 	/** The version id */
 	private static final long serialVersionUID = 2646140774751357022L;
 
@@ -493,6 +496,15 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.settings.SettingsListener#settingsSaved()
+	 */
+	@Override
+	public void settingsSaved() {
+		// refresh the song preview panel
+		this.previewThread.queueSong(this.song);
+	}
+	
+	/* (non-Javadoc)
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
 	@Override
@@ -645,10 +657,12 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	 * @param display the display to send
 	 */
 	private void sendDisplay(SongDisplay display) {
+		SongSettings settings = SongSettings.getInstance();
 		// get the transition
 		Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
 		int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
-		TransitionAnimator ta = new TransitionAnimator(transition, duration);
+		Easing easing = Easings.getEasingForId(settings.getSendEasing());
+		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
 		if (primary != null) {
 			primary.send(display, ta);
@@ -667,10 +681,12 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener {
 	 * Clears the primary display.
 	 */
 	private void clearAction() {
+		SongSettings settings = SongSettings.getInstance();
 		// get the transition
 		Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
 		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
-		TransitionAnimator ta = new TransitionAnimator(transition, duration);
+		Easing easing = Easings.getEasingForId(settings.getClearEasing());
+		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
 		if (primary != null) {
 			primary.clear(ta);

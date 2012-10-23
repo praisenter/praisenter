@@ -26,6 +26,9 @@ import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.SettingsException;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transitions;
+import org.praisenter.transitions.easing.Easing;
+import org.praisenter.transitions.easing.Easings;
+import org.praisenter.transitions.ui.EasingListCellRenderer;
 import org.praisenter.transitions.ui.TransitionListCellRenderer;
 import org.praisenter.ui.SelectTextFocusListener;
 
@@ -68,11 +71,17 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 	/** The text box for the send transition duration */
 	private JFormattedTextField txtSendTransitions;
 	
+	/** The combo box of send easings */
+	private JComboBox<Easing> cmbSendEasings;
+	
 	/** The combo box of clear transitions */
 	private JComboBox<Transition> cmbClearTransitions;
 	
 	/** The text box for the clear transition duration */
 	private JFormattedTextField txtClearTransitions;
+	
+	/** The combo box of clear easings */
+	private JComboBox<Easing> cmbClearEasings;
 	
 	/**
 	 * Minimal constructor.
@@ -150,6 +159,10 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtSendTransitions.setValue(settings.getDefaultSendTransitionDuration());
 		this.txtSendTransitions.setColumns(3);
+		this.cmbSendEasings = new JComboBox<Easing>(Easings.EASINGS);
+		this.cmbSendEasings.setRenderer(new EasingListCellRenderer());
+		this.cmbSendEasings.setSelectedItem(Easings.getEasingForId(settings.getSendEasing()));
+		this.cmbSendEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
 		JLabel lblClearTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultClear"));
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
@@ -160,12 +173,18 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtClearTransitions.setValue(settings.getDefaultClearTransitionDuration());
 		this.txtClearTransitions.setColumns(3);
+		this.cmbClearEasings = new JComboBox<Easing>(Easings.EASINGS);
+		this.cmbClearEasings.setRenderer(new EasingListCellRenderer());
+		this.cmbClearEasings.setSelectedItem(Easings.getEasingForId(settings.getClearEasing()));
+		this.cmbClearEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
 		if (!transitionsSupported) {
 			this.cmbSendTransitions.setEnabled(false);
 			this.txtSendTransitions.setEnabled(false);
+			this.cmbSendEasings.setEnabled(false);
 			this.cmbClearTransitions.setEnabled(false);
 			this.txtClearTransitions.setEnabled(false);
+			this.cmbClearEasings.setEnabled(false);
 		}
 		
 		JPanel pnlTransitions = new JPanel();
@@ -184,16 +203,21 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 						.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup()
 						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(this.cmbSendEasings, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbClearEasings, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblSendTransition)
 						.addComponent(this.cmbSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbSendEasings, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblClearTransition)
 						.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbClearEasings, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 
 		// create the bible display panel
 		this.pnlDisplay = new BibleDisplaySettingsPanel(settings, displaySize);
@@ -271,8 +295,10 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 		// transitions
 		this.settings.setDefaultSendTransition(((Transition)this.cmbSendTransitions.getSelectedItem()).getTransitionId());
 		this.settings.setDefaultSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());
+		this.settings.setSendEasing(((Easing)this.cmbSendEasings.getSelectedItem()).getEasingId());
 		this.settings.setDefaultClearTransition(((Transition)this.cmbClearTransitions.getSelectedItem()).getTransitionId());
 		this.settings.setDefaultClearTransitionDuration(((Number)this.txtClearTransitions.getValue()).intValue());
+		this.settings.setClearEasing(((Easing)this.cmbClearEasings.getSelectedItem()).getEasingId());
 		// save the display panel's settings
 		this.pnlDisplay.saveSettings();
 		// save the settings to persistent store

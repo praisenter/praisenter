@@ -24,6 +24,7 @@ import org.praisenter.settings.NotificationSettings;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
+import org.praisenter.transitions.easing.Easings;
 import org.praisenter.transitions.ui.TransitionListCellRenderer;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.ui.WaterMark;
@@ -170,6 +171,7 @@ public class NotificationPanel extends JPanel implements ActionListener {
 	 */
 	@Override
 	public void actionPerformed(ActionEvent event) {
+		NotificationSettings settings = NotificationSettings.getInstance();
 		if ("send".equals(event.getActionCommand())) {
 			// get the text
 			String text = this.txtText.getText();
@@ -180,10 +182,12 @@ public class NotificationPanel extends JPanel implements ActionListener {
 				// create the transition animators
 				TransitionAnimator in = new TransitionAnimator(
 						(Transition)this.cmbInTransition.getSelectedItem(),
-						((Number)this.txtInTransition.getValue()).intValue());
+						((Number)this.txtInTransition.getValue()).intValue(),
+						Easings.getEasingForId(settings.getSendEasing()));
 				TransitionAnimator out = new TransitionAnimator(
 						(Transition)this.cmbOutTransition.getSelectedItem(),
-						((Number)this.txtOutTransition.getValue()).intValue());
+						((Number)this.txtOutTransition.getValue()).intValue(),
+						Easings.getEasingForId(settings.getClearEasing()));
 				// get the wait duration
 				int wait = ((Number)this.txtWaitPeriod.getValue()).intValue();
 				// send the notification
@@ -203,7 +207,8 @@ public class NotificationPanel extends JPanel implements ActionListener {
 			// create the out transition animator
 			TransitionAnimator animator = new TransitionAnimator(
 					(Transition)this.cmbOutTransition.getSelectedItem(),
-					((Number)this.txtOutTransition.getValue()).intValue());
+					((Number)this.txtOutTransition.getValue()).intValue(),
+					Easings.getEasingForId(settings.getClearEasing()));
 			// get the notification display window
 			NotificationDisplayWindow window = DisplayWindows.getPrimaryNotificationWindow();
 			if (window != null) {
