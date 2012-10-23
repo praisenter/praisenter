@@ -12,6 +12,7 @@ import org.praisenter.display.HorizontalTextAlignment;
 import org.praisenter.display.VerticalTextAlignment;
 import org.praisenter.transitions.SwipeLeft;
 import org.praisenter.transitions.SwipeRight;
+import org.praisenter.transitions.easing.CubicEasing;
 import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.FontManager;
 
@@ -38,12 +39,18 @@ public final class NotificationSettings extends RootSettings<NotificationSetting
 	
 	/** Property key for the default send transition duration */
 	private static final String KEY_DEFAULT_SEND_TRANSITION_DURATION = "Notification.Send.Transition.Duration.Default";
+
+	/** Property key for the send transition easing */
+	private static final String KEY_SEND_EASING = "Notification.Send.Easing";
 	
 	/** Property key for the default clear transition */
 	private static final String KEY_DEFAULT_CLEAR_TRANSITION = "Notification.Clear.Transition.Default";
 	
 	/** Property key for the default clear transition duration */
 	private static final String KEY_DEFAULT_CLEAR_TRANSITION_DURATION = "Notification.Clear.Transition.Duration.Default";
+	
+	/** Property key for the clear transition easing */
+	private static final String KEY_CLEAR_EASING = "Notification.Clear.Easing";
 	
 	/**
 	 * Returns the instance of the {@link NotificationSettings}.
@@ -95,8 +102,11 @@ public final class NotificationSettings extends RootSettings<NotificationSetting
 		
 		this.setDefaultSendTransition(SwipeLeft.ID);
 		this.setDefaultSendTransitionDuration(400);
+		this.setSendEasing(CubicEasing.ID);
+		
 		this.setDefaultClearTransition(SwipeRight.ID);
 		this.setDefaultClearTransitionDuration(300);
+		this.setClearEasing(CubicEasing.ID);
 		
 		// general
 		this.textSettings.setBounds(null);
@@ -243,5 +253,39 @@ public final class NotificationSettings extends RootSettings<NotificationSetting
 	 */
 	public void setDefaultClearTransitionDuration(int duration) throws SettingsException {
 		this.setSetting(KEY_DEFAULT_CLEAR_TRANSITION_DURATION, duration);
+	}
+	
+	/**
+	 * Returns the send transition easing.
+	 * @return int
+	 */
+	public int getSendEasing() {
+		return this.getIntegerSetting(KEY_SEND_EASING);
+	}
+	
+	/**
+	 * Sets the send transition easing.
+	 * @param id the easing id
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setSendEasing(int id) throws SettingsException {
+		this.setSetting(KEY_SEND_EASING, id);
+	}
+
+	/**
+	 * Returns the clear transition easing.
+	 * @return int
+	 */
+	public int getClearEasing() {
+		return this.getIntegerSetting(KEY_CLEAR_EASING);
+	}
+	
+	/**
+	 * Sets the clear transition easing.
+	 * @param id the easing id
+	 * @throws SettingsException if an exception occurs while assigning the setting
+	 */
+	public void setClearEasing(int id) throws SettingsException {
+		this.setSetting(KEY_CLEAR_EASING, id);
 	}
 }

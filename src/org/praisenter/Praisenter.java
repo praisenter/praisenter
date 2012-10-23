@@ -201,7 +201,9 @@ public class Praisenter extends JFrame implements ActionListener {
 			this.changeLookAndFeel(command);
 		} else if ("preferences".equals(command)) {
 			// show the preferences dialog
-			SettingsDialog.show(this, new SettingsListener[] { this.pnlBible });
+			// the bible and song panel need to listen for settings changes to know
+			// when to update their previews
+			SettingsDialog.show(this, new SettingsListener[] { this.pnlBible , this.pnlSongs});
 		} else if ("size".equals(command)) {
 			this.showCurrentWindowSize();
 		} else if ("exportErrors".equals(command)) {

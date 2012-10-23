@@ -1,14 +1,23 @@
 package org.praisenter.transitions.easing;
 
+import org.praisenter.resources.Messages;
+
 /**
  * Cubic easing from http://gizma.com/easing/.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class CubicEasing implements Easing {
+public class CubicEasing extends AbstractEasing {
 	/** The id for the easing */
 	public static final int ID = 30;
+
+	/**
+	 * Default constructor.
+	 */
+	public CubicEasing() {
+		super(Messages.getString("easing.cubic"));
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.transitions.Easing#easeIn(long, long)

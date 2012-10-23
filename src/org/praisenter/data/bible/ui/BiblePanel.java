@@ -60,6 +60,8 @@ import org.praisenter.settings.SettingsListener;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
+import org.praisenter.transitions.easing.Easings;
+import org.praisenter.transitions.easing.Easing;
 import org.praisenter.transitions.ui.TransitionListCellRenderer;
 import org.praisenter.ui.AutoCompleteComboBoxEditor;
 import org.praisenter.ui.EmptyNumberFormatter;
@@ -804,14 +806,6 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		this.pnlPreview.setCurrentVerseDisplay(cDisplay);
 		this.pnlPreview.setNextVerseDisplay(nDisplay);
 		
-		// resize the view using the current size's minimum dimension
-		Dimension size = this.pnlPreview.getSize();
-		if (size.width < size.height) {
-			this.pnlPreview.setMinimumSize(size.width);
-		} else {
-			this.pnlPreview.setMinimumSize(size.height);
-		}
-		
 		// redraw the preview panel
 		this.pnlPreview.repaint();
 	}
@@ -1051,10 +1045,12 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	 * Sends the current verse display to the primary display.
 	 */
 	private void sendVerseAction() {
+		BibleSettings settings = BibleSettings.getInstance();
 		// get the transition
 		Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
 		int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
-		TransitionAnimator ta = new TransitionAnimator(transition, duration);
+		Easing easing = Easings.getEasingForId(settings.getClearEasing());
+		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
 		if (primary != null) {
 			primary.send(this.pnlPreview.getCurrentVerseDisplay(), ta);
@@ -1073,10 +1069,12 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	 * Clears the primary display.
 	 */
 	private void clearVerseAction() {
+		BibleSettings settings = BibleSettings.getInstance();
 		// get the transition
 		Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
 		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
-		TransitionAnimator ta = new TransitionAnimator(transition, duration);
+		Easing easing = Easings.getEasingForId(settings.getClearEasing());
+		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
 		if (primary != null) {
 			primary.clear(ta);

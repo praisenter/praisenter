@@ -18,13 +18,16 @@ import org.praisenter.transitions.easing.Easings;
  */
 public class TransitionAnimator implements ActionListener {
 	/** The easing function */
-	protected static final Easing EASING = Easings.getEasingForId(CubicEasing.ID);
+	protected static final Easing DEFAULT_EASING = Easings.getEasingForId(CubicEasing.ID);
 	
 	/** The transition to animate */
 	protected Transition transition;
 	
 	/** The total duration of the transition in nanoseconds */
 	protected long duration;
+	
+	/** The easing for the transition */
+	protected Easing easing;
 	
 	/** The timer for the transition */
 	protected Timer timer;
@@ -52,11 +55,22 @@ public class TransitionAnimator implements ActionListener {
 	 * @param duration the duration
 	 */
 	public TransitionAnimator(Transition transition, int duration) {
+		this(transition, duration, DEFAULT_EASING);
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param transition the transition
+	 * @param duration the duration
+	 * @param easing the easing function
+	 */
+	public TransitionAnimator(Transition transition, int duration, Easing easing) {
 		if (duration < 0) {
 			duration = 0;
 		}
 		this.transition = transition;
 		this.duration = milliToNano(duration);
+		this.easing = easing;
 		this.timer = new Timer(0, this);
 		if (duration == 0 || transition instanceof Swap) {
 			this.timer.setRepeats(false);
@@ -135,9 +149,9 @@ public class TransitionAnimator implements ActionListener {
 		if (this.duration > 0) {
 			// do the ease in/out depending on the transition type
 			if (this.transition.type == Transition.Type.IN) {
-				this.percentComplete = EASING.easeIn(dt, this.duration);
+				this.percentComplete = this.easing.easeIn(dt, this.duration);
 			} else {
-				this.percentComplete = EASING.easeOut(dt, this.duration);
+				this.percentComplete = this.easing.easeOut(dt, this.duration);
 			}
 		} else {
 			// a duration of zero basically means swap

@@ -40,6 +40,12 @@ public interface Easing {
 	public double easeInOut(long time, long duration);
 
 	/**
+	 * Returns the easing name.
+	 * @return String
+	 */
+	public abstract String getName();
+	
+	/**
 	 * Returns a unique easing id for an easing sub class.
 	 * @return int
 	 */
