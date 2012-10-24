@@ -491,7 +491,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		super.updateUI();
 		// after the ui is updated, re-generate the song layout
 		if (this.scrPreview != null && this.pnlPreview != null && this.song != null) {
-			this.previewThread.queueSong(this.song);
+			this.queueSongPreview(this.song);
 		}
 	}
 	
@@ -501,7 +501,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	@Override
 	public void settingsSaved() {
 		// refresh the song preview panel
-		this.previewThread.queueSong(this.song);
+		this.queueSongPreview(this.song);
 	}
 	
 	/* (non-Javadoc)
@@ -771,7 +771,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			// set the loading status
 			this.scrPreview.setLoading(true);
 			// update the current song
-			this.previewThread.queueSong(song);
+			this.queueSongPreview(this.song);
 		} else {
 			// set the song label text
 			this.lblSongTitle.setText(MessageFormat.format(Messages.getString("panel.songs.current.pattern"), Messages.getString("panel.songs.default.title"), ""));
@@ -785,6 +785,24 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			// clear the edit song panel
 			this.pnlEditSong.setSong(null);
 		}
+	}
+	
+	/**
+	 * Queues a new song to be previewed.
+	 * @param song the song
+	 */
+	private void queueSongPreview(Song song) {
+		// its possible that the preview thread was interrupted or stopped
+		// so make sure its still running
+		if (!this.previewThread.isAlive()) {
+			// if the current thread is no longer alive (running) then
+			// create another and start it
+			this.previewThread = new SongPreivewThread();
+			this.previewThread.start();
+		}
+		
+		// execute the preview update
+		this.previewThread.queueSong(song);
 	}
 	
 	/* (non-Javadoc)

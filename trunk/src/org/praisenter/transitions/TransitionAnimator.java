@@ -68,6 +68,9 @@ public class TransitionAnimator implements ActionListener {
 		if (duration < 0) {
 			duration = 0;
 		}
+		if (easing == null) {
+			easing = DEFAULT_EASING;
+		}
 		this.transition = transition;
 		this.duration = milliToNano(duration);
 		this.easing = easing;

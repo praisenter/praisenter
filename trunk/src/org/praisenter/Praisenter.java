@@ -42,6 +42,7 @@ import org.praisenter.settings.SettingsListener;
 import org.praisenter.settings.ui.SettingsDialog;
 import org.praisenter.tasks.FileTask;
 import org.praisenter.tasks.TaskProgressDialog;
+import org.praisenter.ui.AboutDialog;
 import org.praisenter.ui.CheckExistsFileChooser;
 import org.praisenter.ui.ZipFileFilter;
 
@@ -160,7 +161,7 @@ public class Praisenter extends JFrame implements ActionListener {
 				mnuImportCVSongs.addActionListener(this);
 				mnuImportSongs.add(mnuImportCVSongs);
 			}
-			
+						
 			if (Main.isDebugEnabled()) {
 				JMenu mnuWindow = new JMenu(Messages.getString("menu.window"));
 				barMenu.add(mnuWindow);
@@ -176,6 +177,16 @@ public class Praisenter extends JFrame implements ActionListener {
 				this.createLookAndFeelMenuItems(this.mnuLookAndFeel);
 				mnuWindow.add(this.mnuLookAndFeel);
 			}
+			
+			// help menu
+			JMenu mnuHelp = new JMenu(Messages.getString("menu.help"));
+			barMenu.add(mnuHelp);
+			
+			// about menu
+			JMenuItem mnuAbout = new JMenuItem(Messages.getString("menu.help.about"));
+			mnuAbout.setActionCommand("about");
+			mnuAbout.addActionListener(this);
+			mnuHelp.add(mnuAbout);
 			
 			this.setJMenuBar(barMenu);
 		}
@@ -203,7 +214,7 @@ public class Praisenter extends JFrame implements ActionListener {
 			// show the preferences dialog
 			// the bible and song panel need to listen for settings changes to know
 			// when to update their previews
-			SettingsDialog.show(this, new SettingsListener[] { this.pnlBible , this.pnlSongs});
+			SettingsDialog.show(this, new SettingsListener[] { this.pnlBible, this.pnlNotification, this.pnlSongs});
 		} else if ("size".equals(command)) {
 			this.showCurrentWindowSize();
 		} else if ("exportErrors".equals(command)) {
@@ -216,6 +227,8 @@ public class Praisenter extends JFrame implements ActionListener {
 			this.exportSongs();
 		} else if ("importPraisenterSongs".equals(command)) {
 			this.importPraisenterSongDatabase();
+		} else if ("about".equals(command)) {
+			AboutDialog.show(this);
 		}
 	}
 	

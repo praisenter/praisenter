@@ -1,9 +1,3 @@
-Nursery overlay
-	Changed to notification window
-	maybe use a copy of transitiondisplaypanel
-	maybe place the panel on top of the transition display panel
-	or just make a new window (add the code to show/hide in display window)
-
 Video backgrounds (avi, mov, mp4, mod, mpg, mpeg, wmv, mp2)
 	I'm thinking use FFMPEG to convert the selected media to the simplest format.
 	Then use Java to read the image data from that format.
@@ -11,11 +5,3 @@ Video backgrounds (avi, mov, mp4, mod, mpg, mpeg, wmv, mp2)
 	
 	Currently the TranstionDisplayPanel and associated transtions will not work with video backgrounds.
 	When/if we get around to this, we may need to re-engineer the display sub system.
-
-Song queues
-
-INSTALL
-I think install can be done by the application jar (for now)
-	- we need to package a .zip of a fresh db
-	- we need to package dependent .jar files
-	- we need to create local folders (config, database, lib, licenses, etc)
