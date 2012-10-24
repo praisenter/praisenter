@@ -19,8 +19,10 @@ import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.NotificationSettings;
 import org.praisenter.settings.SongSettings;
 import org.praisenter.utilities.LookAndFeelUtilities;
-// FIXME add text to the README.txt about how to install (unzip the distributable)
+
 // FIXME add license to all files
+// FIXME the about dialog needs some work
+
 /**
  * This class is the application entry point.
  * @author William Bittle

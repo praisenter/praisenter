@@ -18,7 +18,17 @@ public class Transitions {
 		new SwipeRight(Transition.Type.IN),
 		new SwipeLeft(Transition.Type.IN),
 		new SwipeUp(Transition.Type.IN),
-		new SwipeDown(Transition.Type.IN)
+		new SwipeDown(Transition.Type.IN),
+		new VerticalSplitExpand(Transition.Type.IN),
+		new VerticalSplitCollapse(Transition.Type.IN),
+		new HorizontalSplitExpand(Transition.Type.IN),
+		new HorizontalSplitCollapse(Transition.Type.IN),
+		new CircularExpand(Transition.Type.IN),
+		new CircularCollapse(Transition.Type.IN),
+		new PushRight(Transition.Type.IN),
+		new PushLeft(Transition.Type.IN),
+		new PushUp(Transition.Type.IN),
+		new PushDown(Transition.Type.IN)
 	};
 	
 	/** The list of "out" transitions */
@@ -28,7 +38,17 @@ public class Transitions {
 		new SwipeRight(Transition.Type.OUT),
 		new SwipeLeft(Transition.Type.OUT),
 		new SwipeUp(Transition.Type.OUT),
-		new SwipeDown(Transition.Type.OUT)
+		new SwipeDown(Transition.Type.OUT),
+		new VerticalSplitExpand(Transition.Type.OUT),
+		new VerticalSplitCollapse(Transition.Type.OUT),
+		new HorizontalSplitExpand(Transition.Type.OUT),
+		new HorizontalSplitCollapse(Transition.Type.OUT),
+		new CircularExpand(Transition.Type.OUT),
+		new CircularCollapse(Transition.Type.OUT),
+		new PushRight(Transition.Type.OUT),
+		new PushLeft(Transition.Type.OUT),
+		new PushUp(Transition.Type.OUT),
+		new PushDown(Transition.Type.OUT)
 	};
 	
 	/** The default "in" transition */

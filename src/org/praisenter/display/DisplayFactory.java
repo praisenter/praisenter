@@ -145,7 +145,7 @@ public class DisplayFactory {
 		final int h = displaySize.height;
 		final int w = displaySize.width;
 		// compute the default height
-		final int th = (int)Math.ceil((double)h * 0.30);
+		final int th = (int)Math.ceil((double)h * 0.20);
 		
 		Rectangle bounds = tSet.getBounds();
 		if (bounds == null) {

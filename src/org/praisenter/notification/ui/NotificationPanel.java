@@ -21,6 +21,7 @@ import org.praisenter.display.ui.NotificationDisplayWindow;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.NotificationSettings;
+import org.praisenter.settings.SettingsListener;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
@@ -36,7 +37,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class NotificationPanel extends JPanel implements ActionListener {
+public class NotificationPanel extends JPanel implements ActionListener, SettingsListener {
 	/** The version id */
 	private static final long serialVersionUID = 20837022721408081L;
 	
@@ -164,6 +165,18 @@ public class NotificationPanel extends JPanel implements ActionListener {
 				.addComponent(this.txtOutTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.btnSend, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.btnClear, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.settings.SettingsListener#settingsSaved()
+	 */
+	@Override
+	public void settingsSaved() {
+		GeneralSettings gSettings = GeneralSettings.getInstance();
+		NotificationSettings nSettings = NotificationSettings.getInstance();
+		
+		Dimension displaySize = gSettings.getPrimaryDisplaySize();
+		this.display = DisplayFactory.getDisplay(nSettings, displaySize, "");
 	}
 	
 	/* (non-Javadoc)
