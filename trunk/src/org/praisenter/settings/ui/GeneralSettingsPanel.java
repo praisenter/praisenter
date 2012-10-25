@@ -92,10 +92,10 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 		}
 		
 		JLabel lblPrimaryDisplay = new JLabel(Messages.getString("panel.general.setup.display.primaryDisplay"));
-		lblPrimaryDisplay.setToolTipText(Messages.getString("panel.general.setup.display.primaryDisplay.tooltip"));
 		
 		// drop down for the primary display device
 		this.cmbDevices = new JComboBox<GraphicsDevice>(this.devices);
+		this.cmbDevices.setToolTipText(Messages.getString("panel.general.setup.display.primaryDisplay.tooltip"));
 		this.cmbDevices.setRenderer(new DeviceRenderer());
 		if (primary != null) {
 			this.cmbDevices.setSelectedItem(primary);
@@ -120,8 +120,8 @@ public class GeneralSettingsPanel extends JPanel implements SettingsPanel, Actio
 		}
 		
 		JLabel lblRenderQuality = new JLabel(Messages.getString("panel.general.setup.quality"));
-		lblRenderQuality.setToolTipText(Messages.getString("panel.general.setup.quality.tooltip"));
 		this.cmbRenderQualities = new JComboBox<RenderQuality>(RenderQuality.values());
+		this.cmbRenderQualities.setToolTipText(Messages.getString("panel.general.setup.quality.tooltip"));
 		this.cmbRenderQualities.setRenderer(new RenderQualityRenderer());
 		this.cmbRenderQualities.setSelectedItem(settings.getRenderQuality());
 		this.cmbRenderQualities.addItemListener(this);

@@ -117,8 +117,8 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 			this.cmbBiblesPrimary.setSelectedItem(bible);
 		}
 		JLabel lblIncludeApocrypha = new JLabel(Messages.getString("panel.bible.setup.includeApocrypha"));
-		lblIncludeApocrypha.setToolTipText(Messages.getString("panel.bible.setup.includeApocrypha.tooltip"));
 		this.chkIncludeApocrypha = new JCheckBox();
+		this.chkIncludeApocrypha.setToolTipText(Messages.getString("panel.bible.setup.includeApocrypha.tooltip"));
 		this.chkIncludeApocrypha.setSelected(settings.isApocryphaIncluded());
 		
 		// the secondary bible
@@ -141,8 +141,6 @@ public class BibleSettingsPanel extends JPanel implements SettingsPanel {
 			this.cmbBiblesSecondary.setSelectedItem(bible);
 		}
 		
-		JLabel lblUseSecondaryBible = new JLabel(Messages.getString("panel.bible.setup.useSecondaryBible"));
-		lblUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.setup.useSecondaryBible.tooltip"));
 		this.chkUseSecondaryBible = new JCheckBox(Messages.getString("panel.bible.setup.useSecondaryBible"));
 		this.chkUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.setup.useSecondaryBible.tooltip"));
 		this.chkUseSecondaryBible.setSelected(settings.isSecondaryBibleInUse());

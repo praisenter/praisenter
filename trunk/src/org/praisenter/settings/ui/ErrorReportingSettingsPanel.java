@@ -66,20 +66,19 @@ public class ErrorReportingSettingsPanel extends JPanel implements SettingsPanel
 		boolean enabled = settings.isErrorReportingEnabled();
 		
 		JLabel lblReportingEnabled = new JLabel(Messages.getString("panel.error.setup.reporting.enabled"));
-		lblReportingEnabled.setToolTipText(Messages.getString("panel.error.setup.reporting.enabled.tooltip"));
 		this.chkReportingEnabled = new JCheckBox();
+		this.chkReportingEnabled.setToolTipText(Messages.getString("panel.error.setup.reporting.enabled.tooltip"));
 		this.chkReportingEnabled.setSelected(enabled);
 		this.chkReportingEnabled.addChangeListener(this);
 		JLabel lblReporting = new JLabel(Messages.getString("panel.error.setup.reporting.description"));
 		
 		JLabel lblAuthenticateEnabled = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.auth"));
-		lblAuthenticateEnabled.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.auth.tooltip"));
 		this.chkAuthenticateEnabled = new JCheckBox();
+		this.chkAuthenticateEnabled.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.auth.tooltip"));
 		this.chkAuthenticateEnabled.setSelected(settings.isSmtpAuthenticateEnabled());
 		this.chkAuthenticateEnabled.setEnabled(enabled);
 		
 		JLabel lblSmtpHost = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.host"));
-		lblSmtpHost.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.host.tooltip"));
 		this.txtSmtpHost = new JTextField() {
 			@Override
 			protected void paintComponent(Graphics g) {
@@ -88,25 +87,25 @@ public class ErrorReportingSettingsPanel extends JPanel implements SettingsPanel
 				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.setup.reporting.smtp.host.example"));
 			}
 		};
+		this.txtSmtpHost.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.host.tooltip"));
 		this.txtSmtpHost.setText(settings.getSmtpHost());
 		this.txtSmtpHost.setColumns(30);
 		this.txtSmtpHost.setEnabled(enabled);
 		
 		JLabel lblSmtpPort = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.port"));
-		lblSmtpPort.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.port.tooltip"));
 		this.txtSmtpPort = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtSmtpPort.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.port.tooltip"));
 		this.txtSmtpPort.setValue(settings.getSmtpPort());
 		this.txtSmtpPort.setColumns(5);
 		this.txtSmtpPort.setEnabled(enabled);
 		
 		JLabel lblStartTlsEnabled = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.tls"));
-		lblStartTlsEnabled.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.tls.tooltip"));
 		this.chkStartTlsEnabled = new JCheckBox();
+		this.chkStartTlsEnabled.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.tls.tooltip"));
 		this.chkStartTlsEnabled.setSelected(settings.isSmtpStartTlsEnabled());
 		this.chkStartTlsEnabled.setEnabled(enabled);
 		
 		JLabel lblUsername = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.user"));
-		lblUsername.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.user.tooltip"));
 		this.txtUsername = new JTextField() {
 			@Override
 			protected void paintComponent(Graphics g) {
@@ -115,13 +114,13 @@ public class ErrorReportingSettingsPanel extends JPanel implements SettingsPanel
 				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.setup.reporting.smtp.user.example"));
 			}
 		};
+		this.txtUsername.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.user.tooltip"));
 		this.txtUsername.setText(settings.getAccountUsername());
 		this.txtUsername.setColumns(20);
 		this.txtUsername.setEnabled(enabled);
 		JLabel lblPassword = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.pass"));
 		
 		JLabel lblEmail = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.email"));
-		lblEmail.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.email.tooltip"));
 		this.txtEmail = new JTextField() {
 			@Override
 			protected void paintComponent(Graphics g) {
@@ -130,6 +129,7 @@ public class ErrorReportingSettingsPanel extends JPanel implements SettingsPanel
 				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.setup.reporting.smtp.email.example"));
 			}
 		};
+		this.txtEmail.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.email.tooltip"));
 		this.txtEmail.setText(settings.getAccountEmail());
 		this.txtEmail.setColumns(50);
 		this.txtEmail.setEnabled(enabled);

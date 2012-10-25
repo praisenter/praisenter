@@ -5,3 +5,9 @@ Video backgrounds (avi, mov, mp4, mod, mpg, mpeg, wmv, mp2)
 	
 	Currently the TranstionDisplayPanel and associated transtions will not work with video backgrounds.
 	When/if we get around to this, we may need to re-engineer the display sub system.
+
+
+Fix logo on main site
+Setup forum (phpbb)
+Setup google code page
+videos

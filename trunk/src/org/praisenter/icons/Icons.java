@@ -11,6 +11,9 @@ import org.praisenter.utilities.ImageUtilities;
  * @since 1.0.0
  */
 public class Icons {
+	/** Application icon */
+	public static final ImageIcon ICON = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/icon.png");
+	
 	/** Verse found icon */
 	public static final ImageIcon FOUND = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/found.png");
 	

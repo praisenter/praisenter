@@ -190,12 +190,12 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		// the bible combobox
 		JLabel lblPrimaryBible = new JLabel(Messages.getString("panel.bible.primary"));
-		lblPrimaryBible.setToolTipText(Messages.getString("panel.bible.primary.tooltip"));
 		if (bibles == null) {
 			this.cmbBiblesPrimary = new JComboBox<Bible>();
 		} else {
 			this.cmbBiblesPrimary = new JComboBox<Bible>(bibles);
 		}
+		this.cmbBiblesPrimary.setToolTipText(Messages.getString("panel.bible.primary.tooltip"));
 		this.cmbBiblesPrimary.setRenderer(new BibleListCellRenderer());
 		this.cmbBiblesPrimary.addItemListener(new ItemListener() {
 			@Override
@@ -243,12 +243,12 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 		
 		// secondary bible
 		JLabel lblSecondaryBible = new JLabel(Messages.getString("panel.bible.secondary"));
-		lblSecondaryBible.setToolTipText(Messages.getString("panel.bible.secondary.tooltip"));
 		if (bibles == null) {
 			this.cmbBiblesSecondary = new JComboBox<Bible>();
 		} else {
 			this.cmbBiblesSecondary = new JComboBox<Bible>(bibles);
 		}
+		this.cmbBiblesSecondary.setToolTipText(Messages.getString("panel.bible.secondary.tooltip"));
 		this.cmbBiblesSecondary.setRenderer(new BibleListCellRenderer());
 		
 		this.chkUseSecondaryBible = new JCheckBox(Messages.getString("panel.bible.secondary.use"));
