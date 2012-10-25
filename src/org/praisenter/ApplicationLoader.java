@@ -22,6 +22,7 @@ import org.praisenter.data.errors.Errors;
 import org.praisenter.data.errors.ui.EnterPasswordDialog;
 import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.data.song.Songs;
+import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
 import org.praisenter.settings.ErrorReportingSettings;
 import org.praisenter.utilities.FontManager;
@@ -70,6 +71,7 @@ public class ApplicationLoader {
 	private ApplicationLoader() {
 		// create a new dialog
 		this.dialog = new JDialog(null, Messages.getString("dialog.preload.title"), ModalityType.MODELESS);
+		this.dialog.setIconImage(Icons.ICON.getImage());
 		// make sure closing the modal doesn't work (since we can't remove the close button)
 		this.dialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		

@@ -174,6 +174,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		this.btnSend.addActionListener(this);
 		this.btnSend.setActionCommand("send");
 		this.btnSend.setFont(this.btnSend.getFont().deriveFont(Font.BOLD, this.btnSend.getFont().getSize2D() + 3.0f));
+		this.btnSend.setEnabled(false);
 		
 		this.btnClear = new JButton(Messages.getString("panel.songs.clear"));
 		this.btnClear.setToolTipText(Messages.getString("panel.songs.clear.tooltip"));

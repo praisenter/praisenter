@@ -76,8 +76,8 @@ public class NotificationSettingsPanel extends JPanel implements SettingsPanel {
 		this.settings = settings;
 		// general notification settings
 		JLabel lblDefaultWaitPeriod = new JLabel(Messages.getString("panel.notification.setup.defaultWaitPeriod"));
-		lblDefaultWaitPeriod.setToolTipText(Messages.getString("panel.notification.setup.defaultWaitPeriod.tooltip"));
 		this.txtDefaultWaitPeriod = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtDefaultWaitPeriod.setToolTipText(Messages.getString("panel.notification.setup.defaultWaitPeriod.tooltip"));
 		this.txtDefaultWaitPeriod.setValue(settings.getDefaultWaitPeriod());
 		this.txtDefaultWaitPeriod.setColumns(6);
 		

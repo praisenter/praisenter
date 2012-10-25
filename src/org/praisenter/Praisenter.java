@@ -80,6 +80,7 @@ public class Praisenter extends JFrame implements ActionListener {
 	 */
 	public Praisenter() {
 		super(Messages.getString("praisenter"));
+		this.setIconImage(Icons.ICON.getImage());
 		
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
