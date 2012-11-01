@@ -1,0 +1,13 @@
+Video backgrounds (avi, mov, mp4, mod, mpg, mpeg, wmv, mp2)
+	I'm thinking use FFMPEG to convert the selected media to the simplest format.
+	Then use Java to read the image data from that format.
+	FFMPEG is GPL or LGPL. We would most likely need the GPL. I think it can be distributed with my app.
+	
+	Currently the TranstionDisplayPanel and associated transtions will not work with video backgrounds.
+	When/if we get around to this, we may need to re-engineer the display sub system.
+
+
+Fix logo on main site
+Setup forum (phpbb)
+Setup google code page
+videos
