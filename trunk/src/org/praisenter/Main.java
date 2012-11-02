@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -74,12 +76,8 @@ public class Main {
 	 * Initializes all configuration files.
 	 */
 	private static final void initializeConfiguration() {
-		// verify the existence of the /config directory
-		File file = new File(Constants.CONFIGURATION_FILE_LOCATION);
-		if (!file.exists()) {
-			// create the directory if it doesn't exist
-			file.mkdir();
-		}
+		// initialize folder structure
+		initializeFolderStructure();
 		
 		// initialize log4j
 		initializeLog4j();
@@ -101,6 +99,42 @@ public class Main {
 		
 		// initialize song settings
 		SongSettings.getInstance();
+	}
+	
+	/**
+	 * Initializes the folder structure for the application.
+	 * <p>
+	 * This really only needs to happen on the first startup of the
+	 * application, however, if the folders were deleted for any reason
+	 * we need to make sure they exist on each start up.
+	 */
+	private static final void initializeFolderStructure() {
+		FileSystem fs = FileSystems.getDefault();
+		// verify the existence of the /config directory
+		initializeFolder(Constants.CONFIGURATION_FILE_LOCATION);
+		
+		// verify the existence of the /media and sub directories
+		initializeFolder(Constants.MEDIA_LIBRARY_PATH);
+		initializeFolder(Constants.MEDIA_LIBRARY_PATH + fs.getSeparator() + Constants.MEDIA_LIBRARY_IMAGE_PATH);
+		initializeFolder(Constants.MEDIA_LIBRARY_PATH + fs.getSeparator() + Constants.MEDIA_LIBRARY_VIDEO_PATH);
+		initializeFolder(Constants.MEDIA_LIBRARY_PATH + fs.getSeparator() + Constants.MEDIA_LIBRARY_AUDIO_PATH);
+		
+		// verify the existence of the /media and sub directories
+		initializeFolder(Constants.TEMPLATE_PATH);
+		initializeFolder(Constants.TEMPLATE_PATH + fs.getSeparator() + Constants.BIBLE_TEMPLATE_PATH);
+		initializeFolder(Constants.TEMPLATE_PATH + fs.getSeparator() + Constants.SONGS_TEMPLATE_PATH);
+	}
+	
+	/**
+	 * Verifies the existence of the given folder and creates it if its not present.
+	 * @param folder the folder
+	 */
+	private static final void initializeFolder(String folder) {
+		File file = new File(folder);
+		if (!file.exists()) {
+			// create the directory if it doesn't exist
+			file.mkdir();
+		}
 	}
 	
 	/**

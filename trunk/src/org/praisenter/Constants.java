@@ -18,4 +18,14 @@ public class Constants {
 	
 	/** The database file name (foldername in this case) */
 	public static final String DATABASE_FILE_NAME = "praisenter";
+	
+	public static final String MEDIA_LIBRARY_PATH = "media";
+	
+	public static final String MEDIA_LIBRARY_IMAGE_PATH = "images";
+	public static final String MEDIA_LIBRARY_VIDEO_PATH = "videos";
+	public static final String MEDIA_LIBRARY_AUDIO_PATH = "audio";
+	
+	public static final String TEMPLATE_PATH = "templates";
+	public static final String BIBLE_TEMPLATE_PATH = "bible";
+	public static final String SONGS_TEMPLATE_PATH = "songs";
 }

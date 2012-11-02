@@ -46,7 +46,8 @@ public class DisplayFactory {
 		background.setBackgroundColor(bSet.getBackgroundColor());
 		background.setBackgroundColorCompositeType(bSet.getBackgroundColorCompositeType());
 		background.setBackgroundColorVisible(bSet.isBackgroundColorVisible());
-		background.setBackgroundImage(bSet.getBackgroundImage());
+//		background.setBackgroundImage(bSet.getBackgroundImage());
+		background.setBackgroundImageFileName(bSet.getBackgroundImageFileName());
 		background.setBackgroundImageScaleQuality(bSet.getBackgroundImageScaleQuality());
 		background.setBackgroundImageScaleType(bSet.getBackgroundImageScaleType());
 		background.setBackgroundImageVisible(bSet.isBackgroundImageVisible());
@@ -74,7 +75,8 @@ public class DisplayFactory {
 		titleText.setBackgroundColorCompositeType(tSet.getBackgroundColorCompositeType());
 		titleText.setBackgroundColorVisible(tSet.isBackgroundColorVisible());
 		// image
-		titleText.setBackgroundImage(tSet.getBackgroundImage());
+//		titleText.setBackgroundImage(tSet.getBackgroundImage());
+		titleText.setBackgroundImageFileName(tSet.getBackgroundImageFileName());
 		titleText.setBackgroundImageScaleQuality(tSet.getBackgroundImageScaleQuality());
 		titleText.setBackgroundImageScaleType(tSet.getBackgroundImageScaleType());
 		titleText.setBackgroundImageVisible(tSet.isBackgroundImageVisible());
@@ -103,7 +105,8 @@ public class DisplayFactory {
 		text.setBackgroundColorCompositeType(xSet.getBackgroundColorCompositeType());
 		text.setBackgroundColorVisible(xSet.isBackgroundColorVisible());
 		// image
-		text.setBackgroundImage(xSet.getBackgroundImage());
+//		text.setBackgroundImage(xSet.getBackgroundImage());
+		text.setBackgroundImageFileName(xSet.getBackgroundImageFileName());
 		text.setBackgroundImageScaleQuality(xSet.getBackgroundImageScaleQuality());
 		text.setBackgroundImageScaleType(xSet.getBackgroundImageScaleType());
 		text.setBackgroundImageVisible(xSet.isBackgroundImageVisible());
@@ -161,7 +164,8 @@ public class DisplayFactory {
 		textComponent.setBackgroundColorCompositeType(tSet.getBackgroundColorCompositeType());
 		textComponent.setBackgroundColorVisible(tSet.isBackgroundColorVisible());
 		// image
-		textComponent.setBackgroundImage(tSet.getBackgroundImage());
+//		textComponent.setBackgroundImage(tSet.getBackgroundImage());
+		textComponent.setBackgroundImageFileName(tSet.getBackgroundImageFileName());
 		textComponent.setBackgroundImageScaleQuality(tSet.getBackgroundImageScaleQuality());
 		textComponent.setBackgroundImageScaleType(tSet.getBackgroundImageScaleType());
 		textComponent.setBackgroundImageVisible(tSet.isBackgroundImageVisible());
@@ -206,7 +210,8 @@ public class DisplayFactory {
 		background.setBackgroundColor(bSet.getBackgroundColor());
 		background.setBackgroundColorCompositeType(bSet.getBackgroundColorCompositeType());
 		background.setBackgroundColorVisible(bSet.isBackgroundColorVisible());
-		background.setBackgroundImage(bSet.getBackgroundImage());
+//		background.setBackgroundImage(bSet.getBackgroundImage());
+		background.setBackgroundImageFileName(bSet.getBackgroundImageFileName());
 		background.setBackgroundImageScaleQuality(bSet.getBackgroundImageScaleQuality());
 		background.setBackgroundImageScaleType(bSet.getBackgroundImageScaleType());
 		background.setBackgroundImageVisible(bSet.isBackgroundImageVisible());
@@ -231,7 +236,8 @@ public class DisplayFactory {
 		text.setBackgroundColorCompositeType(tSet.getBackgroundColorCompositeType());
 		text.setBackgroundColorVisible(tSet.isBackgroundColorVisible());
 		// image
-		text.setBackgroundImage(tSet.getBackgroundImage());
+//		text.setBackgroundImage(tSet.getBackgroundImage());
+		text.setBackgroundImageFileName(tSet.getBackgroundImageFileName());
 		text.setBackgroundImageScaleQuality(tSet.getBackgroundImageScaleQuality());
 		text.setBackgroundImageScaleType(tSet.getBackgroundImageScaleType());
 		text.setBackgroundImageVisible(tSet.isBackgroundImageVisible());

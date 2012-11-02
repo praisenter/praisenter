@@ -117,7 +117,7 @@ public final class SongSettings extends RootSettings<SongSettings> {
 			this.backgroundSettings.setBackgroundColorCompositeType(CompositeType.UNDERLAY);
 			this.backgroundSettings.setBackgroundColorVisible(true);
 			// image
-			this.backgroundSettings.setBackgroundImage(null);
+			this.backgroundSettings.setBackgroundImageFileName(null);
 			this.backgroundSettings.setBackgroundImageVisible(false);
 			this.backgroundSettings.setBackgroundImageScaleQuality(ScaleQuality.BILINEAR);
 			this.backgroundSettings.setBackgroundImageScaleType(ScaleType.NONUNIFORM);
@@ -133,7 +133,7 @@ public final class SongSettings extends RootSettings<SongSettings> {
 			this.textSettings.setBackgroundColorCompositeType(CompositeType.UNDERLAY);
 			this.textSettings.setBackgroundColorVisible(false);
 			// image
-			this.textSettings.setBackgroundImage(null);
+			this.textSettings.setBackgroundImageFileName(null);
 			this.textSettings.setBackgroundImageVisible(false);
 			this.textSettings.setBackgroundImageScaleQuality(ScaleQuality.BILINEAR);
 			this.textSettings.setBackgroundImageScaleType(ScaleType.NONUNIFORM);

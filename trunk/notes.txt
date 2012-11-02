@@ -8,6 +8,10 @@ Video backgrounds (avi, mov, mp4, mod, mpg, mpeg, wmv, mp2)
 
 
 Fix logo on main site
-Setup forum (phpbb)
 Setup google code page
 videos
+
+templates
+service schedule (with scheduled transitions)
+	saved in a file format that can be transmitted from one location to another
+drag and drop

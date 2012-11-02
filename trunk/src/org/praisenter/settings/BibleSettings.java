@@ -139,7 +139,7 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 			this.backgroundSettings.setBackgroundColorCompositeType(CompositeType.UNDERLAY);
 			this.backgroundSettings.setBackgroundColorVisible(true);
 			// image
-			this.backgroundSettings.setBackgroundImage(null);
+			this.backgroundSettings.setBackgroundImageFileName(null);
 			this.backgroundSettings.setBackgroundImageVisible(false);
 			this.backgroundSettings.setBackgroundImageScaleQuality(ScaleQuality.BILINEAR);
 			this.backgroundSettings.setBackgroundImageScaleType(ScaleType.NONUNIFORM);
@@ -155,7 +155,7 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 			this.scriptureTitleSettings.setBackgroundColorCompositeType(CompositeType.UNDERLAY);
 			this.scriptureTitleSettings.setBackgroundColorVisible(false);
 			// image
-			this.scriptureTitleSettings.setBackgroundImage(null);
+			this.scriptureTitleSettings.setBackgroundImageFileName(null);
 			this.scriptureTitleSettings.setBackgroundImageVisible(false);
 			this.scriptureTitleSettings.setBackgroundImageScaleQuality(ScaleQuality.BILINEAR);
 			this.scriptureTitleSettings.setBackgroundImageScaleType(ScaleType.NONUNIFORM);
@@ -179,7 +179,7 @@ public final class BibleSettings extends RootSettings<BibleSettings> {
 			this.scriptureTextSettings.setBackgroundColorCompositeType(CompositeType.UNDERLAY);
 			this.scriptureTextSettings.setBackgroundColorVisible(false);
 			// image
-			this.scriptureTextSettings.setBackgroundImage(null);
+			this.scriptureTextSettings.setBackgroundImageFileName(null);
 			this.scriptureTextSettings.setBackgroundImageVisible(false);
 			this.scriptureTextSettings.setBackgroundImageScaleQuality(ScaleQuality.BILINEAR);
 			this.scriptureTextSettings.setBackgroundImageScaleType(ScaleType.NONUNIFORM);
