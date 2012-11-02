@@ -7,6 +7,11 @@ import java.awt.Rectangle;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 
+import org.praisenter.media.ImageMedia;
+import org.praisenter.media.Media;
+import org.praisenter.media.MediaException;
+import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.NoMediaLoaderException;
 import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.ImageUtilities;
 
@@ -45,6 +50,9 @@ public class GraphicsComponent extends DisplayComponent {
 	// TODO add effects (drop shadow)
 	
 	// image settings
+	
+	/** The background image file name */
+	protected String backgroundImageFileName;
 	
 	/** The image */
 	protected BufferedImage backgroundImage;
@@ -109,6 +117,7 @@ public class GraphicsComponent extends DisplayComponent {
 		this.backgroundColorCompositeType = CompositeType.UNDERLAY;
 		this.backgroundColorVisible = false;
 		
+		this.backgroundImageFileName = null;
 		this.backgroundImage = null;
 		this.backgroundImageScaleType = ScaleType.NONUNIFORM;
 		this.backgroundImageScaleQuality = ScaleQuality.BILINEAR;
@@ -242,6 +251,17 @@ public class GraphicsComponent extends DisplayComponent {
 	 * @param boundsChangeType the type of change to the bounds; null if no change
 	 */
 	protected void cacheImages(GraphicsConfiguration configuration, BoundsChangeType boundsChangeType) {
+		// read the image from the media library
+		try {
+			Media media = MediaLibrary.getMedia(this.backgroundImageFileName);
+			if (media != null) {
+				this.backgroundImage = ((ImageMedia)media).getImage();
+			}
+		} catch (MediaException | NoMediaLoaderException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		// make sure the source image is compatible
 		this.cacheConvertedImage(configuration);
 		
@@ -513,6 +533,18 @@ public class GraphicsComponent extends DisplayComponent {
 	
 	// image
 	
+	public String getBackgroundImageFileName() {
+		return backgroundImageFileName;
+	}
+	
+	public void setBackgroundImageFileName(String backgroundImageFileName) {
+		this.backgroundImageFileName = backgroundImageFileName;
+		this.backgroundImage = null;
+		this.cachedCompositeImage = null;
+		this.imageConverted = false;
+		this.setDirty(true);
+	}
+	
 	/**
 	 * Returns the source image.
 	 * @return BufferedImage
@@ -521,16 +553,16 @@ public class GraphicsComponent extends DisplayComponent {
 		return this.backgroundImage;
 	}
 	
-	/**
-	 * Sets the source image.
-	 * @param image the image
-	 */
-	public void setBackgroundImage(BufferedImage image) {
-		this.backgroundImage = image;
-		this.cachedCompositeImage = null;
-		this.imageConverted = false;
-		this.setDirty(true);
-	}
+//	/**
+//	 * Sets the source image.
+//	 * @param image the image
+//	 */
+//	public void setBackgroundImage(BufferedImage image) {
+//		this.backgroundImage = image;
+//		this.cachedCompositeImage = null;
+//		this.imageConverted = false;
+//		this.setDirty(true);
+//	}
 
 	/**
 	 * Returns true if the image is visible.

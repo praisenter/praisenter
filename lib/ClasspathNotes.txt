@@ -5,3 +5,6 @@ commons-lang3-3.1.jar     | Required      | licenses/apache-license-1.0.txt     
 derby.jar                 | Required      | licenses/apache-license-1.0.txt     | Runtime/Derby database engine
 log4j-1.2.17.jar          | Required      | licenses/apache-license-1.0.txt     | Runtime/Apache Log4j for application logging
 mail.jar                  | Required      | licenses/javamail-license.txt       | Runtime/JavaMail API for sending error reports
+xuggle-xuggler-5.4.jar    | Required      | licenses/xuggler-license.txt        | Runtime/Xuggler
+slf4j-api-1.7.2.jar       | Required      | licenses/slf4j-license.txt          | Runtime/Xuggler logging interface
+slf4j-log4j12-1.7.2.jar   | Required      | licenses/slf4j-license.txt          | Runtime/Xuggler logging interface for log4j

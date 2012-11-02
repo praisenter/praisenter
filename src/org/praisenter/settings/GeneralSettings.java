@@ -117,7 +117,7 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	 * @return GraphicsDevice
 	 */
 	public GraphicsDevice getPrimaryDisplay() {
-		return this.getGraphicsDevice(GeneralSettings.KEY_PRIMARY_DISPLAY_ID);
+		return this.getGraphicsDeviceSetting(GeneralSettings.KEY_PRIMARY_DISPLAY_ID);
 	}
 	
 	/**
@@ -128,7 +128,7 @@ public final class GeneralSettings extends RootSettings<GeneralSettings> {
 	 * @return {@link GraphicsDevice}
 	 */
 	public GraphicsDevice getPrimaryOrDefaultDisplay() {
-		GraphicsDevice device = this.getGraphicsDevice(GeneralSettings.KEY_PRIMARY_DISPLAY_ID);
+		GraphicsDevice device = this.getGraphicsDeviceSetting(GeneralSettings.KEY_PRIMARY_DISPLAY_ID);
 		if (device == null) {
 			return WindowUtilities.getSecondaryDevice();
 		}

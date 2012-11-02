@@ -34,6 +34,10 @@ import org.praisenter.display.GraphicsComponent;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
 import org.praisenter.icons.Icons;
+import org.praisenter.media.Media;
+import org.praisenter.media.MediaException;
+import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.NoMediaLoaderException;
 import org.praisenter.resources.Messages;
 import org.praisenter.ui.ImageFileFilter;
 import org.praisenter.ui.ImageFilePreview;
@@ -275,10 +279,16 @@ public class GraphicsComponentSettingsPanel<E extends GraphicsComponent> extends
 				File file = fc.getSelectedFile();
 				// attempt to load the image
 				try {
-					BufferedImage old = this.component.getBackgroundImage();
-					BufferedImage image = ImageIO.read(file);
-					this.component.setBackgroundImage(image);
-					this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, image);
+					String old = this.component.getBackgroundImageFileName();
+					String image = file.getAbsolutePath();
+					try {
+						Media media = MediaLibrary.addMedia(image);
+						this.component.setBackgroundImageFileName(media.getFileName());
+						this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, media.getFileName());
+					} catch (NoMediaLoaderException | MediaException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 				} catch (IOException ex) {
 					ExceptionDialog.show(
 							this, 

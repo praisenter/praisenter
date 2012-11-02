@@ -116,7 +116,7 @@ public final class NotificationSettings extends RootSettings<NotificationSetting
 		this.textSettings.setBackgroundColorCompositeType(CompositeType.UNDERLAY);
 		this.textSettings.setBackgroundColorVisible(false);
 		// image
-		this.textSettings.setBackgroundImage(null);
+		this.textSettings.setBackgroundImageFileName(null);
 		this.textSettings.setBackgroundImageVisible(false);
 		this.textSettings.setBackgroundImageScaleQuality(ScaleQuality.BILINEAR);
 		this.textSettings.setBackgroundImageScaleType(ScaleType.NONUNIFORM);

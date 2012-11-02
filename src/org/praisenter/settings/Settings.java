@@ -5,27 +5,19 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.imageio.ImageIO;
-
-import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.log4j.Logger;
 import org.praisenter.display.CompositeType;
 import org.praisenter.display.FontScaleType;
+import org.praisenter.display.HorizontalTextAlignment;
 import org.praisenter.display.RenderQuality;
 import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
-import org.praisenter.display.HorizontalTextAlignment;
 import org.praisenter.display.VerticalTextAlignment;
-import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -135,39 +127,6 @@ public abstract class Settings {
 	}
 	
 	/**
-	 * Returns the setting as an image object for the given key.
-	 * <p>
-	 * Returns null if the setting is not set.
-	 * @param key the key
-	 * @return BufferedImage
-	 */
-	protected BufferedImage getImageSetting(String key) {
-		// get the setting
-		Object object = this.settings.get(key);
-		// check if its null
-		if (object == NULL || object == null) {
-			object = null;
-			// get the string from the properties
-			String string = this.properties.getProperty(key);
-			// make sure we can parse it
-			if (string != null && string.trim().length() > 0) {
-				// get the image
-				try {
-					BufferedImage image = this.imageFromString(string);
-					// set it 
-					this.settings.put(key, image);
-					// return it
-					return image;
-				} catch (IOException e) {
-					LOGGER.warn("Unable to parse setting: " + key + " value: " + string, e);
-				}
-			}
-		}
-		
-		return (BufferedImage)object;
-	}
-	
-	/**
 	 * Returns the setting as a font object for the given key.
 	 * <p>
 	 * Returns null if the setting is not set.
@@ -273,7 +232,7 @@ public abstract class Settings {
 	 * @param key the key
 	 * @return GraphicsDevice
 	 */
-	protected GraphicsDevice getGraphicsDevice(String key) {
+	protected GraphicsDevice getGraphicsDeviceSetting(String key) {
 		// get the setting
 		Object object = this.settings.get(key);
 		// check if its null
@@ -630,12 +589,6 @@ public abstract class Settings {
 			return (String)object;
 		} else if (object instanceof Color) {
 			return this.colorToString((Color)object);
-		} else if (object instanceof BufferedImage) {
-			try {
-				return this.imageToString((BufferedImage)object);
-			} catch (IOException e) {
-				throw new SettingsException("Unable to convert the buffered image into a string.", e);
-			}
 		} else if (object instanceof Font) {
 			return this.fontToString((Font)object);
 		} else if (object instanceof Rectangle) {
@@ -679,29 +632,6 @@ public abstract class Settings {
 				Integer.parseInt(components[1]),
 				Integer.parseInt(components[2]),
 				Integer.parseInt(components[3]));
-	}
-	
-	/**
-	 * Converts a BufferedImage object to a string.
-	 * @param image the image
-	 * @return String
-	 * @throws IOException if an IO error occurs
-	 */
-	protected String imageToString(BufferedImage image) throws IOException {
-		return ImageUtilities.getBase64ImageString(image).replaceAll("\\s*", "");
-	}
-	
-	/**
-	 * Converts a string into a BufferedImage object.
-	 * @param image the string image
-	 * @return BufferedImage
-	 * @throws IOException if an IO error occurs; usually if the image data is corrupt
-	 */
-	protected BufferedImage imageFromString(String image) throws IOException {
-		ByteArrayInputStream bais = new ByteArrayInputStream(image.getBytes());
-		BufferedInputStream bis = new BufferedInputStream(bais);
-		Base64InputStream b64is = new Base64InputStream(bis);
-		return ImageIO.read(b64is);
 	}
 	
 	/**

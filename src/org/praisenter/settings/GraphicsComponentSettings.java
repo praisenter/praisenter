@@ -2,7 +2,6 @@ package org.praisenter.settings;
 
 import java.awt.Color;
 import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
 
 import org.praisenter.display.CompositeType;
 import org.praisenter.display.GraphicsComponent;
@@ -82,7 +81,7 @@ public class GraphicsComponentSettings<E extends GraphicsComponent> extends Comp
 		this.setBackgroundColorVisible(component.isBackgroundColorVisible());
 		
 		// image
-		this.setBackgroundImage(component.getBackgroundImage());
+		this.setBackgroundImageFileName(component.getBackgroundImageFileName());
 		this.setBackgroundImageScaleQuality(component.getBackgroundImageScaleQuality());
 		this.setBackgroundImageScaleType(component.getBackgroundImageScaleType());
 		this.setBackgroundImageVisible(component.isBackgroundImageVisible());
@@ -180,20 +179,20 @@ public class GraphicsComponentSettings<E extends GraphicsComponent> extends Comp
 	// image
 	
 	/**
-	 * Returns the image.
+	 * Returns the image file name.
 	 * @return BufferedImage
 	 */
-	public BufferedImage getBackgroundImage() {
-		return this.getImageSetting(this.prefix + GraphicsComponentSettings.KEY_IMAGE);
+	public String getBackgroundImageFileName() {
+		return this.getStringSetting(this.prefix + GraphicsComponentSettings.KEY_IMAGE);
 	}
 	
 	/**
-	 * Sets the image.
-	 * @param image the image
+	 * Sets the image file name.
+	 * @param fileName the image file name
 	 * @throws SettingsException if the setting failed to be assigned
 	 */
-	public void setBackgroundImage(BufferedImage image) throws SettingsException {
-		this.setSetting(this.prefix + GraphicsComponentSettings.KEY_IMAGE, image);
+	public void setBackgroundImageFileName(String fileName) throws SettingsException {
+		this.setSetting(this.prefix + GraphicsComponentSettings.KEY_IMAGE, fileName);
 	}
 	
 	/**
