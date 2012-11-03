@@ -10,28 +10,32 @@ public abstract class AbstractMedia implements Media {
 	/** The media type */
 	protected MediaType type;
 	
-	/** The file name */
-	protected String fileName;
+	/** The file properties */
+	protected FileProperties fileProperties;
 	
 	/**
 	 * Minimal constructor.
+	 * @param fileProperties the file properties
 	 * @param type the media type
 	 */
-	public AbstractMedia(MediaType type) {
+	public AbstractMedia(FileProperties fileProperties, MediaType type) {
 		this.type = type;
+		this.fileProperties = fileProperties;
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.Media#getType()
 	 */
+	@Override
 	public MediaType getType() {
 		return this.type;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.media.Media#getFileName()
+	 * @see org.praisenter.media.Media#getFileProperties()
 	 */
-	public String getFileName() {
-		return this.fileName;
+	@Override
+	public FileProperties getFileProperties() {
+		return this.fileProperties;
 	}
 }

@@ -17,18 +17,12 @@ public class ImageMedia extends AbstractImageMedia {
 	protected BufferedImage image;
 	
 	/**
-	 * Default constructor.
-	 */
-	public ImageMedia() {
-		this(null);
-	}
-	
-	/**
 	 * Full constructor.
+	 * @param fileProperties the file properties
 	 * @param image the image
 	 */
-	public ImageMedia(BufferedImage image) {
-		super(MediaType.IMAGE);
+	public ImageMedia(FileProperties fileProperties, BufferedImage image) {
+		super(fileProperties, MediaType.IMAGE);
 		this.image = image;
 	}
 	
@@ -48,6 +42,6 @@ public class ImageMedia extends AbstractImageMedia {
 		// resize the image to a thumbnail size
 		BufferedImage image = ImageUtilities.getUniformScaledImage(this.image, size.width, size.height, AffineTransformOp.TYPE_BILINEAR);
 		// return the thumbnail
-		return new Thumbnail(this.type, this.fileName, image);
+		return new Thumbnail(this.fileProperties, this.type, image);
 	}
 }

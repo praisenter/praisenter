@@ -1,1 +1,10 @@
+# image types
 image/png	png PNG
+
+# video types
+video/ogg	ogv OGV
+
+# audio types
+
+# other
+application/xml	xml XML

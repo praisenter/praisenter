@@ -10,8 +10,9 @@ public abstract class AbstractImageMedia extends AbstractMedia implements Media 
 	/**
 	 * Minimal constructor.
 	 * @param type the media type
+	 * @param fileProperties the file properties
 	 */
-	public AbstractImageMedia(MediaType type) {
-		super(type);
+	public AbstractImageMedia(FileProperties fileProperties, MediaType type) {
+		super(fileProperties, type);
 	}
 }

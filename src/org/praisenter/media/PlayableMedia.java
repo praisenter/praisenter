@@ -7,6 +7,9 @@ package org.praisenter.media;
  * @since 1.0.0
  */
 public interface PlayableMedia extends Media {
+	public abstract boolean removeMediaListener(PlayableMediaListener listener);
+	public abstract void addMediaListener(PlayableMediaListener listener);
+	
 	/**
 	 * Begins play of the media.
 	 */
