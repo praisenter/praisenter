@@ -1,4 +1,4 @@
-package org.praisenter.ui;
+package org.praisenter.media.ui;
 
 import java.io.File;
 

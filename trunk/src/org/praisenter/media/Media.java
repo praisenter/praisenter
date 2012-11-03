@@ -2,6 +2,7 @@ package org.praisenter.media;
 
 import java.awt.Dimension;
 
+
 /**
  * Represents a generic media object.
  * <p>
@@ -18,11 +19,11 @@ public interface Media {
 	public abstract MediaType getType();
 	
 	/**
-	 * Returns the file name of the media.
-	 * @return String
+	 * Returns the file properties.
+	 * @return {@link FileProperties}
 	 */
-	public abstract String getFileName();
-
+	public abstract FileProperties getFileProperties();
+	
 	/**
 	 * Returns a thumbnail of the media.
 	 * @param size the desired thumbnail size

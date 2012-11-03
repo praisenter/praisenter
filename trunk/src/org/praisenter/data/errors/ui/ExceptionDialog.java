@@ -64,7 +64,7 @@ public class ExceptionDialog extends JDialog implements MouseListener, ActionLis
 		this.setIconImage(null);
 		// set the size
 		this.setPreferredSize(new Dimension(500, 400));
-		this.setResizable(false);
+		this.setResizable(true);
 		
 		// assign the data
 		this.message = message;

@@ -12,10 +12,11 @@ import java.awt.image.BufferedImage;
  */
 public abstract class AbstractVideoMedia extends AbstractImageMedia implements Media, PlayableMedia {
 	/**
-	 * Default constructor.
+	 * Minimal constructor.
+	 * @param fileProperties the file properties
 	 */
-	public AbstractVideoMedia() {
-		super(MediaType.VIDEO);
+	public AbstractVideoMedia(FileProperties fileProperties) {
+		super(fileProperties, MediaType.VIDEO);
 	}
 	
 	/**

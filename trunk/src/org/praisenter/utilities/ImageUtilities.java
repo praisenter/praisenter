@@ -11,6 +11,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.awt.image.RenderedImage;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -18,6 +20,7 @@ import java.net.URL;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
+import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.codec.binary.Base64OutputStream;
 
 /**
@@ -87,6 +90,19 @@ public class ImageUtilities {
 		Base64OutputStream b64o = new Base64OutputStream(bo);
 		ImageIO.write(image, "png", b64o);
 		return new String(bo.toByteArray());
+	}
+	
+	/**
+	 * Converts the given base 64 string into a BufferedImage object.
+	 * @param string the base 64 string
+	 * @return BufferedImage
+	 * @throws IOException if an exception occurs reading the image data
+	 */
+	public static final BufferedImage getBase64StringImage(String string) throws IOException {
+		ByteArrayInputStream bais = new ByteArrayInputStream(string.getBytes());
+		BufferedInputStream bis = new BufferedInputStream(bais);
+		Base64InputStream b64is = new Base64InputStream(bis);
+		return ImageIO.read(b64is);
 	}
 	
 	/**

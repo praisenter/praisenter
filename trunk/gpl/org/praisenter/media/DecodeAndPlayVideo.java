@@ -1,4 +1,4 @@
-package org.praisenter.video;
+package org.praisenter.media;
 
 import java.awt.image.BufferedImage;
 

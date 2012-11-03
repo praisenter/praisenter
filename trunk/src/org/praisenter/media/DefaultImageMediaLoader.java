@@ -1,8 +1,10 @@
 package org.praisenter.media;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
 
@@ -14,18 +16,32 @@ import javax.imageio.ImageIO;
  */
 public class DefaultImageMediaLoader implements ImageMediaLoader, MediaLoader<ImageMedia> {
 	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaLoader#isSupported(java.lang.String)
+	 */
+	@Override
+	public boolean isSupported(String mimeType) {
+		String[] supportedTypes = ImageIO.getReaderMIMETypes();
+		for (String type : supportedTypes) {
+			if (type.equalsIgnoreCase(mimeType)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaLoader#load(java.lang.String)
 	 */
 	@Override
-	public ImageMedia load(String fileName) throws MediaException {
-		ImageMedia media = new ImageMedia();
+	public ImageMedia load(String filePath) throws MediaException {
+		Path path = FileSystems.getDefault().getPath(filePath);
 		
-		File file = new File(fileName);
-		if (file.exists() && file.isFile()) {
+		if (Files.exists(path) && Files.isRegularFile(path)) {
 			try {
-				BufferedImage image = ImageIO.read(file);
-				media.fileName = fileName;
-				media.image = image;
+				BufferedImage image = ImageIO.read(path.toFile());
+				FileProperties props = FileProperties.getFileProperties(filePath);
+				ImageMedia media = new ImageMedia(props, image);
+				return media;
 			} catch (IOException e) {
 				// FIXME translate?
 				throw new MediaException(e);
@@ -34,7 +50,5 @@ public class DefaultImageMediaLoader implements ImageMediaLoader, MediaLoader<Im
 			// FIXME translate?
 			throw new MediaException("The path/file doesn't exist or is not a file.");
 		}
-		
-		return media;
 	}
 }
