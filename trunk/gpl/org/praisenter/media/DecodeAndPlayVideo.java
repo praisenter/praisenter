@@ -41,7 +41,8 @@ public class DecodeAndPlayVideo
 //      		" as the first argument");
 
 //    String filename = args[0];
-	  String filename = "C:\\Users\\uswibit\\Desktop\\William\\Video\\big_buck_bunny.ogv";
+//	  String filename = "C:\\Users\\uswibit\\Desktop\\William\\Video\\big_buck_bunny.ogv";
+	  String filename = "C:\\Users\\William\\Desktop\\trailer_1080p.mov";
 
     // Let's make sure that we can actually convert video pixel formats.
     if (!IVideoResampler.isSupported(

@@ -2,6 +2,8 @@ package org.praisenter.media;
 
 import java.awt.image.BufferedImage;
 
+import javax.swing.text.View;
+
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
 import com.xuggle.xuggler.IPacket;
@@ -31,7 +33,7 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 	 * @see org.praisenter.media.MediaLoader#load(java.lang.String)
 	 */
 	@Override
-	public AbstractVideoMedia load(String filePath) throws MediaException {
+	public XugglerVideoMedia load(String filePath) throws MediaException {
 		// create the video container object
 		IContainer container = IContainer.make();
 
@@ -43,10 +45,11 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 
 		// query how many streams the call to open found
 		int numStreams = container.getNumStreams();
+		System.out.println("Streams: " + numStreams);
 
 		// loop over the streams to find the first video stream
-		int videoStreamId = -1;
 		IStreamCoder videoCoder = null;
+		IStreamCoder audioCoder = null;
 		for (int i = 0; i < numStreams; i++) {
 			IStream stream = container.getStream(i);
 			// get the coder for the stream
@@ -54,31 +57,35 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 			// see if the coder is a video coder
 			if (coder.getCodecType() == ICodec.Type.CODEC_TYPE_VIDEO) {
 				// if so, break from the loop
-				videoStreamId = i;
 				videoCoder = coder;
-				System.out.println("Video codec: " + coder.getCodec().getLongName());
-				break;
 			}
-		}
-
-		// make sure we found a video stream
-		if (videoStreamId == -1) {
-			throw new RuntimeException("could not find video stream in container: " + filePath);
+			if (stream.getStreamCoder().getCodecType() == ICodec.Type.CODEC_TYPE_AUDIO) {
+                audioCoder = coder;
+            }
 		}
 
 		// open the coder to read the video data
-		if (videoCoder.open(null, null) < 0) {
+		if (videoCoder != null && videoCoder.open(null, null) < 0) {
+			throw new RuntimeException("could not open video decoder for container: " + filePath);
+		}
+		
+		if (audioCoder != null && audioCoder.open(null, null) < 0) {
 			throw new RuntimeException("could not open video decoder for container: " + filePath);
 		}
 		
 		// get the first frame of the video
-		BufferedImage firstFrame = loadFirstFrame(container, videoCoder, videoStreamId);
+		BufferedImage firstFrame = loadFirstFrame(container, videoCoder);
 		
 		// reset the stream position
-//		container.seekKeyFrame(videoStreamId, 0, 0);
+		if (videoCoder != null) {
+			container.seekKeyFrame(videoCoder.getStream().getIndex(), 0, 0, 0, 0);
+		}
+		if (audioCoder != null) {
+			container.seekKeyFrame(audioCoder.getStream().getIndex(), 0, 0, 0, 0);
+		}
 		
 		// create the media object
-		VideoMedia media = new VideoMedia(FileProperties.getFileProperties(filePath), firstFrame, container, videoCoder, videoStreamId);
+		XugglerVideoMedia media = new XugglerVideoMedia(FileProperties.getFileProperties(filePath), firstFrame, container, videoCoder, audioCoder);
 		
 		return media;
 	}
@@ -87,16 +94,15 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 	 * Loads the first frame of the given video and then seeks back to the beginning of the stream.
 	 * @param container the video container
 	 * @param videoCoder the video stream coder
-	 * @param videoStreamId the stream id
 	 * @return BufferedImage
 	 * @throws MediaException thrown if an error occurs during decoding
 	 */
-	private BufferedImage loadFirstFrame(IContainer container, IStreamCoder videoCoder, int videoStreamId) throws MediaException {
+	private BufferedImage loadFirstFrame(IContainer container, IStreamCoder videoCoder) throws MediaException {
 		// walk through each packet of the container format
 		IPacket packet = IPacket.make();
 		while (container.readNextPacket(packet) >= 0) {
 			// make sure the packet belongs to the stream we care about
-			if (packet.getStreamIndex() == videoStreamId) {
+			if (packet.getStreamIndex() == videoCoder.getStream().getIndex()) {
 				// create a new picture for the video data to be stored in
 				IVideoPicture picture = IVideoPicture.make(videoCoder.getPixelType(), videoCoder.getWidth(), videoCoder.getHeight());
 				int offset = 0;
