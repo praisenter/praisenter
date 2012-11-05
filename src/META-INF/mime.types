@@ -3,6 +3,9 @@ image/png	png PNG
 
 # video types
 video/ogg	ogv OGV
+video/ogg	ogg OGG
+video/mov   mov MOV
+video/avi   avi AVI
 
 # audio types
 

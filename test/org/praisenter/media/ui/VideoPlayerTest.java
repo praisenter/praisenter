@@ -5,9 +5,16 @@ import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
-import javax.swing.ImageIcon;
+import javax.activation.DataSource;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.Line;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.Mixer;
+import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.TargetDataLine;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -16,13 +23,12 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import org.praisenter.media.MediaException;
 import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.NoMediaLoaderException;
-import org.praisenter.media.PlayableMediaListener;
-import org.praisenter.media.VideoMedia;
+import org.praisenter.media.MediaPlayerListener;
+import org.praisenter.media.XugglerVideoMedia;
 import org.praisenter.utilities.LookAndFeelUtilities;
 
 public class VideoPlayerTest {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 	        if (LookAndFeelUtilities.NIMBUS.equalsIgnoreCase(info.getName())) {
 	            try {
@@ -43,12 +49,50 @@ public class VideoPlayerTest {
 	        }
 	    }
 		
+//		AudioFormat f = new AudioFormat(48000, 16, 6, true, false);
+//		DataLine.Info finfo = new DataLine.Info(SourceDataLine.class, f);
+//		Mixer.Info[] mi = AudioSystem.getMixerInfo();
+//        for (Mixer.Info info : mi) {
+//        	System.out.println();
+//            System.out.println("info: " + info);
+//            Mixer m = AudioSystem.getMixer(info);
+//            Line.Info[] t2 = m.getTargetLineInfo();
+//            System.out.println("mixer " + m);
+//            Line.Info[] sl = m.getSourceLineInfo();
+//            for (Line.Info info2 : sl) {
+//                System.out.println("    info: " + info2);
+//                Line line = AudioSystem.getLine(info2);
+//                if (line instanceof SourceDataLine) {
+//                    SourceDataLine source = (SourceDataLine) line;
+//
+//                    DataLine.Info i = (DataLine.Info) source.getLineInfo();
+//                    for (AudioFormat format : i.getFormats()) {
+//                        System.out.println("    format: " + format);
+//                    }
+//                }
+//            }
+//            for (Line.Info infot : t2) {
+//            	System.out.println("    info: " + infot);
+//            	Line line = AudioSystem.getLine(infot);
+//                if (line instanceof TargetDataLine) {
+//                	TargetDataLine source = (TargetDataLine) line;
+//
+//                    DataLine.Info i = (DataLine.Info) source.getLineInfo();
+//                    for (AudioFormat format : i.getFormats()) {
+//                        System.out.println("    format: " + format);
+//                    }
+//                }
+//            }
+//        }
+		
 		new TestFrame();
 	}
 	
-	private static class TestFrame extends JFrame implements PlayableMediaListener {
-		VideoMedia media = null;
+	private static class TestFrame extends JFrame implements MediaPlayerListener {
+		XugglerVideoMedia media = null;
 		VideoImagePanel pnlImage;
+		BufferedImage image;
+		boolean imageQueued = false;
 		public TestFrame() {
 			this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			Container container = this.getContentPane();
@@ -57,7 +101,10 @@ public class VideoPlayerTest {
 			pnlImage = new VideoImagePanel();
 			
 			try {
-				media = (VideoMedia)MediaLibrary.getMedia("media\\videos\\big_buck_bunny.ogv");
+//				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\big_buck_bunny.ogv");
+				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.mov");
+//				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.ogg");
+//				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi");
 				media.addMediaListener(this);
 				media.play();
 			} catch (MediaException e) {
@@ -78,13 +125,18 @@ public class VideoPlayerTest {
 		}
 		
 		@Override
-		public void updated() {
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					pnlImage.setImage(media.getCurrentFrame());
-				}
-			});
+		public void updated(BufferedImage image) {
+//			this.image = image;
+
+//				SwingUtilities.invokeLater(new Runnable() {
+//					@Override
+//					public void run() {
+//						
+//						imageQueued = false;
+//					}
+//				});
+				pnlImage.setImage(image);
+			
 		}
 		
 		@Override
@@ -108,18 +160,23 @@ public class VideoPlayerTest {
 	
 	private static class VideoImagePanel extends JPanel {
 		BufferedImage image;
+		boolean repaintIssued = false;
 		public VideoImagePanel() {
 		}
 		
 		public void setImage(BufferedImage image) {
-			this.image = image;
-			this.repaint();
+//			if (!repaintIssued) {
+//				repaintIssued = true;
+				this.image = image;
+				this.repaint();
+//			}
 		}
 		
 		@Override
 		protected void paintComponent(Graphics g) {
 //			super.paintComponent(g);
 			g.drawImage(this.image, 0, 0, null);
+			repaintIssued = false;
 		}
 	}
 }
