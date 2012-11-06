@@ -78,10 +78,14 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 		
 		// reset the stream position
 		if (videoCoder != null) {
-			container.seekKeyFrame(videoCoder.getStream().getIndex(), 0, 0, 0, 0);
+			if (container.seekKeyFrame(videoCoder.getStream().getIndex(), 0, 0, 0, 0) < 0) {
+				throw new RuntimeException("Failed to seek video");
+			}
 		}
 		if (audioCoder != null) {
-			container.seekKeyFrame(audioCoder.getStream().getIndex(), 0, 0, 0, 0);
+			if (container.seekKeyFrame(audioCoder.getStream().getIndex(), 0, 0, 0, 0) < 0) {
+				throw new RuntimeException("Failed to seek audio");
+			}
 		}
 		
 		// create the media object

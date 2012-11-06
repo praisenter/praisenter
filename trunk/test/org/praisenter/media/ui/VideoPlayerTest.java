@@ -24,6 +24,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import org.praisenter.media.MediaException;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaPlayerListener;
+import org.praisenter.media.XugglerMediaPlayer;
 import org.praisenter.media.XugglerVideoMedia;
 import org.praisenter.utilities.LookAndFeelUtilities;
 
@@ -90,6 +91,7 @@ public class VideoPlayerTest {
 	
 	private static class TestFrame extends JFrame implements MediaPlayerListener {
 		XugglerVideoMedia media = null;
+		XugglerMediaPlayer player = null;
 		VideoImagePanel pnlImage;
 		BufferedImage image;
 		boolean imageQueued = false;
@@ -100,22 +102,32 @@ public class VideoPlayerTest {
 			
 			pnlImage = new VideoImagePanel();
 			
+			container.add(pnlImage, BorderLayout.CENTER);
+			
+			this.pack();
+			this.setVisible(true);
+			
 			try {
-//				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\big_buck_bunny.ogv");
-				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.mov");
-//				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.ogg");
+//				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.mov");
+				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.ogg");
 //				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi");
-				media.addMediaListener(this);
-				media.play();
+				player = new XugglerMediaPlayer(media);
+				player.addMediaPlayerListener(this);
+				player.startPlayback();
 			} catch (MediaException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
-			container.add(pnlImage, BorderLayout.CENTER);
-			
-			this.pack();
-			this.setVisible(true);
+			try {
+				Thread.sleep(20000);
+				player.pausePlayback();
+				Thread.sleep(5000);
+				player.resumePlayback();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		@Override
@@ -160,7 +172,6 @@ public class VideoPlayerTest {
 	
 	private static class VideoImagePanel extends JPanel {
 		BufferedImage image;
-		boolean repaintIssued = false;
 		public VideoImagePanel() {
 		}
 		
@@ -176,7 +187,6 @@ public class VideoPlayerTest {
 		protected void paintComponent(Graphics g) {
 //			super.paintComponent(g);
 			g.drawImage(this.image, 0, 0, null);
-			repaintIssued = false;
 		}
 	}
 }

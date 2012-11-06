@@ -28,6 +28,7 @@ public class ThumbnailListCellRenderer extends DefaultListCellRenderer {
 			this.setHorizontalTextPosition(SwingConstants.CENTER);
 			this.setVerticalTextPosition(SwingConstants.BOTTOM);
 			this.setText(t.getFileProperties().getFileName());
+			this.setToolTipText(t.getFileProperties().getFileName());
 			this.setHorizontalAlignment(CENTER);
 		}
 		return this;

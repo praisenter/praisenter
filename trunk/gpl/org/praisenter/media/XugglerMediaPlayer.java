@@ -38,16 +38,22 @@ public class XugglerMediaPlayer extends Thread {
 		PAUSED
 	}
 	
+	/** The state of the media player */
 	protected State state; 
-	protected XugglerMediaClock videoClock;
-	protected XugglerMediaClock audioClock;
 	
-	protected boolean loop;
-	protected boolean playVideo;
-	protected boolean playAudio;
+	/** The video/audio synchronization clock */
+	protected XugglerMediaClock clock;
+	
+	/** True if the media should loop */
+	protected boolean looped;
+	
+	/** True if the media is muted */
+	protected boolean muted;
 
+	/** Media player lock for state changes */
 	protected Object lock = new Object();
 	
+	/** The list of media player listeners */
 	protected List<MediaPlayerListener> listeners;
 	
 	// container
@@ -58,7 +64,6 @@ public class XugglerMediaPlayer extends Thread {
 	
 	protected IStreamCoder videoCoder;
 	protected IConverter videoConverter;
-	protected VideoThread videoThread;
 	
 	// audio
 	protected IStreamCoder audioCoder;
@@ -66,7 +71,14 @@ public class XugglerMediaPlayer extends Thread {
 	protected SourceDataLine audioLine;
 	protected AudioThread audioThread;
 	
-	public XugglerMediaPlayer(
+	// TODO some suggest synching based on the audio output timestamps
+	public XugglerMediaPlayer(XugglerVideoMedia media) {
+		this(media.container,
+			 media.videoCoder,
+			 media.audioCoder);
+	}
+	
+	private XugglerMediaPlayer(
 			IContainer container,
 			IStreamCoder videoCoder,
 			IStreamCoder audioCoder) {
@@ -74,15 +86,12 @@ public class XugglerMediaPlayer extends Thread {
 		this.setDaemon(true);
 		
 		this.state = State.STOPPED;
-		this.videoClock = new XugglerMediaClock();
-		this.audioClock = new XugglerMediaClock();
+		this.clock = new XugglerMediaClock();
 		this.listeners = new ArrayList<>();
-		this.loop = true;
+		this.looped = true;
 		
 		this.container = container;
 		this.videoCoder = videoCoder;
-		this.videoThread = new VideoThread();
-		this.videoThread.start();
 		this.audioCoder = audioCoder;
 		this.audioThread = new AudioThread();
 		this.audioThread.start();
@@ -120,40 +129,54 @@ public class XugglerMediaPlayer extends Thread {
 		}
 	}
 	
-	public void beginPlayback() {
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaPlayer#startPlayback()
+	 */
+	public void startPlayback() {
 		if (!this.isAlive()) {
-			synchronized (this.state) {
+			synchronized (this.lock) {
 				this.state = State.PLAYING;
 			}
 			this.start();
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaPlayer#endPlayback()
+	 */
 	public void endPlayback() {
 		if (this.isAlive()) {
-			synchronized (state) {
+			synchronized (lock) {
 				this.state = State.STOPPED;
+				// TODO we should flush/stop the audio line
 			}
-			this.videoClock.reset();
+			this.clock.reset();
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaPlayer#pausePlayback()
+	 */
 	public void pausePlayback() {
 		if (this.isAlive()) {
-			synchronized (this.state) {
+			synchronized (this.lock) {
 				if (this.state == State.PLAYING) {
 					this.state = State.PAUSED;
+					// TODO we should flush/stop the audio line
 				}
 			}
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaPlayer#resumePlayback()
+	 */
 	public void resumePlayback() {
 		if (this.isAlive()) {
-			synchronized (this.state) {
+			synchronized (this.lock) {
 				if (this.state == State.PAUSED) {
 					this.state = State.PLAYING;
-					this.state.notify();
+					this.lock.notify();
 				}
 			}
 		}
@@ -218,31 +241,24 @@ public class XugglerMediaPlayer extends Thread {
 			
 			// otherwise lets read the next packet
 			if (this.container.readNextPacket(packet) < 0) {
-				if (this.loop) {
-//					seekVideo(0);
-//					seekAudio(0);
-//				    
-					// seeke the video
+				// we are at the end of the media, do we need to loop?
+				if (this.looped) {
+					// seek the video
 					if (this.videoCoder != null) {
 						this.container.seekKeyFrame(this.videoCoder.getStream().getIndex(), 0, 0, 0, 0);
-						System.out.println(this.videoCoder.getStream().getStartTime());
-						System.out.println(this.videoCoder.getStream().getTimeBase());
 					}
 					
 					if (this.audioCoder != null) {
 						this.container.seekKeyFrame(this.audioCoder.getStream().getIndex(), 0, 0, 0, 0);
 						this.audioLine.flush();
-						System.out.println(this.audioCoder.getStream().getStartTime());
-						System.out.println(this.audioCoder.getStream().getTimeBase());
 					}
 					
-					this.videoClock.reset();
-					this.audioClock.reset();
-					
-					packet.reset();
-					
+					// reset the sync clock
+					this.clock.reset();
 					continue;
 				} else {
+					// if not then set the state
+					
 					return;
 				}
 			}
@@ -260,21 +276,12 @@ public class XugglerMediaPlayer extends Thread {
 
 					// make sure that we have a full picture from the video first
 					if (picture.isComplete()) {
-						// And finally, convert the picture to an Java buffered image
-//						BufferedImage target = new BufferedImage(picture.getWidth(), picture.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-//						IConverter converter = ConverterFactory.createConverter(target, picture.getPixelType());
+						// convert the picture to an Java buffered image
 						BufferedImage image = this.videoConverter.toImage(picture);
 						// sync up the frame rate
-						long syncTime = this.videoClock.getSynchronizationTime(picture.getTimeStamp(), false);
-						this.videoThread.notify(image, syncTime);
-//						try {
-//							Thread.sleep(syncTime);
-//						} catch (InterruptedException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}
-//						// notify any listeners
-//						notifyListeners(image);
+						this.synchronize(picture.getTimeStamp());
+						// notify any listeners
+						notifyListeners(image);
 					}
 				}
 			}
@@ -290,58 +297,12 @@ public class XugglerMediaPlayer extends Thread {
                     if (samples.isComplete()) {
 //                    	this.audioResampler.resample(samples1, samples, samples.getSize());
                     	byte[] data = samples.getData().getByteArray(0, samples.getSize());
-                    	// FIXME really we should mix the channels into 2 rather than just select 2 channels
-                    	// FIXME the audio needs to be reset (i think this is blocking the loop back)
-                    	// select only the left and right front channels
-//                    	int nc = samples.getChannels();
-//                    	byte[] rdata = new byte[data.length / nc * 2];
-//                    	int p = 0;
-//                    	for (int i = 0; i < data.length;) {
-//                    		rdata[p++] = data[i];
-//                    		if (((i + 1) % nc) == 2) {
-//                    			i += nc - 1;
-//                    		} else {
-//                    			i++;
-//                    		}
-//                    	}
-//                    	int nc = samples.getChannels();
-//                    	ByteBuffer buf = ByteBuffer.allocate(data.length / nc * 2);
-//                    	buf.order(ByteOrder.LITTLE_ENDIAN);
-//                    	ByteBuffer tmp = ByteBuffer.allocate(12);
-//                    	tmp.order(ByteOrder.LITTLE_ENDIAN);
-//                    	for (int j = 0; j < data.length; j+=12) {
-//                    		tmp.put(data, j, 12);
-////                    		buf.put(data[j]);
-////                    		buf.put(data[j+1]);
-////                    		buf.put(data[j+2]);
-////                    		buf.put(data[j+3]);
-//                    		
-//                    		// get the front left/right
-//                    		int lf = tmp.getShort(0) & 0xFFFFFFFF;
-//                    		int rf = tmp.getShort(2) & 0xFFFFFFFF;
-//                    		
-//                    		// get the rear left/right
-//                    		int lr = tmp.getShort(4) & 0xFFFFFFFF;
-//                    		int rr = tmp.getShort(6) & 0xFFFFFFFF;
-//                    		
-//                    		// get the center front
-//                    		int cf = tmp.getShort(8) & 0xFFFFFFFF;
-//                    		
-//                    		// get the sub
-//                    		int su = tmp.getShort(10) & 0xFFFFFFFF;
-//                    				
-////                    		short l = (short)(lf + 0.71 * cf + 0.71 * su - lr);
-////                    		short r = (short)(rf + 0.71 * cf + 0.71 * su - rr);
-//                    		
-//                    		short l = (short)(lr - (rr * 0.5) + (cf * 0.5) + lf - (su * 0.5));
-//                    		short r = (short)(rr - (lr * 0.5) + (cf * 0.5) + rf - (su * 0.5));
-//                    		
-//                    		buf.putShort(l);
-//                    		buf.putShort(r);
-//                    		tmp.clear();
-//                    	}
-//                    	this.audioLine.write(data, 0, data.length);
-                    	
+
+                    	byte[] ndata = AudioDownmixer.downmixToStereo(
+								data, 
+								(int)IAudioSamples.findSampleBitDepth(this.audioCoder.getSampleFormat()), 
+								this.audioCoder.getChannels(),
+								ByteOrder.LITTLE_ENDIAN);
 //                    	long syncTime = this.audioClock.getSynchronizationTime(samples.getTimeStamp(), false);
 //                        try {
 //							Thread.sleep(syncTime);
@@ -349,74 +310,94 @@ public class XugglerMediaPlayer extends Thread {
 //							// TODO Auto-generated catch block
 //							e.printStackTrace();
 //						}
-                        try {
-							audioThread.queue.put(AudioDownmixer.downmixToStereo(
-									data, 
-									(int)IAudioSamples.findSampleBitDepth(this.audioCoder.getSampleFormat()), 
-									this.audioCoder.getChannels()));
-						} catch (InterruptedException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
+//                        try {
+//							audioThread.queue.put(ndata);
+//						} catch (InterruptedException e1) {
+//							// TODO Auto-generated catch block
+//							e1.printStackTrace();
+//						}
+                    	audioLine.write(ndata, 0, ndata.length);
                     }
                 }
             }
 		}
 	}
 	
-    private void seekAudio(long seek) {
-        // try to use xuggler bundled algorithm for supported codecs
-        IRational rational = this.audioCoder.getTimeBase();
-        long seekTime = seek * rational.getDenominator() / rational.getNumerator() / 1000;
-        long audioSeekOffset = 0;
-        if (container.seekKeyFrame(this.audioCoder.getStream().getIndex(), seekTime, IContainer.SEEK_FLAG_ANY) >= 0) {
-            audioSeekOffset = -this.audioCoder.getStream().getStartTime() * 1000;
-            return;
-        }
-        //xuggler doesn't have good positioning algorithm for audio. So here is my own one
-        audioCoder.close();
-        if (audioCoder.open(null, null) < 0) {
-            throw new RuntimeException("can't open codec");
-        }
-        
-        IPacket packet = IPacket.make();
-        while(container.readNextPacket(packet) >= 0) {
-            if (packet.getStreamIndex() == this.audioCoder.getStream().getIndex()) {
-                break;
-            }
-        }
-        long headerOffset = packet.getPosition();
-        audioSeekOffset = seek - this.audioCoder.getStream().getStartTime();
-        long bytesOffset =(audioSeekOffset * (container.getFileSize() - headerOffset)) / this.audioCoder.getStream().getDuration();
-        container.seekKeyFrame(this.audioCoder.getStream().getIndex(), bytesOffset, IContainer.SEEK_FLAG_BYTE);
-        audioSeekOffset *= 1000;
-    }
+	/**
+	 * Attempts to synchronize the given timestamp with the CPU clock.
+	 * @param timestamp the timestamp in microseconds
+	 */
+	private void synchronize(long timestamp) {
+		long syncTime = this.clock.getSynchronizationTime(timestamp, false);
+		try {
+			Thread.sleep(syncTime);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
-	private void seekVideo(long seek) {
-		 IRational rational = videoCoder.getTimeBase();
-	        long seekTime = seek * rational.getDenominator() / rational.getNumerator() / 1000;
-	        container.seekKeyFrame(videoCoder.getStream().getIndex(), 0, seekTime, seekTime, 0);
-	        long pictureTime = seek * 1000;
-	        
-	        IPacket packet = IPacket.make();
-	        while(container.readNextPacket(packet) >= 0) {
-	            if (packet.getStreamIndex() == videoCoder.getStream().getIndex()) {
-	            	IVideoPicture picture = IVideoPicture.make(videoCoder.getPixelType(), videoCoder.getWidth(), videoCoder.getHeight());
-	                int offset = 0;
-	                while(offset < packet.getSize()) {
-	                    int bytesDecoded = videoCoder.decodeVideo(picture, packet, offset);
-	                    if (bytesDecoded < 0) {
-	                    	System.out.println("problems");
-//	                        throw new RuntimeException("got error decoding video in:"  + fileName);
-	                    }
-	                    offset += bytesDecoded;
-
-	                    if (picture.isComplete() && picture.getTimeStamp() >= pictureTime) {
-	                        return;
-	                    }
-	                }
-	            }
-	        }
+//    private void seekAudio(long seek) {
+//        // try to use xuggler bundled algorithm for supported codecs
+//        IRational rational = this.audioCoder.getTimeBase();
+//        long seekTime = seek * rational.getDenominator() / rational.getNumerator() / 1000;
+//        long audioSeekOffset = 0;
+//        if (container.seekKeyFrame(this.audioCoder.getStream().getIndex(), seekTime, IContainer.SEEK_FLAG_ANY) >= 0) {
+//            audioSeekOffset = -this.audioCoder.getStream().getStartTime() * 1000;
+//            return;
+//        }
+//        //xuggler doesn't have good positioning algorithm for audio. So here is my own one
+//        audioCoder.close();
+//        if (audioCoder.open(null, null) < 0) {
+//            throw new RuntimeException("can't open codec");
+//        }
+//        
+//        IPacket packet = IPacket.make();
+//        while(container.readNextPacket(packet) >= 0) {
+//            if (packet.getStreamIndex() == this.audioCoder.getStream().getIndex()) {
+//                break;
+//            }
+//        }
+//        long headerOffset = packet.getPosition();
+//        audioSeekOffset = seek - this.audioCoder.getStream().getStartTime();
+//        long bytesOffset =(audioSeekOffset * (container.getFileSize() - headerOffset)) / this.audioCoder.getStream().getDuration();
+//        container.seekKeyFrame(this.audioCoder.getStream().getIndex(), bytesOffset, IContainer.SEEK_FLAG_BYTE);
+//        audioSeekOffset *= 1000;
+//    }
+//	
+//	private void seekVideo(long seek) {
+//		 IRational rational = videoCoder.getTimeBase();
+//	        long seekTime = seek * rational.getDenominator() / rational.getNumerator() / 1000;
+//	        container.seekKeyFrame(videoCoder.getStream().getIndex(), 0, seekTime, seekTime, 0);
+//	        long pictureTime = seek * 1000;
+//	        
+//	        IPacket packet = IPacket.make();
+//	        while(container.readNextPacket(packet) >= 0) {
+//	            if (packet.getStreamIndex() == videoCoder.getStream().getIndex()) {
+//	            	IVideoPicture picture = IVideoPicture.make(videoCoder.getPixelType(), videoCoder.getWidth(), videoCoder.getHeight());
+//	                int offset = 0;
+//	                while(offset < packet.getSize()) {
+//	                    int bytesDecoded = videoCoder.decodeVideo(picture, packet, offset);
+//	                    if (bytesDecoded < 0) {
+//	                    	System.out.println("problems");
+////	                        throw new RuntimeException("got error decoding video in:"  + fileName);
+//	                    }
+//	                    offset += bytesDecoded;
+//
+//	                    if (picture.isComplete() && picture.getTimeStamp() >= pictureTime) {
+//	                        return;
+//	                    }
+//	                }
+//	            }
+//	        }
+//	}
+	
+	public void addMediaPlayerListener(MediaPlayerListener listener) {
+		this.listeners.add(listener);
+	}
+	
+	public boolean removeMediaPlayerListener(MediaPlayerListener listener) {
+		return this.listeners.remove(listener);
 	}
 	
 	private void notifyListeners(BufferedImage image) {
@@ -425,45 +406,8 @@ public class XugglerMediaPlayer extends Thread {
 		}
 	}
 	
-	private class VideoThread extends Thread {
-		protected BlockingDeque<BufferedImage> queue = new LinkedBlockingDeque<>();
-		protected Object lock = new Object();
-		protected BufferedImage image;
-		protected long delay;
-		
-		public VideoThread() {
-			super("VideoThread");
-			this.setDaemon(true);
-		}
-		
-		public void notify(BufferedImage image, long delay) {
-//			queue.add(image);
-			this.image = image;
-			this.delay = delay;
-			synchronized (lock) {
-				lock.notify();
-			}
-		}
-		
-		@Override
-		public void run() {
-			try {
-				   while(true) { 
-					   synchronized (lock) {
-						   lock.wait();
-					   }
-//					   BufferedImage image = queue.take();
-					   Thread.sleep(delay);
-					   notifyListeners(image);
-				   }
-		       } catch (InterruptedException ex) {
-		    	   
-		       }
-		}
-	}
-	
 	private class AudioThread extends Thread {
-		protected BlockingDeque<byte[]> queue = new LinkedBlockingDeque<>();
+		protected BlockingDeque<byte[]> queue = new LinkedBlockingDeque<>(5);
 		
 		public AudioThread() {
 			super("AudioThread");

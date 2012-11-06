@@ -34,8 +34,6 @@ public class XugglerVideoMedia extends AbstractVideoMedia implements Media, Play
 	protected IStreamCoder videoCoder;
 	protected IStreamCoder audioCoder;
 	
-	protected XugglerMediaPlayer thread;
-	
 	// TODO audio
 //	protected IStreamCoder audioCoder;
 	
@@ -47,41 +45,6 @@ public class XugglerVideoMedia extends AbstractVideoMedia implements Media, Play
 		this.container = container;
 		this.videoCoder = videoCoder;
 		this.audioCoder = audioCoder;
-		this.thread = new XugglerMediaPlayer(container, videoCoder, audioCoder);
-	}
-
-	@Override
-	public void play() {
-		this.thread.beginPlayback();
-	}
-
-	@Override
-	public void stop() {
-		this.thread.endPlayback();
-	}
-
-	@Override
-	public boolean isPaused() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	
-	@Override
-	public boolean isPlaying() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	
-	@Override
-	public void setPaused(boolean paused) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	@Override
-	public void seek(long position) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -106,21 +69,5 @@ public class XugglerVideoMedia extends AbstractVideoMedia implements Media, Play
 		BufferedImage image = ImageUtilities.getUniformScaledImage(this.firstFrame, size.width, size.height, AffineTransformOp.TYPE_BILINEAR);
 		// return the thumbnail
 		return new Thumbnail(this.fileProperties, this.type, image);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.media.PlayableMedia#addMediaListener(org.praisenter.media.PlayableMediaListener)
-	 */
-	@Override
-	public void addMediaListener(MediaPlayerListener listener) {
-		this.thread.listeners.add(listener);
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.media.PlayableMedia#removeMediaListener(org.praisenter.media.PlayableMediaListener)
-	 */
-	@Override
-	public boolean removeMediaListener(MediaPlayerListener listener) {
-		return this.thread.listeners.remove(listener);
 	}
 }
