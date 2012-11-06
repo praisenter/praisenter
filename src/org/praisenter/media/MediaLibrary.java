@@ -232,16 +232,35 @@ public class MediaLibrary {
 		Collections.sort(THUMBNAILS);
 		// after we have read all the files we need to save the new thumbs xml
 		if (save || thumbnailsFromFile.size() != thumbnails.size()) {
-			try {
-				Thumbnails.save(path + THUMBS_FILE, thumbnails);
-				LOGGER.info("File [" + path + THUMBS_FILE + "] updated.");
-			} catch (JAXBException | IOException e) {
-				// silently log this error
-				LOGGER.error("Failed to re-save [" + path + THUMBS_FILE + "]: ", e);
-			}
+			saveThumbnailsFile(path, thumbnails);
 		}
 	}
 
+	/**
+	 * Writes the thumbnails file for the given media type.
+	 * @param type the media type
+	 */
+	private static synchronized final void saveThumbnailsFile(MediaType type) {
+		List<Thumbnail> thumbnails = getThumbnails(type);
+		String path = getMediaTypePath(type);
+		saveThumbnailsFile(path, thumbnails);
+	}
+	
+	/**
+	 * Writes the thumbnails file for the given path and list of thumbnails.
+	 * @param path the path of the thumbnails file (no file name)
+	 * @param thumbnails the list of thumbnails
+	 */
+	private static synchronized final void saveThumbnailsFile(String path, List<Thumbnail> thumbnails) {
+		try {
+			Thumbnails.save(path + THUMBS_FILE, thumbnails);
+			LOGGER.info("File [" + path + THUMBS_FILE + "] updated.");
+		} catch (JAXBException | IOException e) {
+			// silently log this error
+			LOGGER.error("Failed to re-save [" + path + THUMBS_FILE + "]: ", e);
+		}
+	}
+	
 	/**
 	 * Loads a media file from a system path.
 	 * <p>
@@ -486,6 +505,8 @@ public class MediaLibrary {
 		THUMBNAILS.add(media.getThumbnail(THUMBNAIL_SIZE));
 		// resort the thumbnails
 		Collections.sort(THUMBNAILS);
+		// save a new thumbnails file
+		saveThumbnailsFile(media.getType());
 		
 		return media;
 	}
@@ -525,12 +546,15 @@ public class MediaLibrary {
 		// make sure the media is removed
 		WeakReference<Media> media = MEDIA.remove(filePath);
 		// remove the thumbnail (no resorting needed)
-		THUMBNAILS.remove(getThumbnail(filePath));
+		Thumbnail thumbnail = getThumbnail(filePath);
+		THUMBNAILS.remove(thumbnail);
 		// delete the file
 		Path path = FileSystems.getDefault().getPath(filePath);
 		boolean deleted = Files.deleteIfExists(path);
 		
 		if (media != null && deleted) {
+			// save a new thumbnails file
+			saveThumbnailsFile(thumbnail.getType());
 			return true;
 		}
 		return false;

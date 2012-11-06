@@ -81,45 +81,6 @@ public class Slide {
 		}
 	}
 	
-	private void startMedia() {
-		// check the type of the background
-		if (this.background != null && this.background instanceof TimedMediaComponent<?>) {
-			TimedMediaComponent<?> component = (TimedMediaComponent<?>)this.background;
-			component.getMedia().play();
-		}
-		// being play of any media components
-		List<TimedMediaComponent<?>> components = this.getTimedMediaComponents();
-		for (TimedMediaComponent<?> component : components) {
-			component.getMedia().play();
-		}
-	}
-	
-	private void pauseMedia() {
-		// check the type of the background
-		if (this.background != null && this.background instanceof TimedMediaComponent<?>) {
-			TimedMediaComponent<?> component = (TimedMediaComponent<?>)this.background;
-			component.getMedia().pause();
-		}
-		// end play of any media components
-		List<TimedMediaComponent<?>> components = this.getTimedMediaComponents();
-		for (TimedMediaComponent<?> component : components) {
-			component.getMedia().pause();
-		}
-	}
-	
-	private void stopMedia() {
-		// check the type of the background
-		if (this.background != null && this.background instanceof TimedMediaComponent<?>) {
-			TimedMediaComponent<?> component = (TimedMediaComponent<?>)this.background;
-			component.getMedia().stop();
-		}
-		// end play of any media components
-		List<TimedMediaComponent<?>> components = this.getTimedMediaComponents();
-		for (TimedMediaComponent<?> component : components) {
-			component.getMedia().stop();
-		}
-	}
-	
 	// modification
 
 	/**
