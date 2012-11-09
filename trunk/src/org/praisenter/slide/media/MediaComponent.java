@@ -1,7 +1,6 @@
 package org.praisenter.slide.media;
 
 import org.praisenter.media.Media;
-import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.SlideComponent;
 
 /**
@@ -11,7 +10,7 @@ import org.praisenter.slide.SlideComponent;
  * @version 1.0.0
  * @since 1.0.0
  */
-public interface MediaComponent<E extends Media> extends SlideComponent, PositionedSlideComponent {
+public interface MediaComponent<E extends Media> extends SlideComponent {
 	/** 
 	 * Returns the media.
 	 * @return E

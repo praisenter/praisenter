@@ -8,26 +8,42 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import org.praisenter.xml.PaintTypeAdapter;
+import org.praisenter.xml.StrokeTypeAdapter;
+
 /**
  * Represents a generic slide component with positioning and border.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class GenericSlideComponent extends AbstractSlideComponent implements SlideComponent, PositionedSlideComponent {
+@XmlRootElement(name = "GenericSlideComponent")
+public class GenericSlideComponent extends AbstractRenderableSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent {
 	/** The x coordinate of this component */
+	@XmlAttribute(name = "X", required = true)
 	protected int x;
 	
 	/** The y coordinate of this component */
+	@XmlAttribute(name = "Y", required = true)
 	protected int y;
 	
 	/** The border paint (color or gradient or anything really) */
+	@XmlElement(name = "BorderPaint", required = false, nillable = true)
+	@XmlJavaTypeAdapter(value = PaintTypeAdapter.class)
 	protected Paint borderPaint;
 	
 	/** The border stroke */
+	@XmlElement(name = "BorderStroke", required = false, nillable = true)
+	@XmlJavaTypeAdapter(value = StrokeTypeAdapter.class)
 	protected Stroke borderStroke;
 	
 	/** True if the border is visible */
+	@XmlElement(name = "BorderVisible", required = true, nillable = false)
 	protected boolean borderVisible;
 	
 	/**
@@ -53,6 +69,29 @@ public class GenericSlideComponent extends AbstractSlideComponent implements Sli
 		this.borderPaint = Color.BLACK;
 		this.borderStroke = new BasicStroke();
 		this.borderVisible = true;
+	}
+	
+	/**
+	 * Copy constructor.
+	 * <p>
+	 * This constructor performs a deep copy where necessary.
+	 * @param component the component to copy
+	 */
+	public GenericSlideComponent(GenericSlideComponent component) {
+		super(component);
+		this.x = component.x;
+		this.y = component.y;
+		this.borderPaint = component.borderPaint;
+		this.borderStroke = component.borderStroke;
+		this.borderVisible = component.borderVisible;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideComponent#copy()
+	 */
+	@Override
+	public GenericSlideComponent copy() {
+		return new GenericSlideComponent(this);
 	}
 	
 	/* (non-Javadoc)

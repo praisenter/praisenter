@@ -443,7 +443,7 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	 * @return int
 	 */
 	public int getNameSpacing() {
-		return nameSpacing;
+		return this.nameSpacing;
 	}
 
 	/**
@@ -451,6 +451,6 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	 * @return boolean
 	 */
 	public boolean isIncludeSlideName() {
-		return includeSlideName;
+		return this.includeSlideName;
 	}
 }

@@ -1,5 +1,7 @@
 package org.praisenter.media;
 
+import org.praisenter.xml.FileProperties;
+
 /**
  * Represents a media type that displays images.
  * @author William Bittle

@@ -1,5 +1,7 @@
 package org.praisenter.media;
 
+import org.praisenter.xml.FileProperties;
+
 /**
  * Abstract implementation of the {@link Media} interface.
  * @author William Bittle

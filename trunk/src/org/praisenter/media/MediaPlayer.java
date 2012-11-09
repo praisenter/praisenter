@@ -2,11 +2,12 @@ package org.praisenter.media;
 
 /**
  * Represents a player that can play timed media (like video and audio).
+ * @param <E> the {@link PlayableMedia} type
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public interface MediaPlayer {
+public interface MediaPlayer<E extends PlayableMedia> {
 	/**
 	 * The enumeration of states the media player can be in.
 	 * @author William Bittle
@@ -22,9 +23,19 @@ public interface MediaPlayer {
 		
 		/** The paused state */
 		PAUSED,
+		
+		/** This state is useful for clean up only */
+		ENDED
 	}
 	
 	// properties
+	
+	/**
+	 * Returns true if the given media class is supported by this {@link MediaPlayer}.
+	 * @param clazz the type
+	 * @return boolean
+	 */
+	public abstract <T extends PlayableMedia> boolean isTypeSupported(Class<T> clazz);
 	
 	/**
 	 * Returns true if this player is in the playing state.
@@ -51,13 +62,13 @@ public interface MediaPlayer {
 	 * given media will played.
 	 * @param media the media to play
 	 */
-	public abstract void setMedia(PlayableMedia media);
+	public abstract void setMedia(E media);
 	
 	/**
 	 * Returns the media the player is playing.
-	 * @return {@link PlayableMedia}
+	 * @return E
 	 */
-	public abstract PlayableMedia getMedia();
+	public abstract E getMedia();
 	
 	/**
 	 * Toggles the muted state of the audio.
@@ -79,8 +90,9 @@ public interface MediaPlayer {
 	
 	/**
 	 * Returns true if the media is set to loop.
+	 * @return boolean
 	 */
-	public abstract void isLooped();
+	public abstract boolean isLooped();
 	
 	// controls
 	

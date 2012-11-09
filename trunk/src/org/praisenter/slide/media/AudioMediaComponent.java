@@ -1,42 +1,61 @@
 package org.praisenter.slide.media;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.praisenter.media.AbstractAudioMedia;
-import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.SlideComponent;
 
-// FIXME AUDIO we will worry about later
-public class AudioMediaComponent extends AbstractMediaComponent<AbstractAudioMedia> implements SlideComponent, PositionedSlideComponent, MediaComponent<AbstractAudioMedia>, TimedMediaComponent<AbstractAudioMedia> {
+/**
+ * Represents a coponent that plays audio.
+ * @author William Bittle
+ * @version 1.0.0
+ * @since 1.0.0
+ */
+@XmlRootElement(name = "AudioMediaComponent")
+public class AudioMediaComponent implements SlideComponent, MediaComponent<AbstractAudioMedia>, TimedMediaComponent<AbstractAudioMedia> {
+	/** The media */
+	@XmlElement(name = "Media", required = true, nillable = false)
+	protected AbstractAudioMedia media;
+	
 	/**
 	 * Minimal constructor.
-	 * @param width the width in pixels
-	 * @param height the height in pixels
+	 * @param media the media
 	 */
-	public AudioMediaComponent(int width, int height) {
-		this(0, 0, width, height, null);
+	public AudioMediaComponent(AbstractAudioMedia media) {
+		this.media = media;
 	}
 	
 	/**
-	 * Optional constructor.
-	 * @param x the x coordinate in pixels
-	 * @param y the y coordinate in pixels
-	 * @param width the width in pixels
-	 * @param height the height in pixels
+	 * Copy constructor.
+	 * @param component the component to copy
 	 */
-	public AudioMediaComponent(int x, int y, int width, int height) {
-		this(x, y, width, height, null);
+	public AudioMediaComponent(AudioMediaComponent component) {
+		this.media = component.media;
 	}
-
-	/**
-	 * Optional constructor.
-	 * @param x the x coordinate in pixels
-	 * @param y the y coordinate in pixels
-	 * @param width the width in pixels
-	 * @param height the height in pixels
-	 * @param media the image media
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideComponent#copy()
 	 */
-	public AudioMediaComponent(int x, int y, int width, int height, AbstractAudioMedia media) {
-		super(x, y, width, height);
+	@Override
+	public AudioMediaComponent copy() {
+		// TODO Auto-generated method stub
+		return new AudioMediaComponent(this);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.MediaComponent#getMedia()
+	 */
+	@Override
+	public AbstractAudioMedia getMedia() {
+		return this.media;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.MediaComponent#setMedia(org.praisenter.media.Media)
+	 */
+	@Override
+	public void setMedia(AbstractAudioMedia media) {
 		this.media = media;
 	}
-
 }

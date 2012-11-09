@@ -119,7 +119,10 @@ public class Main {
 		initializeFolder(Constants.MEDIA_LIBRARY_PATH + fs.getSeparator() + Constants.MEDIA_LIBRARY_VIDEO_PATH);
 		initializeFolder(Constants.MEDIA_LIBRARY_PATH + fs.getSeparator() + Constants.MEDIA_LIBRARY_AUDIO_PATH);
 		
-		// verify the existence of the /media and sub directories
+		// verify the existence of the /slides path
+		initializeFolder(Constants.SLIDE_PATH);
+		
+		// verify the existence of the /templates path and sub directories
 		initializeFolder(Constants.TEMPLATE_PATH);
 		initializeFolder(Constants.TEMPLATE_PATH + fs.getSeparator() + Constants.BIBLE_TEMPLATE_PATH);
 		initializeFolder(Constants.TEMPLATE_PATH + fs.getSeparator() + Constants.SONGS_TEMPLATE_PATH);

@@ -108,22 +108,24 @@ public class VideoPlayerTest {
 			this.setVisible(true);
 			
 			try {
-//				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.mov");
-				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.ogg");
+				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.mov");
+//				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.ogg");
 //				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi");
-				player = new XugglerMediaPlayer(media);
+				player = new XugglerMediaPlayer();
 				player.addMediaPlayerListener(this);
-				player.startPlayback();
+				player.setMedia(media);
+				player.setLooped(true);
+				player.play();
 			} catch (MediaException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
 			try {
-				Thread.sleep(20000);
-				player.pausePlayback();
 				Thread.sleep(5000);
-				player.resumePlayback();
+				player.pause();
+				Thread.sleep(5000);
+				player.resume();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -137,7 +139,7 @@ public class VideoPlayerTest {
 		}
 		
 		@Override
-		public void updated(BufferedImage image) {
+		public void onVideoPicture(BufferedImage image) {
 //			this.image = image;
 
 //				SwingUtilities.invokeLater(new Runnable() {
@@ -153,6 +155,12 @@ public class VideoPlayerTest {
 		
 		@Override
 		public void seeked() {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void resumed() {
 			// TODO Auto-generated method stub
 			
 		}
@@ -186,7 +194,7 @@ public class VideoPlayerTest {
 		@Override
 		protected void paintComponent(Graphics g) {
 //			super.paintComponent(g);
-			g.drawImage(this.image, 0, 0, null);
+			g.drawImage(this.image, 0, 0, 300, 300, null);
 		}
 	}
 }

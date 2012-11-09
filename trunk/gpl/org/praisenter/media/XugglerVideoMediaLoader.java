@@ -2,7 +2,8 @@ package org.praisenter.media;
 
 import java.awt.image.BufferedImage;
 
-import javax.swing.text.View;
+import org.apache.log4j.Logger;
+import org.praisenter.xml.FileProperties;
 
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
@@ -20,6 +21,9 @@ import com.xuggle.xuggler.video.IConverter;
  * @since 1.0.0
  */
 public class XugglerVideoMediaLoader implements VideoMediaLoader {
+	/** The class level logger */
+	private static final Logger LOGGER = Logger.getLogger(XugglerVideoMediaLoader.class);
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaLoader#isSupported(java.lang.String)
 	 */
@@ -30,8 +34,17 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaLoader#getMediaType()
+	 */
+	@Override
+	public Class<XugglerVideoMedia> getMediaType() {
+		return XugglerVideoMedia.class;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaLoader#load(java.lang.String)
 	 */
+	// TODO translate
 	@Override
 	public XugglerVideoMedia load(String filePath) throws MediaException {
 		// create the video container object
@@ -39,13 +52,13 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 
 		// open the container format
 		if (container.open(filePath, IContainer.Type.READ, null) < 0) {
-			throw new IllegalArgumentException("could not open file: " + filePath);
+			throw new MediaException("Could not open file [" + filePath + "].  Unsupported container format.");
 		}
-		System.out.println("Container format: " + container.getContainerFormat().getInputFormatLongName());
+		LOGGER.debug("Video file opened. Container format: " + container.getContainerFormat().getInputFormatLongName());
 
 		// query how many streams the call to open found
 		int numStreams = container.getNumStreams();
-		System.out.println("Streams: " + numStreams);
+		LOGGER.debug("Stream count: " + container.getContainerFormat().getInputFormatLongName());
 
 		// loop over the streams to find the first video stream
 		IStreamCoder videoCoder = null;
@@ -63,34 +76,55 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
                 audioCoder = coder;
             }
 		}
+		
+		// make sure we have a video stream
+		if (videoCoder == null) {
+			throw new MediaException("No video stream in container.");
+		}
 
 		// open the coder to read the video data
-		if (videoCoder != null && videoCoder.open(null, null) < 0) {
-			throw new RuntimeException("could not open video decoder for container: " + filePath);
+		String codecName = "Unknown";
+		ICodec codec = videoCoder.getCodec();
+		if (codec != null) {
+			codecName = codec.getLongName();
 		}
+		if (videoCoder.open(null, null) < 0) {
+			throw new MediaException("Could not open video decoder for: " + codecName);
+		}
+		LOGGER.debug("Video coder opened with format: " + codecName);
 		
-		if (audioCoder != null && audioCoder.open(null, null) < 0) {
-			throw new RuntimeException("could not open video decoder for container: " + filePath);
+		codecName = "Unknown";
+		codec = audioCoder.getCodec();
+		if (codec != null) {
+			codecName = codec.getLongName();
 		}
+		if (audioCoder != null && audioCoder.open(null, null) < 0) {
+			throw new MediaException("Could not open audio decoder for: " + codecName);
+		}
+		LOGGER.debug("Audio coder opened with format: " + codecName);
+		
+		System.out.println(videoCoder.getStream().getCurrentDts());
+		System.out.println(audioCoder.getStream().getCurrentDts());
 		
 		// get the first frame of the video
 		BufferedImage firstFrame = loadFirstFrame(container, videoCoder);
+		LOGGER.debug("First frame read");
 		
 		// reset the stream position
-		if (videoCoder != null) {
-			if (container.seekKeyFrame(videoCoder.getStream().getIndex(), 0, 0, 0, 0) < 0) {
-				throw new RuntimeException("Failed to seek video");
-			}
+		if (container.seekKeyFrame(videoCoder.getStream().getIndex(), 0, 0, 0, 0) < 0) {
+			throw new MediaException("Failed to seek the video stream.");
 		}
+		// seek the audio, if available
 		if (audioCoder != null) {
 			if (container.seekKeyFrame(audioCoder.getStream().getIndex(), 0, 0, 0, 0) < 0) {
-				throw new RuntimeException("Failed to seek audio");
+				throw new MediaException("Failed to seek the audio stream.");
 			}
 		}
 		
 		// create the media object
 		XugglerVideoMedia media = new XugglerVideoMedia(FileProperties.getFileProperties(filePath), firstFrame, container, videoCoder, audioCoder);
 		
+		// return the media
 		return media;
 	}
 	

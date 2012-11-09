@@ -1,8 +1,5 @@
 package org.praisenter.slide;
 
-import java.awt.Graphics2D;
-import java.awt.Paint;
-
 /**
  * Common interface for all slide components.
  * @author William Bittle
@@ -11,74 +8,8 @@ import java.awt.Paint;
  */
 public interface SlideComponent {
 	/**
-	 * Returns the width of the component in pixels.
-	 * @return int
+	 * Performs a deep copy of this object and returns the result.
+	 * @return {@link SlideComponent}
 	 */
-	public abstract int getWidth();
-	
-	/**
-	 * Returns the height of the component in pixels.
-	 * @return int
-	 */
-	public abstract int getHeight();
-	
-	/**
-	 * Sets the width of this component.
-	 * @param width the width in pixels
-	 */
-	public abstract void setWidth(int width);
-	
-	/**
-	 * Sets the height of this component.
-	 * @param height the height in pixels
-	 */
-	public abstract void setHeight(int height);
-	
-	/**
-	 * Resizes this component using the given deltas.
-	 * @param dw the change in width in pixels
-	 * @param dh the change in height in pixels
-	 */
-	public abstract void resize(int dw, int dh);
-	
-	// rendering
-	
-	/**
-	 * Renders the preview version of this component.
-	 * <p>
-	 * Most components will render identically, however, some
-	 * like the video component will not.
-	 * @param g the graphics object to render to
-	 */
-	public abstract void renderPreview(Graphics2D g);
-	
-	/**
-	 * Renders the component.
-	 * @param g the graphics object to render to
-	 */
-	public abstract void render(Graphics2D g);
-	
-	/**
-	 * Returns the paint used to paint the background.
-	 * @return Paint
-	 */
-	public abstract Paint getBackgroundPaint();
-	
-	/**
-	 * Sets the paint used to paint the background.
-	 * @param paint the paint
-	 */
-	public abstract void setBackgroundPaint(Paint paint);
-	
-	/**
-	 * Returns true if the background paint is visible (or will be rendered).
-	 * @return boolean
-	 */
-	public abstract boolean isBackgroundPaintVisible();
-	
-	/**
-	 * Sets the background paint to visible (or rendered).
-	 * @param visible true if the background paint should be rendered
-	 */
-	public abstract void setBackgroundPaintVisible(boolean visible);
+	public abstract SlideComponent copy();
 }

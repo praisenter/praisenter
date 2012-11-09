@@ -2,6 +2,9 @@ package org.praisenter.utilities;
 
 import java.io.File;
 
+import javax.activation.FileTypeMap;
+import javax.activation.MimetypesFileTypeMap;
+
 /**
  * Utility class for file handling.
  * @author William Bittle
@@ -34,5 +37,15 @@ public class FileUtilities {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Returns the mime type of the given file.
+	 * @param filePath the file path and name
+	 * @return String
+	 */
+	public static final String getContentType(String filePath) {
+		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
+		return map.getContentType(filePath);
 	}
 }

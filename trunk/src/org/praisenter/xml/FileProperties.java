@@ -1,4 +1,4 @@
-package org.praisenter.media;
+package org.praisenter.xml;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;

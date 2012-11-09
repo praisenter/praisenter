@@ -15,6 +15,7 @@ import javax.swing.event.ChangeListener;
 
 import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.SlideComponent;
 
 /**
@@ -24,7 +25,7 @@ import org.praisenter.slide.SlideComponent;
  * @version 1.0.0
  * @since 1.0.0
  */
-public abstract class SlideComponentEditorPanel<E extends SlideComponent> extends JPanel implements ActionListener, ChangeListener {
+public abstract class SlideComponentEditorPanel<E extends RenderableSlideComponent> extends JPanel implements ActionListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -8456563715108565220L;
 

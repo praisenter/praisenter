@@ -21,11 +21,13 @@ import org.apache.log4j.Logger;
 import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaThumbnail;
 import org.praisenter.media.MediaType;
-import org.praisenter.media.Thumbnail;
 import org.praisenter.resources.Messages;
 import org.praisenter.ui.ImageFileFilter;
 import org.praisenter.ui.ImageFilePreview;
+import org.praisenter.ui.ThumbnailListCellRenderer;
+import org.praisenter.xml.Thumbnail;
 
 /**
  * Panel used to maintain the Media Library.
@@ -56,13 +58,13 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 	protected JTabbedPane mediaTabs;
 	
 	/** The image media list */
-	protected JList<Thumbnail> lstImages;
+	protected JList<MediaThumbnail> lstImages;
 	
 	/** The video media list */
-	protected JList<Thumbnail> lstVideos;
+	protected JList<MediaThumbnail> lstVideos;
 	
 	/** The audio media list */
-	protected JList<Thumbnail> lstAudio;
+	protected JList<MediaThumbnail> lstAudio;
 	
 	/**
 	 * Default constructor.
@@ -87,7 +89,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 		// make sure the media library supports the media
 		if (IMAGES_SUPPORTED) {
 			// load up all the thumbnails for the media in the media library
-			List<Thumbnail> images = MediaLibrary.getThumbnails(MediaType.IMAGE);
+			List<MediaThumbnail> images = MediaLibrary.getThumbnails(MediaType.IMAGE);
 			JPanel pnlImages = new JPanel();
 			pnlImages.setLayout(new BorderLayout());
 			// images list
@@ -99,7 +101,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 		
 		// make sure the media library supports the media
 		if (VIDEOS_SUPPORTED) {
-			List<Thumbnail> videos = MediaLibrary.getThumbnails(MediaType.VIDEO);
+			List<MediaThumbnail> videos = MediaLibrary.getThumbnails(MediaType.VIDEO);
 			JPanel pnlVideos = new JPanel();
 			pnlVideos.setLayout(new BorderLayout());
 			// images list
@@ -111,7 +113,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 		
 		// make sure the media library supports the media
 		if (AUDIO_SUPPORTED) {
-			List<Thumbnail> audio = MediaLibrary.getThumbnails(MediaType.AUDIO);
+			List<MediaThumbnail> audio = MediaLibrary.getThumbnails(MediaType.AUDIO);
 			JPanel pnlAudio = new JPanel();
 			pnlAudio.setLayout(new BorderLayout());
 			// images list
@@ -131,8 +133,8 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 	 * @param thumbnails the list of thumbnails
 	 * @return JList
 	 */
-	private static final JList<Thumbnail> createJList(List<Thumbnail> thumbnails) {
-		JList<Thumbnail> list = new JList<Thumbnail>();
+	private static final JList<MediaThumbnail> createJList(List<MediaThumbnail> thumbnails) {
+		JList<MediaThumbnail> list = new JList<MediaThumbnail>();
 		list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		list.setFixedCellWidth(100);
@@ -140,8 +142,8 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 		list.setCellRenderer(new ThumbnailListCellRenderer());
 		list.setLayout(new BorderLayout());
 		// setup the items
-		DefaultListModel<Thumbnail> model = new DefaultListModel<Thumbnail>();
-		for (Thumbnail thumbnail : thumbnails) {
+		DefaultListModel<MediaThumbnail> model = new DefaultListModel<MediaThumbnail>();
+		for (MediaThumbnail thumbnail : thumbnails) {
 			model.addElement(thumbnail);
 		}
 		list.setModel(model);
@@ -186,7 +188,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 					String image = file.getAbsolutePath();
 					Media media = MediaLibrary.addMedia(image);
 					// add the thumbnail to the list
-					JList<Thumbnail> list = null;
+					JList<MediaThumbnail> list = null;
 					if (media.getType() == MediaType.IMAGE) {
 						list = this.lstImages;
 					} else if (media.getType() == MediaType.VIDEO) {
@@ -197,7 +199,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 						// do nothing
 						return;
 					}
-					DefaultListModel<Thumbnail> model = (DefaultListModel<Thumbnail>)list.getModel();
+					DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)list.getModel();
 					model.addElement(MediaLibrary.getThumbnail(media));
 				} catch (Exception ex) {
 					ExceptionDialog.show(
@@ -212,7 +214,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 			// get the selected media from the currently visible tab
 			int index = this.mediaTabs.getSelectedIndex();
 			// get the JList to modify
-			JList<Thumbnail> list = null;
+			JList<MediaThumbnail> list = null;
 			if (index == 0) {
 				list = this.lstImages;
 			} else if (index == 1) {
@@ -225,14 +227,14 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 			}
 			
 			// image tab
-			Thumbnail thumbnail = list.getSelectedValue();
+			MediaThumbnail thumbnail = list.getSelectedValue();
 			// make sure something is selected
 			if (thumbnail != null) {
 				// remove the media from the media library
 				try {
 					MediaLibrary.removeMedia(thumbnail.getFileProperties().getFilePath());
 					// remove the thumbnail from the list
-					DefaultListModel<Thumbnail> model = (DefaultListModel<Thumbnail>)list.getModel();
+					DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)list.getModel();
 					model.removeElement(thumbnail);
 				} catch (IOException ex) {
 					ExceptionDialog.show(
