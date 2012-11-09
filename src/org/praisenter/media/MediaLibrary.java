@@ -20,13 +20,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import javax.activation.FileTypeMap;
-import javax.activation.MimetypesFileTypeMap;
 import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.resources.Messages;
+import org.praisenter.utilities.FileUtilities;
+import org.praisenter.xml.XmlIO;
 
 /**
  * Static thread-safe class for managing the media library.
@@ -49,6 +49,9 @@ public class MediaLibrary {
 	/** The map of weak references to media */
 	private static final Map<String, WeakReference<Media>> MEDIA = new HashMap<String, WeakReference<Media>>();
 	
+	/** The list of available MediaPlayers */
+	private static final List<MediaPlayer<?>> MEDIA_PLAYERS = new ArrayList<>();
+	
 	// thumbnails
 	
 	/** The thumbnail size */
@@ -58,7 +61,7 @@ public class MediaLibrary {
 	private static final String THUMBS_FILE = SEPARATOR + "Thumbs.xml";
 	
 	/** The list of all thumbnails */
-	private static final List<Thumbnail> THUMBNAILS = new ArrayList<Thumbnail>();
+	private static final List<MediaThumbnail> THUMBNAILS = new ArrayList<MediaThumbnail>();
 	
 	// state
 	
@@ -77,6 +80,9 @@ public class MediaLibrary {
 		addClasspathImageLoaders();
 		addClasspathVideoLoaders();
 		addClasspathAudioLoaders();
+		
+		// add any class path media players
+		addClasspathMediaPlayers();
 		
 		// FIXME we need to do this on startup so that we get the thumbnails loaded
 		try {
@@ -101,7 +107,6 @@ public class MediaLibrary {
 		while (it.hasNext()) {
 			ImageMediaLoader loader = it.next();
 			MEDIA_LOADERS.get(MediaType.IMAGE).add(loader);
-			break;
 		}
 	}
 	
@@ -114,7 +119,6 @@ public class MediaLibrary {
 		while (it.hasNext()) {
 			VideoMediaLoader loader = it.next();
 			MEDIA_LOADERS.get(MediaType.VIDEO).add(loader);
-			break;
 		}
 	}
 	
@@ -127,33 +131,22 @@ public class MediaLibrary {
 		while (it.hasNext()) {
 			AudioMediaLoader loader = it.next();
 			MEDIA_LOADERS.get(MediaType.AUDIO).add(loader);
-			break;
 		}
 	}
 	
 	/**
-	 * Loads the media library.
-	 * @throws MediaLibraryException thrown if an exception occurs while loading the media library
+	 * Searches the classpath for any classes that implement sthe {@link AudioMediaLoader} interface
+	 * and adds them to the list of loaders for {@link MediaType#AUDIO}.
 	 */
-	public static synchronized final void loadMediaLibrary() throws MediaLibraryException {
-		// see if the media library has already been loaded
-		if (!loaded) {
-			if (isMediaSupported(MediaType.IMAGE)) {
-				String path = Constants.MEDIA_LIBRARY_PATH + SEPARATOR + Constants.MEDIA_LIBRARY_IMAGE_PATH;
-				loadMediaLibrary(path);
-			}
-			if (isMediaSupported(MediaType.VIDEO)) {
-				String path = Constants.MEDIA_LIBRARY_PATH + SEPARATOR + Constants.MEDIA_LIBRARY_VIDEO_PATH;
-				loadMediaLibrary(path);
-			}
-			if (isMediaSupported(MediaType.AUDIO)) {
-				String path = Constants.MEDIA_LIBRARY_PATH + SEPARATOR + Constants.MEDIA_LIBRARY_AUDIO_PATH;
-				loadMediaLibrary(path);
-			}
-			loaded = true;
+	private static synchronized final void addClasspathMediaPlayers() {
+		@SuppressWarnings("rawtypes")
+		Iterator<MediaPlayer> it = ServiceLoader.load(MediaPlayer.class).iterator();
+		while (it.hasNext()) {
+			MediaPlayer<?> player = it.next();
+			MEDIA_PLAYERS.add(player);
 		}
 	}
-	
+
 	/**
 	 * Loads the media references and thumbnails from the given media library path.
 	 * <p>
@@ -167,19 +160,22 @@ public class MediaLibrary {
 	// FIXME right now a user could manually put the wrong media type file in the folder and this will load it in the wrong place...
 	private static synchronized final void loadMediaLibrary(String path) throws MediaLibraryException {
 		// attempt to read the thumbs file in the respective folder
-		List<Thumbnail> thumbnailsFromFile = null;
+		List<MediaThumbnail> thumbnailsFromFile = null;
 		try {
-			thumbnailsFromFile = Thumbnails.read(path + THUMBS_FILE);
-		} catch (JAXBException e) {
+			MediaThumbnails mts = XmlIO.read(path + THUMBS_FILE, MediaThumbnails.class);
+			if (mts != null) {
+				thumbnailsFromFile = mts.getThumbnails();
+			}
+		} catch (Exception e) {
 			// silently ignore this error
 			LOGGER.error("Could not read [" + path + THUMBS_FILE + "]: ", e);
 		}
 		if (thumbnailsFromFile == null) {
-			thumbnailsFromFile = new ArrayList<Thumbnail>();
+			thumbnailsFromFile = new ArrayList<MediaThumbnail>();
 		}
 		
 		// create a new list to store the thumbnails
-		List<Thumbnail> thumbnails = new ArrayList<Thumbnail>();
+		List<MediaThumbnail> thumbnails = new ArrayList<MediaThumbnail>();
 		// track whether we need to resave the thumbnail XML
 		boolean save = false;
 		
@@ -191,10 +187,10 @@ public class MediaLibrary {
 			// get the file path
 			String filePath = file.getPath();
 			// skip xml files
-			if (getContentType(filePath).contains("xml")) continue;
+			if (FileUtilities.getContentType(filePath).contains("xml")) continue;
 			// make sure there exists a thumnail for the file
 			boolean exists = false;
-			for (Thumbnail thumb : thumbnailsFromFile) {
+			for (MediaThumbnail thumb : thumbnailsFromFile) {
 				if (thumb.getFileProperties().getFileName().equals(file.getName())) {
 					// flag that the thumbnail exists
 					exists = true;
@@ -213,7 +209,7 @@ public class MediaLibrary {
 					// add the media to the media library (might as well since we loaded it)
 					MEDIA.put(filePath, new WeakReference<Media>(media));
 					// create the thumbnail
-					Thumbnail thumbnail = media.getThumbnail(THUMBNAIL_SIZE);
+					MediaThumbnail thumbnail = media.getThumbnail(THUMBNAIL_SIZE);
 					// add the thumbnail to the list
 					thumbnails.add(thumbnail);
 					// flag that we need to save it
@@ -241,7 +237,7 @@ public class MediaLibrary {
 	 * @param type the media type
 	 */
 	private static synchronized final void saveThumbnailsFile(MediaType type) {
-		List<Thumbnail> thumbnails = getThumbnails(type);
+		List<MediaThumbnail> thumbnails = getThumbnails(type);
 		String path = getMediaTypePath(type);
 		saveThumbnailsFile(path, thumbnails);
 	}
@@ -251,9 +247,9 @@ public class MediaLibrary {
 	 * @param path the path of the thumbnails file (no file name)
 	 * @param thumbnails the list of thumbnails
 	 */
-	private static synchronized final void saveThumbnailsFile(String path, List<Thumbnail> thumbnails) {
+	private static synchronized final void saveThumbnailsFile(String path, List<MediaThumbnail> thumbnails) {
 		try {
-			Thumbnails.save(path + THUMBS_FILE, thumbnails);
+			XmlIO.save(path + THUMBS_FILE, new MediaThumbnails(thumbnails));
 			LOGGER.info("File [" + path + THUMBS_FILE + "] updated.");
 		} catch (JAXBException | IOException e) {
 			// silently log this error
@@ -274,7 +270,7 @@ public class MediaLibrary {
 	 * @throws IOException thrown if an IO error occurs
 	 */
 	private static synchronized final Media loadFromFileSystem(String filePath) throws NoMediaLoaderException, MediaException, FileNotFoundException, FileAlreadyExistsException, IOException {
-		String contentType = getContentType(filePath);
+		String contentType = FileUtilities.getContentType(filePath);
 		// get the media type
 		MediaType type = getMediaType(contentType);
 		// make sure we can load this type before copying it
@@ -326,7 +322,7 @@ public class MediaLibrary {
 	 * @throws NoMediaLoaderException thrown if a media loader does not exist for the media
 	 */
 	private static synchronized final Media loadFromMediaLibrary(String filePath) throws NoMediaLoaderException, MediaException {
-		String contentType = getContentType(filePath);
+		String contentType = FileUtilities.getContentType(filePath);
 		MediaType type = getMediaType(contentType);
 		MediaLoader<?> loader = getMediaLoader(type, contentType);
 		return loader.load(filePath);
@@ -370,16 +366,6 @@ public class MediaLibrary {
 	}
 	
 	/**
-	 * Returns the mime type of the given file.
-	 * @param filePath the file path and name
-	 * @return String
-	 */
-	private static final String getContentType(String filePath) {
-		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
-		return map.getContentType(filePath);
-	}
-	
-	/**
 	 * Returns the media type of the given file name.
 	 * <p>
 	 * This method inspects the file extension and determines the content type.
@@ -402,6 +388,44 @@ public class MediaLibrary {
 	}
 	
 	// public interface
+	
+	/**
+	 * Loads the media library.
+	 * @throws MediaLibraryException thrown if an exception occurs while loading the media library
+	 */
+	public static synchronized final void loadMediaLibrary() throws MediaLibraryException {
+		// see if the media library has already been loaded
+		if (!loaded) {
+			if (isMediaSupported(MediaType.IMAGE)) {
+				String path = Constants.MEDIA_LIBRARY_PATH + SEPARATOR + Constants.MEDIA_LIBRARY_IMAGE_PATH;
+				loadMediaLibrary(path);
+			}
+			if (isMediaSupported(MediaType.VIDEO)) {
+				String path = Constants.MEDIA_LIBRARY_PATH + SEPARATOR + Constants.MEDIA_LIBRARY_VIDEO_PATH;
+				loadMediaLibrary(path);
+			}
+			if (isMediaSupported(MediaType.AUDIO)) {
+				String path = Constants.MEDIA_LIBRARY_PATH + SEPARATOR + Constants.MEDIA_LIBRARY_AUDIO_PATH;
+				loadMediaLibrary(path);
+			}
+			loaded = true;
+		}
+	}
+	
+	/**
+	 * Returns the first {@link MediaLoader} for the given media type.
+	 * <p>
+	 * Returns null if the a media loader does not exist for the given type.
+	 * @param type the media type
+	 * @return List&lt;{@link MediaLoader}&gt;
+	 */
+	public static synchronized final MediaLoader<?> getMediaLoader(MediaType type) {
+		List<MediaLoader<?>> loaders = MEDIA_LOADERS.get(type);
+		if (loaders != null && loaders.size() > 0) {
+			return loaders.get(0);
+		}
+		return null;
+	}
 	
 	/**
 	 * Returns a new list containing the {@link MediaLoader}s being referenced by the media library.
@@ -432,6 +456,53 @@ public class MediaLibrary {
 	public static synchronized final boolean removeMediaLoader(MediaLoader<?> loader, MediaType type) {
 		return MEDIA_LOADERS.get(type).remove(loader);
 	}
+
+	/**
+	 * Returns the first matching {@link MediaPlayer} for the given {@link PlayableMedia} type.
+	 * @param clazz the media type
+	 * @return {@link MediaPlayer}
+	 */
+	public static synchronized final <T extends PlayableMedia> MediaPlayer<?> getMediaPlayer(Class<T> clazz) {
+		for (MediaPlayer<?> player : MEDIA_PLAYERS) {
+			if (player.isTypeSupported(clazz)) {
+				return player;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns all the matching {@link MediaPlayer}s for the given {@link PlayableMedia} type.
+	 * @param clazz the media type
+	 * @return List&lt;{@link MediaPlayer}&gt;
+	 */
+	public static synchronized final <T extends PlayableMedia> List<MediaPlayer<?>> getMediaPlayers(Class<T> clazz) {
+		List<MediaPlayer<?>> players = new ArrayList<MediaPlayer<?>>();
+		for (MediaPlayer<?> player : MEDIA_PLAYERS) {
+			if (player.isTypeSupported(clazz)) {
+				players.add(player);
+			}
+		}
+		return players;
+	}
+
+	/**
+	 * Adds the given {@link MediaPlayer} to the available media players.
+	 * @param player the player
+	 */
+	public static synchronized final void addMediaPlayer(MediaPlayer<?> player) {
+		MEDIA_PLAYERS.add(player);
+	}
+
+	/**
+	 * Adds the given {@link MediaPlayer} to the available media players.
+	 * @param player the player
+	 * @return boolean true if the player was removed
+	 */
+	// TODO we need to have a cache of these players so we can support multiple playing media at a time
+	public static synchronized final boolean removeMediaPlayer(MediaPlayer<?> player) {
+		return MEDIA_PLAYERS.remove(player);
+	}
 	
 	/**
 	 * Returns true if there exists a {@link MediaLoader} available for the given {@link MediaType}.
@@ -439,18 +510,38 @@ public class MediaLibrary {
 	 * @return boolean
 	 */
 	public static synchronized final boolean isMediaSupported(MediaType type) {
-		return MEDIA_LOADERS.get(type).size() > 0;
+		List<MediaLoader<?>> loaders = getMediaLoaders(type);
+		// if we dont have a loader, then its not supported
+		if (loaders == null || loaders.size() == 0) {
+			return false;
+		}
+		// next check if we can play the media
+		for (MediaLoader<?> loader : loaders) {
+			// for each media loader of the given media type
+			// we need to see if it has an associated player
+			Class<?> media = loader.getMediaType();
+			if (PlayableMedia.class.isAssignableFrom(media)) {
+				Class<? extends PlayableMedia> clazz = media.asSubclass(PlayableMedia.class);
+				// we can, so we need to make sure there is a player for it
+				MediaPlayer<?> player = getMediaPlayer(clazz);
+				if (player == null) {
+					return false;
+				}
+			}
+		}
+		// if we make it here, then its supported
+		return true;
 	}
 	
 	/**
 	 * Returns the list of thumbnails for the given media type.
 	 * @param type the media type
-	 * @return List&lt;{@link Thumbnail}&gt;
+	 * @return List&lt;{@link MediaThumbnail}&gt;
 	 */
-	public static synchronized final List<Thumbnail> getThumbnails(MediaType type) {
-		List<Thumbnail> thumbnails = new ArrayList<Thumbnail>();
-		for (Thumbnail thumbnail : THUMBNAILS) {
-			if (thumbnail.getType() == type) {
+	public static synchronized final List<MediaThumbnail> getThumbnails(MediaType type) {
+		List<MediaThumbnail> thumbnails = new ArrayList<MediaThumbnail>();
+		for (MediaThumbnail thumbnail : THUMBNAILS) {
+			if (thumbnail.getMediaType() == type) {
 				thumbnails.add(thumbnail);
 			}
 		}
@@ -460,12 +551,11 @@ public class MediaLibrary {
 	/**
 	 * Returns the thumbnail for the given media.
 	 * @param media the media
-	 * @return {@link Thumbnail}
+	 * @return {@link MediaThumbnail}
 	 */
-	public static synchronized final Thumbnail getThumbnail(Media media) {
-		for (Thumbnail thumbnail : THUMBNAILS) {
-			if (thumbnail.getType() == media.getType()
-			 && thumbnail.getFileProperties().getFileName().equals(media.getFileProperties().getFileName())) {
+	public static synchronized final MediaThumbnail getThumbnail(Media media) {
+		for (MediaThumbnail thumbnail : THUMBNAILS) {
+			if (thumbnail.getFileProperties().getFilePath().equals(media.getFileProperties().getFilePath())) {
 				return thumbnail;
 			}
 		}
@@ -475,10 +565,10 @@ public class MediaLibrary {
 	/**
 	 * Returns the thumbnail for the given media.
 	 * @param filePath the file name and path of the media
-	 * @return {@link Thumbnail}
+	 * @return {@link MediaThumbnail}
 	 */
-	private static synchronized final Thumbnail getThumbnail(String filePath) {
-		for (Thumbnail thumbnail : THUMBNAILS) {
+	private static synchronized final MediaThumbnail getThumbnail(String filePath) {
+		for (MediaThumbnail thumbnail : THUMBNAILS) {
 			if (thumbnail.getFileProperties().getFilePath().equals(filePath)) {
 				return thumbnail;
 			}
@@ -546,7 +636,7 @@ public class MediaLibrary {
 		// make sure the media is removed
 		WeakReference<Media> media = MEDIA.remove(filePath);
 		// remove the thumbnail (no resorting needed)
-		Thumbnail thumbnail = getThumbnail(filePath);
+		MediaThumbnail thumbnail = getThumbnail(filePath);
 		THUMBNAILS.remove(thumbnail);
 		// delete the file
 		Path path = FileSystems.getDefault().getPath(filePath);
@@ -554,7 +644,7 @@ public class MediaLibrary {
 		
 		if (media != null && deleted) {
 			// save a new thumbnails file
-			saveThumbnailsFile(thumbnail.getType());
+			saveThumbnailsFile(thumbnail.getMediaType());
 			return true;
 		}
 		return false;

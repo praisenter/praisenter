@@ -2,6 +2,7 @@ package org.praisenter.media;
 
 import java.awt.Dimension;
 
+import org.praisenter.xml.FileProperties;
 
 /**
  * Represents a generic media object.
@@ -27,7 +28,7 @@ public interface Media {
 	/**
 	 * Returns a thumbnail of the media.
 	 * @param size the desired thumbnail size
-	 * @return {@link Thumbnail}
+	 * @return {@link MediaThumbnail}
 	 */
-	public abstract Thumbnail getThumbnail(Dimension size);
+	public abstract MediaThumbnail getThumbnail(Dimension size);
 }

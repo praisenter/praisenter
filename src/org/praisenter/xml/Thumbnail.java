@@ -1,16 +1,13 @@
-package org.praisenter.media;
+package org.praisenter.xml;
 
 import java.awt.image.BufferedImage;
 
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.xml.BufferedImageTypeAdapter;
-
 /**
- * Represents a thumbnail of a {@link Media} item.
+ * Represents a cached thumbnail on the file system.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
@@ -20,10 +17,6 @@ public class Thumbnail implements Comparable<Thumbnail> {
 	/** The file properties */
 	@XmlElement(name = "FileProperties", required = true, nillable = false)
 	protected FileProperties fileProperties;
-	
-	/** The media type */
-	@XmlAttribute(name = "Type", required = true)
-	protected MediaType type;
 	
 	/** The thumbnail image */
 	@XmlElement(name = "Image", nillable = true, required = false)
@@ -38,13 +31,11 @@ public class Thumbnail implements Comparable<Thumbnail> {
 	/**
 	 * Full constructor.
 	 * @param fileProperties the file properties
-	 * @param type the media type
 	 * @param image the thumbnail image
 	 */
-	public Thumbnail(FileProperties fileProperties, MediaType type, BufferedImage image) {
+	public Thumbnail(FileProperties fileProperties, BufferedImage image) {
 		super();
 		this.fileProperties = fileProperties;
-		this.type = type;
 		this.image = image;
 	}
 
@@ -63,14 +54,6 @@ public class Thumbnail implements Comparable<Thumbnail> {
 	 */
 	public FileProperties getFileProperties() {
 		return this.fileProperties;
-	}
-	
-	/**
-	 * Returns the media item's media type.
-	 * @return {@link MediaType}
-	 */
-	public MediaType getType() {
-		return this.type;
 	}
 	
 	/**

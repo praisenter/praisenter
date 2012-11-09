@@ -2,6 +2,8 @@ package org.praisenter.media;
 
 import java.awt.image.BufferedImage;
 
+import org.praisenter.xml.FileProperties;
+
 /**
  * Base class for video media.
  * <p>

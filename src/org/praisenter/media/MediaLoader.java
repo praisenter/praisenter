@@ -16,6 +16,12 @@ public interface MediaLoader<E extends Media> {
 	public boolean isSupported(String mimeType);
 	
 	/**
+	 * Returns the media types supported by this loader.
+	 * @return Class&lt;E&gt;
+	 */
+	public Class<? extends Media> getMediaType();
+	
+	/**
 	 * Loads the given media.
 	 * @param filePath the file path and name
 	 * @return E

@@ -1,7 +1,6 @@
 package org.praisenter.slide.media;
 
 import org.praisenter.media.PlayableMedia;
-import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.SlideComponent;
 
 /**
@@ -11,6 +10,4 @@ import org.praisenter.slide.SlideComponent;
  * @version 1.0.0
  * @since 1.0.0
  */
-public interface TimedMediaComponent<E extends PlayableMedia> extends SlideComponent, PositionedSlideComponent, MediaComponent<E> {
-	
-}
+public interface TimedMediaComponent<E extends PlayableMedia> extends SlideComponent, MediaComponent<E> {}

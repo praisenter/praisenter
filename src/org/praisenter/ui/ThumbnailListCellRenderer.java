@@ -1,4 +1,4 @@
-package org.praisenter.media.ui;
+package org.praisenter.ui;
 
 import java.awt.Component;
 
@@ -7,7 +7,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JList;
 import javax.swing.SwingConstants;
 
-import org.praisenter.media.Thumbnail;
+import org.praisenter.xml.Thumbnail;
 
 /**
  * Custom list cell renderer for {@link Thumbnail}s.

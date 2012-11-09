@@ -3,10 +3,15 @@ package org.praisenter.slide.media;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+
 import org.praisenter.display.ScaleType;
 import org.praisenter.media.AbstractImageMedia;
 import org.praisenter.media.Media;
+import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
+import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.utilities.ImageUtilities;
 
@@ -17,35 +22,56 @@ import org.praisenter.utilities.ImageUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-public abstract class AbstractImageMediaComponent<E extends AbstractImageMedia> extends AbstractMediaComponent<E> implements SlideComponent, PositionedSlideComponent, MediaComponent<E> {
+public abstract class AbstractImageMediaComponent<E extends AbstractImageMedia> extends GenericSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent, MediaComponent<E> {
+	/** The media */
+	@XmlElement(name = "Media", required = true, nillable = false)
+	protected E media;
+	
 	/** The image scale type */
+	@XmlAttribute(name = "ScaleType", required = false)
 	protected ScaleType scaleType;
 	
 	/** The image scale quality */
+	@XmlAttribute(name = "ScaleQuality", required = false)
 	protected ScaleQuality scaleQuality;
 	
 	/**
 	 * Minimal constructor.
+	 * @param media the media
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public AbstractImageMediaComponent(int width, int height) {
-		this(0, 0, width, height);
+	public AbstractImageMediaComponent(E media, int width, int height) {
+		this(media, 0, 0, width, height);
 	}
 	
 	/**
 	 * Optional constructor.
+	 * @param media the media
 	 * @param x the x coordinate in pixels
 	 * @param y the y coordinate in pixels
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public AbstractImageMediaComponent(int x, int y, int width, int height) {
+	public AbstractImageMediaComponent(E media, int x, int y, int width, int height) {
 		super(x, y, width, height);
+		this.media = media;
 		this.scaleType = ScaleType.NONUNIFORM;
 		this.scaleQuality = ScaleQuality.BILINEAR;
 	}
 
+	/**
+	 * Copy constructor.
+	 * <p>
+	 * This constructor performs a deep copy where necessary.
+	 * @param component the component to copy
+	 */
+	public AbstractImageMediaComponent(AbstractImageMediaComponent<E> component) {
+		super(component);
+		this.scaleType = component.scaleType;
+		this.scaleQuality = component.scaleQuality;
+	}
+	
 	/**
 	 * Returns the image for rendering.
 	 * @return BufferedImage
@@ -111,6 +137,22 @@ public abstract class AbstractImageMediaComponent<E extends AbstractImageMedia> 
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.MediaComponent#getMedia()
+	 */
+	@Override
+	public E getMedia() {
+		return this.media;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.MediaComponent#setMedia(org.praisenter.media.Media)
+	 */
+	@Override
+	public void setMedia(E media) {
+		this.media = media;
+	}
+	
 	/**
 	 * Returns the image scale type.
 	 * @return {@link ScaleType}

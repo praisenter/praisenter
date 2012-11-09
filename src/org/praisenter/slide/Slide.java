@@ -1,83 +1,123 @@
 package org.praisenter.slide;
 
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.media.AbstractVideoMedia;
 import org.praisenter.media.ImageMedia;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.TimedMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
+import org.praisenter.utilities.ImageUtilities;
 
+/**
+ * Represents a slide with graphics, text, etc.
+ * @author William Bittle
+ * @version 1.0.0
+ * @since 1.0.0
+ */
+@XmlRootElement(name = "Slide")
 public class Slide {
+	/** The width of the slide */
+	@XmlAttribute(name = "Width", required = true)
 	protected int width;
+	
+	/** The height of the slide */
+	@XmlAttribute(name = "Height", required = true)
 	protected int height;
 	
-	protected SlideComponent background;
+	/** The slide background */
+	@XmlElement(name = "Background", required = false, nillable = true)
+	protected RenderableSlideComponent background;
 	
-	protected List<PositionedSlideComponent> components;
+	/** The slide components */
+	@XmlElement(name = "Component", required = false, nillable = true)
+	protected List<SlideComponent> components;
 	
-	protected List<SlideListener> listeners;
-	
+	/**
+	 * Minimal constructor.
+	 * @param width the width of the slide
+	 * @param height the height of the slide
+	 */
 	public Slide(int width, int height) {
 		this.width = width;
 		this.height = height;
 		this.background = null;
-		this.components = new ArrayList<PositionedSlideComponent>();
-		this.listeners = new ArrayList<SlideListener>();
+		this.components = new ArrayList<SlideComponent>();
+	}
+	
+	/**
+	 * Copy constructor.
+	 * <p>
+	 * This will perform a deep copy where necessary.
+	 * @param slide the slide to copy
+	 */
+	public Slide(Slide slide) {
+		this.width = slide.width;
+		this.height = slide.height;
+		this.components = new ArrayList<SlideComponent>();
+		// the background
+		if (slide.background != null) {
+			this.background = slide.background.copy();
+		}
+		// the components
+		for (SlideComponent component : slide.components) {
+			this.components.add(component.copy());
+		}
+	}
+	
+	/**
+	 * Returns a deep copy of this {@link Slide}.
+	 * @return {@link Slide}
+	 */
+	public Slide copy() {
+		return new Slide(this);
 	}
 	
 	// rendering
 	
-//	public void preparePreview() {
-//		
-//	}
-//	
-//	public void prepare() {
-//		
-//	}
-//	
+	/**
+	 * Renders a preview of this slide.
+	 * @param g the graphics object to render to
+	 */
 	public void renderPreview(Graphics2D g) {
 		if (this.background != null) {
 			this.background.renderPreview(g);
 		}
 		
 		// TODO resort the list by order
-		for (PositionedSlideComponent component : this.components) {
-			component.renderPreview(g);
+		for (SlideComponent component : this.components) {
+			if (component instanceof RenderableSlideComponent) {
+				RenderableSlideComponent renderable = (RenderableSlideComponent)component;
+				renderable.renderPreview(g);
+			}
 		}
 	}
 	
+	/**
+	 * Renders the current state of this slide.
+	 * @param g the graphics object to render to
+	 */
 	public void render(Graphics2D g) {
 		if (this.background != null) {
 			this.background.render(g);
 		}
 		
 		// TODO resort the list by order
-		for (PositionedSlideComponent component : this.components) {
-			component.render(g);
-		}
-	}
-	
-	/**
-	 * Should be called when the in transition begins.
-	 * @param listener
-	 */
-	public void start(SlideListener listener) {
-		if (listener != null) {
-			this.listeners.add(listener);
-		}
-	}
-	
-	/**
-	 * Should be called when the out transition ends.
-	 * @param listener
-	 */
-	public void end(SlideListener listener) {
-		if (listener != null) {
-			this.listeners.remove(listener);
+		for (SlideComponent component : this.components) {
+			if (component instanceof RenderableSlideComponent) {
+				RenderableSlideComponent renderable = (RenderableSlideComponent)component;
+				renderable.render(g);
+			}
 		}
 	}
 	
@@ -89,7 +129,7 @@ public class Slide {
 	 * @return {@link ImageMediaComponent}
 	 */
 	public ImageMediaComponent createImageBackgroundComponent(ImageMedia media) {
-		ImageMediaComponent component = new ImageMediaComponent(0, 0, this.width, this.height, media);
+		ImageMediaComponent component = new ImageMediaComponent(media, 0, 0, this.width, this.height);
 		// setup all the other properties
 		this.setupBackgroundComponent(component);
 		
@@ -102,7 +142,7 @@ public class Slide {
 	 * @return {@link VideoMediaComponent}
 	 */
 	public VideoMediaComponent createVideoBackgroundComponent(AbstractVideoMedia media) {
-		VideoMediaComponent component = new VideoMediaComponent(0, 0, this.width, this.height, media);
+		VideoMediaComponent component = new VideoMediaComponent(media, 0, 0, this.width, this.height);
 		// setup all the other properties
 		this.setupBackgroundComponent(component);
 		// since videos are opaque don't render the background
@@ -136,7 +176,7 @@ public class Slide {
 	 * @param component the component
 	 */
 	private void setupBackgroundComponent(GenericSlideComponent component) {
-		// no border
+		// no border on backgrounds
 		component.setBorderVisible(false);
 		component.setBorderPaint(null);
 		component.setBorderStroke(null);
@@ -145,7 +185,7 @@ public class Slide {
 	/**
 	 * Returns the background component.
 	 * <p>
-	 * This can be any type of component, even a {@link PositionedSlideComponent}. In this
+	 * This can be any type of component, even a {@link RenderableSlideComponent}. In this
 	 * case the position should be 0,0. The width/height should also match the slide
 	 * width/height.
 	 * @see #createImageBackgroundComponent(ImageMedia)
@@ -153,7 +193,7 @@ public class Slide {
 	 * @see #createVideoBackgroundComponent(AbstractVideoMedia)
 	 * @return {@link SlideComponent}
 	 */
-	public SlideComponent getBackground() {
+	public RenderableSlideComponent getBackground() {
 		return this.background;
 	}
 	
@@ -164,29 +204,58 @@ public class Slide {
 	 * @see #createVideoBackgroundComponent(AbstractVideoMedia)
 	 * @param component the background component
 	 */
-	public void setBackground(SlideComponent component) {
+	public void setBackground(RenderableSlideComponent component) {
 		this.background = component;
 	}
 	
-	public void addComponent(PositionedSlideComponent component) {
+	/**
+	 * Adds the given component.
+	 * @param component the component to add
+	 */
+	public void addComponent(SlideComponent component) {
 		this.components.add(component);
 	}
 	
-	public boolean removeComponent(PositionedSlideComponent component) {
+	/**
+	 * Removes the given component.
+	 * @param component the component to remove
+	 * @return boolean true if the component was removed
+	 */
+	public boolean removeComponent(SlideComponent component) {
 		return this.components.remove(component);
 	}
 	
+	/**
+	 * Returns the number of components on this slide.
+	 * <p>
+	 * This does not include the background component or any specialized components.
+	 * <p>
+	 * Used with {@link #getComponent(int)}, you can iterate over all the components
+	 * in the components list.
+	 * @return int
+	 */
 	public int getComponentCount() {
 		return this.components.size();
 	}
 	
-	public PositionedSlideComponent getComponent(int i) {
+	/**
+	 * Returns the component at the given index.
+	 * @param i the component index
+	 * @return {@link SlideComponent}
+	 * @throws IndexOutOfBoundsException thrown if i is less than zero or greater than the size
+	 */
+	public SlideComponent getComponent(int i) {
 		return this.components.get(i);
 	}
 	
-	public <E extends PositionedSlideComponent> List<E> getComponents(Class<E> clazz) {
+	/**
+	 * Returns a list of the given component type.
+	 * @param clazz the class type
+	 * @return List&lt;E&gt;
+	 */
+	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz) {
 		List<E> components = new ArrayList<E>();
-		for (PositionedSlideComponent component : this.components) {
+		for (SlideComponent component : this.components) {
 			if (clazz.isInstance(component)) {
 				components.add(clazz.cast(component));
 			}
@@ -194,9 +263,15 @@ public class Slide {
 		return components;
 	}
 	
-	private List<TimedMediaComponent<?>> getTimedMediaComponents() {
+	/**
+	 * Returns all the {@link TimedMediaComponent}s on this {@link Slide}.
+	 * <p>
+	 * This is useful for display of the slide to being/end media playback.
+	 * @return List&lt;{@link TimedMediaComponent}&gt;
+	 */
+	public List<TimedMediaComponent<?>> getTimedMediaComponents() {
 		List<TimedMediaComponent<?>> components = new ArrayList<TimedMediaComponent<?>>();
-		for (PositionedSlideComponent component : this.components) {
+		for (SlideComponent component : this.components) {
 			if (TimedMediaComponent.class.isInstance(component)) {
 				components.add((TimedMediaComponent<?>)component);
 			}
@@ -204,38 +279,64 @@ public class Slide {
 		return components;
 	}
 	
-//	public void addListener(SlideListener listener) {
-//		this.listeners.add(listener);
-//	}
-//	
-//	public boolean removeListener(SlideListener listener) {
-//		return this.listeners.remove(listener);
-//	}
-//	
-//	public <E extends SlideListener> List<E> getListeners(Class<E> clazz) {
-//		List<E> listeners = new ArrayList<E>();
-//		for (SlideListener listener : this.listeners) {
-//			if (clazz.isInstance(listener)) {
-//				listeners.add(clazz.cast(listener));
-//			}
-//		}
-//		return listeners;
-//	}
-	
+	/**
+	 * Returns the width of this slide in pixels.
+	 * @return int
+	 */
 	public int getWidth() {
 		return this.width;
 	}
-
-	public int getHeight() {
-		return this.height;
+	
+	/**
+	 * Sets the width of this slide.
+	 * <p>
+	 * This method will also modify the width of the background component to
+	 * match, if it's set.
+	 * @param width the width in pixels
+	 */
+	public void setWidth(int width) {
+		this.width = width;
+		if (this.background != null) {
+			this.background.setWidth(width);
+		}
 	}
 
 	/**
-	 * Returns a template for the given slide.
-	 * @return
+	 * Returns the height of this slide in pixels.
+	 * @return int
 	 */
-	public Template getTemplate() {
-		// TODO implement
-		return null;
+	public int getHeight() {
+		return this.height;
+	}
+	
+	/**
+	 * Sets the height of this slide.
+	 * <p>
+	 * This method will also modify the height of the background component to
+	 * match, if it's set.
+	 * @param height the height in pixels
+	 */
+	public void setHeight(int height) {
+		this.height = height;
+		if (this.background != null) {
+			this.background.setHeight(height);
+		}
+	}
+	
+	/**
+	 * Creates a new thumbnail for this slide using the given size.
+	 * @param size the size of the thumbnail
+	 * @return BufferedImage
+	 */
+	public BufferedImage getThumbnail(Dimension size) {
+		// render the slide to a buffered image of the right size
+		BufferedImage image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = image.createGraphics();
+		this.renderPreview(g);
+		g.dispose();
+		// scale the composite down
+		image = ImageUtilities.getUniformScaledImage(image, size.width, size.height, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+		// return it
+		return image;
 	}
 }

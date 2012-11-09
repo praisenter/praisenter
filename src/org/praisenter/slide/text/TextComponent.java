@@ -3,11 +3,18 @@ package org.praisenter.slide.text;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Paint;
+
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.utilities.FontManager;
+import org.praisenter.xml.FontTypeAdapter;
+import org.praisenter.xml.PaintTypeAdapter;
 
 /**
  * Represents a component that displays text.
@@ -16,32 +23,42 @@ import org.praisenter.utilities.FontManager;
  * @since 1.0.0
  */
 //TODO add text shadow (color, direction, width, visible)
+@XmlRootElement(name = "TextComponent")
 public class TextComponent extends GenericSlideComponent implements SlideComponent, PositionedSlideComponent {
 	// TODO change this to a AttributedString so we can support all kinds of string formatting (highlighting, super/sub scripts, etc)
 	/** The text */
+	@XmlElement(name = "Text", required = false, nillable = true)
 	protected String text;
 	
-	// TODO change this to a Paint to allow gradients and other paints
 	/** The text color */
-	protected Color textColor;
+	@XmlElement(name = "TextPaint", required = false, nillable = true)
+	@XmlJavaTypeAdapter(value = PaintTypeAdapter.class)
+	protected Paint textPaint;
 	
 	/** The text font */
+	@XmlElement(name = "TextFont", required = false, nillable = true)
+	@XmlJavaTypeAdapter(value = FontTypeAdapter.class)
 	protected Font textFont;
 	
 	/** The horizontal text alignment */
+	@XmlElement(name = "HorizontalTextAlignment", required = false, nillable = true)
 	protected HorizontalTextAlignment horizontalTextAlignment;
 	
 	/** The vertical text alignment */
+	@XmlElement(name = "VerticalTextAlignment", required = false, nillable = true)
 	protected VerticalTextAlignment verticalTextAlignment; 
 	
 	/** The font scale type */
+	@XmlElement(name = "FontScaleType", required = false, nillable = true)
 	protected FontScaleType textFontScaleType;
 	
 	/** True if this text should wrap */
+	@XmlElement(name = "TextWrapped", required = false, nillable = true)
 	protected boolean textWrapped;
 	
 	/** The inner component padding */
-	protected int padding;
+	@XmlElement(name = "TextPadding", required = false, nillable = true)
+	protected int textPadding;
 	
 	/**
 	 * Minimal constructor.
@@ -74,13 +91,39 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	public TextComponent(int x, int y, int width, int height, String text) {
 		super(x, y, width, height);
 		this.text = text;
-		this.textColor = Color.BLACK;
+		this.textPaint = Color.BLACK;
 		this.textFont = null;
 		this.horizontalTextAlignment = HorizontalTextAlignment.CENTER;
 		this.verticalTextAlignment = VerticalTextAlignment.TOP;
 		this.textFontScaleType = FontScaleType.REDUCE_SIZE_ONLY;
 		this.textWrapped = true;
-		this.padding = 5;
+		this.textPadding = 5;
+	}
+	
+	/**
+	 * Copy constructor.
+	 * <p>
+	 * This constructor performs a deep copy where necessary.
+	 * @param component the component to copy
+	 */
+	public TextComponent(TextComponent component) {
+		super(component);
+		this.text = component.text;
+		this.textPaint = component.textPaint;
+		this.textFont = component.textFont;
+		this.horizontalTextAlignment = component.horizontalTextAlignment;
+		this.verticalTextAlignment = component.verticalTextAlignment;
+		this.textFontScaleType = component.textFontScaleType;
+		this.textWrapped = component.textWrapped;
+		this.textPadding = component.textPadding;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.GenericSlideComponent#copy()
+	 */
+	@Override
+	public TextComponent copy() {
+		return new TextComponent(this);
 	}
 	
 	/* (non-Javadoc)
@@ -127,7 +170,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 			if (rw > 0 && rh > 0) {
 				// save the old font and color
 				Font oFont = g.getFont();
-				Color oColor = g.getColor();
+				Paint oPaint = g.getPaint();
 				
 				String text = this.text;
 				// make sure the line break characters are correct
@@ -180,7 +223,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 				}
 				
 				// set the text color
-				g.setColor(this.textColor);
+				g.setPaint(this.textPaint);
 				if (this.textWrapped) {
 					// render the text as a paragraph
 					TextRenderer.renderParagraph(g, text, this.horizontalTextAlignment, 0, y, rw);
@@ -189,7 +232,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 					TextRenderer.renderLine(g, text, this.horizontalTextAlignment, 0, y, rw);
 				}
 				
-				g.setColor(oColor);
+				g.setPaint(oPaint);
 				g.setFont(oFont);
 			}
 		}
@@ -200,7 +243,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	 * @return int
 	 */
 	protected int getTextWidth() {
-		return this.width - this.padding * 2 - 2;
+		return this.width - this.textPadding * 2 - 2;
 	}
 	
 	/**
@@ -208,7 +251,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	 * @return int
 	 */
 	protected int getTextHeight() {
-		return this.height - this.padding * 2 - 2;
+		return this.height - this.textPadding * 2 - 2;
 	}
 	
 	/**
@@ -228,19 +271,19 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	}
 	
 	/**
-	 * Returns the text color.
-	 * @return Color
+	 * Returns the text paint.
+	 * @return Paint
 	 */
-	public Color getTextColor() {
-		return this.textColor;
+	public Paint getTextPaint() {
+		return this.textPaint;
 	}
 	
 	/**
-	 * Sets the text color.
-	 * @param color the text color
+	 * Sets the text paint.
+	 * @param paint the text paint
 	 */
-	public void setTextColor(Color color) {
-		this.textColor = color;
+	public void setTextPaint(Paint paint) {
+		this.textPaint = paint;
 	}
 	
 	/**
@@ -292,19 +335,19 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	}
 	
 	/**
-	 * Returns the component padding.
+	 * Returns the text padding.
 	 * @return int
 	 */
-	public int getPadding() {
-		return this.padding;
+	public int getTextPadding() {
+		return this.textPadding;
 	}
 	
 	/**
-	 * Sets the component padding.
+	 * Sets the text padding.
 	 * @param padding the padding
 	 */
-	public void setPadding(int padding) {
-		this.padding = padding;
+	public void setTextPadding(int padding) {
+		this.textPadding = padding;
 	}
 	
 	/**

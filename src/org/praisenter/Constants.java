@@ -25,6 +25,7 @@ public class Constants {
 	public static final String MEDIA_LIBRARY_VIDEO_PATH = "videos";
 	public static final String MEDIA_LIBRARY_AUDIO_PATH = "audio";
 	
+	public static final String SLIDE_PATH = "slides";
 	public static final String TEMPLATE_PATH = "templates";
 	public static final String BIBLE_TEMPLATE_PATH = "bible";
 	public static final String SONGS_TEMPLATE_PATH = "songs";

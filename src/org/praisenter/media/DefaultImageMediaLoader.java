@@ -8,6 +8,8 @@ import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
 
+import org.praisenter.xml.FileProperties;
+
 /**
  * Default implementation for loading image media.
  * @author William Bittle
@@ -27,6 +29,14 @@ public class DefaultImageMediaLoader implements ImageMediaLoader, MediaLoader<Im
 			}
 		}
 		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaLoader#getMediaType()
+	 */
+	@Override
+	public Class<ImageMedia> getMediaType() {
+		return ImageMedia.class;
 	}
 	
 	/* (non-Javadoc)

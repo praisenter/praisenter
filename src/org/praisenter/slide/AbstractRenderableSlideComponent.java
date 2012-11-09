@@ -4,23 +4,34 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import org.praisenter.xml.PaintTypeAdapter;
+
 /**
- * Abstract implementation of the {@link SlideComponent} interface.
+ * Abstract implementation of the {@link RenderableSlideComponent} interface.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public abstract class AbstractSlideComponent implements SlideComponent {
+public abstract class AbstractRenderableSlideComponent implements SlideComponent, RenderableSlideComponent {
 	/** The width of this component */
+	@XmlAttribute(name = "Width", required = true)
 	protected int width;
 	
 	/** The height of this component */
+	@XmlAttribute(name = "Height", required = true)
 	protected int height;
 
 	/** The background paint (color or gradient or anything really) */
+	@XmlElement(name = "BackgroundPaint", required = false, nillable = true)
+	@XmlJavaTypeAdapter(value = PaintTypeAdapter.class)
 	protected Paint backgroundPaint;
 	
 	/** True if the background paint should be rendered */
+	@XmlElement(name = "BackgroundPaintVisible", required = true, nillable = false)
 	protected boolean backgroundPaintVisible;
 	
 	/**
@@ -28,15 +39,28 @@ public abstract class AbstractSlideComponent implements SlideComponent {
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public AbstractSlideComponent(int width, int height) {
+	public AbstractRenderableSlideComponent(int width, int height) {
 		this.width = width;
 		this.height = height;
 		this.backgroundPaint = Color.WHITE;
 		this.backgroundPaintVisible = false;
 	}
 	
+	/**
+	 * Copy constructor.
+	 * <p>
+	 * This constructor performs a deep copy where necessary.
+	 * @param component the component to copy
+	 */
+	public AbstractRenderableSlideComponent(AbstractRenderableSlideComponent component) {
+		this.width = component.width;
+		this.height = component.height;
+		this.backgroundPaint = component.backgroundPaint;
+		this.backgroundPaintVisible = component.backgroundPaintVisible;
+	}
+	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#getWidth()
+	 * @see org.praisenter.slide.RenderableSlideComponent#getWidth()
 	 */
 	@Override
 	public int getWidth() {
@@ -44,7 +68,7 @@ public abstract class AbstractSlideComponent implements SlideComponent {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#getHeight()
+	 * @see org.praisenter.slide.RenderableSlideComponent#getHeight()
 	 */
 	@Override
 	public int getHeight() {
@@ -52,7 +76,7 @@ public abstract class AbstractSlideComponent implements SlideComponent {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#setWidth(int)
+	 * @see org.praisenter.slide.RenderableSlideComponent#setWidth(int)
 	 */
 	@Override
 	public void setWidth(int width) {
@@ -60,7 +84,7 @@ public abstract class AbstractSlideComponent implements SlideComponent {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#setHeight(int)
+	 * @see org.praisenter.slide.RenderableSlideComponent#setHeight(int)
 	 */
 	@Override
 	public void setHeight(int height) {
@@ -68,7 +92,7 @@ public abstract class AbstractSlideComponent implements SlideComponent {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#resize(int, int)
+	 * @see org.praisenter.slide.RenderableSlideComponent#resize(int, int)
 	 */
 	@Override
 	public void resize(int dw, int dh) {
@@ -79,7 +103,7 @@ public abstract class AbstractSlideComponent implements SlideComponent {
 	// rendering
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#renderPreview(java.awt.Graphics2D)
+	 * @see org.praisenter.slide.RenderableSlideComponent#renderPreview(java.awt.Graphics2D)
 	 */
 	@Override
 	public void renderPreview(Graphics2D g) {
@@ -87,7 +111,7 @@ public abstract class AbstractSlideComponent implements SlideComponent {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#render(java.awt.Graphics2D)
+	 * @see org.praisenter.slide.RenderableSlideComponent#render(java.awt.Graphics2D)
 	 */
 	@Override
 	public void render(Graphics2D g) {
@@ -110,21 +134,21 @@ public abstract class AbstractSlideComponent implements SlideComponent {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#getBackgroundPaint()
+	 * @see org.praisenter.slide.RenderableSlideComponent#getBackgroundPaint()
 	 */
 	public Paint getBackgroundPaint() {
 		return this.backgroundPaint;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#setBackgroundPaint(java.awt.Paint)
+	 * @see org.praisenter.slide.RenderableSlideComponent#setBackgroundPaint(java.awt.Paint)
 	 */
 	public void setBackgroundPaint(Paint backgroundPaint) {
 		this.backgroundPaint = backgroundPaint;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#isBackgroundPaintVisible()
+	 * @see org.praisenter.slide.RenderableSlideComponent#isBackgroundPaintVisible()
 	 */
 	@Override
 	public boolean isBackgroundPaintVisible() {
@@ -132,7 +156,7 @@ public abstract class AbstractSlideComponent implements SlideComponent {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#setBackgroundPaintVisible(boolean)
+	 * @see org.praisenter.slide.RenderableSlideComponent#setBackgroundPaintVisible(boolean)
 	 */
 	@Override
 	public void setBackgroundPaintVisible(boolean visible) {
