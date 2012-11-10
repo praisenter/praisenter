@@ -24,8 +24,8 @@ import javax.swing.UnsupportedLookAndFeelException;
 import org.praisenter.media.MediaException;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaPlayerListener;
-import org.praisenter.media.XugglerMediaPlayer;
 import org.praisenter.media.XugglerVideoMedia;
+import org.praisenter.media.player.XugglerMediaPlayer;
 import org.praisenter.utilities.LookAndFeelUtilities;
 
 public class VideoPlayerTest {
@@ -121,15 +121,15 @@ public class VideoPlayerTest {
 				e.printStackTrace();
 			}
 			
-			try {
-				Thread.sleep(5000);
-				player.pause();
-				Thread.sleep(5000);
-				player.resume();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//			try {
+//				Thread.sleep(5000);
+//				player.pause();
+//				Thread.sleep(5000);
+//				player.resume();
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 		}
 		
 		@Override

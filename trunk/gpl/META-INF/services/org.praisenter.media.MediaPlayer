@@ -1,2 +1,2 @@
 # VideoMediaLoader using Xuggler
-org.praisenter.media.XugglerMediaPlayer
+org.praisenter.media.player.XugglerMediaPlayer

@@ -93,18 +93,17 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 		}
 		LOGGER.debug("Video coder opened with format: " + codecName);
 		
-		codecName = "Unknown";
-		codec = audioCoder.getCodec();
-		if (codec != null) {
-			codecName = codec.getLongName();
+		if (audioCoder != null) {
+			codecName = "Unknown";
+			codec = audioCoder.getCodec();
+			if (codec != null) {
+				codecName = codec.getLongName();
+			}
+			if (audioCoder.open(null, null) < 0) {
+				throw new MediaException("Could not open audio decoder for: " + codecName);
+			}
+			LOGGER.debug("Audio coder opened with format: " + codecName);
 		}
-		if (audioCoder != null && audioCoder.open(null, null) < 0) {
-			throw new MediaException("Could not open audio decoder for: " + codecName);
-		}
-		LOGGER.debug("Audio coder opened with format: " + codecName);
-		
-		System.out.println(videoCoder.getStream().getCurrentDts());
-		System.out.println(audioCoder.getStream().getCurrentDts());
 		
 		// get the first frame of the video
 		BufferedImage firstFrame = loadFirstFrame(container, videoCoder);

@@ -1,4 +1,4 @@
-package org.praisenter.media;
+package org.praisenter.media.player;
 
 import com.xuggle.xuggler.Global;
 
