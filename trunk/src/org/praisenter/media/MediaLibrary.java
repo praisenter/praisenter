@@ -168,7 +168,7 @@ public class MediaLibrary {
 			}
 		} catch (Exception e) {
 			// silently ignore this error
-			LOGGER.error("Could not read [" + path + THUMBS_FILE + "]: ", e);
+			LOGGER.warn("Could not read [" + path + THUMBS_FILE + "]");
 		}
 		if (thumbnailsFromFile == null) {
 			thumbnailsFromFile = new ArrayList<MediaThumbnail>();
