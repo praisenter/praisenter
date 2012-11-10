@@ -1,4 +1,4 @@
-package org.praisenter.media;
+package org.praisenter.media.ui;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
