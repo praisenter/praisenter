@@ -2,6 +2,7 @@ package org.praisenter.media.player;
 
 import java.awt.image.BufferedImage;
 import java.nio.ByteOrder;
+import java.util.List;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -14,6 +15,7 @@ import org.praisenter.thread.PausableThread;
 
 import com.xuggle.xuggler.IAudioSamples;
 import com.xuggle.xuggler.IContainer;
+import com.xuggle.xuggler.IIndexEntry;
 import com.xuggle.xuggler.IPacket;
 import com.xuggle.xuggler.IStreamCoder;
 import com.xuggle.xuggler.IVideoPicture;
@@ -64,6 +66,12 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 			this.picture = IVideoPicture.make(this.videoCoder.getPixelType(), this.videoCoder.getWidth(), this.videoCoder.getHeight());
 			BufferedImage target = new BufferedImage(this.videoCoder.getWidth(), this.videoCoder.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 			this.videoConverter = ConverterFactory.createConverter(target, this.videoCoder.getPixelType());
+			
+			System.out.println("Indexes: " + videoCoder.getStream().getNumIndexEntries());
+			List<IIndexEntry> entries = videoCoder.getStream().getIndexEntries();
+			for (IIndexEntry entry : entries) {
+				System.out.println("pos = " + entry.getPosition() + " time = " + entry.getTimeStamp() + " iskey = " + entry.isKeyFrame());
+			}
 		}
 		
 		// get a JavaSound audio line for the audio
@@ -74,7 +82,7 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 	
 	public void loop() {
 		if (this.container != null) {
-			this.container.seekKeyFrame(-1, 0, 0, 0, 0);
+			this.container.seekKeyFrame(-1, Long.MIN_VALUE, 0, Long.MAX_VALUE, IContainer.SEEK_FLAG_BYTE);
 		}
 	}
 	
