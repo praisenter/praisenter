@@ -67,11 +67,11 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 			BufferedImage target = new BufferedImage(this.videoCoder.getWidth(), this.videoCoder.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 			this.videoConverter = ConverterFactory.createConverter(target, this.videoCoder.getPixelType());
 			
-			System.out.println("Indexes: " + videoCoder.getStream().getNumIndexEntries());
-			List<IIndexEntry> entries = videoCoder.getStream().getIndexEntries();
-			for (IIndexEntry entry : entries) {
-				System.out.println("pos = " + entry.getPosition() + " time = " + entry.getTimeStamp() + " iskey = " + entry.isKeyFrame());
-			}
+//			System.out.println("Indexes: " + videoCoder.getStream().getNumIndexEntries());
+//			List<IIndexEntry> entries = videoCoder.getStream().getIndexEntries();
+//			for (IIndexEntry entry : entries) {
+//				System.out.println("pos = " + entry.getPosition() + " time = " + entry.getTimeStamp() + " iskey = " + entry.isKeyFrame());
+//			}
 		}
 		
 		// get a JavaSound audio line for the audio
@@ -82,7 +82,7 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 	
 	public void loop() {
 		if (this.container != null) {
-			this.container.seekKeyFrame(-1, Long.MIN_VALUE, 0, Long.MAX_VALUE, IContainer.SEEK_FLAG_BYTE);
+			this.container.seekKeyFrame(-1, 0, 0, 0, 0);
 		}
 	}
 	

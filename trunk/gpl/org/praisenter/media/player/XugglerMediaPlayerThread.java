@@ -124,7 +124,7 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 	 */
 	private boolean isVideoBufferFull() {
 		if (this.draining) {
-			return true;
+			return false;
 		}
 		// get the buffer sizes
 		int vbs = 0;
@@ -149,9 +149,6 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 	 * @return boolean
 	 */
 	private boolean isAudioBufferFull() {
-		if (this.draining) {
-			return true;
-		}
 		return false;
 	}
 	
@@ -169,46 +166,54 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 			abr = this.isAudioBufferReady(this.audioBufferSize);
 		}
 		if (this.draining) {
-			// if we are draining, then just return true if either type
-			// of data is buffered
 			return vbr || abr;
-		} else {
-			// make sure we have both audio and video (if thats what we are playing)
-			return vbr && abr;
 		}
+		// make sure we have both audio and video (if thats what we are playing)
+		return vbr && abr;
 	}
 	
 	private boolean isVideoBufferReady(int videoBufferSize) {
 		if (this.hasVideo) {
-			return videoBufferSize > 0;
+			if (this.draining && videoBufferSize > 0) {
+				return true;
+			} else {
+				return videoBufferSize > 2;
+			}
 		}
 		return true;
 	}
 	
 	private boolean isAudioBufferReady(int audioBufferSize) {
 		if (this.hasAudio) {
-			return audioBufferSize > 0;
+			if (this.draining && audioBufferSize > 0) {
+				return true;
+			} else {
+				return audioBufferSize > 2;
+			}
 		}
 		return true;
 	}
 	
 	public void drainBuffers() {
 		this.draining = true;
-		// notify this thread of the change
-		synchronized (this.bufferLock) {
-			this.bufferLock.notify();
-		}
 		// wait on the buffer full lock
-		while (this.buffer.size() > 0) {
+		synchronized (this.bufferLock) {
+			// notify this thread of the change
+			this.bufferLock.notifyAll();
+		}
+		while (this.isBufferReady()) {
 			synchronized (this.bufferFullLock) {
 				try {
-					this.bufferFullLock.wait();
+					System.out.println("drain waiting [" + this.buffer.size() + "]");
+					this.bufferFullLock.wait(1000);
+					System.out.println("drain woke up");
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
 		}
+		
 		this.clock.reset();
 		this.draining = false;
 	}
@@ -249,11 +254,17 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 			synchronized (this.bufferLock) {
 				try {
 					bufferLock.wait();
+					if (this.draining) {
+						System.out.println("Draining");
+					}
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
+		}
+		if (this.draining) {
+			System.out.println("Draining");
 		}
 		
 		// make sure we get something from the queue and update the sizes
@@ -263,19 +274,19 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 			// the buffer is ready, lets get some data
 			data = this.buffer.poll();
 			// check for null
-			if (data == null) {
-				return;
-			}
-			// update the size depending on the type
-			if (data.getData() instanceof BufferedImage) {
-				this.videoBufferSize--;
-			} else {
-				this.audioBufferSize--;
+			if (data != null) {
+				// update the size depending on the type
+				if (data.getData() instanceof BufferedImage) {
+					this.videoBufferSize--;
+				} else {
+					this.audioBufferSize--;
+				}
 			}
 			// notify that we updated the buffer sizes
 			synchronized (this.bufferFullLock) {
 				this.bufferFullLock.notifyAll();
 			}
+			if (data == null) return;
 		}
 		
 		// synchronize the playback of the data with the system clock

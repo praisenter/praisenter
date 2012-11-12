@@ -194,16 +194,20 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	@Override
 	public void stop() {
-		this.state = State.STOPPED;
-		// only pause the reading thread
-		this.mediaReaderThread.setPaused(true);
-		
-		System.out.println("--Seeking");
-		this.mediaReaderThread.loop();
-		
-		this.mediaPlayerThread.drainBuffers();
-		this.audioPlayerThread.drain();
-		System.out.println("--Stopped");
+		if (this.state != State.STOPPED) {
+			this.state = State.STOPPED;
+			// only pause the reading thread
+			this.mediaReaderThread.setPaused(true);
+			
+			System.out.println("--Seeking");
+			this.mediaReaderThread.loop();
+			
+			this.mediaPlayerThread.drainBuffers();
+			System.out.println("--Player Buffer Drained");
+			this.audioPlayerThread.drain();
+			System.out.println("--Audio Buffer Drained");
+			System.out.println("--Stopped");
+		}
 	}
 	
 	/* (non-Javadoc)
