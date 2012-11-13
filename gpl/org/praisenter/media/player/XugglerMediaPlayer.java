@@ -165,7 +165,8 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	private void loop() {
 		System.out.println("--Looping");
-		stop();
+		// stop, but drain whats left
+		stop(true);
 		play();
 	}
 	
@@ -194,6 +195,10 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	@Override
 	public void stop() {
+		this.stop(false);
+	}
+	
+	private void stop(boolean drain) {
 		if (this.state != State.STOPPED) {
 			this.state = State.STOPPED;
 			// only pause the reading thread
@@ -202,10 +207,14 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 			System.out.println("--Seeking");
 			this.mediaReaderThread.loop();
 			
-			this.mediaPlayerThread.drainBuffers();
-			System.out.println("--Player Buffer Drained");
-			this.audioPlayerThread.drain();
-			System.out.println("--Audio Buffer Drained");
+			if (drain) {
+				this.mediaPlayerThread.drain();
+				this.audioPlayerThread.drain();
+			} else {
+				this.mediaPlayerThread.flush();
+				this.audioPlayerThread.flush();
+			}
+			
 			System.out.println("--Stopped");
 		}
 	}

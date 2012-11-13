@@ -23,7 +23,9 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import org.praisenter.media.MediaException;
 import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaPlayer;
 import org.praisenter.media.MediaPlayerListener;
+import org.praisenter.media.XugglerPlayableMedia;
 import org.praisenter.media.XugglerVideoMedia;
 import org.praisenter.media.player.XugglerMediaPlayer;
 import org.praisenter.utilities.LookAndFeelUtilities;
@@ -111,25 +113,30 @@ public class VideoPlayerTest {
 				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.mov");
 //				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.ogg");
 //				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi");
-				player = new XugglerMediaPlayer();
+				player = (XugglerMediaPlayer)MediaLibrary.getMediaPlayer(XugglerPlayableMedia.class);
 				player.addMediaPlayerListener(this);
 				player.setMedia(media);
 				player.setLooped(true);
 				player.play();
+//				player = new XugglerMediaPlayer();
+//				player.addMediaPlayerListener(this);
+//				player.setMedia(media);
+//				player.setLooped(true);
+//				player.play();
 			} catch (MediaException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
-//			try {
-//				Thread.sleep(5000);
-//				player.pause();
-//				Thread.sleep(5000);
-//				player.resume();
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
+			try {
+				Thread.sleep(5000);
+				player.pause();
+				Thread.sleep(2000);
+				player.resume();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 		@Override
