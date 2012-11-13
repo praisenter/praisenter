@@ -81,8 +81,17 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 	}
 	
 	public void loop() {
+		this.endAudioTimestamp = this.lastAudioTimestamp;
+		this.endVideoTimestamp = this.lastVideoTimestamp;
+		
 		if (this.container != null) {
-			this.container.seekKeyFrame(-1, 0, 0, 0, 0);
+			this.container.seekKeyFrame(-1, 0, 0, 0, IContainer.SEEK_FLAG_ANY | IContainer.SEEK_FLAG_BACKWARDS);
+//			if (this.audioCoder != null) {
+//				this.container.seekKeyFrame(this.audioCoder.getStream().getIndex(), 0, 0, 0, IContainer.SEEK_FLAG_ANY);
+//			}
+//			if (this.videoCoder != null) {
+//				this.container.seekKeyFrame(this.videoCoder.getStream().getIndex(), 0, 0, 0, IContainer.SEEK_FLAG_ANY);
+//			}
 		}
 	}
 	
@@ -93,6 +102,7 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 		if ((r = this.container.readNextPacket(this.packet)) < 0) {
 			// we are at the end of the media, do we need to loop?
 			this.onStreamEnd();
+			return;
 		}
 		
 		// make sure the packet belongs to the stream we care about
@@ -115,7 +125,7 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 						// convert the picture to an Java buffered image
 						BufferedImage image = this.videoConverter.toImage(this.picture);
 						this.lastVideoTimestamp = this.picture.getTimeStamp();
-//						System.out.println("Image " + this.picture.getTimeStamp());
+						System.out.println("Image " + this.picture.getTimeStamp());
 						this.queueVideoImage(new XugglerTimedData<BufferedImage>(this.picture.getTimeStamp(), image));
 					} else {
 						System.out.println("Dropped image: " + this.picture.getTimeStamp());
@@ -145,7 +155,7 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 								(int)IAudioSamples.findSampleBitDepth(this.audioCoder.getSampleFormat()), 
 								this.audioCoder.getChannels(),
 								ByteOrder.LITTLE_ENDIAN);
-//                    	System.out.println("Audio " + this.samples.getTimeStamp());
+                    	System.out.println("Audio " + this.samples.getTimeStamp());
                     	this.lastAudioTimestamp = this.samples.getTimeStamp();
                     	this.queueAudioImage(new XugglerTimedData<byte[]>(this.samples.getTimeStamp(), data));
                 	} else {

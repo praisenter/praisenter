@@ -1,10 +1,14 @@
-Library                   | Required?     | License File                        | Use/Description
---------------------------+---------------+-------------------------------------+-------------------------------------------------------
-commons-codec-1.6.jar     | Required      | licenses/apache-license-1.0.txt     | Runtime/Apache Commons Codec for base64 encoding/decoding
-commons-lang3-3.1.jar     | Required      | licenses/apache-license-1.0.txt     | Runtime/Apache Commons lang for xml escaping/unescaping
-derby.jar                 | Required      | licenses/apache-license-1.0.txt     | Runtime/Derby database engine
-log4j-1.2.17.jar          | Required      | licenses/apache-license-1.0.txt     | Runtime/Apache Log4j for application logging
-mail.jar                  | Required      | licenses/javamail-license.txt       | Runtime/JavaMail API for sending error reports
-xuggle-xuggler-5.4.jar    | Required      | licenses/xuggler-license.txt        | Runtime/Xuggler
-slf4j-api-1.7.2.jar       | Required      | licenses/slf4j-license.txt          | Runtime/Xuggler logging interface
-slf4j-log4j12-1.7.2.jar   | Required      | licenses/slf4j-license.txt          | Runtime/Xuggler logging interface for log4j
+|   | Library                   | Required?     | License Type               | License File                        | Use/Description
++---+--------------------------+---------------+----------------------------+-------------------------------------+------------------------------------------------------------
+|   | commons-codec-1.6.jar     | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Apache Commons Codec for base64 encoding/decoding
+|   | commons-lang3-3.1.jar     | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Apache Commons lang for xml escaping/unescaping
+|   | commons-pool-1.6.jar      | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Apache Commons pool for object pooling
+|   | derby.jar                 | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Derby database engine
+|   | log4j-1.2.17.jar          | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Apache Log4j for application logging
+|   | mail.jar                  | Required      | Oracle binary Code License | licenses/javamail-license.txt       | Runtime/JavaMail API for sending error reports
+| * | xuggle-xuggler-5.4.jar    | Required      | GPL Version 3.0            | licenses/xuggler-license.txt        | Runtime/Xuggler
+|   | slf4j-api-1.7.2.jar       | Required      | MIT                        | licenses/slf4j-license.txt          | Runtime/Xuggler logging interface
+|   | slf4j-log4j12-1.7.2.jar   | Required      | MIT                        | licenses/slf4j-license.txt          | Runtime/Xuggler logging interface for log4j
+
+* This binary is licensed under the GPL Version 3.0 license.  Because of this, the Praisenter binaries are also released under GPL Version 3.0.  The source of Praisenter is
+  released under two licenses, BSD for the majority of the project, and GPL Version 3.0 for the interface with this binary.
