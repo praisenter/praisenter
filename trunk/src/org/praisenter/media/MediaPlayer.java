@@ -31,13 +31,6 @@ public interface MediaPlayer<E extends PlayableMedia> {
 	// properties
 	
 	/**
-	 * Returns true if the given media class is supported by this {@link MediaPlayer}.
-	 * @param clazz the type
-	 * @return boolean
-	 */
-	public abstract <T extends PlayableMedia> boolean isTypeSupported(Class<T> clazz);
-	
-	/**
 	 * Returns true if this player is in the playing state.
 	 * @return boolean
 	 */
@@ -60,9 +53,13 @@ public interface MediaPlayer<E extends PlayableMedia> {
 	 * <p>
 	 * If media is already being played, it will be stopped and the
 	 * given media will played.
+	 * <p>
+	 * Returns true if the media was opened and the player is ready
+	 * for playback.
 	 * @param media the media to play
+	 * @return boolean
 	 */
-	public abstract void setMedia(E media);
+	public abstract boolean setMedia(E media);
 	
 	/**
 	 * Returns the media the player is playing.
@@ -123,6 +120,15 @@ public interface MediaPlayer<E extends PlayableMedia> {
 	 * @param position the position
 	 */
 	public abstract void seek(long position);
+	
+	/**
+	 * Ends any playback and releases any resources for
+	 * this player.
+	 * <p>
+	 * After this method is called, media can no longer
+	 * be played from this player.
+	 */
+	public abstract void release();
 	
 	// events
 	

@@ -27,7 +27,7 @@ public abstract class AbstractTypeAdapter<E> extends XmlAdapter<String, E> {
 	protected static final String getStringFromPoint2D(Point2D point, String delimiter) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(point.getX()).append(delimiter)
-		  .append(point.getY()).append(delimiter);
+		  .append(point.getY());
 		return sb.toString();
 	}
 	
@@ -69,8 +69,13 @@ public abstract class AbstractTypeAdapter<E> extends XmlAdapter<String, E> {
 	 */
 	protected static final String getStringFromFloatArray(float[] array, String delimiter) {
 		StringBuilder sb = new StringBuilder();
-		for (float value : array) {
-			sb.append(value).append(delimiter);
+		if (array != null) {
+			for (int i = 0; i < array.length; i++) {
+				if (i != 0) {
+					sb.append(delimiter);
+				}
+				sb.append(array[i]);
+			}
 		}
 		return sb.toString();
 	}
@@ -84,6 +89,9 @@ public abstract class AbstractTypeAdapter<E> extends XmlAdapter<String, E> {
 	 * @return float[]
 	 */
 	protected static final float[] getFloatArrayFromString(String dataString, String delimiter) {
+		if (dataString == null || dataString.trim().length() == 0) {
+			return null;
+		}
 		String[] data = dataString.split(delimiter);
 		int length = data.length;
 		if (length > 0) {

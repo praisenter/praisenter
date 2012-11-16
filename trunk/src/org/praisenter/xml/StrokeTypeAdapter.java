@@ -70,6 +70,9 @@ public class StrokeTypeAdapter extends AbstractTypeAdapter<Stroke> {
 	 */
 	@Override
 	public Stroke unmarshal(String v) throws Exception {
+		if (v == null || v.trim().length() == 0) {
+			return null;
+		}
 		String[] typeData = v.split(TYPE_NAME_DELIMITER);
 		if (typeData.length == 2) {
 			String type = typeData[0];
@@ -94,7 +97,7 @@ public class StrokeTypeAdapter extends AbstractTypeAdapter<Stroke> {
 	 */
 	private static final BasicStroke getBasicStrokeFromString(String dataString) {
 		// parse the data string (width|cap|join|miterLimit|dash|dashPhase)
-		String[] data = dataString.split(STROKE_DATA_DELIMITER);
+		String[] data = dataString.split("\\" + STROKE_DATA_DELIMITER);
 		// attempt to get whatever data is there
 		int length = data.length;
 		// defaults

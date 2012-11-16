@@ -3,18 +3,28 @@ package org.praisenter.slide;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 
+import javax.xml.bind.annotation.XmlSeeAlso;
+
+import org.praisenter.slide.media.ImageMediaComponent;
+import org.praisenter.slide.media.VideoMediaComponent;
+import org.praisenter.slide.text.TextComponent;
+
 /**
  * Represents a {@link SlideComponent} that is renderable.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
+@XmlSeeAlso({ ImageMediaComponent.class, 
+			  VideoMediaComponent.class, 
+			  TextComponent.class,
+			  GenericSlideComponent.class })
 public interface RenderableSlideComponent extends SlideComponent {
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideComponent#copy()
 	 */
 	@Override
-	public RenderableSlideComponent copy();
+	public RenderableSlideComponent copy() throws SlideComponentCopyException;
 	
 	/**
 	 * Returns the width of the component in pixels.

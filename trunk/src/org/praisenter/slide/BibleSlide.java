@@ -1,5 +1,7 @@
 package org.praisenter.slide;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -16,6 +18,7 @@ import org.praisenter.slide.text.TextComponent;
  * @since 1.0.0
  */
 @XmlRootElement(name = "BibleSlide")
+@XmlAccessorType(XmlAccessType.NONE)
 public class BibleSlide extends Slide {
 	/** The scripture location component (like: Genesis 1:1) */
 	@XmlElement(name = "ScriptureLocationComponent")
@@ -26,12 +29,23 @@ public class BibleSlide extends Slide {
 	protected TextComponent scriptureTextComponent;
 	
 	/**
+	 * Default constructor.
+	 * <p>
+	 * This constructor should only be used by JAXB for
+	 * marshalling and unmarshalling the objects.
+	 */
+	protected BibleSlide() {
+		this(null, 0, 0);
+	}
+	
+	/**
 	 * Full constructor.
+	 * @param name the name of the template
 	 * @param width the width of the slide
 	 * @param height the height of the slide
 	 */
-	public BibleSlide(int width, int height) {
-		super(width, height);
+	public BibleSlide(String name, int width, int height) {
+		super(name, width, height);
 		
 		// get the minimum dimension (typically the height)
 		int maxd = height;
@@ -51,6 +65,10 @@ public class BibleSlide extends Slide {
 		
 		this.scriptureLocationComponent = new TextComponent(margin, margin, w, tth);
 		this.scriptureTextComponent = new TextComponent(margin, tth + margin * 2, w, th);
+		
+		// add them to the components list
+		this.components.add(this.scriptureLocationComponent);
+		this.components.add(this.scriptureTextComponent);
 	}
 	
 	/**
@@ -60,21 +78,33 @@ public class BibleSlide extends Slide {
 	 * <p>
 	 * This does not copy the slide listeners.
 	 * @param slide the slide to copy
+	 * @throws SlideCopyException thrown if the copy fails
 	 */
-	public BibleSlide(BibleSlide slide) {
+	public BibleSlide(BibleSlide slide) throws SlideCopyException {
 		super(slide);
-		this.scriptureLocationComponent = slide.scriptureLocationComponent.copy();
-		this.scriptureTextComponent = slide.scriptureTextComponent.copy();
+		try {
+			this.scriptureLocationComponent = slide.scriptureLocationComponent.copy();
+			this.scriptureTextComponent = slide.scriptureTextComponent.copy();
+		} catch (SlideComponentCopyException e) {
+			throw new SlideCopyException(e);
+		}
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#copy()
 	 */
 	@Override
-	public BibleSlide copy() {
+	public BibleSlide copy() throws SlideCopyException {
 		return new BibleSlide(this);
 	}
-
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#createTemplate()
+	 */
+	public BibleSlideTemplate createTemplate() throws SlideCopyException {
+		return new BibleSlideTemplate(this);
+	}
+	
 	/**
 	 * Returns the scripture location component.
 	 * @return {@link TextComponent}

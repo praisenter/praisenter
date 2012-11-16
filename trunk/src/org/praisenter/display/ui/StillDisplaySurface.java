@@ -5,9 +5,9 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 import org.praisenter.display.Display;
-import org.praisenter.transitions.Transition;
-import org.praisenter.transitions.Transition.Type;
-import org.praisenter.transitions.TransitionAnimator;
+import org.praisenter.slide.transitions.Transition;
+import org.praisenter.slide.transitions.TransitionAnimator;
+import org.praisenter.slide.transitions.Transition.Type;
 
 /**
  * Panel used for display on a selected device.

@@ -34,10 +34,8 @@ import org.praisenter.xml.XmlIO;
  * @version 1.0.0
  * @since 1.0.0
  */
+// FIXME we need support for mediaplayer pools
 public class MediaLibrary {
-	/** File path separator */
-	private static final String SEPARATOR = FileSystems.getDefault().getSeparator();
-	
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(MediaLibrary.class);
 	
@@ -50,7 +48,7 @@ public class MediaLibrary {
 	private static final Map<String, WeakReference<Media>> MEDIA = new HashMap<String, WeakReference<Media>>();
 	
 	/** The list of available MediaPlayers */
-	private static final List<MediaPlayer<?>> MEDIA_PLAYERS = new ArrayList<>();
+	private static final List<MediaPlayerFactory<?>> MEDIA_PLAYER_FACTORIES = new ArrayList<MediaPlayerFactory<?>>();
 	
 	// thumbnails
 	
@@ -58,7 +56,7 @@ public class MediaLibrary {
 	private static final Dimension THUMBNAIL_SIZE = new Dimension(64, 48);
 	
 	/** The thumbnail file name */
-	private static final String THUMBS_FILE = SEPARATOR + "Thumbs.xml";
+	private static final String THUMBS_FILE = Constants.SEPARATOR + "_thumbs.xml";
 	
 	/** The list of all thumbnails */
 	private static final List<MediaThumbnail> THUMBNAILS = new ArrayList<MediaThumbnail>();
@@ -82,7 +80,7 @@ public class MediaLibrary {
 		addClasspathAudioLoaders();
 		
 		// add any class path media players
-		addClasspathMediaPlayers();
+		addClasspathMediaPlayerFactories();
 		
 		// FIXME we need to do this on startup so that we get the thumbnails loaded
 		try {
@@ -135,15 +133,15 @@ public class MediaLibrary {
 	}
 	
 	/**
-	 * Searches the classpath for any classes that implement sthe {@link AudioMediaLoader} interface
-	 * and adds them to the list of loaders for {@link MediaType#AUDIO}.
+	 * Searches the classpath for any classes that implement the {@link MediaPlayerFactory} interface
+	 * and adds them to the list of factories.
 	 */
-	private static synchronized final void addClasspathMediaPlayers() {
+	private static synchronized final void addClasspathMediaPlayerFactories() {
 		@SuppressWarnings("rawtypes")
-		Iterator<MediaPlayer> it = ServiceLoader.load(MediaPlayer.class).iterator();
+		Iterator<MediaPlayerFactory> it = ServiceLoader.load(MediaPlayerFactory.class).iterator();
 		while (it.hasNext()) {
-			MediaPlayer<?> player = it.next();
-			MEDIA_PLAYERS.add(player);
+			MediaPlayerFactory<?> player = it.next();
+			MEDIA_PLAYER_FACTORIES.add(player);
 		}
 	}
 
@@ -302,7 +300,7 @@ public class MediaLibrary {
 		// make sure it exists and is a file
 		if (Files.exists(source) && Files.isRegularFile(source)) {
 			String name = source.getFileName().toString();
-			Path target = fs.getPath(destPath + name);
+			Path target = fs.getPath(destPath + Constants.SEPARATOR + name);
 			// see if we can use the same name in the destination file
 			if (Files.exists(target)) {
 				throw new FileAlreadyExistsException(MessageFormat.format(Messages.getString("media.exception.fileExists"), name));
@@ -334,14 +332,13 @@ public class MediaLibrary {
 	 * @return String
 	 */
 	private static final String getMediaTypePath(MediaType type) {
-		String sep = FileSystems.getDefault().getSeparator();
-		String path = Constants.MEDIA_LIBRARY_PATH + sep;
+		String path = Constants.MEDIA_LIBRARY_PATH;
 		if (type == MediaType.IMAGE) {
-			return path + Constants.MEDIA_LIBRARY_IMAGE_PATH + sep;
+			return Constants.MEDIA_LIBRARY_IMAGE_PATH;
 		} else if (type == MediaType.VIDEO) {
-			return path + Constants.MEDIA_LIBRARY_VIDEO_PATH + sep;
+			return Constants.MEDIA_LIBRARY_VIDEO_PATH;
 		} else if (type == MediaType.AUDIO) {
-			return path + Constants.MEDIA_LIBRARY_AUDIO_PATH + sep;
+			return Constants.MEDIA_LIBRARY_AUDIO_PATH;
 		}
 		return path;
 	}
@@ -397,15 +394,15 @@ public class MediaLibrary {
 		// see if the media library has already been loaded
 		if (!loaded) {
 			if (isMediaSupported(MediaType.IMAGE)) {
-				String path = Constants.MEDIA_LIBRARY_PATH + SEPARATOR + Constants.MEDIA_LIBRARY_IMAGE_PATH;
+				String path = Constants.MEDIA_LIBRARY_IMAGE_PATH;
 				loadMediaLibrary(path);
 			}
 			if (isMediaSupported(MediaType.VIDEO)) {
-				String path = Constants.MEDIA_LIBRARY_PATH + SEPARATOR + Constants.MEDIA_LIBRARY_VIDEO_PATH;
+				String path = Constants.MEDIA_LIBRARY_VIDEO_PATH;
 				loadMediaLibrary(path);
 			}
 			if (isMediaSupported(MediaType.AUDIO)) {
-				String path = Constants.MEDIA_LIBRARY_PATH + SEPARATOR + Constants.MEDIA_LIBRARY_AUDIO_PATH;
+				String path = Constants.MEDIA_LIBRARY_AUDIO_PATH;
 				loadMediaLibrary(path);
 			}
 			loaded = true;
@@ -458,50 +455,49 @@ public class MediaLibrary {
 	}
 
 	/**
-	 * Returns the first matching {@link MediaPlayer} for the given {@link PlayableMedia} type.
+	 * Returns the first matching {@link MediaPlayerFactory} for the given {@link PlayableMedia} type.
 	 * @param clazz the media type
-	 * @return {@link MediaPlayer}
+	 * @return {@link MediaPlayerFactory}
 	 */
-	public static synchronized final <T extends PlayableMedia> MediaPlayer<?> getMediaPlayer(Class<T> clazz) {
-		for (MediaPlayer<?> player : MEDIA_PLAYERS) {
-			if (player.isTypeSupported(clazz)) {
-				return player;
+	public static synchronized final <T extends PlayableMedia> MediaPlayerFactory<?> getMediaPlayerFactory(Class<T> clazz) {
+		for (MediaPlayerFactory<?> factory : MEDIA_PLAYER_FACTORIES) {
+			if (factory.isTypeSupported(clazz)) {
+				return factory;
 			}
 		}
 		return null;
 	}
 	
 	/**
-	 * Returns all the matching {@link MediaPlayer}s for the given {@link PlayableMedia} type.
+	 * Returns all the matching {@link MediaPlayerFactory}s for the given {@link PlayableMedia} type.
 	 * @param clazz the media type
-	 * @return List&lt;{@link MediaPlayer}&gt;
+	 * @return List&lt;{@link MediaPlayerFactory}&gt;
 	 */
-	public static synchronized final <T extends PlayableMedia> List<MediaPlayer<?>> getMediaPlayers(Class<T> clazz) {
-		List<MediaPlayer<?>> players = new ArrayList<MediaPlayer<?>>();
-		for (MediaPlayer<?> player : MEDIA_PLAYERS) {
-			if (player.isTypeSupported(clazz)) {
-				players.add(player);
+	public static synchronized final <T extends PlayableMedia> List<MediaPlayerFactory<?>> getMediaPlayerFactories(Class<T> clazz) {
+		List<MediaPlayerFactory<?>> factories = new ArrayList<MediaPlayerFactory<?>>();
+		for (MediaPlayerFactory<?> factory : MEDIA_PLAYER_FACTORIES) {
+			if (factory.isTypeSupported(clazz)) {
+				factories.add(factory);
 			}
 		}
-		return players;
+		return factories;
 	}
 
 	/**
-	 * Adds the given {@link MediaPlayer} to the available media players.
-	 * @param player the player
+	 * Adds the given {@link MediaPlayerFactory} to the available media player factories.
+	 * @param factory the factory
 	 */
-	public static synchronized final void addMediaPlayer(MediaPlayer<?> player) {
-		MEDIA_PLAYERS.add(player);
+	public static synchronized final void addMediaPlayerFactory(MediaPlayerFactory<?> factory) {
+		MEDIA_PLAYER_FACTORIES.add(factory);
 	}
 
 	/**
-	 * Adds the given {@link MediaPlayer} to the available media players.
-	 * @param player the player
-	 * @return boolean true if the player was removed
+	 * Removes the given {@link MediaPlayerFactory} from the available media player factories.
+	 * @param factory the factory
+	 * @return boolean true if the player factory was removed
 	 */
-	// TODO we need to have a cache of these players so we can support multiple playing media at a time
-	public static synchronized final boolean removeMediaPlayer(MediaPlayer<?> player) {
-		return MEDIA_PLAYERS.remove(player);
+	public static synchronized final boolean removeMediaPlayerFactory(MediaPlayerFactory<?> factory) {
+		return MEDIA_PLAYER_FACTORIES.remove(factory);
 	}
 	
 	/**
@@ -523,7 +519,7 @@ public class MediaLibrary {
 			if (PlayableMedia.class.isAssignableFrom(media)) {
 				Class<? extends PlayableMedia> clazz = media.asSubclass(PlayableMedia.class);
 				// we can, so we need to make sure there is a player for it
-				MediaPlayer<?> player = getMediaPlayer(clazz);
+				MediaPlayerFactory<?> player = getMediaPlayerFactory(clazz);
 				if (player == null) {
 					return false;
 				}
@@ -611,11 +607,28 @@ public class MediaLibrary {
 	 * @throws NoMediaLoaderException thrown if a media loader does not exist for the media
 	 */
 	public static synchronized final Media getMedia(String filePath) throws MediaException, NoMediaLoaderException {
+		return getMedia(filePath, false);
+	}
+	
+	/**
+	 * Returns the media from the media library.
+	 * <p>
+	 * Returns null if the media is not found.
+	 * <p>
+	 * If the newInstance parameter is true a new instance of the media is created. This is useful when a
+	 * media object has shared resources that should not be copied but multiple copies need to be used.
+	 * @param filePath the file path/name of the media in the media library
+	 * @param newInstance true if a new instance of the media should be returned
+	 * @return {@link Media}
+	 * @throws MediaException if an exception occurs while loading the media
+	 * @throws NoMediaLoaderException thrown if a media loader does not exist for the media
+	 */
+	public static synchronized final Media getMedia(String filePath, boolean newInstance) throws MediaException, NoMediaLoaderException {
 		WeakReference<Media> ref = MEDIA.get(filePath);
 		// make sure the key is there
 		if (ref == null) return null;
 		// check if it was reclaimed
-		if (ref.get() == null) {
+		if (ref.get() == null || newInstance) {
 			// then we need to reload the media
 			Media media = loadFromMediaLibrary(filePath);
 			// create a new weak reference to the media

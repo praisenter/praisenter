@@ -1,19 +1,28 @@
 package org.praisenter.slide.media;
 
 import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.image.BufferedImage;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.display.ScaleType;
 import org.praisenter.media.AbstractImageMedia;
 import org.praisenter.media.Media;
+import org.praisenter.media.MediaException;
+import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.PlayableMedia;
 import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.SlideComponentCopyException;
 import org.praisenter.utilities.ImageUtilities;
+import org.praisenter.xml.MediaTypeAdapter;
 
 /**
  * Represents an abstract image media component that manages any type of image based media.
@@ -22,9 +31,11 @@ import org.praisenter.utilities.ImageUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
+@XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractImageMediaComponent<E extends AbstractImageMedia> extends GenericSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent, MediaComponent<E> {
 	/** The media */
 	@XmlElement(name = "Media", required = true, nillable = false)
+	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
 	protected E media;
 	
 	/** The image scale type */
@@ -65,9 +76,20 @@ public abstract class AbstractImageMediaComponent<E extends AbstractImageMedia> 
 	 * <p>
 	 * This constructor performs a deep copy where necessary.
 	 * @param component the component to copy
+	 * @throws SlideComponentCopyException thrown if the media cannot be copied
 	 */
-	public AbstractImageMediaComponent(AbstractImageMediaComponent<E> component) {
+	@SuppressWarnings("unchecked")
+	public AbstractImageMediaComponent(AbstractImageMediaComponent<E> component) throws SlideComponentCopyException {
 		super(component);
+		// we only need to do this with playable media
+		if (component.media != null && component.media instanceof PlayableMedia) {
+			try {
+				this.media = (E)MediaLibrary.getMedia(component.media.getFileProperties().getFilePath(), true);
+			} catch (MediaException e) {
+				throw new SlideComponentCopyException(e);
+			}
+		}
+		this.media = component.media;
 		this.scaleType = component.scaleType;
 		this.scaleQuality = component.scaleQuality;
 	}
@@ -84,26 +106,27 @@ public abstract class AbstractImageMediaComponent<E extends AbstractImageMedia> 
 	 */
 	public abstract BufferedImage getPreviewImage();
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.GenericSlideComponent#render(java.awt.Graphics2D)
+	/**
+	 * Scales the given image using the component width and height. 
+	 * @param image the image to scale
+	 * @return BufferedImage
 	 */
-	@Override
-	public void render(Graphics2D g) {
-		// perform the background/border rendering
-		super.render(g);
-		// render the preview image with the correct scaleing
-		this.renderImage(g, this.getImage());
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.GenericSlideComponent#renderPreview(java.awt.Graphics2D)
-	 */
-	@Override
-	public void renderPreview(Graphics2D g) {
-		// perform the background/border rendering
-		super.renderPreview(g);
-		// render the preview image with the correct scaleing
-		this.renderImage(g, this.getPreviewImage());
+	protected BufferedImage getScaledImage(BufferedImage image) {
+		int w = this.width;
+		int h = this.height;
+		// now scale (these methods will return images with the same
+		// color model as the one passed in)
+		int iw = image.getWidth();
+		int ih = image.getHeight();
+		
+		if (iw != w || ih != h) {
+			if (this.scaleType == ScaleType.UNIFORM) {
+				image = ImageUtilities.getUniformScaledImage(image, w, h, this.scaleQuality.getQuality());
+			} else if (this.scaleType == ScaleType.NONUNIFORM) {
+				image = ImageUtilities.getNonUniformScaledImage(image, w, h, this.scaleQuality.getQuality());
+			}
+		}
+		return image;
 	}
 	
 	/**
@@ -114,26 +137,18 @@ public abstract class AbstractImageMediaComponent<E extends AbstractImageMedia> 
 	 */
 	protected void renderImage(Graphics2D g, BufferedImage image) {
 		if (image != null) {
-			int w = this.width;
-			int h = this.height;
-			// now scale (these methods will return images with the same
-			// color model as the one passed in)
-			BufferedImage scaled = null;
-			if (this.scaleType == ScaleType.UNIFORM) {
-				scaled = ImageUtilities.getUniformScaledImage(image, w, h, this.scaleQuality.getQuality());
-			} else if (this.scaleType == ScaleType.NONUNIFORM) {
-				scaled = ImageUtilities.getNonUniformScaledImage(image, w, h, this.scaleQuality.getQuality());
-			} else {
-				// scaling type was none, so don't scale
-				scaled = image;
-			}
-			
+			// setup the clip for this component
+			Shape oClip = g.getClip();
+			g.setClip(this.x, this.y, this.width, this.height);
+
 			// center the image
-			int iw = scaled.getWidth();
-			int ih = scaled.getHeight();
-			int x = (this.width - iw) / 2;
-			int y = (this.height - ih) / 2;
-			g.drawImage(scaled, x,  y, null);
+			int iw = image.getWidth();
+			int ih = image.getHeight();
+			int x = (this.width - iw) / 2 + this.x;
+			int y = (this.height - ih) / 2 + this.y;
+			g.drawImage(image, x,  y, null);
+			
+			g.setClip(oClip);
 		}
 	}
 

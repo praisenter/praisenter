@@ -10,6 +10,22 @@ public interface SlideComponent {
 	/**
 	 * Performs a deep copy of this object and returns the result.
 	 * @return {@link SlideComponent}
+	 * @throws SlideComponentCopyException thrown if the copy fails
 	 */
-	public abstract SlideComponent copy();
+	public abstract SlideComponent copy() throws SlideComponentCopyException;
+
+	/**
+	 * Returns the z-ordering of the component in the slide.
+	 * @return int
+	 */
+	public abstract int getOrder();
+	
+	/**
+	 * Sets the z-ordering of the component in the slide.
+	 * <p>
+	 * If the order is changed using this method, its up to the caller
+	 * to ensure that the slide that contains this component is resorted.
+	 * @param order the order
+	 */
+	public abstract void setOrder(int order);
 }

@@ -3,20 +3,19 @@ package org.praisenter.slide;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
-import java.nio.file.FileSystems;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.utilities.FileUtilities;
 import org.praisenter.xml.FileProperties;
 import org.praisenter.xml.Thumbnail;
 import org.praisenter.xml.XmlIO;
@@ -30,30 +29,30 @@ public class SlideLibrary {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(SlideLibrary.class);
 	
-	/** File path separator */
-	private static final String SEPARATOR = FileSystems.getDefault().getSeparator();
-	
 	// storage
 	
 	/** The saved slides */
-	private static final Map<String, WeakReference<Slide>> SLIDES = new HashMap<String, WeakReference<Slide>>();
+	private static final Map<String, Slide> SLIDES = new HashMap<String, Slide>();
 	
 	/** The saved templates */
-	private static final Map<String, WeakReference<Slide>> TEMPLATES = new HashMap<String, WeakReference<Slide>>();
+	private static final Map<String, SlideTemplate> TEMPLATES = new HashMap<String, SlideTemplate>();
 	
 	/** The saved bible templates */
-	private static final Map<String, WeakReference<BibleSlide>> BIBLE_TEMPLATES = new HashMap<String, WeakReference<BibleSlide>>();
+	private static final Map<String, BibleSlideTemplate> BIBLE_TEMPLATES = new HashMap<String, BibleSlideTemplate>();
 	
 	/** The saved song templates */
-	private static final Map<String, WeakReference<Slide>> SONG_TEMPLATES = new HashMap<String, WeakReference<Slide>>();
+	private static final Map<String, SongSlideTemplate> SONG_TEMPLATES = new HashMap<String, SongSlideTemplate>();
 
+	/** The saved notification templates */
+	private static final Map<String, NotificationSlideTemplate> NOTIFICATION_TEMPLATES = new HashMap<String, NotificationSlideTemplate>();
+	
 	// thumbnails
 	
 	/** The thumbnail size */
 	private static final Dimension THUMBNAIL_SIZE = new Dimension(64, 48);
 	
 	/** The thumbnail file name */
-	private static final String THUMBS_FILE = SEPARATOR + "Thumbs.xml";
+	private static final String THUMBS_FILE = Constants.SEPARATOR + "_thumbs.xml";
 	
 	/** The list of all thumbnails */
 	private static final Map<String, Thumbnail> THUMBNAILS = new HashMap<String, Thumbnail>();
@@ -63,6 +62,7 @@ public class SlideLibrary {
 	/** True if the slide library has been loaded */
 	private static boolean loaded = false;
 	
+	// FIXME translation on exceptions
 	static {
 		// FIXME move this
 		try {
@@ -83,10 +83,11 @@ public class SlideLibrary {
 	public static final synchronized void loadSlideLibrary() throws SlideLibraryException {
 		if (!loaded) {
 			// preload the thumbnails, slides, and templates for all slides and templates
-			loadSlideLibrary(Constants.SLIDE_PATH, Slide.class);
-			loadSlideLibrary(Constants.TEMPLATE_PATH, Slide.class);
-			loadSlideLibrary(Constants.BIBLE_TEMPLATE_PATH, BibleSlide.class);
-			loadSlideLibrary(Constants.SONGS_TEMPLATE_PATH, Slide.class);
+			loadSlideLibrary(Constants.SLIDE_PATH, Slide.class, SLIDES);
+			loadSlideLibrary(Constants.TEMPLATE_PATH, SlideTemplate.class, TEMPLATES);
+			loadSlideLibrary(Constants.BIBLE_TEMPLATE_PATH, BibleSlideTemplate.class, BIBLE_TEMPLATES);
+			loadSlideLibrary(Constants.NOTIFICATIONS_TEMPLATE_PATH, NotificationSlideTemplate.class, NOTIFICATION_TEMPLATES);
+			loadSlideLibrary(Constants.SONGS_TEMPLATE_PATH, SongSlideTemplate.class, SONG_TEMPLATES);
 			loaded = true;
 		}
 	}
@@ -97,9 +98,10 @@ public class SlideLibrary {
 	 * If the file does not exist or is out of sync, it is generated and saved.
 	 * @param path the path for the thumbnail file
 	 * @param clazz the type to load
+	 * @param map the map to add the loaded slide/template
 	 * @throws SlideLibraryException thrown if the slide failed to be loaded
 	 */
-	private static final synchronized void loadSlideLibrary(String path, Class<? extends Slide> clazz) throws SlideLibraryException {
+	private static final synchronized <E extends Slide> void loadSlideLibrary(String path, Class<E> clazz, Map<String, E> map) throws SlideLibraryException {
 		// attempt to read the thumbs file in the respective folder
 		List<Thumbnail> thumbnailsFromFile = null;
 		try {
@@ -107,6 +109,8 @@ public class SlideLibrary {
 			if (sts != null) {
 				thumbnailsFromFile = sts.getThumbnails();
 			}
+		} catch (FileNotFoundException e) {
+			// just eat this one
 		} catch (Exception e) {
 			// silently ignore this error
 			LOGGER.error("Could not read [" + path + THUMBS_FILE + "]: ", e);
@@ -122,87 +126,90 @@ public class SlideLibrary {
 		
 		// read the media library file names
 		File[] files = new File(path).listFiles();
-		for (File file : files) {
-			// skip directories
-			if (file.isDirectory()) continue;
-			// get the file path
-			String filePath = file.getPath();
-			// skip the thumbnail file
-			if (FileUtilities.getContentType(filePath).contains(THUMBS_FILE)) continue;
-			// make sure there exists a thumnail for the file
-			boolean exists = false;
-			for (Thumbnail thumb : thumbnailsFromFile) {
-				if (thumb.getFileProperties().getFileName().equals(file.getName())) {
-					// flag that the thumbnail exists
-					exists = true;
-					// add it to the thumbnails array
-					thumbnails.add(thumb);
-					// we can break from the loop
-					break;
+		if (files != null) {
+			for (File file : files) {
+				// skip directories
+				if (file.isDirectory()) continue;
+				// get the file path
+				String filePath = file.getPath();
+				// skip the thumbnail file
+				if (filePath.contains(THUMBS_FILE)) continue;
+				// make sure there exists a thumnail for the file
+				boolean exists = false;
+				for (Thumbnail thumb : thumbnailsFromFile) {
+					if (thumb.getFileProperties().getFileName().equals(file.getName())) {
+						// flag that the thumbnail exists
+						exists = true;
+						// add it to the thumbnails array
+						thumbnails.add(thumb);
+						// we can break from the loop
+						break;
+					}
+				}
+				// check if we need to generate a thumbnail for the file
+				if (!exists) {
+					// generate a thumbnail for the image using the media loader
+					// load the media
+					E slide = loadFromSlideLibrary(filePath, clazz);
+					// add the media to the media library (might as well since we loaded it)
+					map.put(filePath, slide);
+					// create the thumbnail
+					BufferedImage image = slide.getThumbnail(THUMBNAIL_SIZE);
+					// add the thumbnail to the list
+					thumbnails.add(new Thumbnail(FileProperties.getFileProperties(filePath), image));
+					// flag that we need to save it
+					save = true;
+				} else {
+					// we need to add a media reference anyway
+					map.put(filePath, null);
 				}
 			}
-			// check if we need to generate a thumbnail for the file
-			if (!exists) {
-				// generate a thumbnail for the image using the media loader
-				// load the media
-				Slide slide = loadFromSlideLibrary(filePath, clazz);
-				// add the media to the media library (might as well since we loaded it)
-				SLIDES.put(filePath, new WeakReference<Slide>(slide));
-				// create the thumbnail
-				BufferedImage image = slide.getThumbnail(THUMBNAIL_SIZE);
-				// add the thumbnail to the list
-				thumbnails.add(new Thumbnail(FileProperties.getFileProperties(filePath), image));
-				// flag that we need to save it
-				save = true;
-			} else {
-				// we need to add a media reference anyway
-				SLIDES.put(filePath, new WeakReference<Slide>(null));
+			// add all the thumbnails
+			for (Thumbnail thumbnail : thumbnails) {
+				THUMBNAILS.put(thumbnail.getFileProperties().getFilePath(), thumbnail);
+			}
+			// after we have read all the files we need to save the new thumbs xml
+			if (save || thumbnailsFromFile.size() != thumbnails.size()) {
+				saveThumbnailsFile(clazz);
 			}
 		}
-		// add all the thumbnails
-		for (Thumbnail thumbnail : thumbnails) {
-			THUMBNAILS.put(thumbnail.getFileProperties().getFilePath(), thumbnail);
-		}
-		// after we have read all the files we need to save the new thumbs xml
-		if (save || thumbnailsFromFile.size() != thumbnails.size()) {
-			saveThumbnailsFile(path, thumbnails);
-		}
 	}
 	
 	/**
-	 * Writes the thumbnails file for the slides path.
+	 * Returns the file system path for the given class.
+	 * @param clazz the class
+	 * @return String
 	 */
-	private static synchronized final void saveSlideThumbnails() {
-		try {
-			List<Thumbnail> thumbnails = getSlideThumbnails();
-			XmlIO.save(Constants.SLIDE_PATH + THUMBS_FILE, new SlideThumbnails(thumbnails));
-			LOGGER.info("File [" + Constants.SLIDE_PATH + THUMBS_FILE + "] updated.");
-		} catch (JAXBException | IOException e) {
-			// silently log this error
-			LOGGER.error("Failed to re-save [" + Constants.SLIDE_PATH + THUMBS_FILE + "]: ", e);
+	private static final String getPath(Class<?> clazz) {
+		String path = Constants.SLIDE_PATH;
+		
+		// see if the type is a template
+		if (Template.class.isAssignableFrom(clazz)) {
+			// it could be a bible, song, or notification template
+			if (BibleSlide.class.isAssignableFrom(clazz)) {
+				path = Constants.BIBLE_TEMPLATE_PATH;
+			} else if (NotificationSlide.class.isAssignableFrom(clazz)) {
+				path = Constants.NOTIFICATIONS_TEMPLATE_PATH;
+			} else if (SongSlide.class.isAssignableFrom(clazz)) {
+				path = Constants.SONGS_TEMPLATE_PATH;
+			} else {
+				// generic template
+				path = Constants.TEMPLATE_PATH;
+			}
 		}
-	}
-
-	/**
-	 * Writes the thumbnails file for the templates path.
-	 */
-	private static synchronized final void saveTemplateThumbnails() {
-		try {
-			List<Thumbnail> thumbnails = getTemplateThumbnails();
-			XmlIO.save(Constants.TEMPLATE_PATH + THUMBS_FILE, new SlideThumbnails(thumbnails));
-			LOGGER.info("File [" + Constants.TEMPLATE_PATH + THUMBS_FILE + "] updated.");
-		} catch (JAXBException | IOException e) {
-			// silently log this error
-			LOGGER.error("Failed to re-save [" + Constants.TEMPLATE_PATH + THUMBS_FILE + "]: ", e);
-		}
+		
+		return path;
 	}
 	
 	/**
-	 * Writes the thumbnails file for the given path and list of thumbnails.
-	 * @param path the path of the thumbnails file (no file name)
-	 * @param thumbnails the list of thumbnails
+	 * Writes the thumbnails file for the given class.
+	 * @param clazz the class type
 	 */
-	private static synchronized final void saveThumbnailsFile(String path, List<Thumbnail> thumbnails) {
+	private static synchronized final void saveThumbnailsFile(Class<?> clazz) {
+		// get the path and thumbnails for the given class type
+		String path = getPath(clazz);
+		List<Thumbnail> thumbnails = getThumbnails(clazz);
+		
 		try {
 			XmlIO.save(path + THUMBS_FILE, new SlideThumbnails(thumbnails));
 			LOGGER.info("File [" + path + THUMBS_FILE + "] updated.");
@@ -219,7 +226,7 @@ public class SlideLibrary {
 	 * @return {@link Slide}
 	 * @throws SlideLibraryException thrown if the slide failed to be loaded
 	 */
-	private static synchronized final Slide loadFromSlideLibrary(String filePath, Class<? extends Slide> clazz) throws SlideLibraryException {
+	private static synchronized final <E extends Slide> E loadFromSlideLibrary(String filePath, Class<E> clazz) throws SlideLibraryException {
 		try {
 			return XmlIO.read(filePath, clazz);
 		} catch (JAXBException | IOException e) {
@@ -241,58 +248,33 @@ public class SlideLibrary {
 	public static final synchronized Thumbnail getThumbnail(String filePath) {
 		return THUMBNAILS.get(filePath);
 	}
-	
+
 	/**
-	 * Returns all the thumbnails in the slide library.
+	 * Returns the thumbnails for the given class.
+	 * @param clazz the class
 	 * @return List&lt;{@link Thumbnail}&gt;
 	 */
-	public static synchronized final List<Thumbnail> getSlideThumbnails() {
-		List<Thumbnail> thumbnails = new ArrayList<Thumbnail>();
+	public static final synchronized List<Thumbnail> getThumbnails(Class<?> clazz) {
 		// we can use the slides map to get all the file path/names and use
 		// those to look up all the thumbnails in that directory
-		for (String filePath : SLIDES.keySet()) {
-			thumbnails.add(THUMBNAILS.get(filePath));
+		Set<String> paths = SLIDES.keySet();
+		// see if the type is a template
+		if (Template.class.isAssignableFrom(clazz)) {
+			// it could be a bible, song, or notification template
+			if (BibleSlide.class.isAssignableFrom(clazz)) {
+				paths = BIBLE_TEMPLATES.keySet();
+			} else if (NotificationSlide.class.isAssignableFrom(clazz)) {
+				paths = NOTIFICATION_TEMPLATES.keySet();
+			} else if (SongSlide.class.isAssignableFrom(clazz)) {
+				paths = SONG_TEMPLATES.keySet();
+			} else {
+				// generic template
+				paths = TEMPLATES.keySet();
+			}
 		}
-		return thumbnails;
-	}
-	
-	/**
-	 * Returns all the thumbnails in the template library.
-	 * @return List&lt;{@link Thumbnail}&gt;
-	 */
-	public static final synchronized List<Thumbnail> getTemplateThumbnails() {
+		// get the thumbnails
 		List<Thumbnail> thumbnails = new ArrayList<Thumbnail>();
-		// we can use the templates map to get all the file path/names and use
-		// those to look up all the thumbnails in that directory
-		for (String filePath : TEMPLATES.keySet()) {
-			thumbnails.add(THUMBNAILS.get(filePath));
-		}
-		return thumbnails;
-	}
-	
-	/**
-	 * Returns all the thumbnails in the bible template library.
-	 * @return List&lt;{@link Thumbnail}&gt;
-	 */
-	public static final synchronized List<Thumbnail> getBibleTemplateThumbnails() {
-		List<Thumbnail> thumbnails = new ArrayList<Thumbnail>();
-		// we can use the bible templates map to get all the file path/names and use
-		// those to look up all the thumbnails in that directory
-		for (String filePath : BIBLE_TEMPLATES.keySet()) {
-			thumbnails.add(THUMBNAILS.get(filePath));
-		}
-		return thumbnails;
-	}
-	
-	/**
-	 * Returns all the thumbnails in the song template library.
-	 * @return List&lt;{@link Thumbnail}&gt;
-	 */
-	public static final synchronized List<Thumbnail> getSongTemplateThumbnails() {
-		List<Thumbnail> thumbnails = new ArrayList<Thumbnail>();
-		// we can use the song templates map to get all the file path/names and use
-		// those to look up all the thumbnails in that directory
-		for (String filePath : SONG_TEMPLATES.keySet()) {
+		for (String filePath : paths) {
 			thumbnails.add(THUMBNAILS.get(filePath));
 		}
 		return thumbnails;
@@ -321,12 +303,12 @@ public class SlideLibrary {
 	 * @throws SlideLibraryException thrown if an error occurs saving the slide
 	 */
 	public static final synchronized void saveSlide(String fileName, Slide slide) throws SlideLibraryException {
-		String filePath = Constants.SLIDE_PATH + SEPARATOR + fileName;
+		String filePath = Constants.SLIDE_PATH + Constants.SEPARATOR + fileName + ".xml";
 		try {
 			// save the slide to disc
 			XmlIO.save(filePath, slide);
 			// add the slide to the slide library
-			SLIDES.put(filePath, new WeakReference<Slide>(slide));
+			SLIDES.put(filePath, slide);
 			// create a thumbnail
 			Thumbnail thumbnail = new Thumbnail(
 					FileProperties.getFileProperties(filePath), 
@@ -334,7 +316,7 @@ public class SlideLibrary {
 			// add the thumbnail to the list of thumbnails
 			THUMBNAILS.put(filePath, thumbnail);
 			// update the thumbnail file for this directory
-			saveSlideThumbnails();
+			saveThumbnailsFile(Slide.class);
 		} catch (JAXBException e) {
 			throw new SlideLibraryException(e);
 		} catch (IOException e) {
@@ -365,11 +347,11 @@ public class SlideLibrary {
 	/**
 	 * Returns the saved template.
 	 * @param filePath the file name and path of the saved template
-	 * @param clazz the type of the slide
+	 * @param clazz the type of the template
 	 * @return {@link Slide}
-	 * @throws SlideLibraryException thrown if an exception occurs while loading the slide
+	 * @throws SlideLibraryException thrown if an exception occurs while loading the template
 	 */
-	public static final synchronized <E extends Slide> E getTemplate(String filePath, Class<E> clazz) throws SlideLibraryException {
+	public static final synchronized <E extends Slide & Template> E getTemplate(String filePath, Class<E> clazz) throws SlideLibraryException {
 		try {
 			return XmlIO.read(filePath, clazz);
 		} catch (JAXBException | IOException e) {
@@ -380,28 +362,33 @@ public class SlideLibrary {
 	/**
 	 * Saves the given template to the slide library.
 	 * @param fileName the file name
-	 * @param slide the template
-	 * @throws SlideLibraryException thrown if an exception occurs while saving the slide
+	 * @param template the template
+	 * @throws SlideLibraryException thrown if an exception occurs while saving the template
 	 */
-	public static final synchronized <E extends Slide> void saveSlideTemplate(String fileName, E slide) throws SlideLibraryException {
-		String path = Constants.TEMPLATE_PATH;
-		if (slide instanceof BibleSlide) {
-			path = Constants.BIBLE_TEMPLATE_PATH;
-		}
-		String filePath = path + SEPARATOR + fileName;
+	public static final synchronized <E extends Slide & Template> void saveTemplate(String fileName, E template) throws SlideLibraryException {
+		String path = getPath(template.getClass());
+		String filePath = path + Constants.SEPARATOR + fileName + ".xml";
 		try {
-			// save the slide to disc
-			XmlIO.save(filePath, slide);
-			// add the slide to the slide library
-			TEMPLATES.put(filePath, new WeakReference<Slide>(slide));
+			// save the template to disc
+			XmlIO.save(filePath, template);
+			// add the template to the slide library
+			if (template instanceof BibleSlideTemplate) {
+				BIBLE_TEMPLATES.put(filePath, (BibleSlideTemplate)template);
+			} else if (template instanceof NotificationSlideTemplate) {
+				NOTIFICATION_TEMPLATES.put(filePath, (NotificationSlideTemplate)template);
+			} else if (template instanceof SongSlideTemplate) {
+				SONG_TEMPLATES.put(filePath, (SongSlideTemplate)template);
+			} else {
+				TEMPLATES.put(filePath, (SlideTemplate)template);
+			}
 			// create a thumbnail
 			Thumbnail thumbnail = new Thumbnail(
 					FileProperties.getFileProperties(filePath), 
-					slide.getThumbnail(THUMBNAIL_SIZE));
+					template.getThumbnail(THUMBNAIL_SIZE));
 			// add the thumbnail to the list of thumbnails
 			THUMBNAILS.put(filePath, thumbnail);
 			// update the thumbnail file for this directory
-			saveTemplateThumbnails();
+			saveThumbnailsFile(template.getClass());
 		} catch (JAXBException e) {
 			throw new SlideLibraryException(e);
 		} catch (IOException e) {
@@ -410,11 +397,11 @@ public class SlideLibrary {
 	}
 
 	/**
-	 * Removes the given slide.
+	 * Removes the given template.
 	 * @param filePath the file name and path
 	 * @return boolean
 	 */
-	public static final synchronized boolean deleteSlideTemplate(String filePath) {
+	public static final synchronized boolean deleteTemplate(String filePath) {
 		File file = new File(filePath);
 		// delete the file
 		if (file.delete()) {

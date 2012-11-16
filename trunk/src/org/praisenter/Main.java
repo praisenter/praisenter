@@ -126,6 +126,7 @@ public class Main {
 		initializeFolder(Constants.TEMPLATE_PATH);
 		initializeFolder(Constants.TEMPLATE_PATH + fs.getSeparator() + Constants.BIBLE_TEMPLATE_PATH);
 		initializeFolder(Constants.TEMPLATE_PATH + fs.getSeparator() + Constants.SONGS_TEMPLATE_PATH);
+		initializeFolder(Constants.TEMPLATE_PATH + fs.getSeparator() + Constants.NOTIFICATIONS_TEMPLATE_PATH);
 	}
 	
 	/**

@@ -7,14 +7,22 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.praisenter.media.MediaPlayer;
 import org.praisenter.media.MediaPlayerListener;
-import org.praisenter.media.PlayableMedia;
+import org.praisenter.media.VideoMediaPlayerListener;
 import org.praisenter.media.XugglerPlayableMedia;
-import org.praisenter.media.XugglerVideoMedia;
-import org.praisenter.media.MediaPlayer.State;
 
+import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
+import com.xuggle.xuggler.IStream;
 import com.xuggle.xuggler.IStreamCoder;
 
+/**
+ * Class used to play {@link XugglerPlayableMedia}.
+ * <p>
+ * This class uses a number of threads to read and playback the given media.
+ * @author William Bittle
+ * @version 1.0.0
+ * @since 1.0.0
+ */
 public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(XugglerMediaPlayer.class);
@@ -29,6 +37,7 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	protected boolean looped;
 	
 	/** True if the media is muted */
+	// FIXME setup muting
 	protected boolean muted;
 
 	/** The list of media player listeners */
@@ -36,26 +45,57 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	
 	// the media
 	
+	/** The media to play */
 	protected XugglerPlayableMedia media;
 	
 	// threads
 	
+	/** The media reader thread */
 	protected XugglerMediaReaderThread mediaReaderThread;
+	
+	/** The media player thread */
 	protected XugglerMediaPlayerThread mediaPlayerThread;
+	
+	/** The audio player thread */
 	protected XugglerAudioPlayerThread audioPlayerThread;
 	
-	// TODO some suggest synching based on the audio output timestamps
+	/**
+	 * Default constructor.
+	 */
 	public XugglerMediaPlayer() {
 		this.state = State.STOPPED;
 		this.clock = new XugglerMediaClock();
 		this.listeners = new ArrayList<>();
 		this.looped = true;
 		
-		// start the threads
-		this.mediaReaderThread = new DefaultMediaReaderThread();
-		this.mediaPlayerThread = new DefaultMediaPlayerThread();
+		// create the threads
+		this.mediaReaderThread = new XugglerMediaReaderThread() {
+			@Override
+			protected void queueVideoImage(XugglerVideoData image) {
+				mediaPlayerThread.queueVideoImage(image);
+			}
+			@Override
+			protected void queueAudioImage(XugglerAudioData samples) {
+				mediaPlayerThread.queueAudioSamples(samples);
+			}
+			@Override
+			protected void onMediaEnd() {
+				XugglerMediaPlayer.this.loop();
+			}
+		};
+		this.mediaPlayerThread = new XugglerMediaPlayerThread() {
+			@Override
+			protected void playVideo(BufferedImage image) {
+				notifyListeners(image);
+			}
+			@Override
+			protected void playAudio(byte[] samples) {
+				audioPlayerThread.queue(samples);
+			}
+		};
 		this.audioPlayerThread = new XugglerAudioPlayerThread();
 		
+		// start the threads
 		this.audioPlayerThread.start();
 		this.mediaPlayerThread.start();
 		this.mediaReaderThread.start();
@@ -63,33 +103,89 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	
 	/**
 	 * Initializes the playback of the given media.
+	 * <p>
+	 * Returns true if the media was opened succesfully.
 	 * @param media the media
+	 * @return boolean
 	 */
-	private void initializeMedia(XugglerPlayableMedia media) {
-		// get the Xuggler objects from the media
-		IContainer container = media.getContainer();
-		IStreamCoder audioCoder = media.getAudioCoder();
+	private boolean initializeMedia(XugglerPlayableMedia media) {
+		// assign the media
+		this.media = media;
+		
+		// open the media
+		
+		// create the video container object
+		IContainer container = IContainer.make();
+
+		// open the container format
+		String filePath = media.getFileProperties().getFilePath();
+		if (container.open(filePath, IContainer.Type.READ, null) < 0) {
+			LOGGER.error("Could not open file [" + filePath + "].  Unsupported container format.");
+			return false;
+		}
+		LOGGER.debug("Video file opened. Container format: " + container.getContainerFormat().getInputFormatLongName());
+
+		// query how many streams the call to open found
+		int numStreams = container.getNumStreams();
+		LOGGER.debug("Stream count: " + container.getContainerFormat().getInputFormatLongName());
+
+		// loop over the streams to find the first video stream
 		IStreamCoder videoCoder = null;
-		if (media instanceof XugglerVideoMedia) {
-			XugglerVideoMedia vMedia = (XugglerVideoMedia)media;
-			videoCoder = vMedia.getVideoCoder();
+		IStreamCoder audioCoder = null;
+		for (int i = 0; i < numStreams; i++) {
+			IStream stream = container.getStream(i);
+			// get the coder for the stream
+			IStreamCoder coder = stream.getStreamCoder();
+			// see if the coder is a video coder
+			if (coder.getCodecType() == ICodec.Type.CODEC_TYPE_VIDEO) {
+				// if so, break from the loop
+				videoCoder = coder;
+			}
+			if (stream.getStreamCoder().getCodecType() == ICodec.Type.CODEC_TYPE_AUDIO) {
+                audioCoder = coder;
+            }
+		}
+		
+		// see if we have a video stream
+		if (videoCoder != null) {
+			// open the coder to read the video data
+			String codecName = "Unknown";
+			ICodec codec = videoCoder.getCodec();
+			if (codec != null) {
+				codecName = codec.getLongName();
+			}
+			if (videoCoder.open(null, null) < 0) {
+				LOGGER.error("Could not open video decoder for: " + codecName);
+				return false;
+			}
+			LOGGER.debug("Video coder opened with format: " + codecName);
+		} else {
+			LOGGER.debug("No video stream in container.");
+		}
+		
+		// see if we have an audio stream
+		if (audioCoder != null) {
+			String codecName = "Unknown";
+			ICodec codec = audioCoder.getCodec();
+			if (codec != null) {
+				codecName = codec.getLongName();
+			}
+			if (audioCoder.open(null, null) < 0) {
+				LOGGER.error("Could not open audio decoder for: " + codecName);
+				return false;
+			}
+			LOGGER.debug("Audio coder opened with format: " + codecName);
 		}
 		
 		// initialize the playback threads
-		this.audioPlayerThread.initialize(audioCoder);
-		this.mediaPlayerThread.initialize(videoCoder != null, audioCoder != null);
-		this.mediaReaderThread.initialize(container, videoCoder, audioCoder);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaPlayer#isTypeSupported(java.lang.Class)
-	 */
-	@Override
-	public <T extends PlayableMedia> boolean isTypeSupported(Class<T> clazz) {
-		if (XugglerPlayableMedia.class.isAssignableFrom(clazz)) {
-			return true;
+		boolean downmix = this.audioPlayerThread.initialize(audioCoder);
+		if (downmix) {
+			LOGGER.info("Downmixing required.");
 		}
-		return false;
+		this.mediaPlayerThread.initialize(videoCoder != null, audioCoder != null);
+		this.mediaReaderThread.initialize(container, videoCoder, audioCoder, downmix);
+		
+		return true;
 	}
 	
 	/* (non-Javadoc)
@@ -104,11 +200,14 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 * @see org.praisenter.media.MediaPlayer#setMedia(org.praisenter.media.PlayableMedia)
 	 */
 	@Override
-	public void setMedia(XugglerPlayableMedia media) {
+	public boolean setMedia(XugglerPlayableMedia media) {
+		if (media == null) {
+			return false;
+		}
 		// stop any playback
 		this.stop();
 		// assign the media
-		this.initializeMedia(media);
+		return this.initializeMedia(media);
 	}
 	
 	/* (non-Javadoc)
@@ -148,11 +247,17 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	@Override
 	public void play() {
-		this.state = State.PLAYING;
-		this.setPaused(false);
-		System.out.println("--Playing");
+		if (this.media != null) {
+			this.state = State.PLAYING;
+			this.setPaused(false);
+			LOGGER.debug("Playing");
+		}
 	}
 	
+	/**
+	 * Pauses or unpauses the media threads.
+	 * @param flag true if the threads should be paused
+	 */
 	private void setPaused(boolean flag) {
 		this.audioPlayerThread.setPaused(flag);
 		this.mediaPlayerThread.setPaused(flag);
@@ -164,10 +269,18 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 * beings playback.
 	 */
 	private void loop() {
-		System.out.println("--Looping");
-		// stop, but drain whats left
-		stop(true);
-		play();
+		if (this.looped) {
+			LOGGER.debug("Looping");
+			// stop, but drain whats left
+			boolean reset = stop(true);
+			// make sure we were able to reset
+			// the media to its start position
+			if (reset) {
+				play();
+			} else {
+				LOGGER.warn("Loop failed, stopping media playback.");
+			}
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -175,9 +288,11 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	@Override
 	public void pause() {
-		this.state = State.PAUSED;
-		this.setPaused(true);
-		System.out.println("--Paused");
+		if (this.state == State.PLAYING) {
+			this.state = State.PAUSED;
+			this.setPaused(true);
+			LOGGER.debug("Paused");
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -185,9 +300,11 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	@Override
 	public void resume() {
-		this.state = State.PLAYING;
-		this.setPaused(false);
-		System.out.println("--Resumed");
+		if (this.state == State.PAUSED) {
+			this.state = State.PLAYING;
+			this.setPaused(false);
+			LOGGER.debug("Resumed");
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -198,25 +315,39 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 		this.stop(false);
 	}
 	
-	private void stop(boolean drain) {
-		if (this.state != State.STOPPED) {
+	/**
+	 * Stops the playback of the media optionally draining or
+	 * flushing any remaining audio/video frames.
+	 * <p>
+	 * Returns true if the media was successfully reset to the 
+	 * beginning of the media.
+	 * @param drain true if the queued media should be drained
+	 * @return boolean
+	 */
+	private boolean stop(boolean drain) {
+		// if we are paused or playing we can stop the media and reset it
+		if (this.state == State.PLAYING || this.state == State.PAUSED) {
 			this.state = State.STOPPED;
 			// only pause the reading thread
 			this.mediaReaderThread.setPaused(true);
 			
-			System.out.println("--Seeking");
-			this.mediaReaderThread.loop();
+			LOGGER.debug("Seeking");
+			boolean looped = this.mediaReaderThread.loop();
 			
 			if (drain) {
+				LOGGER.debug("Draining");
 				this.mediaPlayerThread.drain();
 				this.audioPlayerThread.drain();
 			} else {
+				LOGGER.debug("Flushing");
 				this.mediaPlayerThread.flush();
 				this.audioPlayerThread.flush();
 			}
 			
-			System.out.println("--Stopped");
+			LOGGER.debug("Stopped");
+			return looped;
 		}
+		return true;
 	}
 	
 	/* (non-Javadoc)
@@ -226,6 +357,21 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	public void seek(long position) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	@Override
+	public void release() {
+		this.stop();
+		this.state = State.ENDED;
+		if (this.mediaReaderThread != null) {
+			this.mediaReaderThread.end();
+		}
+		if (this.mediaPlayerThread != null) {
+			this.mediaPlayerThread.end();
+		}
+		if (this.audioPlayerThread != null) {
+			this.audioPlayerThread.end();
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -274,40 +420,9 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	private void notifyListeners(BufferedImage image) {
 		for (MediaPlayerListener listener : this.listeners) {
-			listener.onVideoPicture(image);
-		}
-	}
-
-	// wire up threads
-	
-	private class DefaultMediaReaderThread extends XugglerMediaReaderThread {
-		@Override
-		protected void onStreamEnd() {
-			if (looped) {
-				XugglerMediaPlayer.this.loop();
+			if (listener instanceof VideoMediaPlayerListener) {
+				((VideoMediaPlayerListener)listener).onVideoImage(image);
 			}
-		}
-		
-		@Override
-		protected void queueAudioImage(XugglerTimedData<byte[]> samples) {
-			mediaPlayerThread.queueAudioSamples(samples);
-		}
-		
-		@Override
-		protected void queueVideoImage(XugglerTimedData<BufferedImage> image) {
-			mediaPlayerThread.queueVideoImage(image);
-		}
-	}
-	
-	private class DefaultMediaPlayerThread extends XugglerMediaPlayerThread {
-		@Override
-		protected void playAudio(byte[] samples) {
-			audioPlayerThread.queue(samples);
-		}
-		
-		@Override
-		protected void playVideo(BufferedImage image) {
-			notifyListeners(image);
 		}
 	}
 }

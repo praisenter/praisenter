@@ -2,29 +2,20 @@ package org.praisenter.media.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
-import javax.activation.DataSource;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.DataLine;
-import javax.sound.sampled.Line;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.Mixer;
-import javax.sound.sampled.SourceDataLine;
-import javax.sound.sampled.TargetDataLine;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.apache.log4j.xml.DOMConfigurator;
 import org.praisenter.media.MediaException;
 import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaPlayer;
-import org.praisenter.media.MediaPlayerListener;
+import org.praisenter.media.VideoMediaPlayerListener;
 import org.praisenter.media.XugglerPlayableMedia;
 import org.praisenter.media.XugglerVideoMedia;
 import org.praisenter.media.player.XugglerMediaPlayer;
@@ -51,6 +42,8 @@ public class VideoPlayerTest {
 				}
 	        }
 	    }
+		
+		DOMConfigurator.configure("config/log4j.xml");
 		
 //		AudioFormat f = new AudioFormat(48000, 16, 6, true, false);
 //		DataLine.Info finfo = new DataLine.Info(SourceDataLine.class, f);
@@ -91,7 +84,7 @@ public class VideoPlayerTest {
 		new TestFrame();
 	}
 	
-	private static class TestFrame extends JFrame implements MediaPlayerListener {
+	private static class TestFrame extends JFrame implements VideoMediaPlayerListener {
 		XugglerVideoMedia media = null;
 		XugglerMediaPlayer player = null;
 		VideoImagePanel pnlImage;
@@ -113,7 +106,7 @@ public class VideoPlayerTest {
 				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.mov");
 //				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.ogg");
 //				media = (XugglerVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi");
-				player = (XugglerMediaPlayer)MediaLibrary.getMediaPlayer(XugglerPlayableMedia.class);
+				player = (XugglerMediaPlayer)MediaLibrary.getMediaPlayerFactory(XugglerPlayableMedia.class).createMediaPlayer();
 				player.addMediaPlayerListener(this);
 				player.setMedia(media);
 				player.setLooped(true);
@@ -128,25 +121,19 @@ public class VideoPlayerTest {
 				e.printStackTrace();
 			}
 			
-			try {
-				Thread.sleep(5000);
-				player.pause();
-				Thread.sleep(2000);
-				player.resume();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//			try {
+//				Thread.sleep(5000);
+//				player.pause();
+//				Thread.sleep(2000);
+//				player.resume();
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 		}
 		
 		@Override
-		public void paused() {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void onVideoPicture(BufferedImage image) {
+		public void onVideoImage(BufferedImage image) {
 //			this.image = image;
 
 //				SwingUtilities.invokeLater(new Runnable() {
@@ -159,35 +146,12 @@ public class VideoPlayerTest {
 				pnlImage.setImage(image);
 			
 		}
-		
-		@Override
-		public void seeked() {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void resumed() {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void started() {
-			// TODO Auto-generated method stub
-			
-		}
-		
-		@Override
-		public void stopped() {
-			// TODO Auto-generated method stub
-			
-		}
 	}
 	
 	private static class VideoImagePanel extends JPanel {
 		BufferedImage image;
 		public VideoImagePanel() {
+			this.setPreferredSize(new Dimension(400, 400));
 		}
 		
 		public void setImage(BufferedImage image) {
@@ -200,8 +164,20 @@ public class VideoPlayerTest {
 		
 		@Override
 		protected void paintComponent(Graphics g) {
-//			super.paintComponent(g);
-			g.drawImage(this.image, 0, 0, 300, 300, null);
+			if (this.image != null) {
+				final double iw = this.image.getWidth();
+				final double ih = this.image.getHeight();
+				
+				final double ts = 400;
+				final double sw = ts / iw;
+				final double sh = ts / ih;
+				final double s = sw < sh ? sw : sh;
+				
+				final int w = (int)Math.ceil(s * (double)iw);
+				final int h = (int)Math.ceil(s * (double)ih);
+				
+				g.drawImage(this.image, 0, 0, w, h, null);
+			}
 		}
 	}
 }

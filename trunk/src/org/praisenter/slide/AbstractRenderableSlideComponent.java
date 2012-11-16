@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -16,6 +18,7 @@ import org.praisenter.xml.PaintTypeAdapter;
  * @version 1.0.0
  * @since 1.0.0
  */
+@XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractRenderableSlideComponent implements SlideComponent, RenderableSlideComponent {
 	/** The width of this component */
 	@XmlAttribute(name = "Width", required = true)
@@ -102,22 +105,6 @@ public abstract class AbstractRenderableSlideComponent implements SlideComponent
 
 	// rendering
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#renderPreview(java.awt.Graphics2D)
-	 */
-	@Override
-	public void renderPreview(Graphics2D g) {
-		this.renderBackground(g, 0, 0);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#render(java.awt.Graphics2D)
-	 */
-	@Override
-	public void render(Graphics2D g) {
-		this.renderBackground(g, 0, 0);
-	}
-
 	/**
 	 * Renders the background at the specified coordinates.
 	 * @param g the graphics object to render to
