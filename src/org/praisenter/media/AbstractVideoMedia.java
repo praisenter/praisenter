@@ -22,12 +22,6 @@ public abstract class AbstractVideoMedia extends AbstractImageMedia implements M
 	}
 	
 	/**
-	 * Returns the current frame of the video.
-	 * @return BufferedImage
-	 */
-	public abstract BufferedImage getCurrentFrame();
-	
-	/**
 	 * Returns the first frame of the video.
 	 * @return BufferedImage
 	 */

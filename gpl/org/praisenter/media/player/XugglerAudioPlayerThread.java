@@ -19,6 +19,8 @@ import com.xuggle.xuggler.IStreamCoder;
 
 /**
  * Represents a thread used to play audio using JavaSound.
+ * <p>
+ * This class is not designed to be used separately from the {@link XugglerMediaPlayer} class.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
@@ -44,9 +46,12 @@ public class XugglerAudioPlayerThread extends PausableThread {
 	
 	/**
 	 * Initializes this audio player thread with the given audio coder information.
+	 * <p>
+	 * Returns true if the no downmixing is necessary.
 	 * @param audioCoder the audio coder
+	 * @return boolean
 	 */
-	public void initialize(IStreamCoder audioCoder) {
+	public boolean initialize(IStreamCoder audioCoder) {
 		if (this.line != null) {
 			this.line.close();
 			this.line = null;
@@ -55,7 +60,7 @@ public class XugglerAudioPlayerThread extends PausableThread {
 		// make sure the given audio coder is not null
 		// this can happen with videos that are just video
 		if (audioCoder != null) {
-			boolean formatSupported = false;
+			boolean downMixingRequired = false;
 			// attempt to use the media's audio format
 			AudioFormat format = new AudioFormat(
 					audioCoder.getSampleRate(), 
@@ -77,29 +82,31 @@ public class XugglerAudioPlayerThread extends PausableThread {
 						false);
 				info = new DataLine.Info(SourceDataLine.class, format);
 				if (AudioSystem.isLineSupported(info)) {
-					formatSupported = true;
+					downMixingRequired = true;
+				} else {
+					// format just isn't supported so log it and dont play the audio
+					LOGGER.warn("The audio format is not supported by JavaSound: " + format);
+					this.line = null;
+					return false;
 				}
-			} else {
-				formatSupported = true;
 			}
 			
-			// verify the format is supported
-			if (formatSupported) {
-				try{
-					// create and open JavaSound
-					this.line = (SourceDataLine)AudioSystem.getLine(info);
-					this.line.open(format);
-					this.line.start();
-				} catch (LineUnavailableException e) {
-					// if a line isn't available then just dont play any sound
-					// and just continue normally
-					LOGGER.error("Line not available for audio playback: ", e);
-					this.line = null;
-				}
-			} else {
+			try {
+				// create and open JavaSound
+				this.line = (SourceDataLine)AudioSystem.getLine(info);
+				this.line.open(format);
+				this.line.start();
+				return downMixingRequired;
+			} catch (LineUnavailableException e) {
+				// if a line isn't available then just dont play any sound
+				// and just continue normally
+				LOGGER.error("Line not available for audio playback: ", e);
 				this.line = null;
+				return false;
 			}
 		}
+		
+		return false;
 	}
 	
 	/**
@@ -197,6 +204,7 @@ public class XugglerAudioPlayerThread extends PausableThread {
 			}
 		} catch (InterruptedException e) {
 			// if we get interrupted just continue
+			LOGGER.debug("Playback interrupted.");
 		}
 	}
 }

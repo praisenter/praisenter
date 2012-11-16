@@ -11,8 +11,8 @@ import org.praisenter.display.ScaleQuality;
 import org.praisenter.display.ScaleType;
 import org.praisenter.display.HorizontalTextAlignment;
 import org.praisenter.display.VerticalTextAlignment;
-import org.praisenter.transitions.Fade;
-import org.praisenter.transitions.easing.CubicEasing;
+import org.praisenter.slide.transitions.Fade;
+import org.praisenter.slide.transitions.easing.CubicEasing;
 import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.FontManager;
 

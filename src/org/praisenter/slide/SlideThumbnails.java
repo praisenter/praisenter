@@ -2,6 +2,8 @@ package org.praisenter.slide;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -15,6 +17,7 @@ import org.praisenter.xml.Thumbnail;
  * @since 1.0.0
  */
 @XmlRootElement(name = "SlideThumbnails")
+@XmlAccessorType(XmlAccessType.NONE)
 public class SlideThumbnails {
 	/** The thumbnails */
 	@XmlElement(name = "Thumbnail", required = true, nillable = false)

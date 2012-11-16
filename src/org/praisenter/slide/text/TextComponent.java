@@ -5,6 +5,8 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -12,6 +14,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.SlideComponentCopyException;
 import org.praisenter.utilities.FontManager;
 import org.praisenter.xml.FontTypeAdapter;
 import org.praisenter.xml.PaintTypeAdapter;
@@ -24,6 +27,7 @@ import org.praisenter.xml.PaintTypeAdapter;
  */
 //TODO add text shadow (color, direction, width, visible)
 @XmlRootElement(name = "TextComponent")
+@XmlAccessorType(XmlAccessType.NONE)
 public class TextComponent extends GenericSlideComponent implements SlideComponent, PositionedSlideComponent {
 	// TODO change this to a AttributedString so we can support all kinds of string formatting (highlighting, super/sub scripts, etc)
 	/** The text */
@@ -59,6 +63,16 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	/** The inner component padding */
 	@XmlElement(name = "TextPadding", required = false, nillable = true)
 	protected int textPadding;
+	
+	/**
+	 * Default constructor.
+	 * <p>
+	 * This constructor should only be used by JAXB for
+	 * marshalling and unmarshalling the objects.
+	 */
+	protected TextComponent() {
+		super(0, 0, 0, 0);
+	}
 	
 	/**
 	 * Minimal constructor.
@@ -105,8 +119,9 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	 * <p>
 	 * This constructor performs a deep copy where necessary.
 	 * @param component the component to copy
+	 * @throws SlideComponentCopyException thrown if the copy fails
 	 */
-	public TextComponent(TextComponent component) {
+	public TextComponent(TextComponent component) throws SlideComponentCopyException {
 		super(component);
 		this.text = component.text;
 		this.textPaint = component.textPaint;
@@ -122,7 +137,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	 * @see org.praisenter.slide.GenericSlideComponent#copy()
 	 */
 	@Override
-	public TextComponent copy() {
+	public TextComponent copy() throws SlideComponentCopyException {
 		return new TextComponent(this);
 	}
 	
@@ -226,10 +241,10 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 				g.setPaint(this.textPaint);
 				if (this.textWrapped) {
 					// render the text as a paragraph
-					TextRenderer.renderParagraph(g, text, this.horizontalTextAlignment, 0, y, rw);
+					TextRenderer.renderParagraph(g, text, this.horizontalTextAlignment, this.x, this.y + y, rw);
 				} else {
 					// render the text as a line
-					TextRenderer.renderLine(g, text, this.horizontalTextAlignment, 0, y, rw);
+					TextRenderer.renderLine(g, text, this.horizontalTextAlignment, this.x, this.y + y, rw);
 				}
 				
 				g.setPaint(oPaint);

@@ -6,17 +6,24 @@ import java.awt.Paint;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.media.AbstractVideoMedia;
 import org.praisenter.media.ImageMedia;
 import org.praisenter.slide.media.ImageMediaComponent;
-import org.praisenter.slide.media.TimedMediaComponent;
+import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
+import org.praisenter.slide.text.TextComponent;
 import org.praisenter.utilities.ImageUtilities;
 
 /**
@@ -26,7 +33,15 @@ import org.praisenter.utilities.ImageUtilities;
  * @since 1.0.0
  */
 @XmlRootElement(name = "Slide")
+@XmlAccessorType(XmlAccessType.NONE)
+@XmlSeeAlso({ ImageMediaComponent.class, 
+	  VideoMediaComponent.class, 
+	  TextComponent.class,
+	  GenericSlideComponent.class })
 public class Slide {
+	/** Comparator for sorting by z-order */
+	private static final SlideComponentOrderComparator ORDER_COMPARATOR = new SlideComponentOrderComparator();
+	
 	/** The width of the slide */
 	@XmlAttribute(name = "Width", required = true)
 	protected int width;
@@ -35,20 +50,35 @@ public class Slide {
 	@XmlAttribute(name = "Height", required = true)
 	protected int height;
 	
+	/** The slide/template name */
+	@XmlElement(name = "Name", required = true, nillable = false)
+	protected String name;
+	
 	/** The slide background */
-	@XmlElement(name = "Background", required = false, nillable = true)
+	@XmlAnyElement(lax = true)
 	protected RenderableSlideComponent background;
 	
 	/** The slide components */
-	@XmlElement(name = "Component", required = false, nillable = true)
+	@XmlElementWrapper(name = "Components")
+	@XmlAnyElement(lax = true)
 	protected List<SlideComponent> components;
+
+	/**
+	 * Default constructor.
+	 * <p>
+	 * This constructor should only be used by JAXB for
+	 * marshalling and unmarshalling the objects.
+	 */
+	protected Slide() {}
 	
 	/**
 	 * Minimal constructor.
+	 * @param name the name of the slide/template
 	 * @param width the width of the slide
 	 * @param height the height of the slide
 	 */
-	public Slide(int width, int height) {
+	public Slide(String name, int width, int height) {
+		this.name = name;
 		this.width = width;
 		this.height = height;
 		this.background = null;
@@ -60,27 +90,44 @@ public class Slide {
 	 * <p>
 	 * This will perform a deep copy where necessary.
 	 * @param slide the slide to copy
+	 * @throws SlideCopyException thrown if the copy fails
 	 */
-	public Slide(Slide slide) {
+	public Slide(Slide slide) throws SlideCopyException {
+		this.name = slide.name;
 		this.width = slide.width;
 		this.height = slide.height;
 		this.components = new ArrayList<SlideComponent>();
-		// the background
-		if (slide.background != null) {
-			this.background = slide.background.copy();
-		}
-		// the components
-		for (SlideComponent component : slide.components) {
-			this.components.add(component.copy());
+		
+		try {
+			// the background
+			if (slide.background != null) {
+				this.background = slide.background.copy();
+			}
+			// the components
+			for (SlideComponent component : slide.components) {
+				this.components.add(component.copy());
+			}
+		} catch (SlideComponentCopyException e) {
+			throw new SlideCopyException(e);
 		}
 	}
 	
 	/**
 	 * Returns a deep copy of this {@link Slide}.
 	 * @return {@link Slide}
+	 * @throws SlideCopyException thrown if the slide fails to copy
 	 */
-	public Slide copy() {
+	public Slide copy() throws SlideCopyException {
 		return new Slide(this);
+	}
+	
+	/**
+	 * Returns a template for this slide.
+	 * @return {@link Template}
+	 * @throws SlideCopyException thrown if the copy fails
+	 */
+	public Template createTemplate() throws SlideCopyException {
+		return new SlideTemplate(this);
 	}
 	
 	// rendering
@@ -205,7 +252,20 @@ public class Slide {
 	 * @param component the background component
 	 */
 	public void setBackground(RenderableSlideComponent component) {
+		if (this.background != null) {
+			this.components.remove(this.background);
+		}
 		this.background = component;
+		// make sure the background has an order of zero always
+		this.background.setOrder(0);
+		this.addComponent(this.background);
+	}
+	
+	/**
+	 * Sorts the components using their z-ordering.
+	 */
+	public void sortComponentsByOrder() {
+		Collections.sort(this.components, ORDER_COMPARATOR);
 	}
 	
 	/**
@@ -213,7 +273,12 @@ public class Slide {
 	 * @param component the component to add
 	 */
 	public void addComponent(SlideComponent component) {
+		// FIXME compute the maximum order
+		// FIXME add methods to re-order components
+		// FIXME reassign the order to the maximum
 		this.components.add(component);
+		// we must re-sort
+		this.sortComponentsByOrder();
 	}
 	
 	/**
@@ -222,6 +287,7 @@ public class Slide {
 	 * @return boolean true if the component was removed
 	 */
 	public boolean removeComponent(SlideComponent component) {
+		// no re-sort required here
 		return this.components.remove(component);
 	}
 	
@@ -264,19 +330,35 @@ public class Slide {
 	}
 	
 	/**
-	 * Returns all the {@link TimedMediaComponent}s on this {@link Slide}.
+	 * Returns all the {@link PlayableMediaComponent}s on this {@link Slide}.
 	 * <p>
 	 * This is useful for display of the slide to being/end media playback.
-	 * @return List&lt;{@link TimedMediaComponent}&gt;
+	 * @return List&lt;{@link PlayableMediaComponent}&gt;
 	 */
-	public List<TimedMediaComponent<?>> getTimedMediaComponents() {
-		List<TimedMediaComponent<?>> components = new ArrayList<TimedMediaComponent<?>>();
+	public List<PlayableMediaComponent<?>> getPlayableMediaComponents() {
+		List<PlayableMediaComponent<?>> components = new ArrayList<PlayableMediaComponent<?>>();
 		for (SlideComponent component : this.components) {
-			if (TimedMediaComponent.class.isInstance(component)) {
-				components.add((TimedMediaComponent<?>)component);
+			if (PlayableMediaComponent.class.isInstance(component)) {
+				components.add((PlayableMediaComponent<?>)component);
 			}
 		}
 		return components;
+	}
+	
+	/**
+	 * Returns this slide/template's name.
+	 * @return String
+	 */
+	public String getName() {
+		return this.name;
+	}
+	
+	/**
+	 * Sets this slide/template's name.
+	 * @param name the name
+	 */
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	/**
@@ -335,7 +417,7 @@ public class Slide {
 		this.renderPreview(g);
 		g.dispose();
 		// scale the composite down
-		image = ImageUtilities.getUniformScaledImage(image, size.width, size.height, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+		image = ImageUtilities.getUniformScaledImage(image, size.width, size.height, AffineTransformOp.TYPE_BILINEAR);
 		// return it
 		return image;
 	}

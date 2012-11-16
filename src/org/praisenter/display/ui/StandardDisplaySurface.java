@@ -1,7 +1,7 @@
 package org.praisenter.display.ui;
 
 import org.praisenter.display.Display;
-import org.praisenter.transitions.TransitionAnimator;
+import org.praisenter.slide.transitions.TransitionAnimator;
 
 /**
  * Represents a standard display surface supporting send and clear

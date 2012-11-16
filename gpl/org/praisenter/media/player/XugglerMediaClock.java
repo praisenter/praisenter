@@ -45,7 +45,7 @@ public class XugglerMediaClock {
         	// compute the estimated sleep time for the current thread
             long systemClockCurrentTime = System.currentTimeMillis();
             long millisecondsClockTimeSinceStartofVideo = systemClockCurrentTime - startTime;
-            long millisecondsStreamTimeSinceStartOfVideo = (timestamp - firstTimestamp) / 1000;
+            long millisecondsStreamTimeSinceStartOfVideo = (long)Math.ceil((double)(timestamp - firstTimestamp) / 1000.0);
             // allow 50 milliseconds of tolerance
             final long millisecondsTolerance = isVideoStream ? 50 : 0;
             final long millisecondsToSleep = (millisecondsStreamTimeSinceStartOfVideo - (millisecondsClockTimeSinceStartofVideo + millisecondsTolerance));

@@ -8,6 +8,8 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -23,6 +25,7 @@ import org.praisenter.xml.StrokeTypeAdapter;
  * @since 1.0.0
  */
 @XmlRootElement(name = "GenericSlideComponent")
+@XmlAccessorType(XmlAccessType.NONE)
 public class GenericSlideComponent extends AbstractRenderableSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent {
 	/** The x coordinate of this component */
 	@XmlAttribute(name = "X", required = true)
@@ -46,6 +49,20 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	@XmlElement(name = "BorderVisible", required = true, nillable = false)
 	protected boolean borderVisible;
 	
+	/** The z-ordering of this component */
+	@XmlAttribute(name = "Order")
+	protected int order;
+	
+	/**
+	 * Default constructor.
+	 * <p>
+	 * This constructor should only be used by JAXB for
+	 * marshalling and unmarshalling the objects.
+	 */
+	protected GenericSlideComponent() {
+		this(0, 0);
+	}
+	
 	/**
 	 * Minimal constructor.
 	 * @param width the width in pixels
@@ -68,7 +85,8 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 		this.y = y;
 		this.borderPaint = Color.BLACK;
 		this.borderStroke = new BasicStroke();
-		this.borderVisible = true;
+		this.borderVisible = false;
+		this.order = 1;
 	}
 	
 	/**
@@ -76,21 +94,23 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * <p>
 	 * This constructor performs a deep copy where necessary.
 	 * @param component the component to copy
+	 * @throws SlideComponentCopyException thrown if the copy fails
 	 */
-	public GenericSlideComponent(GenericSlideComponent component) {
+	public GenericSlideComponent(GenericSlideComponent component) throws SlideComponentCopyException {
 		super(component);
 		this.x = component.x;
 		this.y = component.y;
 		this.borderPaint = component.borderPaint;
 		this.borderStroke = component.borderStroke;
 		this.borderVisible = component.borderVisible;
+		this.order = component.order;
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideComponent#copy()
 	 */
 	@Override
-	public GenericSlideComponent copy() {
+	public GenericSlideComponent copy() throws SlideComponentCopyException {
 		return new GenericSlideComponent(this);
 	}
 	
@@ -124,6 +144,22 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	@Override
 	public void setY(int y) {
 		this.y = y;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.RenderableSlideComponent#getOrder()
+	 */
+	@Override
+	public int getOrder() {
+		return this.order;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.RenderableSlideComponent#setOrder(int)
+	 */
+	@Override
+	public void setOrder(int order) {
+		this.order = order;
 	}
 	
 	/* (non-Javadoc)
@@ -161,7 +197,7 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	@Override
 	public void renderPreview(Graphics2D g) {
 		// render the background
-		super.renderPreview(g);
+		this.renderBackground(g, this.x, this.y);
 		// render the border
 		this.renderBorder(g);
 	}
@@ -172,7 +208,7 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	@Override
 	public void render(Graphics2D g) {
 		// render the background
-		super.render(g);
+		this.renderBackground(g, this.x, this.y);
 		// render the border
 		this.renderBorder(g);
 	}

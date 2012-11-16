@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
  * @version 1.0.0
  * @since 1.0.0
  */
+// TODO support texture paint
 public class PaintTypeAdapter extends AbstractTypeAdapter<Paint> {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(PaintTypeAdapter.class);
@@ -199,11 +200,17 @@ public class PaintTypeAdapter extends AbstractTypeAdapter<Paint> {
 	 * @return String
 	 */
 	private static final String getStringFromColorArray(Color[] array, String elementDelimiter, String componentDelimiter) {
-		StringBuilder sb = new StringBuilder();
-		for (Color color : array) {
-			sb.append(getStringFromColor(color, componentDelimiter)).append(elementDelimiter);
+		if (array != null) {
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < array.length; i++) {
+				if (i != 0) {
+					sb.append(elementDelimiter);
+				}
+				sb.append(getStringFromColor(array[i], componentDelimiter));
+			}
+			return sb.toString();
 		}
-		return sb.toString();
+		return "";
 	}
 	
 	/**
@@ -239,7 +246,7 @@ public class PaintTypeAdapter extends AbstractTypeAdapter<Paint> {
 	 */
 	private static final LinearGradientPaint getLinearGradientPaintFromString(String dataString) {
 		// parse the data string (startPoint|endPoint|fractions|colors|cycleMethod)
-		String[] data = dataString.split(GRADIENT_DATA_DELIMITER);
+		String[] data = dataString.split("\\" + GRADIENT_DATA_DELIMITER);
 		// attempt to get whatever data is there
 		int length = data.length;
 		// defaults
@@ -286,7 +293,7 @@ public class PaintTypeAdapter extends AbstractTypeAdapter<Paint> {
 	 */
 	private static final RadialGradientPaint getRadialGradientPaintFromString(String dataString) {
 		// parse the data string (centerPoint|radius|focusPoint|fractions|colors|cycleMethod)
-		String[] data = dataString.split(GRADIENT_DATA_DELIMITER);
+		String[] data = dataString.split("\\" + GRADIENT_DATA_DELIMITER);
 		// attempt to get whatever data is there
 		int length = data.length;
 		// defaults

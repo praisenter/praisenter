@@ -181,6 +181,9 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	@Override
 	public void componentShown(ComponentEvent event) {}
 
+	/* (non-Javadoc)
+	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
+	 */
 	@Override
 	protected void paintComponent(Graphics graphics) {
 		super.paintComponent(graphics);

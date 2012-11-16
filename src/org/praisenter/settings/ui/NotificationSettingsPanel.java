@@ -18,12 +18,12 @@ import org.praisenter.resources.Messages;
 import org.praisenter.settings.GeneralSettings;
 import org.praisenter.settings.NotificationSettings;
 import org.praisenter.settings.SettingsException;
-import org.praisenter.transitions.Transition;
-import org.praisenter.transitions.Transitions;
-import org.praisenter.transitions.easing.Easing;
-import org.praisenter.transitions.easing.Easings;
-import org.praisenter.transitions.ui.EasingListCellRenderer;
-import org.praisenter.transitions.ui.TransitionListCellRenderer;
+import org.praisenter.slide.transitions.Transition;
+import org.praisenter.slide.transitions.Transitions;
+import org.praisenter.slide.transitions.easing.Easing;
+import org.praisenter.slide.transitions.easing.Easings;
+import org.praisenter.slide.ui.EasingListCellRenderer;
+import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.ui.SelectTextFocusListener;
 
 /**
