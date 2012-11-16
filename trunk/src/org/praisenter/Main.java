@@ -109,24 +109,23 @@ public class Main {
 	 * we need to make sure they exist on each start up.
 	 */
 	private static final void initializeFolderStructure() {
-		FileSystem fs = FileSystems.getDefault();
 		// verify the existence of the /config directory
 		initializeFolder(Constants.CONFIGURATION_FILE_LOCATION);
 		
 		// verify the existence of the /media and sub directories
 		initializeFolder(Constants.MEDIA_LIBRARY_PATH);
-		initializeFolder(Constants.MEDIA_LIBRARY_PATH + fs.getSeparator() + Constants.MEDIA_LIBRARY_IMAGE_PATH);
-		initializeFolder(Constants.MEDIA_LIBRARY_PATH + fs.getSeparator() + Constants.MEDIA_LIBRARY_VIDEO_PATH);
-		initializeFolder(Constants.MEDIA_LIBRARY_PATH + fs.getSeparator() + Constants.MEDIA_LIBRARY_AUDIO_PATH);
+		initializeFolder(Constants.MEDIA_LIBRARY_IMAGE_PATH);
+		initializeFolder(Constants.MEDIA_LIBRARY_VIDEO_PATH);
+		initializeFolder(Constants.MEDIA_LIBRARY_AUDIO_PATH);
 		
 		// verify the existence of the /slides path
 		initializeFolder(Constants.SLIDE_PATH);
 		
 		// verify the existence of the /templates path and sub directories
 		initializeFolder(Constants.TEMPLATE_PATH);
-		initializeFolder(Constants.TEMPLATE_PATH + fs.getSeparator() + Constants.BIBLE_TEMPLATE_PATH);
-		initializeFolder(Constants.TEMPLATE_PATH + fs.getSeparator() + Constants.SONGS_TEMPLATE_PATH);
-		initializeFolder(Constants.TEMPLATE_PATH + fs.getSeparator() + Constants.NOTIFICATIONS_TEMPLATE_PATH);
+		initializeFolder(Constants.BIBLE_TEMPLATE_PATH);
+		initializeFolder(Constants.SONGS_TEMPLATE_PATH);
+		initializeFolder(Constants.NOTIFICATIONS_TEMPLATE_PATH);
 	}
 	
 	/**
