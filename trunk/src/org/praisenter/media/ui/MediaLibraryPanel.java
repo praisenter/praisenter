@@ -232,7 +232,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 			if (thumbnail != null) {
 				// remove the media from the media library
 				try {
-					MediaLibrary.removeMedia(thumbnail.getFileProperties().getFilePath());
+					MediaLibrary.removeMedia(thumbnail.getFile().getPath());
 					// remove the thumbnail from the list
 					DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)list.getModel();
 					model.removeElement(thumbnail);
@@ -240,9 +240,9 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 					ExceptionDialog.show(
 							this, 
 							Messages.getString("panel.media.remove.exception.title"), 
-							MessageFormat.format(Messages.getString("panel.media.remove.exception.text"), thumbnail.getFileProperties().getFileName()), 
+							MessageFormat.format(Messages.getString("panel.media.remove.exception.text"), thumbnail.getFile().getName()), 
 							ex);
-					LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFileProperties().getFilePath() + "] from the media library: ", ex);
+					LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getPath() + "] from the media library: ", ex);
 				}
 			}
 		}

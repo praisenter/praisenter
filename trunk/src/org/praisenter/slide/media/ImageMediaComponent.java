@@ -1,18 +1,26 @@
 package org.praisenter.slide.media;
 
 import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.image.BufferedImage;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.display.ScaleType;
 import org.praisenter.media.ImageMedia;
+import org.praisenter.media.ScaleQuality;
+import org.praisenter.media.ScaleType;
+import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideComponentCopyException;
+import org.praisenter.utilities.ImageUtilities;
+import org.praisenter.xml.MediaTypeAdapter;
 
 /**
  * Component for showing images from the media library.
@@ -22,7 +30,20 @@ import org.praisenter.slide.SlideComponentCopyException;
  */
 @XmlRootElement(name = "ImageMediaComponent")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ImageMediaComponent extends AbstractImageMediaComponent<ImageMedia> implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent, MediaComponent<ImageMedia> {
+public class ImageMediaComponent extends GenericSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent, MediaComponent<ImageMedia> {
+	/** The media */
+	@XmlElement(name = "Media", required = true, nillable = false)
+	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
+	protected ImageMedia media;
+	
+	/** The image scale type */
+	@XmlAttribute(name = "ScaleType", required = false)
+	protected ScaleType scaleType;
+	
+	/** The image scale quality */
+	@XmlAttribute(name = "ScaleQuality", required = false)
+	protected ScaleQuality scaleQuality;
+	
 	/** Cache the scaled image */
 	protected BufferedImage scaledImage;
 	
@@ -33,7 +54,7 @@ public class ImageMediaComponent extends AbstractImageMediaComponent<ImageMedia>
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected ImageMediaComponent() {
-		super(null, 0, 0, 0, 0);
+		this(null, 0, 0, 0, 0);
 	}
 	
 	/**
@@ -55,7 +76,11 @@ public class ImageMediaComponent extends AbstractImageMediaComponent<ImageMedia>
 	 * @param height the height in pixels
 	 */
 	public ImageMediaComponent(ImageMedia media, int x, int y, int width, int height) {
-		super(media, x, y, width, height);
+		super(x, y, width, height);
+		this.media = media;
+		this.scaleType = ScaleType.NONUNIFORM;
+		this.scaleQuality = ScaleQuality.BILINEAR;
+		this.scaledImage = null;
 	}
 	
 	/**
@@ -67,6 +92,9 @@ public class ImageMediaComponent extends AbstractImageMediaComponent<ImageMedia>
 	 */
 	public ImageMediaComponent(ImageMediaComponent component) throws SlideComponentCopyException {
 		super(component);
+		this.media = component.media;
+		this.scaleType = component.scaleType;
+		this.scaleQuality = component.scaleQuality;
 		this.scaledImage = component.scaledImage;
 	}
 	
@@ -75,8 +103,16 @@ public class ImageMediaComponent extends AbstractImageMediaComponent<ImageMedia>
 	 */
 	@Override
 	public void setMedia(ImageMedia media) {
-		super.setMedia(media);
+		this.media = media;
 		this.scaledImage = null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.MediaComponent#getMedia()
+	 */
+	@Override
+	public ImageMedia getMedia() {
+		return this.media;
 	}
 	
 	/* (non-Javadoc)
@@ -107,24 +143,6 @@ public class ImageMediaComponent extends AbstractImageMediaComponent<ImageMedia>
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.media.AbstractImageMediaComponent#setScaleQuality(org.praisenter.slide.media.ScaleQuality)
-	 */
-	@Override
-	public void setScaleQuality(ScaleQuality scaleQuality) {
-		super.setScaleQuality(scaleQuality);
-		this.scaledImage = null;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.media.AbstractImageMediaComponent#setScaleType(org.praisenter.display.ScaleType)
-	 */
-	@Override
-	public void setScaleType(ScaleType scaleType) {
-		super.setScaleType(scaleType);
-		this.scaledImage = null;
-	}
-	
-	/* (non-Javadoc)
 	 * @see org.praisenter.slide.GenericSlideComponent#copy()
 	 */
 	@Override
@@ -132,10 +150,10 @@ public class ImageMediaComponent extends AbstractImageMediaComponent<ImageMedia>
 		return new ImageMediaComponent(this);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.media.AbstractImageMediaComponent#getImage()
+	/**
+	 * Returns the image for rendering.
+	 * @return BufferedImage
 	 */
-	@Override
 	public BufferedImage getImage() {
 		if (this.media != null) {
 			return this.media.getImage();
@@ -143,10 +161,10 @@ public class ImageMediaComponent extends AbstractImageMediaComponent<ImageMedia>
 		return null;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.media.AbstractImageMediaComponent#getPreviewImage()
+	/**
+	 * Returns the preview image for rendering.
+	 * @return BufferedImage
 	 */
-	@Override
 	public BufferedImage getPreviewImage() {
 		return this.getImage();
 	}
@@ -185,5 +203,85 @@ public class ImageMediaComponent extends AbstractImageMediaComponent<ImageMedia>
 		if (this.scaledImage != null) {
 			this.renderImage(g, this.scaledImage);
 		}
+	}
+
+	/**
+	 * Renders the given image to the given graphics object using
+	 * this components scaling type and quality.
+	 * @param g the graphics object to render to
+	 * @param image the image to render
+	 */
+	protected void renderImage(Graphics2D g, BufferedImage image) {
+		if (image != null) {
+			// setup the clip for this component
+			Shape oClip = g.getClip();
+			g.setClip(this.x, this.y, this.width, this.height);
+
+			// center the image
+			int iw = image.getWidth();
+			int ih = image.getHeight();
+			int x = (this.width - iw) / 2 + this.x;
+			int y = (this.height - ih) / 2 + this.y;
+			g.drawImage(image, x,  y, null);
+			
+			g.setClip(oClip);
+		}
+	}
+	
+	/**
+	 * Scales the given image using the component width and height. 
+	 * @param image the image to scale
+	 * @return BufferedImage
+	 */
+	protected BufferedImage getScaledImage(BufferedImage image) {
+		int w = this.width;
+		int h = this.height;
+		// now scale (these methods will return images with the same
+		// color model as the one passed in)
+		int iw = image.getWidth();
+		int ih = image.getHeight();
+		
+		if (iw != w || ih != h) {
+			if (this.scaleType == ScaleType.UNIFORM) {
+				image = ImageUtilities.getUniformScaledImage(image, w, h, this.scaleQuality.getQuality());
+			} else if (this.scaleType == ScaleType.NONUNIFORM) {
+				image = ImageUtilities.getNonUniformScaledImage(image, w, h, this.scaleQuality.getQuality());
+			}
+		}
+		return image;
+	}
+
+	/**
+	 * Returns the image scale type.
+	 * @return {@link ScaleType}
+	 */
+	public ScaleType getScaleType() {
+		return this.scaleType;
+	}
+
+	/**
+	 * Sets the image scale type.
+	 * @param scaleType the scale type
+	 */
+	public void setScaleType(ScaleType scaleType) {
+		this.scaleType = scaleType;
+		this.scaledImage = null;
+	}
+
+	/**
+	 * Returns the image scale quality.
+	 * @return {@link ScaleQuality}
+	 */
+	public ScaleQuality getScaleQuality() {
+		return this.scaleQuality;
+	}
+
+	/**
+	 * Sets the image scale quality.
+	 * @param scaleQuality the scale quality
+	 */
+	public void setScaleQuality(ScaleQuality scaleQuality) {
+		this.scaleQuality = scaleQuality;
+		this.scaledImage = null;
 	}
 }

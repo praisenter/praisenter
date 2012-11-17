@@ -1,7 +1,10 @@
 package org.praisenter.media;
 
+import java.awt.Dimension;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
+import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.xml.FileProperties;
 
 /**
@@ -12,18 +15,36 @@ import org.praisenter.xml.FileProperties;
  * @version 1.0.0
  * @since 1.0.0
  */
-public abstract class AbstractVideoMedia extends AbstractImageMedia implements Media, PlayableMedia {
+public abstract class AbstractVideoMedia extends AbstractMedia implements Media, PlayableMedia {
+	/** The first frame of the video */
+	protected BufferedImage firstFrame;
+	
 	/**
-	 * Minimal constructor.
-	 * @param fileProperties the file properties
+	 * Full constructor.
+	 * @param file the file information
+	 * @param firstFrame the first frame of the video
 	 */
-	public AbstractVideoMedia(FileProperties fileProperties) {
-		super(fileProperties, MediaType.VIDEO);
+	public AbstractVideoMedia(MediaFile file, BufferedImage firstFrame) {
+		super(file, MediaType.VIDEO);
+		this.firstFrame = firstFrame;
 	}
 	
 	/**
 	 * Returns the first frame of the video.
 	 * @return BufferedImage
 	 */
-	public abstract BufferedImage getFirstFrame();
+	public BufferedImage getFirstFrame() {
+		return this.firstFrame;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.Media#getThumbnail(java.awt.Dimension)
+	 */
+	@Override
+	public MediaThumbnail getThumbnail(Dimension size) {
+		// resize the image to a thumbnail size
+		BufferedImage image = ImageUtilities.getUniformScaledImage(this.firstFrame, size.width, size.height, AffineTransformOp.TYPE_BILINEAR);
+		// return the thumbnail
+		return new MediaThumbnail(this.file, image, this.type);
+	}
 }

@@ -2,6 +2,7 @@ package org.praisenter.slide.media;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -23,6 +24,14 @@ import org.praisenter.xml.MediaTypeAdapter;
 @XmlRootElement(name = "AudioMediaComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 public class AudioMediaComponent implements SlideComponent, MediaComponent<AbstractAudioMedia>, PlayableMediaComponent<AbstractAudioMedia>, MediaPlayerListener {
+	/** True if looping is enabled */
+	@XmlAttribute(name = "LoopEnabled", required = true)
+	protected boolean loopEnabled;
+	
+	/** True if the audio should be muted */
+	@XmlAttribute(name = "AudioMuted", required = true)
+	protected boolean audioMuted;
+	
 	/** The media */
 	@XmlElement(name = "Media", required = true, nillable = false)
 	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
@@ -57,6 +66,8 @@ public class AudioMediaComponent implements SlideComponent, MediaComponent<Abstr
 		} catch (MediaException e) {
 			throw new SlideComponentCopyException(e);
 		}
+		this.loopEnabled = component.loopEnabled;
+		this.audioMuted = component.audioMuted;
 	}
 	
 	/* (non-Javadoc)
@@ -72,7 +83,7 @@ public class AudioMediaComponent implements SlideComponent, MediaComponent<Abstr
 	 */
 	@Override
 	public int getOrder() {
-		return -1;
+		return -10;
 	}
 	
 	/* (non-Javadoc)
@@ -95,5 +106,35 @@ public class AudioMediaComponent implements SlideComponent, MediaComponent<Abstr
 	@Override
 	public void setMedia(AbstractAudioMedia media) {
 		this.media = media;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.PlayableMediaComponent#setLoopEnabled(boolean)
+	 */
+	@Override
+	public void setLoopEnabled(boolean loopEnabled) {
+		this.loopEnabled = loopEnabled;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.PlayableMediaComponent#isLoopEnabled()
+	 */
+	@Override
+	public boolean isLoopEnabled() {
+		return this.loopEnabled;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.PlayableMediaComponent#isAudioMuted()
+	 */
+	public boolean isAudioMuted() {
+		return this.audioMuted;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.PlayableMediaComponent#setAudioMuted(boolean)
+	 */
+	public void setAudioMuted(boolean audioMuted) {
+		this.audioMuted = audioMuted;
 	}
 }

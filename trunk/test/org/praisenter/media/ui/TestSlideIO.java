@@ -20,12 +20,13 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import org.apache.log4j.xml.DOMConfigurator;
-import org.praisenter.display.ScaleType;
 import org.praisenter.media.AbstractVideoMedia;
 import org.praisenter.media.ImageMedia;
 import org.praisenter.media.MediaException;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.NoMediaLoaderException;
+import org.praisenter.media.ScaleQuality;
+import org.praisenter.media.ScaleType;
 import org.praisenter.slide.BibleSlide;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponentCopyException;
@@ -34,7 +35,6 @@ import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
 import org.praisenter.slide.SlideTemplate;
 import org.praisenter.slide.media.ImageMediaComponent;
-import org.praisenter.slide.media.ScaleQuality;
 import org.praisenter.slide.media.VideoMediaComponent;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.transitions.TransitionAnimator;
@@ -55,10 +55,11 @@ public class TestSlideIO {
 		VideoMediaComponent background = bSlide.createVideoBackgroundComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi"));
 //		VideoMediaComponent background = bSlide.createVideoBackgroundComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack_1280.avi"));
 //		VideoMediaComponent background = bSlide.createVideoBackgroundComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.mov"));
-		background.setScaleQuality(ScaleQuality.BICUBIC);
 		background.setScaleType(ScaleType.NONUNIFORM);
 		background.setBackgroundPaint(Color.BLUE);
 		background.setBackgroundPaintVisible(false);
+		background.setAudioMuted(true);
+		background.setLoopEnabled(true);
 		
 		bSlide.setBackground(background);
 		
@@ -77,12 +78,15 @@ public class TestSlideIO {
 //		tc.setBackgroundPaint(Color.GRAY);
 //		tc.setBackgroundPaintVisible(true);
 		
-		VideoMediaComponent vc = new VideoMediaComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi"), 640, 480);
+		VideoMediaComponent vc = new VideoMediaComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi"), 640, 500 /*480*/);
 		vc.setBorderPaint(Color.BLACK);
 		vc.setBorderStroke(new BasicStroke(5.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 5.0f));
 		vc.setBorderVisible(true);
 		vc.setX(100);
 		vc.setY(200);
+		vc.setAudioMuted(true);
+		vc.setLoopEnabled(false);
+		vc.setScaleType(ScaleType.UNIFORM);
 		bSlide.addComponent(vc);
 		
 		ImageMediaComponent ic = new ImageMediaComponent((ImageMedia)MediaLibrary.getMedia("media\\images\\bg3.png"), 400, 400);
@@ -148,7 +152,7 @@ public class TestSlideIO {
 //		bSlide.getScriptureTextComponent().setBorderStroke(null);
 //		bSlide.getScriptureTextComponent().setBorderVisible(false);
 		
-		SlideWindows.getPrimarySlideWindow().send(bSlide, new TransitionAnimator(Transitions.IN[10], 600));
+//		SlideWindows.getPrimarySlideWindow().send(bSlide, new TransitionAnimator(Transitions.IN[10], 600));
 		
 		new TestFrame();
 	}

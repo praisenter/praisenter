@@ -189,7 +189,7 @@ public class MediaLibrary {
 			// make sure there exists a thumnail for the file
 			boolean exists = false;
 			for (MediaThumbnail thumb : thumbnailsFromFile) {
-				if (thumb.getFileProperties().getFileName().equals(file.getName())) {
+				if (thumb.getFile().getName().equals(file.getName())) {
 					// flag that the thumbnail exists
 					exists = true;
 					// add it to the thumbnails array
@@ -551,7 +551,7 @@ public class MediaLibrary {
 	 */
 	public static synchronized final MediaThumbnail getThumbnail(Media media) {
 		for (MediaThumbnail thumbnail : THUMBNAILS) {
-			if (thumbnail.getFileProperties().getFilePath().equals(media.getFileProperties().getFilePath())) {
+			if (thumbnail.getFile().getPath().equals(media.getFile().getPath())) {
 				return thumbnail;
 			}
 		}
@@ -565,7 +565,7 @@ public class MediaLibrary {
 	 */
 	private static synchronized final MediaThumbnail getThumbnail(String filePath) {
 		for (MediaThumbnail thumbnail : THUMBNAILS) {
-			if (thumbnail.getFileProperties().getFilePath().equals(filePath)) {
+			if (thumbnail.getFile().getPath().equals(filePath)) {
 				return thumbnail;
 			}
 		}
@@ -586,7 +586,7 @@ public class MediaLibrary {
 		Media media = loadFromFileSystem(filePath);
 		
 		// add a weak reference to it
-		MEDIA.put(media.getFileProperties().getFilePath(), new WeakReference<Media>(media));
+		MEDIA.put(media.getFile().getPath(), new WeakReference<Media>(media));
 		// add it to the thumbnails list
 		THUMBNAILS.add(media.getThumbnail(THUMBNAIL_SIZE));
 		// resort the thumbnails

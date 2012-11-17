@@ -6,9 +6,9 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.praisenter.display.Display;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaPlayer;
+import org.praisenter.media.MediaPlayerConfiguration;
 import org.praisenter.media.MediaPlayerFactory;
 import org.praisenter.media.PlayableMedia;
 import org.praisenter.media.VideoMediaPlayerListener;
@@ -17,8 +17,8 @@ import org.praisenter.slide.Slide;
 import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
 import org.praisenter.slide.transitions.Transition;
-import org.praisenter.slide.transitions.TransitionAnimator;
 import org.praisenter.slide.transitions.Transition.Type;
+import org.praisenter.slide.transitions.TransitionAnimator;
 
 /**
  * Panel used for display on a selected device.
@@ -147,7 +147,7 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 					// if both are video media components, we need to check if they are the same video
 					VideoMediaComponent oC = (VideoMediaComponent)this.outSlide.getBackground();
 					VideoMediaComponent nC = (VideoMediaComponent)this.inSlide.getBackground();
-					if (oC.getMedia().getFileProperties().getFilePath().equals(nC.getMedia().getFileProperties().getFilePath())) {
+					if (oC.getMedia().getFile().getPath().equals(nC.getMedia().getFile().getPath())) {
 						// they are the same video, so we should not transition the background
 						// we can attach the new media component as a listener to the current 
 						// media player (to update its images as the video plays)
@@ -161,14 +161,19 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 		// we need to create a player for each playable media component and attach them as listeners and this
 		// surface as a listener
 		// don't create a player for the IN slide if we aren't transitioning the background
-		if (background instanceof PlayableMediaComponent && this.transitionBackground) {
-			PlayableMediaComponent<? extends PlayableMedia> bg = (PlayableMediaComponent<?>)background;
+		if (background instanceof VideoMediaComponent && this.transitionBackground) {
+			VideoMediaComponent bg = (VideoMediaComponent)background;
 			MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(bg.getMedia().getClass());
 			MediaPlayer player = factory.createMediaPlayer();
 			player.setMedia(bg.getMedia());
 			player.addMediaPlayerListener(bg);
 			player.addMediaPlayerListener(this);
-			player.setLooped(true);
+			
+			MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
+			conf.setLoopEnabled(bg.isLoopEnabled());
+			conf.setAudioMuted(bg.isAudioMuted());
+			player.setConfiguration(conf);
+			
 			this.inBackgroundMediaPlayer = player;
 			this.inHasPlayableMedia = true;
 		}
@@ -180,6 +185,12 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 				player.setMedia(media);
 				player.addMediaPlayerListener(component);
 				player.addMediaPlayerListener(this);
+				
+				MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
+				conf.setLoopEnabled(component.isLoopEnabled());
+				conf.setAudioMuted(component.isAudioMuted());
+				player.setConfiguration(conf);
+				
 				this.inMediaPlayers.add(player);
 				this.inHasPlayableMedia = true;
 			}

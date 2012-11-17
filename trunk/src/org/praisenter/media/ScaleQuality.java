@@ -1,4 +1,4 @@
-package org.praisenter.slide.media;
+package org.praisenter.media;
 
 import java.awt.image.AffineTransformOp;
 
