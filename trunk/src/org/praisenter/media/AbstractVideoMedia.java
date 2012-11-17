@@ -5,7 +5,6 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
 import org.praisenter.utilities.ImageUtilities;
-import org.praisenter.xml.FileProperties;
 
 /**
  * Base class for video media.
@@ -24,7 +23,7 @@ public abstract class AbstractVideoMedia extends AbstractMedia implements Media,
 	 * @param file the file information
 	 * @param firstFrame the first frame of the video
 	 */
-	public AbstractVideoMedia(MediaFile file, BufferedImage firstFrame) {
+	public AbstractVideoMedia(VideoMediaFile file, BufferedImage firstFrame) {
 		super(file, MediaType.VIDEO);
 		this.firstFrame = firstFrame;
 	}

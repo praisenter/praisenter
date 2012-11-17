@@ -16,8 +16,6 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.xml.FileProperties;
-import org.praisenter.xml.Thumbnail;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -55,7 +53,7 @@ public class SlideLibrary {
 	private static final String THUMBS_FILE = Constants.SEPARATOR + "_thumbs.xml";
 	
 	/** The list of all thumbnails */
-	private static final Map<String, Thumbnail> THUMBNAILS = new HashMap<String, Thumbnail>();
+	private static final Map<String, SlideThumbnail> THUMBNAILS = new HashMap<String, SlideThumbnail>();
 
 	// state
 	
@@ -103,7 +101,7 @@ public class SlideLibrary {
 	 */
 	private static final synchronized <E extends Slide> void loadSlideLibrary(String path, Class<E> clazz, Map<String, E> map) throws SlideLibraryException {
 		// attempt to read the thumbs file in the respective folder
-		List<Thumbnail> thumbnailsFromFile = null;
+		List<SlideThumbnail> thumbnailsFromFile = null;
 		try {
 			SlideThumbnails sts = XmlIO.read(path + THUMBS_FILE, SlideThumbnails.class);
 			if (sts != null) {
@@ -116,11 +114,11 @@ public class SlideLibrary {
 			LOGGER.error("Could not read [" + path + THUMBS_FILE + "]: ", e);
 		}
 		if (thumbnailsFromFile == null) {
-			thumbnailsFromFile = new ArrayList<Thumbnail>();
+			thumbnailsFromFile = new ArrayList<SlideThumbnail>();
 		}
 		
 		// create a new list to store the thumbnails
-		List<Thumbnail> thumbnails = new ArrayList<Thumbnail>();
+		List<SlideThumbnail> thumbnails = new ArrayList<SlideThumbnail>();
 		// track whether we need to resave the thumbnail XML
 		boolean save = false;
 		
@@ -136,8 +134,8 @@ public class SlideLibrary {
 				if (filePath.contains(THUMBS_FILE)) continue;
 				// make sure there exists a thumnail for the file
 				boolean exists = false;
-				for (Thumbnail thumb : thumbnailsFromFile) {
-					if (thumb.getFileProperties().getFileName().equals(file.getName())) {
+				for (SlideThumbnail thumb : thumbnailsFromFile) {
+					if (thumb.getFile().getName().equals(file.getName())) {
 						// flag that the thumbnail exists
 						exists = true;
 						// add it to the thumbnails array
@@ -156,7 +154,7 @@ public class SlideLibrary {
 					// create the thumbnail
 					BufferedImage image = slide.getThumbnail(THUMBNAIL_SIZE);
 					// add the thumbnail to the list
-					thumbnails.add(new Thumbnail(FileProperties.getFileProperties(filePath), image));
+					thumbnails.add(new SlideThumbnail(new SlideFile(filePath), image));
 					// flag that we need to save it
 					save = true;
 				} else {
@@ -165,8 +163,8 @@ public class SlideLibrary {
 				}
 			}
 			// add all the thumbnails
-			for (Thumbnail thumbnail : thumbnails) {
-				THUMBNAILS.put(thumbnail.getFileProperties().getFilePath(), thumbnail);
+			for (SlideThumbnail thumbnail : thumbnails) {
+				THUMBNAILS.put(thumbnail.getFile().getPath(), thumbnail);
 			}
 			// after we have read all the files we need to save the new thumbs xml
 			if (save || thumbnailsFromFile.size() != thumbnails.size()) {
@@ -208,7 +206,7 @@ public class SlideLibrary {
 	private static synchronized final void saveThumbnailsFile(Class<?> clazz) {
 		// get the path and thumbnails for the given class type
 		String path = getPath(clazz);
-		List<Thumbnail> thumbnails = getThumbnails(clazz);
+		List<SlideThumbnail> thumbnails = getThumbnails(clazz);
 		
 		try {
 			XmlIO.save(path + THUMBS_FILE, new SlideThumbnails(thumbnails));
@@ -243,18 +241,18 @@ public class SlideLibrary {
 	 * <p>
 	 * Returns null if no thumbnail exists.
 	 * @param filePath the file path
-	 * @return {@link Thumbnail}
+	 * @return {@link SlideThumbnail}
 	 */
-	public static final synchronized Thumbnail getThumbnail(String filePath) {
+	public static final synchronized SlideThumbnail getThumbnail(String filePath) {
 		return THUMBNAILS.get(filePath);
 	}
 
 	/**
 	 * Returns the thumbnails for the given class.
 	 * @param clazz the class
-	 * @return List&lt;{@link Thumbnail}&gt;
+	 * @return List&lt;{@link SlideThumbnail}&gt;
 	 */
-	public static final synchronized List<Thumbnail> getThumbnails(Class<?> clazz) {
+	public static final synchronized List<SlideThumbnail> getThumbnails(Class<?> clazz) {
 		// we can use the slides map to get all the file path/names and use
 		// those to look up all the thumbnails in that directory
 		Set<String> paths = SLIDES.keySet();
@@ -273,7 +271,7 @@ public class SlideLibrary {
 			}
 		}
 		// get the thumbnails
-		List<Thumbnail> thumbnails = new ArrayList<Thumbnail>();
+		List<SlideThumbnail> thumbnails = new ArrayList<SlideThumbnail>();
 		for (String filePath : paths) {
 			thumbnails.add(THUMBNAILS.get(filePath));
 		}
@@ -310,8 +308,8 @@ public class SlideLibrary {
 			// add the slide to the slide library
 			SLIDES.put(filePath, slide);
 			// create a thumbnail
-			Thumbnail thumbnail = new Thumbnail(
-					FileProperties.getFileProperties(filePath), 
+			SlideThumbnail thumbnail = new SlideThumbnail(
+					new SlideFile(filePath), 
 					slide.getThumbnail(THUMBNAIL_SIZE));
 			// add the thumbnail to the list of thumbnails
 			THUMBNAILS.put(filePath, thumbnail);
@@ -382,8 +380,8 @@ public class SlideLibrary {
 				TEMPLATES.put(filePath, (SlideTemplate)template);
 			}
 			// create a thumbnail
-			Thumbnail thumbnail = new Thumbnail(
-					FileProperties.getFileProperties(filePath), 
+			SlideThumbnail thumbnail = new SlideThumbnail(
+					new SlideFile(filePath), 
 					template.getThumbnail(THUMBNAIL_SIZE));
 			// add the thumbnail to the list of thumbnails
 			THUMBNAILS.put(filePath, thumbnail);

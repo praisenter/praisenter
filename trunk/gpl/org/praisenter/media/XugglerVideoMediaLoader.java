@@ -3,7 +3,6 @@ package org.praisenter.media;
 import java.awt.image.BufferedImage;
 
 import org.apache.log4j.Logger;
-import org.praisenter.xml.FileProperties;
 
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
@@ -54,6 +53,8 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 		if (container.open(filePath, IContainer.Type.READ, null) < 0) {
 			throw new MediaException("Could not open file [" + filePath + "].  Unsupported container format.");
 		}
+		long length = container.getDuration() / 1000 / 1000;
+		String format = container.getContainerFormat().getInputFormatLongName() + " [";
 		LOGGER.debug("Video file opened. Container format: " + container.getContainerFormat().getInputFormatLongName());
 
 		// query how many streams the call to open found
@@ -62,6 +63,7 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 
 		// loop over the streams to find the first video stream
 		IStreamCoder videoCoder = null;
+		IStreamCoder audioCoder = null;
 		for (int i = 0; i < numStreams; i++) {
 			IStream stream = container.getStream(i);
 			// get the coder for the stream
@@ -71,6 +73,10 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 				// if so, break from the loop
 				videoCoder = coder;
 			}
+			// check for an audio stream
+			if (coder.getCodecType() == ICodec.Type.CODEC_TYPE_AUDIO) {
+				audioCoder = coder;
+			}
 		}
 		
 		// make sure we have a video stream
@@ -79,22 +85,42 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 		}
 
 		// open the coder to read the video data
+		int videoWidth = videoCoder.getWidth();
+		int videoHeight = videoCoder.getHeight();		
 		String codecName = "Unknown";
 		ICodec codec = videoCoder.getCodec();
 		if (codec != null) {
 			codecName = codec.getLongName();
 		}
+		format += codecName;
 		if (videoCoder.open(null, null) < 0) {
 			throw new MediaException("Could not open video decoder for: " + codecName);
 		}		
 		LOGGER.debug("Video coder opened with format: " + codecName);
 		
+		// check audio
+		boolean hasAudio = false;
+		if (audioCoder != null) {
+			hasAudio = true;
+			format += " " + audioCoder.getCodec().getLongName();
+		}
+		
+		format += "]";
+		
 		// get the first frame of the video
 		BufferedImage firstFrame = loadFirstFrame(container, videoCoder);
 		LOGGER.debug("First frame read");
 		
+		VideoMediaFile file = new VideoMediaFile(
+				filePath,
+				format,
+				videoWidth,
+				videoHeight,
+				length,
+				hasAudio);
+		
 		// create the media object
-		XugglerVideoMedia media = new XugglerVideoMedia(FileProperties.getFileProperties(filePath), firstFrame);
+		XugglerVideoMedia media = new XugglerVideoMedia(file, firstFrame);
 		
 		// clean up
 		if (videoCoder != null) {

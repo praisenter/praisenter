@@ -102,7 +102,7 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 		super(component);
 		// we only need to do this with playable media
 		try {
-			this.media = (AbstractVideoMedia)MediaLibrary.getMedia(component.media.getFileProperties().getFilePath(), true);
+			this.media = (AbstractVideoMedia)MediaLibrary.getMedia(component.media.getFile().getPath(), true);
 		} catch (MediaException e) {
 			throw new SlideComponentCopyException(e);
 		}

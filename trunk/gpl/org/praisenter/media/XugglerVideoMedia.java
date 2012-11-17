@@ -2,8 +2,6 @@ package org.praisenter.media;
 
 import java.awt.image.BufferedImage;
 
-import org.praisenter.xml.FileProperties;
-
 /**
  * Represents a video media type using the Xuggler library.
  * @author William Bittle
@@ -13,10 +11,10 @@ import org.praisenter.xml.FileProperties;
 public class XugglerVideoMedia extends AbstractVideoMedia implements Media, PlayableMedia, XugglerPlayableMedia {
 	/**
 	 * Full constructor.
-	 * @param fileProperties the file properties
+	 * @param file the file information
 	 * @param firstFrame the first frame of the video
 	 */
-	public XugglerVideoMedia(FileProperties fileProperties, BufferedImage firstFrame) {
-		super(fileProperties, firstFrame);
+	public XugglerVideoMedia(VideoMediaFile file, BufferedImage firstFrame) {
+		super(file, firstFrame);
 	}
 }
