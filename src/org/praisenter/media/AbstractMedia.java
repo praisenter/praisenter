@@ -1,7 +1,5 @@
 package org.praisenter.media;
 
-import org.praisenter.xml.FileProperties;
-
 /**
  * Abstract implementation of the {@link Media} interface.
  * @author William Bittle
@@ -12,17 +10,17 @@ public abstract class AbstractMedia implements Media {
 	/** The media type */
 	protected MediaType type;
 	
-	/** The file properties */
-	protected FileProperties fileProperties;
+	/** The file information */
+	protected MediaFile file;
 	
 	/**
 	 * Minimal constructor.
-	 * @param fileProperties the file properties
+	 * @param file the file information
 	 * @param type the media type
 	 */
-	public AbstractMedia(FileProperties fileProperties, MediaType type) {
+	public AbstractMedia(MediaFile file, MediaType type) {
 		this.type = type;
-		this.fileProperties = fileProperties;
+		this.file = file;
 	}
 	
 	/* (non-Javadoc)
@@ -34,10 +32,10 @@ public abstract class AbstractMedia implements Media {
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.media.Media#getFileProperties()
+	 * @see org.praisenter.media.Media#getFile()
 	 */
 	@Override
-	public FileProperties getFileProperties() {
-		return this.fileProperties;
+	public MediaFile getFile() {
+		return this.file;
 	}
 }

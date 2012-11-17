@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.praisenter.media.MediaPlayer;
+import org.praisenter.media.MediaPlayerConfiguration;
 import org.praisenter.media.MediaPlayerListener;
 import org.praisenter.media.VideoMediaPlayerListener;
 import org.praisenter.media.XugglerPlayableMedia;
@@ -33,12 +34,9 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	/** The video/audio synchronization clock */
 	protected XugglerMediaClock clock;
 	
-	/** True if the media should loop */
-	protected boolean looped;
-	
-	/** True if the media is muted */
-	// FIXME setup muting
-	protected boolean muted;
+	/** The player configuration */
+	// FIXME implement muting
+	protected MediaPlayerConfiguration configuration;
 
 	/** The list of media player listeners */
 	protected List<MediaPlayerListener> listeners;
@@ -66,7 +64,7 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 		this.state = State.STOPPED;
 		this.clock = new XugglerMediaClock();
 		this.listeners = new ArrayList<>();
-		this.looped = true;
+		this.configuration = new MediaPlayerConfiguration();
 		
 		// create the threads
 		this.mediaReaderThread = new XugglerMediaReaderThread() {
@@ -211,35 +209,19 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaPlayer#isLooped()
+	 * @see org.praisenter.media.MediaPlayer#getConfiguration()
 	 */
 	@Override
-	public boolean isLooped() {
-		return this.looped;
+	public MediaPlayerConfiguration getConfiguration() {
+		return this.configuration;
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaPlayer#setLooped(boolean)
+	 * @see org.praisenter.media.MediaPlayer#setConfiguration(org.praisenter.media.MediaPlayerConfiguration)
 	 */
 	@Override
-	public void setLooped(boolean looped) {
-		this.looped = looped;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaPlayer#isMuted()
-	 */
-	@Override
-	public boolean isMuted() {
-		return this.muted;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaPlayer#setMuted(boolean)
-	 */
-	@Override
-	public void setMuted(boolean muted) {
-		this.muted = muted;
+	public void setConfiguration(MediaPlayerConfiguration configuration) {
+		this.configuration = configuration;
 	}
 	
 	/* (non-Javadoc)
@@ -269,18 +251,23 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 * beings playback.
 	 */
 	private void loop() {
-		if (this.looped) {
-			LOGGER.debug("Looping");
-			// stop, but drain whats left
-			boolean reset = stop(true);
+		// stop, but drain whats left
+		boolean reset = stop(true);
+		// check if we should loop
+		if (this.configuration.isLoopEnabled()) {
 			// make sure we were able to reset
 			// the media to its start position
 			if (reset) {
+				LOGGER.debug("Looping");
 				play();
-			} else {
-				LOGGER.warn("Loop failed, stopping media playback.");
+				return;
 			}
+			LOGGER.warn("Loop failed, stopping media playback.");
 		}
+		// if we don't loop (or it failed) then we need to pause all the threads
+		this.audioPlayerThread.setPaused(true);
+		this.mediaPlayerThread.setPaused(true);
+		this.mediaReaderThread.setPaused(true);
 	}
 	
 	/* (non-Javadoc)

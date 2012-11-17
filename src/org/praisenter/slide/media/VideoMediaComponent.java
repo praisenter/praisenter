@@ -7,16 +7,23 @@ import java.awt.image.BufferedImage;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.display.ScaleType;
 import org.praisenter.media.AbstractVideoMedia;
+import org.praisenter.media.MediaException;
+import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaPlayer;
 import org.praisenter.media.MediaPlayerListener;
+import org.praisenter.media.ScaleType;
 import org.praisenter.media.VideoMediaPlayerListener;
+import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideComponentCopyException;
+import org.praisenter.xml.MediaTypeAdapter;
 
 /**
  * Component for showing videos from the media library.
@@ -26,7 +33,20 @@ import org.praisenter.slide.SlideComponentCopyException;
  */
 @XmlRootElement(name = "VideoMediaComponent")
 @XmlAccessorType(XmlAccessType.NONE)
-public class VideoMediaComponent extends AbstractImageMediaComponent<AbstractVideoMedia> implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent, MediaComponent<AbstractVideoMedia>, PlayableMediaComponent<AbstractVideoMedia>, MediaPlayerListener, VideoMediaPlayerListener {
+public class VideoMediaComponent extends GenericSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent, MediaComponent<AbstractVideoMedia>, PlayableMediaComponent<AbstractVideoMedia>, MediaPlayerListener, VideoMediaPlayerListener {
+	/** The media */
+	@XmlElement(name = "Media", required = true, nillable = false)
+	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
+	protected AbstractVideoMedia media;
+
+	/** The video scale type */
+	@XmlAttribute(name = "ScaleType", required = false)
+	protected ScaleType scaleType;
+	
+	/** True if looping is enabled */
+	@XmlAttribute(name = "LoopEnabled", required = true)
+	protected boolean loopEnabled;
+	
 	/** True if the audio should be muted */
 	@XmlAttribute(name = "AudioMuted", required = true)
 	protected boolean audioMuted;
@@ -41,7 +61,7 @@ public class VideoMediaComponent extends AbstractImageMediaComponent<AbstractVid
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected VideoMediaComponent() {
-		super(null, 0, 0, 0, 0);
+		this(null, 0, 0, 0, 0);
 	}
 	
 	/**
@@ -63,7 +83,12 @@ public class VideoMediaComponent extends AbstractImageMediaComponent<AbstractVid
 	 * @param height the height in pixels
 	 */
 	public VideoMediaComponent(AbstractVideoMedia media, int x, int y, int width, int height) {
-		super(media, x, y, width, height);
+		super(x, y, width, height);
+		this.media = media;
+		this.scaleType = ScaleType.NONUNIFORM;
+		this.loopEnabled = false;
+		this.audioMuted = false;
+		this.currentFrame = null;
 	}
 	
 	/**
@@ -75,7 +100,16 @@ public class VideoMediaComponent extends AbstractImageMediaComponent<AbstractVid
 	 */
 	public VideoMediaComponent(VideoMediaComponent component) throws SlideComponentCopyException {
 		super(component);
+		// we only need to do this with playable media
+		try {
+			this.media = (AbstractVideoMedia)MediaLibrary.getMedia(component.media.getFileProperties().getFilePath(), true);
+		} catch (MediaException e) {
+			throw new SlideComponentCopyException(e);
+		}
+		this.scaleType = component.scaleType;
+		this.loopEnabled = component.loopEnabled;
 		this.audioMuted = component.audioMuted;
+		this.currentFrame = component.currentFrame;
 	}
 	
 	/* (non-Javadoc)
@@ -87,27 +121,49 @@ public class VideoMediaComponent extends AbstractImageMediaComponent<AbstractVid
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.media.AbstractImageMediaComponent#getImage()
+	 * @see org.praisenter.slide.media.MediaComponent#setMedia(org.praisenter.media.Media)
 	 */
 	@Override
-	public BufferedImage getImage() {
-		BufferedImage image = this.currentFrame;
-		if (image == null) {
-			image = this.media.getFirstFrame();
-		}
-		return image;
+	public void setMedia(AbstractVideoMedia media) {
+		this.media = media;
+		this.currentFrame = null;
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.media.AbstractImageMediaComponent#getPreviewImage()
+	 * @see org.praisenter.slide.media.MediaComponent#getMedia()
 	 */
 	@Override
-	public BufferedImage getPreviewImage() {
+	public AbstractVideoMedia getMedia() {
+		return this.media;
+	}
+
+	/**
+	 * Returns the first frame of this video component.
+	 * @return BufferedImage
+	 */
+	public BufferedImage getFirstFrame() {
 		if (this.media != null) {
 			return this.media.getFirstFrame();
 		} else {
 			return null;
 		}
+	}
+	
+	/**
+	 * Returns the current frame of this video component or
+	 * the first frame if the current frame is null.
+	 * <p>
+	 * The current frame will be updated if this component
+	 * is added as a {@link VideoMediaPlayerListener} to a 
+	 * {@link MediaPlayer}.
+	 * @return BufferedImage
+	 */
+	public BufferedImage getCurrentFrame() {
+		BufferedImage image = this.currentFrame;
+		if (image == null) {
+			return this.getFirstFrame();
+		}
+		return image;
 	}
 	
 	/* (non-Javadoc)
@@ -124,7 +180,7 @@ public class VideoMediaComponent extends AbstractImageMediaComponent<AbstractVid
 	@Override
 	public void render(Graphics2D g) {
 		// since video is opaque don't bother rendering the background
-		this.renderScaledFrame(g);
+		this.renderScaledFrame(g, this.getCurrentFrame());
 		this.renderBorder(g);
 	}
 	
@@ -134,36 +190,35 @@ public class VideoMediaComponent extends AbstractImageMediaComponent<AbstractVid
 	@Override
 	public void renderPreview(Graphics2D g) {
 		// since video is opaque don't bother rendering the background
-		this.renderScaledFrame(g);
+		this.renderScaledFrame(g, this.getFirstFrame());
 		this.renderBorder(g);
 	}
 	
 	/**
 	 * Renders the scaled image to the given graphics object.
 	 * @param g the graphics object to render to
+	 * @param image the image to render scaled
 	 */
-	protected void renderScaledFrame(Graphics2D g) {
-		if (this.currentFrame == null && this.media != null) {
-			this.currentFrame = this.media.getFirstFrame();
-		}
-		if (this.currentFrame != null) {
+	protected void renderScaledFrame(Graphics2D g, BufferedImage image) {
+		
+		if (image != null) {
 			// setup the clip for this component
 			Shape oClip = g.getClip();
 			g.setClip(this.x, this.y, this.width, this.height);
 
 			// compute the image dimensions
-			int iw = this.currentFrame.getWidth();
-			int ih = this.currentFrame.getHeight();
+			int iw = image.getWidth();
+			int ih = image.getHeight();
 			
 			if (iw != this.width || ih != this.height) {
-				double sw = (double)this.width / (double)this.currentFrame.getWidth();
-				double sh = (double)this.height / (double)this.currentFrame.getHeight();
+				double sw = (double)this.width / (double)iw;
+				double sh = (double)this.height / (double)ih;
 				if (this.scaleType == ScaleType.UNIFORM) {
 					if (sw < sh) {
 						iw = this.width;
-						ih = (int)Math.round(sw * this.currentFrame.getHeight());
+						ih = (int)Math.round(sw * ih);
 					} else {
-						iw = (int)Math.round(sh * this.currentFrame.getWidth());
+						iw = (int)Math.round(sh * iw);
 						ih = this.height;
 					}
 				} else if (this.scaleType == ScaleType.NONUNIFORM) {
@@ -173,28 +228,58 @@ public class VideoMediaComponent extends AbstractImageMediaComponent<AbstractVid
 				// center the image
 				int x = (this.width - iw) / 2;
 				int y = (this.height - ih) / 2;
-				g.drawImage(this.currentFrame, this.x + x, this.y + y, iw, ih, null);
+				g.drawImage(image, this.x + x, this.y + y, iw, ih, null);
 			} else {
-				g.drawImage(this.currentFrame, this.x, this.y, null);
+				g.drawImage(image, this.x, this.y, null);
 			}
 			
 			g.setClip(oClip);
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.PlayableMediaComponent#setLoopEnabled(boolean)
+	 */
+	@Override
+	public void setLoopEnabled(boolean loopEnabled) {
+		this.loopEnabled = loopEnabled;
+	}
 	
-	/**
-	 * Returns true if the audio is muted.
-	 * @return boolean
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.PlayableMediaComponent#isLoopEnabled()
+	 */
+	@Override
+	public boolean isLoopEnabled() {
+		return this.loopEnabled;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.PlayableMediaComponent#isAudioMuted()
 	 */
 	public boolean isAudioMuted() {
 		return this.audioMuted;
 	}
 
-	/**
-	 * Sets the audio to muted or not.
-	 * @param audioMuted true if the audio should be muted
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.media.PlayableMediaComponent#setAudioMuted(boolean)
 	 */
 	public void setAudioMuted(boolean audioMuted) {
 		this.audioMuted = audioMuted;
+	}
+
+	/**
+	 * Returns the image scale type.
+	 * @return {@link ScaleType}
+	 */
+	public ScaleType getScaleType() {
+		return this.scaleType;
+	}
+
+	/**
+	 * Sets the image scale type.
+	 * @param scaleType the scale type
+	 */
+	public void setScaleType(ScaleType scaleType) {
+		this.scaleType = scaleType;
 	}
 }

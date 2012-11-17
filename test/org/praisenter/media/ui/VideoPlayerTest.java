@@ -109,7 +109,8 @@ public class VideoPlayerTest {
 				player = (XugglerMediaPlayer)MediaLibrary.getMediaPlayerFactory(XugglerPlayableMedia.class).createMediaPlayer();
 				player.addMediaPlayerListener(this);
 				player.setMedia(media);
-				player.setLooped(true);
+				// enable looping
+				player.getConfiguration().setLoopEnabled(true);
 				player.play();
 //				player = new XugglerMediaPlayer();
 //				player.addMediaPlayerListener(this);

@@ -68,28 +68,18 @@ public interface MediaPlayer<E extends PlayableMedia> {
 	public abstract E getMedia();
 	
 	/**
-	 * Toggles the muted state of the audio.
-	 * @param muted true if the audio should be muted
+	 * Returns the media player configuration.
+	 * @return {@link MediaPlayerConfiguration}
 	 */
-	public abstract void setMuted(boolean muted);
+	public abstract MediaPlayerConfiguration getConfiguration();
 	
 	/**
-	 * Returns true if the audio is muted.
-	 * @return boolean
+	 * Sets the media player configuration.
+	 * <p>
+	 * This controls looping, muted audio, video scaling, etc.
+	 * @param configuration the configuration
 	 */
-	public abstract boolean isMuted();
-	
-	/**
-	 * Toggles the looping of the media.
-	 * @param looped true if the media should loop
-	 */
-	public abstract void setLooped(boolean looped);
-	
-	/**
-	 * Returns true if the media is set to loop.
-	 * @return boolean
-	 */
-	public abstract boolean isLooped();
+	public abstract void setConfiguration(MediaPlayerConfiguration configuration);
 	
 	// controls
 	

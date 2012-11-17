@@ -11,6 +11,7 @@ import com.xuggle.xuggler.IAudioSamples;
 import com.xuggle.xuggler.IContainer;
 import com.xuggle.xuggler.IError;
 import com.xuggle.xuggler.IPacket;
+import com.xuggle.xuggler.IPixelFormat;
 import com.xuggle.xuggler.IStreamCoder;
 import com.xuggle.xuggler.IVideoPicture;
 import com.xuggle.xuggler.video.ConverterFactory;
@@ -97,9 +98,12 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 		
 		// create the image converter for the video
 		if (videoCoder != null) {
-			this.picture = IVideoPicture.make(this.videoCoder.getPixelType(), this.videoCoder.getWidth(), this.videoCoder.getHeight());
-			BufferedImage target = new BufferedImage(this.videoCoder.getWidth(), this.videoCoder.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
-			this.videoConverter = ConverterFactory.createConverter(target, this.videoCoder.getPixelType());
+			int vw = this.videoCoder.getWidth();
+			int vh = this.videoCoder.getHeight();
+			IPixelFormat.Type type = this.videoCoder.getPixelType();
+			this.picture = IVideoPicture.make(type, vw, vh);
+			BufferedImage target = new BufferedImage(vw, vh, BufferedImage.TYPE_3BYTE_BGR);
+			this.videoConverter = ConverterFactory.createConverter(target, type);
 		}
 		
 		// create a resuable container for the samples

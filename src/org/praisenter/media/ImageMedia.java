@@ -5,7 +5,6 @@ import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
 import org.praisenter.utilities.ImageUtilities;
-import org.praisenter.xml.FileProperties;
 
 /**
  * Concrete class for image media.
@@ -13,17 +12,17 @@ import org.praisenter.xml.FileProperties;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class ImageMedia extends AbstractImageMedia {
+public class ImageMedia extends AbstractMedia {
 	/** The image */
 	protected BufferedImage image;
 	
 	/**
 	 * Full constructor.
-	 * @param fileProperties the file properties
+	 * @param file the file information
 	 * @param image the image
 	 */
-	public ImageMedia(FileProperties fileProperties, BufferedImage image) {
-		super(fileProperties, MediaType.IMAGE);
+	public ImageMedia(ImageMediaFile file, BufferedImage image) {
+		super(file, MediaType.IMAGE);
 		this.image = image;
 	}
 	
@@ -43,6 +42,6 @@ public class ImageMedia extends AbstractImageMedia {
 		// resize the image to a thumbnail size
 		BufferedImage image = ImageUtilities.getUniformScaledImage(this.image, size.width, size.height, AffineTransformOp.TYPE_BILINEAR);
 		// return the thumbnail
-		return new MediaThumbnail(this.fileProperties, image, this.type);
+		return new MediaThumbnail(this.file, image, this.type);
 	}
 }

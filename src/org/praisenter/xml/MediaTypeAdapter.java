@@ -17,7 +17,7 @@ public class MediaTypeAdapter extends XmlAdapter<String, Media> {
 	 */
 	@Override
 	public String marshal(Media v) throws Exception {
-		return v.getFileProperties().getFilePath();
+		return v.getFile().getPath();
 	}
 	
 	/* (non-Javadoc)
