@@ -8,6 +8,7 @@ video/mov   mov MOV
 video/avi   avi AVI
 
 # audio types
+audio/midi mid midi
 
 # other
 application/xml	xml XML
