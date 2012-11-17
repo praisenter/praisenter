@@ -13,4 +13,10 @@ import org.praisenter.utilities.ImageUtilities;
 public class Images {
 	/** Transparent background */
 	public static final BufferedImage TRANSPARENT_BACKGROUND = ImageUtilities.getImageFromClassPathSuppressExceptions("/org/praisenter/images/transparent.png");
+	
+	/** Midi audio icon */
+	public static final BufferedImage MIDI_AUDIO = ImageUtilities.getImageFromClassPathSuppressExceptions("/org/praisenter/images/midi-audio.png");
+	
+	/** Sampled audio icon */
+	public static final BufferedImage SAMPLED_AUDIO = ImageUtilities.getImageFromClassPathSuppressExceptions("/org/praisenter/images/sampled-audio.png");
 }
