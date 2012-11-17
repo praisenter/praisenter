@@ -102,7 +102,7 @@ public class TestSlideIO {
 		Graphics2D g = image.createGraphics();
 		bSlide.renderPreview(g);
 		g.dispose();
-		ImageIO.write(image, "png", new File("C:\\Users\\uswibit\\Desktop\\test.png"));
+//		ImageIO.write(image, "png", new File("C:\\Users\\uswibit\\Desktop\\test.png"));
 		
 		try {
 			SlideLibrary.saveTemplate("default", bSlide.createTemplate());

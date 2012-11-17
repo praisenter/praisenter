@@ -24,10 +24,9 @@ import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnail;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.ui.ImageFileFilter;
 import org.praisenter.ui.ImageFilePreview;
-import org.praisenter.ui.ThumbnailListCellRenderer;
-import org.praisenter.xml.Thumbnail;
 
 /**
  * Panel used to maintain the Media Library.
@@ -129,7 +128,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 	}
 	
 	/**
-	 * Creates a new JList for the given list of {@link Thumbnail}s.
+	 * Creates a new JList for the given list of {@link SlideThumbnail}s.
 	 * @param thumbnails the list of thumbnails
 	 * @return JList
 	 */
@@ -139,7 +138,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		list.setFixedCellWidth(100);
 		list.setVisibleRowCount(-1);
-		list.setCellRenderer(new ThumbnailListCellRenderer());
+		list.setCellRenderer(new MediaThumbnailListCellRenderer());
 		list.setLayout(new BorderLayout());
 		// setup the items
 		DefaultListModel<MediaThumbnail> model = new DefaultListModel<MediaThumbnail>();

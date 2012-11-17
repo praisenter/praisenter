@@ -1,4 +1,4 @@
-package org.praisenter.media;
+package org.praisenter.slide;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -9,22 +9,20 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.apache.log4j.Logger;
 
 /**
- * Generic file properties class.
+ * Generic slide file information class.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-@XmlRootElement(name = "MediaFile")
+@XmlRootElement(name = "SlideFile")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlSeeAlso({ImageMediaFile.class, VideoMediaFile.class, AudioMediaFile.class})
-public class MediaFile {
+public class SlideFile {
 	/** The class level logger */
-	private static final Logger LOGGER = Logger.getLogger(MediaFile.class);
+	private static final Logger LOGGER = Logger.getLogger(SlideFile.class);
 	
 	/** Number to represent unknown file size */
 	private static final int UNKNOWN_FILE_SIZE = -1;
@@ -41,23 +39,18 @@ public class MediaFile {
 	@XmlAttribute(name = "Size")
 	protected long size;
 	
-	/** The file format */
-	@XmlAttribute(name = "Format")
-	protected String format;
-	
 	/**
 	 * Default constructor.
 	 * <p>
 	 * Should only be used for JAXB.
 	 */
-	protected MediaFile() {}
+	protected SlideFile() {}
 	
 	/**
 	 * Full constructor.
 	 * @param filePath the file name and path
-	 * @param format the file format
 	 */
-	public MediaFile(String filePath, String format) {
+	public SlideFile(String filePath) {
 		Path path = FileSystems.getDefault().getPath(filePath);
 		long size = UNKNOWN_FILE_SIZE;
 		try {
@@ -69,7 +62,6 @@ public class MediaFile {
 		this.path = path.toString();
 		this.name = name;
 		this.size = size;
-		this.format = format;
 	}
 	
 	/**
@@ -94,14 +86,6 @@ public class MediaFile {
 	 */
 	public long getSize() {
 		return this.size;
-	}
-	
-	/**
-	 * Returns the file format.
-	 * @return String
-	 */
-	public String getFormat() {
-		return this.format;
 	}
 	
 	/**

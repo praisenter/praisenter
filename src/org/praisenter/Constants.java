@@ -30,17 +30,32 @@ public class Constants {
 	
 	// media
 	
+	/** The media library path */
 	public static final String MEDIA_LIBRARY_PATH = "media";
 	
+	/** The media library images path */
 	public static final String MEDIA_LIBRARY_IMAGE_PATH = MEDIA_LIBRARY_PATH + SEPARATOR + "images";
+	
+	/** The media library videos path */
 	public static final String MEDIA_LIBRARY_VIDEO_PATH = MEDIA_LIBRARY_PATH + SEPARATOR + "videos";
+	
+	/** The media library audio path */
 	public static final String MEDIA_LIBRARY_AUDIO_PATH = MEDIA_LIBRARY_PATH + SEPARATOR + "audio";
 	
 	// slides/templates
 	
+	/** The slide library slide path */
 	public static final String SLIDE_PATH = "slides";
+	
+	/** The slide library slide template path */
 	public static final String TEMPLATE_PATH = "templates";
+	
+	/** The slide library bible template path */
 	public static final String BIBLE_TEMPLATE_PATH = TEMPLATE_PATH + SEPARATOR + "bible";
+	
+	/** The slide library song template path */
 	public static final String SONGS_TEMPLATE_PATH = TEMPLATE_PATH + SEPARATOR + "songs";
+	
+	/** The slide library notification template path */
 	public static final String NOTIFICATIONS_TEMPLATE_PATH = TEMPLATE_PATH + SEPARATOR + "notifications";
 }

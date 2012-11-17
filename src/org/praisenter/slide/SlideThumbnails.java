@@ -7,9 +7,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.media.MediaThumbnail;
-import org.praisenter.xml.Thumbnail;
-
 /**
  * Represents a list of thumbnails for a thumbnail file.
  * @author William Bittle
@@ -21,7 +18,7 @@ import org.praisenter.xml.Thumbnail;
 public class SlideThumbnails {
 	/** The thumbnails */
 	@XmlElement(name = "Thumbnail", required = true, nillable = false)
-	protected List<Thumbnail> thumbnails;
+	protected List<SlideThumbnail> thumbnails;
 	
 	/** Default constructor */
 	protected SlideThumbnails() {}
@@ -30,15 +27,15 @@ public class SlideThumbnails {
 	 * Minimal constructor.
 	 * @param thumbnails the thumbnails
 	 */
-	public SlideThumbnails(List<Thumbnail> thumbnails) {
+	public SlideThumbnails(List<SlideThumbnail> thumbnails) {
 		this.thumbnails = thumbnails;
 	}
 	
 	/**
 	 * Returns the thumbnails.
-	 * @return List&lt;{@link MediaThumbnail}&gt;
+	 * @return List&lt;{@link SlideThumbnail}&gt;
 	 */
-	public List<Thumbnail> getThumbnails() {
+	public List<SlideThumbnail> getThumbnails() {
 		return thumbnails;
 	}
 }

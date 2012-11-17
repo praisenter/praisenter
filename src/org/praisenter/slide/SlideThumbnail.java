@@ -1,4 +1,4 @@
-package org.praisenter.xml;
+package org.praisenter.slide;
 
 import java.awt.image.BufferedImage;
 
@@ -6,17 +6,19 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.praisenter.xml.BufferedImageTypeAdapter;
+
 /**
  * Represents a cached thumbnail on the file system.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-@XmlRootElement(name = "Thumbnail")
-public class Thumbnail implements Comparable<Thumbnail> {
+@XmlRootElement(name = "SlideThumbnail")
+public class SlideThumbnail implements Comparable<SlideThumbnail> {
 	/** The file properties */
-	@XmlElement(name = "FileProperties", required = true, nillable = false)
-	protected FileProperties fileProperties;
+	@XmlElement(name = "File", required = true, nillable = false)
+	protected SlideFile file;
 	
 	/** The thumbnail image */
 	@XmlElement(name = "Image", nillable = true, required = false)
@@ -26,16 +28,16 @@ public class Thumbnail implements Comparable<Thumbnail> {
 	/**
 	 * Default constructor.
 	 */
-	protected Thumbnail() {}
+	protected SlideThumbnail() {}
 	
 	/**
 	 * Full constructor.
-	 * @param fileProperties the file properties
+	 * @param file the file information
 	 * @param image the thumbnail image
 	 */
-	public Thumbnail(FileProperties fileProperties, BufferedImage image) {
+	public SlideThumbnail(SlideFile file, BufferedImage image) {
 		super();
-		this.fileProperties = fileProperties;
+		this.file = file;
 		this.image = image;
 	}
 
@@ -43,17 +45,17 @@ public class Thumbnail implements Comparable<Thumbnail> {
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	@Override
-	public int compareTo(Thumbnail o) {
+	public int compareTo(SlideThumbnail o) {
 		// compare on file name
-		return this.fileProperties.getFileName().compareTo(o.getFileProperties().getFileName());
+		return this.file.getName().compareTo(o.getFile().getName());
 	}
 	
 	/**
-	 * Returns the media item's file properties.
-	 * @return {@link FileProperties}
+	 * Returns the media item's file information.
+	 * @return {@link SlideFile}
 	 */
-	public FileProperties getFileProperties() {
-		return this.fileProperties;
+	public SlideFile getFile() {
+		return this.file;
 	}
 	
 	/**

@@ -62,7 +62,7 @@ public class AudioMediaComponent implements SlideComponent, MediaComponent<Abstr
 	 */
 	public AudioMediaComponent(AudioMediaComponent component) throws SlideComponentCopyException {
 		try {
-			this.media = (AbstractAudioMedia)MediaLibrary.getMedia(component.media.getFileProperties().getFilePath(), true);
+			this.media = (AbstractAudioMedia)MediaLibrary.getMedia(component.media.getFile().getPath(), true);
 		} catch (MediaException e) {
 			throw new SlideComponentCopyException(e);
 		}
