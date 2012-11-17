@@ -1,5 +1,5 @@
 |   | Library                   | Required?     | License Type               | License File                        | Use/Description
-+---+--------------------------+---------------+----------------------------+-------------------------------------+------------------------------------------------------------
++---+---------------------------+---------------+----------------------------+-------------------------------------+------------------------------------------------------------
 |   | commons-codec-1.6.jar     | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Apache Commons Codec for base64 encoding/decoding
 |   | commons-lang3-3.1.jar     | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Apache Commons lang for xml escaping/unescaping
 |   | commons-pool-1.6.jar      | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Apache Commons pool for object pooling
