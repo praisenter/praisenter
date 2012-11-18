@@ -20,6 +20,10 @@ public class SlideThumbnail implements Comparable<SlideThumbnail> {
 	@XmlElement(name = "File", required = true, nillable = false)
 	protected SlideFile file;
 	
+	/** The user designated name */
+	@XmlElement(name = "Name")
+	protected String name;
+	
 	/** The thumbnail image */
 	@XmlElement(name = "Image", nillable = true, required = false)
 	@XmlJavaTypeAdapter(value = BufferedImageTypeAdapter.class)
@@ -33,11 +37,13 @@ public class SlideThumbnail implements Comparable<SlideThumbnail> {
 	/**
 	 * Full constructor.
 	 * @param file the file information
+	 * @param name the slide/template name
 	 * @param image the thumbnail image
 	 */
-	public SlideThumbnail(SlideFile file, BufferedImage image) {
+	public SlideThumbnail(SlideFile file, String name, BufferedImage image) {
 		super();
 		this.file = file;
+		this.name = name;
 		this.image = image;
 	}
 
@@ -64,5 +70,13 @@ public class SlideThumbnail implements Comparable<SlideThumbnail> {
 	 */
 	public BufferedImage getImage() {
 		return this.image;
+	}
+	
+	/**
+	 * Returns the slide/template name.
+	 * @return String
+	 */
+	public String getName() {
+		return this.name;
 	}
 }

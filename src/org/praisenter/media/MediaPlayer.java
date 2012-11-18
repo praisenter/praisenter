@@ -112,6 +112,12 @@ public interface MediaPlayer<E extends PlayableMedia> {
 	public abstract void seek(long position);
 	
 	/**
+	 * Returns the current position in the media.
+	 * @return long
+	 */
+	public abstract long getPosition();
+	
+	/**
 	 * Ends any playback and releases any resources for
 	 * this player.
 	 * <p>

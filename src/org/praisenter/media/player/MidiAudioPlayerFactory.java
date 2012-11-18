@@ -5,6 +5,12 @@ import org.praisenter.media.MediaPlayerFactory;
 import org.praisenter.media.MidiAudioMedia;
 import org.praisenter.media.PlayableMedia;
 
+/**
+ * Factory class for creating {@link MidiAudioPlayer}s.
+ * @author William Bittle
+ * @version 1.0.0
+ * @since 1.0.0
+ */
 public class MidiAudioPlayerFactory implements MediaPlayerFactory<MidiAudioMedia> {
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaPlayerFactory#isTypeSupported(java.lang.Class)

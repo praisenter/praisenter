@@ -1,15 +1,23 @@
 package org.praisenter.media.player;
 
+import java.util.List;
+
 import org.praisenter.media.AbstractAudioMedia;
 import org.praisenter.media.MediaPlayer;
 import org.praisenter.media.MediaPlayerConfiguration;
 import org.praisenter.media.MediaPlayerListener;
 
-
+/**
+ * Abstract audio media player.
+ * <p>
+ * Different audio media types may require different players. For example, sampled sound
+ * is played directly through a line, but midi sound must be synthesized first.
+ * @param <E> the {@link AbstractAudioMedia} type
+ * @author William Bittle
+ * @version 1.0.0
+ * @since 1.0.0
+ */
 public abstract class AbstractAudioPlayer<E extends AbstractAudioMedia> implements MediaPlayer<E> {
-	/** Value to loop the audio continuously = {@value #LOOP_INFINITE} */
-	public static final int LOOP_INFINITE = Integer.MIN_VALUE;
-
 	/** The max volume for the audio = {@value #MAX_VOLUME} */
 	public static final double MAX_VOLUME = 100.0;
 	
@@ -22,9 +30,12 @@ public abstract class AbstractAudioPlayer<E extends AbstractAudioMedia> implemen
 	/** The audio media to play */
 	protected E media;
 	
-	/** The current volume */
-	protected double volume = 50.0;
+	/** The media player configuration */
+	protected MediaPlayerConfiguration configuration;
 
+	/** The list of media player listeners */
+	protected List<MediaPlayerListener> listeners;
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaPlayer#setMedia(org.praisenter.media.PlayableMedia)
 	 */
@@ -42,34 +53,6 @@ public abstract class AbstractAudioPlayer<E extends AbstractAudioMedia> implemen
 		return this.media;
 	}
 	
-//	
-//	/**
-//	 * Closes the audio if the audio is not already in the in the {@link State#CLOSED} state.
-//	 * <p>
-//	 * This method will release resources to allow another audio object to play.  There are
-//	 * a finite number of resources for playing audio which will differ depending on the
-//	 * system.
-//	 * @see #open()
-//	 */
-//	public abstract void close();
-//
-//	/**
-//	 * Releases any audio system resources.
-//	 * <p>
-//	 * This method is normally called from the close method and should not be called
-//	 * directly.  This method should release the resources that are not used to re-open
-//	 * the audio and should release the resources necessary for audio play back to allow
-//	 * other audio to play.
-//	 */
-//	protected abstract void release();
-//	
-//	/**
-//	 * Resets the audio's state.
-//	 * <p>
-//	 * This should never be called directly.
-//	 */
-//	protected abstract void reset();
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaPlayer#isPaused()
 	 */
@@ -97,8 +80,7 @@ public abstract class AbstractAudioPlayer<E extends AbstractAudioMedia> implemen
 	 */
 	@Override
 	public MediaPlayerConfiguration getConfiguration() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.configuration;
 	}
 
 	/* (non-Javadoc)
@@ -106,8 +88,7 @@ public abstract class AbstractAudioPlayer<E extends AbstractAudioMedia> implemen
 	 */
 	@Override
 	public void setConfiguration(MediaPlayerConfiguration configuration) {
-		// TODO Auto-generated method stub
-		
+		this.configuration = configuration;
 	}
 
 	/* (non-Javadoc)
@@ -115,8 +96,7 @@ public abstract class AbstractAudioPlayer<E extends AbstractAudioMedia> implemen
 	 */
 	@Override
 	public void addMediaPlayerListener(MediaPlayerListener listener) {
-		// TODO Auto-generated method stub
-		
+		this.listeners.add(listener);
 	}
 
 	/* (non-Javadoc)
@@ -124,23 +104,6 @@ public abstract class AbstractAudioPlayer<E extends AbstractAudioMedia> implemen
 	 */
 	@Override
 	public boolean removeMediaPlayerListener(MediaPlayerListener listener) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	
-	/**
-	 * Sets the volume.
-	 * @param volume in the range [0, 100]
-	 */
-	public synchronized void setVolume(double volume) {
-		this.volume = volume;
-	}
-	
-	/**
-	 * Returns the current volume in the range [0, 100].
-	 * @return double
-	 */
-	public double getVolume() {
-		return this.volume;
+		return this.listeners.remove(listener);
 	}
 }

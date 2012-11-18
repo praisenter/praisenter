@@ -8,12 +8,17 @@ import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
 
 import org.apache.log4j.Logger;
+import org.praisenter.slide.BibleSlideTemplate;
+import org.praisenter.slide.NotificationSlideTemplate;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
+import org.praisenter.slide.SlideTemplate;
 import org.praisenter.slide.SlideThumbnail;
+import org.praisenter.slide.SongSlideTemplate;
 
 /**
  * Panel used to maintain the Slide Library.
@@ -33,10 +38,41 @@ public class SlideLibraryPanel extends JPanel implements ActionListener {
 	 * Default constructor.
 	 */
 	public SlideLibraryPanel() {
+		
+		JTabbedPane tabs = new JTabbedPane();
+		
+		{
+			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(Slide.class);
+			JList<SlideThumbnail> lstThumbs = createJList(thumbnails);
+			tabs.addTab("Slides", lstThumbs);
+		}
+		
+		{
+			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(SlideTemplate.class);
+			JList<SlideThumbnail> lstThumbs = createJList(thumbnails);
+			tabs.addTab("Templates", lstThumbs);
+		}
+		
+		{
+			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
+			JList<SlideThumbnail> lstThumbs = createJList(thumbnails);
+			tabs.addTab("Bible", lstThumbs);
+		}
+		
+		{
+			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(SongSlideTemplate.class);
+			JList<SlideThumbnail> lstThumbs = createJList(thumbnails);
+			tabs.addTab("Songs", lstThumbs);
+		}
+		
+		{
+			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(NotificationSlideTemplate.class);
+			JList<SlideThumbnail> lstThumbs = createJList(thumbnails);
+			tabs.addTab("Notification", lstThumbs);
+		}
+		
 		this.setLayout(new BorderLayout());
-		List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(Slide.class);
-		JList lstThumbs = createJList(thumbnails);
-		this.add(lstThumbs, BorderLayout.CENTER);
+		this.add(tabs, BorderLayout.CENTER);
 	}
 	
 	/**

@@ -154,7 +154,7 @@ public class SlideLibrary {
 					// create the thumbnail
 					BufferedImage image = slide.getThumbnail(THUMBNAIL_SIZE);
 					// add the thumbnail to the list
-					thumbnails.add(new SlideThumbnail(new SlideFile(filePath), image));
+					thumbnails.add(new SlideThumbnail(new SlideFile(filePath), slide.getName(), image));
 					// flag that we need to save it
 					save = true;
 				} else {
@@ -310,6 +310,7 @@ public class SlideLibrary {
 			// create a thumbnail
 			SlideThumbnail thumbnail = new SlideThumbnail(
 					new SlideFile(filePath), 
+					slide.getName(),
 					slide.getThumbnail(THUMBNAIL_SIZE));
 			// add the thumbnail to the list of thumbnails
 			THUMBNAILS.put(filePath, thumbnail);
@@ -382,6 +383,7 @@ public class SlideLibrary {
 			// create a thumbnail
 			SlideThumbnail thumbnail = new SlideThumbnail(
 					new SlideFile(filePath), 
+					template.getName(),
 					template.getThumbnail(THUMBNAIL_SIZE));
 			// add the thumbnail to the list of thumbnails
 			THUMBNAILS.put(filePath, thumbnail);
