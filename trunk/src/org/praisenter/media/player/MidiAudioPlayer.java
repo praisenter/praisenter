@@ -46,16 +46,16 @@ import javax.sound.midi.Synthesizer;
 import org.apache.log4j.Logger;
 import org.praisenter.media.MediaException;
 import org.praisenter.media.MediaPlayer;
+import org.praisenter.media.MediaPlayerConfiguration;
 import org.praisenter.media.MidiAudioMedia;
 
 /**
  * Represents an audio player for Midi audio.
  * <p>
  * Some implementations/distributions of the JRE do not come with a sound bank.  A sound bank
- * is needed for midi playback.  This class will first attempt to use the sound bank supplied
- * in the constructor.  If the given sound bank is not supported, the class will fall back to the
- * sound bank distributed with the JRE.  If it doesnt exist or isnt supported then the class 
- * will fall back to the hardware sound bank.
+ * is needed for midi playback.  This class will first attempt to use the sound bank distributed 
+ * with the JRE.  If it doesnt exist or isnt supported then it will fall back to the 
+ * hardware sound bank.
  * <p>
  * Setting the volume for a midi must be done after the midi audio has started.
  * @author William Bittle
@@ -98,21 +98,30 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	 */
 	public MidiAudioPlayer() {}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.player.AbstractAudioPlayer#setMedia(org.praisenter.media.AbstractAudioMedia)
+	 */
 	@Override
 	public synchronized boolean setMedia(MidiAudioMedia media) {
-		// assign the media
-		super.setMedia(media);
 		try {
-			this.initializeMedia();
-			return true;
+			// initialize the media
+			return this.initializeMedia(media);
 		} catch (MediaException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("An error occurred while initializing playback of the media: " + media.getFile().getPath(), e);
 		}
 		return false;
 	}
 	
-	public synchronized void initializeMedia() throws MediaException {
+	/**
+	 * Initializes the player using the given media.
+	 * @param media the media to prepare
+	 * @return boolean true if the player is ready for playback
+	 * @throws MediaException thrown if the player could not initialize playback for the media
+	 */
+	public boolean initializeMedia(MidiAudioMedia media) throws MediaException {
+		// assign the media
+		this.media = media;
+		
 		// attempt to load the sequence
 		try {
 			// use the class loader that loaded this class to load the resource
@@ -127,15 +136,17 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	        // close the input stream
 	        inputStream.close();
 		} catch (FileNotFoundException e) {
-			
+			LOGGER.error("The media file [" + media.getFile().getPath() + "] was not found: ", e);
+			throw new MediaException(e);
 		} catch (InvalidMidiDataException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("The media file [" + media.getFile().getPath() + "] contains invalid Midi data: ", e);
+			throw new MediaException(e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("An IO error occurred while loading the file [" + media.getFile().getPath() + "]: ", e);
+			throw new MediaException(e);
 		}
 		
+		// initialize the player
 		try {
 	    	// get the default system sequencer, initially not connected
 	        this.sequencer = MidiSystem.getSequencer(false);
@@ -143,20 +154,14 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	        this.synthesizer = MidiSystem.getSynthesizer();
 	        // setup the midi sound bank
 	        boolean setup = false;
-	        // attempt to use the passed in sound bank
-//	        if (this.soundbank != null && this.synthesizer.isSoundbankSupported(this.soundbank)) {
-//	    		this.synthesizer.loadAllInstruments(this.soundbank);
-//	    		setup = true;
-//	        }
 	        // attempt the default sound bank
 	        if (!setup && this.synthesizer.getDefaultSoundbank() != null) {
-	        	LOGGER.info("");
-//	        	this.soundbank = this.synthesizer.getDefaultSoundbank();
+	        	LOGGER.debug("Using JRE sound bank.");
 	        	setup = true;
 	        }
 	        // attempt the hardware sound bank
 			if (!setup) {
-				LOGGER.warn("");
+				LOGGER.warn("JRE sound bank not found, using hardware soundbank.");
 				// if the packaged one didnt work try the hardware one
 	            this.synthesizer = null;
 	        	// if it does have a sound bank then use the default synthesizer
@@ -180,18 +185,20 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	        // set the state to ready
 	        this.state = State.STOPPED;
 	        // log that the audio is ready
-	        LOGGER.debug("");
+	        LOGGER.debug("MidiAudioPlayer initialized and ready for playback.");
+	        // return true that we are ready
+	        return true;
 		} catch (MidiUnavailableException e) {
-			LOGGER.error(e);
+			LOGGER.error("Midi playback is not available: ", e);
 			throw new MediaException(e);
 		}
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.codezealot.game.audio.Audio#stop()
+	 * @see org.praisenter.media.MediaPlayer#stop()
 	 */
 	@Override
-	public synchronized void stop() {
+	public void stop() {
 		// make sure its in the playing or paused state
 		if (this.state == State.PLAYING || this.state == State.PAUSED) {
 			// set the audio to the open state
@@ -201,7 +208,7 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 			// reset the audio
 			this.microsecondPosition = 0;
 			// log that the audio has been stopped
-	        LOGGER.debug("");
+	        LOGGER.debug("Playback stopped");
 		}
 	}
 	
@@ -209,7 +216,7 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	 * @see org.praisenter.media.MediaPlayer#release()
 	 */
 	@Override
-	public synchronized void release() {
+	public void release() {
     	// close the sequencer, synthesizer, and receiver
     	if (this.sequencer != null && this.sequencer.isOpen()) {
 	    	 this.sequencer.close();
@@ -229,10 +236,10 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.codezealot.game.audio.Audio#pause()
+	 * @see org.praisenter.media.MediaPlayer#pause()
 	 */
 	@Override
-	public synchronized void pause() {
+	public void pause() {
     	// make sure something is playing
 		// (we shouldnt pass the state check if the sequencer is null)
     	if (this.state == State.PLAYING && this.sequencer.isRunning()) {
@@ -242,16 +249,16 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 			this.sequencer.stop();
 	    	// save the microsecond position
 	    	this.microsecondPosition = this.sequencer.getMicrosecondPosition();
+			// log that the audio has been paused
+	        LOGGER.debug("Playback stopped");
     	}
-		// log that the audio has been paused
-        LOGGER.debug("");
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.codezealot.game.audio.Audio#resume()
+	 * @see org.praisenter.media.MediaPlayer#resume()
 	 */
 	@Override
-	public synchronized void resume() {
+	public void resume() {
     	// make sure we are paused before we do anything
 		// (we shouldnt pass the state check if the sequencer is null)
     	if (this.state == State.PAUSED) {
@@ -261,16 +268,16 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 			this.sequencer.start();
 			// set the microsecond position back to zero
 			this.microsecondPosition = 0;
+			// log that the audio has been resumed
+	        LOGGER.debug("Playback resumed");
     	}
-		// log that the audio has been resumed
-        LOGGER.debug("");
 	}
 
 	/* (non-Javadoc)
-	 * @see org.codezealot.game.audio.Audio#play()
+	 * @see org.praisenter.media.MediaPlayer#play()
 	 */
 	@Override
-	public synchronized void play() {
+	public void play() {
 		try {
 			if (this.state == State.PAUSED) {
 	    		// set the state to playing
@@ -289,25 +296,44 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 				// the player is now playing
 				this.state = State.PLAYING;
 				// set the volume
-				this.setVolume(this.volume);
+				this.setVolume(this.configuration.getVolume());
 	    	}
+			LOGGER.debug("Playback started");
 		} catch (InvalidMidiDataException e) {
-			LOGGER.error(e);
+			LOGGER.error("Unable to restart playback of the media due to invalid Midi data: ", e);
 			// close the audio
 			this.stop();
 		}
-		// log that the audio has been started
-        LOGGER.debug("");
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaPlayer#seek(long)
 	 */
 	@Override
-	public synchronized void seek(long position) {
-		this.sequencer.setMicrosecondPosition(position);
+	public void seek(long position) {
+		if (position > 0) {
+			this.pause();
+			this.microsecondPosition = position;
+			this.sequencer.setMicrosecondPosition(position);
+			this.resume();
+		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaPlayer#getPosition()
+	 */
+	@Override
+	public long getPosition() {
+		if (this.state == AbstractAudioPlayer.State.PLAYING) {
+			return this.sequencer.getMicrosecondPosition();
+		} else {
+			return this.microsecondPosition;
+		}
+	}
+	
+	/**
+	 * Called when we are at the end of the media.
+	 */
 	protected void loop() {
     	this.sequencer.setTickPosition(0);
     	this.sequencer.start();
@@ -324,28 +350,38 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
             if (this.getConfiguration().isLoopEnabled()) {
             	this.loop();
             	// log that the audio is being looped
-    	        LOGGER.debug("");
+    	        LOGGER.debug("Looping");
             } else {
             	this.stop();
             }
         	// set the volume again
-        	this.setVolume(this.volume);
+        	this.setVolume(this.configuration.getVolume());
         }
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.codezealot.game.audio.Audio#setVolume(double)
+	 * @see org.praisenter.media.player.AbstractAudioPlayer#setConfiguration(org.praisenter.media.MediaPlayerConfiguration)
 	 */
 	@Override
-	public synchronized void setVolume(double volume) {
+	public void setConfiguration(MediaPlayerConfiguration configuration) {
+		super.setConfiguration(configuration);
+		// if we reset the configuration, then we need to reset the volume
+		this.setVolume(this.configuration.getVolume());
+	}
+	
+	/**
+	 * Attempts to set the volume of the playback.
+	 * <p>
+	 * This may not always work due to the soundbank being used.
+	 * @param volume the volume percentage
+	 */
+	protected synchronized void setVolume(double volume) {
 		int midiVolume = 0;
 		if (volume >= AbstractAudioPlayer.MIN_VOLUME && volume <= AbstractAudioPlayer.MAX_VOLUME) {
-			super.setVolume(volume);
 			midiVolume = (int) (MidiAudioPlayer.MIDI_MAX_VOLUME * (volume / AbstractAudioPlayer.MAX_VOLUME));
 		} else {
 			// if its not in range log a message and return
-//			LOGGER.log(Level.INFO, "org.codezealot.game.audio.volumeOutOfRange", new double[] {volume, AbstractAudioPlayer.MIN_VOLUME, AbstractAudioPlayer.MIN_VOLUME});
-			
+			LOGGER.warn("Volume percentage out of range: [" + volume + "].");
 			return;
 		}
 		// make sure the player is not closed
@@ -361,7 +397,7 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 					channels[i].controlChange(MidiAudioPlayer.VOLUME_CONTROLLER, midiVolume);
 				}
 				// log that the audio volume has been changed
-//    	        LOGGER.log(Level.FINEST, "org.codezealot.game.audio.volumeChanged", volume);
+				LOGGER.debug("Volume changed applied.");
 			} else if (this.receiver != null) {
 				// if the sequencer is null, then we are using the receiver
 				// create a short message
@@ -373,43 +409,17 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 						// change the volume
 						volMessage.setMessage(ShortMessage.CONTROL_CHANGE, i, MidiAudioPlayer.VOLUME_CONTROLLER, midiVolume);
 					} catch (InvalidMidiDataException e) {
-						// if an error occurs, just log it and continue
 						// this could be caused by less than 16 channels
-//						LOGGER.log(Level.INFO, "org.codezealot.game.audio.midi.controlChange.invalidData", new int[] {MidiAudioPlayer.VOLUME_CONTROLLER, i, midiVolume});
 					}
 					// send the message
 					this.receiver.send(volMessage, -1);
 				}
 				// log that the audio volume has been changed
-//    	        LOGGER.log(Level.FINEST, "org.codezealot.game.audio.volumeChanged", volume);
+				LOGGER.debug("Volume changed applied.");
 			} else {
 				// should never happen, but just in case, log a message
-				LOGGER.info("");
+				LOGGER.error("No synthesizer or receiver to apply volume change.");
 			}
-		}
-	}
-
-	/**
-	 * Sets the microsecond position.
-	 * <p>
-	 * If this method is called while the audio is playing the microsecond position will
-	 * be overridden.  To set the microsecond position without this happening, one must
-	 * call the {@link #pause()} method, then this method, then the {@link #resume()} method.
-	 * @param microsecondPosition the microsecond position in the midi
-	 */
-	public synchronized void setMicrosecondPosition(long microsecondPosition) {
-		this.microsecondPosition = microsecondPosition;
-	}
-	
-	/**
-	 * This will return the microsecond position of the sequencer.
-	 * @return long
-	 */
-	public long getMicrosecondPosition() {
-		if (this.state == AbstractAudioPlayer.State.PLAYING) {
-			return this.sequencer.getMicrosecondPosition();
-		} else {
-			return this.microsecondPosition;
 		}
 	}
 }

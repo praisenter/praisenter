@@ -347,6 +347,12 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	}
 	
 	@Override
+	public long getPosition() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	
+	@Override
 	public void release() {
 		this.stop();
 		this.state = State.ENDED;

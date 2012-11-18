@@ -49,81 +49,81 @@ public class TestSlideIO {
 		
 		DOMConfigurator.configure("config/log4j.xml");
 		
-		BibleSlide bSlide = new BibleSlide("Default Template", 1280, 1024);
-		// set the background
-//		ImageMediaComponent background = bSlide.createImageBackgroundComponent((ImageMedia)MediaLibrary.getMedia("media\\images\\bg3.png"));
-		VideoMediaComponent background = bSlide.createVideoBackgroundComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi"));
-//		VideoMediaComponent background = bSlide.createVideoBackgroundComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack_1280.avi"));
-//		VideoMediaComponent background = bSlide.createVideoBackgroundComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.mov"));
-		background.setScaleType(ScaleType.NONUNIFORM);
-		background.setBackgroundPaint(Color.BLUE);
-		background.setBackgroundPaintVisible(false);
-		background.setAudioMuted(true);
-		background.setLoopEnabled(true);
-		
-		bSlide.setBackground(background);
-		
-		TextComponent lc = bSlide.getScriptureLocationComponent();
-		lc.setText("Genesis 1:1");
-		lc.setTextFont(FontManager.getDefaultFont().deriveFont(65.0f));
-		lc.setTextPaint(Color.WHITE);
-		
-		TextComponent tc = bSlide.getScriptureTextComponent();
-		tc.setText("In the beginning, God created the heaven and the earth:");
-		tc.setTextFont(FontManager.getDefaultFont().deriveFont(65.0f));
-		tc.setTextPaint(new LinearGradientPaint(0.0f, 0.0f, tc.getWidth(), tc.getHeight(), new float[] { 0.5f, 1.0f }, new Color[] { Color.WHITE, Color.YELLOW }, CycleMethod.NO_CYCLE));
-		tc.setBorderVisible(true);
-		tc.setBorderStroke(new BasicStroke(5.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 5.0f));
-		tc.setBorderPaint(new RadialGradientPaint(new Point2D.Float(tc.getWidth() / 2, tc.getHeight() / 2), 200, new float[] { 0.5f, 1.0f }, new Color[] { Color.PINK, Color.ORANGE }, CycleMethod.NO_CYCLE));
-//		tc.setBackgroundPaint(Color.GRAY);
-//		tc.setBackgroundPaintVisible(true);
-		
-		VideoMediaComponent vc = new VideoMediaComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi"), 640, 500 /*480*/);
-		vc.setBorderPaint(Color.BLACK);
-		vc.setBorderStroke(new BasicStroke(5.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 5.0f));
-		vc.setBorderVisible(true);
-		vc.setX(100);
-		vc.setY(200);
-		vc.setAudioMuted(true);
-		vc.setLoopEnabled(false);
-		vc.setScaleType(ScaleType.UNIFORM);
-		bSlide.addComponent(vc);
-		
-		ImageMediaComponent ic = new ImageMediaComponent((ImageMedia)MediaLibrary.getMedia("media\\images\\bg3.png"), 400, 400);
-		ic.setScaleQuality(ScaleQuality.NEAREST_NEIGHBOR);
-		ic.setScaleType(ScaleType.UNIFORM);
-		ic.setBackgroundPaint(new LinearGradientPaint(0.0f, 0.0f, tc.getWidth(), tc.getHeight(), new float[] { 0.5f, 1.0f }, new Color[] { Color.RED, Color.YELLOW }, CycleMethod.NO_CYCLE));
-		ic.setBackgroundPaintVisible(true);
-		ic.setX(600);
-		ic.setY(100);
-		bSlide.addComponent(ic);
-		
-		BufferedImage image = new BufferedImage(1280, 1024, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g = image.createGraphics();
-		bSlide.renderPreview(g);
-		g.dispose();
-//		ImageIO.write(image, "png", new File("C:\\Users\\uswibit\\Desktop\\test.png"));
-		
-		try {
-			SlideLibrary.saveTemplate("default", bSlide.createTemplate());
-		} catch (SlideCopyException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		
-		Slide slide = new Slide("Test Slide", 1280, 1024);
-		slide.setBackground(background.copy());
-		
-		slide.addComponent(lc.copy());
-		slide.addComponent(tc.copy());
-		
-		SlideLibrary.saveSlide("test", slide);
-		try {
-			SlideLibrary.saveTemplate("test_template", (SlideTemplate)slide.createTemplate());
-		} catch (SlideCopyException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+//		BibleSlide bSlide = new BibleSlide("Default Template", 1280, 1024);
+//		// set the background
+////		ImageMediaComponent background = bSlide.createImageBackgroundComponent((ImageMedia)MediaLibrary.getMedia("media\\images\\bg3.png"));
+//		VideoMediaComponent background = bSlide.createVideoBackgroundComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi"));
+////		VideoMediaComponent background = bSlide.createVideoBackgroundComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack_1280.avi"));
+////		VideoMediaComponent background = bSlide.createVideoBackgroundComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\trailer_1080p.mov"));
+//		background.setScaleType(ScaleType.NONUNIFORM);
+//		background.setBackgroundPaint(Color.BLUE);
+//		background.setBackgroundPaintVisible(false);
+//		background.setAudioMuted(true);
+//		background.setLoopEnabled(true);
+//		
+//		bSlide.setBackground(background);
+//		
+//		TextComponent lc = bSlide.getScriptureLocationComponent();
+//		lc.setText("Genesis 1:1");
+//		lc.setTextFont(FontManager.getDefaultFont().deriveFont(65.0f));
+//		lc.setTextPaint(Color.WHITE);
+//		
+//		TextComponent tc = bSlide.getScriptureTextComponent();
+//		tc.setText("In the beginning, God created the heaven and the earth:");
+//		tc.setTextFont(FontManager.getDefaultFont().deriveFont(65.0f));
+//		tc.setTextPaint(new LinearGradientPaint(0.0f, 0.0f, tc.getWidth(), tc.getHeight(), new float[] { 0.5f, 1.0f }, new Color[] { Color.WHITE, Color.YELLOW }, CycleMethod.NO_CYCLE));
+//		tc.setBorderVisible(true);
+//		tc.setBorderStroke(new BasicStroke(5.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 5.0f));
+//		tc.setBorderPaint(new RadialGradientPaint(new Point2D.Float(tc.getWidth() / 2, tc.getHeight() / 2), 200, new float[] { 0.5f, 1.0f }, new Color[] { Color.PINK, Color.ORANGE }, CycleMethod.NO_CYCLE));
+////		tc.setBackgroundPaint(Color.GRAY);
+////		tc.setBackgroundPaintVisible(true);
+//		
+//		VideoMediaComponent vc = new VideoMediaComponent((AbstractVideoMedia)MediaLibrary.getMedia("media\\videos\\033_JumpBack.avi"), 640, 500 /*480*/);
+//		vc.setBorderPaint(Color.BLACK);
+//		vc.setBorderStroke(new BasicStroke(5.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 5.0f));
+//		vc.setBorderVisible(true);
+//		vc.setX(100);
+//		vc.setY(200);
+//		vc.setAudioMuted(true);
+//		vc.setLoopEnabled(false);
+//		vc.setScaleType(ScaleType.UNIFORM);
+//		bSlide.addComponent(vc);
+//		
+//		ImageMediaComponent ic = new ImageMediaComponent((ImageMedia)MediaLibrary.getMedia("media\\images\\bg3.png"), 400, 400);
+//		ic.setScaleQuality(ScaleQuality.NEAREST_NEIGHBOR);
+//		ic.setScaleType(ScaleType.UNIFORM);
+//		ic.setBackgroundPaint(new LinearGradientPaint(0.0f, 0.0f, tc.getWidth(), tc.getHeight(), new float[] { 0.5f, 1.0f }, new Color[] { Color.RED, Color.YELLOW }, CycleMethod.NO_CYCLE));
+//		ic.setBackgroundPaintVisible(true);
+//		ic.setX(600);
+//		ic.setY(100);
+//		bSlide.addComponent(ic);
+//		
+//		BufferedImage image = new BufferedImage(1280, 1024, BufferedImage.TYPE_INT_ARGB);
+//		Graphics2D g = image.createGraphics();
+//		bSlide.renderPreview(g);
+//		g.dispose();
+////		ImageIO.write(image, "png", new File("C:\\Users\\uswibit\\Desktop\\test.png"));
+//		
+//		try {
+//			SlideLibrary.saveTemplate("default", bSlide.createTemplate());
+//		} catch (SlideCopyException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//		
+//		Slide slide = new Slide("Test Slide", 1280, 1024);
+//		slide.setBackground(background.copy());
+//		
+//		slide.addComponent(lc.copy());
+//		slide.addComponent(tc.copy());
+//		
+//		SlideLibrary.saveSlide("test", slide);
+//		try {
+//			SlideLibrary.saveTemplate("test_template", (SlideTemplate)slide.createTemplate());
+//		} catch (SlideCopyException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
 		
 		for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 	        if (LookAndFeelUtilities.NIMBUS.equalsIgnoreCase(info.getName())) {

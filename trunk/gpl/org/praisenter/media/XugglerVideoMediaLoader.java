@@ -28,8 +28,11 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 	 */
 	@Override
 	public boolean isSupported(String mimeType) {
-		// handle any mimetype
-		return true;
+		if (mimeType != null && mimeType.contains("video")) {
+			// handle any mimetype
+			return true;
+		}
+		return false;
 	}
 	
 	/* (non-Javadoc)
