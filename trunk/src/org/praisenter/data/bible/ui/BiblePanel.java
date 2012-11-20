@@ -56,8 +56,8 @@ import org.praisenter.easings.Easing;
 import org.praisenter.easings.Easings;
 import org.praisenter.icons.Icons;
 import org.praisenter.preferences.BiblePreferences;
-import org.praisenter.preferences.GeneralSettings;
-import org.praisenter.preferences.SettingsListener;
+import org.praisenter.preferences.Preferences;
+import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.transitions.Transition;
@@ -77,7 +77,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @since 1.0.0
  */
 // TODO use a splitpane for the preview vs. controls height
-public class BiblePanel extends JPanel implements ActionListener, SettingsListener {
+public class BiblePanel extends JPanel implements ActionListener, PreferencesListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;
 
@@ -162,11 +162,11 @@ public class BiblePanel extends JPanel implements ActionListener, SettingsListen
 	public BiblePanel() {
 		this.verseFound = false;
 		
-		// get the settings
-		GeneralSettings gSettings = GeneralSettings.getInstance();
-		BiblePreferences bSettings = BiblePreferences.getInstance();
+		// get the preferences
+		Preferences preferences = Preferences.getInstance();
+		BiblePreferences bPreferences = preferences.getBiblePreferences();
 		
-		// get the display size
+		// get the slide size
 		Dimension displaySize = gSettings.getPrimaryDisplaySize();
 		
 		// create the preview panel

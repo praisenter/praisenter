@@ -1,4 +1,4 @@
-package org.praisenter.slide;
+package org.praisenter.preferences;
 
 /**
  * The render quality settings.

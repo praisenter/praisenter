@@ -33,6 +33,12 @@ public class BiblePreferences {
 	@XmlElement(name = "ApochryphaInclude", required = true, nillable = false)
 	protected boolean apochryphaIncluded;
 	
+	// template
+	
+	/** The template to use for bible slides */
+	@XmlElement(name = "Template", required = false, nillable = true)
+	protected String template;
+	
 	// transitions
 	
 	/** The send transition id */
@@ -65,6 +71,8 @@ public class BiblePreferences {
 		this.secondaryTranslationId = 1;
 		this.apochryphaIncluded = false;
 		this.secondaryTranslationEnabled = false;
+		
+		this.template = null;
 		
 		this.sendTransitionId = Swap.ID;
 		this.sendTransitionDuration = 400;
@@ -137,6 +145,26 @@ public class BiblePreferences {
 	public void setApochryphaIncluded(boolean apochryphaIncluded) {
 		this.apochryphaIncluded = apochryphaIncluded;
 	}
+	
+	// template
+	
+	/**
+	 * Gets the default template for bible slides.
+	 * @return String
+	 */
+	public String getTemplate() {
+		return this.template;
+	}
+	
+	/**
+	 * Sets the default template for bible slides.
+	 * @param template the template file path
+	 */
+	public void setTemplate(String template) {
+		this.template = template;
+	}
+	
+	// transitions
 
 	/**
 	 * Returns the send transition id.

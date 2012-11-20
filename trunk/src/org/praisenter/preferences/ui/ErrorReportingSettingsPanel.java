@@ -25,7 +25,7 @@ import org.praisenter.ui.WaterMark;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class ErrorReportingSettingsPanel extends JPanel implements ChangeListener {
+public class ErrorReportingSettingsPanel extends JPanel implements PreferencesEditor, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -4554732355783276924L;
 	
@@ -216,27 +216,22 @@ public class ErrorReportingSettingsPanel extends JPanel implements ChangeListene
 				.addComponent(tabs2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 	}
 	
-//	/* (non-Javadoc)
-//	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-//	 */
-//	@Override
-//	public void propertyChange(PropertyChangeEvent event) {}
-//	
-//	/* (non-Javadoc)
-//	 * @see org.praisenter.panel.setup.SetupPanel#saveSettings()
-//	 */
-//	@Override
-//	public void saveSettings() throws SettingsException {
-//		this.settings.setAccountEmail(this.txtEmail.getText());
-//		this.settings.setAccountUsername(this.txtUsername.getText());
-//		this.settings.setErrorReportingEnabled(this.chkReportingEnabled.isSelected());
-//		this.settings.setSmtpAuthenticateEnabled(this.chkAuthenticateEnabled.isSelected());
-//		this.settings.setSmtpHost(this.txtSmtpHost.getText());
-//		this.settings.setSmtpPort(((Number)this.txtSmtpPort.getValue()).intValue());
-//		this.settings.setSmtpStartTlsEnabled(this.chkStartTlsEnabled.isSelected());
-//		
-//		this.settings.save();
-//	}
+	/* (non-Javadoc)
+	 * @see org.praisenter.preferences.ui.PreferencesEditor#applyPreferences()
+	 */
+	@Override
+	public void applyPreferences() {
+		Preferences preferences = Preferences.getInstance();
+		ErrorReportingPreferences erPreferences = preferences.getErrorReportingPreferences();
+		
+		erPreferences.setAccountEmail(this.txtEmail.getText());
+		erPreferences.setAccountUsername(this.txtUsername.getText());
+		erPreferences.setEnabled(this.chkReportingEnabled.isSelected());
+		erPreferences.setAuthenticationEnabled(this.chkAuthenticateEnabled.isSelected());
+		erPreferences.setSmtpHost(this.txtSmtpHost.getText());
+		erPreferences.setSmtpPort(((Number)this.txtSmtpPort.getValue()).intValue());
+		erPreferences.setStartTlsEnabled(this.chkStartTlsEnabled.isSelected());
+	}
 	
 	/* (non-Javadoc)
 	 * @see javax.swing.event.ChangeListener#stateChanged(javax.swing.event.ChangeEvent)
