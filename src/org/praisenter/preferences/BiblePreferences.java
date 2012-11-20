@@ -1,0 +1,236 @@
+package org.praisenter.preferences;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.praisenter.easings.CubicEasing;
+import org.praisenter.transitions.Swap;
+
+/**
+ * Class used to store bible preferences.
+ * @author William Bittle
+ * @version 1.0.0
+ * @since 1.0.0
+ */
+@XmlRootElement(name = "BiblePreferences")
+@XmlAccessorType(XmlAccessType.NONE)
+public class BiblePreferences {
+	/** The primary translation id */
+	@XmlElement(name = "PrimaryTranslationId", required = true, nillable = false)
+	protected int primaryTranslationId;
+	
+	/** The secondary translation id */
+	@XmlElement(name = "SecondaryTranslationId", required = true, nillable = false)
+	protected int secondaryTranslationId;
+	
+	/** True if the secondary translation is enabled */
+	@XmlElement(name = "SecondaryTranslationEnabled", required = true, nillable = false)
+	protected boolean secondaryTranslationEnabled;
+	
+	/** True if the apochryphal books should be included */
+	@XmlElement(name = "ApochryphaInclude", required = true, nillable = false)
+	protected boolean apochryphaIncluded;
+	
+	// transitions
+	
+	/** The send transition id */
+	@XmlElement(name = "SendTransitionId", required = true, nillable = false)
+	protected int sendTransitionId;
+	
+	/** The send transition duration */
+	@XmlElement(name = "SendTransitionDuration", required = true, nillable = false)
+	protected int sendTransitionDuration;
+	
+	/** The send transition easing id */
+	@XmlElement(name = "SendTransitionEasingId", required = true, nillable = false)
+	protected int sendTransitionEasingId;
+	
+	/** The clear transition id */
+	@XmlElement(name = "ClearTransitionId", required = true, nillable = false)
+	protected int clearTransitionId;
+	
+	/** The clear transition duration */
+	@XmlElement(name = "ClearTransitionDuration", required = true, nillable = false)
+	protected int clearTransitionDuration;
+	
+	/** The clear transition easing id */
+	@XmlElement(name = "ClearTransitionEasingId", required = true, nillable = false)
+	protected int clearTransitionEasingId;
+	
+	/** Default constructor */
+	protected BiblePreferences() {
+		this.primaryTranslationId = 1;
+		this.secondaryTranslationId = 1;
+		this.apochryphaIncluded = false;
+		this.secondaryTranslationEnabled = false;
+		
+		this.sendTransitionId = Swap.ID;
+		this.sendTransitionDuration = 400;
+		this.sendTransitionEasingId = CubicEasing.ID;
+		this.clearTransitionId = Swap.ID;
+		this.clearTransitionDuration = 300;
+		this.clearTransitionEasingId = CubicEasing.ID;
+	}
+
+	/**
+	 * Returns the primary translation id.
+	 * @return int
+	 */
+	public int getPrimaryTranslationId() {
+		return this.primaryTranslationId;
+	}
+
+	/**
+	 * Sets the primary translation id.
+	 * @param primaryTranslationId the translation id
+	 */
+	public void setPrimaryTranslationId(int primaryTranslationId) {
+		this.primaryTranslationId = primaryTranslationId;
+	}
+
+	/**
+	 * Returns the secondary translation id.
+	 * @return int
+	 */
+	public int getSecondaryTranslationId() {
+		return this.secondaryTranslationId;
+	}
+	
+	/**
+	 * Returns the primary translation id.
+	 * @param secondaryTranslationId the translation id
+	 */
+	public void setSecondaryTranslationId(int secondaryTranslationId) {
+		this.secondaryTranslationId = secondaryTranslationId;
+	}
+
+	/**
+	 * Returns true if the secondary translation is enabled.
+	 * @return boolean 
+	 */
+	public boolean isSecondaryTranslationEnabled() {
+		return this.secondaryTranslationEnabled;
+	}
+
+	/**
+	 * Toggles the use of the secondary translation.
+	 * @param secondaryTranslationEnabled true if the secondary translation should be enabled
+	 */
+	public void setSecondaryTranslationEnabled(boolean secondaryTranslationEnabled) {
+		this.secondaryTranslationEnabled = secondaryTranslationEnabled;
+	}
+
+	/**
+	 * Returns true if the apochryphal books are included.
+	 * @return boolean
+	 */
+	public boolean isApochryphaIncluded() {
+		return this.apochryphaIncluded;
+	}
+
+	/**
+	 * Toggles use of the apochryphal books.
+	 * @param apochryphaIncluded true if the apochryphal books should be included
+	 */
+	public void setApochryphaIncluded(boolean apochryphaIncluded) {
+		this.apochryphaIncluded = apochryphaIncluded;
+	}
+
+	/**
+	 * Returns the send transition id.
+	 * @return int
+	 */
+	public int getSendTransitionId() {
+		return this.sendTransitionId;
+	}
+
+	/**
+	 * Sets the send transition id.
+	 * @param sendTransitionId the send transition id
+	 */
+	public void setSendTransitionId(int sendTransitionId) {
+		this.sendTransitionId = sendTransitionId;
+	}
+
+	/**
+	 * Returns the send transition duration in milliseconds.
+	 * @return int
+	 */
+	public int getSendTransitionDuration() {
+		return this.sendTransitionDuration;
+	}
+
+	/**
+	 * Sets the send transition duration.
+	 * @param sendTransitionDuration the send transition duration in milliseconds
+	 */
+	public void setSendTransitionDuration(int sendTransitionDuration) {
+		this.sendTransitionDuration = sendTransitionDuration;
+	}
+
+	/**
+	 * Returns the send transition easing id.
+	 * @return int
+	 */
+	public int getSendTransitionEasingId() {
+		return this.sendTransitionEasingId;
+	}
+
+	/**
+	 * Sets the send transition easing id.
+	 * @param sendTransitionEasingId the send transition easing id
+	 */
+	public void setSendTransitionEasingId(int sendTransitionEasingId) {
+		this.sendTransitionEasingId = sendTransitionEasingId;
+	}
+
+	/**
+	 * Returns the clear transition id.
+	 * @return int
+	 */
+	public int getClearTransitionId() {
+		return this.clearTransitionId;
+	}
+
+	/**
+	 * Sets the clear transition id.
+	 * @param clearTransitionId the clear transition id
+	 */
+	public void setClearTransitionId(int clearTransitionId) {
+		this.clearTransitionId = clearTransitionId;
+	}
+
+	/**
+	 * Returns the clear transition duration.
+	 * @return int
+	 */
+	public int getClearTransitionDuration() {
+		return this.clearTransitionDuration;
+	}
+
+	/**
+	 * Sets the clear transition duration.
+	 * @param clearTransitionDuration the clear transition duration in milliseconds
+	 */
+	public void setClearTransitionDuration(int clearTransitionDuration) {
+		this.clearTransitionDuration = clearTransitionDuration;
+	}
+
+	/**
+	 * Returns the clear transition easing id.
+	 * @return int
+	 */
+	public int getClearTransitionEasingId() {
+		return this.clearTransitionEasingId;
+	}
+
+	/**
+	 * Sets the clear transition easing id.
+	 * @param clearTransitionEasingId the clear transition easing id
+	 */
+	public void setClearTransitionEasingId(int clearTransitionEasingId) {
+		this.clearTransitionEasingId = clearTransitionEasingId;
+	}
+}

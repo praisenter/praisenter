@@ -142,11 +142,8 @@ public class Slide {
 		}
 		
 		// TODO resort the list by order
-		for (SlideComponent component : this.components) {
-			if (component instanceof RenderableSlideComponent) {
-				RenderableSlideComponent renderable = (RenderableSlideComponent)component;
-				renderable.renderPreview(g);
-			}
+		for (RenderableSlideComponent component : this.getComponents(RenderableSlideComponent.class)) {
+			component.renderPreview(g);
 		}
 	}
 	
@@ -160,11 +157,8 @@ public class Slide {
 		}
 		
 		// TODO resort the list by order
-		for (SlideComponent component : this.components) {
-			if (component instanceof RenderableSlideComponent) {
-				RenderableSlideComponent renderable = (RenderableSlideComponent)component;
-				renderable.render(g);
-			}
+		for (RenderableSlideComponent component : this.getComponents(RenderableSlideComponent.class)) {
+			component.render(g);
 		}
 	}
 	
@@ -252,20 +246,16 @@ public class Slide {
 	 * @param component the background component
 	 */
 	public void setBackground(RenderableSlideComponent component) {
-		if (this.background != null) {
-			this.components.remove(this.background);
-		}
+		component.setOrder(0);
 		this.background = component;
-		// make sure the background has an order of zero always
-		this.background.setOrder(0);
-		this.addComponent(this.background);
 	}
 	
 	/**
-	 * Sorts the components using their z-ordering.
+	 * Sorts the given components using their z-ordering.
+	 * @param components the list of components to sort
 	 */
-	public void sortComponentsByOrder() {
-		Collections.sort(this.components, ORDER_COMPARATOR);
+	protected <E extends SlideComponent> void sortComponentsByOrder(List<E> components) {
+		Collections.sort(components, ORDER_COMPARATOR);
 	}
 	
 	/**
@@ -273,12 +263,9 @@ public class Slide {
 	 * @param component the component to add
 	 */
 	public void addComponent(SlideComponent component) {
-		// FIXME compute the maximum order
-		// FIXME add methods to re-order components
-		// FIXME reassign the order to the maximum
+		int order = this.getNextIndex();
+		component.setOrder(order);
 		this.components.add(component);
-		// we must re-sort
-		this.sortComponentsByOrder();
 	}
 	
 	/**
@@ -292,30 +279,113 @@ public class Slide {
 	}
 	
 	/**
-	 * Returns the number of components on this slide.
-	 * <p>
-	 * This does not include the background component or any specialized components.
-	 * <p>
-	 * Used with {@link #getComponent(int)}, you can iterate over all the components
-	 * in the components list.
+	 * Returns the next order index in the list of components.
 	 * @return int
 	 */
-	public int getComponentCount() {
-		return this.components.size();
+	protected int getNextIndex() {
+		List<SlideComponent> components = this.getComponents(SlideComponent.class);
+		if (components.size() > 0) {
+			int maximum = 1;
+			for (SlideComponent component : components) {
+				if (maximum < component.getOrder()) {
+					maximum = component.getOrder();
+				}
+			}
+			return maximum + 1;
+		} else {
+			return 1;
+		}
 	}
 	
 	/**
-	 * Returns the component at the given index.
-	 * @param i the component index
-	 * @return {@link SlideComponent}
-	 * @throws IndexOutOfBoundsException thrown if i is less than zero or greater than the size
+	 * Moves the given component up by one.
+	 * <p>
+	 * If the given component is not on this slide, this method does nothing.
+	 * <p>
+	 * If the given component is already the last component in this slide then
+	 * the component is not modified.
+	 * <p>
+	 * Otherwise the given component is moved up by one and the next component is 
+	 * moved back by one.
+	 * @param component the component to move up
 	 */
-	public SlideComponent getComponent(int i) {
-		return this.components.get(i);
+	public void moveComponentUp(SlideComponent component) {
+		// move the given component up in the order
+		
+		// get all the components
+		List<SlideComponent> components = this.getComponents(SlideComponent.class);
+		// verify the component exists on this slide
+		if (components.contains(component) && components.size() > 0) {
+			int size = components.size();
+			// see if the component is already in the last position
+			if (components.get(size - 1).equals(component)) {
+				// if it is, then just return its order
+				return;
+			} else {
+				// if its not in the last position then we need to 
+				// move it up and change the subsequent component (move it back by one)
+				int order = component.getOrder();
+				for (SlideComponent cmp : components) {
+					// see if the current component order is greater
+					// than this component's order
+					if (cmp.getOrder() == order + 1) {
+						// we only need to move back the next component
+						cmp.setOrder(cmp.getOrder() - 1);
+						break;
+					}
+				}
+				// move the given component up
+				component.setOrder(order + 1);
+			}
+		}
+	}
+	
+	/**
+	 * Moves the given component down by one.
+	 * <p>
+	 * If the given component is not on this slide, this method does nothing.
+	 * <p>
+	 * If the given component is already the first component in this slide then
+	 * the component is not modified.
+	 * <p>
+	 * Otherwise the given component is moved down by one and the previous component is 
+	 * moved up by one.
+	 * @param component the component to move down
+	 */
+	public void moveComponentDown(SlideComponent component) {
+		// move the given component down in the order
+		
+		// get all the components
+		List<SlideComponent> components = this.getComponents(SlideComponent.class);
+		// verify the component exists on this slide
+		if (components.contains(component) && components.size() > 0) {
+			// see if the component is already in the first position
+			if (components.get(0).equals(component)) {
+				// if it is, then just return its order
+				return;
+			} else {
+				// if its not in the first position then we need to 
+				// move it down and change the previous component (move it up by one)
+				int order = component.getOrder();
+				for (SlideComponent cmp : components) {
+					// find the previous component
+					if (cmp.getOrder() == order - 1) {
+						// we only need to move up the previous component
+						cmp.setOrder(cmp.getOrder() + 1);
+						break;
+					}
+				}
+				// move the given component up
+				component.setOrder(order - 1);
+			}
+		}
 	}
 	
 	/**
 	 * Returns a list of the given component type.
+	 * <p>
+	 * This method will not return the background component even if it is
+	 * of the given type.
 	 * @param clazz the class type
 	 * @return List&lt;E&gt;
 	 */
@@ -333,6 +403,9 @@ public class Slide {
 	 * Returns all the {@link PlayableMediaComponent}s on this {@link Slide}.
 	 * <p>
 	 * This is useful for display of the slide to being/end media playback.
+	 * <p>
+	 * This method will not return the background component even if it is of type
+	 * {@link PlayableMediaComponent}.
 	 * @return List&lt;{@link PlayableMediaComponent}&gt;
 	 */
 	public List<PlayableMediaComponent<?>> getPlayableMediaComponents() {

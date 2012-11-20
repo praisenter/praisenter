@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -38,6 +39,10 @@ public class SlideLibraryPanel extends JPanel implements ActionListener {
 	 * Default constructor.
 	 */
 	public SlideLibraryPanel() {
+		
+		List<SlideThumbnail> ts = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
+		JComboBox<SlideThumbnail> cmbTest = new JComboBox<SlideThumbnail>(ts.toArray(new SlideThumbnail[0]));
+		cmbTest.setRenderer(new SlideThumbnailComboBoxRenderer());
 		
 		JTabbedPane tabs = new JTabbedPane();
 		
@@ -73,6 +78,7 @@ public class SlideLibraryPanel extends JPanel implements ActionListener {
 		
 		this.setLayout(new BorderLayout());
 		this.add(tabs, BorderLayout.CENTER);
+		this.add(cmbTest, BorderLayout.PAGE_START);
 	}
 	
 	/**

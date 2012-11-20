@@ -23,8 +23,8 @@ import org.praisenter.data.errors.ui.EnterPasswordDialog;
 import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.data.song.Songs;
 import org.praisenter.icons.Icons;
+import org.praisenter.preferences.Preferences;
 import org.praisenter.resources.Messages;
-import org.praisenter.settings.ErrorReportingSettings;
 import org.praisenter.utilities.FontManager;
 
 /**
@@ -262,7 +262,7 @@ public class ApplicationLoader {
 		// see if there are any error reports to send
 		if (Errors.getErrorMessageCount() > 0) {
 			// if so then see if the reporting is enabled
-			if (ErrorReportingSettings.getInstance().isErrorReportingEnabled()) {
+			if (Preferences.getInstance().getErrorReportingPreferences().isEnabled()) {
 				// if so, then ask the user for their smtp password
 				String pass = EnterPasswordDialog.show(null);
 				// see if they entered a password

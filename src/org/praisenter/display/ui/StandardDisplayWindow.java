@@ -8,7 +8,7 @@ import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
 
 import org.praisenter.display.Display;
-import org.praisenter.slide.transitions.TransitionAnimator;
+import org.praisenter.transitions.TransitionAnimator;
 
 /**
  * Represents a standard display window for a standard display surface.

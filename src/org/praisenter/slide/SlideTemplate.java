@@ -28,6 +28,16 @@ public class SlideTemplate extends Slide implements Template {
 	}
 	
 	/**
+	 * Full constructor.
+	 * @param name the name of the template
+	 * @param width the width of the slide
+	 * @param height the height of the slide
+	 */
+	public SlideTemplate(String name, int width, int height) {
+		super(name, width, height);
+	}
+	
+	/**
 	 * Minimal constructor.
 	 * @param slide the slide to copy
 	 * @throws SlideCopyException thrown if the copy fails

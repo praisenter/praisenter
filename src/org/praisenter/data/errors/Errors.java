@@ -25,7 +25,7 @@ import javax.mail.internet.MimeMessage;
 import org.apache.log4j.Logger;
 import org.praisenter.data.ConnectionFactory;
 import org.praisenter.data.DataException;
-import org.praisenter.settings.ErrorReportingSettings;
+import org.praisenter.preferences.ErrorReportingPreferences;
 
 /**
  * Class used for error reporting.
@@ -117,7 +117,7 @@ public class Errors {
 		// create the error message
 		ErrorMessage em = new ErrorMessage(message, exception, contact, description);
 		// see if reporting is enabled
-		if (ErrorReportingSettings.getInstance().isErrorReportingEnabled() && smtpPassword != null) {
+		if (ErrorReportingPreferences.getInstance().isErrorReportingEnabled() && smtpPassword != null) {
 			// if so, attempt to email the message
 			try {
 				emailErrorMessages(smtpPassword, em);
@@ -169,7 +169,7 @@ public class Errors {
 	 * @param smtpPassword the SMTP password
 	 */
 	public static final void sendErrorMessages(String smtpPassword) {
-		if (ErrorReportingSettings.getInstance().isErrorReportingEnabled()) {
+		if (ErrorReportingPreferences.getInstance().isErrorReportingEnabled()) {
 			try {
 				// get all the stored messages
 				List<ErrorMessage> messages = getErrorMessages();
@@ -194,7 +194,7 @@ public class Errors {
 	 */
 	private static final void emailErrorMessages(String pass, ErrorMessage... messages) throws InvalidConfigurationException, MessagingException {
 		// get the settings
-		ErrorReportingSettings settings = ErrorReportingSettings.getInstance();
+		ErrorReportingPreferences settings = ErrorReportingPreferences.getInstance();
 		// setup all the properties
 		String host = settings.getSmtpHost();
 		int port = settings.getSmtpPort();

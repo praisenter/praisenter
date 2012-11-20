@@ -66,6 +66,8 @@ public class WindowUtilities {
 	
 	/**
 	 * Returns the first device that is not the default device.
+	 * <p>
+	 * If only one device is present, the default device is returned.
 	 * @return GraphicsDevice
 	 */
 	public static final GraphicsDevice getSecondaryDevice() {

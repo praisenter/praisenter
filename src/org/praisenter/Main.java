@@ -13,11 +13,7 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
-import org.praisenter.settings.BibleSettings;
-import org.praisenter.settings.ErrorReportingSettings;
-import org.praisenter.settings.GeneralSettings;
-import org.praisenter.settings.NotificationSettings;
-import org.praisenter.settings.SongSettings;
+import org.praisenter.preferences.Preferences;
 import org.praisenter.utilities.LookAndFeelUtilities;
 
 // FIXME add license to all files
@@ -83,20 +79,8 @@ public class Main {
 		// initialize default look and feel
 		initializeDefaultLookAndFeel();
 		
-		// initialize error reporting settings
-		ErrorReportingSettings.getInstance();
-		
-		// initialize general settings
-		GeneralSettings.getInstance();
-		
-		// initialize notification settings
-		NotificationSettings.getInstance();
-		
-		// initialize bible settings
-		BibleSettings.getInstance();
-		
-		// initialize song settings
-		SongSettings.getInstance();
+		// initialize preferences
+		Preferences.getInstance();
 	}
 	
 	/**

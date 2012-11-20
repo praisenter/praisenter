@@ -1,5 +1,7 @@
 package org.praisenter.slide;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -66,9 +68,8 @@ public class BibleSlide extends Slide {
 		this.scriptureLocationComponent = new TextComponent(margin, margin, w, tth);
 		this.scriptureTextComponent = new TextComponent(margin, tth + margin * 2, w, th);
 		
-		// add them to the components list
-		this.components.add(this.scriptureLocationComponent);
-		this.components.add(this.scriptureTextComponent);
+		this.scriptureLocationComponent.setOrder(1);
+		this.scriptureTextComponent.setOrder(2);
 	}
 	
 	/**
@@ -103,6 +104,20 @@ public class BibleSlide extends Slide {
 	 */
 	public BibleSlideTemplate createTemplate() throws SlideCopyException {
 		return new BibleSlideTemplate(this);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getComponents(java.lang.Class)
+	 */
+	@Override
+	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz) {
+		List<E> components = super.getComponents(clazz);
+		if (clazz.isAssignableFrom(TextComponent.class)) {
+			components.add(clazz.cast(this.scriptureLocationComponent));
+			components.add(clazz.cast(this.scriptureTextComponent));
+		}
+		this.sortComponentsByOrder(components);
+		return components;
 	}
 	
 	/**

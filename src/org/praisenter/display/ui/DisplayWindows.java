@@ -3,7 +3,7 @@ package org.praisenter.display.ui;
 import java.awt.GraphicsDevice;
 import java.util.HashMap;
 
-import org.praisenter.settings.GeneralSettings;
+import org.praisenter.preferences.GeneralSettings;
 import org.praisenter.utilities.WindowUtilities;
 
 /**

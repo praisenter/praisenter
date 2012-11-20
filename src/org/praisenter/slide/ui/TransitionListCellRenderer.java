@@ -5,7 +5,7 @@ import java.awt.Component;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
-import org.praisenter.slide.transitions.Transition;
+import org.praisenter.transitions.Transition;
 
 /**
  * List cell renderer for a list of {@link Transition} objects.
