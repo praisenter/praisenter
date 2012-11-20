@@ -47,16 +47,16 @@ import org.praisenter.display.SongDisplay;
 import org.praisenter.display.ui.DisplayWindows;
 import org.praisenter.display.ui.ScrollableInlineDisplayPreviewPanel;
 import org.praisenter.display.ui.StandardDisplayWindow;
+import org.praisenter.easings.Easing;
+import org.praisenter.easings.Easings;
+import org.praisenter.preferences.GeneralSettings;
+import org.praisenter.preferences.SettingsListener;
+import org.praisenter.preferences.SongPreferences;
 import org.praisenter.resources.Messages;
-import org.praisenter.settings.GeneralSettings;
-import org.praisenter.settings.SettingsListener;
-import org.praisenter.settings.SongSettings;
-import org.praisenter.slide.transitions.Transition;
-import org.praisenter.slide.transitions.TransitionAnimator;
-import org.praisenter.slide.transitions.Transitions;
-import org.praisenter.slide.transitions.easing.Easing;
-import org.praisenter.slide.transitions.easing.Easings;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
+import org.praisenter.transitions.Transition;
+import org.praisenter.transitions.TransitionAnimator;
+import org.praisenter.transitions.Transitions;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.ui.WaterMark;
 import org.praisenter.utilities.StringUtilities;
@@ -145,7 +145,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	@SuppressWarnings("serial")
 	public SongsPanel() {
 		GeneralSettings gSettings = GeneralSettings.getInstance();
-		SongSettings sSettings = SongSettings.getInstance();
+		SongPreferences sSettings = SongPreferences.getInstance();
 		
 		// song preview
 		
@@ -658,7 +658,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	 * @param display the display to send
 	 */
 	private void sendDisplay(SongDisplay display) {
-		SongSettings settings = SongSettings.getInstance();
+		SongPreferences settings = SongPreferences.getInstance();
 		// get the transition
 		Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
 		int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
@@ -682,7 +682,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	 * Clears the primary display.
 	 */
 	private void clearAction() {
-		SongSettings settings = SongSettings.getInstance();
+		SongPreferences settings = SongPreferences.getInstance();
 		// get the transition
 		Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
 		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();

@@ -12,8 +12,8 @@ import org.praisenter.data.song.SongPart;
 import org.praisenter.display.DisplayFactory;
 import org.praisenter.display.SongDisplay;
 import org.praisenter.display.ui.InlineDisplayPreviewPanel;
-import org.praisenter.settings.GeneralSettings;
-import org.praisenter.settings.SongSettings;
+import org.praisenter.preferences.GeneralSettings;
+import org.praisenter.preferences.SongPreferences;
 
 /**
  * Represents a panel that shows a preview of song displays.
@@ -58,7 +58,7 @@ public class SongDisplayPreviewPanel extends InlineDisplayPreviewPanel<SongDispl
 		
 		if (song != null) {
 			GeneralSettings gSettings = GeneralSettings.getInstance();
-			SongSettings sSettings = SongSettings.getInstance();
+			SongPreferences sSettings = SongPreferences.getInstance();
 			
 			Dimension displaySize = gSettings.getPrimaryDisplaySize();
 			GraphicsDevice device = gSettings.getPrimaryOrDefaultDisplay();

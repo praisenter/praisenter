@@ -9,8 +9,8 @@ import java.awt.image.BufferedImage;
 import javax.swing.Timer;
 
 import org.praisenter.display.Display;
-import org.praisenter.slide.transitions.Transition;
-import org.praisenter.slide.transitions.TransitionAnimator;
+import org.praisenter.transitions.Transition;
+import org.praisenter.transitions.TransitionAnimator;
 
 /**
  * Represents a special display surface supporting notifications.

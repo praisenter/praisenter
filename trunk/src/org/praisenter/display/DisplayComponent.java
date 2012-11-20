@@ -5,7 +5,7 @@ import java.awt.GraphicsConfiguration;
 import java.awt.RenderingHints;
 import java.util.UUID;
 
-import org.praisenter.settings.GeneralSettings;
+import org.praisenter.preferences.GeneralSettings;
 
 /**
  * An abstract component used on a {@link Display}.

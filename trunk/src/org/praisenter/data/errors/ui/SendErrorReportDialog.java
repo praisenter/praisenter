@@ -21,8 +21,8 @@ import javax.swing.SwingConstants;
 import org.apache.log4j.Logger;
 import org.praisenter.data.errors.Errors;
 import org.praisenter.icons.Icons;
+import org.praisenter.preferences.ErrorReportingPreferences;
 import org.praisenter.resources.Messages;
-import org.praisenter.settings.ErrorReportingSettings;
 import org.praisenter.ui.BottomButtonPanel;
 
 /**
@@ -140,7 +140,7 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 		
 		if (dialog.send) {
 			String password = null;
-			if (ErrorReportingSettings.getInstance().isErrorReportingEnabled()) {
+			if (ErrorReportingPreferences.getInstance().isErrorReportingEnabled()) {
 				// prompt the user for a password
 				password = EnterPasswordDialog.show(null);
 			}

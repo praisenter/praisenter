@@ -28,6 +28,7 @@ import org.praisenter.media.NoMediaLoaderException;
 import org.praisenter.media.ScaleQuality;
 import org.praisenter.media.ScaleType;
 import org.praisenter.slide.BibleSlide;
+import org.praisenter.slide.BibleSlideTemplate;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponentCopyException;
 import org.praisenter.slide.SlideCopyException;
@@ -36,11 +37,14 @@ import org.praisenter.slide.SlideLibraryException;
 import org.praisenter.slide.SlideTemplate;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
+import org.praisenter.slide.present.SlideWindows;
+import org.praisenter.slide.text.FontScaleType;
+import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
-import org.praisenter.slide.transitions.TransitionAnimator;
-import org.praisenter.slide.transitions.Transitions;
+import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.slide.ui.SlideLibraryPanel;
-import org.praisenter.slide.ui.display.SlideWindows;
+import org.praisenter.transitions.TransitionAnimator;
+import org.praisenter.transitions.Transitions;
 import org.praisenter.utilities.FontManager;
 import org.praisenter.utilities.LookAndFeelUtilities;
 
@@ -48,6 +52,26 @@ public class TestSlideIO {
 	public static void main(String[] args) throws NoMediaLoaderException, MediaException, SlideLibraryException, IOException, SlideComponentCopyException {
 		
 		DOMConfigurator.configure("config/log4j.xml");
+		
+		for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+	        if (LookAndFeelUtilities.NIMBUS.equalsIgnoreCase(info.getName())) {
+	            try {
+					UIManager.setLookAndFeel(info.getClassName());
+				} catch (ClassNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InstantiationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (UnsupportedLookAndFeelException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	        }
+	    }
 		
 //		BibleSlide bSlide = new BibleSlide("Default Template", 1280, 1024);
 //		// set the background
@@ -125,25 +149,6 @@ public class TestSlideIO {
 //			e1.printStackTrace();
 //		}
 		
-		for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-	        if (LookAndFeelUtilities.NIMBUS.equalsIgnoreCase(info.getName())) {
-	            try {
-					UIManager.setLookAndFeel(info.getClassName());
-				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (InstantiationException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (UnsupportedLookAndFeelException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-	        }
-	    }
 //		
 //		bSlide.getScriptureTextComponent().setBackgroundPaint(null);
 //		bSlide.getScriptureTextComponent().setBackgroundPaintVisible(false);
@@ -152,7 +157,48 @@ public class TestSlideIO {
 //		bSlide.getScriptureTextComponent().setBorderStroke(null);
 //		bSlide.getScriptureTextComponent().setBorderVisible(false);
 		
-//		SlideWindows.getPrimarySlideWindow().send(bSlide, new TransitionAnimator(Transitions.IN[10], 600));
+//		BibleSlideTemplate template = SlideLibrary.getTemplate("templates\\bible\\default.xml", BibleSlideTemplate.class);
+//		try {
+//			BibleSlide testbSlide = template.createSlide();
+//			SlideWindows.getPrimarySlideWindow().send(testbSlide, new TransitionAnimator(Transitions.IN[12], 600));
+//		} catch (SlideCopyException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+//		BibleSlideTemplate bt = new BibleSlideTemplate("Test Template", 1280, 1024);
+//		
+//		ImageMediaComponent bg = bt.createImageBackgroundComponent((ImageMedia)MediaLibrary.getMedia("media\\images\\bg3.png"));
+//		bg.setBackgroundPaint(Color.BLUE);
+//		bg.setBackgroundPaintVisible(true);
+//		bg.setBorderPaint(null);
+//		bg.setBorderStroke(null);
+//		bg.setBorderVisible(false);
+//		bg.setScaleQuality(ScaleQuality.BICUBIC);
+//		bg.setScaleType(ScaleType.NONUNIFORM);
+//		bt.setBackground(bg);
+//		
+//		TextComponent sl = bt.getScriptureLocationComponent();
+//		sl.setText("Lorem Ipsum");
+//		sl.setTextFont(FontManager.getDefaultFont().deriveFont(80.0f));
+//		sl.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
+//		sl.setTextPadding(30);
+//		sl.setTextPaint(Color.WHITE);
+//		sl.setTextWrapped(false);
+//		sl.setHorizontalTextAlignment(HorizontalTextAlignment.RIGHT);
+//		sl.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
+//		
+//		TextComponent st = bt.getScriptureTextComponent();
+//		st.setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque bibendum volutpat libero nec varius. Vestibulum pharetra tincidunt ligula vitae facilisis. Vivamus eget rutrum massa. Quisque et lorem augue, ac dapibus lacus. Duis accumsan purus in nibh tempor convallis. Ut et massa ac lorem volutpat lobortis. Cras magna libero, lobortis ut fringilla vitae, posuere eget sem.");
+//		st.setTextFont(FontManager.getDefaultFont().deriveFont(60.0f));
+//		st.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
+//		st.setTextPadding(30);
+//		st.setTextPaint(Color.WHITE);
+//		st.setTextWrapped(false);
+//		st.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
+//		st.setVerticalTextAlignment(VerticalTextAlignment.TOP);
+//		
+//		SlideLibrary.saveTemplate("default2", bt);
 		
 		new TestFrame();
 	}

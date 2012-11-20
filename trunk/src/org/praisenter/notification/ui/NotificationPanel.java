@@ -18,15 +18,15 @@ import org.praisenter.display.DisplayFactory;
 import org.praisenter.display.NotificationDisplay;
 import org.praisenter.display.ui.DisplayWindows;
 import org.praisenter.display.ui.NotificationDisplayWindow;
+import org.praisenter.easings.Easings;
+import org.praisenter.preferences.GeneralSettings;
+import org.praisenter.preferences.NotificationPreferences;
+import org.praisenter.preferences.SettingsListener;
 import org.praisenter.resources.Messages;
-import org.praisenter.settings.GeneralSettings;
-import org.praisenter.settings.NotificationSettings;
-import org.praisenter.settings.SettingsListener;
-import org.praisenter.slide.transitions.Transition;
-import org.praisenter.slide.transitions.TransitionAnimator;
-import org.praisenter.slide.transitions.Transitions;
-import org.praisenter.slide.transitions.easing.Easings;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
+import org.praisenter.transitions.Transition;
+import org.praisenter.transitions.TransitionAnimator;
+import org.praisenter.transitions.Transitions;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.ui.WaterMark;
 import org.praisenter.utilities.WindowUtilities;
@@ -78,7 +78,7 @@ public class NotificationPanel extends JPanel implements ActionListener, Setting
 	@SuppressWarnings("serial")
 	public NotificationPanel() {
 		GeneralSettings gSettings = GeneralSettings.getInstance();
-		NotificationSettings nSettings = NotificationSettings.getInstance();
+		NotificationPreferences nSettings = NotificationPreferences.getInstance();
 		
 		// create the display
 		Dimension displaySize = gSettings.getPrimaryDisplaySize();
@@ -173,7 +173,7 @@ public class NotificationPanel extends JPanel implements ActionListener, Setting
 	@Override
 	public void settingsSaved() {
 		GeneralSettings gSettings = GeneralSettings.getInstance();
-		NotificationSettings nSettings = NotificationSettings.getInstance();
+		NotificationPreferences nSettings = NotificationPreferences.getInstance();
 		
 		Dimension displaySize = gSettings.getPrimaryDisplaySize();
 		this.display = DisplayFactory.getDisplay(nSettings, displaySize, "");
@@ -184,7 +184,7 @@ public class NotificationPanel extends JPanel implements ActionListener, Setting
 	 */
 	@Override
 	public void actionPerformed(ActionEvent event) {
-		NotificationSettings settings = NotificationSettings.getInstance();
+		NotificationPreferences settings = NotificationPreferences.getInstance();
 		if ("send".equals(event.getActionCommand())) {
 			// get the text
 			String text = this.txtText.getText();

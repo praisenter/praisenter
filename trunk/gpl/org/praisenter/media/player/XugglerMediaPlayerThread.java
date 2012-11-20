@@ -5,7 +5,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 import org.apache.log4j.Logger;
-import org.praisenter.thread.PausableThread;
+import org.praisenter.threading.PausableThread;
 
 /**
  * Thread used for synchronized playback of audio and video media.

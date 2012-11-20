@@ -5,7 +5,7 @@ import java.awt.Component;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
-import org.praisenter.slide.transitions.easing.Easing;
+import org.praisenter.easings.Easing;
 
 /**
  * List cell renderer for a list of {@link Easing} objects.

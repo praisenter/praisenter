@@ -12,7 +12,7 @@ import java.beans.PropertyChangeListener;
 
 import org.praisenter.display.NotificationDisplay;
 import org.praisenter.display.TextComponent;
-import org.praisenter.slide.transitions.TransitionAnimator;
+import org.praisenter.transitions.TransitionAnimator;
 
 /**
  * Represents a screen that is used to display custom graphics.

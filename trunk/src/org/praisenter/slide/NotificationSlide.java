@@ -1,5 +1,7 @@
 package org.praisenter.slide;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -47,9 +49,6 @@ public class NotificationSlide extends Slide {
 		final int th = (int)Math.ceil((double)height * 0.20);
 		
 		this.textComponent = new TextComponent(0, 0, width, th);
-
-		// add them to the components list
-		this.components.add(this.textComponent);
 	}
 	
 	/**
@@ -84,6 +83,19 @@ public class NotificationSlide extends Slide {
 	@Override
 	public NotificationSlideTemplate createTemplate() throws SlideCopyException {
 		return new NotificationSlideTemplate(this);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getComponents(java.lang.Class)
+	 */
+	@Override
+	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz) {
+		List<E> components = super.getComponents(clazz);
+		if (clazz.isAssignableFrom(TextComponent.class)) {
+			components.add(clazz.cast(this.textComponent));
+		}
+		this.sortComponentsByOrder(components);
+		return components;
 	}
 	
 	/**

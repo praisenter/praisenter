@@ -38,10 +38,8 @@ import org.praisenter.data.song.ui.SongsPanel;
 import org.praisenter.icons.Icons;
 import org.praisenter.notification.ui.NotificationPanel;
 import org.praisenter.resources.Messages;
-import org.praisenter.settings.SettingsListener;
-import org.praisenter.settings.ui.SettingsDialog;
-import org.praisenter.tasks.FileTask;
-import org.praisenter.tasks.TaskProgressDialog;
+import org.praisenter.threading.FileTask;
+import org.praisenter.threading.TaskProgressDialog;
 import org.praisenter.ui.AboutDialog;
 import org.praisenter.ui.CheckExistsFileChooser;
 import org.praisenter.ui.ZipFileFilter;
@@ -215,7 +213,8 @@ public class Praisenter extends JFrame implements ActionListener {
 			// show the preferences dialog
 			// the bible and song panel need to listen for settings changes to know
 			// when to update their previews
-			SettingsDialog.show(this, new SettingsListener[] { this.pnlBible, this.pnlNotification, this.pnlSongs});
+			// FIXME add this back
+//			SettingsDialog.show(this, new SettingsListener[] { this.pnlBible, this.pnlNotification, this.pnlSongs});
 		} else if ("size".equals(command)) {
 			this.showCurrentWindowSize();
 		} else if ("exportErrors".equals(command)) {

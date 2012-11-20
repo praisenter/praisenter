@@ -26,6 +26,16 @@ public class SongSlideTemplate extends SongSlide implements Template {
 	protected SongSlideTemplate() {
 		super(null, 0, 0);
 	}
+
+	/**
+	 * Full constructor.
+	 * @param name the name of the template
+	 * @param width the width of the slide
+	 * @param height the height of the slide
+	 */
+	public SongSlideTemplate(String name, int width, int height) {
+		super(name, width, height);
+	}
 	
 	/**
 	 * Minimal constructor.

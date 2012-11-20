@@ -1,5 +1,7 @@
 package org.praisenter.slide;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -94,6 +96,19 @@ public class SongSlide extends Slide {
 	@Override
 	public SongSlideTemplate createTemplate() throws SlideCopyException {
 		return new SongSlideTemplate(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getComponents(java.lang.Class)
+	 */
+	@Override
+	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz) {
+		List<E> components = super.getComponents(clazz);
+		if (clazz.isAssignableFrom(TextComponent.class)) {
+			components.add(clazz.cast(this.textComponent));
+		}
+		this.sortComponentsByOrder(components);
+		return components;
 	}
 	
 	/**

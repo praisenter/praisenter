@@ -9,7 +9,7 @@ import java.awt.Rectangle;
 import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
-import org.praisenter.slide.transitions.Transitions;
+import org.praisenter.transitions.Transitions;
 
 /**
  * Represents a window that is used to display custom graphics.

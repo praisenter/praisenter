@@ -5,7 +5,7 @@ import java.nio.ByteOrder;
 
 import org.apache.log4j.Logger;
 import org.praisenter.media.AudioDownmixer;
-import org.praisenter.thread.PausableThread;
+import org.praisenter.threading.PausableThread;
 
 import com.xuggle.xuggler.IAudioSamples;
 import com.xuggle.xuggler.IContainer;

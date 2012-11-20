@@ -3,12 +3,12 @@ package org.praisenter.display;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 
+import org.praisenter.preferences.BiblePreferences;
+import org.praisenter.preferences.GraphicsComponentSettings;
+import org.praisenter.preferences.NotificationPreferences;
+import org.praisenter.preferences.SongPreferences;
+import org.praisenter.preferences.TextComponentSettings;
 import org.praisenter.resources.Messages;
-import org.praisenter.settings.BibleSettings;
-import org.praisenter.settings.GraphicsComponentSettings;
-import org.praisenter.settings.NotificationSettings;
-import org.praisenter.settings.SongSettings;
-import org.praisenter.settings.TextComponentSettings;
 
 /**
  * Helper class to create displays from settings.
@@ -19,12 +19,12 @@ import org.praisenter.settings.TextComponentSettings;
 // TODO allow background sharing of components; this could improve performance significantly
 public class DisplayFactory {
 	/**
-	 * Creates a new {@link BibleDisplay} from the given {@link BibleSettings}.
+	 * Creates a new {@link BibleDisplay} from the given {@link BiblePreferences}.
 	 * @param settings the settings
 	 * @param displaySize the target display size
 	 * @return {@link BibleDisplay}
 	 */
-	public static final BibleDisplay getDisplay(BibleSettings settings, Dimension displaySize) {
+	public static final BibleDisplay getDisplay(BiblePreferences settings, Dimension displaySize) {
 		// get the minimum dimension (typically the height)
 		int maxd = displaySize.height;
 		if (maxd > displaySize.width) {
@@ -133,7 +133,7 @@ public class DisplayFactory {
 	 * @param text the text to show in the display
 	 * @return {@link NotificationDisplay}
 	 */
-	public static final NotificationDisplay getDisplay(NotificationSettings settings, Dimension displaySize, String text) {
+	public static final NotificationDisplay getDisplay(NotificationPreferences settings, Dimension displaySize, String text) {
 		TextComponentSettings tSet = settings.getTextSettings();
 		
 		NotificationDisplay display = new NotificationDisplay(displaySize);
@@ -184,12 +184,12 @@ public class DisplayFactory {
 	}
 	
 	/**
-	 * Creates a new {@link SongDisplay} from the given {@link SongSettings}.
+	 * Creates a new {@link SongDisplay} from the given {@link SongPreferences}.
 	 * @param settings the settings
 	 * @param displaySize the target display size
 	 * @return {@link SongDisplay}
 	 */
-	public static final SongDisplay getDisplay(SongSettings settings, Dimension displaySize) {
+	public static final SongDisplay getDisplay(SongPreferences settings, Dimension displaySize) {
 		// get the minimum dimension (typically the height)
 		int maxd = displaySize.height;
 		if (maxd > displaySize.width) {

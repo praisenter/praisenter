@@ -19,8 +19,8 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 
+import org.praisenter.preferences.ui.DisplaySettingsPanel;
 import org.praisenter.resources.Messages;
-import org.praisenter.settings.ui.DisplaySettingsPanel;
 
 public class GradientEditorPanel extends JPanel implements ActionListener {
 	
