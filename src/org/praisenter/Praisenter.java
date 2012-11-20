@@ -37,6 +37,9 @@ import org.praisenter.data.song.Songs;
 import org.praisenter.data.song.ui.SongsPanel;
 import org.praisenter.icons.Icons;
 import org.praisenter.notification.ui.NotificationPanel;
+import org.praisenter.preferences.Preferences;
+import org.praisenter.preferences.ui.PreferencesDialog;
+import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
 import org.praisenter.threading.FileTask;
 import org.praisenter.threading.TaskProgressDialog;
@@ -215,6 +218,7 @@ public class Praisenter extends JFrame implements ActionListener {
 			// when to update their previews
 			// FIXME add this back
 //			SettingsDialog.show(this, new SettingsListener[] { this.pnlBible, this.pnlNotification, this.pnlSongs});
+			PreferencesDialog.show(this, new PreferencesListener[] {  });
 		} else if ("size".equals(command)) {
 			this.showCurrentWindowSize();
 		} else if ("exportErrors".equals(command)) {

@@ -1,6 +1,9 @@
 package org.praisenter.preferences.ui;
 
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.text.NumberFormat;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
@@ -9,7 +12,11 @@ import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
+import javax.swing.plaf.basic.BasicComboBoxUI;
+import javax.swing.plaf.basic.BasicComboPopup;
+import javax.swing.plaf.basic.ComboPopup;
 
 import org.apache.log4j.Logger;
 import org.praisenter.data.DataException;
@@ -21,7 +28,11 @@ import org.praisenter.easings.Easings;
 import org.praisenter.preferences.BiblePreferences;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.BibleSlideTemplate;
+import org.praisenter.slide.SlideLibrary;
+import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.ui.EasingListCellRenderer;
+import org.praisenter.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transitions;
@@ -33,7 +44,7 @@ import org.praisenter.ui.SelectTextFocusListener;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class BiblePreferencesPanel extends JPanel /* implements SettingsPanel */ {
+public class BiblePreferencesPanel extends JPanel implements PreferencesEditor {
 	/** The verison id */
 	private static final long serialVersionUID = 460972285830298448L;
 
@@ -51,6 +62,11 @@ public class BiblePreferencesPanel extends JPanel /* implements SettingsPanel */
 	
 	/** The checkbox to include/exclude the apocrypha */
 	private JCheckBox chkIncludeApocrypha;
+	
+	// template
+	
+	/** The template combo box */
+	private JComboBox<SlideThumbnail> cmbTemplates;
 	
 	// transitions
 	
@@ -134,6 +150,14 @@ public class BiblePreferencesPanel extends JPanel /* implements SettingsPanel */
 		this.chkUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.setup.useSecondaryBible.tooltip"));
 		this.chkUseSecondaryBible.setSelected(bPreferences.isSecondaryTranslationEnabled());
 		
+		// template
+		
+		// FIXME translate
+		JLabel lblTemplate = new JLabel("translate me");
+		List<SlideThumbnail> thumbs = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
+		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbs.toArray(new SlideThumbnail[0]));
+		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
+		
 		// transitions
 		
 		JLabel lblSendTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultSend"));
@@ -164,17 +188,7 @@ public class BiblePreferencesPanel extends JPanel /* implements SettingsPanel */
 		this.cmbClearEasings.setSelectedItem(Easings.getEasingForId(bPreferences.getClearTransitionEasingId()));
 		this.cmbClearEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
-//		if (!transitionsSupported) {
-//			this.cmbSendTransitions.setEnabled(false);
-//			this.txtSendTransitions.setEnabled(false);
-//			this.cmbSendEasings.setEnabled(false);
-//			this.cmbClearTransitions.setEnabled(false);
-//			this.txtClearTransitions.setEnabled(false);
-//			this.cmbClearEasings.setEnabled(false);
-//		}
-		
 		JPanel pnlTransitions = new JPanel();
-		pnlTransitions.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		GroupLayout layout = new GroupLayout(pnlTransitions);
 		pnlTransitions.setLayout(layout);
 		
@@ -205,10 +219,20 @@ public class BiblePreferencesPanel extends JPanel /* implements SettingsPanel */
 						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbClearEasings, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		
+		JPanel pnlTemplate = new JPanel();
+		layout = new GroupLayout(pnlTemplate);
+		pnlTemplate.setLayout(layout);
+		layout.setAutoCreateContainerGaps(true);
+		layout.setAutoCreateGaps(true);
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+				.addComponent(lblTemplate)
+				.addComponent(this.cmbTemplates, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+		layout.setVerticalGroup(layout.createParallelGroup()
+				.addComponent(lblTemplate)
+				.addComponent(this.cmbTemplates, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+		
 		// setup the layout
 		JPanel pnlGeneral = new JPanel();
-		pnlGeneral.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-		
 		layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
 		layout.setAutoCreateGaps(true);
@@ -235,63 +259,57 @@ public class BiblePreferencesPanel extends JPanel /* implements SettingsPanel */
 						.addComponent(lblIncludeApocrypha)
 						.addComponent(this.chkIncludeApocrypha)));
 		
-		JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab(Messages.getString("panel.bible.setup.general"), pnlGeneral);
-		tabs.addTab(Messages.getString("panel.general.setup.transition.title"), pnlTransitions);
 		
-		JLabel lblMessage = new JLabel(Messages.getString("panel.bible.setup.message"));
-		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 		
 		layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
+		JSeparator sep1 = new JSeparator(JSeparator.HORIZONTAL);
+		JSeparator sep2 = new JSeparator(JSeparator.HORIZONTAL);
+		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(lblMessage)
-				.addComponent(tabs, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+				.addComponent(pnlGeneral)
+				.addComponent(sep1)
+				.addComponent(pnlTemplate)
+				.addComponent(sep2)
+				.addComponent(pnlTransitions));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(lblMessage)
-				.addComponent(tabs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+				.addComponent(pnlGeneral)
+				.addComponent(sep1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(pnlTemplate)
+				.addComponent(sep2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(pnlTransitions));
 	}
 
-//	/* (non-Javadoc)
-//	 * @see org.praisenter.panel.setup.SetupPanel#saveSettings()
-//	 */
-//	@Override
-//	public void saveSettings() throws SettingsException {
-//		// save this panel's settings
-//		Bible primary = (Bible)this.cmbBiblesPrimary.getSelectedItem();
-//		if (primary == null) {
-//			primary = (Bible)this.cmbBiblesPrimary.getItemAt(0);
-//		}
-//		Bible secondary = (Bible)this.cmbBiblesSecondary.getSelectedItem();
-//		if (secondary == null) {
-//			secondary = (Bible)this.cmbBiblesSecondary.getItemAt(0);
-//		}
-//		
-//		if (primary != null) this.settings.setDefaultPrimaryBibleId(primary.getId());
-//		if (secondary != null) this.settings.setDefaultSecondaryBibleId(secondary.getId());
-//		this.settings.setSecondaryBibleInUse(this.chkUseSecondaryBible.isSelected());
-//		this.settings.setApocryphaIncluded(this.chkIncludeApocrypha.isSelected());
-//		// transitions
-//		this.settings.setDefaultSendTransition(((Transition)this.cmbSendTransitions.getSelectedItem()).getTransitionId());
-//		this.settings.setDefaultSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());
-//		this.settings.setSendEasing(((Easing)this.cmbSendEasings.getSelectedItem()).getEasingId());
-//		this.settings.setDefaultClearTransition(((Transition)this.cmbClearTransitions.getSelectedItem()).getTransitionId());
-//		this.settings.setDefaultClearTransitionDuration(((Number)this.txtClearTransitions.getValue()).intValue());
-//		this.settings.setClearEasing(((Easing)this.cmbClearEasings.getSelectedItem()).getEasingId());
-//		// save the display panel's settings
-//		this.pnlDisplay.saveSettings();
-//		// save the settings to persistent store
-//		this.settings.save();
-//	}
-	
-//	/* (non-Javadoc)
-//	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-//	 */
-//	@Override
-//	public void propertyChange(PropertyChangeEvent event) {
-//		// the display panel cares about these events
-//		this.pnlDisplay.propertyChange(event);
-//	}
+	/* (non-Javadoc)
+	 * @see org.praisenter.preferences.ui.PreferencesEditor#applyPreferences()
+	 */
+	@Override
+	public void applyPreferences() {
+		Preferences preferences = Preferences.getInstance();
+		BiblePreferences bPreferences = preferences.getBiblePreferences();
+		
+		// save this panel's settings
+		Bible primary = (Bible)this.cmbBiblesPrimary.getSelectedItem();
+		if (primary == null) {
+			primary = (Bible)this.cmbBiblesPrimary.getItemAt(0);
+		}
+		Bible secondary = (Bible)this.cmbBiblesSecondary.getSelectedItem();
+		if (secondary == null) {
+			secondary = (Bible)this.cmbBiblesSecondary.getItemAt(0);
+		}
+		
+		if (primary != null) bPreferences.setPrimaryTranslationId(primary.getId());
+		if (secondary != null) bPreferences.setSecondaryTranslationId(secondary.getId());
+		bPreferences.setSecondaryTranslationEnabled(this.chkUseSecondaryBible.isSelected());
+		bPreferences.setApochryphaIncluded(this.chkIncludeApocrypha.isSelected());
+		// transitions
+		bPreferences.setSendTransitionId(((Transition)this.cmbSendTransitions.getSelectedItem()).getTransitionId());
+		bPreferences.setSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());
+		bPreferences.setSendTransitionEasingId(((Easing)this.cmbSendEasings.getSelectedItem()).getEasingId());
+		bPreferences.setClearTransitionId(((Transition)this.cmbClearTransitions.getSelectedItem()).getTransitionId());
+		bPreferences.setClearTransitionDuration(((Number)this.txtClearTransitions.getValue()).intValue());
+		bPreferences.setClearTransitionEasingId(((Easing)this.cmbClearEasings.getSelectedItem()).getEasingId());
+	}
 }

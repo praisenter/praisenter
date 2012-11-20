@@ -9,10 +9,11 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.apache.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.slide.RenderQuality;
+import org.praisenter.xml.DimensionTypeAdapter;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -39,6 +40,7 @@ public class Preferences {
 	
 	/** The resolution of the primary device */
 	@XmlElement(name = "PrimaryDeviceResolution", required = false, nillable = true)
+	@XmlJavaTypeAdapter(DimensionTypeAdapter.class)
 	protected Dimension primaryDeviceResolution;
 	
 	/** The desired render quality of the application */

@@ -27,7 +27,7 @@ import org.praisenter.ui.SelectTextFocusListener;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class NotificationPreferencesPanel extends JPanel {
+public class NotificationPreferencesPanel extends JPanel implements PreferencesEditor {
 	/** The verison id */
 	private static final long serialVersionUID = -2274087793090854194L;
 
@@ -69,7 +69,6 @@ public class NotificationPreferencesPanel extends JPanel {
 		this.txtDefaultWaitPeriod.setColumns(6);
 		
 		// transitions
-//		boolean transitionsSupported = GeneralSettings.getInstance().getPrimaryOrDefaultDisplay().isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT);
 		
 		JLabel lblSendTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultSend"));
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
@@ -98,15 +97,6 @@ public class NotificationPreferencesPanel extends JPanel {
 		this.cmbClearEasings.setRenderer(new EasingListCellRenderer());
 		this.cmbClearEasings.setSelectedItem(Easings.getEasingForId(np.getClearTransitionEasingId()));
 		this.cmbClearEasings.setToolTipText(Messages.getString("easing.tooltip"));
-		
-//		if (!transitionsSupported) {
-//			this.cmbSendTransitions.setEnabled(false);
-//			this.txtSendTransitions.setEnabled(false);
-//			this.cmbSendEasings.setEnabled(false);
-//			this.cmbClearTransitions.setEnabled(false);
-//			this.txtClearTransitions.setEnabled(false);
-//			this.cmbClearEasings.setEnabled(false);
-//		}
 		
 		JPanel pnlTransitions = new JPanel();
 		pnlTransitions.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
@@ -174,32 +164,23 @@ public class NotificationPreferencesPanel extends JPanel {
 				.addComponent(tabs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 	}
 
-//	/* (non-Javadoc)
-//	 * @see org.praisenter.panel.setup.SetupPanel#saveSettings()
-//	 */
-//	@Override
-//	public void saveSettings() throws SettingsException {
-//		// save this panel's settings
-//		this.settings.setDefaultWaitPeriod(((Number)this.txtDefaultWaitPeriod.getValue()).intValue());
-//		// transitions
-//		this.settings.setDefaultSendTransition(((Transition)this.cmbSendTransitions.getSelectedItem()).getTransitionId());
-//		this.settings.setDefaultSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());
-//		this.settings.setSendEasing(((Easing)this.cmbSendEasings.getSelectedItem()).getEasingId());
-//		this.settings.setDefaultClearTransition(((Transition)this.cmbClearTransitions.getSelectedItem()).getTransitionId());
-//		this.settings.setDefaultClearTransitionDuration(((Number)this.txtClearTransitions.getValue()).intValue());
-//		this.settings.setClearEasing(((Easing)this.cmbClearEasings.getSelectedItem()).getEasingId());
-//		// save the display panel's settings
-//		this.pnlDisplay.saveSettings();
-//		// save the settings to persistent store
-//		this.settings.save();
-//	}
-//	
-//	/* (non-Javadoc)
-//	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-//	 */
-//	@Override
-//	public void propertyChange(PropertyChangeEvent event) {
-//		// the display panel cares about these events
-//		this.pnlDisplay.propertyChange(event);
-//	}
+	/* (non-Javadoc)
+	 * @see org.praisenter.preferences.ui.PreferencesEditor#applyPreferences()
+	 */
+	@Override
+	public void applyPreferences() {
+		Preferences preferences = Preferences.getInstance();
+		NotificationPreferences nPreferences = preferences.getNotificationPreferences();
+		
+		// save this panel's settings
+		nPreferences.setWaitPeriod(((Number)this.txtDefaultWaitPeriod.getValue()).intValue());
+		
+		// transitions
+		nPreferences.setSendTransitionId(((Transition)this.cmbSendTransitions.getSelectedItem()).getTransitionId());
+		nPreferences.setSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());
+		nPreferences.setSendTransitionEasingId(((Easing)this.cmbSendEasings.getSelectedItem()).getEasingId());
+		nPreferences.setClearTransitionId(((Transition)this.cmbClearTransitions.getSelectedItem()).getTransitionId());
+		nPreferences.setClearTransitionDuration(((Number)this.txtClearTransitions.getValue()).intValue());
+		nPreferences.setClearTransitionEasingId(((Easing)this.cmbClearEasings.getSelectedItem()).getEasingId());
+	}
 }

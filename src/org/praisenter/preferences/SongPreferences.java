@@ -17,6 +17,12 @@ import org.praisenter.transitions.Swap;
 @XmlRootElement(name = "SongPreferences")
 @XmlAccessorType(XmlAccessType.NONE)
 public class SongPreferences {
+
+	// template
+	
+	/** The template to use for bible slides */
+	@XmlElement(name = "Template", required = false, nillable = true)
+	protected String template;
 	
 	// transitions
 	
@@ -46,6 +52,7 @@ public class SongPreferences {
 
 	/** Default constructor. */
 	protected SongPreferences() {
+		this.template = null;
 		this.sendTransitionId = Swap.ID;
 		this.sendTransitionDuration = 400;
 		this.sendTransitionEasingId = CubicEasing.ID;
@@ -53,7 +60,27 @@ public class SongPreferences {
 		this.clearTransitionDuration = 300;
 		this.clearTransitionEasingId = CubicEasing.ID;
 	}
+
+	// template
 	
+	/**
+	 * Gets the default template for bible slides.
+	 * @return String
+	 */
+	public String getTemplate() {
+		return this.template;
+	}
+	
+	/**
+	 * Sets the default template for bible slides.
+	 * @param template the template file path
+	 */
+	public void setTemplate(String template) {
+		this.template = template;
+	}
+	
+	// transitions
+
 	/**
 	 * Returns the send transition id.
 	 * @return int

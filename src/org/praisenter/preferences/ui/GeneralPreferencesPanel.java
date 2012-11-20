@@ -15,7 +15,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -25,14 +24,13 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.praisenter.display.RenderQuality;
 import org.praisenter.icons.Icons;
 import org.praisenter.preferences.Preferences;
+import org.praisenter.preferences.RenderQuality;
 import org.praisenter.resources.Messages;
 import org.praisenter.threading.DelayCloseWindowTask;
 import org.praisenter.utilities.WindowUtilities;
@@ -43,7 +41,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class GeneralPreferencesPanel extends JPanel implements ActionListener, ItemListener, ChangeListener {
+public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor, ActionListener, ItemListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = 7677045112182344610L;
 
@@ -145,32 +143,30 @@ public class GeneralPreferencesPanel extends JPanel implements ActionListener, I
 		
 		// create the layout
 		JPanel pnlDisplays = new JPanel();
-		pnlDisplays.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		GroupLayout layout = new GroupLayout(pnlDisplays);
 		pnlDisplays.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
-		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.lblDisplayNotFound)
-				.addGroup(layout.createSequentialGroup()
-						.addGroup(layout.createParallelGroup()
-								.addComponent(lblPrimaryDisplay)
-								.addComponent(lblRenderQuality)
-								.addComponent(lblSmartTransitions))
-						.addGroup(layout.createParallelGroup()
-								.addGroup(layout.createSequentialGroup()
-										.addComponent(this.cmbDevices, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(btnIdentify))
-								.addComponent(this.lblTranslucency)
-								.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.chkSmartTransitions))));
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup()
+						.addComponent(lblPrimaryDisplay)
+						.addComponent(lblRenderQuality)
+						.addComponent(lblSmartTransitions))
+				.addGroup(layout.createParallelGroup()
+						.addGroup(layout.createSequentialGroup()
+								.addComponent(this.cmbDevices, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(btnIdentify))
+						.addComponent(this.lblDisplayNotFound)
+						.addComponent(this.lblTranslucency)
+						.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.chkSmartTransitions)));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.lblDisplayNotFound)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblPrimaryDisplay)
 						.addComponent(this.cmbDevices, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnIdentify))
+				.addComponent(this.lblDisplayNotFound)
 				.addComponent(this.lblTranslucency)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblRenderQuality)
@@ -179,23 +175,15 @@ public class GeneralPreferencesPanel extends JPanel implements ActionListener, I
 						.addComponent(lblSmartTransitions)
 						.addComponent(this.chkSmartTransitions)));
 		
-		JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab(Messages.getString("panel.bible.setup.general"), pnlDisplays);
-		
-		JLabel lblMessage = new JLabel(Messages.getString("panel.general.setup.message"));
-		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-		
 		// create the main layout
 		layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(lblMessage)
-				.addComponent(tabs));
+				.addComponent(pnlDisplays));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(lblMessage)
-				.addComponent(tabs));
+				.addComponent(pnlDisplays));
 	}
 	
 	/* (non-Javadoc)
@@ -276,6 +264,22 @@ public class GeneralPreferencesPanel extends JPanel implements ActionListener, I
 			boolean selected = this.chkSmartTransitions.isSelected();
 			this.firePropertyChange(SMART_TRANSITIONS_PROPERTY, null, selected);
 		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.preferences.ui.PreferencesEditor#applyPreferences()
+	 */
+	@Override
+	public void applyPreferences() {
+		Preferences preferences = Preferences.getInstance();
+		
+		GraphicsDevice device = (GraphicsDevice)this.cmbDevices.getSelectedItem();
+		if (device != null) {
+			preferences.setPrimaryDeviceId(device.getIDstring());
+			preferences.setPrimaryDeviceResolution(WindowUtilities.getDimension(device.getDisplayMode()));
+		}
+		preferences.setRenderQuality((RenderQuality)this.cmbRenderQualities.getSelectedItem());
+		preferences.setSmartTransitionsEnabled(this.chkSmartTransitions.isSelected());
 	}
 	
 	/**

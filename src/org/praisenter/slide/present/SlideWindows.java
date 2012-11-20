@@ -4,7 +4,6 @@ import java.awt.GraphicsDevice;
 import java.util.HashMap;
 
 import org.praisenter.preferences.Preferences;
-import org.praisenter.preferences.PreferencesException;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -75,12 +74,8 @@ public abstract class SlideWindows<E extends SlideWindow<?>> extends HashMap<Str
 	 */
 	public static final StandardSlideWindow getPrimarySlideWindow() {
 		GraphicsDevice device = WindowUtilities.getSecondaryDevice();
-		try {
-			Preferences preferences = Preferences.getInstance();
-			device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
-		} catch (PreferencesException e) {
-			// TODO logg
-		}
+		Preferences preferences = Preferences.getInstance();
+		device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
 		return getSlideWindow(device, STANDARD_DISPLAY_WINDOWS);
 	}
 	
