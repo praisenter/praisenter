@@ -68,25 +68,18 @@ public class SongSlide extends Slide {
 	 * Copy constructor.
 	 * <p>
 	 * This will perform a deep copy where necessary.
-	 * <p>
-	 * This does not copy the slide listeners.
 	 * @param slide the slide to copy
-	 * @throws SlideCopyException thrown if the copy fails
 	 */
-	public SongSlide(SongSlide slide) throws SlideCopyException {
+	public SongSlide(SongSlide slide) {
 		super(slide);
-		try {
-			this.textComponent = slide.textComponent.copy();
-		} catch (SlideComponentCopyException e) {
-			throw new SlideCopyException(e);
-		}
+		this.textComponent = slide.textComponent.copy();
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#copy()
 	 */
 	@Override
-	public SongSlide copy() throws SlideCopyException {
+	public SongSlide copy() {
 		return new SongSlide(this);
 	}
 	
@@ -94,7 +87,7 @@ public class SongSlide extends Slide {
 	 * @see org.praisenter.slide.Slide#createTemplate()
 	 */
 	@Override
-	public SongSlideTemplate createTemplate() throws SlideCopyException {
+	public SongSlideTemplate createTemplate() {
 		return new SongSlideTemplate(this);
 	}
 

@@ -90,43 +90,36 @@ public class Slide {
 	 * <p>
 	 * This will perform a deep copy where necessary.
 	 * @param slide the slide to copy
-	 * @throws SlideCopyException thrown if the copy fails
 	 */
-	public Slide(Slide slide) throws SlideCopyException {
+	public Slide(Slide slide) {
 		this.name = slide.name;
 		this.width = slide.width;
 		this.height = slide.height;
 		this.components = new ArrayList<SlideComponent>();
 		
-		try {
-			// the background
-			if (slide.background != null) {
-				this.background = slide.background.copy();
-			}
-			// the components
-			for (SlideComponent component : slide.components) {
-				this.components.add(component.copy());
-			}
-		} catch (SlideComponentCopyException e) {
-			throw new SlideCopyException(e);
+		// the background
+		if (slide.background != null) {
+			this.background = slide.background.copy();
+		}
+		// the components
+		for (SlideComponent component : slide.components) {
+			this.components.add(component.copy());
 		}
 	}
 	
 	/**
 	 * Returns a deep copy of this {@link Slide}.
 	 * @return {@link Slide}
-	 * @throws SlideCopyException thrown if the slide fails to copy
 	 */
-	public Slide copy() throws SlideCopyException {
+	public Slide copy() {
 		return new Slide(this);
 	}
 	
 	/**
 	 * Returns a template for this slide.
 	 * @return {@link Template}
-	 * @throws SlideCopyException thrown if the copy fails
 	 */
-	public Template createTemplate() throws SlideCopyException {
+	public Template createTemplate() {
 		return new SlideTemplate(this);
 	}
 	
@@ -475,6 +468,28 @@ public class Slide {
 		this.height = height;
 		if (this.background != null) {
 			this.background.setHeight(height);
+		}
+	}
+	
+	/**
+	 * Adjusts the slide and all sub components to fit the given size.
+	 * @param width the target width
+	 * @param height the target height
+	 */
+	public void adjustSize(int width, int height) {
+		// compute the resize percentages
+		double pw = (double)width / (double)this.width;
+		double ph = (double)height / (double)this.height;
+		// set the slide size
+		this.width = width;
+		this.height = height;
+		// set the background size
+		this.background.setWidth(width);
+		this.background.setHeight(height);
+		// set the sizes for the components
+		List<RenderableSlideComponent> components = this.getComponents(RenderableSlideComponent.class);
+		for (RenderableSlideComponent component : components) {
+			component.resize(pw, ph);
 		}
 	}
 	

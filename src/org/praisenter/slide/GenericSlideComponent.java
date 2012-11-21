@@ -94,9 +94,8 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * <p>
 	 * This constructor performs a deep copy where necessary.
 	 * @param component the component to copy
-	 * @throws SlideComponentCopyException thrown if the copy fails
 	 */
-	public GenericSlideComponent(GenericSlideComponent component) throws SlideComponentCopyException {
+	public GenericSlideComponent(GenericSlideComponent component) {
 		super(component);
 		this.x = component.x;
 		this.y = component.y;
@@ -110,7 +109,7 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * @see org.praisenter.slide.SlideComponent#copy()
 	 */
 	@Override
-	public GenericSlideComponent copy() throws SlideComponentCopyException {
+	public GenericSlideComponent copy() {
 		return new GenericSlideComponent(this);
 	}
 	

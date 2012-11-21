@@ -1,16 +1,13 @@
-package org.praisenter.slide.present;
+package org.praisenter.slide.ui.present;
 
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
-
-import org.praisenter.slide.Slide;
 
 /**
  * Standard interface for rendering slides.
@@ -30,42 +27,15 @@ public abstract class SlideSurface extends JPanel {
 		this.setOpaque(false);
 		this.setBackground(new Color(0, 0, 0, 0));
 	}
-//	
-//	/**
-//	 * Renders the given slide to the given image.
-//	 * @param slide the slide to render
-//	 * @param image the image to render to
-//	 */
-//	protected static final void renderSlide(Slide slide, BufferedImage image) {
-//		// paint the display to the image
-//		Graphics2D tg2d = image.createGraphics();
-//		// make the rendering the best quality
-//		tg2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-//		tg2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-//		tg2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//		tg2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-//		// set the background color to 100% transparent so that it clears
-//		// the image when we call clearRect
-//		tg2d.setBackground(new Color(0, 0, 0, 0));
-//		tg2d.clearRect(0, 0, image.getWidth(), image.getHeight());
-//		slide.render(tg2d);
-//		tg2d.dispose();
-//	}
 	
 	/**
-	 * Renders the given slide to the given image.
-	 * @param slide the slide to render
+	 * Renders the output of the given {@link SlideRenderer} to the given image.
+	 * @param renderer the renderer
 	 * @param image the image to render to
 	 */
 	protected static final void renderSlide(SlideRenderer renderer, BufferedImage image) {
 		// paint the display to the image
 		Graphics2D tg2d = image.createGraphics();
-		// make the rendering the best quality
-		// FIXME using this causes a major CPU bottleneck and i haven't noticed a huge difference in quality
-//		tg2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-//		tg2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-//		tg2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//		tg2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		// set the background color to 100% transparent so that it clears
 		// the image when we call clearRect
 		tg2d.setBackground(new Color(0, 0, 0, 0));

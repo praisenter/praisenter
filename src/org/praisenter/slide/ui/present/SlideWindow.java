@@ -1,4 +1,4 @@
-package org.praisenter.slide.present;
+package org.praisenter.slide.ui.present;
 
 import java.awt.Color;
 import java.awt.GraphicsConfiguration;

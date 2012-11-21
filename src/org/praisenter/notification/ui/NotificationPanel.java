@@ -1,7 +1,7 @@
 package org.praisenter.notification.ui;
 
-import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.GraphicsDevice;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
@@ -10,18 +10,14 @@ import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.praisenter.display.DisplayFactory;
 import org.praisenter.display.NotificationDisplay;
-import org.praisenter.display.ui.DisplayWindows;
-import org.praisenter.display.ui.NotificationDisplayWindow;
 import org.praisenter.easings.Easings;
-import org.praisenter.preferences.GeneralSettings;
 import org.praisenter.preferences.NotificationPreferences;
-import org.praisenter.preferences.SettingsListener;
+import org.praisenter.preferences.Preferences;
+import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.transitions.Transition;
@@ -37,7 +33,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class NotificationPanel extends JPanel implements ActionListener, SettingsListener {
+public class NotificationPanel extends JPanel implements ActionListener, PreferencesListener {
 	/** The version id */
 	private static final long serialVersionUID = 20837022721408081L;
 	
@@ -77,12 +73,19 @@ public class NotificationPanel extends JPanel implements ActionListener, Setting
 	 */
 	@SuppressWarnings("serial")
 	public NotificationPanel() {
-		GeneralSettings gSettings = GeneralSettings.getInstance();
-		NotificationPreferences nSettings = NotificationPreferences.getInstance();
+		Preferences preferences = Preferences.getInstance();
+		NotificationPreferences nPreferences = preferences.getNotificationPreferences();
+		
+		// get the primary device
+		GraphicsDevice device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
+		if (device == null) {
+			device = WindowUtilities.getSecondaryDevice();
+		}
 		
 		// create the display
-		Dimension displaySize = gSettings.getPrimaryDisplaySize();
-		this.display = DisplayFactory.getDisplay(nSettings, displaySize, "");
+		// FIXME fix
+//		Dimension displaySize = gSettings.getPrimaryDisplaySize();
+//		this.display = DisplayFactory.getDisplay(nSettings, displaySize, "");
 		
 		this.txtText = new JTextField() {
 			@Override
@@ -97,31 +100,31 @@ public class NotificationPanel extends JPanel implements ActionListener, Setting
 		
 		this.txtWaitPeriod = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtWaitPeriod.setToolTipText(Messages.getString("panel.notification.wait.tooltip"));
-		this.txtWaitPeriod.setValue(nSettings.getDefaultWaitPeriod());
+		this.txtWaitPeriod.setValue(nPreferences.getWaitPeriod());
 		this.txtWaitPeriod.setColumns(5);
 		this.txtWaitPeriod.addFocusListener(new SelectTextFocusListener(this.txtWaitPeriod));
 		
 		// setup the transition lists
-		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(gSettings.getPrimaryOrDefaultDisplay());
+		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(device);
 		
 		this.cmbInTransition = new JComboBox<Transition>(Transitions.IN);
 		this.cmbInTransition.setRenderer(new TransitionListCellRenderer());
-		this.cmbInTransition.setSelectedItem(Transitions.getTransitionForId(nSettings.getDefaultSendTransition(), Transition.Type.IN));
+		this.cmbInTransition.setSelectedItem(Transitions.getTransitionForId(nPreferences.getSendTransitionId(), Transition.Type.IN));
 		this.cmbInTransition.setToolTipText(Messages.getString("panel.notification.send.inTransition"));
 		this.txtInTransition = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtInTransition.addFocusListener(new SelectTextFocusListener(this.txtInTransition));
 		this.txtInTransition.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtInTransition.setValue(nSettings.getDefaultSendTransitionDuration());
+		this.txtInTransition.setValue(nPreferences.getSendTransitionDuration());
 		this.txtInTransition.setColumns(3);
 		
 		this.cmbOutTransition = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbOutTransition.setRenderer(new TransitionListCellRenderer());
-		this.cmbOutTransition.setSelectedItem(Transitions.getTransitionForId(nSettings.getDefaultClearTransition(), Transition.Type.OUT));
+		this.cmbOutTransition.setSelectedItem(Transitions.getTransitionForId(nPreferences.getClearTransitionId(), Transition.Type.OUT));
 		this.cmbOutTransition.setToolTipText(Messages.getString("panel.notification.send.outTransition"));
 		this.txtOutTransition = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtOutTransition.addFocusListener(new SelectTextFocusListener(this.txtOutTransition));
 		this.txtOutTransition.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtOutTransition.setValue(nSettings.getDefaultClearTransitionDuration());
+		this.txtOutTransition.setValue(nPreferences.getClearTransitionDuration());
 		this.txtOutTransition.setColumns(3);
 		
 		if (!transitionsSupported) {
@@ -167,16 +170,14 @@ public class NotificationPanel extends JPanel implements ActionListener, Setting
 				.addComponent(this.btnClear, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.settings.SettingsListener#settingsSaved()
-	 */
 	@Override
-	public void settingsSaved() {
-		GeneralSettings gSettings = GeneralSettings.getInstance();
-		NotificationPreferences nSettings = NotificationPreferences.getInstance();
-		
-		Dimension displaySize = gSettings.getPrimaryDisplaySize();
-		this.display = DisplayFactory.getDisplay(nSettings, displaySize, "");
+	public void preferencesChanged() {
+		// FIXME implement
+//		GeneralSettings gSettings = GeneralSettings.getInstance();
+//		NotificationPreferences nSettings = NotificationPreferences.getInstance();
+//		
+//		Dimension displaySize = gSettings.getPrimaryDisplaySize();
+//		this.display = DisplayFactory.getDisplay(nSettings, displaySize, "");
 	}
 	
 	/* (non-Javadoc)
@@ -184,7 +185,7 @@ public class NotificationPanel extends JPanel implements ActionListener, Setting
 	 */
 	@Override
 	public void actionPerformed(ActionEvent event) {
-		NotificationPreferences settings = NotificationPreferences.getInstance();
+		NotificationPreferences preferences = Preferences.getInstance().getNotificationPreferences();
 		if ("send".equals(event.getActionCommand())) {
 			// get the text
 			String text = this.txtText.getText();
@@ -196,38 +197,40 @@ public class NotificationPanel extends JPanel implements ActionListener, Setting
 				TransitionAnimator in = new TransitionAnimator(
 						(Transition)this.cmbInTransition.getSelectedItem(),
 						((Number)this.txtInTransition.getValue()).intValue(),
-						Easings.getEasingForId(settings.getSendEasing()));
+						Easings.getEasingForId(preferences.getSendTransitionEasingId()));
 				TransitionAnimator out = new TransitionAnimator(
 						(Transition)this.cmbOutTransition.getSelectedItem(),
 						((Number)this.txtOutTransition.getValue()).intValue(),
-						Easings.getEasingForId(settings.getClearEasing()));
+						Easings.getEasingForId(preferences.getClearTransitionEasingId()));
 				// get the wait duration
 				int wait = ((Number)this.txtWaitPeriod.getValue()).intValue();
 				// send the notification
-				NotificationDisplayWindow window = DisplayWindows.getPrimaryNotificationWindow();
-				if (window != null) {
-					window.send(this.display, in, out, wait);
-				} else {
-					// the device is no longer available
-					JOptionPane.showMessageDialog(
-							WindowUtilities.getParentWindow(this), 
-							Messages.getString("dialog.device.primary.missing.text"), 
-							Messages.getString("dialog.device.primary.missing.title"), 
-							JOptionPane.WARNING_MESSAGE);
-				}
+				// FIXME implement
+//				NotificationDisplayWindow window = DisplayWindows.getPrimaryNotificationWindow();
+//				if (window != null) {
+//					window.send(this.display, in, out, wait);
+//				} else {
+//					// the device is no longer available
+//					JOptionPane.showMessageDialog(
+//							WindowUtilities.getParentWindow(this), 
+//							Messages.getString("dialog.device.primary.missing.text"), 
+//							Messages.getString("dialog.device.primary.missing.title"), 
+//							JOptionPane.WARNING_MESSAGE);
+//				}
 			}
 		} else if ("clear".equals(event.getActionCommand())) {
 			// create the out transition animator
 			TransitionAnimator animator = new TransitionAnimator(
 					(Transition)this.cmbOutTransition.getSelectedItem(),
 					((Number)this.txtOutTransition.getValue()).intValue(),
-					Easings.getEasingForId(settings.getClearEasing()));
+					Easings.getEasingForId(preferences.getClearTransitionEasingId()));
 			// get the notification display window
-			NotificationDisplayWindow window = DisplayWindows.getPrimaryNotificationWindow();
-			if (window != null) {
-				// clear it
-				window.clear(animator);
-			}
+			// FIXME implement
+//			NotificationDisplayWindow window = DisplayWindows.getPrimaryNotificationWindow();
+//			if (window != null) {
+//				// clear it
+//				window.clear(animator);
+//			}
 		}
 	}
 }

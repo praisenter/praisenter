@@ -3,6 +3,7 @@ package org.praisenter.data.song.ui;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GraphicsDevice;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -43,17 +44,15 @@ import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongPart;
 import org.praisenter.data.song.SongPartType;
 import org.praisenter.data.song.Songs;
-import org.praisenter.display.SongDisplay;
-import org.praisenter.display.ui.DisplayWindows;
-import org.praisenter.display.ui.ScrollableInlineDisplayPreviewPanel;
-import org.praisenter.display.ui.StandardDisplayWindow;
 import org.praisenter.easings.Easing;
 import org.praisenter.easings.Easings;
-import org.praisenter.preferences.GeneralSettings;
-import org.praisenter.preferences.SettingsListener;
+import org.praisenter.preferences.Preferences;
 import org.praisenter.preferences.SongPreferences;
+import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.SongSlide;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
+import org.praisenter.slide.ui.preview.ScrollableInlineSlidePreviewPanel;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
@@ -68,7 +67,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SongsPanel extends JPanel implements ActionListener, SongListener, SettingsListener {
+public class SongsPanel extends JPanel implements ActionListener, SongListener, PreferencesListener {
 	/** The version id */
 	private static final long serialVersionUID = 2646140774751357022L;
 
@@ -105,10 +104,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	private SongPreivewThread previewThread;
 	
 	/** The song preview panel */
-	private SongDisplayPreviewPanel pnlPreview;
+	private SongSlidePreviewPanel pnlPreview;
 	
 	/** The preview panel scroller */
-	private ScrollableInlineDisplayPreviewPanel<SongDisplayPreviewPanel, SongDisplay> scrPreview;
+	private ScrollableInlineSlidePreviewPanel scrPreview;
 	
 	// display
 	
@@ -144,14 +143,20 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	 */
 	@SuppressWarnings("serial")
 	public SongsPanel() {
-		GeneralSettings gSettings = GeneralSettings.getInstance();
-		SongPreferences sSettings = SongPreferences.getInstance();
+		Preferences preferences = Preferences.getInstance();
+		SongPreferences sPreferences = preferences.getSongPreferences();
+		
+		// get the primary device
+		GraphicsDevice device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
+		if (device == null) {
+			device = WindowUtilities.getSecondaryDevice();
+		}
 		
 		// song preview
 		
-		this.pnlPreview = new SongDisplayPreviewPanel();
+		this.pnlPreview = new SongSlidePreviewPanel();
 		this.pnlPreview.setBorder(BorderFactory.createEmptyBorder(15, 15, 20, 15));
-		this.scrPreview = new ScrollableInlineDisplayPreviewPanel<SongDisplayPreviewPanel, SongDisplay>(this.pnlPreview);
+		this.scrPreview = new ScrollableInlineSlidePreviewPanel(this.pnlPreview);
 		this.scrPreview.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 		
 		// song preview thread
@@ -182,24 +187,24 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		this.btnClear.setActionCommand("clear");
 		
 		// setup the transition lists
-		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(gSettings.getPrimaryOrDefaultDisplay());
+		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(device);
 		
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(sSettings.getDefaultSendTransition(), Transition.Type.IN));
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(sPreferences.getSendTransitionId(), Transition.Type.IN));
 		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtSendTransitions.setValue(sSettings.getDefaultSendTransitionDuration());
+		this.txtSendTransitions.setValue(sPreferences.getSendTransitionDuration());
 		this.txtSendTransitions.setColumns(3);
 		
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(sSettings.getDefaultClearTransition(), Transition.Type.OUT));
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(sPreferences.getClearTransitionId(), Transition.Type.OUT));
 		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtClearTransitions.setValue(sSettings.getDefaultClearTransitionDuration());
+		this.txtClearTransitions.setValue(sPreferences.getClearTransitionDuration());
 		this.txtClearTransitions.setColumns(3);
 		
 		if (!transitionsSupported) {
@@ -497,10 +502,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.SettingsListener#settingsSaved()
+	 * @see org.praisenter.preferences.ui.PreferencesListener#preferencesChanged()
 	 */
 	@Override
-	public void settingsSaved() {
+	public void preferencesChanged() {
 		// refresh the song preview panel
 		this.queueSongPreview(this.song);
 	}
@@ -631,9 +636,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			}
 		}
 		
-		SongDisplay display = this.pnlPreview.getDisplay(key);
-		if (display != null) {
-			this.sendDisplay(display);
+		SongSlide slide = this.pnlPreview.getSlide(key);
+		if (slide != null) {
+			this.sendSlide(slide);
 		}
 	}
 	
@@ -643,55 +648,57 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	private void sendAction() {
 		SongPart part = (SongPart)this.cmbParts.getSelectedItem();
 		if (part != null) {
-			SongDisplay display = this.pnlPreview.getDisplay(part);
-			if (display != null) {
-				this.sendDisplay(display);
+			SongSlide slide = this.pnlPreview.getSlide(part);
+			if (slide != null) {
+				this.sendSlide(slide);
 			}
 		}
 	}
 	
 	/**
-	 * Sends the given {@link SongDisplay} to the primary display.
+	 * Sends the given {@link SongSlide} to the primary display.
 	 * <p>
 	 * This method uses the current values of the send transition combo box and
 	 * textbox.
-	 * @param display the display to send
+	 * @param slide the slide to send
 	 */
-	private void sendDisplay(SongDisplay display) {
-		SongPreferences settings = SongPreferences.getInstance();
+	private void sendSlide(SongSlide slide) {
+		SongPreferences preferences = Preferences.getInstance().getSongPreferences();
 		// get the transition
 		Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
 		int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
-		Easing easing = Easings.getEasingForId(settings.getSendEasing());
+		Easing easing = Easings.getEasingForId(preferences.getSendTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
-		if (primary != null) {
-			primary.send(display, ta);
-		} else {
-			// the device is no longer available
-			LOGGER.warn("The primary display doesn't exist.");
-			JOptionPane.showMessageDialog(
-					this, 
-					Messages.getString("dialog.device.primary.missing.text"), 
-					Messages.getString("dialog.device.primary.missing.title"), 
-					JOptionPane.WARNING_MESSAGE);
-		}
+		// FIXME implement
+//		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
+//		if (primary != null) {
+//			primary.send(display, ta);
+//		} else {
+//			// the device is no longer available
+//			LOGGER.warn("The primary display doesn't exist.");
+//			JOptionPane.showMessageDialog(
+//					this, 
+//					Messages.getString("dialog.device.primary.missing.text"), 
+//					Messages.getString("dialog.device.primary.missing.title"), 
+//					JOptionPane.WARNING_MESSAGE);
+//		}
 	}
 	
 	/**
 	 * Clears the primary display.
 	 */
 	private void clearAction() {
-		SongPreferences settings = SongPreferences.getInstance();
+		SongPreferences preferences = Preferences.getInstance().getSongPreferences();
 		// get the transition
 		Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
 		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
-		Easing easing = Easings.getEasingForId(settings.getClearEasing());
+		Easing easing = Easings.getEasingForId(preferences.getClearTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
-		if (primary != null) {
-			primary.clear(ta);
-		}
+		// FIXME implement
+//		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
+//		if (primary != null) {
+//			primary.clear(ta);
+//		}
 	}
 	
 	/**
@@ -906,7 +913,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	 * Rendering of songs may take some time depending on the number of parts they have.  This
 	 * thread will pre-generate the previews and then update the preview panel when complete.
 	 * <p>
-	 * We need to wait on the generated previews before we can send any of the displays.
+	 * We need to wait on the generated previews before we can send any of the slides.
 	 * @author William Bittle
 	 * @version 1.0.0
 	 * @since 1.0.0
@@ -948,7 +955,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 					this.song = this.songQueue.poll(1000, TimeUnit.MILLISECONDS);
 					// if no queued search then just continue
 					if (this.song != null) {
-						// update the displays (this method should not
+						// update the slides (this method should not
 						// do anything that should normally be done on the EDT)
 						pnlPreview.setSong(this.song);
 						

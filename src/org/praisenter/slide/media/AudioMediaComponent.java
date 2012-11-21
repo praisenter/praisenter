@@ -8,11 +8,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.media.AbstractAudioMedia;
-import org.praisenter.media.MediaException;
-import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaPlayerListener;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideComponentCopyException;
 import org.praisenter.xml.MediaTypeAdapter;
 
 /**
@@ -58,14 +55,9 @@ public class AudioMediaComponent implements SlideComponent, MediaComponent<Abstr
 	/**
 	 * Copy constructor.
 	 * @param component the component to copy
-	 * @throws SlideComponentCopyException thrown if the media cannot be copied
 	 */
-	public AudioMediaComponent(AudioMediaComponent component) throws SlideComponentCopyException {
-		try {
-			this.media = (AbstractAudioMedia)MediaLibrary.getMedia(component.media.getFile().getPath(), true);
-		} catch (MediaException e) {
-			throw new SlideComponentCopyException(e);
-		}
+	public AudioMediaComponent(AudioMediaComponent component) {
+		this.media = component.media;
 		this.loopEnabled = component.loopEnabled;
 		this.audioMuted = component.audioMuted;
 	}
@@ -74,7 +66,7 @@ public class AudioMediaComponent implements SlideComponent, MediaComponent<Abstr
 	 * @see org.praisenter.slide.SlideComponent#copy()
 	 */
 	@Override
-	public AudioMediaComponent copy() throws SlideComponentCopyException {
+	public AudioMediaComponent copy() {
 		return new AudioMediaComponent(this);
 	}
 	

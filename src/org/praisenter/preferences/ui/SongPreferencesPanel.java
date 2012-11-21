@@ -1,25 +1,34 @@
 package org.praisenter.preferences.ui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.NumberFormat;
+import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
+import javax.swing.JSeparator;
 
+import org.apache.log4j.Logger;
 import org.praisenter.easings.Easing;
 import org.praisenter.easings.Easings;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.preferences.SongPreferences;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.SlideLibrary;
+import org.praisenter.slide.SlideThumbnail;
+import org.praisenter.slide.SongSlideTemplate;
 import org.praisenter.slide.ui.EasingListCellRenderer;
+import org.praisenter.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transitions;
 import org.praisenter.ui.SelectTextFocusListener;
+import org.praisenter.utilities.ComponentUtilities;
 
 /**
  * Panel used to set the {@link SongPreferences}.
@@ -27,9 +36,17 @@ import org.praisenter.ui.SelectTextFocusListener;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SongPreferencesPanel extends JPanel implements PreferencesEditor {
+public class SongPreferencesPanel extends JPanel implements PreferencesEditor, ActionListener {
 	/** The verison id */
 	private static final long serialVersionUID = -3575533232722870706L;
+
+	/** The class level logger */
+	private static final Logger LOGGER = Logger.getLogger(SongPreferencesPanel.class);
+	
+	// template
+
+	/** The template combo box */
+	private JComboBox<SlideThumbnail> cmbTemplates;
 	
 	// transitions
 	
@@ -58,9 +75,32 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor {
 		Preferences preferences = Preferences.getInstance();
 		SongPreferences sp = preferences.getSongPreferences();
 		
+		// template
+		
+		// FIXME add in default templates
+		JLabel lblTemplate = new JLabel(Messages.getString("panel.preferences.template"));
+		List<SlideThumbnail> thumbs = SlideLibrary.getThumbnails(SongSlideTemplate.class);
+		SlideThumbnail selected = null;
+		for (SlideThumbnail thumb : thumbs) {
+			if (thumb.getFile().getPath().equals(sp.getTemplate())) {
+				selected = thumb;
+				break;
+			}
+		}
+		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbs.toArray(new SlideThumbnail[0]));
+		if (selected != null) {
+			this.cmbTemplates.setSelectedItem(selected);
+		}
+		this.cmbTemplates.setToolTipText(Messages.getString("panel.preferences.template.tooltip"));
+		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
+		JButton btnAddTemplate = new JButton(Messages.getString("panel.preferences.template.add"));
+		btnAddTemplate.setActionCommand("addTemplate");
+		btnAddTemplate.setToolTipText(Messages.getString("panel.preferences.template.add.tooltip"));
+		btnAddTemplate.addActionListener(this);
+		
 		// transitions
 		
-		JLabel lblSendTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultSend"));
+		JLabel lblSendTransition = new JLabel(Messages.getString("panel.preferences.transition.defaultSend"));
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(sp.getSendTransitionId(), Transition.Type.IN));
@@ -74,7 +114,7 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor {
 		this.cmbSendEasings.setSelectedItem(Easings.getEasingForId(sp.getSendTransitionEasingId()));
 		this.cmbSendEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
-		JLabel lblClearTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultClear"));
+		JLabel lblClearTransition = new JLabel(Messages.getString("panel.preferences.transition.defaultClear"));
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(sp.getClearTransitionId(), Transition.Type.OUT));
@@ -89,7 +129,6 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor {
 		this.cmbClearEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
 		JPanel pnlTransitions = new JPanel();
-		pnlTransitions.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		GroupLayout layout = new GroupLayout(pnlTransitions);
 		pnlTransitions.setLayout(layout);
 		
@@ -119,23 +158,49 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor {
 						.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbClearEasings, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
-
-		JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab(Messages.getString("panel.general.setup.transition.title"), pnlTransitions);
 		
-		JLabel lblMessage = new JLabel(Messages.getString("panel.song.setup.message"));
-		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		JPanel pnlTemplate = new JPanel();
+		layout = new GroupLayout(pnlTemplate);
+		pnlTemplate.setLayout(layout);
+		layout.setAutoCreateContainerGaps(true);
+		layout.setAutoCreateGaps(true);
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+				.addComponent(lblTemplate)
+				.addComponent(this.cmbTemplates, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(btnAddTemplate));
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+				.addComponent(lblTemplate)
+				.addComponent(this.cmbTemplates, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(btnAddTemplate));
+		
+		ComponentUtilities.setMinimumSize(lblClearTransition, lblSendTransition, lblTemplate);
+		
+		JSeparator sep = new JSeparator(JSeparator.HORIZONTAL);
 		
 		layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(lblMessage)
-				.addComponent(tabs, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+				.addComponent(pnlTemplate)
+				.addComponent(sep)
+				.addComponent(pnlTransitions));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(lblMessage)
-				.addComponent(tabs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+				.addComponent(pnlTemplate)
+				.addComponent(sep, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(pnlTransitions));
+	}
+
+	/* (non-Javadoc)
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		String command = e.getActionCommand();
+		if ("addTemplate".equals(command)) {
+			// FIXME add code to create template
+			LOGGER.error("Not implemented yet!!!");
+		}
 	}
 	
 	/* (non-Javadoc)

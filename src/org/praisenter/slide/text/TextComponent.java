@@ -14,7 +14,6 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideComponentCopyException;
 import org.praisenter.utilities.FontManager;
 import org.praisenter.xml.FontTypeAdapter;
 import org.praisenter.xml.PaintTypeAdapter;
@@ -119,9 +118,8 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	 * <p>
 	 * This constructor performs a deep copy where necessary.
 	 * @param component the component to copy
-	 * @throws SlideComponentCopyException thrown if the copy fails
 	 */
-	public TextComponent(TextComponent component) throws SlideComponentCopyException {
+	public TextComponent(TextComponent component) {
 		super(component);
 		this.text = component.text;
 		this.textPaint = component.textPaint;
@@ -137,7 +135,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	 * @see org.praisenter.slide.GenericSlideComponent#copy()
 	 */
 	@Override
-	public TextComponent copy() throws SlideComponentCopyException {
+	public TextComponent copy() {
 		return new TextComponent(this);
 	}
 	
@@ -241,10 +239,10 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 				g.setPaint(this.textPaint);
 				if (this.textWrapped) {
 					// render the text as a paragraph
-					TextRenderer.renderParagraph(g, text, this.horizontalTextAlignment, this.x, this.y + y, rw);
+					TextRenderer.renderParagraph(g, text, this.horizontalTextAlignment, this.x + this.textPadding, this.y + this.textPadding + y, rw);
 				} else {
 					// render the text as a line
-					TextRenderer.renderLine(g, text, this.horizontalTextAlignment, this.x, this.y + y, rw);
+					TextRenderer.renderLine(g, text, this.horizontalTextAlignment, this.x + this.textPadding, this.y + this.textPadding + y, rw);
 				}
 				
 				g.setPaint(oPaint);

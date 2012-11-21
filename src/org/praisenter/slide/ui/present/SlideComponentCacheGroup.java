@@ -1,4 +1,4 @@
-package org.praisenter.slide.present;
+package org.praisenter.slide.ui.present;
 
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -6,6 +6,8 @@ import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
+import org.praisenter.preferences.Preferences;
+import org.praisenter.preferences.RenderQuality;
 import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.Slide;
 
@@ -45,8 +47,16 @@ public class SlideComponentCacheGroup implements SlideComponentCache {
 	private void createCachedImage(GraphicsConfiguration gc, int w, int h) {
 		this.image = gc.createCompatibleImage(w, h, Transparency.TRANSLUCENT);
 		Graphics2D g = this.image.createGraphics();
-		// use best quality
-		g.setRenderingHints(SlideRenderer.BEST_QUALITY);
+		// use the configured quality
+		Preferences preferences = Preferences.getInstance();
+		if (preferences.getRenderQuality() == RenderQuality.HIGH) {
+			g.setRenderingHints(SlideRenderer.BEST_QUALITY);
+		} else if (preferences.getRenderQuality() == RenderQuality.LOW) {
+			g.setRenderingHints(SlideRenderer.LOW_QUALITY);
+		} else {
+			// by default do medium
+			g.setRenderingHints(SlideRenderer.MEDIUM_QUALITY);
+		}
 		// renders all the components to the given graphics
 		for (RenderableSlideComponent component : this.components) {
 			component.render(g);

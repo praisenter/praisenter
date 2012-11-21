@@ -6,5 +6,4 @@ package org.praisenter.media;
  * @version 1.0.0
  * @since 1.0.0
  */
-// TODO create a default audio loader using Java sound (MIDI and sampled)
 public interface AudioMediaLoader extends MediaLoader<AbstractAudioMedia> {}

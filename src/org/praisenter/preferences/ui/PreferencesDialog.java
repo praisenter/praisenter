@@ -7,7 +7,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -62,7 +61,7 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 	 * @param listeners the preferences listeners
 	 */
 	protected PreferencesDialog(Window owner, PreferencesListener[] listeners) {
-		super(owner, Messages.getString("dialog.setup.title"), ModalityType.APPLICATION_MODAL);
+		super(owner, Messages.getString("dialog.preferences.title"), ModalityType.APPLICATION_MODAL);
 		
 		this.listeners = listeners;
 		
@@ -75,31 +74,31 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		
 		// create the bottom buttons
 		
-		JButton btnSaveSettings = new JButton(Messages.getString("dialog.setup.save"));
-		btnSaveSettings.setToolTipText(Messages.getString("dialog.setup.save.tooltip"));
+		JButton btnSaveSettings = new JButton(Messages.getString("dialog.preferences.save"));
+		btnSaveSettings.setToolTipText(Messages.getString("dialog.preferences.save.tooltip"));
 		btnSaveSettings.setActionCommand("save");
 		btnSaveSettings.addActionListener(this);
 		
-		JButton btnCancelSettings = new JButton(Messages.getString("dialog.setup.cancel"));
-		btnCancelSettings.setToolTipText(Messages.getString("dialog.setup.cancel.tooltip"));
+		JButton btnCancelSettings = new JButton(Messages.getString("dialog.preferences.cancel"));
+		btnCancelSettings.setToolTipText(Messages.getString("dialog.preferences.cancel.tooltip"));
 		btnCancelSettings.setActionCommand("cancel");
 		btnCancelSettings.addActionListener(this);
 		
 		// create the bottom layout
 		
 		JPanel pnlBottom = new BottomButtonPanel();
-		pnlBottom.setLayout(new FlowLayout());
+		pnlBottom.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		pnlBottom.add(btnSaveSettings);
 		pnlBottom.add(btnCancelSettings);
 		
 		// create the tab container
 
 		JTabbedPane pneTabs = new JTabbedPane();
-		pneTabs.addTab(Messages.getString("dialog.setup.general"), this.pnlGeneralPreferences);
-		pneTabs.addTab(Messages.getString("dialog.setup.bible"), this.pnlBiblePreferences);
-		pneTabs.addTab(Messages.getString("dialog.setup.song"), this.pnlSongPreferences);
-		pneTabs.addTab(Messages.getString("dialog.setup.notification"), this.pnlNotificationPreferences);
-		pneTabs.addTab(Messages.getString("dialog.setup.error"), this.pnlErrorReportingPreferences);
+		pneTabs.addTab(Messages.getString("dialog.preferences.general"), this.pnlGeneralPreferences);
+		pneTabs.addTab(Messages.getString("dialog.preferences.bible"), this.pnlBiblePreferences);
+		pneTabs.addTab(Messages.getString("dialog.preferences.song"), this.pnlSongPreferences);
+		pneTabs.addTab(Messages.getString("dialog.preferences.notification"), this.pnlNotificationPreferences);
+		pneTabs.addTab(Messages.getString("dialog.preferences.error"), this.pnlErrorReportingPreferences);
 		
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
@@ -138,22 +137,22 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 			};
 			
 			// execute the save on another thread and show a progress bar
-			TaskProgressDialog.show(this, Messages.getString("dialog.setup.save.task.title"), task);
+			TaskProgressDialog.show(this, Messages.getString("dialog.preferences.save.task.title"), task);
 			if (task.isSuccessful()) {
 				// notify of the preferences changes
 				this.notifyPreferencesChanged();
 				// show a success message
 				JOptionPane.showMessageDialog(
 						this, 
-						Messages.getString("dialog.setup.save.success.text"), 
-						Messages.getString("dialog.setup.save.success.title"), 
+						Messages.getString("dialog.preferences.save.success.text"), 
+						Messages.getString("dialog.preferences.save.success.title"), 
 						JOptionPane.INFORMATION_MESSAGE);
 			} else {
 				LOGGER.error(task.getException());
 				ExceptionDialog.show(
 						this, 
-						Messages.getString("dialog.setup.save.exception.title"), 
-						Messages.getString("dialog.setup.save.exception.text"), 
+						Messages.getString("dialog.preferences.save.exception.title"), 
+						Messages.getString("dialog.preferences.save.exception.text"), 
 						task.getException());
 			}
 		} else if ("cancel".equals(command)) {
@@ -173,7 +172,7 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 	}
 	
 	/**
-	 * Shows a new SetupDialog.
+	 * Shows a new PreferencesDialog.
 	 * @param owner the owner of the dialog
 	 * @param listeners the array of {@link PreferencesListener}s
 	 */

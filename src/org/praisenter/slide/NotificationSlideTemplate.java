@@ -40,16 +40,15 @@ public class NotificationSlideTemplate extends NotificationSlide implements Temp
 	/**
 	 * Minimal constructor.
 	 * @param slide the slide to copy
-	 * @throws SlideCopyException thrown if the copy fails
 	 */
-	protected NotificationSlideTemplate(NotificationSlide slide) throws SlideCopyException {
+	protected NotificationSlideTemplate(NotificationSlide slide) {
 		super(slide);
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Template#createSlide()
 	 */
-	public NotificationSlide createSlide() throws SlideCopyException {
+	public NotificationSlide createSlide() {
 		return new NotificationSlide(this);
 	}
 }

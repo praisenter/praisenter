@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.praisenter.data.ConnectionFactory;
 import org.praisenter.data.DataException;
 import org.praisenter.preferences.ErrorReportingPreferences;
+import org.praisenter.preferences.Preferences;
 
 /**
  * Class used for error reporting.
@@ -117,7 +118,7 @@ public class Errors {
 		// create the error message
 		ErrorMessage em = new ErrorMessage(message, exception, contact, description);
 		// see if reporting is enabled
-		if (ErrorReportingPreferences.getInstance().isErrorReportingEnabled() && smtpPassword != null) {
+		if (Preferences.getInstance().getErrorReportingPreferences().isEnabled() && smtpPassword != null) {
 			// if so, attempt to email the message
 			try {
 				emailErrorMessages(smtpPassword, em);
@@ -169,7 +170,7 @@ public class Errors {
 	 * @param smtpPassword the SMTP password
 	 */
 	public static final void sendErrorMessages(String smtpPassword) {
-		if (ErrorReportingPreferences.getInstance().isErrorReportingEnabled()) {
+		if (Preferences.getInstance().getErrorReportingPreferences().isEnabled()) {
 			try {
 				// get all the stored messages
 				List<ErrorMessage> messages = getErrorMessages();
@@ -193,16 +194,16 @@ public class Errors {
 	 * @throws MessagingException if an error occurs in the mail api
 	 */
 	private static final void emailErrorMessages(String pass, ErrorMessage... messages) throws InvalidConfigurationException, MessagingException {
-		// get the settings
-		ErrorReportingPreferences settings = ErrorReportingPreferences.getInstance();
+		// get the preferences
+		ErrorReportingPreferences preferences = Preferences.getInstance().getErrorReportingPreferences();
 		// setup all the properties
-		String host = settings.getSmtpHost();
-		int port = settings.getSmtpPort();
-	    boolean auth = settings.isSmtpAuthenticateEnabled();
-	    String user = settings.getAccountUsername();
-	    boolean tls = settings.isSmtpStartTlsEnabled();
-	    String fromEmail = settings.getAccountEmail();
-	    String toEmail = settings.getReportToEmail();
+		String host = preferences.getSmtpHost();
+		int port = preferences.getSmtpPort();
+	    boolean auth = preferences.isAuthenticationEnabled();
+	    String user = preferences.getAccountUsername();
+	    boolean tls = preferences.isStartTlsEnabled();
+	    String fromEmail = preferences.getAccountEmail();
+	    String toEmail = preferences.getReportToEmail();
 	    
 	    Properties props = System.getProperties();
 	    

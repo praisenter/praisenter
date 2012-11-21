@@ -1,4 +1,4 @@
-package org.praisenter.slide.ui;
+package org.praisenter.slide.ui.preview;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -25,6 +25,7 @@ import javax.swing.JPanel;
 
 import org.praisenter.images.Images;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.ui.SlidePreviewMetrics;
 import org.praisenter.utilities.FontManager;
 import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.utilities.LookAndFeelUtilities;
@@ -37,7 +38,7 @@ import org.praisenter.utilities.LookAndFeelUtilities;
  */
 public abstract class AbstractSlidePreviewPanel extends JPanel implements ComponentListener {
 	/** The version id */
-	private static final long serialVersionUID = 4154620328827778625L;
+	private static final long serialVersionUID = 1014620067123674657L;
 
 	/** The outer border color */
 	protected static final Color OUTER_BORDER_COLOR = Color.GRAY.darker();
@@ -232,10 +233,9 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	 * Renders the given slide to the given graphics object.
 	 * @param g2d the graphics object to render to
 	 * @param slide the slide to render
-	 * @param name the slide name to render
 	 * @param metrics the slide preview metrics
 	 */
-	protected void renderSlide(Graphics2D g2d, Slide slide, String name, SlidePreviewMetrics metrics) {
+	protected void renderSlide(Graphics2D g2d, Slide slide, SlidePreviewMetrics metrics) {
 		final int idw = metrics.width;
 		final int idh = metrics.height;
 		final int th = metrics.textHeight;
@@ -244,6 +244,7 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 		// save the old transform
 		AffineTransform ot = g2d.getTransform();
 
+		String name = slide.getName();
 		if (this.includeSlideName && name != null) {
 			// render the text
 			this.renderSlideName(g2d, name, idw);
@@ -307,13 +308,12 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	
 	/**
 	 * Returns the actual rendered slide metrics.
-	 * @param g2d the graphics object
 	 * @param slide the slide
 	 * @param adw the available width (for name, shadow, and borders)
 	 * @param adh the available height (for name, shadow, and borders)
 	 * @return {@link SlidePreviewMetrics}
 	 */
-	protected SlidePreviewMetrics getSlideMetrics(Graphics2D g2d, Slide slide, int adw, int adh) {
+	protected SlidePreviewMetrics getSlideMetrics(Slide slide, int adw, int adh) {
 		int th = 0;
 		// get the text height
 		if (this.includeSlideName) {
@@ -405,27 +405,29 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	 * @param w the width of the slide (to center the text)
 	 */
 	private void renderSlideName(Graphics2D g2d, String name, int w) {
-		BufferedImage image = this.imageCache.get(name);
-		FontMetrics metrics = g2d.getFontMetrics(FontManager.getDefaultFont());
-		int ih = metrics.getHeight();
-		int iw = metrics.stringWidth(name);
-		// see if we need to re-render the image
-		if (image == null || image.getWidth() != iw || image.getHeight() != ih) {
-			// create a new image of the right size
-			image = g2d.getDeviceConfiguration().createCompatibleImage(iw, ih, Transparency.BITMASK);
+		if (name != null && name.trim().length() > 0) {
+			BufferedImage image = this.imageCache.get(name);
+			FontMetrics metrics = g2d.getFontMetrics(FontManager.getDefaultFont());
+			int ih = metrics.getHeight();
+			int iw = metrics.stringWidth(name);
+			// see if we need to re-render the image
+			if (image == null || image.getWidth() != iw || image.getHeight() != ih) {
+				// create a new image of the right size
+				image = g2d.getDeviceConfiguration().createCompatibleImage(iw, ih, Transparency.BITMASK);
+				
+				Graphics2D ig2d = image.createGraphics();
+				
+				ig2d.setFont(FontManager.getDefaultFont());
+				ig2d.setColor(Color.BLACK);
+				ig2d.drawString(name, 0, metrics.getAscent());
+				ig2d.dispose();
+				
+				this.imageCache.put(name, image);
+			}
 			
-			Graphics2D ig2d = image.createGraphics();
-			
-			ig2d.setFont(FontManager.getDefaultFont());
-			ig2d.setColor(Color.BLACK);
-			ig2d.drawString(name, 0, metrics.getAscent());
-			ig2d.dispose();
-			
-			this.imageCache.put(name, image);
+			// render the image
+			g2d.drawImage(image, (w - iw) / 2, 0, null);
 		}
-		
-		// render the image
-		g2d.drawImage(image, (w - iw) / 2, 0, null);
 	}
 	
 	/**
@@ -450,10 +452,28 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	}
 
 	/**
+	 * Sets the spacing between the slide and its name.
+	 * @param spacing the spacing in pixels
+	 */
+	public void setNameSpacing(int spacing) {
+		this.nameSpacing = spacing;
+		this.invalidate();
+	}
+	
+	/**
 	 * Returns true if the slide name is rendered.
 	 * @return boolean
 	 */
 	public boolean isIncludeSlideName() {
 		return this.includeSlideName;
+	}
+	
+	/**
+	 * Toggles the rendering of the slide name.
+	 * @param flag true if the slide name should be rendered 
+	 */
+	public void setIncludeSlideName(boolean flag) {
+		this.includeSlideName = flag;
+		this.invalidate();
 	}
 }

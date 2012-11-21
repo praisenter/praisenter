@@ -1,4 +1,4 @@
-package org.praisenter.slide.present;
+package org.praisenter.slide.ui.present;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -12,6 +12,7 @@ import org.praisenter.media.MediaPlayerConfiguration;
 import org.praisenter.media.MediaPlayerFactory;
 import org.praisenter.media.PlayableMedia;
 import org.praisenter.media.VideoMediaPlayerListener;
+import org.praisenter.preferences.Preferences;
 import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.media.PlayableMediaComponent;
@@ -60,7 +61,10 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 	/** The transition to apply from display to display */
 	protected TransitionAnimator animator;
 	
+	/** True if the out-going slide has playable media */
 	protected boolean outHasPlayableMedia;
+	
+	/** True if the in-coming slide has playable media */
 	protected boolean inHasPlayableMedia;
 	
 	/** True if the background should be transitioned */
@@ -77,7 +81,11 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 	/** True if the panel is clear */
 	protected boolean clear;
 	
-	protected boolean transitionComplete;
+	/** True if a repaint has been issued */
+	protected boolean repaintIssued = false;
+	
+	/** True if the transition is complete */
+	protected boolean transitionComplete = false;
 	
 	/**
 	 * Default constructor.
@@ -114,6 +122,8 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 	 */
 	@Override
 	public void send(Slide slide, TransitionAnimator animator) {
+		Preferences preferences = Preferences.getInstance();
+		
 		// stop the old transition just in case it's still in progress
 		if (this.animator != null) {
 			this.animator.stop();
@@ -125,7 +135,7 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 		// first lets handle the case of the initial show
 		this.clear = false;
 		this.animator = animator;
-		this.transitionComplete = false;
+		this.repaintIssued = false;
 		
 		// see if we have any playable media
 		this.inSlide = slide;
@@ -152,7 +162,7 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 						// we can attach the new media component as a listener to the current 
 						// media player (to update its images as the video plays)
 						this.outBackgroundMediaPlayer.addMediaPlayerListener(nC);
-						this.transitionBackground = false;
+						this.transitionBackground = preferences.isSmartTransitionsEnabled();
 					}
 				}
 			}
@@ -267,20 +277,16 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 		}
 	}
 	
-	protected boolean repaitIssued = false;
-	
 	@Override
 	public void repaint() {
-		this.repaitIssued = true;
+		this.repaintIssued = true;
 		super.repaint();
 	}
 	
 	@Override
 	public void onVideoImage(BufferedImage image) {
-		if (this.transitionComplete) {
-			if (!this.repaitIssued) {
-				this.repaint();
-			}
+		if (!this.repaintIssued) {
+			this.repaint();
 		}
 	}
 	
@@ -322,9 +328,12 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 			}
 		}
 		
-		this.repaitIssued = false;
+		this.repaintIssued = false;
 	}
 	
+	/**
+	 * Called when a transition has completed.
+	 */
 	private void onTransitionComplete() {
 		if (this.outBackgroundMediaPlayer != null && this.transitionBackground) {
 			// if we aren't transitioning the background, then we need to make sure
@@ -336,10 +345,5 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 			player.release();
 		}
 		this.outMediaPlayers.clear();
-//		this.outMediaPlayers.addAll(this.inMediaPlayers);
-//		this.inMediaPlayers.clear();
-//		this.outSlide = this.inSlide;
-//		this.inSlide = null;
-		this.transitionComplete = true;
 	}
 }

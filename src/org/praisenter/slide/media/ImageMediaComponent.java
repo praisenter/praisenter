@@ -18,7 +18,6 @@ import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideComponentCopyException;
 import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.xml.MediaTypeAdapter;
 
@@ -88,9 +87,8 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	 * <p>
 	 * This constructor performs a deep copy where necessary.
 	 * @param component the component to copy
-	 * @throws SlideComponentCopyException thrown if the media could not be copied
 	 */
-	public ImageMediaComponent(ImageMediaComponent component) throws SlideComponentCopyException {
+	public ImageMediaComponent(ImageMediaComponent component) {
 		super(component);
 		this.media = component.media;
 		this.scaleType = component.scaleType;
@@ -146,7 +144,7 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	 * @see org.praisenter.slide.GenericSlideComponent#copy()
 	 */
 	@Override
-	public ImageMediaComponent copy() throws SlideComponentCopyException {
+	public ImageMediaComponent copy() {
 		return new ImageMediaComponent(this);
 	}
 	

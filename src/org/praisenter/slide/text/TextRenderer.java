@@ -292,7 +292,9 @@ public class TextRenderer {
 			bounds = getParagraphBounds(text, font, fontRenderContext, width);
 			i++;
 		}
-		LOGGER.debug("Font fitting iterations: " + i);
+		if (i > 0) {
+			LOGGER.debug("Font fitting iterations: " + i);
+		}
 		return new TextMetrics(cur, bounds.width, bounds.height);
 	}
 	

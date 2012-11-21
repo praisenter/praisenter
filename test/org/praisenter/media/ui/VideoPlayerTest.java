@@ -28,16 +28,12 @@ public class VideoPlayerTest {
 	            try {
 					UIManager.setLookAndFeel(info.getClassName());
 				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (InstantiationException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (UnsupportedLookAndFeelException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 	        }
@@ -118,7 +114,6 @@ public class VideoPlayerTest {
 //				player.setLooped(true);
 //				player.play();
 			} catch (MediaException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
@@ -128,7 +123,6 @@ public class VideoPlayerTest {
 //				Thread.sleep(2000);
 //				player.resume();
 //			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
 //				e.printStackTrace();
 //			}
 		}

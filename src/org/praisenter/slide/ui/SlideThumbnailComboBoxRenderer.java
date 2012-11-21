@@ -11,7 +11,7 @@ import javax.swing.SwingConstants;
 import org.praisenter.slide.SlideThumbnail;
 
 /**
- * Custom list cell renderer for {@link SlideThumbnail}s.
+ * Custom list cell renderer for {@link SlideThumbnail} combo boxes.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
@@ -20,8 +20,12 @@ public class SlideThumbnailComboBoxRenderer extends DefaultListCellRenderer {
 	/** The version id */
 	private static final long serialVersionUID = -8260540909617276091L;
 
-	private static final BufferedImage test = new BufferedImage(64, 1, BufferedImage.TYPE_INT_ARGB);
+	/** A transparent icon used to fill the space of the selected item */
+	private static final BufferedImage SELECTED_ICON = new BufferedImage(64, 1, BufferedImage.TYPE_INT_ARGB);
 	
+	/* (non-Javadoc)
+	 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
+	 */
 	@Override
 	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -35,7 +39,7 @@ public class SlideThumbnailComboBoxRenderer extends DefaultListCellRenderer {
 				this.setIcon(new ImageIcon(t.getImage()));
 			} else {
 				this.setHorizontalTextPosition(SwingConstants.LEFT);
-				this.setIcon(new ImageIcon(test));
+				this.setIcon(new ImageIcon(SELECTED_ICON));
 			}
 		}
 		return this;

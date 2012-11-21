@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.apache.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.resources.Messages;
 import org.praisenter.xml.DimensionTypeAdapter;
 import org.praisenter.xml.XmlIO;
 
@@ -22,7 +23,6 @@ import org.praisenter.xml.XmlIO;
  * @version 1.0.0
  * @since 1.0.0
  */
-// FIXME translate
 @XmlRootElement(name = "Preferences")
 @XmlAccessorType(XmlAccessType.NONE)
 public class Preferences {
@@ -124,12 +124,9 @@ public class Preferences {
 	public void save() throws PreferencesException {
 		try {
 			XmlIO.save(CONFIGURATION_FILE, this);
-		} catch (JAXBException e) {
+		} catch (JAXBException | IOException e) {
 			LOGGER.error("Unable to save the configuration due to: ", e);
-			throw new PreferencesException("", e);
-		} catch (IOException e) {
-			LOGGER.error("Unable to save the configuration due to: ", e);
-			throw new PreferencesException("", e);
+			throw new PreferencesException(Messages.getString("preferences.save.exception"), e);
 		}
 	}
 

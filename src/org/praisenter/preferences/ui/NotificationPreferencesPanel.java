@@ -2,13 +2,12 @@ package org.praisenter.preferences.ui;
 
 import java.text.NumberFormat;
 
-import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
+import javax.swing.JSeparator;
 
 import org.praisenter.easings.Easing;
 import org.praisenter.easings.Easings;
@@ -20,6 +19,7 @@ import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transitions;
 import org.praisenter.ui.SelectTextFocusListener;
+import org.praisenter.utilities.ComponentUtilities;
 
 /**
  * Panel used to set the {@link NotificationPreferences}.
@@ -62,15 +62,15 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 		NotificationPreferences np = preferences.getNotificationPreferences();
 		
 		// general notification settings
-		JLabel lblDefaultWaitPeriod = new JLabel(Messages.getString("panel.notification.setup.defaultWaitPeriod"));
+		JLabel lblDefaultWaitPeriod = new JLabel(Messages.getString("panel.notification.preferences.defaultWaitPeriod"));
 		this.txtDefaultWaitPeriod = new JFormattedTextField(NumberFormat.getIntegerInstance());
-		this.txtDefaultWaitPeriod.setToolTipText(Messages.getString("panel.notification.setup.defaultWaitPeriod.tooltip"));
+		this.txtDefaultWaitPeriod.setToolTipText(Messages.getString("panel.notification.preferences.defaultWaitPeriod.tooltip"));
 		this.txtDefaultWaitPeriod.setValue(np.getWaitPeriod());
 		this.txtDefaultWaitPeriod.setColumns(6);
 		
 		// transitions
 		
-		JLabel lblSendTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultSend"));
+		JLabel lblSendTransition = new JLabel(Messages.getString("panel.preferences.transition.defaultSend"));
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(np.getSendTransitionId(), Transition.Type.IN));
@@ -84,7 +84,7 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 		this.cmbSendEasings.setSelectedItem(Easings.getEasingForId(np.getSendTransitionEasingId()));
 		this.cmbSendEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
-		JLabel lblClearTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultClear"));
+		JLabel lblClearTransition = new JLabel(Messages.getString("panel.preferences.transition.defaultClear"));
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(np.getClearTransitionId(), Transition.Type.OUT));
@@ -99,7 +99,6 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 		this.cmbClearEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
 		JPanel pnlTransitions = new JPanel();
-		pnlTransitions.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		GroupLayout layout = new GroupLayout(pnlTransitions);
 		pnlTransitions.setLayout(layout);
 		
@@ -132,8 +131,6 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 		
 		// setup the layout
 		JPanel pnlGeneral = new JPanel();
-		pnlGeneral.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-		
 		layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
 		layout.setAutoCreateGaps(true);
@@ -145,23 +142,22 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 				.addComponent(lblDefaultWaitPeriod)
 				.addComponent(this.txtDefaultWaitPeriod, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		
-		JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab(Messages.getString("panel.notification.setup.general"), pnlGeneral);
-		tabs.addTab(Messages.getString("panel.general.setup.transition.title"), pnlTransitions);
+		ComponentUtilities.setMinimumSize(lblClearTransition, lblDefaultWaitPeriod, lblSendTransition);
 		
-		JLabel lblMessage = new JLabel(Messages.getString("panel.notification.setup.message"));
-		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		JSeparator sep = new JSeparator(JSeparator.HORIZONTAL);
 		
 		layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(lblMessage)
-				.addComponent(tabs, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+				.addComponent(pnlGeneral)
+				.addComponent(sep)
+				.addComponent(pnlTransitions));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(lblMessage)
-				.addComponent(tabs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+				.addComponent(pnlGeneral)
+				.addComponent(sep, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(pnlTransitions));
 	}
 
 	/* (non-Javadoc)

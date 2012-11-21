@@ -103,6 +103,15 @@ public abstract class AbstractRenderableSlideComponent implements SlideComponent
 		this.height += dh;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.RenderableSlideComponent#resize(double, double)
+	 */
+	@Override
+	public void resize(double pw, double ph) {
+		this.width = (int)Math.floor((double)this.width * pw);
+		this.height = (int)Math.floor((double)this.height * ph);
+	}
+	
 	// rendering
 	
 	/**

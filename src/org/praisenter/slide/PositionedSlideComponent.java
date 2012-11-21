@@ -12,7 +12,6 @@ import java.awt.Stroke;
  * @since 1.0.0
  */
 public interface PositionedSlideComponent extends SlideComponent, RenderableSlideComponent {
-	// FIXME will need an order field
 	/**
 	 * Returns the x coordinate in slide space.
 	 * @return int
