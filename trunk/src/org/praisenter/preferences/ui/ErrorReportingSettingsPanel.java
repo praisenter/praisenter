@@ -3,13 +3,12 @@ package org.praisenter.preferences.ui;
 import java.awt.Graphics;
 import java.text.NumberFormat;
 
-import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -18,6 +17,7 @@ import org.praisenter.preferences.ErrorReportingPreferences;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.resources.Messages;
 import org.praisenter.ui.WaterMark;
+import org.praisenter.utilities.ComponentUtilities;
 
 /**
  * Panel used to setup {@link ErrorReportingPreferences}.
@@ -62,77 +62,76 @@ public class ErrorReportingSettingsPanel extends JPanel implements PreferencesEd
 		
 		boolean enabled = erp.isEnabled();
 		
-		JLabel lblReportingEnabled = new JLabel(Messages.getString("panel.error.setup.reporting.enabled"));
+		JLabel lblReportingEnabled = new JLabel(Messages.getString("panel.error.preferences.reporting.enabled"));
 		this.chkReportingEnabled = new JCheckBox();
-		this.chkReportingEnabled.setToolTipText(Messages.getString("panel.error.setup.reporting.enabled.tooltip"));
+		this.chkReportingEnabled.setToolTipText(Messages.getString("panel.error.preferences.reporting.enabled.tooltip"));
 		this.chkReportingEnabled.setSelected(enabled);
 		this.chkReportingEnabled.addChangeListener(this);
-		JLabel lblReporting = new JLabel(Messages.getString("panel.error.setup.reporting.description"));
+		JLabel lblReporting = new JLabel(Messages.getString("panel.error.preferences.reporting.description"));
 		
-		JLabel lblAuthenticateEnabled = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.auth"));
+		JLabel lblAuthenticateEnabled = new JLabel(Messages.getString("panel.error.preferences.reporting.smtp.auth"));
 		this.chkAuthenticateEnabled = new JCheckBox();
-		this.chkAuthenticateEnabled.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.auth.tooltip"));
+		this.chkAuthenticateEnabled.setToolTipText(Messages.getString("panel.error.preferences.reporting.smtp.auth.tooltip"));
 		this.chkAuthenticateEnabled.setSelected(erp.isAuthenticationEnabled());
 		this.chkAuthenticateEnabled.setEnabled(enabled);
 		
-		JLabel lblSmtpHost = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.host"));
+		JLabel lblSmtpHost = new JLabel(Messages.getString("panel.error.preferences.reporting.smtp.host"));
 		this.txtSmtpHost = new JTextField() {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				// paint a watermark over the text box
-				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.setup.reporting.smtp.host.example"));
+				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.preferences.reporting.smtp.host.example"));
 			}
 		};
-		this.txtSmtpHost.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.host.tooltip"));
+		this.txtSmtpHost.setToolTipText(Messages.getString("panel.error.preferences.reporting.smtp.host.tooltip"));
 		this.txtSmtpHost.setText(erp.getSmtpHost());
-		this.txtSmtpHost.setColumns(30);
+		this.txtSmtpHost.setColumns(25);
 		this.txtSmtpHost.setEnabled(enabled);
 		
-		JLabel lblSmtpPort = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.port"));
+		JLabel lblSmtpPort = new JLabel(Messages.getString("panel.error.preferences.reporting.smtp.port"));
 		this.txtSmtpPort = new JFormattedTextField(NumberFormat.getIntegerInstance());
-		this.txtSmtpPort.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.port.tooltip"));
+		this.txtSmtpPort.setToolTipText(Messages.getString("panel.error.preferences.reporting.smtp.port.tooltip"));
 		this.txtSmtpPort.setValue(erp.getSmtpPort());
 		this.txtSmtpPort.setColumns(5);
 		this.txtSmtpPort.setEnabled(enabled);
 		
-		JLabel lblStartTlsEnabled = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.tls"));
+		JLabel lblStartTlsEnabled = new JLabel(Messages.getString("panel.error.preferences.reporting.smtp.tls"));
 		this.chkStartTlsEnabled = new JCheckBox();
-		this.chkStartTlsEnabled.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.tls.tooltip"));
+		this.chkStartTlsEnabled.setToolTipText(Messages.getString("panel.error.preferences.reporting.smtp.tls.tooltip"));
 		this.chkStartTlsEnabled.setSelected(erp.isStartTlsEnabled());
 		this.chkStartTlsEnabled.setEnabled(enabled);
 		
-		JLabel lblUsername = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.user"));
+		JLabel lblUsername = new JLabel(Messages.getString("panel.error.preferences.reporting.smtp.user"));
 		this.txtUsername = new JTextField() {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				// paint a watermark over the text box
-				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.setup.reporting.smtp.user.example"));
+				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.preferences.reporting.smtp.user.example"));
 			}
 		};
-		this.txtUsername.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.user.tooltip"));
+		this.txtUsername.setToolTipText(Messages.getString("panel.error.preferences.reporting.smtp.user.tooltip"));
 		this.txtUsername.setText(erp.getAccountUsername());
 		this.txtUsername.setColumns(20);
 		this.txtUsername.setEnabled(enabled);
-		JLabel lblPassword = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.pass"));
+		JLabel lblPassword = new JLabel(Messages.getString("panel.error.preferences.reporting.smtp.pass"));
 		
-		JLabel lblEmail = new JLabel(Messages.getString("panel.error.setup.reporting.smtp.email"));
+		JLabel lblEmail = new JLabel(Messages.getString("panel.error.preferences.reporting.smtp.email"));
 		this.txtEmail = new JTextField() {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				// paint a watermark over the text box
-				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.setup.reporting.smtp.email.example"));
+				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.error.preferences.reporting.smtp.email.example"));
 			}
 		};
-		this.txtEmail.setToolTipText(Messages.getString("panel.error.setup.reporting.smtp.email.tooltip"));
+		this.txtEmail.setToolTipText(Messages.getString("panel.error.preferences.reporting.smtp.email.tooltip"));
 		this.txtEmail.setText(erp.getAccountEmail());
-		this.txtEmail.setColumns(50);
+		this.txtEmail.setColumns(30);
 		this.txtEmail.setEnabled(enabled);
 		
 		JPanel pnlGeneral = new JPanel();
-		pnlGeneral.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		GroupLayout layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
 		
@@ -151,7 +150,6 @@ public class ErrorReportingSettingsPanel extends JPanel implements PreferencesEd
 				.addComponent(lblReporting));
 		
 		JPanel pnlSmtp = new JPanel();
-		pnlSmtp.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
 		layout = new GroupLayout(pnlSmtp);
 		pnlSmtp.setLayout(layout);
 		
@@ -194,26 +192,28 @@ public class ErrorReportingSettingsPanel extends JPanel implements PreferencesEd
 						.addComponent(lblEmail)
 						.addComponent(this.txtEmail, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		
-		JTabbedPane tabs1 = new JTabbedPane();
-		tabs1.addTab(Messages.getString("panel.error.setup.general"), pnlGeneral);
+		ComponentUtilities.setMinimumSize(
+				lblReportingEnabled,
+				lblAuthenticateEnabled,
+				lblEmail,
+				lblSmtpHost,
+				lblSmtpPort,
+				lblStartTlsEnabled,
+				lblUsername);
 		
-		JTabbedPane tabs2 = new JTabbedPane();
-		tabs2.addTab(Messages.getString("panel.error.setup.smtp"), pnlSmtp);
-		
-		JLabel lblMessage = new JLabel(Messages.getString("panel.error.setup.message"));
-		lblMessage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		JSeparator sep = new JSeparator(JSeparator.HORIZONTAL);
 		
 		layout = new GroupLayout(this);
 		this.setLayout(layout);
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(lblMessage)
-				.addComponent(tabs1)
-				.addComponent(tabs2));
+				.addComponent(pnlGeneral)
+				.addComponent(sep)
+				.addComponent(pnlSmtp));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(lblMessage)
-				.addComponent(tabs1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(tabs2, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+				.addComponent(pnlGeneral)
+				.addComponent(sep, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(pnlSmtp));
 	}
 	
 	/* (non-Javadoc)

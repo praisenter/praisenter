@@ -55,25 +55,18 @@ public class NotificationSlide extends Slide {
 	 * Copy constructor.
 	 * <p>
 	 * This will perform a deep copy where necessary.
-	 * <p>
-	 * This does not copy the slide listeners.
 	 * @param slide the slide to copy
-	 * @throws SlideCopyException thrown if the copy fails
 	 */
-	public NotificationSlide(NotificationSlide slide) throws SlideCopyException {
+	public NotificationSlide(NotificationSlide slide) {
 		super(slide);
-		try {
-			this.textComponent = slide.textComponent.copy();
-		} catch (SlideComponentCopyException e) {
-			throw new SlideCopyException(e);
-		}
+		this.textComponent = slide.textComponent.copy();
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#copy()
 	 */
 	@Override
-	public NotificationSlide copy() throws SlideCopyException {
+	public NotificationSlide copy() {
 		return new NotificationSlide(this);
 	}
 	
@@ -81,7 +74,7 @@ public class NotificationSlide extends Slide {
 	 * @see org.praisenter.slide.Slide#createTemplate()
 	 */
 	@Override
-	public NotificationSlideTemplate createTemplate() throws SlideCopyException {
+	public NotificationSlideTemplate createTemplate() {
 		return new NotificationSlideTemplate(this);
 	}
 	

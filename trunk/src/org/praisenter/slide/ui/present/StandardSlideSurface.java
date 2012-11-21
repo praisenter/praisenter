@@ -1,4 +1,4 @@
-package org.praisenter.slide.present;
+package org.praisenter.slide.ui.present;
 
 import org.praisenter.slide.Slide;
 import org.praisenter.transitions.TransitionAnimator;
@@ -12,6 +12,7 @@ import org.praisenter.transitions.TransitionAnimator;
  */
 public abstract class StandardSlideSurface extends SlideSurface {
 	/** The version id */
+	private static final long serialVersionUID = 3260549632836799867L;
 
 	/**
 	 * Shows the given slide.

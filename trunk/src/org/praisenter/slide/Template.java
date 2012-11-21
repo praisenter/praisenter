@@ -10,7 +10,6 @@ public interface Template {
 	/**
 	 * Creates a new {@link Slide} from this template.
 	 * @return {@link Slide}
-	 * @throws SlideCopyException thrown if the copy fails
 	 */
-	public Slide createSlide() throws SlideCopyException;
+	public Slide createSlide();
 }

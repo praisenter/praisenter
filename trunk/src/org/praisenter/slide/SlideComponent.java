@@ -10,9 +10,8 @@ public interface SlideComponent {
 	/**
 	 * Performs a deep copy of this object and returns the result.
 	 * @return {@link SlideComponent}
-	 * @throws SlideComponentCopyException thrown if the copy fails
 	 */
-	public abstract SlideComponent copy() throws SlideComponentCopyException;
+	public abstract SlideComponent copy();
 
 	/**
 	 * Returns the z-ordering of the component in the slide.

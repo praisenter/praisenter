@@ -1,4 +1,4 @@
-package org.praisenter.slide.ui;
+package org.praisenter.slide.ui.editor;
 
 import org.praisenter.media.ui.MediaLibraryPanel;
 import org.praisenter.slide.media.ImageMediaComponent;

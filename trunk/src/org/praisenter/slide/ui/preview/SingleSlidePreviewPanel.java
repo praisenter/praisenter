@@ -1,10 +1,11 @@
-package org.praisenter.slide.ui;
+package org.praisenter.slide.ui.preview;
 
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.ui.SlidePreviewMetrics;
 
 /**
  * Represents a generic single slide preview panel.
@@ -14,29 +15,24 @@ import org.praisenter.slide.Slide;
  */
 public class SingleSlidePreviewPanel extends AbstractSlidePreviewPanel {
 	/** The version id */
-	private static final long serialVersionUID = 1171231926175647703L;
-
+	private static final long serialVersionUID = 1683646603420459379L;
+	
 	/** The slide to render */
 	protected Slide slide;
 	
-	/** The display name */
-	protected String name;
-
 	/**
 	 * Default constructor.
 	 */
 	public SingleSlidePreviewPanel() {
-		this(0, null);
+		this(10);
 	}
 	
 	/**
 	 * Constructor for creating a {@link SingleSlidePreviewPanel} with the slide name rendered.
 	 * @param nameSpacing the spacing between the display and its name
-	 * @param name the name of the display
 	 */
-	public SingleSlidePreviewPanel(int nameSpacing, String name) {
+	public SingleSlidePreviewPanel(int nameSpacing) {
 		super(nameSpacing, true);
-		this.name = name;
 		this.slide = null;
 	}
 	
@@ -55,8 +51,8 @@ public class SingleSlidePreviewPanel extends AbstractSlidePreviewPanel {
 	 * @param bounds the available rendering bounds
 	 */
 	protected void renderSlide(Graphics2D g2d, Rectangle bounds) {
-		// get the display metrics
-		SlidePreviewMetrics metrics = this.getSlideMetrics(g2d, this.slide, bounds.width, bounds.height);
+		// get the slide metrics
+		SlidePreviewMetrics metrics = this.getSlideMetrics(this.slide, bounds.width, bounds.height);
 		
 		// save the old transform
 		AffineTransform oldTransform = g2d.getTransform();
@@ -64,8 +60,8 @@ public class SingleSlidePreviewPanel extends AbstractSlidePreviewPanel {
 		// apply the y translation
 		g2d.translate(bounds.x, bounds.y);
 		
-		// render the display
-		this.renderSlide(g2d, this.slide, this.name, metrics);
+		// render the slide
+		this.renderSlide(g2d, this.slide, metrics);
 
 		// reset the transform
 		g2d.setTransform(oldTransform);
@@ -85,5 +81,6 @@ public class SingleSlidePreviewPanel extends AbstractSlidePreviewPanel {
 	 */
 	public void setSlide(Slide slide) {
 		this.slide = slide;
+		this.invalidate();
 	}
 }

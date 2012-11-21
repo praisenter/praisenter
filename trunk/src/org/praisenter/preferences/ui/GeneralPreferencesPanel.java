@@ -95,16 +95,16 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		if (device == null) {
 			// show the primary display message
 			this.lblDisplayNotFound.setVerticalTextPosition(SwingConstants.TOP);
-			this.lblDisplayNotFound.setText(Messages.getString("panel.general.setup.display.missing.warning"));
+			this.lblDisplayNotFound.setText(Messages.getString("panel.general.preferences.display.missing.warning"));
 			this.lblDisplayNotFound.setIcon(Icons.WARNING);
 			this.lblDisplayNotFound.setVisible(true);
 		}
 		
-		JLabel lblPrimaryDisplay = new JLabel(Messages.getString("panel.general.setup.display.primaryDisplay"));
+		JLabel lblPrimaryDisplay = new JLabel(Messages.getString("panel.general.preferences.display.primaryDisplay"));
 		
 		// drop down for the primary display device
 		this.cmbDevices = new JComboBox<GraphicsDevice>(this.devices);
-		this.cmbDevices.setToolTipText(Messages.getString("panel.general.setup.display.primaryDisplay.tooltip"));
+		this.cmbDevices.setToolTipText(Messages.getString("panel.general.preferences.display.primaryDisplay.tooltip"));
 		this.cmbDevices.setRenderer(new DeviceRenderer());
 		if (device != null) {
 			this.cmbDevices.setSelectedItem(device);
@@ -112,8 +112,8 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		this.cmbDevices.addItemListener(this);
 		
 		// button for the identify 
-		JButton btnIdentify = new JButton(Messages.getString("panel.general.setup.display.identify"));
-		btnIdentify.setToolTipText(Messages.getString("panel.general.setup.display.identify.tooltip"));
+		JButton btnIdentify = new JButton(Messages.getString("panel.general.preferences.display.identify"));
+		btnIdentify.setToolTipText(Messages.getString("panel.general.preferences.display.identify.tooltip"));
 		btnIdentify.addActionListener(this);
 		btnIdentify.setActionCommand("identify");
 		
@@ -123,21 +123,21 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		// check if the primary display is translucent
 		if (device != null && !device.isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT)) {
 			this.lblTranslucency.setVerticalTextPosition(SwingConstants.TOP);
-			this.lblTranslucency.setText(Messages.getString("panel.general.setup.display.translucent.warning"));
+			this.lblTranslucency.setText(Messages.getString("panel.general.preferences.display.translucent.warning"));
 			this.lblTranslucency.setIcon(Icons.WARNING);
 			this.lblTranslucency.setVisible(true);
 		}
 		
-		JLabel lblRenderQuality = new JLabel(Messages.getString("panel.general.setup.quality"));
+		JLabel lblRenderQuality = new JLabel(Messages.getString("panel.general.preferences.quality"));
 		this.cmbRenderQualities = new JComboBox<RenderQuality>(RenderQuality.values());
-		this.cmbRenderQualities.setToolTipText(Messages.getString("panel.general.setup.quality.tooltip"));
+		this.cmbRenderQualities.setToolTipText(Messages.getString("panel.general.preferences.quality.tooltip"));
 		this.cmbRenderQualities.setRenderer(new RenderQualityRenderer());
 		this.cmbRenderQualities.setSelectedItem(preferences.getRenderQuality());
 		this.cmbRenderQualities.addItemListener(this);
 		
-		// FIXME translate
-		JLabel lblSmartTransitions = new JLabel("translate me");
+		JLabel lblSmartTransitions = new JLabel(Messages.getString("panel.general.preferences.smartTransitions"));
 		this.chkSmartTransitions = new JCheckBox();
+		this.chkSmartTransitions.setToolTipText(Messages.getString("panel.general.preferences.smartTransitions.tooltip"));
 		this.chkSmartTransitions.setSelected(preferences.isSmartTransitionsEnabled());
 		this.chkSmartTransitions.addChangeListener(this);
 		
@@ -242,7 +242,7 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 				// test for translucency support
 				if (!device.isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT)) {
 					// if this device doesn't support translucency, then the translucent color/image backgrounds will not work
-					this.lblTranslucency.setText(Messages.getString("panel.general.setup.display.translucent.warning"));
+					this.lblTranslucency.setText(Messages.getString("panel.general.preferences.display.translucent.warning"));
 					this.lblTranslucency.setIcon(Icons.WARNING);
 				} else {
 					this.lblTranslucency.setText("");
@@ -304,7 +304,7 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 	private final String getDeviceName(GraphicsDevice device) {
 		DisplayMode mode = device.getDisplayMode();
 		StringBuilder sb = new StringBuilder();
-		sb.append(Messages.getString("panel.general.setup.display.name"))
+		sb.append(Messages.getString("panel.general.preferences.display.name"))
 		  .append(getDeviceIndex(device) + 1)
 		  .append(" ").append(mode.getWidth())
 		  .append("x").append(mode.getHeight())
@@ -359,14 +359,14 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 			if (value instanceof RenderQuality) {
 				RenderQuality quality = (RenderQuality)value;
 				if (quality == RenderQuality.HIGH) {
-					this.setText(Messages.getString("panel.general.setup.quality.high"));
-					this.setToolTipText(Messages.getString("panel.general.setup.quality.high.tooltip"));
+					this.setText(Messages.getString("panel.general.preferences.quality.high"));
+					this.setToolTipText(Messages.getString("panel.general.preferences.quality.high.tooltip"));
 				} else if (quality == RenderQuality.MEDIUM) {
-					this.setText(Messages.getString("panel.general.setup.quality.medium"));
-					this.setToolTipText(Messages.getString("panel.general.setup.quality.medium.tooltip"));
+					this.setText(Messages.getString("panel.general.preferences.quality.medium"));
+					this.setToolTipText(Messages.getString("panel.general.preferences.quality.medium.tooltip"));
 				} else {
-					this.setText(Messages.getString("panel.general.setup.quality.low"));
-					this.setToolTipText(Messages.getString("panel.general.setup.quality.low.tooltip"));
+					this.setText(Messages.getString("panel.general.preferences.quality.low"));
+					this.setToolTipText(Messages.getString("panel.general.preferences.quality.low.tooltip"));
 				}
 			}
 			

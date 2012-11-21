@@ -1,4 +1,4 @@
-package org.praisenter.slide.ui;
+package org.praisenter.slide.ui.editor;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -10,6 +10,8 @@ import java.awt.Stroke;
 
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.ui.SlidePreviewMetrics;
+import org.praisenter.slide.ui.preview.SingleSlidePreviewPanel;
 
 /**
  * A custom preview panel for editing slides.

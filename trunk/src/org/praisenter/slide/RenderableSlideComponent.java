@@ -24,7 +24,7 @@ public interface RenderableSlideComponent extends SlideComponent {
 	 * @see org.praisenter.slide.SlideComponent#copy()
 	 */
 	@Override
-	public RenderableSlideComponent copy() throws SlideComponentCopyException;
+	public RenderableSlideComponent copy();
 	
 	/**
 	 * Returns the width of the component in pixels.
@@ -56,6 +56,13 @@ public interface RenderableSlideComponent extends SlideComponent {
 	 * @param dh the change in height in pixels
 	 */
 	public abstract void resize(int dw, int dh);
+	
+	/**
+	 * Resizes this component using the given percentatges.
+	 * @param pw the width percentage
+	 * @param ph the height percentage
+	 */
+	public abstract void resize(double pw, double ph);
 	
 	// rendering
 	

@@ -30,8 +30,8 @@ public class BiblePreferences {
 	protected boolean secondaryTranslationEnabled;
 	
 	/** True if the apochryphal books should be included */
-	@XmlElement(name = "ApochryphaInclude", required = true, nillable = false)
-	protected boolean apochryphaIncluded;
+	@XmlElement(name = "ApocryphaInclude", required = true, nillable = false)
+	protected boolean apocryphaIncluded;
 	
 	// template
 	
@@ -69,7 +69,7 @@ public class BiblePreferences {
 	protected BiblePreferences() {
 		this.primaryTranslationId = 1;
 		this.secondaryTranslationId = 1;
-		this.apochryphaIncluded = false;
+		this.apocryphaIncluded = false;
 		this.secondaryTranslationEnabled = false;
 		
 		this.template = null;
@@ -131,19 +131,19 @@ public class BiblePreferences {
 	}
 
 	/**
-	 * Returns true if the apochryphal books are included.
+	 * Returns true if the apocryphal books are included.
 	 * @return boolean
 	 */
-	public boolean isApochryphaIncluded() {
-		return this.apochryphaIncluded;
+	public boolean isApocryphaIncluded() {
+		return this.apocryphaIncluded;
 	}
 
 	/**
-	 * Toggles use of the apochryphal books.
-	 * @param apochryphaIncluded true if the apochryphal books should be included
+	 * Toggles use of the apocryphal books.
+	 * @param apocryphaIncluded true if the apocryphal books should be included
 	 */
-	public void setApochryphaIncluded(boolean apochryphaIncluded) {
-		this.apochryphaIncluded = apochryphaIncluded;
+	public void setApocryphaIncluded(boolean apocryphaIncluded) {
+		this.apocryphaIncluded = apocryphaIncluded;
 	}
 	
 	// template

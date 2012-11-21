@@ -1,55 +1,23 @@
 package org.praisenter.media.ui;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Container;
-import java.awt.Graphics2D;
-import java.awt.LinearGradientPaint;
-import java.awt.MultipleGradientPaint.CycleMethod;
-import java.awt.RadialGradientPaint;
-import java.awt.geom.Point2D;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import org.apache.log4j.xml.DOMConfigurator;
-import org.praisenter.media.AbstractVideoMedia;
-import org.praisenter.media.ImageMedia;
 import org.praisenter.media.MediaException;
-import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.NoMediaLoaderException;
-import org.praisenter.media.ScaleQuality;
-import org.praisenter.media.ScaleType;
-import org.praisenter.slide.BibleSlide;
-import org.praisenter.slide.BibleSlideTemplate;
-import org.praisenter.slide.Slide;
-import org.praisenter.slide.SlideComponentCopyException;
-import org.praisenter.slide.SlideCopyException;
-import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
-import org.praisenter.slide.SlideTemplate;
-import org.praisenter.slide.media.ImageMediaComponent;
-import org.praisenter.slide.media.VideoMediaComponent;
-import org.praisenter.slide.present.SlideWindows;
-import org.praisenter.slide.text.FontScaleType;
-import org.praisenter.slide.text.HorizontalTextAlignment;
-import org.praisenter.slide.text.TextComponent;
-import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.slide.ui.SlideLibraryPanel;
-import org.praisenter.transitions.TransitionAnimator;
-import org.praisenter.transitions.Transitions;
-import org.praisenter.utilities.FontManager;
 import org.praisenter.utilities.LookAndFeelUtilities;
 
 public class TestSlideIO {
-	public static void main(String[] args) throws NoMediaLoaderException, MediaException, SlideLibraryException, IOException, SlideComponentCopyException {
+	public static void main(String[] args) throws NoMediaLoaderException, MediaException, SlideLibraryException, IOException {
 		
 		DOMConfigurator.configure("config/log4j.xml");
 		
@@ -58,16 +26,12 @@ public class TestSlideIO {
 	            try {
 					UIManager.setLookAndFeel(info.getClassName());
 				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (InstantiationException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} catch (UnsupportedLookAndFeelException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 	        }
@@ -131,7 +95,6 @@ public class TestSlideIO {
 //		try {
 //			SlideLibrary.saveTemplate("default", bSlide.createTemplate());
 //		} catch (SlideCopyException e1) {
-//			// TODO Auto-generated catch block
 //			e1.printStackTrace();
 //		}
 //		
@@ -145,7 +108,6 @@ public class TestSlideIO {
 //		try {
 //			SlideLibrary.saveTemplate("test_template", (SlideTemplate)slide.createTemplate());
 //		} catch (SlideCopyException e1) {
-//			// TODO Auto-generated catch block
 //			e1.printStackTrace();
 //		}
 		
@@ -162,7 +124,6 @@ public class TestSlideIO {
 //			BibleSlide testbSlide = template.createSlide();
 //			SlideWindows.getPrimarySlideWindow().send(testbSlide, new TransitionAnimator(Transitions.IN[12], 600));
 //		} catch (SlideCopyException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 		

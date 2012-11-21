@@ -1,22 +1,18 @@
 package org.praisenter.preferences.ui;
 
-import java.awt.Dimension;
-import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
-import javax.swing.JTabbedPane;
-import javax.swing.plaf.basic.BasicComboBoxUI;
-import javax.swing.plaf.basic.BasicComboPopup;
-import javax.swing.plaf.basic.ComboPopup;
 
 import org.apache.log4j.Logger;
 import org.praisenter.data.DataException;
@@ -37,6 +33,7 @@ import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transitions;
 import org.praisenter.ui.SelectTextFocusListener;
+import org.praisenter.utilities.ComponentUtilities;
 
 /**
  * Panel used to set the {@link BiblePreferences}.
@@ -44,7 +41,7 @@ import org.praisenter.ui.SelectTextFocusListener;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class BiblePreferencesPanel extends JPanel implements PreferencesEditor {
+public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, ActionListener {
 	/** The verison id */
 	private static final long serialVersionUID = 460972285830298448L;
 
@@ -96,7 +93,7 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor {
 		BiblePreferences bPreferences = preferences.getBiblePreferences();
 		
 		// general bible settings
-		JLabel lblDefaultBible = new JLabel(Messages.getString("panel.bible.setup.defaultBible"));
+		JLabel lblDefaultBible = new JLabel(Messages.getString("panel.bible.preferences.defaultBible"));
 		Bible[] bibles = null;
 		try {
 			bibles = Bibles.getBibles().toArray(new Bible[0]);
@@ -121,13 +118,13 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor {
 			// set the default value
 			this.cmbBiblesPrimary.setSelectedItem(bible);
 		}
-		JLabel lblIncludeApocrypha = new JLabel(Messages.getString("panel.bible.setup.includeApocrypha"));
+		JLabel lblIncludeApocrypha = new JLabel(Messages.getString("panel.bible.preferences.includeApocrypha"));
 		this.chkIncludeApocrypha = new JCheckBox();
-		this.chkIncludeApocrypha.setToolTipText(Messages.getString("panel.bible.setup.includeApocrypha.tooltip"));
-		this.chkIncludeApocrypha.setSelected(bPreferences.isApochryphaIncluded());
+		this.chkIncludeApocrypha.setToolTipText(Messages.getString("panel.bible.preferences.includeApocrypha.tooltip"));
+		this.chkIncludeApocrypha.setSelected(bPreferences.isApocryphaIncluded());
 		
 		// the secondary bible
-		JLabel lblDefaultSecondaryBible = new JLabel(Messages.getString("panel.bible.setup.defaultSecondaryBible"));
+		JLabel lblDefaultSecondaryBible = new JLabel(Messages.getString("panel.bible.preferences.defaultSecondaryBible"));
 		if (bibles == null) {
 			this.cmbBiblesSecondary = new JComboBox<Bible>();
 		} else {
@@ -146,21 +143,36 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor {
 			this.cmbBiblesSecondary.setSelectedItem(bible);
 		}
 		
-		this.chkUseSecondaryBible = new JCheckBox(Messages.getString("panel.bible.setup.useSecondaryBible"));
-		this.chkUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.setup.useSecondaryBible.tooltip"));
+		this.chkUseSecondaryBible = new JCheckBox(Messages.getString("panel.bible.preferences.useSecondaryBible"));
+		this.chkUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.preferences.useSecondaryBible.tooltip"));
 		this.chkUseSecondaryBible.setSelected(bPreferences.isSecondaryTranslationEnabled());
 		
 		// template
 		
-		// FIXME translate
-		JLabel lblTemplate = new JLabel("translate me");
+		// FIXME add in default templates
+		JLabel lblTemplate = new JLabel(Messages.getString("panel.preferences.template"));
 		List<SlideThumbnail> thumbs = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
+		SlideThumbnail selected = null;
+		for (SlideThumbnail thumb : thumbs) {
+			if (thumb.getFile().getPath().equals(bPreferences.getTemplate())) {
+				selected = thumb;
+				break;
+			}
+		}
 		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbs.toArray(new SlideThumbnail[0]));
+		if (selected != null) {
+			this.cmbTemplates.setSelectedItem(selected);
+		}
+		this.cmbTemplates.setToolTipText(Messages.getString("panel.preferences.template.tooltip"));
 		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
+		JButton btnAddTemplate = new JButton(Messages.getString("panel.preferences.template.add"));
+		btnAddTemplate.setActionCommand("addTemplate");
+		btnAddTemplate.setToolTipText(Messages.getString("panel.preferences.template.add.tooltip"));
+		btnAddTemplate.addActionListener(this);
 		
 		// transitions
 		
-		JLabel lblSendTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultSend"));
+		JLabel lblSendTransition = new JLabel(Messages.getString("panel.preferences.transition.defaultSend"));
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(bPreferences.getSendTransitionId(), Transition.Type.IN));
@@ -174,7 +186,7 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor {
 		this.cmbSendEasings.setSelectedItem(Easings.getEasingForId(bPreferences.getSendTransitionEasingId()));
 		this.cmbSendEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
-		JLabel lblClearTransition = new JLabel(Messages.getString("panel.general.setup.transition.defaultClear"));
+		JLabel lblClearTransition = new JLabel(Messages.getString("panel.preferences.transition.defaultClear"));
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(bPreferences.getClearTransitionId(), Transition.Type.OUT));
@@ -226,10 +238,12 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor {
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addComponent(lblTemplate)
-				.addComponent(this.cmbTemplates, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
-		layout.setVerticalGroup(layout.createParallelGroup()
+				.addComponent(this.cmbTemplates, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(btnAddTemplate));
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 				.addComponent(lblTemplate)
-				.addComponent(this.cmbTemplates, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+				.addComponent(this.cmbTemplates, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(btnAddTemplate));
 		
 		// setup the layout
 		JPanel pnlGeneral = new JPanel();
@@ -259,7 +273,8 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor {
 						.addComponent(lblIncludeApocrypha)
 						.addComponent(this.chkIncludeApocrypha)));
 		
-		
+		// size the labels appropriately
+		ComponentUtilities.setMinimumSize(lblDefaultBible, lblDefaultSecondaryBible, lblIncludeApocrypha, lblClearTransition, lblSendTransition, lblTemplate);
 		
 		layout = new GroupLayout(this);
 		this.setLayout(layout);
@@ -283,6 +298,18 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor {
 	}
 
 	/* (non-Javadoc)
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		String command = e.getActionCommand();
+		if ("addTemplate".equals(command)) {
+			// FIXME add code to create template
+			LOGGER.error("Not implemented yet!!!");
+		}
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.preferences.ui.PreferencesEditor#applyPreferences()
 	 */
 	@Override
@@ -303,7 +330,9 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor {
 		if (primary != null) bPreferences.setPrimaryTranslationId(primary.getId());
 		if (secondary != null) bPreferences.setSecondaryTranslationId(secondary.getId());
 		bPreferences.setSecondaryTranslationEnabled(this.chkUseSecondaryBible.isSelected());
-		bPreferences.setApochryphaIncluded(this.chkIncludeApocrypha.isSelected());
+		bPreferences.setApocryphaIncluded(this.chkIncludeApocrypha.isSelected());
+		// template
+		bPreferences.setTemplate(((SlideThumbnail)this.cmbTemplates.getSelectedItem()).getFile().getPath());
 		// transitions
 		bPreferences.setSendTransitionId(((Transition)this.cmbSendTransitions.getSelectedItem()).getTransitionId());
 		bPreferences.setSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());

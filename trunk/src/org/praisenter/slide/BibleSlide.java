@@ -76,33 +76,26 @@ public class BibleSlide extends Slide {
 	 * Copy constructor.
 	 * <p>
 	 * This will perform a deep copy where necessary.
-	 * <p>
-	 * This does not copy the slide listeners.
 	 * @param slide the slide to copy
-	 * @throws SlideCopyException thrown if the copy fails
 	 */
-	public BibleSlide(BibleSlide slide) throws SlideCopyException {
+	public BibleSlide(BibleSlide slide) {
 		super(slide);
-		try {
-			this.scriptureLocationComponent = slide.scriptureLocationComponent.copy();
-			this.scriptureTextComponent = slide.scriptureTextComponent.copy();
-		} catch (SlideComponentCopyException e) {
-			throw new SlideCopyException(e);
-		}
+		this.scriptureLocationComponent = slide.scriptureLocationComponent.copy();
+		this.scriptureTextComponent = slide.scriptureTextComponent.copy();
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#copy()
 	 */
 	@Override
-	public BibleSlide copy() throws SlideCopyException {
+	public BibleSlide copy() {
 		return new BibleSlide(this);
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#createTemplate()
 	 */
-	public BibleSlideTemplate createTemplate() throws SlideCopyException {
+	public BibleSlideTemplate createTemplate() {
 		return new BibleSlideTemplate(this);
 	}
 	

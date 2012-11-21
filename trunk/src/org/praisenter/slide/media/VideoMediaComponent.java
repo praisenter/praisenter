@@ -12,8 +12,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.media.AbstractVideoMedia;
-import org.praisenter.media.MediaException;
-import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaPlayer;
 import org.praisenter.media.MediaPlayerListener;
 import org.praisenter.media.ScaleType;
@@ -22,7 +20,6 @@ import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideComponentCopyException;
 import org.praisenter.xml.MediaTypeAdapter;
 
 /**
@@ -96,16 +93,10 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 	 * <p>
 	 * This constructor performs a deep copy where necessary.
 	 * @param component the component to copy
-	 * @throws SlideComponentCopyException thrown if the media could not be copied
 	 */
-	public VideoMediaComponent(VideoMediaComponent component) throws SlideComponentCopyException {
+	public VideoMediaComponent(VideoMediaComponent component) {
 		super(component);
-		// we only need to do this with playable media
-		try {
-			this.media = (AbstractVideoMedia)MediaLibrary.getMedia(component.media.getFile().getPath(), true);
-		} catch (MediaException e) {
-			throw new SlideComponentCopyException(e);
-		}
+		this.media = component.media;
 		this.scaleType = component.scaleType;
 		this.loopEnabled = component.loopEnabled;
 		this.audioMuted = component.audioMuted;
@@ -116,7 +107,7 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 	 * @see org.praisenter.slide.GenericSlideComponent#copy()
 	 */
 	@Override
-	public VideoMediaComponent copy() throws SlideComponentCopyException {
+	public VideoMediaComponent copy() {
 		return new VideoMediaComponent(this);
 	}
 	

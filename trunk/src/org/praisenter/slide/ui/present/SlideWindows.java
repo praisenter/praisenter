@@ -1,4 +1,4 @@
-package org.praisenter.slide.present;
+package org.praisenter.slide.ui.present;
 
 import java.awt.GraphicsDevice;
 import java.util.HashMap;
@@ -17,9 +17,9 @@ import org.praisenter.utilities.WindowUtilities;
 @SuppressWarnings("serial")
 public abstract class SlideWindows<E extends SlideWindow<?>> extends HashMap<String, E> {
 	/** The device to {@link StandardSlideWindow} mapping */
-	private static final SlideWindows<StandardSlideWindow> STANDARD_DISPLAY_WINDOWS = new SlideWindows<StandardSlideWindow>() {
+	private static final SlideWindows<StandardSlideWindow> STANDARD_SLIDE_WINDOWS = new SlideWindows<StandardSlideWindow>() {
 		@Override
-		protected StandardSlideWindow createDisplayWindow(GraphicsDevice device) {
+		protected StandardSlideWindow createSlideWindow(GraphicsDevice device) {
 			return new StandardSlideWindow(device);
 		}
 	};
@@ -31,7 +31,7 @@ public abstract class SlideWindows<E extends SlideWindow<?>> extends HashMap<Str
 	 * <p>
 	 * Returns null if the given GraphicsDevice is no longer valid.
 	 * @param device the device
-	 * @param windows the mapping of cached display windows
+	 * @param windows the mapping of cached slide windows
 	 * @return {@link SlideWindow}
 	 * @see WindowUtilities#isValid(GraphicsDevice)
 	 */
@@ -47,18 +47,14 @@ public abstract class SlideWindows<E extends SlideWindow<?>> extends HashMap<Str
 			// doing this will handle new devices being added
 			if (window == null && valid) {
 				// the device is valid so create a new window for it
-				window = windows.createDisplayWindow(device);
+				window = windows.createSlideWindow(device);
 				windows.put(id, window);
 			} else if (window != null && !valid) {
-				// the display is no longer valid so we need to remove it
+				// the device is no longer valid so we need to remove it
 				windows.remove(window.device.getIDstring());
 				// set the window to invisible and release resources
 				window.dialog.setVisible(false);
 				window.dialog.dispose();
-				// we also need to clear the cached GraphicsDevice from the GeneralSettings
-				// so that when/if the device is restored it will get the new config
-//				GeneralSettings.getInstance().clearPrimaryDisplayCache();
-				
 				return null;
 			}
 			return window;
@@ -66,7 +62,7 @@ public abstract class SlideWindows<E extends SlideWindow<?>> extends HashMap<Str
 	}
 
 	/**
-	 * Returns the primary {@link SlideWindow} determined by the {@link GeneralSettings}.
+	 * Returns the primary {@link SlideWindow} determined by the {@link Preferences}.
 	 * <p>
 	 * Returns null if the primary GraphicsDevice is no longer valid.
 	 * @return {@link SlideWindow}
@@ -76,7 +72,7 @@ public abstract class SlideWindows<E extends SlideWindow<?>> extends HashMap<Str
 		GraphicsDevice device = WindowUtilities.getSecondaryDevice();
 		Preferences preferences = Preferences.getInstance();
 		device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
-		return getSlideWindow(device, STANDARD_DISPLAY_WINDOWS);
+		return getSlideWindow(device, STANDARD_SLIDE_WINDOWS);
 	}
 	
 	/**
@@ -85,9 +81,9 @@ public abstract class SlideWindows<E extends SlideWindow<?>> extends HashMap<Str
 	private SlideWindows() {}
 	
 	/**
-	 * Method to create a display of the given type.
-	 * @param device the device to create the display for
+	 * Method to create a slide window of the given type.
+	 * @param device the device to create the slide window for
 	 * @return E
 	 */
-	protected abstract E createDisplayWindow(GraphicsDevice device);
+	protected abstract E createSlideWindow(GraphicsDevice device);
 }

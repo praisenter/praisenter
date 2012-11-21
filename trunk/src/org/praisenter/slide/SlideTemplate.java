@@ -40,16 +40,15 @@ public class SlideTemplate extends Slide implements Template {
 	/**
 	 * Minimal constructor.
 	 * @param slide the slide to copy
-	 * @throws SlideCopyException thrown if the copy fails
 	 */
-	protected SlideTemplate(Slide slide) throws SlideCopyException {
+	protected SlideTemplate(Slide slide) {
 		super(slide);
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Template#createSlide()
 	 */
-	public Slide createSlide() throws SlideCopyException {
+	public Slide createSlide() {
 		return new Slide(this);
 	}
 }

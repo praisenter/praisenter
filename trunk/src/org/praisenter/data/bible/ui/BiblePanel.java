@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GraphicsDevice;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -27,7 +28,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -47,11 +47,6 @@ import org.praisenter.data.bible.Bibles;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.data.errors.ui.ExceptionDialog;
-import org.praisenter.display.BibleDisplay;
-import org.praisenter.display.DisplayFactory;
-import org.praisenter.display.TextComponent;
-import org.praisenter.display.ui.DisplayWindows;
-import org.praisenter.display.ui.StandardDisplayWindow;
 import org.praisenter.easings.Easing;
 import org.praisenter.easings.Easings;
 import org.praisenter.icons.Icons;
@@ -59,7 +54,17 @@ import org.praisenter.preferences.BiblePreferences;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.BibleSlide;
+import org.praisenter.slide.BibleSlideTemplate;
+import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideLibrary;
+import org.praisenter.slide.SlideLibraryException;
+import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
+import org.praisenter.slide.ui.present.SlideWindow;
+import org.praisenter.slide.ui.present.SlideWindows;
+import org.praisenter.slide.ui.present.StandardSlideWindow;
+import org.praisenter.slide.ui.preview.InlineSlidePreviewPanel;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
@@ -76,7 +81,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-// TODO use a splitpane for the preview vs. controls height
+// TODO use a splitpane for the preview + controls vs. tables
 public class BiblePanel extends JPanel implements ActionListener, PreferencesListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;
@@ -148,7 +153,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	// preview
 	
 	/** The preview panel */
-	private BibleDisplayPreviewPanel pnlPreview;
+	private InlineSlidePreviewPanel pnlPreview;
 	
 	// state
 	
@@ -166,15 +171,68 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		Preferences preferences = Preferences.getInstance();
 		BiblePreferences bPreferences = preferences.getBiblePreferences();
 		
-		// get the slide size
-		Dimension displaySize = gSettings.getPrimaryDisplaySize();
+		// get the primary device
+		GraphicsDevice device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
+		Dimension displaySize = preferences.getPrimaryDeviceResolution();
+		if (device == null) {
+			device = WindowUtilities.getSecondaryDevice();
+			// the device was either not found or not setup
+			// so use the device's display size
+			displaySize = WindowUtilities.getDimension(device.getDisplayMode());
+		} else {
+			// perform a check against the display sizes
+			if (!displaySize.equals(WindowUtilities.getDimension(device.getDisplayMode()))) {
+				// if they are not equal we want to log a message and use the display size
+				LOGGER.warn("The primary display's resolution does not match the stored display size. Using device resolution.");
+				displaySize = WindowUtilities.getDimension(device.getDisplayMode());
+			}
+		}
+		
+		// get the bible slide template
+		BibleSlideTemplate template = null;
+		String templatePath = bPreferences.getTemplate();
+		if (templatePath != null && templatePath.trim().length() > 0) {
+			try {
+				template = SlideLibrary.getTemplate(templatePath, BibleSlideTemplate.class);
+			} catch (SlideLibraryException e) {
+				LOGGER.error("Unable to load default bible template [" + templatePath + "]: ", e);
+			}
+		}
+		if (template == null) {
+			// if its still null, then use the default template
+			template = BibleSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
+		}
+		
+		// check the template size against the display size
+		if (template.getWidth() != displaySize.width || template.getHeight() != displaySize.height) {
+			// log a message and modify the template to fit
+			LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
+			template.adjustSize(displaySize.width, displaySize.height);
+		}
+		
+		// create the slides
+		BibleSlide previous = template.createSlide();
+		BibleSlide current = template.createSlide();
+		BibleSlide next = template.createSlide();
+
+		// set the initial text
+		previous.setName(Messages.getString("panel.bible.preview.previous"));
+		previous.getScriptureLocationComponent().setText(Messages.getString("slide.bible.location.default"));
+		previous.getScriptureTextComponent().setText(Messages.getString("slide.bible.text.default"));
+		current.setName(Messages.getString("panel.bible.preview.current"));
+		current.getScriptureLocationComponent().setText(Messages.getString("slide.bible.location.default"));
+		current.getScriptureTextComponent().setText(Messages.getString("slide.bible.text.default"));
+		next.setName(Messages.getString("panel.bible.preview.next"));
+		next.getScriptureLocationComponent().setText(Messages.getString("slide.bible.location.default"));
+		next.getScriptureTextComponent().setText(Messages.getString("slide.bible.text.default"));
 		
 		// create the preview panel
-		this.pnlPreview = new BibleDisplayPreviewPanel();
+		this.pnlPreview = new InlineSlidePreviewPanel(10);
 		this.pnlPreview.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY), BorderFactory.createEmptyBorder(15, 15, 15, 15)));
-		this.pnlPreview.setPreviousVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
-		this.pnlPreview.setCurrentVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
-		this.pnlPreview.setNextVerseDisplay(DisplayFactory.getDisplay(bSettings, displaySize));
+		
+		this.pnlPreview.addSlide(previous);
+		this.pnlPreview.addSlide(current);
+		this.pnlPreview.addSlide(next);
 		
 		this.pnlPreview.setMinimumSize(250);
 		
@@ -207,7 +265,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 					if (bible != null) {
 						// load up all the books
 						try {
-							boolean ia = BiblePreferences.getInstance().isApocryphaIncluded();
+							boolean ia = Preferences.getInstance().getBiblePreferences().isApocryphaIncluded();
 							List<Book> books = Bibles.getBooks(bible, ia);
 							Book selected = (Book)cmbBooks.getSelectedItem();
 							int index = 0;
@@ -253,14 +311,14 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		
 		this.chkUseSecondaryBible = new JCheckBox(Messages.getString("panel.bible.secondary.use"));
 		this.chkUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.secondary.use.tooltip"));
-		this.chkUseSecondaryBible.setSelected(bSettings.isSecondaryBibleInUse());
+		this.chkUseSecondaryBible.setSelected(bPreferences.isSecondaryTranslationEnabled());
 		
 		// get the books
 		List<Book> books = new ArrayList<Book>();
 		// get the default bible
 		Bible bible = null;
 		try {
-			int id = bSettings.getDefaultPrimaryBibleId();
+			int id = bPreferences.getPrimaryTranslationId();
 			if (id > 0) {
 				bible = Bibles.getBible(id);
 			}
@@ -275,7 +333,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		
 		if (bible != null) {
 			try {
-				boolean ia = bSettings.isApocryphaIncluded();
+				boolean ia = bPreferences.isApocryphaIncluded();
 				books = Bibles.getBooks(bible, ia);
 			} catch (DataException ex) {
 				LOGGER.error("An error occurred when trying to get the listing of books for the bible: " + bible.getName(), ex);
@@ -379,24 +437,24 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		this.lblFound = new JLabel("");
 		
 		// setup the transition lists
-		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(gSettings.getPrimaryOrDefaultDisplay());
+		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(device);
 		
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(bSettings.getDefaultSendTransition(), Transition.Type.IN));
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(bPreferences.getSendTransitionId(), Transition.Type.IN));
 		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtSendTransitions.setValue(bSettings.getDefaultSendTransitionDuration());
+		this.txtSendTransitions.setValue(bPreferences.getSendTransitionDuration());
 		this.txtSendTransitions.setColumns(3);
 		
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(bSettings.getDefaultClearTransition(), Transition.Type.OUT));
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(bPreferences.getClearTransitionId(), Transition.Type.OUT));
 		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtClearTransitions.setValue(bSettings.getDefaultClearTransitionDuration());
+		this.txtClearTransitions.setValue(bPreferences.getClearTransitionDuration());
 		this.txtClearTransitions.setColumns(3);
 		
 		if (!transitionsSupported) {
@@ -739,7 +797,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		}
 		bible = null;
 		try {
-			bible = Bibles.getBible(bSettings.getDefaultSecondaryBibleId());
+			bible = Bibles.getBible(bPreferences.getSecondaryTranslationId());
 		} catch (DataException e) {
 			LOGGER.error("Default secondary bible could not be retrieved: ", e);
 		}
@@ -775,55 +833,39 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.settings.SettingsListener#settingsSaved()
+	 * @see org.praisenter.preferences.ui.PreferencesListener#preferencesChanged()
 	 */
 	@Override
-	public void settingsSaved() {
-		// when the settings change, either the general or the bible settings
-		// we need to update all the components and redraw them
+	public void preferencesChanged() {
+		// when the preferences change we need to check if the display
+		// size was changed and update the slides if necessary
+
+		// get the preferences
+		Preferences preferences = Preferences.getInstance();
 		
-		GeneralSettings gSettings = GeneralSettings.getInstance();
-		// in the case of general settings we need to get the assigned device
-		// and see if we need to update the display size
+		// get the primary device
+		GraphicsDevice device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
+		if (device == null) {
+			device = WindowUtilities.getSecondaryDevice();
+		}
+
+		// FIXME check the width/height of the device against the store reso
 		
-		// get the display size
-		Dimension displaySize = gSettings.getPrimaryDisplaySize();
+		// get the slide size
+		Dimension displaySize = preferences.getPrimaryDeviceResolution();
+		if (displaySize == null) {
+			displaySize = WindowUtilities.getDimension(device.getDisplayMode());
+		}
 		
-		BiblePreferences bSettings = BiblePreferences.getInstance();
-		
-		// create new displays using the new settings (this will also reset the render qualities)
-		BibleDisplay pDisplay = DisplayFactory.getDisplay(bSettings, displaySize);
-		BibleDisplay cDisplay = DisplayFactory.getDisplay(bSettings, displaySize);
-		BibleDisplay nDisplay = DisplayFactory.getDisplay(bSettings, displaySize);
-		
-		// copy over the text values
-		this.copyTextValues(this.pnlPreview.getPreviousVerseDisplay(), pDisplay);
-		this.copyTextValues(this.pnlPreview.getCurrentVerseDisplay(), cDisplay);
-		this.copyTextValues(this.pnlPreview.getNextVerseDisplay(), nDisplay);
-		
-		// set the new displays
-		this.pnlPreview.setPreviousVerseDisplay(pDisplay);
-		this.pnlPreview.setCurrentVerseDisplay(cDisplay);
-		this.pnlPreview.setNextVerseDisplay(nDisplay);
+		int count = this.pnlPreview.getSlideCount();
+		for (int i = 0; i < count; i++) {
+			Slide slide = this.pnlPreview.getSlide(i);
+			slide.setWidth(displaySize.width);
+			slide.setHeight(displaySize.height);
+		}
 		
 		// redraw the preview panel
 		this.pnlPreview.repaint();
-	}
-	
-	/**
-	 * Copies the text values from the source display to the destination display.
-	 * @param source the source display
-	 * @param destination the destination display
-	 */
-	private void copyTextValues(BibleDisplay source, BibleDisplay destination) {
-		TextComponent sTitle = source.getScriptureTitleComponent();
-		TextComponent sText = source.getScriptureTextComponent();
-		
-		TextComponent dTitle = destination.getScriptureTitleComponent();
-		TextComponent dText = destination.getScriptureTextComponent();
-		
-		dTitle.setText(sTitle.getText());
-		dText.setText(sText.getText());
 	}
 	
 	/* (non-Javadoc)
@@ -837,7 +879,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		Object b = this.cmbBooks.getSelectedItem();
 		Object c = this.txtChapter.getValue();
 		Object v = this.txtVerse.getValue();
-		boolean ia = BiblePreferences.getInstance().isApocryphaIncluded();
+		boolean ia = Preferences.getInstance().getBiblePreferences().isApocryphaIncluded();
 		
 		// dont bother with any of these actions unless we have what we need
 		if (b != null && b instanceof Book &&
@@ -955,7 +997,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 				this.txtVerse.setValue(prev.getVerse());
 				// get the previous-previous
 				Verse prev2 = Bibles.getPreviousVerse(prev, includeApocrypha);
-				this.shiftVerseDisplays(-1, prev2);
+				this.shiftVerseDisplays(+1, prev2);
 			}
 		} catch (DataException ex) {
 			String message = MessageFormat.format(Messages.getString("panel.bible.data.previous.exception.text"), bible.getName(), book.getName(), chapter, verse);
@@ -994,7 +1036,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 				this.txtVerse.setValue(next.getVerse());
 				// get the previous-previous
 				Verse next2 = Bibles.getNextVerse(next, includeApocrypha);
-				this.shiftVerseDisplays(+1, next2);
+				this.shiftVerseDisplays(-1, next2);
 			}
 		} catch (DataException ex) {
 			String message = MessageFormat.format(Messages.getString("panel.bible.data.next.exception.text"), bible.getName(), book.getName(), chapter, verse);
@@ -1045,40 +1087,82 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	 * Sends the current verse display to the primary display.
 	 */
 	private void sendVerseAction() {
-		BiblePreferences settings = BiblePreferences.getInstance();
+		BiblePreferences prefs = Preferences.getInstance().getBiblePreferences();
 		// get the transition
 		Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
 		int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
-		Easing easing = Easings.getEasingForId(settings.getClearEasing());
+		Easing easing = Easings.getEasingForId(prefs.getSendTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
+		StandardSlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
-			primary.send(this.pnlPreview.getCurrentVerseDisplay(), ta);
-		} else {
-			// the device is no longer available
-			LOGGER.warn("The primary display doesn't exist.");
-			JOptionPane.showMessageDialog(
-					WindowUtilities.getParentWindow(this), 
-					Messages.getString("dialog.device.primary.missing.text"), 
-					Messages.getString("dialog.device.primary.missing.title"), 
-					JOptionPane.WARNING_MESSAGE);
+			primary.send(this.pnlPreview.getSlide(1), ta);
 		}
+		// FIXME display
+//		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
+//		if (primary != null) {
+//			primary.send(this.pnlPreview.getSlide(1), ta);
+//		} else {
+//			// the device is no longer available
+//			LOGGER.warn("The primary display doesn't exist.");
+//			JOptionPane.showMessageDialog(
+//					WindowUtilities.getParentWindow(this), 
+//					Messages.getString("dialog.device.primary.missing.text"), 
+//					Messages.getString("dialog.device.primary.missing.title"), 
+//					JOptionPane.WARNING_MESSAGE);
+//		}
 	}
 	
 	/**
 	 * Clears the primary display.
 	 */
 	private void clearVerseAction() {
-		BiblePreferences settings = BiblePreferences.getInstance();
+		BiblePreferences prefs = Preferences.getInstance().getBiblePreferences();
 		// get the transition
 		Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
 		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
-		Easing easing = Easings.getEasingForId(settings.getClearEasing());
+		Easing easing = Easings.getEasingForId(prefs.getClearTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
-		if (primary != null) {
-			primary.clear(ta);
-		}
+		// FIXME display
+//		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
+//		if (primary != null) {
+//			primary.clear(ta);
+//		}
+	}
+	
+	/**
+	 * Sets the verse text and location of the given bible slide.
+	 * @param verse the verse
+	 * @param slide the slide
+	 */
+	private void setVerse(Verse verse, BibleSlide slide) {
+		TextComponent l = slide.getScriptureLocationComponent();
+		l.setText(verse.getBook().getName() + " " + verse.getChapter() + ":" + verse.getVerse());
+		
+		TextComponent t = slide.getScriptureTextComponent();
+		t.setText(verse.getText());
+	}
+	
+	/**
+	 * Sets the verse text and location of the given bible slide.
+	 * @param verse1 the first translation verse
+	 * @param verse2 the second translation verse
+	 * @param slide the slide
+	 */
+	private void setVerse(Verse verse1, Verse verse2, BibleSlide slide) {
+		TextComponent l = slide.getScriptureLocationComponent();
+		l.setText(verse1.getBook().getName() + " " + verse1.getChapter() + ":" + verse1.getVerse());
+		
+		TextComponent t = slide.getScriptureTextComponent();
+		t.setText(verse1.getText() + "\n\n" + verse2.getText());
+	}
+	
+	/**
+	 * Clears the verse text and location of the given bible slide.
+	 * @param slide the slide
+	 */
+	private void clearVerse(BibleSlide slide) {
+		slide.getScriptureLocationComponent().setText("");
+		slide.getScriptureTextComponent().setText("");
 	}
 	
 	/**
@@ -1088,15 +1172,15 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	 */
 	private void updateVerseDisplays(Verse verse) throws DataException {
 		this.verseFound = true;
-		boolean ia = BiblePreferences.getInstance().isApocryphaIncluded();
+		boolean ia = Preferences.getInstance().getBiblePreferences().isApocryphaIncluded();
 		// then get the previous and next verses as well
 		Verse prev = Bibles.getPreviousVerse(verse, ia);
 		Verse next = Bibles.getNextVerse(verse, ia);
 		
 		// get the displays to update
-		BibleDisplay dPrev = this.pnlPreview.getPreviousVerseDisplay();
-		BibleDisplay dCurr = this.pnlPreview.getCurrentVerseDisplay();
-		BibleDisplay dNext = this.pnlPreview.getNextVerseDisplay();
+		BibleSlide sPrevious = (BibleSlide)this.pnlPreview.getSlide(0);
+		BibleSlide sCurrent = (BibleSlide)this.pnlPreview.getSlide(1);
+		BibleSlide sNext = (BibleSlide)this.pnlPreview.getSlide(2);
 		
 		// check the secondary bible
 		if (this.chkUseSecondaryBible.isSelected()) {
@@ -1110,18 +1194,18 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 					Verse v2p = Bibles.getPreviousVerse(v2, ia);
 					Verse v2n = Bibles.getNextVerse(v2, ia);
 					// set the current verse text
-					dCurr.setVerse(verse, v2);
+					this.setVerse(verse, v2, sCurrent);
 					// set the previous verse
 					if (prev != null) {
-						dPrev.setVerse(prev, v2p);
+						this.setVerse(prev, v2p, sPrevious);
 					} else {
-						dPrev.clearVerse();
+						this.clearVerse(sPrevious);
 					}
 					// set the next verse
 					if (next != null) {
-						dNext.setVerse(next, v2n);
+						this.setVerse(next, v2n, sNext);
 					} else {
-						dNext.clearVerse();
+						this.clearVerse(sNext);
 					}
 					// repaint the preview
 					this.pnlPreview.repaint();
@@ -1135,18 +1219,18 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		}
 		
 		// set the current verse text
-		dCurr.setVerse(verse);
+		this.setVerse(verse, sCurrent);
 		// set the previous verse
 		if (prev != null) {
-			dPrev.setVerse(prev);
+			this.setVerse(prev, sPrevious);
 		} else {
-			dPrev.clearVerse();
+			this.clearVerse(sPrevious);
 		}
 		// set the next verse
 		if (next != null) {
-			dNext.setVerse(next);
+			this.setVerse(next, sNext);
 		} else {
-			dNext.clearVerse();
+			this.clearVerse(sNext);
 		}
 		// repaint the preview
 		this.pnlPreview.repaint();
@@ -1159,27 +1243,25 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	 * @throws DataException if an exception occurs while loading the next and previous verses
 	 */
 	private void shiftVerseDisplays(int direction, Verse verse) throws DataException {
-		BibleDisplay display = null;
+		BibleSlide slide = null;
 		// shift the displays
 		{
 			// shift them and assign the one we will modify
-			if (direction < 0) {
-				display = this.pnlPreview.getNextVerseDisplay();
-				this.pnlPreview.setNextVerseDisplay(this.pnlPreview.getCurrentVerseDisplay());
-				this.pnlPreview.setCurrentVerseDisplay(this.pnlPreview.getPreviousVerseDisplay());
-				this.pnlPreview.setPreviousVerseDisplay(display);
+			if (direction > 0) {
+				// we are shifting everything left
+				this.pnlPreview.shiftSlides(direction);
+				slide = (BibleSlide)this.pnlPreview.getSlide(0);
 			} else {
-				display = this.pnlPreview.getPreviousVerseDisplay();
-				this.pnlPreview.setPreviousVerseDisplay(this.pnlPreview.getCurrentVerseDisplay());
-				this.pnlPreview.setCurrentVerseDisplay(this.pnlPreview.getNextVerseDisplay());
-				this.pnlPreview.setNextVerseDisplay(display);
+				// we are shifting everything right
+				this.pnlPreview.shiftSlides(direction);
+				slide = (BibleSlide)this.pnlPreview.getSlide(2);
 			}
 		}
 		
 		// check for null
 		if (verse == null) {
 			// clear the verse
-			display.clearVerse();
+			this.clearVerse(slide);
 			// repaint the preview
 			this.pnlPreview.repaint();
 			// don't continue
@@ -1197,7 +1279,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 					Verse v2 = Bibles.getVerse(bible, verse.getBook().getCode(), verse.getChapter(), verse.getVerse());
 					if (v2 != null) {
 						// set the verses
-						display.setVerse(verse, v2);
+						this.setVerse(verse, v2, slide);
 						// repaint the preview
 						this.pnlPreview.repaint();
 						return;
@@ -1210,7 +1292,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 			}
 		}
 		
-		display.setVerse(verse);
+		this.setVerse(verse, slide);
 		// repaint the preview
 		this.pnlPreview.repaint();
 	}
