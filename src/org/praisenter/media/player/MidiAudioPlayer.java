@@ -102,7 +102,7 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	 * @see org.praisenter.media.player.AbstractAudioPlayer#setMedia(org.praisenter.media.AbstractAudioMedia)
 	 */
 	@Override
-	public synchronized boolean setMedia(MidiAudioMedia media) {
+	public boolean setMedia(MidiAudioMedia media) {
 		try {
 			// initialize the media
 			return this.initializeMedia(media);
@@ -217,6 +217,9 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	 */
 	@Override
 	public void release() {
+		// stop playback first
+		this.stop();
+		
     	// close the sequencer, synthesizer, and receiver
     	if (this.sequencer != null && this.sequencer.isOpen()) {
 	    	 this.sequencer.close();
@@ -233,6 +236,8 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 		this.sequencer = null;
 		this.synthesizer = null;
 		this.receiver = null;
+		
+		LOGGER.debug("Released");
 	}
 	
 	/* (non-Javadoc)
@@ -297,6 +302,8 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 				this.state = State.PLAYING;
 				// set the volume
 				this.setVolume(this.configuration.getVolume());
+				// set the mute control
+				this.setMuted(this.configuration.isAudioMuted());
 	    	}
 			LOGGER.debug("Playback started");
 		} catch (InvalidMidiDataException e) {
@@ -347,7 +354,7 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
     	// we are only worried about the end of track meta message
         if (event.getType() == MidiAudioPlayer.END_OF_TRACK_MESSAGE) {
         	// make sure the audio should loop
-            if (this.getConfiguration().isLoopEnabled()) {
+            if (this.configuration.isLoopEnabled()) {
             	this.loop();
             	// log that the audio is being looped
     	        LOGGER.debug("Looping");
@@ -356,6 +363,8 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
             }
         	// set the volume again
         	this.setVolume(this.configuration.getVolume());
+    		// set the mute control
+    		this.setMuted(this.configuration.isAudioMuted());
         }
 	}
 	
@@ -365,8 +374,60 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	@Override
 	public void setConfiguration(MediaPlayerConfiguration configuration) {
 		super.setConfiguration(configuration);
-		// if we reset the configuration, then we need to reset the volume
+		// reset the volume (do this first since in some cases the mute
+		// control must be done by setting the volume to zero)
 		this.setVolume(this.configuration.getVolume());
+		// set the mute control
+		this.setMuted(this.configuration.isAudioMuted());
+	}
+	
+	/**
+	 * Attempts to mute the midi playback.
+	 * @param flag true to mute the audio
+	 */
+	protected void setMuted(boolean flag) {
+		// make sure the player is not closed
+		if (this.state != State.STOPPED) {
+			// make sure the synthesizer is not null
+			if (this.synthesizer != null) {
+				// if its not null, then we know we can use the synthesizer to 
+				// change the volume
+				MidiChannel[] channels = this.synthesizer.getChannels();
+				// set the master volume for each channel
+				for (int i = 0; i < channels.length; i++) {
+					// change the percent value to a respective gain value
+					channels[i].setMute(flag);
+				}
+				// log that the audio volume has been changed
+				LOGGER.debug("Mute applied.");
+			} else if (this.receiver != null) {
+				int midiVolume = 0;
+				if (!flag) {
+					// compute the volume
+					midiVolume = (int) (MidiAudioPlayer.MIDI_MAX_VOLUME * (this.configuration.getVolume() / AbstractAudioPlayer.MAX_VOLUME));
+				}
+				// if the sequencer is null, then we are using the receiver
+				// create a short message to set the volume to zero
+				ShortMessage volMessage = new ShortMessage();
+				// loop through the channels
+				for (int i = 0; i < MidiAudioPlayer.MAX_NUMBER_OF_CHANNELS; i++) {
+					try {
+						// set the message to a control change event to 
+						// change the volume
+						volMessage.setMessage(ShortMessage.CONTROL_CHANGE, i, MidiAudioPlayer.VOLUME_CONTROLLER, midiVolume);
+					} catch (InvalidMidiDataException e) {
+						// this could be caused by less than 16 channels
+					}
+					// send the message
+					this.receiver.send(volMessage, -1);
+				}
+				// log that the audio volume has been changed
+				LOGGER.debug("Mute/unmute applied to the receiver in the form of a volume change.");
+			} else {
+				// should never happen, but just in case, log a message
+				LOGGER.error("No synthesizer or receiver to apply mute change.");
+			}
+		}
 	}
 	
 	/**
@@ -375,7 +436,7 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	 * This may not always work due to the soundbank being used.
 	 * @param volume the volume percentage
 	 */
-	protected synchronized void setVolume(double volume) {
+	protected void setVolume(double volume) {
 		int midiVolume = 0;
 		if (volume >= AbstractAudioPlayer.MIN_VOLUME && volume <= AbstractAudioPlayer.MAX_VOLUME) {
 			midiVolume = (int) (MidiAudioPlayer.MIDI_MAX_VOLUME * (volume / AbstractAudioPlayer.MAX_VOLUME));

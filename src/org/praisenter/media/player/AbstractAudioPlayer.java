@@ -80,7 +80,7 @@ public abstract class AbstractAudioPlayer<E extends AbstractAudioMedia> implemen
 	 */
 	@Override
 	public MediaPlayerConfiguration getConfiguration() {
-		return this.configuration;
+		return new MediaPlayerConfiguration(this.configuration);
 	}
 
 	/* (non-Javadoc)

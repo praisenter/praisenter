@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
+import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.utilities.FontManager;
 import org.praisenter.xml.FontTypeAdapter;
@@ -24,10 +25,12 @@ import org.praisenter.xml.PaintTypeAdapter;
  * @version 1.0.0
  * @since 1.0.0
  */
-//TODO add text shadow (color, direction, width, visible)
+// TODO add text shadow (color, direction, width, visible)
+// TODO add text outline (stroke, paint, visible)
+// TODO add ability for video/image background (this may need to be done using decorator pattern or something)
 @XmlRootElement(name = "TextComponent")
 @XmlAccessorType(XmlAccessType.NONE)
-public class TextComponent extends GenericSlideComponent implements SlideComponent, PositionedSlideComponent {
+public class TextComponent extends GenericSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent {
 	// TODO change this to a AttributedString so we can support all kinds of string formatting (highlighting, super/sub scripts, etc)
 	/** The text */
 	@XmlElement(name = "Text", required = false, nillable = true)

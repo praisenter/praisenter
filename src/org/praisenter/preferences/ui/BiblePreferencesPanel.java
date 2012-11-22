@@ -1,8 +1,11 @@
 package org.praisenter.preferences.ui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.text.NumberFormat;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.GroupLayout;
@@ -25,6 +28,7 @@ import org.praisenter.preferences.BiblePreferences;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.BibleSlideTemplate;
+import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.ui.EasingListCellRenderer;
@@ -149,16 +153,24 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, 
 		
 		// template
 		
-		// FIXME add in default templates
 		JLabel lblTemplate = new JLabel(Messages.getString("panel.preferences.template"));
 		List<SlideThumbnail> thumbs = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
+		// add in the default template
+		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		BibleSlideTemplate template = BibleSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
+		BufferedImage image = template.getThumbnail(SlideLibrary.THUMBNAIL_SIZE);
+		SlideThumbnail temp = new SlideThumbnail(SlideFile.NOT_STORED, template.getName(), image);
+		thumbs.add(temp);
+		// find the selected template
 		SlideThumbnail selected = null;
 		for (SlideThumbnail thumb : thumbs) {
-			if (thumb.getFile().getPath().equals(bPreferences.getTemplate())) {
+			if ((thumb.getFile() == SlideFile.NOT_STORED && bPreferences.getTemplate() == null) ||
+				 thumb.getFile().getPath().equals(bPreferences.getTemplate())) {
 				selected = thumb;
 				break;
 			}
 		}
+		Collections.sort(thumbs);
 		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbs.toArray(new SlideThumbnail[0]));
 		if (selected != null) {
 			this.cmbTemplates.setSelectedItem(selected);
@@ -332,7 +344,13 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, 
 		bPreferences.setSecondaryTranslationEnabled(this.chkUseSecondaryBible.isSelected());
 		bPreferences.setApocryphaIncluded(this.chkIncludeApocrypha.isSelected());
 		// template
-		bPreferences.setTemplate(((SlideThumbnail)this.cmbTemplates.getSelectedItem()).getFile().getPath());
+		SlideThumbnail thumbnail = ((SlideThumbnail)this.cmbTemplates.getSelectedItem());
+		// check for the default template
+		if (thumbnail.getFile() != SlideFile.NOT_STORED) {
+			bPreferences.setTemplate(thumbnail.getFile().getPath());
+		} else {
+			bPreferences.setTemplate(null);
+		}
 		// transitions
 		bPreferences.setSendTransitionId(((Transition)this.cmbSendTransitions.getSelectedItem()).getTransitionId());
 		bPreferences.setSendTransitionDuration(((Number)this.txtSendTransitions.getValue()).intValue());

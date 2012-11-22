@@ -13,12 +13,12 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.praisenter.display.NotificationDisplay;
 import org.praisenter.easings.Easings;
 import org.praisenter.preferences.NotificationPreferences;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.NotificationSlide;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
@@ -39,8 +39,8 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 	
 	// display
 	
-	/** The notification display */
-	protected NotificationDisplay display;
+	/** The notification slide */
+	protected NotificationSlide slide;
 	
 	// controls
 	
@@ -192,7 +192,8 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 			// check the text length
 			if (text != null && !text.trim().isEmpty()) {
 				// set the text on the display
-				this.display.getTextComponent().setText(text);
+				// FIXME fix
+//				this.display.getTextComponent().setText(text);
 				// create the transition animators
 				TransitionAnimator in = new TransitionAnimator(
 						(Transition)this.cmbInTransition.getSelectedItem(),

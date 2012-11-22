@@ -20,6 +20,4 @@ public interface MediaPlayerFactory<E extends PlayableMedia> {
 	 * @return {@link MediaPlayer}
 	 */
 	public MediaPlayer<E> createMediaPlayer();
-	
-	// TODO we may need to add support for a pooled version of the factory
 }

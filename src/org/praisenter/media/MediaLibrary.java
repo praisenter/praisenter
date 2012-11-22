@@ -34,7 +34,6 @@ import org.praisenter.xml.XmlIO;
  * @version 1.0.0
  * @since 1.0.0
  */
-// FIXME we need support for mediaplayer pools
 public class MediaLibrary {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(MediaLibrary.class);
@@ -81,14 +80,6 @@ public class MediaLibrary {
 		
 		// add any class path media players
 		addClasspathMediaPlayerFactories();
-		
-		// FIXME we need to do this on startup so that we get the thumbnails loaded
-		try {
-			loadMediaLibrary();
-		} catch (MediaLibraryException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	/**
@@ -150,13 +141,15 @@ public class MediaLibrary {
 	 * <p>
 	 * This method does not do a recursive look up.
 	 * <p>
-	 * This method will ensure that a Thumbs.xml file is present and up to date with the
+	 * This method will ensure that a _thumbs.xml file is present and up to date with the
 	 * files in the directory.
-	 * @param path the media library path
-	 * @throws MediaLibraryException thrown if the media library load encounters an error
+	 * @param type the media type
 	 */
-	// FIXME right now a user could manually put the wrong media type file in the folder and this will load it in the wrong place...
-	private static synchronized final void loadMediaLibrary(String path) throws MediaLibraryException {
+	private static synchronized final void loadMediaLibrary(MediaType type) {
+		String path = getMediaTypePath(type);
+		if (!isMediaSupported(type)) {
+			return;
+		}
 		// attempt to read the thumbs file in the respective folder
 		List<MediaThumbnail> thumbnailsFromFile = null;
 		try {
@@ -184,7 +177,7 @@ public class MediaLibrary {
 			if (file.isDirectory()) continue;
 			// get the file path
 			String filePath = file.getPath();
-			// skip xml files
+			// skip xml files (these are the thumb files)
 			if (FileUtilities.getContentType(filePath).contains("xml")) continue;
 			// make sure there exists a thumnail for the file
 			boolean exists = false;
@@ -204,6 +197,11 @@ public class MediaLibrary {
 				// load the media
 				try {
 					Media media = loadFromMediaLibrary(filePath);
+					// check the loaded media type
+					if (media.getType() != type) {
+						LOGGER.warn("The media [" + filePath + "] is not the correct media type for this path. Media not loaded.");
+						continue;
+					}
 					// add the media to the media library (might as well since we loaded it)
 					MEDIA.put(filePath, new WeakReference<Media>(media));
 					// create the thumbnail
@@ -213,7 +211,7 @@ public class MediaLibrary {
 					// flag that we need to save it
 					save = true;
 				} catch (MediaException e) {
-					throw new MediaLibraryException(MessageFormat.format(Messages.getString("media.exception.couldNotLoadMedia"), filePath), e);
+					LOGGER.error("Could not load media [" + filePath + "]: ", e);
 				}
 			} else {
 				// we need to add a media reference anyway
@@ -388,23 +386,13 @@ public class MediaLibrary {
 	
 	/**
 	 * Loads the media library.
-	 * @throws MediaLibraryException thrown if an exception occurs while loading the media library
 	 */
-	public static synchronized final void loadMediaLibrary() throws MediaLibraryException {
+	public static synchronized final void loadMediaLibrary() {
 		// see if the media library has already been loaded
 		if (!loaded) {
-			if (isMediaSupported(MediaType.IMAGE)) {
-				String path = Constants.MEDIA_LIBRARY_IMAGE_PATH;
-				loadMediaLibrary(path);
-			}
-			if (isMediaSupported(MediaType.VIDEO)) {
-				String path = Constants.MEDIA_LIBRARY_VIDEO_PATH;
-				loadMediaLibrary(path);
-			}
-			if (isMediaSupported(MediaType.AUDIO)) {
-				String path = Constants.MEDIA_LIBRARY_AUDIO_PATH;
-				loadMediaLibrary(path);
-			}
+			loadMediaLibrary(MediaType.IMAGE);
+			loadMediaLibrary(MediaType.AUDIO);
+			loadMediaLibrary(MediaType.VIDEO);
 			loaded = true;
 		}
 	}

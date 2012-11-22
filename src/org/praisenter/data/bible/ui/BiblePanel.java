@@ -1,5 +1,6 @@
 package org.praisenter.data.bible.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -28,9 +29,10 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -61,7 +63,6 @@ import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
-import org.praisenter.slide.ui.present.SlideWindow;
 import org.praisenter.slide.ui.present.SlideWindows;
 import org.praisenter.slide.ui.present.StandardSlideWindow;
 import org.praisenter.slide.ui.preview.InlineSlidePreviewPanel;
@@ -81,7 +82,6 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-// TODO use a splitpane for the preview + controls vs. tables
 public class BiblePanel extends JPanel implements ActionListener, PreferencesListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;
@@ -172,21 +172,8 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		BiblePreferences bPreferences = preferences.getBiblePreferences();
 		
 		// get the primary device
-		GraphicsDevice device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
-		Dimension displaySize = preferences.getPrimaryDeviceResolution();
-		if (device == null) {
-			device = WindowUtilities.getSecondaryDevice();
-			// the device was either not found or not setup
-			// so use the device's display size
-			displaySize = WindowUtilities.getDimension(device.getDisplayMode());
-		} else {
-			// perform a check against the display sizes
-			if (!displaySize.equals(WindowUtilities.getDimension(device.getDisplayMode()))) {
-				// if they are not equal we want to log a message and use the display size
-				LOGGER.warn("The primary display's resolution does not match the stored display size. Using device resolution.");
-				displaySize = WindowUtilities.getDimension(device.getDisplayMode());
-			}
-		}
+		GraphicsDevice device = preferences.getPrimaryOrDefaultDevice();
+		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
 		
 		// get the bible slide template
 		BibleSlideTemplate template = null;
@@ -762,7 +749,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 				.addGroup(svLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(btnRemoveSelected, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnRemoveAll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrVerseQueue, 200, 200, 300));
+				.addComponent(scrVerseQueue, 200, 200, Short.MAX_VALUE));
 		
 		JPanel pnlBibleSearch = new JPanel();
 		GroupLayout bsLayout = new GroupLayout(pnlBibleSearch);
@@ -783,7 +770,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrBibleSearchResults, 200, 200, 300));
+				.addComponent(scrBibleSearchResults, 200, 200, Short.MAX_VALUE));
 		
 		JTabbedPane tableTabs = new JTabbedPane();
 		tableTabs.addTab(Messages.getString("panel.bible.verseQueue"), pnlVerseQueue);
@@ -810,26 +797,27 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 			this.cmbBooks.setSelectedItem(books.get(0));
 		}
 		
-		JSeparator sepTables = new JSeparator(JSeparator.HORIZONTAL);
+		// split the preview and controls with the table panels
+		JPanel pnlTop = new JPanel();
+		GroupLayout tLayout = new GroupLayout(pnlTop);
+		pnlTop.setLayout(tLayout);
+		tLayout.setAutoCreateGaps(true);
+		tLayout.setHorizontalGroup(tLayout.createParallelGroup()
+				.addComponent(this.pnlPreview)
+				.addComponent(pnlLookupPanel));
+		tLayout.setVerticalGroup(tLayout.createSequentialGroup()
+				.addComponent(this.pnlPreview)
+				.addComponent(pnlLookupPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+		
+		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		split.setTopComponent(pnlTop);
+		split.setBottomComponent(tableTabs);
+		split.setResizeWeight(0.8);
+		split.setOneTouchExpandable(true);
 		
 		// create the layout
-		GroupLayout layout = new GroupLayout(this);
-		this.setLayout(layout);
-		layout.setAutoCreateGaps(true);
-		
-		// setup the horizontal layout
-		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.pnlPreview)
-				.addComponent(pnlLookupPanel)
-				.addComponent(sepTables)
-				.addComponent(tableTabs));
-		
-		// setup the vertical layout
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.pnlPreview)
-				.addComponent(pnlLookupPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(sepTables, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(tableTabs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+		this.setLayout(new BorderLayout());
+		this.add(split, BorderLayout.CENTER);
 	}
 	
 	/* (non-Javadoc)
@@ -845,23 +833,29 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		
 		// get the primary device
 		GraphicsDevice device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
+		Dimension displaySize = preferences.getPrimaryDeviceResolution();
 		if (device == null) {
 			device = WindowUtilities.getSecondaryDevice();
-		}
-
-		// FIXME check the width/height of the device against the store reso
-		
-		// get the slide size
-		Dimension displaySize = preferences.getPrimaryDeviceResolution();
-		if (displaySize == null) {
+			// the device was either not found or not setup
+			// so use the device's display size
 			displaySize = WindowUtilities.getDimension(device.getDisplayMode());
+		} else {
+			// perform a check against the display sizes
+			if (!displaySize.equals(WindowUtilities.getDimension(device.getDisplayMode()))) {
+				// if they are not equal we want to log a message and use the display size
+				LOGGER.warn("The primary display's resolution does not match the stored display size. Using device resolution.");
+				displaySize = WindowUtilities.getDimension(device.getDisplayMode());
+			}
 		}
 		
 		int count = this.pnlPreview.getSlideCount();
 		for (int i = 0; i < count; i++) {
 			Slide slide = this.pnlPreview.getSlide(i);
-			slide.setWidth(displaySize.width);
-			slide.setHeight(displaySize.height);
+			if (slide.getWidth() != displaySize.width || slide.getHeight() != displaySize.height) {
+				// adjust the slide size
+				slide.adjustSize(displaySize.width, displaySize.height);
+				LOGGER.info("Adjusting slides due to display size change.");
+			}
 		}
 		
 		// redraw the preview panel
@@ -1096,20 +1090,15 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		StandardSlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
 			primary.send(this.pnlPreview.getSlide(1), ta);
+		} else {
+			// the device is no longer available
+			LOGGER.warn("The primary display doesn't exist.");
+			JOptionPane.showMessageDialog(
+					WindowUtilities.getParentWindow(this), 
+					Messages.getString("dialog.device.primary.missing.text"), 
+					Messages.getString("dialog.device.primary.missing.title"), 
+					JOptionPane.WARNING_MESSAGE);
 		}
-		// FIXME display
-//		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
-//		if (primary != null) {
-//			primary.send(this.pnlPreview.getSlide(1), ta);
-//		} else {
-//			// the device is no longer available
-//			LOGGER.warn("The primary display doesn't exist.");
-//			JOptionPane.showMessageDialog(
-//					WindowUtilities.getParentWindow(this), 
-//					Messages.getString("dialog.device.primary.missing.text"), 
-//					Messages.getString("dialog.device.primary.missing.title"), 
-//					JOptionPane.WARNING_MESSAGE);
-//		}
 	}
 	
 	/**
@@ -1122,11 +1111,10 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
 		Easing easing = Easings.getEasingForId(prefs.getClearTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-		// FIXME display
-//		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
-//		if (primary != null) {
-//			primary.clear(ta);
-//		}
+		StandardSlideWindow primary = SlideWindows.getPrimarySlideWindow();
+		if (primary != null) {
+			primary.clear(ta);
+		}
 	}
 	
 	/**

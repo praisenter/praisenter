@@ -69,6 +69,10 @@ public interface MediaPlayer<E extends PlayableMedia> {
 	
 	/**
 	 * Returns the media player configuration.
+	 * <p>
+	 * This returns a copy of the current configuration. You can modify
+	 * this copy and then call the {@link #setConfiguration(MediaPlayerConfiguration)}
+	 * method to set the new configuration options.
 	 * @return {@link MediaPlayerConfiguration}
 	 */
 	public abstract MediaPlayerConfiguration getConfiguration();

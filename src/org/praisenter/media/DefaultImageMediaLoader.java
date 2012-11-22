@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.Iterator;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+
+import org.praisenter.resources.Messages;
 
 /**
  * Default implementation for loading image media.
@@ -42,7 +45,6 @@ public class DefaultImageMediaLoader implements ImageMediaLoader, MediaLoader<Im
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaLoader#load(java.lang.String)
 	 */
-	// FIXME error text & translate?
 	@Override
 	public ImageMedia load(String filePath) throws MediaException {
 		Path path = FileSystems.getDefault().getPath(filePath);
@@ -63,18 +65,19 @@ public class DefaultImageMediaLoader implements ImageMediaLoader, MediaLoader<Im
 					}
 				}
 				// no readers
-				throw new MediaException();
+				throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.noImageReader"), filePath));
 			} catch (IOException e) {
-				throw new MediaException(e);
+				throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.io"), filePath));
 			} finally {
 				if (in != null) {
 					try {
 						in.close();
+						// just eat the exception if we get one here
 					} catch (IOException e) {}
 				}
 			}
 		} else {
-			throw new MediaException("The path/file doesn't exist or is not a file.");
+			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.notFound"), filePath));
 		}
 	}
 }

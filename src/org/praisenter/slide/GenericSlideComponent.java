@@ -24,6 +24,8 @@ import org.praisenter.xml.StrokeTypeAdapter;
  * @version 1.0.0
  * @since 1.0.0
  */
+// TODO add rotation
+// TODO add effects (drop shadow)
 @XmlRootElement(name = "GenericSlideComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 public class GenericSlideComponent extends AbstractRenderableSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent {
@@ -175,7 +177,6 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 */
 	@Override
 	public Shape getBounds() {
-		// TODO add rotation
 		// later we may add rotation in the mix, but for now we can just return a rectangle
 		return new Rectangle(this.x, this.y, this.width, this.height);
 	}

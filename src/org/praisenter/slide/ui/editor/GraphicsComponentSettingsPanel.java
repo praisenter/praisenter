@@ -286,7 +286,6 @@ public class GraphicsComponentSettingsPanel<E extends GraphicsComponent> extends
 						this.component.setBackgroundImageFileName(media.getFileName());
 						this.firePropertyChange(DisplaySettingsPanel.DISPLAY_COMPONENT_PROPERTY, old, media.getFileName());
 					} catch (NoMediaLoaderException | MediaException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 				} catch (IOException ex) {

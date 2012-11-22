@@ -128,6 +128,26 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 		this.interrupt();
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.threading.PausableThread#onThreadStopped()
+	 */
+	@Override
+	protected void onThreadStopped() {
+		super.onThreadStopped();
+		
+		this.audioBufferSize = 0;
+		this.buffer.clear();
+		this.buffer = null;
+		this.bufferDrainLock = null;
+		this.bufferFullLock = null;
+		this.bufferLock = null;
+		this.clock = null;
+		this.draining = false;
+		this.hasAudio = false;
+		this.hasVideo = false;
+		this.videoBufferSize = 0;
+	}
+	
 	/**
 	 * Queues the given video image for playback.
 	 * <p>
@@ -395,8 +415,10 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 					bufferLock.wait();
 				} catch (InterruptedException e) {
 					// we may have been stopped or paused
-					break;
 				}
+			}
+			if (this.isStopped() || this.isPaused()) {
+				return;
 			}
 		}
 		

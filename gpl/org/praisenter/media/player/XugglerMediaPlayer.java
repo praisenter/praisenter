@@ -31,11 +31,7 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	/** The state of the media player */
 	protected State state; 
 	
-	/** The video/audio synchronization clock */
-	protected XugglerMediaClock clock;
-	
 	/** The player configuration */
-	// FIXME implement muting
 	protected MediaPlayerConfiguration configuration;
 
 	/** The list of media player listeners */
@@ -62,9 +58,14 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	public XugglerMediaPlayer() {
 		this.state = State.STOPPED;
-		this.clock = new XugglerMediaClock();
 		this.listeners = new ArrayList<>();
 		this.configuration = new MediaPlayerConfiguration();
+		
+		// we override the thread classes below to provide the wiring up
+		// required for them to communicate
+		
+		// we also override the onStopped methods so that they call the next
+		// thread to be ended to force them to end in sequence
 		
 		// create the threads
 		this.mediaReaderThread = new XugglerMediaReaderThread() {
@@ -80,6 +81,12 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 			protected void onMediaEnd() {
 				XugglerMediaPlayer.this.loop();
 			}
+			@Override
+			protected void onThreadStopped() {
+				super.onThreadStopped();
+				LOGGER.debug("MediaReaderThread Ended");
+				mediaPlayerThread.end();
+			}
 		};
 		this.mediaPlayerThread = new XugglerMediaPlayerThread() {
 			@Override
@@ -90,8 +97,20 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 			protected void playAudio(byte[] samples) {
 				audioPlayerThread.queue(samples);
 			}
+			@Override
+			protected void onThreadStopped() {
+				super.onThreadStopped();
+				LOGGER.debug("MediaPlayerThread Ended");
+				audioPlayerThread.end();
+			}
 		};
-		this.audioPlayerThread = new XugglerAudioPlayerThread();
+		this.audioPlayerThread = new XugglerAudioPlayerThread() {
+			protected void onThreadStopped() {
+				super.onThreadStopped();
+				LOGGER.debug("AudioPlayerThread Ended");
+				onRelease();
+			}
+		};
 		
 		// start the threads
 		this.audioPlayerThread.start();
@@ -213,7 +232,7 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	@Override
 	public MediaPlayerConfiguration getConfiguration() {
-		return this.configuration;
+		return new MediaPlayerConfiguration(this.configuration);
 	}
 	
 	/* (non-Javadoc)
@@ -222,6 +241,8 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	@Override
 	public void setConfiguration(MediaPlayerConfiguration configuration) {
 		this.configuration = configuration;
+		this.audioPlayerThread.setVolume(configuration.getVolume());
+		this.audioPlayerThread.setMuted(configuration.isAudioMuted());
 	}
 	
 	/* (non-Javadoc)
@@ -342,29 +363,46 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	@Override
 	public void seek(long position) {
-		// TODO Auto-generated method stub
+		// FIXME implement seeking
 		
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaPlayer#getPosition()
+	 */
 	@Override
 	public long getPosition() {
-		// TODO Auto-generated method stub
+		// FIXME implement seeking
 		return 0;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaPlayer#release()
+	 */
 	@Override
 	public void release() {
 		this.stop();
 		this.state = State.ENDED;
+		this.listeners.clear();
+		// we overrode the end method of the reader class in
+		// our anonymous inner class to call the end() methods
+		// in sequence
 		if (this.mediaReaderThread != null) {
 			this.mediaReaderThread.end();
 		}
-		if (this.mediaPlayerThread != null) {
-			this.mediaPlayerThread.end();
-		}
-		if (this.audioPlayerThread != null) {
-			this.audioPlayerThread.end();
-		}
+	}
+	
+	/**
+	 * Called when the last thread of this player has been released.
+	 */
+	protected void onRelease() {
+		this.mediaReaderThread = null;
+		this.mediaPlayerThread = null;
+		this.audioPlayerThread = null;
+		this.configuration = null;
+		this.listeners = null;
+		this.media = null;
+		LOGGER.debug("Released");
 	}
 	
 	/* (non-Javadoc)

@@ -1,7 +1,6 @@
 package org.praisenter.data.song.ui;
 
 import java.awt.Dimension;
-import java.awt.GraphicsDevice;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,7 +14,6 @@ import org.praisenter.slide.SlideLibraryException;
 import org.praisenter.slide.SongSlide;
 import org.praisenter.slide.SongSlideTemplate;
 import org.praisenter.slide.ui.preview.InlineSlidePreviewPanel;
-import org.praisenter.utilities.WindowUtilities;
 
 /**
  * Represents a panel that shows a preview of song slides.
@@ -53,21 +51,7 @@ public class SongSlidePreviewPanel extends InlineSlidePreviewPanel {
 			SongPreferences sPreferences = preferences.getSongPreferences();
 			
 			// get the primary device
-			GraphicsDevice device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
-			Dimension displaySize = preferences.getPrimaryDeviceResolution();
-			if (device == null) {
-				device = WindowUtilities.getSecondaryDevice();
-				// the device was either not found or not setup
-				// so use the device's display size
-				displaySize = WindowUtilities.getDimension(device.getDisplayMode());
-			} else {
-				// perform a check against the display sizes
-				if (!displaySize.equals(WindowUtilities.getDimension(device.getDisplayMode()))) {
-					// if they are not equal we want to log a message and use the display size
-					LOGGER.warn("The primary display's resolution does not match the stored display size. Using device resolution.");
-					displaySize = WindowUtilities.getDimension(device.getDisplayMode());
-				}
-			}
+			Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
 			
 			// get the bible slide template
 			SongSlideTemplate template = null;

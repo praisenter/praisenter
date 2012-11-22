@@ -105,7 +105,7 @@ public abstract class PausableThread extends Thread {
 				// call the stopped code
 				this.onThreadStopped();
 				// break from the loop
-				return;
+				break;
 			}
 			
 			// check the paused state
@@ -123,13 +123,17 @@ public abstract class PausableThread extends Thread {
 							this.onInterrupted();
 							// make sure we aren't stopped
 							if (this.stopped) {
-								// if we are, then call the stopped method
-								this.onThreadStopped();
-								// and return
-								return;
+								// break from this loop
+								break;
 							}
 						}
 					}
+				}
+				// check for stopped again
+				if (this.stopped) {
+					// if we are, then call the stopped method
+					this.onThreadStopped();
+					break;
 				}
 			}
 			

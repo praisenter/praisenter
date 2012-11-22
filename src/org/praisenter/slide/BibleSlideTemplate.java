@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.praisenter.resources.Messages;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
@@ -70,13 +71,13 @@ public class BibleSlideTemplate extends BibleSlide implements Template {
 	 * @return {@link BibleSlideTemplate}
 	 */
 	public static final BibleSlideTemplate getDefaultTemplate(int width, int height) {
-		// FIXME translate
-		BibleSlideTemplate template = new BibleSlideTemplate("", width, height);
+		BibleSlideTemplate template = new BibleSlideTemplate(Messages.getString("template.bible.default.name"), width, height);
 		
-		GenericSlideComponent background = template.createPaintBackgroundComponent(new LinearGradientPaint(0, 0, width, 0, new float[] { 0.5f, 1.0f }, new Color[] { Color.BLACK, Color.BLUE }));
+		GenericSlideComponent background = template.createPaintBackgroundComponent(new LinearGradientPaint(0, 0, width, 0, new float[] { 0.0f, 1.0f }, new Color[] { Color.BLACK, Color.BLUE }));
 		template.setBackground(background);
 		
 		TextComponent location = template.getScriptureLocationComponent();
+		location.setText(Messages.getString("slide.bible.location.default"));
 		location.setTextPaint(Color.WHITE);
 		location.setTextFont(FontManager.getDefaultFont().deriveFont(80.0f));
 		location.setTextWrapped(false);
@@ -86,6 +87,7 @@ public class BibleSlideTemplate extends BibleSlide implements Template {
 		location.setTextPadding(30);
 		
 		TextComponent text = template.getScriptureTextComponent();
+		text.setText(Messages.getString("slide.bible.text.default"));
 		text.setTextPaint(Color.WHITE);
 		text.setTextFont(FontManager.getDefaultFont().deriveFont(50.0f));
 		text.setTextWrapped(true);
