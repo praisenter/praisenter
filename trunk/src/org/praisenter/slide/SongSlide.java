@@ -59,9 +59,6 @@ public class SongSlide extends Slide {
 		final int w = width - margin * 2;
 		
 		this.textComponent = new TextComponent(margin, margin, w, h);
-
-		// add them to the components list
-		this.components.add(this.textComponent);
 	}
 	
 	/**
