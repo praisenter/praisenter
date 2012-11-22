@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.praisenter.resources.Messages;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
@@ -70,20 +71,20 @@ public class SongSlideTemplate extends SongSlide implements Template {
 	 * @return {@link SongSlideTemplate}
 	 */
 	public static final SongSlideTemplate getDefaultTemplate(int width, int height) {
-		// FIXME translate
-		SongSlideTemplate template = new SongSlideTemplate("", width, height);
+		SongSlideTemplate template = new SongSlideTemplate(Messages.getString("template.song.default.name"), width, height);
 		
-		GenericSlideComponent background = template.createPaintBackgroundComponent(new LinearGradientPaint(0, 0, width, 0, new float[] { 0.5f, 1.0f }, new Color[] { Color.BLACK, new Color(0, 0, 0, 0) }));
+		GenericSlideComponent background = template.createPaintBackgroundComponent(new LinearGradientPaint(0, 0, width, 0, new float[] { 0.0f, 1.0f }, new Color[] { Color.BLACK, new Color(0, 0, 0, 0) }));
 		template.setBackground(background);
 		
-		TextComponent location = template.getTextComponent();
-		location.setTextPaint(Color.WHITE);
-		location.setTextFont(FontManager.getDefaultFont().deriveFont(60.0f));
-		location.setTextWrapped(true);
-		location.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
-		location.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
-		location.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
-		location.setTextPadding(30);
+		TextComponent text = template.getTextComponent();
+		text.setText(Messages.getString("slide.song.text.default"));
+		text.setTextPaint(Color.WHITE);
+		text.setTextFont(FontManager.getDefaultFont().deriveFont(60.0f));
+		text.setTextWrapped(true);
+		text.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
+		text.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
+		text.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
+		text.setTextPadding(30);
 		
 		return template;
 	}

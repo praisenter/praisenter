@@ -32,7 +32,6 @@ public class StandardSlideWindow extends SlideWindow<StandardSlideSurface> {
 		GraphicsConfiguration gc = this.device.getDefaultConfiguration();
 		// get its position and dimensions
 		Rectangle r = gc.getBounds();
-		System.out.println(r);
 		// a full screen display window has its size set to the
 		// height and width of the device
 		Dimension size = new Dimension(r.width, r.height);

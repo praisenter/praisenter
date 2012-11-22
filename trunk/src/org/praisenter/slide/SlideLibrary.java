@@ -47,7 +47,7 @@ public class SlideLibrary {
 	// thumbnails
 	
 	/** The thumbnail size */
-	private static final Dimension THUMBNAIL_SIZE = new Dimension(64, 48);
+	public static final Dimension THUMBNAIL_SIZE = new Dimension(64, 48);
 	
 	/** The thumbnail file name */
 	private static final String THUMBS_FILE = Constants.SEPARATOR + "_thumbs.xml";
@@ -60,25 +60,13 @@ public class SlideLibrary {
 	/** True if the slide library has been loaded */
 	private static boolean loaded = false;
 	
-	// FIXME translation on exceptions
-	static {
-		// FIXME move this
-		try {
-			loadSlideLibrary();
-		} catch (SlideLibraryException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
 	/** Hidden constructor */
 	private SlideLibrary() {}
 
 	/**
 	 * Loads the slide and template library.
-	 * @throws SlideLibraryException thrown if an exception occurs during loading
 	 */
-	public static final synchronized void loadSlideLibrary() throws SlideLibraryException {
+	public static final synchronized void loadSlideLibrary() {
 		if (!loaded) {
 			// preload the thumbnails, slides, and templates for all slides and templates
 			loadSlideLibrary(Constants.SLIDE_PATH, Slide.class, SLIDES);
@@ -97,9 +85,8 @@ public class SlideLibrary {
 	 * @param path the path for the thumbnail file
 	 * @param clazz the type to load
 	 * @param map the map to add the loaded slide/template
-	 * @throws SlideLibraryException thrown if the slide failed to be loaded
 	 */
-	private static final synchronized <E extends Slide> void loadSlideLibrary(String path, Class<E> clazz, Map<String, E> map) throws SlideLibraryException {
+	private static final synchronized <E extends Slide> void loadSlideLibrary(String path, Class<E> clazz, Map<String, E> map) {
 		// attempt to read the thumbs file in the respective folder
 		List<SlideThumbnail> thumbnailsFromFile = null;
 		try {
@@ -148,15 +135,19 @@ public class SlideLibrary {
 				if (!exists) {
 					// generate a thumbnail for the image using the media loader
 					// load the media
-					E slide = loadFromSlideLibrary(filePath, clazz);
-					// add the media to the media library (might as well since we loaded it)
-					map.put(filePath, slide);
-					// create the thumbnail
-					BufferedImage image = slide.getThumbnail(THUMBNAIL_SIZE);
-					// add the thumbnail to the list
-					thumbnails.add(new SlideThumbnail(new SlideFile(filePath), slide.getName(), image));
-					// flag that we need to save it
-					save = true;
+					try {
+						E slide = loadFromSlideLibrary(filePath, clazz);
+						// add the media to the media library (might as well since we loaded it)
+						map.put(filePath, slide);
+						// create the thumbnail
+						BufferedImage image = slide.getThumbnail(THUMBNAIL_SIZE);
+						// add the thumbnail to the list
+						thumbnails.add(new SlideThumbnail(new SlideFile(filePath), slide.getName(), image));
+						// flag that we need to save it
+						save = true;
+					} catch (SlideLibraryException e) {
+						LOGGER.error("Unable to load slide/template [" + filePath + "|" + clazz.getName() + "]: ", e);
+					}
 				} else {
 					// we need to add a media reference anyway
 					map.put(filePath, null);

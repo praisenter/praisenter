@@ -26,6 +26,16 @@ public class MediaPlayerConfiguration {
 	}
 	
 	/**
+	 * Copy constructor.
+	 * @param configuration the configuration to copy
+	 */
+	public MediaPlayerConfiguration(MediaPlayerConfiguration configuration) {
+		this.loopEnabled = configuration.loopEnabled;
+		this.audioMuted = configuration.audioMuted;
+		this.volume = configuration.volume;
+	}
+	
+	/**
 	 * Returns true if the media should be looped.
 	 * @return boolean
 	 */

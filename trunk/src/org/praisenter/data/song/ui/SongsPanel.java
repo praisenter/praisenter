@@ -52,6 +52,8 @@ import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.SongSlide;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
+import org.praisenter.slide.ui.present.SlideWindows;
+import org.praisenter.slide.ui.present.StandardSlideWindow;
 import org.praisenter.slide.ui.preview.ScrollableInlineSlidePreviewPanel;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
@@ -147,13 +149,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		SongPreferences sPreferences = preferences.getSongPreferences();
 		
 		// get the primary device
-		GraphicsDevice device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
-		if (device == null) {
-			device = WindowUtilities.getSecondaryDevice();
-		}
+		GraphicsDevice device = preferences.getPrimaryOrDefaultDevice();
 		
 		// song preview
-		
 		this.pnlPreview = new SongSlidePreviewPanel();
 		this.pnlPreview.setBorder(BorderFactory.createEmptyBorder(15, 15, 20, 15));
 		this.scrPreview = new ScrollableInlineSlidePreviewPanel(this.pnlPreview);
@@ -507,7 +505,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	@Override
 	public void preferencesChanged() {
 		// refresh the song preview panel
-		this.queueSongPreview(this.song);
+		if (this.song != null) {
+			this.queueSongPreview(this.song);
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -669,19 +669,18 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
 		Easing easing = Easings.getEasingForId(preferences.getSendTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-		// FIXME implement
-//		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
-//		if (primary != null) {
-//			primary.send(display, ta);
-//		} else {
-//			// the device is no longer available
-//			LOGGER.warn("The primary display doesn't exist.");
-//			JOptionPane.showMessageDialog(
-//					this, 
-//					Messages.getString("dialog.device.primary.missing.text"), 
-//					Messages.getString("dialog.device.primary.missing.title"), 
-//					JOptionPane.WARNING_MESSAGE);
-//		}
+		StandardSlideWindow primary = SlideWindows.getPrimarySlideWindow();
+		if (primary != null) {
+			primary.send(slide, ta);
+		} else {
+			// the device is no longer available
+			LOGGER.warn("The primary display doesn't exist.");
+			JOptionPane.showMessageDialog(
+					this, 
+					Messages.getString("dialog.device.primary.missing.text"), 
+					Messages.getString("dialog.device.primary.missing.title"), 
+					JOptionPane.WARNING_MESSAGE);
+		}
 	}
 	
 	/**
@@ -694,11 +693,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
 		Easing easing = Easings.getEasingForId(preferences.getClearTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-		// FIXME implement
-//		StandardDisplayWindow primary = DisplayWindows.getPrimaryDisplayWindow();
-//		if (primary != null) {
-//			primary.clear(ta);
-//		}
+		StandardSlideWindow primary = SlideWindows.getPrimarySlideWindow();
+		if (primary != null) {
+			primary.clear(ta);
+		}
 	}
 	
 	/**

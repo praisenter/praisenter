@@ -1,4 +1,4 @@
-package org.praisenter.display.ui;
+package org.praisenter.slide.ui.present;
 
 import java.awt.BorderLayout;
 import java.awt.Container;

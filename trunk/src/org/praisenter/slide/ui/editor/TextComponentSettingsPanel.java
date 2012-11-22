@@ -131,7 +131,6 @@ public class TextComponentSettingsPanel extends GraphicsComponentSettingsPanel<T
 	protected void buildControls() {
 		// build the super controls
 		super.buildControls();
-		// TODO for non-placeholder components the text should come from the settings
 		
 		// build the text component controls
 		this.lblFontFamily = new JLabel(Messages.getString("panel.text.setup.fontFamily"));

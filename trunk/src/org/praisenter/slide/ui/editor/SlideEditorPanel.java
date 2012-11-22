@@ -79,7 +79,7 @@ public abstract class SlideEditorPanel extends JPanel implements MouseMotionList
 	 * @param slide the slide to edit
 	 * @param displaySize the display target size
 	 */
-	// TODO we may want to allow them to choose the target display during the slide edit process
+	// TODO we may want to allow them to choose the target display during the slide edit process (or display size)
 	public SlideEditorPanel(Slide slide, Dimension displaySize) {
 		this.slide = slide;
 		this.displaySize = displaySize;

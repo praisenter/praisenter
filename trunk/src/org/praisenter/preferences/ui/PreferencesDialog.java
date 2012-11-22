@@ -147,6 +147,9 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 						Messages.getString("dialog.preferences.save.success.text"), 
 						Messages.getString("dialog.preferences.save.success.title"), 
 						JOptionPane.INFORMATION_MESSAGE);
+				// close this dialog
+				this.setVisible(false);
+				this.dispose();
 			} else {
 				LOGGER.error(task.getException());
 				ExceptionDialog.show(

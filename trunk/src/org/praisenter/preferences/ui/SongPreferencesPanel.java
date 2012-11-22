@@ -1,8 +1,11 @@
 package org.praisenter.preferences.ui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.text.NumberFormat;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.GroupLayout;
@@ -19,6 +22,7 @@ import org.praisenter.easings.Easings;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.preferences.SongPreferences;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.SongSlideTemplate;
@@ -73,20 +77,28 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor, A
 	 */
 	public SongPreferencesPanel() {
 		Preferences preferences = Preferences.getInstance();
-		SongPreferences sp = preferences.getSongPreferences();
+		SongPreferences sPreferences = preferences.getSongPreferences();
 		
 		// template
 		
-		// FIXME add in default templates
 		JLabel lblTemplate = new JLabel(Messages.getString("panel.preferences.template"));
 		List<SlideThumbnail> thumbs = SlideLibrary.getThumbnails(SongSlideTemplate.class);
+		// add in the default template
+		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		SongSlideTemplate template = SongSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
+		BufferedImage image = template.getThumbnail(SlideLibrary.THUMBNAIL_SIZE);
+		SlideThumbnail temp = new SlideThumbnail(SlideFile.NOT_STORED, template.getName(), image);
+		thumbs.add(temp);
+		// find the selected template
 		SlideThumbnail selected = null;
 		for (SlideThumbnail thumb : thumbs) {
-			if (thumb.getFile().getPath().equals(sp.getTemplate())) {
+			if ((thumb.getFile() == SlideFile.NOT_STORED && sPreferences.getTemplate() == null) ||
+				 thumb.getFile().getPath().equals(sPreferences.getTemplate())) {
 				selected = thumb;
 				break;
 			}
 		}
+		Collections.sort(thumbs);
 		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbs.toArray(new SlideThumbnail[0]));
 		if (selected != null) {
 			this.cmbTemplates.setSelectedItem(selected);
@@ -103,29 +115,29 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor, A
 		JLabel lblSendTransition = new JLabel(Messages.getString("panel.preferences.transition.defaultSend"));
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(sp.getSendTransitionId(), Transition.Type.IN));
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(sPreferences.getSendTransitionId(), Transition.Type.IN));
 		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtSendTransitions.setValue(sp.getSendTransitionDuration());
+		this.txtSendTransitions.setValue(sPreferences.getSendTransitionDuration());
 		this.txtSendTransitions.setColumns(3);
 		this.cmbSendEasings = new JComboBox<Easing>(Easings.EASINGS);
 		this.cmbSendEasings.setRenderer(new EasingListCellRenderer());
-		this.cmbSendEasings.setSelectedItem(Easings.getEasingForId(sp.getSendTransitionEasingId()));
+		this.cmbSendEasings.setSelectedItem(Easings.getEasingForId(sPreferences.getSendTransitionEasingId()));
 		this.cmbSendEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
 		JLabel lblClearTransition = new JLabel(Messages.getString("panel.preferences.transition.defaultClear"));
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(sp.getClearTransitionId(), Transition.Type.OUT));
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(sPreferences.getClearTransitionId(), Transition.Type.OUT));
 		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtClearTransitions.setValue(sp.getClearTransitionDuration());
+		this.txtClearTransitions.setValue(sPreferences.getClearTransitionDuration());
 		this.txtClearTransitions.setColumns(3);
 		this.cmbClearEasings = new JComboBox<Easing>(Easings.EASINGS);
 		this.cmbClearEasings.setRenderer(new EasingListCellRenderer());
-		this.cmbClearEasings.setSelectedItem(Easings.getEasingForId(sp.getClearTransitionEasingId()));
+		this.cmbClearEasings.setSelectedItem(Easings.getEasingForId(sPreferences.getClearTransitionEasingId()));
 		this.cmbClearEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
 		JPanel pnlTransitions = new JPanel();
@@ -210,6 +222,15 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor, A
 	public void applyPreferences() {
 		Preferences preferences = Preferences.getInstance();
 		SongPreferences sPreferences = preferences.getSongPreferences();
+		
+		// template
+		SlideThumbnail thumbnail = ((SlideThumbnail)this.cmbTemplates.getSelectedItem());
+		// check for the default template
+		if (thumbnail.getFile() != SlideFile.NOT_STORED) {
+			sPreferences.setTemplate(thumbnail.getFile().getPath());
+		} else {
+			sPreferences.setTemplate(null);
+		}
 		
 		// transitions
 		sPreferences.setSendTransitionId(((Transition)this.cmbSendTransitions.getSelectedItem()).getTransitionId());

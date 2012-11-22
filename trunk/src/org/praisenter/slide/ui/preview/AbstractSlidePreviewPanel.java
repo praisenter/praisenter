@@ -241,6 +241,8 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 		final int th = metrics.textHeight;
 		final double scale = metrics.scale;
 		
+		if (idw < 0 || idh < 0) return;
+		
 		// save the old transform
 		AffineTransform ot = g2d.getTransform();
 

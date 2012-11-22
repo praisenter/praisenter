@@ -148,17 +148,24 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 	@Override
 	public void end() {
 		super.end();
-		
 		this.interrupt();
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.threading.PausableThread#onThreadStopped()
+	 */
+	@Override
+	protected void onThreadStopped() {
+		super.onThreadStopped();
 		
-		if (this.container != null) {
-			this.container.close();
-		}
 		if (this.videoCoder != null) {
 			this.videoCoder.close();
 		}
 		if (this.audioCoder != null) {
 			this.audioCoder.close();
+		}
+		if (this.container != null) {
+			this.container.close();
 		}
 		
 		this.container = null;

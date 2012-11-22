@@ -133,8 +133,6 @@ public class Slide {
 		if (this.background != null) {
 			this.background.renderPreview(g);
 		}
-		
-		// TODO resort the list by order
 		for (RenderableSlideComponent component : this.getComponents(RenderableSlideComponent.class)) {
 			component.renderPreview(g);
 		}
@@ -148,8 +146,6 @@ public class Slide {
 		if (this.background != null) {
 			this.background.render(g);
 		}
-		
-		// TODO resort the list by order
 		for (RenderableSlideComponent component : this.getComponents(RenderableSlideComponent.class)) {
 			component.render(g);
 		}

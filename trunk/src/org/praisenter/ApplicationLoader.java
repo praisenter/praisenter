@@ -23,8 +23,10 @@ import org.praisenter.data.errors.ui.EnterPasswordDialog;
 import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.data.song.Songs;
 import org.praisenter.icons.Icons;
+import org.praisenter.media.MediaLibrary;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.SlideLibrary;
 import org.praisenter.utilities.FontManager;
 
 /**
@@ -203,6 +205,12 @@ public class ApplicationLoader {
 			// load all fonts
 			preloadFonts();
 			
+			// load the media library
+			loadMediaLibrary();
+			
+			// load the slide/template library
+			loadSlideLibrary();
+			
 			// load the main application window
 			try {
 				preloadMainApplicationWindow();
@@ -324,6 +332,24 @@ public class ApplicationLoader {
 			updateProgress(true, (int)Math.floor(cur / max * 100), font);
 		}
 		updateProgress(true, 100, FontManager.getDefaultFont());
+	}
+	
+	/**
+	 * Loads the media library.
+	 */
+	private void loadMediaLibrary() {
+		updateProgress(true, Messages.getString("dialog.preload.mediaLibrary.label"));
+		MediaLibrary.loadMediaLibrary();
+		updateProgress(true, 100);
+	}
+	
+	/**
+	 * Loads the slide/template library.
+	 */
+	private void loadSlideLibrary() {
+		updateProgress(true, Messages.getString("dialog.preload.slideLibrary.label"));
+		SlideLibrary.loadSlideLibrary();
+		updateProgress(true, 100);
 	}
 	
 	/**

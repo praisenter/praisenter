@@ -27,6 +27,9 @@ public class SlideFile {
 	/** Number to represent unknown file size */
 	private static final int UNKNOWN_FILE_SIZE = -1;
 	
+	/** Static field for slides/templates that are not stored */
+	public static final SlideFile NOT_STORED = new SlideFile();
+	
 	/** The file path and name */
 	@XmlAttribute(name = "Path")
 	protected String path;

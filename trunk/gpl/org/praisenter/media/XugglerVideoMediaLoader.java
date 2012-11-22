@@ -1,8 +1,10 @@
 package org.praisenter.media;
 
 import java.awt.image.BufferedImage;
+import java.text.MessageFormat;
 
 import org.apache.log4j.Logger;
+import org.praisenter.resources.Messages;
 
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
@@ -46,7 +48,6 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaLoader#load(java.lang.String)
 	 */
-	// FIXME translate
 	@Override
 	public XugglerVideoMedia load(String filePath) throws MediaException {
 		// create the video container object
@@ -54,8 +55,9 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 
 		// open the container format
 		if (container.open(filePath, IContainer.Type.READ, null) < 0) {
-			throw new MediaException("Could not open file [" + filePath + "].  Unsupported container format.");
+			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.container.format"), filePath));
 		}
+		// convert to seconds
 		long length = container.getDuration() / 1000 / 1000;
 		String format = container.getContainerFormat().getInputFormatLongName() + " [";
 		LOGGER.debug("Video file opened. Container format: " + container.getContainerFormat().getInputFormatLongName());
@@ -84,7 +86,7 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 		
 		// make sure we have a video stream
 		if (videoCoder == null) {
-			throw new MediaException("No video stream in container.");
+			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.noVideo"), filePath));
 		}
 
 		// open the coder to read the video data
@@ -97,7 +99,7 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 		}
 		format += codecName;
 		if (videoCoder.open(null, null) < 0) {
-			throw new MediaException("Could not open video decoder for: " + codecName);
+			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.decoder.video"), codecName));
 		}		
 		LOGGER.debug("Video coder opened with format: " + codecName);
 		
@@ -157,8 +159,7 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 				while (offset < packet.getSize()) {
 					int bytesDecoded = videoCoder.decodeVideo(picture, packet, offset);
 					if (bytesDecoded < 0) {
-						// FIXME translate
-						throw new MediaException("Error decoding video stream");
+						throw new MediaException(Messages.getString("media.player.ex.decode.video"));
 					}
 					offset += bytesDecoded;
 

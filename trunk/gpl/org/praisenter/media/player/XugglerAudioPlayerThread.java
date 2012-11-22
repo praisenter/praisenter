@@ -7,7 +7,9 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.BooleanControl;
 import javax.sound.sampled.DataLine;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
@@ -28,6 +30,12 @@ import com.xuggle.xuggler.IStreamCoder;
 public class XugglerAudioPlayerThread extends PausableThread {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(XugglerAudioPlayerThread.class);
+	
+	/** The max volume for the audio = {@value #MAX_VOLUME} */
+	public static final double MAX_VOLUME = 100.0;
+	
+	/** The min volume for the audio = {@value #MIN_VOLUME} */
+	public static final double MIN_VOLUME = 0.0;
 	
 	/** The JavaSound line to play the samples */
 	protected SourceDataLine line;
@@ -110,6 +118,84 @@ public class XugglerAudioPlayerThread extends PausableThread {
 	}
 	
 	/**
+	 * Sets this audio player to muted.
+	 * @param flag true to mute the audio
+	 */
+	public void setMuted(boolean flag) {
+		if (this.line != null) {
+			if (this.line.isControlSupported(BooleanControl.Type.MUTE)) {
+				BooleanControl control = (BooleanControl)this.line.getControl(BooleanControl.Type.MUTE);
+				control.setValue(flag);
+			}
+		}
+	}
+	
+	/**
+	 * Returns true if the audio player is muted.
+	 * <p>
+	 * It's possible that JavaSound doesn't support the mute control.  In this
+	 * case false will always be returned.
+	 * @return boolean
+	 */
+	public boolean isMuted() {
+		if (this.line != null) {
+			if (this.line.isControlSupported(BooleanControl.Type.MUTE)) {
+				BooleanControl control = (BooleanControl)this.line.getControl(BooleanControl.Type.MUTE);
+				return control.getValue();
+			}
+		}
+		// otherwise return false
+		return false;
+	}
+
+	/**
+	 * Sets the volume of the line.
+	 * @param volume the volume
+	 */
+	public void setVolume(double volume) {
+		if (volume < MIN_VOLUME || volume > MAX_VOLUME) {
+			// if its not in range log a message and return
+			LOGGER.warn("Desired volume is out of range [" + volume + "]. Volume clamped.");
+			// clamp the value
+			if (volume < MIN_VOLUME) {
+				volume = MIN_VOLUME;
+			}
+			if (volume > MAX_VOLUME) {
+				volume = MAX_VOLUME;
+			}
+		}
+		// make sure the audio is still open
+		if (this.line != null) {
+    		// calculate the new volume
+    		double volumePercent = volume / MAX_VOLUME;
+			// determine what type of volume control to use
+			if (this.line.isControlSupported(FloatControl.Type.VOLUME)) {
+				// create the volume control
+				FloatControl volumeControl = (FloatControl) this.line.getControl(FloatControl.Type.VOLUME);
+				// only update the volume if it has changed
+				if (volumeControl.getValue() != volumePercent) {
+					volumeControl.setValue((float) volumePercent);
+				}
+				// log that the audio volume has been changed
+				LOGGER.debug("Volume changed using VOLUME contorl.");
+			} else if (this.line.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+				// create the volume control
+				FloatControl gainControl = (FloatControl) this.line.getControl(FloatControl.Type.MASTER_GAIN);
+				// calculate the decible value
+				float dB = (float) (Math.log(volumePercent == 0.0 ? 0.0001 : volumePercent) / Math.log(10.0) * 20.0);
+				// only update the volume if it has changed
+				if (dB != gainControl.getValue()) {
+					gainControl.setValue(dB);
+				}
+				// log that the audio volume has been changed
+				LOGGER.debug("Volume changed using MASTER_GAIN contorl.");
+			} else {
+				LOGGER.warn("Volume control not supported.");
+			}
+    	}
+	}
+	
+	/**
 	 * Queues the given audio samples for playback.
 	 * <p>
 	 * This method does not block.
@@ -182,13 +268,22 @@ public class XugglerAudioPlayerThread extends PausableThread {
 	public void end() {
 		// normal end stuff
 		super.end();
+		// since we could be blocking on the queue
+		// we need to interrupt it to notify of the state change
+		this.interrupt();
+	}
+	
+	@Override
+	protected void onThreadStopped() {
+		super.onThreadStopped();
+		
 		// clean up the line
 		if (this.line != null) {
 			this.line.close();
 		}
-		// since we could be blocking on the queue
-		// we need to interrupt it to notify of the state change
-		this.interrupt();
+		this.line = null;
+		this.queue.clear();
+		this.queue = null;
 	}
 	
 	/* (non-Javadoc)

@@ -1,6 +1,7 @@
 package org.praisenter.preferences;
 
 import java.awt.Dimension;
+import java.awt.GraphicsDevice;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -14,6 +15,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.resources.Messages;
+import org.praisenter.utilities.WindowUtilities;
 import org.praisenter.xml.DimensionTypeAdapter;
 import org.praisenter.xml.XmlIO;
 
@@ -230,5 +232,45 @@ public class Preferences {
 	 */
 	public ErrorReportingPreferences getErrorReportingPreferences() {
 		return this.errorReportingPreferences;
+	}
+	
+	// helper methods
+	
+	/**
+	 * Returns the primary device.
+	 * <p>
+	 * This will return the setup device if available. If it's not available
+	 * the secondary device is returned. If no secondary device is present the
+	 * default device is returned.
+	 * @return GraphicsDevice
+	 */
+	public GraphicsDevice getPrimaryOrDefaultDevice() {
+		GraphicsDevice device = WindowUtilities.getScreenDeviceForId(this.primaryDeviceId);
+		if (device == null) {
+			device = WindowUtilities.getSecondaryDevice();
+		}
+		return device;
+	}
+	
+	/**
+	 * Returns the display size for the primary device.
+	 * <p>
+	 * This method will follow the same logic as the {@link #getPrimaryOrDefaultDevice()} method
+	 * to obtain the primary device.
+	 * <p>
+	 * This method will check the setup display size against the display size of the primary device
+	 * and will return the size for the device if its different than the setup display size.
+	 * @return Dimension
+	 */
+	public Dimension getPrimaryOrDefaultDeviceResolution() {
+		Dimension displaySize = this.getPrimaryDeviceResolution();
+		GraphicsDevice device = this.getPrimaryOrDefaultDevice();
+		// perform a check against the display sizes
+		if (!displaySize.equals(WindowUtilities.getDimension(device.getDisplayMode()))) {
+			// if they are not equal we want to log a message and use the display size
+			LOGGER.warn("The primary display's resolution does not match the stored display size. Using device resolution.");
+			displaySize = WindowUtilities.getDimension(device.getDisplayMode());
+		}
+		return displaySize;
 	}
 }

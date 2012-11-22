@@ -31,20 +31,33 @@ import org.praisenter.transitions.Transition.Type;
  * @version 1.0.0
  * @since 1.0.0
  */
+
+/**
+ * There are a few cases which need to be handled:
+ * 1. No slide present -> new slide
+ * 2. Slide present -> new slide
+ * 		a. Old slide & new slide have same video/image background (generic backgrounds too?) and smart transitions are enabled
+ * 			i. In this case we need to retain the current background in position and only
+ * 			   transition the other components on the slide
+ *      b. Old slide & new slide have different backgrounds
+ * 3. Slide present -> clear
+ */
+
+
 public class SlideDisplaySurface extends StandardSlideSurface implements VideoMediaPlayerListener {
 	/** The version id */
 	private static final long serialVersionUID = -944011695590655744L;
 	
-	// out-going slide
+	// current slide
 	
 	/** The current slide being displayed */
-	protected Slide outSlide;
+	protected Slide currentSlide;
 	
-	protected MediaPlayer<?> outBackgroundMediaPlayer;
+	protected MediaPlayer<?> currentBackgroundMediaPlayer;
 	
-	protected List<MediaPlayer<?>> outMediaPlayers;
+	protected List<MediaPlayer<?>> currentMediaPlayers;
 	
-	protected SlideRenderer outRenderer;
+	protected SlideRenderer currentRenderer;
 	
 	// in-coming slide
 	
@@ -95,9 +108,9 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 		this.image0 = null;
 		this.image1 = null;
 		
-		this.outSlide = null;
-		this.outBackgroundMediaPlayer = null;
-		this.outMediaPlayers = new ArrayList<>();
+		this.currentSlide = null;
+		this.currentBackgroundMediaPlayer = null;
+		this.currentMediaPlayers = new ArrayList<>();
 		this.outHasPlayableMedia = false;
 		
 		this.inSlide = null;
@@ -122,20 +135,12 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 	 */
 	@Override
 	public void send(Slide slide, TransitionAnimator animator) {
+		if (this.currentSlide == slide || this.inSlide == slide) return;
+		
 		Preferences preferences = Preferences.getInstance();
-		
-		// stop the old transition just in case it's still in progress
-		if (this.animator != null) {
-			this.animator.stop();
-		}
-		if (!this.transitionComplete) {
-			this.onTransitionComplete();
-		}
-		
+
 		// first lets handle the case of the initial show
-		this.clear = false;
-		this.animator = animator;
-		this.repaintIssued = false;
+		this.stopPlayers();
 		
 		// see if we have any playable media
 		this.inSlide = slide;
@@ -149,19 +154,19 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 		// we will only NOT transition the background IF both slides have a video background component AND
 		// they are the same video
 		// check if there is a previous slide and that it has a background
-		if (this.outSlide != null && this.outSlide.getBackground() != null) {
+		if (this.currentSlide != null && this.currentSlide.getBackground() != null) {
 			// if so, then check if its background was a video
-			if (this.outSlide.getBackground() instanceof VideoMediaComponent) {
+			if (this.currentSlide.getBackground() instanceof VideoMediaComponent) {
 				// if so, then make sure the new background is also a video
 				if (background instanceof VideoMediaComponent) {	
 					// if both are video media components, we need to check if they are the same video
-					VideoMediaComponent oC = (VideoMediaComponent)this.outSlide.getBackground();
+					VideoMediaComponent oC = (VideoMediaComponent)this.currentSlide.getBackground();
 					VideoMediaComponent nC = (VideoMediaComponent)this.inSlide.getBackground();
 					if (oC.getMedia().getFile().getPath().equals(nC.getMedia().getFile().getPath())) {
 						// they are the same video, so we should not transition the background
 						// we can attach the new media component as a listener to the current 
 						// media player (to update its images as the video plays)
-						this.outBackgroundMediaPlayer.addMediaPlayerListener(nC);
+						this.currentBackgroundMediaPlayer.addMediaPlayerListener(nC);
 						this.transitionBackground = preferences.isSmartTransitionsEnabled();
 					}
 				}
@@ -205,6 +210,20 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 				this.inHasPlayableMedia = true;
 			}
 		}
+		
+		
+		// stop the old transition just in case it's still in progress
+		if (this.animator != null) {
+			this.animator.stop();
+		}
+//		if (!this.transitionComplete) {
+			this.onTransitionComplete();
+			
+//		}
+		
+		this.clear = false;
+		this.animator = animator;
+		this.repaintIssued = false;
 		
 		// make sure our offscreen images are still the correct size
 		this.image0 = SlideSurface.validateOffscreenImage(this.image0, this);
@@ -298,8 +317,8 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 		super.paintComponent(g);
 		
 		// update the images if necessary
-		if (this.outHasPlayableMedia && this.outSlide != null) {
-			SlideSurface.renderSlide(this.outRenderer, this.image0);
+		if (this.outHasPlayableMedia && this.currentSlide != null) {
+			SlideSurface.renderSlide(this.currentRenderer, this.image0);
 		}
 		if (this.inHasPlayableMedia && this.inSlide != null) {
 			SlideSurface.renderSlide(this.inRenderer, this.image1);
@@ -331,19 +350,68 @@ public class SlideDisplaySurface extends StandardSlideSurface implements VideoMe
 		this.repaintIssued = false;
 	}
 	
+	private boolean isBackgroundTransitioning(Slide slide) {
+		Preferences preferences = Preferences.getInstance();
+		
+		RenderableSlideComponent tbackground = slide.getBackground();
+		if (tbackground == null) {
+			// transition the background out since the new slide
+			// has no background
+			return true;
+		}
+		
+		RenderableSlideComponent fBackground = null;
+		if (this.inSlide != null) {
+			fBackground = this.inSlide.getBackground();
+		}
+		this.inHasPlayableMedia = false;
+		
+		// to return that the background is not transitioning, we must have two video backgrounds
+		// with the same media and smart transitions enabled
+		if (fBackground != null && 
+			fBackground instanceof VideoMediaComponent && 
+			tbackground instanceof VideoMediaComponent && 
+			preferences.isSmartTransitionsEnabled()) {
+			// if both are video media components, we need to check if they are the same video
+			VideoMediaComponent oC = (VideoMediaComponent)this.currentSlide.getBackground();
+			VideoMediaComponent nC = (VideoMediaComponent)this.inSlide.getBackground();
+			if (oC.getMedia().equals(nC.getMedia())) {
+				// they are the same video, so we should not transition the background
+				// we can attach the new media component as a listener to the current 
+				// media player (to update its images as the video plays)
+				this.currentBackgroundMediaPlayer.addMediaPlayerListener(nC);
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
 	/**
 	 * Called when a transition has completed.
 	 */
 	private void onTransitionComplete() {
-		if (this.outBackgroundMediaPlayer != null && this.transitionBackground) {
+		if (this.currentBackgroundMediaPlayer != null && this.transitionBackground) {
 			// if we aren't transitioning the background, then we need to make sure
 			// we keep the currently executing background media player
-			this.outBackgroundMediaPlayer.release();
-			this.outBackgroundMediaPlayer = null;
+			this.currentBackgroundMediaPlayer.release();
+			this.currentBackgroundMediaPlayer = null;
 		}
-		for (MediaPlayer<?> player : this.outMediaPlayers) {
+		for (MediaPlayer<?> player : this.currentMediaPlayers) {
 			player.release();
 		}
-		this.outMediaPlayers.clear();
+		this.currentMediaPlayers.clear();
+	}
+	
+	private void stopPlayers() {
+		if (this.inBackgroundMediaPlayer != null) {
+			// if we aren't transitioning the background, then we need to make sure
+			// we keep the currently executing background media player
+			this.inBackgroundMediaPlayer.release();
+			this.inBackgroundMediaPlayer = null;
+		}
+		for (MediaPlayer<?> player : this.inMediaPlayers) {
+			player.release();
+		}
 	}
 }

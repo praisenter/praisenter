@@ -6,10 +6,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.MessageFormat;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
+
+import org.praisenter.resources.Messages;
 
 /**
  * Midi loader using JavaSound.
@@ -58,13 +61,12 @@ public class MidiAudioMediaLoader implements MediaLoader<AbstractAudioMedia>, Au
 	        AudioMediaFile file = new AudioMediaFile(filePath, "midi", sequence.getMicrosecondLength() / 1000 / 1000);
 	        // create the media
 	        return new MidiAudioMedia(file);
-	        // FIXME translated messages
 		} catch (FileNotFoundException e) {
-			throw new MediaException(e);
+			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.notFound"), filePath));
 		} catch (InvalidMidiDataException e) {
-			throw new MediaException(e);
+			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.invalidMidiData"), filePath));
 		} catch (IOException e) {
-			throw new MediaException(e);
+			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.io"), filePath));
 		}
 	}
 }
