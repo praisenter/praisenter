@@ -3,12 +3,12 @@ package org.praisenter;
 /**
  * The version of the application.
  * @author William Bittle
- * @version 3.1.1
+ * @version 2.0.0
  * @since 1.0.0
  */
 public class Version {
 	/** The major version number; high impact changes; changes that require a migration plan */
-	private static final int MAJOR = 1;
+	private static final int MAJOR = 2;
 	
 	/** The minor version number; medium impact changes; changes that do not require a migration plan */
 	private static final int MINOR = 0;
