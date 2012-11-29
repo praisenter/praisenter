@@ -29,13 +29,11 @@ import javax.swing.JToggleButton;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 
-import org.praisenter.display.FontScaleType;
-import org.praisenter.display.HorizontalTextAlignment;
-import org.praisenter.display.TextComponent;
-import org.praisenter.display.VerticalTextAlignment;
 import org.praisenter.icons.Icons;
-import org.praisenter.preferences.TextComponentSettings;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.text.FontScaleType;
+import org.praisenter.slide.text.HorizontalTextAlignment;
+import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.utilities.FontManager;
 

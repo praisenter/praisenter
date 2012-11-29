@@ -9,6 +9,8 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
 
+import org.praisenter.slide.RenderableSlideComponent;
+
 /**
  * Standard interface for rendering slides.
  * @author William Bittle
@@ -33,14 +35,14 @@ public abstract class SlideSurface extends JPanel {
 	 * @param renderer the renderer
 	 * @param image the image to render to
 	 */
-	protected static final void renderSlide(SlideRenderer renderer, BufferedImage image) {
+	protected static final void renderSlide(SlideRenderer renderer, boolean renderBackground, BufferedImage image) {
 		// paint the display to the image
 		Graphics2D tg2d = image.createGraphics();
 		// set the background color to 100% transparent so that it clears
 		// the image when we call clearRect
 		tg2d.setBackground(new Color(0, 0, 0, 0));
 		tg2d.clearRect(0, 0, image.getWidth(), image.getHeight());
-		renderer.render(tg2d);
+		renderer.render(tg2d, renderBackground);
 		tg2d.dispose();
 	}
 	

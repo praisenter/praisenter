@@ -3,7 +3,6 @@ package org.praisenter.slide.ui.editor;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.LinearGradientPaint;
-import java.awt.MultipleGradientPaint;
 import java.awt.Paint;
 import java.awt.RadialGradientPaint;
 import java.awt.event.ActionEvent;
@@ -14,13 +13,9 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
-
-import org.praisenter.preferences.ui.DisplaySettingsPanel;
-import org.praisenter.resources.Messages;
 
 public class GradientEditorPanel extends JPanel implements ActionListener {
 	

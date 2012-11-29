@@ -69,6 +69,8 @@ public class SlideRenderer {
 	/** The graphics configuration to generate compatible images */
 	protected GraphicsConfiguration gc;
 	
+	protected SlideComponentCache background;
+	
 	/** The component groups */
 	protected List<SlideComponentCache> groups;
 	
@@ -88,7 +90,10 @@ public class SlideRenderer {
 	 * Renders this slide to the given graphics object.
 	 * @param g the graphics object to render to
 	 */
-	public void render(Graphics2D g) {
+	public void render(Graphics2D g, boolean background) {
+		if (background) {
+			this.background.render(g);
+		}
 		// render the groups in order
 		for (int i = 0; i < this.groups.size(); i++) {
 			SlideComponentCache group = this.groups.get(i);
@@ -109,14 +114,9 @@ public class SlideRenderer {
 		int w = this.slide.getWidth();
 		int h = this.slide.getHeight();
 		
-		// handle the background
 		RenderableSlideComponent background = this.slide.getBackground();
 		if (background != null) {
-			if (background instanceof VideoMediaComponent) {
-				this.groups.add(new SlideComponentCacheItem(background));
-			} else {
-				components.add(background);
-			}
+			this.background = new SlideComponentCacheItem(background);
 		}
 		
 		// begin looping over the components and checking their types
