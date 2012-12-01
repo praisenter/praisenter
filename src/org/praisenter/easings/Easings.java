@@ -16,7 +16,8 @@ public class Easings {
 		new QuinticEasing(),
 		new SinusoidalEasing(),
 		new ExponentialEasing(),
-		new CircularEasing()
+		new CircularEasing(),
+		new BackEasing()
 	};
 	
 	/**
