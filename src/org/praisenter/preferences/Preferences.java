@@ -53,6 +53,10 @@ public class Preferences {
 	@XmlElement(name = "SmartTransitionsEnabled", required = true, nillable = false)
 	protected boolean smartTransitionsEnabled;
 	
+	/** True if a send or clear should wait for the currently executing transition to finish before being executed */
+	@XmlElement(name = "WaitForTransitionEnabled", required = true, nillable = false)
+	protected boolean waitForTransitionEnabled;
+	
 	// other settings
 	
 	/** The bible preferences */
@@ -78,6 +82,7 @@ public class Preferences {
 	private Preferences() {
 		this.renderQuality = RenderQuality.MEDIUM;
 		this.smartTransitionsEnabled = true;
+		this.waitForTransitionEnabled = true;
 		
 		this.biblePreferences = new BiblePreferences();
 		this.songPreferences = new SongPreferences();
@@ -202,6 +207,32 @@ public class Preferences {
 		this.smartTransitionsEnabled = smartTransitionsEnabled;
 	}
 
+	/**
+	 * Returns true if waiting on transitions is enabled.
+	 * <p>
+	 * Enabling this setting allows the send/clear functionality to wait on a currently executing
+	 * transition to finish before executing the given one.  If multiple send/clear actions
+	 * are submitted and this is enabled, only the last send/clear action will be used
+	 * after the currently executing transition is completed.
+	 * <p>
+	 * If this setting is disabled, any currently executing transition is stopped and immediately
+	 * completed and the given send/clear action is executed.
+	 * @return boolean
+	 */
+	public boolean isWaitForTransitionEnabled() {
+		return this.waitForTransitionEnabled;
+	}
+	
+	/**
+	 * Enables waiting for current transitions to complete.
+	 * @param waitForTransitionEnabled true if waiting should be performed
+	 */
+	public void setWaitForTransitionEnabled(boolean waitForTransitionEnabled) {
+		this.waitForTransitionEnabled = waitForTransitionEnabled;
+	}
+	
+	// sub preferences
+	
 	/**
 	 * Returns the bible preferences.
 	 * @return {@link BiblePreferences}

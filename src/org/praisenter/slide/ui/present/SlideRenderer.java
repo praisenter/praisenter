@@ -69,6 +69,7 @@ public class SlideRenderer {
 	/** The graphics configuration to generate compatible images */
 	protected GraphicsConfiguration gc;
 	
+	/** The background component */
 	protected SlideComponentCache background;
 	
 	/** The component groups */
@@ -89,6 +90,7 @@ public class SlideRenderer {
 	/**
 	 * Renders this slide to the given graphics object.
 	 * @param g the graphics object to render to
+	 * @param background true if the background should be rendered
 	 */
 	public void render(Graphics2D g, boolean background) {
 		if (background) {

@@ -52,8 +52,8 @@ import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.SongSlide;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
+import org.praisenter.slide.ui.present.SlideWindow;
 import org.praisenter.slide.ui.present.SlideWindows;
-import org.praisenter.slide.ui.present.StandardSlideWindow;
 import org.praisenter.slide.ui.preview.ScrollableInlineSlidePreviewPanel;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
@@ -669,7 +669,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
 		Easing easing = Easings.getEasingForId(preferences.getSendTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-		StandardSlideWindow primary = SlideWindows.getPrimarySlideWindow();
+		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
 			primary.send(slide, ta);
 		} else {
@@ -693,7 +693,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
 		Easing easing = Easings.getEasingForId(preferences.getClearTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-		StandardSlideWindow primary = SlideWindows.getPrimarySlideWindow();
+		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
 			primary.clear(ta);
 		}

@@ -63,8 +63,8 @@ import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
+import org.praisenter.slide.ui.present.SlideWindow;
 import org.praisenter.slide.ui.present.SlideWindows;
-import org.praisenter.slide.ui.present.StandardSlideWindow;
 import org.praisenter.slide.ui.preview.InlineSlidePreviewPanel;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
@@ -1087,7 +1087,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
 		Easing easing = Easings.getEasingForId(prefs.getSendTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-		StandardSlideWindow primary = SlideWindows.getPrimarySlideWindow();
+		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
 			primary.send(this.pnlPreview.getSlide(1), ta);
 		} else {
@@ -1111,7 +1111,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
 		Easing easing = Easings.getEasingForId(prefs.getClearTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-		StandardSlideWindow primary = SlideWindows.getPrimarySlideWindow();
+		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
 			primary.clear(ta);
 		}

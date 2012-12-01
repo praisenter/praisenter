@@ -1,9 +1,13 @@
 Fix logo on main site
-Setup google code page
 
+export/import slides/templates (zip format with media)
 service schedule (with scheduled transitions)
 	saved in a file format that can be transmitted from one location to another
 drag and drop
+live video feed background
+video stream from web
+honor-zing for songs (change jesus to Jesus, etc)
+spellchecking
 
 Issues:
 Window Transluceny + Active Rendering: Forum post here: https://forums.oracle.com/forums/thread.jspa?threadID=2468664 that explains the problem
