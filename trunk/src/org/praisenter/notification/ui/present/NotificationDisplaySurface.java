@@ -1,4 +1,4 @@
-package org.praisenter.slide.ui.present;
+package org.praisenter.notification.ui.present;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
