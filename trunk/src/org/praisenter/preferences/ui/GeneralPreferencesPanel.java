@@ -25,8 +25,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.praisenter.icons.Icons;
 import org.praisenter.preferences.Preferences;
@@ -41,18 +39,9 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor, ActionListener, ItemListener, ChangeListener {
+public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor, ActionListener, ItemListener {
 	/** The version id */
 	private static final long serialVersionUID = 7677045112182344610L;
-
-	/** Property name of the display drop down */
-	public static final String PRIMARY_DISPLAY_PROPERTY = "PrimaryDisplay";
-	
-	/** Property name of the render quality drop down */
-	public static final String RENDER_QUALITY_PROPERTY = "RenderQuality";
-	
-	/** Property name of the smart transitions check box */
-	public static final String SMART_TRANSITIONS_PROPERTY = "SmartTransitions";
 	
 	/** The list of devices (not static so that it will pick up new devices) */
 	private GraphicsDevice[] devices = WindowUtilities.getScreenDevices();
@@ -75,6 +64,9 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 	
 	/** The check box for smart transitions */
 	private JCheckBox chkSmartTransitions;
+	
+	/** The check box for waiting for transitions */
+	private JCheckBox chkWaitForTransition;
 	
 	/**
 	 * Default constructor.
@@ -139,7 +131,11 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		this.chkSmartTransitions = new JCheckBox();
 		this.chkSmartTransitions.setToolTipText(Messages.getString("panel.general.preferences.smartTransitions.tooltip"));
 		this.chkSmartTransitions.setSelected(preferences.isSmartTransitionsEnabled());
-		this.chkSmartTransitions.addChangeListener(this);
+		
+		JLabel lblWaitForTransition = new JLabel(Messages.getString("panel.general.preferences.waitForTransition"));
+		this.chkWaitForTransition = new JCheckBox();
+		this.chkWaitForTransition.setToolTipText(Messages.getString("panel.general.preferences.waitForTransition.tooltip"));
+		this.chkWaitForTransition.setSelected(preferences.isWaitForTransitionEnabled());
 		
 		// create the layout
 		JPanel pnlDisplays = new JPanel();
@@ -152,7 +148,8 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 				.addGroup(layout.createParallelGroup()
 						.addComponent(lblPrimaryDisplay)
 						.addComponent(lblRenderQuality)
-						.addComponent(lblSmartTransitions))
+						.addComponent(lblSmartTransitions)
+						.addComponent(lblWaitForTransition))
 				.addGroup(layout.createParallelGroup()
 						.addGroup(layout.createSequentialGroup()
 								.addComponent(this.cmbDevices, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -160,7 +157,8 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 						.addComponent(this.lblDisplayNotFound)
 						.addComponent(this.lblTranslucency)
 						.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.chkSmartTransitions)));
+						.addComponent(this.chkSmartTransitions)
+						.addComponent(this.chkWaitForTransition)));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblPrimaryDisplay)
@@ -173,7 +171,10 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 						.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblSmartTransitions)
-						.addComponent(this.chkSmartTransitions)));
+						.addComponent(this.chkSmartTransitions))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblWaitForTransition)
+						.addComponent(this.chkWaitForTransition)));
 		
 		// create the main layout
 		layout = new GroupLayout(this);
@@ -248,21 +249,7 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 					this.lblTranslucency.setText("");
 					this.lblTranslucency.setIcon(null);
 				}
-				this.firePropertyChange(PRIMARY_DISPLAY_PROPERTY, null, device);
-			} else if (e.getSource() == this.cmbRenderQualities) {
-				this.firePropertyChange(RENDER_QUALITY_PROPERTY, null, e.getItem());
 			}
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see javax.swing.event.ChangeListener#stateChanged(javax.swing.event.ChangeEvent)
-	 */
-	@Override
-	public void stateChanged(ChangeEvent e) {
-		if (e.getSource() == this.chkSmartTransitions) {
-			boolean selected = this.chkSmartTransitions.isSelected();
-			this.firePropertyChange(SMART_TRANSITIONS_PROPERTY, null, selected);
 		}
 	}
 	
