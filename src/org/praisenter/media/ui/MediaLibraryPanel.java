@@ -1,41 +1,53 @@
 package org.praisenter.media.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
+import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.log4j.Logger;
 import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.media.Media;
+import org.praisenter.media.MediaFile;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnail;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.SlideThumbnail;
+import org.praisenter.threading.AbstractTask;
+import org.praisenter.threading.TaskProgressDialog;
 import org.praisenter.ui.ImageFileFilter;
 import org.praisenter.ui.ImageFilePreview;
+import org.praisenter.utilities.WindowUtilities;
 
 /**
  * Panel used to maintain the Media Library.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
-// FIXME we need a progress bar on the "add/remove to media library"
-public class MediaLibraryPanel extends JPanel implements ActionListener {
+// TODO add ability to rename items
+public class MediaLibraryPanel extends JPanel implements ActionListener, ListSelectionListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -5811856651322928169L;
 
@@ -53,6 +65,9 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 	
 	// controls
 	
+	/** The remove the selected media button */
+	protected JButton btnRemoveMedia;
+	
 	/** The tabs for the media types */
 	protected JTabbedPane mediaTabs;
 	
@@ -65,24 +80,13 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 	/** The audio media list */
 	protected JList<MediaThumbnail> lstAudio;
 	
+	/** The media properties panel */
+	protected MediaPropertiesPanel pnlProperties;
+	
 	/**
 	 * Default constructor.
 	 */
 	public MediaLibraryPanel() {
-		// add a button to add media
-		JButton btnAddMedia = new JButton(Messages.getString("panel.media.add"));
-		btnAddMedia.setActionCommand("addMedia");
-		btnAddMedia.addActionListener(this);
-		
-		JButton btnRemove = new JButton(Messages.getString("panel.media.remove"));
-		btnRemove.setActionCommand("removeMedia");
-		btnRemove.addActionListener(this);
-		
-		JPanel pnlButtons = new JPanel();
-		pnlButtons.setLayout(new BorderLayout());
-		pnlButtons.add(btnAddMedia, BorderLayout.LINE_START);
-		pnlButtons.add(btnRemove, BorderLayout.LINE_END);
-		
 		this.mediaTabs = new JTabbedPane();
 		
 		// make sure the media library supports the media
@@ -122,9 +126,46 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.audio"), pnlAudio);
 		}
 		
+		this.mediaTabs.addChangeListener(this);
+		this.mediaTabs.setMinimumSize(new Dimension(120, 120));
+		this.mediaTabs.setPreferredSize(new Dimension(500, 500));
+		
+		this.pnlProperties = new MediaPropertiesPanel();
+		this.pnlProperties.setMinimumSize(new Dimension(200, 0));
+		this.pnlProperties.setPreferredSize(new Dimension(300, 500));
+		
+		// add a button to add media
+		JButton btnAddMedia = new JButton(Messages.getString("panel.media.add"));
+		btnAddMedia.setActionCommand("addMedia");
+		btnAddMedia.addActionListener(this);
+		btnAddMedia.setMinimumSize(new Dimension(0, 50));
+		btnAddMedia.setFont(btnAddMedia.getFont().deriveFont(Font.BOLD, btnAddMedia.getFont().getSize2D() + 2.0f));
+		
+		this.btnRemoveMedia = new JButton(Messages.getString("panel.media.remove"));
+		this.btnRemoveMedia.setActionCommand("removeMedia");
+		this.btnRemoveMedia.addActionListener(this);
+		this.btnRemoveMedia.setEnabled(false);
+		
+		JPanel pnlRight = new JPanel();
+		GroupLayout layout = new GroupLayout(pnlRight);
+		pnlRight.setLayout(layout);
+		layout.setAutoCreateGaps(true);
+		layout.setHorizontalGroup(layout.createParallelGroup()
+				.addComponent(btnAddMedia, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(this.pnlProperties)
+				.addComponent(this.btnRemoveMedia, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addComponent(btnAddMedia)
+				.addGap(10, 10, 10)
+				.addComponent(this.pnlProperties)
+				.addComponent(this.btnRemoveMedia));
+		
+		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.mediaTabs, pnlRight);
+		pane.setOneTouchExpandable(true);
+		pane.setResizeWeight(1.0);
+		
 		this.setLayout(new BorderLayout());
-		this.add(pnlButtons, BorderLayout.PAGE_START);
-		this.add(this.mediaTabs, BorderLayout.CENTER);
+		this.add(pane, BorderLayout.CENTER);
 	}
 	
 	/**
@@ -132,7 +173,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 	 * @param thumbnails the list of thumbnails
 	 * @return JList
 	 */
-	private static final JList<MediaThumbnail> createJList(List<MediaThumbnail> thumbnails) {
+	private JList<MediaThumbnail> createJList(List<MediaThumbnail> thumbnails) {
 		JList<MediaThumbnail> list = new JList<MediaThumbnail>();
 		list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -140,6 +181,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 		list.setVisibleRowCount(-1);
 		list.setCellRenderer(new MediaThumbnailListCellRenderer());
 		list.setLayout(new BorderLayout());
+		list.addListSelectionListener(this);
 		// setup the items
 		DefaultListModel<MediaThumbnail> model = new DefaultListModel<MediaThumbnail>();
 		for (MediaThumbnail thumbnail : thumbnails) {
@@ -148,6 +190,72 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 		list.setModel(model);
 		
 		return list;
+	}
+	
+	/* (non-Javadoc)
+	 * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
+	 */
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		Object source = e.getSource();
+		if (source == this.lstImages) {
+			MediaThumbnail thumbnail = this.lstImages.getSelectedValue();
+			MediaFile file = thumbnail.getFile();
+			this.pnlProperties.setMediaFile(file);
+			this.btnRemoveMedia.setEnabled(true);
+		} else if (source == this.lstVideos) {
+			MediaThumbnail thumbnail = this.lstVideos.getSelectedValue();
+			MediaFile file = thumbnail.getFile();
+			this.pnlProperties.setMediaFile(file);
+			this.btnRemoveMedia.setEnabled(true);
+		} else if (source == this.lstAudio) {
+			MediaThumbnail thumbnail = this.lstAudio.getSelectedValue();
+			MediaFile file = thumbnail.getFile();
+			this.pnlProperties.setMediaFile(file);
+			this.btnRemoveMedia.setEnabled(true);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see javax.swing.event.ChangeListener#stateChanged(javax.swing.event.ChangeEvent)
+	 */
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		Object source = e.getSource();
+		if (source == this.mediaTabs) {
+			int index = this.mediaTabs.getSelectedIndex();
+			if (index == 0) {
+				MediaThumbnail thumbnail = this.lstImages.getSelectedValue();
+				if (thumbnail != null) {
+					MediaFile file = thumbnail.getFile();
+					this.pnlProperties.setMediaFile(file);
+					this.btnRemoveMedia.setEnabled(true);
+				} else {
+					this.pnlProperties.setMediaFile(null);
+					this.btnRemoveMedia.setEnabled(false);
+				}
+			} else if (index == 1) {
+				MediaThumbnail thumbnail = this.lstVideos.getSelectedValue();
+				if (thumbnail != null) {
+					MediaFile file = thumbnail.getFile();
+					this.pnlProperties.setMediaFile(file);
+					this.btnRemoveMedia.setEnabled(true);
+				} else {
+					this.pnlProperties.setMediaFile(null);
+					this.btnRemoveMedia.setEnabled(false);
+				}
+			} else if (index == 2) {
+				MediaThumbnail thumbnail = this.lstAudio.getSelectedValue();
+				if (thumbnail != null) {
+					MediaFile file = thumbnail.getFile();
+					this.pnlProperties.setMediaFile(file);
+					this.btnRemoveMedia.setEnabled(true);
+				} else {
+					this.pnlProperties.setMediaFile(null);
+					this.btnRemoveMedia.setEnabled(false);
+				}
+			}
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -183,9 +291,13 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 				// get the file
 				File file = fc.getSelectedFile();
 				// attempt to load the image
-				try {
-					String image = file.getAbsolutePath();
-					Media media = MediaLibrary.addMedia(image);
+				String path = file.getAbsolutePath();
+				
+				AddMediaTask task = new AddMediaTask(path);
+				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.media.addingMedia"), task);
+				
+				if (task.isSuccessful()) {
+					Media media = task.getMedia();
 					// add the thumbnail to the list
 					JList<MediaThumbnail> list = null;
 					if (media.getType() == MediaType.IMAGE) {
@@ -200,13 +312,13 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 					}
 					DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)list.getModel();
 					model.addElement(MediaLibrary.getThumbnail(media));
-				} catch (Exception ex) {
+				} else {
 					ExceptionDialog.show(
 							this, 
 							Messages.getString("panel.media.add.exception.title"), 
 							MessageFormat.format(Messages.getString("panel.media.add.exception.text"), file.getAbsolutePath()), 
-							ex);
-					LOGGER.error("An error occurred while attempting to add [" + file.getAbsolutePath() + "] to the media library: ", ex);
+							task.getException());
+					LOGGER.error("An error occurred while attempting to add [" + file.getAbsolutePath() + "] to the media library: ", task.getException());
 				}
 			}
 		} else if ("removeMedia".equals(command)) {
@@ -230,20 +342,88 @@ public class MediaLibraryPanel extends JPanel implements ActionListener {
 			// make sure something is selected
 			if (thumbnail != null) {
 				// remove the media from the media library
-				try {
-					MediaLibrary.removeMedia(thumbnail.getFile().getPath());
-					// remove the thumbnail from the list
-					DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)list.getModel();
-					model.removeElement(thumbnail);
-				} catch (IOException ex) {
-					ExceptionDialog.show(
-							this, 
-							Messages.getString("panel.media.remove.exception.title"), 
-							MessageFormat.format(Messages.getString("panel.media.remove.exception.text"), thumbnail.getFile().getName()), 
-							ex);
-					LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getPath() + "] from the media library: ", ex);
+				final String path = thumbnail.getFile().getPath();
+				
+				// make sure the user wants to do this
+				int choice = JOptionPane.showConfirmDialog(
+						this,
+						MessageFormat.format(Messages.getString("panel.media.remove.areYouSure.message"), thumbnail.getFile().getName()),
+						Messages.getString("panel.media.remove.areYouSure.title"),
+						JOptionPane.YES_NO_CANCEL_OPTION);
+				
+				if (choice == JOptionPane.YES_OPTION) {
+					// create a remove task
+					AbstractTask task = new AbstractTask() {
+						@Override
+						public void run() {
+							try {
+								MediaLibrary.removeMedia(path);
+								this.setSuccessful(true);
+							} catch (Exception e) {
+								this.handleException(e);
+							}
+						}
+					};
+					
+					TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.media.removingMedia"), task);
+					
+					if (task.isSuccessful()) {
+						// remove the thumbnail from the list
+						DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)list.getModel();
+						model.removeElement(thumbnail);
+					} else {
+						ExceptionDialog.show(
+								this, 
+								Messages.getString("panel.media.remove.exception.title"), 
+								MessageFormat.format(Messages.getString("panel.media.remove.exception.text"), thumbnail.getFile().getName()), 
+								task.getException());
+						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getPath() + "] from the media library: ", task.getException());
+					}
 				}
 			}
+		}
+	}
+	
+	/**
+	 * Custom task for adding media to the media library.
+	 * @author William Bittle
+	 * @version 2.0.0
+	 * @since 2.0.0
+	 */
+	private final class AddMediaTask extends AbstractTask {
+		/** The file system path */
+		private String path;
+		
+		/** The loaded media */
+		private Media media;
+		
+		/**
+		 * Minimal constructor.
+		 * @param path the file system path
+		 */
+		public AddMediaTask(String path) {
+			this.path = path;
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Runnable#run()
+		 */
+		@Override
+		public void run() {
+			try {
+				this.media = MediaLibrary.addMedia(this.path);
+				this.setSuccessful(true);
+			} catch (Exception e) {
+				this.handleException(e);
+			}
+		}
+		
+		/**
+		 * Returns the loaded media.
+		 * @return {@link Media}
+		 */
+		public Media getMedia() {
+			return this.media;
 		}
 	}
 }

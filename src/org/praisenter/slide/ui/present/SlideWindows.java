@@ -17,6 +17,9 @@ public class SlideWindows {
 	/** The device to {@link SlideWindow} mapping */
 	private static final Map<String, SlideWindow> WINDOWS = new HashMap<String, SlideWindow>();
 
+	/** The device to {@link SlideWindow} mapping (for notification windows) */
+	private static final Map<String, SlideWindow> NOTIFICATION_WINDOWS = new HashMap<String, SlideWindow>();
+	
 	// static interface
 	
 	/**
@@ -24,26 +27,37 @@ public class SlideWindows {
 	 * <p>
 	 * Returns null if the given GraphicsDevice is no longer valid.
 	 * @param device the device
+	 * @param notification true if a notification window is desired
 	 * @return {@link SlideWindow}
 	 * @see WindowUtilities#isValid(GraphicsDevice)
 	 */
-	private static final SlideWindow getSlideWindow(GraphicsDevice device) {
+	private static final SlideWindow getSlideWindow(GraphicsDevice device, boolean notification) {
 		if (device == null) return null;
 		// check if the given device is still valid
 		boolean valid = WindowUtilities.isValid(device);
 		// get the cached window using device id
 		String id = device.getIDstring();
+		
+		Map<String, SlideWindow> windows = WINDOWS;
+		if (notification) {
+			windows = NOTIFICATION_WINDOWS;
+		}
+		
 		// modify the windows map
-		synchronized (WINDOWS) {
-			SlideWindow window = WINDOWS.get(id);
+		synchronized (windows) {
+			SlideWindow window = windows.get(id);
 			// doing this will handle new devices being added
 			if (window == null && valid) {
 				// the device is valid so create a new window for it
-				window = new SlideWindow(device);
-				WINDOWS.put(id, window);
+				if (notification) {
+					window = new SlideWindow(device, false, true);
+				} else {
+					window = new SlideWindow(device, true, false);
+				}
+				windows.put(id, window);
 			} else if (window != null && !valid) {
 				// the device is no longer valid so we need to remove it
-				WINDOWS.remove(window.device.getIDstring());
+				windows.remove(window.device.getIDstring());
 				// set the window to invisible and release resources
 				window.dialog.setVisible(false);
 				window.dialog.dispose();
@@ -61,10 +75,21 @@ public class SlideWindows {
 	 * @see WindowUtilities#isValid(GraphicsDevice)
 	 */
 	public static final SlideWindow getPrimarySlideWindow() {
-		GraphicsDevice device = WindowUtilities.getSecondaryDevice();
 		Preferences preferences = Preferences.getInstance();
-		device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
-		return getSlideWindow(device);
+		return getSlideWindow(preferences.getPrimaryOrDefaultDevice(), false);
+	}
+	
+	/**
+	 * Returns the primary {@link SlideWindow} determined by the {@link Preferences}.
+	 * <p>
+	 * Returns null if the primary GraphicsDevice is no longer valid.
+	 * <p>
+	 * This method returns a window specifically for notifications.
+	 * @return {@link SlideWindow}
+	 */
+	public static final SlideWindow getPrimaryNotificationWindow() {
+		Preferences preferences = Preferences.getInstance();
+		return getSlideWindow(preferences.getPrimaryOrDefaultDevice(), true);
 	}
 	
 	/**

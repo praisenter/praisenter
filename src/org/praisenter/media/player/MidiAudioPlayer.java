@@ -96,7 +96,9 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	/**
 	 * Default constructor.
 	 */
-	public MidiAudioPlayer() {}
+	public MidiAudioPlayer() {
+		this.configuration = new MediaPlayerConfiguration();
+	}
 
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.player.AbstractAudioPlayer#setMedia(org.praisenter.media.AbstractAudioMedia)

@@ -10,6 +10,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -29,7 +30,7 @@ import org.praisenter.slide.ui.ResizeWidthCommand;
  * @version 1.0.0
  * @since 1.0.0
  */
-public abstract class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, PropertyChangeListener {
+public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, PropertyChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -927595042247907332L;
 
@@ -101,7 +102,8 @@ public abstract class SlideEditorPanel extends JPanel implements MouseMotionList
 	protected PositionedSlideComponent getComponentAtPoint(Point point) {
 		if (this.slide != null) {
 			List<PositionedSlideComponent> components = this.slide.getComponents(PositionedSlideComponent.class);
-			// TODO depending on the ordering we may need to reverse this loop
+			// reverse the list so that we find the highest component first
+			Collections.reverse(components);
 			for (PositionedSlideComponent component : components) {
 				if (this.isInside(point, component)) {
 					return component;

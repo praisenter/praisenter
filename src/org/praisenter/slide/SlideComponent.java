@@ -8,23 +8,20 @@ package org.praisenter.slide;
  */
 public interface SlideComponent {
 	/**
+	 * Returns the name of the slide component.
+	 * @return String
+	 */
+	public abstract String getName();
+	
+	/**
+	 * Sets the name of the slide component.
+	 * @param name the desired name
+	 */
+	public abstract void setName(String name);
+	
+	/**
 	 * Performs a deep copy of this object and returns the result.
 	 * @return {@link SlideComponent}
 	 */
 	public abstract SlideComponent copy();
-
-	/**
-	 * Returns the z-ordering of the component in the slide.
-	 * @return int
-	 */
-	public abstract int getOrder();
-	
-	/**
-	 * Sets the z-ordering of the component in the slide.
-	 * <p>
-	 * If the order is changed using this method, its up to the caller
-	 * to ensure that the slide that contains this component is resorted.
-	 * @param order the order
-	 */
-	public abstract void setOrder(int order);
 }

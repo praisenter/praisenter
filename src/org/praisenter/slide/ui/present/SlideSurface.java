@@ -360,8 +360,14 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 			}
 		} else {
 			synchronized (this.transitionCompleteLock) {
-				this.transitionComplete = true;
-				this.transitionCompleteLock.notifyAll();
+				this.onInTransitionComplete();
+			}
+			// begin the media players
+			if (this.inBackgroundMediaPlayer != null) {
+				this.inBackgroundMediaPlayer.play();
+			}
+			for (MediaPlayer<?> player : this.inMediaPlayers) {
+				player.play();
 			}
 			this.repaint();
 		}
@@ -387,15 +393,9 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 			// start it
 			this.animator.start(this);
 		} else {
-			SlideSurface.clearImage(this.image0);
-			SlideSurface.clearImage(this.image1);
-			
 			synchronized (this.transitionCompleteLock) {
-				this.transitionComplete = true;
-				this.transitionCompleteLock.notifyAll();
+				this.onOutTransitionComplete();
 			}
-			
-			this.clear = true;
 			this.repaint();
 		}
 	}

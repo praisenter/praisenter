@@ -36,17 +36,27 @@ public abstract class AbstractRenderableSlideComponent implements SlideComponent
 	/** True if the background paint should be rendered */
 	@XmlElement(name = "BackgroundPaintVisible", required = true, nillable = false)
 	protected boolean backgroundPaintVisible;
+
+	/** The component name */
+	@XmlElement(name = "Name", required = true, nillable = false)
+	protected String name;
+	
+	/** The z-ordering of this component */
+	@XmlAttribute(name = "Order")
+	protected int order;
 	
 	/**
 	 * Minimal constructor.
+	 * @param name the name of the component
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public AbstractRenderableSlideComponent(int width, int height) {
+	public AbstractRenderableSlideComponent(String name, int width, int height) {
 		this.width = width;
 		this.height = height;
 		this.backgroundPaint = Color.WHITE;
 		this.backgroundPaintVisible = false;
+		this.order = 1;
 	}
 	
 	/**
@@ -60,6 +70,8 @@ public abstract class AbstractRenderableSlideComponent implements SlideComponent
 		this.height = component.height;
 		this.backgroundPaint = component.backgroundPaint;
 		this.backgroundPaintVisible = component.backgroundPaintVisible;
+		this.order = component.order;
+		this.name = component.name;
 	}
 	
 	/* (non-Javadoc)
@@ -157,5 +169,35 @@ public abstract class AbstractRenderableSlideComponent implements SlideComponent
 	@Override
 	public void setBackgroundPaintVisible(boolean visible) {
 		this.backgroundPaintVisible = visible;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.RenderableSlideComponent#getOrder()
+	 */
+	@Override
+	public int getOrder() {
+		return this.order;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.RenderableSlideComponent#setOrder(int)
+	 */
+	@Override
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideComponent#getName()
+	 */
+	public String getName() {
+		return this.name;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideComponent#setName(java.lang.String)
+	 */
+	public void setName(String name) {
+		this.name = name;
 	}
 }

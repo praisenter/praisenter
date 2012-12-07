@@ -51,10 +51,6 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	@XmlElement(name = "BorderVisible", required = true, nillable = false)
 	protected boolean borderVisible;
 	
-	/** The z-ordering of this component */
-	@XmlAttribute(name = "Order")
-	protected int order;
-	
 	/**
 	 * Default constructor.
 	 * <p>
@@ -62,33 +58,34 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected GenericSlideComponent() {
-		this(0, 0);
+		this(null, 0, 0);
 	}
 	
 	/**
 	 * Minimal constructor.
+	 * @param name the name of the component
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public GenericSlideComponent(int width, int height) {
-		this(0, 0, width, height);
+	public GenericSlideComponent(String name, int width, int height) {
+		this(name, 0, 0, width, height);
 	}
 	
 	/**
 	 * Optional constructor.
+	 * @param name the name of the component
 	 * @param x the x coordinate in pixels
 	 * @param y the y coordinate in pixels
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public GenericSlideComponent(int x, int y, int width, int height) {
-		super(width, height);
+	public GenericSlideComponent(String name, int x, int y, int width, int height) {
+		super(name, width, height);
 		this.x = x;
 		this.y = y;
 		this.borderPaint = Color.BLACK;
 		this.borderStroke = new BasicStroke();
 		this.borderVisible = false;
-		this.order = 1;
 	}
 	
 	/**
@@ -104,7 +101,6 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 		this.borderPaint = component.borderPaint;
 		this.borderStroke = component.borderStroke;
 		this.borderVisible = component.borderVisible;
-		this.order = component.order;
 	}
 	
 	/* (non-Javadoc)
@@ -145,22 +141,6 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	@Override
 	public void setY(int y) {
 		this.y = y;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#getOrder()
-	 */
-	@Override
-	public int getOrder() {
-		return this.order;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#setOrder(int)
-	 */
-	@Override
-	public void setOrder(int order) {
-		this.order = order;
 	}
 	
 	/* (non-Javadoc)

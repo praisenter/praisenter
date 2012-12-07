@@ -53,29 +53,31 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected ImageMediaComponent() {
-		this(null, 0, 0, 0, 0);
+		this(null, null, 0, 0, 0, 0);
 	}
 	
 	/**
 	 * Minimal constructor.
+	 * @param name the name of the component
 	 * @param media the image media
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public ImageMediaComponent(ImageMedia media, int width, int height) {
-		this(media, 0, 0, width, height);
+	public ImageMediaComponent(String name, ImageMedia media, int width, int height) {
+		this(name, media, 0, 0, width, height);
 	}
 	
 	/**
 	 * Optional constructor.
+	 * @param name the name of the component
 	 * @param media the image media
 	 * @param x the x coordinate in pixels
 	 * @param y the y coordinate in pixels
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public ImageMediaComponent(ImageMedia media, int x, int y, int width, int height) {
-		super(x, y, width, height);
+	public ImageMediaComponent(String name, ImageMedia media, int x, int y, int width, int height) {
+		super(name, x, y, width, height);
 		this.media = media;
 		this.scaleType = ScaleType.NONUNIFORM;
 		this.scaleQuality = ScaleQuality.BILINEAR;

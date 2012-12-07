@@ -121,7 +121,7 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	/**
 	 * Initializes the playback of the given media.
 	 * <p>
-	 * Returns true if the media was opened succesfully.
+	 * Returns true if the media was opened successfully and is ready for playback.
 	 * @param media the media
 	 * @return boolean
 	 */
@@ -138,9 +138,13 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 		String filePath = media.getFile().getPath();
 		if (container.open(filePath, IContainer.Type.READ, null) < 0) {
 			LOGGER.error("Could not open file [" + filePath + "].  Unsupported container format.");
+			this.media = null;
+			if (container != null) {
+				container.close();
+			}
 			return false;
 		}
-		LOGGER.debug("Video file opened. Container format: " + container.getContainerFormat().getInputFormatLongName());
+		LOGGER.debug("Media file opened width container format: " + container.getContainerFormat().getInputFormatLongName());
 
 		// query how many streams the call to open found
 		int numStreams = container.getNumStreams();
@@ -163,6 +167,15 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
             }
 		}
 		
+		if (videoCoder == null && audioCoder == null) {
+			LOGGER.error("No audio or video stream found.");
+			this.media = null;
+			if (container != null) {
+				container.close();
+			}
+			return false;
+		}
+		
 		// see if we have a video stream
 		if (videoCoder != null) {
 			// open the coder to read the video data
@@ -173,6 +186,10 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 			}
 			if (videoCoder.open(null, null) < 0) {
 				LOGGER.error("Could not open video decoder for: " + codecName);
+				this.media = null;
+				if (container != null) {
+					container.close();
+				}
 				return false;
 			}
 			LOGGER.debug("Video coder opened with format: " + codecName);
@@ -189,9 +206,15 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 			}
 			if (audioCoder.open(null, null) < 0) {
 				LOGGER.error("Could not open audio decoder for: " + codecName);
+				this.media = null;
+				if (container != null) {
+					container.close();
+				}
 				return false;
 			}
 			LOGGER.debug("Audio coder opened with format: " + codecName);
+		} else {
+			LOGGER.debug("No audio stream in container.");
 		}
 		
 		// initialize the playback threads
