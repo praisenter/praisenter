@@ -24,6 +24,6 @@ public class MidiAudioMedia extends AbstractAudioMedia {
 	 */
 	@Override
 	public MediaThumbnail getThumbnail(Dimension size) {
-		return new MediaThumbnail(file, Images.MIDI_AUDIO, MediaType.AUDIO);
+		return new MediaThumbnail(this.file, Images.MIDI_AUDIO, MediaType.AUDIO);
 	}
 }

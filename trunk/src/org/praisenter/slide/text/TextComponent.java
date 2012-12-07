@@ -27,7 +27,6 @@ import org.praisenter.xml.PaintTypeAdapter;
  */
 // TODO add text shadow (color, direction, width, visible)
 // TODO add text outline (stroke, paint, visible)
-// TODO add ability for video/image background (this may need to be done using decorator pattern or something)
 @XmlRootElement(name = "TextComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 public class TextComponent extends GenericSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent {
@@ -73,39 +72,42 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected TextComponent() {
-		super(0, 0, 0, 0);
+		super(null, 0, 0, 0, 0);
 	}
 	
 	/**
 	 * Minimal constructor.
+	 * @param name the name of the component
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public TextComponent(int width, int height) {
-		this(0, 0, width, height, null);
+	public TextComponent(String name, int width, int height) {
+		this(name, 0, 0, width, height, null);
 	}
 	
 	/**
 	 * Optional constructor.
+	 * @param name the name of the component
 	 * @param x the x coordinate in pixels
 	 * @param y the y coordinate in pixels
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public TextComponent(int x, int y, int width, int height) {
-		this(x, y, width, height, null);
+	public TextComponent(String name, int x, int y, int width, int height) {
+		this(name, x, y, width, height, null);
 	}
 
 	/**
 	 * Optional constructor.
+	 * @param name the name of the component
 	 * @param x the x coordinate in pixels
 	 * @param y the y coordinate in pixels
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 * @param text the text
 	 */
-	public TextComponent(int x, int y, int width, int height, String text) {
-		super(x, y, width, height);
+	public TextComponent(String name, int x, int y, int width, int height, String text) {
+		super(name, x, y, width, height);
 		this.text = text;
 		this.textPaint = Color.BLACK;
 		this.textFont = null;

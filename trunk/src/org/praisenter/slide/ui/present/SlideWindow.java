@@ -12,6 +12,7 @@ import java.awt.Rectangle;
 import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
+import org.praisenter.slide.NotificationSlide;
 import org.praisenter.slide.Slide;
 import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
@@ -38,14 +39,24 @@ public class SlideWindow {
 	/** The rendering surface */
 	protected SlideSurface surface;
 	
+	/** True if the window is always the device size */
+	protected boolean fullScreen;
+	
+	/** True if the window is always on top of other windows */
+	protected boolean overlay;
+	
 	/**
 	 * Creates a new display window for the given device.
 	 * @param device the device
+	 * @param fullScreen true if the window should be full screen
+	 * @param overlay true if the window should always be on top of other windows
 	 */
-	public SlideWindow(GraphicsDevice device) {
+	public SlideWindow(GraphicsDevice device, boolean fullScreen, boolean overlay) {
 		// simple assignments
 		this.device = device;
 		this.visible = false;
+		this.fullScreen = fullScreen;
+		this.overlay = overlay;
 		
 		// setup the dialog
 		this.dialog = new JDialog();
@@ -79,6 +90,8 @@ public class SlideWindow {
 		this.surface = new SlideSurface();
 		container.add(this.surface, BorderLayout.CENTER);
 		
+		this.dialog.setAlwaysOnTop(overlay);
+		
 		// make sure the panel is resized to fit the layout
 		this.dialog.pack();
 		
@@ -92,6 +105,9 @@ public class SlideWindow {
 	 * @param animator the animator
 	 */
 	public void send(Slide slide, TransitionAnimator animator) {
+		if (!this.fullScreen) {
+			this.setWindowSize(slide);
+		}
 		if (this.setVisible(true)) {
 			this.surface.send(slide, animator);
 		} else {
@@ -111,6 +127,35 @@ public class SlideWindow {
 			// if transitions aren't supported
 			this.surface.clear(null);
 		}
+	}
+	
+	/**
+	 * Sets the window size to match the given slide size.
+	 * @param slide the slide
+	 */
+	protected void setWindowSize(Slide slide) {
+		// set the position
+		GraphicsConfiguration gc = this.device.getDefaultConfiguration();
+		// get its position and dimensions
+		Rectangle r = gc.getBounds();
+		int x = r.x;
+		int y = r.y;
+		
+		// check for notification slide
+		if (slide instanceof NotificationSlide) {
+			NotificationSlide ns = (NotificationSlide)slide;
+			x += ns.getX();
+			y += ns.getY();
+		}
+		
+		Dimension size = new Dimension(slide.getWidth(), slide.getHeight());
+		// set the size
+		this.dialog.setMinimumSize(size);
+		this.dialog.setPreferredSize(size);
+		this.dialog.setLocation(x, y);
+		
+		// make sure the panel is resized to fit the layout
+		this.dialog.pack();
 	}
 	
 	/**
@@ -192,7 +237,7 @@ public class SlideWindow {
 		} else {
 			// hiding of the window depends on the translucency support
 			if (translucency == WindowTranslucency.PERPIXEL_TRANSLUCENT) {
-				// then we can just clear the display
+				// then we can just clear the surface
 			} else if (translucency == WindowTranslucency.TRANSLUCENT) {
 				// then we can set the opacity
 				// no transitions sadly
@@ -217,7 +262,7 @@ public class SlideWindow {
 	}
 
 	/**
-	 * Returns true if this screen is currently visible.
+	 * Returns true if this window is currently visible.
 	 * <p>
 	 * The underlying surface may be visible but may have nothing
 	 * rendered to it.  This method will only return true if there
@@ -225,6 +270,28 @@ public class SlideWindow {
 	 * @return boolean
 	 */
 	public boolean isVisible() {
-		return visible;
+		return this.visible;
+	}
+	
+	/**
+	 * Returns true if this window is an overlay.
+	 * <p>
+	 * An overlay window is a window that will always be shown on top of
+	 * other windows.
+	 * @return boolean
+	 */
+	public boolean isOverlay() {
+		return this.overlay;
+	}
+	
+	/**
+	 * Returns true if this window is a full screen window.
+	 * <p>
+	 * Windows that are NOT full screen will have their size adjusted
+	 * to fit the size of the sent slides.
+	 * @return boolean
+	 */
+	public boolean isFullScreen() {
+		return this.fullScreen;
 	}
 }

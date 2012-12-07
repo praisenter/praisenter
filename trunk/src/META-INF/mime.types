@@ -1,14 +1,23 @@
 # image types
 image/png	png PNG
+image/gif	gif GIF
+image/bmp	bmp BMP
+image/jpeg	jpg JPG jpeg JPEG
+image/vnd.wap.wbmp	wbmp WBMP
 
 # video types
 video/ogg	ogv OGV
 video/ogg	ogg OGG
 video/mov   mov MOV
 video/avi   avi AVI
+video/x-ms-wmv	wmv WMV
 
 # audio types
 audio/midi mid midi
+audio/x-ms-wma	wma WMA
+audio/mpeg	mp3 MP3
+audio/x-aiff	aif AIF aifc AIFC aiff AIFF
+audio/wav	wav WAV
 
 # other
 application/xml	xml XML

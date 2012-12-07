@@ -1,5 +1,6 @@
 package org.praisenter.notification.ui;
 
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GraphicsDevice;
 import java.awt.event.ActionEvent;
@@ -10,16 +11,25 @@ import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.Timer;
 
+import org.apache.log4j.Logger;
 import org.praisenter.easings.Easings;
 import org.praisenter.preferences.NotificationPreferences;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.NotificationSlide;
+import org.praisenter.slide.NotificationSlideTemplate;
+import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideLibrary;
+import org.praisenter.slide.SlideLibraryException;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
+import org.praisenter.slide.ui.present.SlideWindow;
+import org.praisenter.slide.ui.present.SlideWindows;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
@@ -37,7 +47,10 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 	/** The version id */
 	private static final long serialVersionUID = 20837022721408081L;
 	
-	// display
+	/** The class level logger */
+	private static final Logger LOGGER = Logger.getLogger(NotificationPanel.class);
+	
+	// slide
 	
 	/** The notification slide */
 	protected NotificationSlide slide;
@@ -68,24 +81,53 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 	/** The manual clear button */
 	protected JButton btnClear;
 	
+	// state
+	
+	/** The wait duration timer */
+	protected Timer waitTimer;
+	
+	/** The wait timer lock */
+	protected Object waitTimerLock;
+	
 	/**
 	 * Default constructor.
 	 */
 	@SuppressWarnings("serial")
 	public NotificationPanel() {
+		this.waitTimerLock = new Object();
+		
+		// get the preferences
 		Preferences preferences = Preferences.getInstance();
 		NotificationPreferences nPreferences = preferences.getNotificationPreferences();
 		
-		// get the primary device
-		GraphicsDevice device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
-		if (device == null) {
-			device = WindowUtilities.getSecondaryDevice();
+		// get the primary device and size
+		GraphicsDevice device = preferences.getPrimaryOrDefaultDevice();
+		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		
+		// get the bible slide template
+		NotificationSlideTemplate template = null;
+		String templatePath = nPreferences.getTemplate();
+		if (templatePath != null && templatePath.trim().length() > 0) {
+			try {
+				template = SlideLibrary.getTemplate(templatePath, NotificationSlideTemplate.class);
+			} catch (SlideLibraryException e) {
+				LOGGER.error("Unable to load default notification template [" + templatePath + "]: ", e);
+			}
+		}
+		if (template == null) {
+			// if its still null, then use the default template
+			template = NotificationSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
 		}
 		
-		// create the display
-		// FIXME fix
-//		Dimension displaySize = gSettings.getPrimaryDisplaySize();
-//		this.display = DisplayFactory.getDisplay(nSettings, displaySize, "");
+		// check the template size against the display size
+		if (template.getDeviceWidth() != displaySize.width || template.getDeviceHeight() != displaySize.height) {
+			// log a message and modify the template to fit
+			LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
+			template.adjustSize(displaySize.width, displaySize.height);
+		}
+		
+		// create the slide
+		this.slide = template.createSlide();
 		
 		this.txtText = new JTextField() {
 			@Override
@@ -170,14 +212,25 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 				.addComponent(this.btnClear, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.preferences.ui.PreferencesListener#preferencesChanged()
+	 */
 	@Override
 	public void preferencesChanged() {
-		// FIXME implement
-//		GeneralSettings gSettings = GeneralSettings.getInstance();
-//		NotificationPreferences nSettings = NotificationPreferences.getInstance();
-//		
-//		Dimension displaySize = gSettings.getPrimaryDisplaySize();
-//		this.display = DisplayFactory.getDisplay(nSettings, displaySize, "");
+		// when the preferences change we need to check if the display
+		// size was changed and update the slides if necessary
+
+		// get the preferences
+		Preferences preferences = Preferences.getInstance();
+		
+		// get the primary device
+		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		
+		if (this.slide.getDeviceWidth() != displaySize.width || this.slide.getDeviceHeight() != displaySize.height) {
+			// adjust the slide size
+			this.slide.adjustSize(displaySize.width, displaySize.height);
+			LOGGER.info("Adjusting slides due to display size change.");
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -191,9 +244,8 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 			String text = this.txtText.getText();
 			// check the text length
 			if (text != null && !text.trim().isEmpty()) {
-				// set the text on the display
-				// FIXME fix
-//				this.display.getTextComponent().setText(text);
+				// set the text on the slide
+				this.slide.getTextComponent().setText(text);
 				// create the transition animators
 				TransitionAnimator in = new TransitionAnimator(
 						(Transition)this.cmbInTransition.getSelectedItem(),
@@ -206,32 +258,71 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 				// get the wait duration
 				int wait = ((Number)this.txtWaitPeriod.getValue()).intValue();
 				// send the notification
-				// FIXME implement
-//				NotificationDisplayWindow window = DisplayWindows.getPrimaryNotificationWindow();
-//				if (window != null) {
-//					window.send(this.display, in, out, wait);
-//				} else {
-//					// the device is no longer available
-//					JOptionPane.showMessageDialog(
-//							WindowUtilities.getParentWindow(this), 
-//							Messages.getString("dialog.device.primary.missing.text"), 
-//							Messages.getString("dialog.device.primary.missing.title"), 
-//							JOptionPane.WARNING_MESSAGE);
-//				}
+				this.sendWaitClear(this.slide, in, out, wait);
 			}
 		} else if ("clear".equals(event.getActionCommand())) {
+			synchronized (this.waitTimerLock) {
+				// check if we are currently waiting
+				if (this.waitTimer != null && this.waitTimer.isRunning()) {
+					// if so, then just stop it
+					this.waitTimer.stop();
+				}
+			}
 			// create the out transition animator
 			TransitionAnimator animator = new TransitionAnimator(
 					(Transition)this.cmbOutTransition.getSelectedItem(),
 					((Number)this.txtOutTransition.getValue()).intValue(),
 					Easings.getEasingForId(preferences.getClearTransitionEasingId()));
-			// get the notification display window
-			// FIXME implement
-//			NotificationDisplayWindow window = DisplayWindows.getPrimaryNotificationWindow();
-//			if (window != null) {
-//				// clear it
-//				window.clear(animator);
-//			}
+			// get the notification slide window
+			SlideWindow window = SlideWindows.getPrimaryNotificationWindow();
+			if (window != null) {
+				// clear it
+				window.clear(animator);
+			}
 		}
 	}
+	
+	/**
+	 * Sends the slide to this slide window using the given in animator, waits the given period, then clears the
+	 * slide using the given out animator.
+	 * @param slide the slide to show
+	 * @param inAnimator the in transition animator
+	 * @param outAnimator the out transition animator
+	 * @param waitPeriod the wait period in milliseconds
+	 */
+	protected void sendWaitClear(Slide slide, TransitionAnimator inAnimator, final TransitionAnimator outAnimator, int waitPeriod) {
+		final SlideWindow window = SlideWindows.getPrimaryNotificationWindow();
+		if (window != null) {
+			synchronized (this.waitTimerLock) {
+				// check if we are currently waiting
+				if (this.waitTimer != null && this.waitTimer.isRunning()) {
+					// if so, then just stop it
+					this.waitTimer.stop();
+				}
+				// add the duration of the in transition to the total wait time
+				boolean ts = Transitions.isTransitionSupportAvailable(window.getDevice());
+				if (ts && inAnimator != null) {
+					waitPeriod += inAnimator.getDuration();
+				}
+				window.send(slide, inAnimator);
+				this.waitTimer = new Timer(waitPeriod, new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent event) {
+						// once the wait period is up, then execute the clear operation
+						window.clear(outAnimator);
+					}
+				});
+				this.waitTimer.setRepeats(false);
+				this.waitTimer.start();
+			}
+		} else {
+			// the device is no longer available
+			JOptionPane.showMessageDialog(
+					WindowUtilities.getParentWindow(this), 
+					Messages.getString("dialog.device.primary.missing.text"), 
+					Messages.getString("dialog.device.primary.missing.title"), 
+					JOptionPane.WARNING_MESSAGE);
+		}
+	}
+	
 }

@@ -214,7 +214,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		next.getScriptureTextComponent().setText(Messages.getString("slide.bible.text.default"));
 		
 		// create the preview panel
-		this.pnlPreview = new InlineSlidePreviewPanel(10);
+		this.pnlPreview = new InlineSlidePreviewPanel(10, 5);
 		this.pnlPreview.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY), BorderFactory.createEmptyBorder(15, 15, 15, 15)));
 		
 		this.pnlPreview.addSlide(previous);
@@ -831,22 +831,8 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		// get the preferences
 		Preferences preferences = Preferences.getInstance();
 		
-		// get the primary device
-		GraphicsDevice device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
-		Dimension displaySize = preferences.getPrimaryDeviceResolution();
-		if (device == null) {
-			device = WindowUtilities.getSecondaryDevice();
-			// the device was either not found or not setup
-			// so use the device's display size
-			displaySize = WindowUtilities.getDimension(device.getDisplayMode());
-		} else {
-			// perform a check against the display sizes
-			if (!displaySize.equals(WindowUtilities.getDimension(device.getDisplayMode()))) {
-				// if they are not equal we want to log a message and use the display size
-				LOGGER.warn("The primary display's resolution does not match the stored display size. Using device resolution.");
-				displaySize = WindowUtilities.getDimension(device.getDisplayMode());
-			}
-		}
+		// get the primary device size
+		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
 		
 		int count = this.pnlPreview.getSlideCount();
 		for (int i = 0; i < count; i++) {

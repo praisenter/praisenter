@@ -20,6 +20,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.media.AbstractVideoMedia;
 import org.praisenter.media.ImageMedia;
+import org.praisenter.resources.Messages;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
@@ -159,7 +160,7 @@ public class Slide {
 	 * @return {@link ImageMediaComponent}
 	 */
 	public ImageMediaComponent createImageBackgroundComponent(ImageMedia media) {
-		ImageMediaComponent component = new ImageMediaComponent(media, 0, 0, this.width, this.height);
+		ImageMediaComponent component = new ImageMediaComponent(Messages.getString("slide.background.name"), media, 0, 0, this.width, this.height);
 		// setup all the other properties
 		this.setupBackgroundComponent(component);
 		
@@ -172,7 +173,7 @@ public class Slide {
 	 * @return {@link VideoMediaComponent}
 	 */
 	public VideoMediaComponent createVideoBackgroundComponent(AbstractVideoMedia media) {
-		VideoMediaComponent component = new VideoMediaComponent(media, 0, 0, this.width, this.height);
+		VideoMediaComponent component = new VideoMediaComponent(Messages.getString("slide.background.name"), media, 0, 0, this.width, this.height);
 		// setup all the other properties
 		this.setupBackgroundComponent(component);
 		// since videos are opaque don't render the background
@@ -191,7 +192,7 @@ public class Slide {
 	 * @return {@link GenericSlideComponent}
 	 */
 	public GenericSlideComponent createPaintBackgroundComponent(Paint paint) {
-		GenericSlideComponent component = new GenericSlideComponent(0, 0, this.width, this.height);
+		GenericSlideComponent component = new GenericSlideComponent(Messages.getString("slide.background.name"), 0, 0, this.width, this.height);
 		// set the media
 		component.setBackgroundPaint(paint);
 		component.setBackgroundPaintVisible(true);
@@ -252,9 +253,12 @@ public class Slide {
 	 * @param component the component to add
 	 */
 	public void addComponent(SlideComponent component) {
-		int order = this.getNextIndex();
-		component.setOrder(order);
+		if (component instanceof RenderableSlideComponent) {
+			int order = this.getNextIndex();
+			((RenderableSlideComponent)component).setOrder(order);
+		}
 		this.components.add(component);
+		this.sortComponentsByOrder(this.components);
 	}
 	
 	/**
@@ -272,10 +276,10 @@ public class Slide {
 	 * @return int
 	 */
 	protected int getNextIndex() {
-		List<SlideComponent> components = this.getComponents(SlideComponent.class);
+		List<RenderableSlideComponent> components = this.getComponents(RenderableSlideComponent.class);
 		if (components.size() > 0) {
 			int maximum = 1;
-			for (SlideComponent component : components) {
+			for (RenderableSlideComponent component : components) {
 				if (maximum < component.getOrder()) {
 					maximum = component.getOrder();
 				}
@@ -298,11 +302,11 @@ public class Slide {
 	 * moved back by one.
 	 * @param component the component to move up
 	 */
-	public void moveComponentUp(SlideComponent component) {
+	public void moveComponentUp(RenderableSlideComponent component) {
 		// move the given component up in the order
 		
 		// get all the components
-		List<SlideComponent> components = this.getComponents(SlideComponent.class);
+		List<RenderableSlideComponent> components = this.getComponents(RenderableSlideComponent.class);
 		// verify the component exists on this slide
 		if (components.contains(component) && components.size() > 0) {
 			int size = components.size();
@@ -314,7 +318,7 @@ public class Slide {
 				// if its not in the last position then we need to 
 				// move it up and change the subsequent component (move it back by one)
 				int order = component.getOrder();
-				for (SlideComponent cmp : components) {
+				for (RenderableSlideComponent cmp : components) {
 					// see if the current component order is greater
 					// than this component's order
 					if (cmp.getOrder() == order + 1) {
@@ -341,11 +345,11 @@ public class Slide {
 	 * moved up by one.
 	 * @param component the component to move down
 	 */
-	public void moveComponentDown(SlideComponent component) {
+	public void moveComponentDown(RenderableSlideComponent component) {
 		// move the given component down in the order
 		
 		// get all the components
-		List<SlideComponent> components = this.getComponents(SlideComponent.class);
+		List<RenderableSlideComponent> components = this.getComponents(RenderableSlideComponent.class);
 		// verify the component exists on this slide
 		if (components.contains(component) && components.size() > 0) {
 			// see if the component is already in the first position
@@ -356,7 +360,7 @@ public class Slide {
 				// if its not in the first position then we need to 
 				// move it down and change the previous component (move it up by one)
 				int order = component.getOrder();
-				for (SlideComponent cmp : components) {
+				for (RenderableSlideComponent cmp : components) {
 					// find the previous component
 					if (cmp.getOrder() == order - 1) {
 						// we only need to move up the previous component
@@ -371,14 +375,47 @@ public class Slide {
 	}
 	
 	/**
-	 * Returns a list of the given component type.
+	 * Returns a list of the all the components of the given type.
 	 * <p>
 	 * This method will not return the background component even if it is
 	 * of the given type.
+	 * <p>
+	 * This method will return the components in ascending order.
 	 * @param clazz the class type
 	 * @return List&lt;E&gt;
 	 */
 	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz) {
+		List<E> components = new ArrayList<E>();
+		for (SlideComponent component : this.components) {
+			if (clazz.isInstance(component)) {
+				components.add(clazz.cast(component));
+			}
+		}
+		return components;
+	}
+	
+	/**
+	 * Returns a list of the all the components of the given type that cannot
+	 * be removed from the slide.
+	 * @param clazz the class type
+	 * @return List&lt;E&gt;
+	 */
+	public <E extends SlideComponent> List<E> getStaticComponents(Class<E> clazz) {
+		return Collections.emptyList();
+	}
+	
+	/**
+	 * Returns a list of the all the components of the given type that can
+	 * be removed from the slide.
+	 * <p>
+	 * This method will not return the background component even if it is
+	 * of the given type.
+	 * <p>
+	 * This method will return the components in ascending order.
+	 * @param clazz the class type
+	 * @return List&lt;E&gt;
+	 */
+	public <E extends SlideComponent> List<E> getNonStaticComponents(Class<E> clazz) {
 		List<E> components = new ArrayList<E>();
 		for (SlideComponent component : this.components) {
 			if (clazz.isInstance(component)) {

@@ -92,8 +92,12 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor, A
 		// find the selected template
 		SlideThumbnail selected = null;
 		for (SlideThumbnail thumb : thumbs) {
-			if ((thumb.getFile() == SlideFile.NOT_STORED && sPreferences.getTemplate() == null) ||
-				 thumb.getFile().getPath().equals(sPreferences.getTemplate())) {
+			if (thumb.getFile() == SlideFile.NOT_STORED) {
+				if (sPreferences.getTemplate() == null) {
+					selected = thumb;
+					break;
+				}
+			} else if (thumb.getFile().getPath().equals(sPreferences.getTemplate())) {
 				selected = thumb;
 				break;
 			}

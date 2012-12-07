@@ -1,8 +1,17 @@
 package org.praisenter.slide;
 
+import java.awt.Color;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.praisenter.resources.Messages;
+import org.praisenter.slide.text.FontScaleType;
+import org.praisenter.slide.text.HorizontalTextAlignment;
+import org.praisenter.slide.text.TextComponent;
+import org.praisenter.slide.text.VerticalTextAlignment;
+import org.praisenter.utilities.FontManager;
 
 /**
  * Represents a template of a {@link NotificationSlide}.
@@ -24,17 +33,19 @@ public class NotificationSlideTemplate extends NotificationSlide implements Temp
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected NotificationSlideTemplate() {
-		super(null, 0, 0);
+		super(null, 0, 0, 0, 0);
 	}
 
 	/**
 	 * Full constructor.
 	 * @param name the name of the template
-	 * @param width the width of the slide
-	 * @param height the height of the slide
+	 * @param deviceWidth the width of the target device
+	 * @param deviceHeight the height of the target device
+	 * @param slideWidth the width of the slide
+	 * @param slideHeight the height of the slide
 	 */
-	public NotificationSlideTemplate(String name, int width, int height) {
-		super(name, width, height);
+	public NotificationSlideTemplate(String name, int deviceWidth, int deviceHeight, int slideWidth, int slideHeight) {
+		super(name, deviceWidth, deviceHeight, slideWidth, slideHeight);
 	}
 	
 	/**
@@ -50,5 +61,34 @@ public class NotificationSlideTemplate extends NotificationSlide implements Temp
 	 */
 	public NotificationSlide createSlide() {
 		return new NotificationSlide(this);
+	}
+	
+	/**
+	 * Returns the default {@link NotificationSlideTemplate}.
+	 * <p>
+	 * This is useful when no templates exist in the template library.
+	 * @param width the slide template width
+	 * @param height the slide template height
+	 * @return {@link NotificationSlideTemplate}
+	 */
+	public static final NotificationSlideTemplate getDefaultTemplate(int width, int height) {
+		// the default template will be at the top
+		final int h = (int)Math.ceil((double)height * 0.20);
+		NotificationSlideTemplate template = new NotificationSlideTemplate(Messages.getString("template.notification.default.name"), width, height, width, h);
+		
+		GenericSlideComponent background = template.createPaintBackgroundComponent(new Color(0, 0, 0, 170));
+		template.setBackground(background);
+		
+		TextComponent text = template.getTextComponent();
+		text.setText(Messages.getString("slide.notification.text.default"));
+		text.setTextPaint(Color.WHITE);
+		text.setTextFont(FontManager.getDefaultFont().deriveFont(50.0f));
+		text.setTextWrapped(true);
+		text.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
+		text.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
+		text.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
+		text.setTextPadding(30);
+		
+		return template;
 	}
 }

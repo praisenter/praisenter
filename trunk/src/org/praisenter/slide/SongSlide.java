@@ -1,5 +1,6 @@
 package org.praisenter.slide;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -7,6 +8,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.praisenter.resources.Messages;
 import org.praisenter.slide.text.TextComponent;
 
 /**
@@ -58,7 +60,7 @@ public class SongSlide extends Slide {
 		final int h = height - margin * 2;
 		final int w = width - margin * 2;
 		
-		this.textComponent = new TextComponent(margin, margin, w, h);
+		this.textComponent = new TextComponent(Messages.getString("slide.song.text.name"), margin, margin, w, h);
 	}
 	
 	/**
@@ -99,6 +101,19 @@ public class SongSlide extends Slide {
 		}
 		this.sortComponentsByOrder(components);
 		return components;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getStaticComponents(java.lang.Class)
+	 */
+	@Override
+	public <E extends SlideComponent> List<E> getStaticComponents(Class<E> clazz) {
+		if (clazz.isAssignableFrom(TextComponent.class)) {
+			List<E> components = new ArrayList<E>();
+			components.add(clazz.cast(this.textComponent));
+			return components;
+		}
+		return super.getStaticComponents(clazz);
 	}
 	
 	/**

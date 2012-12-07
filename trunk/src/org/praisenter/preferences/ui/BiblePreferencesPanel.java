@@ -164,8 +164,12 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, 
 		// find the selected template
 		SlideThumbnail selected = null;
 		for (SlideThumbnail thumb : thumbs) {
-			if ((thumb.getFile() == SlideFile.NOT_STORED && bPreferences.getTemplate() == null) ||
-				 thumb.getFile().getPath().equals(bPreferences.getTemplate())) {
+			if (thumb.getFile() == SlideFile.NOT_STORED) {
+				if (bPreferences.getTemplate() == null) {
+					selected = thumb;
+					break;
+				}
+			} else if (thumb.getFile().getPath().equals(bPreferences.getTemplate())) {
 				selected = thumb;
 				break;
 			}

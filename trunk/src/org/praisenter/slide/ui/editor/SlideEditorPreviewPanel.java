@@ -70,12 +70,11 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.AbstractSlidePreviewPanel#renderSlide(java.awt.Graphics2D, org.praisenter.slide.Slide, java.lang.String, org.praisenter.slide.ui.SlidePreviewMetrics)
+	 * @see org.praisenter.slide.ui.preview.AbstractSlidePreviewPanel#renderSlide(java.awt.Graphics2D, org.praisenter.slide.Slide, org.praisenter.slide.ui.SlidePreviewMetrics)
 	 */
 	@Override
-	protected void renderSlide(Graphics2D g2d, Slide slide, String name, SlidePreviewMetrics metrics) {
-		// perform normal rendering
-		super.renderSlide(g2d, slide, name, metrics);
+	protected void renderSlide(Graphics2D g2d, Slide slide, SlidePreviewMetrics metrics) {
+		super.renderSlide(g2d, slide, metrics);
 		
 		// get the slide offset
 		Point offset = this.getSlideOffset();

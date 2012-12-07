@@ -6,7 +6,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.easings.CubicEasing;
-import org.praisenter.transitions.Swap;
+import org.praisenter.transitions.PushDown;
+import org.praisenter.transitions.VerticalSplitCollapse;
 
 /**
  * Class used to store notification preferences.
@@ -17,9 +18,17 @@ import org.praisenter.transitions.Swap;
 @XmlRootElement(name = "NotificationPreferences")
 @XmlAccessorType(XmlAccessType.NONE)
 public class NotificationPreferences {
+	// general
+	
 	/** The notification wait period */
 	@XmlElement(name = "WaitPeriod", required = true, nillable = false)
 	protected int waitPeriod;
+
+	// template
+	
+	/** The template to use for bible slides */
+	@XmlElement(name = "Template", required = false, nillable = true)
+	protected String template;
 	
 	// transitions
 	
@@ -50,10 +59,13 @@ public class NotificationPreferences {
 	/** Default constructor. */
 	protected NotificationPreferences() {
 		this.waitPeriod = 5000;
-		this.sendTransitionId = Swap.ID;
+		
+		this.template = null;
+		
+		this.sendTransitionId = PushDown.ID;
 		this.sendTransitionDuration = 400;
 		this.sendTransitionEasingId = CubicEasing.ID;
-		this.clearTransitionId = Swap.ID;
+		this.clearTransitionId = VerticalSplitCollapse.ID;
 		this.clearTransitionDuration = 300;
 		this.clearTransitionEasingId = CubicEasing.ID;
 	}
@@ -73,6 +85,26 @@ public class NotificationPreferences {
 	public void setWaitPeriod(int waitPeriod) {
 		this.waitPeriod = waitPeriod;
 	}
+
+	// template
+	
+	/**
+	 * Gets the default template for notifications.
+	 * @return String
+	 */
+	public String getTemplate() {
+		return this.template;
+	}
+	
+	/**
+	 * Sets the default template for notifications.
+	 * @param template the template file path
+	 */
+	public void setTemplate(String template) {
+		this.template = template;
+	}
+	
+	// transitions
 	
 	/**
 	 * Returns the send transition id.

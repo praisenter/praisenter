@@ -2,7 +2,6 @@
 +---+---------------------------+---------------+----------------------------+-------------------------------------+------------------------------------------------------------
 |   | commons-codec-1.6.jar     | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Apache Commons Codec for base64 encoding/decoding
 |   | commons-lang3-3.1.jar     | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Apache Commons lang for xml escaping/unescaping
-|   | commons-pool-1.6.jar      | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Apache Commons pool for object pooling
 |   | derby.jar                 | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Derby database engine
 |   | log4j-1.2.17.jar          | Required      | Apache 2.0                 | licenses/apache-license-1.0.txt     | Runtime/Apache Log4j for application logging
 |   | mail.jar                  | Required      | Oracle binary Code License | licenses/javamail-license.txt       | Runtime/JavaMail API for sending error reports

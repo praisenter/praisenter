@@ -36,6 +36,7 @@ import org.praisenter.data.song.SongImporter;
 import org.praisenter.data.song.Songs;
 import org.praisenter.data.song.ui.SongsPanel;
 import org.praisenter.icons.Icons;
+import org.praisenter.media.ui.MediaLibraryDialog;
 import org.praisenter.notification.ui.NotificationPanel;
 import org.praisenter.preferences.ui.PreferencesDialog;
 import org.praisenter.preferences.ui.PreferencesListener;
@@ -85,7 +86,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
 		
-		// TODO add a way to save a service; this could be used to store queued songs and verses
+		// TODO Add a service schedule with import/export caps
 		
 		// create the notification panel
 		this.pnlNotification = new NotificationPanel();
@@ -107,62 +108,75 @@ public class Praisenter extends JFrame implements ActionListener {
 		{
 			JMenuBar barMenu = new JMenuBar();
 			
-			// main menus
+			// file menu
 			JMenu mnuFile = new JMenu(Messages.getString("menu.file"));
 			barMenu.add(mnuFile);
+			{
+				// file->preferences menu
+				JMenuItem mnuPreferences = new JMenuItem(Messages.getString("menu.file.preferences"));
+				mnuPreferences.setActionCommand("preferences");
+				mnuPreferences.addActionListener(this);
+				mnuFile.add(mnuPreferences);
+	
+				// file->export menu
+				{
+					JMenu mnuExport = new JMenu(Messages.getString("menu.file.export"));
+					mnuFile.add(mnuExport);
+					
+					JMenuItem mnuExportErrors = new JMenuItem(Messages.getString("menu.file.export.errors"));
+					mnuExportErrors.setActionCommand("exportErrors");
+					mnuExportErrors.addActionListener(this);
+					mnuExport.add(mnuExportErrors);
+					
+					JMenuItem mnuExportSongs = new JMenuItem(Messages.getString("menu.file.export.songs"));
+					mnuExportSongs.setActionCommand("exportSongs");
+					mnuExportSongs.addActionListener(this);
+					mnuExport.add(mnuExportSongs);
+				}
+	
+				// file->import menu
+				{
+					JMenu mnuImport = new JMenu(Messages.getString("menu.file.import"));
+					mnuFile.add(mnuImport);
+					
+					JMenu mnuImportBible = new JMenu(Messages.getString("menu.file.import.bible"));
+					mnuImport.add(mnuImportBible);
+					
+					JMenu mnuImportSongs = new JMenu(Messages.getString("menu.file.import.songs"));
+					mnuImport.add(mnuImportSongs);
+					
+					JMenuItem mnuImportUBBible = new JMenuItem(Messages.getString("menu.file.import.bible.unbound"));
+					mnuImportUBBible.setActionCommand("importUBBible");
+					mnuImportUBBible.setToolTipText(Messages.getString("menu.file.import.bible.unbound.tooltip"));
+					mnuImportUBBible.addActionListener(this);
+					mnuImportBible.add(mnuImportUBBible);
+					
+					JMenuItem mnuImportPraisenter = new JMenuItem(Messages.getString("menu.file.import.songs.praisenter"));
+					mnuImportPraisenter.setActionCommand("importPraisenterSongs");
+					mnuImportPraisenter.setToolTipText(Messages.getString("menu.file.import.songs.praisenter.tooltip"));
+					mnuImportPraisenter.addActionListener(this);
+					mnuImportSongs.add(mnuImportPraisenter);
+					
+					JMenuItem mnuImportCVSongs = new JMenuItem(Messages.getString("menu.file.import.songs.churchview"));
+					mnuImportCVSongs.setActionCommand("importCVSongs");
+					mnuImportCVSongs.setToolTipText(Messages.getString("menu.file.import.songs.churchview.tooltip"));
+					mnuImportCVSongs.addActionListener(this);
+					mnuImportSongs.add(mnuImportCVSongs);
+				}
+			}
 			
-			// preferences menu
-			JMenuItem mnuPreferences = new JMenuItem(Messages.getString("menu.window.preferences"));
-			mnuPreferences.setActionCommand("preferences");
-			mnuPreferences.addActionListener(this);
-			mnuFile.add(mnuPreferences);
-
-			// export menu
+			// libraries menu
+			JMenu mnuLibraries = new JMenu(Messages.getString("menu.libraries"));
+			barMenu.add(mnuLibraries);
 			{
-				JMenu mnuExport = new JMenu(Messages.getString("menu.file.export"));
-				mnuFile.add(mnuExport);
-				
-				JMenuItem mnuExportErrors = new JMenuItem(Messages.getString("menu.file.export.errors"));
-				mnuExportErrors.setActionCommand("exportErrors");
-				mnuExportErrors.addActionListener(this);
-				mnuExport.add(mnuExportErrors);
-				
-				JMenuItem mnuExportSongs = new JMenuItem(Messages.getString("menu.file.export.songs"));
-				mnuExportSongs.setActionCommand("exportSongs");
-				mnuExportSongs.addActionListener(this);
-				mnuExport.add(mnuExportSongs);
+				// libraries->media menu
+				JMenuItem mnuMediaLibrary = new JMenuItem(Messages.getString("menu.libraries.media"));
+				mnuMediaLibrary.setActionCommand("media");
+				mnuMediaLibrary.addActionListener(this);
+				mnuLibraries.add(mnuMediaLibrary);
 			}
-
-			// import menu
-			{
-				JMenu mnuImport = new JMenu(Messages.getString("menu.file.import"));
-				mnuFile.add(mnuImport);
-				
-				JMenu mnuImportBible = new JMenu(Messages.getString("menu.file.import.bible"));
-				mnuImport.add(mnuImportBible);
-				
-				JMenu mnuImportSongs = new JMenu(Messages.getString("menu.file.import.songs"));
-				mnuImport.add(mnuImportSongs);
-				
-				JMenuItem mnuImportUBBible = new JMenuItem(Messages.getString("menu.file.import.bible.unbound"));
-				mnuImportUBBible.setActionCommand("importUBBible");
-				mnuImportUBBible.setToolTipText(Messages.getString("menu.file.import.bible.unbound.tooltip"));
-				mnuImportUBBible.addActionListener(this);
-				mnuImportBible.add(mnuImportUBBible);
-				
-				JMenuItem mnuImportPraisenter = new JMenuItem(Messages.getString("menu.file.import.songs.praisenter"));
-				mnuImportPraisenter.setActionCommand("importPraisenterSongs");
-				mnuImportPraisenter.setToolTipText(Messages.getString("menu.file.import.songs.praisenter.tooltip"));
-				mnuImportPraisenter.addActionListener(this);
-				mnuImportSongs.add(mnuImportPraisenter);
-				
-				JMenuItem mnuImportCVSongs = new JMenuItem(Messages.getString("menu.file.import.songs.churchview"));
-				mnuImportCVSongs.setActionCommand("importCVSongs");
-				mnuImportCVSongs.setToolTipText(Messages.getString("menu.file.import.songs.churchview.tooltip"));
-				mnuImportCVSongs.addActionListener(this);
-				mnuImportSongs.add(mnuImportCVSongs);
-			}
-						
+			
+			// debugging menu
 			if (Main.isDebugEnabled()) {
 				JMenu mnuWindow = new JMenu(Messages.getString("menu.window"));
 				barMenu.add(mnuWindow);
@@ -215,9 +229,7 @@ public class Praisenter extends JFrame implements ActionListener {
 			// show the preferences dialog
 			// the bible and song panel need to listen for settings changes to know
 			// when to update their previews
-			// FIXME add this back
-//			SettingsDialog.show(this, new SettingsListener[] { this.pnlBible, this.pnlNotification, this.pnlSongs});
-			PreferencesDialog.show(this, new PreferencesListener[] { this.pnlBible, this.pnlSongs });
+			PreferencesDialog.show(this, new PreferencesListener[] { this.pnlBible, this.pnlNotification, this.pnlSongs });
 		} else if ("size".equals(command)) {
 			this.showCurrentWindowSize();
 		} else if ("exportErrors".equals(command)) {
@@ -230,6 +242,8 @@ public class Praisenter extends JFrame implements ActionListener {
 			this.exportSongs();
 		} else if ("importPraisenterSongs".equals(command)) {
 			this.importPraisenterSongDatabase();
+		} else if ("media".equals(command)) {
+			MediaLibraryDialog.show(this);
 		} else if ("about".equals(command)) {
 			AboutDialog.show(this);
 		}

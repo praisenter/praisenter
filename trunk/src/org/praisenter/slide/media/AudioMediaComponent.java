@@ -34,6 +34,10 @@ public class AudioMediaComponent implements SlideComponent, MediaComponent<Abstr
 	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
 	protected AbstractAudioMedia media;
 	
+	/** The name of the component */
+	@XmlElement(name = "Name", required = true, nillable = false)
+	protected String name;
+	
 	/**
 	 * Default constructor.
 	 * <p>
@@ -41,14 +45,16 @@ public class AudioMediaComponent implements SlideComponent, MediaComponent<Abstr
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected AudioMediaComponent() {
-		this((AbstractAudioMedia)null);
+		this(null, null);
 	}
 	
 	/**
 	 * Minimal constructor.
+	 * @param name the name of the component
 	 * @param media the media
 	 */
-	public AudioMediaComponent(AbstractAudioMedia media) {
+	public AudioMediaComponent(String name, AbstractAudioMedia media) {
+		this.name = name;
 		this.media = media;
 	}
 	
@@ -57,6 +63,7 @@ public class AudioMediaComponent implements SlideComponent, MediaComponent<Abstr
 	 * @param component the component to copy
 	 */
 	public AudioMediaComponent(AudioMediaComponent component) {
+		this.name = component.name;
 		this.media = component.media;
 		this.loopEnabled = component.loopEnabled;
 		this.audioMuted = component.audioMuted;
@@ -71,19 +78,19 @@ public class AudioMediaComponent implements SlideComponent, MediaComponent<Abstr
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#getOrder()
+	 * @see org.praisenter.slide.SlideComponent#getName()
 	 */
-	@Override
-	public int getOrder() {
-		return -10;
+	public String getName() {
+		return this.name;
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#setOrder(int)
+	 * @see org.praisenter.slide.SlideComponent#setName(java.lang.String)
 	 */
-	@Override
-	public void setOrder(int order) {}
-	
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.media.MediaComponent#getMedia()
 	 */
