@@ -1230,6 +1230,11 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 				this.pnlPreview.shiftSlides(direction);
 				slide = (BibleSlide)this.pnlPreview.getSlide(2);
 			}
+			
+			// we need to make sure the slide labels remain stationary
+			this.pnlPreview.getSlide(0).setName(Messages.getString("panel.bible.preview.previous"));
+			this.pnlPreview.getSlide(1).setName(Messages.getString("panel.bible.preview.current"));
+			this.pnlPreview.getSlide(2).setName(Messages.getString("panel.bible.preview.next"));
 		}
 		
 		// check for null

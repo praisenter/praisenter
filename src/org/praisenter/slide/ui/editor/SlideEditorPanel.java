@@ -17,12 +17,6 @@ import javax.swing.JPanel;
 
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.Slide;
-import org.praisenter.slide.ui.BoundsCommand;
-import org.praisenter.slide.ui.MoveCommand;
-import org.praisenter.slide.ui.MutexCommandGroup;
-import org.praisenter.slide.ui.ResizeCommand;
-import org.praisenter.slide.ui.ResizeHeightCommand;
-import org.praisenter.slide.ui.ResizeWidthCommand;
 
 /**
  * Panel used to edit a slide.

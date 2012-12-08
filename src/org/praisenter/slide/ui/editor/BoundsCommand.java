@@ -1,4 +1,4 @@
-package org.praisenter.slide.ui;
+package org.praisenter.slide.ui.editor;
 
 import java.awt.Point;
 

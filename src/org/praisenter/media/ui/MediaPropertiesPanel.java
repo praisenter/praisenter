@@ -1,8 +1,5 @@
 package org.praisenter.media.ui;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
 import javax.swing.GroupLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -16,6 +13,7 @@ import org.praisenter.media.MediaFile;
 import org.praisenter.media.VideoMediaFile;
 import org.praisenter.resources.Messages;
 import org.praisenter.utilities.ComponentUtilities;
+import org.praisenter.utilities.Formatter;
 
 /**
  * Panel used to display the properties of a {@link MediaFile}.
@@ -26,9 +24,6 @@ import org.praisenter.utilities.ComponentUtilities;
 public class MediaPropertiesPanel extends JPanel {
 	/** The version id */
 	private static final long serialVersionUID = 4043952099167166737L;
-	
-	/** The time format */
-	private static final NumberFormat TIME_FORMAT = new DecimalFormat("00");
 	
 	/** The media file information */
 	private MediaFile file;
@@ -234,7 +229,7 @@ public class MediaPropertiesPanel extends JPanel {
 			this.txtName.setCaretPosition(0);
 			this.txtPath.setText(file.getPath());
 			this.txtPath.setCaretPosition(0);
-			this.txtSize.setText(String.valueOf(file.getSize()));
+			this.txtSize.setText(Formatter.getSizeFormattedString(file.getSize()));
 			this.txtSize.setCaretPosition(0);
 			this.txtFormat.setText(file.getFormat());
 			this.txtFormat.setCaretPosition(0);
@@ -254,7 +249,7 @@ public class MediaPropertiesPanel extends JPanel {
 				this.txtWidth.setCaretPosition(0);
 				this.txtHeight.setText(String.valueOf(vFile.getHeight()));
 				this.txtHeight.setCaretPosition(0);
-				this.txtLength.setText(this.getLengthFormattedString(vFile.getLength()));
+				this.txtLength.setText(Formatter.getLengthFormattedString(vFile.getLength()));
 				this.txtLength.setCaretPosition(0);
 				this.chkHasAudio.setSelected(vFile.isAudioPresent());
 				this.toggleVisibility(1);
@@ -262,7 +257,7 @@ public class MediaPropertiesPanel extends JPanel {
 			
 			if (file instanceof AudioMediaFile) {
 				AudioMediaFile aFile = (AudioMediaFile)file;
-				this.txtLength.setText(this.getLengthFormattedString(aFile.getLength()));
+				this.txtLength.setText(Formatter.getLengthFormattedString(aFile.getLength()));
 				this.txtLength.setCaretPosition(0);
 				this.toggleVisibility(2);
 			}
@@ -321,18 +316,6 @@ public class MediaPropertiesPanel extends JPanel {
 			this.lblHasAudio.setVisible(false);
 			this.chkHasAudio.setVisible(false);
 		}
-	}
-	
-	/**
-	 * Returns a formated time string for the given length.
-	 * @param length the length in seconds
-	 * @return String
-	 */
-	private String getLengthFormattedString(long length) {
-		long hours = length / 3600;
-		long minutes = (length % 3600) / 60;
-		long seconds = (length % 3600) % 60;
-		return TIME_FORMAT.format(hours) + ":" + TIME_FORMAT.format(minutes) + ":" + TIME_FORMAT.format(seconds);
 	}
 	
 	/**

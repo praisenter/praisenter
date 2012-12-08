@@ -24,6 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.praisenter.images.Images;
+import org.praisenter.slide.NotificationSlide;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.ui.SlidePreviewMetrics;
 import org.praisenter.utilities.FontManager;
@@ -329,8 +330,8 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 		final double radh = adh - border - shadow - th;
 		
 		// get the scaled of the slide
-		final double w = slide.getWidth();
-		final double h = slide.getHeight();
+		final double w = this.getSlideWidth(slide);
+		final double h = this.getSlideHeight(slide);
 		final double sw = radw / w;
 		final double sh = radh / h;
 		final double scale = sw < sh ? sw : sh;
@@ -340,8 +341,8 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 		final double dh = scale * h;
 		
 		// to get pixel perfect results we need to truncate the image by one to be safe
-		final int idw = (int)Math.ceil(dw) - 1;
-		final int idh = (int)Math.ceil(dh) - 1;
+		final int idw = (int)Math.round(dw) - 1;
+		final int idh = (int)Math.round(dh) - 1;
 		
 		SlidePreviewMetrics metrics = new SlidePreviewMetrics();
 		metrics.scale = scale;
@@ -352,6 +353,30 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 		metrics.totalHeight = idh + border + shadow + th;
 		
 		return metrics;
+	}
+	
+	/**
+	 * Returns the slide width.
+	 * @param slide the slide
+	 * @return double
+	 */
+	private double getSlideWidth(Slide slide) {
+		if (slide instanceof NotificationSlide) {
+			return ((NotificationSlide)slide).getDeviceWidth();
+		}
+		return slide.getWidth();
+	}
+	
+	/**
+	 * Returns the slide height.
+	 * @param slide the slide
+	 * @return double
+	 */
+	private double getSlideHeight(Slide slide) {
+		if (slide instanceof NotificationSlide) {
+			return ((NotificationSlide)slide).getDeviceHeight();
+		}
+		return slide.getHeight();
 	}
 	
 	/**

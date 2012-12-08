@@ -41,6 +41,7 @@ import org.praisenter.notification.ui.NotificationPanel;
 import org.praisenter.preferences.ui.PreferencesDialog;
 import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.ui.SlideLibraryDialog;
 import org.praisenter.threading.FileTask;
 import org.praisenter.threading.TaskProgressDialog;
 import org.praisenter.ui.AboutDialog;
@@ -174,6 +175,12 @@ public class Praisenter extends JFrame implements ActionListener {
 				mnuMediaLibrary.setActionCommand("media");
 				mnuMediaLibrary.addActionListener(this);
 				mnuLibraries.add(mnuMediaLibrary);
+				
+				// libraries->slide/template menu
+				JMenuItem mnuSlideLibrary = new JMenuItem(Messages.getString("menu.libraries.slide"));
+				mnuSlideLibrary.setActionCommand("slide");
+				mnuSlideLibrary.addActionListener(this);
+				mnuLibraries.add(mnuSlideLibrary);
 			}
 			
 			// debugging menu
@@ -244,6 +251,8 @@ public class Praisenter extends JFrame implements ActionListener {
 			this.importPraisenterSongDatabase();
 		} else if ("media".equals(command)) {
 			MediaLibraryDialog.show(this);
+		} else if ("slide".equals(command)) {
+			SlideLibraryDialog.show(this);
 		} else if ("about".equals(command)) {
 			AboutDialog.show(this);
 		}
