@@ -24,7 +24,8 @@ public class SingleSlidePreviewPanel extends AbstractSlidePreviewPanel {
 	 * Default constructor.
 	 */
 	public SingleSlidePreviewPanel() {
-		this(10);
+		super(0, false);
+		this.slide = null;
 	}
 	
 	/**
@@ -42,7 +43,9 @@ public class SingleSlidePreviewPanel extends AbstractSlidePreviewPanel {
 	@Override
 	protected void paintPreview(Graphics2D g2d, Rectangle bounds) {
 		// call the render display
-		this.renderSlide(g2d, bounds);
+		if (this.slide != null) {
+			this.renderSlide(g2d, bounds);
+		}
 	}
 	
 	/**

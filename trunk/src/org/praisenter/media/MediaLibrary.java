@@ -621,6 +621,8 @@ public class MediaLibrary {
 			Media media = loadFromMediaLibrary(filePath);
 			// create a new weak reference to the media
 			ref = new WeakReference<Media>(media);
+			// store the weak reference
+			MEDIA.put(filePath, ref);
 			// return the media
 			return media;
 		}

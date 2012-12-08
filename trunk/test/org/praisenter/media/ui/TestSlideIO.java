@@ -12,6 +12,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import org.apache.log4j.xml.DOMConfigurator;
 import org.praisenter.media.MediaException;
+import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.NoMediaLoaderException;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.slide.NotificationSlideTemplate;
@@ -169,6 +170,8 @@ public class TestSlideIO {
 //		NotificationSlideTemplate template = NotificationSlideTemplate.getDefaultTemplate(size.width, size.height);
 //		
 //		SlideLibrary.saveTemplate("default", template);
+		
+		MediaLibrary.loadMediaLibrary();
 		
 		SlideLibrary.loadSlideLibrary();
 		

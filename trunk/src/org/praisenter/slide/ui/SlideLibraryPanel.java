@@ -1,25 +1,55 @@
 package org.praisenter.slide.ui;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.lang.reflect.InvocationTargetException;
+import java.text.MessageFormat;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import org.apache.log4j.Logger;
+import org.praisenter.data.errors.ui.ExceptionDialog;
+import org.praisenter.resources.Messages;
 import org.praisenter.slide.BibleSlideTemplate;
 import org.praisenter.slide.NotificationSlideTemplate;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
+import org.praisenter.slide.SlideLibraryException;
 import org.praisenter.slide.SlideTemplate;
 import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.SongSlideTemplate;
+import org.praisenter.slide.Template;
+import org.praisenter.slide.ui.preview.SingleSlidePreviewPanel;
+import org.praisenter.threading.AbstractTask;
+import org.praisenter.threading.TaskProgressDialog;
+import org.praisenter.utilities.WindowUtilities;
 
 /**
  * Panel used to maintain the Slide Library.
@@ -27,58 +57,197 @@ import org.praisenter.slide.SongSlideTemplate;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SlideLibraryPanel extends JPanel implements ActionListener {
+public class SlideLibraryPanel extends JPanel implements ListSelectionListener, ChangeListener, ItemListener, ActionListener {
 	/** The version id */
+	private static final long serialVersionUID = -8314362249681392612L;
 
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(SlideLibraryPanel.class);
 	
+	/** Key for the slide template card */
+	private static final String SLIDE_CARD = "Slide";
+	
+	/** Key for the bible template card */
+	private static final String BIBLE_CARD = "Bible";
+	
+	/** Key for the song template card */
+	private static final String SONG_CARD = "Song";
+	
+	/** Key for the notification template card */
+	private static final String NOTIFICATION_CARD = "Notification";
+	
 	// controls
+	
+	/** The list of saved slides */
+	private JList<SlideThumbnail> lstSlides;
+	
+	/** The template type combo box */
+	private JComboBox<TemplateType> cmbTemplateType;
+	
+	/** The template type card panel */
+	private JPanel pnlTemplateCards;
+	
+	/** The template type card layout */
+	private CardLayout layTemplateCards;
+	
+	/** The list of saved templates */
+	private JList<SlideThumbnail> lstTemplates;
+	
+	/** The list of saved bible templates */
+	private JList<SlideThumbnail> lstBibleTemplates;
+	
+	/** The list of saved song templates */
+	private JList<SlideThumbnail> lstSongTemplates;
+	
+	/** The list of saved notification templates */
+	private JList<SlideThumbnail> lstNotificationTemplates;
+	
+	/** The edit slide/template button */
+	private JButton btnEditSlide;
+	
+	/** The remove slide template button */
+	private JButton btnRemoveSlide;
+	
+	/** The slide/template tabs */
+	private JTabbedPane slideTabs;
+	
+	/** The slide/template properties panel */
+	private SlidePropertiesPanel pnlProperties;
+	
+	/** The slide/template preview panel */
+	private SingleSlidePreviewPanel pnlPreview;
+	
+	// state
+	
+	/** The slide/template preview thread */
+	private SlidePreivewThread previewThread;
 	
 	/**
 	 * Default constructor.
 	 */
 	public SlideLibraryPanel() {
+		this.pnlProperties = new SlidePropertiesPanel();
+		this.pnlProperties.setMinimumSize(new Dimension(300, 0));
+		
+		this.pnlPreview = new SingleSlidePreviewPanel();
+		Dimension size = new Dimension(300, 300);
+		this.pnlPreview.setMinimumSize(size);
+		this.pnlPreview.setPreferredSize(size);
+		
+		this.previewThread = new SlidePreivewThread();
+		this.previewThread.start();
 		
 		List<SlideThumbnail> ts = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
 		JComboBox<SlideThumbnail> cmbTest = new JComboBox<SlideThumbnail>(ts.toArray(new SlideThumbnail[0]));
 		cmbTest.setRenderer(new SlideThumbnailComboBoxRenderer());
 		
-		JTabbedPane tabs = new JTabbedPane();
+		this.slideTabs = new JTabbedPane();
+		this.slideTabs.setMinimumSize(new Dimension(120, 120));
+		this.slideTabs.setPreferredSize(new Dimension(500, 500));
 		
+		// slides tab
 		{
 			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(Slide.class);
-			JList<SlideThumbnail> lstThumbs = createJList(thumbnails);
-			tabs.addTab("Slides", lstThumbs);
+			this.lstSlides = createJList(thumbnails);
+			this.slideTabs.addTab(Messages.getString("panel.slide.slides"), new JScrollPane(this.lstSlides));
 		}
 		
+		// templates tab
 		{
+			this.cmbTemplateType = new JComboBox<TemplateType>(TemplateType.values());
+			this.cmbTemplateType.addItemListener(this);
+			this.cmbTemplateType.setRenderer(new TemplateTypeListCellRenderer());
+			
+			JPanel pnlTemplateType = new JPanel();
+			pnlTemplateType.setBorder(BorderFactory.createEmptyBorder(2, 0, 0, 0));
+			pnlTemplateType.setLayout(new BorderLayout());
+			pnlTemplateType.add(this.cmbTemplateType, BorderLayout.CENTER);
+			
+			this.pnlTemplateCards = new JPanel();
+			this.layTemplateCards = new CardLayout();
+			this.pnlTemplateCards.setLayout(this.layTemplateCards);
+			
 			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(SlideTemplate.class);
-			JList<SlideThumbnail> lstThumbs = createJList(thumbnails);
-			tabs.addTab("Templates", lstThumbs);
+			this.lstTemplates = createJList(thumbnails);
+			
+			thumbnails = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
+			this.lstBibleTemplates = createJList(thumbnails);
+			
+			thumbnails = SlideLibrary.getThumbnails(SongSlideTemplate.class);
+			this.lstSongTemplates = createJList(thumbnails);
+			
+			thumbnails = SlideLibrary.getThumbnails(NotificationSlideTemplate.class);
+			this.lstNotificationTemplates = createJList(thumbnails);
+			
+			this.pnlTemplateCards.add(new JScrollPane(this.lstTemplates), SLIDE_CARD);
+			this.pnlTemplateCards.add(new JScrollPane(this.lstBibleTemplates), BIBLE_CARD);
+			this.pnlTemplateCards.add(new JScrollPane(this.lstSongTemplates), SONG_CARD);
+			this.pnlTemplateCards.add(new JScrollPane(this.lstNotificationTemplates), NOTIFICATION_CARD);
+			
+			this.layTemplateCards.show(this.pnlTemplateCards, SLIDE_CARD);
+			
+			JPanel pnlTemplates = new JPanel();
+			pnlTemplates.setLayout(new BorderLayout());
+			
+			pnlTemplates.add(pnlTemplateType, BorderLayout.PAGE_START);
+			pnlTemplates.add(this.pnlTemplateCards, BorderLayout.CENTER);
+			
+			this.slideTabs.addTab(Messages.getString("panel.slide.templates"), pnlTemplates);
 		}
 		
-		{
-			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
-			JList<SlideThumbnail> lstThumbs = createJList(thumbnails);
-			tabs.addTab("Bible", lstThumbs);
-		}
+		JButton btnCreateSlide = new JButton(Messages.getString("panel.slide.create"));
+		btnCreateSlide.setActionCommand("new");
+		btnCreateSlide.addActionListener(this);
+		btnCreateSlide.setMinimumSize(new Dimension(0, 50));
+		btnCreateSlide.setFont(btnCreateSlide.getFont().deriveFont(Font.BOLD, btnCreateSlide.getFont().getSize2D() + 2.0f));
 		
-		{
-			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(SongSlideTemplate.class);
-			JList<SlideThumbnail> lstThumbs = createJList(thumbnails);
-			tabs.addTab("Songs", lstThumbs);
-		}
+		this.btnEditSlide = new JButton(Messages.getString("panel.slide.edit"));
+		this.btnEditSlide.setActionCommand("edit");
+		this.btnEditSlide.addActionListener(this);
+		this.btnEditSlide.setEnabled(false);
 		
-		{
-			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(NotificationSlideTemplate.class);
-			JList<SlideThumbnail> lstThumbs = createJList(thumbnails);
-			tabs.addTab("Notification", lstThumbs);
-		}
+		this.btnRemoveSlide = new JButton(Messages.getString("panel.slide.remove"));
+		this.btnRemoveSlide.setActionCommand("remove");
+		this.btnRemoveSlide.addActionListener(this);
+		this.btnRemoveSlide.setEnabled(false);
+		
+		JPanel pnlRight = new JPanel();
+		GroupLayout layout = new GroupLayout(pnlRight);
+		pnlRight.setLayout(layout);
+		layout.setAutoCreateGaps(true);
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+				.addComponent(btnCreateSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(this.pnlProperties)
+				.addComponent(this.btnEditSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(this.btnRemoveSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(this.pnlPreview));
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addComponent(btnCreateSlide)
+				.addComponent(this.pnlProperties, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(this.btnEditSlide)
+				.addComponent(this.btnRemoveSlide)
+				.addComponent(this.pnlPreview));
+		
+		this.slideTabs.addChangeListener(this);
+		
+		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.slideTabs, pnlRight);
+		pane.setOneTouchExpandable(true);
+		pane.setResizeWeight(1.0);
 		
 		this.setLayout(new BorderLayout());
-		this.add(tabs, BorderLayout.CENTER);
-		this.add(cmbTest, BorderLayout.PAGE_START);
+		this.add(pane, BorderLayout.CENTER);
+	}
+	
+	/**
+	 * Returns the thread used to update the slide/template previews.
+	 * @return {@link SlidePreivewThread}
+	 */
+	private final SlidePreivewThread getPreviewThread() {
+		if (this.previewThread == null || !this.previewThread.isAlive()) {
+			this.previewThread = new SlidePreivewThread();
+			this.previewThread.start();
+		}
+		return this.previewThread;
 	}
 	
 	/**
@@ -86,7 +255,7 @@ public class SlideLibraryPanel extends JPanel implements ActionListener {
 	 * @param thumbnails the list of thumbnails
 	 * @return JList
 	 */
-	private static final JList<SlideThumbnail> createJList(List<SlideThumbnail> thumbnails) {
+	private final JList<SlideThumbnail> createJList(List<SlideThumbnail> thumbnails) {
 		JList<SlideThumbnail> list = new JList<SlideThumbnail>();
 		list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -94,6 +263,7 @@ public class SlideLibraryPanel extends JPanel implements ActionListener {
 		list.setVisibleRowCount(-1);
 		list.setCellRenderer(new SlideThumbnailListCellRenderer());
 		list.setLayout(new BorderLayout());
+		list.addListSelectionListener(this);
 		// setup the items
 		DefaultListModel<SlideThumbnail> model = new DefaultListModel<SlideThumbnail>();
 		for (SlideThumbnail thumbnail : thumbnails) {
@@ -110,5 +280,302 @@ public class SlideLibraryPanel extends JPanel implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
+		
+		// get the currently selected thumbnail
+		JList<SlideThumbnail> list = null;
+		int index = this.slideTabs.getSelectedIndex();
+		if (index == 0) {
+			list = this.lstSlides;
+		} else if (index == 1) {
+			Object type = this.cmbTemplateType.getSelectedItem();
+			if (type == TemplateType.SLIDE) {
+				list = this.lstTemplates;
+			} else if (type == TemplateType.BIBLE) {
+				list = this.lstBibleTemplates;
+			} else if (type == TemplateType.SONG) {
+				list = this.lstSongTemplates;
+			} else if (type == TemplateType.NOTIFICATION) {
+				list = this.lstNotificationTemplates;
+			}
+		}
+		final SlideThumbnail thumbnail = list.getSelectedValue();
+		final boolean isTemplate = list != this.lstSlides;
+		
+		if ("new".equals(command)) {
+			// FIXME show dialog asking what type (slide/template)
+		} else if ("edit".equals(command)) {
+			// FIXME show the currently selected slide/template in the editor
+		} else if ("remove".equals(command)) {
+			// make sure the currently selected item is not null
+			if (thumbnail != null) {
+				// show an are you sure dialog, then delete the slide
+				int choice = JOptionPane.showConfirmDialog(
+						this, 
+						MessageFormat.format(Messages.getString("panel.slide.remove.message"), thumbnail.getName()),
+						Messages.getString("panel.slide.remove.title"),
+						JOptionPane.YES_NO_CANCEL_OPTION);
+				if (choice == JOptionPane.YES_OPTION) {
+					// remove the slide/template in another thread
+					AbstractTask task = new AbstractTask() {
+						@Override
+						public void run() {
+							if (isTemplate) {
+								SlideLibrary.deleteSlide(thumbnail.getFile().getPath());
+								this.setSuccessful(true);
+							} else {
+								SlideLibrary.deleteTemplate(thumbnail.getFile().getPath());
+								this.setSuccessful(true);
+							}
+						}
+					};
+					
+					TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.removing"), task);
+					if (task.isSuccessful()) {
+						if (list != null) {
+							// remove the thumbnail from the list
+							DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
+							model.removeElement(thumbnail);
+						}
+					} else {
+						ExceptionDialog.show(
+								this, 
+								Messages.getString("panel.slide.remove.exception.title"), 
+								MessageFormat.format(Messages.getString("panel.slide.remove.exception.text"), thumbnail.getFile().getName()), 
+								task.getException());
+						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getPath() + "] from the slide library: ", task.getException());
+					}
+				}
+			}
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
+	 */
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		if (!e.getValueIsAdjusting()) {
+			Object source = e.getSource();
+			
+			PreviewAction<?> preview = null;
+			SlideFile file = null;
+			if (source == this.lstSlides) {
+				SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
+				if (thumbnail != null) {
+					file = thumbnail.getFile();
+					preview = new SlidePreviewAction<Slide>(file.getPath(), Slide.class);
+				}
+			} else if (source == this.lstTemplates) {
+				SlideThumbnail thumbnail = this.lstTemplates.getSelectedValue();
+				if (thumbnail != null) {
+					file = thumbnail.getFile();
+					preview = new TemplatePreviewAction<SlideTemplate>(file.getPath(), SlideTemplate.class);
+				}
+			} else if (source == this.lstBibleTemplates) {
+				SlideThumbnail thumbnail = this.lstBibleTemplates.getSelectedValue();
+				if (thumbnail != null) {
+					file = thumbnail.getFile();
+					preview = new TemplatePreviewAction<BibleSlideTemplate>(file.getPath(), BibleSlideTemplate.class);
+				}
+			} else if (source == this.lstSongTemplates) {
+				SlideThumbnail thumbnail = this.lstSongTemplates.getSelectedValue();
+				if (thumbnail != null) {
+					file = thumbnail.getFile();
+					preview = new TemplatePreviewAction<SongSlideTemplate>(file.getPath(), SongSlideTemplate.class);
+				}
+			} else if (source == this.lstNotificationTemplates) {
+				SlideThumbnail thumbnail = this.lstNotificationTemplates.getSelectedValue();
+				if (thumbnail != null) {
+					file = thumbnail.getFile();
+					preview = new TemplatePreviewAction<NotificationSlideTemplate>(file.getPath(), NotificationSlideTemplate.class);
+				}
+			}
+			if (preview != null && file != null) {
+				this.pnlPreview.setLoading(true);
+				this.getPreviewThread().queueSlide(preview);
+				this.pnlProperties.setSlideFile(file);
+				this.btnEditSlide.setEnabled(true);
+				this.btnRemoveSlide.setEnabled(true);
+			} else {
+				this.pnlPreview.setSlide(null);
+				this.pnlProperties.setSlideFile(null);
+				this.pnlPreview.repaint();
+				this.btnEditSlide.setEnabled(false);
+				this.btnRemoveSlide.setEnabled(false);
+			}
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see javax.swing.event.ChangeListener#stateChanged(javax.swing.event.ChangeEvent)
+	 */
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		Object source = e.getSource();
+		if (source == this.slideTabs) {
+			this.setPreviewAndProperties();
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
+	 */
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		if (e.getStateChange() == ItemEvent.SELECTED) {
+			if (e.getSource() == this.cmbTemplateType) {
+				Object item = e.getItem();
+				String card = null;
+				if (item == TemplateType.BIBLE) {
+					card = BIBLE_CARD;
+				} else if (item == TemplateType.SONG) {
+					card = SONG_CARD;
+				} else if (item == TemplateType.NOTIFICATION) {
+					card = NOTIFICATION_CARD;
+				} else {
+					card = SLIDE_CARD;
+				}
+				// switch which card is shown
+				this.layTemplateCards.show(this.pnlTemplateCards, card);
+				this.setPreviewAndProperties();
+			}
+		}
+	}
+	
+	/**
+	 * Used to set the state of the preview and properties panels along
+	 * with the edit/remove buttons.
+	 */
+	private void setPreviewAndProperties() {
+		int index = this.slideTabs.getSelectedIndex();
+		SlideFile file = null;
+		PreviewAction<?> preview = null;
+		if (index == 0) {
+			SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
+			if (thumbnail != null) {
+				file = thumbnail.getFile();
+				preview = new SlidePreviewAction<Slide>(file.getPath(), Slide.class);
+			}
+		} else if (index == 1) {
+			Object type = this.cmbTemplateType.getSelectedItem();
+			if (type == TemplateType.SLIDE) {
+				SlideThumbnail thumbnail = this.lstTemplates.getSelectedValue();
+				if (thumbnail != null) {
+					file = thumbnail.getFile();
+					preview = new TemplatePreviewAction<SlideTemplate>(file.getPath(), SlideTemplate.class);
+				}
+			} else if (type == TemplateType.BIBLE) {
+				SlideThumbnail thumbnail = this.lstBibleTemplates.getSelectedValue();
+				if (thumbnail != null) {
+					file = thumbnail.getFile();
+					preview = new TemplatePreviewAction<BibleSlideTemplate>(file.getPath(), BibleSlideTemplate.class);
+				}
+			} else if (type == TemplateType.SONG) {
+				SlideThumbnail thumbnail = this.lstSongTemplates.getSelectedValue();
+				if (thumbnail != null) {
+					file = thumbnail.getFile();
+					preview = new TemplatePreviewAction<SongSlideTemplate>(file.getPath(), SongSlideTemplate.class);
+				}
+			} else if (type == TemplateType.NOTIFICATION) {
+				SlideThumbnail thumbnail = this.lstNotificationTemplates.getSelectedValue();
+				if (thumbnail != null) {
+					file = thumbnail.getFile();
+					preview = new TemplatePreviewAction<NotificationSlideTemplate>(file.getPath(), NotificationSlideTemplate.class);
+				}
+			}
+		}
+		if (file != null) {
+			this.pnlProperties.setSlideFile(file);
+			this.getPreviewThread().queueSlide(preview);
+			this.btnEditSlide.setEnabled(true);
+			this.btnRemoveSlide.setEnabled(true);
+		} else {
+			this.pnlProperties.setSlideFile(null);
+			this.pnlPreview.setSlide(null);
+			this.pnlPreview.repaint();
+			this.btnEditSlide.setEnabled(false);
+			this.btnRemoveSlide.setEnabled(false);
+		}
+	}
+	
+	/**
+	 * Custom thread for updating the preview of a slide or template.
+	 * @author William Bittle
+	 * @version 2.0.0
+	 * @since 2.0.0
+	 */
+	private class SlidePreivewThread extends Thread {
+		/** The blocking queue */
+		private final BlockingQueue<PreviewAction<?>> slideQueue;
+		
+		/**
+		 * Default constructor.
+		 */
+		public SlidePreivewThread() {
+			super("SlidePreivewThread");
+			this.setDaemon(true);
+			this.slideQueue = new ArrayBlockingQueue<PreviewAction<?>>(10);
+		}
+
+		/**
+		 * Queues a new preview.
+		 * @param preview the preview
+		 */
+		public void queueSlide(PreviewAction<?> preview) {
+			this.slideQueue.add(preview);
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Runnable#run()
+		 */
+		@Override
+		public void run() {
+			// make the thread run always
+			while (true) {
+				try {
+					// poll for any queued slides
+					PreviewAction<?> preview = this.slideQueue.poll(1000, TimeUnit.MILLISECONDS);
+					// check if its null
+					if (preview != null) {
+						// if it isnt then attempt to load the slide
+						Slide slide = null;
+						try {
+							// get the slide
+							if (Template.class.isAssignableFrom(preview.getSlideClass())) {
+								TemplatePreviewAction<?> tPreview = (TemplatePreviewAction<?>)preview;
+								slide = SlideLibrary.getTemplate(preview.path, tPreview.clazz);
+							} else {
+								slide = SlideLibrary.getSlide(preview.path);
+							}
+							// update the slides (this method should not
+							// do anything that should normally be done on the EDT)
+							pnlPreview.setSlide(slide);
+							
+							// update the preview panel
+							try {
+								// we need to block this thread until this code
+								// runs since we will get problems if another song
+								// is in the queue
+								SwingUtilities.invokeAndWait(new Runnable() {
+									@Override
+									public void run() {
+										pnlPreview.setLoading(false);
+									}
+								});
+							} catch (InvocationTargetException e) {
+								// in this case just continue
+								LOGGER.warn("An error occurred while updating the slide preview on the EDT: ", e);
+							}
+						} catch (SlideLibraryException e) {
+							LOGGER.error("An error occurred while loading the slide/template [" + preview.path + "]: ", e);
+						}
+					}
+				} catch (InterruptedException ex) {
+					// if the song search thread is interrupted then just stop it
+					LOGGER.info("SlideTemplatePreviewThread was interrupted. Stopping thread.", ex);
+					break;
+				}
+			}
+		}
 	}
 }

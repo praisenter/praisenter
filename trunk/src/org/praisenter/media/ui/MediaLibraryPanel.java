@@ -16,6 +16,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.ListSelectionModel;
@@ -93,37 +94,22 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		if (IMAGES_SUPPORTED) {
 			// load up all the thumbnails for the media in the media library
 			List<MediaThumbnail> images = MediaLibrary.getThumbnails(MediaType.IMAGE);
-			JPanel pnlImages = new JPanel();
-			pnlImages.setLayout(new BorderLayout());
-			// images list
 			this.lstImages = createJList(images);
-			pnlImages.add(this.lstImages, BorderLayout.CENTER);
-			
-			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.images"), pnlImages);
+			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.images"), new JScrollPane(this.lstImages));
 		}
 		
 		// make sure the media library supports the media
 		if (VIDEOS_SUPPORTED) {
 			List<MediaThumbnail> videos = MediaLibrary.getThumbnails(MediaType.VIDEO);
-			JPanel pnlVideos = new JPanel();
-			pnlVideos.setLayout(new BorderLayout());
-			// images list
 			this.lstVideos = createJList(videos);
-			pnlVideos.add(this.lstVideos, BorderLayout.CENTER);
-			
-			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.videos"), pnlVideos);
+			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.videos"), new JScrollPane(this.lstVideos));
 		}
 		
 		// make sure the media library supports the media
 		if (AUDIO_SUPPORTED) {
 			List<MediaThumbnail> audio = MediaLibrary.getThumbnails(MediaType.AUDIO);
-			JPanel pnlAudio = new JPanel();
-			pnlAudio.setLayout(new BorderLayout());
-			// images list
 			this.lstAudio = createJList(audio);
-			pnlAudio.add(this.lstAudio, BorderLayout.CENTER);
-			
-			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.audio"), pnlAudio);
+			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.audio"), new JScrollPane(this.lstAudio));
 		}
 		
 		this.mediaTabs.addChangeListener(this);
@@ -131,8 +117,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		this.mediaTabs.setPreferredSize(new Dimension(500, 500));
 		
 		this.pnlProperties = new MediaPropertiesPanel();
-		this.pnlProperties.setMinimumSize(new Dimension(200, 0));
-		this.pnlProperties.setPreferredSize(new Dimension(300, 500));
+		this.pnlProperties.setMinimumSize(new Dimension(300, 0));
 		
 		// add a button to add media
 		JButton btnAddMedia = new JButton(Messages.getString("panel.media.add"));
@@ -157,8 +142,8 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(btnAddMedia)
 				.addGap(10, 10, 10)
-				.addComponent(this.pnlProperties)
-				.addComponent(this.btnRemoveMedia));
+				.addComponent(this.pnlProperties, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(this.btnRemoveMedia, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		
 		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.mediaTabs, pnlRight);
 		pane.setOneTouchExpandable(true);
@@ -197,22 +182,24 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 	 */
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
-		Object source = e.getSource();
-		if (source == this.lstImages) {
-			MediaThumbnail thumbnail = this.lstImages.getSelectedValue();
-			MediaFile file = thumbnail.getFile();
-			this.pnlProperties.setMediaFile(file);
-			this.btnRemoveMedia.setEnabled(true);
-		} else if (source == this.lstVideos) {
-			MediaThumbnail thumbnail = this.lstVideos.getSelectedValue();
-			MediaFile file = thumbnail.getFile();
-			this.pnlProperties.setMediaFile(file);
-			this.btnRemoveMedia.setEnabled(true);
-		} else if (source == this.lstAudio) {
-			MediaThumbnail thumbnail = this.lstAudio.getSelectedValue();
-			MediaFile file = thumbnail.getFile();
-			this.pnlProperties.setMediaFile(file);
-			this.btnRemoveMedia.setEnabled(true);
+		if (!e.getValueIsAdjusting()) {
+			Object source = e.getSource();
+			if (source == this.lstImages) {
+				MediaThumbnail thumbnail = this.lstImages.getSelectedValue();
+				MediaFile file = thumbnail.getFile();
+				this.pnlProperties.setMediaFile(file);
+				this.btnRemoveMedia.setEnabled(true);
+			} else if (source == this.lstVideos) {
+				MediaThumbnail thumbnail = this.lstVideos.getSelectedValue();
+				MediaFile file = thumbnail.getFile();
+				this.pnlProperties.setMediaFile(file);
+				this.btnRemoveMedia.setEnabled(true);
+			} else if (source == this.lstAudio) {
+				MediaThumbnail thumbnail = this.lstAudio.getSelectedValue();
+				MediaFile file = thumbnail.getFile();
+				this.pnlProperties.setMediaFile(file);
+				this.btnRemoveMedia.setEnabled(true);
+			}
 		}
 	}
 	
