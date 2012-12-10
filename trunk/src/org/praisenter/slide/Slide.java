@@ -18,6 +18,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import org.praisenter.Version;
 import org.praisenter.media.AbstractVideoMedia;
 import org.praisenter.media.ImageMedia;
 import org.praisenter.resources.Messages;
@@ -106,6 +107,20 @@ public class Slide {
 		for (SlideComponent component : slide.components) {
 			this.components.add(component.copy());
 		}
+	}
+	
+	/**
+	 * Returns the version of Praisenter to be placed in the generated
+	 * XML document.
+	 * <p>
+	 * This method is solely for JAXB and the generated XML document thereof
+	 * for versioning. The versioning will be of help later if the format
+	 * of the XML changes.
+	 * @return String
+	 */
+	@XmlAttribute(name = "Version")
+	protected String getVersion() {
+		return Version.getVersion();
 	}
 	
 	/**
