@@ -12,13 +12,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.media.ImageMedia;
-import org.praisenter.media.ScaleQuality;
 import org.praisenter.media.ScaleType;
 import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.xml.MediaTypeAdapter;
 
 /**
@@ -38,13 +36,6 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	/** The image scale type */
 	@XmlAttribute(name = "ScaleType", required = false)
 	protected ScaleType scaleType;
-	
-	/** The image scale quality */
-	@XmlAttribute(name = "ScaleQuality", required = false)
-	protected ScaleQuality scaleQuality;
-	
-	/** Cache the scaled image */
-	protected BufferedImage scaledImage;
 	
 	/**
 	 * Default constructor.
@@ -80,8 +71,6 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 		super(name, x, y, width, height);
 		this.media = media;
 		this.scaleType = ScaleType.NONUNIFORM;
-		this.scaleQuality = ScaleQuality.BILINEAR;
-		this.scaledImage = null;
 	}
 	
 	/**
@@ -94,8 +83,6 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 		super(component);
 		this.media = component.media;
 		this.scaleType = component.scaleType;
-		this.scaleQuality = component.scaleQuality;
-		this.scaledImage = component.scaledImage;
 	}
 	
 	/* (non-Javadoc)
@@ -104,7 +91,6 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	@Override
 	public void setMedia(ImageMedia media) {
 		this.media = media;
-		this.scaledImage = null;
 	}
 	
 	/* (non-Javadoc)
@@ -121,7 +107,6 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	@Override
 	public void resize(int dw, int dh) {
 		super.resize(dw, dh);
-		this.scaledImage = null;
 	}
 	
 	/* (non-Javadoc)
@@ -130,7 +115,6 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	@Override
 	public void setHeight(int height) {
 		super.setHeight(height);
-		this.scaledImage = null;
 	}
 	
 	/* (non-Javadoc)
@@ -139,7 +123,6 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	@Override
 	public void setWidth(int width) {
 		super.setWidth(width);
-		this.scaledImage = null;
 	}
 	
 	/* (non-Javadoc)
@@ -175,7 +158,7 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	@Override
 	public void render(Graphics2D g) {
 		this.renderBackground(g, this.x, this.y);
-		this.renderScaledImage(g);
+		this.renderScaledImage(g, this.getImage());
 		this.renderBorder(g);
 	}
 	
@@ -185,72 +168,53 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	@Override
 	public void renderPreview(Graphics2D g) {
 		this.renderBackground(g, this.x, this.y);
-		this.renderScaledImage(g);
+		this.renderScaledImage(g, this.getImage());
 		this.renderBorder(g);
 	}
+	
 	
 	/**
 	 * Renders the scaled image to the given graphics object.
 	 * @param g the graphics object to render to
+	 * @param image the image to render scaled
 	 */
-	protected void renderScaledImage(Graphics2D g) {
-		if (this.scaledImage == null) {
-			BufferedImage image = this.getImage();
-			if (image != null) {
-				this.scaledImage = this.getScaledImage(image);
-			}
-		}
-		if (this.scaledImage != null) {
-			this.renderImage(g, this.scaledImage);
-		}
-	}
-
-	/**
-	 * Renders the given image to the given graphics object using
-	 * this components scaling type and quality.
-	 * @param g the graphics object to render to
-	 * @param image the image to render
-	 */
-	protected void renderImage(Graphics2D g, BufferedImage image) {
+	protected void renderScaledImage(Graphics2D g, BufferedImage image) {
 		if (image != null) {
 			// setup the clip for this component
 			Shape oClip = g.getClip();
-			g.setClip(this.x, this.y, this.width, this.height);
+			g.clipRect(this.x, this.y, this.width, this.height);
 
-			// center the image
+			// compute the image dimensions
 			int iw = image.getWidth();
 			int ih = image.getHeight();
-			int x = (this.width - iw) / 2 + this.x;
-			int y = (this.height - ih) / 2 + this.y;
-			g.drawImage(image, x,  y, null);
+			
+			if (iw != this.width || ih != this.height) {
+				double sw = (double)this.width / (double)iw;
+				double sh = (double)this.height / (double)ih;
+				if (this.scaleType == ScaleType.UNIFORM) {
+					if (sw < sh) {
+						iw = this.width;
+						ih = (int)Math.round(sw * ih);
+					} else {
+						iw = (int)Math.round(sh * iw);
+						ih = this.height;
+					}
+				} else if (this.scaleType == ScaleType.NONUNIFORM) {
+					iw = this.width;
+					ih = this.height;
+				}
+				// center the image
+				int x = (this.width - iw) / 2;
+				int y = (this.height - ih) / 2;
+				g.drawImage(image, this.x + x, this.y + y, iw, ih, null);
+			} else {
+				g.drawImage(image, this.x, this.y, null);
+			}
 			
 			g.setClip(oClip);
 		}
 	}
 	
-	/**
-	 * Scales the given image using the component width and height. 
-	 * @param image the image to scale
-	 * @return BufferedImage
-	 */
-	protected BufferedImage getScaledImage(BufferedImage image) {
-		int w = this.width;
-		int h = this.height;
-		// now scale (these methods will return images with the same
-		// color model as the one passed in)
-		int iw = image.getWidth();
-		int ih = image.getHeight();
-		
-		if (iw != w || ih != h) {
-			if (this.scaleType == ScaleType.UNIFORM) {
-				image = ImageUtilities.getUniformScaledImage(image, w, h, this.scaleQuality.getQuality());
-			} else if (this.scaleType == ScaleType.NONUNIFORM) {
-				image = ImageUtilities.getNonUniformScaledImage(image, w, h, this.scaleQuality.getQuality());
-			}
-		}
-		return image;
-	}
-
 	/**
 	 * Returns the image scale type.
 	 * @return {@link ScaleType}
@@ -265,23 +229,5 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	 */
 	public void setScaleType(ScaleType scaleType) {
 		this.scaleType = scaleType;
-		this.scaledImage = null;
-	}
-
-	/**
-	 * Returns the image scale quality.
-	 * @return {@link ScaleQuality}
-	 */
-	public ScaleQuality getScaleQuality() {
-		return this.scaleQuality;
-	}
-
-	/**
-	 * Sets the image scale quality.
-	 * @param scaleQuality the scale quality
-	 */
-	public void setScaleQuality(ScaleQuality scaleQuality) {
-		this.scaleQuality = scaleQuality;
-		this.scaledImage = null;
 	}
 }

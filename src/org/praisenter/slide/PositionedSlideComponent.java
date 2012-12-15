@@ -1,15 +1,16 @@
 package org.praisenter.slide;
 
-import java.awt.Paint;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.Stroke;
+
+import org.praisenter.slide.graphics.Fill;
+import org.praisenter.slide.graphics.LineStyle;
 
 /**
  * Common interface for positioned slide components.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 public interface PositionedSlideComponent extends SlideComponent, RenderableSlideComponent {
 	/**
@@ -58,28 +59,28 @@ public interface PositionedSlideComponent extends SlideComponent, RenderableSlid
 	// rendering
 	
 	/**
-	 * Returns the paint used to paint the border.
-	 * @return Paint
+	 * Returns the fill used to paint the border.
+	 * @return {@link Fill}
 	 */
-	public abstract Paint getBorderPaint();
+	public abstract Fill getBorderFill();
 	
 	/**
-	 * Sets the paint used to paint the border.
-	 * @param paint the paint
+	 * Sets the fill used to paint the border.
+	 * @param fill the fill
 	 */
-	public abstract void setBorderPaint(Paint paint);
+	public abstract void setBorderFill(Fill fill);
 	
 	/**
-	 * Returns the border stroke.
-	 * @return Stroke
+	 * Returns the border style.
+	 * @return {@link LineStyle}
 	 */
-	public abstract Stroke getBorderStroke();
+	public abstract LineStyle getBorderStyle();
 	
 	/**
-	 * Sets the border stroke.
-	 * @param stroke the stroke to use for the border
+	 * Sets the border style.
+	 * @param lineStyle the line style to use for the border
 	 */
-	public abstract void setBorderStroke(Stroke stroke);
+	public abstract void setBorderStyle(LineStyle lineStyle);
 	
 	/**
 	 * Returns true if the border is visible (or will be rendered).

@@ -341,8 +341,8 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 		final double dh = scale * h;
 		
 		// to get pixel perfect results we need to truncate the image by one to be safe
-		final int idw = (int)Math.round(dw) - 1;
-		final int idh = (int)Math.round(dh) - 1;
+		final int idw = (int)Math.ceil(dw) - 1;
+		final int idh = (int)Math.ceil(dh) - 1;
 		
 		SlidePreviewMetrics metrics = new SlidePreviewMetrics();
 		metrics.scale = scale;

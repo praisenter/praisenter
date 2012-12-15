@@ -4,20 +4,26 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Shape;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.slide.GenericSlideComponent;
 import org.praisenter.slide.PositionedSlideComponent;
 import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.graphics.ColorFill;
+import org.praisenter.slide.graphics.Fill;
+import org.praisenter.slide.graphics.FillTypeAdapter;
+import org.praisenter.slide.graphics.LinearGradientFill;
+import org.praisenter.slide.graphics.RadialGradientFill;
 import org.praisenter.utilities.FontManager;
 import org.praisenter.xml.FontTypeAdapter;
-import org.praisenter.xml.PaintTypeAdapter;
 
 /**
  * Represents a component that displays text.
@@ -29,6 +35,11 @@ import org.praisenter.xml.PaintTypeAdapter;
 // TODO add text outline (stroke, paint, visible)
 @XmlRootElement(name = "TextComponent")
 @XmlAccessorType(XmlAccessType.NONE)
+@XmlSeeAlso({
+	ColorFill.class,
+	LinearGradientFill.class,
+	RadialGradientFill.class
+})
 public class TextComponent extends GenericSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent {
 	// TODO change this to a AttributedString so we can support all kinds of string formatting (highlighting, super/sub scripts, etc)
 	/** The text */
@@ -36,9 +47,9 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	protected String text;
 	
 	/** The text color */
-	@XmlElement(name = "TextPaint", required = false, nillable = true)
-	@XmlJavaTypeAdapter(value = PaintTypeAdapter.class)
-	protected Paint textPaint;
+	@XmlElement(name = "TextFill")
+	@XmlJavaTypeAdapter(value = FillTypeAdapter.class)
+	protected Fill textFill;
 	
 	/** The text font */
 	@XmlElement(name = "TextFont", required = false, nillable = true)
@@ -109,7 +120,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	public TextComponent(String name, int x, int y, int width, int height, String text) {
 		super(name, x, y, width, height);
 		this.text = text;
-		this.textPaint = Color.BLACK;
+		this.textFill = new ColorFill(Color.WHITE);
 		this.textFont = null;
 		this.horizontalTextAlignment = HorizontalTextAlignment.CENTER;
 		this.verticalTextAlignment = VerticalTextAlignment.TOP;
@@ -127,7 +138,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	public TextComponent(TextComponent component) {
 		super(component);
 		this.text = component.text;
-		this.textPaint = component.textPaint;
+		this.textFill = component.textFill;
 		this.textFont = component.textFont;
 		this.horizontalTextAlignment = component.horizontalTextAlignment;
 		this.verticalTextAlignment = component.verticalTextAlignment;
@@ -189,6 +200,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 				// save the old font and color
 				Font oFont = g.getFont();
 				Paint oPaint = g.getPaint();
+				Shape oClip = g.getClip();
 				
 				String text = this.text;
 				// make sure the line break characters are correct
@@ -233,23 +245,38 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 				}
 				
 				// vertical align top is easy, just render at y=0
-				float y = 0;
+				float x = this.x + this.textPadding;
+				float y = this.y + this.textPadding;
 				if (this.verticalTextAlignment == VerticalTextAlignment.CENTER) {
-					y = ((float)rh - metrics.height) / 2.0f;
+					y += ((float)rh - metrics.height) / 2.0f;
 				} else if (this.verticalTextAlignment == VerticalTextAlignment.BOTTOM) {
-					y = (float)rh - metrics.height;
+					y += (float)rh - metrics.height;
 				}
 				
 				// set the text color
-				g.setPaint(this.textPaint);
+				if (this.textFill != null) {
+					// make sure the fill is using the text metrics rather than the
+					// text components bounds
+					Paint paint = this.textFill.getPaint(
+							(int)Math.floor(x), 
+							(int)Math.floor(y), 
+							(int)Math.ceil(metrics.width), 
+							(int)Math.ceil(metrics.height));
+					g.setPaint(paint);
+				} else {
+					g.setPaint(Color.WHITE);
+				}
+				// setup the clip region
+				g.clipRect(this.x, this.y, this.width, this.height);
 				if (this.textWrapped) {
 					// render the text as a paragraph
-					TextRenderer.renderParagraph(g, text, this.horizontalTextAlignment, this.x + this.textPadding, this.y + this.textPadding + y, rw);
+					TextRenderer.renderParagraph(g, text, this.horizontalTextAlignment, x, y, rw);
 				} else {
 					// render the text as a line
-					TextRenderer.renderLine(g, text, this.horizontalTextAlignment, this.x + this.textPadding, this.y + this.textPadding + y, rw);
+					TextRenderer.renderLine(g, text, this.horizontalTextAlignment, x, y, rw);
 				}
 				
+				g.setClip(oClip);
 				g.setPaint(oPaint);
 				g.setFont(oFont);
 			}
@@ -289,19 +316,19 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	}
 	
 	/**
-	 * Returns the text paint.
-	 * @return Paint
+	 * Returns the text fill.
+	 * @return {@link Fill}
 	 */
-	public Paint getTextPaint() {
-		return this.textPaint;
+	public Fill getTextFill() {
+		return this.textFill;
 	}
 	
 	/**
-	 * Sets the text paint.
-	 * @param paint the text paint
+	 * Sets the text fill.
+	 * @param fill the text fill
 	 */
-	public void setTextPaint(Paint paint) {
-		this.textPaint = paint;
+	public void setTextFill(Fill fill) {
+		this.textFill = fill;
 	}
 	
 	/**

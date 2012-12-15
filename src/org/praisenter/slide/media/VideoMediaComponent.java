@@ -172,7 +172,7 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 	 */
 	@Override
 	public void render(Graphics2D g) {
-		// since video is opaque don't bother rendering the background
+		this.renderBackground(g, this.x, this.y);
 		this.renderScaledFrame(g, this.getCurrentFrame());
 		this.renderBorder(g);
 	}
@@ -182,7 +182,7 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 	 */
 	@Override
 	public void renderPreview(Graphics2D g) {
-		// since video is opaque don't bother rendering the background
+		this.renderBackground(g, this.x, this.y);
 		this.renderScaledFrame(g, this.getFirstFrame());
 		this.renderBorder(g);
 	}
@@ -193,11 +193,10 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 	 * @param image the image to render scaled
 	 */
 	protected void renderScaledFrame(Graphics2D g, BufferedImage image) {
-		
 		if (image != null) {
 			// setup the clip for this component
 			Shape oClip = g.getClip();
-			g.setClip(this.x, this.y, this.width, this.height);
+			g.clipRect(this.x, this.y, this.width, this.height);
 
 			// compute the image dimensions
 			int iw = image.getWidth();

@@ -1,4 +1,4 @@
-package org.praisenter.slide.ui.editor;
+package org.praisenter.slide.graphics;
 
 import java.awt.BasicStroke;
 

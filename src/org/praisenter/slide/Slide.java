@@ -2,7 +2,6 @@ package org.praisenter.slide;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Paint;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -17,11 +16,13 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.Version;
 import org.praisenter.media.AbstractVideoMedia;
 import org.praisenter.media.ImageMedia;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.graphics.Fill;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
@@ -31,8 +32,8 @@ import org.praisenter.utilities.ImageUtilities;
 /**
  * Represents a slide with graphics, text, etc.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 @XmlRootElement(name = "Slide")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -57,7 +58,8 @@ public class Slide {
 	protected String name;
 	
 	/** The slide background */
-	@XmlAnyElement(lax = true)
+	@XmlElement(name = "Background")
+	@XmlJavaTypeAdapter(value = RenderableSlideComponentTypeAdapter.class)
 	protected RenderableSlideComponent background;
 	
 	/** The slide components */
@@ -71,7 +73,9 @@ public class Slide {
 	 * This constructor should only be used by JAXB for
 	 * marshalling and unmarshalling the objects.
 	 */
-	protected Slide() {}
+	protected Slide() {
+		this(Messages.getString("slide.unnamed"), 400, 400);
+	}
 	
 	/**
 	 * Minimal constructor.
@@ -192,25 +196,24 @@ public class Slide {
 		// setup all the other properties
 		this.setupBackgroundComponent(component);
 		// since videos are opaque don't render the background
-		component.setBackgroundPaintVisible(false);
-		component.setBackgroundPaint(null);
+		component.setBackgroundVisible(false);
+		component.setBackgroundFill(null);
 		
 		return component;
 	}
 	
 	/**
-	 * Returns a new {@link GenericSlideComponent} with the given paint as the
-	 * background.
+	 * Returns a new {@link GenericSlideComponent} with the given fill as the background.
 	 * <p>
-	 * The paint can be a solid color or gradient or any other type of paint.
-	 * @param paint the paint
+	 * The fill can be a solid color or gradient or any other type of fill.
+	 * @param fill the fill
 	 * @return {@link GenericSlideComponent}
 	 */
-	public GenericSlideComponent createPaintBackgroundComponent(Paint paint) {
+	public GenericSlideComponent createFillBackgroundComponent(Fill fill) {
 		GenericSlideComponent component = new GenericSlideComponent(Messages.getString("slide.background.name"), 0, 0, this.width, this.height);
 		// set the media
-		component.setBackgroundPaint(paint);
-		component.setBackgroundPaintVisible(true);
+		component.setBackgroundFill(fill);
+		component.setBackgroundVisible(true);
 		// setup all the other properties
 		this.setupBackgroundComponent(component);
 		
@@ -224,8 +227,8 @@ public class Slide {
 	private void setupBackgroundComponent(GenericSlideComponent component) {
 		// no border on backgrounds
 		component.setBorderVisible(false);
-		component.setBorderPaint(null);
-		component.setBorderStroke(null);
+		component.setBorderFill(null);
+		component.setBorderStyle(null);
 	}
 	
 	/**
@@ -235,7 +238,7 @@ public class Slide {
 	 * case the position should be 0,0. The width/height should also match the slide
 	 * width/height.
 	 * @see #createImageBackgroundComponent(ImageMedia)
-	 * @see #createPaintBackgroundComponent(Paint)
+	 * @see #createFillBackgroundComponent(Fill)
 	 * @see #createVideoBackgroundComponent(AbstractVideoMedia)
 	 * @return {@link SlideComponent}
 	 */
@@ -246,7 +249,7 @@ public class Slide {
 	/**
 	 * Sets the background to the given component.
 	 * @see #createImageBackgroundComponent(ImageMedia)
-	 * @see #createPaintBackgroundComponent(Paint)
+	 * @see #createFillBackgroundComponent(Fill)
 	 * @see #createVideoBackgroundComponent(AbstractVideoMedia)
 	 * @param component the background component
 	 */
@@ -537,7 +540,7 @@ public class Slide {
 		// set the sizes for the components
 		List<RenderableSlideComponent> components = this.getComponents(RenderableSlideComponent.class);
 		for (RenderableSlideComponent component : components) {
-			component.resize(pw, ph);
+			component.adjust(pw, ph);
 		}
 	}
 	

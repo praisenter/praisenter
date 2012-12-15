@@ -4,6 +4,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.praisenter.resources.Messages;
+
 /**
  * Represents a template of a {@link Slide}.
  * <p>
@@ -11,8 +13,8 @@ import javax.xml.bind.annotation.XmlRootElement;
  * in place for the {@link SlideLibrary} and for future possible distinctions between the
  * two ideas.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 @XmlRootElement(name = "SlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -24,7 +26,7 @@ public class SlideTemplate extends Slide implements Template {
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected SlideTemplate() {
-		super(null, 0, 0);
+		super(Messages.getString("slide.unnamed"), 400, 400);
 	}
 	
 	/**

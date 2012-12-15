@@ -1,6 +1,5 @@
 package org.praisenter.slide;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -13,21 +12,32 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.xml.PaintTypeAdapter;
-import org.praisenter.xml.StrokeTypeAdapter;
+import org.praisenter.resources.Messages;
+import org.praisenter.slide.graphics.ColorFill;
+import org.praisenter.slide.graphics.Fill;
+import org.praisenter.slide.graphics.FillTypeAdapter;
+import org.praisenter.slide.graphics.LineStyle;
+import org.praisenter.slide.graphics.LinearGradientFill;
+import org.praisenter.slide.graphics.RadialGradientFill;
 
 /**
  * Represents a generic slide component with positioning and border.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 // TODO add rotation
 // TODO add effects (drop shadow)
 @XmlRootElement(name = "GenericSlideComponent")
 @XmlAccessorType(XmlAccessType.NONE)
+@XmlSeeAlso({
+	ColorFill.class,
+	LinearGradientFill.class,
+	RadialGradientFill.class
+})
 public class GenericSlideComponent extends AbstractRenderableSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent {
 	/** The x coordinate of this component */
 	@XmlAttribute(name = "X", required = true)
@@ -37,15 +47,14 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	@XmlAttribute(name = "Y", required = true)
 	protected int y;
 	
-	/** The border paint (color or gradient or anything really) */
-	@XmlElement(name = "BorderPaint", required = false, nillable = true)
-	@XmlJavaTypeAdapter(value = PaintTypeAdapter.class)
-	protected Paint borderPaint;
+	/** The border fill (color or gradient or anything really) */
+	@XmlElement(name = "BorderFill")
+	@XmlJavaTypeAdapter(value = FillTypeAdapter.class)
+	protected Fill borderFill;
 	
 	/** The border stroke */
-	@XmlElement(name = "BorderStroke", required = false, nillable = true)
-	@XmlJavaTypeAdapter(value = StrokeTypeAdapter.class)
-	protected Stroke borderStroke;
+	@XmlElement(name = "BorderStyle", required = false, nillable = true)
+	protected LineStyle borderStyle;
 	
 	/** True if the border is visible */
 	@XmlElement(name = "BorderVisible", required = true, nillable = false)
@@ -58,7 +67,7 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected GenericSlideComponent() {
-		this(null, 0, 0);
+		this(Messages.getString("slide.component.unnamed"), 200, 200);
 	}
 	
 	/**
@@ -83,8 +92,8 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 		super(name, width, height);
 		this.x = x;
 		this.y = y;
-		this.borderPaint = Color.BLACK;
-		this.borderStroke = new BasicStroke();
+		this.borderFill = new ColorFill(Color.WHITE);
+		this.borderStyle = new LineStyle();
 		this.borderVisible = false;
 	}
 	
@@ -98,8 +107,8 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 		super(component);
 		this.x = component.x;
 		this.y = component.y;
-		this.borderPaint = component.borderPaint;
-		this.borderStroke = component.borderStroke;
+		this.borderFill = component.borderFill;
+		this.borderStyle = component.borderStyle;
 		this.borderVisible = component.borderVisible;
 	}
 	
@@ -153,6 +162,17 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.AbstractRenderableSlideComponent#adjust(double, double)
+	 */
+	@Override
+	public void adjust(double pw, double ph) {
+		super.adjust(pw, ph);
+		// also adjust the positioning
+		this.x = (int)Math.floor((double)this.x * pw);
+		this.y = (int)Math.floor((double)this.y * ph);
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.PositionedSlideComponent#getBounds()
 	 */
 	@Override
@@ -198,12 +218,18 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * @param g the graphics object to render to
 	 */
 	protected void renderBorder(Graphics2D g) {
-		if (this.borderVisible && this.borderPaint != null && this.borderStroke != null) {
+		if (this.borderVisible && this.borderFill != null && this.borderStyle != null) {
 			Paint oPaint = g.getPaint();
 			Stroke oStroke = g.getStroke();
+			// we need to make sure the border paint is sized to component
+			// we also need to increase the size of the gradient by half the line width
+			int lw = (int)Math.ceil(this.borderStyle.getWidth() * 0.5f);
+			Paint paint = this.borderFill.getPaint(this.x - lw, this.y - lw, this.width + 2 * lw, this.height + 2 * lw);
+			g.setPaint(paint);
 			
-			g.setPaint(this.borderPaint);
-			g.setStroke(this.borderStroke);
+			Stroke stroke = this.borderStyle.getStroke();
+			g.setStroke(stroke);
+			
 			g.drawRect(this.x, this.y, this.width, this.height);
 			
 			g.setStroke(oStroke);
@@ -212,35 +238,35 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.PositionedSlideComponent#getBorderPaint()
+	 * @see org.praisenter.slide.PositionedSlideComponent#getBorderFill()
 	 */
 	@Override
-	public Paint getBorderPaint() {
-		return this.borderPaint;
+	public Fill getBorderFill() {
+		return this.borderFill;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.PositionedSlideComponent#setBorderPaint(java.awt.Paint)
+	 * @see org.praisenter.slide.PositionedSlideComponent#setBorderFill(org.praisenter.slide.Fill)
 	 */
 	@Override
-	public void setBorderPaint(Paint paint) {
-		this.borderPaint = paint;
+	public void setBorderFill(Fill fill) {
+		this.borderFill = fill;
+	}
+ 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.PositionedSlideComponent#getBorderStyle()
+	 */
+	@Override
+	public LineStyle getBorderStyle() {
+		return this.borderStyle;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.PositionedSlideComponent#getBorderStroke()
+	 * @see org.praisenter.slide.PositionedSlideComponent#setBorderStyle(org.praisenter.slide.LineStyle)
 	 */
 	@Override
-	public Stroke getBorderStroke() {
-		return this.borderStroke;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.PositionedSlideComponent#setBorderStroke(java.awt.Stroke)
-	 */
-	@Override
-	public void setBorderStroke(Stroke stroke) {
-		this.borderStroke = stroke;
+	public void setBorderStyle(LineStyle borderStyle) {
+		this.borderStyle = borderStyle;
 	}
 
 	/* (non-Javadoc)

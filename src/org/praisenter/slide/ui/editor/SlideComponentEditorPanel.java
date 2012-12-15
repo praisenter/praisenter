@@ -1,95 +1,98 @@
 package org.praisenter.slide.ui.editor;
 
-import java.awt.Color;
-import java.awt.Paint;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Graphics;
 
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JColorChooser;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
-import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
-import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.ui.WaterMark;
 
 /**
- * Abstact editor panel for slide components.
- * @param <E> the {@link SlideComponent} type
+ * Editor panel base class for concrete editors.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
+ * @param <E> the {@link SlideComponent} type
  */
-public abstract class SlideComponentEditorPanel<E extends RenderableSlideComponent> extends JPanel implements ActionListener, ChangeListener {
+public abstract class SlideComponentEditorPanel<E extends SlideComponent> extends EditorPanel implements DocumentListener {
 	/** The version id */
-	private static final long serialVersionUID = -8456563715108565220L;
+	private static final long serialVersionUID = 7582366573845511409L;
 
 	/** The component being edited */
-	protected E component;
+	protected E slideComponent;
 	
-	/** The color settings label */
-	protected JLabel lblBackgroundColor;
+	// controls
 	
-	/** The button to show the color chooser */
-	protected JButton btnBackgroundColor;
+	/** The component name textfield */
+	protected JTextField txtName;
 	
-	/** The checkbox for color visibility */
-	protected JCheckBox chkBackgroundVisible;
-	
-	// TODO translate
-	// TODO gradients
 	/**
 	 * Default constructor.
 	 */
-	public SlideComponentEditorPanel() {
-		// color
-		this.lblBackgroundColor = new JLabel("background color");
-		this.btnBackgroundColor = new JButton(Icons.COLOR);
-		this.btnBackgroundColor.addActionListener(this);
-		this.btnBackgroundColor.setActionCommand("bg-color");
+	@SuppressWarnings("serial")
+	protected SlideComponentEditorPanel() {
+		this.txtName = new JTextField() {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.slide.editor.component.name"));
+			}
+		};
 		
-		this.chkBackgroundVisible = new JCheckBox("visible");
-		this.chkBackgroundVisible.addChangeListener(this);
-		this.chkBackgroundVisible.setSelected(this.component.isBackgroundPaintVisible());
+		this.txtName.getDocument().addDocumentListener(this);
 	}
 	
 	/* (non-Javadoc)
-	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 * @see javax.swing.event.DocumentListener#changedUpdate(javax.swing.event.DocumentEvent)
 	 */
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		String command = e.getActionCommand();
-		if ("bg-color".equals(command)) {
-			Paint old = this.component.getBackgroundPaint();
-			Color color = Color.WHITE;
-			if (old instanceof Color) {
-				color = (Color)old;
-			}
-			// show the color chooser
-			Color nColor = JColorChooser.showDialog(this, Messages.getString("panel.color.setup.browse"), color);
-			if (nColor != null) {
-				this.component.setBackgroundPaint(nColor);
-				this.firePropertyChange(SlideEditorPanel.PROPERTY_SLIDE_CHANGED, color, nColor);
+	public void changedUpdate(DocumentEvent e) {}
+	
+	/* (non-Javadoc)
+	 * @see javax.swing.event.DocumentListener#insertUpdate(javax.swing.event.DocumentEvent)
+	 */
+	@Override
+	public void insertUpdate(DocumentEvent e) {
+		if (this.txtName.getDocument() == e.getDocument()) {
+			if (this.slideComponent != null) {
+				this.slideComponent.setName(this.txtName.getText());
+				this.notifyEditorListeners();
 			}
 		}
 	}
 	
 	/* (non-Javadoc)
-	 * @see javax.swing.event.ChangeListener#stateChanged(javax.swing.event.ChangeEvent)
+	 * @see javax.swing.event.DocumentListener#removeUpdate(javax.swing.event.DocumentEvent)
 	 */
 	@Override
-	public void stateChanged(ChangeEvent e) {
-		Object source = e.getSource();
-		if (source == this.chkBackgroundVisible) {
-			boolean old = this.component.isBackgroundPaintVisible();
-			boolean flag = this.chkBackgroundVisible.isSelected();
-			this.component.setBackgroundPaintVisible(flag);
-			this.firePropertyChange(SlideEditorPanel.PROPERTY_SLIDE_CHANGED, old, flag);
+	public void removeUpdate(DocumentEvent e) {
+		if (this.txtName.getDocument() == e.getDocument()) {
+			if (this.slideComponent != null) {
+				this.slideComponent.setName(this.txtName.getText());
+				this.notifyEditorListeners();
+			}
 		}
+	}
+	
+	/**
+	 * Returns the {@link SlideComponent} being configured.
+	 * @return E
+	 */
+	public E getSlideComponent() {
+		return this.slideComponent;
+	}
+	
+	/**
+	 * Sets the {@link SlideComponent} to configure.
+	 * @param slideComponent the slide component
+	 */
+	public void setSlideComponent(E slideComponent) {
+		this.slideComponent = slideComponent;
+		
+		this.txtName.setText(slideComponent.getName());
+		this.txtName.setCaretPosition(0);
 	}
 }

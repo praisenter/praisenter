@@ -1,4 +1,4 @@
-package org.praisenter.slide.ui.editor;
+package org.praisenter.slide.graphics;
 
 import java.awt.BasicStroke;
 
@@ -9,6 +9,9 @@ import java.awt.BasicStroke;
  * @since 1.0.0
  */
 public enum CapType {
+	/** The butt cap type */
+	BUTT(BasicStroke.CAP_BUTT),
+	
 	/** The rounded cap type */
 	ROUND(BasicStroke.CAP_ROUND),
 	

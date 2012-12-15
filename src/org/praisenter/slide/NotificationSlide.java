@@ -29,8 +29,8 @@ import org.praisenter.utilities.ImageUtilities;
  * notification to be completely customized like a normal slide, but still be positioned,
  * sized and displayed as a notification.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 @XmlRootElement(name = "NotificationSlide")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -62,7 +62,7 @@ public class NotificationSlide extends Slide {
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected NotificationSlide() {
-		this(null, 0, 0, 0, 0);
+		this(Messages.getString("slide.unnamed"), 0, 0, 400, 400);
 	}
 	
 	/**
