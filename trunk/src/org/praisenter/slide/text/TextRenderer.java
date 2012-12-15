@@ -267,7 +267,7 @@ public class TextRenderer {
 		// the if condition allows REDUCE_FONT_ONLY to exit early
 		float min = (bounds.height <= height && max != Float.MAX_VALUE) ? max : 1.0f;
 		int i = 0;
-		while (bounds.height > height || max - min > 1.0f) {
+		while (bounds.height > height || (int)Math.floor(max - min) > 1) {
 			// check the paragraph height against the maximum height
 			if (bounds.height < height) {
 				// we need to binary search up
@@ -430,26 +430,74 @@ public class TextRenderer {
 	 * @return {@link TextMetrics}
 	 */
 	public static final TextMetrics getFittingLineMetrics(Font font, float max, FontRenderContext fontRenderContext, String text, float width, float height) {
-		// create an attributed string and assign the font
-		AttributedString as = new AttributedString(text);
-		as.addAttribute(TextAttribute.FONT, font);
-		// get the character iterator
-		AttributedCharacterIterator it = as.getIterator();
-		TextLayout layout = new TextLayout(it, fontRenderContext);
-		// get the single line text width
-		float tw = layout.getVisibleAdvance();
-		float th = layout.getAscent() + layout.getDescent() + layout.getLeading();
+		// get the line bounds
+		TextBounds bounds = getLineBounds(font, fontRenderContext, text);
 		// return the font size scaled by the difference in widths (or height)
-		float fw = width / tw;
-		float fh = height / th;
+		float fw = width / bounds.width;
+		float fh = height / bounds.height;
 		// choose the smallest dimension
 		float factor = fw < fh ? fw : fh;
 		float cur = font.getSize2D();
 		// if the scaling factor is less than one (the size must be reduced)
 		// or the maximum size is unbounded, then scale the current font size
 		if (factor < 1.0 || max == Float.MAX_VALUE) {
+			// estimate the font size
 			cur *= factor;
+			// its possible that the text does not fit within the bounds with the 
+			// scaled font size so we still need to perform a search for the font
+			// size if it doesnt work
+			bounds = getLineBounds(font.deriveFont(cur), fontRenderContext, text);
+			if (bounds.width <= width && bounds.height <= height && max != Float.MAX_VALUE) {
+				// the estimate was precise enough so use that
+				LOGGER.debug("Font fitting iterations: 1");
+				return new TextMetrics(cur, bounds.width, bounds.height);
+			} else {
+				// if the text is still too big or the maximum we passed in was Float.MAX_VALUE then
+				// we must binary search for the correct size
+				float min = 1.0f;
+				int i = 0;
+				while (bounds.height > height || bounds.width > width || (int)Math.floor(max - min) > 1) {
+					// check the line height against the maximum height and width
+					if (bounds.height < height && bounds.width < width) {
+						// we need to binary search up
+						min = cur;
+						// compute an estimated next size if the maximum is Float.MAX_VALUE
+						// this is to help convergence to a safe maximum
+						float sw = width / bounds.width;
+						float sh = height / bounds.height;
+						// use the smallest scale, that way we increase the font size conservatively
+						float rmax = 0.0f;
+						if (max != Float.MAX_VALUE) {
+							rmax = max;
+						} else if (sw < sh) {
+							rmax = cur * sw;
+						} else {
+							rmax = cur * sh;
+						}
+						cur = (float)Math.ceil((cur + rmax) * 0.5f);
+						font = font.deriveFont(cur);
+					} else {
+						// we need to binary search down
+						max = cur;
+						// get the next test font size
+						float temp = (float)Math.floor((min + cur) * 0.5f);
+						// do a check for minimum font size
+						if (temp <= 1.0f) break;
+						// its not the minimum so continue
+						cur = temp;
+						font = font.deriveFont(cur);
+					}
+					// get the new paragraph height for the new font size
+					bounds = getLineBounds(font, fontRenderContext, text);
+					i++;
+				}
+				if (i > 0) {
+					LOGGER.debug("Font fitting iterations: " + i);
+				}
+			}
+		} else {
+			LOGGER.debug("Font fitting iterations: 0");
 		}
-		return new TextMetrics(cur, tw, th);
+		return new TextMetrics(cur, bounds.width, bounds.height);
 	}
 }

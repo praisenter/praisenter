@@ -89,4 +89,18 @@ public class ColorUtilities {
 		hsb[2] = hsb[2] * factor;
 		return new Color(Color.HSBtoRGB(hsb[0], hsb[1], hsb[2] * factor));
 	}
+	
+	/**
+	 * Returns the color at the mid point of the given colors.
+	 * @param c1 the first color
+	 * @param c2 the second color
+	 * @return Color
+	 */
+	public static final Color getColorAtMidpoint(Color c1, Color c2) {
+		int r = (c2.getRed() - c1.getRed()) / 2 + c1.getRed();
+		int g = (c2.getGreen() - c1.getGreen()) / 2 + c1.getGreen();
+		int b = (c2.getBlue() - c1.getBlue()) / 2 + c1.getBlue();
+		int a = (c2.getAlpha() - c1.getAlpha()) / 2 + c1.getAlpha();
+		return new Color(r, g, b, a);
+	}
 }

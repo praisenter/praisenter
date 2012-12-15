@@ -1,17 +1,22 @@
 package org.praisenter.slide;
 
 import java.awt.Color;
-import java.awt.LinearGradientPaint;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.graphics.ColorFill;
+import org.praisenter.slide.graphics.Fill;
+import org.praisenter.slide.graphics.LinearGradientDirection;
+import org.praisenter.slide.graphics.LinearGradientFill;
+import org.praisenter.slide.graphics.Stop;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
+import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.FontManager;
 
 /**
@@ -21,8 +26,8 @@ import org.praisenter.utilities.FontManager;
  * in place for the {@link SlideLibrary} and for future possible distinctions between the
  * two ideas.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 @XmlRootElement(name = "SongSlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -34,7 +39,7 @@ public class SongSlideTemplate extends SongSlide implements Template {
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected SongSlideTemplate() {
-		super(null, 0, 0);
+		super();
 	}
 
 	/**
@@ -56,6 +61,14 @@ public class SongSlideTemplate extends SongSlide implements Template {
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SongSlide#copy()
+	 */
+	@Override
+	public SongSlideTemplate copy() {
+		return new SongSlideTemplate(this);
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Template#createSlide()
 	 */
 	public SongSlide createSlide() {
@@ -73,12 +86,16 @@ public class SongSlideTemplate extends SongSlide implements Template {
 	public static final SongSlideTemplate getDefaultTemplate(int width, int height) {
 		SongSlideTemplate template = new SongSlideTemplate(Messages.getString("template.song.default.name"), width, height);
 		
-		GenericSlideComponent background = template.createPaintBackgroundComponent(new LinearGradientPaint(0, 0, width, 0, new float[] { 0.0f, 1.0f }, new Color[] { Color.BLACK, new Color(0, 0, 0, 0) }));
+		Fill fill = new LinearGradientFill(LinearGradientDirection.TOP,
+				new Stop(0.0f, Color.BLACK),
+				new Stop(0.5f, ColorUtilities.getColorAtMidpoint(Color.BLACK, new Color(0, 0, 0, 0))),
+				new Stop(1.0f, 0, 0, 0, 0));
+		GenericSlideComponent background = template.createFillBackgroundComponent(fill);
 		template.setBackground(background);
 		
 		TextComponent text = template.getTextComponent();
 		text.setText(Messages.getString("slide.song.text.default"));
-		text.setTextPaint(Color.WHITE);
+		text.setTextFill(new ColorFill(Color.WHITE));
 		text.setTextFont(FontManager.getDefaultFont().deriveFont(60.0f));
 		text.setTextWrapped(true);
 		text.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);

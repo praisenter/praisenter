@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
@@ -20,8 +21,8 @@ import org.praisenter.utilities.FontManager;
  * in place for the {@link SlideLibrary} and for future possible distinctions between the
  * two ideas.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 @XmlRootElement(name = "NotificationSlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -33,7 +34,7 @@ public class NotificationSlideTemplate extends NotificationSlide implements Temp
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected NotificationSlideTemplate() {
-		super(null, 0, 0, 0, 0);
+		super();
 	}
 
 	/**
@@ -57,6 +58,14 @@ public class NotificationSlideTemplate extends NotificationSlide implements Temp
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.NotificationSlide#copy()
+	 */
+	@Override
+	public NotificationSlideTemplate copy() {
+		return new NotificationSlideTemplate(this);
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Template#createSlide()
 	 */
 	public NotificationSlide createSlide() {
@@ -76,12 +85,12 @@ public class NotificationSlideTemplate extends NotificationSlide implements Temp
 		final int h = (int)Math.ceil((double)height * 0.20);
 		NotificationSlideTemplate template = new NotificationSlideTemplate(Messages.getString("template.notification.default.name"), width, height, width, h);
 		
-		GenericSlideComponent background = template.createPaintBackgroundComponent(new Color(0, 0, 0, 170));
+		GenericSlideComponent background = template.createFillBackgroundComponent(new ColorFill(0, 0, 0, 170));
 		template.setBackground(background);
 		
 		TextComponent text = template.getTextComponent();
 		text.setText(Messages.getString("slide.notification.text.default"));
-		text.setTextPaint(Color.WHITE);
+		text.setTextFill(new ColorFill(Color.WHITE));
 		text.setTextFont(FontManager.getDefaultFont().deriveFont(50.0f));
 		text.setTextWrapped(true);
 		text.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);

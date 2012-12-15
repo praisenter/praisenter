@@ -1,17 +1,22 @@
 package org.praisenter.slide;
 
 import java.awt.Color;
-import java.awt.LinearGradientPaint;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.graphics.ColorFill;
+import org.praisenter.slide.graphics.Fill;
+import org.praisenter.slide.graphics.LinearGradientDirection;
+import org.praisenter.slide.graphics.LinearGradientFill;
+import org.praisenter.slide.graphics.Stop;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
+import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.FontManager;
 
 /**
@@ -21,8 +26,8 @@ import org.praisenter.utilities.FontManager;
  * in place for the {@link SlideLibrary} and for future possible distinctions between the
  * two ideas.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 @XmlRootElement(name = "BibleSlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -56,6 +61,14 @@ public class BibleSlideTemplate extends BibleSlide implements Template {
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.BibleSlide#copy()
+	 */
+	@Override
+	public BibleSlideTemplate copy() {
+		return new BibleSlideTemplate(this);
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Template#createSlide()
 	 */
 	public BibleSlide createSlide() {
@@ -73,12 +86,16 @@ public class BibleSlideTemplate extends BibleSlide implements Template {
 	public static final BibleSlideTemplate getDefaultTemplate(int width, int height) {
 		BibleSlideTemplate template = new BibleSlideTemplate(Messages.getString("template.bible.default.name"), width, height);
 		
-		GenericSlideComponent background = template.createPaintBackgroundComponent(new LinearGradientPaint(0, 0, width, 0, new float[] { 0.0f, 1.0f }, new Color[] { Color.BLACK, Color.BLUE }));
+		Fill fill = new LinearGradientFill(LinearGradientDirection.TOP,
+				new Stop(0.0f, Color.BLACK),
+				new Stop(0.5f, ColorUtilities.getColorAtMidpoint(Color.BLACK, Color.BLUE)),
+				new Stop(1.0f, Color.BLUE));
+		GenericSlideComponent background = template.createFillBackgroundComponent(fill);
 		template.setBackground(background);
 		
 		TextComponent location = template.getScriptureLocationComponent();
 		location.setText(Messages.getString("slide.bible.location.default"));
-		location.setTextPaint(Color.WHITE);
+		location.setTextFill(new ColorFill(Color.WHITE));
 		location.setTextFont(FontManager.getDefaultFont().deriveFont(80.0f));
 		location.setTextWrapped(false);
 		location.setHorizontalTextAlignment(HorizontalTextAlignment.RIGHT);
@@ -88,7 +105,7 @@ public class BibleSlideTemplate extends BibleSlide implements Template {
 		
 		TextComponent text = template.getScriptureTextComponent();
 		text.setText(Messages.getString("slide.bible.text.default"));
-		text.setTextPaint(Color.WHITE);
+		text.setTextFill(new ColorFill(Color.WHITE));
 		text.setTextFont(FontManager.getDefaultFont().deriveFont(50.0f));
 		text.setTextWrapped(true);
 		text.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);

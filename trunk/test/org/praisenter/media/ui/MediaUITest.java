@@ -8,11 +8,14 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import org.apache.log4j.xml.DOMConfigurator;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.utilities.LookAndFeelUtilities;
 
 public class MediaUITest {
 	public static void main(String[] args) {
+		DOMConfigurator.configure("config/log4j.xml");
+		
 		for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 	        if (LookAndFeelUtilities.NIMBUS.equalsIgnoreCase(info.getName())) {
 	            try {

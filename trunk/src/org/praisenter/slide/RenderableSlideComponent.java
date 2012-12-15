@@ -1,10 +1,10 @@
 package org.praisenter.slide;
 
 import java.awt.Graphics2D;
-import java.awt.Paint;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import org.praisenter.slide.graphics.Fill;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
 import org.praisenter.slide.text.TextComponent;
@@ -12,8 +12,8 @@ import org.praisenter.slide.text.TextComponent;
 /**
  * Represents a {@link SlideComponent} that is renderable.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 @XmlSeeAlso({ ImageMediaComponent.class, 
 			  VideoMediaComponent.class, 
@@ -77,7 +77,7 @@ public interface RenderableSlideComponent extends SlideComponent {
 	 * @param pw the width percentage
 	 * @param ph the height percentage
 	 */
-	public abstract void resize(double pw, double ph);
+	public abstract void adjust(double pw, double ph);
 	
 	// rendering
 	
@@ -97,26 +97,26 @@ public interface RenderableSlideComponent extends SlideComponent {
 	public abstract void render(Graphics2D g);
 	
 	/**
-	 * Returns the paint used to paint the background.
+	 * Returns the {@link Fill} used to paint the background.
 	 * @return Paint
 	 */
-	public abstract Paint getBackgroundPaint();
+	public abstract Fill getBackgroundFill();
 	
 	/**
-	 * Sets the paint used to paint the background.
-	 * @param paint the paint
+	 * Sets the {@link Fill} used to paint the background.
+	 * @param fill the fill
 	 */
-	public abstract void setBackgroundPaint(Paint paint);
+	public abstract void setBackgroundFill(Fill fill);
 	
 	/**
-	 * Returns true if the background paint is visible (or will be rendered).
+	 * Returns true if the background is visible (or will be rendered).
 	 * @return boolean
 	 */
-	public abstract boolean isBackgroundPaintVisible();
+	public abstract boolean isBackgroundVisible();
 	
 	/**
-	 * Sets the background paint to visible (or rendered).
-	 * @param visible true if the background paint should be rendered
+	 * Sets the background to visible (or rendered).
+	 * @param visible true if the background should be rendered
 	 */
-	public abstract void setBackgroundPaintVisible(boolean visible);
+	public abstract void setBackgroundVisible(boolean visible);
 }

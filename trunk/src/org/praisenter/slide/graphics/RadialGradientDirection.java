@@ -1,23 +1,14 @@
-package org.praisenter.slide.ui.editor;
+package org.praisenter.slide.graphics;
 
 /**
- * Enumeration of the available linear gradients.
+ * Enumeration of the available radial gradients.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public enum LinearGradientDirection {
-	/** Top to bottom */
-	TOP,
-	
-	/** Right to left */
-	RIGHT,
-	
-	/** Bottom to top */
-	BOTTOM,
-	
-	/** Left to right */
-	LEFT,
+public enum RadialGradientDirection {
+	/** From the center */
+	CENTER,
 	
 	// corners
 	

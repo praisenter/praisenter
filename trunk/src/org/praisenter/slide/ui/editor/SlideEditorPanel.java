@@ -1,22 +1,49 @@
 package org.praisenter.slide.ui.editor;
 
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.BorderFactory;
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
+import org.praisenter.slide.GenericSlideComponent;
+import org.praisenter.slide.NotificationSlide;
 import org.praisenter.slide.PositionedSlideComponent;
+import org.praisenter.slide.RenderableSlideComponent;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.media.AudioMediaComponent;
+import org.praisenter.slide.media.ImageMediaComponent;
+import org.praisenter.slide.media.VideoMediaComponent;
+import org.praisenter.slide.text.TextComponent;
+import org.praisenter.ui.WaterMark;
 
 /**
  * Panel used to edit a slide.
@@ -24,15 +51,17 @@ import org.praisenter.slide.Slide;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, PropertyChangeListener {
+// FIXME translate
+public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, ListSelectionListener, EditorListener, ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = -927595042247907332L;
 
 	/** The resize gap (the additional gap area to allow resizing) */
 	private static final int RESIZE_GAP = 50;
 	
-	/** Property used to notify of a slide component change */
-	protected static final String PROPERTY_SLIDE_CHANGED = "PropertySlideChanged";
+	private static final String GENERIC_CARD = "Generic";
+	private static final String TEXT_CARD = "Text";
+	private static final String BLANK_CARD = "Blank";
 	
 	// input
 	
@@ -44,8 +73,21 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 
 	// components
 	
+	protected JTextField txtSlideName;
+	
+	protected JFormattedTextField txtSlideWidth;
+	protected JFormattedTextField txtSlideHeight;
+	protected JComboBox<Object> cmbSlideTargets;
+	
+	protected JList<SlideComponent> lstComponents;
+	
 	/** The panel used to preview the changes */
 	protected SlideEditorPreviewPanel pnlSlidePreview;
+	
+	protected GenericSlideComponentEditorPanel<GenericSlideComponent> pnlGeneric;
+	protected TextComponentEditorPanel pnlText;
+	protected JPanel pnlEditorCards;
+	protected CardLayout layEditorCards;
 	
 	// mouse commands
 	
@@ -79,13 +121,135 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		this.slide = slide;
 		this.displaySize = displaySize;
 		
-		Dimension previewSize = new Dimension(400, 200);
+		int dsw = this.displaySize.width / 2;
+		int dsh = this.displaySize.height / 2;
+		
+		// setup the preview panel
+		Dimension previewSize = new Dimension(dsw, dsh);
 		this.pnlSlidePreview = new SlideEditorPreviewPanel();
 		this.pnlSlidePreview.setSlide(this.slide);
 		this.pnlSlidePreview.setMinimumSize(previewSize);
 		this.pnlSlidePreview.setPreferredSize(previewSize);
 		this.pnlSlidePreview.addMouseListener(this);
 		this.pnlSlidePreview.addMouseMotionListener(this);
+		
+		int width = slide.getWidth();
+		int height = slide.getHeight();
+		if (slide instanceof NotificationSlide) {
+			NotificationSlide nSlide = (NotificationSlide)slide;
+			width = nSlide.getDeviceWidth();
+			height = nSlide.getDeviceHeight();
+		}
+		
+		this.txtSlideName = new JTextField(slide.getName()) {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				WaterMark.paintTextWaterMark(g, this, "Name");
+			}
+		};
+		this.txtSlideWidth = new JFormattedTextField(NumberFormat.getIntegerInstance()) {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				WaterMark.paintTextWaterMark(g, this, "Width");
+			}
+		};
+		this.txtSlideWidth.setValue(width);
+		this.txtSlideHeight = new JFormattedTextField(NumberFormat.getIntegerInstance()) {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				WaterMark.paintTextWaterMark(g, this, "Height");
+			}
+		};
+		this.txtSlideHeight.setValue(height);
+		
+		JLabel lblComponents = new JLabel("Components");
+		
+		// get all the components on the slide/template
+		List<SlideComponent> components = slide.getComponents(SlideComponent.class);
+		// add in the background component
+		SlideComponent background = slide.getBackground();
+		if (background != null) {
+			components.add(0, slide.getBackground());
+		}
+		this.lstComponents = new JList<SlideComponent>(components.toArray(new SlideComponent[0]));
+		this.lstComponents.setCellRenderer(new SlideComponentListCellRenderer());
+		this.lstComponents.addListSelectionListener(this);
+		JScrollPane scrComponents = new JScrollPane(this.lstComponents);
+		scrComponents.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		
+		JButton btnRemoveComponent = new JButton("Remove");
+		btnRemoveComponent.addActionListener(this);
+		btnRemoveComponent.setActionCommand("remove");
+		
+		JButton btnMoveBack = new JButton("Move Back");
+		btnMoveBack.addActionListener(this);
+		btnMoveBack.setActionCommand("moveBack");
+		
+		JButton btnMoveForward = new JButton("Move Forward");
+		btnMoveForward.addActionListener(this);
+		btnMoveForward.setActionCommand("moveForward");
+		
+		JButton btnAddComponent = new JButton("Add Component");
+		btnAddComponent.addActionListener(this);
+		btnAddComponent.setActionCommand("add");
+		
+		JPanel pnlButtonGrid = new JPanel();
+		pnlButtonGrid.setLayout(new GridLayout(2, 2));
+		pnlButtonGrid.add(btnMoveBack);
+		pnlButtonGrid.add(btnMoveForward);
+		pnlButtonGrid.add(btnRemoveComponent);
+		pnlButtonGrid.add(btnAddComponent);
+		
+		JPanel pnlComponentLists = new JPanel();
+		GroupLayout clLayout = new GroupLayout(pnlComponentLists);
+		pnlComponentLists.setLayout(clLayout);
+		
+		clLayout.setAutoCreateGaps(true);
+		clLayout.setAutoCreateContainerGaps(true);
+		clLayout.setHorizontalGroup(clLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+				.addComponent(this.txtSlideName)
+				.addGroup(clLayout.createSequentialGroup()
+						.addComponent(this.txtSlideWidth)
+						.addComponent(this.txtSlideHeight))
+				.addComponent(lblComponents)
+				.addComponent(scrComponents, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(pnlButtonGrid));
+		clLayout.setVerticalGroup(clLayout.createSequentialGroup()
+				.addComponent(this.txtSlideName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addGroup(clLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.txtSlideWidth, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.txtSlideHeight, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addComponent(lblComponents)
+				.addComponent(scrComponents)
+				.addComponent(pnlButtonGrid));
+		
+		this.pnlGeneric = new GenericSlideComponentEditorPanel<>();
+		this.pnlGeneric.addEditorListener(this);
+		
+		this.pnlText = new TextComponentEditorPanel();
+		this.pnlText.addEditorListener(this);
+		
+		this.pnlEditorCards = new JPanel();
+		this.layEditorCards = new CardLayout();
+		this.pnlEditorCards.setLayout(this.layEditorCards);
+		
+		this.pnlEditorCards.add(this.pnlGeneric, GENERIC_CARD);
+		this.pnlEditorCards.add(this.pnlText, TEXT_CARD);
+		this.pnlEditorCards.add(new JPanel(), BLANK_CARD);
+		
+		JSplitPane splEditorControls = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		splEditorControls.setTopComponent(pnlComponentLists);
+		splEditorControls.setBottomComponent(this.pnlEditorCards);
+		
+		JSplitPane splPreviewEditor = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		splPreviewEditor.setLeftComponent(splEditorControls);
+		splPreviewEditor.setRightComponent(this.pnlSlidePreview);
+		
+		this.setLayout(new BorderLayout());
+		this.add(splPreviewEditor);
 	}
 	
 	/**
@@ -107,7 +271,6 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		return null;
 	}
 	
-
 	/**
 	 * Returns true if the given point is inside any component on the slide.
 	 * @param point the Slide space point
@@ -136,19 +299,6 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		Shape bounds = component.getBounds();
 		// see if the bounds contains the point
 		return bounds.contains(point);
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-	 */
-	@Override
-	public void propertyChange(PropertyChangeEvent event) {
-		String p = event.getPropertyName();
-		// check the property name
-		if (PROPERTY_SLIDE_CHANGED.equals(p)) {
-			// repaint the preview
-			this.repaint();
-		}
 	}
 	
 	/* (non-Javadoc)
@@ -186,12 +336,15 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 			if (!this.mouseCommandGroup.isCommandActive()) {
 				// convert the point to display space
 				Point point = this.pnlSlidePreview.getSlideSpacePoint(e.getPoint());
-				PositionedSlideComponent current = this.pnlSlidePreview.getMouseOverComponent();
+				PositionedSlideComponent cMouseOver = this.pnlSlidePreview.getMouseOverComponent();
+				PositionedSlideComponent cSelected = this.pnlSlidePreview.getSelectedComponent();
 				PositionedSlideComponent component = null;
 				// see if we are still over the same component
-				if (current != null && this.isInside(point, current)) {
+				if (cSelected != null && this.isInside(point, cSelected)) {
 					// then set the component as the one we are still over
-					component = current;
+					component = cSelected;
+				} else if (cMouseOver != null && this.isInside(point, cMouseOver)) {
+					component = cMouseOver;
 				} else {
 					// otherwise see if we are over a different one
 					component = this.getComponentAtPoint(point);
@@ -215,6 +368,13 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 						// move
 						this.moveCommand.begin(point, component);
 					}
+					this.pnlSlidePreview.setSelectedComponent(component);
+					this.lstComponents.setSelectedValue(component, true);
+					this.pnlSlidePreview.repaint();
+				} else {
+					this.pnlSlidePreview.setSelectedComponent(null);
+					this.lstComponents.clearSelection();
+					this.pnlSlidePreview.repaint();
 				}
 			}
 		}
@@ -269,12 +429,13 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		if (!this.mouseCommandGroup.isCommandActive()) {
 			// convert the point to display space
 			Point point = this.pnlSlidePreview.getSlideSpacePoint(e.getPoint());
-			PositionedSlideComponent current = this.pnlSlidePreview.getMouseOverComponent();
+			PositionedSlideComponent cMouseOver = this.pnlSlidePreview.getMouseOverComponent();
+			PositionedSlideComponent cSelected = this.pnlSlidePreview.getSelectedComponent();
 			PositionedSlideComponent component = null;
 			// see if we are still over the same component
-			if (current != null && this.isInside(point, current)) {
+			if (cSelected != null && this.isInside(point, cSelected)) {
 				// then set the component as the one we are still over
-				component = current;
+				component = cSelected;
 			} else {
 				// otherwise see if we are over a different one
 				component = this.getComponentAtPoint(point);
@@ -282,7 +443,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 			// make sure we found one
 			if (component != null) {
 				// set the hover component
-				if (component != current) {
+				if (component != cMouseOver) {
 					this.pnlSlidePreview.setMouseOverComponent(component);
 					this.repaint();
 				}
@@ -309,5 +470,83 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				this.setCursor(Cursor.getDefaultCursor());
 			}
 		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		String command = e.getActionCommand();
+		if ("remove".equals(command)) {
+			
+		} else if ("add".equals(command)) {
+			
+		} else if ("moveBack".equals(command)) {
+			SlideComponent component = this.lstComponents.getSelectedValue();
+			if (component != this.slide.getBackground() && component instanceof RenderableSlideComponent) {
+				RenderableSlideComponent rc = (RenderableSlideComponent)component;
+				this.slide.moveComponentDown(rc);
+				this.pnlSlidePreview.repaint();
+			}
+		} else if ("moveForward".equals(command)) {
+			SlideComponent component = this.lstComponents.getSelectedValue();
+			if (component != this.slide.getBackground() && component instanceof RenderableSlideComponent) {
+				RenderableSlideComponent rc = (RenderableSlideComponent)component;
+				this.slide.moveComponentUp(rc);
+				this.pnlSlidePreview.repaint();
+			}
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
+	 */
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		if (!e.getValueIsAdjusting()) {
+			Object source = e.getSource();
+			if (source == this.lstComponents) {
+				SlideComponent component = this.lstComponents.getSelectedValue();
+				if (component != this.slide.getBackground()) {
+					if (component instanceof TextComponent) {
+						this.pnlText.setSlideComponent((TextComponent)component);
+						this.layEditorCards.show(this.pnlEditorCards, TEXT_CARD);
+					} else if (component instanceof GenericSlideComponent) {
+						this.pnlGeneric.setSlideComponent((GenericSlideComponent)component);
+						this.layEditorCards.show(this.pnlEditorCards, GENERIC_CARD);
+					} else if (component instanceof ImageMediaComponent) {
+						// FIXME implement
+					} else if (component instanceof VideoMediaComponent) {
+						// FIXME implement					
+					} else if (component instanceof AudioMediaComponent) {
+						// FIXME implement
+					} else {
+						// show the blank card with a "select a control label"
+						// FIXME implement
+						this.layEditorCards.show(this.pnlEditorCards, BLANK_CARD);
+					}
+					if (component instanceof PositionedSlideComponent) {
+						this.pnlSlidePreview.setSelectedComponent((PositionedSlideComponent)component);
+					} else {
+						this.pnlSlidePreview.setSelectedComponent(null);
+					}
+				} else {
+					this.pnlSlidePreview.setSelectedComponent(null);
+					// FIXME show the background editor panel
+					this.layEditorCards.show(this.pnlEditorCards, BLANK_CARD);
+				}
+				this.pnlSlidePreview.repaint();
+			}
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.editor.EditorListener#editPerformed(org.praisenter.slide.ui.editor.EditEvent)
+	 */
+	@Override
+	public void editPerformed(EditEvent event) {
+		this.pnlSlidePreview.repaint();
+		this.lstComponents.repaint();
 	}
 }

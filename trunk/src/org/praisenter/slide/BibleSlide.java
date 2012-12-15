@@ -18,8 +18,8 @@ import org.praisenter.slide.text.TextComponent;
  * {@link TextComponent}s for the bible location and text.  These components
  * cannot be removed, but can be edited.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 @XmlRootElement(name = "BibleSlide")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -39,7 +39,7 @@ public class BibleSlide extends Slide {
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected BibleSlide() {
-		this(null, 0, 0);
+		this(Messages.getString("slide.unnamed"), 400, 400);
 	}
 	
 	/**
