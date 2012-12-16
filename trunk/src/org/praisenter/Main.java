@@ -70,6 +70,9 @@ public class Main {
 	 * Initializes all configuration files.
 	 */
 	private static final void initializeConfiguration() {
+		// set system properties
+		System.setProperty("derby.stream.error.file", Constants.LOG_FILE_LOCATION + Constants.SEPARATOR + "derby.log");
+		
 		// initialize folder structure
 		initializeFolderStructure();
 		
@@ -93,6 +96,9 @@ public class Main {
 	private static final void initializeFolderStructure() {
 		// verify the existence of the /config directory
 		initializeFolder(Constants.CONFIGURATION_FILE_LOCATION);
+		
+		// verify the log file folder
+		initializeFolder(Constants.LOG_FILE_LOCATION);
 		
 		// verify the existence of the /media and sub directories
 		initializeFolder(Constants.MEDIA_LIBRARY_PATH);
