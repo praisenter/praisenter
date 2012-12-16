@@ -20,6 +20,9 @@ public class Constants {
 	/** The log4j file name */
 	public static final String LOG4J_FILE_NAME = "log4j.xml";
 	
+	/** The log file folder */
+	public static final String LOG_FILE_LOCATION = "logs";
+	
 	// database
 	
 	/** The database file location */
