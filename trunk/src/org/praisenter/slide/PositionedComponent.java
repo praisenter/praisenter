@@ -12,7 +12,7 @@ import org.praisenter.slide.graphics.LineStyle;
  * @version 2.0.0
  * @since 2.0.0
  */
-public interface PositionedSlideComponent extends SlideComponent, RenderableSlideComponent {
+public interface PositionedComponent extends SlideComponent, RenderableComponent {
 	/**
 	 * Returns the x coordinate in slide space.
 	 * @return int

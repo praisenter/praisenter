@@ -2,6 +2,8 @@ package org.praisenter.slide.ui.editor;
 
 import java.awt.Graphics;
 
+import javax.swing.GroupLayout;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -43,6 +45,22 @@ public abstract class SlideComponentEditorPanel<E extends SlideComponent> extend
 		};
 		
 		this.txtName.getDocument().addDocumentListener(this);
+	}
+	
+	/**
+	 * Creates the layout for the general controls on the given panel.
+	 * @param panel the panel
+	 */
+	protected void createGeneralLayout(JPanel panel) {
+		GroupLayout layout = new GroupLayout(panel);
+		panel.setLayout(layout);
+		
+		layout.setAutoCreateContainerGaps(true);
+		layout.setAutoCreateGaps(true);
+		layout.setHorizontalGroup(layout.createParallelGroup()
+				.addComponent(this.txtName));
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addComponent(this.txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 	}
 	
 	/* (non-Javadoc)

@@ -57,6 +57,43 @@ public class MediaThumbnail implements Comparable<MediaThumbnail> {
 		return this.file.getName().compareTo(o.getFile().getName());
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof MediaThumbnail) {
+			MediaThumbnail other = (MediaThumbnail)obj;
+			if (other.mediaType == this.mediaType &&
+				other.file.equals(this.file)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return this.file.hashCode();
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("MediaThumbnail[Type=").append(this.mediaType)
+		  .append("|File=").append(this.file)
+		  .append("]");
+		return sb.toString();
+	}
+	
 	/**
 	 * Returns the media type.
 	 * @return {@link MediaType}

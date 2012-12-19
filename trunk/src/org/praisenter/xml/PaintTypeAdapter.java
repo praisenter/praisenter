@@ -18,7 +18,6 @@ import org.apache.log4j.Logger;
  * @version 1.0.0
  * @since 1.0.0
  */
-// TODO support texture paint
 public class PaintTypeAdapter extends AbstractTypeAdapter<Paint> {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(PaintTypeAdapter.class);

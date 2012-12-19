@@ -14,11 +14,11 @@ public class SlideComponentOrderComparator implements Comparator<SlideComponent>
 	 */
 	@Override
 	public int compare(SlideComponent o1, SlideComponent o2) {
-		boolean r1 = o1 instanceof RenderableSlideComponent;
-		boolean r2 = o2 instanceof RenderableSlideComponent;
+		boolean r1 = o1 instanceof RenderableComponent;
+		boolean r2 = o2 instanceof RenderableComponent;
 		if (r1 && r2) {
-			RenderableSlideComponent rc1 = (RenderableSlideComponent)o1;
-			RenderableSlideComponent rc2 = (RenderableSlideComponent)o2;
+			RenderableComponent rc1 = (RenderableComponent)o1;
+			RenderableComponent rc2 = (RenderableComponent)o2;
 			return rc1.getOrder() - rc2.getOrder();
 		} else if (r1) {
 			// the non-renderable slide component should be first in the list

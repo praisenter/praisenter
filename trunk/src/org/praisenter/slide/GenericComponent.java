@@ -38,7 +38,7 @@ import org.praisenter.slide.graphics.RadialGradientFill;
 	LinearGradientFill.class,
 	RadialGradientFill.class
 })
-public class GenericSlideComponent extends AbstractRenderableSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent {
+public class GenericComponent extends AbstractRenderableComponent implements SlideComponent, RenderableComponent, PositionedComponent {
 	/** The x coordinate of this component */
 	@XmlAttribute(name = "X", required = true)
 	protected int x;
@@ -66,7 +66,7 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * This constructor should only be used by JAXB for
 	 * marshalling and unmarshalling the objects.
 	 */
-	protected GenericSlideComponent() {
+	protected GenericComponent() {
 		this(Messages.getString("slide.component.unnamed"), 200, 200);
 	}
 	
@@ -76,7 +76,7 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public GenericSlideComponent(String name, int width, int height) {
+	public GenericComponent(String name, int width, int height) {
 		this(name, 0, 0, width, height);
 	}
 	
@@ -88,7 +88,7 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public GenericSlideComponent(String name, int x, int y, int width, int height) {
+	public GenericComponent(String name, int x, int y, int width, int height) {
 		super(name, width, height);
 		this.x = x;
 		this.y = y;
@@ -103,7 +103,7 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * This constructor performs a deep copy where necessary.
 	 * @param component the component to copy
 	 */
-	public GenericSlideComponent(GenericSlideComponent component) {
+	public GenericComponent(GenericComponent component) {
 		super(component);
 		this.x = component.x;
 		this.y = component.y;
@@ -116,8 +116,8 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * @see org.praisenter.slide.SlideComponent#copy()
 	 */
 	@Override
-	public GenericSlideComponent copy() {
-		return new GenericSlideComponent(this);
+	public GenericComponent copy() {
+		return new GenericComponent(this);
 	}
 	
 	/* (non-Javadoc)
@@ -197,9 +197,13 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	@Override
 	public void renderPreview(Graphics2D g) {
 		// render the background
-		this.renderBackground(g, this.x, this.y);
+		if (this.backgroundVisible) {
+			this.renderBackground(g, this.x, this.y);
+		}
 		// render the border
-		this.renderBorder(g);
+		if (this.borderVisible) {
+			this.renderBorder(g);
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -208,9 +212,13 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	@Override
 	public void render(Graphics2D g) {
 		// render the background
-		this.renderBackground(g, this.x, this.y);
+		if (this.backgroundVisible) {
+			this.renderBackground(g, this.x, this.y);
+		}
 		// render the border
-		this.renderBorder(g);
+		if (this.borderVisible) {
+			this.renderBorder(g);
+		}
 	}
 
 	/**
@@ -218,7 +226,7 @@ public class GenericSlideComponent extends AbstractRenderableSlideComponent impl
 	 * @param g the graphics object to render to
 	 */
 	protected void renderBorder(Graphics2D g) {
-		if (this.borderVisible && this.borderFill != null && this.borderStyle != null) {
+		if (this.borderFill != null && this.borderStyle != null) {
 			Paint oPaint = g.getPaint();
 			Stroke oStroke = g.getStroke();
 			// we need to make sure the border paint is sized to component

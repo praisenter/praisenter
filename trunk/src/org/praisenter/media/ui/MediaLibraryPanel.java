@@ -19,7 +19,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -34,7 +33,6 @@ import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnail;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.Messages;
-import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.threading.AbstractTask;
 import org.praisenter.threading.TaskProgressDialog;
 import org.praisenter.ui.ImageFileFilter;
@@ -47,7 +45,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
-// TODO add ability to rename items
+// TODO add ability to rename items (this has issues if a slide/template references the media item)
 public class MediaLibraryPanel extends JPanel implements ActionListener, ListSelectionListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -5811856651322928169L;
@@ -94,21 +92,24 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		if (IMAGES_SUPPORTED) {
 			// load up all the thumbnails for the media in the media library
 			List<MediaThumbnail> images = MediaLibrary.getThumbnails(MediaType.IMAGE);
-			this.lstImages = createJList(images);
+			this.lstImages = MediaUI.createJList(images);
+			this.lstImages.addListSelectionListener(this);
 			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.images"), new JScrollPane(this.lstImages));
 		}
 		
 		// make sure the media library supports the media
 		if (VIDEOS_SUPPORTED) {
 			List<MediaThumbnail> videos = MediaLibrary.getThumbnails(MediaType.VIDEO);
-			this.lstVideos = createJList(videos);
+			this.lstVideos = MediaUI.createJList(videos);
+			this.lstVideos.addListSelectionListener(this);
 			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.videos"), new JScrollPane(this.lstVideos));
 		}
 		
 		// make sure the media library supports the media
 		if (AUDIO_SUPPORTED) {
 			List<MediaThumbnail> audio = MediaLibrary.getThumbnails(MediaType.AUDIO);
-			this.lstAudio = createJList(audio);
+			this.lstAudio = MediaUI.createJList(audio);
+			this.lstAudio.addListSelectionListener(this);
 			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.audio"), new JScrollPane(this.lstAudio));
 		}
 		
@@ -153,30 +154,6 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		this.add(pane, BorderLayout.CENTER);
 	}
 	
-	/**
-	 * Creates a new JList for the given list of {@link SlideThumbnail}s.
-	 * @param thumbnails the list of thumbnails
-	 * @return JList
-	 */
-	private JList<MediaThumbnail> createJList(List<MediaThumbnail> thumbnails) {
-		JList<MediaThumbnail> list = new JList<MediaThumbnail>();
-		list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		list.setFixedCellWidth(100);
-		list.setVisibleRowCount(-1);
-		list.setCellRenderer(new MediaThumbnailListCellRenderer());
-		list.setLayout(new BorderLayout());
-		list.addListSelectionListener(this);
-		// setup the items
-		DefaultListModel<MediaThumbnail> model = new DefaultListModel<MediaThumbnail>();
-		for (MediaThumbnail thumbnail : thumbnails) {
-			model.addElement(thumbnail);
-		}
-		list.setModel(model);
-		
-		return list;
-	}
-	
 	/* (non-Javadoc)
 	 * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
 	 */
@@ -186,19 +163,25 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 			Object source = e.getSource();
 			if (source == this.lstImages) {
 				MediaThumbnail thumbnail = this.lstImages.getSelectedValue();
-				MediaFile file = thumbnail.getFile();
-				this.pnlProperties.setMediaFile(file);
-				this.btnRemoveMedia.setEnabled(true);
+				if (thumbnail != null) {
+					MediaFile file = thumbnail.getFile();
+					this.pnlProperties.setMediaFile(file);
+					this.btnRemoveMedia.setEnabled(true);
+				}
 			} else if (source == this.lstVideos) {
 				MediaThumbnail thumbnail = this.lstVideos.getSelectedValue();
-				MediaFile file = thumbnail.getFile();
-				this.pnlProperties.setMediaFile(file);
-				this.btnRemoveMedia.setEnabled(true);
+				if (thumbnail != null) {
+					MediaFile file = thumbnail.getFile();
+					this.pnlProperties.setMediaFile(file);
+					this.btnRemoveMedia.setEnabled(true);
+				}
 			} else if (source == this.lstAudio) {
 				MediaThumbnail thumbnail = this.lstAudio.getSelectedValue();
-				MediaFile file = thumbnail.getFile();
-				this.pnlProperties.setMediaFile(file);
-				this.btnRemoveMedia.setEnabled(true);
+				if (thumbnail != null) {
+					MediaFile file = thumbnail.getFile();
+					this.pnlProperties.setMediaFile(file);
+					this.btnRemoveMedia.setEnabled(true);
+				}
 			}
 		}
 	}

@@ -90,7 +90,7 @@ public class BibleSlideTemplate extends BibleSlide implements Template {
 				new Stop(0.0f, Color.BLACK),
 				new Stop(0.5f, ColorUtilities.getColorAtMidpoint(Color.BLACK, Color.BLUE)),
 				new Stop(1.0f, Color.BLUE));
-		GenericSlideComponent background = template.createFillBackgroundComponent(fill);
+		GenericComponent background = template.createFillBackgroundComponent(fill);
 		template.setBackground(background);
 		
 		TextComponent location = template.getScriptureLocationComponent();

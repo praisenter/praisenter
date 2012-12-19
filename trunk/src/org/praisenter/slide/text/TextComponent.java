@@ -13,9 +13,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.slide.GenericSlideComponent;
-import org.praisenter.slide.PositionedSlideComponent;
-import org.praisenter.slide.RenderableSlideComponent;
+import org.praisenter.slide.GenericComponent;
+import org.praisenter.slide.PositionedComponent;
+import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.graphics.Fill;
@@ -40,7 +40,7 @@ import org.praisenter.xml.FontTypeAdapter;
 	LinearGradientFill.class,
 	RadialGradientFill.class
 })
-public class TextComponent extends GenericSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent {
+public class TextComponent extends GenericComponent implements SlideComponent, RenderableComponent, PositionedComponent {
 	// TODO change this to a AttributedString so we can support all kinds of string formatting (highlighting, super/sub scripts, etc)
 	/** The text */
 	@XmlElement(name = "Text", required = false, nillable = true)
@@ -75,6 +75,10 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	/** The inner component padding */
 	@XmlElement(name = "TextPadding", required = false, nillable = true)
 	protected int textPadding;
+	
+	/** True if the text should be visible */
+	@XmlElement(name = "TextVisible", required = false, nillable = true)
+	protected boolean textVisible;
 	
 	/**
 	 * Default constructor.
@@ -127,6 +131,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 		this.textFontScaleType = FontScaleType.REDUCE_SIZE_ONLY;
 		this.textWrapped = true;
 		this.textPadding = 5;
+		this.textVisible = true;
 	}
 	
 	/**
@@ -145,6 +150,7 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 		this.textFontScaleType = component.textFontScaleType;
 		this.textWrapped = component.textWrapped;
 		this.textPadding = component.textPadding;
+		this.textVisible = component.textVisible;
 	}
 	
 	/* (non-Javadoc)
@@ -162,8 +168,11 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	public void render(Graphics2D g) {
 		// render the background/border
 		super.render(g);
-		// render the text
-		this.renderText(g);
+		// only render the text if its visible
+		if (this.textVisible) {
+			// render the text
+			this.renderText(g);
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -173,8 +182,11 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	public void renderPreview(Graphics2D g) {
 		// render the background/border
 		super.renderPreview(g);
-		// render the text
-		this.renderText(g);
+		// only render the text if its visible
+		if (this.textVisible) {
+			// render the text
+			this.renderText(g);
+		}
 	}
 	
 	/**
@@ -425,5 +437,21 @@ public class TextComponent extends GenericSlideComponent implements SlideCompone
 	 */
 	public void setTextWrapped(boolean flag) {
 		this.textWrapped = flag;
+	}
+
+	/**
+	 * Returns true if the text is visible.
+	 * @return boolean
+	 */
+	public boolean isTextVisible() {
+		return this.textVisible;
+	}
+
+	/**
+	 * Toggles the visibility of the text.
+	 * @param visible true if the text should be visible
+	 */
+	public void setTextVisible(boolean visible) {
+		this.textVisible = visible;
 	}
 }

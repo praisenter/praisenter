@@ -90,7 +90,7 @@ public class SongSlideTemplate extends SongSlide implements Template {
 				new Stop(0.0f, Color.BLACK),
 				new Stop(0.5f, ColorUtilities.getColorAtMidpoint(Color.BLACK, new Color(0, 0, 0, 0))),
 				new Stop(1.0f, 0, 0, 0, 0));
-		GenericSlideComponent background = template.createFillBackgroundComponent(fill);
+		GenericComponent background = template.createFillBackgroundComponent(fill);
 		template.setBackground(background);
 		
 		TextComponent text = template.getTextComponent();

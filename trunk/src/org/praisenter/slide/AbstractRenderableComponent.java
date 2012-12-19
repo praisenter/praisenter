@@ -3,6 +3,7 @@ package org.praisenter.slide;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.Shape;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -19,7 +20,7 @@ import org.praisenter.slide.graphics.LinearGradientFill;
 import org.praisenter.slide.graphics.RadialGradientFill;
 
 /**
- * Abstract implementation of the {@link RenderableSlideComponent} interface.
+ * Abstract implementation of the {@link RenderableComponent} interface.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
@@ -30,7 +31,7 @@ import org.praisenter.slide.graphics.RadialGradientFill;
 	LinearGradientFill.class,
 	RadialGradientFill.class
 })
-public abstract class AbstractRenderableSlideComponent implements SlideComponent, RenderableSlideComponent {
+public abstract class AbstractRenderableComponent implements SlideComponent, RenderableComponent {
 	/** The component name */
 	@XmlElement(name = "Name")
 	protected String name;
@@ -61,7 +62,7 @@ public abstract class AbstractRenderableSlideComponent implements SlideComponent
 	 * <p>
 	 * This should only be used by JAXB.
 	 */
-	protected AbstractRenderableSlideComponent() {
+	protected AbstractRenderableComponent() {
 		this(Messages.getString("slide.component.unnamed"), 200, 200);
 	}
 	
@@ -71,7 +72,7 @@ public abstract class AbstractRenderableSlideComponent implements SlideComponent
 	 * @param width the width in pixels
 	 * @param height the height in pixels
 	 */
-	public AbstractRenderableSlideComponent(String name, int width, int height) {
+	public AbstractRenderableComponent(String name, int width, int height) {
 		this.name = name;
 		this.order = 1;
 		this.width = width;
@@ -86,7 +87,7 @@ public abstract class AbstractRenderableSlideComponent implements SlideComponent
 	 * This constructor performs a deep copy where necessary.
 	 * @param component the component to copy
 	 */
-	public AbstractRenderableSlideComponent(AbstractRenderableSlideComponent component) {
+	public AbstractRenderableComponent(AbstractRenderableComponent component) {
 		this.name = component.name;
 		this.order = component.order;
 		this.width = component.width;
@@ -166,12 +167,17 @@ public abstract class AbstractRenderableSlideComponent implements SlideComponent
 	 * @param y the y coordinate to begin rendering
 	 */
 	protected void renderBackground(Graphics2D g, int x, int y) {
-		if (this.backgroundVisible && this.backgroundFill != null) {
+		if (this.backgroundFill != null) {
 			Paint oPaint = g.getPaint();
+			Shape oClip = g.getClip();
+			
+			g.clipRect(x, y, this.width, this.height);
 			// we need to make sure the background paint is sized to component
 			Paint paint = this.backgroundFill.getPaint(x, y, this.width, this.height);
 			g.setPaint(paint);
 			g.fillRect(x, y, this.width, this.height);
+			
+			g.setClip(oClip);
 			g.setPaint(oPaint);
 		}
 	}

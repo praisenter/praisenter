@@ -54,6 +54,10 @@ import org.praisenter.ui.ZipFileFilter;
  * @version 1.0.0
  * @since 1.0.0
  */
+// TODO add xuggler video downloader (to download videos from the web)
+// FIXME add import/export caps for slides and templates
+// FIXME add all mimetypes
+// FIXME implement equals/hashcode/tostring for all types that should have it
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;
@@ -87,7 +91,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
 		
-		// TODO Add a service schedule with import/export caps
+		// FIXME Add a service schedule with import/export caps
 		
 		// create the notification panel
 		this.pnlNotification = new NotificationPanel();

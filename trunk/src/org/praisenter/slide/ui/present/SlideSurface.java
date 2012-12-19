@@ -20,7 +20,7 @@ import org.praisenter.media.MediaPlayerFactory;
 import org.praisenter.media.PlayableMedia;
 import org.praisenter.media.VideoMediaPlayerListener;
 import org.praisenter.preferences.Preferences;
-import org.praisenter.slide.RenderableSlideComponent;
+import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
@@ -264,7 +264,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		this.inRenderer = new SlideRenderer(slide, getGraphicsConfiguration());
 		this.inMediaPlayers.clear();
 		this.transitionBackground = true;
-		RenderableSlideComponent background = slide.getBackground();
+		RenderableComponent background = slide.getBackground();
 		List<PlayableMediaComponent<?>> playableMediaComponents = slide.getPlayableMediaComponents();
 		this.inHasPlayableMedia = false;
 		
@@ -279,8 +279,8 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 					// if both are video media components, we need to check if they are the same video
 					VideoMediaComponent oC = (VideoMediaComponent)this.currentSlide.getBackground();
 					VideoMediaComponent nC = (VideoMediaComponent)slide.getBackground();
-					if (oC.getMedia().equals(nC.getMedia())) {
-						// they are the same video, so we should not transition the background
+					if (oC.getMedia().equals(nC.getMedia()) && oC.isVideoVisible() && nC.isVideoVisible()) {
+						// they are the same video (and both are visible), so we should not transition the background
 						// we can attach the new media component as a listener to the current 
 						// media player (to update its images as the video plays)
 						this.currentBackgroundMediaPlayer.addMediaPlayerListener(nC);
@@ -295,22 +295,33 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		// don't create a player for the IN slide if we aren't transitioning the background
 		if (background instanceof VideoMediaComponent && this.transitionBackground) {
 			VideoMediaComponent bg = (VideoMediaComponent)background;
-			MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(bg.getMedia().getClass());
-			MediaPlayer player = factory.createMediaPlayer();
-			player.setMedia(bg.getMedia());
-			player.addMediaPlayerListener(bg);
-			player.addMediaPlayerListener(this);
-			
-			MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
-			conf.setLoopEnabled(bg.isLoopEnabled());
-			conf.setAudioMuted(bg.isAudioMuted());
-			player.setConfiguration(conf);
-			
-			this.inBackgroundMediaPlayer = player;
-			this.inHasPlayableMedia = true;
+			// make sure the video is visible
+			if (bg.isVideoVisible()) {
+				MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(bg.getMedia().getClass());
+				MediaPlayer player = factory.createMediaPlayer();
+				player.setMedia(bg.getMedia());
+				player.addMediaPlayerListener(bg);
+				player.addMediaPlayerListener(this);
+				
+				MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
+				conf.setLoopEnabled(bg.isLoopEnabled());
+				conf.setAudioMuted(bg.isAudioMuted());
+				player.setConfiguration(conf);
+				
+				this.inBackgroundMediaPlayer = player;
+				this.inHasPlayableMedia = true;
+			}
 		}
 		for (PlayableMediaComponent<?> component : playableMediaComponents) {
 			if (component != background) {
+				// check for non-visible video media
+				if (component instanceof VideoMediaComponent) {
+					VideoMediaComponent vc = (VideoMediaComponent)component;
+					if (!vc.isVideoVisible()) {
+						// if the video is not visible, then just skip this component
+						continue;
+					}
+				}
 				PlayableMedia media = component.getMedia();
 				MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(media.getClass());
 				MediaPlayer player = factory.createMediaPlayer();
@@ -489,7 +500,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		// current slide image to avoid a small flicker
 		copyImage(this.image1, this.image0);
 		
-		// seee if we were transitioning the background
+		// see if we were transitioning the background
 		if (this.transitionBackground) {
 			// if we were transitioning the background, then we need to release the current background
 			// media player and set the current media player to the incoming media player

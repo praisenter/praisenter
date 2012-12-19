@@ -85,7 +85,7 @@ public class NotificationSlideTemplate extends NotificationSlide implements Temp
 		final int h = (int)Math.ceil((double)height * 0.20);
 		NotificationSlideTemplate template = new NotificationSlideTemplate(Messages.getString("template.notification.default.name"), width, height, width, h);
 		
-		GenericSlideComponent background = template.createFillBackgroundComponent(new ColorFill(0, 0, 0, 170));
+		GenericComponent background = template.createFillBackgroundComponent(new ColorFill(0, 0, 0, 170));
 		template.setBackground(background);
 		
 		TextComponent text = template.getTextComponent();

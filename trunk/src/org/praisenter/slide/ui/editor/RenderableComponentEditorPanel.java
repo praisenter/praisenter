@@ -7,16 +7,16 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.praisenter.resources.Messages;
-import org.praisenter.slide.RenderableSlideComponent;
+import org.praisenter.slide.RenderableComponent;
 
 /**
- * Abstact editor panel for {@link RenderableSlideComponent}s.
- * @param <E> the {@link RenderableSlideComponent} type
+ * Abstact editor panel for {@link RenderableComponent}s.
+ * @param <E> the {@link RenderableComponent} type
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public abstract class RenderableSlideComponentEditorPanel<E extends RenderableSlideComponent> extends SlideComponentEditorPanel<E> implements ChangeListener, EditorListener {
+public abstract class RenderableComponentEditorPanel<E extends RenderableComponent> extends SlideComponentEditorPanel<E> implements ChangeListener, EditorListener {
 	/** The version id */
 	private static final long serialVersionUID = -8456563715108565220L;
 	
@@ -29,12 +29,12 @@ public abstract class RenderableSlideComponentEditorPanel<E extends RenderableSl
 	/**
 	 * Default constructor.
 	 */
-	protected RenderableSlideComponentEditorPanel() {
+	protected RenderableComponentEditorPanel() {
 		// background
 		this.pnlBackgroundFill = new FillEditorPanel(null);
 		this.pnlBackgroundFill.addEditorListener(this);
 		
-		this.chkBackgroundVisible = new JCheckBox(Messages.getString("panel.slide.editor.component.visible"));
+		this.chkBackgroundVisible = new JCheckBox(Messages.getString("panel.slide.editor.visible"));
 		this.chkBackgroundVisible.addChangeListener(this);
 	}
 	

@@ -8,16 +8,16 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.praisenter.resources.Messages;
-import org.praisenter.slide.GenericSlideComponent;
+import org.praisenter.slide.GenericComponent;
 
 /**
- * Editor panel for {@link GenericSlideComponent}s.
+ * Editor panel for {@link GenericComponent}s.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
- * @param <E> the {@link GenericSlideComponent} type
+ * @param <E> the {@link GenericComponent} type
  */
-public class GenericSlideComponentEditorPanel<E extends GenericSlideComponent> extends RenderableSlideComponentEditorPanel<E> implements EditorListener, ChangeListener {
+public class GenericComponentEditorPanel<E extends GenericComponent> extends RenderableComponentEditorPanel<E> implements EditorListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = 1338378689202204500L;
 	
@@ -33,7 +33,7 @@ public class GenericSlideComponentEditorPanel<E extends GenericSlideComponent> e
 	/**
 	 * Default constructor.
 	 */
-	public GenericSlideComponentEditorPanel() {
+	public GenericComponentEditorPanel() {
 		this(true);
 	}
 	
@@ -41,12 +41,12 @@ public class GenericSlideComponentEditorPanel<E extends GenericSlideComponent> e
 	 * Constructor for sub classes only.
 	 * @param doLayout true if the layout should be created
 	 */
-	protected GenericSlideComponentEditorPanel(boolean doLayout) {
+	protected GenericComponentEditorPanel(boolean doLayout) {
 		this.pnlBorderFill = new FillEditorPanel(null);
 		this.pnlBorderFill.addEditorListener(this);
 		this.pnlBorderStyle = new LineStyleEditorPanel(null);
 		this.pnlBorderStyle.addEditorListener(this);
-		this.chkBorderVisible = new JCheckBox(Messages.getString("panel.slide.editor.component.visible"));
+		this.chkBorderVisible = new JCheckBox(Messages.getString("panel.slide.editor.visible"));
 		this.chkBorderVisible.addChangeListener(this);
 		
 		if (doLayout) {
@@ -63,6 +63,9 @@ public class GenericSlideComponentEditorPanel<E extends GenericSlideComponent> e
 		
 		JTabbedPane tabs = new JTabbedPane();
 		
+		JPanel pnlGeneral = new JPanel();
+		this.createGeneralLayout(pnlGeneral);
+		
 		JPanel pnlBackground = new JPanel();
 		this.createBackgroundLayout(pnlBackground);
 		tabs.addTab(Messages.getString("panel.slide.editor.component.background"), pnlBackground);
@@ -73,10 +76,10 @@ public class GenericSlideComponentEditorPanel<E extends GenericSlideComponent> e
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.txtName)
+				.addComponent(pnlGeneral)
 				.addComponent(tabs));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(pnlGeneral)
 				.addComponent(tabs));
 	}
 	

@@ -116,25 +116,42 @@ public class ImageUtilities {
 	public static final BufferedImage getTiledImage(BufferedImage image, GraphicsConfiguration gc, int w, int h) {
 		// create a new image of the right size
 		BufferedImage tiled = gc.createCompatibleImage(w, h, Transparency.BITMASK);
+		renderTiledImage(image, tiled, 0, 0, w, h);
+		return tiled;
+	}
+	
+	/**
+	 * Tiles the given tile image onto the given surface starting from the given location and filling the given
+	 * width and height. 
+	 * @param tile the tile to render
+	 * @param surface the surface to render to
+	 * @param x the starting x position
+	 * @param y the starting y position
+	 * @param w the rendering width
+	 * @param h the rendering height
+	 */
+	public static final void renderTiledImage(BufferedImage tile, BufferedImage surface, int x, int y, int w, int h) {
+		int tw = tile.getWidth();
+		int th = tile.getHeight();
 		
-		int tw = image.getWidth();
-		int th = image.getHeight();
-		int x = 0;
-		int y = 0;
+		int cx = x;
+		int cy = y;
+		
 		int xn = w / tw + 1;
 		int yn = h / th + 1;
-		Graphics2D ig2d = tiled.createGraphics();
+		
+		Graphics2D ig2d = surface.createGraphics();
+		ig2d.clipRect(x, y, w, h);
 		// tile the image
 		for (int i = 0; i < xn; i++) {
 			for (int j = 0; j < yn; j++) {
-				ig2d.drawImage(image, x, y, null);
-				y += th;
+				ig2d.drawImage(tile, cx, cy, null);
+				cy += th;
 			}
-			x += tw;
-			y = 0;
+			cx += tw;
+			cy = y;
 		}
 		ig2d.dispose();
-		return tiled;
 	}
 	
 	/**

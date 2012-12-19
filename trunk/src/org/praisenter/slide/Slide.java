@@ -40,7 +40,7 @@ import org.praisenter.utilities.ImageUtilities;
 @XmlSeeAlso({ ImageMediaComponent.class, 
 	  VideoMediaComponent.class, 
 	  TextComponent.class,
-	  GenericSlideComponent.class })
+	  GenericComponent.class })
 public class Slide {
 	/** Comparator for sorting by z-order */
 	private static final SlideComponentOrderComparator ORDER_COMPARATOR = new SlideComponentOrderComparator();
@@ -59,8 +59,8 @@ public class Slide {
 	
 	/** The slide background */
 	@XmlElement(name = "Background")
-	@XmlJavaTypeAdapter(value = RenderableSlideComponentTypeAdapter.class)
-	protected RenderableSlideComponent background;
+	@XmlJavaTypeAdapter(value = RenderableComponentTypeAdapter.class)
+	protected RenderableComponent background;
 	
 	/** The slide components */
 	@XmlElementWrapper(name = "Components")
@@ -153,7 +153,7 @@ public class Slide {
 		if (this.background != null) {
 			this.background.renderPreview(g);
 		}
-		for (RenderableSlideComponent component : this.getComponents(RenderableSlideComponent.class)) {
+		for (RenderableComponent component : this.getComponents(RenderableComponent.class)) {
 			component.renderPreview(g);
 		}
 	}
@@ -166,7 +166,7 @@ public class Slide {
 		if (this.background != null) {
 			this.background.render(g);
 		}
-		for (RenderableSlideComponent component : this.getComponents(RenderableSlideComponent.class)) {
+		for (RenderableComponent component : this.getComponents(RenderableComponent.class)) {
 			component.render(g);
 		}
 	}
@@ -203,14 +203,14 @@ public class Slide {
 	}
 	
 	/**
-	 * Returns a new {@link GenericSlideComponent} with the given fill as the background.
+	 * Returns a new {@link GenericComponent} with the given fill as the background.
 	 * <p>
 	 * The fill can be a solid color or gradient or any other type of fill.
 	 * @param fill the fill
-	 * @return {@link GenericSlideComponent}
+	 * @return {@link GenericComponent}
 	 */
-	public GenericSlideComponent createFillBackgroundComponent(Fill fill) {
-		GenericSlideComponent component = new GenericSlideComponent(Messages.getString("slide.background.name"), 0, 0, this.width, this.height);
+	public GenericComponent createFillBackgroundComponent(Fill fill) {
+		GenericComponent component = new GenericComponent(Messages.getString("slide.background.name"), 0, 0, this.width, this.height);
 		// set the media
 		component.setBackgroundFill(fill);
 		component.setBackgroundVisible(true);
@@ -224,7 +224,7 @@ public class Slide {
 	 * Setups up the properties for a background component.
 	 * @param component the component
 	 */
-	private void setupBackgroundComponent(GenericSlideComponent component) {
+	private void setupBackgroundComponent(GenericComponent component) {
 		// no border on backgrounds
 		component.setBorderVisible(false);
 		component.setBorderFill(null);
@@ -234,7 +234,7 @@ public class Slide {
 	/**
 	 * Returns the background component.
 	 * <p>
-	 * This can be any type of component, even a {@link RenderableSlideComponent}. In this
+	 * This can be any type of component, even a {@link RenderableComponent}. In this
 	 * case the position should be 0,0. The width/height should also match the slide
 	 * width/height.
 	 * @see #createImageBackgroundComponent(ImageMedia)
@@ -242,7 +242,7 @@ public class Slide {
 	 * @see #createVideoBackgroundComponent(AbstractVideoMedia)
 	 * @return {@link SlideComponent}
 	 */
-	public RenderableSlideComponent getBackground() {
+	public RenderableComponent getBackground() {
 		return this.background;
 	}
 	
@@ -253,7 +253,7 @@ public class Slide {
 	 * @see #createVideoBackgroundComponent(AbstractVideoMedia)
 	 * @param component the background component
 	 */
-	public void setBackground(RenderableSlideComponent component) {
+	public void setBackground(RenderableComponent component) {
 		component.setOrder(0);
 		this.background = component;
 	}
@@ -271,9 +271,9 @@ public class Slide {
 	 * @param component the component to add
 	 */
 	public void addComponent(SlideComponent component) {
-		if (component instanceof RenderableSlideComponent) {
+		if (component instanceof RenderableComponent) {
 			int order = this.getNextIndex();
-			((RenderableSlideComponent)component).setOrder(order);
+			((RenderableComponent)component).setOrder(order);
 		}
 		this.components.add(component);
 		this.sortComponentsByOrder(this.components);
@@ -294,10 +294,10 @@ public class Slide {
 	 * @return int
 	 */
 	protected int getNextIndex() {
-		List<RenderableSlideComponent> components = this.getComponents(RenderableSlideComponent.class);
+		List<RenderableComponent> components = this.getComponents(RenderableComponent.class);
 		if (components.size() > 0) {
 			int maximum = 1;
-			for (RenderableSlideComponent component : components) {
+			for (RenderableComponent component : components) {
 				if (maximum < component.getOrder()) {
 					maximum = component.getOrder();
 				}
@@ -320,11 +320,11 @@ public class Slide {
 	 * moved back by one.
 	 * @param component the component to move up
 	 */
-	public void moveComponentUp(RenderableSlideComponent component) {
+	public void moveComponentUp(RenderableComponent component) {
 		// move the given component up in the order
 		
 		// get all the components
-		List<RenderableSlideComponent> components = this.getComponents(RenderableSlideComponent.class);
+		List<RenderableComponent> components = this.getComponents(RenderableComponent.class);
 		// verify the component exists on this slide
 		if (components.contains(component) && components.size() > 0) {
 			int size = components.size();
@@ -336,7 +336,7 @@ public class Slide {
 				// if its not in the last position then we need to 
 				// move it up and change the subsequent component (move it back by one)
 				int order = component.getOrder();
-				for (RenderableSlideComponent cmp : components) {
+				for (RenderableComponent cmp : components) {
 					// see if the current component order is greater
 					// than this component's order
 					if (cmp.getOrder() == order + 1) {
@@ -363,11 +363,11 @@ public class Slide {
 	 * moved up by one.
 	 * @param component the component to move down
 	 */
-	public void moveComponentDown(RenderableSlideComponent component) {
+	public void moveComponentDown(RenderableComponent component) {
 		// move the given component down in the order
 		
 		// get all the components
-		List<RenderableSlideComponent> components = this.getComponents(RenderableSlideComponent.class);
+		List<RenderableComponent> components = this.getComponents(RenderableComponent.class);
 		// verify the component exists on this slide
 		if (components.contains(component) && components.size() > 0) {
 			// see if the component is already in the first position
@@ -378,7 +378,7 @@ public class Slide {
 				// if its not in the first position then we need to 
 				// move it down and change the previous component (move it up by one)
 				int order = component.getOrder();
-				for (RenderableSlideComponent cmp : components) {
+				for (RenderableComponent cmp : components) {
 					// find the previous component
 					if (cmp.getOrder() == order - 1) {
 						// we only need to move up the previous component
@@ -538,8 +538,8 @@ public class Slide {
 		this.background.setWidth(width);
 		this.background.setHeight(height);
 		// set the sizes for the components
-		List<RenderableSlideComponent> components = this.getComponents(RenderableSlideComponent.class);
-		for (RenderableSlideComponent component : components) {
+		List<RenderableComponent> components = this.getComponents(RenderableComponent.class);
+		for (RenderableComponent component : components) {
 			component.adjust(pw, ph);
 		}
 	}

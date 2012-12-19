@@ -2,10 +2,10 @@ package org.praisenter.slide.ui.editor;
 
 import java.awt.Point;
 
-import org.praisenter.slide.PositionedSlideComponent;
+import org.praisenter.slide.PositionedComponent;
 
 /**
- * Represents a resize {@link Command} on a {@link PositionedSlideComponent}.
+ * Represents a resize {@link Command} on a {@link PositionedComponent}.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
