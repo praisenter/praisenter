@@ -23,6 +23,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -41,7 +42,7 @@ import org.praisenter.utilities.FontManager;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class TextComponentEditorPanel extends GenericSlideComponentEditorPanel<TextComponent> implements ActionListener, ItemListener, EditorListener, DocumentListener {
+public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextComponent> implements ActionListener, ItemListener, EditorListener, DocumentListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = 6502908345432550911L;
 
@@ -57,6 +58,9 @@ public class TextComponentEditorPanel extends GenericSlideComponentEditorPanel<T
 	protected JLabel lblLayout;
 	
 	// controls
+	
+	/** The checkbox for text visibility */
+	protected JCheckBox chkTextVisible;
 	
 	/** The font family combo box */
 	protected JComboBox<String> cmbFontFamilies;
@@ -119,6 +123,9 @@ public class TextComponentEditorPanel extends GenericSlideComponentEditorPanel<T
 		// pass false down so that GenericSlideComponentEditorPanel doesn't build
 		// the layout, we need this class to build its own layout
 		super(false);
+		
+		this.chkTextVisible = new JCheckBox(Messages.getString("panel.slide.editor.visible"));
+		this.chkTextVisible.addChangeListener(this);
 		
 		this.txtText = new JTextArea();
 		this.txtText.setRows(8);
@@ -260,6 +267,9 @@ public class TextComponentEditorPanel extends GenericSlideComponentEditorPanel<T
 		
 		JTabbedPane tabs = new JTabbedPane();
 		
+		JPanel pnlGeneral = new JPanel();
+		this.createGeneralLayout(pnlGeneral);
+		
 		JPanel pnlText = new JPanel();
 		this.createTextLayout(pnlText);
 		tabs.addTab(Messages.getString("panel.slide.editor.text"), pnlText);
@@ -274,10 +284,10 @@ public class TextComponentEditorPanel extends GenericSlideComponentEditorPanel<T
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.txtName)
+				.addComponent(pnlGeneral)
 				.addComponent(tabs));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(pnlGeneral)
 				.addComponent(tabs));
 	}
 	
@@ -296,6 +306,7 @@ public class TextComponentEditorPanel extends GenericSlideComponentEditorPanel<T
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
+				.addComponent(this.chkTextVisible)
 				.addComponent(scrText)
 				.addGroup(layout.createSequentialGroup()
 						// column 1
@@ -322,6 +333,7 @@ public class TextComponentEditorPanel extends GenericSlideComponentEditorPanel<T
 				.addComponent(this.pnlTextFill));
 		
 		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addComponent(this.chkTextVisible)
 				.addComponent(scrText)
 				// font row
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
@@ -405,6 +417,12 @@ public class TextComponentEditorPanel extends GenericSlideComponentEditorPanel<T
 				Number nnv = (Number)nv;
 				int padding = nnv.intValue();
 				this.slideComponent.setTextPadding(padding);
+				this.notifyEditorListeners();
+			}
+		} else if (source == this.chkTextVisible) {
+			boolean flag = this.chkTextVisible.isSelected();
+			if (this.slideComponent != null) {
+				this.slideComponent.setTextVisible(flag);
 				this.notifyEditorListeners();
 			}
 		}
@@ -557,6 +575,7 @@ public class TextComponentEditorPanel extends GenericSlideComponentEditorPanel<T
 			this.pnlTextFill.setFill(slideComponent.getTextFill());
 			this.txtText.setText(slideComponent.getText());
 			this.txtText.setCaretPosition(0);
+			this.chkTextVisible.setSelected(slideComponent.isTextVisible());
 		}
 	}
 }

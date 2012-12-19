@@ -12,11 +12,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.media.ImageMedia;
-import org.praisenter.media.ScaleType;
-import org.praisenter.slide.GenericSlideComponent;
-import org.praisenter.slide.PositionedSlideComponent;
-import org.praisenter.slide.RenderableSlideComponent;
+import org.praisenter.slide.GenericComponent;
+import org.praisenter.slide.PositionedComponent;
+import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.xml.MediaTypeAdapter;
 
 /**
@@ -27,7 +27,7 @@ import org.praisenter.xml.MediaTypeAdapter;
  */
 @XmlRootElement(name = "ImageMediaComponent")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ImageMediaComponent extends GenericSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent, MediaComponent<ImageMedia> {
+public class ImageMediaComponent extends GenericComponent implements SlideComponent, RenderableComponent, PositionedComponent, MediaComponent<ImageMedia> {
 	/** The media */
 	@XmlElement(name = "Media", required = true, nillable = false)
 	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
@@ -36,6 +36,10 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	/** The image scale type */
 	@XmlAttribute(name = "ScaleType", required = false)
 	protected ScaleType scaleType;
+	
+	/** True if the image is visible */
+	@XmlElement(name = "ImageVisible", required = false, nillable = true)
+	protected boolean imageVisible;
 	
 	/**
 	 * Default constructor.
@@ -71,6 +75,7 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 		super(name, x, y, width, height);
 		this.media = media;
 		this.scaleType = ScaleType.NONUNIFORM;
+		this.imageVisible = true;
 	}
 	
 	/**
@@ -83,6 +88,7 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 		super(component);
 		this.media = component.media;
 		this.scaleType = component.scaleType;
+		this.imageVisible = component.imageVisible;
 	}
 	
 	/* (non-Javadoc)
@@ -157,9 +163,18 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	 */
 	@Override
 	public void render(Graphics2D g) {
-		this.renderBackground(g, this.x, this.y);
-		this.renderScaledImage(g, this.getImage());
-		this.renderBorder(g);
+		// render the background
+		if (this.backgroundVisible) {
+			this.renderBackground(g, this.x, this.y);
+		}
+		// render the image
+		if (this.imageVisible) {
+			this.renderScaledImage(g, this.getImage());
+		}
+		// the border needs to be rendered last on top of the other renderings
+		if (this.borderVisible) {
+			this.renderBorder(g);
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -167,9 +182,18 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	 */
 	@Override
 	public void renderPreview(Graphics2D g) {
-		this.renderBackground(g, this.x, this.y);
-		this.renderScaledImage(g, this.getImage());
-		this.renderBorder(g);
+		// render the background
+		if (this.backgroundVisible) {
+			this.renderBackground(g, this.x, this.y);
+		}
+		// render the image
+		if (this.imageVisible) {
+			this.renderScaledImage(g, this.getImage());
+		}
+		// the border needs to be rendered last on top of the other renderings
+		if (this.borderVisible) {
+			this.renderBorder(g);
+		}
 	}
 	
 	
@@ -194,9 +218,9 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 				if (this.scaleType == ScaleType.UNIFORM) {
 					if (sw < sh) {
 						iw = this.width;
-						ih = (int)Math.round(sw * ih);
+						ih = (int)Math.ceil(sw * ih);
 					} else {
-						iw = (int)Math.round(sh * iw);
+						iw = (int)Math.ceil(sh * iw);
 						ih = this.height;
 					}
 				} else if (this.scaleType == ScaleType.NONUNIFORM) {
@@ -229,5 +253,21 @@ public class ImageMediaComponent extends GenericSlideComponent implements SlideC
 	 */
 	public void setScaleType(ScaleType scaleType) {
 		this.scaleType = scaleType;
+	}
+	
+	/**
+	 * Returns true if the image is visible.
+	 * @return boolean
+	 */
+	public boolean isImageVisible() {
+		return this.imageVisible;
+	}
+	
+	/**
+	 * Toggles the visibility of the image.
+	 * @param visible true if the image should be visible
+	 */
+	public void setImageVisible(boolean visible) {
+		this.imageVisible = visible;
 	}
 }

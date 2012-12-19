@@ -18,13 +18,13 @@ import org.praisenter.slide.text.TextComponent;
 @XmlSeeAlso({ ImageMediaComponent.class, 
 			  VideoMediaComponent.class, 
 			  TextComponent.class,
-			  GenericSlideComponent.class })
-public interface RenderableSlideComponent extends SlideComponent {
+			  GenericComponent.class })
+public interface RenderableComponent extends SlideComponent {
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideComponent#copy()
 	 */
 	@Override
-	public RenderableSlideComponent copy();
+	public RenderableComponent copy();
 
 	/**
 	 * Returns the z-ordering of the component in the slide.

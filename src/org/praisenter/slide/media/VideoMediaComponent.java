@@ -14,12 +14,12 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.praisenter.media.AbstractVideoMedia;
 import org.praisenter.media.MediaPlayer;
 import org.praisenter.media.MediaPlayerListener;
-import org.praisenter.media.ScaleType;
 import org.praisenter.media.VideoMediaPlayerListener;
-import org.praisenter.slide.GenericSlideComponent;
-import org.praisenter.slide.PositionedSlideComponent;
-import org.praisenter.slide.RenderableSlideComponent;
+import org.praisenter.slide.GenericComponent;
+import org.praisenter.slide.PositionedComponent;
+import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.xml.MediaTypeAdapter;
 
 /**
@@ -30,7 +30,7 @@ import org.praisenter.xml.MediaTypeAdapter;
  */
 @XmlRootElement(name = "VideoMediaComponent")
 @XmlAccessorType(XmlAccessType.NONE)
-public class VideoMediaComponent extends GenericSlideComponent implements SlideComponent, RenderableSlideComponent, PositionedSlideComponent, MediaComponent<AbstractVideoMedia>, PlayableMediaComponent<AbstractVideoMedia>, MediaPlayerListener, VideoMediaPlayerListener {
+public class VideoMediaComponent extends GenericComponent implements SlideComponent, RenderableComponent, PositionedComponent, MediaComponent<AbstractVideoMedia>, PlayableMediaComponent<AbstractVideoMedia>, MediaPlayerListener, VideoMediaPlayerListener {
 	/** The media */
 	@XmlElement(name = "Media", required = true, nillable = false)
 	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
@@ -47,6 +47,10 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 	/** True if the audio should be muted */
 	@XmlAttribute(name = "AudioMuted", required = true)
 	protected boolean audioMuted;
+	
+	/** True if the video is visible */
+	@XmlElement(name = "VideoVisible", required = false, nillable = true)
+	protected boolean videoVisible;
 	
 	/** The current frame */
 	protected BufferedImage currentFrame;
@@ -87,6 +91,7 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 		this.scaleType = ScaleType.NONUNIFORM;
 		this.loopEnabled = false;
 		this.audioMuted = false;
+		this.videoVisible = true;
 		this.currentFrame = null;
 	}
 	
@@ -102,6 +107,7 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 		this.scaleType = component.scaleType;
 		this.loopEnabled = component.loopEnabled;
 		this.audioMuted = component.audioMuted;
+		this.videoVisible = component.videoVisible;
 		this.currentFrame = component.currentFrame;
 	}
 	
@@ -172,9 +178,18 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 	 */
 	@Override
 	public void render(Graphics2D g) {
-		this.renderBackground(g, this.x, this.y);
-		this.renderScaledFrame(g, this.getCurrentFrame());
-		this.renderBorder(g);
+		// render the background
+		if (this.backgroundVisible) {
+			this.renderBackground(g, this.x, this.y);
+		}
+		// render the image
+		if (this.videoVisible) {
+			this.renderScaledFrame(g, this.getCurrentFrame());
+		}
+		// the border needs to be rendered last on top of the other renderings
+		if (this.borderVisible) {
+			this.renderBorder(g);
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -182,9 +197,18 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 	 */
 	@Override
 	public void renderPreview(Graphics2D g) {
-		this.renderBackground(g, this.x, this.y);
-		this.renderScaledFrame(g, this.getFirstFrame());
-		this.renderBorder(g);
+		// render the background
+		if (this.backgroundVisible) {
+			this.renderBackground(g, this.x, this.y);
+		}
+		// render the image
+		if (this.videoVisible) {
+			this.renderScaledFrame(g, this.getFirstFrame());
+		}
+		// the border needs to be rendered last on top of the other renderings
+		if (this.borderVisible) {
+			this.renderBorder(g);
+		}
 	}
 	
 	/**
@@ -208,9 +232,9 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 				if (this.scaleType == ScaleType.UNIFORM) {
 					if (sw < sh) {
 						iw = this.width;
-						ih = (int)Math.round(sw * ih);
+						ih = (int)Math.ceil(sw * ih);
 					} else {
-						iw = (int)Math.round(sh * iw);
+						iw = (int)Math.ceil(sh * iw);
 						ih = this.height;
 					}
 				} else if (this.scaleType == ScaleType.NONUNIFORM) {
@@ -273,5 +297,21 @@ public class VideoMediaComponent extends GenericSlideComponent implements SlideC
 	 */
 	public void setScaleType(ScaleType scaleType) {
 		this.scaleType = scaleType;
+	}
+	
+	/**
+	 * Returns true if the video is visible.
+	 * @return boolean
+	 */
+	public boolean isVideoVisible() {
+		return this.videoVisible;
+	}
+
+	/**
+	 * Toggles the visibility of the video.
+	 * @param visible true if the video should be visible
+	 */
+	public void setVideoVisible(boolean visible) {
+		this.videoVisible = visible;
 	}
 }

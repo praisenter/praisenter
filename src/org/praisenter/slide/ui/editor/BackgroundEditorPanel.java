@@ -3,7 +3,7 @@ package org.praisenter.slide.ui.editor;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
-import org.praisenter.slide.RenderableSlideComponent;
+import org.praisenter.slide.RenderableComponent;
 
 /**
  * The panel used to modify the background of a slide.
@@ -17,7 +17,7 @@ public class BackgroundEditorPanel extends JPanel {
 	private static final String IMAGE_CARD = "Image";
 	private static final String VIDEO_CARD = "Video";
 	
-	private RenderableSlideComponent component;
+	private RenderableComponent component;
 	
 	// controls
 	
@@ -27,15 +27,15 @@ public class BackgroundEditorPanel extends JPanel {
 	
 	private JPanel pnlCards;
 	
-	public BackgroundEditorPanel(RenderableSlideComponent component) {
+	public BackgroundEditorPanel(RenderableComponent component) {
 		
 	}
 
-	public RenderableSlideComponent getComponent() {
+	public RenderableComponent getComponent() {
 		return this.component;
 	}
 
-	public void setComponent(RenderableSlideComponent component) {
+	public void setComponent(RenderableComponent component) {
 		this.component = component;
 	}
 }

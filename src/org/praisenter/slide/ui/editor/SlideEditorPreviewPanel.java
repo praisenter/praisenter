@@ -6,11 +6,10 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
 
-import org.praisenter.slide.PositionedSlideComponent;
+import org.praisenter.slide.PositionedComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.ui.SlidePreviewMetrics;
 import org.praisenter.slide.ui.preview.SingleSlidePreviewPanel;
@@ -60,10 +59,10 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	private static final Stroke BORDER_STROKE_4 = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, Math.max(1.0f, HALF_LINE_WIDTH), new float[] { DASH_LENGTH * 6, DASH_SPACE_LENGTH * 6 }, DASH_LENGTH * 12);
 	
 	/** The current mouse over component */
-	protected PositionedSlideComponent mouseOverComponent;
+	protected PositionedComponent mouseOverComponent;
 	
 	/** The selected component */
-	protected PositionedSlideComponent selectedComponent;
+	protected PositionedComponent selectedComponent;
 	
 	/** The current scale factor */
 	protected double scale;
@@ -89,8 +88,6 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	 */
 	@Override
 	protected void renderSlide(Graphics2D g2d, Slide slide, SlidePreviewMetrics metrics) {
-		g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
-		
 		super.renderSlide(g2d, slide, metrics);
 		
 		// get the slide offset
@@ -114,8 +111,8 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 			// set the clip
 			g2d.clipRect(offset.x, offset.y, metrics.width, metrics.height);
 			
-			int x = (int)Math.floor(r.x * metrics.scale) + HALF_LINE_WIDTH + offset.x;
-			int y = (int)Math.floor(r.y * metrics.scale) + HALF_LINE_WIDTH + offset.y;
+			int x = (int)Math.floor(r.x * metrics.scale) + HALF_LINE_WIDTH + offset.x + 1;
+			int y = (int)Math.floor(r.y * metrics.scale) + HALF_LINE_WIDTH + offset.y + 1;
 			int w = (int)Math.ceil(r.width * metrics.scale) - LINE_WIDTH;
 			int h = (int)Math.ceil(r.height * metrics.scale) - LINE_WIDTH;
 			
@@ -154,8 +151,8 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 			// set the clip
 			g2d.clipRect(offset.x, offset.y, metrics.width, metrics.height);
 			
-			int x = (int)Math.floor(r.x * metrics.scale) + HALF_LINE_WIDTH + offset.x;
-			int y = (int)Math.floor(r.y * metrics.scale) + HALF_LINE_WIDTH + offset.y;
+			int x = (int)Math.floor(r.x * metrics.scale) + HALF_LINE_WIDTH + offset.x + 1;
+			int y = (int)Math.floor(r.y * metrics.scale) + HALF_LINE_WIDTH + offset.y + 1;
 			int w = (int)Math.ceil(r.width * metrics.scale) - LINE_WIDTH;
 			int h = (int)Math.ceil(r.height * metrics.scale) - LINE_WIDTH;
 			
@@ -184,9 +181,9 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	 * Returns the component which the mouse is currently hovering over.
 	 * <p>
 	 * Returns null if the mouse is not over a component.
-	 * @return {@link PositionedSlideComponent}
+	 * @return {@link PositionedComponent}
 	 */
-	public PositionedSlideComponent getMouseOverComponent() {
+	public PositionedComponent getMouseOverComponent() {
 		return this.mouseOverComponent;
 	}
 
@@ -194,7 +191,7 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	 * Sets the component the mouse is hovering over.
 	 * @param component the component
 	 */
-	public void setMouseOverComponent(PositionedSlideComponent component) {
+	public void setMouseOverComponent(PositionedComponent component) {
 		this.mouseOverComponent = component;
 	}
 
@@ -202,9 +199,9 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	 * Returns the selected component.
 	 * <p>
 	 * Returns null if no component is currently selected.
-	 * @return {@link PositionedSlideComponent}
+	 * @return {@link PositionedComponent}
 	 */
-	public PositionedSlideComponent getSelectedComponent() {
+	public PositionedComponent getSelectedComponent() {
 		return this.selectedComponent;
 	}
 
@@ -212,7 +209,7 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	 * Set the selected component.
 	 * @param selectedComponent the component
 	 */
-	public void setSelectedComponent(PositionedSlideComponent selectedComponent) {
+	public void setSelectedComponent(PositionedComponent selectedComponent) {
 		this.selectedComponent = selectedComponent;
 	}
 }

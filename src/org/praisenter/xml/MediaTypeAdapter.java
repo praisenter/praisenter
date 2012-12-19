@@ -2,6 +2,7 @@ package org.praisenter.xml;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
+import org.apache.log4j.Logger;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 
@@ -12,6 +13,9 @@ import org.praisenter.media.MediaLibrary;
  * @since 1.0.0
  */
 public class MediaTypeAdapter extends XmlAdapter<String, Media> {
+	/** The class level logger */
+	private static final Logger LOGGER = Logger.getLogger(MediaTypeAdapter.class);
+	
 	/* (non-Javadoc)
 	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
 	 */
@@ -25,6 +29,10 @@ public class MediaTypeAdapter extends XmlAdapter<String, Media> {
 	 */
 	@Override
 	public Media unmarshal(String v) throws Exception {
-		 return MediaLibrary.getMedia(v);
+		 Media media = MediaLibrary.getMedia(v);
+		 if (media == null) {
+			 LOGGER.warn("Media [" + v + "] does not exist in the media library.");
+		 }
+		 return media;
 	}
 }

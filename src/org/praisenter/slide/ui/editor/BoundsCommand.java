@@ -2,10 +2,10 @@ package org.praisenter.slide.ui.editor;
 
 import java.awt.Point;
 
-import org.praisenter.slide.PositionedSlideComponent;
+import org.praisenter.slide.PositionedComponent;
 
 /**
- * Represents a {@link Command} that modifies the position and size of a {@link PositionedSlideComponent}.
+ * Represents a {@link Command} that modifies the position and size of a {@link PositionedComponent}.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
@@ -15,14 +15,14 @@ public abstract class BoundsCommand extends Command {
 	protected Point start;
 	
 	/** The component */
-	protected PositionedSlideComponent component;
+	protected PositionedComponent component;
 	
 	/**
 	 * Called when the action is begun.
 	 * @param start the starting location
 	 * @param component the component being modified
 	 */
-	public synchronized void begin(Point start, PositionedSlideComponent component) {
+	public synchronized void begin(Point start, PositionedComponent component) {
 		this.active = true;
 		this.start = start;
 		this.component = component;
@@ -55,9 +55,9 @@ public abstract class BoundsCommand extends Command {
 	
 	/**
 	 * Returns the component being modified.
-	 * @return {@link PositionedSlideComponent}
+	 * @return {@link PositionedComponent}
 	 */
-	public PositionedSlideComponent getComponent() {
+	public PositionedComponent getComponent() {
 		return this.component;
 	}
 }

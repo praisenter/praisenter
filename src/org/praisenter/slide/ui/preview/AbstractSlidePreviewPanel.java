@@ -9,7 +9,6 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Transparency;
 import java.awt.event.ComponentEvent;
@@ -24,6 +23,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.praisenter.images.Images;
+import org.praisenter.preferences.RenderQuality;
 import org.praisenter.slide.NotificationSlide;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.ui.SlidePreviewMetrics;
@@ -194,11 +194,7 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 			Graphics2D g2d = (Graphics2D)graphics;
 			
 			// setup fast rendering
-			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
-			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-			g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
-			g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_SPEED);
-			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+			g2d.setRenderingHints(RenderQuality.LOW.getRenderingHints());
 			
 			// the available rendering width/height
 			Rectangle bounds = this.getTotalAvailableRenderingBounds();
@@ -270,12 +266,6 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 		// create a scaling transform
 		AffineTransform ot2 = g2d.getTransform();
 		AffineTransform at = AffineTransform.getScaleInstance(scale, scale);
-		
-		// use the fastest rendering possible
-		g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-		g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_SPEED);
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-		g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 		
 		// apply the new transform
 		g2d.transform(at);
