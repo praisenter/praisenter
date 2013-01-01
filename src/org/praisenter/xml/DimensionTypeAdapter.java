@@ -2,6 +2,8 @@ package org.praisenter.xml;
 
 import java.awt.Dimension;
 
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -10,7 +12,7 @@ import org.apache.log4j.Logger;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class DimensionTypeAdapter extends AbstractTypeAdapter<Dimension> {
+public class DimensionTypeAdapter extends XmlAdapter<String, Dimension> {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(DimensionTypeAdapter.class);
 	

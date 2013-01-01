@@ -32,6 +32,7 @@ import org.praisenter.utilities.ImageUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
+// TODO move this type of functionality into a sub class
 @XmlRootElement(name = "NotificationSlide")
 @XmlAccessorType(XmlAccessType.NONE)
 public class NotificationSlide extends Slide {

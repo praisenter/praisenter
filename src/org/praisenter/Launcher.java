@@ -36,7 +36,7 @@ public class Launcher {
 		// get the Launch.properties file
 		try {
 			Properties properties = new Properties();
-			properties.load(new FileInputStream(new File("Launch.properties")));
+			properties.load(new FileInputStream(new File("Launcher.properties")));
 			
 			// set the configured properties
 			javadir = properties.getProperty("javadir");
@@ -44,6 +44,7 @@ public class Launcher {
 			jvmargs = properties.getProperty("jvmargs");
 			jar = properties.getProperty("jar");
 		} catch (FileNotFoundException ex) {
+			System.out.println("Launcher.properties file not found. Using default parameters.");
 		} catch (IOException ex) {
 		}
 		

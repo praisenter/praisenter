@@ -1,6 +1,7 @@
 package org.praisenter.utilities;
 
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.RenderingHints;
@@ -116,7 +117,9 @@ public class ImageUtilities {
 	public static final BufferedImage getTiledImage(BufferedImage image, GraphicsConfiguration gc, int w, int h) {
 		// create a new image of the right size
 		BufferedImage tiled = gc.createCompatibleImage(w, h, Transparency.BITMASK);
-		renderTiledImage(image, tiled, 0, 0, w, h);
+		Graphics2D g2d = tiled.createGraphics();
+		renderTiledImage(image, g2d, 0, 0, w, h);
+		g2d.dispose();
 		return tiled;
 	}
 	
@@ -130,7 +133,7 @@ public class ImageUtilities {
 	 * @param w the rendering width
 	 * @param h the rendering height
 	 */
-	public static final void renderTiledImage(BufferedImage tile, BufferedImage surface, int x, int y, int w, int h) {
+	public static final void renderTiledImage(BufferedImage tile, Graphics surface, int x, int y, int w, int h) {
 		int tw = tile.getWidth();
 		int th = tile.getHeight();
 		
@@ -140,18 +143,16 @@ public class ImageUtilities {
 		int xn = w / tw + 1;
 		int yn = h / th + 1;
 		
-		Graphics2D ig2d = surface.createGraphics();
-		ig2d.clipRect(x, y, w, h);
+		surface.clipRect(x, y, w, h);
 		// tile the image
 		for (int i = 0; i < xn; i++) {
 			for (int j = 0; j < yn; j++) {
-				ig2d.drawImage(tile, cx, cy, null);
+				surface.drawImage(tile, cx, cy, null);
 				cy += th;
 			}
 			cx += tw;
 			cy = y;
 		}
-		ig2d.dispose();
 	}
 	
 	/**

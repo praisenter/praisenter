@@ -10,7 +10,6 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.Transparency;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.geom.AffineTransform;
@@ -81,9 +80,6 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	/** The map of cached shadow images */
 	protected Map<String, BufferedImage> shadowImageCache;
 	
-	/** The map of cached images */
-	protected Map<String, BufferedImage> imageCache;
-	
 	// loading
 	
 	/** Label for showing a loading animated gif */
@@ -107,7 +103,6 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	public AbstractSlidePreviewPanel(int nameSpacing, boolean includeSlideName) {
 		// create the image cache
 		this.shadowImageCache = new HashMap<String, BufferedImage>();
-		this.imageCache = new HashMap<String, BufferedImage>();
 		
 		this.nameSpacing = nameSpacing;
 		this.includeSlideName = includeSlideName;
@@ -383,7 +378,7 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 		// see if we need to re-render the image
 		if (image == null || image.getWidth() < w || image.getHeight() < h) {
 			// create a new image of the right size
-			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), w, h, sw, Color.DARK_GRAY);
+			image = ImageUtilities.getDropShadowImage(g2d.getDeviceConfiguration(), w, h, sw, Color.GRAY);
 			this.shadowImageCache.put(key, image);
 		}
 		
@@ -398,20 +393,11 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	 * @param h the height of the slide
 	 */
 	private void renderTransparentBackground(Graphics2D g2d, int w, int h) {
-		String key = BACKGROUND_CACHE_PREFIX;
-		BufferedImage image = this.imageCache.get(key);
-		
-		// see if we need to re-render the image
-		if (image == null || image.getWidth() < w || image.getHeight() < h) {
-			// create a new image of the right size
-			image = ImageUtilities.getTiledImage(Images.TRANSPARENT_BACKGROUND, g2d.getDeviceConfiguration(), w, h);
-			this.imageCache.put(key, image);
-		}
-		
 		Shape oClip = g2d.getClip();
 		g2d.clipRect(0, 0, w, h);
 		// render the image
-		g2d.drawImage(image, 0, 0, null);
+		ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, g2d, 0, 0, w, h);
+		//g2d.drawImage(image, 0, 0, null);
 		g2d.setClip(oClip);
 	}
 	
@@ -423,27 +409,11 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	 */
 	private void renderSlideName(Graphics2D g2d, String name, int w) {
 		if (name != null && name.trim().length() > 0) {
-			BufferedImage image = this.imageCache.get(name);
 			FontMetrics metrics = g2d.getFontMetrics(FontManager.getDefaultFont());
-			int ih = metrics.getHeight();
-			int iw = metrics.stringWidth(name);
-			// see if we need to re-render the image
-			if (image == null || image.getWidth() != iw || image.getHeight() != ih) {
-				// create a new image of the right size
-				image = g2d.getDeviceConfiguration().createCompatibleImage(iw, ih, Transparency.BITMASK);
-				
-				Graphics2D ig2d = image.createGraphics();
-				
-				ig2d.setFont(FontManager.getDefaultFont());
-				ig2d.setColor(Color.BLACK);
-				ig2d.drawString(name, 0, metrics.getAscent());
-				ig2d.dispose();
-				
-				this.imageCache.put(name, image);
-			}
+			int tw = metrics.stringWidth(name);
 			
-			// render the image
-			g2d.drawImage(image, (w - iw) / 2, 0, null);
+			g2d.setColor(Color.BLACK);
+			g2d.drawString(name, (w - tw) / 2, metrics.getAscent());
 		}
 	}
 	

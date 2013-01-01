@@ -182,7 +182,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 			try {
 				template = SlideLibrary.getTemplate(templatePath, BibleSlideTemplate.class);
 			} catch (SlideLibraryException e) {
-				LOGGER.error("Unable to load default bible template [" + templatePath + "]: ", e);
+				LOGGER.error("Unable to load default bible template [" + templatePath + "]. Using default template.", e);
 			}
 		}
 		if (template == null) {
@@ -540,10 +540,10 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 						.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
 								.addComponent(this.cmbBooks, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.lblChapterCount))
-						.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
 								.addComponent(this.txtChapter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.lblVerseCount))
-						.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
 								.addComponent(this.txtVerse, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.lblFound))
 						.addComponent(pnlLookupButtons, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
