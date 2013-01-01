@@ -27,6 +27,7 @@ import org.praisenter.slide.graphics.RadialGradientDirection;
 import org.praisenter.slide.graphics.RadialGradientFill;
 import org.praisenter.slide.graphics.Stop;
 import org.praisenter.utilities.ColorUtilities;
+import org.praisenter.utilities.WindowUtilities;
 
 // TODO we need to support multi-stop gradients (multi-thumb slider would be best)
 // cycle method, focal point (radial only) aren't really needed since we are abstracting away
@@ -254,7 +255,7 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 			this.toggleGradientEditing();
 			this.notifyEditorListeners();
 		} else if ("color".equals(command)) {
-			Color color = JColorChooser.showDialog(this, "Browse", this.color.getColor());
+			Color color = JColorChooser.showDialog(WindowUtilities.getParentWindow(this), "Browse", this.color.getColor());
 			if (color != null) {
 				this.color = new ColorFill(color);
 				this.notifyEditorListeners();
@@ -269,7 +270,7 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 			} else {
 				stops = this.radial.getStops();
 			}
-			color = JColorChooser.showDialog(this, "Browse", stops[0].getColor());
+			color = JColorChooser.showDialog(WindowUtilities.getParentWindow(this), "Browse", stops[0].getColor());
 			if (color != null) {
 				// recreate the currently selected fill
 				Color other = stops[2].getColor();
@@ -298,7 +299,7 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 			} else {
 				stops = this.radial.getStops();
 			}
-			color = JColorChooser.showDialog(this, "Browse", stops[2].getColor());
+			color = JColorChooser.showDialog(WindowUtilities.getParentWindow(this), "Browse", stops[2].getColor());
 			if (color != null) {
 				// recreate the currently selected fill
 				Color other = stops[0].getColor();

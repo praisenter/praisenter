@@ -1,16 +1,20 @@
 package org.praisenter.media.ui;
 
 import java.awt.Dimension;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.xml.DOMConfigurator;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.slide.BibleSlideTemplate;
+import org.praisenter.slide.Resolution;
+import org.praisenter.slide.Resolutions;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
 import org.praisenter.slide.ui.editor.FillEditorPanel;

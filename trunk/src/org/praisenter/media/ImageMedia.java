@@ -58,14 +58,13 @@ public class ImageMedia extends AbstractMedia {
 		GraphicsConfiguration conf = device.getDefaultConfiguration();
 		BufferedImage image = conf.createCompatibleImage(size.width, size.height, Transparency.BITMASK);
 		
+		// render the scaled image
+		Graphics2D g = image.createGraphics();
 		// render a tiled transparent background first
 		if (this.image.getTransparency() != Transparency.OPAQUE) {
 			// only render this if the image is translucent or bitmask
-			ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, image, x, y, w, h);
+			ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, g, 0, 0, size.width, size.height);
 		}
-		
-		// render the scaled image
-		Graphics2D g = image.createGraphics();
 		// render the scaled image to the graphics
 		g.drawImage(this.image, x, y, w, h, null);
 		g.dispose();

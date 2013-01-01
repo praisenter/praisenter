@@ -2,13 +2,15 @@ package org.praisenter.xml;
 
 import java.awt.Font;
 
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+
 /**
  * Font type adapter for xml output.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class FontTypeAdapter extends AbstractTypeAdapter<Font> {
+public class FontTypeAdapter extends XmlAdapter<String, Font> {
 	/** The data delimiter */
 	private static final String DATA_DELIMITER = ",";
 	

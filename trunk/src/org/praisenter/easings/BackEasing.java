@@ -8,6 +8,7 @@ import org.praisenter.resources.Messages;
  * @version 1.0.0
  * @since 1.0.0
  */
+// FIXME this should be a transition more than an easing
 public class BackEasing extends AbstractEasing {
 	/** The id for the easing */
 	public static final int ID = 90;

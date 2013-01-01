@@ -22,6 +22,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.apache.log4j.Logger;
 import org.praisenter.media.AbstractVideoMedia;
 import org.praisenter.media.MediaException;
 import org.praisenter.media.MediaFile;
@@ -45,7 +46,10 @@ import org.praisenter.utilities.WindowUtilities;
 public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel<VideoMediaComponent> implements ListSelectionListener, ItemListener, ChangeListener, ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = -1702500646124912915L;
-
+	
+	/** The class level logger */
+	private static final Logger LOGGER = Logger.getLogger(VideoMediaComponentEditorPanel.class);
+	
 	/** The scale type label */
 	protected JLabel lblScaleType;
 
@@ -164,16 +168,13 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 					
 					if (this.slideComponent != null) {
 						try {
-							// FIXME probably will need a progress bar here
 							AbstractVideoMedia media = (AbstractVideoMedia)MediaLibrary.getMedia(file.getPath());
 							this.slideComponent.setMedia(media);
 							this.notifyEditorListeners();
-						} catch (NoMediaLoaderException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						} catch (MediaException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
+						} catch (NoMediaLoaderException ex) {
+							LOGGER.error(ex);
+						} catch (MediaException ex) {
+							LOGGER.error(ex);
 						}
 					}
 				}
