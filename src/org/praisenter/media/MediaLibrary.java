@@ -34,6 +34,7 @@ import org.praisenter.xml.XmlIO;
  * @version 1.0.0
  * @since 1.0.0
  */
+// FIXME what should be do if something is using the media that gets removed?
 public class MediaLibrary {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(MediaLibrary.class);

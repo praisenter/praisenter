@@ -1,23 +1,31 @@
 package org.praisenter.slide.ui.editor;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.text.MessageFormat;
 
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSlider;
+import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.praisenter.images.Images;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.graphics.Fill;
@@ -27,6 +35,7 @@ import org.praisenter.slide.graphics.RadialGradientDirection;
 import org.praisenter.slide.graphics.RadialGradientFill;
 import org.praisenter.slide.graphics.Stop;
 import org.praisenter.utilities.ColorUtilities;
+import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.utilities.WindowUtilities;
 
 // TODO we need to support multi-stop gradients (multi-thumb slider would be best)
@@ -40,22 +49,14 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class FillEditorPanel extends EditorPanel implements ActionListener, ItemListener, ChangeListener {
+public class FillEditorPanel extends JPanel implements ActionListener, ItemListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -4080895520033411798L;
 
 	// controls
 	
-	// fill type
-	
-	/** The fill type */
-	private JLabel lblFillType;
-	
-	/** The color type radio button */
-	private JRadioButton rdoColor;
-	
-	/** The gradient type radio button */
-	private JRadioButton rdoGradient;
+	/** The fill type tabs */
+	private JTabbedPane tabs;
 	
 	// color type
 	
@@ -101,6 +102,11 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 	/** The gradient color 2 button */
 	private JButton btnColor2;
 	
+	// preview
+	
+	/** The preview panel */
+	private JPanel pnlPreview;
+	
 	// the fills
 	
 	/** The color */
@@ -116,24 +122,34 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 	 * Full constructor.
 	 * @param fill the initial fill
 	 */
+	@SuppressWarnings("serial")
 	public FillEditorPanel(Fill fill) {
 		// check for a null fill, if its null then just create a linear fill
 		if (fill == null) {
 			fill = new LinearGradientFill();
 		}
 		
-		this.lblFillType = new JLabel(Messages.getString("panel.slide.editor.fill.type"));
-		this.rdoColor = new JRadioButton(Messages.getString("panel.slide.editor.fill.color"));
-		this.rdoGradient = new JRadioButton(Messages.getString("panel.slide.editor.fill.gradient"));
-		
-		ButtonGroup bgFillType = new ButtonGroup();
-		bgFillType.add(this.rdoColor);
-		bgFillType.add(this.rdoGradient);
+		// color
 		
 		this.lblColor = new JLabel(Messages.getString("panel.slide.editor.fill.color"));
 		this.btnColor = new JButton(Messages.getString("panel.slide.editor.fill.chooseColor"));
 		this.btnColor.addActionListener(this);
 		this.btnColor.setActionCommand("color");
+		
+		JPanel pnlColor = new JPanel();
+		GroupLayout cLayout = new GroupLayout(pnlColor);
+		pnlColor.setLayout(cLayout);
+		
+		cLayout.setAutoCreateContainerGaps(true);
+		cLayout.setAutoCreateGaps(true);
+		cLayout.setHorizontalGroup(cLayout.createSequentialGroup()
+				.addComponent(this.lblColor)
+				.addComponent(this.btnColor));
+		cLayout.setVerticalGroup(cLayout.createParallelGroup()
+				.addComponent(this.lblColor)
+				.addComponent(this.btnColor));
+		
+		// gradient
 		
 		this.lblGradientType = new JLabel(Messages.getString("panel.slide.editor.fill.gradient.type"));
 		this.rdoLinear = new JRadioButton(Messages.getString("panel.slide.editor.fill.gradient.linear"));
@@ -160,16 +176,98 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 		this.btnColor2.setActionCommand("color-2");
 		this.btnColor2.addActionListener(this);
 		
+		JPanel pnlGradient = new JPanel();
+		GroupLayout gLayout = new GroupLayout(pnlGradient);
+		pnlGradient.setLayout(gLayout);
+		
+		gLayout.setAutoCreateContainerGaps(true);
+		gLayout.setAutoCreateGaps(true);
+		gLayout.setHorizontalGroup(gLayout.createSequentialGroup()
+				.addGroup(gLayout.createParallelGroup()
+						.addComponent(this.lblGradientType)
+						.addComponent(this.lblDirection)
+						.addComponent(this.lblStopPosition))
+				.addGroup(gLayout.createParallelGroup()
+						.addGroup(gLayout.createSequentialGroup()
+								.addComponent(this.rdoLinear)
+								.addComponent(this.rdoRadial))
+						.addGroup(gLayout.createSequentialGroup()
+								.addComponent(this.cmbLinearDirection)
+								.addComponent(this.cmbRadialDirection))
+						.addComponent(this.sldStopPosition)
+						.addGroup(gLayout.createSequentialGroup()
+								.addComponent(this.btnColor1)
+								.addComponent(this.btnColor2))));
+		gLayout.setVerticalGroup(gLayout.createSequentialGroup()
+				.addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblGradientType)
+						.addComponent(this.rdoLinear)
+						.addComponent(this.rdoRadial))
+				.addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblDirection)
+						.addComponent(this.cmbLinearDirection, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbRadialDirection, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblStopPosition)
+						.addComponent(this.sldStopPosition))
+				.addGroup(gLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.btnColor1)
+						.addComponent(this.btnColor2)));
+		
+		// preview
+		final int p = 5;
+		
+		this.pnlPreview = new JPanel() {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				
+				int w = this.getWidth() - 2 * p;
+				int h = this.getHeight() - 2 * p;
+				// paint a transparent background
+				ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, g, p, p, w, h);
+				// paint the background using the current fill
+				Fill fill = getFill();
+				if (fill != null) {
+					Graphics2D g2d = (Graphics2D)g;
+					Paint oPaint = g2d.getPaint();
+					
+					Paint paint = fill.getPaint(p, p, w, h);
+					g2d.setPaint(paint);
+					g2d.fillRect(p, p, w, h);
+					
+					g2d.setPaint(oPaint);
+				}
+			}
+		};
+		this.pnlPreview.setMinimumSize(new Dimension(0, 25));
+		this.pnlPreview.setPreferredSize(new Dimension(100, 150));
+		this.pnlPreview.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createEmptyBorder(p, p, p, p), 
+				BorderFactory.createLineBorder(Color.DARK_GRAY)));
+		
+		// create the layout
+		this.tabs = new JTabbedPane();
+		this.tabs.addTab(Messages.getString("panel.slide.editor.fill.color"), pnlColor);
+		this.tabs.addTab(Messages.getString("panel.slide.editor.fill.gradient"), pnlGradient);
+		this.tabs.addChangeListener(this);
+		
+		GroupLayout layout = new GroupLayout(this);
+		this.setLayout(layout);
+		
+		layout.setAutoCreateGaps(true);
+		layout.setHorizontalGroup(layout.createParallelGroup()
+				.addComponent(this.tabs)
+				.addComponent(this.pnlPreview));
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addComponent(this.tabs, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(this.pnlPreview));
+		
 		// assign defaults
 		
 		this.setFill(fill);
 		
 		// wire up events
-		
-		this.rdoColor.setActionCommand("type-color");
-		this.rdoColor.addActionListener(this);
-		this.rdoGradient.setActionCommand("type-gradient");
-		this.rdoGradient.addActionListener(this);
 		
 		this.rdoLinear.setActionCommand("type-linear");
 		this.rdoLinear.addActionListener(this);
@@ -180,56 +278,6 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 		this.cmbRadialDirection.addItemListener(this);
 		
 		this.sldStopPosition.addChangeListener(this);
-		
-		// create the layout
-		GroupLayout layout = new GroupLayout(this);
-		this.setLayout(layout);
-		
-		layout.setAutoCreateGaps(true);
-		layout.setHorizontalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup()
-						.addComponent(this.lblFillType)
-						.addComponent(this.lblColor)
-						.addComponent(this.lblGradientType)
-						.addComponent(this.lblDirection)
-						.addComponent(this.lblStopPosition))
-				.addGroup(layout.createParallelGroup()
-						.addGroup(layout.createSequentialGroup()
-								.addComponent(this.rdoColor)
-								.addComponent(this.rdoGradient))
-						.addComponent(this.btnColor)
-						.addGroup(layout.createSequentialGroup()
-								.addComponent(this.rdoLinear)
-								.addComponent(this.rdoRadial))
-						.addGroup(layout.createSequentialGroup()
-								.addComponent(this.cmbLinearDirection)
-								.addComponent(this.cmbRadialDirection))
-						.addComponent(this.sldStopPosition)
-						.addGroup(layout.createSequentialGroup()
-								.addComponent(this.btnColor1)
-								.addComponent(this.btnColor2))));
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.lblFillType)
-						.addComponent(this.rdoColor)
-						.addComponent(this.rdoGradient))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.lblColor)
-						.addComponent(this.btnColor))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.lblGradientType)
-						.addComponent(this.rdoLinear)
-						.addComponent(this.rdoRadial))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.lblDirection)
-						.addComponent(this.cmbLinearDirection, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.cmbRadialDirection, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.lblStopPosition)
-						.addComponent(this.sldStopPosition))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.btnColor1)
-						.addComponent(this.btnColor2)));
 	}
 	
 	/* (non-Javadoc)
@@ -242,23 +290,17 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 			this.sldStopPosition.setValue((int)Math.floor(this.linear.getStops()[1].getFraction() * 100));
 			this.cmbLinearDirection.setVisible(true);
 			this.cmbRadialDirection.setVisible(false);
-			this.notifyEditorListeners();
+			this.pnlPreview.repaint();
 		} else if ("type-radial".equals(command)) {
 			this.sldStopPosition.setValue((int)Math.floor(this.radial.getStops()[1].getFraction() * 100));
 			this.cmbLinearDirection.setVisible(false);
 			this.cmbRadialDirection.setVisible(true);
-			this.notifyEditorListeners();
-		} else if ("type-color".equals(command)) {
-			this.toggleColorEditing();
-			this.notifyEditorListeners();
-		} else if ("type-gradient".equals(command)) {
-			this.toggleGradientEditing();
-			this.notifyEditorListeners();
+			this.pnlPreview.repaint();
 		} else if ("color".equals(command)) {
 			Color color = JColorChooser.showDialog(WindowUtilities.getParentWindow(this), "Browse", this.color.getColor());
 			if (color != null) {
 				this.color = new ColorFill(color);
-				this.notifyEditorListeners();
+				this.pnlPreview.repaint();
 			}
 		} else if ("color-1".equals(command)) {
 			boolean linear = this.rdoLinear.isSelected();
@@ -287,7 +329,7 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 							new Stop(stops[1].getFraction(), ColorUtilities.getColorAtMidpoint(color, other)), 
 							stops[2]);
 				}
-				this.notifyEditorListeners();
+				this.pnlPreview.repaint();
 			}
 		} else if ("color-2".equals(command)) {
 			boolean linear = this.rdoLinear.isSelected();
@@ -316,7 +358,7 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 							new Stop(stops[1].getFraction(), ColorUtilities.getColorAtMidpoint(other, color)), 
 							new Stop(stops[2].getFraction(), color));
 				}
-				this.notifyEditorListeners();
+				this.pnlPreview.repaint();
 			}
 		}
 	}
@@ -331,11 +373,11 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 			if (source == this.cmbLinearDirection) {
 				LinearGradientDirection direction = (LinearGradientDirection)e.getItem();
 				this.linear = new LinearGradientFill(direction, this.linear.getStops());
-				this.notifyEditorListeners();
+				this.pnlPreview.repaint();
 			} else if (source == this.cmbRadialDirection) {
 				RadialGradientDirection direction = (RadialGradientDirection)e.getItem();
 				this.radial = new RadialGradientFill(direction, this.radial.getStops());
-				this.notifyEditorListeners();
+				this.pnlPreview.repaint();
 			}
 		}
 	}
@@ -364,65 +406,19 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 						this.linear.getStops()[0],
 						new Stop(value, this.linear.getStops()[1].getColor()),
 						this.linear.getStops()[2]);
-				this.notifyEditorListeners();
+				this.pnlPreview.repaint();
 			} else {
 				this.radial = new RadialGradientFill(
 						this.radial.getDirection(),
 						this.radial.getStops()[0],
 						new Stop(value, this.radial.getStops()[1].getColor()),
 						this.radial.getStops()[2]);
-				this.notifyEditorListeners();
+				this.pnlPreview.repaint();
 			}
+		} else if (source == this.tabs) {
+			// when you change tabs update the preview panel
+			this.pnlPreview.repaint();
 		}
-	}
-	
-	/**
-	 * Shows the color editing controls.
-	 */
-	private void toggleColorEditing() {
-		this.lblColor.setVisible(true);
-		this.btnColor.setVisible(true);
-		
-		this.lblGradientType.setVisible(false);
-		this.rdoLinear.setVisible(false);
-		this.rdoRadial.setVisible(false);
-		
-		this.lblDirection.setVisible(false);
-		this.cmbLinearDirection.setVisible(false);
-		this.cmbRadialDirection.setVisible(false);
-		
-		this.lblStopPosition.setVisible(false);
-		this.sldStopPosition.setVisible(false);
-		
-		this.btnColor1.setVisible(false);
-		this.btnColor2.setVisible(false);
-	}
-	
-	/**
-	 * Shows the gradient editing controls.
-	 */
-	private void toggleGradientEditing() {
-		this.lblColor.setVisible(false);
-		this.btnColor.setVisible(false);
-		
-		this.lblGradientType.setVisible(true);
-		this.rdoLinear.setVisible(true);
-		this.rdoRadial.setVisible(true);
-		
-		this.lblDirection.setVisible(true);
-		if (this.rdoLinear.isSelected()) {
-			this.cmbRadialDirection.setVisible(false);
-			this.cmbLinearDirection.setVisible(true);
-		} else {
-			this.cmbLinearDirection.setVisible(false);
-			this.cmbRadialDirection.setVisible(true);
-		}
-		
-		this.lblStopPosition.setVisible(true);
-		this.sldStopPosition.setVisible(true);
-		
-		this.btnColor1.setVisible(true);
-		this.btnColor2.setVisible(true);
 	}
 	
 	/**
@@ -471,26 +467,21 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 		}
 		
 		if (type == 0) {
-			this.rdoColor.setSelected(false);
-			this.rdoGradient.setSelected(true);
+			this.tabs.setSelectedIndex(1);
 			this.rdoLinear.setSelected(true);
 			this.rdoRadial.setSelected(false);
-			
-			this.toggleGradientEditing();
+			this.cmbLinearDirection.setVisible(true);
+			this.cmbRadialDirection.setVisible(false);
 		} else if (type == 1) {
-			this.rdoColor.setSelected(false);
-			this.rdoGradient.setSelected(true);
+			this.tabs.setSelectedIndex(1);
 			this.rdoLinear.setSelected(false);
 			this.rdoRadial.setSelected(true);
-			
-			this.toggleGradientEditing();
+			this.cmbLinearDirection.setVisible(false);
+			this.cmbRadialDirection.setVisible(true);
 		} else {
-			this.rdoColor.setSelected(true);
-			this.rdoGradient.setSelected(false);
+			this.tabs.setSelectedIndex(0);
 			this.rdoLinear.setSelected(true);
 			this.rdoRadial.setSelected(false);
-			
-			this.toggleColorEditing();
 		}
 		this.cmbLinearDirection.setSelectedItem(lDirection);
 		this.cmbRadialDirection.setSelectedItem(rDirection);
@@ -503,7 +494,7 @@ public class FillEditorPanel extends EditorPanel implements ActionListener, Item
 	 */
 	public Fill getFill() {
 		// return the color
-		if (this.rdoColor.isSelected()) {
+		if (this.tabs.getSelectedIndex() == 0) {
 			return this.color;
 		}
 		// return the right gradient

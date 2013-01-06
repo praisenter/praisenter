@@ -223,6 +223,8 @@ public class Main {
 		        if (LookAndFeelUtilities.NIMBUS.equalsIgnoreCase(info.getName())) {
 		        	LOGGER.info("Nimbus look and feel found and applied.");
 		            UIManager.setLookAndFeel(info.getClassName());
+		            // fix the nimbus disabled tooltip coloring
+		        	UIManager.put("ToolTip[Disabled].backgroundPainter", UIManager.get("ToolTip[Enabled].backgroundPainter"));
 		            return;
 		        }
 		        if (info.getClassName().equals(defaultLookAndFeelClassName)) {

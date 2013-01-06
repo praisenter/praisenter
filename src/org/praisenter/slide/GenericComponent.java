@@ -168,8 +168,8 @@ public class GenericComponent extends AbstractRenderableComponent implements Sli
 	public void adjust(double pw, double ph) {
 		super.adjust(pw, ph);
 		// also adjust the positioning
-		this.x = (int)Math.floor((double)this.x * pw);
-		this.y = (int)Math.floor((double)this.y * ph);
+		this.x = (int)Math.ceil((double)this.x * pw);
+		this.y = (int)Math.ceil((double)this.y * ph);
 	}
 	
 	/* (non-Javadoc)

@@ -10,6 +10,7 @@ import java.awt.event.ItemListener;
 
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -17,7 +18,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSpinner.DefaultEditor;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
@@ -29,12 +29,15 @@ import javax.swing.event.DocumentListener;
 
 import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.graphics.ColorFill;
+import org.praisenter.slide.graphics.Fill;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.utilities.FontManager;
+import org.praisenter.utilities.WindowUtilities;
 
 /**
  * Editor panel for {@link TextComponent}s.
@@ -42,11 +45,14 @@ import org.praisenter.utilities.FontManager;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextComponent> implements ActionListener, ItemListener, EditorListener, DocumentListener, ChangeListener {
+public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextComponent> implements ActionListener, ItemListener, DocumentListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = 6502908345432550911L;
 
 	// labels
+	
+	/** The label for text */
+	protected JLabel lblText;
 	
 	/** The font family label */
 	protected JLabel lblFontFamily;
@@ -111,7 +117,7 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 	protected JSpinner spnPadding;
 
 	/** The font fill */
-	protected FillEditorPanel pnlTextFill;
+	protected JButton btnFillEditor;
 	
 	/** The text box for the text */
 	protected JTextArea txtText;
@@ -123,6 +129,8 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 		// pass false down so that GenericSlideComponentEditorPanel doesn't build
 		// the layout, we need this class to build its own layout
 		super(false);
+		
+		this.lblText = new JLabel(Messages.getString("panel.slide.editor.text"));
 		
 		this.chkTextVisible = new JCheckBox(Messages.getString("panel.slide.editor.visible"));
 		this.chkTextVisible.addChangeListener(this);
@@ -245,8 +253,9 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 		this.chkWrapText.addChangeListener(this);
 		
 		// text fill
-		this.pnlTextFill = new FillEditorPanel(null);
-		this.pnlTextFill.addEditorListener(this);
+		this.btnFillEditor = new JButton(Icons.FILL);
+		this.btnFillEditor.addActionListener(this);
+		this.btnFillEditor.setActionCommand("font-color");
 		
 		this.spnPadding = new JSpinner(new SpinnerNumberModel(30, 0, Integer.MAX_VALUE, 1));
 		this.spnPadding.addChangeListener(this);
@@ -259,46 +268,13 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 	}
 
 	/**
-	 * Creates the layout for a generic slide component.
+	 * Creates the layout for an image media component.
 	 */
 	protected void createLayout() {
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
-		JTabbedPane tabs = new JTabbedPane();
-		
-		JPanel pnlGeneral = new JPanel();
-		this.createGeneralLayout(pnlGeneral);
-		
-		JPanel pnlText = new JPanel();
-		this.createTextLayout(pnlText);
-		tabs.addTab(Messages.getString("panel.slide.editor.text"), pnlText);
-		
-		JPanel pnlBackground = new JPanel();
-		this.createBackgroundLayout(pnlBackground);
-		tabs.addTab(Messages.getString("panel.slide.editor.component.background"), pnlBackground);
-		
-		JPanel pnlBorder = new JPanel();
-		this.createBorderLayout(pnlBorder);
-		tabs.addTab(Messages.getString("panel.slide.editor.component.border"), pnlBorder);
-		
-		layout.setAutoCreateGaps(true);
-		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(pnlGeneral)
-				.addComponent(tabs));
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(pnlGeneral)
-				.addComponent(tabs));
-	}
-	
-	/**
-	 * Creates a layout for the text component on the given panel.
-	 * @param panel the panel
-	 */
-	protected void createTextLayout(JPanel panel) {
-		GroupLayout layout = new GroupLayout(panel);
-		panel.setLayout(layout);
-		
+
 		this.txtText.setMinimumSize(new Dimension(50, 200));
 		JScrollPane scrText = new JScrollPane(this.txtText);
 		scrText.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -306,22 +282,29 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.chkTextVisible)
-				.addComponent(scrText)
 				.addGroup(layout.createSequentialGroup()
-						// column 1
 						.addGroup(layout.createParallelGroup()
+								.addComponent(this.lblName)
+								.addComponent(this.lblBackground)
+								.addComponent(this.lblBorder)
 								.addComponent(this.lblFontFamily)
 								.addComponent(this.lblFontSize)
-								.addComponent(this.lblLayout))
-						// column 2
+								.addComponent(this.lblLayout)
+								.addComponent(this.lblText))
 						.addGroup(layout.createParallelGroup()
+								.addComponent(this.txtName)
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.btnBackgroundFill)
+										.addComponent(this.chkBackgroundVisible))
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.btnBorderFill)
+										.addComponent(this.btnBorderStyle)
+										.addComponent(this.chkBorderVisible))
 								// font row
 								.addComponent(this.cmbFontFamilies)
 								.addGroup(layout.createSequentialGroup()
 										.addComponent(this.pnlBoldItalic, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(this.chkWrapText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+										.addComponent(this.btnFillEditor))
 								// size row
 								.addGroup(layout.createSequentialGroup()
 										.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -329,20 +312,33 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 								// layout row
 								.addComponent(this.pnlHorizontalTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 							    // layout row 2
-								.addComponent(this.pnlVerticalTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-				.addComponent(this.pnlTextFill));
-		
+								.addComponent(this.pnlVerticalTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								// layout row 3
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.chkWrapText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addComponent(this.chkTextVisible)))
+				.addComponent(scrText));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.chkTextVisible)
-				.addComponent(scrText)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblName)
+						.addComponent(this.txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblBackground)
+						.addComponent(this.btnBackgroundFill)
+						.addComponent(this.chkBackgroundVisible))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblBorder)
+						.addComponent(this.btnBorderFill)
+						.addComponent(this.btnBorderStyle)
+						.addComponent(this.chkBorderVisible))
 				// font row
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblFontFamily)
 						.addComponent(this.cmbFontFamilies, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.pnlBoldItalic, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.chkWrapText))
+						.addComponent(this.btnFillEditor))
 				// size row
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblFontSize)
@@ -354,7 +350,14 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 						.addComponent(this.pnlHorizontalTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				// layout row 2
 				.addComponent(this.pnlVerticalTextAlignment, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(this.pnlTextFill));
+				// layout row 3
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.chkWrapText))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblText)
+						.addComponent(this.chkTextVisible))
+				.addComponent(scrText));
 	}
 	
 	/* (non-Javadoc)
@@ -433,6 +436,8 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 	 */
 	@Override
 	public void actionPerformed(ActionEvent event) {
+		super.actionPerformed(event);
+		
 		String command = event.getActionCommand();
 		if ("bold".equals(command) || "italic".equals(command)) {
 			if (this.slideComponent != null) {
@@ -484,6 +489,18 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 				this.slideComponent.setVerticalTextAlignment(VerticalTextAlignment.BOTTOM);
 				this.notifyEditorListeners();
 			}
+		} else if ("font-color".equals(command)) {
+			Fill fill = new ColorFill();
+			if (this.slideComponent != null) {
+				fill = this.slideComponent.getTextFill();
+			}
+			fill = FillEditorDialog.show(WindowUtilities.getParentWindow(this), fill);
+			if (fill != null) {
+				if (this.slideComponent != null) {
+					this.slideComponent.setTextFill(fill);
+					this.notifyEditorListeners();
+				}
+			}
 		}
 	}
 	
@@ -515,21 +532,6 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.editor.GenericSlideComponentEditorPanel#editPerformed(org.praisenter.slide.ui.editor.EditEvent)
-	 */
-	@Override
-	public void editPerformed(EditEvent event) {
-		super.editPerformed(event);
-		
-		if (event.getSource() == this.pnlTextFill) {
-			if (this.slideComponent != null) {
-				this.slideComponent.setTextFill(this.pnlTextFill.getFill());
-				this.notifyEditorListeners();
-			}
-		}
-	}
-	
 	/**
 	 * Returns true if the given font is in the given array of fonts.
 	 * @param font the font to find
@@ -548,11 +550,11 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.editor.GenericSlideComponentEditorPanel#setSlideComponent(org.praisenter.slide.GenericSlideComponent)
+	 * @see org.praisenter.slide.ui.editor.GenericComponentEditorPanel#setSlideComponent(org.praisenter.slide.GenericComponent, boolean)
 	 */
 	@Override
-	public void setSlideComponent(TextComponent slideComponent) {
-		super.setSlideComponent(slideComponent);
+	public void setSlideComponent(TextComponent slideComponent, boolean isStatic) {
+		super.setSlideComponent(slideComponent, isStatic);
 		
 		if (slideComponent != null) {
 			this.chkWrapText.setSelected(slideComponent.isTextWrapped());
@@ -572,10 +574,26 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 			this.tglVerticalTextAlignmentBottom.setSelected(slideComponent.getVerticalTextAlignment() == VerticalTextAlignment.BOTTOM);
 			this.spnFontSize.setValue(font.getSize());
 			this.spnPadding.setValue(slideComponent.getTextPadding());
-			this.pnlTextFill.setFill(slideComponent.getTextFill());
 			this.txtText.setText(slideComponent.getText());
 			this.txtText.setCaretPosition(0);
 			this.chkTextVisible.setSelected(slideComponent.isTextVisible());
+		} else {
+			this.chkWrapText.setSelected(false);
+			this.cmbFontFamilies.setSelectedItem(FontManager.getDefaultFont().getFamily());
+			this.cmbFontScaleType.setSelectedIndex(0);
+			this.tglBold.setSelected(false);
+			this.tglItalic.setSelected(false);
+			this.tglHorizontalTextAlignmentLeft.setSelected(false);
+			this.tglHorizontalTextAlignmentCenter.setSelected(true);
+			this.tglHorizontalTextAlignmentRight.setSelected(false);
+			this.tglVerticalTextAlignmentTop.setSelected(false);
+			this.tglVerticalTextAlignmentCenter.setSelected(true);
+			this.tglVerticalTextAlignmentBottom.setSelected(false);
+			this.spnFontSize.setValue(50);
+			this.spnPadding.setValue(5);
+			this.txtText.setText("");
+			this.txtText.setCaretPosition(0);
+			this.chkTextVisible.setSelected(false);
 		}
 	}
 }

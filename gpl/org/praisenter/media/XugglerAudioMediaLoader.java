@@ -88,8 +88,6 @@ public class XugglerAudioMediaLoader implements AudioMediaLoader {
 		}
 		format += "]";
 		
-		LOGGER.debug("First frame read");
-		
 		AudioMediaFile file = new AudioMediaFile(
 				filePath,
 				format,

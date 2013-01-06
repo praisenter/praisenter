@@ -269,8 +269,15 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 				if (this.textFill != null) {
 					// make sure the fill is using the text metrics rather than the
 					// text components bounds
+					float fx = x;
+					// we also need to take the horizontal alignment into consideration
+					if (this.horizontalTextAlignment == HorizontalTextAlignment.RIGHT) {
+						fx = this.x + (this.width - this.textPadding - metrics.width);
+					} else if (this.horizontalTextAlignment == HorizontalTextAlignment.CENTER) {
+						fx = this.x + (this.width / 2.0f) - metrics.width / 2.0f;
+					}
 					Paint paint = this.textFill.getPaint(
-							(int)Math.floor(x), 
+							(int)Math.floor(fx), 
 							(int)Math.floor(y), 
 							(int)Math.ceil(metrics.width), 
 							(int)Math.ceil(metrics.height));

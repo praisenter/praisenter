@@ -1,11 +1,19 @@
 package org.praisenter.slide.ui.editor;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.GroupLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
@@ -23,7 +31,7 @@ import org.praisenter.slide.graphics.LineStyle;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class LineStyleEditorPanel extends EditorPanel implements ItemListener, ChangeListener {
+public class LineStyleEditorPanel extends JPanel implements ItemListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = 7601186524559365213L;
 
@@ -32,37 +40,93 @@ public class LineStyleEditorPanel extends EditorPanel implements ItemListener, C
 	
 	// controls
 	
+	/** The line width label */
+	private JLabel lblLineWidth;
+	
 	/** The line width spinner */
 	private JSpinner spnLineWidth;
+	
+	/** The line cap label */
+	private JLabel lblCap;
 	
 	/** The line cap type combo box */
 	private JComboBox<CapType> cmbCap;
 	
+	/** The line join label */
+	private JLabel lblJoin;
+	
 	/** The line join type combo box */
 	private JComboBox<JoinType> cmbJoin;
 	
+	/** The line dash pattern label */
+	private JLabel lblDashPattern;
+	
 	/** The line dash type combo box */
 	private JComboBox<DashPattern> cmbDash;
+	
+	/** The line style preview panel */
+	private JPanel pnlPreview;
 	
 	/**
 	 * Minimal constructor.
 	 * @param style the initial line style; can be null
 	 */
+	@SuppressWarnings("serial")
 	public LineStyleEditorPanel(LineStyle style) {
-		JLabel lblLineWidth = new JLabel(Messages.getString("panel.slide.editor.line.width"));
-		this.spnLineWidth = new JSpinner(new SpinnerNumberModel(5, 1, 100, 1));
+		this.lblLineWidth = new JLabel(Messages.getString("panel.slide.editor.line.width"));
+		this.spnLineWidth = new JSpinner(new SpinnerNumberModel(5, 1, 1000, 1));
 		
-		JLabel lblCap = new JLabel(Messages.getString("panel.slide.editor.line.cap"));
+		this.lblCap = new JLabel(Messages.getString("panel.slide.editor.line.cap"));
 		this.cmbCap = new JComboBox<CapType>(CapType.values());
 		this.cmbCap.setRenderer(new CapTypeListCellRenderer());
 		
-		JLabel lblJoin = new JLabel(Messages.getString("panel.slide.editor.line.join"));
+		this.lblJoin = new JLabel(Messages.getString("panel.slide.editor.line.join"));
 		this.cmbJoin = new JComboBox<JoinType>(JoinType.values());
 		this.cmbJoin.setRenderer(new JoinTypeListCellRenderer());
 		
-		JLabel lblDashPattern = new JLabel(Messages.getString("panel.slide.editor.line.pattern"));
+		this.lblDashPattern = new JLabel(Messages.getString("panel.slide.editor.line.pattern"));
 		this.cmbDash = new JComboBox<DashPattern>(DashPattern.values());
 		this.cmbDash.setRenderer(new DashPatternListCellRenderer());
+		
+		final Color bgColor = Color.WHITE;
+		final Color fgColor = Color.BLACK;
+		final int p = 5;
+		this.pnlPreview = new JPanel() {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				
+				int w = this.getWidth() - 2 * p;
+				int h = this.getHeight() - 2 * p;
+				
+				// paint the background
+				g.setColor(bgColor);
+				g.fillRect(p, p, w, h);
+				
+				LineStyle style = LineStyleEditorPanel.this.style;
+				if (style != null) {
+					int lw = (int)Math.ceil(style.getWidth());
+					Graphics2D g2d = (Graphics2D)g;
+					Stroke oStroke = g2d.getStroke();
+					RenderingHints oHints = g2d.getRenderingHints();
+					
+					Stroke stroke = style.getStroke();
+					g2d.setStroke(stroke);
+					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+					
+					g2d.setColor(fgColor);
+					g2d.drawRect(p + lw + 20, p + lw + 20, w - 2 * lw - 40, h - 2 * lw - 40);
+					
+					g2d.setRenderingHints(oHints);
+					g2d.setStroke(oStroke);
+				}
+			}
+		};
+		this.pnlPreview.setMinimumSize(new Dimension(0, 150));
+		this.pnlPreview.setPreferredSize(new Dimension(200, 150));
+		this.pnlPreview.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createEmptyBorder(p, p, p, p), 
+				BorderFactory.createLineBorder(Color.DARK_GRAY)));
 		
 		// set values
 		this.setLineStyle(style);
@@ -76,32 +140,35 @@ public class LineStyleEditorPanel extends EditorPanel implements ItemListener, C
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
+		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
 						.addGroup(layout.createParallelGroup()
-								.addComponent(lblLineWidth)
-								.addComponent(lblCap)
-								.addComponent(lblJoin)
-								.addComponent(lblDashPattern))
+								.addComponent(this.lblLineWidth)
+								.addComponent(this.lblCap)
+								.addComponent(this.lblJoin)
+								.addComponent(this.lblDashPattern))
 						.addGroup(layout.createParallelGroup()
 								.addComponent(this.spnLineWidth)
 								.addComponent(this.cmbCap)
 								.addComponent(this.cmbJoin)
-								.addComponent(this.cmbDash))));
+								.addComponent(this.cmbDash)))
+				.addComponent(this.pnlPreview));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
-						.addComponent(lblLineWidth)
+						.addComponent(this.lblLineWidth)
 						.addComponent(this.spnLineWidth, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup()
-						.addComponent(lblCap)
+						.addComponent(this.lblCap)
 						.addComponent(this.cmbCap, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup()
-						.addComponent(lblJoin)
+						.addComponent(this.lblJoin)
 						.addComponent(this.cmbJoin, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup()
-						.addComponent(lblDashPattern)
-						.addComponent(this.cmbDash, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+						.addComponent(this.lblDashPattern)
+						.addComponent(this.cmbDash, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addComponent(this.pnlPreview));
 	}
 	
 	/* (non-Javadoc)
@@ -114,15 +181,15 @@ public class LineStyleEditorPanel extends EditorPanel implements ItemListener, C
 			if (source == this.cmbCap) {
 				CapType cap = (CapType)e.getItem();
 				this.style = new LineStyle(this.style.getWidth(), cap, this.style.getJoin(), this.style.getPattern());
-				this.notifyEditorListeners();
+				this.pnlPreview.repaint();
 			} else if (source == this.cmbJoin) {
 				JoinType join = (JoinType)e.getItem();
 				this.style = new LineStyle(this.style.getWidth(), this.style.getCap(), join, this.style.getPattern());
-				this.notifyEditorListeners();
+				this.pnlPreview.repaint();
 			} else if (source == this.cmbDash) {
 				DashPattern pattern = (DashPattern)e.getItem();
 				this.style = new LineStyle(this.style.getWidth(), this.style.getCap(), this.style.getJoin(), pattern);
-				this.notifyEditorListeners();
+				this.pnlPreview.repaint();
 			}
 		}
 	}
@@ -138,7 +205,7 @@ public class LineStyleEditorPanel extends EditorPanel implements ItemListener, C
 			if (v != null && v instanceof Number) {
 				float width = ((Number)v).floatValue();
 				this.style = new LineStyle(width, this.style.getCap(), this.style.getJoin(), this.style.getPattern());
-				this.notifyEditorListeners();
+				this.pnlPreview.repaint();
 			}
 		}
 	}

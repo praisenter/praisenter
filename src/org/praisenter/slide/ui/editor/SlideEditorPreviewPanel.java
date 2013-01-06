@@ -53,10 +53,10 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	// for selected
 	
 	/** The border 3 stroke */
-	private static final Stroke BORDER_STROKE_3 = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, Math.max(1.0f, HALF_LINE_WIDTH), new float[] { DASH_LENGTH * 6, DASH_SPACE_LENGTH * 6 }, 0);
+	private static final Stroke BORDER_STROKE_3 = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
 
 	/** The border 4 stroke */
-	private static final Stroke BORDER_STROKE_4 = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, Math.max(1.0f, HALF_LINE_WIDTH), new float[] { DASH_LENGTH * 6, DASH_SPACE_LENGTH * 6 }, DASH_LENGTH * 12);
+	private static final Stroke BORDER_STROKE_4 = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
 	
 	/** The current mouse over component */
 	protected PositionedComponent mouseOverComponent;
@@ -159,7 +159,7 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 			// draw border 1 (this border is for light backgrounds)
 			g2d.setStroke(BORDER_STROKE_3);
 			g2d.setColor(BORDER_COLOR_1);
-			g2d.drawRect(x, y, w, h); 
+			g2d.drawRect(x - 1, y - 1, w, h); 
 			
 			// draw border 2 (this border is for dark backgrounds)
 			g2d.setStroke(BORDER_STROKE_4);

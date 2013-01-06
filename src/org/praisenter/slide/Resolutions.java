@@ -72,6 +72,11 @@ public class Resolutions {
 		try {
 			// overwrite the default resolutions with whats in the file
 			resolutions = XmlIO.read(RESOLUTIONS_FILE, Resolutions.class).resolutions;
+			// check the size
+			if (resolutions.size() == 0) {
+				// if there aren't any, then use the default resolutions
+				Collections.addAll(resolutions, DEFAULT_RESOLUTIONS);
+			}
 			// make sure they are sorted
 			Collections.sort(resolutions);
 			return resolutions;
@@ -121,6 +126,24 @@ public class Resolutions {
 		}
 		// add the resolution
 		RESOLUTIONS.add(resolution);
+		// make sure they are sorted
+		Collections.sort(RESOLUTIONS);
+		// save the resolutions
+		XmlIO.save(RESOLUTIONS_FILE, new Resolutions(RESOLUTIONS));
+	}
+	
+	/**
+	 * Removes the given resolution from the list of resolutions.
+	 * <p>
+	 * This will also save the resolutions to the resolutions config file.
+	 * @param resolution the resolution to remove
+	 * @throws JAXBException thrown if a JAXB error occurs while saving the resolution config file
+	 * @throws IOException thrown if an IO error occurs while saving the resolution config file
+	 */
+	public static synchronized final void removeResolution(Resolution resolution) throws JAXBException, IOException {
+		if (resolution == null) return;
+		// add the resolution
+		RESOLUTIONS.remove(resolution);
 		// make sure they are sorted
 		Collections.sort(RESOLUTIONS);
 		// save the resolutions

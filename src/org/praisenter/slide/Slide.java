@@ -23,6 +23,7 @@ import org.praisenter.media.AbstractVideoMedia;
 import org.praisenter.media.ImageMedia;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.graphics.Fill;
+import org.praisenter.slide.media.AudioMediaComponent;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
@@ -38,7 +39,8 @@ import org.praisenter.utilities.ImageUtilities;
 @XmlRootElement(name = "Slide")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({ ImageMediaComponent.class, 
-	  VideoMediaComponent.class, 
+	  VideoMediaComponent.class,
+	  AudioMediaComponent.class,
 	  TextComponent.class,
 	  GenericComponent.class })
 public class Slide {
@@ -460,6 +462,17 @@ public class Slide {
 			}
 		}
 		return components;
+	}
+	
+	/**
+	 * Returns true if the given component is on this slide and it is a static
+	 * component (a component that cannot be removed).
+	 * @param component the component
+	 * @return boolean
+	 */
+	public boolean isStaticComponent(SlideComponent component) {
+		List<SlideComponent> components = this.getStaticComponents(SlideComponent.class);
+		return components.contains(component);
 	}
 	
 	/**

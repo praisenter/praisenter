@@ -14,9 +14,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -50,6 +48,9 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(VideoMediaComponentEditorPanel.class);
 	
+	/** The video label */
+	protected JLabel lblVideo;
+	
 	/** The scale type label */
 	protected JLabel lblScaleType;
 
@@ -62,6 +63,12 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	/** The scale type combo box */
 	protected JComboBox<ScaleType> cmbScaleType;
 	
+	/** The checkbox for muting the audio */
+	protected JCheckBox chkAudioMuted;
+	
+	/** The checkbox for looping the media */
+	protected JCheckBox chkLooped;
+	
 	/** The button to manage the media library */
 	protected JButton btnManageMedia;
 	
@@ -70,6 +77,8 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	 */
 	public VideoMediaComponentEditorPanel() {
 		super(false);
+		
+		this.lblVideo = new JLabel(Messages.getString("panel.slide.editor.video"));
 		
 		this.chkVideoVisible = new JCheckBox(Messages.getString("panel.slide.editor.visible"));
 		this.chkVideoVisible.addChangeListener(this);
@@ -84,6 +93,14 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 		this.cmbScaleType.setRenderer(new ScaleTypeListCellRenderer());
 		this.cmbScaleType.addItemListener(this);
 		
+		this.chkAudioMuted = new JCheckBox(Messages.getString("panel.slide.editor.media.muteAudio"));
+		this.chkAudioMuted.setToolTipText(Messages.getString("panel.slide.editor.media.muteAudio.tooltip"));
+		this.chkAudioMuted.addChangeListener(this);
+		
+		this.chkLooped = new JCheckBox(Messages.getString("panel.slide.editor.media.loop"));
+		this.chkLooped.setToolTipText(Messages.getString("panel.slide.editor.media.loop.tooltip"));
+		this.chkLooped.addChangeListener(this);
+		
 		this.btnManageMedia = new JButton(Messages.getString("panel.slide.editor.mediaLibrary"));
 		this.btnManageMedia.addActionListener(this);
 		this.btnManageMedia.setActionCommand("media-library");
@@ -92,63 +109,62 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	}
 
 	/**
-	 * Creates the layout for a generic slide component.
+	 * Creates the layout for an image media component.
 	 */
 	protected void createLayout() {
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
-		JTabbedPane tabs = new JTabbedPane();
-		
-		JPanel pnlGeneral = new JPanel();
-		this.createGeneralLayout(pnlGeneral);
-		
-		JPanel pnlMedia = new JPanel();
-		this.createMediaLayout(pnlMedia);
-		tabs.addTab(Messages.getString("panel.slide.editor.video"), pnlMedia);
-		
-		JPanel pnlBackground = new JPanel();
-		this.createBackgroundLayout(pnlBackground);
-		tabs.addTab(Messages.getString("panel.slide.editor.component.background"), pnlBackground);
-		
-		JPanel pnlBorder = new JPanel();
-		this.createBorderLayout(pnlBorder);
-		tabs.addTab(Messages.getString("panel.slide.editor.component.border"), pnlBorder);
-		
-		layout.setAutoCreateGaps(true);
-		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(pnlGeneral)
-				.addComponent(tabs));
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(pnlGeneral)
-				.addComponent(tabs));
-	}
-	
-	/**
-	 * Sets the layout of the media panel on the given panel.
-	 * @param panel the panel
-	 */
-	protected void createMediaLayout(JPanel panel) {
-		GroupLayout layout = new GroupLayout(panel);
-		panel.setLayout(layout);
-		
 		JScrollPane pane = new JScrollPane(this.lstVideos);
 		pane.setPreferredSize(new Dimension(200, 150));
 		
-		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
+		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.chkVideoVisible)
 				.addGroup(layout.createSequentialGroup()
-						.addComponent(this.lblScaleType)
-						.addComponent(this.cmbScaleType))
+						.addGroup(layout.createParallelGroup()
+								.addComponent(this.lblName)
+								.addComponent(this.lblBackground)
+								.addComponent(this.lblBorder)
+								.addComponent(this.lblScaleType)
+								.addComponent(this.lblVideo))
+						.addGroup(layout.createParallelGroup()
+								.addComponent(this.txtName)
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.btnBackgroundFill)
+										.addComponent(this.chkBackgroundVisible))
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.btnBorderFill)
+										.addComponent(this.btnBorderStyle)
+										.addComponent(this.chkBorderVisible))
+								.addComponent(this.cmbScaleType)
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.chkVideoVisible)
+										.addComponent(this.chkLooped)
+										.addComponent(this.chkAudioMuted))))
 				.addComponent(pane)
 				.addComponent(this.btnManageMedia, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.chkVideoVisible)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblName)
+						.addComponent(this.txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblBackground)
+						.addComponent(this.btnBackgroundFill)
+						.addComponent(this.chkBackgroundVisible))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblBorder)
+						.addComponent(this.btnBorderFill)
+						.addComponent(this.btnBorderStyle)
+						.addComponent(this.chkBorderVisible))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblScaleType)
 						.addComponent(this.cmbScaleType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblVideo)
+						.addComponent(this.chkVideoVisible)
+						.addComponent(this.chkLooped)
+						.addComponent(this.chkAudioMuted))
 				.addComponent(pane)
 				.addComponent(this.btnManageMedia));
 	}
@@ -212,6 +228,18 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 				this.slideComponent.setVideoVisible(flag);
 				this.notifyEditorListeners();
 			}
+		} else if (source == this.chkAudioMuted) {
+			boolean flag = this.chkAudioMuted.isSelected();
+			if (this.slideComponent != null) {
+				this.slideComponent.setAudioMuted(flag);
+				this.notifyEditorListeners();
+			}
+		} else if (source == this.chkLooped) {
+			boolean flag = this.chkLooped.isSelected();
+			if (this.slideComponent != null) {
+				this.slideComponent.setLoopEnabled(flag);
+				this.notifyEditorListeners();
+			}
 		}
 	}
 	
@@ -220,12 +248,14 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		super.actionPerformed(e);
+		
 		String command = e.getActionCommand();
 		if ("media-library".equals(command)) {
 			MediaLibraryDialog.show(WindowUtilities.getParentWindow(this));
 			
 			// when control returns here we need to update the items in the jlist with the current media library items
-			List<MediaThumbnail> thumbnails = MediaLibrary.getThumbnails(MediaType.IMAGE);
+			List<MediaThumbnail> thumbnails = MediaLibrary.getThumbnails(MediaType.VIDEO);
 			// save the selected value
 			MediaThumbnail thumb = this.lstVideos.getSelectedValue();
 			this.lstVideos.clearSelection();
@@ -239,11 +269,11 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.editor.GenericComponentEditorPanel#setSlideComponent(org.praisenter.slide.GenericComponent)
+	 * @see org.praisenter.slide.ui.editor.GenericComponentEditorPanel#setSlideComponent(org.praisenter.slide.GenericComponent, boolean)
 	 */
 	@Override
-	public void setSlideComponent(VideoMediaComponent slideComponent) {
-		super.setSlideComponent(slideComponent);
+	public void setSlideComponent(VideoMediaComponent slideComponent, boolean isStatic) {
+		super.setSlideComponent(slideComponent, isStatic);
 		
 		if (slideComponent != null) {
 			if (slideComponent.getMedia() != null) {
@@ -254,6 +284,14 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 			}
 			this.cmbScaleType.setSelectedItem(slideComponent.getScaleType());
 			this.chkVideoVisible.setSelected(slideComponent.isVideoVisible());
+			this.chkAudioMuted.setSelected(slideComponent.isAudioMuted());
+			this.chkLooped.setSelected(slideComponent.isLoopEnabled());
+		} else {
+			this.lstVideos.clearSelection();
+			this.cmbScaleType.setSelectedIndex(0);
+			this.chkAudioMuted.setSelected(false);
+			this.chkLooped.setSelected(false);
+			this.chkVideoVisible.setSelected(false);
 		}
 	}
 }
