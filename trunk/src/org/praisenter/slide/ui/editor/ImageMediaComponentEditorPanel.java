@@ -14,9 +14,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -50,6 +48,9 @@ public class ImageMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(ImageMediaComponentEditorPanel.class);
 	
+	/** The image label */
+	protected JLabel lblImage;
+	
 	/** The scale type label */
 	protected JLabel lblScaleType;
 
@@ -70,6 +71,8 @@ public class ImageMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	 */
 	public ImageMediaComponentEditorPanel() {
 		super(false);
+		
+		this.lblImage = new JLabel(Messages.getString("panel.slide.editor.image"));
 		
 		this.chkImageVisible = new JCheckBox(Messages.getString("panel.slide.editor.visible"));
 		this.chkImageVisible.addChangeListener(this);
@@ -92,63 +95,58 @@ public class ImageMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	}
 
 	/**
-	 * Creates the layout for a generic slide component.
+	 * Creates the layout for an image media component.
 	 */
 	protected void createLayout() {
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
-		JTabbedPane tabs = new JTabbedPane();
-
-		JPanel pnlGeneral = new JPanel();
-		this.createGeneralLayout(pnlGeneral);
-		
-		JPanel pnlMedia = new JPanel();
-		this.createMediaLayout(pnlMedia);
-		tabs.addTab(Messages.getString("panel.slide.editor.image"), pnlMedia);
-		
-		JPanel pnlBackground = new JPanel();
-		this.createBackgroundLayout(pnlBackground);
-		tabs.addTab(Messages.getString("panel.slide.editor.component.background"), pnlBackground);
-		
-		JPanel pnlBorder = new JPanel();
-		this.createBorderLayout(pnlBorder);
-		tabs.addTab(Messages.getString("panel.slide.editor.component.border"), pnlBorder);
-		
-		layout.setAutoCreateGaps(true);
-		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(pnlGeneral)
-				.addComponent(tabs));
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(pnlGeneral)
-				.addComponent(tabs));
-	}
-	
-	/**
-	 * Sets the layout of the media panel on the given panel.
-	 * @param panel the panel
-	 */
-	protected void createMediaLayout(JPanel panel) {
-		GroupLayout layout = new GroupLayout(panel);
-		panel.setLayout(layout);
-		
 		JScrollPane pane = new JScrollPane(this.lstImages);
 		pane.setPreferredSize(new Dimension(200, 150));
 		
-		layout.setAutoCreateGaps(true);
+		// FIXME add visible checkbox back
 		layout.setAutoCreateContainerGaps(true);
+		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.chkImageVisible)
 				.addGroup(layout.createSequentialGroup()
-						.addComponent(this.lblScaleType)
-						.addComponent(this.cmbScaleType))
+						.addGroup(layout.createParallelGroup()
+								.addComponent(this.lblName)
+								.addComponent(this.lblBackground)
+								.addComponent(this.lblBorder)
+								.addComponent(this.lblScaleType)
+								.addComponent(this.lblImage))
+						.addGroup(layout.createParallelGroup()
+								.addComponent(this.txtName)
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.btnBackgroundFill)
+										.addComponent(this.chkBackgroundVisible))
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.btnBorderFill)
+										.addComponent(this.btnBorderStyle)
+										.addComponent(this.chkBorderVisible))
+								.addComponent(this.cmbScaleType)
+								.addComponent(this.chkImageVisible)))
 				.addComponent(pane)
 				.addComponent(this.btnManageMedia, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.chkImageVisible)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblName)
+						.addComponent(this.txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblBackground)
+						.addComponent(this.btnBackgroundFill)
+						.addComponent(this.chkBackgroundVisible))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblBorder)
+						.addComponent(this.btnBorderFill)
+						.addComponent(this.btnBorderStyle)
+						.addComponent(this.chkBorderVisible))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblScaleType)
 						.addComponent(this.cmbScaleType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblImage)
+						.addComponent(this.chkImageVisible))
 				.addComponent(pane)
 				.addComponent(this.btnManageMedia));
 	}
@@ -220,6 +218,8 @@ public class ImageMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		super.actionPerformed(e);
+		
 		String command = e.getActionCommand();
 		if ("media-library".equals(command)) {
 			MediaLibraryDialog.show(WindowUtilities.getParentWindow(this));
@@ -239,11 +239,11 @@ public class ImageMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.editor.GenericComponentEditorPanel#setSlideComponent(org.praisenter.slide.GenericComponent)
+	 * @see org.praisenter.slide.ui.editor.GenericComponentEditorPanel#setSlideComponent(org.praisenter.slide.GenericComponent, boolean)
 	 */
 	@Override
-	public void setSlideComponent(ImageMediaComponent slideComponent) {
-		super.setSlideComponent(slideComponent);
+	public void setSlideComponent(ImageMediaComponent slideComponent, boolean isStatic) {
+		super.setSlideComponent(slideComponent, isStatic);
 		
 		if (slideComponent != null) {
 			if (slideComponent.getMedia() != null) {
@@ -254,6 +254,10 @@ public class ImageMediaComponentEditorPanel  extends GenericComponentEditorPanel
 			}
 			this.cmbScaleType.setSelectedItem(slideComponent.getScaleType());
 			this.chkImageVisible.setSelected(slideComponent.isImageVisible());
+		} else {
+			this.lstImages.clearSelection();
+			this.cmbScaleType.setSelectedIndex(0);
+			this.chkImageVisible.setSelected(false);
 		}
 	}
 }

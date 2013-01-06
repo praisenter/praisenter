@@ -21,6 +21,15 @@ import org.praisenter.xml.MediaTypeAdapter;
 @XmlRootElement(name = "AudioMediaComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 public class AudioMediaComponent implements SlideComponent, MediaComponent<AbstractAudioMedia>, PlayableMediaComponent<AbstractAudioMedia>, MediaPlayerListener {
+	/** The name of the component */
+	@XmlElement(name = "Name", required = true, nillable = false)
+	protected String name;
+
+	/** The media */
+	@XmlElement(name = "Media", required = true, nillable = false)
+	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
+	protected AbstractAudioMedia media;
+	
 	/** True if looping is enabled */
 	@XmlAttribute(name = "LoopEnabled", required = true)
 	protected boolean loopEnabled;
@@ -28,15 +37,6 @@ public class AudioMediaComponent implements SlideComponent, MediaComponent<Abstr
 	/** True if the audio should be muted */
 	@XmlAttribute(name = "AudioMuted", required = true)
 	protected boolean audioMuted;
-	
-	/** The media */
-	@XmlElement(name = "Media", required = true, nillable = false)
-	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
-	protected AbstractAudioMedia media;
-	
-	/** The name of the component */
-	@XmlElement(name = "Name", required = true, nillable = false)
-	protected String name;
 	
 	/**
 	 * Default constructor.

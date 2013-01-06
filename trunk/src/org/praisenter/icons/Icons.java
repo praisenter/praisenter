@@ -47,8 +47,11 @@ public class Icons {
 	/** Italic text icon */
 	public static final ImageIcon ITALIC = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/italic.png");
 
-	/** Text color icon */
-	public static final ImageIcon COLOR = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/color.png");
+	/** Fill icon */
+	public static final ImageIcon FILL = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/fill.png");
+	
+	/** Border icon */
+	public static final ImageIcon BORDER = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/border.png");
 	
 	/** Image scale none icon */
 	public static final ImageIcon IMAGE_SCALE_NONE = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/image-scale-none.png");

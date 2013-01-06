@@ -2,8 +2,7 @@ package org.praisenter.slide.ui.editor;
 
 import java.awt.Graphics;
 
-import javax.swing.GroupLayout;
-import javax.swing.JPanel;
+import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -28,7 +27,10 @@ public abstract class SlideComponentEditorPanel<E extends SlideComponent> extend
 	
 	// controls
 	
-	/** The component name textfield */
+	/** The component name label */
+	protected JLabel lblName;
+	
+	/** The component name text box */
 	protected JTextField txtName;
 	
 	/**
@@ -36,6 +38,7 @@ public abstract class SlideComponentEditorPanel<E extends SlideComponent> extend
 	 */
 	@SuppressWarnings("serial")
 	protected SlideComponentEditorPanel() {
+		this.lblName = new JLabel(Messages.getString("panel.slide.editor.name"));
 		this.txtName = new JTextField() {
 			@Override
 			protected void paintComponent(Graphics g) {
@@ -43,24 +46,7 @@ public abstract class SlideComponentEditorPanel<E extends SlideComponent> extend
 				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.slide.editor.component.name"));
 			}
 		};
-		
 		this.txtName.getDocument().addDocumentListener(this);
-	}
-	
-	/**
-	 * Creates the layout for the general controls on the given panel.
-	 * @param panel the panel
-	 */
-	protected void createGeneralLayout(JPanel panel) {
-		GroupLayout layout = new GroupLayout(panel);
-		panel.setLayout(layout);
-		
-		layout.setAutoCreateContainerGaps(true);
-		layout.setAutoCreateGaps(true);
-		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.txtName));
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 	}
 	
 	/* (non-Javadoc)
@@ -106,11 +92,18 @@ public abstract class SlideComponentEditorPanel<E extends SlideComponent> extend
 	/**
 	 * Sets the {@link SlideComponent} to configure.
 	 * @param slideComponent the slide component
+	 * @param isStatic true if the slide component is a static component
 	 */
-	public void setSlideComponent(E slideComponent) {
+	public void setSlideComponent(E slideComponent, boolean isStatic) {
 		this.slideComponent = slideComponent;
 		
-		this.txtName.setText(slideComponent.getName());
-		this.txtName.setCaretPosition(0);
+		if (slideComponent != null) {
+			this.txtName.setText(slideComponent.getName());
+			this.txtName.setCaretPosition(0);
+			this.txtName.setEnabled(!isStatic);
+		} else {
+			this.txtName.setText("");
+			this.txtName.setEnabled(false);
+		}
 	}
 }

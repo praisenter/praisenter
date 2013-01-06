@@ -1,13 +1,20 @@
 package org.praisenter.slide.ui.editor;
 
-import javax.swing.GroupLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JPanel;
+import javax.swing.JLabel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.RenderableComponent;
+import org.praisenter.slide.graphics.ColorFill;
+import org.praisenter.slide.graphics.Fill;
+import org.praisenter.utilities.WindowUtilities;
 
 /**
  * Abstact editor panel for {@link RenderableComponent}s.
@@ -16,44 +23,32 @@ import org.praisenter.slide.RenderableComponent;
  * @version 2.0.0
  * @since 2.0.0
  */
-public abstract class RenderableComponentEditorPanel<E extends RenderableComponent> extends SlideComponentEditorPanel<E> implements ChangeListener, EditorListener {
+public abstract class RenderableComponentEditorPanel<E extends RenderableComponent> extends SlideComponentEditorPanel<E> implements ChangeListener, ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = -8456563715108565220L;
 	
-	/** The background paint editor panel */
-	protected FillEditorPanel pnlBackgroundFill;
-	
 	/** The checkbox for background paint visibility */
 	protected JCheckBox chkBackgroundVisible;
+	
+	/** The background fill label */
+	protected JLabel lblBackground;
+	
+	/** The background fill button */
+	protected JButton btnBackgroundFill;
 	
 	/**
 	 * Default constructor.
 	 */
 	protected RenderableComponentEditorPanel() {
 		// background
-		this.pnlBackgroundFill = new FillEditorPanel(null);
-		this.pnlBackgroundFill.addEditorListener(this);
+		this.lblBackground = new JLabel(Messages.getString("panel.slide.editor.background"));
+		
+		this.btnBackgroundFill = new JButton(Icons.FILL);
+		this.btnBackgroundFill.addActionListener(this);
+		this.btnBackgroundFill.setActionCommand("bg-fill");
 		
 		this.chkBackgroundVisible = new JCheckBox(Messages.getString("panel.slide.editor.visible"));
 		this.chkBackgroundVisible.addChangeListener(this);
-	}
-	
-	/**
-	 * Creates a layout for the background fill on the given panel.
-	 * @param panel the panel
-	 */
-	protected void createBackgroundLayout(JPanel panel) {
-		GroupLayout layout = new GroupLayout(panel);
-		panel.setLayout(layout);
-		
-		layout.setAutoCreateContainerGaps(true);
-		layout.setAutoCreateGaps(true);
-		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.chkBackgroundVisible)
-				.addComponent(this.pnlBackgroundFill));
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.chkBackgroundVisible)
-				.addComponent(this.pnlBackgroundFill));
 	}
 	
 	/* (non-Javadoc)
@@ -72,26 +67,36 @@ public abstract class RenderableComponentEditorPanel<E extends RenderableCompone
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.editor.EditorListener#editPerformed(org.praisenter.slide.ui.editor.EditEvent)
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
 	@Override
-	public void editPerformed(EditEvent event) {
-		Object source = event.getSource();
-		if (source == this.pnlBackgroundFill) {
+	public void actionPerformed(ActionEvent e) {
+		String command = e.getActionCommand();
+		if ("bg-fill".equals(command)) {
+			Fill fill = new ColorFill();
 			if (this.slideComponent != null) {
-				this.slideComponent.setBackgroundFill(this.pnlBackgroundFill.getFill());
-				this.notifyEditorListeners();
+				fill = this.slideComponent.getBackgroundFill();
+			}
+			fill = FillEditorDialog.show(WindowUtilities.getParentWindow(this), fill);
+			if (fill != null) {
+				if (this.slideComponent != null) {
+					this.slideComponent.setBackgroundFill(fill);
+					this.notifyEditorListeners();
+				}
 			}
 		}
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.editor.SlideComponentEditorPanel#setSlideComponent(org.praisenter.slide.SlideComponent)
+	 * @see org.praisenter.slide.ui.editor.SlideComponentEditorPanel#setSlideComponent(org.praisenter.slide.SlideComponent, boolean)
 	 */
-	public void setSlideComponent(E slideComponent) {
-		super.setSlideComponent(slideComponent);
+	public void setSlideComponent(E slideComponent, boolean isStatic) {
+		super.setSlideComponent(slideComponent, isStatic);
 		
-		this.pnlBackgroundFill.setFill(slideComponent.getBackgroundFill());
-		this.chkBackgroundVisible.setSelected(slideComponent.isBackgroundVisible());
+		if (slideComponent != null) {
+			this.chkBackgroundVisible.setSelected(slideComponent.isBackgroundVisible());
+		} else {
+			this.chkBackgroundVisible.setSelected(false);
+		}
 	}
 }

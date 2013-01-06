@@ -15,7 +15,19 @@ public class ComponentUtilities {
 	 * of the given components.
 	 * @param components the components to size
 	 */
-	public static final void setMinimumSize(Component...components) {
+	public static final void setMinimumSize(Component... components) {
+		Dimension size = getMaximumSize(components);
+		for (Component component : components) {
+			component.setMinimumSize(size);
+		}
+	}
+	
+	/**
+	 * Returns the maximum preferred size of the given components.
+	 * @param components the components
+	 * @return Dimension
+	 */
+	public static final Dimension getMaximumSize(Component... components) {
 		Dimension size = new Dimension();
 		for (Component component : components) {
 			Dimension cSize = component.getPreferredSize();
@@ -26,8 +38,6 @@ public class ComponentUtilities {
 				size.height = cSize.height;
 			}
 		}
-		for (Component component : components) {
-			component.setMinimumSize(size);
-		}
+		return size;
 	}
 }

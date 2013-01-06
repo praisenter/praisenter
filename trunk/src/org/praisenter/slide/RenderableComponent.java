@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.slide.graphics.Fill;
+import org.praisenter.slide.media.AudioMediaComponent;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
 import org.praisenter.slide.text.TextComponent;
@@ -16,7 +17,8 @@ import org.praisenter.slide.text.TextComponent;
  * @since 2.0.0
  */
 @XmlSeeAlso({ ImageMediaComponent.class, 
-			  VideoMediaComponent.class, 
+			  VideoMediaComponent.class,
+			  AudioMediaComponent.class,
 			  TextComponent.class,
 			  GenericComponent.class })
 public interface RenderableComponent extends SlideComponent {

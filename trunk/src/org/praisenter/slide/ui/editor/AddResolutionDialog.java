@@ -2,9 +2,7 @@ package org.praisenter.slide.ui.editor;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.DisplayMode;
 import java.awt.Graphics;
-import java.awt.GraphicsDevice;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,15 +24,32 @@ import org.praisenter.ui.BottomButtonPanel;
 import org.praisenter.ui.WaterMark;
 import org.praisenter.utilities.WindowUtilities;
 
-public class CustomResolutionDialog extends JDialog implements ActionListener {
-	
+/**
+ * Dialog used to add a new resolution.
+ * @author William Bittle
+ * @version 2.0.0
+ * @since 2.0.0
+ */
+public class AddResolutionDialog extends JDialog implements ActionListener {
+	/** The version id */
+	private static final long serialVersionUID = 7219182229540375050L;
+
+	/** The resolution width */
 	private JFormattedTextField txtWidth;
+	
+	/** The resolution height */
 	private JFormattedTextField txtHeight;
 	
+	/** The resolution */
 	private Resolution resolution;
 	
-	private CustomResolutionDialog(Window owner) {
-		super(owner, Messages.getString("panel.slide.editor.resolution.custom.title"), ModalityType.APPLICATION_MODAL);
+	/**
+	 * Default constructor.
+	 * @param owner the owner of this dialog
+	 */
+	@SuppressWarnings("serial")
+	private AddResolutionDialog(Window owner) {
+		super(owner, Messages.getString("panel.slide.editor.resolution.new.title"), ModalityType.APPLICATION_MODAL);
 		
 		this.txtWidth = new JFormattedTextField(new DecimalFormat("0")) {
 			@Override
@@ -56,11 +71,11 @@ public class CustomResolutionDialog extends JDialog implements ActionListener {
 		
 		JLabel lblX = new JLabel(Messages.getString("panel.slide.editor.resolution.by"));
 		
-		JButton btnOk = new JButton("ok");
+		JButton btnOk = new JButton(Messages.getString("panel.slide.editor.ok"));
 		btnOk.addActionListener(this);
 		btnOk.setActionCommand("ok");
 		
-		JButton btnCancel = new JButton("cancel");
+		JButton btnCancel = new JButton(Messages.getString("panel.slide.editor.cancel"));
 		btnCancel.addActionListener(this);
 		btnCancel.setActionCommand("cancel");
 		
@@ -90,6 +105,9 @@ public class CustomResolutionDialog extends JDialog implements ActionListener {
 		container.add(pnlButtons, BorderLayout.PAGE_END);
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
@@ -141,8 +159,15 @@ public class CustomResolutionDialog extends JDialog implements ActionListener {
 		}
 	}
 	
+	/**
+	 * Shows a {@link AddResolutionDialog} and returns the configured resolution.
+	 * <p>
+	 * Returns null if the user clicks cancel.
+	 * @param owner the owner of the dialog
+	 * @return {@link Resolution}
+	 */
 	public static final Resolution show(Window owner) {
-		CustomResolutionDialog dialog = new CustomResolutionDialog(owner);
+		AddResolutionDialog dialog = new AddResolutionDialog(owner);
 		dialog.pack();
 		dialog.setLocationRelativeTo(owner);
 		dialog.setVisible(true);

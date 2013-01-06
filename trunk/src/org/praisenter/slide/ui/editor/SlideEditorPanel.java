@@ -2,11 +2,11 @@ package org.praisenter.slide.ui.editor;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.DisplayMode;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.GraphicsDevice;
 import java.awt.GridLayout;
 import java.awt.Point;
@@ -23,20 +23,25 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.xml.bind.JAXBException;
 
+import org.apache.log4j.Logger;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.GenericComponent;
 import org.praisenter.slide.NotificationSlide;
@@ -50,7 +55,7 @@ import org.praisenter.slide.media.AudioMediaComponent;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
 import org.praisenter.slide.text.TextComponent;
-import org.praisenter.ui.WaterMark;
+import org.praisenter.utilities.LookAndFeelUtilities;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -61,12 +66,16 @@ import org.praisenter.utilities.WindowUtilities;
  */
 // FIXME check for media support
 // FIXME add special logic for notification templates
-// FIXME we may want to allow them to choose the target display during the slide edit process (or display size)
+// FIXME show resize grips (little squares in corners and sides)
+// FIXME allow resize from all directions
 // TODO snap to grid
 public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, ListSelectionListener, EditorListener, ActionListener, ItemListener {
 	/** The version id */
 	private static final long serialVersionUID = -927595042247907332L;
 
+	/** The class level logger */
+	private static final Logger LOGGER = Logger.getLogger(SlideEditorPanel.class);
+	
 	/** The resize gap (the additional gap area to allow resizing) */
 	private static final int RESIZE_GAP = 50;
 	
@@ -104,8 +113,11 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	/** The list resolution targets */
 	protected JComboBox<Resolution> cmbResolutionTargets;
 	
-	/** A button to add custom resolutions */
-	protected JButton btnAddCustomResolution;
+	/** A button to add resolutions */
+	protected JButton btnAddResolution;
+
+	/** A button to remove a resolution */
+	protected JButton btnRemoveResolution;
 	
 	/** The list of components */
 	protected JList<SlideComponent> lstComponents;
@@ -138,6 +150,9 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	
 	/** Video editor panel for {@link VideoMediaComponent}s */
 	protected VideoMediaComponentEditorPanel pnlVideo;
+	
+	/** Audio editor panel for {@link AudioMediaComponent}s */
+	protected AudioMediaComponentEditorPanel pnlAudio;
 	
 	/** Panel for the editor panels */
 	protected JPanel pnlEditorCards;
@@ -172,7 +187,6 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	 * @param slide the slide to edit
 	 * @param displaySize the display target size
 	 */
-	@SuppressWarnings("serial")
 	public SlideEditorPanel(Slide slide, Dimension displaySize) {
 		this.slide = slide;
 		this.displaySize = displaySize;
@@ -197,13 +211,8 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 			height = nSlide.getDeviceHeight();
 		}
 		
-		this.txtSlideName = new JTextField(slide.getName()) {
-			@Override
-			protected void paintComponent(Graphics g) {
-				super.paintComponent(g);
-				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.slide.editor.name"));
-			}
-		};
+		JLabel lblSlideName = new JLabel(Messages.getString("panel.slide.editor.name"));
+		this.txtSlideName = new JTextField(slide.getName());
 		
 		// get the resolutions
 		List<Resolution> resolutions = Resolutions.getResolutions();
@@ -227,18 +236,52 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		}
 		// make sure they are sorted
 		Collections.sort(resolutions);
+		
+		JLabel lblResolutionTarget = new JLabel(Messages.getString("panel.slide.editor.resolution"));
 		// create the targets drop down
 		this.cmbResolutionTargets = new JComboBox<Resolution>(resolutions.toArray(new Resolution[0]));
 		this.cmbResolutionTargets.setSelectedItem(new Resolution(width, height));
-		this.cmbResolutionTargets.setToolTipText(Messages.getString("panel.slide.editor.resolution"));
+		this.cmbResolutionTargets.setToolTipText(Messages.getString("panel.slide.editor.resolution.tooltip"));
 		this.cmbResolutionTargets.addItemListener(this);
 		
-		this.btnAddCustomResolution = new JButton(Messages.getString("panel.slide.editor.resolution.custom.add"));
-		this.btnAddCustomResolution.setToolTipText(Messages.getString("panel.slide.editor.resolution.custom.add.tooltip"));
-		this.btnAddCustomResolution.addActionListener(this);
-		this.btnAddCustomResolution.setActionCommand("add-resolution");
+		this.btnAddResolution = new JButton(Messages.getString("panel.slide.editor.resolution.add"));
+		this.btnAddResolution.setToolTipText(Messages.getString("panel.slide.editor.resolution.add.tooltip"));
+		this.btnAddResolution.addActionListener(this);
+		this.btnAddResolution.setActionCommand("add-resolution");
 		
-		JLabel lblComponents = new JLabel(Messages.getString("panel.slide.editor.components"));
+		this.btnRemoveResolution = new JButton(Messages.getString("panel.slide.editor.resolution.remove"));
+		this.btnRemoveResolution.setToolTipText(Messages.getString("panel.slide.editor.resolution.remove.tooltip"));
+		this.btnRemoveResolution.addActionListener(this);
+		this.btnRemoveResolution.setActionCommand("remove-resolution");
+		
+		JPanel pnlTop = new JPanel();
+		// attempt to use the border color of the laf
+		Color color = Color.GRAY;
+		if (LookAndFeelUtilities.IsNimbusLookAndFeel()) {
+			color = UIManager.getColor("nimbusBorder");
+		} else {
+			color = UIManager.getColor("Separator.foreground");
+		}
+		pnlTop.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, color));
+		GroupLayout tLayout = new GroupLayout(pnlTop);
+		pnlTop.setLayout(tLayout);
+		
+		tLayout.setAutoCreateContainerGaps(true);
+		tLayout.setAutoCreateGaps(true);
+		tLayout.setHorizontalGroup(tLayout.createSequentialGroup()
+				.addComponent(lblSlideName)
+				.addComponent(this.txtSlideName)
+				.addComponent(lblResolutionTarget)
+				.addComponent(this.cmbResolutionTargets)
+				.addComponent(this.btnRemoveResolution)
+				.addComponent(this.btnAddResolution));
+		tLayout.setVerticalGroup(tLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+				.addComponent(lblSlideName)
+				.addComponent(this.txtSlideName)
+				.addComponent(lblResolutionTarget)
+				.addComponent(this.cmbResolutionTargets)
+				.addComponent(this.btnRemoveResolution)
+				.addComponent(this.btnAddResolution));
 		
 		// get all the components on the slide/template
 		List<SlideComponent> components = slide.getComponents(SlideComponent.class);
@@ -247,9 +290,14 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		if (background != null) {
 			components.add(0, slide.getBackground());
 		}
-		this.lstComponents = new JList<SlideComponent>(components.toArray(new SlideComponent[0]));
+		this.lstComponents = new JList<SlideComponent>();
 		this.lstComponents.setCellRenderer(new SlideComponentListCellRenderer());
 		this.lstComponents.addListSelectionListener(this);
+		DefaultListModel<SlideComponent> model = new DefaultListModel<SlideComponent>();
+		for (SlideComponent component : components) {
+			model.addElement(component);
+		}
+		this.lstComponents.setModel(model);
 		JScrollPane scrComponents = new JScrollPane(this.lstComponents);
 		scrComponents.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrComponents.setMinimumSize(new Dimension(0, 100));
@@ -287,19 +335,9 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		clLayout.setAutoCreateGaps(true);
 		clLayout.setAutoCreateContainerGaps(true);
 		clLayout.setHorizontalGroup(clLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-				.addComponent(this.txtSlideName)
-				.addGroup(clLayout.createSequentialGroup()
-						.addComponent(this.cmbResolutionTargets)
-						.addComponent(this.btnAddCustomResolution))
-				.addComponent(lblComponents)
 				.addComponent(scrComponents, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(pnlButtonGrid));
 		clLayout.setVerticalGroup(clLayout.createSequentialGroup()
-				.addComponent(this.txtSlideName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addGroup(clLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.cmbResolutionTargets, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.btnAddCustomResolution, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(lblComponents)
 				.addComponent(scrComponents)
 				.addComponent(pnlButtonGrid, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		
@@ -314,6 +352,9 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		
 		this.pnlVideo = new VideoMediaComponentEditorPanel();
 		this.pnlVideo.addEditorListener(this);
+		
+		this.pnlAudio = new AudioMediaComponentEditorPanel();
+		this.pnlAudio.addEditorListener(this);
 		
 		JPanel pnlBlank = new JPanel();
 		pnlBlank.setLayout(new BorderLayout());
@@ -333,6 +374,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		this.pnlEditorCards.add(this.pnlText, TEXT_CARD);
 		this.pnlEditorCards.add(this.pnlImage, IMAGE_CARD);
 		this.pnlEditorCards.add(this.pnlVideo, VIDEO_CARD);
+		this.pnlEditorCards.add(this.pnlAudio, AUDIO_CARD);
 		
 		JSplitPane splEditorControls = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		splEditorControls.setTopComponent(pnlComponentLists);
@@ -343,7 +385,8 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		splPreviewEditor.setRightComponent(this.pnlSlidePreview);
 		
 		this.setLayout(new BorderLayout());
-		this.add(splPreviewEditor);
+		this.add(pnlTop, BorderLayout.PAGE_START);
+		this.add(splPreviewEditor, BorderLayout.CENTER);
 	}
 	
 	/**
@@ -574,6 +617,23 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		String command = e.getActionCommand();
 		if ("remove".equals(command)) {
 			// FIXME implement
+			SlideComponent component = this.lstComponents.getSelectedValue();
+			int choice = JOptionPane.showConfirmDialog(
+							WindowUtilities.getParentWindow(this), 
+							"are you sure you want to remove this component", 
+							"remove component", 
+							JOptionPane.YES_NO_CANCEL_OPTION);
+			if (choice == JOptionPane.YES_OPTION) {
+				// remove the component from the slide
+				if (this.slide != null) {
+					// remove it from the list
+					DefaultListModel<SlideComponent> model = (DefaultListModel<SlideComponent>)this.lstComponents.getModel();
+					this.pnlSlidePreview.setSelectedComponent(null);
+					model.removeElement(component);
+					this.slide.removeComponent(component);
+					this.pnlSlidePreview.repaint();
+				}
+			}
 		} else if ("add".equals(command)) {
 			// FIXME implement
 		} else if ("moveBack".equals(command)) {
@@ -592,32 +652,74 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 			}
 		} else if ("add-resolution".equals(command)) {
 			// show the custom resolution dialog
-			Resolution resolution = CustomResolutionDialog.show(WindowUtilities.getParentWindow(this));
+			final Resolution resolution = AddResolutionDialog.show(WindowUtilities.getParentWindow(this));
 			if (resolution != null) {
-				try {
-					// attempt to add it to the list
-					Resolutions.addResolution(resolution);
-					// see where it needs to go in the list of resolutions
-					int n = this.cmbResolutionTargets.getItemCount();
-					for (int i = 0; i < n; i++) {
-						Resolution r = this.cmbResolutionTargets.getItemAt(i);
-						if (r.equals(resolution)) {
-							return;
-						}
-						if (resolution.compareTo(r) < 0) {
-							this.cmbResolutionTargets.insertItemAt(resolution, i);
-							return;
+				// see where it needs to go in the list of resolutions
+				int n = this.cmbResolutionTargets.getItemCount();
+				int p = -1;
+				for (int i = 0; i < n; i++) {
+					Resolution r = this.cmbResolutionTargets.getItemAt(i);
+					if (r.equals(resolution)) {
+						// it already exists
+						return;
+					}
+					if (resolution.compareTo(r) < 0) {
+						p = i;
+						break;
+					}
+				}
+				if (p < 0) {
+					this.cmbResolutionTargets.addItem(resolution);
+				} else {
+					this.cmbResolutionTargets.insertItemAt(resolution, p);
+				}
+				
+				if (this.cmbResolutionTargets.getItemCount() > 1) {
+					this.btnRemoveResolution.setEnabled(true);
+				}
+				
+				// add it to the config in another thread
+				Thread t = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							Resolutions.addResolution(resolution);
+							// just log it if it fails
+						} catch (JAXBException ex) {
+							LOGGER.error("Failed to save resolutions (JAXB) after adding a new resolution: " + resolution, ex);
+						} catch (IOException ex) {
+							LOGGER.error("Failed to save resolutions (IO) after adding a new resolution: " + resolution, ex);
 						}
 					}
-					this.cmbResolutionTargets.addItem(resolution);
-				} catch (JAXBException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				});
+				t.setDaemon(true);
+				t.start();
 			}
+		} else if ("remove-resolution".equals(command)) {
+			// remove the currently selected resolution
+			final Resolution resolution = (Resolution)this.cmbResolutionTargets.getSelectedItem();
+			this.cmbResolutionTargets.removeItem(resolution);
+			
+			if (this.cmbResolutionTargets.getItemCount() <= 1) {
+				this.btnRemoveResolution.setEnabled(false);
+			}
+			
+			// remove it from the config in another thread
+			Thread t = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						Resolutions.removeResolution(resolution);
+						// just log it if it fails
+					} catch (JAXBException ex) {
+						LOGGER.error("Failed to save resolutions (JAXB) after removing the resolution: " + resolution, ex);
+					} catch (IOException ex) {
+						LOGGER.error("Failed to save resolutions (IO) after removing the resolution: " + resolution, ex);
+					}
+				}
+			});
+			t.setDaemon(true);
+			t.start();
 		}
 	}
 	
@@ -629,39 +731,52 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		if (!e.getValueIsAdjusting()) {
 			Object source = e.getSource();
 			if (source == this.lstComponents) {
+				if (this.slide == null) return;
 				SlideComponent component = this.lstComponents.getSelectedValue();
-				if (component != null && component != this.slide.getBackground()) {
-					if (component instanceof TextComponent) {
-						this.pnlText.setSlideComponent((TextComponent)component);
-						this.layEditorCards.show(this.pnlEditorCards, TEXT_CARD);
-					} else if (component instanceof ImageMediaComponent) {
-						this.pnlImage.setSlideComponent((ImageMediaComponent)component);
-						this.layEditorCards.show(this.pnlEditorCards, IMAGE_CARD);
-					} else if (component instanceof VideoMediaComponent) {
-						this.pnlVideo.setSlideComponent((VideoMediaComponent)component);
-						this.layEditorCards.show(this.pnlEditorCards, VIDEO_CARD);
-					} else if (component instanceof AudioMediaComponent) {
-						// FIXME implement
-					} else if (component instanceof GenericComponent) {
-						this.pnlGeneric.setSlideComponent((GenericComponent)component);
-						this.layEditorCards.show(this.pnlEditorCards, GENERIC_CARD);
+				if (component != null) {
+					if (component != this.slide.getBackground()) {
+						boolean isStatic = this.slide.isStaticComponent(component);
+						
+						if (component instanceof TextComponent) {
+							this.pnlText.setSlideComponent((TextComponent)component, isStatic);
+							this.layEditorCards.show(this.pnlEditorCards, TEXT_CARD);
+						} else if (component instanceof ImageMediaComponent) {
+							this.pnlImage.setSlideComponent((ImageMediaComponent)component, isStatic);
+							this.layEditorCards.show(this.pnlEditorCards, IMAGE_CARD);
+						} else if (component instanceof VideoMediaComponent) {
+							this.pnlVideo.setSlideComponent((VideoMediaComponent)component, isStatic);
+							this.layEditorCards.show(this.pnlEditorCards, VIDEO_CARD);
+						} else if (component instanceof AudioMediaComponent) {
+							this.pnlAudio.setSlideComponent((AudioMediaComponent)component, isStatic);
+							this.layEditorCards.show(this.pnlEditorCards, AUDIO_CARD);
+						} else if (component instanceof GenericComponent) {
+							this.pnlGeneric.setSlideComponent((GenericComponent)component, isStatic);
+							this.layEditorCards.show(this.pnlEditorCards, GENERIC_CARD);
+						} else {
+							// show the blank card with a "select a control label"
+							this.layEditorCards.show(this.pnlEditorCards, BLANK_CARD);
+						}
+						
+						if (component instanceof PositionedComponent) {
+							this.pnlSlidePreview.setSelectedComponent((PositionedComponent)component);
+						} else {
+							this.pnlSlidePreview.setSelectedComponent(null);
+						}
+						
+						if (component instanceof RenderableComponent) {
+							this.btnMoveBack.setEnabled(true);
+							this.btnMoveForward.setEnabled(true);
+						} else {
+							this.btnMoveBack.setEnabled(false);
+							this.btnMoveForward.setEnabled(false);
+						}
+						
+						this.btnRemoveComponent.setEnabled(!isStatic);
 					} else {
-						// show the blank card with a "select a control label"
-						this.layEditorCards.show(this.pnlEditorCards, BLANK_CARD);
+						// FIXME show background editor
 					}
-					
-					if (component instanceof PositionedComponent) {
-						this.pnlSlidePreview.setSelectedComponent((PositionedComponent)component);
-					} else {
-						this.pnlSlidePreview.setSelectedComponent(null);
-					}
-					
-					this.btnMoveBack.setEnabled(true);
-					this.btnMoveForward.setEnabled(true);
-					this.btnRemoveComponent.setEnabled(true);
 				} else {
 					this.pnlSlidePreview.setSelectedComponent(null);
-					// FIXME show the background editor panel
 					this.layEditorCards.show(this.pnlEditorCards, BLANK_CARD);
 					
 					this.btnMoveBack.setEnabled(false);

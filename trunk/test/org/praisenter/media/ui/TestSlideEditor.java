@@ -42,6 +42,9 @@ public class TestSlideEditor {
 	        }
 	    }
 		
+		// fix the nimbus disabled tooltip coloring
+    	UIManager.put("ToolTip[Disabled].backgroundPainter", UIManager.get("ToolTip[Enabled].backgroundPainter"));
+		
 		MediaLibrary.loadMediaLibrary();
 		SlideLibrary.loadSlideLibrary();
 		
