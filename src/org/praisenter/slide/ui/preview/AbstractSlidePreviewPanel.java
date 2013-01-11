@@ -23,7 +23,7 @@ import javax.swing.JPanel;
 
 import org.praisenter.images.Images;
 import org.praisenter.preferences.RenderQuality;
-import org.praisenter.slide.NotificationSlide;
+import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.ui.SlidePreviewMetrics;
 import org.praisenter.utilities.FontManager;
@@ -346,8 +346,8 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	 * @return double
 	 */
 	private double getSlideWidth(Slide slide) {
-		if (slide instanceof NotificationSlide) {
-			return ((NotificationSlide)slide).getDeviceWidth();
+		if (slide instanceof AbstractPositionedSlide) {
+			return ((AbstractPositionedSlide)slide).getDeviceWidth();
 		}
 		return slide.getWidth();
 	}
@@ -358,8 +358,8 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	 * @return double
 	 */
 	private double getSlideHeight(Slide slide) {
-		if (slide instanceof NotificationSlide) {
-			return ((NotificationSlide)slide).getDeviceHeight();
+		if (slide instanceof AbstractPositionedSlide) {
+			return ((AbstractPositionedSlide)slide).getDeviceHeight();
 		}
 		return slide.getHeight();
 	}

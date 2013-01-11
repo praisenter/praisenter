@@ -118,7 +118,7 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	@Override
 	public void setWidth(int width) {
 		this.width = width;
-		if (this.width <= 20) {
+		if (this.width < 20) {
 			this.width = 20;
 		}
 	}
@@ -129,7 +129,7 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	@Override
 	public void setHeight(int height) {
 		this.height = height;
-		if (this.height <= 20) {
+		if (this.height < 20) {
 			this.height = 20;
 		}
 	}
@@ -141,10 +141,10 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	public void resize(int dw, int dh) {
 		this.width += dw;
 		this.height += dh;
-		if (this.width <= 20) {
+		if (this.width < 20) {
 			this.width = 20;
 		}
-		if (this.height <= 20) {
+		if (this.height < 20) {
 			this.height = 20;
 		}
 	}

@@ -6,7 +6,7 @@ package org.praisenter.slide;
  * @version 1.0.0
  * @since 1.0.0
  */
-public interface Template {
+public interface Template extends Slide {
 	/**
 	 * Creates a new {@link Slide} from this template.
 	 * @return {@link Slide}

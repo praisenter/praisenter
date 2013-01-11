@@ -12,6 +12,9 @@ public class Constants {
 	/** File path separator */
 	public static final String SEPARATOR = FileSystems.getDefault().getSeparator();
 	
+	/** The thumbnails file name */
+	public static final String THUMBNAIL_FILE = "_thumbs.xml";
+	
 	// config
 	
 	/** The configuration file location */

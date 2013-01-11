@@ -78,9 +78,7 @@ public class SlideRenderer {
 		int h = this.slide.getHeight();
 		
 		RenderableComponent background = this.slide.getBackground();
-		if (background != null) {
-			this.background = new SlideComponentCacheItem(background);
-		}
+		this.background = new SlideComponentCacheItem(background);
 		
 		// begin looping over the components and checking their types
 		List<RenderableComponent> sComponents = this.slide.getComponents(RenderableComponent.class);

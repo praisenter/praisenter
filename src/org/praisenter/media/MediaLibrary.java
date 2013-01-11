@@ -56,7 +56,7 @@ public class MediaLibrary {
 	private static final Dimension THUMBNAIL_SIZE = new Dimension(64, 48);
 	
 	/** The thumbnail file name */
-	private static final String THUMBS_FILE = Constants.SEPARATOR + "_thumbs.xml";
+	private static final String THUMBS_FILE = Constants.SEPARATOR + Constants.THUMBNAIL_FILE;
 	
 	/** The list of all thumbnails */
 	private static final List<MediaThumbnail> THUMBNAILS = new ArrayList<MediaThumbnail>();

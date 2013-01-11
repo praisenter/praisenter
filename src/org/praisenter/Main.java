@@ -18,6 +18,8 @@ import org.praisenter.utilities.LookAndFeelUtilities;
 
 // FIXME add license to all files
 // FIXME the about dialog needs some work
+// FIXME create a "quick create" function to quickly create a slide with an image/video background and optionally some text
+// FIXME add a menu option to view the log (open OS default text editor, may not be able to do this since its a .log file)
 
 /**
  * This class is the application entry point.

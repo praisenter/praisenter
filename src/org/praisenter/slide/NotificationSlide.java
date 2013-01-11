@@ -10,7 +10,6 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -32,26 +31,9 @@ import org.praisenter.utilities.ImageUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
-// TODO move this type of functionality into a sub class
 @XmlRootElement(name = "NotificationSlide")
 @XmlAccessorType(XmlAccessType.NONE)
-public class NotificationSlide extends Slide {
-	/** The x coordinate of this slide */
-	@XmlAttribute(name = "X", required = true)
-	protected int x;
-	
-	/** The y coordinate of this slide */
-	@XmlAttribute(name = "Y", required = true)
-	protected int y;
-
-	/** The width of the target device */
-	@XmlAttribute(name = "DeviceWidth", required = true)
-	protected int deviceWidth;
-	
-	/** The height of the target device */
-	@XmlAttribute(name = "DeviceHeight", required = true)
-	protected int deviceHeight;
-	
+public class NotificationSlide extends AbstractPositionedSlide implements Slide {
 	/** The text component */
 	@XmlElement(name = "TextComponent")
 	protected TextComponent textComponent;
@@ -75,10 +57,8 @@ public class NotificationSlide extends Slide {
 	 * @param slideHeight the height of the slide
 	 */
 	public NotificationSlide(String name, int deviceWidth, int deviceHeight, int slideWidth, int slideHeight) {
-		super(name, slideWidth, slideHeight);
-		this.deviceWidth = deviceWidth;
-		this.deviceHeight = deviceHeight;
-		this.textComponent = new TextComponent(Messages.getString("slide.notification.text.name"), 0, 0, slideWidth, slideHeight);
+		super(name, deviceWidth, deviceHeight, slideWidth, slideHeight);
+		this.textComponent = new TextComponent(Messages.getString("slide.notification.text.name"), 25, 25, slideWidth - 50, slideHeight - 50);
 	}
 	
 	/**
@@ -89,10 +69,6 @@ public class NotificationSlide extends Slide {
 	 */
 	public NotificationSlide(NotificationSlide slide) {
 		super(slide);
-		this.x = slide.x;
-		this.y = slide.y;
-		this.deviceWidth = slide.deviceWidth;
-		this.deviceHeight = slide.deviceHeight;
 		this.textComponent = slide.textComponent.copy();
 	}
 	
@@ -178,99 +154,11 @@ public class NotificationSlide extends Slide {
 		return image;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#adjustSize(int, int)
-	 */
-	public void adjustSize(int deviceWidth, int deviceHeight) {
-		// compute the resize percentages
-		double pw = (double)deviceWidth / (double)this.deviceWidth;
-		double ph = (double)deviceHeight / (double)this.deviceHeight;
-		
-		int w = (int)Math.ceil(this.width * pw);
-		int h = (int)Math.ceil(this.height * ph);
-		
-		super.adjustSize(w, h);
-		
-		// apply this
-		this.deviceWidth = deviceWidth;
-		this.deviceHeight = deviceHeight;
-	}
-	
 	/**
 	 * Returns the text component.
 	 * @return {@link TextComponent}
 	 */
 	public TextComponent getTextComponent() {
 		return this.textComponent;
-	}
-
-	/**
-	 * Returns the x coordinate for this slide in pixels.
-	 * @return int
-	 */
-	public int getX() {
-		return this.x;
-	}
-
-	/**
-	 * Sets the x coordinate for this slide. 
-	 * @param x the x coorindate in pixels
-	 */
-	public void setX(int x) {
-		this.x = x;
-	}
-
-	/**
-	 * Returns the y coordinate for this slide in pixels.
-	 * @return int
-	 */
-	public int getY() {
-		return this.y;
-	}
-
-	/**
-	 * Sets the y coordinate for this slide.
-	 * @param y the y coordinate in pixels
-	 */
-	public void setY(int y) {
-		this.y = y;
-	}
-
-	/**
-	 * Returns the stored target device width.
-	 * @return int
-	 */
-	public int getDeviceWidth() {
-		return this.deviceWidth;
-	}
-
-	/**
-	 * Sets the target device width.
-	 * <p>
-	 * This is used in creation of the thumbnail for the slide
-	 * to ensure the positioning and size of the slide.
-	 * @param deviceWidth the target device width
-	 */
-	public void setDeviceWidth(int deviceWidth) {
-		this.deviceWidth = deviceWidth;
-	}
-
-	/**
-	 * Returns the stored target device height.
-	 * @return int
-	 */
-	public int getDeviceHeight() {
-		return this.deviceHeight;
-	}
-
-	/**
-	 * Sets the target device height.
-	 * <p>
-	 * This is used in creation of the thumbnail for the slide
-	 * to ensure the positioning and size of the slide.
-	 * @param deviceHeight the target device height
-	 */
-	public void setDeviceHeight(int deviceHeight) {
-		this.deviceHeight = deviceHeight;
 	}
 }

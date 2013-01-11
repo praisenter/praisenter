@@ -31,7 +31,7 @@ import org.praisenter.utilities.FontManager;
  */
 @XmlRootElement(name = "BibleSlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
-public class BibleSlideTemplate extends BibleSlide implements Template {
+public class BibleSlideTemplate extends BibleSlide implements Slide, Template {
 	/**
 	 * Default constructor.
 	 * <p>

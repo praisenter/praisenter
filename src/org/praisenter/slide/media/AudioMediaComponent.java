@@ -18,6 +18,7 @@ import org.praisenter.xml.MediaTypeAdapter;
  * @version 1.0.0
  * @since 1.0.0
  */
+// TODO add ability to fade out audio when a slide transitions
 @XmlRootElement(name = "AudioMediaComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 public class AudioMediaComponent implements SlideComponent, MediaComponent<AbstractAudioMedia>, PlayableMediaComponent<AbstractAudioMedia>, MediaPlayerListener {

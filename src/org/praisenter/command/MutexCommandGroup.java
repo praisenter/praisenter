@@ -1,4 +1,4 @@
-package org.praisenter.slide.ui.editor;
+package org.praisenter.command;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,10 +7,10 @@ import java.util.List;
  * Represents a group of mutually exclusive commands.
  * @param <E> the {@link Command} type
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.0
  * @since 1.0.0
  */
-public class MutexCommandGroup<E extends Command> {
+public class MutexCommandGroup<E extends Command<?, ?, ?>> {
 	/** The commands */
 	protected List<E> commands;
 	

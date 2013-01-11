@@ -100,12 +100,20 @@ public class AudioMediaComponentEditorPanel  extends SlideComponentEditorPanel<A
 		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
-						.addComponent(this.lblAudio)
-						.addComponent(this.chkLooped)
-						.addComponent(this.chkAudioMuted))
+						.addGroup(layout.createParallelGroup()
+								.addComponent(this.lblName)
+								.addComponent(this.lblAudio))
+						.addGroup(layout.createParallelGroup()
+								.addComponent(this.txtName)
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.chkLooped)
+										.addComponent(this.chkAudioMuted))))
 				.addComponent(pane)
 				.addComponent(this.btnManageMedia, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup()
+						.addComponent(this.lblName)
+						.addComponent(this.txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup()
 						.addComponent(this.lblAudio)
 						.addComponent(this.chkLooped)
@@ -198,19 +206,22 @@ public class AudioMediaComponentEditorPanel  extends SlideComponentEditorPanel<A
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
 		if ("media-library".equals(command)) {
-			MediaLibraryDialog.show(WindowUtilities.getParentWindow(this));
+			boolean mediaLibraryUpdated = MediaLibraryDialog.show(WindowUtilities.getParentWindow(this));
 			
-			// when control returns here we need to update the items in the jlist with the current media library items
-			List<MediaThumbnail> thumbnails = MediaLibrary.getThumbnails(MediaType.AUDIO);
-			// save the selected value
-			MediaThumbnail thumb = this.lstAudio.getSelectedValue();
-			this.lstAudio.clearSelection();
-			DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)this.lstAudio.getModel();
-			model.removeAllElements();
-			for (MediaThumbnail thumbnail : thumbnails) {
-				model.addElement(thumbnail);
+			// only update the list if media was added or removed
+			if (mediaLibraryUpdated) {
+				// when control returns here we need to update the items in the jlist with the current media library items
+				List<MediaThumbnail> thumbnails = MediaLibrary.getThumbnails(MediaType.AUDIO);
+				// save the selected value
+				MediaThumbnail thumb = this.lstAudio.getSelectedValue();
+				this.lstAudio.clearSelection();
+				DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)this.lstAudio.getModel();
+				model.removeAllElements();
+				for (MediaThumbnail thumbnail : thumbnails) {
+					model.addElement(thumbnail);
+				}
+				this.lstAudio.setSelectedValue(thumb, true);
 			}
-			this.lstAudio.setSelectedValue(thumb, true);
 		}
 	}
 	

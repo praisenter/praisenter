@@ -76,4 +76,28 @@ public class Icons {
 	
 	/** Information icon */
 	public static final ImageIcon INFORMATION = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/information.png");
+	
+	/** Audio component icon */
+	public static final ImageIcon AUDIO_COMPONENT = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/audio-component.png");
+	
+	/** Generic component icon */
+	public static final ImageIcon GENERIC_COMPONENT = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/generic-component.png");
+	
+	/** Image component icon */
+	public static final ImageIcon IMAGE_COMPONENT = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/image-component.png");
+	
+	/** Video component icon */
+	public static final ImageIcon VIDEO_COMPONENT = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/video-component.png");
+	
+	/** Text component icon */
+	public static final ImageIcon TEXT_COMPONENT = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/text-component.png");
+	
+	/** Move back icon */
+	public static final ImageIcon MOVE_BACK = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/move-back.png");
+	
+	/** Move forward icon */
+	public static final ImageIcon MOVE_FORWARD = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/move-forward.png");
+	
+	/** Remove icon */
+	public static final ImageIcon REMOVE = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/remove.png");
 }

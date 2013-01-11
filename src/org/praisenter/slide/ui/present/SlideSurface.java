@@ -271,7 +271,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		// we will only NOT transition the background IF both slides have a video background component AND
 		// they are the same video
 		// check if there is a previous slide and that it has a background
-		if (this.currentSlide != null && this.currentSlide.getBackground() != null) {
+		if (this.currentSlide != null) {
 			// if so, then check if its background was a video
 			if (this.currentSlide.getBackground() instanceof VideoMediaComponent) {
 				// if so, then make sure the new background is also a video
@@ -313,30 +313,28 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 			}
 		}
 		for (PlayableMediaComponent<?> component : playableMediaComponents) {
-			if (component != background) {
-				// check for non-visible video media
-				if (component instanceof VideoMediaComponent) {
-					VideoMediaComponent vc = (VideoMediaComponent)component;
-					if (!vc.isVideoVisible()) {
-						// if the video is not visible, then just skip this component
-						continue;
-					}
+			// check for non-visible video media
+			if (component instanceof VideoMediaComponent) {
+				VideoMediaComponent vc = (VideoMediaComponent)component;
+				if (!vc.isVideoVisible()) {
+					// if the video is not visible, then just skip this component
+					continue;
 				}
-				PlayableMedia media = component.getMedia();
-				MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(media.getClass());
-				MediaPlayer player = factory.createMediaPlayer();
-				player.setMedia(media);
-				player.addMediaPlayerListener(component);
-				player.addMediaPlayerListener(this);
-				
-				MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
-				conf.setLoopEnabled(component.isLoopEnabled());
-				conf.setAudioMuted(component.isAudioMuted());
-				player.setConfiguration(conf);
-				
-				this.inMediaPlayers.add(player);
-				this.inHasPlayableMedia = true;
 			}
+			PlayableMedia media = component.getMedia();
+			MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(media.getClass());
+			MediaPlayer player = factory.createMediaPlayer();
+			player.setMedia(media);
+			player.addMediaPlayerListener(component);
+			player.addMediaPlayerListener(this);
+			
+			MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
+			conf.setLoopEnabled(component.isLoopEnabled());
+			conf.setAudioMuted(component.isAudioMuted());
+			player.setConfiguration(conf);
+			
+			this.inMediaPlayers.add(player);
+			this.inHasPlayableMedia = true;
 		}
 		
 		this.clear = false;
@@ -511,7 +509,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		} else {
 			// if we were NOT transitioning the background, then we need to do some house cleaning
 			// remove the listener for the current slide
-			if (this.currentSlide != null && this.currentSlide.getBackground() != null && this.currentSlide.getBackground() instanceof VideoMediaComponent) {
+			if (this.currentSlide != null && this.currentSlide.getBackground() instanceof VideoMediaComponent) {
 				// we attach a listener to the background media player for the current and incoming slide
 				// when the transition is over we need to remove the current slide as a listener so that
 				// we aren't sending events to it any more

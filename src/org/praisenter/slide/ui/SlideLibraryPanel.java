@@ -36,16 +36,19 @@ import javax.swing.event.ListSelectionListener;
 import org.apache.log4j.Logger;
 import org.praisenter.data.errors.ui.ExceptionDialog;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.BasicSlide;
+import org.praisenter.slide.BasicSlideTemplate;
 import org.praisenter.slide.BibleSlideTemplate;
 import org.praisenter.slide.NotificationSlideTemplate;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
-import org.praisenter.slide.SlideTemplate;
 import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.SongSlideTemplate;
 import org.praisenter.slide.Template;
+import org.praisenter.slide.ui.editor.SlideEditorDialog;
+import org.praisenter.slide.ui.editor.SlideEditorOption;
 import org.praisenter.slide.ui.preview.SingleSlidePreviewPanel;
 import org.praisenter.threading.AbstractTask;
 import org.praisenter.threading.TaskProgressDialog;
@@ -75,6 +78,11 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 	
 	/** Key for the notification template card */
 	private static final String NOTIFICATION_CARD = "Notification";
+	
+	// data
+	
+	/** True if the slide library was updated */
+	private boolean slideLibraryUpdated;
 	
 	// controls
 	
@@ -126,6 +134,8 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 	 * Default constructor.
 	 */
 	public SlideLibraryPanel() {
+		this.slideLibraryUpdated = false;
+		
 		this.pnlProperties = new SlidePropertiesPanel();
 		this.pnlProperties.setMinimumSize(new Dimension(300, 0));
 		
@@ -167,7 +177,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 			this.layTemplateCards = new CardLayout();
 			this.pnlTemplateCards.setLayout(this.layTemplateCards);
 			
-			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(SlideTemplate.class);
+			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BasicSlideTemplate.class);
 			this.lstTemplates = createJList(thumbnails);
 			
 			thumbnails = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
@@ -284,42 +294,96 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		// get the currently selected thumbnail
 		JList<SlideThumbnail> list = null;
 		int index = this.slideTabs.getSelectedIndex();
+		Class<? extends Template> clazz = null;
+		boolean isSlide = false;
 		if (index == 0) {
 			list = this.lstSlides;
+			isSlide = true;
 		} else if (index == 1) {
 			Object type = this.cmbTemplateType.getSelectedItem();
 			if (type == TemplateType.SLIDE) {
 				list = this.lstTemplates;
+				clazz = BasicSlideTemplate.class;
 			} else if (type == TemplateType.BIBLE) {
 				list = this.lstBibleTemplates;
+				clazz = BibleSlideTemplate.class;
 			} else if (type == TemplateType.SONG) {
 				list = this.lstSongTemplates;
+				clazz = SongSlideTemplate.class;
 			} else if (type == TemplateType.NOTIFICATION) {
 				list = this.lstNotificationTemplates;
+				clazz = NotificationSlideTemplate.class;
+			} else {
+				LOGGER.error("Unknown template type [" + type + "]");
+				return;
 			}
 		}
 		final SlideThumbnail thumbnail = list.getSelectedValue();
 		final boolean isTemplate = list != this.lstSlides;
 		
-		if ("new".equals(command)) {
-			// FIXME show dialog asking what type (slide/template)
-		} else if ("edit".equals(command)) {
-			// FIXME show the currently selected slide/template in the editor
-		} else if ("remove".equals(command)) {
-			// make sure the currently selected item is not null
-			if (thumbnail != null) {
+		String type = Messages.getString("panel.slide");
+		if (!isSlide) {
+			type = Messages.getString("panel.template");
+		}
+		
+		// make sure the currently selected item is not null
+		if (thumbnail != null) {
+			// check the action type
+			if ("new".equals(command)) {
+				// FIXME show dialog asking what type (slide/template)
+			} else if ("edit".equals(command)) {
+				// get the selected slide or template
+				SlideFile file = thumbnail.getFile();
+				
+				// load the slide on another thread
+				LoadSlideTask task = new LoadSlideTask(file, clazz);
+				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.loading"), task);
+				
+				if (task.isSuccessful()) {
+					// make a copy of the slide so that the user can cancel the operation
+					Slide slide = task.getSlide().copy();
+					SlideEditorOption choice = SlideEditorDialog.show(WindowUtilities.getParentWindow(this), slide, file);
+					
+					if (choice == SlideEditorOption.SAVE) {
+						// we only need to update the one thumbnail
+						DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
+						int i = model.indexOf(thumbnail);
+						model.set(i, SlideLibrary.getThumbnail(file.getPath()));
+						// we need to update the preview of the selected slide
+						this.pnlPreview.repaint();
+					} else if (choice == SlideEditorOption.SAVE_AS) {
+						// when control returns here we need to update the items in the jlist with the current media library items
+						List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(clazz);
+						list.clearSelection();
+						DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
+						model.removeAllElements();
+						for (SlideThumbnail thumb : thumbnails) {
+							model.addElement(thumb);
+						}
+						list.setSelectedValue(thumbnail, true);
+						this.slideLibraryUpdated = true;
+					}
+				} else {
+					ExceptionDialog.show(
+							this, 
+							Messages.getString("panel.slide.load.exception.title"), 
+							MessageFormat.format(Messages.getString("panel.slide.load.exception.text"), file.getPath()), 
+							task.getException());
+					LOGGER.error("Failed to load [" + file.getPath() + "] from the slide library: ", task.getException());
+				}
+			} else if ("remove".equals(command)) {
 				// show an are you sure dialog, then delete the slide
 				int choice = JOptionPane.showConfirmDialog(
 						this, 
 						MessageFormat.format(Messages.getString("panel.slide.remove.message"), thumbnail.getName()),
-						Messages.getString("panel.slide.remove.title"),
+						MessageFormat.format(Messages.getString("panel.slide.remove.title"), type),
 						JOptionPane.YES_NO_CANCEL_OPTION);
 				if (choice == JOptionPane.YES_OPTION) {
 					// remove the slide/template in another thread
 					AbstractTask task = new AbstractTask() {
 						@Override
 						public void run() {
-							if (isTemplate) {
+							if (!isTemplate) {
 								SlideLibrary.deleteSlide(thumbnail.getFile().getPath());
 								this.setSuccessful(true);
 							} else {
@@ -329,18 +393,19 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 						}
 					};
 					
-					TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.removing"), task);
+					TaskProgressDialog.show(WindowUtilities.getParentWindow(this), MessageFormat.format(Messages.getString("panel.slide.removing"), type), task);
 					if (task.isSuccessful()) {
 						if (list != null) {
 							// remove the thumbnail from the list
 							DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
 							model.removeElement(thumbnail);
 						}
+						this.slideLibraryUpdated = true;
 					} else {
 						ExceptionDialog.show(
 								this, 
-								Messages.getString("panel.slide.remove.exception.title"), 
-								MessageFormat.format(Messages.getString("panel.slide.remove.exception.text"), thumbnail.getFile().getName()), 
+								MessageFormat.format(Messages.getString("panel.slide.remove.exception.title"), type), 
+								MessageFormat.format(Messages.getString("panel.slide.remove.exception.text"), type.toLowerCase(), thumbnail.getFile().getName()), 
 								task.getException());
 						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getPath() + "] from the slide library: ", task.getException());
 					}
@@ -359,17 +424,19 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 			
 			PreviewAction<?> preview = null;
 			SlideFile file = null;
+			boolean isSlide = false;
 			if (source == this.lstSlides) {
 				SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
 					preview = new SlidePreviewAction<Slide>(file.getPath(), Slide.class);
+					isSlide = true;
 				}
 			} else if (source == this.lstTemplates) {
 				SlideThumbnail thumbnail = this.lstTemplates.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new TemplatePreviewAction<SlideTemplate>(file.getPath(), SlideTemplate.class);
+					preview = new TemplatePreviewAction<BasicSlideTemplate>(file.getPath(), BasicSlideTemplate.class);
 				}
 			} else if (source == this.lstBibleTemplates) {
 				SlideThumbnail thumbnail = this.lstBibleTemplates.getSelectedValue();
@@ -393,12 +460,12 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 			if (preview != null && file != null) {
 				this.pnlPreview.setLoading(true);
 				this.getPreviewThread().queueSlide(preview);
-				this.pnlProperties.setSlideFile(file);
+				this.pnlProperties.setSlideFile(file, isSlide);
 				this.btnEditSlide.setEnabled(true);
 				this.btnRemoveSlide.setEnabled(true);
 			} else {
 				this.pnlPreview.setSlide(null);
-				this.pnlProperties.setSlideFile(null);
+				this.pnlProperties.setSlideFile(null, true);
 				this.pnlPreview.repaint();
 				this.btnEditSlide.setEnabled(false);
 				this.btnRemoveSlide.setEnabled(false);
@@ -450,11 +517,13 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		int index = this.slideTabs.getSelectedIndex();
 		SlideFile file = null;
 		PreviewAction<?> preview = null;
+		boolean isSlide = false;
 		if (index == 0) {
 			SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
 			if (thumbnail != null) {
 				file = thumbnail.getFile();
 				preview = new SlidePreviewAction<Slide>(file.getPath(), Slide.class);
+				isSlide = true;
 			}
 		} else if (index == 1) {
 			Object type = this.cmbTemplateType.getSelectedItem();
@@ -462,7 +531,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				SlideThumbnail thumbnail = this.lstTemplates.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new TemplatePreviewAction<SlideTemplate>(file.getPath(), SlideTemplate.class);
+					preview = new TemplatePreviewAction<BasicSlideTemplate>(file.getPath(), BasicSlideTemplate.class);
 				}
 			} else if (type == TemplateType.BIBLE) {
 				SlideThumbnail thumbnail = this.lstBibleTemplates.getSelectedValue();
@@ -485,17 +554,25 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 			}
 		}
 		if (file != null) {
-			this.pnlProperties.setSlideFile(file);
+			this.pnlProperties.setSlideFile(file, isSlide);
 			this.getPreviewThread().queueSlide(preview);
 			this.btnEditSlide.setEnabled(true);
 			this.btnRemoveSlide.setEnabled(true);
 		} else {
-			this.pnlProperties.setSlideFile(null);
+			this.pnlProperties.setSlideFile(null, true);
 			this.pnlPreview.setSlide(null);
 			this.pnlPreview.repaint();
 			this.btnEditSlide.setEnabled(false);
 			this.btnRemoveSlide.setEnabled(false);
 		}
+	}
+	
+	/**
+	 * Returns true if the slide library was updated.
+	 * @return boolean
+	 */
+	public boolean isSlideLibraryUpdated() {
+		return this.slideLibraryUpdated;
 	}
 	
 	/**
@@ -550,25 +627,24 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 							// update the slides (this method should not
 							// do anything that should normally be done on the EDT)
 							pnlPreview.setSlide(slide);
-							
-							// update the preview panel
-							try {
-								// we need to block this thread until this code
-								// runs since we will get problems if another song
-								// is in the queue
-								SwingUtilities.invokeAndWait(new Runnable() {
-									@Override
-									public void run() {
-										pnlPreview.setLoading(false);
-									}
-								});
-							} catch (InvocationTargetException e) {
-								// in this case just continue
-								LOGGER.warn("An error occurred while updating the slide preview on the EDT: ", e);
-							}
 						} catch (SlideLibraryException e) {
 							LOGGER.error("An error occurred while loading the slide/template [" + preview.path + "]: ", e);
 						}
+					}
+					// update the preview panel
+					try {
+						// we need to block this thread until this code
+						// runs since we will get problems if another song
+						// is in the queue
+						SwingUtilities.invokeAndWait(new Runnable() {
+							@Override
+							public void run() {
+								pnlPreview.setLoading(false);
+							}
+						});
+					} catch (InvocationTargetException e) {
+						// in this case just continue
+						LOGGER.warn("An error occurred while updating the slide preview on the EDT: ", e);
 					}
 				} catch (InterruptedException ex) {
 					// if the song search thread is interrupted then just stop it
@@ -576,6 +652,58 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 					break;
 				}
 			}
+		}
+	}
+	
+	/**
+	 * Task to load a slide from the Slide Library.
+	 * @author William Bittle
+	 * @version 2.0.0
+	 * @since 2.0.0
+	 */
+	private class LoadSlideTask extends AbstractTask {
+		/** The slide file */
+		private SlideFile file;
+		
+		/** The slide class; null if {@link BasicSlide} */
+		private Class<? extends Template> clazz;
+		
+		/** The loaded slide */
+		private Slide slide;
+		
+		/**
+		 * Full constructor.
+		 * @param file the slide file
+		 * @param clazz the slide class; null if {@link BasicSlide}
+		 */
+		public LoadSlideTask(SlideFile file, Class<? extends Template> clazz) {
+			this.file = file;
+			this.clazz = clazz;
+		}
+		
+		/* (non-Javadoc)
+		 * @see java.lang.Runnable#run()
+		 */
+		@Override
+		public void run() {
+			try {
+				if (this.clazz != null) {
+					this.slide = SlideLibrary.getTemplate(this.file.getPath(), this.clazz);
+				} else {
+					this.slide = SlideLibrary.getSlide(this.file.getPath());
+				}
+				this.setSuccessful(true);
+			} catch (SlideLibraryException ex) {
+				this.handleException(ex);
+			}
+		}
+		
+		/**
+		 * Returns the loaded slide.
+		 * @return {@link Slide}
+		 */
+		public Slide getSlide() {
+			return this.slide;
 		}
 	}
 }

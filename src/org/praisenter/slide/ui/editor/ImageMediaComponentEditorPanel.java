@@ -222,19 +222,22 @@ public class ImageMediaComponentEditorPanel  extends GenericComponentEditorPanel
 		
 		String command = e.getActionCommand();
 		if ("media-library".equals(command)) {
-			MediaLibraryDialog.show(WindowUtilities.getParentWindow(this));
+			boolean mediaLibraryUpdated = MediaLibraryDialog.show(WindowUtilities.getParentWindow(this));
 			
-			// when control returns here we need to update the items in the jlist with the current media library items
-			List<MediaThumbnail> thumbnails = MediaLibrary.getThumbnails(MediaType.IMAGE);
-			// save the selected value
-			MediaThumbnail thumb = this.lstImages.getSelectedValue();
-			this.lstImages.clearSelection();
-			DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)this.lstImages.getModel();
-			model.removeAllElements();
-			for (MediaThumbnail thumbnail : thumbnails) {
-				model.addElement(thumbnail);
+			// only update the list if media was added or removed
+			if (mediaLibraryUpdated) {
+				// when control returns here we need to update the items in the jlist with the current media library items
+				List<MediaThumbnail> thumbnails = MediaLibrary.getThumbnails(MediaType.IMAGE);
+				// save the selected value
+				MediaThumbnail thumb = this.lstImages.getSelectedValue();
+				this.lstImages.clearSelection();
+				DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)this.lstImages.getModel();
+				model.removeAllElements();
+				for (MediaThumbnail thumbnail : thumbnails) {
+					model.addElement(thumbnail);
+				}
+				this.lstImages.setSelectedValue(thumb, true);
 			}
-			this.lstImages.setSelectedValue(thumb, true);
 		}
 	}
 	
