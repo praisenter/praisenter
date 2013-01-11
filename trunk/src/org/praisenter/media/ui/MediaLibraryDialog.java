@@ -38,13 +38,19 @@ public class MediaLibraryDialog extends JDialog {
 	}
 	
 	/**
-	 * Shows a new Media Library dialog.
+	 * Shows a new Media Library dialog and returns true if the media library was updated.
 	 * @param owner the owner of this dialog; can be null
+	 * @return boolean
 	 */
-	public static final void show(Window owner) {
+	public static final boolean show(Window owner) {
 		MediaLibraryDialog dialog = new MediaLibraryDialog(owner);
 		dialog.setLocationRelativeTo(owner);
 		dialog.setVisible(true);
+		
+		boolean mediaLibraryUpdated = dialog.pnlMediaLibrary.isMediaLibraryUpdated();
+		
 		dialog.dispose();
+		
+		return mediaLibraryUpdated;
 	}
 }

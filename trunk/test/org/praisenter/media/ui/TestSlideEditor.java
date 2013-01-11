@@ -13,6 +13,7 @@ import org.apache.log4j.xml.DOMConfigurator;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.slide.BibleSlideTemplate;
+import org.praisenter.slide.NotificationSlideTemplate;
 import org.praisenter.slide.Resolution;
 import org.praisenter.slide.Resolutions;
 import org.praisenter.slide.SlideLibrary;
@@ -52,11 +53,12 @@ public class TestSlideEditor {
 //		StrokeEditorPanel panel = new StrokeEditorPanel(null);
 		Dimension size = Preferences.getInstance().getPrimaryOrDefaultDeviceResolution();
 //		SlideEditorPanel panel = new SlideEditorPanel(BibleSlideTemplate.getDefaultTemplate(size.width, size.height), size);
-		BibleSlideTemplate template = SlideLibrary.getTemplate("templates\\bible\\default.xml", BibleSlideTemplate.class).copy();
+//		BibleSlideTemplate template = SlideLibrary.getTemplate("templates\\bible\\default.xml", BibleSlideTemplate.class).copy();
+		NotificationSlideTemplate template = NotificationSlideTemplate.getDefaultTemplate(size.width, size.height);
 		if (template.getWidth() != size.width || template.getHeight() != size.height) {
 			template.adjustSize(size.width, size.height);
 		}
-		SlideEditorPanel panel = new SlideEditorPanel(template, size);
+		SlideEditorPanel panel = new SlideEditorPanel(template);
 		JFrame frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.add(panel);

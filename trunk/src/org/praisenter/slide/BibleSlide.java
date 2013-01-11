@@ -23,7 +23,7 @@ import org.praisenter.slide.text.TextComponent;
  */
 @XmlRootElement(name = "BibleSlide")
 @XmlAccessorType(XmlAccessType.NONE)
-public class BibleSlide extends Slide {
+public class BibleSlide extends BasicSlide implements Slide {
 	/** The scripture location component (like: Genesis 1:1) */
 	@XmlElement(name = "ScriptureLocationComponent")
 	protected TextComponent scriptureLocationComponent;

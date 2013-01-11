@@ -31,7 +31,7 @@ import org.praisenter.utilities.FontManager;
  */
 @XmlRootElement(name = "SongSlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
-public class SongSlideTemplate extends SongSlide implements Template {
+public class SongSlideTemplate extends SongSlide implements Slide, Template {
 	/**
 	 * Default constructor.
 	 * <p>

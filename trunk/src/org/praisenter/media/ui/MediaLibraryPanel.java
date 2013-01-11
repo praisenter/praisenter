@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -62,6 +63,11 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 	/** Audio support */
 	protected static final boolean AUDIO_SUPPORTED = MediaLibrary.isMediaSupported(MediaType.AUDIO);
 	
+	// data
+	
+	/** True if media was added or removed */
+	protected boolean mediaLibraryUpdated;
+	
 	// controls
 	
 	/** The remove the selected media button */
@@ -86,6 +92,8 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 	 * Default constructor.
 	 */
 	public MediaLibraryPanel() {
+		this.mediaLibraryUpdated = false;
+		
 		this.mediaTabs = new JTabbedPane();
 		
 		// make sure the media library supports the media
@@ -239,8 +247,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 			JFileChooser fc = new JFileChooser();
 			// the user can only select files
 			fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-			// they can only select one file
-			fc.setMultiSelectionEnabled(false);
+			fc.setMultiSelectionEnabled(true);
 			// they can only select image files
 			FileFilter filter = new ImageFileFilter();
 			fc.setFileFilter(filter);
@@ -253,42 +260,56 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 			}
 			// provide a preview for image files
 			fc.setAccessory(new ImageFilePreview(fc));
-			// they cannot switch to all files
-			fc.setAcceptAllFileFilterUsed(false);
+			fc.setAcceptAllFileFilterUsed(true);
 			// show the dialog
 			int result = fc.showOpenDialog(this);
 			if (result == JFileChooser.APPROVE_OPTION) {
-				// get the file
-				File file = fc.getSelectedFile();
-				// attempt to load the image
-				String path = file.getAbsolutePath();
+				// get the files
+				File[] files = fc.getSelectedFiles();
 				
-				AddMediaTask task = new AddMediaTask(path);
+				// get all the paths
+				String[] paths = new String[files.length];
+				for (int i = 0; i < files.length; i++) {
+					paths[i] = files[i].getAbsolutePath();
+				}
+				
+				// load up all the selected files
+				AddMediaTask task = new AddMediaTask(paths);
 				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.media.addingMedia"), task);
 				
-				if (task.isSuccessful()) {
-					Media media = task.getMedia();
-					// add the thumbnail to the list
-					JList<MediaThumbnail> list = null;
-					if (media.getType() == MediaType.IMAGE) {
-						list = this.lstImages;
-					} else if (media.getType() == MediaType.VIDEO) {
-						list = this.lstVideos;
-					} else if (media.getType() == MediaType.AUDIO) {
-						list = this.lstAudio;
-					} else {
-						// do nothing
-						return;
+				// update the lists if any worked
+				if (task.failed.size() != paths.length) {
+					List<Media> media = task.media;
+					for (Media m : media) {
+						// add the thumbnail to the appropriate list
+						JList<MediaThumbnail> list = null;
+						if (m.getType() == MediaType.IMAGE) {
+							list = this.lstImages;
+						} else if (m.getType() == MediaType.VIDEO) {
+							list = this.lstVideos;
+						} else if (m.getType() == MediaType.AUDIO) {
+							list = this.lstAudio;
+						} else {
+							// do nothing
+							continue;
+						}
+						DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)list.getModel();
+						model.addElement(MediaLibrary.getThumbnail(m));
 					}
-					DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)list.getModel();
-					model.addElement(MediaLibrary.getThumbnail(media));
-				} else {
+					this.mediaLibraryUpdated = true;
+				}
+				
+				// show errors if any failed
+				if (task.failed.size() > 0) {
+					StringBuilder sb = new StringBuilder();
+					for (String path : task.failed) {
+						sb.append(path).append("<br />");
+					}
 					ExceptionDialog.show(
 							this, 
 							Messages.getString("panel.media.add.exception.title"), 
-							MessageFormat.format(Messages.getString("panel.media.add.exception.text"), file.getAbsolutePath()), 
+							MessageFormat.format(Messages.getString("panel.media.add.exception.text"), sb.toString()), 
 							task.getException());
-					LOGGER.error("An error occurred while attempting to add [" + file.getAbsolutePath() + "] to the media library: ", task.getException());
 				}
 			}
 		} else if ("removeMedia".equals(command)) {
@@ -341,6 +362,8 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 						// remove the thumbnail from the list
 						DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)list.getModel();
 						model.removeElement(thumbnail);
+						
+						this.mediaLibraryUpdated = true;
 					} else {
 						ExceptionDialog.show(
 								this, 
@@ -355,24 +378,37 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 	}
 	
 	/**
+	 * Returns true if media was removed or added to the media library.
+	 * @return boolean
+	 */
+	public boolean isMediaLibraryUpdated() {
+		return this.mediaLibraryUpdated;
+	}
+	
+	/**
 	 * Custom task for adding media to the media library.
 	 * @author William Bittle
 	 * @version 2.0.0
 	 * @since 2.0.0
 	 */
 	private final class AddMediaTask extends AbstractTask {
-		/** The file system path */
-		private String path;
+		/** The file system paths */
+		private String[] paths;
 		
 		/** The loaded media */
-		private Media media;
+		private List<Media> media;
+		
+		/** The failed paths */
+		private List<String> failed;
 		
 		/**
 		 * Minimal constructor.
-		 * @param path the file system path
+		 * @param paths the file system paths
 		 */
-		public AddMediaTask(String path) {
-			this.path = path;
+		public AddMediaTask(String[] paths) {
+			this.paths = paths;
+			this.media = new ArrayList<Media>();
+			this.failed = new ArrayList<String>();
 		}
 		
 		/* (non-Javadoc)
@@ -380,20 +416,16 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		 */
 		@Override
 		public void run() {
-			try {
-				this.media = MediaLibrary.addMedia(this.path);
-				this.setSuccessful(true);
-			} catch (Exception e) {
-				this.handleException(e);
+			for (String path : this.paths) {
+				try {
+					this.media.add(MediaLibrary.addMedia(path));
+					this.setSuccessful(true);
+				} catch (Exception e) {
+					this.failed.add(path);
+					LOGGER.error("An error occurred while attempting to add [" + path + "] to the media library: ", e);
+					this.handleException(e);
+				}
 			}
-		}
-		
-		/**
-		 * Returns the loaded media.
-		 * @return {@link Media}
-		 */
-		public Media getMedia() {
-			return this.media;
 		}
 	}
 }

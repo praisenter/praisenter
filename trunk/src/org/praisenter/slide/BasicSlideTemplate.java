@@ -18,14 +18,14 @@ import org.praisenter.resources.Messages;
  */
 @XmlRootElement(name = "SlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
-public class SlideTemplate extends Slide implements Template {
+public class BasicSlideTemplate extends BasicSlide implements Slide, Template {
 	/**
 	 * Default constructor.
 	 * <p>
 	 * This constructor should only be used by JAXB for
 	 * marshalling and unmarshalling the objects.
 	 */
-	protected SlideTemplate() {
+	protected BasicSlideTemplate() {
 		super(Messages.getString("slide.unnamed"), 400, 400);
 	}
 	
@@ -35,7 +35,7 @@ public class SlideTemplate extends Slide implements Template {
 	 * @param width the width of the slide
 	 * @param height the height of the slide
 	 */
-	public SlideTemplate(String name, int width, int height) {
+	public BasicSlideTemplate(String name, int width, int height) {
 		super(name, width, height);
 	}
 	
@@ -43,7 +43,7 @@ public class SlideTemplate extends Slide implements Template {
 	 * Minimal constructor.
 	 * @param slide the slide to copy
 	 */
-	protected SlideTemplate(Slide slide) {
+	protected BasicSlideTemplate(BasicSlide slide) {
 		super(slide);
 	}
 	
@@ -51,6 +51,6 @@ public class SlideTemplate extends Slide implements Template {
 	 * @see org.praisenter.slide.Template#createSlide()
 	 */
 	public Slide createSlide() {
-		return new Slide(this);
+		return new BasicSlide(this);
 	}
 }

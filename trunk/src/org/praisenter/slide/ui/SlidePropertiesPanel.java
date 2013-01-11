@@ -1,5 +1,7 @@
 package org.praisenter.slide.ui;
 
+import java.text.MessageFormat;
+
 import javax.swing.GroupLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -64,17 +66,14 @@ public class SlidePropertiesPanel extends JPanel {
 		this.lblName = new JLabel(Messages.getString("panel.slide.properties.name"));
 		this.txtName = new JTextField();
 		this.txtName.setEditable(false);
-		this.txtName.setToolTipText(Messages.getString("panel.slide.properties.name.tooltip"));
 		
 		this.lblPath = new JLabel(Messages.getString("panel.slide.properties.path"));
 		this.txtPath = new JTextField();
 		this.txtPath.setEditable(false);
-		this.txtPath.setToolTipText(Messages.getString("panel.slide.properties.path.tooltip"));
 		
 		this.lblSize = new JLabel(Messages.getString("panel.slide.properties.size"));
 		this.txtSize = new JTextField();
 		this.txtSize.setEditable(false);
-		this.txtSize.setToolTipText(Messages.getString("panel.slide.properties.size.tooltip"));
 		
 		// size the labels
 		ComponentUtilities.setMinimumSize(
@@ -118,21 +117,34 @@ public class SlidePropertiesPanel extends JPanel {
 	/**
 	 * Sets the slide file.
 	 * @param file the slide file
+	 * @param isSlide true if the selected slide is a slide (rather than a template)
 	 */
-	public void setSlideFile(SlideFile file) {
+	public void setSlideFile(SlideFile file, boolean isSlide) {
 		this.file = file;
+		
+		String type = Messages.getString("panel.slide");
+		if (!isSlide) {
+			type = Messages.getString("panel.template");
+		}
+		type = type.toLowerCase();
 		
 		if (file != null) {
 			this.txtName.setText(file.getName());
+			this.txtName.setToolTipText(MessageFormat.format(Messages.getString("panel.slide.properties.name.tooltip"), type));
 			this.txtName.setCaretPosition(0);
 			this.txtPath.setText(file.getPath());
 			this.txtPath.setCaretPosition(0);
+			this.txtPath.setToolTipText(MessageFormat.format(Messages.getString("panel.slide.properties.path.tooltip"), type));
 			this.txtSize.setText(Formatter.getSizeFormattedString(file.getSize()));
 			this.txtSize.setCaretPosition(0);
+			this.txtSize.setToolTipText(MessageFormat.format(Messages.getString("panel.slide.properties.size.tooltip"), type));
 		} else {
 			this.txtName.setText("");
+			this.txtName.setToolTipText(null);
 			this.txtPath.setText("");
+			this.txtPath.setToolTipText(null);
 			this.txtSize.setText("");
+			this.txtSize.setToolTipText(null);
 		}
 	}
 	

@@ -26,7 +26,7 @@ import org.praisenter.utilities.FontManager;
  */
 @XmlRootElement(name = "NotificationSlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
-public class NotificationSlideTemplate extends NotificationSlide implements Template {
+public class NotificationSlideTemplate extends NotificationSlide implements Slide, Template {
 	/**
 	 * Default constructor.
 	 * <p>
@@ -96,7 +96,6 @@ public class NotificationSlideTemplate extends NotificationSlide implements Temp
 		text.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
 		text.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
 		text.setTextFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
-		text.setTextPadding(30);
 		
 		return template;
 	}

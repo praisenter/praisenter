@@ -97,7 +97,7 @@ public class GenericComponentEditorPanel<E extends GenericComponent> extends Ren
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblName)
-						.addComponent(this.txtName))
+						.addComponent(this.txtName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblBackground)
 						.addComponent(this.btnBackgroundFill)

@@ -23,7 +23,7 @@ import org.praisenter.slide.text.TextComponent;
  */
 @XmlRootElement(name = "SongSlide")
 @XmlAccessorType(XmlAccessType.NONE)
-public class SongSlide extends Slide {
+public class SongSlide extends BasicSlide implements Slide {
 	/** The text component */
 	@XmlElement(name = "TextComponent")
 	protected TextComponent textComponent;
