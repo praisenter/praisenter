@@ -41,36 +41,31 @@ public class CircularExpand extends Transition {
 	@Override
 	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
 		Shape shape = g2d.getClip();
+		
+		// compute the circular area
+		int hw = image0.getWidth() / 2;
+		int hh = image0.getHeight() / 2;
+		double r = Math.sqrt(hw * hw + hh * hh) * pc;
+		double s = 2.0 * r;
+		double x = hw - r;
+		double y = hh - r;
+		Ellipse2D.Double circle = new Ellipse2D.Double(x, y, s, s);
+		
 		if (image0 != null) {
-			// if the transition is out, then use the clip
-			if (this.type == Transition.Type.OUT) {
-				double hw = (double)image0.getWidth() / 2.0;
-				double hh = (double)image0.getHeight() / 2.0;
-				double r = Math.sqrt(hw * hw + hh * hh) * pc;
-				double s = 2.0 * r;
-				double x = hw - r;
-				double y = hh - r;
-				Ellipse2D.Double circle = new Ellipse2D.Double(x, y, s, s);
-				Area area = new Area(new Rectangle(0, 0, image0.getWidth(), image0.getHeight()));
-				area.subtract(new Area(circle));
-				g2d.setClip(area);
-				g2d.drawImage(image0, 0, 0, null);
-			} else {
-				// otherwise dont bother using the clip (for circles it has some nasty artifacts)
-				g2d.drawImage(image0, 0, 0, null);
-			}
+			Area area = new Area(new Rectangle(0, 0, image0.getWidth(), image0.getHeight()));
+			area.exclusiveOr(new Area(circle));
+			g2d.setClip(area);
+			g2d.drawImage(image0, 0, 0, null);
 		}
 		if (this.type == Transition.Type.IN && image1 != null) {
-			double hw = (double)image1.getWidth() / 2.0;
-			double hh = (double)image1.getHeight() / 2.0;
-			double r = Math.sqrt(hw * hw + hh * hh) * pc;
-			double s = 2.0 * r;
-			double x = hw - r;
-			double y = hh - r;
-			Ellipse2D.Double circle = new Ellipse2D.Double(x, y, s, s);
-			g2d.setClip(circle);
+			// unfortunately we need to do the EXACT opposite clipping operation
+			// for pixel perfect results (we can't just clip by the circle)
+			Area area = new Area(new Rectangle(0, 0, image1.getWidth(), image1.getHeight()));
+			area.intersect(new Area(circle));
+			g2d.setClip(area);
 			g2d.drawImage(image1, 0, 0, null);
 		}
+		
 		g2d.setClip(shape);
 	}
 }

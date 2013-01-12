@@ -24,6 +24,7 @@ public class ResizeHeightCommand extends ResizeCommand {
 			// and reposition the component
 			this.beginArguments.translate(0, diff);
 			this.beginArguments.resize(0, -diff);
+			// FIXME we only want to translate if the resize is not bounded by the minimum size (same with other resize commands)
 		}
 		
 		super.update(end);

@@ -5,7 +5,12 @@ import java.awt.Graphics;
 import java.awt.GraphicsDevice;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.image.BufferedImage;
 import java.text.NumberFormat;
+import java.util.Collections;
+import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -25,8 +30,11 @@ import org.praisenter.resources.Messages;
 import org.praisenter.slide.NotificationSlide;
 import org.praisenter.slide.NotificationSlideTemplate;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
+import org.praisenter.slide.SlideThumbnail;
+import org.praisenter.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.slide.ui.present.SlideWindow;
 import org.praisenter.slide.ui.present.SlideWindows;
@@ -43,7 +51,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class NotificationPanel extends JPanel implements ActionListener, PreferencesListener {
+public class NotificationPanel extends JPanel implements ActionListener, ItemListener, PreferencesListener {
 	/** The version id */
 	private static final long serialVersionUID = 20837022721408081L;
 	
@@ -59,6 +67,9 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 	
 	/** The notification text */
 	protected JTextField txtText;
+
+	/** The template combo box */
+	private JComboBox<SlideThumbnail> cmbTemplates;
 	
 	/** The notification wait period */
 	protected JFormattedTextField txtWaitPeriod;
@@ -105,26 +116,7 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
 		
 		// get the bible slide template
-		NotificationSlideTemplate template = null;
-		String templatePath = nPreferences.getTemplate();
-		if (templatePath != null && templatePath.trim().length() > 0) {
-			try {
-				template = SlideLibrary.getTemplate(templatePath, NotificationSlideTemplate.class);
-			} catch (SlideLibraryException e) {
-				LOGGER.error("Unable to load default notification template [" + templatePath + "]: ", e);
-			}
-		}
-		if (template == null) {
-			// if its still null, then use the default template
-			template = NotificationSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
-		}
-		
-		// check the template size against the display size
-		if (template.getDeviceWidth() != displaySize.width || template.getDeviceHeight() != displaySize.height) {
-			// log a message and modify the template to fit
-			LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
-			template.adjustSize(displaySize.width, displaySize.height);
-		}
+		NotificationSlideTemplate template = this.getTemplate();
 		
 		// create the slide
 		this.slide = template.createSlide();
@@ -139,6 +131,34 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 		};
 		this.txtText.setColumns(20);
 		this.txtText.addFocusListener(new SelectTextFocusListener(this.txtText));
+		
+		List<SlideThumbnail> thumbs = SlideLibrary.getThumbnails(NotificationSlideTemplate.class);
+		// add in the default template
+		NotificationSlideTemplate dTemplate = NotificationSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
+		BufferedImage image = dTemplate.getThumbnail(SlideLibrary.THUMBNAIL_SIZE);
+		SlideThumbnail temp = new SlideThumbnail(SlideFile.NOT_STORED, dTemplate.getName(), image);
+		thumbs.add(temp);
+		// find the selected template
+		SlideThumbnail selected = null;
+		for (SlideThumbnail thumb : thumbs) {
+			if (thumb.getFile() == SlideFile.NOT_STORED) {
+				if (nPreferences.getTemplate() == null) {
+					selected = thumb;
+					break;
+				}
+			} else if (thumb.getFile().getPath().equals(nPreferences.getTemplate())) {
+				selected = thumb;
+				break;
+			}
+		}
+		Collections.sort(thumbs);
+		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbs.toArray(new SlideThumbnail[0]));
+		if (selected != null) {
+			this.cmbTemplates.setSelectedItem(selected);
+		}
+		this.cmbTemplates.setToolTipText(Messages.getString("panel.preferences.template.tooltip"));
+		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
+		this.cmbTemplates.addItemListener(this);
 		
 		this.txtWaitPeriod = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtWaitPeriod.setToolTipText(Messages.getString("panel.notification.wait.tooltip"));
@@ -194,6 +214,7 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addComponent(this.txtText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(this.cmbTemplates, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.txtWaitPeriod, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.cmbInTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.txtInTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -203,6 +224,7 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 				.addComponent(this.btnClear));
 		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 				.addComponent(this.txtText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(this.cmbTemplates, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.txtWaitPeriod, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.cmbInTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.txtInTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -210,6 +232,74 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 				.addComponent(this.txtOutTransition, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.btnSend, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.btnClear, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+	}
+	
+	/**
+	 * Returns the template to use from the preferences.
+	 * @return {@link NotificationSlideTemplate}
+	 */
+	private NotificationSlideTemplate getTemplate() {
+		// get the preferences
+		Preferences preferences = Preferences.getInstance();
+		NotificationPreferences nPreferences = preferences.getNotificationPreferences();
+		
+		// get the primary device size
+		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		
+		// get the bible slide template
+		NotificationSlideTemplate template = null;
+		String templatePath = nPreferences.getTemplate();
+		if (templatePath != null && templatePath.trim().length() > 0) {
+			try {
+				template = SlideLibrary.getTemplate(templatePath, NotificationSlideTemplate.class);
+			} catch (SlideLibraryException e) {
+				LOGGER.error("Unable to load default notification template [" + templatePath + "]: ", e);
+			}
+		}
+		if (template == null) {
+			// if its still null, then use the default template
+			template = NotificationSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
+		}
+		
+		// check the template size against the display size
+		if (template.getDeviceWidth() != displaySize.width || template.getDeviceHeight() != displaySize.height) {
+			// log a message and modify the template to fit
+			LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
+			template.adjustSize(displaySize.width, displaySize.height);
+		}
+		
+		return template;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
+	 */
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		if (e.getStateChange() == ItemEvent.SELECTED) {
+			Object source = e.getSource();
+			if (source == this.cmbTemplates) {
+				SlideThumbnail thumbnail = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
+				if (thumbnail != null) {
+					NotificationSlideTemplate template = null;
+					if (thumbnail.getFile() == SlideFile.NOT_STORED) {
+						// then its the default template
+						Preferences preferences = Preferences.getInstance();
+						Dimension size = preferences.getPrimaryOrDefaultDeviceResolution();
+						template = NotificationSlideTemplate.getDefaultTemplate(size.width, size.height);
+					} else {
+						try {
+							template = SlideLibrary.getTemplate(thumbnail.getFile().getPath(), NotificationSlideTemplate.class);
+						} catch (SlideLibraryException ex) {
+							// just log the error
+							LOGGER.error("Failed to switch to template: [" + thumbnail.getFile().getPath() + "]", ex);
+							return;
+						}
+					}
+					this.slide = template.createSlide();
+				}
+			}
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -225,6 +315,8 @@ public class NotificationPanel extends JPanel implements ActionListener, Prefere
 		
 		// get the primary device
 		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		
+		// FIXME we need to update the listing of templates and the selected template and the local template
 		
 		if (this.slide.getDeviceWidth() != displaySize.width || this.slide.getDeviceHeight() != displaySize.height) {
 			// adjust the slide size

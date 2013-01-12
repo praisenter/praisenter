@@ -74,7 +74,12 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 		this.txtDescription.setLineWrap(true);
 		this.txtDescription.setRows(8);
 		
-		JButton btnSend = new JButton(Messages.getString("dialog.error.report.send"));
+		JButton btnSend = new JButton();
+		if (Preferences.getInstance().getErrorReportingPreferences().isEnabled()) {
+			btnSend.setText(Messages.getString("dialog.error.report.send"));
+		} else {
+			btnSend.setText(Messages.getString("dialog.error.report.save"));
+		}
 		btnSend.setActionCommand("send");
 		btnSend.addActionListener(this);
 		
@@ -139,8 +144,9 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 		dialog.setVisible(true);
 		
 		if (dialog.send) {
+			boolean isEnabled = Preferences.getInstance().getErrorReportingPreferences().isEnabled();
 			String password = null;
-			if (Preferences.getInstance().getErrorReportingPreferences().isEnabled()) {
+			if (isEnabled) {
 				// prompt the user for a password
 				password = EnterPasswordDialog.show(null);
 			}
@@ -158,7 +164,7 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 			// notify the user that it was sent/saved
 			JOptionPane.showMessageDialog(
 					dialog, 
-					Messages.getString("dialog.error.report.success.text"),
+					isEnabled ? Messages.getString("dialog.error.report.send.success.text") : Messages.getString("dialog.error.report.save.success.text"),
 					Messages.getString("dialog.error.report.success.title"),
 					JOptionPane.INFORMATION_MESSAGE);
 		}

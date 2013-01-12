@@ -43,7 +43,6 @@ import org.praisenter.slide.NotificationSlideTemplate;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
-import org.praisenter.slide.SlideLibraryException;
 import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.SongSlideTemplate;
 import org.praisenter.slide.Template;
@@ -166,7 +165,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		
 		// slides tab
 		{
-			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(Slide.class);
+			List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BasicSlide.class);
 			this.lstSlides = createJList(thumbnails);
 			this.slideTabs.addTab(Messages.getString("panel.slide.slides"), new JScrollPane(this.lstSlides));
 		}
@@ -415,6 +414,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 						// we need to update the preview of the selected slide
 						this.pnlPreview.setSlide(result.getSlide());
 						this.pnlPreview.repaint();
+						this.slideLibraryUpdated = true;
 					} else if (result.getChoice() == SlideEditorOption.SAVE_AS) {
 						// when control returns here we need to update the items in the jlist with the current media library items
 						List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(clazz == null ? BasicSlide.class : clazz);
@@ -495,7 +495,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new SlidePreviewAction<Slide>(file.getPath(), Slide.class);
+					preview = new SlidePreviewAction<BasicSlide>(file.getPath(), BasicSlide.class);
 					isSlide = true;
 				}
 			} else if (source == this.lstTemplates) {
@@ -588,7 +588,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 			SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
 			if (thumbnail != null) {
 				file = thumbnail.getFile();
-				preview = new SlidePreviewAction<Slide>(file.getPath(), Slide.class);
+				preview = new SlidePreviewAction<BasicSlide>(file.getPath(), BasicSlide.class);
 				isSlide = true;
 			}
 		} else if (index == 1) {
@@ -693,7 +693,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 							// update the slides (this method should not
 							// do anything that should normally be done on the EDT)
 							pnlPreview.setSlide(slide);
-						} catch (SlideLibraryException e) {
+						} catch (Exception e) {
 							LOGGER.error("An error occurred while loading the slide/template [" + preview.path + "]: ", e);
 						}
 					}
@@ -759,7 +759,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 					this.slide = SlideLibrary.getSlide(this.file.getPath());
 				}
 				this.setSuccessful(true);
-			} catch (SlideLibraryException ex) {
+			} catch (Exception ex) {
 				this.handleException(ex);
 			}
 		}

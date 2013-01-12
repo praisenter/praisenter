@@ -240,6 +240,7 @@ public class Praisenter extends JFrame implements ActionListener {
 			// show the preferences dialog
 			// the bible and song panel need to listen for settings changes to know
 			// when to update their previews
+			// FIXME we may be able to update the ui from the preferences like we do on other dialogs
 			PreferencesDialog.show(this, new PreferencesListener[] { this.pnlBible, this.pnlNotification, this.pnlSongs });
 		} else if ("size".equals(command)) {
 			this.showCurrentWindowSize();
@@ -257,6 +258,7 @@ public class Praisenter extends JFrame implements ActionListener {
 			MediaLibraryDialog.show(this);
 		} else if ("slide".equals(command)) {
 			SlideLibraryDialog.show(this, null);
+			// FIXME we need to update any listings of templates/slides if the slide library was changed
 		} else if ("about".equals(command)) {
 			AboutDialog.show(this);
 		}
