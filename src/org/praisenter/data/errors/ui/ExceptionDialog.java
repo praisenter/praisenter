@@ -21,6 +21,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
+import org.praisenter.preferences.Preferences;
 import org.praisenter.resources.Messages;
 import org.praisenter.utilities.ExceptionUtilities;
 import org.praisenter.utilities.WindowUtilities;
@@ -93,7 +94,14 @@ public class ExceptionDialog extends JDialog implements MouseListener, ActionLis
 		btnOk.setActionCommand("close");
 		btnOk.addActionListener(this);
 		
-		JButton btnSendErrorReport = new JButton(Messages.getString("dialog.exception.sendErrorReport"));
+		boolean errorReportingEnabled = Preferences.getInstance().getErrorReportingPreferences().isEnabled();
+		
+		JButton btnSendErrorReport = null;
+		if (errorReportingEnabled) {
+			btnSendErrorReport = new JButton(Messages.getString("dialog.exception.sendErrorReport"));
+		} else {
+			btnSendErrorReport = new JButton(Messages.getString("dialog.exception.saveErrorReport"));
+		}
 		btnSendErrorReport.setActionCommand("send");
 		btnSendErrorReport.addActionListener(this);
 		btnSendErrorReport.setEnabled(sendEnabled);

@@ -4,11 +4,8 @@ import java.awt.Graphics2D;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.resources.Messages;
 import org.praisenter.slide.graphics.Fill;
 
 /**
@@ -20,29 +17,13 @@ import org.praisenter.slide.graphics.Fill;
 @XmlRootElement(name = "EmptyRenderableComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 public class EmptyRenderableComponent extends AbstractRenderableComponent {
-	/** The component name */
-	@XmlElement(name = "Name")
-	protected String name;
-
-	/** The z-ordering of this component */
-	@XmlAttribute(name = "Order")
-	protected int order;
-	
-	/** The width of this component */
-	@XmlAttribute(name = "Width", required = true)
-	protected int width;
-	
-	/** The height of this component */
-	@XmlAttribute(name = "Height", required = true)
-	protected int height;
-	
 	/**
 	 * Default constructor.
 	 * <p>
 	 * This should only be used by JAXB.
 	 */
 	protected EmptyRenderableComponent() {
-		this(Messages.getString("slide.component.unnamed"), 200, 200);
+		super();
 	}
 
 	/**
@@ -52,10 +33,7 @@ public class EmptyRenderableComponent extends AbstractRenderableComponent {
 	 * @param height the component height
 	 */
 	public EmptyRenderableComponent(String name, int width, int height) {
-		this.name = name;
-		this.width = width;
-		this.height = height;
-		this.order = 0;
+		super(name, width, height);
 	}
 	
 	/**
@@ -63,10 +41,7 @@ public class EmptyRenderableComponent extends AbstractRenderableComponent {
 	 * @param component the component to copy
 	 */
 	public EmptyRenderableComponent(EmptyRenderableComponent component) {
-		this.name = component.name;
-		this.width = component.width;
-		this.height = component.height;
-		this.order = component.order;
+		super(component);
 	}
 
 	/* (non-Javadoc)

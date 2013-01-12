@@ -73,7 +73,7 @@ public class EnterPasswordDialog extends JDialog implements ActionListener {
 				.addComponent(this.txtPassword));
 		
 		JPanel pnlBottom = new BottomButtonPanel();
-		pnlBottom.setLayout(new FlowLayout());
+		pnlBottom.setLayout(new FlowLayout(FlowLayout.TRAILING));
 		pnlBottom.add(btnOk);
 		pnlBottom.add(btnCancel);
 		

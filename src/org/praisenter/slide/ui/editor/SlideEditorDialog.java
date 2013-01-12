@@ -2,6 +2,7 @@ package org.praisenter.slide.ui.editor;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,7 +27,7 @@ import org.praisenter.threading.AbstractTask;
 import org.praisenter.threading.TaskProgressDialog;
 import org.praisenter.ui.BottomButtonPanel;
 import org.praisenter.ui.RestrictedFileSystemView;
-import org.praisenter.utilities.WindowUtilities;
+import org.praisenter.ui.ValidateFileChooser;
 
 /**
  * Dialog used to edit a slide or template.
@@ -49,8 +50,10 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 	/** The slide */
 	private Slide slide;
 	
-	/** The editor option chosen by the user */
-	private SlideEditorOption choice;
+	// output
+	
+	/** The result of the editor */
+	private SlideEditorResult result;
 	
 	// controls
 	
@@ -68,7 +71,8 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 		
 		this.file = file;
 		this.slide = slide;
-		this.choice = SlideEditorOption.CANCEL;
+		this.result = new SlideEditorResult();
+		this.result.choice = SlideEditorOption.CANCEL;
 		
 		this.pnlSlideEditor = new SlideEditorPanel(this.slide);
 		
@@ -76,13 +80,29 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 		btnSave.addActionListener(this);
 		btnSave.setActionCommand("save");
 		
+		JButton btnSaveAndClose = new JButton(Messages.getString("panel.slide.editor.saveAndClose"));
+		btnSaveAndClose.addActionListener(this);
+		btnSaveAndClose.setActionCommand("save-and-close");
+		
 		JButton btnSaveAs = new JButton(Messages.getString("panel.slide.editor.saveAs"));
 		btnSaveAs.addActionListener(this);
 		btnSaveAs.setActionCommand("saveas");
 		
+		JButton btnSaveAsAndClose = new JButton(Messages.getString("panel.slide.editor.saveAsAndClose"));
+		btnSaveAsAndClose.addActionListener(this);
+		btnSaveAsAndClose.setActionCommand("saveas-and-close");
+		
+		JButton btnCancel = new JButton(Messages.getString("panel.slide.editor.cancel"));
+		btnCancel.addActionListener(this);
+		btnCancel.setActionCommand("cancel");
+		
 		JPanel pnlButtons = new BottomButtonPanel();
+		pnlButtons.setLayout(new FlowLayout(FlowLayout.TRAILING));
 		pnlButtons.add(btnSave);
+		pnlButtons.add(btnSaveAndClose);
 		pnlButtons.add(btnSaveAs);
+		pnlButtons.add(btnSaveAsAndClose);
+		pnlButtons.add(btnCancel);
 		
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
@@ -105,13 +125,33 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 			}
 		} else if ("saveas".equals(command)) {
 			this.saveAs();
+		} else if ("save-and-close".equals(command)) {
+			boolean saved = false;
+			if (this.file != null) {
+				saved = this.save();
+			} else {
+				saved = this.saveAs();
+			}
+			if (saved) {
+				this.setVisible(false);
+			}
+		} else if ("saveas-and-close".equals(command)) {
+			boolean saved = this.saveAs();
+			if (saved) {
+				this.setVisible(false);
+			}
+		} else if ("cancel".equals(command)) {
+			this.setVisible(false);
 		}
 	}
 	
 	/**
 	 * Performs a save operation on the given slide.
+	 * <p>
+	 * Returns true if the slide was saved successfully.
+	 * @return boolean
 	 */
-	private void save() {
+	private boolean save() {
 		final SlideFile file = this.file;
 		final Slide slide = this.slide;
 		final boolean isSlide = !(slide instanceof Template);
@@ -122,10 +162,10 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 			public void run() {
 				try {
 					if (isSlide) {
-						SlideLibrary.saveSlide(file, (BasicSlide)slide);
+						result.thumbnail = SlideLibrary.saveSlide(file, (BasicSlide)slide);
 						this.setSuccessful(true);
 					} else {
-						SlideLibrary.saveTemplate(file, (Template)slide);
+						result.thumbnail = SlideLibrary.saveTemplate(file, (Template)slide);
 						this.setSuccessful(true);
 					}
 				} catch (SlideLibraryException ex) {
@@ -135,14 +175,21 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 			}
 		};
 		
-		TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.saving"), task);
+		TaskProgressDialog.show(this, Messages.getString("panel.slide.saving"), task);
 		if (task.isSuccessful()) {
-			this.choice = SlideEditorOption.SAVE;
+			this.result.choice = SlideEditorOption.SAVE;
+			this.result.slide = slide;
+			return true;
 		} else {
+			this.result.choice = SlideEditorOption.CANCEL;
+			this.result.slide = null;
+			this.result.thumbnail = null;
+			
 			String type = Messages.getString("panel.slide");
 			if (!isSlide) {
 				type = Messages.getString("panel.template");
 			}
+			
 			ExceptionDialog.show(
 					this, 
 					MessageFormat.format(Messages.getString("panel.slide.save.exception.title"), type), 
@@ -150,6 +197,7 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 					task.getException());
 			LOGGER.error("An error occurred while attempting to save [" + file.getPath() + "]: ", task.getException());
 		}
+		return false;
 	}
 	
 	/**
@@ -157,8 +205,11 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 	 * <p>
 	 * This involves the user selecting a file or typing in a new file name in a file
 	 * chooser dialog.
+	 * <p>
+	 * Returns true if the slide was saved successfully.
+	 * @return boolean
 	 */
-	private void saveAs() {
+	private boolean saveAs() {
 		final Slide slide = this.slide;
 		final boolean isSlide = !(slide instanceof Template);
 		
@@ -166,7 +217,7 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 		String path = SlideLibrary.getPath(slide.getClass());
 		File root = new File(path);
 		
-		JFileChooser chooser = new JFileChooser(root, new RestrictedFileSystemView(root));
+		JFileChooser chooser = new ValidateFileChooser(root, new RestrictedFileSystemView(root));
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		chooser.setMultiSelectionEnabled(false);
 		chooser.setSelectedFile(new File(slide.getName()));
@@ -177,7 +228,7 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 		int choice = chooser.showSaveDialog(this);
 		if (choice == JFileChooser.APPROVE_OPTION) {
 			File file = chooser.getSelectedFile();
-			final String fileName = file.getName();
+			final String fileName = file.getName().trim();
 			
 			// remove the slide/template in another thread
 			AbstractTask task = new AbstractTask() {
@@ -185,10 +236,10 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 				public void run() {
 					try {
 						if (isSlide) {
-							SlideLibrary.saveSlide(fileName, (BasicSlide)slide);
+							result.thumbnail = SlideLibrary.saveSlide(fileName, (BasicSlide)slide);
 							this.setSuccessful(true);
 						} else {
-							SlideLibrary.saveTemplate(fileName, (Template)slide);
+							result.thumbnail = SlideLibrary.saveTemplate(fileName, (Template)slide);
 							this.setSuccessful(true);
 						}
 					} catch (SlideLibraryException ex) {
@@ -198,20 +249,27 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 				}
 			};
 			
-			TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.saving"), task);
+			TaskProgressDialog.show(this, Messages.getString("panel.slide.saving"), task);
 			if (task.isSuccessful()) {
 				// if they just overwrote the same file
 				// return that they just did a save
 				if (this.file != null && this.file.getName().equals(fileName)) {
-					this.choice = SlideEditorOption.SAVE;
+					this.result.choice = SlideEditorOption.SAVE;
 				} else {
-					this.choice = SlideEditorOption.SAVE_AS;
+					this.result.choice = SlideEditorOption.SAVE_AS;
 				}
+				this.result.slide = slide;
+				return true;
 			} else {
+				this.result.choice = SlideEditorOption.CANCEL;
+				this.result.slide = null;
+				this.result.thumbnail = null;
+				
 				String type = Messages.getString("panel.slide");
 				if (!isSlide) {
 					type = Messages.getString("panel.template");
 				}
+				
 				ExceptionDialog.show(
 						this, 
 						MessageFormat.format(Messages.getString("panel.slide.save.exception.title"), type), 
@@ -220,6 +278,7 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 				LOGGER.error("An error occurred while attempting to save [" + fileName + "]: ", task.getException());
 			}
 		}
+		return false;
 	}
 	
 	/**
@@ -227,15 +286,15 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 	 * @param owner the owner of the dialog
 	 * @param slide the slide to edit
 	 * @param file the file properties of the slide to edit; null if the slide is new
-	 * @return {@link SlideEditorOption}
+	 * @return {@link SlideEditorResult}
 	 */
-	public static final SlideEditorOption show(Window owner, Slide slide, SlideFile file) {
+	public static final SlideEditorResult show(Window owner, Slide slide, SlideFile file) {
 		SlideEditorDialog dialog = new SlideEditorDialog(owner, slide, file);
 		dialog.pack();
 		dialog.setLocationRelativeTo(owner);
 		dialog.setVisible(true);
 		dialog.dispose();
 		
-		return dialog.choice;
+		return dialog.result;
 	}
 }

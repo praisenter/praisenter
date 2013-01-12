@@ -31,10 +31,9 @@ import org.praisenter.xml.XmlIO;
 /**
  * Static thread-safe class for managing the media library.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
-// FIXME what should be do if something is using the media that gets removed?
 public class MediaLibrary {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(MediaLibrary.class);

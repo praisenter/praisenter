@@ -7,6 +7,7 @@ import java.awt.Window;
 import javax.swing.JDialog;
 
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.Slide;
 
 /**
  * Simple dialog to display the Slide Library.
@@ -23,12 +24,13 @@ public class SlideLibraryDialog extends JDialog {
 	
 	/**
 	 * Minimal constructor.
-	 * @param owner the owner of the this dialog; can be null
+	 * @param owner the owner of the this dialog
+	 * @param clazz the initial class type to have focused; can be null
 	 */
-	protected SlideLibraryDialog(Window owner) {
+	protected SlideLibraryDialog(Window owner, Class<? extends Slide> clazz) {
 		super(owner, Messages.getString("dialog.media.title"), ModalityType.APPLICATION_MODAL);
 		
-		this.pnlSlideLibrary = new SlideLibraryPanel();
+		this.pnlSlideLibrary = new SlideLibraryPanel(clazz);
 		
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
@@ -39,13 +41,19 @@ public class SlideLibraryDialog extends JDialog {
 	
 	/**
 	 * Shows a new Slide Library dialog.
+	 * <p>
+	 * Returns true if the slide library was updated.
 	 * @param owner the owner of this dialog; can be null
+	 * @param clazz the initial class type to have focused; can be null
+	 * @return boolean
 	 */
-	public static final void show(Window owner) {
-		SlideLibraryDialog dialog = new SlideLibraryDialog(owner);
+	public static final boolean show(Window owner, Class<? extends Slide> clazz) {
+		SlideLibraryDialog dialog = new SlideLibraryDialog(owner, clazz);
 		dialog.setLocationRelativeTo(owner);
 		dialog.setVisible(true);
 		dialog.dispose();
+		
+		return dialog.pnlSlideLibrary.isSlideLibraryUpdated();
 	}
 }
 

@@ -45,7 +45,7 @@ import org.praisenter.slide.ui.SlideLibraryDialog;
 import org.praisenter.threading.FileTask;
 import org.praisenter.threading.TaskProgressDialog;
 import org.praisenter.ui.AboutDialog;
-import org.praisenter.ui.CheckExistsFileChooser;
+import org.praisenter.ui.ValidateFileChooser;
 import org.praisenter.ui.ZipFileFilter;
 
 /**
@@ -56,8 +56,8 @@ import org.praisenter.ui.ZipFileFilter;
  */
 // TODO add xuggler video downloader (to download videos from the web)
 // FIXME add import/export caps for slides and templates
-// FIXME add all mimetypes
 // FIXME implement equals/hashcode/tostring for all types that should have it
+// FIXME add template selectors to the song/bible/notification uis
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;
@@ -256,7 +256,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		} else if ("media".equals(command)) {
 			MediaLibraryDialog.show(this);
 		} else if ("slide".equals(command)) {
-			SlideLibraryDialog.show(this);
+			SlideLibraryDialog.show(this, null);
 		} else if ("about".equals(command)) {
 			AboutDialog.show(this);
 		}
@@ -345,7 +345,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		// see if we even need to export anything
 		if (Errors.getErrorMessageCount() > 0) {
 			// create a class to show a "are you sure" message when over writing an existing file
-			JFileChooser fileBrowser = new CheckExistsFileChooser();
+			JFileChooser fileBrowser = new ValidateFileChooser();
 			fileBrowser.setMultiSelectionEnabled(false);
 			fileBrowser.setDialogTitle(Messages.getString("dialog.export.errors.title"));
 			fileBrowser.setSelectedFile(new File(Messages.getString("dialog.export.errors.defaultFileName")));
@@ -413,7 +413,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		// see if we even need to export anything
 		if (songCount > 0) {
 			// create a class to show a "are you sure" message when over writing an existing file
-			JFileChooser fileBrowser = new CheckExistsFileChooser();
+			JFileChooser fileBrowser = new ValidateFileChooser();
 			fileBrowser.setMultiSelectionEnabled(false);
 			fileBrowser.setDialogTitle(Messages.getString("dialog.export.songs.title"));
 			fileBrowser.setSelectedFile(new File(Messages.getString("dialog.export.songs.defaultFileName")));

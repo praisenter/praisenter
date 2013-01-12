@@ -7,11 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.praisenter.resources.Messages;
 
 /**
- * Represents a template of a {@link Slide}.
- * <p>
- * Templates do not differ from their slide counterparts at this time. This distinction is
- * in place for the {@link SlideLibrary} and for future possible distinctions between the
- * two ideas.
+ * Represents a template of a {@link BasicSlide}.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0

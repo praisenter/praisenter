@@ -20,6 +20,7 @@ import org.praisenter.utilities.LookAndFeelUtilities;
 // FIXME the about dialog needs some work
 // FIXME create a "quick create" function to quickly create a slide with an image/video background and optionally some text
 // FIXME add a menu option to view the log (open OS default text editor, may not be able to do this since its a .log file)
+// TODO allow play/stop/pause/seek controls for playable media
 
 /**
  * This class is the application entry point.
