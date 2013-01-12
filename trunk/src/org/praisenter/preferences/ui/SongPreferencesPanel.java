@@ -16,7 +16,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
-import org.apache.log4j.Logger;
 import org.praisenter.easings.Easing;
 import org.praisenter.easings.Easings;
 import org.praisenter.preferences.Preferences;
@@ -27,12 +26,14 @@ import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.SongSlideTemplate;
 import org.praisenter.slide.ui.EasingListCellRenderer;
+import org.praisenter.slide.ui.SlideLibraryDialog;
 import org.praisenter.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transitions;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.utilities.ComponentUtilities;
+import org.praisenter.utilities.WindowUtilities;
 
 /**
  * Panel used to set the {@link SongPreferences}.
@@ -43,9 +44,6 @@ import org.praisenter.utilities.ComponentUtilities;
 public class SongPreferencesPanel extends JPanel implements PreferencesEditor, ActionListener {
 	/** The verison id */
 	private static final long serialVersionUID = -3575533232722870706L;
-
-	/** The class level logger */
-	private static final Logger LOGGER = Logger.getLogger(SongPreferencesPanel.class);
 	
 	// template
 
@@ -213,9 +211,28 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor, A
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
+		Preferences preferences = Preferences.getInstance();
+		
 		if ("addTemplate".equals(command)) {
-			// FIXME add code to create template
-			LOGGER.error("Not implemented yet!!!");
+			boolean libraryUpdated = SlideLibraryDialog.show(WindowUtilities.getParentWindow(this), SongSlideTemplate.class);
+			if (libraryUpdated) {
+				// we need to refresh the templates listing
+				List<SlideThumbnail> thumbs = SlideLibrary.getThumbnails(SongSlideTemplate.class);
+				// add in the default template
+				Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+				SongSlideTemplate template = SongSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
+				BufferedImage image = template.getThumbnail(SlideLibrary.THUMBNAIL_SIZE);
+				SlideThumbnail temp = new SlideThumbnail(SlideFile.NOT_STORED, template.getName(), image);
+				thumbs.add(temp);
+				// store the selected template
+				SlideThumbnail selected = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
+				Collections.sort(thumbs);
+				this.cmbTemplates.removeAllItems();
+				for (SlideThumbnail thumb : thumbs) {
+					this.cmbTemplates.addItem(thumb);
+				}
+				this.cmbTemplates.setSelectedItem(selected);
+			}
 		}
 	}
 	

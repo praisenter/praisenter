@@ -49,6 +49,7 @@ import org.praisenter.slide.SongSlideTemplate;
 import org.praisenter.slide.Template;
 import org.praisenter.slide.ui.editor.SlideEditorDialog;
 import org.praisenter.slide.ui.editor.SlideEditorOption;
+import org.praisenter.slide.ui.editor.SlideEditorResult;
 import org.praisenter.slide.ui.preview.SingleSlidePreviewPanel;
 import org.praisenter.threading.AbstractTask;
 import org.praisenter.threading.TaskProgressDialog;
@@ -134,6 +135,14 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 	 * Default constructor.
 	 */
 	public SlideLibraryPanel() {
+		this(null);
+	}
+	
+	/**
+	 * Optional constructor.
+	 * @param clazz the class type to have focused
+	 */
+	public SlideLibraryPanel(Class<? extends Slide> clazz) {
 		this.slideLibraryUpdated = false;
 		
 		this.pnlProperties = new SlidePropertiesPanel();
@@ -221,6 +230,22 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		this.btnRemoveSlide.addActionListener(this);
 		this.btnRemoveSlide.setEnabled(false);
 		
+		// select the initial view
+		if (clazz != null) {
+			if (Template.class.isAssignableFrom(clazz)) {
+				this.slideTabs.setSelectedIndex(1);
+				if (BasicSlideTemplate.class.isAssignableFrom(clazz)) {
+					this.cmbTemplateType.setSelectedItem(TemplateType.SLIDE);
+				} else if (BibleSlideTemplate.class.isAssignableFrom(clazz)) {
+					this.cmbTemplateType.setSelectedItem(TemplateType.BIBLE);
+				} else if (SongSlideTemplate.class.isAssignableFrom(clazz)) {
+					this.cmbTemplateType.setSelectedItem(TemplateType.SONG);
+				} else if (NotificationSlideTemplate.class.isAssignableFrom(clazz)) {
+					this.cmbTemplateType.setSelectedItem(TemplateType.NOTIFICATION);
+				}
+			}
+		}
+		
 		JPanel pnlRight = new JPanel();
 		GroupLayout layout = new GroupLayout(pnlRight);
 		pnlRight.setLayout(layout);
@@ -291,6 +316,46 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
 		
+		// we dont need to get the selected thumnbnail for the new command
+		if ("new".equals(command)) {
+			// show dialog asking what type (slide/template)
+			Slide slide = NewSlideDialog.show(WindowUtilities.getParentWindow(this));
+			// check for null (null means the user canceled)
+			if (slide != null) {
+				// open the slide/template editor
+				SlideEditorResult result = SlideEditorDialog.show(WindowUtilities.getParentWindow(this), slide, null);
+				// check the return type
+				if (result.getChoice() != SlideEditorOption.CANCEL) {
+					// when control returns here we need to update the items in the jlist with the current media library items
+					List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(slide.getClass());
+					// get the list that should store this slide
+					JList<SlideThumbnail> list = null;
+					if (slide instanceof BasicSlideTemplate) {
+						list = this.lstTemplates;
+					} else if (slide instanceof BibleSlideTemplate) {
+						list = this.lstBibleTemplates;
+					} else if (slide instanceof SongSlideTemplate) {
+						list = this.lstSongTemplates;
+					} else if (slide instanceof NotificationSlideTemplate) {
+						list = this.lstNotificationTemplates;
+					} else {
+						list = this.lstSlides;
+					}
+					list.clearSelection();
+					// we need to reload all the thumbnails here since the user could do multiple save as...'es saving
+					// multiple slides or templates
+					DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
+					model.removeAllElements();
+					for (SlideThumbnail thumb : thumbnails) {
+						model.addElement(thumb);
+					}
+					list.setSelectedValue(result.getThumbnail(), true);
+					this.slideLibraryUpdated = true;
+				}
+			}
+			return;
+		}
+		
 		// get the currently selected thumbnail
 		JList<SlideThumbnail> list = null;
 		int index = this.slideTabs.getSelectedIndex();
@@ -329,9 +394,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		// make sure the currently selected item is not null
 		if (thumbnail != null) {
 			// check the action type
-			if ("new".equals(command)) {
-				// FIXME show dialog asking what type (slide/template)
-			} else if ("edit".equals(command)) {
+			if ("edit".equals(command)) {
 				// get the selected slide or template
 				SlideFile file = thumbnail.getFile();
 				
@@ -342,25 +405,28 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				if (task.isSuccessful()) {
 					// make a copy of the slide so that the user can cancel the operation
 					Slide slide = task.getSlide().copy();
-					SlideEditorOption choice = SlideEditorDialog.show(WindowUtilities.getParentWindow(this), slide, file);
+					SlideEditorResult result = SlideEditorDialog.show(WindowUtilities.getParentWindow(this), slide, file);
 					
-					if (choice == SlideEditorOption.SAVE) {
+					if (result.getChoice() == SlideEditorOption.SAVE) {
 						// we only need to update the one thumbnail
 						DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
 						int i = model.indexOf(thumbnail);
-						model.set(i, SlideLibrary.getThumbnail(file.getPath()));
+						model.set(i, result.getThumbnail());
 						// we need to update the preview of the selected slide
+						this.pnlPreview.setSlide(result.getSlide());
 						this.pnlPreview.repaint();
-					} else if (choice == SlideEditorOption.SAVE_AS) {
+					} else if (result.getChoice() == SlideEditorOption.SAVE_AS) {
 						// when control returns here we need to update the items in the jlist with the current media library items
-						List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(clazz);
+						List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(clazz == null ? BasicSlide.class : clazz);
 						list.clearSelection();
+						// we need to reload all the thumbnails here since the user could do multiple save as...'es saving
+						// multiple slides or templates
 						DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
 						model.removeAllElements();
 						for (SlideThumbnail thumb : thumbnails) {
 							model.addElement(thumb);
 						}
-						list.setSelectedValue(thumbnail, true);
+						list.setSelectedValue(result.getThumbnail(), true);
 						this.slideLibraryUpdated = true;
 					}
 				} else {

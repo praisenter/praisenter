@@ -2,6 +2,7 @@ package org.praisenter.slide.ui.editor;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -54,6 +55,7 @@ public class LineStyleEditorDialog extends JDialog implements ActionListener {
 		btnCancel.setActionCommand("cancel");
 		
 		JPanel pnlButtons = new BottomButtonPanel();
+		pnlButtons.setLayout(new FlowLayout(FlowLayout.TRAILING));
 		pnlButtons.add(btnOk);
 		pnlButtons.add(btnCancel);
 		

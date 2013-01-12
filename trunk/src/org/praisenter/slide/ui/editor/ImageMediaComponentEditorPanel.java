@@ -104,7 +104,6 @@ public class ImageMediaComponentEditorPanel  extends GenericComponentEditorPanel
 		JScrollPane pane = new JScrollPane(this.lstImages);
 		pane.setPreferredSize(new Dimension(200, 150));
 		
-		// FIXME add visible checkbox back
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()

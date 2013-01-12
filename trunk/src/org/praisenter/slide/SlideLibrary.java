@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -266,6 +267,8 @@ public class SlideLibrary {
 		for (String filePath : paths) {
 			thumbnails.add(THUMBNAILS.get(filePath));
 		}
+		// sort them
+		Collections.sort(thumbnails);
 		return thumbnails;
 	}
 	
@@ -302,37 +305,46 @@ public class SlideLibrary {
 	
 	/**
 	 * Adds the given slide to the slide library.
+	 * <p>
+	 * Returns an new {@link SlideThumbnail} for the given slide.
 	 * @param fileName the desired file name
 	 * @param slide the slide
+	 * @return {@link SlideThumbnail}
 	 * @throws SlideLibraryException thrown if an error occurs saving the slide
 	 */
-	public static final synchronized void saveSlide(String fileName, BasicSlide slide) throws SlideLibraryException {
+	public static final synchronized SlideThumbnail saveSlide(String fileName, BasicSlide slide) throws SlideLibraryException {
 		if (!fileName.toLowerCase().matches("^.+\\.xml$")) {
 			// append the .xml on the end
 			fileName += ".xml";
 		}
 		String filePath = Constants.SLIDE_PATH + Constants.SEPARATOR + fileName;
-		SlideLibrary.saveSlideByPath(filePath, slide);
+		return SlideLibrary.saveSlideByPath(filePath, slide);
 	}
 	
 	/**
 	 * Saves an already existing slide.
+	 * <p>
+	 * Returns an new {@link SlideThumbnail} for the given slide.
 	 * @param file the file
 	 * @param slide the slide
+	 * @return {@link SlideThumbnail}
 	 * @throws SlideLibraryException thrown if an error occurs saving the slide
 	 */
-	public static final synchronized void saveSlide(SlideFile file, BasicSlide slide) throws SlideLibraryException {
+	public static final synchronized SlideThumbnail saveSlide(SlideFile file, BasicSlide slide) throws SlideLibraryException {
 		String filePath = file.getPath();
-		SlideLibrary.saveSlideByPath(filePath, slide);
+		return SlideLibrary.saveSlideByPath(filePath, slide);
 	}
 	
 	/**
 	 * Saves the given slide to the given path and updates the slide library.
+	 * <p>
+	 * Returns an new {@link SlideThumbnail} for the given slide.
 	 * @param path the location and file name of the slide
 	 * @param slide the slide
+	 * @return {@link SlideThumbnail}
 	 * @throws SlideLibraryException thrown if an error occurs saving the slide
 	 */
-	private static final synchronized void saveSlideByPath(String path, BasicSlide slide) throws SlideLibraryException {
+	private static final synchronized SlideThumbnail saveSlideByPath(String path, BasicSlide slide) throws SlideLibraryException {
 		try {
 			// save the slide to disc
 			XmlIO.save(path, slide);
@@ -347,6 +359,8 @@ public class SlideLibrary {
 			THUMBNAILS.put(path, thumbnail);
 			// update the thumbnail file for this directory
 			saveThumbnailsFile(Slide.class);
+			
+			return thumbnail;
 		} catch (JAXBException e) {
 			throw new SlideLibraryException(e);
 		} catch (IOException e) {
@@ -419,37 +433,46 @@ public class SlideLibrary {
 	
 	/**
 	 * Saves the given template to the slide library.
+	 * <p>
+	 * Returns an new {@link SlideThumbnail} for the given template.
 	 * @param fileName the file name
 	 * @param template the template
+	 * @return {@link SlideThumbnail}
 	 * @throws SlideLibraryException thrown if an exception occurs while saving the template
 	 */
-	public static final synchronized <E extends Template> void saveTemplate(String fileName, E template) throws SlideLibraryException {
+	public static final synchronized <E extends Template> SlideThumbnail saveTemplate(String fileName, E template) throws SlideLibraryException {
 		String path = getPath(template.getClass());
 		if (!fileName.toLowerCase().matches("^.+\\.xml$")) {
 			// append the .xml on the end
 			fileName += ".xml";
 		}
 		String filePath = path + Constants.SEPARATOR + fileName;
-		SlideLibrary.saveTemplateByPath(filePath, template);
+		return SlideLibrary.saveTemplateByPath(filePath, template);
 	}
 	
 	/**
 	 * Saves an already existing template.
+	 * <p>
+	 * Returns an new {@link SlideThumbnail} for the given template.
 	 * @param file the template file
 	 * @param template the template
+	 * @return {@link SlideThumbnail}
 	 * @throws SlideLibraryException thrown if an exception occurs while saving the template
 	 */
-	public static final synchronized <E extends Template> void saveTemplate(SlideFile file, E template) throws SlideLibraryException {
-		SlideLibrary.saveTemplateByPath(file.getPath(), template);
+	public static final synchronized <E extends Template> SlideThumbnail saveTemplate(SlideFile file, E template) throws SlideLibraryException {
+		return SlideLibrary.saveTemplateByPath(file.getPath(), template);
 	}
 	
 	/**
 	 * Saves the given template to the slide library.
+	 * <p>
+	 * Returns an new {@link SlideThumbnail} for the given template.
 	 * @param path the file name and path
 	 * @param template the template
+	 * @return {@link SlideThumbnail}
 	 * @throws SlideLibraryException thrown if an exception occurs while saving the template
 	 */
-	private static final synchronized <E extends Template> void saveTemplateByPath(String path, E template) throws SlideLibraryException {
+	private static final synchronized <E extends Template> SlideThumbnail saveTemplateByPath(String path, E template) throws SlideLibraryException {
 		try {
 			// save the template to disc
 			XmlIO.save(path, template);
@@ -472,6 +495,8 @@ public class SlideLibrary {
 			THUMBNAILS.put(path, thumbnail);
 			// update the thumbnail file for this directory
 			saveThumbnailsFile(template.getClass());
+			
+			return thumbnail;
 		} catch (JAXBException e) {
 			throw new SlideLibraryException(e);
 		} catch (IOException e) {

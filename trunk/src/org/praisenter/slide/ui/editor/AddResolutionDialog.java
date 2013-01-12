@@ -2,6 +2,7 @@ package org.praisenter.slide.ui.editor;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -98,6 +99,7 @@ public class AddResolutionDialog extends JDialog implements ActionListener {
 		container.setLayout(new BorderLayout());
 		
 		JPanel pnlButtons = new BottomButtonPanel();
+		pnlButtons.setLayout(new FlowLayout(FlowLayout.TRAILING));
 		pnlButtons.add(btnOk);
 		pnlButtons.add(btnCancel);
 		

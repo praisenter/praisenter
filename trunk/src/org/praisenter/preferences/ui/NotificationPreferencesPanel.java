@@ -16,7 +16,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 
-import org.apache.log4j.Logger;
 import org.praisenter.easings.Easing;
 import org.praisenter.easings.Easings;
 import org.praisenter.preferences.NotificationPreferences;
@@ -27,12 +26,14 @@ import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.ui.EasingListCellRenderer;
+import org.praisenter.slide.ui.SlideLibraryDialog;
 import org.praisenter.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transitions;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.utilities.ComponentUtilities;
+import org.praisenter.utilities.WindowUtilities;
 
 /**
  * Panel used to set the {@link NotificationPreferences}.
@@ -44,9 +45,6 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 	/** The verison id */
 	private static final long serialVersionUID = -2274087793090854194L;
 
-	/** The class level logger */
-	private static final Logger LOGGER = Logger.getLogger(NotificationPreferencesPanel.class);
-	
 	/** The default wait period text box */
 	protected JFormattedTextField txtDefaultWaitPeriod;
 
@@ -271,9 +269,28 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
+		Preferences preferences = Preferences.getInstance();
+		
 		if ("addTemplate".equals(command)) {
-			// FIXME add code to create template
-			LOGGER.error("Not implemented yet!!!");
+			boolean libraryUpdated = SlideLibraryDialog.show(WindowUtilities.getParentWindow(this), NotificationSlideTemplate.class);
+			if (libraryUpdated) {
+				// we need to refresh the templates listing
+				List<SlideThumbnail> thumbs = SlideLibrary.getThumbnails(NotificationSlideTemplate.class);
+				// add in the default template
+				Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+				NotificationSlideTemplate template = NotificationSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
+				BufferedImage image = template.getThumbnail(SlideLibrary.THUMBNAIL_SIZE);
+				SlideThumbnail temp = new SlideThumbnail(SlideFile.NOT_STORED, template.getName(), image);
+				thumbs.add(temp);
+				// store the selected template
+				SlideThumbnail selected = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
+				Collections.sort(thumbs);
+				this.cmbTemplates.removeAllItems();
+				for (SlideThumbnail thumb : thumbs) {
+					this.cmbTemplates.addItem(thumb);
+				}
+				this.cmbTemplates.setSelectedItem(selected);
+			}
 		}
 	}
 }

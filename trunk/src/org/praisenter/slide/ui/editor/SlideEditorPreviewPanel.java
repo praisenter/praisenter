@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
@@ -100,7 +101,12 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	 */
 	@Override
 	protected void renderSlide(Graphics2D g2d, Slide slide, SlidePreviewMetrics metrics) {
+		RenderingHints hints = g2d.getRenderingHints();
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		
 		super.renderSlide(g2d, slide, metrics);
+		
+		g2d.setRenderingHints(hints);
 		
 		// get the slide offset
 		Point offset = this.getSlideOffset();

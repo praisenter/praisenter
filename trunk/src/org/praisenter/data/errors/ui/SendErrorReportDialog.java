@@ -102,7 +102,7 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 				.addComponent(this.txtDescription));
 		
 		JPanel pnlBottom = new BottomButtonPanel();
-		pnlBottom.setLayout(new FlowLayout());
+		pnlBottom.setLayout(new FlowLayout(FlowLayout.TRAILING));
 		pnlBottom.add(btnSend);
 		pnlBottom.add(btnCancel);
 		

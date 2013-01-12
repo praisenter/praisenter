@@ -25,8 +25,8 @@ import org.praisenter.ui.BottomButtonPanel;
 /**
  * Dialog used to set the preferences.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 public class PreferencesDialog extends JDialog implements ActionListener {
 	/** The version id */
@@ -87,7 +87,7 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		// create the bottom layout
 		
 		JPanel pnlBottom = new BottomButtonPanel();
-		pnlBottom.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		pnlBottom.setLayout(new FlowLayout(FlowLayout.TRAILING));
 		pnlBottom.add(btnSaveSettings);
 		pnlBottom.add(btnCancelSettings);
 		
