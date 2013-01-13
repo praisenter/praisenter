@@ -1,5 +1,6 @@
 package org.praisenter.slide.ui.editor.command;
 
+import java.awt.Dimension;
 import java.awt.Point;
 
 import org.praisenter.command.Command;
@@ -22,16 +23,19 @@ public class ResizeWidthAndHeightCommand extends ResizeCommand {
 			this.beginArguments.resize(xdiff, ydiff);
 		} else if (this.prongLocation == ResizeProngLocation.BOTTOM_LEFT) {
 			// reposition the x coorindate and modify the size
-			this.beginArguments.translate(xdiff, 0);
-			this.beginArguments.resize(-xdiff, ydiff);
+			Dimension ds = this.beginArguments.resize(-xdiff, ydiff);
+			// only translate by the actual amount resized
+			this.beginArguments.translate(-ds.width, 0);
 		} else if (this.prongLocation == ResizeProngLocation.TOP_LEFT) {
 			// reposition both coorindates and modify the size
-			this.beginArguments.translate(xdiff, ydiff);
-			this.beginArguments.resize(-xdiff, -ydiff);
+			Dimension ds = this.beginArguments.resize(-xdiff, -ydiff);
+			// only translate by the actual amount resized
+			this.beginArguments.translate(-ds.width, -ds.height);
 		} else if (this.prongLocation == ResizeProngLocation.TOP_RIGHT) {
 			// reposition the y coorindate and modify the size
-			this.beginArguments.translate(0, ydiff);
-			this.beginArguments.resize(xdiff, -ydiff);
+			Dimension ds = this.beginArguments.resize(xdiff, -ydiff);
+			// only translate by the actual amount resized
+			this.beginArguments.translate(0, -ds.height);
 		}
 		
 		super.update(end);

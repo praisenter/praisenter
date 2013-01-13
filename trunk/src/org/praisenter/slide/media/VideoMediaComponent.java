@@ -112,7 +112,7 @@ public class VideoMediaComponent extends GenericComponent implements SlideCompon
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.GenericSlideComponent#copy()
+	 * @see org.praisenter.slide.GenericComponent#copy()
 	 */
 	@Override
 	public VideoMediaComponent copy() {

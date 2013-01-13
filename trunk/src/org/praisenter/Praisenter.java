@@ -39,7 +39,6 @@ import org.praisenter.icons.Icons;
 import org.praisenter.media.ui.MediaLibraryDialog;
 import org.praisenter.notification.ui.NotificationPanel;
 import org.praisenter.preferences.ui.PreferencesDialog;
-import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.ui.SlideLibraryDialog;
 import org.praisenter.threading.FileTask;
@@ -238,10 +237,12 @@ public class Praisenter extends JFrame implements ActionListener {
 			this.changeLookAndFeel(command);
 		} else if ("preferences".equals(command)) {
 			// show the preferences dialog
-			// the bible and song panel need to listen for settings changes to know
-			// when to update their previews
-			// FIXME we may be able to update the ui from the preferences like we do on other dialogs
-			PreferencesDialog.show(this, new PreferencesListener[] { this.pnlBible, this.pnlNotification, this.pnlSongs });
+			boolean changed = PreferencesDialog.show(this);
+			if (changed) {
+				this.pnlNotification.preferencesChanged();
+				this.pnlBible.preferencesChanged();
+				this.pnlSongs.preferencesChanged();
+			}
 		} else if ("size".equals(command)) {
 			this.showCurrentWindowSize();
 		} else if ("exportErrors".equals(command)) {
@@ -257,8 +258,12 @@ public class Praisenter extends JFrame implements ActionListener {
 		} else if ("media".equals(command)) {
 			MediaLibraryDialog.show(this);
 		} else if ("slide".equals(command)) {
-			SlideLibraryDialog.show(this, null);
-			// FIXME we need to update any listings of templates/slides if the slide library was changed
+			boolean changed = SlideLibraryDialog.show(this, null);
+			if (changed) {
+				this.pnlNotification.slideLibraryChanged();
+				this.pnlBible.slideLibraryChanged();
+			}
+			// FIXME we need to update any listings of templates/slides if the slide library was changed and previews
 		} else if ("about".equals(command)) {
 			AboutDialog.show(this);
 		}

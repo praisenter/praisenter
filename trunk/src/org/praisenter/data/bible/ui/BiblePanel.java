@@ -14,11 +14,13 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -58,10 +60,13 @@ import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.BibleSlide;
 import org.praisenter.slide.BibleSlideTemplate;
-import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
+import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.text.TextComponent;
+import org.praisenter.slide.ui.SlideLibraryListener;
+import org.praisenter.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.slide.ui.present.SlideWindow;
 import org.praisenter.slide.ui.present.SlideWindows;
@@ -82,7 +87,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class BiblePanel extends JPanel implements ActionListener, PreferencesListener {
+public class BiblePanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;
 
@@ -120,6 +125,9 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	
 	/** The table of queued verses */
 	private JTable tblVerseQueue;
+
+	/** The template combo box */
+	private JComboBox<SlideThumbnail> cmbTemplates;
 	
 	/** The combo box of transitions for sending */
 	private JComboBox<Transition> cmbSendTransitions;
@@ -159,6 +167,14 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	
 	/** True if the user has found a verse */
 	private boolean verseFound;
+
+	// preferences 
+	
+	/** A local reference to the preferences */
+	protected Preferences preferences = Preferences.getInstance();
+	
+	/** A local references to the bible preferences */
+	protected BiblePreferences bPreferences = this.preferences.getBiblePreferences();
 	
 	/**
 	 * Default constructor.
@@ -167,35 +183,11 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	public BiblePanel() {
 		this.verseFound = false;
 		
-		// get the preferences
-		Preferences preferences = Preferences.getInstance();
-		BiblePreferences bPreferences = preferences.getBiblePreferences();
-		
 		// get the primary device
-		GraphicsDevice device = preferences.getPrimaryOrDefaultDevice();
-		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		GraphicsDevice device = this.preferences.getPrimaryOrDefaultDevice();
 		
 		// get the bible slide template
-		BibleSlideTemplate template = null;
-		String templatePath = bPreferences.getTemplate();
-		if (templatePath != null && templatePath.trim().length() > 0) {
-			try {
-				template = SlideLibrary.getTemplate(templatePath, BibleSlideTemplate.class);
-			} catch (SlideLibraryException e) {
-				LOGGER.error("Unable to load default bible template [" + templatePath + "]. Using default template.", e);
-			}
-		}
-		if (template == null) {
-			// if its still null, then use the default template
-			template = BibleSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
-		}
-		
-		// check the template size against the display size
-		if (template.getWidth() != displaySize.width || template.getHeight() != displaySize.height) {
-			// log a message and modify the template to fit
-			LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
-			template.adjustSize(displaySize.width, displaySize.height);
-		}
+		BibleSlideTemplate template = this.getTemplate();
 		
 		// create the slides
 		BibleSlide previous = template.createSlide();
@@ -212,6 +204,16 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		next.setName(Messages.getString("panel.bible.preview.next"));
 		next.getScriptureLocationComponent().setText(Messages.getString("slide.bible.location.default"));
 		next.getScriptureTextComponent().setText(Messages.getString("slide.bible.text.default"));
+		
+		SlideThumbnail[] thumbnails = this.getThumbnails();
+		SlideThumbnail selected = this.getSelectedThumbnail(thumbnails);
+		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbnails);
+		if (selected != null) {
+			this.cmbTemplates.setSelectedItem(selected);
+		}
+		this.cmbTemplates.setToolTipText(Messages.getString("panel.preferences.template.tooltip"));
+		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
+		this.cmbTemplates.addItemListener(this);
 		
 		// create the preview panel
 		this.pnlPreview = new InlineSlidePreviewPanel(10, 5);
@@ -252,7 +254,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 					if (bible != null) {
 						// load up all the books
 						try {
-							boolean ia = Preferences.getInstance().getBiblePreferences().isApocryphaIncluded();
+							boolean ia = bPreferences.isApocryphaIncluded();
 							List<Book> books = Bibles.getBooks(bible, ia);
 							Book selected = (Book)cmbBooks.getSelectedItem();
 							int index = 0;
@@ -419,9 +421,12 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		// setup the labels
 		this.lblChapterCount = new JLabel(MessageFormat.format(Messages.getString("panel.bible.chapterCount"), ""));
 		this.lblChapterCount.setToolTipText(Messages.getString("panel.bible.chapterCount.tooltip"));
+		this.lblChapterCount.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
 		this.lblVerseCount = new JLabel("");
 		this.lblVerseCount.setToolTipText(Messages.getString("panel.bible.verseCount.tooltip"));
+		this.lblVerseCount.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
 		this.lblFound = new JLabel("");
+		this.lblFound.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5));
 		
 		// setup the transition lists
 		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(device);
@@ -499,18 +504,21 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		pnlSendClearButtons.setLayout(subLayout);
 		
 		subLayout.setAutoCreateGaps(true);
-		subLayout.setHorizontalGroup(subLayout.createSequentialGroup()
-				.addGroup(subLayout.createParallelGroup()
-						.addGroup(subLayout.createSequentialGroup()
-								.addComponent(this.cmbSendTransitions)
-								.addComponent(this.txtSendTransitions))
-						.addComponent(btnSend, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-				.addGroup(subLayout.createParallelGroup()
-						.addGroup(subLayout.createSequentialGroup()
-								.addComponent(this.cmbClearTransitions)
-								.addComponent(this.txtClearTransitions))
-						.addComponent(btnClear, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+		subLayout.setHorizontalGroup(subLayout.createParallelGroup()
+				.addComponent(this.cmbTemplates)
+				.addGroup(subLayout.createSequentialGroup()
+						.addGroup(subLayout.createParallelGroup()
+								.addGroup(subLayout.createSequentialGroup()
+										.addComponent(this.cmbSendTransitions)
+										.addComponent(this.txtSendTransitions))
+								.addComponent(btnSend, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+						.addGroup(subLayout.createParallelGroup()
+								.addGroup(subLayout.createSequentialGroup()
+										.addComponent(this.cmbClearTransitions)
+										.addComponent(this.txtClearTransitions))
+								.addComponent(btnClear, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))));
 		subLayout.setVerticalGroup(subLayout.createSequentialGroup()
+				.addComponent(this.cmbTemplates, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addGroup(subLayout.createParallelGroup()
 						.addComponent(this.cmbSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -548,14 +556,13 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 								.addComponent(this.lblFound))
 						.addComponent(pnlLookupButtons, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(pnlSendClearButtons, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
-		subLayout.setVerticalGroup(subLayout.createSequentialGroup()
-				.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-							.addComponent(lblPrimaryBible)
-							.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addComponent(this.chkUseSecondaryBible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGroup(subLayout.createParallelGroup()
+		subLayout.setVerticalGroup(subLayout.createParallelGroup()
 						.addGroup(subLayout.createSequentialGroup()
-								.addGroup(subLayout.createParallelGroup()
+								.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+										.addComponent(lblPrimaryBible)
+										.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.chkUseSecondaryBible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 										.addComponent(lblSecondaryBible)
 										.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 								.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -569,7 +576,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 													.addComponent(this.lblVerseCount)
 													.addComponent(this.lblFound)))
 										.addComponent(pnlLookupButtons, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
-						.addComponent(pnlSendClearButtons)));
+						.addComponent(pnlSendClearButtons));
 		
 		// create the verse queue table
 		this.tblVerseQueue = new JTable(new MutableBibleTableModel()) {
@@ -819,33 +826,195 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		this.setLayout(new BorderLayout());
 		this.add(split, BorderLayout.CENTER);
 	}
+
+	/**
+	 * Returns the template to use from the preferences.
+	 * @return {@link BibleSlideTemplate}
+	 */
+	private BibleSlideTemplate getTemplate() {
+		// get the primary device size
+		Dimension displaySize = this.preferences.getPrimaryOrDefaultDeviceResolution();
+		
+		// get the bible slide template
+		BibleSlideTemplate template = null;
+		String templatePath = this.bPreferences.getTemplate();
+		if (templatePath != null && templatePath.trim().length() > 0) {
+			try {
+				template = SlideLibrary.getTemplate(templatePath, BibleSlideTemplate.class);
+			} catch (SlideLibraryException e) {
+				LOGGER.error("Unable to load default notification template [" + templatePath + "]: ", e);
+			}
+		}
+		if (template == null) {
+			// if its still null, then use the default template
+			template = BibleSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
+		}
+		
+		// check the template size against the display size
+		this.verifyTemplateDimensions(template, displaySize);
+		
+		return template;
+	}
+	
+	/**
+	 * Verifies the template is sized to the given size.
+	 * <p>
+	 * If not, the template is adjusted to fit.
+	 * @param template the template
+	 * @param size the size
+	 */
+	private void verifyTemplateDimensions(BibleSlideTemplate template, Dimension size) {
+		// check the template size against the display size
+		if (template.getWidth() != size.width || template.getHeight() != size.height) {
+			// log a message and modify the template to fit
+			LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
+			template.adjustSize(size.width, size.height);
+		}
+	}
+	
+	/**
+	 * Returns an array of {@link SlideThumbnail}s for {@link BibleSlideTemplate}s.
+	 * @return {@link SlideThumbnail}[]
+	 */
+	private SlideThumbnail[] getThumbnails() {
+		Dimension displaySize = this.preferences.getPrimaryOrDefaultDeviceResolution();
+		
+		List<SlideThumbnail> thumbs = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
+		// add in the default template
+		BibleSlideTemplate dTemplate = BibleSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
+		BufferedImage image = dTemplate.getThumbnail(SlideLibrary.THUMBNAIL_SIZE);
+		SlideThumbnail temp = new SlideThumbnail(SlideFile.NOT_STORED, dTemplate.getName(), image);
+		thumbs.add(temp);
+		// sort them
+		Collections.sort(thumbs);
+		
+		return thumbs.toArray(new SlideThumbnail[0]);
+	}
+	
+	/**
+	 * Returns the selected thumbnail for the selected {@link BibleSlideTemplate}
+	 * given in the preferences.
+	 * @param thumbnails the list of all slide thumbnails
+	 * @return {@link SlideThumbnail}
+	 */
+	private SlideThumbnail getSelectedThumbnail(SlideThumbnail[] thumbnails) {
+		for (SlideThumbnail thumb : thumbnails) {
+			if (thumb.getFile() == SlideFile.NOT_STORED) {
+				if (this.bPreferences.getTemplate() == null) {
+					return thumb;
+				}
+			} else if (thumb.getFile().getPath().equals(this.bPreferences.getTemplate())) {
+				return thumb;
+			}
+		}
+		return null;
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.preferences.ui.PreferencesListener#preferencesChanged()
 	 */
 	@Override
 	public void preferencesChanged() {
-		// when the preferences change we need to check if the display
-		// size was changed and update the slides if necessary
-
-		// get the preferences
-		Preferences preferences = Preferences.getInstance();
+		this.onPreferencesOrSlideLibraryChanged();
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.SlideLibraryListener#slideLibraryChanged()
+	 */
+	@Override
+	public void slideLibraryChanged() {
+		this.onPreferencesOrSlideLibraryChanged();
+	}
+	
+	/**
+	 * Called when the preferences or the slide library changes.
+	 * <p>
+	 * The preferences can alter the selected template and the slide library
+	 * can be changed from the preferences dialog. Because of this, we need
+	 * to perform the same action for both events.
+	 */
+	private void onPreferencesOrSlideLibraryChanged() {
+		SlideThumbnail[] thumbnails = this.getThumbnails();
+		SlideThumbnail selected = this.getSelectedThumbnail(thumbnails);
 		
-		// get the primary device size
-		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		// update the list of templates
+		this.cmbTemplates.removeAllItems();
+		for (SlideThumbnail thumb : thumbnails) {
+			this.cmbTemplates.addItem(thumb);
+		}
 		
-		int count = this.pnlPreview.getSlideCount();
-		for (int i = 0; i < count; i++) {
-			Slide slide = this.pnlPreview.getSlide(i);
-			if (slide.getWidth() != displaySize.width || slide.getHeight() != displaySize.height) {
-				// adjust the slide size
-				slide.adjustSize(displaySize.width, displaySize.height);
-				LOGGER.info("Adjusting slides due to display size change.");
-			}
+		// set the selected one
+		// selecting the item in the combo box will update the template
+		// and the preview panel
+		if (selected != null) {
+			this.cmbTemplates.setSelectedItem(selected);
+		} else {
+			this.cmbTemplates.setSelectedIndex(0);
 		}
 		
 		// redraw the preview panel
 		this.pnlPreview.repaint();
+	}
+	
+	/**
+	 * Updates the slide template in the preview.
+	 * @param template the template
+	 */
+	private void updateSlideTemplate(BibleSlideTemplate template) {
+		// create the slides
+		BibleSlide previous = template.createSlide();
+		BibleSlide current = template.createSlide();
+		BibleSlide next = template.createSlide();
+
+		BibleSlide s0 = (BibleSlide)this.pnlPreview.getSlide(0);
+		BibleSlide s1 = (BibleSlide)this.pnlPreview.getSlide(1);
+		BibleSlide s2 = (BibleSlide)this.pnlPreview.getSlide(2);
+		this.pnlPreview.clearSlides();
+		this.pnlPreview.addSlide(previous);
+		this.pnlPreview.addSlide(current);
+		this.pnlPreview.addSlide(next);
+		
+		// copy the text over from the current slides
+		previous.setName(s0.getName());
+		previous.getScriptureLocationComponent().setText(s0.getScriptureLocationComponent().getText());
+		previous.getScriptureTextComponent().setText(s0.getScriptureTextComponent().getText());
+		current.setName(s1.getName());
+		current.getScriptureLocationComponent().setText(s1.getScriptureLocationComponent().getText());
+		current.getScriptureTextComponent().setText(s1.getScriptureTextComponent().getText());
+		next.setName(s2.getName());
+		next.getScriptureLocationComponent().setText(s2.getScriptureLocationComponent().getText());
+		next.getScriptureTextComponent().setText(s2.getScriptureTextComponent().getText());
+	}
+
+	/* (non-Javadoc)
+	 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
+	 */
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		if (e.getStateChange() == ItemEvent.SELECTED) {
+			Object source = e.getSource();
+			if (source == this.cmbTemplates) {
+				SlideThumbnail thumbnail = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
+				if (thumbnail != null) {
+					BibleSlideTemplate template = null;
+					Dimension size = this.preferences.getPrimaryOrDefaultDeviceResolution();
+					if (thumbnail.getFile() == SlideFile.NOT_STORED) {
+						template = BibleSlideTemplate.getDefaultTemplate(size.width, size.height);
+					} else {
+						try {
+							template = SlideLibrary.getTemplate(thumbnail.getFile().getPath(), BibleSlideTemplate.class);
+						} catch (SlideLibraryException ex) {
+							// just log the error
+							LOGGER.error("Failed to switch to template: [" + thumbnail.getFile().getPath() + "]", ex);
+							return;
+						}
+					}
+					this.verifyTemplateDimensions(template, size);
+					this.updateSlideTemplate(template);
+					this.pnlPreview.repaint();
+				}
+			}
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -859,7 +1028,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 		Object b = this.cmbBooks.getSelectedItem();
 		Object c = this.txtChapter.getValue();
 		Object v = this.txtVerse.getValue();
-		boolean ia = Preferences.getInstance().getBiblePreferences().isApocryphaIncluded();
+		boolean ia = this.bPreferences.isApocryphaIncluded();
 		
 		// dont bother with any of these actions unless we have what we need
 		if (b != null && b instanceof Book &&
@@ -1067,11 +1236,10 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	 * Sends the current verse display to the primary display.
 	 */
 	private void sendVerseAction() {
-		BiblePreferences prefs = Preferences.getInstance().getBiblePreferences();
 		// get the transition
 		Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
 		int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
-		Easing easing = Easings.getEasingForId(prefs.getSendTransitionEasingId());
+		Easing easing = Easings.getEasingForId(this.bPreferences.getSendTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
@@ -1091,11 +1259,10 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	 * Clears the primary display.
 	 */
 	private void clearVerseAction() {
-		BiblePreferences prefs = Preferences.getInstance().getBiblePreferences();
 		// get the transition
 		Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
 		int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
-		Easing easing = Easings.getEasingForId(prefs.getClearTransitionEasingId());
+		Easing easing = Easings.getEasingForId(this.bPreferences.getClearTransitionEasingId());
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
@@ -1146,7 +1313,7 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	 */
 	private void updateVerseDisplays(Verse verse) throws DataException {
 		this.verseFound = true;
-		boolean ia = Preferences.getInstance().getBiblePreferences().isApocryphaIncluded();
+		boolean ia = this.bPreferences.isApocryphaIncluded();
 		// then get the previous and next verses as well
 		Verse prev = Bibles.getPreviousVerse(verse, ia);
 		Verse next = Bibles.getNextVerse(verse, ia);
@@ -1281,19 +1448,19 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 	 */
 	private void updateLabels() {
 		// look up the number of verses in the chapter
-		Bible bible = (Bible)cmbBiblesPrimary.getSelectedItem();
-		Book book = (Book)cmbBooks.getSelectedItem();
-		Object chap = txtChapter.getValue();
-		Object vers = txtVerse.getValue();
+		Bible bible = (Bible)this.cmbBiblesPrimary.getSelectedItem();
+		Book book = (Book)this.cmbBooks.getSelectedItem();
+		Object chap = this.txtChapter.getValue();
+		Object vers = this.txtVerse.getValue();
 		
 		if (bible != null && book != null) {
 			// show the number of chapters
 			try {
 				int count = Bibles.getChapterCount(bible, book.getCode());
-				lblChapterCount.setText(MessageFormat.format(Messages.getString("panel.bible.chapterCount"), count));
+				this.lblChapterCount.setText(MessageFormat.format(Messages.getString("panel.bible.chapterCount"), count));
 			} catch (DataException ex) {
 				LOGGER.error(MessageFormat.format(Messages.getString("panel.bible.data.chapterCount.exception.text"), bible.getName(), book.getName()), ex);
-				lblChapterCount.setText("");
+				this.lblChapterCount.setText("");
 			}
 			
 			if (chap != null && chap instanceof Number) {
@@ -1301,10 +1468,10 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 				int chapter = ((Number) chap).intValue();
 				try {
 					int count = Bibles.getVerseCount(bible, book.getCode(), chapter);
-					lblVerseCount.setText(MessageFormat.format(Messages.getString("panel.bible.verseCount"), count));
+					this.lblVerseCount.setText(MessageFormat.format(Messages.getString("panel.bible.verseCount"), count));
 				} catch (DataException ex) {
 					LOGGER.error(MessageFormat.format(Messages.getString("panel.bible.data.verseCount.exception.text"), bible.getName(), book.getName(), chapter), ex);
-					lblVerseCount.setText("");
+					this.lblVerseCount.setText("");
 				}
 				
 				if (vers != null && vers instanceof Number) {
@@ -1313,34 +1480,34 @@ public class BiblePanel extends JPanel implements ActionListener, PreferencesLis
 					try {
 						Verse v = Bibles.getVerse(bible, book.getCode(), chapter, verse);
 						if (v != null) {
-							lblFound.setIcon(Icons.FOUND);
-							lblFound.setToolTipText(null);
+							this.lblFound.setIcon(Icons.FOUND);
+							this.lblFound.setToolTipText(null);
 						} else {
-							lblFound.setIcon(Icons.NOT_FOUND);
-							lblFound.setToolTipText(MessageFormat.format(Messages.getString("panel.bible.data.verseNotFound"), bible.getName(), book.getName(), chapter, verse));
+							this.lblFound.setIcon(Icons.NOT_FOUND);
+							this.lblFound.setToolTipText(MessageFormat.format(Messages.getString("panel.bible.data.verseNotFound"), bible.getName(), book.getName(), chapter, verse));
 						}
 					} catch (DataException ex) {
 						LOGGER.error(MessageFormat.format(Messages.getString("panel.bible.data.validate.exception.text"), bible.getName(), book.getName(), chapter, verse), ex);
-						lblFound.setIcon(null);
-						lblFound.setToolTipText(null);
+						this.lblFound.setIcon(null);
+						this.lblFound.setToolTipText(null);
 					}
 				} else {
 					// clear labels if not enough info is given
-					lblFound.setIcon(null);
-					lblFound.setToolTipText(null);
+					this.lblFound.setIcon(null);
+					this.lblFound.setToolTipText(null);
 				}
 			} else {
 				// clear labels if not enough info is given
-				lblVerseCount.setText("");
-				lblFound.setIcon(null);
-				lblFound.setToolTipText(null);
+				this.lblVerseCount.setText("");
+				this.lblFound.setIcon(null);
+				this.lblFound.setToolTipText(null);
 			}
 		} else {
 			// clear labels if not enough info is given
-			lblChapterCount.setText(MessageFormat.format(Messages.getString("panel.bible.chapterCount"), ""));
-			lblVerseCount.setText("");
-			lblFound.setIcon(null);
-			lblFound.setToolTipText(null);
+			this.lblChapterCount.setText(MessageFormat.format(Messages.getString("panel.bible.chapterCount"), ""));
+			this.lblVerseCount.setText("");
+			this.lblFound.setIcon(null);
+			this.lblFound.setToolTipText(null);
 		}
 	}
 	

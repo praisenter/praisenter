@@ -1,5 +1,6 @@
 package org.praisenter.slide.ui.editor.command;
 
+import java.awt.Dimension;
 import java.awt.Point;
 
 import org.praisenter.command.Command;
@@ -37,8 +38,8 @@ public class ComponentBoundsCommandBeingArguments extends AbstractBoundsCommandB
 	 * @see org.praisenter.slide.ui.editor.command.BoundsCommandBeginArguments#resize(int, int)
 	 */
 	@Override
-	public void resize(int dw, int dh) {
-		this.component.resize(dw, dh);
+	public Dimension resize(int dw, int dh) {
+		return this.component.resize(dw, dh);
 	}
 	
 	/**

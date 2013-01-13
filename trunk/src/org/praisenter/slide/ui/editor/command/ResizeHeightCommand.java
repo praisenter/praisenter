@@ -1,5 +1,6 @@
 package org.praisenter.slide.ui.editor.command;
 
+import java.awt.Dimension;
 import java.awt.Point;
 
 import org.praisenter.command.Command;
@@ -22,9 +23,9 @@ public class ResizeHeightCommand extends ResizeCommand {
 		} else if (this.prongLocation == ResizeProngLocation.TOP) {
 			// to resize from the top, we need to increase the size
 			// and reposition the component
-			this.beginArguments.translate(0, diff);
-			this.beginArguments.resize(0, -diff);
-			// FIXME we only want to translate if the resize is not bounded by the minimum size (same with other resize commands)
+			Dimension ds = this.beginArguments.resize(0, -diff);
+			// only translate by the actual amount resized
+			this.beginArguments.translate(0, -ds.height);
 		}
 		
 		super.update(end);

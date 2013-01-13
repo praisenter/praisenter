@@ -1,5 +1,7 @@
 package org.praisenter.slide;
 
+import java.awt.Dimension;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -90,13 +92,33 @@ public abstract class AbstractPositionedSlide extends BasicSlide {
 	
 	/**
 	 * Resizes this slide by the given amount.
+	 * <p>
+	 * Returns a dimension including the amount the slide was resized.
+	 * This is only relevant when the slide has reached its minimum size.
 	 * @param dw the change in width
 	 * @param dh the change in height
+	 * @return Dimension
 	 */
-	public void resize(int dw, int dh) {
+	public Dimension resize(int dw, int dh) {
+		// save the old width/height
+		int w = this.width;
+		int h = this.height;
+		
+		// update
 		this.width += dw;
 		this.height += dh;
 		this.background.resize(dw, dh);
+		
+		// validate the width/height
+		if (this.width < Slide.MINIMUM_SIZE) {
+			this.width = Slide.MINIMUM_SIZE;
+		}
+		if (this.height < Slide.MINIMUM_SIZE) {
+			this.height = Slide.MINIMUM_SIZE;
+		}
+		
+		// return the difference
+		return new Dimension(this.width - w, this.height - h);
 	}
 	
 	/**

@@ -1,5 +1,6 @@
 package org.praisenter.slide;
 
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
@@ -69,10 +70,14 @@ public interface RenderableComponent extends SlideComponent {
 	
 	/**
 	 * Resizes this component using the given deltas.
+	 * <p>
+	 * Returns a dimension including the amount the component was resized.
+	 * This is only relevant when the component has reached its minimum size.
 	 * @param dw the change in width in pixels
 	 * @param dh the change in height in pixels
+	 * @return Dimension
 	 */
-	public abstract void resize(int dw, int dh);
+	public abstract Dimension resize(int dw, int dh);
 	
 	/**
 	 * Resizes this component using the given percentatges.
