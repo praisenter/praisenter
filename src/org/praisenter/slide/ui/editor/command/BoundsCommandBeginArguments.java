@@ -1,5 +1,6 @@
 package org.praisenter.slide.ui.editor.command;
 
+import java.awt.Dimension;
 import java.awt.Point;
 
 import org.praisenter.command.Command;
@@ -20,10 +21,14 @@ public interface BoundsCommandBeginArguments {
 	
 	/**
 	 * Resizes the object contained in the arguments.
+	 * <p>
+	 * Returns the amount the object was resized. This will always be
+	 * dw, dh unless the object has a minimum size.
 	 * @param dw the change in width in pixels
 	 * @param dh the change in height in pixels
+	 * @return Dimension
 	 */
-	public abstract void resize(int dw, int dh);
+	public abstract Dimension resize(int dw, int dh);
 	
 	/**
 	 * Returns the start position in slide space.

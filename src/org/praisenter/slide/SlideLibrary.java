@@ -132,26 +132,22 @@ public class SlideLibrary {
 						break;
 					}
 				}
-				// check if we need to generate a thumbnail for the file
-				if (!exists) {
-					// generate a thumbnail for the image using the media loader
-					// load the media
-					try {
-						E slide = loadFromSlideLibrary(filePath, clazz);
-						// add the media to the media library (might as well since we loaded it)
-						map.put(filePath, slide);
-						// create the thumbnail
+				// always load up the slide
+				try {
+					E slide = loadFromSlideLibrary(filePath, clazz);
+					// add the media to the media library (might as well since we loaded it)
+					map.put(filePath, slide);
+					// check if we need to generate a thumbnail for the file
+					if (!exists) {
+						// generate a thumbnail for the slide
 						BufferedImage image = slide.getThumbnail(THUMBNAIL_SIZE);
 						// add the thumbnail to the list
 						thumbnails.add(new SlideThumbnail(new SlideFile(filePath), slide.getName(), image));
 						// flag that we need to save it
-						save = true;
-					} catch (SlideLibraryException e) {
-						LOGGER.error("Unable to load slide/template [" + filePath + "|" + clazz.getName() + "]: ", e);
+						save = true;					
 					}
-				} else {
-					// we need to add a media reference anyway
-					map.put(filePath, null);
+				} catch (SlideLibraryException e) {
+					LOGGER.error("Unable to load slide/template [" + filePath + "|" + clazz.getName() + "]: ", e);
 				}
 			}
 			// add all the thumbnails

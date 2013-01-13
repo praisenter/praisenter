@@ -28,6 +28,9 @@ import org.praisenter.slide.text.TextComponent;
 	  TextComponent.class,
 	  GenericComponent.class })
 public interface Slide {
+	/** The minimum size in pixels of a component or slide */
+	public static final int MINIMUM_SIZE = 20;
+	
 	/**
 	 * Returns a deep copy of this {@link Slide}.
 	 * @return {@link Slide}

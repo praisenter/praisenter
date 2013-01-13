@@ -35,8 +35,10 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 	/** The static logger */
 	private static final Logger LOGGER = Logger.getLogger(PreferencesDialog.class);
 	
-	/** The preferences listeners */
-	private PreferencesListener[] listeners;
+	// data
+	
+	/** True if the preferences were updated */
+	private boolean preferencesUpdated;
 	
 	// panels
 	
@@ -58,12 +60,11 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 	/**
 	 * Minimal constructor.
 	 * @param owner the owner of the dialog
-	 * @param listeners the preferences listeners
 	 */
-	protected PreferencesDialog(Window owner, PreferencesListener[] listeners) {
+	protected PreferencesDialog(Window owner) {
 		super(owner, Messages.getString("dialog.preferences.title"), ModalityType.APPLICATION_MODAL);
 		
-		this.listeners = listeners;
+		this.preferencesUpdated = false;
 		
 		// create the settings panels
 		this.pnlGeneralPreferences = new GeneralPreferencesPanel();
@@ -79,6 +80,11 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		btnSaveSettings.setActionCommand("save");
 		btnSaveSettings.addActionListener(this);
 		
+		JButton btnSaveAndCloseSettings = new JButton(Messages.getString("dialog.preferences.saveAndClose"));
+		btnSaveAndCloseSettings.setToolTipText(Messages.getString("dialog.preferences.saveAndClose.tooltip"));
+		btnSaveAndCloseSettings.setActionCommand("save-and-close");
+		btnSaveAndCloseSettings.addActionListener(this);
+		
 		JButton btnCancelSettings = new JButton(Messages.getString("dialog.preferences.cancel"));
 		btnCancelSettings.setToolTipText(Messages.getString("dialog.preferences.cancel.tooltip"));
 		btnCancelSettings.setActionCommand("cancel");
@@ -89,6 +95,7 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		JPanel pnlBottom = new BottomButtonPanel();
 		pnlBottom.setLayout(new FlowLayout(FlowLayout.TRAILING));
 		pnlBottom.add(btnSaveSettings);
+		pnlBottom.add(btnSaveAndCloseSettings);
 		pnlBottom.add(btnCancelSettings);
 		
 		// create the tab container
@@ -116,47 +123,13 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
 		if ("save".equals(command)) {
-			// create a task to perform the save
-			AbstractTask task = new AbstractTask() {
-				@Override
-				public void run() {
-					// apply the preferences
-					pnlGeneralPreferences.applyPreferences();
-					pnlBiblePreferences.applyPreferences();
-					pnlSongPreferences.applyPreferences();
-					pnlNotificationPreferences.applyPreferences();
-					pnlErrorReportingPreferences.applyPreferences();
-					try {
-						// save them
-						Preferences.getInstance().save();
-						this.setSuccessful(true);
-					} catch (PreferencesException e) {
-						this.handleException(e);
-					}
-				}
-			};
-			
-			// execute the save on another thread and show a progress bar
-			TaskProgressDialog.show(this, Messages.getString("dialog.preferences.save.task.title"), task);
-			if (task.isSuccessful()) {
-				// notify of the preferences changes
-				this.notifyPreferencesChanged();
-				// show a success message
-				JOptionPane.showMessageDialog(
-						this, 
-						Messages.getString("dialog.preferences.save.success.text"), 
-						Messages.getString("dialog.preferences.save.success.title"), 
-						JOptionPane.INFORMATION_MESSAGE);
+			this.save();
+		} else if ("save-and-close".equals(command)) {
+			boolean success = this.save();
+			if (success) {
 				// close this dialog
 				this.setVisible(false);
 				this.dispose();
-			} else {
-				LOGGER.error(task.getException());
-				ExceptionDialog.show(
-						this, 
-						Messages.getString("dialog.preferences.save.exception.title"), 
-						Messages.getString("dialog.preferences.save.exception.text"), 
-						task.getException());
 			}
 		} else if ("cancel".equals(command)) {
 			// don't save the preferences and just close the dialog
@@ -166,25 +139,65 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 	}
 	
 	/**
-	 * Notifies all the listeners of the preferences saved event.
+	 * Saves the preferences and returns true if successful.
+	 * @return boolean
 	 */
-	protected void notifyPreferencesChanged() {
-		for (PreferencesListener listener : this.listeners) {
-			listener.preferencesChanged();
+	private boolean save() {
+		// create a task to perform the save
+		AbstractTask task = new AbstractTask() {
+			@Override
+			public void run() {
+				// apply the preferences
+				pnlGeneralPreferences.applyPreferences();
+				pnlBiblePreferences.applyPreferences();
+				pnlSongPreferences.applyPreferences();
+				pnlNotificationPreferences.applyPreferences();
+				pnlErrorReportingPreferences.applyPreferences();
+				try {
+					// save them
+					Preferences.getInstance().save();
+					this.setSuccessful(true);
+				} catch (PreferencesException e) {
+					this.handleException(e);
+				}
+			}
+		};
+		
+		// execute the save on another thread and show a progress bar
+		TaskProgressDialog.show(this, Messages.getString("dialog.preferences.save.task.title"), task);
+		if (task.isSuccessful()) {
+			// show a success message
+			JOptionPane.showMessageDialog(
+					this, 
+					Messages.getString("dialog.preferences.save.success.text"), 
+					Messages.getString("dialog.preferences.save.success.title"), 
+					JOptionPane.INFORMATION_MESSAGE);
+			return true;
+		} else {
+			LOGGER.error(task.getException());
+			ExceptionDialog.show(
+					this, 
+					Messages.getString("dialog.preferences.save.exception.title"), 
+					Messages.getString("dialog.preferences.save.exception.text"), 
+					task.getException());
 		}
+		
+		return false;
 	}
 	
 	/**
-	 * Shows a new PreferencesDialog.
+	 * Shows a new PreferencesDialog and returns true if the preferences were updated.
 	 * @param owner the owner of the dialog
-	 * @param listeners the array of {@link PreferencesListener}s
+	 * @return boolean
 	 */
-	public static final void show(Window owner, PreferencesListener... listeners) {
-		PreferencesDialog dialog = new PreferencesDialog(owner, listeners);
+	public static final boolean show(Window owner) {
+		PreferencesDialog dialog = new PreferencesDialog(owner);
 		
 		dialog.setLocationRelativeTo(owner);
 		dialog.setVisible(true);
 		
 		dialog.dispose();
+		
+		return dialog.preferencesUpdated;
 	}
 }

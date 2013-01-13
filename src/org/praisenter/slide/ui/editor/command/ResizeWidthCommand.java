@@ -1,5 +1,6 @@
 package org.praisenter.slide.ui.editor.command;
 
+import java.awt.Dimension;
 import java.awt.Point;
 
 import org.praisenter.command.Command;
@@ -21,8 +22,9 @@ public class ResizeWidthCommand extends ResizeCommand {
 			// resize from the left should change the x position of the component
 			// and resize the width as well so that the right side of the component
 			// stays stationary
-			this.beginArguments.translate(diff, 0);
-			this.beginArguments.resize(-diff, 0);
+			Dimension ds = this.beginArguments.resize(-diff, 0);
+			// only translate by the actual amount resized
+			this.beginArguments.translate(-ds.width, 0);
 		} else if (this.prongLocation == ResizeProngLocation.RIGHT) {
 			this.beginArguments.resize(diff, 0);
 		}

@@ -92,7 +92,7 @@ public class ImageMediaComponent extends GenericComponent implements SlideCompon
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.media.AbstractImageMediaComponent#setMedia(org.praisenter.media.AbstractImageMedia)
+	 * @see org.praisenter.slide.media.MediaComponent#setMedia(org.praisenter.media.Media)
 	 */
 	@Override
 	public void setMedia(ImageMedia media) {
@@ -108,31 +108,7 @@ public class ImageMediaComponent extends GenericComponent implements SlideCompon
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.AbstractRenderableSlideComponent#resize(int, int)
-	 */
-	@Override
-	public void resize(int dw, int dh) {
-		super.resize(dw, dh);
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.AbstractRenderableSlideComponent#setHeight(int)
-	 */
-	@Override
-	public void setHeight(int height) {
-		super.setHeight(height);
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.AbstractRenderableSlideComponent#setWidth(int)
-	 */
-	@Override
-	public void setWidth(int width) {
-		super.setWidth(width);
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.GenericSlideComponent#copy()
+	 * @see org.praisenter.slide.GenericComponent#copy()
 	 */
 	@Override
 	public ImageMediaComponent copy() {
@@ -159,7 +135,7 @@ public class ImageMediaComponent extends GenericComponent implements SlideCompon
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.GenericSlideComponent#render(java.awt.Graphics2D)
+	 * @see org.praisenter.slide.GenericComponent#render(java.awt.Graphics2D)
 	 */
 	@Override
 	public void render(Graphics2D g) {
@@ -178,7 +154,7 @@ public class ImageMediaComponent extends GenericComponent implements SlideCompon
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.GenericSlideComponent#renderPreview(java.awt.Graphics2D)
+	 * @see org.praisenter.slide.GenericComponent#renderPreview(java.awt.Graphics2D)
 	 */
 	@Override
 	public void renderPreview(Graphics2D g) {

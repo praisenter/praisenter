@@ -1,6 +1,7 @@
 package org.praisenter.slide;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Shape;
@@ -97,7 +98,7 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#getWidth()
+	 * @see org.praisenter.slide.RenderableComponent#getWidth()
 	 */
 	@Override
 	public int getWidth() {
@@ -105,7 +106,7 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#getHeight()
+	 * @see org.praisenter.slide.RenderableComponent#getHeight()
 	 */
 	@Override
 	public int getHeight() {
@@ -113,44 +114,54 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#setWidth(int)
+	 * @see org.praisenter.slide.RenderableComponent#setWidth(int)
 	 */
 	@Override
 	public void setWidth(int width) {
 		this.width = width;
-		if (this.width < 20) {
-			this.width = 20;
+		if (this.width < Slide.MINIMUM_SIZE) {
+			this.width = Slide.MINIMUM_SIZE;
 		}
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#setHeight(int)
+	 * @see org.praisenter.slide.RenderableComponent#setHeight(int)
 	 */
 	@Override
 	public void setHeight(int height) {
 		this.height = height;
-		if (this.height < 20) {
-			this.height = 20;
+		if (this.height < Slide.MINIMUM_SIZE) {
+			this.height = Slide.MINIMUM_SIZE;
 		}
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#resize(int, int)
+	 * @see org.praisenter.slide.RenderableComponent#resize(int, int)
 	 */
 	@Override
-	public void resize(int dw, int dh) {
+	public Dimension resize(int dw, int dh) {
+		// save the old width/height
+		int w = this.width;
+		int h = this.height;
+		
+		// update
 		this.width += dw;
 		this.height += dh;
-		if (this.width < 20) {
-			this.width = 20;
+		
+		// validate the width/height
+		if (this.width < Slide.MINIMUM_SIZE) {
+			this.width = Slide.MINIMUM_SIZE;
 		}
-		if (this.height < 20) {
-			this.height = 20;
+		if (this.height < Slide.MINIMUM_SIZE) {
+			this.height = Slide.MINIMUM_SIZE;
 		}
+		
+		// return the difference
+		return new Dimension(this.width - w, this.height - h);
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#resize(double, double)
+	 * @see org.praisenter.slide.RenderableComponent#adjust(double, double)
 	 */
 	@Override
 	public void adjust(double pw, double ph) {
@@ -183,21 +194,21 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#getBackgroundFill()
+	 * @see org.praisenter.slide.RenderableComponent#getBackgroundFill()
 	 */
 	public Fill getBackgroundFill() {
 		return this.backgroundFill;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#setBackgroundFill(org.praisenter.slide.Fill)
+	 * @see org.praisenter.slide.RenderableComponent#setBackgroundFill(org.praisenter.slide.graphics.Fill)
 	 */
 	public void setBackgroundFill(Fill backgroundFill) {
 		this.backgroundFill = backgroundFill;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#isBackgroundPaintVisible()
+	 * @see org.praisenter.slide.RenderableComponent#isBackgroundVisible()
 	 */
 	@Override
 	public boolean isBackgroundVisible() {
@@ -205,7 +216,7 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#setBackgroundPaintVisible(boolean)
+	 * @see org.praisenter.slide.RenderableComponent#setBackgroundVisible(boolean)
 	 */
 	@Override
 	public void setBackgroundVisible(boolean visible) {
@@ -213,7 +224,7 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#getOrder()
+	 * @see org.praisenter.slide.RenderableComponent#getOrder()
 	 */
 	@Override
 	public int getOrder() {
@@ -221,7 +232,7 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.RenderableSlideComponent#setOrder(int)
+	 * @see org.praisenter.slide.RenderableComponent#setOrder(int)
 	 */
 	@Override
 	public void setOrder(int order) {

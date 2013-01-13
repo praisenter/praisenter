@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.praisenter.images.Images;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.utilities.ImageUtilities;
@@ -150,8 +151,15 @@ public class NotificationSlide extends AbstractPositionedSlide implements Slide 
 		g.dispose();
 		// scale the composite down
 		image = ImageUtilities.getUniformScaledImage(image, size.width, size.height, AffineTransformOp.TYPE_BILINEAR);
+		// create a buffered image with the transparent background
+		BufferedImage img = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		g = img.createGraphics();
+		// render the scaled slide onto the transparent background
+		ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, g, 0, 0, image.getWidth(), image.getHeight());
+		g.drawImage(image, 0, 0, null);
+		g.dispose();
 		// return it
-		return image;
+		return img;
 	}
 	
 	/**

@@ -34,6 +34,7 @@ import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
 import org.praisenter.slide.SlideThumbnail;
+import org.praisenter.slide.ui.SlideLibraryListener;
 import org.praisenter.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.slide.ui.present.SlideWindow;
@@ -48,10 +49,10 @@ import org.praisenter.utilities.WindowUtilities;
 /**
  * Panel used to send notifications.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.0
  * @since 1.0.0
  */
-public class NotificationPanel extends JPanel implements ActionListener, ItemListener, PreferencesListener {
+public class NotificationPanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener {
 	/** The version id */
 	private static final long serialVersionUID = 20837022721408081L;
 	
@@ -100,6 +101,14 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	/** The wait timer lock */
 	protected Object waitTimerLock;
 	
+	// preferences 
+	
+	/** A local reference to the preferences */
+	protected Preferences preferences = Preferences.getInstance();
+	
+	/** A local references to the notification preferences */
+	protected NotificationPreferences nPreferences = this.preferences.getNotificationPreferences();
+	
 	/**
 	 * Default constructor.
 	 */
@@ -107,13 +116,8 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	public NotificationPanel() {
 		this.waitTimerLock = new Object();
 		
-		// get the preferences
-		Preferences preferences = Preferences.getInstance();
-		NotificationPreferences nPreferences = preferences.getNotificationPreferences();
-		
 		// get the primary device and size
-		GraphicsDevice device = preferences.getPrimaryOrDefaultDevice();
-		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		GraphicsDevice device = this.preferences.getPrimaryOrDefaultDevice();
 		
 		// get the bible slide template
 		NotificationSlideTemplate template = this.getTemplate();
@@ -132,27 +136,9 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		this.txtText.setColumns(20);
 		this.txtText.addFocusListener(new SelectTextFocusListener(this.txtText));
 		
-		List<SlideThumbnail> thumbs = SlideLibrary.getThumbnails(NotificationSlideTemplate.class);
-		// add in the default template
-		NotificationSlideTemplate dTemplate = NotificationSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
-		BufferedImage image = dTemplate.getThumbnail(SlideLibrary.THUMBNAIL_SIZE);
-		SlideThumbnail temp = new SlideThumbnail(SlideFile.NOT_STORED, dTemplate.getName(), image);
-		thumbs.add(temp);
-		// find the selected template
-		SlideThumbnail selected = null;
-		for (SlideThumbnail thumb : thumbs) {
-			if (thumb.getFile() == SlideFile.NOT_STORED) {
-				if (nPreferences.getTemplate() == null) {
-					selected = thumb;
-					break;
-				}
-			} else if (thumb.getFile().getPath().equals(nPreferences.getTemplate())) {
-				selected = thumb;
-				break;
-			}
-		}
-		Collections.sort(thumbs);
-		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbs.toArray(new SlideThumbnail[0]));
+		SlideThumbnail[] thumbnails = this.getThumbnails();
+		SlideThumbnail selected = this.getSelectedThumbnail(thumbnails);
+		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbnails);
 		if (selected != null) {
 			this.cmbTemplates.setSelectedItem(selected);
 		}
@@ -162,7 +148,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		
 		this.txtWaitPeriod = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtWaitPeriod.setToolTipText(Messages.getString("panel.notification.wait.tooltip"));
-		this.txtWaitPeriod.setValue(nPreferences.getWaitPeriod());
+		this.txtWaitPeriod.setValue(this.nPreferences.getWaitPeriod());
 		this.txtWaitPeriod.setColumns(5);
 		this.txtWaitPeriod.addFocusListener(new SelectTextFocusListener(this.txtWaitPeriod));
 		
@@ -171,22 +157,22 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		
 		this.cmbInTransition = new JComboBox<Transition>(Transitions.IN);
 		this.cmbInTransition.setRenderer(new TransitionListCellRenderer());
-		this.cmbInTransition.setSelectedItem(Transitions.getTransitionForId(nPreferences.getSendTransitionId(), Transition.Type.IN));
+		this.cmbInTransition.setSelectedItem(Transitions.getTransitionForId(this.nPreferences.getSendTransitionId(), Transition.Type.IN));
 		this.cmbInTransition.setToolTipText(Messages.getString("panel.notification.send.inTransition"));
 		this.txtInTransition = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtInTransition.addFocusListener(new SelectTextFocusListener(this.txtInTransition));
 		this.txtInTransition.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtInTransition.setValue(nPreferences.getSendTransitionDuration());
+		this.txtInTransition.setValue(this.nPreferences.getSendTransitionDuration());
 		this.txtInTransition.setColumns(3);
 		
 		this.cmbOutTransition = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbOutTransition.setRenderer(new TransitionListCellRenderer());
-		this.cmbOutTransition.setSelectedItem(Transitions.getTransitionForId(nPreferences.getClearTransitionId(), Transition.Type.OUT));
+		this.cmbOutTransition.setSelectedItem(Transitions.getTransitionForId(this.nPreferences.getClearTransitionId(), Transition.Type.OUT));
 		this.cmbOutTransition.setToolTipText(Messages.getString("panel.notification.send.outTransition"));
 		this.txtOutTransition = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtOutTransition.addFocusListener(new SelectTextFocusListener(this.txtOutTransition));
 		this.txtOutTransition.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtOutTransition.setValue(nPreferences.getClearTransitionDuration());
+		this.txtOutTransition.setValue(this.nPreferences.getClearTransitionDuration());
 		this.txtOutTransition.setColumns(3);
 		
 		if (!transitionsSupported) {
@@ -239,16 +225,12 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	 * @return {@link NotificationSlideTemplate}
 	 */
 	private NotificationSlideTemplate getTemplate() {
-		// get the preferences
-		Preferences preferences = Preferences.getInstance();
-		NotificationPreferences nPreferences = preferences.getNotificationPreferences();
-		
 		// get the primary device size
-		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		Dimension displaySize = this.preferences.getPrimaryOrDefaultDeviceResolution();
 		
 		// get the bible slide template
 		NotificationSlideTemplate template = null;
-		String templatePath = nPreferences.getTemplate();
+		String templatePath = this.nPreferences.getTemplate();
 		if (templatePath != null && templatePath.trim().length() > 0) {
 			try {
 				template = SlideLibrary.getTemplate(templatePath, NotificationSlideTemplate.class);
@@ -262,13 +244,63 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		}
 		
 		// check the template size against the display size
-		if (template.getDeviceWidth() != displaySize.width || template.getDeviceHeight() != displaySize.height) {
-			// log a message and modify the template to fit
-			LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
-			template.adjustSize(displaySize.width, displaySize.height);
-		}
+		this.verifyTemplateDimensions(template, displaySize);
 		
 		return template;
+	}
+	
+	/**
+	 * Verifies the template is sized to the given size.
+	 * <p>
+	 * If not, the template is adjusted to fit.
+	 * @param template the template
+	 * @param size the size
+	 */
+	private void verifyTemplateDimensions(NotificationSlideTemplate template, Dimension size) {
+		// check the template size against the display size
+		if (template.getDeviceWidth() != size.width || template.getDeviceHeight() != size.height) {
+			// log a message and modify the template to fit
+			LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
+			template.adjustSize(size.width, size.height);
+		}
+	}
+	
+	/**
+	 * Returns an array of {@link SlideThumbnail}s for {@link NotificationSlideTemplate}s.
+	 * @return {@link SlideThumbnail}[]
+	 */
+	private SlideThumbnail[] getThumbnails() {
+		Dimension displaySize = this.preferences.getPrimaryOrDefaultDeviceResolution();
+		
+		List<SlideThumbnail> thumbs = SlideLibrary.getThumbnails(NotificationSlideTemplate.class);
+		// add in the default template
+		NotificationSlideTemplate dTemplate = NotificationSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
+		BufferedImage image = dTemplate.getThumbnail(SlideLibrary.THUMBNAIL_SIZE);
+		SlideThumbnail temp = new SlideThumbnail(SlideFile.NOT_STORED, dTemplate.getName(), image);
+		thumbs.add(temp);
+		// sort them
+		Collections.sort(thumbs);
+		
+		return thumbs.toArray(new SlideThumbnail[0]);
+	}
+	
+	/**
+	 * Returns the selected thumbnail for the selected {@link NotificationSlideTemplate}
+	 * given in the preferences.
+	 * @param thumbnails the list of all slide thumbnails
+	 * @return {@link SlideThumbnail}
+	 */
+	private SlideThumbnail getSelectedThumbnail(SlideThumbnail[] thumbnails) {
+		for (SlideThumbnail thumb : thumbnails) {
+			if (thumb.getFile() == SlideFile.NOT_STORED) {
+				if (this.nPreferences.getTemplate() == null) {
+					return thumb;
+				}
+			} else if (thumb.getFile().getPath().equals(this.nPreferences.getTemplate())) {
+				return thumb;
+			}
+		}
+		return null;
 	}
 	
 	/* (non-Javadoc)
@@ -282,10 +314,8 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 				SlideThumbnail thumbnail = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
 				if (thumbnail != null) {
 					NotificationSlideTemplate template = null;
+					Dimension size = this.preferences.getPrimaryOrDefaultDeviceResolution();
 					if (thumbnail.getFile() == SlideFile.NOT_STORED) {
-						// then its the default template
-						Preferences preferences = Preferences.getInstance();
-						Dimension size = preferences.getPrimaryOrDefaultDeviceResolution();
 						template = NotificationSlideTemplate.getDefaultTemplate(size.width, size.height);
 					} else {
 						try {
@@ -296,6 +326,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 							return;
 						}
 					}
+					this.verifyTemplateDimensions(template, size);
 					this.slide = template.createSlide();
 				}
 			}
@@ -307,21 +338,39 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	 */
 	@Override
 	public void preferencesChanged() {
-		// when the preferences change we need to check if the display
-		// size was changed and update the slides if necessary
-
-		// get the preferences
-		Preferences preferences = Preferences.getInstance();
+		this.onPreferencesOrSlideLibraryChanged();
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.SlideLibraryListener#slideLibraryChanged()
+	 */
+	@Override
+	public void slideLibraryChanged() {
+		this.onPreferencesOrSlideLibraryChanged();
+	}
+	
+	/**
+	 * Called when the preferences or the slide library changes.
+	 * <p>
+	 * The preferences can alter the selected template and the slide library
+	 * can be changed from the preferences dialog. Because of this, we need
+	 * to perform the same action for both events.
+	 */
+	private void onPreferencesOrSlideLibraryChanged() {
+		SlideThumbnail[] thumbnails = this.getThumbnails();
+		SlideThumbnail selected = this.getSelectedThumbnail(thumbnails);
 		
-		// get the primary device
-		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		// update the list of templates
+		this.cmbTemplates.removeAllItems();
+		for (SlideThumbnail thumb : thumbnails) {
+			this.cmbTemplates.addItem(thumb);
+		}
 		
-		// FIXME we need to update the listing of templates and the selected template and the local template
-		
-		if (this.slide.getDeviceWidth() != displaySize.width || this.slide.getDeviceHeight() != displaySize.height) {
-			// adjust the slide size
-			this.slide.adjustSize(displaySize.width, displaySize.height);
-			LOGGER.info("Adjusting slides due to display size change.");
+		// set the selected one
+		if (selected != null) {
+			this.cmbTemplates.setSelectedItem(selected);
+		} else {
+			this.cmbTemplates.setSelectedIndex(0);
 		}
 	}
 	
@@ -330,7 +379,6 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	 */
 	@Override
 	public void actionPerformed(ActionEvent event) {
-		NotificationPreferences preferences = Preferences.getInstance().getNotificationPreferences();
 		if ("send".equals(event.getActionCommand())) {
 			// get the text
 			String text = this.txtText.getText();
@@ -342,11 +390,11 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 				TransitionAnimator in = new TransitionAnimator(
 						(Transition)this.cmbInTransition.getSelectedItem(),
 						((Number)this.txtInTransition.getValue()).intValue(),
-						Easings.getEasingForId(preferences.getSendTransitionEasingId()));
+						Easings.getEasingForId(this.nPreferences.getSendTransitionEasingId()));
 				TransitionAnimator out = new TransitionAnimator(
 						(Transition)this.cmbOutTransition.getSelectedItem(),
 						((Number)this.txtOutTransition.getValue()).intValue(),
-						Easings.getEasingForId(preferences.getClearTransitionEasingId()));
+						Easings.getEasingForId(this.nPreferences.getClearTransitionEasingId()));
 				// get the wait duration
 				int wait = ((Number)this.txtWaitPeriod.getValue()).intValue();
 				// send the notification
@@ -364,7 +412,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 			TransitionAnimator animator = new TransitionAnimator(
 					(Transition)this.cmbOutTransition.getSelectedItem(),
 					((Number)this.txtOutTransition.getValue()).intValue(),
-					Easings.getEasingForId(preferences.getClearTransitionEasingId()));
+					Easings.getEasingForId(this.nPreferences.getClearTransitionEasingId()));
 			// get the notification slide window
 			SlideWindow window = SlideWindows.getPrimaryNotificationWindow();
 			if (window != null) {
