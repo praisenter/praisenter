@@ -118,82 +118,82 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	// data
 	
 	/** True if the slide/template has been changed */
-	protected boolean slideUpdated;
+	private boolean slideUpdated;
 	
 	// input
 	
 	/** The slide being edited */
-	protected Slide slide;
+	private Slide slide;
 
 	// components
 	
 	/** The slide/template name */
-	protected JTextField txtSlideName;
+	private JTextField txtSlideName;
 	
 	/** The list resolution targets */
-	protected JComboBox<Resolution> cmbResolutionTargets;
+	private JComboBox<Resolution> cmbResolutionTargets;
 	
 	/** A button to add resolutions */
-	protected JButton btnAddResolution;
+	private JButton btnAddResolution;
 
 	/** A button to remove a resolution */
-	protected JButton btnRemoveResolution;
+	private JButton btnRemoveResolution;
 	
 	/** The list of components */
-	protected JList<SlideComponent> lstComponents;
+	private JList<SlideComponent> lstComponents;
 	
 	/** The panel used to preview the changes */
-	protected SlideEditorPreviewPanel pnlSlidePreview;
+	private SlideEditorPreviewPanel pnlSlidePreview;
 	
 	/** Button to move the component back */
-	protected JButton btnMoveBack;
+	private JButton btnMoveBack;
 	
 	/** Button to move the component forward */
-	protected JButton btnMoveForward;
+	private JButton btnMoveForward;
 
 	/** Button to remove the component */
-	protected JButton btnRemoveComponent;
+	private JButton btnRemoveComponent;
 	
 	/** Button to add a new generic component */
-	protected JButton btnAddGenericComponent;
+	private JButton btnAddGenericComponent;
 	
 	/** Button to add a new text component */
-	protected JButton btnAddTextComponent;
+	private JButton btnAddTextComponent;
 	
 	/** Button to add a new image component */
-	protected JButton btnAddImageComponent;
+	private JButton btnAddImageComponent;
 	
 	/** Button to add a new video component */
-	protected JButton btnAddVideoComponent;
+	private JButton btnAddVideoComponent;
 	
 	/** Button to add a new audio component */
-	protected JButton btnAddAudioComponent;
+	private JButton btnAddAudioComponent;
 	
 	// editor panels
 	
 	/** Generic editor panel for {@link GenericComponent}s */
-	protected GenericComponentEditorPanel<GenericComponent> pnlGeneric;
+	private GenericComponentEditorPanel<GenericComponent> pnlGeneric;
 	
 	/** Text editor panel for {@link TextComponent}s */
-	protected TextComponentEditorPanel pnlText;
+	private TextComponentEditorPanel pnlText;
 	
 	/** Image editor panel for {@link ImageMediaComponent}s */
-	protected ImageMediaComponentEditorPanel pnlImage;
+	private ImageMediaComponentEditorPanel pnlImage;
 	
 	/** Video editor panel for {@link VideoMediaComponent}s */
-	protected VideoMediaComponentEditorPanel pnlVideo;
+	private VideoMediaComponentEditorPanel pnlVideo;
 	
 	/** Audio editor panel for {@link AudioMediaComponent}s */
-	protected AudioMediaComponentEditorPanel pnlAudio;
+	private AudioMediaComponentEditorPanel pnlAudio;
 	
 	/** Background editor panel */
-	protected BackgroundEditorPanel pnlBackground;
+	private BackgroundEditorPanel pnlBackground;
 	
 	/** Panel for the editor panels */
-	protected JPanel pnlEditorCards;
+	private JPanel pnlEditorCards;
 	
 	/** The layout for the editor panel */
-	protected CardLayout layEditorCards;
+	private CardLayout layEditorCards;
 	
 	// mouse commands
 	

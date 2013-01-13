@@ -16,8 +16,8 @@ import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.PositionedComponent;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.Slide;
-import org.praisenter.slide.ui.SlidePreviewMetrics;
 import org.praisenter.slide.ui.preview.SingleSlidePreviewPanel;
+import org.praisenter.slide.ui.preview.SlidePreviewMetrics;
 
 /**
  * A custom preview panel for editing slides.

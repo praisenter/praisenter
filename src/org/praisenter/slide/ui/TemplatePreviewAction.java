@@ -1,6 +1,5 @@
 package org.praisenter.slide.ui;
 
-import org.praisenter.slide.Slide;
 import org.praisenter.slide.Template;
 
 /**
@@ -10,7 +9,7 @@ import org.praisenter.slide.Template;
  * @since 2.0.0
  * @param <E> the {@link Template} type
  */
-public class TemplatePreviewAction<E extends Slide & Template> extends PreviewAction<E> {
+public class TemplatePreviewAction<E extends Template> extends PreviewAction<E> {
 	/** The template class */
 	public Class<E> clazz;
 	
@@ -29,6 +28,6 @@ public class TemplatePreviewAction<E extends Slide & Template> extends PreviewAc
 	 */
 	@Override
 	public Class<E> getSlideClass() {
-		return clazz;
+		return this.clazz;
 	}
 }

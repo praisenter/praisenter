@@ -52,75 +52,75 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 	// labels
 	
 	/** The label for text */
-	protected JLabel lblText;
+	private JLabel lblText;
 	
 	/** The font family label */
-	protected JLabel lblFontFamily;
+	private JLabel lblFontFamily;
 	
 	/** The font size label */
-	protected JLabel lblFontSize;
+	private JLabel lblFontSize;
 	
 	/** The layout label */
-	protected JLabel lblLayout;
+	private JLabel lblLayout;
 	
 	// controls
 	
 	/** The checkbox for text visibility */
-	protected JCheckBox chkTextVisible;
+	private JCheckBox chkTextVisible;
 	
 	/** The font family combo box */
-	protected JComboBox<String> cmbFontFamilies;
+	private JComboBox<String> cmbFontFamilies;
 	
 	/** The toggle button for bold */
-	protected JToggleButton tglBold;
+	private JToggleButton tglBold;
 	
 	/** The toggle button for italic */
-	protected JToggleButton tglItalic;
+	private JToggleButton tglItalic;
 	
 	/** The bold/italic panel */
-	protected JPanel pnlBoldItalic;
+	private JPanel pnlBoldItalic;
 	
 	/** The font size spinner */
-	protected JSpinner spnFontSize;
+	private JSpinner spnFontSize;
 	
 	/** The font size scale type combo box */
-	protected JComboBox<FontScaleType> cmbFontScaleType;
+	private JComboBox<FontScaleType> cmbFontScaleType;
 	
 	/** The horizontal text alignment left toggle button */
-	protected JToggleButton tglHorizontalTextAlignmentLeft;
+	private JToggleButton tglHorizontalTextAlignmentLeft;
 	
 	/** The horizontal text alignment center toggle button */
-	protected JToggleButton tglHorizontalTextAlignmentCenter;
+	private JToggleButton tglHorizontalTextAlignmentCenter;
 	
 	/** The horizontal text alignment right toggle button */
-	protected JToggleButton tglHorizontalTextAlignmentRight;
+	private JToggleButton tglHorizontalTextAlignmentRight;
 	
 	/** The vertical text alignment top toggle button */
-	protected JToggleButton tglVerticalTextAlignmentTop;
+	private JToggleButton tglVerticalTextAlignmentTop;
 	
 	/** The vertical text alignment center toggle button */
-	protected JToggleButton tglVerticalTextAlignmentCenter;
+	private JToggleButton tglVerticalTextAlignmentCenter;
 	
 	/** The vertical text alignment bottom toggle button */
-	protected JToggleButton tglVerticalTextAlignmentBottom;
+	private JToggleButton tglVerticalTextAlignmentBottom;
 	
 	/** The horizontal text alignment panel */
-	protected JPanel pnlHorizontalTextAlignment;
+	private JPanel pnlHorizontalTextAlignment;
 
 	/** The vertical text alignment panel */
-	protected JPanel pnlVerticalTextAlignment;
+	private JPanel pnlVerticalTextAlignment;
 	
 	/** The wrap text check box */
-	protected JCheckBox chkWrapText;
+	private JCheckBox chkWrapText;
 	
 	/** The padding text box */
-	protected JSpinner spnPadding;
+	private JSpinner spnPadding;
 
 	/** The font fill */
-	protected JButton btnFillEditor;
+	private JButton btnFillEditor;
 	
 	/** The text box for the text */
-	protected JTextArea txtText;
+	private JTextArea txtText;
 
 	/**
 	 * Default constructor.

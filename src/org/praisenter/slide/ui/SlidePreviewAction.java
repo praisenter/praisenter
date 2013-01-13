@@ -28,6 +28,6 @@ public class SlidePreviewAction<E extends Slide> extends PreviewAction<E> {
 	 */
 	@Override
 	public Class<E> getSlideClass() {
-		return clazz;
+		return this.clazz;
 	}
 }

@@ -46,7 +46,7 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 	private static final long serialVersionUID = -2274087793090854194L;
 
 	/** The default wait period text box */
-	protected JFormattedTextField txtDefaultWaitPeriod;
+	private JFormattedTextField txtDefaultWaitPeriod;
 
 	// template
 	

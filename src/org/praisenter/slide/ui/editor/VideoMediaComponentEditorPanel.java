@@ -49,28 +49,28 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	private static final Logger LOGGER = Logger.getLogger(VideoMediaComponentEditorPanel.class);
 	
 	/** The video label */
-	protected JLabel lblVideo;
+	private JLabel lblVideo;
 	
 	/** The scale type label */
-	protected JLabel lblScaleType;
+	private JLabel lblScaleType;
 
 	/** The image visibility checkbox */
-	protected JCheckBox chkVideoVisible;
+	private JCheckBox chkVideoVisible;
 	
 	/** The image media list */
-	protected JList<MediaThumbnail> lstVideos;
+	private JList<MediaThumbnail> lstVideos;
 	
 	/** The scale type combo box */
-	protected JComboBox<ScaleType> cmbScaleType;
+	private JComboBox<ScaleType> cmbScaleType;
 	
 	/** The checkbox for muting the audio */
-	protected JCheckBox chkAudioMuted;
+	private JCheckBox chkAudioMuted;
 	
 	/** The checkbox for looping the media */
-	protected JCheckBox chkLooped;
+	private JCheckBox chkLooped;
 	
 	/** The button to manage the media library */
-	protected JButton btnManageMedia;
+	private JButton btnManageMedia;
 	
 	/**
 	 * Default constructor.

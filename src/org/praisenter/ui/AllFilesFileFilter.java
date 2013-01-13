@@ -1,4 +1,4 @@
-package org.praisenter.media.ui;
+package org.praisenter.ui;
 
 import java.io.File;
 
@@ -7,8 +7,8 @@ import javax.swing.filechooser.FileFilter;
 /**
  * File filter for any type of file.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 public class AllFilesFileFilter extends FileFilter {
 	/** The filter description */
