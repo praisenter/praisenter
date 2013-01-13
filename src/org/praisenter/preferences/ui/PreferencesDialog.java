@@ -166,6 +166,7 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		// execute the save on another thread and show a progress bar
 		TaskProgressDialog.show(this, Messages.getString("dialog.preferences.save.task.title"), task);
 		if (task.isSuccessful()) {
+			this.preferencesUpdated = true;
 			// show a success message
 			JOptionPane.showMessageDialog(
 					this, 

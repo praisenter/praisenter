@@ -187,7 +187,7 @@ public class NewSlideDialog extends JDialog implements ActionListener {
 					this.slide = BibleSlideTemplate.getDefaultTemplate(size.width, size.height);
 					this.slide.setName(Messages.getString("panel.slide.create.template.name"));
 				} else if (this.rdoSongTemplate.isSelected()) {
-					this.slide = SongSlideTemplate.getDefaultTemplate(size.width, size.width);
+					this.slide = SongSlideTemplate.getDefaultTemplate(size.width, size.height);
 					this.slide.setName(Messages.getString("panel.slide.create.template.name"));
 				} else if (this.rdoNotificationTemplate.isSelected()) {
 					this.slide = NotificationSlideTemplate.getDefaultTemplate(size.width, size.height);

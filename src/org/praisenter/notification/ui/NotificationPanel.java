@@ -142,7 +142,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		if (selected != null) {
 			this.cmbTemplates.setSelectedItem(selected);
 		}
-		this.cmbTemplates.setToolTipText(Messages.getString("panel.preferences.template.tooltip"));
+		this.cmbTemplates.setToolTipText(Messages.getString("panel.template"));
 		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
 		this.cmbTemplates.addItemListener(this);
 		
@@ -358,9 +358,12 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	 */
 	private void onPreferencesOrSlideLibraryChanged() {
 		SlideThumbnail[] thumbnails = this.getThumbnails();
-		SlideThumbnail selected = this.getSelectedThumbnail(thumbnails);
 		
 		// update the list of templates
+		SlideThumbnail selected = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
+		if (selected == null) {
+			selected = this.getSelectedThumbnail(thumbnails);
+		}
 		this.cmbTemplates.removeAllItems();
 		for (SlideThumbnail thumb : thumbnails) {
 			this.cmbTemplates.addItem(thumb);

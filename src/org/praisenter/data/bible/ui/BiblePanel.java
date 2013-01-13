@@ -87,7 +87,8 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-// FIXME add checkbox for smart transitions
+// FIXME add checkbox for smart transitions (song panel too?)
+// FIXME make the preview threaded 
 public class BiblePanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;
@@ -212,7 +213,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		if (selected != null) {
 			this.cmbTemplates.setSelectedItem(selected);
 		}
-		this.cmbTemplates.setToolTipText(Messages.getString("panel.preferences.template.tooltip"));
+		this.cmbTemplates.setToolTipText(Messages.getString("panel.template"));
 		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
 		this.cmbTemplates.addItemListener(this);
 		
@@ -843,7 +844,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 			try {
 				template = SlideLibrary.getTemplate(templatePath, BibleSlideTemplate.class);
 			} catch (SlideLibraryException e) {
-				LOGGER.error("Unable to load default notification template [" + templatePath + "]: ", e);
+				LOGGER.error("Unable to load preferences bible template [" + templatePath + "]: ", e);
 			}
 		}
 		if (template == null) {
@@ -935,10 +936,18 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	 * to perform the same action for both events.
 	 */
 	private void onPreferencesOrSlideLibraryChanged() {
+		// if the preferences or slide library changes we only want to make
+		// sure that we are using the latest template (so if it was edited
+		// we need to update the preview) and that we are using the latest
+		// listing of other templates
+		
 		SlideThumbnail[] thumbnails = this.getThumbnails();
-		SlideThumbnail selected = this.getSelectedThumbnail(thumbnails);
 		
 		// update the list of templates
+		SlideThumbnail selected = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
+		if (selected == null) {
+			selected = this.getSelectedThumbnail(thumbnails);
+		}
 		this.cmbTemplates.removeAllItems();
 		for (SlideThumbnail thumb : thumbnails) {
 			this.cmbTemplates.addItem(thumb);

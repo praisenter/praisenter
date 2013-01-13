@@ -57,6 +57,7 @@ import org.praisenter.ui.ZipFileFilter;
 // FIXME add import/export caps for slides and templates
 // FIXME implement equals/hashcode/tostring for all types that should have it
 // FIXME add template selectors to the song/bible/notification uis
+// FIXME bible translation manager
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;
@@ -262,8 +263,8 @@ public class Praisenter extends JFrame implements ActionListener {
 			if (changed) {
 				this.pnlNotification.slideLibraryChanged();
 				this.pnlBible.slideLibraryChanged();
+				this.pnlSongs.slideLibraryChanged();
 			}
-			// FIXME we need to update any listings of templates/slides if the slide library was changed and previews
 		} else if ("about".equals(command)) {
 			AboutDialog.show(this);
 		}
