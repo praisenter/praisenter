@@ -1,16 +1,10 @@
 package org.praisenter.data.song.ui;
 
-import java.awt.Dimension;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongPart;
-import org.praisenter.preferences.Preferences;
-import org.praisenter.preferences.SongPreferences;
-import org.praisenter.slide.SlideLibrary;
-import org.praisenter.slide.SlideLibraryException;
 import org.praisenter.slide.SongSlide;
 import org.praisenter.slide.SongSlideTemplate;
 import org.praisenter.slide.ui.preview.InlineSlidePreviewPanel;
@@ -24,9 +18,6 @@ import org.praisenter.slide.ui.preview.InlineSlidePreviewPanel;
 public class SongSlidePreviewPanel extends InlineSlidePreviewPanel {
 	/** The version id */
 	private static final long serialVersionUID = -6376569581892016128L;
-	
-	/** The class level logger */
-	private static final Logger LOGGER = Logger.getLogger(SongSlidePreviewPanel.class);
 	
 	/** A mapping of the song parts to their respective slides */
 	private Map<SongPartKey, SongSlide> map;
@@ -42,39 +33,11 @@ public class SongSlidePreviewPanel extends InlineSlidePreviewPanel {
 	/**
 	 * Sets the currently displayed song.
 	 * @param song the song
+	 * @param template the song template
 	 */
-	public void setSong(Song song) {
+	public void setSong(Song song, SongSlideTemplate template) {
 		this.slides.clear();
-		
-		if (song != null) {
-			Preferences preferences = Preferences.getInstance();
-			SongPreferences sPreferences = preferences.getSongPreferences();
-			
-			// get the primary device
-			Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
-			
-			// get the bible slide template
-			SongSlideTemplate template = null;
-			String templatePath = sPreferences.getTemplate();
-			if (templatePath != null && templatePath.trim().length() > 0) {
-				try {
-					template = SlideLibrary.getTemplate(templatePath, SongSlideTemplate.class);
-				} catch (SlideLibraryException e) {
-					LOGGER.error("Unable to load default song template [" + templatePath + "]: ", e);
-				}
-			}
-			if (template == null) {
-				// if its still null, then use the default template
-				template = SongSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
-			}
-			
-			// check the template size against the display size
-			if (template.getWidth() != displaySize.width || template.getHeight() != displaySize.height) {
-				// log a message and modify the template to fit
-				LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
-				template.adjustSize(displaySize.width, displaySize.height);
-			}
-			
+		if (song != null && template != null) {
 			for (SongPart part : song.getParts()) {
 				SongSlide slide = template.createSlide();
 				slide.setName(part.getName());
