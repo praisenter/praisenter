@@ -8,7 +8,6 @@ import java.awt.event.ComponentListener;
 import javax.swing.JScrollPane;
 
 import org.praisenter.slide.Slide;
-import org.praisenter.slide.ui.SlidePreviewMetrics;
 
 /**
  * A custom scroll panel for an {@link InlineSlidePreviewPanel}.

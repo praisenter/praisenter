@@ -171,10 +171,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	// preferences 
 	
 	/** A local reference to the preferences */
-	protected Preferences preferences = Preferences.getInstance();
+	private Preferences preferences = Preferences.getInstance();
 	
 	/** A local references to the bible preferences */
-	protected BiblePreferences bPreferences = this.preferences.getBiblePreferences();
+	private BiblePreferences bPreferences = this.preferences.getBiblePreferences();
 	
 	/**
 	 * Default constructor.

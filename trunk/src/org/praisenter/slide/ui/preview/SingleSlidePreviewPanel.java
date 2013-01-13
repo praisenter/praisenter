@@ -5,7 +5,6 @@ import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 
 import org.praisenter.slide.Slide;
-import org.praisenter.slide.ui.SlidePreviewMetrics;
 
 /**
  * Represents a generic single slide preview panel.

@@ -1,4 +1,4 @@
-package org.praisenter.slide.ui;
+package org.praisenter.slide.ui.preview;
 
 /**
  * Represents metrics about a slide.

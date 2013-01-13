@@ -46,19 +46,19 @@ public class AudioMediaComponentEditorPanel  extends SlideComponentEditorPanel<A
 	private static final Logger LOGGER = Logger.getLogger(AudioMediaComponentEditorPanel.class);
 	
 	/** The audio label */
-	protected JLabel lblAudio;
+	private JLabel lblAudio;
 	
 	/** The audio media list */
-	protected JList<MediaThumbnail> lstAudio;
+	private JList<MediaThumbnail> lstAudio;
 	
 	/** The checkbox for muting the audio */
-	protected JCheckBox chkAudioMuted;
+	private JCheckBox chkAudioMuted;
 	
 	/** The checkbox for looping the media */
-	protected JCheckBox chkLooped;
+	private JCheckBox chkLooped;
 	
 	/** The button to manage the media library */
-	protected JButton btnManageMedia;
+	private JButton btnManageMedia;
 	
 	/**
 	 * Default constructor.

@@ -49,22 +49,22 @@ public class ImageMediaComponentEditorPanel  extends GenericComponentEditorPanel
 	private static final Logger LOGGER = Logger.getLogger(ImageMediaComponentEditorPanel.class);
 	
 	/** The image label */
-	protected JLabel lblImage;
+	private JLabel lblImage;
 	
 	/** The scale type label */
-	protected JLabel lblScaleType;
+	private JLabel lblScaleType;
 
 	/** The image visibility checkbox */
-	protected JCheckBox chkImageVisible;
+	private JCheckBox chkImageVisible;
 	
 	/** The image media list */
-	protected JList<MediaThumbnail> lstImages;
+	private JList<MediaThumbnail> lstImages;
 	
 	/** The scale type combo box */
-	protected JComboBox<ScaleType> cmbScaleType;
+	private JComboBox<ScaleType> cmbScaleType;
 	
 	/** The button to manage the media library */
-	protected JButton btnManageMedia;
+	private JButton btnManageMedia;
 	
 	/**
 	 * Default constructor.

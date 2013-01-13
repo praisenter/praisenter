@@ -36,6 +36,7 @@ import org.praisenter.media.MediaType;
 import org.praisenter.resources.Messages;
 import org.praisenter.threading.AbstractTask;
 import org.praisenter.threading.TaskProgressDialog;
+import org.praisenter.ui.AllFilesFileFilter;
 import org.praisenter.ui.ImageFileFilter;
 import org.praisenter.ui.ImageFilePreview;
 import org.praisenter.utilities.WindowUtilities;
@@ -55,38 +56,38 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 	private static final Logger LOGGER = Logger.getLogger(MediaLibraryPanel.class);
 	
 	/** Image support */
-	protected static final boolean IMAGES_SUPPORTED = MediaLibrary.isMediaSupported(MediaType.IMAGE);
+	private static final boolean IMAGES_SUPPORTED = MediaLibrary.isMediaSupported(MediaType.IMAGE);
 	
 	/** Video support */
-	protected static final boolean VIDEOS_SUPPORTED = MediaLibrary.isMediaSupported(MediaType.VIDEO);
+	private static final boolean VIDEOS_SUPPORTED = MediaLibrary.isMediaSupported(MediaType.VIDEO);
 	
 	/** Audio support */
-	protected static final boolean AUDIO_SUPPORTED = MediaLibrary.isMediaSupported(MediaType.AUDIO);
+	private static final boolean AUDIO_SUPPORTED = MediaLibrary.isMediaSupported(MediaType.AUDIO);
 	
 	// data
 	
 	/** True if media was added or removed */
-	protected boolean mediaLibraryUpdated;
+	private boolean mediaLibraryUpdated;
 	
 	// controls
 	
 	/** The remove the selected media button */
-	protected JButton btnRemoveMedia;
+	private JButton btnRemoveMedia;
 	
 	/** The tabs for the media types */
-	protected JTabbedPane mediaTabs;
+	private JTabbedPane mediaTabs;
 	
 	/** The image media list */
-	protected JList<MediaThumbnail> lstImages;
+	private JList<MediaThumbnail> lstImages;
 	
 	/** The video media list */
-	protected JList<MediaThumbnail> lstVideos;
+	private JList<MediaThumbnail> lstVideos;
 	
 	/** The audio media list */
-	protected JList<MediaThumbnail> lstAudio;
+	private JList<MediaThumbnail> lstAudio;
 	
 	/** The media properties panel */
-	protected MediaPropertiesPanel pnlProperties;
+	private MediaPropertiesPanel pnlProperties;
 	
 	/**
 	 * Default constructor.

@@ -25,7 +25,6 @@ import org.praisenter.images.Images;
 import org.praisenter.preferences.RenderQuality;
 import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.Slide;
-import org.praisenter.slide.ui.SlidePreviewMetrics;
 import org.praisenter.utilities.FontManager;
 import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.utilities.LookAndFeelUtilities;

@@ -62,52 +62,52 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	// slide
 	
 	/** The notification slide */
-	protected NotificationSlide slide;
+	private NotificationSlide slide;
 	
 	// controls
 	
 	/** The notification text */
-	protected JTextField txtText;
+	private JTextField txtText;
 
 	/** The template combo box */
 	private JComboBox<SlideThumbnail> cmbTemplates;
 	
 	/** The notification wait period */
-	protected JFormattedTextField txtWaitPeriod;
+	private JFormattedTextField txtWaitPeriod;
 	
 	/** The in transition */
-	protected JComboBox<Transition> cmbInTransition;
+	private JComboBox<Transition> cmbInTransition;
 	
 	/** The in transition duration */
-	protected JFormattedTextField txtInTransition;
+	private JFormattedTextField txtInTransition;
 	
 	/** The out transition */
-	protected JComboBox<Transition> cmbOutTransition;
+	private JComboBox<Transition> cmbOutTransition;
 	
 	/** The out transition duration */
-	protected JFormattedTextField txtOutTransition;
+	private JFormattedTextField txtOutTransition;
 	
 	/** The send button */
-	protected JButton btnSend;
+	private JButton btnSend;
 	
 	/** The manual clear button */
-	protected JButton btnClear;
+	private JButton btnClear;
 	
 	// state
 	
 	/** The wait duration timer */
-	protected Timer waitTimer;
+	private Timer waitTimer;
 	
 	/** The wait timer lock */
-	protected Object waitTimerLock;
+	private Object waitTimerLock;
 	
 	// preferences 
 	
 	/** A local reference to the preferences */
-	protected Preferences preferences = Preferences.getInstance();
+	private Preferences preferences = Preferences.getInstance();
 	
 	/** A local references to the notification preferences */
-	protected NotificationPreferences nPreferences = this.preferences.getNotificationPreferences();
+	private NotificationPreferences nPreferences = this.preferences.getNotificationPreferences();
 	
 	/**
 	 * Default constructor.

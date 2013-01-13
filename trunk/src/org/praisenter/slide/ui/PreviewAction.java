@@ -12,7 +12,7 @@ import org.praisenter.slide.Template;
  */
 public abstract class PreviewAction<E extends Slide> {
 	/** The path to the slide/template */
-	public String path;
+	protected String path;
 	
 	/**
 	 * Minimal constructor.
@@ -20,6 +20,14 @@ public abstract class PreviewAction<E extends Slide> {
 	 */
 	public PreviewAction(String path) {
 		this.path = path;
+	}
+	
+	/**
+	 * Returns the slide path.
+	 * @return String
+	 */
+	public String getPath() {
+		return this.path;
 	}
 	
 	/**
