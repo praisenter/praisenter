@@ -271,6 +271,8 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		// we will only NOT transition the background IF both slides have a video background component AND
 		// they are the same video
 		// check if there is a previous slide and that it has a background
+		// FIXME allow the option for smart transitions on image media components
+		// FIXME add an option to fade out audio during the transition (perhaps fade in as well)
 		if (this.currentSlide != null) {
 			// if so, then check if its background was a video
 			if (this.currentSlide.getBackground() instanceof VideoMediaComponent) {

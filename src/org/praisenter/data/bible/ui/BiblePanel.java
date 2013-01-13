@@ -87,6 +87,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
+// FIXME add checkbox for smart transitions
 public class BiblePanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;
