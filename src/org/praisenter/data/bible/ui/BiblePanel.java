@@ -87,7 +87,6 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 1.0.0
  * @since 1.0.0
  */
-// FIXME add checkbox for smart transitions (song panel too?)
 // FIXME make the preview threaded 
 public class BiblePanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener {
 	/** The version id */
@@ -545,7 +544,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						.addGroup(subLayout.createParallelGroup()
 								.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(this.chkUseSecondaryBible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(this.chkUseSecondaryBible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(subLayout.createSequentialGroup()
 						.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
 								.addComponent(this.cmbBooks, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -562,11 +561,11 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						.addGroup(subLayout.createSequentialGroup()
 								.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 										.addComponent(lblPrimaryBible)
-										.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(this.chkUseSecondaryBible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+										.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 								.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 										.addComponent(lblSecondaryBible)
-										.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+										.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.chkUseSecondaryBible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 								.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
 										.addGroup(subLayout.createSequentialGroup()
 												.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.CENTER)

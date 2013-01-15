@@ -9,6 +9,7 @@ honor-izing for songs (change jesus to Jesus, etc)
 spellchecking
 
 Issues:
+EDT blocking: The EDT blocks whenever a long task is performed; this will cause any playing video to visibly pause
 Window Transluceny + Active Rendering: Forum post here: https://forums.oracle.com/forums/thread.jspa?threadID=2468664 that explains the problem
 OGG Audio/Video Synchronization: https://groups.google.com/forum/?fromgroups=#!topic/xuggler-users/CIti0aIsUlc
 Some videos fail to loop correctly: https://groups.google.com/forum/?fromgroups=#!topic/xuggler-users/bMQEJdQY2WU
@@ -31,4 +32,19 @@ Some videos fail to loop correctly: https://groups.google.com/forum/?fromgroups=
 2. Rendering using the EDT is slow on the Windows Vista machine (which is generally much slower with java for some reason)
 	a. Perform active rendering (not an option with Swing (see 1.a), possible with JavaFX and JOGL)
 	
+System Support
 
+Oracle Java (1.7): (http://www.oracle.com/technetwork/java/javase/config-417990.html)
+Windows XP SP3 or higher (32 or 64 bit)
+Ubuntu 11.04 or higher (32 or 64 bit)
+Mac OS X 10.7.3 or higher (64 bit only) 1.7.10 needed
+
+Xuggler (5.4): (http://www.xuggle.com/downloads) Java 1.5 or greater; GPL 3
+Windows XP or higher (32 or 64 bit)
+Ubuntu 11.10 or later (32 or 64 bit)
+Mac OS X 10.7 or higher (32 or 64 bit)
+
+JOGL (2.0-rc11): Java 1.6 or greater; Mostly BSD
+Windows (32 or 64 bit)
+Linux (32 or 64 bit)
+Mac OS X 10.5 or higher (32 or 64 bit)
