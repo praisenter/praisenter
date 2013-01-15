@@ -187,6 +187,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		this.pnlQuickSend = new SongQuickSendPanel(this);
 		
 		JLabel lblParts = new JLabel(Messages.getString("panel.song.parts"));
+		lblParts.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
 		this.cmbParts = new JComboBox<SongPart>(new SongPart[] { new SongPart() });
 		this.cmbParts.setRenderer(new SongPartCellRenderer());
 		this.cmbParts.setEnabled(false);
