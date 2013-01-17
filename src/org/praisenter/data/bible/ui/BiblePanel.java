@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.data.bible.ui;
 
 import java.awt.BorderLayout;
@@ -84,7 +108,7 @@ import org.praisenter.utilities.WindowUtilities;
 /**
  * Panel for bible lookup and searching.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.0
  * @since 1.0.0
  */
 // FIXME make the preview threaded 
@@ -398,6 +422,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				updateLabels();
 			}
 		});
+		this.txtChapter.setHorizontalAlignment(JTextField.RIGHT);
 		this.txtChapter.addFocusListener(new SelectTextFocusListener(this.txtChapter));
 		
 		// verse text box
@@ -417,6 +442,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				updateLabels();
 			}
 		});
+		this.txtVerse.setHorizontalAlignment(JTextField.RIGHT);
 		this.txtVerse.addFocusListener(new SelectTextFocusListener(this.txtVerse));
 		
 		// setup the labels
@@ -588,7 +614,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				
 				// get the text column value
 				TableModel model = this.getModel();
-				Object object = model.getValueAt(row, 4);
+				Object object = model.getValueAt(row, 5);
 				if (object != null) {
 					// get the verse text
 					String text = object.toString();
@@ -693,7 +719,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				
 				// get the text column value
 				TableModel model = this.getModel();
-				Object object = model.getValueAt(row, 3);
+				Object object = model.getValueAt(row, 4);
 				if (object != null) {
 					// get the verse text
 					String text = object.toString();
@@ -827,7 +853,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		this.setLayout(new BorderLayout());
 		this.add(split, BorderLayout.CENTER);
 	}
-
+	
 	/**
 	 * Returns the template to use from the preferences.
 	 * @return {@link BibleSlideTemplate}
@@ -1082,7 +1108,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				}
 				
 				// execute the search
-				BibleSearch search = new BibleSearch(bible, text, ia, type, new BibleSearchCallback());
+				BibleSearch search = new BibleSearch(bible, text, ia, type, new BiblePanelSearchCallback());
 				this.bibleSearchThread.queueSearch(search);
 			}
 		}
@@ -1524,12 +1550,14 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	 * Sets the table column widths for the bible search results table.
 	 */
 	private void setBibleSearchTableWidths() {
-		this.tblBibleSearchResults.getColumnModel().getColumn(0).setMaxWidth(150);
-		this.tblBibleSearchResults.getColumnModel().getColumn(0).setPreferredWidth(110);
-		this.tblBibleSearchResults.getColumnModel().getColumn(1).setMaxWidth(35);
-		this.tblBibleSearchResults.getColumnModel().getColumn(1).setPreferredWidth(35);
+		this.tblBibleSearchResults.getColumnModel().getColumn(0).setMaxWidth(300);
+		this.tblBibleSearchResults.getColumnModel().getColumn(0).setPreferredWidth(150);
+		this.tblBibleSearchResults.getColumnModel().getColumn(1).setMaxWidth(150);
+		this.tblBibleSearchResults.getColumnModel().getColumn(1).setPreferredWidth(110);
 		this.tblBibleSearchResults.getColumnModel().getColumn(2).setMaxWidth(35);
 		this.tblBibleSearchResults.getColumnModel().getColumn(2).setPreferredWidth(35);
+		this.tblBibleSearchResults.getColumnModel().getColumn(3).setMaxWidth(35);
+		this.tblBibleSearchResults.getColumnModel().getColumn(3).setPreferredWidth(35);
 	}
 	
 	/**
@@ -1538,12 +1566,14 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	private void setVerseQueueTableWidths() {
 		this.tblVerseQueue.getColumnModel().getColumn(0).setMaxWidth(35);
 		this.tblVerseQueue.getColumnModel().getColumn(0).setPreferredWidth(35);
-		this.tblVerseQueue.getColumnModel().getColumn(1).setMaxWidth(150);
-		this.tblVerseQueue.getColumnModel().getColumn(1).setPreferredWidth(110);
-		this.tblVerseQueue.getColumnModel().getColumn(2).setMaxWidth(35);
-		this.tblVerseQueue.getColumnModel().getColumn(2).setPreferredWidth(35);
+		this.tblVerseQueue.getColumnModel().getColumn(1).setMaxWidth(300);
+		this.tblVerseQueue.getColumnModel().getColumn(1).setPreferredWidth(150);
+		this.tblVerseQueue.getColumnModel().getColumn(2).setMaxWidth(150);
+		this.tblVerseQueue.getColumnModel().getColumn(2).setPreferredWidth(110);
 		this.tblVerseQueue.getColumnModel().getColumn(3).setMaxWidth(35);
 		this.tblVerseQueue.getColumnModel().getColumn(3).setPreferredWidth(35);
+		this.tblVerseQueue.getColumnModel().getColumn(4).setMaxWidth(35);
+		this.tblVerseQueue.getColumnModel().getColumn(4).setPreferredWidth(35);
 	}
 	
 	/**
@@ -1659,10 +1689,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	/**
 	 * Callback for bible searching to update the table and results text.
 	 * @author William Bittle
-	 * @version 1.0.0
+	 * @version 2.0.0
 	 * @since 1.0.0
 	 */
-	private class BibleSearchCallback extends BibleSearchThread.Callback {
+	private final class BiblePanelSearchCallback extends BibleSearchCallback {
 		/* (non-Javadoc)
 		 * @see java.lang.Runnable#run()
 		 */

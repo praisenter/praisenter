@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.data.song;
 
 import java.io.File;
@@ -20,12 +44,13 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * Xml reader for the Praisenter's song format.
+ * SAX XML reader for the Praisenter's song format v1.0.0.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public class PraisenterSongReader extends DefaultHandler {
+@SuppressWarnings("deprecation")
+public class PraisenterSongReaderv1_0_0 extends DefaultHandler {
 	/**
 	 * Returns a new list of songs from the given file.
 	 * @param file the file to read from
@@ -35,7 +60,7 @@ public class PraisenterSongReader extends DefaultHandler {
 	 * @throws IOException thrown if an IO error occurs
 	 */
 	public static List<Song> fromXml(File file) throws ParserConfigurationException, SAXException, IOException {
-		return PraisenterSongReader.fromXml(new InputSource(new FileReader(file)));
+		return PraisenterSongReaderv1_0_0.fromXml(new InputSource(new FileReader(file)));
 	}
 	
 	/**
@@ -47,7 +72,7 @@ public class PraisenterSongReader extends DefaultHandler {
 	 * @throws IOException thrown if an IO error occurs
 	 */
 	public static List<Song> fromXml(String xml) throws ParserConfigurationException, SAXException, IOException {
-		return PraisenterSongReader.fromXml(new InputSource(new StringReader(xml)));
+		return PraisenterSongReaderv1_0_0.fromXml(new InputSource(new StringReader(xml)));
 	}
 	
 	/**
@@ -59,7 +84,7 @@ public class PraisenterSongReader extends DefaultHandler {
 	 * @throws IOException thrown if an IO error occurs
 	 */
 	public static List<Song> fromXml(InputStream stream) throws ParserConfigurationException, SAXException, IOException {
-		return PraisenterSongReader.fromXml(new InputSource(stream));
+		return PraisenterSongReaderv1_0_0.fromXml(new InputSource(stream));
 	}
 	
 	/**
@@ -74,7 +99,7 @@ public class PraisenterSongReader extends DefaultHandler {
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser parser = factory.newSAXParser();
 		
-		PraisenterSongReader reader = new PraisenterSongReader();
+		PraisenterSongReaderv1_0_0 reader = new PraisenterSongReaderv1_0_0();
 		
 		parser.parse(source, reader);
 		
@@ -96,7 +121,7 @@ public class PraisenterSongReader extends DefaultHandler {
 	/**
 	 * Hidden constructor.
 	 */
-	private PraisenterSongReader() {
+	private PraisenterSongReaderv1_0_0() {
 		this.songs = new ArrayList<Song>();
 	}
 	

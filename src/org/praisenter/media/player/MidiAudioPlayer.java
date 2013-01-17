@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, William Bittle
+ * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -10,9 +10,9 @@
  *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
  *     and the following disclaimer in the documentation and/or other materials provided with the 
  *     distribution.
- *   * Neither the name of William Bittle nor the names of its contributors may be used to endorse or 
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
  *     promote products derived from this software without specific prior written permission.
- * 
+ *     
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
@@ -59,8 +59,8 @@ import org.praisenter.media.MidiAudioMedia;
  * <p>
  * Setting the volume for a midi must be done after the midi audio has started.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> implements MediaPlayer<MidiAudioMedia>, MetaEventListener {
 	/** Logger for the class */

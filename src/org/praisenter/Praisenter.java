@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter;
 
 import java.awt.BorderLayout;
@@ -7,10 +31,12 @@ import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -23,6 +49,7 @@ import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.praisenter.data.DataException;
@@ -31,8 +58,9 @@ import org.praisenter.data.bible.UnboundBibleImporter;
 import org.praisenter.data.bible.ui.BiblePanel;
 import org.praisenter.data.errors.Errors;
 import org.praisenter.data.errors.ui.ExceptionDialog;
-import org.praisenter.data.song.SongExporter;
+import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongImporter;
+import org.praisenter.data.song.SongList;
 import org.praisenter.data.song.Songs;
 import org.praisenter.data.song.ui.SongsPanel;
 import org.praisenter.icons.Icons;
@@ -41,23 +69,26 @@ import org.praisenter.notification.ui.NotificationPanel;
 import org.praisenter.preferences.ui.PreferencesDialog;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.ui.SlideLibraryDialog;
+import org.praisenter.slide.ui.present.SlideWindows;
+import org.praisenter.threading.AbstractTask;
 import org.praisenter.threading.FileTask;
 import org.praisenter.threading.TaskProgressDialog;
 import org.praisenter.ui.AboutDialog;
 import org.praisenter.ui.ValidateFileChooser;
 import org.praisenter.ui.ZipFileFilter;
+import org.praisenter.xml.XmlIO;
 
 /**
  * Main window for the Praisenter application.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.0
  * @since 1.0.0
  */
 // TODO add xuggler video downloader (to download videos from the web)
 // FIXME add import/export caps for slides and templates
-// FIXME implement equals/hashcode/tostring for all types that should have it
-// FIXME add template selectors to the song/bible/notification uis
 // FIXME bible translation manager
+// FIXME Add a service schedule with import/export caps
+
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;
@@ -90,8 +121,6 @@ public class Praisenter extends JFrame implements ActionListener {
 		
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
-		
-		// FIXME Add a service schedule with import/export caps
 		
 		// create the notification panel
 		this.pnlNotification = new NotificationPanel();
@@ -218,7 +247,14 @@ public class Praisenter extends JFrame implements ActionListener {
 		}
 		
 		// exit the JVM on close of the app
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		this.addWindowListener(new java.awt.event.WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				SlideWindows.disposeWindows();
+				dispose();
+			}
+		});
 		
 		// size everything
 		this.pack();
@@ -429,31 +465,19 @@ public class Praisenter extends JFrame implements ActionListener {
 			int option = fileBrowser.showSaveDialog(this);
 			// check the option
 			if (option == JFileChooser.APPROVE_OPTION) {
-				File file = fileBrowser.getSelectedFile();
+				final File file = fileBrowser.getSelectedFile();
 				// create a new file task
-				FileTask task = new FileTask(file) {
+				AbstractTask task = new AbstractTask() {
 					@Override
 					public void run() {
 						try {
-							File file = this.getFile();
-							// export the errors
-							String text = SongExporter.exportSongs();
-							// see if the file exists
-							if (!file.exists()) {
-								try {
-									file.createNewFile();
-								} catch (IOException ex) {
-									this.handleException(ex);
-									return;
-								}
-							}
-							try (FileWriter fw = new FileWriter(file)) {
-								fw.write(text);
-								this.setSuccessful(true);
-							} catch (IOException ex) {
-								this.handleException(ex);
-							}
-						} catch (DataException ex) {
+							// load up the songs
+							List<Song> songs = Songs.getSongs();
+							// create the object to save
+							SongList list = new SongList(songs);
+							XmlIO.save(file.getAbsolutePath(), list);
+							this.setSuccessful(true);
+						} catch (DataException | JAXBException | IOException ex) {
 							this.handleException(ex);
 						}
 					}
