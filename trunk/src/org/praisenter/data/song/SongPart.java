@@ -1,15 +1,47 @@
+/*
+ * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.data.song;
 
 import java.text.MessageFormat;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.resources.Messages;
 
 /**
  * Represents a part of a {@link Song}; a verse for example.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.0
  * @since 1.0.0
  */
+@XmlRootElement(name = "Part")
+@XmlAccessorType(XmlAccessType.NONE)
 public class SongPart implements Comparable<SongPart> {
 	/** The new song id */
 	protected static final int NEW_SONG_PART_ID = -1;
@@ -21,24 +53,31 @@ public class SongPart implements Comparable<SongPart> {
 	public static final int BEGINNING_INDEX = 1;
 	
 	/** The song part id */
+	@XmlAttribute(name = "Id", required = false)
 	protected int id;
 	
 	/** The song id */
+	@XmlAttribute(name = "SongId", required = false)
 	protected int songId;
 	
 	/** The song part type */
+	@XmlAttribute(name = "Type", required = false)
 	protected SongPartType type;
 
 	/** The song part index; for sorting of like part types */
+	@XmlAttribute(name = "Index", required = false)
 	protected int index;
 	
 	/** The song part text */
+	@XmlElement(name = "Text", required = false, nillable = true)
 	protected String text;
 	
 	/** The song part order */
+	@XmlAttribute(name = "Order", required = false)
 	protected int order;
 	
 	/** The song part font size */
+	@XmlAttribute(name = "FontSize", required = false)
 	protected int fontSize;
 	
 	/**

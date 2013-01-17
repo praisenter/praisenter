@@ -1,9 +1,40 @@
 ===============================================================================
 Version 2.0.0
 ===============================================================================
-New Features: N/A
-Bug Fixes: N/A
-Other: N/A
+New Features: 
+  - Video & Audio media support (still experimental) for backgrounds and
+    standalone components
+  - Media Library for managing images, video, and audio.
+  - Custom standalone slides
+  - Slide templates for notification, bible, and songs.
+  - Template switching
+  - Slide/Template editor
+  - Slide/Template Library for managing templates and slides.
+  - Slide/Template resolution targeting
+  - Slide and component borders
+  - Gradient support.
+  - Preferences manager
+  - More informative Error Reporting buttons (save vs. send)
+  - A new easing "Back"
+  - Transition waiting
+  
+Bug Fixes:
+  - Auto adjusting of slides and templates based on target resolution and
+    actual resolution
+  - Reworked some transitions that were not pixel perfect
+  
+Other:
+  - New minimum requirements:
+  	Java 1.7
+  	At least 512 MB of dedicated RAM
+  	Windows XP SP3 or higher (32 or 64 bit)
+	Ubuntu 11.10 or higher (32 or 64 bit)
+	Mac OS X 10.7.3 or higher (64 bit only) Java (Sun) 1.7.10 or greater needed
+  - New deployment license:
+  	The majority of Praisenter source code is released under the New BSD open 
+  	source license.  The video and audio support now requires the GPL v3 on 
+  	related sources (ones that directly interact with the GPL v3 libraries).
+  	The distribution binaries are required to be GPL v3 now.
 
 ===============================================================================
 Version 1.0.0 (initial release)

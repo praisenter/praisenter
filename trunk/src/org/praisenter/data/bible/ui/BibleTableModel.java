@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.data.bible.ui;
 
 import java.util.List;
@@ -10,15 +34,16 @@ import org.praisenter.resources.Messages;
 /**
  * Table model for the results of a bible search.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.0
  * @since 1.0.0
  */
 public class BibleTableModel extends AbstractTableModel {
 	/** The version id */
-	private static final long serialVersionUID = -1023237320303369947L;
-	
+	private static final long serialVersionUID = 8519101677353181222L;
+
 	/** The column names */
 	protected final String[] columnNames = new String[] {
+		Messages.getString("panel.bible.version"),
 		Messages.getString("panel.bible.book"), 
 		Messages.getString("panel.bible.chapter"), 
 		Messages.getString("panel.bible.verse"),
@@ -67,12 +92,14 @@ public class BibleTableModel extends AbstractTableModel {
 			Verse verse = this.verses.get(rowIndex);
 			switch (columnIndex) {
 				case 0:
-					return verse.getBook().getName();
+					return verse.getBible().getName();
 				case 1:
-					return verse.getChapter();
+					return verse.getBook().getName();
 				case 2:
-					return verse.getVerse();
+					return verse.getChapter();
 				case 3:
+					return verse.getVerse();
+				case 4:
 					return verse.getText();
 				default:
 					return "";
@@ -91,6 +118,33 @@ public class BibleTableModel extends AbstractTableModel {
 			return this.verses.get(rowIndex);
 		}
 		return null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see javax.swing.table.AbstractTableModel#getColumnClass(int)
+	 */
+	@Override
+	public Class<?> getColumnClass(int columnIndex) {
+		if (columnIndex == this.getChapterColumn() || columnIndex == this.getVerseColumn()) {
+			return Number.class;
+		}
+		return super.getColumnClass(columnIndex);
+	}
+	
+	/**
+	 * Returns the chapter column number.
+	 * @return int
+	 */
+	protected int getChapterColumn() {
+		return 2;
+	}
+	
+	/**
+	 * Returns the verse column number.
+	 * @return int
+	 */
+	protected int getVerseColumn() {
+		return 3;
 	}
 	
 	/* (non-Javadoc)

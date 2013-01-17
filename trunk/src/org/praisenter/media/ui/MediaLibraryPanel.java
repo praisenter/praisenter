@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.media.ui;
 
 import java.awt.BorderLayout;
@@ -7,7 +31,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -278,9 +301,11 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 				AddMediaTask task = new AddMediaTask(paths);
 				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.media.addingMedia"), task);
 				
+				List<String> failed = task.getFailed();
+				List<Media> media = task.getMedia();
+				
 				// update the lists if any worked
-				if (task.failed.size() != paths.length) {
-					List<Media> media = task.media;
+				if (failed.size() != paths.length) {
 					for (Media m : media) {
 						// add the thumbnail to the appropriate list
 						JList<MediaThumbnail> list = null;
@@ -301,9 +326,9 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 				}
 				
 				// show errors if any failed
-				if (task.failed.size() > 0) {
+				if (failed.size() > 0) {
 					StringBuilder sb = new StringBuilder();
-					for (String path : task.failed) {
+					for (String path : failed) {
 						sb.append(path).append("<br />");
 					}
 					ExceptionDialog.show(
@@ -384,49 +409,5 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 	 */
 	public boolean isMediaLibraryUpdated() {
 		return this.mediaLibraryUpdated;
-	}
-	
-	/**
-	 * Custom task for adding media to the media library.
-	 * @author William Bittle
-	 * @version 2.0.0
-	 * @since 2.0.0
-	 */
-	private final class AddMediaTask extends AbstractTask {
-		/** The file system paths */
-		private String[] paths;
-		
-		/** The loaded media */
-		private List<Media> media;
-		
-		/** The failed paths */
-		private List<String> failed;
-		
-		/**
-		 * Minimal constructor.
-		 * @param paths the file system paths
-		 */
-		public AddMediaTask(String[] paths) {
-			this.paths = paths;
-			this.media = new ArrayList<Media>();
-			this.failed = new ArrayList<String>();
-		}
-		
-		/* (non-Javadoc)
-		 * @see java.lang.Runnable#run()
-		 */
-		@Override
-		public void run() {
-			for (String path : this.paths) {
-				try {
-					this.media.add(MediaLibrary.addMedia(path));
-					this.setSuccessful(true);
-				} catch (Exception e) {
-					this.failed.add(path);
-					LOGGER.error("An error occurred while attempting to add [" + path + "] to the media library: ", e);
-					this.handleException(e);
-				}
-			}
-		}
 	}
 }

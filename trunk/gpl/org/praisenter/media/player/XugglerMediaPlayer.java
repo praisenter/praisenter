@@ -1,3 +1,20 @@
+/*
+ * Praisenter: A free open source church presentation software.
+ * Copyright (C) 2012-2013  William Bittle  http://www.praisenter.org/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.praisenter.media.player;
 
 import java.awt.image.BufferedImage;
@@ -21,8 +38,8 @@ import com.xuggle.xuggler.IStreamCoder;
  * <p>
  * This class uses a number of threads to read and playback the given media.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
 public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	/** The class level logger */
@@ -406,7 +423,7 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	public void release() {
 		this.stop();
 		this.state = State.ENDED;
-		this.listeners.clear();
+		this.listeners = null;
 		// we overrode the end method of the reader class in
 		// our anonymous inner class to call the end() methods
 		// in sequence
@@ -473,9 +490,11 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 * @param image the video image
 	 */
 	private void notifyListeners(BufferedImage image) {
-		for (MediaPlayerListener listener : this.listeners) {
-			if (listener instanceof VideoMediaPlayerListener) {
-				((VideoMediaPlayerListener)listener).onVideoImage(image);
+		if (this.listeners != null) {
+			for (MediaPlayerListener listener : this.listeners) {
+				if (listener instanceof VideoMediaPlayerListener) {
+					((VideoMediaPlayerListener)listener).onVideoImage(image);
+				}
 			}
 		}
 	}

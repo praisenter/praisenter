@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.slide.ui.present;
 
 import java.awt.BorderLayout;
@@ -20,24 +44,24 @@ import org.praisenter.transitions.Transitions;
 /**
  * Represents a window that is used to display custom graphics.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.0
+ * @since 2.0.0
  */
-public class SlideWindow {
+public class SlideWindow extends JDialog {
+	/** The version id */
+	private static final long serialVersionUID = 3385134636780286237L;
+
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(SlideWindow.class);
 	
 	/** The device this display is for */
 	protected GraphicsDevice device;
 
-	/** The window used to display the Display */
-	protected JDialog dialog;
-
-	/** True if the surface is visible */
-	protected boolean visible;
-	
 	/** The rendering surface */
 	protected SlideSurface surface;
+	
+	/** True if the surface is visible */
+	protected boolean visible;
 	
 	/** True if the window is always the device size */
 	protected boolean fullScreen;
@@ -54,19 +78,18 @@ public class SlideWindow {
 	public SlideWindow(GraphicsDevice device, boolean fullScreen, boolean overlay) {
 		// simple assignments
 		this.device = device;
-		this.visible = false;
 		this.fullScreen = fullScreen;
 		this.overlay = overlay;
+		this.visible = false;
 		
 		// setup the dialog
-		this.dialog = new JDialog();
-		this.dialog.setUndecorated(true);
+		this.setUndecorated(true);
 		// don't allow focus to transfer to the dialog
-		this.dialog.setFocusable(false);
-		this.dialog.setFocusableWindowState(false);
-		this.dialog.setFocusTraversalKeysEnabled(false);
+		this.setFocusable(false);
+		this.setFocusableWindowState(false);
+		this.setFocusTraversalKeysEnabled(false);
 		// we need to enable per-pixel translucency if available
-		this.dialog.getRootPane().setOpaque(false);
+		this.getRootPane().setOpaque(false);
 		
 		// get the device's default config
 		GraphicsConfiguration gc = this.device.getDefaultConfiguration();
@@ -75,25 +98,25 @@ public class SlideWindow {
 		
 		// set the dialog location to the top left corner of the
 		// target display device
-		this.dialog.setLocation(r.x, r.y);
+		this.setLocation(r.x, r.y);
 		
 		// a full screen display window has its size set to the
 		// height and width of the device
 		Dimension size = new Dimension(r.width, r.height);
-		this.dialog.setMinimumSize(size);
-		this.dialog.setPreferredSize(size);
+		this.setMinimumSize(size);
+		this.setPreferredSize(size);
 		
 		// setup the display surface
-		Container container = this.dialog.getContentPane();
+		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
 		
 		this.surface = new SlideSurface();
 		container.add(this.surface, BorderLayout.CENTER);
 		
-		this.dialog.setAlwaysOnTop(overlay);
+		this.setAlwaysOnTop(overlay);
 		
 		// make sure the panel is resized to fit the layout
-		this.dialog.pack();
+		this.pack();
 		
 		// prepare for display
 		this.prepareForDisplay();
@@ -108,7 +131,7 @@ public class SlideWindow {
 		if (!this.fullScreen) {
 			this.setWindowSize(slide);
 		}
-		if (this.setVisible(true)) {
+		if (this.setVisibleInternal(true)) {
 			this.surface.send(slide, animator);
 		} else {
 			// if transitions aren't supported
@@ -121,7 +144,7 @@ public class SlideWindow {
 	 * @param animator the animator
 	 */
 	public void clear(TransitionAnimator animator) {
-		if (this.setVisible(false)) {
+		if (this.setVisibleInternal(false)) {
 			this.surface.clear(animator);
 		} else {
 			// if transitions aren't supported
@@ -150,12 +173,12 @@ public class SlideWindow {
 		
 		Dimension size = new Dimension(slide.getWidth(), slide.getHeight());
 		// set the size
-		this.dialog.setMinimumSize(size);
-		this.dialog.setPreferredSize(size);
-		this.dialog.setLocation(x, y);
+		this.setMinimumSize(size);
+		this.setPreferredSize(size);
+		this.setLocation(x, y);
 		
 		// make sure the panel is resized to fit the layout
-		this.dialog.pack();
+		this.pack();
 	}
 	
 	/**
@@ -184,14 +207,14 @@ public class SlideWindow {
 		WindowTranslucency translucency = this.getWindowTranslucency();
 		if (translucency == WindowTranslucency.PERPIXEL_TRANSLUCENT) {
 			// this is the best since all transitions will work
-			this.dialog.setBackground(new Color(0, 0, 0, 0));
-			this.dialog.setVisible(true);
+			this.setBackground(new Color(0, 0, 0, 0));
+			this.setVisibleInternal(true);
 			LOGGER.info("Per-pixel translucency supported (best).");
 		} else if (translucency == WindowTranslucency.TRANSLUCENT) {
 			// no transition support but at least we can go ahead
 			// and set the dialog to visible to save some time
-			this.dialog.setOpacity(0.0f);
-			this.dialog.setVisible(true);
+			this.setOpacity(0.0f);
+			this.setVisibleInternal(true);
 			LOGGER.info("Only uniform translucency supported.");
 		} else {
 			// no support so don't show the dialog
@@ -206,7 +229,7 @@ public class SlideWindow {
 	 * @param flag true if the window should be visible
 	 * @return boolean
 	 */
-	protected boolean setVisible(boolean flag) {
+	protected boolean setVisibleInternal(boolean flag) {
 		WindowTranslucency translucency = this.getWindowTranslucency();
 		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(this.device);
 		if (flag) {
@@ -218,14 +241,14 @@ public class SlideWindow {
 				if (!this.visible) {
 					// set the opacity to fully opaque
 					// no transitions sadly
-					this.dialog.setOpacity(1.0f);
+					this.setOpacity(1.0f);
 				}
 			} else {
 				// see if the window is currently visible
 				if (!this.visible) {
 					// set the dialog to visible
 					// no transitions sadly
-					this.dialog.setVisible(true);
+					this.setVisible(true);
 				}
 			}
 			// set the window visible flag
@@ -233,7 +256,7 @@ public class SlideWindow {
 			
 			// if you re-send the display then make sure it goes on
 			// top of all other windows
-			this.dialog.toFront();
+			this.toFront();
 		} else {
 			// hiding of the window depends on the translucency support
 			if (translucency == WindowTranslucency.PERPIXEL_TRANSLUCENT) {
@@ -241,11 +264,11 @@ public class SlideWindow {
 			} else if (translucency == WindowTranslucency.TRANSLUCENT) {
 				// then we can set the opacity
 				// no transitions sadly
-				this.dialog.setOpacity(0.0f);
+				this.setOpacity(0.0f);
 			} else {
 				// then we have to set the window to not visible
 				// no transitions sadly
-				this.dialog.setVisible(false);
+				this.setVisible(false);
 			}
 			this.visible = false;
 		}

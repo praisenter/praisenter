@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.slide;
 
 import java.awt.Dimension;
@@ -35,13 +59,13 @@ public interface Slide {
 	 * Returns a deep copy of this {@link Slide}.
 	 * @return {@link Slide}
 	 */
-	public Slide copy();
+	public abstract Slide copy();
 	
 	/**
 	 * Returns a template for this slide.
 	 * @return {@link Template}
 	 */
-	public Template createTemplate();
+	public abstract Template createTemplate();
 	
 	// rendering
 	
@@ -49,13 +73,13 @@ public interface Slide {
 	 * Renders a preview of this slide.
 	 * @param g the graphics object to render to
 	 */
-	public void renderPreview(Graphics2D g);
+	public abstract void renderPreview(Graphics2D g);
 	
 	/**
 	 * Renders the current state of this slide.
 	 * @param g the graphics object to render to
 	 */
-	public void render(Graphics2D g);
+	public abstract void render(Graphics2D g);
 	
 	// modification
 
@@ -67,26 +91,26 @@ public interface Slide {
 	 * width/height.
 	 * @return {@link SlideComponent}
 	 */
-	public RenderableComponent getBackground();
+	public abstract RenderableComponent getBackground();
 	
 	/**
 	 * Sets the background to the given component.
 	 * @param component the background component
 	 */
-	public void setBackground(RenderableComponent component);
+	public abstract void setBackground(RenderableComponent component);
 	
 	/**
 	 * Adds the given component.
 	 * @param component the component to add
 	 */
-	public void addComponent(SlideComponent component);
+	public abstract void addComponent(SlideComponent component);
 	
 	/**
 	 * Removes the given component.
 	 * @param component the component to remove
 	 * @return boolean true if the component was removed
 	 */
-	public boolean removeComponent(SlideComponent component);
+	public abstract boolean removeComponent(SlideComponent component);
 	
 	/**
 	 * Moves the given component up by one.
@@ -100,7 +124,7 @@ public interface Slide {
 	 * moved back by one.
 	 * @param component the component to move up
 	 */
-	public void moveComponentUp(RenderableComponent component);
+	public abstract void moveComponentUp(RenderableComponent component);
 	
 	/**
 	 * Moves the given component down by one.
@@ -114,7 +138,7 @@ public interface Slide {
 	 * moved up by one.
 	 * @param component the component to move down
 	 */
-	public void moveComponentDown(RenderableComponent component);
+	public abstract void moveComponentDown(RenderableComponent component);
 	
 	/**
 	 * Returns a list of the all the components of the given type.
@@ -126,7 +150,7 @@ public interface Slide {
 	 * @param clazz the class type
 	 * @return List&lt;E&gt;
 	 */
-	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz);
+	public abstract <E extends SlideComponent> List<E> getComponents(Class<E> clazz);
 	
 	/**
 	 * Returns a list of the all the components of the given type that cannot
@@ -134,7 +158,7 @@ public interface Slide {
 	 * @param clazz the class type
 	 * @return List&lt;E&gt;
 	 */
-	public <E extends SlideComponent> List<E> getStaticComponents(Class<E> clazz);
+	public abstract <E extends SlideComponent> List<E> getStaticComponents(Class<E> clazz);
 	
 	/**
 	 * Returns a list of the all the components of the given type that can
@@ -147,7 +171,7 @@ public interface Slide {
 	 * @param clazz the class type
 	 * @return List&lt;E&gt;
 	 */
-	public <E extends SlideComponent> List<E> getNonStaticComponents(Class<E> clazz);
+	public abstract <E extends SlideComponent> List<E> getNonStaticComponents(Class<E> clazz);
 	
 	/**
 	 * Returns all the {@link PlayableMediaComponent}s on this {@link Slide}.
@@ -158,7 +182,7 @@ public interface Slide {
 	 * {@link PlayableMediaComponent}.
 	 * @return List&lt;{@link PlayableMediaComponent}&gt;
 	 */
-	public List<PlayableMediaComponent<?>> getPlayableMediaComponents();
+	public abstract List<PlayableMediaComponent<?>> getPlayableMediaComponents();
 	
 	/**
 	 * Returns true if the given component is on this slide and it is a static
@@ -166,25 +190,25 @@ public interface Slide {
 	 * @param component the component
 	 * @return boolean
 	 */
-	public boolean isStaticComponent(SlideComponent component);
+	public abstract boolean isStaticComponent(SlideComponent component);
 	
 	/**
 	 * Returns this slide/template's name.
 	 * @return String
 	 */
-	public String getName();
+	public abstract String getName();
 	
 	/**
 	 * Sets this slide/template's name.
 	 * @param name the name
 	 */
-	public void setName(String name);
+	public abstract void setName(String name);
 	
 	/**
 	 * Returns the width of this slide in pixels.
 	 * @return int
 	 */
-	public int getWidth();
+	public abstract int getWidth();
 	
 	/**
 	 * Sets the width of this slide.
@@ -193,13 +217,13 @@ public interface Slide {
 	 * match, if it's set.
 	 * @param width the width in pixels
 	 */
-	public void setWidth(int width);
+	public abstract void setWidth(int width);
 
 	/**
 	 * Returns the height of this slide in pixels.
 	 * @return int
 	 */
-	public int getHeight();
+	public abstract int getHeight();
 	
 	/**
 	 * Sets the height of this slide.
@@ -208,19 +232,19 @@ public interface Slide {
 	 * match, if it's set.
 	 * @param height the height in pixels
 	 */
-	public void setHeight(int height);
+	public abstract void setHeight(int height);
 	
 	/**
 	 * Adjusts the slide and all sub components to fit the given size.
 	 * @param width the target width
 	 * @param height the target height
 	 */
-	public void adjustSize(int width, int height);
+	public abstract void adjustSize(int width, int height);
 	
 	/**
 	 * Creates a new thumbnail for this slide using the given size.
 	 * @param size the size of the thumbnail
 	 * @return BufferedImage
 	 */
-	public BufferedImage getThumbnail(Dimension size);
+	public abstract BufferedImage getThumbnail(Dimension size);
 }
