@@ -26,6 +26,8 @@ package org.praisenter;
 
 import java.awt.Container;
 import java.awt.Dialog.ModalityType;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.lang.reflect.InvocationTargetException;
@@ -99,8 +101,14 @@ public final class ApplicationLoader {
 		// create a new dialog
 		this.dialog = new JDialog(null, Messages.getString("dialog.preload.title"), ModalityType.MODELESS);
 		this.dialog.setIconImage(Icons.ICON.getImage());
-		// make sure closing the modal doesn't work (since we can't remove the close button)
-		this.dialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		// all the user to close it during startup
+		this.dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		this.dialog.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				SlideWindows.disposeWindows();
+			}
+		});
 		
 		// create the progress bar
 		this.barProgress = new JProgressBar(0, 100);

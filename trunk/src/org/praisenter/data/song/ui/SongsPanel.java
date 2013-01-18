@@ -510,7 +510,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				.addComponent(scrSongQueueResults, 200, 200, Short.MAX_VALUE));
 		
 		// edit panel
-		this.pnlEditSong = new EditSongPanel(null);
+		this.pnlEditSong = new EditSongPanel(getSelectedTemplate());
 		this.pnlEditSong.addSongListener(this);
 		
 		// song search/queue tabs
@@ -653,6 +653,8 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		super.updateUI();
 		// after the ui is updated, re-generate the song layout
 		if (this.scrPreview != null && this.pnlPreview != null && this.song != null) {
+			// set the loading status
+			this.scrPreview.setLoading(true);
 			this.queueSongPreview(this.song);
 		}
 	}
@@ -719,6 +721,8 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				if (thumbnail != null) {
 					// refresh the song preview panel
 					if (this.song != null) {
+						// set the loading status
+						this.scrPreview.setLoading(true);
 						this.queueSongPreview(this.song);
 					}
 				}
@@ -922,21 +926,23 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	private void setSong(Song song) {
 		// check if the current song was changed first
 		if (this.pnlEditSong.isSongChanged()) {
+			// get the song from the panel
+			Song temp = this.pnlEditSong.getSong();
 			int choice = JOptionPane.showConfirmDialog(
 					WindowUtilities.getParentWindow(this), 
-					MessageFormat.format(Messages.getString("panel.song.switch.confirm.message"), this.song.getTitle()), 
+					MessageFormat.format(Messages.getString("panel.song.switch.confirm.message"), temp.getTitle()), 
 					Messages.getString("panel.song.switch.confirm.title"), 
 					JOptionPane.YES_NO_CANCEL_OPTION);
 			if (choice == JOptionPane.YES_OPTION) {
 				// then save the song
 				try {
-					boolean isNew = this.song.isNew();
-					Collections.sort(this.song.getParts());
-					Songs.saveSong(this.song);
+					boolean isNew = temp.isNew();
+					Collections.sort(temp.getParts());
+					Songs.saveSong(temp);
 					if (isNew) {
-						this.songAdded(this.song);
+						this.songAdded(temp);
 					} else {
-						this.songChanged(this.song);
+						this.songChanged(temp);
 					}
 				} catch (DataException e) {
 					// if the song fails to be saved then show a message
@@ -944,7 +950,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 					ExceptionDialog.show(
 							this, 
 							Messages.getString("panel.songs.save.exception.title"), 
-							MessageFormat.format(Messages.getString("panel.songs.save.exception.text"), this.song.getTitle()), 
+							MessageFormat.format(Messages.getString("panel.songs.save.exception.text"), temp.getTitle()), 
 							e);
 					LOGGER.error("Failed to save song: ", e);
 					return;
@@ -1023,7 +1029,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		}
 		
 		// execute the preview update
-		this.previewThread.queueSong(song, this.getSelectedTemplate());
+		this.previewThread.queueSong(song);
 	}
 	
 	/* (non-Javadoc)
@@ -1133,10 +1139,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	 */
 	private class SongPreivewThread extends Thread {
 		/** The blocking queue */
-		private final BlockingQueue<SongPreview> songQueue;
-		
-		/** The current song preview */
-		private SongPreview songPreview;
+		private final BlockingQueue<Song> songQueue;
 		
 		/**
 		 * Default constructor.
@@ -1144,17 +1147,15 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		public SongPreivewThread() {
 			super("SongPreviewThread");
 			this.setDaemon(true);
-			this.songQueue = new ArrayBlockingQueue<SongPreview>(10);
-			this.songPreview = null;
+			this.songQueue = new ArrayBlockingQueue<Song>(10);
 		}
 
 		/**
 		 * Queues a new song to be shown.
 		 * @param song the song
-		 * @param template the template to use
 		 */
-		public void queueSong(Song song, SongSlideTemplate template) {
-			this.songQueue.add(new SongPreview(song, template));
+		public void queueSong(Song song) {
+			this.songQueue.add(song);
 		}
 		
 		/* (non-Javadoc)
@@ -1166,11 +1167,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			while (true) {
 				try {
 					// poll for any queued searches
-					this.songPreview = this.songQueue.poll(1000, TimeUnit.MILLISECONDS);
+					final Song song = this.songQueue.poll(1000, TimeUnit.MILLISECONDS);
 					// if no queued search then just continue
-					if (this.songPreview != null) {
-						final Song song = this.songPreview.song;
-						final SongSlideTemplate template = this.songPreview.template;
+					if (song != null) {
+						final SongSlideTemplate template = getSelectedTemplate();
 						
 						// update the slides (this method should not
 						// do anything that should normally be done on the EDT)
@@ -1199,8 +1199,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 									// update the song edit panel
 									pnlEditSong.setSong(song);
 									
-									// null out the song preview
-									songPreview = null;
+									pnlEditSong.setTemplate(template);
 								}
 							});
 						} catch (InvocationTargetException e) {

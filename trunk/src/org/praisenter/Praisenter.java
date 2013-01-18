@@ -86,7 +86,9 @@ import org.praisenter.xml.XmlIO;
  */
 // TODO add xuggler video downloader (to download videos from the web)
 // FIXME add import/export caps for slides and templates
-// FIXME bible translation manager
+// TODO bible translation manager
+// TODO song manager
+// FIXME when creating a new slide or template, show a listing of slides/templates to copy from
 // FIXME Add a service schedule with import/export caps
 
 public class Praisenter extends JFrame implements ActionListener {
@@ -247,12 +249,48 @@ public class Praisenter extends JFrame implements ActionListener {
 		}
 		
 		// exit the JVM on close of the app
-		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.addWindowListener(new java.awt.event.WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				SlideWindows.disposeWindows();
-				dispose();
+			}
+			@Override
+			public void windowClosed(WindowEvent e) {
+				// this is called when dispose is called on this JFrame
+				// kick off a daemon thread to shutdown the vm just in case
+				
+				// this thread will be axed if every other thread is a daemon
+				// and there are no other displayable windows (this is the
+				// requirement for exiting cleanly) since its a daemon thread
+				// as well.
+				
+				// We need to do this to make sure the JVM shuts down. If its
+				// left open, the only option for the user to do is kill the
+				// process (which some users just can't be expected to know
+				// how to do)
+				Thread thread = new Thread(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							LOGGER.info("The exit thread has started.");
+							// wait a minute before we forcefully shut down the JVM
+							Thread.sleep(60000);
+							LOGGER.info("The exit thread waited 1 minute. Manually exiting.");
+							// shut her down...
+							System.exit(0);
+						} catch (InterruptedException e) {
+							// I'm not really sure what to do here since this could happen in a normal
+							// way (if the daemon threads are killed via interrupts). So for now we will
+							// just log the error and hope the JVM shuts down on its own
+							LOGGER.info("The exit thread was interrupted. No System.exit(0) call made.");
+						}
+					}
+				});
+				thread.setDaemon(true);
+				thread.start();
+				
+				super.windowClosed(e);
 			}
 		});
 		

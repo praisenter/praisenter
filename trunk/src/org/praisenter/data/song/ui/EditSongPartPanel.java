@@ -24,6 +24,7 @@
  */
 package org.praisenter.data.song.ui;
 
+import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
@@ -47,12 +48,16 @@ import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongPart;
 import org.praisenter.data.song.SongPartType;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.SongSlide;
+import org.praisenter.slide.SongSlideTemplate;
+import org.praisenter.slide.text.TextComponent;
+import org.praisenter.slide.ui.preview.SingleSlidePreviewPanel;
 import org.praisenter.ui.SelectTextFocusListener;
 
 /**
  * Sub panel for viewing/editing song parts.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.0
  * @since 1.0.0
  */
 public class EditSongPartPanel extends JPanel implements ItemListener, DocumentListener, ChangeListener {
@@ -81,6 +86,14 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 	/** The part text */
 	private JTextArea txtPartText;
 	
+	// preview
+	
+	/** The template to use for the preview */
+	private SongSlideTemplate template;
+	
+	/** The preview panel */
+	private SingleSlidePreviewPanel pnlPreview;
+	
 	// temp
 	
 	/** True if notifications should be sent */
@@ -88,13 +101,24 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 	
 	/**
 	 * Full constructor.
-	 * @param song the song containing the part; can be null
-	 * @param part the song part to edit; can be null
+	 * @param template the initial song slide template
 	 */
-	public EditSongPartPanel(Song song, SongPart part) {
-		this.song = song;
-		this.part = part;
+	public EditSongPartPanel(SongSlideTemplate template) {
+		this.song = null;
+		this.part = null;
+		this.template = template;
 		this.notificationsDisabled = true;
+		
+		this.pnlPreview = new SingleSlidePreviewPanel();
+		// the maximum dimension (200 on the height)
+		final int h = 200;
+		// it should be ok to use the template width and height at this
+		// time since it should already be adjusted for the primary display
+		double s = (double)h / (double)template.getHeight();
+		int w = (int)Math.floor(template.getWidth() * s);
+		Dimension size = new Dimension(w, h);
+		this.pnlPreview.setMinimumSize(size);
+		this.pnlPreview.setPreferredSize(size);
 		
 		SongPartType type = SongPartType.CHORUS;
 		int index = 1;
@@ -102,15 +126,6 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		String text = "";
 		int[] takenIndices = null;
 		boolean edit = false;
-		
-		if (song != null && part != null) {
-			type = part.getType();
-			index = part.getIndex();
-			fontSize = part.getFontSize();
-			text = part.getText();
-			takenIndices = this.getTakenIndices(part.getType());
-			edit = true;
-		}
 		
 		this.cmbPartTypes = new JComboBox<SongPartType>(SongPartType.values());
 		this.cmbPartTypes.setToolTipText(Messages.getString("panel.song.type.tooltip"));
@@ -149,18 +164,22 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		this.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
-		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addGroup(layout.createSequentialGroup()
-						.addComponent(this.cmbPartTypes)
-						.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(pneText, 100, 200, Short.MAX_VALUE));
-		layout.setVerticalGroup(layout.createSequentialGroup()
+		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
-						.addComponent(this.cmbPartTypes, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(pneText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+						.addGroup(layout.createSequentialGroup()
+								.addComponent(this.cmbPartTypes, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(pneText, 100, 200, Short.MAX_VALUE))
+				.addComponent(this.pnlPreview, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+		layout.setVerticalGroup(layout.createParallelGroup()
+				.addGroup(layout.createSequentialGroup()
+						.addGroup(layout.createParallelGroup()
+								.addComponent(this.cmbPartTypes, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(pneText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+				.addComponent(this.pnlPreview));
 	}
 	
 	// part type
@@ -215,6 +234,7 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 	private void updateSongPartText(String text) {
 		if (this.part != null) {
 			this.part.setText(text);
+			this.updatePreview(this.part);
 			this.notifySongPartListeners();
 		}
 	}
@@ -230,6 +250,7 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 			Object value = this.spnFontSize.getValue();
 			if (this.part != null && value != null && value instanceof Number) {
 				this.part.setFontSize(((Number)value).intValue());
+				this.updatePreview(this.part);
 				this.notifySongPartListeners();
 			}
 		} else if (e.getSource() == this.spnPartIndex) {
@@ -272,6 +293,10 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 			text = part.getText();
 			takenIndices = this.getTakenIndices(part.getType());
 			edit = true;
+			this.updatePreview(part);
+		} else {
+			this.pnlPreview.setSlide(null);
+			this.pnlPreview.repaint();
 		}
 		
 		this.notificationsDisabled = true;
@@ -292,6 +317,18 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		this.txtPartText.setEnabled(edit);
 		
 		this.notificationsDisabled = false;
+	}
+	
+	/**
+	 * Sets the previewing template for the song part.
+	 * @param template the template
+	 */
+	public void setTemplate(SongSlideTemplate template) {
+		this.template = template;
+		this.pnlPreview.setSlide(null);
+		if (this.part != null) {
+			this.updatePreview(this.part);
+		}
 	}
 	
 	/**
@@ -335,5 +372,26 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 			taken[i] = indices.get(i);
 		}
 		return taken;
+	}
+	
+	/**
+	 * Updates the preview with the given part.
+	 * @param part the part
+	 */
+	private void updatePreview(SongPart part) {
+		SongSlide slide = (SongSlide)pnlPreview.getSlide();
+		if (slide == null) {
+			slide = template.createSlide();
+			pnlPreview.setSlide(slide);
+		}
+		TextComponent text = slide.getTextComponent();
+		// update the text and font size
+		text.setText(part.getText());
+		text.setTextFont(text.getTextFont().deriveFont((float)part.getFontSize()));
+		
+		// update the slides (this method should not
+		// do anything that should normally be done on the EDT)
+		pnlPreview.setSlide(slide);
+		pnlPreview.repaint();
 	}
 }

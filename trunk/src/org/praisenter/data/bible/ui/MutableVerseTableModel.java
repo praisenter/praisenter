@@ -36,7 +36,7 @@ import org.praisenter.data.bible.Verse;
  * @version 2.0.0
  * @since 1.0.0
  */
-public class MutableBibleTableModel extends BibleTableModel {
+public class MutableVerseTableModel extends VerseTableModel {
 	/** The version id */
 	private static final long serialVersionUID = -240856480928482923L;
 

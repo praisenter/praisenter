@@ -61,7 +61,7 @@ public class SlideWindow extends JDialog {
 	protected SlideSurface surface;
 	
 	/** True if the surface is visible */
-	protected boolean visible;
+	protected boolean visibleInternal;
 	
 	/** True if the window is always the device size */
 	protected boolean fullScreen;
@@ -80,7 +80,7 @@ public class SlideWindow extends JDialog {
 		this.device = device;
 		this.fullScreen = fullScreen;
 		this.overlay = overlay;
-		this.visible = false;
+		this.visibleInternal = false;
 		
 		// setup the dialog
 		this.setUndecorated(true);
@@ -208,13 +208,13 @@ public class SlideWindow extends JDialog {
 		if (translucency == WindowTranslucency.PERPIXEL_TRANSLUCENT) {
 			// this is the best since all transitions will work
 			this.setBackground(new Color(0, 0, 0, 0));
-			this.setVisibleInternal(true);
+			this.setVisible(true);
 			LOGGER.info("Per-pixel translucency supported (best).");
 		} else if (translucency == WindowTranslucency.TRANSLUCENT) {
 			// no transition support but at least we can go ahead
 			// and set the dialog to visible to save some time
 			this.setOpacity(0.0f);
-			this.setVisibleInternal(true);
+			this.setVisible(true);
 			LOGGER.info("Only uniform translucency supported.");
 		} else {
 			// no support so don't show the dialog
@@ -238,21 +238,21 @@ public class SlideWindow extends JDialog {
 				// do nothing
 			} else if (translucency == WindowTranslucency.TRANSLUCENT) {
 				// see if the window is currently visible
-				if (!this.visible) {
+				if (!this.visibleInternal) {
 					// set the opacity to fully opaque
 					// no transitions sadly
 					this.setOpacity(1.0f);
 				}
 			} else {
 				// see if the window is currently visible
-				if (!this.visible) {
+				if (!this.visibleInternal) {
 					// set the dialog to visible
 					// no transitions sadly
 					this.setVisible(true);
 				}
 			}
 			// set the window visible flag
-			this.visible = true;
+			this.visibleInternal = true;
 			
 			// if you re-send the display then make sure it goes on
 			// top of all other windows
@@ -270,7 +270,7 @@ public class SlideWindow extends JDialog {
 				// no transitions sadly
 				this.setVisible(false);
 			}
-			this.visible = false;
+			this.visibleInternal = false;
 		}
 		
 		return transitionsSupported;
@@ -284,18 +284,6 @@ public class SlideWindow extends JDialog {
 		return this.device;
 	}
 
-	/**
-	 * Returns true if this window is currently visible.
-	 * <p>
-	 * The underlying surface may be visible but may have nothing
-	 * rendered to it.  This method will only return true if there
-	 * is something rendered to the surface.
-	 * @return boolean
-	 */
-	public boolean isVisible() {
-		return this.visible;
-	}
-	
 	/**
 	 * Returns true if this window is an overlay.
 	 * <p>

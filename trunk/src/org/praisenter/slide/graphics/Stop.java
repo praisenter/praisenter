@@ -54,7 +54,7 @@ public class Stop {
 	 * This should only be used by JAXB.
 	 */
 	protected Stop() {
-		this(0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+		this(0.0f, 0, 0, 0, 255);
 	}
 	
 	/**
@@ -75,23 +75,50 @@ public class Stop {
 	 * @param blue the blue color component
 	 * @param alpha the alpha color component
 	 */
-	public Stop(float fraction, float red, float green, float blue, float alpha) {
+	public Stop(float fraction, int red, int green, int blue, int alpha) {
 		this.fraction = fraction;
 		this.color = new ColorFill(red, green, blue, alpha);
 	}
 	
-	/**
-	 * Full constructor.
-	 * @param fraction the stop location from 0 to 1 inclusive
-	 * @param red the red color component
-	 * @param green the green color component
-	 * @param blue the blue color component
-	 * @param alpha the alpha color component
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
-	public Stop(float fraction, int red, int green, int blue, int alpha) {
-		this(fraction, new Color(red, green, blue, alpha));
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof Stop) {
+			Stop s = (Stop)obj;
+			if (s.fraction == this.fraction && this.color.equals(s.color)) {
+				return true;
+			}
+		}
+		return false;
 	}
-
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int r = 37;
+		r = 37 * r + Float.floatToIntBits(this.fraction);
+		r = 37 * r + this.color.hashCode();
+		return r;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Stop[Fraction=").append(this.fraction)
+		  .append("|Color=").append(this.color)
+		  .append("]");
+		return sb.toString();
+	}
+	
 	/**
 	 * Returns the stop position.
 	 * @return float

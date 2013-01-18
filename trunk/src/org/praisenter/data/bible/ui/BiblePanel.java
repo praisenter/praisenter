@@ -606,7 +606,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						.addComponent(pnlSendClearButtons));
 		
 		// create the verse queue table
-		this.tblVerseQueue = new JTable(new MutableBibleTableModel()) {
+		this.tblVerseQueue = new JTable(new MutableVerseTableModel()) {
 			@Override
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
@@ -637,7 +637,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 					// get the selected row
 					int row = tblVerseQueue.rowAtPoint(e.getPoint());
 					// get the data
-					BibleTableModel model = (BibleTableModel)tblVerseQueue.getModel();
+					VerseTableModel model = (VerseTableModel)tblVerseQueue.getModel();
 					Verse verse = model.getRow(row);
 					// set the selection
 					cmbBooks.setSelectedItem(verse.getBook());
@@ -664,13 +664,13 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		JScrollPane scrVerseQueue = new JScrollPane(this.tblVerseQueue);
 		
 		// need two buttons for the verse queue
-		JButton btnRemoveSelected = new JButton(Messages.getString("panel.bible.removeSelected"));
-		btnRemoveSelected.setToolTipText(Messages.getString("panel.bible.removeSelected.tooltip"));
+		JButton btnRemoveSelected = new JButton(Messages.getString("panel.bible.verse.removeSelected"));
+		btnRemoveSelected.setToolTipText(Messages.getString("panel.bible.verse.removeSelected.tooltip"));
 		btnRemoveSelected.addActionListener(this);
 		btnRemoveSelected.setActionCommand("remove-selected");
 		
-		JButton btnRemoveAll = new JButton(Messages.getString("panel.bible.removeAll"));
-		btnRemoveAll.setToolTipText(Messages.getString("panel.bible.removeAll.tooltip"));
+		JButton btnRemoveAll = new JButton(Messages.getString("panel.bible.verse.removeAll"));
+		btnRemoveAll.setToolTipText(Messages.getString("panel.bible.verse.removeAll.tooltip"));
 		btnRemoveAll.addActionListener(this);
 		btnRemoveAll.setActionCommand("remove-all");
 		
@@ -711,7 +711,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		this.lblBibleSearchResults.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 5));
 		
 		// create the search results table
-		this.tblBibleSearchResults = new JTable(new BibleTableModel()) {
+		this.tblBibleSearchResults = new JTable(new VerseTableModel()) {
 			@Override
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
@@ -742,7 +742,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 					// get the selected row
 					int row = tblBibleSearchResults.rowAtPoint(e.getPoint());
 					// get the data
-					BibleTableModel model = (BibleTableModel)tblBibleSearchResults.getModel();
+					VerseTableModel model = (VerseTableModel)tblBibleSearchResults.getModel();
 					Verse verse = model.getRow(row);
 					// set the selection
 					cmbBooks.setSelectedItem(verse.getBook());
@@ -1114,12 +1114,12 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		}
 		// check for remove selected
 		else if ("remove-selected".equals(command)) {
-			MutableBibleTableModel model = (MutableBibleTableModel)this.tblVerseQueue.getModel();
+			MutableVerseTableModel model = (MutableVerseTableModel)this.tblVerseQueue.getModel();
 			model.removeSelectedRows();
 		}
 		// check for remove all
 		else if ("remove-all".equals(command)) {
-			MutableBibleTableModel model = (MutableBibleTableModel)this.tblVerseQueue.getModel();
+			MutableVerseTableModel model = (MutableVerseTableModel)this.tblVerseQueue.getModel();
 			model.removeAllRows();
 		}
 	}
@@ -1251,7 +1251,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				// update the displays
 				this.updateVerseDisplays(text);
 				// add the verse to the queue
-				MutableBibleTableModel model = (MutableBibleTableModel)this.tblVerseQueue.getModel();
+				MutableVerseTableModel model = (MutableVerseTableModel)this.tblVerseQueue.getModel();
 				model.addRow(text);
 			} else {
 				this.verseFound = false;
@@ -1704,10 +1704,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 			if (ex == null) {
 				String message = Messages.getString("panel.bible.search.results.pattern");
 				if (verses != null && verses.size() > 0) {
-					tblBibleSearchResults.setModel(new BibleTableModel(verses));
+					tblBibleSearchResults.setModel(new VerseTableModel(verses));
 					lblBibleSearchResults.setText(MessageFormat.format(message, verses.size()));
 				} else {
-					tblBibleSearchResults.setModel(new BibleTableModel());
+					tblBibleSearchResults.setModel(new VerseTableModel());
 					lblBibleSearchResults.setText(MessageFormat.format(message, 0));
 				}
 				setBibleSearchTableWidths();

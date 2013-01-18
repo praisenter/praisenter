@@ -91,6 +91,52 @@ public class LineStyle {
 				this.pattern.getDashLengths(this.width),
 				0.0f);
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof LineStyle) {
+			LineStyle s = (LineStyle)obj;
+			if (s.width == this.width
+			 && s.cap == this.cap
+			 && s.join == this.join
+			 && s.pattern == this.pattern) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int r = 37;
+		r = 37 * r + Float.floatToIntBits(this.width);
+		r = 37 * r + this.cap.hashCode();
+		r = 37 * r + this.join.hashCode();
+		r = 37 * r + this.pattern.hashCode();
+		return r;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("LineStyle[Width=").append(this.width)
+		  .append("|Cap=").append(this.cap)
+		  .append("|Join=").append(this.join)
+		  .append("|DashPattern=").append(this.pattern)
+		  .append("]");
+		return sb.toString();
+	}
 	
 	/**
 	 * Returns the line width.

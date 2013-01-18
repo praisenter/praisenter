@@ -131,5 +131,7 @@ public class AboutDialog extends JDialog {
 		dialog.setLocationRelativeTo(owner);
 		// show the dialog
 		dialog.setVisible(true);
+		
+		dialog.dispose();
 	}
 }

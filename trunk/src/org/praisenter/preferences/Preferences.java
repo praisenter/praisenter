@@ -73,9 +73,13 @@ public class Preferences {
 	@XmlElement(name = "RenderQuality", required = true, nillable = false)
 	protected RenderQuality renderQuality;
 	
-	/** True if smart transitions should be enabled */
-	@XmlElement(name = "SmartTransitionsEnabled", required = true, nillable = false)
-	protected boolean smartTransitionsEnabled;
+	/** True if smart video transitions should be enabled */
+	@XmlElement(name = "SmartVideoTransitionsEnabled", required = true, nillable = false)
+	protected boolean smartVideoTransitionsEnabled;
+
+	/** True if smart image transitions should be enabled */
+	@XmlElement(name = "SmartImageTransitionsEnabled", required = true, nillable = false)
+	protected boolean smartImageTransitionsEnabled;
 	
 	/** True if a send or clear should wait for the currently executing transition to finish before being executed */
 	@XmlElement(name = "WaitForTransitionEnabled", required = true, nillable = false)
@@ -105,7 +109,8 @@ public class Preferences {
 	/** Hidden constructor */
 	private Preferences() {
 		this.renderQuality = RenderQuality.MEDIUM;
-		this.smartTransitionsEnabled = true;
+		this.smartVideoTransitionsEnabled = true;
+		this.smartImageTransitionsEnabled = false;
 		this.waitForTransitionEnabled = true;
 		
 		this.biblePreferences = new BiblePreferences();
@@ -213,22 +218,42 @@ public class Preferences {
 	}
 
 	/**
-	 * Returns true if smart transitions should be used.
+	 * Returns true if smart video transitions should be used.
 	 * <p>
-	 * Smart transitions attempt to retain the playback of background videos
+	 * Smart video transitions attempt to retain the playback of background videos
 	 * across slides that have the same background video.
 	 * @return boolean
 	 */
-	public boolean isSmartTransitionsEnabled() {
-		return this.smartTransitionsEnabled;
+	public boolean isSmartVideoTransitionsEnabled() {
+		return this.smartVideoTransitionsEnabled;
 	}
 
 	/**
-	 * Sets the use of smart transitions.
-	 * @param smartTransitionsEnabled true if smart transitions should be used
+	 * Sets the use of smart video transitions.
+	 * @param flag true if smart video transitions should be used
 	 */
-	public void setSmartTransitionsEnabled(boolean smartTransitionsEnabled) {
-		this.smartTransitionsEnabled = smartTransitionsEnabled;
+	public void setSmartVideoTransitionsEnabled(boolean flag) {
+		this.smartVideoTransitionsEnabled = flag;
+	}
+
+	/**
+	 * Returns true if smart image transitions should be used.
+	 * <p>
+	 * Smart image transitions will attempt to keep the background fixed while
+	 * the rest of the slide is transitioned if both slides have the same
+	 * background.
+	 * @return boolean
+	 */
+	public boolean isSmartImageTransitionsEnabled() {
+		return this.smartImageTransitionsEnabled;
+	}
+
+	/**
+	 * Sets the use of smart image transitions.
+	 * @param flag true if smart image transitions should be used
+	 */
+	public void setSmartImageTransitionsEnabled(boolean flag) {
+		this.smartImageTransitionsEnabled = flag;
 	}
 
 	/**

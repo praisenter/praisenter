@@ -33,8 +33,10 @@ import org.praisenter.preferences.Preferences;
 import org.praisenter.slide.NotificationSlide;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
+import org.praisenter.slide.ui.present.SlideSurface;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transition.Type;
 import org.praisenter.transitions.TransitionAnimator;
@@ -383,13 +385,11 @@ public class SlideWindow implements VideoMediaPlayerListener, ActionListener, GL
 		// we will only NOT transition the background IF both slides have a video background component AND
 		// they are the same video
 		// check if there is a previous slide and that it has a background
-		// FIXME allow the option for smart transitions on image media components
-		// FIXME add an option to fade out audio during the transition (perhaps fade in as well)
 		if (this.currentSlide != null) {
-			// if so, then check if its background was a video
+			// check for video media components
 			if (this.currentSlide.getBackground() instanceof VideoMediaComponent) {
-				// if so, then make sure the new background is also a video
-				if (background instanceof VideoMediaComponent) {	
+				// see if the incoming slide background is also an video
+				if (background instanceof VideoMediaComponent) {
 					// if both are video media components, we need to check if they are the same video
 					VideoMediaComponent oC = (VideoMediaComponent)this.currentSlide.getBackground();
 					VideoMediaComponent nC = (VideoMediaComponent)slide.getBackground();
@@ -398,7 +398,24 @@ public class SlideWindow implements VideoMediaPlayerListener, ActionListener, GL
 						// we can attach the new media component as a listener to the current 
 						// media player (to update its images as the video plays)
 						this.currentBackgroundMediaPlayer.addMediaPlayerListener(nC);
-						this.transitionBackground = !preferences.isSmartTransitionsEnabled();
+						this.transitionBackground = !preferences.isSmartVideoTransitionsEnabled();
+						this.inHasPlayableMedia = true;
+					}
+				}
+			// check for image media components
+			} else if (this.currentSlide.getBackground() instanceof ImageMediaComponent) {
+				// see if the incoming slide background is also an image
+				if (background instanceof ImageMediaComponent) {
+					// if both are image media components, we need to check if they are the same image
+					ImageMediaComponent oC = (ImageMediaComponent)this.currentSlide.getBackground();
+					ImageMediaComponent nC = (ImageMediaComponent)slide.getBackground();
+					if (oC.getMedia().equals(nC.getMedia()) && oC.isImageVisible() && nC.isImageVisible()) {
+						this.transitionBackground = !preferences.isSmartImageTransitionsEnabled();
+						// if we transitioned the background in the last send, we need to make sure we
+						// re-render the current slide without the background. if we don't do this
+						// image0 still contains the background and it will appear as if we are
+						// still transitioning the background
+						SlideWindow.renderSlide(this.currentRenderer, false, this.image1);
 					}
 				}
 			}
@@ -503,6 +520,16 @@ public class SlideWindow implements VideoMediaPlayerListener, ActionListener, GL
 	private void clearSlide(TransitionAnimator animator) {
 		// set the transition
 		this.animator = animator;
+
+		// check the current slide background type
+		if (this.currentSlide.getBackground() instanceof ImageMediaComponent
+		 && Preferences.getInstance().isSmartImageTransitionsEnabled()) {
+			// if the current slide background type is image and we have smart
+			// image transitions enabled, its possible that image0 does not
+			// contain the background. So we need to re-render the image
+			// with the background to ensure the clear includes the background
+			SlideWindow.renderSlide(this.currentRenderer, true, this.image0);
+		}
 		
 		// on a clear operation we need to transition the background
 		this.transitionBackground = true;

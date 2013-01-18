@@ -42,19 +42,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ColorFill extends AbstractFill implements Fill {
 	/** The red component */
 	@XmlAttribute(name = "Red")
-	protected float red;
+	protected int red;
 	
 	/** The green component */
 	@XmlAttribute(name = "Green")
-	protected float green;
+	protected int green;
 	
 	/** The blue component */
 	@XmlAttribute(name = "Blue")
-	protected float blue;
+	protected int blue;
 	
 	/** The alpha component */
 	@XmlAttribute(name = "Alpha")
-	protected float alpha;
+	protected int alpha;
 	
 	/**
 	 * Default constructor.
@@ -64,26 +64,14 @@ public class ColorFill extends AbstractFill implements Fill {
 	}
 	
 	/**
-	 * Full constructor.
-	 * @param red the red component from 0-255
-	 * @param green the green component from 0-255
-	 * @param blue the blue component from 0-255
-	 * @param alpha the alpha component from 0-255
-	 */
-	public ColorFill(int red, int green, int blue, int alpha) {
-		this(new Color(red, green, blue, alpha));
-	}
-	
-	/**
 	 * Uses the given color for this {@link ColorFill}.
 	 * @param color the color
 	 */
 	public ColorFill(Color color) {
-		float[] components = color.getComponents(null);
-		this.red = components[0];
-		this.green = components[1];
-		this.blue = components[2];
-		this.alpha = components[3];
+		this.red = color.getRed();
+		this.green = color.getGreen();
+		this.blue = color.getBlue();
+		this.alpha = color.getAlpha();
 	}
 
 	/**
@@ -93,7 +81,7 @@ public class ColorFill extends AbstractFill implements Fill {
 	 * @param blue the blue component from 0-1
 	 * @param alpha the alpha component from 0-1
 	 */
-	public ColorFill(float red, float green, float blue, float alpha) {
+	public ColorFill(int red, int green, int blue, int alpha) {
 		this.red = red;
 		this.green = green;
 		this.blue = blue;
@@ -115,6 +103,52 @@ public class ColorFill extends AbstractFill implements Fill {
 	public Color getPaint(int x, int y, int w, int h) {
 		// this fill doesn't need the params
 		return new Color(this.red, this.green, this.blue, this.alpha);
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof ColorFill) {
+			ColorFill f = (ColorFill)obj;
+			if (f.red == this.red
+			 && f.green == this.green
+			 && f.blue == this.blue
+			 && f.alpha == this.alpha) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int r = 37;
+		r = 37 * r + this.red;
+		r = 37 * r + this.green;
+		r = 37 * r + this.blue;
+		r = 37 * r + this.alpha;
+		return r;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("ColorFill[Red=").append(this.red)
+		  .append("|Green=").append(this.green)
+		  .append("|Blue=").append(this.blue)
+		  .append("|Alpha=").append(this.alpha)
+		  .append("]");
+		return sb.toString();
 	}
 	
 	/**

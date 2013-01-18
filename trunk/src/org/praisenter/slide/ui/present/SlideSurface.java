@@ -44,8 +44,10 @@ import org.praisenter.media.MediaPlayerFactory;
 import org.praisenter.media.PlayableMedia;
 import org.praisenter.media.VideoMediaPlayerListener;
 import org.praisenter.preferences.Preferences;
+import org.praisenter.slide.GenericComponent;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
 import org.praisenter.transitions.Transition;
@@ -295,23 +297,42 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		// we will only NOT transition the background IF both slides have a video background component AND
 		// they are the same video
 		// check if there is a previous slide and that it has a background
-		// FIXME allow the option for smart transitions on image media components
 		// FIXME add an option to fade out audio during the transition (perhaps fade in as well)
 		if (this.currentSlide != null) {
-			// if so, then check if its background was a video
+			// check for video media components
 			if (this.currentSlide.getBackground() instanceof VideoMediaComponent) {
-				// if so, then make sure the new background is also a video
-				if (background instanceof VideoMediaComponent) {	
+				// see if the incoming slide background is also an video
+				if (background instanceof VideoMediaComponent) {
 					// if both are video media components, we need to check if they are the same video
 					VideoMediaComponent oC = (VideoMediaComponent)this.currentSlide.getBackground();
 					VideoMediaComponent nC = (VideoMediaComponent)slide.getBackground();
-					if (oC.getMedia().equals(nC.getMedia()) && oC.isVideoVisible() && nC.isVideoVisible()) {
+					if (!this.isTransitionRequired(oC, nC)) {
 						// they are the same video (and both are visible), so we should not transition the background
 						// we can attach the new media component as a listener to the current 
 						// media player (to update its images as the video plays)
 						this.currentBackgroundMediaPlayer.addMediaPlayerListener(nC);
-						this.transitionBackground = !preferences.isSmartTransitionsEnabled();
+						this.transitionBackground = !preferences.isSmartVideoTransitionsEnabled();
 						this.inHasPlayableMedia = true;
+					}
+				}
+			// check for image media components
+			} else if (this.currentSlide.getBackground() instanceof ImageMediaComponent) {
+				// see if the incoming slide background is also an image
+				if (background instanceof ImageMediaComponent) {
+					// if both are image media components, we need to check if they are the same image
+					ImageMediaComponent oC = (ImageMediaComponent)this.currentSlide.getBackground();
+					ImageMediaComponent nC = (ImageMediaComponent)slide.getBackground();
+					if (!this.isTransitionRequired(oC, nC)) {
+						this.transitionBackground = !preferences.isSmartImageTransitionsEnabled();
+						// if we transitioned the background in the last send, we need to make sure we
+						// re-render the current slide without the background. if we don't do this
+						// image0 still contains the background and it will appear as if we are
+						// still transitioning the background
+						SlideSurface.renderSlide(this.currentRenderer, false, this.image1);
+					} else {
+						// if the images are not the same then we need to transition them, but we need
+						// to make sure that the last time we transitioned, the background was present
+						SlideSurface.renderSlide(this.currentRenderer, true, this.image1);
 					}
 				}
 			}
@@ -416,6 +437,16 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 	private void clearSlide(TransitionAnimator animator) {
 		// set the transition
 		this.animator = animator;
+		
+		// check the current slide background type
+		if (this.currentSlide.getBackground() instanceof ImageMediaComponent
+		 && Preferences.getInstance().isSmartImageTransitionsEnabled()) {
+			// if the current slide background type is image and we have smart
+			// image transitions enabled, its possible that image0 does not
+			// contain the background. So we need to re-render the image
+			// with the background to ensure the clear includes the background
+			SlideSurface.renderSlide(this.currentRenderer, true, this.image0);
+		}
 		
 		// on a clear operation we need to transition the background
 		this.transitionBackground = true;
@@ -525,23 +556,26 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		// current slide image to avoid a small flicker
 		copyImage(this.image1, this.image0);
 		
-		// see if we were transitioning the background
-		if (this.transitionBackground) {
-			// if we were transitioning the background, then we need to release the current background
-			// media player and set the current media player to the incoming media player
-			if (this.currentBackgroundMediaPlayer != null) {
-				this.currentBackgroundMediaPlayer.release();
-			}
-			this.currentBackgroundMediaPlayer = this.inBackgroundMediaPlayer;
-		} else {
-			// if we were NOT transitioning the background, then we need to do some house cleaning
-			// remove the listener for the current slide
-			if (this.currentSlide != null && this.currentSlide.getBackground() instanceof VideoMediaComponent) {
-				// we attach a listener to the background media player for the current and incoming slide
-				// when the transition is over we need to remove the current slide as a listener so that
-				// we aren't sending events to it any more
-				this.currentBackgroundMediaPlayer.removeMediaPlayerListener((VideoMediaComponent)this.currentSlide.getBackground());
-				// there should be a maximum of 2 media player listeners per player
+		// see if the incoming slide has playable media
+		if (this.inHasPlayableMedia) {
+			// see if we were transitioning the background
+			if (this.transitionBackground) {
+				// if we were transitioning the background, then we need to release the current background
+				// media player and set the current media player to the incoming media player
+				if (this.currentBackgroundMediaPlayer != null) {
+					this.currentBackgroundMediaPlayer.release();
+				}
+				this.currentBackgroundMediaPlayer = this.inBackgroundMediaPlayer;
+			} else {
+				// if we were NOT transitioning the background, then we need to do some house cleaning
+				// remove the listener for the current slide
+				if (this.currentSlide != null && this.currentSlide.getBackground() instanceof VideoMediaComponent) {
+					// we attach a listener to the background media player for the current and incoming slide
+					// when the transition is over we need to remove the current slide as a listener so that
+					// we aren't sending events to it any more
+					this.currentBackgroundMediaPlayer.removeMediaPlayerListener((VideoMediaComponent)this.currentSlide.getBackground());
+					// there should be a maximum of 2 media player listeners per player
+				}
 			}
 		}
 		// release any current media players and flip the lists
@@ -599,6 +633,125 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 			this.transitionComplete = true;
 			this.transitionCompleteLock.notifyAll();
 		}
+	}
+	
+	/**
+	 * Returns true if a transition is required between the two components.
+	 * @param mc1 the first component
+	 * @param mc2 the second component
+	 * @return boolean
+	 */
+	private boolean isTransitionRequired(VideoMediaComponent mc1, VideoMediaComponent mc2) {
+		// the media must be the same
+		if (mc1.isVideoVisible() && mc2.isVideoVisible()) {
+			if (mc1.getMedia() != null && mc2.getMedia() != null) {
+				if (!mc1.getMedia().equals(mc2.getMedia())) {
+					// the media items are not the same so we have to transition
+					return true;
+				}
+			} else if (mc1.getMedia() != null || mc2.getMedia() != null) {
+				// one is not null
+				return true;
+			}
+		} else if (mc1.isVideoVisible() || mc2.isVideoVisible()) {
+			// one is visible and the other isn't, so we have to transition
+			return true;
+		}
+		
+		// test the scaling type
+		if (mc1.getScaleType() != mc2.getScaleType()) {
+			return true;
+		}
+		
+		// if we made it here, then we need to check if the fill and border are the same
+		return isTransitionRequired((GenericComponent)mc1, (GenericComponent)mc2);
+	}
+	
+	/**
+	 * Returns true if a transition is required between the two components.
+	 * @param mc1 the first component
+	 * @param mc2 the second component
+	 * @return boolean
+	 */
+	private boolean isTransitionRequired(ImageMediaComponent mc1, ImageMediaComponent mc2) {
+		// the media must be the same
+		if (mc1.isImageVisible() && mc2.isImageVisible()) {
+			if (mc1.getMedia() != null && mc2.getMedia() != null) {
+				if (!mc1.getMedia().equals(mc2.getMedia())) {
+					// the media items are not the same so we have to transition
+					return true;
+				}
+			} else if (mc1.getMedia() != null || mc2.getMedia() != null) {
+				// one is not null
+				return true;
+			}
+		} else if (mc1.isImageVisible() || mc2.isImageVisible()) {
+			// one is visible and the other isn't, so we have to transition
+			return true;
+		}
+		
+		// test the scaling type
+		if (mc1.getScaleType() != mc2.getScaleType()) {
+			return true;
+		}
+		
+		// if we made it here, then we need to check if the fill and border are the same
+		return isTransitionRequired((GenericComponent)mc1, (GenericComponent)mc2);
+	}
+	
+	/**
+	 * Returns true if a transition is required between the two components.
+	 * @param c1 the first component
+	 * @param c2 the second component
+	 * @return boolean
+	 */
+	private boolean isTransitionRequired(GenericComponent c1, GenericComponent c2) {
+		if (c1.isBackgroundVisible() && c2.isBackgroundVisible()) {
+			if (c1.getBackgroundFill() != null && c2.getBackgroundFill() != null) {
+				if (!c1.getBackgroundFill().equals(c2.getBackgroundFill())) {
+					// the background fills are not the same, so we must transition
+					return true;
+				}
+			} else if (c1.getBackgroundFill() != null || c2.getBackgroundFill() != null) {
+				// one is not null
+				return true;
+			}
+		} else if (c1.isBackgroundVisible() || c2.isBackgroundVisible()) {
+			// one is visible and the other isn't, so we have to transition
+			return true;
+		}
+		
+		if (c1.isBorderVisible() && c2.isBorderVisible()) {
+			// check the border fill
+			if (c1.getBorderFill() != null && c2.getBorderFill() != null) {
+				if (!c1.getBorderFill().equals(c2.getBorderFill())) {
+					return true;
+				}
+			} else if (c1.getBorderFill() != null || c2.getBorderFill() != null) {
+				// one is not null
+				return true;
+			}
+			// check the line style
+			if (c1.getBorderStyle() != null && c2.getBorderStyle() != null) {
+				if (!c1.getBorderStyle().equals(c2.getBorderStyle())) {
+					return true;
+				}
+			} else if (c1.getBorderStyle() != null || c2.getBorderStyle() != null) {
+				// one is not null
+				return true;
+			}
+		} else if (c1.isBorderVisible() || c2.isBorderVisible()) {
+			// one is visible and the other isn't, so we have to transition
+			return true;
+		}
+		
+		// check the width/height and position
+		if (c1.getWidth() != c2.getWidth() || c1.getHeight() != c2.getHeight()
+		 || c1.getX() != c2.getX() || c1.getY() != c2.getY()) {
+			return true;
+		}
+		
+		return false;
 	}
 	
 	// threading

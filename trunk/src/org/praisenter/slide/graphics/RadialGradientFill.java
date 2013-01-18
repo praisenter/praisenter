@@ -26,6 +26,7 @@ package org.praisenter.slide.graphics;
 
 import java.awt.Color;
 import java.awt.RadialGradientPaint;
+import java.util.Arrays;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -103,6 +104,50 @@ public class RadialGradientFill extends AbstractGradientFill implements Fill {
 		return new RadialGradientPaint(cx, cy, r, fractions, colors);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof RadialGradientFill) {
+			RadialGradientFill f = (RadialGradientFill)obj;
+			if (f.direction == this.direction && Arrays.equals(this.stops, f.stops)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int r = 37;
+		r = 37 * r + this.direction.ordinal();
+		for (Stop stop : this.stops) {
+			r = 37 * r + stop.hashCode();
+		}
+		return r;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("RadialGradientFill[Direction=").append(this.direction)
+		  .append("|Stops={");
+		for (Stop stop : this.stops) {
+			sb.append(stop.toString());
+		}
+		sb.append("}]");
+		return sb.toString();
+	}
+	
 	/**
 	 * Returns the center location.
 	 * @return {@link RadialGradientDirection}

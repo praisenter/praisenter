@@ -102,7 +102,7 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 		this.order = 1;
 		this.width = width;
 		this.height = height;
-		this.backgroundFill = new ColorFill(Color.WHITE);
+		this.backgroundFill = new ColorFill(Color.BLACK);
 		this.backgroundVisible = false;
 	}
 	
