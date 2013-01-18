@@ -116,7 +116,7 @@ public class GenericComponent extends AbstractRenderableComponent implements Sli
 		super(name, width, height);
 		this.x = x;
 		this.y = y;
-		this.borderFill = new ColorFill(Color.WHITE);
+		this.borderFill = new ColorFill(Color.BLACK);
 		this.borderStyle = new LineStyle();
 		this.borderVisible = false;
 	}

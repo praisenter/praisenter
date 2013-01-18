@@ -86,8 +86,11 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 	/** The render qualities */
 	private JComboBox<RenderQuality> cmbRenderQualities;
 	
-	/** The check box for smart transitions */
-	private JCheckBox chkSmartTransitions;
+	/** The check box for smart video transitions */
+	private JCheckBox chkSmartVideoTransitions;
+
+	/** The check box for smart image transitions */
+	private JCheckBox chkSmartImageTransitions;
 	
 	/** The check box for waiting for transitions */
 	private JCheckBox chkWaitForTransition;
@@ -151,10 +154,15 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		this.cmbRenderQualities.setSelectedItem(preferences.getRenderQuality());
 		this.cmbRenderQualities.addItemListener(this);
 		
-		JLabel lblSmartTransitions = new JLabel(Messages.getString("panel.general.preferences.smartTransitions"));
-		this.chkSmartTransitions = new JCheckBox();
-		this.chkSmartTransitions.setToolTipText(Messages.getString("panel.general.preferences.smartTransitions.tooltip"));
-		this.chkSmartTransitions.setSelected(preferences.isSmartTransitionsEnabled());
+		JLabel lblSmartVideoTransitions = new JLabel(Messages.getString("panel.general.preferences.smartVideoTransitions"));
+		this.chkSmartVideoTransitions = new JCheckBox();
+		this.chkSmartVideoTransitions.setToolTipText(Messages.getString("panel.general.preferences.smartVideoTransitions.tooltip"));
+		this.chkSmartVideoTransitions.setSelected(preferences.isSmartVideoTransitionsEnabled());
+		
+		JLabel lblSmartImageTransitions = new JLabel(Messages.getString("panel.general.preferences.smartImageTransitions"));
+		this.chkSmartImageTransitions = new JCheckBox();
+		this.chkSmartImageTransitions.setToolTipText(Messages.getString("panel.general.preferences.smartImageTransitions.tooltip"));
+		this.chkSmartImageTransitions.setSelected(preferences.isSmartImageTransitionsEnabled());
 		
 		JLabel lblWaitForTransition = new JLabel(Messages.getString("panel.general.preferences.waitForTransition"));
 		this.chkWaitForTransition = new JCheckBox();
@@ -172,7 +180,8 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 				.addGroup(layout.createParallelGroup()
 						.addComponent(lblPrimaryDisplay)
 						.addComponent(lblRenderQuality)
-						.addComponent(lblSmartTransitions)
+						.addComponent(lblSmartVideoTransitions)
+						.addComponent(lblSmartImageTransitions)
 						.addComponent(lblWaitForTransition))
 				.addGroup(layout.createParallelGroup()
 						.addGroup(layout.createSequentialGroup()
@@ -181,7 +190,8 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 						.addComponent(this.lblDisplayNotFound)
 						.addComponent(this.lblTranslucency)
 						.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.chkSmartTransitions)
+						.addComponent(this.chkSmartVideoTransitions)
+						.addComponent(this.chkSmartImageTransitions)
 						.addComponent(this.chkWaitForTransition)));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
@@ -194,8 +204,11 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 						.addComponent(lblRenderQuality)
 						.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblSmartTransitions)
-						.addComponent(this.chkSmartTransitions))
+						.addComponent(lblSmartVideoTransitions)
+						.addComponent(this.chkSmartVideoTransitions))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblSmartImageTransitions)
+						.addComponent(this.chkSmartImageTransitions))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblWaitForTransition)
 						.addComponent(this.chkWaitForTransition)));
@@ -290,7 +303,8 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 			preferences.setPrimaryDeviceResolution(WindowUtilities.getDimension(device.getDisplayMode()));
 		}
 		preferences.setRenderQuality((RenderQuality)this.cmbRenderQualities.getSelectedItem());
-		preferences.setSmartTransitionsEnabled(this.chkSmartTransitions.isSelected());
+		preferences.setSmartVideoTransitionsEnabled(this.chkSmartVideoTransitions.isSelected());
+		preferences.setSmartImageTransitionsEnabled(this.chkSmartImageTransitions.isSelected());
 	}
 	
 	/**

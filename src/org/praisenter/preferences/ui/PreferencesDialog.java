@@ -110,7 +110,6 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		btnSaveAndCloseSettings.addActionListener(this);
 		
 		JButton btnCancelSettings = new JButton(Messages.getString("dialog.preferences.cancel"));
-		btnCancelSettings.setToolTipText(Messages.getString("dialog.preferences.cancel.tooltip"));
 		btnCancelSettings.setActionCommand("cancel");
 		btnCancelSettings.addActionListener(this);
 		
@@ -153,12 +152,10 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 			if (success) {
 				// close this dialog
 				this.setVisible(false);
-				this.dispose();
 			}
 		} else if ("cancel".equals(command)) {
 			// don't save the preferences and just close the dialog
 			this.setVisible(false);
-			this.dispose();
 		}
 	}
 	

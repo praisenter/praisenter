@@ -215,9 +215,7 @@ public class BasicSlide implements Slide {
 	 */
 	public ImageMediaComponent createImageBackgroundComponent(ImageMedia media) {
 		ImageMediaComponent component = new ImageMediaComponent(Messages.getString("slide.background.name"), media, 0, 0, this.width, this.height);
-		// setup all the other properties
-		this.setupBackgroundComponent(component);
-		
+		component.setBorderVisible(false);
 		return component;
 	}
 	
@@ -228,12 +226,8 @@ public class BasicSlide implements Slide {
 	 */
 	public VideoMediaComponent createVideoBackgroundComponent(AbstractVideoMedia media) {
 		VideoMediaComponent component = new VideoMediaComponent(Messages.getString("slide.background.name"), media, 0, 0, this.width, this.height);
-		// setup all the other properties
-		this.setupBackgroundComponent(component);
-		// since videos are opaque don't render the background
 		component.setBackgroundVisible(false);
-		component.setBackgroundFill(null);
-		
+		component.setBorderVisible(false);
 		return component;
 	}
 	
@@ -248,9 +242,7 @@ public class BasicSlide implements Slide {
 		GenericComponent component = new GenericComponent(Messages.getString("slide.background.name"), 0, 0, this.width, this.height);
 		component.setBackgroundFill(fill);
 		component.setBackgroundVisible(true);
-		// setup all the other properties
-		this.setupBackgroundComponent(component);
-		
+		component.setBorderVisible(false);
 		return component;
 	}
 	
@@ -260,17 +252,6 @@ public class BasicSlide implements Slide {
 	 */
 	public EmptyRenderableComponent createEmptyBackgroundComponent() {
 		return new EmptyRenderableComponent(Messages.getString("slide.background.name"), this.width, this.height);
-	}
-	
-	/**
-	 * Setups up the properties for a background component.
-	 * @param component the component
-	 */
-	private void setupBackgroundComponent(GenericComponent component) {
-		// no border on backgrounds
-		component.setBorderVisible(false);
-		component.setBorderFill(null);
-		component.setBorderStyle(null);
 	}
 	
 	/* (non-Javadoc)

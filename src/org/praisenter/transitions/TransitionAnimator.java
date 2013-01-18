@@ -137,7 +137,7 @@ public class TransitionAnimator implements ActionListener {
 	 * @return boolean
 	 */
 	public boolean isComplete() {
-		return !this.timer.isRunning();
+		return this.percentComplete >= 1.0;
 	}
 	
 	/**
@@ -161,7 +161,7 @@ public class TransitionAnimator implements ActionListener {
 	 * @return double
 	 */
 	public double getPercentComplete() {
-		return percentComplete;
+		return this.percentComplete;
 	}
 	
 	/* (non-Javadoc)

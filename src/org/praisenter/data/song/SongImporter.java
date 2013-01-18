@@ -43,7 +43,7 @@ import org.xml.sax.SAXException;
 /**
  * Song list importer for song database files.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.0
  * @since 1.0.0
  */
 public final class SongImporter {
@@ -74,7 +74,8 @@ public final class SongImporter {
 			// throw a translated error
 			throw new DataImportException(MessageFormat.format(Messages.getString("songs.import.fileNotFound"), file.getName()), e);
 		} catch (JAXBException e) {
-			// this is possible if we attempt to loadup an older version (1.0.0 for example)
+			LOGGER.warn("The song file is not in the expected format. Trying v1.0.0 format.", e);
+			// this is possible if we attempt to load up an older version (1.0.0 for example)
 			// we need to try to use the 1.0.0 song reader
 			try {
 				songs = PraisenterSongReaderv1_0_0.fromXml(file);

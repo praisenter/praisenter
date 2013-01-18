@@ -66,6 +66,7 @@ import org.praisenter.data.song.SongPart;
 import org.praisenter.data.song.SongPartType;
 import org.praisenter.data.song.Songs;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.SongSlideTemplate;
 import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.ui.WaterMark;
 import org.praisenter.utilities.StringUtilities;
@@ -74,7 +75,7 @@ import org.praisenter.utilities.WindowUtilities;
 /**
  * Panel used to edit a song.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.0
  * @since 1.0.0
  */
 public class EditSongPanel extends JPanel implements ActionListener, SongPartListener {
@@ -139,35 +140,21 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 	
 	/**
 	 * Full constructor.
-	 * @param song the song to edit/show; can be null
+	 * @param template the initial song slide template
 	 */
 	@SuppressWarnings("serial")
-	public EditSongPanel(Song song) {
-		this.song = song;
+	public EditSongPanel(SongSlideTemplate template) {
+		this.song = null;
 		this.songChanged = false;
 		this.notificationsDisabled = true;
 		
 		String title = "";
 		String notes = "";
-		List<SongPart> parts = null;
+		List<SongPart> parts = new ArrayList<SongPart>();;
 		String id = "";
 		boolean edit = false;
 		
-		if (song != null) {
-			title = song.getTitle();
-			notes = song.getNotes();
-			parts = song.getParts();
-			if (!song.isNew()) {
-				id = String.valueOf(song.getId());
-			} else {
-				id = Messages.getString("panel.song.newId");
-			}
-			edit = true;
-		} else {
-			parts = new ArrayList<SongPart>();
-		}
-		
-		this.pnlEditPart = new EditSongPartPanel(null, null);
+		this.pnlEditPart = new EditSongPartPanel(template);
 		this.pnlEditPart.addSongPartListener(this);
 		
 		this.btnSave = new JButton(Messages.getString("panel.song.save"));
@@ -443,53 +430,64 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 	 * @param song the song; can be null
 	 */
 	public void setSong(Song song) {
-		// set the new song
-		this.song = song;
-		this.setSongChanged(false);
-		this.notificationsDisabled = true;
-		
-		String title = "";
-		String notes = "";
-		List<SongPart> parts = null;
-		String id = "";
-		boolean edit = false;
-		
-		this.pnlEditPart.setSongPart(null, null);
-		if (song != null) {
-			title = song.getTitle();
-			notes = song.getNotes();
-			parts = song.getParts();
-			if (!song.isNew()) {
-				id = String.valueOf(song.getId());
+		// only do this if the song is a different song (reference wise)
+		if (this.song != song) {
+			// set the new song
+			this.song = song;
+			this.setSongChanged(false);
+			this.notificationsDisabled = true;
+			
+			String title = "";
+			String notes = "";
+			List<SongPart> parts = null;
+			String id = "";
+			boolean edit = false;
+			
+			this.pnlEditPart.setSongPart(null, null);
+			if (song != null) {
+				title = song.getTitle();
+				notes = song.getNotes();
+				parts = song.getParts();
+				if (!song.isNew()) {
+					id = String.valueOf(song.getId());
+				} else {
+					id = Messages.getString("panel.song.newId");
+				}
+				edit = true;
 			} else {
-				id = Messages.getString("panel.song.newId");
+				parts = new ArrayList<SongPart>();
 			}
-			edit = true;
-		} else {
-			parts = new ArrayList<SongPart>();
+			
+			this.txtTitle.setText(title);
+			this.lblId.setText(id);
+			this.txtNotes.setText(notes);
+			this.txtNotes.setCaretPosition(0);
+			
+			this.tblSongParts.setModel(new MutableSongPartTableModel(parts));
+			this.setSongPartTableWidths();
+			
+			this.txtTitle.setEnabled(edit);
+			this.txtNotes.setEnabled(edit);
+			this.btnAddPart.setEnabled(edit);
+			this.btnDeleteSelectedParts.setEnabled(edit);
+			this.btnNotes.setEnabled(edit);
+			
+			// flip back to the parts layout
+			this.btnNotes.setSelected(false);
+			CardLayout layout = (CardLayout)this.pnlCards.getLayout();
+			layout.show(this.pnlCards, CARD_PARTS);
+			this.btnNotes.setText(Messages.getString("panel.songs.notes"));
+			
+			this.notificationsDisabled = false;
 		}
-		
-		this.txtTitle.setText(title);
-		this.lblId.setText(id);
-		this.txtNotes.setText(notes);
-		this.txtNotes.setCaretPosition(0);
-		
-		this.tblSongParts.setModel(new MutableSongPartTableModel(parts));
-		this.setSongPartTableWidths();
-		
-		this.txtTitle.setEnabled(edit);
-		this.txtNotes.setEnabled(edit);
-		this.btnAddPart.setEnabled(edit);
-		this.btnDeleteSelectedParts.setEnabled(edit);
-		this.btnNotes.setEnabled(edit);
-		
-		// flip back to the parts layout
-		this.btnNotes.setSelected(false);
-		CardLayout layout = (CardLayout)this.pnlCards.getLayout();
-		layout.show(this.pnlCards, CARD_PARTS);
-		this.btnNotes.setText(Messages.getString("panel.songs.notes"));
-		
-		this.notificationsDisabled = false;
+	}
+	
+	/**
+	 * Sets the template used for the song part preview.
+	 * @param template the template
+	 */
+	public void setTemplate(SongSlideTemplate template) {
+		this.pnlEditPart.setTemplate(template);
 	}
 	
 	/* (non-Javadoc)

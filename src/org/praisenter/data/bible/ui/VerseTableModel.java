@@ -37,7 +37,7 @@ import org.praisenter.resources.Messages;
  * @version 2.0.0
  * @since 1.0.0
  */
-public class BibleTableModel extends AbstractTableModel {
+public class VerseTableModel extends AbstractTableModel {
 	/** The version id */
 	private static final long serialVersionUID = 8519101677353181222L;
 
@@ -54,13 +54,13 @@ public class BibleTableModel extends AbstractTableModel {
 	protected List<Verse> verses;
 	
 	/** Default constructor */
-	public BibleTableModel() {}
+	public VerseTableModel() {}
 	
 	/**
 	 * Full constructor.
 	 * @param verses the list of verses
 	 */
-	public BibleTableModel(List<Verse> verses) {
+	public VerseTableModel(List<Verse> verses) {
 		this.verses = verses;
 	}
 	
