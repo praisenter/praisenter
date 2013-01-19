@@ -111,7 +111,6 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 1.0.0
  */
-// FIXME make the preview threaded 
 public class BiblePanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;

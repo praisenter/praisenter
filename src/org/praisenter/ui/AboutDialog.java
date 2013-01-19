@@ -33,6 +33,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.MessageFormat;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -42,6 +43,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import org.praisenter.Version;
+import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
 
 /**
@@ -69,8 +71,10 @@ public class AboutDialog extends JDialog {
 		container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
 		
 		// add the logo to the top
-		JLabel icon = new JLabel();
+		JLabel icon = new JLabel(Icons.ICON);
 		icon.setText(MessageFormat.format(Messages.getString("dialog.about.text"), Version.getVersion()));
+		icon.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 10));
+		icon.setIconTextGap(10);
 		
 		// add the about text section with clickable links
 		JTextPane text = new JTextPane();

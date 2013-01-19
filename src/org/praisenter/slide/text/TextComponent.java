@@ -57,7 +57,7 @@ import org.praisenter.xml.FontTypeAdapter;
  */
 // TODO add text shadow (color, direction, width, visible)
 // TODO add text outline (stroke, paint, visible)
-// TODO make a static text component that shows the current date/time
+// FIXME make a static text component that shows the current date/time
 @XmlRootElement(name = "TextComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({

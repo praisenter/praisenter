@@ -42,7 +42,9 @@ import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
+import org.praisenter.slide.ui.NewSlideDialog;
 import org.praisenter.slide.ui.SlideLibraryPanel;
+import org.praisenter.ui.AboutDialog;
 import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.FontManager;
 import org.praisenter.utilities.LookAndFeelUtilities;
@@ -186,7 +188,9 @@ public class TestSlideIO {
 		
 		SlideLibrary.loadSlideLibrary();
 		
-		new TestFrame();
+//		NewSlideDialog.show(null);
+//		new TestFrame();
+		AboutDialog.show(null);
 	}
 	
 	private static class TestFrame extends JFrame {

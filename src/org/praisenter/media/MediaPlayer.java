@@ -31,6 +31,8 @@ package org.praisenter.media;
  * @version 2.0.0
  * @since 2.0.0
  */
+// FIXME add an option to fade out audio during the transition (perhaps fade in as well)
+// TODO maybe add a way to set the start time and end time?
 public interface MediaPlayer<E extends PlayableMedia> {
 	/**
 	 * The enumeration of states the media player can be in.
