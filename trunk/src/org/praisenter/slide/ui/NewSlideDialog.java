@@ -24,6 +24,7 @@
  */
 package org.praisenter.slide.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -48,6 +49,7 @@ import org.praisenter.slide.BibleSlideTemplate;
 import org.praisenter.slide.NotificationSlideTemplate;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SongSlideTemplate;
+import org.praisenter.slide.Template;
 import org.praisenter.ui.BottomButtonPanel;
 
 /**
@@ -88,8 +90,9 @@ public class NewSlideDialog extends JDialog implements ActionListener {
 	/**
 	 * Minimal constructor.
 	 * @param owner the owner of the this dialog; can be null
+	 * @param clazz the initially selected class type; can be null
 	 */
-	protected NewSlideDialog(Window owner) {
+	protected NewSlideDialog(Window owner, Class<? extends Slide> clazz) {
 		super(owner, Messages.getString("panel.slide.create"), ModalityType.APPLICATION_MODAL);
 		
 		JLabel lblDescription = new JLabel(Messages.getString("panel.slide.create.description"));
@@ -134,16 +137,37 @@ public class NewSlideDialog extends JDialog implements ActionListener {
 		this.rdoSongTemplate.setEnabled(false);
 		this.rdoNotificationTemplate.setEnabled(false);
 		
+		// select the initial view
+		if (clazz != null) {
+			if (Template.class.isAssignableFrom(clazz)) {
+				this.rdoTemplate.setSelected(true);
+				
+				this.rdoSlideTemplate.setEnabled(true);
+				this.rdoBibleTemplate.setEnabled(true);
+				this.rdoSongTemplate.setEnabled(true);
+				this.rdoNotificationTemplate.setEnabled(true);
+				
+				if (BasicSlideTemplate.class.isAssignableFrom(clazz)) {
+				} else if (BibleSlideTemplate.class.isAssignableFrom(clazz)) {
+					this.rdoBibleTemplate.setSelected(true);
+				} else if (SongSlideTemplate.class.isAssignableFrom(clazz)) {
+					this.rdoSongTemplate.setSelected(true);
+				} else if (NotificationSlideTemplate.class.isAssignableFrom(clazz)) {
+					this.rdoNotificationTemplate.setSelected(true);
+				}
+			}
+		}
+		
 		// events
 		
 		this.rdoSlide.addActionListener(this);
 		this.rdoTemplate.addActionListener(this);
 		
-		Container container = this.getContentPane();
-		GroupLayout layout = new GroupLayout(container);
-		container.setLayout(layout);
-		
 		JSeparator sep = new JSeparator();
+		
+		JPanel pnlCreate = new JPanel();
+		GroupLayout layout = new GroupLayout(pnlCreate);
+		pnlCreate.setLayout(layout);
 		
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
@@ -159,8 +183,7 @@ public class NewSlideDialog extends JDialog implements ActionListener {
 								.addComponent(this.rdoBibleTemplate))
 						.addGroup(layout.createParallelGroup()
 								.addComponent(this.rdoSongTemplate)
-								.addComponent(this.rdoNotificationTemplate)))
-				.addComponent(pnlButtons));
+								.addComponent(this.rdoNotificationTemplate))));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(lblDescription)
 				.addGroup(layout.createParallelGroup()
@@ -172,8 +195,13 @@ public class NewSlideDialog extends JDialog implements ActionListener {
 						.addComponent(this.rdoSongTemplate))
 				.addGroup(layout.createParallelGroup()
 						.addComponent(this.rdoBibleTemplate)
-						.addComponent(this.rdoNotificationTemplate))
-				.addComponent(pnlButtons));
+						.addComponent(this.rdoNotificationTemplate)));
+		
+		Container container = this.getContentPane();
+		container.setLayout(new BorderLayout());
+		
+		container.add(pnlCreate, BorderLayout.CENTER);
+		container.add(pnlButtons, BorderLayout.PAGE_END);
 		
 		this.pack();
 	}
@@ -232,7 +260,17 @@ public class NewSlideDialog extends JDialog implements ActionListener {
 	 * @return {@link Slide}
 	 */
 	public static final Slide show(Window owner) {
-		NewSlideDialog dialog = new NewSlideDialog(owner);
+		return NewSlideDialog.show(owner, null);
+	}
+	
+	/**
+	 * Shows a new create slide/template dialog and returns a new slide or template to modify.
+	 * @param owner the owner of this dialog; can be null
+	 * @param clazz the initially selected class type; can be null
+	 * @return {@link Slide}
+	 */
+	public static final Slide show(Window owner, Class<? extends Slide> clazz) {
+		NewSlideDialog dialog = new NewSlideDialog(owner, clazz);
 		dialog.setLocationRelativeTo(owner);
 		dialog.setVisible(true);
 		dialog.dispose();

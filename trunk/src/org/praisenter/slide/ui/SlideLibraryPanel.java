@@ -65,6 +65,7 @@ import org.praisenter.slide.BasicSlideTemplate;
 import org.praisenter.slide.BibleSlideTemplate;
 import org.praisenter.slide.NotificationSlideTemplate;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideThumbnail;
@@ -84,6 +85,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
+//FIXME add import/export caps for slides and templates
 public class SlideLibraryPanel extends JPanel implements ListSelectionListener, ChangeListener, ItemListener, ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = -8314362249681392612L;
@@ -136,6 +138,15 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 	
 	/** The edit slide/template button */
 	private JButton btnEditSlide;
+	
+	/** The copy slide/template button */
+	private JButton btnCopySlide;
+	
+	/** The create template button */
+	private JButton btnCreateTemplate;
+	
+	/** The create slide button */
+	private JButton btnCreateSlide;
 	
 	/** The remove slide template button */
 	private JButton btnRemoveSlide;
@@ -248,6 +259,23 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		this.btnEditSlide.addActionListener(this);
 		this.btnEditSlide.setEnabled(false);
 		
+		this.btnCopySlide = new JButton(Messages.getString("panel.slide.copy"));
+		this.btnCopySlide.setActionCommand("copy");
+		this.btnCopySlide.addActionListener(this);
+		this.btnCopySlide.setEnabled(false);
+		
+		this.btnCreateSlide = new JButton(Messages.getString("panel.slide.createSlide"));
+		this.btnCreateSlide.setToolTipText(Messages.getString("panel.slide.createSlide.tooltip"));
+		this.btnCreateSlide.setActionCommand("createSlide");
+		this.btnCreateSlide.addActionListener(this);
+		this.btnCreateSlide.setVisible(false);
+		
+		this.btnCreateTemplate = new JButton(Messages.getString("panel.slide.createTemplate"));
+		this.btnCreateTemplate.setToolTipText(Messages.getString("panel.slide.createTemplate.tooltip"));
+		this.btnCreateTemplate.setActionCommand("createTemplate");
+		this.btnCreateTemplate.addActionListener(this);
+		this.btnCreateTemplate.setVisible(false);
+		
 		this.btnRemoveSlide = new JButton(Messages.getString("panel.slide.remove"));
 		this.btnRemoveSlide.setActionCommand("remove");
 		this.btnRemoveSlide.addActionListener(this);
@@ -277,12 +305,18 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				.addComponent(btnCreateSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(this.pnlProperties)
 				.addComponent(this.btnEditSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(this.btnCopySlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(this.btnCreateSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(this.btnCreateTemplate, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(this.btnRemoveSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(this.pnlPreview));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(btnCreateSlide)
 				.addComponent(this.pnlProperties, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addComponent(this.btnEditSlide)
+				.addComponent(this.btnCopySlide)
+				.addComponent(this.btnCreateSlide)
+				.addComponent(this.btnCreateTemplate)
 				.addComponent(this.btnRemoveSlide)
 				.addComponent(this.pnlPreview));
 		
@@ -341,8 +375,21 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		
 		// we dont need to get the selected thumnbnail for the new command
 		if ("new".equals(command)) {
+			// default the created slide/template type to whatever tab/template they have selected
+			Class<? extends Slide> clazz = BasicSlide.class;
+			if (this.slideTabs.getSelectedIndex() == 1) {
+				if (this.cmbTemplateType.getSelectedItem() == TemplateType.SLIDE) {
+					clazz = BasicSlideTemplate.class;
+				} else if (this.cmbTemplateType.getSelectedItem() == TemplateType.BIBLE) {
+					clazz = BibleSlideTemplate.class;
+				} else if (this.cmbTemplateType.getSelectedItem() == TemplateType.SONG) {
+					clazz = SongSlideTemplate.class;
+				} else if (this.cmbTemplateType.getSelectedItem() == TemplateType.NOTIFICATION) {
+					clazz = NotificationSlideTemplate.class;
+				}
+			}
 			// show dialog asking what type (slide/template)
-			Slide slide = NewSlideDialog.show(WindowUtilities.getParentWindow(this));
+			Slide slide = NewSlideDialog.show(WindowUtilities.getParentWindow(this), clazz);
 			// check for null (null means the user canceled)
 			if (slide != null) {
 				// open the slide/template editor
@@ -461,6 +508,172 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 							task.getException());
 					LOGGER.error("Failed to load [" + file.getPath() + "] from the slide library: ", task.getException());
 				}
+			} else if ("copy".equals(command)) {
+				// get the selected slide or template
+				SlideFile file = thumbnail.getFile();
+				
+				// load/copy/save on another thread
+				LoadSlideTask task = new LoadSlideTask(file, clazz) {
+					@Override
+					public void run() {
+						super.run();
+						// if the loading of the slide was successful then try to
+						// copy it and save the copy
+						if (this.isSuccessful() && this.slide != null) {
+							// save the slide
+							// make a copy of the slide so that the user can cancel the operation
+							Slide slide = this.slide.copy();
+							
+							// rename the slide to copy of or something
+							slide.setName(MessageFormat.format(Messages.getString("panel.slide.copy.copyOf"), slide.getName()));
+							
+							// save the slide
+							try {
+								if (!isTemplate) {
+									SlideLibrary.saveSlide(slide.getName(), (BasicSlide)slide);
+								} else {
+									SlideLibrary.saveTemplate(slide.getName(), (Template)slide);
+								}
+								this.setSuccessful(true);
+							} catch (Exception e) {
+								this.setSuccessful(false);
+								this.handleException(e);
+							}
+						}
+					}
+				};
+				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.copying"), task);
+				
+				if (task.isSuccessful()) {
+					// when control returns here we need to update the items in the jlist with the current media library items
+					List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(clazz == null ? BasicSlide.class : clazz);
+					list.clearSelection();
+					// we need to reload all the thumbnails here since the user could do multiple save as...'es saving
+					// multiple slides or templates
+					DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
+					model.removeAllElements();
+					for (SlideThumbnail thumb : thumbnails) {
+						model.addElement(thumb);
+					}
+					list.setSelectedValue(thumbnail, true);
+					this.slideLibraryUpdated = true;
+				} else {
+					ExceptionDialog.show(
+							this, 
+							MessageFormat.format(Messages.getString("panel.slide.copy.exception.title"), type), 
+							MessageFormat.format(Messages.getString("panel.slide.copy.exception.text"), type.toLowerCase(), file.getPath()), 
+							task.getException());
+					LOGGER.error("Failed to copy [" + file.getPath() + "]: ", task.getException());
+				}
+			} else if ("createTemplate".equals(command)) {
+				// get the selected slide or template
+				SlideFile file = thumbnail.getFile();
+				
+				// load/copy/save on another thread
+				LoadSlideTask task = new LoadSlideTask(file, clazz) {
+					@Override
+					public void run() {
+						super.run();
+						// if the loading of the slide was successful then try to
+						// copy it and save the copy
+						if (this.isSuccessful() && this.slide != null) {
+							// save the slide
+							// make a copy of the slide so that the user can cancel the operation
+							Template slide = this.slide.createTemplate();
+							
+							// rename the slide to copy of or something
+							slide.setName(MessageFormat.format(Messages.getString("panel.slide.createTemplate.templateOf"), slide.getName()));
+							
+							// save the slide
+							try {
+								SlideLibrary.saveTemplate(slide.getName(), slide);
+								this.setSuccessful(true);
+							} catch (Exception e) {
+								this.setSuccessful(false);
+								this.handleException(e);
+							}
+						}
+					}
+				};
+				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.creating"), task);
+				
+				if (task.isSuccessful()) {
+					// when control returns here we need to update the items in the jlist with the current media library items
+					List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BasicSlideTemplate.class);
+					this.lstTemplates.clearSelection();
+					DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)this.lstTemplates.getModel();
+					model.removeAllElements();
+					for (SlideThumbnail thumb : thumbnails) {
+						model.addElement(thumb);
+					}
+					this.lstTemplates.setSelectedValue(thumbnail, true);
+					this.slideTabs.setSelectedIndex(1);
+					this.cmbTemplateType.setSelectedItem(TemplateType.SLIDE);
+					this.slideLibraryUpdated = true;
+				} else {
+					ExceptionDialog.show(
+							this, 
+							Messages.getString("panel.slide.createTemplate.exception.title"), 
+							MessageFormat.format(Messages.getString("panel.slide.createTemplate.exception.text"), file.getPath()), 
+							task.getException());
+					LOGGER.error("Failed to create template from [" + file.getPath() + "]: ", task.getException());
+				}
+			} else if ("createSlide".equals(command)) {
+				// get the selected slide or template
+				SlideFile file = thumbnail.getFile();
+				
+				// load/copy/save on another thread
+				LoadSlideTask task = new LoadSlideTask(file, clazz) {
+					@Override
+					public void run() {
+						super.run();
+						// if the loading of the slide was successful then try to
+						// copy it and save the copy
+						if (this.isSuccessful() && this.slide != null) {
+							// create a copy of the template using the basic slide constructor
+							BasicSlide slide = new BasicSlide((BasicSlide)this.slide);
+							// move over any static components
+							List<SlideComponent> components = this.slide.getStaticComponents(SlideComponent.class);
+							for (SlideComponent component : components) {
+								slide.addComponent(component);
+							}
+							
+							// rename the slide to copy of or something
+							slide.setName(MessageFormat.format(Messages.getString("panel.slide.createSlide.slideOf"), slide.getName()));
+							
+							// save the slide
+							try {
+								SlideLibrary.saveSlide(slide.getName(), (BasicSlide)slide);
+								this.setSuccessful(true);
+							} catch (Exception e) {
+								this.setSuccessful(false);
+								this.handleException(e);
+							}
+						}
+					}
+				};
+				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.creating"), task);
+				
+				if (task.isSuccessful()) {
+					// when control returns here we need to update the items in the jlist with the current media library items
+					List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BasicSlide.class);
+					this.lstSlides.clearSelection();
+					DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)this.lstSlides.getModel();
+					model.removeAllElements();
+					for (SlideThumbnail thumb : thumbnails) {
+						model.addElement(thumb);
+					}
+					this.lstSlides.setSelectedValue(thumbnail, true);
+					this.slideTabs.setSelectedIndex(0);
+					this.slideLibraryUpdated = true;
+				} else {
+					ExceptionDialog.show(
+							this, 
+							Messages.getString("panel.slide.createSlide.exception.title"), 
+							MessageFormat.format(Messages.getString("panel.slide.createSlide.exception.text"), file.getPath()), 
+							task.getException());
+					LOGGER.error("Failed to create slide from [" + file.getPath() + "]: ", task.getException());
+				}
 			} else if ("remove".equals(command)) {
 				// show an are you sure dialog, then delete the slide
 				int choice = JOptionPane.showConfirmDialog(
@@ -552,12 +765,22 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				this.getPreviewThread().queueSlide(preview);
 				this.pnlProperties.setSlideFile(file, isSlide);
 				this.btnEditSlide.setEnabled(true);
+				this.btnCopySlide.setEnabled(true);
+				this.btnCreateSlide.setVisible(!isSlide);
+				if (source == this.lstNotificationTemplates) {
+					// you can't create slides from these templates
+					this.btnCreateSlide.setVisible(false);
+				}
+				this.btnCreateTemplate.setVisible(isSlide);
 				this.btnRemoveSlide.setEnabled(true);
 			} else {
 				this.pnlPreview.setSlide(null);
 				this.pnlProperties.setSlideFile(null, true);
 				this.pnlPreview.repaint();
 				this.btnEditSlide.setEnabled(false);
+				this.btnCopySlide.setEnabled(false);
+				this.btnCreateSlide.setVisible(false);
+				this.btnCreateTemplate.setVisible(false);
 				this.btnRemoveSlide.setEnabled(false);
 			}
 		}
@@ -608,6 +831,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		SlideFile file = null;
 		PreviewAction<?> preview = null;
 		boolean isSlide = false;
+		Object type = null;
 		if (index == 0) {
 			SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
 			if (thumbnail != null) {
@@ -616,7 +840,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				isSlide = true;
 			}
 		} else if (index == 1) {
-			Object type = this.cmbTemplateType.getSelectedItem();
+			type = this.cmbTemplateType.getSelectedItem();
 			if (type == TemplateType.SLIDE) {
 				SlideThumbnail thumbnail = this.lstTemplates.getSelectedValue();
 				if (thumbnail != null) {
@@ -647,12 +871,22 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 			this.pnlProperties.setSlideFile(file, isSlide);
 			this.getPreviewThread().queueSlide(preview);
 			this.btnEditSlide.setEnabled(true);
+			this.btnCopySlide.setEnabled(true);
+			this.btnCreateSlide.setVisible(!isSlide);
+			if (type == TemplateType.NOTIFICATION) {
+				// you can't create slides from these templates
+				this.btnCreateSlide.setVisible(false);
+			}
+			this.btnCreateTemplate.setVisible(isSlide);
 			this.btnRemoveSlide.setEnabled(true);
 		} else {
 			this.pnlProperties.setSlideFile(null, true);
 			this.pnlPreview.setSlide(null);
 			this.pnlPreview.repaint();
 			this.btnEditSlide.setEnabled(false);
+			this.btnCopySlide.setEnabled(false);
+			this.btnCreateSlide.setVisible(false);
+			this.btnCreateTemplate.setVisible(false);
 			this.btnRemoveSlide.setEnabled(false);
 		}
 	}
@@ -753,13 +987,13 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 	 */
 	private class LoadSlideTask extends AbstractTask {
 		/** The slide file */
-		private SlideFile file;
+		protected SlideFile file;
 		
 		/** The slide class; null if {@link BasicSlide} */
-		private Class<? extends Template> clazz;
+		protected Class<? extends Template> clazz;
 		
 		/** The loaded slide */
-		private Slide slide;
+		protected Slide slide;
 		
 		/**
 		 * Full constructor.

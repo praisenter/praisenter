@@ -27,6 +27,7 @@ package org.praisenter;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Desktop;
 import java.awt.Frame;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -85,12 +86,11 @@ import org.praisenter.xml.XmlIO;
  * @since 1.0.0
  */
 // TODO add xuggler video downloader (to download videos from the web)
-// FIXME add import/export caps for slides and templates
 // TODO bible translation manager
 // TODO song manager
-// FIXME when creating a new slide or template, show a listing of slides/templates to copy from
 // FIXME Add a service schedule with import/export caps
-
+// FIXME create a "quick create" function to quickly create a slide with an image/video background and optionally some text
+// TODO count downs? Im not sure about this one since a video of a count down would look better
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;
@@ -236,14 +236,25 @@ public class Praisenter extends JFrame implements ActionListener {
 			}
 			
 			// help menu
-			JMenu mnuHelp = new JMenu(Messages.getString("menu.help"));
-			barMenu.add(mnuHelp);
-			
-			// about menu
-			JMenuItem mnuAbout = new JMenuItem(Messages.getString("menu.help.about"));
-			mnuAbout.setActionCommand("about");
-			mnuAbout.addActionListener(this);
-			mnuHelp.add(mnuAbout);
+			{
+				JMenu mnuHelp = new JMenu(Messages.getString("menu.help"));
+				barMenu.add(mnuHelp);
+				
+				// make sure the desktop is supported
+				if (Desktop.isDesktopSupported()) {
+					// about menu
+					JMenuItem mnuLogs = new JMenuItem(Messages.getString("menu.help.logs"));
+					mnuLogs.setActionCommand("logs");
+					mnuLogs.addActionListener(this);
+					mnuHelp.add(mnuLogs);
+				}
+				
+				// about menu
+				JMenuItem mnuAbout = new JMenuItem(Messages.getString("menu.help.about"));
+				mnuAbout.setActionCommand("about");
+				mnuAbout.addActionListener(this);
+				mnuHelp.add(mnuAbout);
+			}
 			
 			this.setJMenuBar(barMenu);
 		}
@@ -286,7 +297,7 @@ public class Praisenter extends JFrame implements ActionListener {
 							LOGGER.info("The exit thread was interrupted. No System.exit(0) call made.");
 						}
 					}
-				});
+				}, "ExitJVMThread");
 				thread.setDaemon(true);
 				thread.start();
 				
@@ -338,6 +349,13 @@ public class Praisenter extends JFrame implements ActionListener {
 				this.pnlNotification.slideLibraryChanged();
 				this.pnlBible.slideLibraryChanged();
 				this.pnlSongs.slideLibraryChanged();
+			}
+		} else if ("logs".equals(command)) {
+			File file = new File(Constants.LOG_FILE_LOCATION);
+			try {
+				Desktop.getDesktop().open(file);
+			} catch (IOException e) {
+				LOGGER.error("An error occurred while trying to open the log file location in the native system: ", e);
 			}
 		} else if ("about".equals(command)) {
 			AboutDialog.show(this);

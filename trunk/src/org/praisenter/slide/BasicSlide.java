@@ -531,10 +531,19 @@ public class BasicSlide implements Slide {
 		// scale the composite down
 		image = ImageUtilities.getUniformScaledImage(image, size.width, size.height, AffineTransformOp.TYPE_BILINEAR);
 		// create a buffered image with the transparent background
-		BufferedImage img = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		BufferedImage img = new BufferedImage(size.width, size.height, BufferedImage.TYPE_INT_ARGB);
 		g = img.createGraphics();
-		ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, g, 0, 0, image.getWidth(), image.getHeight());
-		g.drawImage(image, 0, 0, null);
+		// center the scaled thumbnail image
+		int x = 0;
+		int y = 0;
+		if (image.getWidth() != size.width) {
+			x = (size.width - image.getWidth()) / 2;
+		}
+		if (image.getHeight() != size.height) {
+			y = (size.height - image.getHeight()) / 2;
+		}
+		ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, g, x, y, image.getWidth(), image.getHeight());
+		g.drawImage(image, x, y, null);
 		g.dispose();
 		// return it
 		return img;

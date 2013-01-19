@@ -87,7 +87,7 @@ public class ImageMedia extends AbstractMedia {
 		// render a tiled transparent background first
 		if (this.image.getTransparency() != Transparency.OPAQUE) {
 			// only render this if the image is translucent or bitmask
-			ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, g, 0, 0, size.width, size.height);
+			ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, g, x, y, w, h);
 		}
 		// render the scaled image to the graphics
 		g.drawImage(this.image, x, y, w, h, null);

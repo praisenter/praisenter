@@ -68,6 +68,14 @@ public class BasicSlideTemplate extends BasicSlide implements Slide, Template {
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.BasicSlide#copy()
+	 */
+	@Override
+	public BasicSlideTemplate copy() {
+		return new BasicSlideTemplate(this);
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Template#createSlide()
 	 */
 	public Slide createSlide() {
