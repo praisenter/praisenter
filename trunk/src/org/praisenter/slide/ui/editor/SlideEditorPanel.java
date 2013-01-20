@@ -111,6 +111,7 @@ import org.praisenter.utilities.WindowUtilities;
 // TODO show the x,y coordinates when moving
 // TODO show the width/height when resizing
 // TODO add the "delete" key to remove component; maybe arrow keys too
+// TODO add undo/redo functionality (store a list of slide/template copies after any change?)
 public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, ListSelectionListener, EditorListener, ActionListener, ItemListener, DocumentListener {
 	/** The version id */
 	private static final long serialVersionUID = -927595042247907332L;
