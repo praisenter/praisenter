@@ -535,7 +535,11 @@ public final class SlideLibrary {
 		// delete the file
 		if (file.delete()) {
 			// remove the weak reference
+			// remove it from all template maps (since its a no-op if its not there)
 			TEMPLATES.remove(filePath);
+			BIBLE_TEMPLATES.remove(filePath);
+			SONG_TEMPLATES.remove(filePath);
+			NOTIFICATION_TEMPLATES.remove(filePath);
 			// remove the thumbnail
 			THUMBNAILS.remove(filePath);
 			return true;
