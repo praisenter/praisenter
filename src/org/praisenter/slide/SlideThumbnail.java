@@ -76,6 +76,9 @@ public class SlideThumbnail implements Comparable<SlideThumbnail> {
 	 */
 	@Override
 	public int compareTo(SlideThumbnail o) {
+		if (o == null) {
+			return 1;
+		}
 		// compare on file name
 		if (o.file == SlideFile.NOT_STORED) {
 			return 1;
