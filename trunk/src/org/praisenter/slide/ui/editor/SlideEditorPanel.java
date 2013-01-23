@@ -86,6 +86,7 @@ import org.praisenter.slide.graphics.LinearGradientFill;
 import org.praisenter.slide.media.AudioMediaComponent;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
+import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.ui.editor.command.BoundsCommand;
 import org.praisenter.slide.ui.editor.command.ComponentBoundsCommandBeingArguments;
@@ -124,6 +125,9 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	
 	/** The text editor panel card */
 	private static final String TEXT_CARD = "Text";
+	
+	/** The date/time editor panel card */
+	private static final String DATE_CARD = "Date";
 	
 	/** The image editor panel card */
 	private static final String IMAGE_CARD = "Image";
@@ -184,6 +188,9 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	
 	/** Button to add a new text component */
 	private JButton btnAddTextComponent;
+
+	/** Button to add a new date component */
+	private JButton btnAddDateComponent;
 	
 	/** Button to add a new image component */
 	private JButton btnAddImageComponent;
@@ -200,7 +207,10 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	private GenericComponentEditorPanel<GenericComponent> pnlGeneric;
 	
 	/** Text editor panel for {@link TextComponent}s */
-	private TextComponentEditorPanel pnlText;
+	private TextComponentEditorPanel<TextComponent> pnlText;
+	
+	/** Date/time editor panel for {@link DateTimeComponent}s */
+	private DateTimeComponentEditorPanel pnlDate;
 	
 	/** Image editor panel for {@link ImageMediaComponent}s */
 	private ImageMediaComponentEditorPanel pnlImage;
@@ -406,6 +416,11 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		this.btnAddTextComponent.setToolTipText(Messages.getString("panel.slide.editor.add.text"));
 		this.btnAddTextComponent.addActionListener(this);
 		this.btnAddTextComponent.setActionCommand("add-text");
+
+		this.btnAddDateComponent = new JButton(Icons.DATE_COMPONENT);
+		this.btnAddDateComponent.setToolTipText(Messages.getString("panel.slide.editor.add.date"));
+		this.btnAddDateComponent.addActionListener(this);
+		this.btnAddDateComponent.setActionCommand("add-date");
 		
 		this.btnAddImageComponent = new JButton(Icons.IMAGE_COMPONENT);
 		this.btnAddImageComponent.setToolTipText(Messages.getString("panel.slide.editor.add.image"));
@@ -446,6 +461,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				.addGroup(clLayout.createSequentialGroup()
 						.addComponent(this.btnAddGenericComponent)
 						.addComponent(this.btnAddTextComponent)
+						.addComponent(this.btnAddDateComponent)
 						.addComponent(this.btnAddImageComponent)
 						.addComponent(this.btnAddVideoComponent)
 						.addComponent(this.btnAddAudioComponent)));
@@ -458,6 +474,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				.addGroup(clLayout.createParallelGroup()
 						.addComponent(this.btnAddGenericComponent)
 						.addComponent(this.btnAddTextComponent)
+						.addComponent(this.btnAddDateComponent)
 						.addComponent(this.btnAddImageComponent)
 						.addComponent(this.btnAddVideoComponent)
 						.addComponent(this.btnAddAudioComponent)));
@@ -465,8 +482,11 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		this.pnlGeneric = new GenericComponentEditorPanel<>();
 		this.pnlGeneric.addEditorListener(this);
 		
-		this.pnlText = new TextComponentEditorPanel();
+		this.pnlText = new TextComponentEditorPanel<TextComponent>();
 		this.pnlText.addEditorListener(this);
+		
+		this.pnlDate = new DateTimeComponentEditorPanel();
+		this.pnlDate.addEditorListener(this);
 		
 		this.pnlImage = new ImageMediaComponentEditorPanel();
 		this.pnlImage.addEditorListener(this);
@@ -496,6 +516,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		this.pnlEditorCards.add(pnlBlank, BLANK_CARD);
 		this.pnlEditorCards.add(this.pnlGeneric, GENERIC_CARD);
 		this.pnlEditorCards.add(this.pnlText, TEXT_CARD);
+		this.pnlEditorCards.add(this.pnlDate, DATE_CARD);
 		this.pnlEditorCards.add(this.pnlImage, IMAGE_CARD);
 		this.pnlEditorCards.add(this.pnlVideo, VIDEO_CARD);
 		this.pnlEditorCards.add(this.pnlAudio, AUDIO_CARD);
@@ -974,6 +995,17 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				component.setTextFont(FontManager.getDefaultFont().deriveFont(30.0f));
 				this.onAddComponent(component);
 			}
+		} else if ("add-date".equals(command)) {
+			if (this.slide != null) {
+				DateTimeComponent component = new DateTimeComponent(
+						Messages.getString("panel.slide.editor.new.name"), 
+						50, 
+						50, 
+						this.slide.getWidth() / 2, 
+						100);
+				component.setTextFont(FontManager.getDefaultFont().deriveFont(50.0f));
+				this.onAddComponent(component);
+			}
 		} else if ("add-image".equals(command)) {
 			if (this.slide != null) {
 				ImageMediaComponent component = new ImageMediaComponent(
@@ -1142,6 +1174,9 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 					if (isBackground) {
 						this.pnlBackground.setSlideComponent(this.slide.getBackground(), isStatic);
 						this.layEditorCards.show(this.pnlEditorCards, BACKGROUND_CARD);
+					} else if (component instanceof DateTimeComponent) {
+						this.pnlDate.setSlideComponent((DateTimeComponent)component, isStatic);
+						this.layEditorCards.show(this.pnlEditorCards, DATE_CARD);
 					} else if (component instanceof TextComponent) {
 						this.pnlText.setSlideComponent((TextComponent)component, isStatic);
 						this.layEditorCards.show(this.pnlEditorCards, TEXT_CARD);

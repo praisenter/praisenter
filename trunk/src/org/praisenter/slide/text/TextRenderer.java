@@ -320,7 +320,7 @@ public final class TextRenderer {
 			i++;
 		}
 		if (i > 0) {
-			LOGGER.debug("Font fitting iterations: " + i);
+			LOGGER.trace("Font fitting iterations: " + i);
 		}
 		return new TextMetrics(cur, bounds.width, bounds.height);
 	}
@@ -476,7 +476,7 @@ public final class TextRenderer {
 			bounds = getLineBounds(font.deriveFont(cur), fontRenderContext, text);
 			if (bounds.width <= width && bounds.height <= height && max != Float.MAX_VALUE) {
 				// the estimate was precise enough so use that
-				LOGGER.debug("Font fitting iterations: 1");
+				LOGGER.trace("Font fitting iterations: 1");
 				return new TextMetrics(cur, bounds.width, bounds.height);
 			} else {
 				// if the text is still too big or the maximum we passed in was Float.MAX_VALUE then
@@ -519,11 +519,11 @@ public final class TextRenderer {
 					i++;
 				}
 				if (i > 0) {
-					LOGGER.debug("Font fitting iterations: " + i);
+					LOGGER.trace("Font fitting iterations: " + i);
 				}
 			}
 		} else {
-			LOGGER.debug("Font fitting iterations: 0");
+			LOGGER.trace("Font fitting iterations: 0");
 		}
 		return new TextMetrics(cur, bounds.width, bounds.height);
 	}

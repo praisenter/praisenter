@@ -70,6 +70,7 @@ import org.praisenter.notification.ui.NotificationPanel;
 import org.praisenter.preferences.ui.PreferencesDialog;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.ui.SlideLibraryDialog;
+import org.praisenter.slide.ui.SlidePanel;
 import org.praisenter.slide.ui.present.SlideWindows;
 import org.praisenter.threading.AbstractTask;
 import org.praisenter.threading.FileTask;
@@ -88,9 +89,15 @@ import org.praisenter.xml.XmlIO;
 // TODO add xuggler video downloader (to download videos from the web)
 // TODO bible translation manager
 // TODO song manager
+// TODO count downs? Im not sure about this one since a video of a count down would look better
 // FIXME Add a service schedule with import/export caps
 // FIXME create a "quick create" function to quickly create a slide with an image/video background and optionally some text
-// TODO count downs? Im not sure about this one since a video of a count down would look better
+// FIXME remind mac users that they should install the JDK from oracle rather than the JRE since it updates the path
+// FIXME mac os x makes the notification (always on top) block all user input YIKES; 
+//       maybe we can position the dialog/frame offscreen then reposition when we need to display?  
+//       may need a notification when the clear transition is done
+//       Setting the opacity to 0.0f may or may not disable mouse events (depends on platform)
+// FIXME add an exit option to the file menu
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;
@@ -104,6 +111,9 @@ public class Praisenter extends JFrame implements ActionListener {
 	private JMenu mnuLookAndFeel;
 	
 	// main panels
+	
+	/** The slide panel */
+	private SlidePanel pnlSlides;
 	
 	/** The bible panel */
 	private BiblePanel pnlBible;
@@ -127,6 +137,9 @@ public class Praisenter extends JFrame implements ActionListener {
 		// create the notification panel
 		this.pnlNotification = new NotificationPanel();
 		
+		// create the slide panel
+		this.pnlSlides = new SlidePanel();
+		
 		// create the bible panel
 		this.pnlBible = new BiblePanel();
 		
@@ -134,6 +147,7 @@ public class Praisenter extends JFrame implements ActionListener {
 		this.pnlSongs = new SongsPanel();
 		
 		JTabbedPane tabs = new JTabbedPane();
+		tabs.addTab(Messages.getString("slides"), this.pnlSlides);
 		tabs.addTab(Messages.getString("bible"), this.pnlBible);
 		tabs.addTab(Messages.getString("songs"), this.pnlSongs);
 		
@@ -154,6 +168,8 @@ public class Praisenter extends JFrame implements ActionListener {
 				mnuPreferences.addActionListener(this);
 				mnuFile.add(mnuPreferences);
 	
+				mnuFile.addSeparator();
+				
 				// file->export menu
 				{
 					JMenu mnuExport = new JMenu(Messages.getString("menu.file.export"));
@@ -286,8 +302,8 @@ public class Praisenter extends JFrame implements ActionListener {
 						try {
 							LOGGER.info("The exit thread has started.");
 							// wait a minute before we forcefully shut down the JVM
-							Thread.sleep(60000);
-							LOGGER.info("The exit thread waited 1 minute. Manually exiting.");
+							Thread.sleep(10000);
+							LOGGER.info("The exit thread waited 10 seconds. Manually exiting.");
 							// shut her down...
 							System.exit(0);
 						} catch (InterruptedException e) {
@@ -326,6 +342,7 @@ public class Praisenter extends JFrame implements ActionListener {
 			boolean changed = PreferencesDialog.show(this);
 			if (changed) {
 				this.pnlNotification.preferencesChanged();
+				this.pnlSlides.preferencesChanged();
 				this.pnlBible.preferencesChanged();
 				this.pnlSongs.preferencesChanged();
 			}
@@ -347,6 +364,7 @@ public class Praisenter extends JFrame implements ActionListener {
 			boolean changed = SlideLibraryDialog.show(this, null);
 			if (changed) {
 				this.pnlNotification.slideLibraryChanged();
+				this.pnlSlides.slideLibraryChanged();
 				this.pnlBible.slideLibraryChanged();
 				this.pnlSongs.slideLibraryChanged();
 			}

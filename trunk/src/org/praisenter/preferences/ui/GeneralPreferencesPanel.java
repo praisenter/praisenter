@@ -328,13 +328,18 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 	 */
 	private final String getDeviceName(GraphicsDevice device) {
 		DisplayMode mode = device.getDisplayMode();
+		int rate = mode.getRefreshRate();
+		if (rate <= 0) {
+			// assume its 60 (mac os x and LCD monitors)
+			rate = 60;
+		}
 		StringBuilder sb = new StringBuilder();
 		sb.append(Messages.getString("panel.general.preferences.display.name"))
 		  .append(getDeviceIndex(device) + 1)
 		  .append(" ").append(mode.getWidth())
 		  .append("x").append(mode.getHeight())
 		  .append(" ").append(mode.getBitDepth())
-		  .append("bit at ").append(mode.getRefreshRate())
+		  .append("bit at ").append(rate)
 		  .append("hz");
 		return sb.toString();
 	}

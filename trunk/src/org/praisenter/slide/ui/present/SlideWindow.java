@@ -33,10 +33,12 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsDevice.WindowTranslucency;
 import java.awt.Rectangle;
 
+import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 
 import org.apache.log4j.Logger;
-import org.praisenter.slide.NotificationSlide;
+import org.praisenter.Main;
+import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.Slide;
 import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
@@ -47,7 +49,7 @@ import org.praisenter.transitions.Transitions;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class SlideWindow extends JDialog {
+public class SlideWindow extends JDialog implements TransitionListener {
 	/** The version id */
 	private static final long serialVersionUID = 3385134636780286237L;
 
@@ -111,6 +113,13 @@ public class SlideWindow extends JDialog {
 		container.setLayout(new BorderLayout());
 		
 		this.surface = new SlideSurface();
+		this.surface.addTransitionListener(this);
+		
+		if (Main.isDebugEnabled()) {
+			// for debugging show a line border
+			this.surface.setBorder(BorderFactory.createLineBorder(Color.RED, 10));
+		}
+		
 		container.add(this.surface, BorderLayout.CENTER);
 		
 		this.setAlwaysOnTop(overlay);
@@ -152,6 +161,23 @@ public class SlideWindow extends JDialog {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.present.TransitionListener#inTransitionComplete()
+	 */
+	@Override
+	public void inTransitionComplete() {
+		// nothing to do on an in transition
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.present.TransitionListener#outTransitionComplete()
+	 */
+	@Override
+	public void outTransitionComplete() {
+		this.setVisible(false);
+		this.visibleInternal = false;
+	}
+	
 	/**
 	 * Sets the window size to match the given slide size.
 	 * @param slide the slide
@@ -165,10 +191,10 @@ public class SlideWindow extends JDialog {
 		int y = r.y;
 		
 		// check for notification slide
-		if (slide instanceof NotificationSlide) {
-			NotificationSlide ns = (NotificationSlide)slide;
-			x += ns.getX();
-			y += ns.getY();
+		if (slide instanceof AbstractPositionedSlide) {
+			AbstractPositionedSlide ps = (AbstractPositionedSlide)slide;
+			x += ps.getX();
+			y += ps.getY();
 		}
 		
 		Dimension size = new Dimension(slide.getWidth(), slide.getHeight());
@@ -208,16 +234,10 @@ public class SlideWindow extends JDialog {
 		if (translucency == WindowTranslucency.PERPIXEL_TRANSLUCENT) {
 			// this is the best since all transitions will work
 			this.setBackground(new Color(0, 0, 0, 0));
-			this.setVisible(true);
 			LOGGER.info("Per-pixel translucency supported (best).");
 		} else if (translucency == WindowTranslucency.TRANSLUCENT) {
-			// no transition support but at least we can go ahead
-			// and set the dialog to visible to save some time
-			this.setOpacity(0.0f);
-			this.setVisible(true);
 			LOGGER.info("Only uniform translucency supported.");
 		} else {
-			// no support so don't show the dialog
 			LOGGER.info("No translucency supported.");
 		}
 	}
@@ -230,47 +250,21 @@ public class SlideWindow extends JDialog {
 	 * @return boolean
 	 */
 	protected boolean setVisibleInternal(boolean flag) {
-		WindowTranslucency translucency = this.getWindowTranslucency();
 		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(this.device);
 		if (flag) {
-			// showing the window depends on the translucency support
-			if (translucency == WindowTranslucency.PERPIXEL_TRANSLUCENT) {
-				// do nothing
-			} else if (translucency == WindowTranslucency.TRANSLUCENT) {
-				// see if the window is currently visible
-				if (!this.visibleInternal) {
-					// set the opacity to fully opaque
-					// no transitions sadly
-					this.setOpacity(1.0f);
-				}
-			} else {
-				// see if the window is currently visible
-				if (!this.visibleInternal) {
-					// set the dialog to visible
-					// no transitions sadly
-					this.setVisible(true);
-				}
+			// see if the window is currently visible
+			if (!this.visibleInternal) {
+				// set the dialog to visible
+				// no transitions sadly
+				this.setVisible(true);
 			}
+			
 			// set the window visible flag
 			this.visibleInternal = true;
 			
 			// if you re-send the display then make sure it goes on
 			// top of all other windows
 			this.toFront();
-		} else {
-			// hiding of the window depends on the translucency support
-			if (translucency == WindowTranslucency.PERPIXEL_TRANSLUCENT) {
-				// then we can just clear the surface
-			} else if (translucency == WindowTranslucency.TRANSLUCENT) {
-				// then we can set the opacity
-				// no transitions sadly
-				this.setOpacity(0.0f);
-			} else {
-				// then we have to set the window to not visible
-				// no transitions sadly
-				this.setVisible(false);
-			}
-			this.visibleInternal = false;
 		}
 		
 		return transitionsSupported;

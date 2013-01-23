@@ -22,39 +22,22 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.graphics;
+package org.praisenter.slide.ui.present;
+
+import java.awt.Graphics2D;
+
+import org.praisenter.slide.SlideComponent;
 
 /**
- * Enumeration of the available linear gradients.
+ * Interface for grouping the rendering of {@link SlideComponent}s for improved performance. 
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public enum LinearGradientDirection {
-	/** Top to bottom */
-	TOP,
-	
-	/** Right to left */
-	RIGHT,
-	
-	/** Bottom to top */
-	BOTTOM,
-	
-	/** Left to right */
-	LEFT,
-	
-	// corners
-	
-	/** Top-left to bottom right */
-	TOP_LEFT,
-	
-	/** Top-right to bottom left */
-	TOP_RIGHT,
-	
-	/** Bottom-left to top right */
-	BOTTOM_LEFT,
-	
-	/** Bottom-right to top left */
-	BOTTOM_RIGHT
+public interface RenderGroup {
+	/**
+	 * Renders the group to the given graphics object.
+	 * @param g the graphics object to render to
+	 */
+	public abstract void render(Graphics2D g);
 }
-// TODO add vertical center, and horizontal center and corner centers

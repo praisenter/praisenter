@@ -53,8 +53,8 @@ public class TestSlideEditor {
 //		StrokeEditorPanel panel = new StrokeEditorPanel(null);
 		Dimension size = Preferences.getInstance().getPrimaryOrDefaultDeviceResolution();
 //		SlideEditorPanel panel = new SlideEditorPanel(BibleSlideTemplate.getDefaultTemplate(size.width, size.height), size);
-//		BibleSlideTemplate template = SlideLibrary.getTemplate("templates\\bible\\default.xml", BibleSlideTemplate.class).copy();
-		NotificationSlideTemplate template = NotificationSlideTemplate.getDefaultTemplate(size.width, size.height);
+		BibleSlideTemplate template = SlideLibrary.getTemplate("templates\\bible\\default.xml", BibleSlideTemplate.class).copy();
+//		NotificationSlideTemplate template = NotificationSlideTemplate.getDefaultTemplate(size.width, size.height);
 		if (template.getWidth() != size.width || template.getHeight() != size.height) {
 			template.adjustSize(size.width, size.height);
 		}

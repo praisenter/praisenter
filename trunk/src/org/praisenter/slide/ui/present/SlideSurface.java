@@ -30,11 +30,14 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Transparency;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 import org.apache.log4j.Logger;
 import org.praisenter.media.MediaLibrary;
@@ -50,6 +53,7 @@ import org.praisenter.slide.Slide;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
+import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transition.Type;
 import org.praisenter.transitions.TransitionAnimator;
@@ -67,6 +71,9 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(SlideSurface.class);
 	
+	/** The date/time update interval in milliseconds */
+	private static final int CLOCK_UPDATE_INTERVAL = 250;
+	
 	// current slide
 	
 	/** The current slide being displayed */
@@ -80,6 +87,12 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 	
 	/** The current slide's renderer */
 	protected SlideRenderer currentRenderer;
+
+	/** True if the current slide has playable media */
+	protected boolean currentHasPlayableMedia;
+	
+	/** True if the current slide has an updating date time component */
+	protected boolean currentHasUpdatingDateTime;
 	
 	// in-coming slide
 	
@@ -94,17 +107,17 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 	
 	/** The incoming slide's renderer */
 	protected SlideRenderer inRenderer;
+
+	/** True if the in-coming slide has playable media */
+	protected boolean inHasPlayableMedia;
+	
+	/** True if the in-coming slide has an updating date time component */
+	protected boolean inHasUpdatingDateTime;
 	
 	// transitioning
 
 	/** The transition to apply from display to display */
 	protected TransitionAnimator animator;
-	
-	/** True if the out-going slide has playable media */
-	protected boolean currentHasPlayableMedia;
-	
-	/** True if the in-coming slide has playable media */
-	protected boolean inHasPlayableMedia;
 	
 	/** True if the background should be transitioned */
 	protected boolean transitionBackground;
@@ -132,6 +145,9 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 	/** The transition wait thread */
 	protected TransitionWaitThread transitionWaitThread;
 
+	/** A timer for updating the date/time */
+	protected Timer dateTimeTimer;
+	
 	/**
 	 * Default constructor.
 	 */
@@ -147,11 +163,13 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		this.currentBackgroundMediaPlayer = null;
 		this.currentMediaPlayers = new ArrayList<>();
 		this.currentHasPlayableMedia = false;
+		this.currentHasUpdatingDateTime = false;
 		
 		this.inSlide = null;
 		this.inBackgroundMediaPlayer = null;
 		this.inMediaPlayers = new ArrayList<>();
 		this.inHasPlayableMedia = false;
+		this.inHasUpdatingDateTime = false;
 		
 		this.animator = null;
 		this.repaintIssued = false;
@@ -161,6 +179,15 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		this.transitionCompleteLock = new Object();
 		this.transitionWaitThread = new TransitionWaitThread();
 		this.transitionWaitThread.start();
+		
+		this.dateTimeTimer = new Timer(0, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				repaint();
+			}
+		});
+		// every second
+		this.dateTimeTimer.setDelay(CLOCK_UPDATE_INTERVAL);
 	}
 	
 	/**
@@ -293,6 +320,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		RenderableComponent background = slide.getBackground();
 		List<PlayableMediaComponent<?>> playableMediaComponents = slide.getPlayableMediaComponents();
 		this.inHasPlayableMedia = false;
+		this.inHasUpdatingDateTime = this.hasUpdatingDateTimeComponent(slide);
 		
 		// we will only NOT transition the background IF both slides have a video background component AND
 		// they are the same video
@@ -414,6 +442,11 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 			for (MediaPlayer<?> player : this.inMediaPlayers) {
 				player.play();
 			}
+			if (this.inHasUpdatingDateTime || this.currentHasUpdatingDateTime) {
+				if (!this.dateTimeTimer.isRunning()) {
+					this.dateTimeTimer.start();
+				}
+			}
 		} else {
 			synchronized (this.transitionCompleteLock) {
 				this.onInTransitionComplete();
@@ -504,10 +537,10 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		super.paintComponent(g);
 		
 		// update the images if necessary
-		if (this.currentHasPlayableMedia && this.currentSlide != null) {
+		if ((this.currentHasPlayableMedia || this.currentHasUpdatingDateTime) && this.currentSlide != null) {
 			SlideSurface.renderSlide(this.currentRenderer, this.transitionBackground, this.image0);
 		}
-		if (this.inHasPlayableMedia && this.inSlide != null) {
+		if ((this.inHasPlayableMedia || this.inHasUpdatingDateTime) && this.inSlide != null) {
 			SlideSurface.renderSlide(this.inRenderer, this.transitionBackground, this.image1);
 		}
 		
@@ -590,16 +623,26 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		this.currentRenderer = this.inRenderer;
 		this.currentSlide = this.inSlide;
 		this.currentHasPlayableMedia = this.inHasPlayableMedia;
+		this.currentHasUpdatingDateTime = this.inHasUpdatingDateTime;
 		
 		this.inBackgroundMediaPlayer = null;
 		this.inHasPlayableMedia = false;
+		this.inHasUpdatingDateTime = false;
 		this.inRenderer = null;
 		this.inSlide = null;
+		
+		if (!this.currentHasUpdatingDateTime) {
+			if (this.dateTimeTimer.isRunning()) {
+				this.dateTimeTimer.stop();
+			}
+		}
 		
 		synchronized (this.transitionCompleteLock) {
 			this.transitionComplete = true;
 			this.transitionCompleteLock.notifyAll();
 		}
+		
+		this.notifyInTransitionComplete();
 	}
 	
 	/**
@@ -621,8 +664,13 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		}
 		this.currentMediaPlayers.clear();
 		
+		if (this.dateTimeTimer.isRunning()) {
+			this.dateTimeTimer.stop();
+		}
+		
 		this.currentBackgroundMediaPlayer = null;
 		this.currentHasPlayableMedia = false;
+		this.currentHasUpdatingDateTime = false;
 		this.currentRenderer = null;
 		this.currentSlide = null;
 		
@@ -631,6 +679,44 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		synchronized (this.transitionCompleteLock) {
 			this.transitionComplete = true;
 			this.transitionCompleteLock.notifyAll();
+		}
+		
+		this.notifyOutTransitionComplete();
+	}
+
+	/**
+	 * Adds the given {@link TransitionListener} to this surface.
+	 * @param listener the listener
+	 */
+	public void addTransitionListener(TransitionListener listener) {
+		this.listenerList.add(TransitionListener.class, listener);
+	}
+	
+	/**
+	 * Removes the given {@link TransitionListener} from this surface.
+	 * @param listener the listener
+	 */
+	public void removeTransitionListener(TransitionListener listener) {
+		this.listenerList.remove(TransitionListener.class, listener);
+	}
+	
+	/**
+	 * Notifies all {@link TransitionListener}s of an in transition completing.
+	 */
+	private void notifyInTransitionComplete() {
+		TransitionListener[] listeners = this.getListeners(TransitionListener.class);
+		for (TransitionListener listener : listeners) {
+			listener.inTransitionComplete();
+		}
+	}
+	
+	/**
+	 * Notifies all {@link TransitionListener}s of an out transition completing.
+	 */
+	private void notifyOutTransitionComplete() {
+		TransitionListener[] listeners = this.getListeners(TransitionListener.class);
+		for (TransitionListener listener : listeners) {
+			listener.outTransitionComplete();
 		}
 	}
 	
@@ -750,6 +836,21 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 			return true;
 		}
 		
+		return false;
+	}
+	
+	/**
+	 * Returns true if the given slide has a {@link DateTimeComponent} that requires updates.
+	 * @param slide the slide
+	 * @return boolean
+	 */
+	private boolean hasUpdatingDateTimeComponent(Slide slide) {
+		List<DateTimeComponent> components = slide.getComponents(DateTimeComponent.class);
+		for (DateTimeComponent component : components) {
+			if (component.isDateTimeUpdateEnabled()) {
+				return true;
+			}
+		}
 		return false;
 	}
 	

@@ -22,37 +22,73 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.ui.present;
+package org.praisenter.slide.ui.editor;
 
-import java.awt.Graphics2D;
-
-import org.praisenter.slide.RenderableComponent;
+import org.praisenter.resources.Messages;
 
 /**
- * Represents a cache for a single {@link RenderableComponent}.
+ * An enumeration of common date/time formats.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public class SlideComponentCacheItem implements SlideComponentCache {
-	/** The component */
-	protected RenderableComponent component;
+public enum DateTimeFormat {
+	/** The Sunday January, 1 2013 */
+	FORMAT_01("EEEE MMMM, d yyyy", "panel.slide.editor.datetime.format01"),
+	
+	/** The Sunday January, 1 2013 4:23 PM */
+	FORMAT_02("EEEE MMMM, d yyyy h:mm a", "panel.slide.editor.datetime.format02"),
+	
+	/** The Sunday January, 1 2013 4:23 PM EST */
+	FORMAT_03("EEEE MMMM, d yyyy h:mm a z", "panel.slide.editor.datetime.format03"),
+	
+	/** The Sun Jan, 1 2013 */
+	FORMAT_04("EEE MMM, d yyyy", "panel.slide.editor.datetime.format04"),
+	
+	/** The Sun Jan, 1 2013 4:23 PM */
+	FORMAT_05("EEE MMM, d yyyy h:mm a", "panel.slide.editor.datetime.format05"),
+	
+	/** The Sun Jan, 1 2013 4:23 PM EST */
+	FORMAT_06("EEE MMM, d yyyy h:mm a z", "panel.slide.editor.datetime.format06"),
+	
+	/** The 1/1/2013 */
+	FORMAT_07("M/d/yyyy", "panel.slide.editor.datetime.format07"),
+	
+	/** The 1/1/2013 4:23 PM */
+	FORMAT_08("M/d/yyyy h:mm a", "panel.slide.editor.datetime.format08"),
+	
+	/** The 1/1/2013 4:23 PM EST */
+	FORMAT_09("M/d/yyyy h:mm a z", "panel.slide.editor.datetime.format09");
+	
+	/** The format */
+	private String format;
+	
+	/** The message key */
+	private String messageKey;
 	
 	/**
 	 * Full constructor.
-	 * @param component the component
+	 * @param format the format
+	 * @param messageKey the message key
 	 */
-	public SlideComponentCacheItem(RenderableComponent component) {
-		this.component = component;
+	private DateTimeFormat(String format, String messageKey) {
+		this.format = format;
+		this.messageKey = messageKey;
+	}
+	
+	/**
+	 * Returns the format string.
+	 * @return String
+	 */
+	public String getFormat() {
+		return this.format;
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.display.SlideComponentCache#render(java.awt.Graphics2D)
+	 * @see java.lang.Enum#toString()
 	 */
 	@Override
-	public void render(Graphics2D g) {
-		if (this.component != null) {
-			this.component.render(g);
-		}
+	public String toString() {
+		return Messages.getString(this.messageKey);
 	}
 }

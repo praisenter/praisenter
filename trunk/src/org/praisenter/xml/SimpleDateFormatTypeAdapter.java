@@ -22,39 +22,46 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.graphics;
+package org.praisenter.xml;
+
+import java.text.SimpleDateFormat;
+
+import javax.xml.bind.annotation.adapters.XmlAdapter;
+
+import org.apache.log4j.Logger;
 
 /**
- * Enumeration of the available linear gradients.
+ * Represents an XML adapter for SimpleDateFormat objects.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public enum LinearGradientDirection {
-	/** Top to bottom */
-	TOP,
+public class SimpleDateFormatTypeAdapter extends XmlAdapter<String, SimpleDateFormat> {
+	/** The class level logger */
+	private static final Logger LOGGER = Logger.getLogger(SimpleDateFormatTypeAdapter.class);
 	
-	/** Right to left */
-	RIGHT,
+	/* (non-Javadoc)
+	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
+	 */
+	@Override
+	public String marshal(SimpleDateFormat v) throws Exception {
+		return v.toPattern();
+	}
 	
-	/** Bottom to top */
-	BOTTOM,
-	
-	/** Left to right */
-	LEFT,
-	
-	// corners
-	
-	/** Top-left to bottom right */
-	TOP_LEFT,
-	
-	/** Top-right to bottom left */
-	TOP_RIGHT,
-	
-	/** Bottom-left to top right */
-	BOTTOM_LEFT,
-	
-	/** Bottom-right to top left */
-	BOTTOM_RIGHT
+	/* (non-Javadoc)
+	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#unmarshal(java.lang.Object)
+	 */
+	@Override
+	public SimpleDateFormat unmarshal(String v) throws Exception {
+		// check for null or empty
+		if (v != null && v.trim().length() > 0) {
+			try {
+				return new SimpleDateFormat(v);
+			} catch (Exception e) {
+				LOGGER.warn("The date/time format [" + v + "] is not valid.");
+			}
+		}
+		// return the default format
+		return new SimpleDateFormat("EEEE MMMM, d yyyy");
+	}
 }
-// TODO add vertical center, and horizontal center and corner centers

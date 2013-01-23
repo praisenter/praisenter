@@ -68,88 +68,97 @@ import org.praisenter.utilities.WindowUtilities;
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
+ * @param <E> the {@link TextComponent} type
  */
-public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextComponent> implements ActionListener, ItemListener, DocumentListener, ChangeListener {
+public class TextComponentEditorPanel<E extends TextComponent> extends GenericComponentEditorPanel<E> implements ActionListener, ItemListener, DocumentListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = 6502908345432550911L;
 
 	// labels
 	
 	/** The label for text */
-	private JLabel lblText;
+	protected JLabel lblText;
 	
 	/** The font family label */
-	private JLabel lblFontFamily;
+	protected JLabel lblFontFamily;
 	
 	/** The font size label */
-	private JLabel lblFontSize;
+	protected JLabel lblFontSize;
 	
 	/** The layout label */
-	private JLabel lblLayout;
+	protected JLabel lblLayout;
 	
 	// controls
 	
 	/** The checkbox for text visibility */
-	private JCheckBox chkTextVisible;
+	protected JCheckBox chkTextVisible;
 	
 	/** The font family combo box */
-	private JComboBox<String> cmbFontFamilies;
+	protected JComboBox<String> cmbFontFamilies;
 	
 	/** The toggle button for bold */
-	private JToggleButton tglBold;
+	protected JToggleButton tglBold;
 	
 	/** The toggle button for italic */
-	private JToggleButton tglItalic;
+	protected JToggleButton tglItalic;
 	
 	/** The bold/italic panel */
-	private JPanel pnlBoldItalic;
+	protected JPanel pnlBoldItalic;
 	
 	/** The font size spinner */
-	private JSpinner spnFontSize;
+	protected JSpinner spnFontSize;
 	
 	/** The font size scale type combo box */
-	private JComboBox<FontScaleType> cmbFontScaleType;
+	protected JComboBox<FontScaleType> cmbFontScaleType;
 	
 	/** The horizontal text alignment left toggle button */
-	private JToggleButton tglHorizontalTextAlignmentLeft;
+	protected JToggleButton tglHorizontalTextAlignmentLeft;
 	
 	/** The horizontal text alignment center toggle button */
-	private JToggleButton tglHorizontalTextAlignmentCenter;
+	protected JToggleButton tglHorizontalTextAlignmentCenter;
 	
 	/** The horizontal text alignment right toggle button */
-	private JToggleButton tglHorizontalTextAlignmentRight;
+	protected JToggleButton tglHorizontalTextAlignmentRight;
 	
 	/** The vertical text alignment top toggle button */
-	private JToggleButton tglVerticalTextAlignmentTop;
+	protected JToggleButton tglVerticalTextAlignmentTop;
 	
 	/** The vertical text alignment center toggle button */
-	private JToggleButton tglVerticalTextAlignmentCenter;
+	protected JToggleButton tglVerticalTextAlignmentCenter;
 	
 	/** The vertical text alignment bottom toggle button */
-	private JToggleButton tglVerticalTextAlignmentBottom;
+	protected JToggleButton tglVerticalTextAlignmentBottom;
 	
 	/** The horizontal text alignment panel */
-	private JPanel pnlHorizontalTextAlignment;
+	protected JPanel pnlHorizontalTextAlignment;
 
 	/** The vertical text alignment panel */
-	private JPanel pnlVerticalTextAlignment;
+	protected JPanel pnlVerticalTextAlignment;
 	
 	/** The wrap text check box */
-	private JCheckBox chkWrapText;
+	protected JCheckBox chkWrapText;
 	
 	/** The padding text box */
-	private JSpinner spnPadding;
+	protected JSpinner spnPadding;
 
 	/** The font fill */
-	private JButton btnFillEditor;
+	protected JButton btnFillEditor;
 	
 	/** The text box for the text */
-	private JTextArea txtText;
+	protected JTextArea txtText;
 
 	/**
 	 * Default constructor.
 	 */
 	public TextComponentEditorPanel() {
+		this(true);
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param layout true if this component should layout its controls
+	 */
+	public TextComponentEditorPanel(boolean layout) {
 		// pass false down so that GenericSlideComponentEditorPanel doesn't build
 		// the layout, we need this class to build its own layout
 		super(false);
@@ -288,7 +297,9 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 		txtPadding.setColumns(2);
 		txtPadding.addFocusListener(new SelectTextFocusListener(txtPadding));
 		
-		this.createLayout();
+		if (layout) {
+			this.createLayout();
+		}
 	}
 
 	/**
@@ -577,7 +588,7 @@ public class TextComponentEditorPanel extends GenericComponentEditorPanel<TextCo
 	 * @see org.praisenter.slide.ui.editor.GenericComponentEditorPanel#setSlideComponent(org.praisenter.slide.GenericComponent, boolean)
 	 */
 	@Override
-	public void setSlideComponent(TextComponent slideComponent, boolean isStatic) {
+	public void setSlideComponent(E slideComponent, boolean isStatic) {
 		super.setSlideComponent(slideComponent, isStatic);
 		
 		if (slideComponent != null) {

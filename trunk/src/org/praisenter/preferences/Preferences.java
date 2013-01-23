@@ -345,11 +345,16 @@ public class Preferences {
 	public Dimension getPrimaryOrDefaultDeviceResolution() {
 		Dimension displaySize = this.getPrimaryDeviceResolution();
 		GraphicsDevice device = this.getPrimaryOrDefaultDevice();
+		Dimension deviceSize = WindowUtilities.getDimension(device.getDisplayMode());
+		// check for null
+		if (displaySize == null) {
+			return deviceSize;
+		}
 		// perform a check against the display sizes
-		if (!displaySize.equals(WindowUtilities.getDimension(device.getDisplayMode()))) {
+		if (!displaySize.equals(deviceSize)) {
 			// if they are not equal we want to log a message and use the display size
 			LOGGER.warn("The primary display's resolution does not match the stored display size. Using device resolution.");
-			displaySize = WindowUtilities.getDimension(device.getDisplayMode());
+			return deviceSize;
 		}
 		return displaySize;
 	}
