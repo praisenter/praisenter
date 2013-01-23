@@ -89,6 +89,42 @@ public class SlideThumbnail implements Comparable<SlideThumbnail> {
 		return this.file.getName().compareTo(o.getFile().getName());
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof SlideThumbnail) {
+			SlideThumbnail st = (SlideThumbnail)obj;
+			if (st.file.equals(this.file)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return this.file.hashCode();
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("SlideThumbnail[File=").append(this.file)
+		  .append("|Name=").append(this.name)
+		  .append("]");
+		return sb.toString();
+	}
+	
 	/**
 	 * Returns the media item's file information.
 	 * @return {@link SlideFile}

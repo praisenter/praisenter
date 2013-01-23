@@ -91,6 +91,50 @@ public class SlideFile {
 		this.size = size;
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (this == NOT_STORED) {
+			if (obj == NOT_STORED) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		if (obj instanceof SlideFile) {
+			SlideFile sf = (SlideFile)obj;
+			if (this.path.equals(sf.path)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return this.path.hashCode();
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("SlideFile[Path=").append(this.path)
+		  .append("|Name=").append(this.name)
+		  .append("|Size=").append(this.size)
+		  .append("]");
+		return sb.toString();
+	}
+	
 	/**
 	 * Returns the file path and name.
 	 * @return String
@@ -118,7 +162,7 @@ public class SlideFile {
 	/**
 	 * Returns true if the file size is unknown.
 	 * <p>
-	 * This is typically cause by an IO exception when the size was read.
+	 * This is typically caused by an IO exception when the size was read.
 	 * @return boolean
 	 */
 	public boolean isUnknownFileSize() {

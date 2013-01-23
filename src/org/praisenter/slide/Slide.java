@@ -37,6 +37,7 @@ import org.praisenter.slide.media.AudioMediaComponent;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
+import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextComponent;
 
 /**
@@ -46,11 +47,13 @@ import org.praisenter.slide.text.TextComponent;
  * @since 2.0.0
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlSeeAlso({ ImageMediaComponent.class, 
-	  VideoMediaComponent.class,
-	  AudioMediaComponent.class,
-	  TextComponent.class,
-	  GenericComponent.class })
+@XmlSeeAlso({ 
+	GenericComponent.class,
+	ImageMediaComponent.class, 
+	VideoMediaComponent.class,
+	AudioMediaComponent.class,
+	TextComponent.class,
+	DateTimeComponent.class })
 public interface Slide {
 	/** The minimum size in pixels of a component or slide */
 	public static final int MINIMUM_SIZE = 20;

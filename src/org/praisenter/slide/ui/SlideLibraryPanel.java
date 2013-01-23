@@ -190,10 +190,6 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		this.previewThread = new SlidePreivewThread();
 		this.previewThread.start();
 		
-		List<SlideThumbnail> ts = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
-		JComboBox<SlideThumbnail> cmbTest = new JComboBox<SlideThumbnail>(ts.toArray(new SlideThumbnail[0]));
-		cmbTest.setRenderer(new SlideThumbnailComboBoxRenderer());
-		
 		this.slideTabs = new JTabbedPane();
 		this.slideTabs.setMinimumSize(new Dimension(120, 120));
 		this.slideTabs.setPreferredSize(new Dimension(500, 500));
@@ -868,6 +864,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 			}
 		}
 		if (file != null) {
+			this.pnlPreview.setLoading(true);
 			this.pnlProperties.setSlideFile(file, isSlide);
 			this.getPreviewThread().queueSlide(preview);
 			this.btnEditSlide.setEnabled(true);

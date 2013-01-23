@@ -116,6 +116,9 @@ public class Icons {
 	/** Text component icon */
 	public static final ImageIcon TEXT_COMPONENT = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/text-component.png");
 	
+	/** Date component icon */
+	public static final ImageIcon DATE_COMPONENT = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/date-component.png");
+	
 	/** Move back icon */
 	public static final ImageIcon MOVE_BACK = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/icons/move-back.png");
 	

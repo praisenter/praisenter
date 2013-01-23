@@ -53,6 +53,7 @@ import org.praisenter.slide.media.AudioMediaComponent;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
+import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.utilities.ImageUtilities;
 
@@ -64,11 +65,13 @@ import org.praisenter.utilities.ImageUtilities;
  */
 @XmlRootElement(name = "Slide")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlSeeAlso({ ImageMediaComponent.class, 
-	  VideoMediaComponent.class,
-	  AudioMediaComponent.class,
-	  TextComponent.class,
-	  GenericComponent.class })
+@XmlSeeAlso({ 
+	GenericComponent.class,
+	ImageMediaComponent.class, 
+	VideoMediaComponent.class,
+	AudioMediaComponent.class,
+	TextComponent.class,
+	DateTimeComponent.class })
 public class BasicSlide implements Slide {
 	/** Comparator for sorting by z-order */
 	private static final SlideComponentOrderComparator ORDER_COMPARATOR = new SlideComponentOrderComparator();

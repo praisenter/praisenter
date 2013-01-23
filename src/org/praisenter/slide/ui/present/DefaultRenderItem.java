@@ -26,18 +26,33 @@ package org.praisenter.slide.ui.present;
 
 import java.awt.Graphics2D;
 
-import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.RenderableComponent;
 
 /**
- * Interface for caching renderings of {@link SlideComponent}s for improved performance. 
+ * Represents a simple pass through for a single {@link RenderableComponent}.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public interface SlideComponentCache {
+public class DefaultRenderItem implements RenderGroup {
+	/** The component */
+	protected RenderableComponent component;
+	
 	/**
-	 * Renders the cache to the given graphics object.
-	 * @param g the graphics object to render to
+	 * Full constructor.
+	 * @param component the component
 	 */
-	public abstract void render(Graphics2D g);
+	public DefaultRenderItem(RenderableComponent component) {
+		this.component = component;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.display.SlideComponentCache#render(java.awt.Graphics2D)
+	 */
+	@Override
+	public void render(Graphics2D g) {
+		if (this.component != null) {
+			this.component.render(g);
+		}
+	}
 }

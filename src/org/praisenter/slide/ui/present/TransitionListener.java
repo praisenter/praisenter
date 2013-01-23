@@ -22,39 +22,24 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.graphics;
+package org.praisenter.slide.ui.present;
+
+import java.util.EventListener;
 
 /**
- * Enumeration of the available linear gradients.
+ * Listener transition end events.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public enum LinearGradientDirection {
-	/** Top to bottom */
-	TOP,
+public interface TransitionListener extends EventListener {
+	/**
+	 * Called when an "in" transition has completed.
+	 */
+	public void inTransitionComplete();
 	
-	/** Right to left */
-	RIGHT,
-	
-	/** Bottom to top */
-	BOTTOM,
-	
-	/** Left to right */
-	LEFT,
-	
-	// corners
-	
-	/** Top-left to bottom right */
-	TOP_LEFT,
-	
-	/** Top-right to bottom left */
-	TOP_RIGHT,
-	
-	/** Bottom-left to top right */
-	BOTTOM_LEFT,
-	
-	/** Bottom-right to top left */
-	BOTTOM_RIGHT
+	/**
+	 * Called when an "out" transition has completed.
+	 */
+	public void outTransitionComplete();
 }
-// TODO add vertical center, and horizontal center and corner centers

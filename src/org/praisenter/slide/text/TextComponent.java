@@ -57,7 +57,6 @@ import org.praisenter.xml.FontTypeAdapter;
  */
 // TODO add text shadow (color, direction, width, visible)
 // TODO add text outline (stroke, paint, visible)
-// FIXME make a static text component that shows the current date/time (the text field could be the desired format string)
 @XmlRootElement(name = "TextComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({
@@ -215,11 +214,25 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 	}
 	
 	/**
+	 * Return the text used for rendering.
+	 * <p>
+	 * Override this method to provide custom formatting or other
+	 * text processing before rendering.  This should return quickly
+	 * so that the rendering speed is not affected.
+	 * @return String
+	 */
+	protected String getTextToRender() {
+		return this.text;
+	}
+	
+	/**
 	 * Renders the text to the given graphics object.
 	 * @param g the graphics object to render to
 	 */
 	protected void renderText(Graphics2D g) {
-		if (this.text != null && this.text.length() > 0) {
+		// get the text
+		String text = this.getTextToRender();
+		if (text != null && text.length() > 0) {
 			// compute the real width
 			int rw = this.getTextWidth();
 			int rh = this.getTextHeight();
@@ -239,7 +252,6 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 				Paint oPaint = g.getPaint();
 				Shape oClip = g.getClip();
 				
-				String text = this.text;
 				// make sure the line break characters are correct
 				text = text.replaceAll("(\\r\\n)|(\\r)", String.valueOf(TextRenderer.LINE_SEPARATOR));
 				// get the text metrics

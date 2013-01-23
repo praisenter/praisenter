@@ -32,6 +32,7 @@ import java.util.List;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.media.VideoMediaComponent;
+import org.praisenter.slide.text.DateTimeComponent;
 
 /**
  * Class used to render a slide using an image cache.
@@ -55,10 +56,10 @@ public class SlideRenderer {
 	protected GraphicsConfiguration gc;
 	
 	/** The background component */
-	protected SlideComponentCache background;
+	protected RenderGroup background;
 	
 	/** The component groups */
-	protected List<SlideComponentCache> groups;
+	protected List<RenderGroup> groups;
 	
 	/**
 	 * Creates a new slide renderer for the given {@link Slide} and
@@ -83,7 +84,7 @@ public class SlideRenderer {
 		}
 		// render the groups in order
 		for (int i = 0; i < this.groups.size(); i++) {
-			SlideComponentCache group = this.groups.get(i);
+			RenderGroup group = this.groups.get(i);
 			group.render(g);
 		}
 	}
@@ -94,7 +95,7 @@ public class SlideRenderer {
 	 * no videos, there will be only one group.
 	 */
 	private void createGroups() {
-		this.groups = new ArrayList<SlideComponentCache>();
+		this.groups = new ArrayList<RenderGroup>();
 		
 		List<RenderableComponent> components = new ArrayList<>();
 		
@@ -102,7 +103,7 @@ public class SlideRenderer {
 		int h = this.slide.getHeight();
 		
 		RenderableComponent background = this.slide.getBackground();
-		this.background = new SlideComponentCacheItem(background);
+		this.background = new DefaultRenderItem(background);
 		
 		// begin looping over the components and checking their types
 		List<RenderableComponent> sComponents = this.slide.getComponents(RenderableComponent.class);
@@ -112,7 +113,7 @@ public class SlideRenderer {
 				// if we find one, see if we have any normal components queued up in the list
 				if (components.size() > 0) {
 					// then we need to stop and make a group with the current components
-					SlideComponentCache group = new SlideComponentCacheGroup(components, this.gc, w, h);
+					RenderGroup group = new CachedRenderGroup(components, this.gc, w, h);
 					this.groups.add(group);
 					// create a new group for the next set of components
 					components = new ArrayList<RenderableComponent>();
@@ -120,10 +121,21 @@ public class SlideRenderer {
 				
 				// then create a video component group for the video
 				{
-					SlideComponentCache group = new SlideComponentCacheItem((VideoMediaComponent)component);
+					RenderGroup group = new DefaultRenderItem(component);
 					this.groups.add(group);
 				}
 			// otherwise check if its renderable at all
+			} else if (component instanceof DateTimeComponent) {
+				DateTimeComponent c = (DateTimeComponent)component;
+				// see if its an updating date-time component
+				if (c.isDateTimeUpdateEnabled()) {
+					// add to its own group
+					RenderGroup group = new QualityRenderItem(component);
+					this.groups.add(group);
+				} else {
+					// add as normal if it doesnt need to update
+					components.add(component);
+				}
 			} else {
 				// if so, then add it to the current list of components
 				components.add(component);
@@ -131,7 +143,7 @@ public class SlideRenderer {
 		}
 		// create a group of the remaining components
 		if (components.size() > 0) {
-			SlideComponentCache group = new SlideComponentCacheGroup(components, this.gc, w, h);
+			RenderGroup group = new CachedRenderGroup(components, this.gc, w, h);
 			this.groups.add(group);
 		}
 	}
