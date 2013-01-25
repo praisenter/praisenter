@@ -1166,6 +1166,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			// make the thread run always
 			while (true) {
 				try {
+					// end when this panel is no longer displayable
+					if (!isDisplayable()) {
+						return;
+					}
 					// poll for any queued searches
 					final Song song = this.songQueue.poll(1000, TimeUnit.MILLISECONDS);
 					// if no queued search then just continue

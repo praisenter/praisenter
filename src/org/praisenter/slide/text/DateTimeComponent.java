@@ -122,7 +122,7 @@ public class DateTimeComponent extends TextComponent {
 		try {
 			this.dateTimeFormat = new SimpleDateFormat(format);
 		} catch (Exception e) {
-			LOGGER.warn("Invalid format [" + format + "]: ", e);
+			LOGGER.warn("Invalid format [" + format + "].");
 		}
 		
 		this.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
@@ -168,7 +168,7 @@ public class DateTimeComponent extends TextComponent {
 		try {
 			this.dateTimeFormat = new SimpleDateFormat(format);
 		} catch (Exception e) {
-			LOGGER.warn("Invalid format [" + format + "]: ", e);
+			LOGGER.warn("Invalid format [" + format + "].");
 		}
 	}
 	

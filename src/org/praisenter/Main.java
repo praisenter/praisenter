@@ -39,8 +39,10 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.utilities.LookAndFeelUtilities;
+import org.praisenter.utilities.SystemUtilities;
 
 // TODO allow play/stop/pause/seek controls for playable media
+// FIXME deploy app using jnlp
 
 /**
  * This class is the application entry point.
@@ -97,10 +99,23 @@ public final class Main {
 	 */
 	private static final void initializeConfiguration() {
 		// set system properties
-		System.setProperty("derby.stream.error.file", Constants.DATABASE_LOG_FILE_PATH);
+		// setup derby (the database) log file location
+		setProperty("derby.stream.error.file", Constants.DATABASE_LOG_FILE_PATH);
+		// setup mac os title bar as the menu (does nothing on other OSes)
+		setProperty("apple.laf.useScreenMenuBar", "true");
+		// setup mac os quit command to close all windows
+		setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS");
 		
-		// initialize folder structure
-		initializeFolderStructure();
+		try {
+			// initialize folder structure
+			initializeFolderStructure();
+		} catch (Exception e) {
+			// if anything in here fails, the app cannot continue
+			System.err.println("Failed to initialize directory structure: ");
+			e.printStackTrace();
+			// we must quit
+			System.exit(1);
+		}
 		
 		// initialize log4j
 		initializeLog4j();
@@ -110,6 +125,23 @@ public final class Main {
 		
 		// initialize preferences
 		Preferences.getInstance();
+	}
+	
+	/**
+	 * Sets the given property.
+	 * <p>
+	 * This method will catch and output any exceptions generated but will
+	 * not terminate the application.
+	 * @param name the property name
+	 * @param value the property value
+	 */
+	private static final void setProperty(String name, String value) {
+		try {
+			System.setProperty(name, value);
+		} catch (Exception e) {
+			System.err.println("Failed to set property: [" + name + "] = [" + value + "]");
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -245,18 +277,24 @@ public final class Main {
 		
 		String defaultLookAndFeelName = defaultLookAndFeelClassName;
 		try {
-		    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-		        if (LookAndFeelUtilities.NIMBUS.equalsIgnoreCase(info.getName())) {
-		        	LOGGER.info("Nimbus look and feel found and applied.");
-		            UIManager.setLookAndFeel(info.getClassName());
-		            // fix the nimbus disabled tooltip coloring
-		        	UIManager.put("ToolTip[Disabled].backgroundPainter", UIManager.get("ToolTip[Enabled].backgroundPainter"));
-		            return;
-		        }
-		        if (info.getClassName().equals(defaultLookAndFeelClassName)) {
-		        	defaultLookAndFeelName = info.getName();
-		        }
-		    }
+			// check the OS
+			if (SystemUtilities.isMac()) {
+				// on a mac we want to use the native look and feel
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			} else {
+			    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+			        if (LookAndFeelUtilities.NIMBUS.equalsIgnoreCase(info.getName())) {
+			        	LOGGER.info("Nimbus look and feel found and applied.");
+			            UIManager.setLookAndFeel(info.getClassName());
+			            // fix the nimbus disabled tooltip coloring
+			        	UIManager.put("ToolTip[Disabled].backgroundPainter", UIManager.get("ToolTip[Enabled].backgroundPainter"));
+			            return;
+			        }
+			        if (info.getClassName().equals(defaultLookAndFeelClassName)) {
+			        	defaultLookAndFeelName = info.getName();
+			        }
+			    }
+			}
 		} catch (Exception ex) {
 			// completely ignore the error and just use the default look and feel
 			LOGGER.info("Failed to change the look and feel to Nimbus. Continuing with default look and feel.", ex);

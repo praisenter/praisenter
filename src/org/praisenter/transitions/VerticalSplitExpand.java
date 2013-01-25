@@ -71,14 +71,18 @@ public class VerticalSplitExpand extends Transition {
 		int w0 = 0;
 		if (image0 != null) {
 			// create two rectangles and merge them into one area for the clip
-			int hw = image0.getWidth() / 2;
+			double hw = (double)image0.getWidth() / 2.0;
 			// w = hw - hw * pc
-			w0 = (int)Math.ceil((double)hw * (1.0 - pc));
+			w0 = (int)Math.floor(hw * (1.0 - pc));
 			int h = image0.getHeight();
 			// x = hw + hw * pc
-			x0 = (int)Math.ceil((double)hw * (1.0 + pc));
+			x0 = (int)Math.ceil(hw * (1.0 + pc));
+			if (pc >= 1.0) {
+				w0 = 0;
+				x0 = image0.getWidth();
+			}
 			Rectangle left = new Rectangle(0, 0, w0, h);
-			Rectangle right = new Rectangle(x0, 0, w0, h);
+			Rectangle right = new Rectangle(x0, 0, Math.max(image0.getWidth() - x0, 0), h);
 			Area area = new Area();
 			area.add(new Area(left));
 			area.add(new Area(right));

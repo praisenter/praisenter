@@ -73,6 +73,20 @@ public final class SystemUtilities {
 	}
 	
 	/**
+	 * Returns true if the operating system is Mac Os.
+	 * @return boolean
+	 */
+	public static final boolean isMac() {
+		try{
+			String os = System.getProperty("os.name");
+			if (os != null) {
+				return os.toLowerCase().indexOf("mac") >= 0;
+			}
+		} catch (SecurityException e) {}
+		return false;
+	}
+	
+	/**
 	 * Returns the current architecture.
 	 * @return String
 	 */

@@ -67,8 +67,8 @@ public class CircularExpand extends Transition {
 		Shape shape = g2d.getClip();
 		
 		// compute the circular area
-		int hw = image0.getWidth() / 2;
-		int hh = image0.getHeight() / 2;
+		double hw = (double)image0.getWidth() / 2.0;
+		double hh = (double)image0.getHeight() / 2.0;
 		double r = Math.sqrt(hw * hw + hh * hh) * pc;
 		double s = 2.0 * r;
 		double x = hw - r;

@@ -33,6 +33,8 @@ import javax.swing.Timer;
 import org.praisenter.easings.CubicEasing;
 import org.praisenter.easings.Easing;
 import org.praisenter.easings.Easings;
+import org.praisenter.preferences.Preferences;
+import org.praisenter.preferences.RenderQuality;
 
 /**
  * Represents an animator for a transtion.
@@ -64,6 +66,9 @@ public class TransitionAnimator implements ActionListener {
 	
 	/** The percent complete */
 	protected double percentComplete;
+	
+	/** The non-clamped percent complete */
+	private double truePercentComplete;
 
 	/**
 	 * Minimal constructor.
@@ -99,13 +104,35 @@ public class TransitionAnimator implements ActionListener {
 		this.duration = milliToNano(duration);
 		this.easing = easing;
 		this.timer = new Timer(0, this);
+		
+		// set the frequency of updates based on the render quality
+		RenderQuality quality = Preferences.getInstance().getRenderQuality();
+		
+		// the choice of delay is tricky since the user has control of the 
+		// duration of the animation.  They could choose 10 milliseconds. 
+		// I think that 100 milliseconds is probably the lowest visible 
+		// animation speed, so we can safely assume that we will get a few
+		// cycles depending on the quality (it almost just looks like a 
+		// swap any lower)
+		
+		// 1000 / 20 = 50 times/second
+		this.timer.setDelay(20);
+		if (quality == RenderQuality.HIGH) {
+			// 1000 / 10 = 100 times/second
+			this.timer.setDelay(10);
+		} else if (quality == RenderQuality.LOW) {
+			// 1000 / 50 = 20 times/ second
+			this.timer.setDelay(50);
+		}
+		
 		if (duration == 0 || transition instanceof Swap) {
 			this.duration = 0;
 			this.timer.setRepeats(false);
 		}
 		this.component = null;
 		this.time = 0;
-		this.percentComplete = 0;
+		this.percentComplete = 0.0;
+		this.truePercentComplete = 0.0;
 	}
 
 	/**
@@ -116,6 +143,7 @@ public class TransitionAnimator implements ActionListener {
 		this.component = component;
 		this.time = System.nanoTime();
 		this.percentComplete = 0.0;
+		this.truePercentComplete = 0.0;
 		this.timer.start();
 	}
 	
@@ -137,7 +165,7 @@ public class TransitionAnimator implements ActionListener {
 	 * @return boolean
 	 */
 	public boolean isComplete() {
-		return this.percentComplete >= 1.0;
+		return this.truePercentComplete > 1.0;
 	}
 	
 	/**
@@ -173,14 +201,20 @@ public class TransitionAnimator implements ActionListener {
 		// compute the delta time
 		long dt = t1 - this.time;
 		
+		if (this.truePercentComplete > 1.0) {
+			this.stop();
+		}
+		
 		// compute the percent complete
 		if (this.duration > 0) {
 			// do the ease in/out depending on the transition type
 			if (this.transition.type == Transition.Type.IN) {
-				this.percentComplete = this.easing.easeIn(dt, this.duration);
+				this.truePercentComplete = this.easing.easeIn(dt, this.duration);
 			} else {
-				this.percentComplete = this.easing.easeOut(dt, this.duration);
+				this.truePercentComplete = this.easing.easeOut(dt, this.duration);
 			}
+			// clamp the percent complete
+			this.percentComplete = Math.min(this.truePercentComplete, 1.0);
 		} else {
 			// a duration of zero basically means swap
 			this.percentComplete = 1.0;
@@ -190,9 +224,9 @@ public class TransitionAnimator implements ActionListener {
 			this.component.repaint();
 		}
 		
-		// see if we have animated long enough
-		if (dt >= this.duration) {
-			this.stop();
+		if (!this.component.isDisplayable()) {
+			this.timer.stop();
+			this.percentComplete = 1.0;
 		}
 	}
 

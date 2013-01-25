@@ -71,8 +71,8 @@ public class HorizontalSplitCollapse extends Transition {
 		int h0 = 0;
 		if (image0 != null) {
 			int hh = image0.getHeight() / 2;
-			y0 = (int)Math.ceil((double)hh * pc);
-			h0 = (int)Math.ceil(image0.getHeight() * (1.0 - pc));
+			y0 = (int)Math.floor((double)hh * pc);
+			h0 = (int)Math.floor(image0.getHeight() * (1.0 - pc));
 			g2d.setClip(0, y0, image0.getWidth(), h0);
 			g2d.drawImage(image0, 0, 0, null);
 		}
@@ -92,7 +92,7 @@ public class HorizontalSplitCollapse extends Transition {
 				y = (int)Math.ceil((double)image1.getHeight() - (double)hh * pc);
 			}
 			Rectangle left = new Rectangle(0, 0, w, h);
-			Rectangle right = new Rectangle(0, y, w, h);
+			Rectangle right = new Rectangle(0, y, w, Math.max(image1.getHeight() - y, 0));
 			Area area = new Area();
 			area.add(new Area(left));
 			area.add(new Area(right));

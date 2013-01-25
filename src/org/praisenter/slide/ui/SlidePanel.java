@@ -499,6 +499,10 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 			// make the thread run always
 			while (true) {
 				try {
+					// end when this panel is no longer displayable
+					if (!isDisplayable()) {
+						return;
+					}
 					// poll for any queued slides
 					PreviewAction<?> preview = this.slideQueue.poll(1000, TimeUnit.MILLISECONDS);
 					// check if its null

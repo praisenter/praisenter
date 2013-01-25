@@ -38,11 +38,11 @@ import org.praisenter.utilities.WindowUtilities;
  * @since 2.0.0
  */
 public final class SlideWindows {
-	/** The device to {@link SlideWindow} mapping */
-	private static final Map<String, SlideWindow> WINDOWS = new HashMap<String, SlideWindow>();
+	/** The device to {@link SlideWindow} mapping for fullscreen windows */
+	private static final Map<String, SlideWindow> FULLSCREEN_WINDOWS = new HashMap<String, SlideWindow>();
 
-	/** The device to {@link SlideWindow} mapping (for notification windows) */
-	private static final Map<String, SlideWindow> NOTIFICATION_WINDOWS = new HashMap<String, SlideWindow>();
+	/** The device to {@link SlideWindow} mapping for non-fullscreen windows */
+	private static final Map<String, SlideWindow> POSITIONED_WINDOWS = new HashMap<String, SlideWindow>();
 	
 	// static interface
 	
@@ -51,20 +51,20 @@ public final class SlideWindows {
 	 * <p>
 	 * Returns null if the given GraphicsDevice is no longer valid.
 	 * @param device the device
-	 * @param notification true if a notification window is desired
+	 * @param fullscreen true if a fullscreen window is desired
 	 * @return {@link SlideWindow}
 	 * @see WindowUtilities#isValid(GraphicsDevice)
 	 */
-	private static final SlideWindow getSlideWindow(GraphicsDevice device, boolean notification) {
+	private static final SlideWindow getSlideWindow(GraphicsDevice device, boolean fullscreen) {
 		if (device == null) return null;
 		// check if the given device is still valid
 		boolean valid = WindowUtilities.isValid(device);
 		// get the cached window using device id
 		String id = device.getIDstring();
 		
-		Map<String, SlideWindow> windows = WINDOWS;
-		if (notification) {
-			windows = NOTIFICATION_WINDOWS;
+		Map<String, SlideWindow> windows = FULLSCREEN_WINDOWS;
+		if (!fullscreen) {
+			windows = POSITIONED_WINDOWS;
 		}
 		
 		// modify the windows map
@@ -73,7 +73,7 @@ public final class SlideWindows {
 			// doing this will handle new devices being added
 			if (window == null && valid) {
 				// the device is valid so create a new window for it
-				if (notification) {
+				if (!fullscreen) {
 					window = new SlideWindow(device, false, true);
 				} else {
 					window = new SlideWindow(device, true, false);
@@ -100,7 +100,7 @@ public final class SlideWindows {
 	 */
 	public static final SlideWindow getPrimarySlideWindow() {
 		Preferences preferences = Preferences.getInstance();
-		return getSlideWindow(preferences.getPrimaryOrDefaultDevice(), false);
+		return getSlideWindow(preferences.getPrimaryOrDefaultDevice(), true);
 	}
 	
 	/**
@@ -113,20 +113,20 @@ public final class SlideWindows {
 	 */
 	public static final SlideWindow getPrimaryNotificationWindow() {
 		Preferences preferences = Preferences.getInstance();
-		return getSlideWindow(preferences.getPrimaryOrDefaultDevice(), true);
+		return getSlideWindow(preferences.getPrimaryOrDefaultDevice(), false);
 	}
 	
 	/**
 	 * Disposes of all {@link SlideWindow}s.
 	 */
 	public static final void disposeWindows() {
-		for (SlideWindow window : WINDOWS.values()) {
+		for (SlideWindow window : FULLSCREEN_WINDOWS.values()) {
 			if (window != null) {
 				window.setVisible(false);
 				window.dispose();
 			}
 		}
-		for (SlideWindow window : NOTIFICATION_WINDOWS.values()) {
+		for (SlideWindow window : POSITIONED_WINDOWS.values()) {
 			if (window != null) {
 				window.setVisible(false);
 				window.dispose();

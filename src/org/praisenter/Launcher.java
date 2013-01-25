@@ -26,8 +26,6 @@ package org.praisenter;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -46,13 +44,22 @@ public final class Launcher {
 	 * @param args command line arguments
 	 */
 	public static final void main(String[] args) {
-		// get the java home property
-		String home = System.getProperty("java.home");
-		System.out.println("Java Home:" + home);
+		String home = null;
+		String pathSeparator = null;
 		
-		// use the system's path separator
-		String pathSeparator = System.getProperty("file.separator");
-		System.out.println("Path Separator:" + home);
+		try {
+			// get the java home property
+			home = System.getProperty("java.home");
+			System.out.println("Java Home:" + home);
+			
+			// use the system's path separator			
+			pathSeparator = System.getProperty("file.separator");
+			System.out.println("Path Separator:" + home);
+		} catch (Exception e) {
+			System.err.println("Failed to get java.home or file.separtor properties.");
+			e.printStackTrace();
+			System.exit(1);
+		}
 		
 		// set defaults
 		String javadir = "bin";
@@ -70,9 +77,23 @@ public final class Launcher {
 			java = properties.getProperty("java");
 			jvmargs = properties.getProperty("jvmargs");
 			jar = properties.getProperty("jar");
-		} catch (FileNotFoundException ex) {
+		} catch (Exception ex) {
 			System.out.println("Launcher.properties file not found. Using default parameters.");
-		} catch (IOException ex) {
+		}
+		
+		try {
+			// if we are on Mac OS we need to set another jvm argument to set the
+			// title bar name, otherwise its the name of the main class
+			String os = System.getProperty("os.name");
+			if (os != null) {
+				if (os.toLowerCase().indexOf("mac") >= 0) {
+					// add the dock name parameter
+					jvmargs += " -Xdock:name=Praisenter";
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Failed to get property: os.name");
+			e.printStackTrace();
 		}
 		
 		try {
@@ -82,8 +103,8 @@ public final class Launcher {
 			
 			// launch the real jar
 			Runtime.getRuntime().exec(command);
-		} catch (IOException e) {
-			System.out.println("Error executing command: ");
+		} catch (Exception e) {
+			System.err.println("Error executing command: ");
 			e.printStackTrace();
 		}
 	}

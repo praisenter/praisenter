@@ -62,9 +62,6 @@ public class SlideWindow extends JDialog implements TransitionListener {
 	/** The rendering surface */
 	protected SlideSurface surface;
 	
-	/** True if the surface is visible */
-	protected boolean visibleInternal;
-	
 	/** True if the window is always the device size */
 	protected boolean fullScreen;
 	
@@ -82,11 +79,11 @@ public class SlideWindow extends JDialog implements TransitionListener {
 		this.device = device;
 		this.fullScreen = fullScreen;
 		this.overlay = overlay;
-		this.visibleInternal = false;
 		
 		// setup the dialog
 		this.setUndecorated(true);
 		// don't allow focus to transfer to the dialog
+		this.setAutoRequestFocus(false);
 		this.setFocusable(false);
 		this.setFocusableWindowState(false);
 		this.setFocusTraversalKeysEnabled(false);
@@ -114,6 +111,7 @@ public class SlideWindow extends JDialog implements TransitionListener {
 		
 		this.surface = new SlideSurface();
 		this.surface.addTransitionListener(this);
+		this.addWindowListener(this.surface);
 		
 		if (Main.isDebugEnabled()) {
 			// for debugging show a line border
@@ -175,7 +173,6 @@ public class SlideWindow extends JDialog implements TransitionListener {
 	@Override
 	public void outTransitionComplete() {
 		this.setVisible(false);
-		this.visibleInternal = false;
 	}
 	
 	/**
@@ -252,15 +249,10 @@ public class SlideWindow extends JDialog implements TransitionListener {
 	protected boolean setVisibleInternal(boolean flag) {
 		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(this.device);
 		if (flag) {
-			// see if the window is currently visible
-			if (!this.visibleInternal) {
+			if (!this.isVisible()) {
 				// set the dialog to visible
-				// no transitions sadly
 				this.setVisible(true);
 			}
-			
-			// set the window visible flag
-			this.visibleInternal = true;
 			
 			// if you re-send the display then make sure it goes on
 			// top of all other windows

@@ -53,11 +53,9 @@ public class SongPart implements Comparable<SongPart> {
 	public static final int BEGINNING_INDEX = 1;
 	
 	/** The song part id */
-	@XmlAttribute(name = "Id", required = false)
 	protected int id;
 	
 	/** The song id */
-	@XmlAttribute(name = "SongId", required = false)
 	protected int songId;
 	
 	/** The song part type */
