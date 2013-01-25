@@ -92,12 +92,12 @@ import org.praisenter.xml.XmlIO;
 // TODO count downs? Im not sure about this one since a video of a count down would look better
 // FIXME Add a service schedule with import/export caps
 // FIXME create a "quick create" function to quickly create a slide with an image/video background and optionally some text
-// FIXME remind mac users that they should install the JDK from oracle rather than the JRE since it updates the path
-// FIXME mac os x makes the notification (always on top) block all user input YIKES; 
-//       maybe we can position the dialog/frame offscreen then reposition when we need to display?  
-//       may need a notification when the clear transition is done
-//       Setting the opacity to 0.0f may or may not disable mouse events (depends on platform)
-// FIXME add an exit option to the file menu
+// FIXME remind mac users that they should install the JDK from oracle rather than the JRE since it updates the path;
+//       also make a note of how to allow the app to run (java control panel setting) (since it won't be deployed as a native .app)
+// FIXME remind mac users that when they download a .zip from unbound bible that they need to recompress the contents into a zip
+//       since mac unzips it automatically
+// FIXME remind mac users that the .jars are not signed nor identified by Apple, therefore they will have to command click the jar
+//       and click open, from there they will be asked if they really want to do it
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;
@@ -215,6 +215,14 @@ public class Praisenter extends JFrame implements ActionListener {
 					mnuImportCVSongs.addActionListener(this);
 					mnuImportSongs.add(mnuImportCVSongs);
 				}
+				
+				mnuFile.addSeparator();
+				
+				// file->exit menu
+				JMenuItem mnuExit = new JMenuItem(Messages.getString("menu.file.exit"));
+				mnuExit.setActionCommand("exit");
+				mnuExit.addActionListener(this);
+				mnuFile.add(mnuExit);
 			}
 			
 			// libraries menu
@@ -302,7 +310,7 @@ public class Praisenter extends JFrame implements ActionListener {
 						try {
 							LOGGER.info("The exit thread has started.");
 							// wait a minute before we forcefully shut down the JVM
-							Thread.sleep(10000);
+							Thread.sleep(60000);
 							LOGGER.info("The exit thread waited 10 seconds. Manually exiting.");
 							// shut her down...
 							System.exit(0);
@@ -377,6 +385,9 @@ public class Praisenter extends JFrame implements ActionListener {
 			}
 		} else if ("about".equals(command)) {
 			AboutDialog.show(this);
+		} else if ("exit".equals(command)) {
+			this.setVisible(false);
+			this.dispose();
 		}
 	}
 	

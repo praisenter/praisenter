@@ -48,7 +48,6 @@ public class Song implements Comparable<Song> {
 	protected static final int NEW_SONG_ID = -1;
 	
 	/** The song id */
-	@XmlAttribute(name = "Id", required = false)
 	protected int id;
 	
 	/** The song title */

@@ -71,14 +71,18 @@ public class HorizontalSplitExpand extends Transition {
 		int h0 = 0;
 		if (image0 != null) {
 			// create two rectangles and merge them into one area for the clip
-			int hh = image0.getHeight() / 2;
+			double hh = (double)image0.getHeight() / 2.0;
 			// h = hh - hh * pc
-			int h = h0 = (int)Math.ceil((double)hh * (1.0 - pc));
+			h0 = (int)Math.floor(hh * (1.0 - pc));
 			int w = image0.getWidth();
 			// y = hh + hh * pc
-			int y = y0 = (int)Math.ceil((double)hh * (1.0 + pc));
-			Rectangle left = new Rectangle(0, 0, w, h);
-			Rectangle right = new Rectangle(0, y, w, h);
+			y0 = (int)Math.ceil(hh * (1.0 + pc));
+			if (pc >= 1.0) {
+				h0 = 0;
+				y0 = image0.getHeight();
+			}
+			Rectangle left = new Rectangle(0, 0, w, h0);
+			Rectangle right = new Rectangle(0, y0, w, Math.max(image0.getHeight() - y0, 0));
 			Area area = new Area();
 			area.add(new Area(left));
 			area.add(new Area(right));

@@ -71,8 +71,8 @@ public class VerticalSplitCollapse extends Transition {
 		int w0 = 0;
 		if (image0 != null) {
 			int hw = image0.getWidth() / 2;
-			x0 = (int)Math.ceil((double)hw * pc);
-			w0 = (int)Math.ceil((double)image0.getWidth() * (1.0 - pc));
+			x0 = (int)Math.floor((double)hw * pc);
+			w0 = (int)Math.floor((double)image0.getWidth() * (1.0 - pc));
 			g2d.setClip(x0, 0, w0, image0.getHeight());
 			g2d.drawImage(image0, 0, 0, null);
 		}
@@ -92,7 +92,7 @@ public class VerticalSplitCollapse extends Transition {
 				x = (int)Math.ceil((double)image1.getWidth() - (double)hw * pc);
 			}
 			Rectangle left = new Rectangle(0, 0, w, h);
-			Rectangle right = new Rectangle(x, 0, w, h);
+			Rectangle right = new Rectangle(x, 0, Math.max(image1.getWidth() - x, 0), h);
 			Area area = new Area();
 			area.add(new Area(left));
 			area.add(new Area(right));

@@ -32,6 +32,8 @@ import java.awt.Graphics2D;
 import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +66,7 @@ import org.praisenter.transitions.TransitionAnimator;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
+public class SlideSurface extends JPanel implements VideoMediaPlayerListener, WindowListener {
 	/** The version id */
 	private static final long serialVersionUID = 957958229210490257L;
 
@@ -536,6 +538,8 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		
+		Graphics2D g2d = (Graphics2D)g;
+		
 		// update the images if necessary
 		if ((this.currentHasPlayableMedia || this.currentHasUpdatingDateTime) && this.currentSlide != null) {
 			SlideSurface.renderSlide(this.currentRenderer, this.transitionBackground, this.image0);
@@ -546,7 +550,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		
 		if (!this.transitionBackground && this.currentSlide != null) {
 			// then render the background of the slide
-			this.currentSlide.getBackground().render((Graphics2D)g);
+			this.currentSlide.getBackground().render(g2d);
 		}
 		
 		if (this.animator != null) {
@@ -559,7 +563,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 							this.onInTransitionComplete();
 						}
 					}
-					g.drawImage(this.image0, 0, 0, null);
+					g2d.drawImage(this.image0, 0, 0, null);
 				} else {
 					if (!this.clear) {
 						this.onOutTransitionComplete();
@@ -567,11 +571,11 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 					// draw nothing
 				}
 			} else {
-				transition.render((Graphics2D)g, this.image0, this.image1, this.animator.getPercentComplete());
+				transition.render(g2d, this.image0, this.image1, this.animator.getPercentComplete());
 			}
 		} else {
 			if (!this.clear) {
-				g.drawImage(this.image0, 0, 0, null);
+				g2d.drawImage(this.image0, 0, 0, null);
 			}
 		}
 		
@@ -855,6 +859,50 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 	}
 	
 	// threading
+
+	/* (non-Javadoc)
+	 * @see java.awt.event.WindowListener#windowClosing(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowClosing(WindowEvent e) {}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.WindowListener#windowActivated(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowActivated(WindowEvent e) {}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.WindowListener#windowClosed(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowClosed(WindowEvent e) {
+		this.dateTimeTimer.stop();
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.WindowListener#windowDeactivated(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowDeactivated(WindowEvent e) {}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.WindowListener#windowDeiconified(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowDeiconified(WindowEvent e) {}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.WindowListener#windowIconified(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowIconified(WindowEvent e) {}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.WindowListener#windowOpened(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowOpened(WindowEvent e) {}
 	
 	/**
 	 * Returns the transition wait thread.
@@ -941,6 +989,9 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		public void run() {
 			// run forever
 			while (true) {
+				if (!isDisplayable()) {
+					return;
+				}
 				// wait until there is something in the queue
 				synchronized (this.queueLock) {
 					while (!this.queued) {
@@ -996,6 +1047,9 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		// the image when we call clearRect
 		tg2d.setBackground(new Color(0, 0, 0, 0));
 		tg2d.clearRect(0, 0, image.getWidth(), image.getHeight());
+		// for compatibility
+		tg2d.setColor(new Color(0, 0, 0, 0));
+		tg2d.fillRect(0, 0, image.getWidth(), image.getHeight());
 		renderer.render(tg2d, renderBackground);
 		tg2d.dispose();
 	}
@@ -1009,6 +1063,9 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		Graphics2D tg2d = target.createGraphics();
 		tg2d.setBackground(new Color(0, 0, 0, 0));
 		tg2d.clearRect(0, 0, target.getWidth(), target.getHeight());
+		// for compatibility
+		tg2d.setColor(new Color(0, 0, 0, 0));
+		tg2d.fillRect(0, 0, target.getWidth(), target.getHeight());
 		tg2d.drawImage(source, 0, 0, null);
 		tg2d.dispose();
 	}
@@ -1037,6 +1094,9 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener {
 		// the image when we call clearRect
 		g2d.setBackground(new Color(0, 0, 0, 0));
 		g2d.clearRect(0, 0, image.getWidth(), image.getHeight());
+		// for compatibility
+		g2d.setColor(new Color(0, 0, 0, 0));
+		g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
 		g2d.dispose();
 	}
 }

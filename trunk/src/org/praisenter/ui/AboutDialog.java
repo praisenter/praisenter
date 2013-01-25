@@ -78,6 +78,7 @@ public class AboutDialog extends JDialog {
 		
 		// add the about text section with clickable links
 		JTextPane text = new JTextPane();
+		text.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 		text.setEditable(false);
 		try {
 			text.setPage(this.getClass().getResource(Messages.getString("dialog.about.html")));
