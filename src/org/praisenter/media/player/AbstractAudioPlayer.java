@@ -24,6 +24,7 @@
  */
 package org.praisenter.media.player;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.praisenter.media.AbstractAudioMedia;
@@ -59,6 +60,15 @@ public abstract class AbstractAudioPlayer<E extends AbstractAudioMedia> implemen
 
 	/** The list of media player listeners */
 	protected List<MediaPlayerListener> listeners;
+	
+	/**
+	 * Default constructor.
+	 */
+	public AbstractAudioPlayer() {
+		this.media = null;
+		this.configuration = new MediaPlayerConfiguration();
+		this.listeners = new ArrayList<MediaPlayerListener>();
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaPlayer#setMedia(org.praisenter.media.PlayableMedia)

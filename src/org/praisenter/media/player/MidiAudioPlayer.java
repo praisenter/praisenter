@@ -93,13 +93,6 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	/** The current position in the midi sequence when paused */
 	protected long microsecondPosition = 0;
 
-	/**
-	 * Default constructor.
-	 */
-	public MidiAudioPlayer() {
-		this.configuration = new MediaPlayerConfiguration();
-	}
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.player.AbstractAudioPlayer#setMedia(org.praisenter.media.AbstractAudioMedia)
 	 */
