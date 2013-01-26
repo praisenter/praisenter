@@ -86,17 +86,16 @@ import org.praisenter.xml.XmlIO;
  * @version 2.0.0
  * @since 1.0.0
  */
-// TODO add xuggler video downloader (to download videos from the web)
-// TODO bible translation manager
-// TODO song manager
-// TODO count downs? Im not sure about this one since a video of a count down would look better
-// FIXME Add a service schedule with import/export caps
-// FIXME create a "quick create" function to quickly create a slide with an image/video background and optionally some text
-// FIXME remind mac users that they should install the JDK from oracle rather than the JRE since it updates the path;
+// TODO MEDIA add xuggler video downloader (to download videos from the web)
+// TODO BIBLES bible translation manager
+// TODO SONGS song manager
+// FIXME IMPORT-EXPORT Add a service schedule with import/export caps
+// FIXME SLIDE-TEMPLATE create a "quick create" function to quickly create a slide with an image/video background and optionally some text
+// FIXME DEPLOYMENT remind mac users that they should install the JDK from oracle rather than the JRE since it updates the path;
 //       also make a note of how to allow the app to run (java control panel setting) (since it won't be deployed as a native .app)
-// FIXME remind mac users that when they download a .zip from unbound bible that they need to recompress the contents into a zip
+// FIXME DEPLOYMENT remind mac users that when they download a .zip from unbound bible that they need to recompress the contents into a zip
 //       since mac unzips it automatically
-// FIXME remind mac users that the .jars are not signed nor identified by Apple, therefore they will have to command click the jar
+// FIXME DEPLOYMENT remind mac users that the .jars are not signed nor identified by Apple, therefore they will have to command click the jar
 //       and click open, from there they will be asked if they really want to do it
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
@@ -147,9 +146,9 @@ public class Praisenter extends JFrame implements ActionListener {
 		this.pnlSongs = new SongsPanel();
 		
 		JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab(Messages.getString("slides"), this.pnlSlides);
 		tabs.addTab(Messages.getString("bible"), this.pnlBible);
 		tabs.addTab(Messages.getString("songs"), this.pnlSongs);
+		tabs.addTab(Messages.getString("slides"), this.pnlSlides);
 		
 		container.add(pnlNotification, BorderLayout.PAGE_START);
 		container.add(tabs, BorderLayout.CENTER);
@@ -243,7 +242,7 @@ public class Praisenter extends JFrame implements ActionListener {
 			}
 			
 			// debugging menu
-			if (Main.isDebugEnabled()) {
+			if (Main.getApplicationArguments().isDebugEnabled()) {
 				JMenu mnuWindow = new JMenu(Messages.getString("menu.window"));
 				barMenu.add(mnuWindow);
 				
@@ -310,7 +309,7 @@ public class Praisenter extends JFrame implements ActionListener {
 						try {
 							LOGGER.info("The exit thread has started.");
 							// wait a minute before we forcefully shut down the JVM
-							Thread.sleep(60000);
+							Thread.sleep(10000);
 							LOGGER.info("The exit thread waited 10 seconds. Manually exiting.");
 							// shut her down...
 							System.exit(0);

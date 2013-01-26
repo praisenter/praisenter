@@ -128,6 +128,8 @@ public class EnterPasswordDialog extends JDialog implements ActionListener {
 		dialog.setLocationRelativeTo(owner);
 		dialog.setVisible(true);
 		
+		dialog.dispose();
+		
 		char[] pass = dialog.txtPassword.getPassword();
 		if (pass == null || pass.length == 0) {
 			return null;

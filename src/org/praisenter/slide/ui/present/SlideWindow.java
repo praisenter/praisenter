@@ -113,7 +113,7 @@ public class SlideWindow extends JDialog implements TransitionListener {
 		this.surface.addTransitionListener(this);
 		this.addWindowListener(this.surface);
 		
-		if (Main.isDebugEnabled()) {
+		if (Main.getApplicationArguments().isDebugEnabled()) {
 			// for debugging show a line border
 			this.surface.setBorder(BorderFactory.createLineBorder(Color.RED, 10));
 		}

@@ -217,7 +217,6 @@ public class SlideWindow implements VideoMediaPlayerListener, ActionListener, GL
 	 * @param animator the animator
 	 */
 
-	// TODO comments
 	/**
 	 * Clears this display window using the given animator.
 	 * @param animator the animator
@@ -693,7 +692,6 @@ public class SlideWindow implements VideoMediaPlayerListener, ActionListener, GL
 		this.dialog.invoke(false, new GLRunnable() {
 			@Override
 			public boolean run(GLAutoDrawable arg0) {
-				// TODO Auto-generated method stub
 				return false;
 			}
 		});

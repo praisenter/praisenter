@@ -70,7 +70,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
-// TODO add ability to rename items (this has issues if a slide/template references the media item) this is somewhat related to the remove action
+// TODO MEDIA add ability to rename items (this has issues if a slide/template references the media item) this is somewhat related to the remove action
 public class MediaLibraryPanel extends JPanel implements ActionListener, ListSelectionListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -5811856651322928169L;

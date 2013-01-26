@@ -85,7 +85,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
-//FIXME add import/export caps for slides and templates
+//FIXME IMPORT-EXPORT add import/export caps for slides and templates
 public class SlideLibraryPanel extends JPanel implements ListSelectionListener, ChangeListener, ItemListener, ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = -8314362249681392612L;

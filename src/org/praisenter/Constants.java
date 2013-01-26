@@ -51,7 +51,7 @@ public final class Constants {
 	public static final String LOG4J_FILE_NAME = "log4j.xml";
 	
 	/** The log4j configuration file name and path */
-	public static final String LOG4J_FILE_PATH = Constants.CONFIGURATION_FILE_LOCATION + Constants.SEPARATOR + Constants.LOG4J_FILE_NAME;
+	public static final String LOG4J_FILE_PATH = CONFIGURATION_FILE_LOCATION + SEPARATOR + LOG4J_FILE_NAME;
 	
 	/** The log file folder */
 	public static final String LOG_FILE_LOCATION = "logs";

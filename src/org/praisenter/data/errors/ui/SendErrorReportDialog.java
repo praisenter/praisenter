@@ -192,6 +192,8 @@ public class SendErrorReportDialog extends JDialog implements ActionListener {
 					Messages.getString("dialog.error.report.success.title"),
 					JOptionPane.INFORMATION_MESSAGE);
 		}
+		
+		dialog.dispose();
 	}
 	
 	/**

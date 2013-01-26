@@ -30,6 +30,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.ZipException;
 
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
@@ -38,11 +40,12 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.praisenter.preferences.Preferences;
+import org.praisenter.slide.Resolutions;
 import org.praisenter.utilities.LookAndFeelUtilities;
 import org.praisenter.utilities.SystemUtilities;
+import org.praisenter.utilities.ZipUtilities;
 
-// TODO allow play/stop/pause/seek controls for playable media
-// FIXME deploy app using jnlp
+// TODO MEDIA allow play/stop/pause/seek controls for playable media
 
 /**
  * This class is the application entry point.
@@ -54,8 +57,8 @@ public final class Main {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(Main.class);
 	
-	/** True if the -debug command line argument was passed in */
-	private static boolean DEBUG = false;
+	/** The application arguments */
+	private static ApplicationArguments ARGUMENTS;
 	
 	/** Hidden default constructor. */
 	private Main() {}
@@ -64,8 +67,8 @@ public final class Main {
 	 * Returns true if the -debug argument was passed to startup.
 	 * @return boolean
 	 */
-	public static final boolean isDebugEnabled() {
-		return DEBUG;
+	public static final ApplicationArguments getApplicationArguments() {
+		return ARGUMENTS;
 	}
 	
 	/**
@@ -74,18 +77,14 @@ public final class Main {
 	 * Command line arguments:
 	 * <ul>
 	 * <li>-debug</li>
+	 * <li>-installEmptyDB</li>
+	 * <li>-installSpecifiedDB="database zip file name.zip"</li>
 	 * </ul>
 	 * @param args the command line arguments
 	 */
 	public static final void main(String[] args) {
 		// interpret command line
-		if (args != null) {
-			for (String arg : args) {
-				if ("-debug".equals(arg)) {
-					DEBUG = true;
-				}
-			}
-		}
+		ARGUMENTS = new ApplicationArguments(args);
 		
 		// initialize configuration files
 		Main.initializeConfiguration();
@@ -123,8 +122,14 @@ public final class Main {
 		// initialize default look and feel
 		initializeDefaultLookAndFeel();
 		
+		// initialize the database
+		initializeDatabase();
+		
 		// initialize preferences
 		Preferences.getInstance();
+		
+		// initialize resolutions
+		Resolutions.getResolutions();
 	}
 	
 	/**
@@ -157,6 +162,9 @@ public final class Main {
 		
 		// verify the log file folder
 		initializeFolder(Constants.LOG_FILE_LOCATION);
+		
+		// verify the database folder
+		initializeFolder(Constants.DATABASE_FILE_LOCATION);
 		
 		// verify the existence of the /media and sub directories
 		initializeFolder(Constants.MEDIA_LIBRARY_PATH);
@@ -201,7 +209,6 @@ public final class Main {
 	 * verify that the configuration using a file has worked.
 	 */
 	private static final void initializeLog4j() {
-		LOGGER.info("Configuring Log4j.");
 		try {
 			String fileLocation = Constants.LOG4J_FILE_PATH;
 			String log4j = Constants.LOG4J_FILE_NAME;
@@ -213,36 +220,18 @@ public final class Main {
 				// the file didn't exist so load the classpath one
 				try {
 					// configure using the classpath xml file
-					DOMConfigurator.configure(Main.class.getResource("/" + log4j));
+					String classpath = "/org/praisenter/resources/";
+					DOMConfigurator.configure(Main.class.getResource(classpath + log4j));
+					// we have to wait until log4j is configured before we can actually make any log statement
 					LOGGER.warn("Log4j configuration file not found at [" + file.getAbsolutePath() + "]. Using classpath configuration file.");
-					try {
-						LOGGER.info("Copying classpath " + log4j + " to " + file.getAbsolutePath() + " directory.");
-						// attempt to make a copy and place it in the root directory
-						if (file.createNewFile()) {
-							// copy the contents of the file
-							try {
-								BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
-								BufferedInputStream bis = new BufferedInputStream(Main.class.getResourceAsStream("/" + log4j));
-								int r = 0;
-								byte[] buffer = new byte[1000];
-								while ((r = bis.read(buffer, 0, buffer.length)) > 0) {
-									bos.write(buffer, 0, r);
-								}
-								bos.flush();
-								bos.close();
-								bis.close();
-								LOGGER.info(log4j + " file copied successfully.");
-							} catch (FileNotFoundException ex) {
-								// just log the error if we can't copy the file							
-								LOGGER.warn("File not found: [" + file.getAbsolutePath() + "].", ex);
-							}
-						} else {
-							// just log the error if we can't copy the file							
-							LOGGER.warn("Could not create file: [" + file.getAbsolutePath() + "].");
-						}
-					} catch (IOException ex) {
-						// just log the error if we can't copy or write to the file
-						LOGGER.warn("An IO error occurred while creating or writing the log file to the root directory.", ex);
+					
+					// copy the file
+					LOGGER.info("Copying classpath [" + classpath + log4j + "] to [" + file.getAbsolutePath() + "].");
+					boolean copied = copyFileFromClasspath(classpath, log4j, fileLocation);
+					if (copied) {
+						LOGGER.info("Log4j configuration file copied successfully.");
+					} else {
+						LOGGER.warn("Failed to copy the log4j configuration file from the classpath.");
 					}
 				} catch (Exception ex) {
 					// just use the default configuration
@@ -306,5 +295,121 @@ public final class Main {
 		} else {
 			LOGGER.info("Nimbus look and feel not found. Using default look and feel: " + defaultLookAndFeelName);
 		}
+	}
+	
+	/**
+	 * Initializes the praisenter database if it does not exist.
+	 */
+	private static final void initializeDatabase() {
+		LOGGER.debug("Verifying existence of database.");
+		
+		File file = new File(Constants.DATABASE_FILE_PATH);
+		if (file.isDirectory()) {
+			LOGGER.debug("The database folder exists. Database connections will be verified later.");
+		} else {
+			LOGGER.info("Database does not exist. Creating default database.");
+			
+			// copy the zip files from the resources directory on the classpath
+			// we do this all the time so that we make sure we always get the latest
+			// non-corrupted zip file for the database
+			
+			// copy the empty database zip
+			boolean copied = copyFileFromClasspath("/org/praisenter/resources/", "praisenter-blank-db.zip", Constants.DATABASE_FILE_LOCATION);
+			if (!copied) {
+				return;
+			} else {
+				LOGGER.info("Empty database zip file copied successfully.");
+			}
+			
+			// copy the kjv database zip
+			copied = copyFileFromClasspath("/org/praisenter/resources/", "praisenter-kjv-db.zip", Constants.DATABASE_FILE_LOCATION);
+			if (!copied) {
+				return;
+			} else {
+				LOGGER.info("KJV database zip file copied successfully.");
+			}
+			
+			// determine what database we should unzip
+			try {
+				if (ARGUMENTS.isInstallEmptyDb()) {
+					LOGGER.info("Installing empty database.");
+					ZipUtilities.unzip(Constants.DATABASE_FILE_LOCATION + Constants.SEPARATOR + "praisenter-blank-db.zip", Constants.DATABASE_FILE_LOCATION);
+				} else if (ARGUMENTS.isInstallSpecifiedDb()) {
+					LOGGER.info("Installing specified database.");
+					ZipUtilities.unzip(Constants.DATABASE_FILE_LOCATION + Constants.SEPARATOR + ARGUMENTS.getSpecifiedDb(), Constants.DATABASE_FILE_LOCATION);
+				} else {
+					LOGGER.info("Installing KJV database.");
+					ZipUtilities.unzip(Constants.DATABASE_FILE_LOCATION + Constants.SEPARATOR + "praisenter-kjv-db.zip", Constants.DATABASE_FILE_LOCATION);
+				}
+				LOGGER.info("Database zip unzipped successfully.");
+			} catch (ZipException e) {
+				LOGGER.fatal("A zip exception occurred while attempting to unzip the database zip file.", e);
+			} catch (FileNotFoundException e) {
+				LOGGER.fatal("The database zip file was not found.", e);
+			} catch (IOException e) {
+				LOGGER.fatal("An IO error occurred while attempting to unzip the database zip file.", e);
+			} catch (IllegalStateException e) {
+				LOGGER.fatal("The database zip file was closed before completing.", e);
+			} catch (SecurityException e) {
+				LOGGER.fatal("You do not have permissions to unzip this file.", e);
+			} catch (Exception e) {
+				LOGGER.fatal("An error occurred while unzipping the database zip file.", e);
+			}
+		}
+	}
+	
+	/**
+	 * Copies the given file on the classpath to the given location using the same name.
+	 * <p>
+	 * Returns true if the copy was successful.
+	 * @param classpath the path in the classpath to the file
+	 * @param filename the file name of the file in the classpath
+	 * @param folder the destination folder
+	 * @return boolean
+	 */
+	private static final boolean copyFileFromClasspath(String classpath, String filename, String folder) {
+		// get the classpath resource
+		try (InputStream is = Main.class.getResourceAsStream(classpath + filename)) {
+			// see if we found the classpath resource
+			if (is == null) {
+				LOGGER.warn("File [" + classpath + filename + "] was not found.");
+				return false;
+			}
+			
+			// create the file for the resource to go into
+			File file = new File(folder + Constants.SEPARATOR + filename);
+			
+			// see if the file exists
+			if (!file.exists()) {
+				// attempt to create it
+				if (!file.createNewFile()) {
+					LOGGER.warn("Could not create file [" + file.getAbsolutePath() + "].");
+					return false;
+				}
+			}
+			
+			// copy the contents of the file
+			try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+				 BufferedInputStream bis = new BufferedInputStream(is);)	{
+				int bytesRead = 0;
+				byte[] buffer = new byte[1024];
+				while ((bytesRead = bis.read(buffer, 0, buffer.length)) > 0) {
+					bos.write(buffer, 0, bytesRead);
+				}
+				bos.flush();
+				LOGGER.info("File [" + filename + "] copied successfully.");
+				return true;
+			} catch (FileNotFoundException ex) {
+				// just log the error if we can't copy the file
+				LOGGER.warn("File [" + file.getAbsolutePath() + "] was not found: ", ex);
+			} catch (IOException ex) {
+				// if an IO error occurs then we need to quit
+				LOGGER.warn("An IO error occurred while copying the file [" + filename + "]:", ex);
+			}
+		} catch (Exception e) {
+			// just log the error
+			LOGGER.warn("An error occurred while copying the file [" + filename + "]: ", e);
+		}
+		return false;
 	}
 }

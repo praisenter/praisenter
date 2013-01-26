@@ -1079,6 +1079,9 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	protected static final BufferedImage validateOffscreenImage(BufferedImage image, Component component) {
 		Dimension size = component.getSize();
 		if (image == null || size.width != image.getWidth() || size.height != image.getHeight()) {
+			// FIXME theres a problem here with position and sized slides in that if they are just one pixel width/height off the don't transition well
+			// its also a problem when they are just completely different. maybe if they are different we should instead, transition them out then
+			// transition the next in??? not real sure what to do here
 			image = component.getGraphicsConfiguration().createCompatibleImage(size.width, size.height, Transparency.TRANSLUCENT);
 		}
 		return image;

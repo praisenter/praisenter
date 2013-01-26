@@ -35,7 +35,9 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
+import java.text.MessageFormat;
 
+import org.praisenter.resources.Messages;
 import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.PositionedComponent;
 import org.praisenter.slide.RenderableComponent;
@@ -168,7 +170,10 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 			
 			this.drawBorder(g2d, sx + x, sy + y, w, h);
 			
-			this.drawName(g2d, this.mouseOverComponent.getName(), sx + x, sy + y);
+			String name = MessageFormat.format(Messages.getString("panel.slide.editor.name.overlay"),
+					this.mouseOverComponent.getName(),
+					r.x, r.y, r.width, r.height);
+			this.drawName(g2d, name, sx + x, sy + y);
 			
 			g2d.setClip(clip);
 		}
@@ -196,7 +201,10 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 			
 			this.drawProngs(g2d, sx + x, sy + y, w, h);
 			
-			this.drawName(g2d, this.selectedComponent.getName(), sx + x, sy + y);
+			String name = MessageFormat.format(Messages.getString("panel.slide.editor.name.overlay"),
+					this.selectedComponent.getName(),
+					r.x, r.y, r.width, r.height);
+			this.drawName(g2d, name, sx + x, sy + y);
 			
 			g2d.setClip(clip);
 		}

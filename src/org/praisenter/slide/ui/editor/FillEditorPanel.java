@@ -62,7 +62,7 @@ import org.praisenter.utilities.ColorUtilities;
 import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.utilities.WindowUtilities;
 
-// TODO we need to support multi-stop gradients (multi-thumb slider would be best)
+// TODO SLIDE-TEMPLATE we need to support multi-stop gradients (multi-thumb slider would be best)
 // cycle method, focal point (radial only) aren't really needed since we are abstracting away
 // most of the details of the gradient selection. This could change when we do multi-stop
 // gradients
