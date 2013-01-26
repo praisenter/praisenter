@@ -255,11 +255,7 @@ public class ExceptionDialog extends JDialog implements MouseListener, ActionLis
 	 * @param sendEnabled true if the send error report button should be enabled
 	 */
 	public static final void show(Component owner, String title, String message, Exception e, boolean sendEnabled) {
-		// create the dialog
-		ExceptionDialog dialog = new ExceptionDialog(WindowUtilities.getParentWindow(owner), title, message, e, sendEnabled);
-		dialog.setLocationRelativeTo(owner);
-		// show the dialog
-		dialog.setVisible(true);
+		ExceptionDialog.show(WindowUtilities.getParentWindow(owner), title, message, e, sendEnabled);
 	}
 	
 	/**
@@ -270,11 +266,7 @@ public class ExceptionDialog extends JDialog implements MouseListener, ActionLis
 	 * @param e the exception
 	 */
 	public static final void show(Window owner, String title, String message, Exception e) {
-		// create the dialog
-		ExceptionDialog dialog = new ExceptionDialog(owner, title, message, e, true);
-		dialog.setLocationRelativeTo(owner);
-		// show the dialog
-		dialog.setVisible(true);
+		ExceptionDialog.show(owner, title, message, e, true);
 	}
 	
 	/**
@@ -291,5 +283,6 @@ public class ExceptionDialog extends JDialog implements MouseListener, ActionLis
 		dialog.setLocationRelativeTo(owner);
 		// show the dialog
 		dialog.setVisible(true);
+		dialog.dispose();
 	}
 }

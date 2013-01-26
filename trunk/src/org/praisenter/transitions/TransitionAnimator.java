@@ -97,9 +97,15 @@ public class TransitionAnimator implements ActionListener {
 		if (duration < 0) {
 			duration = 0;
 		}
+		
+		if (transition instanceof Swap) {
+			duration = 0;
+		}
+		
 		if (easing == null) {
 			easing = DEFAULT_EASING;
 		}
+		
 		this.transition = transition;
 		this.duration = milliToNano(duration);
 		this.easing = easing;
@@ -125,10 +131,6 @@ public class TransitionAnimator implements ActionListener {
 			this.timer.setDelay(50);
 		}
 		
-		if (duration == 0 || transition instanceof Swap) {
-			this.duration = 0;
-			this.timer.setRepeats(false);
-		}
 		this.component = null;
 		this.time = 0;
 		this.percentComplete = 0.0;
@@ -216,6 +218,10 @@ public class TransitionAnimator implements ActionListener {
 			// clamp the percent complete
 			this.percentComplete = Math.min(this.truePercentComplete, 1.0);
 		} else {
+			if (this.percentComplete >= 1.0) {
+				// arbitrarily higher than 1.0
+				this.truePercentComplete = 1.5;
+			}
 			// a duration of zero basically means swap
 			this.percentComplete = 1.0;
 		}
@@ -227,6 +233,7 @@ public class TransitionAnimator implements ActionListener {
 		if (!this.component.isDisplayable()) {
 			this.timer.stop();
 			this.percentComplete = 1.0;
+			this.truePercentComplete = 1.5;
 		}
 	}
 

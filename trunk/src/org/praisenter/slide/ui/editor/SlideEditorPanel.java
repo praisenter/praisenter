@@ -108,11 +108,9 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
-// TODO snap to grid
-// TODO show the x,y coordinates when moving
-// TODO show the width/height when resizing
-// TODO add the "delete" key to remove component; maybe arrow keys too
-// TODO add undo/redo functionality (store a list of slide/template copies after any change?)
+// TODO SLIDE-TEMPLATE snap to grid
+// TODO SLIDE-TEMPLATE add the "delete" key to remove component; maybe arrow keys too
+// TODO SLIDE-TEMPLATE add undo/redo functionality (store a list of slide/template copies after any change?)
 public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, ListSelectionListener, EditorListener, ActionListener, ItemListener, DocumentListener {
 	/** The version id */
 	private static final long serialVersionUID = -927595042247907332L;
@@ -266,8 +264,16 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		boolean videoSupport = MediaLibrary.isMediaSupported(MediaType.VIDEO);
 		boolean audioSupport = MediaLibrary.isMediaSupported(MediaType.AUDIO);
 		
-		int dsw = slide.getWidth() / 2;
-		int dsh = slide.getHeight() / 2;
+		int width = slide.getWidth();
+		int height = slide.getHeight();
+		if (slide instanceof AbstractPositionedSlide) {
+			AbstractPositionedSlide pSlide = (AbstractPositionedSlide)slide;
+			width = pSlide.getDeviceWidth();
+			height = pSlide.getDeviceHeight();
+		}
+		
+		int dsw = width / 2;
+		int dsh = height / 2;
 		
 		// setup the preview panel
 		Dimension previewSize = new Dimension(dsw, dsh);
@@ -277,14 +283,6 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		this.pnlSlidePreview.setPreferredSize(previewSize);
 		this.pnlSlidePreview.addMouseListener(this);
 		this.pnlSlidePreview.addMouseMotionListener(this);
-		
-		int width = slide.getWidth();
-		int height = slide.getHeight();
-		if (slide instanceof AbstractPositionedSlide) {
-			AbstractPositionedSlide pSlide = (AbstractPositionedSlide)slide;
-			width = pSlide.getDeviceWidth();
-			height = pSlide.getDeviceHeight();
-		}
 		
 		JLabel lblSlideName = new JLabel(Messages.getString("panel.slide.editor.name"));
 		this.txtSlideName = new JTextField(slide.getName());

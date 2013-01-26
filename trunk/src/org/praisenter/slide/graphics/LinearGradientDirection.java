@@ -57,4 +57,3 @@ public enum LinearGradientDirection {
 	/** Bottom-right to top left */
 	BOTTOM_RIGHT
 }
-// TODO add vertical center, and horizontal center and corner centers

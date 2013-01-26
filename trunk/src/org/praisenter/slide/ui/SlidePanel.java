@@ -27,22 +27,27 @@ package org.praisenter.slide.ui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GraphicsDevice;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
-import java.text.MessageFormat;
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -50,7 +55,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.apache.log4j.Logger;
-import org.praisenter.data.errors.ui.ExceptionDialog;
+import org.praisenter.easings.CubicEasing;
+import org.praisenter.easings.Easing;
+import org.praisenter.easings.Easings;
+import org.praisenter.preferences.Preferences;
 import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.BasicSlide;
@@ -59,12 +67,14 @@ import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.Template;
-import org.praisenter.slide.ui.editor.SlideEditorDialog;
-import org.praisenter.slide.ui.editor.SlideEditorOption;
-import org.praisenter.slide.ui.editor.SlideEditorResult;
+import org.praisenter.slide.ui.present.SlideWindow;
+import org.praisenter.slide.ui.present.SlideWindows;
 import org.praisenter.slide.ui.preview.SingleSlidePreviewPanel;
-import org.praisenter.threading.AbstractTask;
-import org.praisenter.threading.TaskProgressDialog;
+import org.praisenter.transitions.Swap;
+import org.praisenter.transitions.Transition;
+import org.praisenter.transitions.TransitionAnimator;
+import org.praisenter.transitions.Transitions;
+import org.praisenter.ui.SelectTextFocusListener;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -85,33 +95,33 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 	/** The list of saved slides */
 	private JList<SlideThumbnail> lstSlides;
 	
-	/** The edit slide/template button */
-	private JButton btnEditSlide;
-	
-	/** The copy slide/template button */
-	private JButton btnCopySlide;
-	
-	/** The remove slide template button */
-	private JButton btnRemoveSlide;
-	
-	/** The slide/template properties panel */
-	private SlidePropertiesPanel pnlProperties;
-	
 	/** The slide/template preview panel */
 	private SingleSlidePreviewPanel pnlPreview;
+
+	/** The combo box of transitions for sending */
+	private JComboBox<Transition> cmbSendTransitions;
+	
+	/** The text box of send transition duration */
+	private JFormattedTextField txtSendTransitions;
+	
+	/** The combo box of transitions for clearing */
+	private JComboBox<Transition> cmbClearTransitions;
+	
+	/** The text box of clear transition duration */
+	private JFormattedTextField txtClearTransitions;
 	
 	// state
 	
 	/** The slide/template preview thread */
 	private SlidePreivewThread previewThread;
 	
+	/** The preferences */
+	private Preferences preferences = Preferences.getInstance();
+	
 	/**
 	 * Default constructor.
 	 */
 	public SlidePanel() {
-		this.pnlProperties = new SlidePropertiesPanel();
-		this.pnlProperties.setMinimumSize(new Dimension(300, 0));
-		
 		this.pnlPreview = new SingleSlidePreviewPanel();
 		Dimension size = new Dimension(300, 300);
 		this.pnlPreview.setMinimumSize(size);
@@ -124,49 +134,97 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		this.lstSlides = createJList(thumbnails);
 		JScrollPane scrSlides = new JScrollPane(this.lstSlides);
 		
-		JButton btnCreateSlide = new JButton(Messages.getString("panel.slide.create"));
-		btnCreateSlide.setActionCommand("new");
-		btnCreateSlide.addActionListener(this);
-		btnCreateSlide.setMinimumSize(new Dimension(0, 50));
-		btnCreateSlide.setFont(btnCreateSlide.getFont().deriveFont(Font.BOLD, btnCreateSlide.getFont().getSize2D() + 2.0f));
+		// get the primary device
+		GraphicsDevice device = this.preferences.getPrimaryOrDefaultDevice();
 		
-		this.btnEditSlide = new JButton(Messages.getString("panel.slide.edit"));
-		this.btnEditSlide.setActionCommand("edit");
-		this.btnEditSlide.addActionListener(this);
-		this.btnEditSlide.setEnabled(false);
+		// setup the transition lists
+		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(device);
 		
-		this.btnCopySlide = new JButton(Messages.getString("panel.slide.copy"));
-		this.btnCopySlide.setActionCommand("copy");
-		this.btnCopySlide.addActionListener(this);
-		this.btnCopySlide.setEnabled(false);
+		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
+		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(Swap.ID, Transition.Type.IN));
+		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
+		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
+		this.txtSendTransitions.setValue(400);
+		this.txtSendTransitions.setColumns(3);
 		
-		this.btnRemoveSlide = new JButton(Messages.getString("panel.slide.remove"));
-		this.btnRemoveSlide.setActionCommand("remove");
-		this.btnRemoveSlide.addActionListener(this);
-		this.btnRemoveSlide.setEnabled(false);
+		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
+		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(Swap.ID, Transition.Type.OUT));
+		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
+		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
+		this.txtClearTransitions.setValue(300);
+		this.txtClearTransitions.setColumns(3);
 		
-		JPanel pnlRight = new JPanel();
-		GroupLayout layout = new GroupLayout(pnlRight);
-		pnlRight.setLayout(layout);
+		if (!transitionsSupported) {
+			this.cmbSendTransitions.setEnabled(false);
+			this.txtSendTransitions.setEnabled(false);
+			this.cmbClearTransitions.setEnabled(false);
+			this.txtClearTransitions.setEnabled(false);
+		}
+		
+		JButton btnSend = new JButton(Messages.getString("panel.bible.send"));
+		btnSend.setToolTipText(Messages.getString("panel.bible.send.tooltip"));
+		btnSend.addActionListener(this);
+		btnSend.setActionCommand("send");
+		btnSend.setFont(btnSend.getFont().deriveFont(Font.BOLD, btnSend.getFont().getSize2D() + 3.0f));
+		btnSend.setMinimumSize(new Dimension(0, 50));
+		
+		JButton btnClear = new JButton(Messages.getString("panel.bible.clear"));
+		btnClear.setToolTipText(Messages.getString("panel.bible.clear.tooltip"));
+		btnClear.addActionListener(this);
+		btnClear.setActionCommand("clear");
+		btnClear.setMinimumSize(new Dimension(0, 50));
+		
+		// create a panel and layout for the send/clear controls
+		JPanel pnlSendClearButtons = new JPanel();
+		GroupLayout subLayout = new GroupLayout(pnlSendClearButtons);
+		pnlSendClearButtons.setLayout(subLayout);
+		pnlSendClearButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		
+		subLayout.setAutoCreateGaps(true);
+		subLayout.setHorizontalGroup(subLayout.createSequentialGroup()
+				.addGroup(subLayout.createParallelGroup()
+						.addGroup(subLayout.createSequentialGroup()
+								.addComponent(this.cmbSendTransitions)
+								.addComponent(this.txtSendTransitions))
+						.addComponent(btnSend, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+				.addGroup(subLayout.createParallelGroup()
+						.addGroup(subLayout.createSequentialGroup()
+								.addComponent(this.cmbClearTransitions)
+								.addComponent(this.txtClearTransitions))
+						.addComponent(btnClear, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+		subLayout.setVerticalGroup(subLayout.createSequentialGroup()
+				.addGroup(subLayout.createParallelGroup()
+						.addComponent(this.cmbSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.txtSendTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(subLayout.createParallelGroup()
+						.addComponent(btnSend)
+						.addComponent(btnClear)));
+		
+		JPanel pnlLeft = new JPanel();
+		GroupLayout layout = new GroupLayout(pnlLeft);
+		pnlLeft.setLayout(layout);
+		
+		JSeparator sep = new JSeparator();
+		
 		layout.setAutoCreateGaps(true);
-		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-				.addComponent(btnCreateSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(this.pnlProperties)
-				.addComponent(this.btnEditSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(this.btnCopySlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(this.btnRemoveSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(this.pnlPreview));
+		layout.setHorizontalGroup(layout.createParallelGroup()
+				.addComponent(this.pnlPreview)
+				.addComponent(sep)
+				.addComponent(pnlSendClearButtons, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(btnCreateSlide)
-				.addComponent(this.pnlProperties, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(this.btnEditSlide)
-				.addComponent(this.btnCopySlide)
-				.addComponent(this.btnRemoveSlide)
-				.addComponent(this.pnlPreview));
+				.addComponent(this.pnlPreview)
+				.addComponent(sep, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(pnlSendClearButtons));
 		
-		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrSlides, pnlRight);
+		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pnlLeft, scrSlides);
 		pane.setOneTouchExpandable(true);
-		pane.setResizeWeight(1.0);
+		pane.setResizeWeight(0.4);
 		
 		this.setLayout(new BorderLayout());
 		this.add(pane, BorderLayout.CENTER);
@@ -215,170 +273,40 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
 		
-		// we dont need to get the selected thumnbnail for the new command
-		if ("new".equals(command)) {
-			// show dialog asking what type (slide/template)
-			Slide slide = NewSlideDialog.show(WindowUtilities.getParentWindow(this), BasicSlide.class);
-			// check for null (null means the user canceled)
-			if (slide != null) {
-				// open the slide/template editor
-				SlideEditorResult result = SlideEditorDialog.show(WindowUtilities.getParentWindow(this), slide, null);
-				// check the return type
-				if (result.getChoice() != SlideEditorOption.CANCEL) {
-					// when control returns here we need to update the items in the jlist with the current media library items
-					List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(slide.getClass());
-					// get the list that should store this slide
-					JList<SlideThumbnail> list = this.lstSlides;
-					list.clearSelection();
-					// we need to reload all the thumbnails here since the user could do multiple save as...'es saving
-					// multiple slides or templates
-					DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
-					model.removeAllElements();
-					for (SlideThumbnail thumb : thumbnails) {
-						model.addElement(thumb);
-					}
-					list.setSelectedValue(result.getThumbnail(), true);
+		if ("send".equals(command)) {
+			// get the transition
+			Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
+			int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
+			Easing easing = Easings.getEasingForId(CubicEasing.ID);
+			TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
+			SlideWindow primary = SlideWindows.getPrimarySlideWindow();
+			if (primary != null) {
+				Dimension size = this.preferences.getPrimaryOrDefaultDeviceResolution();
+				Slide slide = this.pnlPreview.getSlide();
+				// check the slide size against the display size
+				if (slide.getWidth() != size.width || slide.getHeight() != size.height) {
+					// log a message and modify the template to fit
+					LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
+					slide.adjustSize(size.width, size.height);
 				}
+				primary.send(slide, ta);
+			} else {
+				// the device is no longer available
+				LOGGER.warn("The primary display doesn't exist.");
+				JOptionPane.showMessageDialog(
+						WindowUtilities.getParentWindow(this), 
+						Messages.getString("dialog.device.primary.missing.text"), 
+						Messages.getString("dialog.device.primary.missing.title"), 
+						JOptionPane.WARNING_MESSAGE);
 			}
-			return;
-		}
-		
-		// get the currently selected thumbnail
-		JList<SlideThumbnail> list = this.lstSlides;
-		final SlideThumbnail thumbnail = list.getSelectedValue();
-		
-		String type = Messages.getString("panel.slide");
-		
-		// make sure the currently selected item is not null
-		if (thumbnail != null) {
-			// check the action type
-			if ("edit".equals(command)) {
-				// get the selected slide or template
-				SlideFile file = thumbnail.getFile();
-				
-				// load the slide on another thread
-				LoadSlideTask task = new LoadSlideTask(file);
-				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.loading"), task);
-				
-				if (task.isSuccessful()) {
-					// make a copy of the slide so that the user can cancel the operation
-					Slide slide = task.getSlide().copy();
-					SlideEditorResult result = SlideEditorDialog.show(WindowUtilities.getParentWindow(this), slide, file);
-					
-					if (result.getChoice() == SlideEditorOption.SAVE) {
-						// we only need to update the one thumbnail
-						DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
-						int i = model.indexOf(thumbnail);
-						model.set(i, result.getThumbnail());
-						// we need to update the preview of the selected slide
-						this.pnlPreview.setSlide(result.getSlide());
-						this.pnlPreview.repaint();
-					} else if (result.getChoice() == SlideEditorOption.SAVE_AS) {
-						// when control returns here we need to update the items in the jlist with the current media library items
-						List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BasicSlide.class);
-						list.clearSelection();
-						// we need to reload all the thumbnails here since the user could do multiple save as...'es saving
-						// multiple slides or templates
-						DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
-						model.removeAllElements();
-						for (SlideThumbnail thumb : thumbnails) {
-							model.addElement(thumb);
-						}
-						list.setSelectedValue(result.getThumbnail(), true);
-					}
-				} else {
-					ExceptionDialog.show(
-							this, 
-							Messages.getString("panel.slide.load.exception.title"), 
-							MessageFormat.format(Messages.getString("panel.slide.load.exception.text"), file.getPath()), 
-							task.getException());
-					LOGGER.error("Failed to load [" + file.getPath() + "] from the slide library: ", task.getException());
-				}
-			} else if ("copy".equals(command)) {
-				// get the selected slide or template
-				SlideFile file = thumbnail.getFile();
-				
-				// load/copy/save on another thread
-				LoadSlideTask task = new LoadSlideTask(file) {
-					@Override
-					public void run() {
-						super.run();
-						// if the loading of the slide was successful then try to
-						// copy it and save the copy
-						if (this.isSuccessful() && this.slide != null) {
-							// save the slide
-							// make a copy of the slide so that the user can cancel the operation
-							Slide slide = this.slide.copy();
-							
-							// rename the slide to copy of or something
-							slide.setName(MessageFormat.format(Messages.getString("panel.slide.copy.copyOf"), slide.getName()));
-							
-							// save the slide
-							try {
-								SlideLibrary.saveSlide(slide.getName(), (BasicSlide)slide);
-								this.setSuccessful(true);
-							} catch (Exception e) {
-								this.setSuccessful(false);
-								this.handleException(e);
-							}
-						}
-					}
-				};
-				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.copying"), task);
-				
-				if (task.isSuccessful()) {
-					// when control returns here we need to update the items in the jlist with the current media library items
-					List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BasicSlide.class);
-					list.clearSelection();
-					// we need to reload all the thumbnails here since the user could do multiple save as...'es saving
-					// multiple slides or templates
-					DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
-					model.removeAllElements();
-					for (SlideThumbnail thumb : thumbnails) {
-						model.addElement(thumb);
-					}
-					list.setSelectedValue(thumbnail, true);
-				} else {
-					ExceptionDialog.show(
-							this, 
-							MessageFormat.format(Messages.getString("panel.slide.copy.exception.title"), type), 
-							MessageFormat.format(Messages.getString("panel.slide.copy.exception.text"), type.toLowerCase(), file.getPath()), 
-							task.getException());
-					LOGGER.error("Failed to copy [" + file.getPath() + "]: ", task.getException());
-				}
-			} else if ("remove".equals(command)) {
-				// show an are you sure dialog, then delete the slide
-				int choice = JOptionPane.showConfirmDialog(
-						this, 
-						MessageFormat.format(Messages.getString("panel.slide.remove.message"), thumbnail.getName()),
-						MessageFormat.format(Messages.getString("panel.slide.remove.title"), type),
-						JOptionPane.YES_NO_CANCEL_OPTION);
-				if (choice == JOptionPane.YES_OPTION) {
-					// remove the slide/template in another thread
-					AbstractTask task = new AbstractTask() {
-						@Override
-						public void run() {
-							SlideLibrary.deleteSlide(thumbnail.getFile().getPath());
-							this.setSuccessful(true);
-						}
-					};
-					
-					TaskProgressDialog.show(WindowUtilities.getParentWindow(this), MessageFormat.format(Messages.getString("panel.slide.removing"), type), task);
-					if (task.isSuccessful()) {
-						if (list != null) {
-							// remove the thumbnail from the list
-							DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
-							model.removeElement(thumbnail);
-						}
-					} else {
-						ExceptionDialog.show(
-								this, 
-								MessageFormat.format(Messages.getString("panel.slide.remove.exception.title"), type), 
-								MessageFormat.format(Messages.getString("panel.slide.remove.exception.text"), type.toLowerCase(), thumbnail.getFile().getName()), 
-								task.getException());
-						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getPath() + "] from the slide library: ", task.getException());
-					}
-				}
+		} else if ("clear".equals(command)) {
+			Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
+			int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
+			Easing easing = Easings.getEasingForId(CubicEasing.ID);
+			TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
+			SlideWindow primary = SlideWindows.getPrimarySlideWindow();
+			if (primary != null) {
+				primary.clear(ta);
 			}
 		}
 	}
@@ -402,17 +330,9 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 				if (preview != null && file != null) {
 					this.pnlPreview.setLoading(true);
 					this.getPreviewThread().queueSlide(preview);
-					this.pnlProperties.setSlideFile(file, true);
-					this.btnEditSlide.setEnabled(true);
-					this.btnCopySlide.setEnabled(true);
-					this.btnRemoveSlide.setEnabled(true);
 				} else {
 					this.pnlPreview.setSlide(null);
-					this.pnlProperties.setSlideFile(null, true);
 					this.pnlPreview.repaint();
-					this.btnEditSlide.setEnabled(false);
-					this.btnCopySlide.setEnabled(false);
-					this.btnRemoveSlide.setEnabled(false);
 				}
 			}
 		}
@@ -545,49 +465,6 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 					break;
 				}
 			}
-		}
-	}
-	
-	/**
-	 * Task to load a slide from the Slide Library.
-	 * @author William Bittle
-	 * @version 2.0.0
-	 * @since 2.0.0
-	 */
-	private class LoadSlideTask extends AbstractTask {
-		/** The slide file */
-		protected SlideFile file;
-		
-		/** The loaded slide */
-		protected Slide slide;
-		
-		/**
-		 * Full constructor.
-		 * @param file the slide file
-		 */
-		public LoadSlideTask(SlideFile file) {
-			this.file = file;
-		}
-		
-		/* (non-Javadoc)
-		 * @see java.lang.Runnable#run()
-		 */
-		@Override
-		public void run() {
-			try {
-				this.slide = SlideLibrary.getSlide(this.file.getPath());
-				this.setSuccessful(true);
-			} catch (Exception ex) {
-				this.handleException(ex);
-			}
-		}
-		
-		/**
-		 * Returns the loaded slide.
-		 * @return {@link Slide}
-		 */
-		public Slide getSlide() {
-			return this.slide;
 		}
 	}
 }

@@ -63,6 +63,8 @@ public class Swap extends Transition {
 	@Override
 	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
 		// swap immediately displays the next slide
-		g2d.drawImage(image1, 0, 0, null);
+		if (this.type == Transition.Type.IN && pc >= 1.0) {
+			g2d.drawImage(image1, 0, 0, null);
+		}
 	}
 }

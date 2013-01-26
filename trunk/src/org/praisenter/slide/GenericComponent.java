@@ -53,8 +53,8 @@ import org.praisenter.slide.graphics.RadialGradientFill;
  * @version 2.0.0
  * @since 2.0.0
  */
-// TODO add rotation
-// TODO add effects (drop shadow)
+// TODO SLIDE-TEMPLATE add rotation
+// TODO SLIDE-TEMPLATE add effects (drop shadow)
 @XmlRootElement(name = "GenericSlideComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({
