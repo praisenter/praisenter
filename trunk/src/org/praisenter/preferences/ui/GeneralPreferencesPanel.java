@@ -305,6 +305,7 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		preferences.setRenderQuality((RenderQuality)this.cmbRenderQualities.getSelectedItem());
 		preferences.setSmartVideoTransitionsEnabled(this.chkSmartVideoTransitions.isSelected());
 		preferences.setSmartImageTransitionsEnabled(this.chkSmartImageTransitions.isSelected());
+		preferences.setWaitForTransitionEnabled(this.chkWaitForTransition.isSelected());
 	}
 	
 	/**
