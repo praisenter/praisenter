@@ -67,9 +67,12 @@ public class TransitionAnimator implements ActionListener {
 	/** The percent complete */
 	protected double percentComplete;
 	
-	/** The non-clamped percent complete */
-	private double truePercentComplete;
+	/** True if the transition is complete */
+	protected boolean complete;
 
+	/** True if the transition should do one more iteration */
+	protected boolean lastIteration;
+	
 	/**
 	 * Minimal constructor.
 	 * @param transition the transition
@@ -134,7 +137,8 @@ public class TransitionAnimator implements ActionListener {
 		this.component = null;
 		this.time = 0;
 		this.percentComplete = 0.0;
-		this.truePercentComplete = 0.0;
+		this.complete = false;
+		this.lastIteration = false;
 	}
 
 	/**
@@ -145,7 +149,8 @@ public class TransitionAnimator implements ActionListener {
 		this.component = component;
 		this.time = System.nanoTime();
 		this.percentComplete = 0.0;
-		this.truePercentComplete = 0.0;
+		this.complete = false;
+		this.lastIteration = false;
 		this.timer.start();
 	}
 	
@@ -155,6 +160,8 @@ public class TransitionAnimator implements ActionListener {
 	public void stop() {
 		this.timer.stop();
 		this.percentComplete = 1.0;
+		this.complete = true;
+		this.lastIteration = true;
 		// execute one last repaint to update
 		// the component
 		if (this.component != null) {
@@ -167,7 +174,7 @@ public class TransitionAnimator implements ActionListener {
 	 * @return boolean
 	 */
 	public boolean isComplete() {
-		return this.truePercentComplete > 1.0;
+		return this.complete;
 	}
 	
 	/**
@@ -203,27 +210,28 @@ public class TransitionAnimator implements ActionListener {
 		// compute the delta time
 		long dt = t1 - this.time;
 		
-		if (this.truePercentComplete > 1.0) {
+		if (this.lastIteration) {
 			this.stop();
 		}
 		
 		// compute the percent complete
 		if (this.duration > 0) {
 			// do the ease in/out depending on the transition type
+			double pc = 0.0;
 			if (this.transition.type == Transition.Type.IN) {
-				this.truePercentComplete = this.easing.easeIn(dt, this.duration);
+				pc = this.easing.easeIn(dt, this.duration);
 			} else {
-				this.truePercentComplete = this.easing.easeOut(dt, this.duration);
+				pc = this.easing.easeOut(dt, this.duration);
 			}
 			// clamp the percent complete
-			this.percentComplete = Math.min(this.truePercentComplete, 1.0);
-		} else {
-			if (this.percentComplete >= 1.0) {
-				// arbitrarily higher than 1.0
-				this.truePercentComplete = 1.5;
+			this.percentComplete = Math.min(pc, 1.0);
+			if (pc > 1.0) {
+				this.lastIteration = true;
 			}
+		} else {
 			// a duration of zero basically means swap
 			this.percentComplete = 1.0;
+			this.lastIteration = true;
 		}
 		
 		if (this.component != null) {
@@ -231,9 +239,7 @@ public class TransitionAnimator implements ActionListener {
 		}
 		
 		if (!this.component.isDisplayable()) {
-			this.timer.stop();
-			this.percentComplete = 1.0;
-			this.truePercentComplete = 1.5;
+			this.stop();
 		}
 	}
 
