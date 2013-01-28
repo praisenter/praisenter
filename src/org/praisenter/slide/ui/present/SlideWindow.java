@@ -40,7 +40,6 @@ import org.apache.log4j.Logger;
 import org.praisenter.Main;
 import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.Slide;
-import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
 
 /**
@@ -49,7 +48,7 @@ import org.praisenter.transitions.Transitions;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class SlideWindow extends JDialog implements TransitionListener {
+public class SlideWindow extends JDialog implements PresentListener {
 	/** The version id */
 	private static final long serialVersionUID = 3385134636780286237L;
 
@@ -110,7 +109,7 @@ public class SlideWindow extends JDialog implements TransitionListener {
 		container.setLayout(new BorderLayout());
 		
 		this.surface = new SlideSurface();
-		this.surface.addTransitionListener(this);
+		this.surface.addPresentListener(this);
 		this.addWindowListener(this.surface);
 		
 		if (Main.getApplicationArguments().isDebugEnabled()) {
@@ -128,50 +127,89 @@ public class SlideWindow extends JDialog implements TransitionListener {
 		// prepare for display
 		this.prepareForDisplay();
 	}
+
+	/**
+	 * Adds the given {@link PresentListener} to this surface.
+	 * @param listener the listener
+	 */
+	public void addPresentListener(PresentListener listener) {
+		this.surface.addPresentListener(listener);
+	}
 	
 	/**
-	 * Sends the new slide to this slide window using the given animator.
-	 * @param slide the new slide to show
-	 * @param animator the animator
+	 * Removes the given {@link PresentListener} from this surface.
+	 * @param listener the listener
 	 */
-	public void send(Slide slide, TransitionAnimator animator) {
+	public void removePresentListener(PresentListener listener) {
+		this.surface.removePresentListener(listener);
+	}
+	
+	/**
+	 * Executes the given send event.
+	 * @param event the event
+	 */
+	public void execute(SendEvent event) {
 		if (!this.fullScreen) {
-			this.setWindowSize(slide);
+			this.setWindowSize(event.slide);
 		}
-		if (this.setVisibleInternal(true)) {
-			this.surface.send(slide, animator);
-		} else {
-			// if transitions aren't supported
-			this.surface.send(slide, null);
+		if (!this.setVisibleInternal(true)) {
+			// if transitions aren't supported, null out
+			// the animator
+			event.animator = null;
 		}
+		this.surface.execute(event);
 	}
 	
 	/**
-	 * Clears this display window using the given animator.
-	 * @param animator the animator
+	 * Executes the given clear event.
+	 * @param event the event
 	 */
-	public void clear(TransitionAnimator animator) {
-		if (this.setVisibleInternal(false)) {
-			this.surface.clear(animator);
-		} else {
-			// if transitions aren't supported
-			this.surface.clear(null);
+	public void execute(ClearEvent event) {
+		if (!this.setVisibleInternal(false)) {
+			// if transitions aren't supported, null out
+			// the animator
+			event.animator = null;
+		}
+		this.surface.execute(event);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.present.PresentListener#inTransitionBegin(org.praisenter.slide.ui.present.SendEvent)
+	 */
+	@Override
+	public void inTransitionBegin(SendEvent event) {
+		// its possible that when an out transition ends that there
+		// is still an in transition in the queue.  In which case
+		// we need to ensure the window is visible in this case
+		if (!this.isVisible()) {
+			this.setVisible(true);
 		}
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.present.TransitionListener#inTransitionComplete()
+	 * @see org.praisenter.slide.ui.present.PresentListener#outTransitionBegin(org.praisenter.slide.ui.present.ClearEvent)
 	 */
 	@Override
-	public void inTransitionComplete() {
-		// nothing to do on an in transition
-	}
+	public void outTransitionBegin(ClearEvent event) {}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.present.TransitionListener#outTransitionComplete()
+	 * @see org.praisenter.slide.ui.present.PresentListener#eventDropped(org.praisenter.slide.ui.present.PresentEvent)
 	 */
 	@Override
-	public void outTransitionComplete() {
+	public void eventDropped(PresentEvent event) {}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.present.PresentListener#inTransitionComplete(org.praisenter.slide.ui.present.SendEvent)
+	 */
+	@Override
+	public void inTransitionComplete(SendEvent event) {}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.present.PresentListener#outTransitionComplete(org.praisenter.slide.ui.present.ClearEvent)
+	 */
+	@Override
+	public void outTransitionComplete(ClearEvent event) {
+		// when the out transition is complete, hide the window
 		this.setVisible(false);
 	}
 	

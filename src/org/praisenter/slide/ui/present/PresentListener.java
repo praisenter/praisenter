@@ -27,19 +27,25 @@ package org.praisenter.slide.ui.present;
 import java.util.EventListener;
 
 /**
- * Listener transition end events.
+ * Interface to listen to presentation events..
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public interface TransitionListener extends EventListener {
+public interface PresentListener extends EventListener {
+	public void inTransitionBegin(SendEvent event);
+	
+	public void outTransitionBegin(ClearEvent event);
+	
+	public void eventDropped(PresentEvent event);
+	
 	/**
 	 * Called when an "in" transition has completed.
 	 */
-	public void inTransitionComplete();
+	public void inTransitionComplete(SendEvent event);
 	
 	/**
 	 * Called when an "out" transition has completed.
 	 */
-	public void outTransitionComplete();
+	public void outTransitionComplete(ClearEvent event);
 }
