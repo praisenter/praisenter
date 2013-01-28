@@ -118,6 +118,9 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	
 	// transitioning
 
+	/** The current event being processed */
+	protected PresentEvent event;
+	
 	/** The transition to apply from display to display */
 	protected TransitionAnimator animator;
 	
@@ -193,32 +196,18 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	}
 	
 	/**
-	 * Shows the given slide using the given animator.
-	 * @param slide the slide to show
-	 * @param animator the animator to use; can be null
+	 * Executes the given send event.
+	 * @param event the event
 	 */
-	public void send(Slide slide, TransitionAnimator animator) {
+	public void execute(SendEvent event) {
 		Preferences preferences = Preferences.getInstance();
-		
-		// always use a copy of the slide since it could be reused by 
-		// the rest of the application, this shouldn't be a problem anyway
-		// since the copy is really fast (mostly immutable objects)
-		Slide copy = slide.copy();
 		
 		// see if we should wait for the existing transition before
 		// sending this slide
 		if (preferences.isWaitForTransitionEnabled()) {
-			// see if the animation is still in progress
-			synchronized (this.transitionCompleteLock) {
-				if (!this.transitionComplete) {
-					LOGGER.debug("Waiting on transition to complete. Queueing send.");
-					// if so, then send the next animation to the present thread
-					this.getTransitionWaitThread().send(copy, animator);
-				} else {
-					// if not, then just immediately being the next animation
-					this.showSlide(copy, animator);
-				}
-			}
+			// queue up the event
+			TransitionWaitThread thread = this.getTransitionWaitThread();
+			thread.queue(event);
 		} else {
 			// if we don't need to wait, then just stop the old transition
 			if (this.animator != null) {
@@ -228,52 +217,30 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 			// if the transition is not complete then complete it
 			synchronized (this.transitionCompleteLock) {
 				if (!this.transitionComplete) {
+					// if the transition didnt complete then
+					// complete it
 					this.onInTransitionComplete();
 				}
 			}
 			
-			// show the slide
-			this.showSlide(copy, animator);
+			// execute the event
+			this.executeSendEvent(event);
 		}
 	}
 	
 	/**
-	 * Clears the current slide using the given animator.
-	 * <p>
-	 * This method will always allow one
-	 * @param animator the animator to use; can be null
+	 * Executes the given clear event.
+	 * @param event the event
 	 */
-	public void clear(TransitionAnimator animator) {
+	public void execute(ClearEvent event) {
 		Preferences preferences = Preferences.getInstance();
 		
 		// see if we should wait for the existing transition before
 		// sending this slide
 		if (preferences.isWaitForTransitionEnabled()) {
-			// see if the animation is still in progress
-			synchronized (this.transitionCompleteLock) {
-				if (!this.transitionComplete) {
-					// if the transition is still in progress, see what type it is
-					Transition transition = this.animator.getTransition();
-					if (transition.getType() == Transition.Type.IN) {
-						// if the current transition is an IN transition then wait until it
-						// finishes then send the clear operation
-						LOGGER.debug("Waiting on transition to complete. Queueing send.");
-						// if so, then send the next animation to the present thread
-						this.getTransitionWaitThread().clear(animator);
-					} else {
-						// otherwise, if the current transition is a clear transition
-						// then just ignore it
-						LOGGER.debug("Current transition is an out transition. This clear request will be ignored.");
-						return;
-					}
-				} else {
-					// if the current transition is complete
-					if (!this.clear) {
-						// we aren't already clear, so send the clear command
-						this.clearSlide(animator);
-					}
-				}
-			}
+			// queue up the event
+			TransitionWaitThread thread = this.getTransitionWaitThread();
+			thread.queue(event);
 		} else {
 			// if we don't need to wait, then just stop the old transition
 			if (this.animator != null) {
@@ -290,19 +257,25 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 			// if the current transition is complete
 			if (!this.clear) {
 				// we aren't already clear, so send the clear command
-				this.clearSlide(animator);
+				this.executeClearEvent(event);
+			} else {
+				LOGGER.debug("Already clear. Dropping event (not notified).");
 			}
 		}
 	}
 	
 	/**
-	 * Shows the given slide using the given animator.
-	 * @param slide the slide to show
-	 * @param animator the animator to use; can be null
+	 * Executes a send event.
+	 * @param event the send event
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void showSlide(Slide slide, TransitionAnimator animator) {
+	private void executeSendEvent(SendEvent event) {
 		Preferences preferences = Preferences.getInstance();
+		
+		Slide slide = event.getSlide();
+		TransitionAnimator animator = event.getAnimator();
+		
+		this.notifyInTransitionBegin(event);
 		
 		// see if we have any playable media
 		this.inSlide = slide;
@@ -425,40 +398,45 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 			synchronized (this.transitionCompleteLock) {
 				this.transitionComplete = false;
 			}
-			// start it
-			this.animator.start(this);
-			// begin the media players
-			if (this.inBackgroundMediaPlayer != null) {
-				this.inBackgroundMediaPlayer.play();
-			}
-			for (MediaPlayer<?> player : this.inMediaPlayers) {
-				player.play();
-			}
-			if (this.inHasUpdatingDateTime || this.currentHasUpdatingDateTime) {
-				if (!this.dateTimeTimer.isRunning()) {
-					this.dateTimeTimer.start();
-				}
-			}
 		} else {
+			// notify that the in transition has completed (since there wasn't one)
 			synchronized (this.transitionCompleteLock) {
 				this.onInTransitionComplete();
 			}
-			// begin the media players
-			if (this.inBackgroundMediaPlayer != null) {
-				this.inBackgroundMediaPlayer.play();
+		}
+		
+		// begin the media players
+		if (this.inBackgroundMediaPlayer != null) {
+			this.inBackgroundMediaPlayer.play();
+		}
+		for (MediaPlayer<?> player : this.inMediaPlayers) {
+			player.play();
+		}
+		// begin the time update (if neccessary)
+		if (this.inHasUpdatingDateTime || this.currentHasUpdatingDateTime) {
+			if (!this.dateTimeTimer.isRunning()) {
+				this.dateTimeTimer.start();
 			}
-			for (MediaPlayer<?> player : this.inMediaPlayers) {
-				player.play();
-			}
+		}
+		
+		if (this.animator != null) {
+			// start it
+			this.animator.start(this);
+		} else {
+			// refresh the display
 			this.repaint();
 		}
 	}
 	
 	/**
-	 * Clears the slide using the given animator.
-	 * @param animator the animator to use; can be null
+	 * Executes a clear event.
+	 * @param event the clear event
 	 */
-	private void clearSlide(TransitionAnimator animator) {
+	private void executeClearEvent(ClearEvent event) {
+		TransitionAnimator animator = event.getAnimator();
+		
+		this.notifyOutTransitionBegin(event);
+		
 		// set the transition
 		this.animator = animator;
 		
@@ -637,6 +615,9 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 		}
 		
 		this.notifyInTransitionComplete();
+		
+		this.event = null;
+		this.animator = null;
 	}
 	
 	/**
@@ -676,41 +657,101 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 		}
 		
 		this.notifyOutTransitionComplete();
+		
+		this.event = null;
+		this.animator = null;
 	}
 
 	/**
-	 * Adds the given {@link TransitionListener} to this surface.
+	 * Adds the given {@link PresentListener} to this surface.
 	 * @param listener the listener
 	 */
-	public void addTransitionListener(TransitionListener listener) {
-		this.listenerList.add(TransitionListener.class, listener);
+	public void addPresentListener(PresentListener listener) {
+		if (this.containsPresentListener(listener)) {
+			return;
+		}
+		this.listenerList.add(PresentListener.class, listener);
 	}
 	
 	/**
-	 * Removes the given {@link TransitionListener} from this surface.
+	 * Returns true if the given listener has already been added.
 	 * @param listener the listener
+	 * @return boolean
 	 */
-	public void removeTransitionListener(TransitionListener listener) {
-		this.listenerList.remove(TransitionListener.class, listener);
+	private boolean containsPresentListener(PresentListener listener) {
+		PresentListener[] listeners = this.listenerList.getListeners(PresentListener.class);
+		for (PresentListener l : listeners) {
+			if (l == listener) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
-	 * Notifies all {@link TransitionListener}s of an in transition completing.
+	 * Removes the given {@link PresentListener} from this surface.
+	 * @param listener the listener
+	 */
+	public void removePresentListener(PresentListener listener) {
+		this.listenerList.remove(PresentListener.class, listener);
+	}
+	
+	/**
+	 * Notifies all {@link PresentListener}s of an in transition completing.
 	 */
 	private void notifyInTransitionComplete() {
-		TransitionListener[] listeners = this.getListeners(TransitionListener.class);
-		for (TransitionListener listener : listeners) {
-			listener.inTransitionComplete();
+		PresentListener[] listeners = this.getListeners(PresentListener.class);
+		SendEvent event = (SendEvent)this.event;
+		for (PresentListener listener : listeners) {
+			listener.inTransitionComplete(event);
 		}
 	}
 	
 	/**
-	 * Notifies all {@link TransitionListener}s of an out transition completing.
+	 * Notifies all {@link PresentListener}s of an out transition completing.
 	 */
 	private void notifyOutTransitionComplete() {
-		TransitionListener[] listeners = this.getListeners(TransitionListener.class);
-		for (TransitionListener listener : listeners) {
-			listener.outTransitionComplete();
+		PresentListener[] listeners = this.getListeners(PresentListener.class);
+		ClearEvent event = (ClearEvent)this.event;
+		for (PresentListener listener : listeners) {
+			listener.outTransitionComplete(event);
+		}
+	}
+	
+	/**
+	 * Notifies all {@link PresentListener}s of an event being dropped.
+	 * @param event the event that was dropped
+	 */
+	private void notifyEventDropped(PresentEvent event) {
+		PresentListener[] listeners = this.getListeners(PresentListener.class);
+		for (PresentListener listener : listeners) {
+			listener.eventDropped(event);
+		}
+	}
+	
+	/**
+	 * Notifies all {@link PresentListener}s of an in transition beginning.
+	 * @param event the event that is beginning
+	 */
+	private void notifyInTransitionBegin(SendEvent event) {
+		// store the event for later use in the end events
+		this.event = event;
+		PresentListener[] listeners = this.getListeners(PresentListener.class);
+		for (PresentListener listener : listeners) {
+			listener.inTransitionBegin(event);
+		}
+	}
+	
+	/**
+	 * Notifies all {@link PresentListener}s of an out transition beginning.
+	 * @param event the event that is beginning
+	 */
+	private void notifyOutTransitionBegin(ClearEvent event) {
+		// store the event for later use in the end events
+		this.event = event;
+		PresentListener[] listeners = this.getListeners(PresentListener.class);
+		for (PresentListener listener : listeners) {
+			listener.outTransitionBegin(event);
 		}
 	}
 	
@@ -928,11 +969,8 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 		
 		// data
 		
-		/** The queued slide */
-		protected Slide slide;
-		
-		/** The queued animator */
-		protected TransitionAnimator animator;
+		/** The queued event */
+		protected PresentEvent event;
 		
 		/**
 		 * Default constructor.
@@ -945,29 +983,34 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 		}
 		
 		/**
-		 * Queues up the slide and animator for display.
+		 * Queues up the event for display.
 		 * <p>
-		 * The last send operation is used when its time for display.
-		 * @param slide the slide to display
-		 * @param animator the animator to display
+		 * The last event queued is used when its time for display.
+		 * The others are dropped.
+		 * @param event the event to queue
 		 */
-		public void send(Slide slide, TransitionAnimator animator) {
+		public void queue(PresentEvent event) {
 			synchronized (this.queueLock) {
+				TransitionAnimator eAnimator = event.getAnimator();
+				// check the current animator
+				if (animator != null && eAnimator != null) {
+					// make sure the current animator is not an out transition
+					Transition t1 = animator.getTransition();
+					Transition t2 = eAnimator.getTransition();
+					if (t1.getType() == Transition.Type.OUT && t2.getType() == Transition.Type.OUT) {
+						// if the current transition is an out transition then just ignore it
+						LOGGER.debug("Current transition is an out transition. Dropping given transition.");
+						notifyEventDropped(event);
+						return;
+					}
+				}
+				if (this.event != null) {
+					LOGGER.debug("Another event has been queued. Dropping current event.");
+					notifyEventDropped(this.event);
+				}
+				LOGGER.debug("Queueing event.");
 				this.queued = true;
-				this.slide = slide;
-				this.animator = animator;
-				this.queueLock.notify();
-			}
-		}
-
-		/**
-		 * Queues up a clear operation.
-		 * @param animator the animator to use to clear the display
-		 */
-		public void clear(TransitionAnimator animator) {
-			synchronized (this.queueLock) {
-				this.queued = true;
-				this.animator = animator;
+				this.event = event;
 				this.queueLock.notify();
 			}
 		}
@@ -986,6 +1029,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 				synchronized (this.queueLock) {
 					while (!this.queued) {
 						try {
+							LOGGER.debug("Waiting on event.");
 							this.queueLock.wait();
 						} catch (InterruptedException e) {
 							LOGGER.warn("Interrupted. Stopping thread gracefully.");
@@ -998,6 +1042,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 				synchronized (transitionCompleteLock) {
 					while (!transitionComplete) {
 						try {
+							LOGGER.debug("Waiting on transition to complete. Queueing event.");
 							transitionCompleteLock.wait();
 						} catch (InterruptedException e) {
 							LOGGER.warn("Interrupted. Stopping thread gracefully.");
@@ -1008,15 +1053,25 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 				
 				// execute the next transition
 				synchronized (this.queueLock) {
-					if (this.slide != null) {
-						// perform the action
-						showSlide(this.slide, this.animator);
-					} else {
-						clearSlide(this.animator);
+					if (this.event != null) {
+						if (this.event instanceof SendEvent) {
+							LOGGER.debug("Executing SendEvent.");
+							executeSendEvent((SendEvent)this.event);
+						} else if (this.event instanceof ClearEvent) {
+							if (!clear) {
+								LOGGER.debug("Executing ClearEvent.");
+								executeClearEvent((ClearEvent)this.event);
+							} else {
+								// if we are already clear then just drop this event
+								LOGGER.debug("Surface has already been cleared. Dropping event.");
+								notifyEventDropped(this.event);
+							}
+						} else {
+							LOGGER.warn("Unknown event type: " + this.event.getClass().getName());
+						}
 					}
 					this.queued = false;
-					this.slide = null;
-					this.animator = null;
+					this.event = null;
 				}
 			}
 		}

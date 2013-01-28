@@ -61,6 +61,10 @@ import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.ui.SlideLibraryListener;
 import org.praisenter.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
+import org.praisenter.slide.ui.present.ClearEvent;
+import org.praisenter.slide.ui.present.PresentEvent;
+import org.praisenter.slide.ui.present.PresentListener;
+import org.praisenter.slide.ui.present.SendEvent;
 import org.praisenter.slide.ui.present.SlideWindow;
 import org.praisenter.slide.ui.present.SlideWindows;
 import org.praisenter.transitions.Transition;
@@ -76,7 +80,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 1.0.0
  */
-public class NotificationPanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener {
+public class NotificationPanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener, PresentListener {
 	/** The version id */
 	private static final long serialVersionUID = 20837022721408081L;
 	
@@ -124,6 +128,9 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	
 	/** The wait timer lock */
 	private Object waitTimerLock;
+	
+	/** The current present event */
+	private PresentEvent event;
 	
 	// preferences 
 	
@@ -405,8 +412,9 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
 	@Override
-	public void actionPerformed(ActionEvent event) {
-		if ("send".equals(event.getActionCommand())) {
+	public void actionPerformed(ActionEvent e) {
+		String command = e.getActionCommand();
+		if ("send".equals(command)) {
 			// get the text
 			String text = this.txtText.getText();
 			// check the text length
@@ -427,7 +435,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 				// send the notification
 				this.sendWaitClear(this.slide, in, out, wait);
 			}
-		} else if ("clear".equals(event.getActionCommand())) {
+		} else if ("clear".equals(command)) {
 			synchronized (this.waitTimerLock) {
 				// check if we are currently waiting
 				if (this.waitTimer != null && this.waitTimer.isRunning()) {
@@ -443,8 +451,13 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 			// get the notification slide window
 			SlideWindow window = SlideWindows.getPrimaryNotificationWindow();
 			if (window != null) {
+				// make sure we are listening to events on this window
+				window.addPresentListener(this);
+				// create a new event
+				ClearEvent event = new ClearEvent(animator);
+				this.event = event;
 				// clear it
-				window.clear(animator);
+				window.execute(event);
 			}
 		}
 	}
@@ -460,6 +473,8 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	protected void sendWaitClear(Slide slide, TransitionAnimator inAnimator, final TransitionAnimator outAnimator, int waitPeriod) {
 		final SlideWindow window = SlideWindows.getPrimaryNotificationWindow();
 		if (window != null) {
+			// make sure we are listening to events on this window
+			window.addPresentListener(this);
 			synchronized (this.waitTimerLock) {
 				// check if we are currently waiting
 				if (this.waitTimer != null && this.waitTimer.isRunning()) {
@@ -471,16 +486,29 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 				if (ts && inAnimator != null) {
 					waitPeriod += inAnimator.getDuration();
 				}
-				window.send(slide, inAnimator);
+				SendEvent sendEvent = new SendEvent(slide, inAnimator);
+				// FIXME verify the position/width/height of the current slide and the new one; if different, immediately execute the clear and then the send
+				this.event = sendEvent;
 				this.waitTimer = new Timer(waitPeriod, new ActionListener() {
 					@Override
-					public void actionPerformed(ActionEvent event) {
+					public void actionPerformed(ActionEvent e) {
+						// make sure the timer is ended
+						waitTimer.stop();
+						// when the timer executes this method the wait period
+						// has been reached, so create a clear event and 
+						// execute it
+						ClearEvent clearEvent = new ClearEvent(outAnimator);
+						event = clearEvent;
 						// once the wait period is up, then execute the clear operation
-						window.clear(outAnimator);
+						window.execute(clearEvent);
 					}
 				});
 				this.waitTimer.setRepeats(false);
-				this.waitTimer.start();
+				// we have to wait to start the wait timer until the send event
+				// actually begins to ensure the timing is somewhat accurate
+				
+				// execute the event
+				window.execute(sendEvent);
 			}
 		} else {
 			// the device is no longer available
@@ -492,4 +520,34 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		}
 	}
 	
+	@Override
+	public void inTransitionBegin(SendEvent event) {
+		// if the event that was started was the one we executed
+		// then start the wait timer
+		if (this.event == event) {
+			if (this.waitTimer != null) {
+				this.waitTimer.start();
+			}
+		}
+	}
+	
+	@Override
+	public void outTransitionBegin(ClearEvent event) {
+		
+	}
+	
+	@Override
+	public void eventDropped(PresentEvent event) {
+		
+	}
+	
+	@Override
+	public void inTransitionComplete(SendEvent event) {
+		
+	}
+	
+	@Override
+	public void outTransitionComplete(ClearEvent event) {
+		
+	}
 }

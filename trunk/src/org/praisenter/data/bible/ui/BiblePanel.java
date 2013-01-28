@@ -92,6 +92,8 @@ import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.ui.SlideLibraryListener;
 import org.praisenter.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
+import org.praisenter.slide.ui.present.ClearEvent;
+import org.praisenter.slide.ui.present.SendEvent;
 import org.praisenter.slide.ui.present.SlideWindow;
 import org.praisenter.slide.ui.present.SlideWindows;
 import org.praisenter.slide.ui.preview.InlineSlidePreviewPanel;
@@ -1277,7 +1279,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
-			primary.send(this.pnlPreview.getSlide(1), ta);
+			primary.execute(new SendEvent(this.pnlPreview.getSlide(1), ta));
 		} else {
 			// the device is no longer available
 			LOGGER.warn("The primary display doesn't exist.");
@@ -1300,7 +1302,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
-			primary.clear(ta);
+			primary.execute(new ClearEvent(ta));
 		}
 	}
 	

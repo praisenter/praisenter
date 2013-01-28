@@ -87,6 +87,8 @@ import org.praisenter.slide.SongSlideTemplate;
 import org.praisenter.slide.ui.SlideLibraryListener;
 import org.praisenter.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
+import org.praisenter.slide.ui.present.ClearEvent;
+import org.praisenter.slide.ui.present.SendEvent;
 import org.praisenter.slide.ui.present.SlideWindow;
 import org.praisenter.slide.ui.present.SlideWindows;
 import org.praisenter.slide.ui.preview.ScrollableInlineSlidePreviewPanel;
@@ -891,7 +893,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
-			primary.send(slide, ta);
+			primary.execute(new SendEvent(slide, ta));
 		} else {
 			// the device is no longer available
 			LOGGER.warn("The primary display doesn't exist.");
@@ -915,7 +917,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
-			primary.clear(ta);
+			primary.execute(new ClearEvent(ta));
 		}
 	}
 	

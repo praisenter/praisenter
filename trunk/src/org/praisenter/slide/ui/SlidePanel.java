@@ -67,6 +67,8 @@ import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.Template;
+import org.praisenter.slide.ui.present.ClearEvent;
+import org.praisenter.slide.ui.present.SendEvent;
 import org.praisenter.slide.ui.present.SlideWindow;
 import org.praisenter.slide.ui.present.SlideWindows;
 import org.praisenter.slide.ui.preview.SingleSlidePreviewPanel;
@@ -289,7 +291,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 					LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
 					slide.adjustSize(size.width, size.height);
 				}
-				primary.send(slide, ta);
+				primary.execute(new SendEvent(slide, ta));
 			} else {
 				// the device is no longer available
 				LOGGER.warn("The primary display doesn't exist.");
@@ -306,7 +308,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 			TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 			SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 			if (primary != null) {
-				primary.clear(ta);
+				primary.execute(new ClearEvent(ta));
 			}
 		}
 	}
