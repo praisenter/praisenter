@@ -30,7 +30,6 @@ import java.awt.Graphics2D;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.slide.graphics.Fill;
-import org.praisenter.slide.media.AudioMediaComponent;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
 import org.praisenter.slide.text.TextComponent;
@@ -41,11 +40,11 @@ import org.praisenter.slide.text.TextComponent;
  * @version 2.0.0
  * @since 2.0.0
  */
-@XmlSeeAlso({ ImageMediaComponent.class, 
-			  VideoMediaComponent.class,
-			  AudioMediaComponent.class,
-			  TextComponent.class,
-			  GenericComponent.class })
+@XmlSeeAlso({
+	ImageMediaComponent.class, 
+	VideoMediaComponent.class,
+	TextComponent.class,
+	GenericComponent.class })
 public interface RenderableComponent extends SlideComponent {
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideComponent#copy()
@@ -53,6 +52,14 @@ public interface RenderableComponent extends SlideComponent {
 	@Override
 	public abstract RenderableComponent copy();
 
+	/**
+	 * Returns true if a transition would be required between this component and the given
+	 * component assuming they were used as backgrounds.
+	 * @param component the component to compare
+	 * @return boolean
+	 */
+	public abstract boolean isTransitionRequired(RenderableComponent component);
+	
 	/**
 	 * Returns the z-ordering of the component in the slide.
 	 * @return int

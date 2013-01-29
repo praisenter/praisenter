@@ -122,6 +122,40 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.RenderableComponent#isTransitionRequired(org.praisenter.slide.RenderableComponent)
+	 */
+	@Override
+	public boolean isTransitionRequired(RenderableComponent component) {
+		if (component == null) return true;
+		if (component == this) return false;
+		
+		// check the width and height
+		if (this.width != component.getWidth() || this.height != component.getHeight()) {
+			return false;
+		}
+		
+		// check the background
+		if (this.backgroundVisible && component.isBackgroundVisible()) {
+			// if both are visible then compare them
+			if (this.backgroundFill != null && component.getBackgroundFill() != null) {
+				if (!this.backgroundFill.equals(component.getBackgroundFill())) {
+					// the background fills are not the same, so we must transition
+					return true;
+				}
+			} else if (this.backgroundFill != null || component.getBackgroundFill() != null) {
+				// if one background is not null, then we must transition
+				return true;
+			}
+		} else if (this.backgroundVisible || component.isBackgroundVisible()) {
+			// if both backgrounds are not visible but one is, then we must transition
+			return true;
+		}
+		
+		// otherwise they are visually the same so no transition is necessary
+		return false;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.RenderableComponent#getWidth()
 	 */
 	@Override

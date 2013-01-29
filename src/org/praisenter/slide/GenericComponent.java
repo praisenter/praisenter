@@ -145,6 +145,57 @@ public class GenericComponent extends AbstractRenderableComponent implements Sli
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.AbstractRenderableComponent#isTransitionRequired(org.praisenter.slide.RenderableComponent)
+	 */
+	@Override
+	public boolean isTransitionRequired(RenderableComponent component) {
+		if (component == null) return true;
+		if (this == component) return false;
+		
+		// check the type
+		if (component instanceof PositionedComponent) {
+			PositionedComponent other = (PositionedComponent)component;
+			// check the positioning and border stuff
+		
+			// check the position
+			if (this.x != other.getX() || this.y != other.getY()) {
+				return true;
+			}
+			
+			if (this.borderVisible && other.isBorderVisible()) {
+				// check the border fill
+				if (this.borderFill != null && other.getBorderFill() != null) {
+					if (!this.borderFill.equals(other.getBorderFill())) {
+						return true;
+					}
+				} else if (this.borderFill != null || other.getBorderFill() != null) {
+					// one is not null
+					return true;
+				}
+				// check the line style
+				if (this.borderStyle != null && other.getBorderStyle() != null) {
+					if (!this.borderStyle.equals(other.getBorderStyle())) {
+						return true;
+					}
+				} else if (this.borderStyle != null || other.getBorderStyle() != null) {
+					// one is not null
+					return true;
+				}
+			} else if (this.borderVisible || other.isBorderVisible()) {
+				// one is visible and the other isn't, so we have to transition
+				return true;
+			}
+		} else {
+			// if the given component is not of type PositionedComponent (or a decendent) then
+			// we most likely need to transition
+			return true;
+		}
+		
+		// else, pass on the test to the super class
+		return super.isTransitionRequired(component);
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.PositionedSlideComponent#getX()
 	 */
 	@Override

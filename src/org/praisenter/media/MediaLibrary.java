@@ -468,6 +468,8 @@ public class MediaLibrary {
 
 	/**
 	 * Returns the first matching {@link MediaPlayerFactory} for the given {@link PlayableMedia} type.
+	 * <p>
+	 * Returns null if a {@link MediaPlayerFactory} is not available.
 	 * @param clazz the media type
 	 * @return {@link MediaPlayerFactory}
 	 */

@@ -49,7 +49,6 @@ import org.praisenter.media.MediaPlayerFactory;
 import org.praisenter.media.PlayableMedia;
 import org.praisenter.media.VideoMediaPlayerListener;
 import org.praisenter.preferences.Preferences;
-import org.praisenter.slide.GenericComponent;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.media.ImageMediaComponent;
@@ -59,6 +58,8 @@ import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.Transition.Type;
 import org.praisenter.transitions.TransitionAnimator;
+import org.praisenter.utilities.ColorUtilities;
+import org.praisenter.utilities.ImageUtilities;
 
 /**
  * Surface for rendering slides using transitions.
@@ -119,7 +120,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	// transitioning
 
 	/** The current event being processed */
-	protected PresentEvent event;
+	protected PresentationEvent event;
 	
 	/** The transition to apply from display to display */
 	protected TransitionAnimator animator;
@@ -259,7 +260,8 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 				// we aren't already clear, so send the clear command
 				this.executeClearEvent(event);
 			} else {
-				LOGGER.debug("Already clear. Dropping event (not notified).");
+				// notify of the dropped event
+				this.notifyEventDropped(event);
 			}
 		}
 	}
@@ -268,7 +270,6 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	 * Executes a send event.
 	 * @param event the send event
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void executeSendEvent(SendEvent event) {
 		Preferences preferences = Preferences.getInstance();
 		
@@ -285,7 +286,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 		RenderableComponent background = slide.getBackground();
 		List<PlayableMediaComponent<?>> playableMediaComponents = slide.getPlayableMediaComponents();
 		this.inHasPlayableMedia = false;
-		this.inHasUpdatingDateTime = this.hasUpdatingDateTimeComponent(slide);
+		this.inHasUpdatingDateTime = SlideSurface.hasUpdatingDateTimeComponent(slide);
 		
 		// we will only NOT transition the background IF both slides have a video background component AND
 		// they are the same video
@@ -298,12 +299,20 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 					// if both are video media components, we need to check if they are the same video
 					VideoMediaComponent oC = (VideoMediaComponent)this.currentSlide.getBackground();
 					VideoMediaComponent nC = (VideoMediaComponent)slide.getBackground();
-					if (!this.isTransitionRequired(oC, nC)) {
+					if (!oC.isTransitionRequired(nC)) {
 						// they are the same video (and both are visible), so we should not transition the background
-						// we can attach the new media component as a listener to the current 
-						// media player (to update its images as the video plays)
-						this.currentBackgroundMediaPlayer.addMediaPlayerListener(nC);
 						this.transitionBackground = !preferences.isSmartVideoTransitionsEnabled();
+						if (!this.transitionBackground) {
+							// we can attach the new media component as a listener to the current 
+							// media player (to update its images as the video plays) this way
+							// we don't reset the video back to the beginning
+							this.currentBackgroundMediaPlayer.addMediaPlayerListener(nC);
+							MediaPlayerConfiguration conf = this.currentBackgroundMediaPlayer.getConfiguration();
+							// we do however have to update the player with any configuration differences
+							conf.setAudioMuted(nC.isAudioMuted());
+							conf.setLoopEnabled(nC.isLoopEnabled());
+							this.currentBackgroundMediaPlayer.setConfiguration(conf);
+						}
 						this.inHasPlayableMedia = true;
 					}
 				}
@@ -314,7 +323,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 					// if both are image media components, we need to check if they are the same image
 					ImageMediaComponent oC = (ImageMediaComponent)this.currentSlide.getBackground();
 					ImageMediaComponent nC = (ImageMediaComponent)slide.getBackground();
-					if (!this.isTransitionRequired(oC, nC)) {
+					if (!oC.isTransitionRequired(nC)) {
 						this.transitionBackground = !preferences.isSmartImageTransitionsEnabled();
 						// if we transitioned the background in the last send, we need to make sure we
 						// re-render the current slide without the background. if we don't do this
@@ -337,19 +346,12 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 			VideoMediaComponent bg = (VideoMediaComponent)background;
 			// make sure the video is visible
 			if (bg.isVideoVisible()) {
-				MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(bg.getMedia().getClass());
-				MediaPlayer player = factory.createMediaPlayer();
-				player.setMedia(bg.getMedia());
-				player.addMediaPlayerListener(bg);
-				player.addMediaPlayerListener(this);
-				
-				MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
-				conf.setLoopEnabled(bg.isLoopEnabled());
-				conf.setAudioMuted(bg.isAudioMuted());
-				player.setConfiguration(conf);
-				
-				this.inBackgroundMediaPlayer = player;
-				this.inHasPlayableMedia = true;
+				MediaPlayer<?> player = SlideSurface.getMediaPlayer((PlayableMediaComponent<?>)background);
+				if (player != null) {
+					player.addMediaPlayerListener(this);
+					this.inBackgroundMediaPlayer = player;
+					this.inHasPlayableMedia = true;
+				}
 			}
 		}
 		for (PlayableMediaComponent<?> component : playableMediaComponents) {
@@ -361,20 +363,12 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 					continue;
 				}
 			}
-			PlayableMedia media = component.getMedia();
-			MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(media.getClass());
-			MediaPlayer player = factory.createMediaPlayer();
-			player.setMedia(media);
-			player.addMediaPlayerListener(component);
-			player.addMediaPlayerListener(this);
-			
-			MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
-			conf.setLoopEnabled(component.isLoopEnabled());
-			conf.setAudioMuted(component.isAudioMuted());
-			player.setConfiguration(conf);
-			
-			this.inMediaPlayers.add(player);
-			this.inHasPlayableMedia = true;
+			MediaPlayer<?> player = SlideSurface.getMediaPlayer(component);
+			if (player != null) {
+				player.addMediaPlayerListener(this);
+				this.inMediaPlayers.add(player);
+				this.inHasPlayableMedia = true;
+			}
 		}
 		
 		this.clear = false;
@@ -388,7 +382,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 		// render whats currently in image1 to image0
 		// this saves the last display's rendering so we
 		// can apply transitions
-		SlideSurface.copyImage(this.image1, this.image0);
+		ImageUtilities.copyImage(this.image1, this.image0);
 		
 		// paint the display to the image
 		SlideSurface.renderSlide(this.inRenderer, this.transitionBackground, this.image1);
@@ -468,6 +462,89 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 			this.repaint();
 		}
 	}
+	
+	// helper methods
+	
+	/**
+	 * Renders the output of the given {@link SlideRenderer} to the given image.
+	 * @param renderer the renderer
+	 * @param renderBackground true if the background of the slide should be rendered
+	 * @param image the image to render to
+	 */
+	private static final void renderSlide(SlideRenderer renderer, boolean renderBackground, BufferedImage image) {
+		// paint the display to the image
+		Graphics2D tg2d = image.createGraphics();
+		// clear the background
+		tg2d.setBackground(ColorUtilities.TRANSPARENT);
+		tg2d.clearRect(0, 0, image.getWidth(), image.getHeight());
+		// for compatibility for offscreen images we need to do this
+		tg2d.setColor(ColorUtilities.TRANSPARENT);
+		tg2d.fillRect(0, 0, image.getWidth(), image.getHeight());
+		// render the slide
+		renderer.render(tg2d, renderBackground);
+		tg2d.dispose();
+	}
+	
+	/**
+	 * Validates the off-screen image is created and sized appropriately (fills the width/height of the given component).
+	 * @param image the image to validate
+	 * @param component the component to size to
+	 * @return BufferedImage
+	 */
+	private static final BufferedImage validateOffscreenImage(BufferedImage image, Component component) {
+		Dimension size = component.getSize();
+		if (image == null || size.width != image.getWidth() || size.height != image.getHeight()) {
+			image = component.getGraphicsConfiguration().createCompatibleImage(size.width, size.height, Transparency.TRANSLUCENT);
+		}
+		return image;
+	}
+	
+	/**
+	 * Returns a media player for the given {@link PlayableMediaComponent}.
+	 * <p>
+	 * Returns null if a {@link MediaPlayer} is not available for the given component.
+	 * @param component the component
+	 * @return {@link MediaPlayer}
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private static final MediaPlayer<?> getMediaPlayer(PlayableMediaComponent<?> component) {
+		PlayableMedia media = component.getMedia();
+		
+		// create a player for the given media
+		MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(media.getClass());
+		if (factory != null) {
+			MediaPlayer player = factory.createMediaPlayer();
+			player.setMedia(media);
+			player.addMediaPlayerListener(component);
+			
+			// set the player configuration
+			MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
+			conf.setLoopEnabled(component.isLoopEnabled());
+			conf.setAudioMuted(component.isAudioMuted());
+			player.setConfiguration(conf);
+			
+			return player;
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Returns true if the given slide has a {@link DateTimeComponent} that requires updates.
+	 * @param slide the slide
+	 * @return boolean
+	 */
+	private static final boolean hasUpdatingDateTimeComponent(Slide slide) {
+		List<DateTimeComponent> components = slide.getComponents(DateTimeComponent.class);
+		for (DateTimeComponent component : components) {
+			if (component.isDateTimeUpdateEnabled()) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	// rendering
 	
 	/* (non-Javadoc)
 	 * @see java.awt.Component#repaint()
@@ -550,6 +627,8 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 		this.repaintIssued = false;
 	}
 	
+	// events
+	
 	/**
 	 * Called when an in transition has completed.
 	 * <p>
@@ -558,7 +637,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	private void onInTransitionComplete() {
 		// copy the current image from the incoming slide to the
 		// current slide image to avoid a small flicker
-		copyImage(this.image1, this.image0);
+		ImageUtilities.copyImage(this.image1, this.image0);
 		
 		// see if the incoming slide has playable media
 		if (this.inHasPlayableMedia) {
@@ -627,8 +706,8 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	 */
 	private void onOutTransitionComplete() {
 		// clear the image
-		clearImage(this.image0);
-		clearImage(this.image1);
+		ImageUtilities.clearImage(this.image0);
+		ImageUtilities.clearImage(this.image1);
 		
 		// stop any media players
 		if (this.currentBackgroundMediaPlayer != null) {
@@ -661,16 +740,17 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 		this.event = null;
 		this.animator = null;
 	}
-
+	
 	/**
-	 * Adds the given {@link PresentListener} to this surface.
+	 * Adds the given {@link PresentationListener} to this surface.
 	 * @param listener the listener
 	 */
-	public void addPresentListener(PresentListener listener) {
+	public void addPresentListener(PresentationListener listener) {
 		if (this.containsPresentListener(listener)) {
+			LOGGER.trace("PresentListener already exits. Skipping addPresentListener operation.");
 			return;
 		}
-		this.listenerList.add(PresentListener.class, listener);
+		this.listenerList.add(PresentationListener.class, listener);
 	}
 	
 	/**
@@ -678,9 +758,9 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	 * @param listener the listener
 	 * @return boolean
 	 */
-	private boolean containsPresentListener(PresentListener listener) {
-		PresentListener[] listeners = this.listenerList.getListeners(PresentListener.class);
-		for (PresentListener l : listeners) {
+	private boolean containsPresentListener(PresentationListener listener) {
+		PresentationListener[] listeners = this.listenerList.getListeners(PresentationListener.class);
+		for (PresentationListener l : listeners) {
 			if (l == listener) {
 				return true;
 			}
@@ -689,208 +769,74 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	}
 	
 	/**
-	 * Removes the given {@link PresentListener} from this surface.
+	 * Removes the given {@link PresentationListener} from this surface.
 	 * @param listener the listener
 	 */
-	public void removePresentListener(PresentListener listener) {
-		this.listenerList.remove(PresentListener.class, listener);
+	public void removePresentListener(PresentationListener listener) {
+		this.listenerList.remove(PresentationListener.class, listener);
 	}
 	
 	/**
-	 * Notifies all {@link PresentListener}s of an in transition completing.
+	 * Notifies all {@link PresentationListener}s of an in transition completing.
 	 */
 	private void notifyInTransitionComplete() {
-		PresentListener[] listeners = this.getListeners(PresentListener.class);
+		PresentationListener[] listeners = this.getListeners(PresentationListener.class);
 		SendEvent event = (SendEvent)this.event;
-		for (PresentListener listener : listeners) {
+		for (PresentationListener listener : listeners) {
 			listener.inTransitionComplete(event);
 		}
+		LOGGER.trace("SendEvent has completed.");
 	}
 	
 	/**
-	 * Notifies all {@link PresentListener}s of an out transition completing.
+	 * Notifies all {@link PresentationListener}s of an out transition completing.
 	 */
 	private void notifyOutTransitionComplete() {
-		PresentListener[] listeners = this.getListeners(PresentListener.class);
+		PresentationListener[] listeners = this.getListeners(PresentationListener.class);
 		ClearEvent event = (ClearEvent)this.event;
-		for (PresentListener listener : listeners) {
+		for (PresentationListener listener : listeners) {
 			listener.outTransitionComplete(event);
 		}
+		LOGGER.trace("ClearEvent has completed.");
 	}
 	
 	/**
-	 * Notifies all {@link PresentListener}s of an event being dropped.
+	 * Notifies all {@link PresentationListener}s of an event being dropped.
 	 * @param event the event that was dropped
 	 */
-	private void notifyEventDropped(PresentEvent event) {
-		PresentListener[] listeners = this.getListeners(PresentListener.class);
-		for (PresentListener listener : listeners) {
+	private void notifyEventDropped(PresentationEvent event) {
+		PresentationListener[] listeners = this.getListeners(PresentationListener.class);
+		for (PresentationListener listener : listeners) {
 			listener.eventDropped(event);
 		}
 	}
 	
 	/**
-	 * Notifies all {@link PresentListener}s of an in transition beginning.
+	 * Notifies all {@link PresentationListener}s of an in transition beginning.
 	 * @param event the event that is beginning
 	 */
 	private void notifyInTransitionBegin(SendEvent event) {
 		// store the event for later use in the end events
 		this.event = event;
-		PresentListener[] listeners = this.getListeners(PresentListener.class);
-		for (PresentListener listener : listeners) {
+		PresentationListener[] listeners = this.getListeners(PresentationListener.class);
+		for (PresentationListener listener : listeners) {
 			listener.inTransitionBegin(event);
 		}
 	}
 	
 	/**
-	 * Notifies all {@link PresentListener}s of an out transition beginning.
+	 * Notifies all {@link PresentationListener}s of an out transition beginning.
 	 * @param event the event that is beginning
 	 */
 	private void notifyOutTransitionBegin(ClearEvent event) {
 		// store the event for later use in the end events
 		this.event = event;
-		PresentListener[] listeners = this.getListeners(PresentListener.class);
-		for (PresentListener listener : listeners) {
+		PresentationListener[] listeners = this.getListeners(PresentationListener.class);
+		for (PresentationListener listener : listeners) {
 			listener.outTransitionBegin(event);
 		}
 	}
 	
-	/**
-	 * Returns true if a transition is required between the two components.
-	 * @param mc1 the first component
-	 * @param mc2 the second component
-	 * @return boolean
-	 */
-	private boolean isTransitionRequired(VideoMediaComponent mc1, VideoMediaComponent mc2) {
-		// the media must be the same
-		if (mc1.isVideoVisible() && mc2.isVideoVisible()) {
-			if (mc1.getMedia() != null && mc2.getMedia() != null) {
-				if (!mc1.getMedia().equals(mc2.getMedia())) {
-					// the media items are not the same so we have to transition
-					return true;
-				}
-			} else if (mc1.getMedia() != null || mc2.getMedia() != null) {
-				// one is not null
-				return true;
-			}
-		} else if (mc1.isVideoVisible() || mc2.isVideoVisible()) {
-			// one is visible and the other isn't, so we have to transition
-			return true;
-		}
-		
-		// test the scaling type
-		if (mc1.getScaleType() != mc2.getScaleType()) {
-			return true;
-		}
-		
-		// if we made it here, then we need to check if the fill and border are the same
-		return isTransitionRequired((GenericComponent)mc1, (GenericComponent)mc2);
-	}
-	
-	/**
-	 * Returns true if a transition is required between the two components.
-	 * @param mc1 the first component
-	 * @param mc2 the second component
-	 * @return boolean
-	 */
-	private boolean isTransitionRequired(ImageMediaComponent mc1, ImageMediaComponent mc2) {
-		// the media must be the same
-		if (mc1.isImageVisible() && mc2.isImageVisible()) {
-			if (mc1.getMedia() != null && mc2.getMedia() != null) {
-				if (!mc1.getMedia().equals(mc2.getMedia())) {
-					// the media items are not the same so we have to transition
-					return true;
-				}
-			} else if (mc1.getMedia() != null || mc2.getMedia() != null) {
-				// one is not null
-				return true;
-			}
-		} else if (mc1.isImageVisible() || mc2.isImageVisible()) {
-			// one is visible and the other isn't, so we have to transition
-			return true;
-		}
-		
-		// test the scaling type
-		if (mc1.getScaleType() != mc2.getScaleType()) {
-			return true;
-		}
-		
-		// if we made it here, then we need to check if the fill and border are the same
-		return isTransitionRequired((GenericComponent)mc1, (GenericComponent)mc2);
-	}
-	
-	/**
-	 * Returns true if a transition is required between the two components.
-	 * @param c1 the first component
-	 * @param c2 the second component
-	 * @return boolean
-	 */
-	private boolean isTransitionRequired(GenericComponent c1, GenericComponent c2) {
-		if (c1.isBackgroundVisible() && c2.isBackgroundVisible()) {
-			if (c1.getBackgroundFill() != null && c2.getBackgroundFill() != null) {
-				if (!c1.getBackgroundFill().equals(c2.getBackgroundFill())) {
-					// the background fills are not the same, so we must transition
-					return true;
-				}
-			} else if (c1.getBackgroundFill() != null || c2.getBackgroundFill() != null) {
-				// one is not null
-				return true;
-			}
-		} else if (c1.isBackgroundVisible() || c2.isBackgroundVisible()) {
-			// one is visible and the other isn't, so we have to transition
-			return true;
-		}
-		
-		if (c1.isBorderVisible() && c2.isBorderVisible()) {
-			// check the border fill
-			if (c1.getBorderFill() != null && c2.getBorderFill() != null) {
-				if (!c1.getBorderFill().equals(c2.getBorderFill())) {
-					return true;
-				}
-			} else if (c1.getBorderFill() != null || c2.getBorderFill() != null) {
-				// one is not null
-				return true;
-			}
-			// check the line style
-			if (c1.getBorderStyle() != null && c2.getBorderStyle() != null) {
-				if (!c1.getBorderStyle().equals(c2.getBorderStyle())) {
-					return true;
-				}
-			} else if (c1.getBorderStyle() != null || c2.getBorderStyle() != null) {
-				// one is not null
-				return true;
-			}
-		} else if (c1.isBorderVisible() || c2.isBorderVisible()) {
-			// one is visible and the other isn't, so we have to transition
-			return true;
-		}
-		
-		// check the width/height and position
-		if (c1.getWidth() != c2.getWidth() || c1.getHeight() != c2.getHeight()
-		 || c1.getX() != c2.getX() || c1.getY() != c2.getY()) {
-			return true;
-		}
-		
-		return false;
-	}
-	
-	/**
-	 * Returns true if the given slide has a {@link DateTimeComponent} that requires updates.
-	 * @param slide the slide
-	 * @return boolean
-	 */
-	private boolean hasUpdatingDateTimeComponent(Slide slide) {
-		List<DateTimeComponent> components = slide.getComponents(DateTimeComponent.class);
-		for (DateTimeComponent component : components) {
-			if (component.isDateTimeUpdateEnabled()) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	// threading
-
 	/* (non-Javadoc)
 	 * @see java.awt.event.WindowListener#windowClosing(java.awt.event.WindowEvent)
 	 */
@@ -908,6 +854,8 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	 */
 	@Override
 	public void windowClosed(WindowEvent e) {
+		// this event is called when the window is disposed (rather than set to invisible)
+		// in this case we need to stop the date/time timer
 		this.dateTimeTimer.stop();
 	}
 	
@@ -935,6 +883,8 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	@Override
 	public void windowOpened(WindowEvent e) {}
 	
+	// threading
+
 	/**
 	 * Returns the transition wait thread.
 	 * <p>
@@ -970,7 +920,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 		// data
 		
 		/** The queued event */
-		protected PresentEvent event;
+		protected PresentationEvent event;
 		
 		/**
 		 * Default constructor.
@@ -989,7 +939,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 		 * The others are dropped.
 		 * @param event the event to queue
 		 */
-		public void queue(PresentEvent event) {
+		public void queue(PresentationEvent event) {
 			synchronized (this.queueLock) {
 				TransitionAnimator eAnimator = event.getAnimator();
 				// check the current animator
@@ -999,16 +949,16 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 					Transition t2 = eAnimator.getTransition();
 					if (t1.getType() == Transition.Type.OUT && t2.getType() == Transition.Type.OUT) {
 						// if the current transition is an out transition then just ignore it
-						LOGGER.debug("Current transition is an out transition. Dropping given transition.");
+						LOGGER.trace("Current transition is an out transition. Dropping given transition.");
 						notifyEventDropped(event);
 						return;
 					}
 				}
 				if (this.event != null) {
-					LOGGER.debug("Another event has been queued. Dropping current event.");
+					LOGGER.trace("Another event has been queued. Dropping current event.");
 					notifyEventDropped(this.event);
 				}
-				LOGGER.debug("Queueing event.");
+				LOGGER.trace("Queueing event.");
 				this.queued = true;
 				this.event = event;
 				this.queueLock.notify();
@@ -1029,7 +979,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 				synchronized (this.queueLock) {
 					while (!this.queued) {
 						try {
-							LOGGER.debug("Waiting on event.");
+							LOGGER.trace("Waiting on event.");
 							this.queueLock.wait();
 						} catch (InterruptedException e) {
 							LOGGER.warn("Interrupted. Stopping thread gracefully.");
@@ -1042,7 +992,7 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 				synchronized (transitionCompleteLock) {
 					while (!transitionComplete) {
 						try {
-							LOGGER.debug("Waiting on transition to complete. Queueing event.");
+							LOGGER.trace("Waiting on transition to complete. Queueing event.");
 							transitionCompleteLock.wait();
 						} catch (InterruptedException e) {
 							LOGGER.warn("Interrupted. Stopping thread gracefully.");
@@ -1055,15 +1005,15 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 				synchronized (this.queueLock) {
 					if (this.event != null) {
 						if (this.event instanceof SendEvent) {
-							LOGGER.debug("Executing SendEvent.");
+							LOGGER.trace("Executing SendEvent.");
 							executeSendEvent((SendEvent)this.event);
 						} else if (this.event instanceof ClearEvent) {
 							if (!clear) {
-								LOGGER.debug("Executing ClearEvent.");
+								LOGGER.trace("Executing ClearEvent.");
 								executeClearEvent((ClearEvent)this.event);
 							} else {
 								// if we are already clear then just drop this event
-								LOGGER.debug("Surface has already been cleared. Dropping event.");
+								LOGGER.trace("Surface has already been cleared. Dropping event.");
 								notifyEventDropped(this.event);
 							}
 						} else {
@@ -1075,76 +1025,5 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 				}
 			}
 		}
-	}
-	
-	// helper methods
-	
-	/**
-	 * Renders the output of the given {@link SlideRenderer} to the given image.
-	 * @param renderer the renderer
-	 * @param renderBackground true if the background of the slide should be rendered
-	 * @param image the image to render to
-	 */
-	protected static final void renderSlide(SlideRenderer renderer, boolean renderBackground, BufferedImage image) {
-		// paint the display to the image
-		Graphics2D tg2d = image.createGraphics();
-		// set the background color to 100% transparent so that it clears
-		// the image when we call clearRect
-		tg2d.setBackground(new Color(0, 0, 0, 0));
-		tg2d.clearRect(0, 0, image.getWidth(), image.getHeight());
-		// for compatibility
-		tg2d.setColor(new Color(0, 0, 0, 0));
-		tg2d.fillRect(0, 0, image.getWidth(), image.getHeight());
-		renderer.render(tg2d, renderBackground);
-		tg2d.dispose();
-	}
-	
-	/**
-	 * Clears the target image and renders the source image to the target image.
-	 * @param source the source image
-	 * @param target the target image
-	 */
-	protected static final void copyImage(BufferedImage source, BufferedImage target) {
-		Graphics2D tg2d = target.createGraphics();
-		tg2d.setBackground(new Color(0, 0, 0, 0));
-		tg2d.clearRect(0, 0, target.getWidth(), target.getHeight());
-		// for compatibility
-		tg2d.setColor(new Color(0, 0, 0, 0));
-		tg2d.fillRect(0, 0, target.getWidth(), target.getHeight());
-		tg2d.drawImage(source, 0, 0, null);
-		tg2d.dispose();
-	}
-	
-	/**
-	 * Validates the off-screen image is created and sized appropriately (fills the width/height of the given component).
-	 * @param image the image to validate
-	 * @param component the component to size to
-	 * @return BufferedImage
-	 */
-	protected static final BufferedImage validateOffscreenImage(BufferedImage image, Component component) {
-		Dimension size = component.getSize();
-		if (image == null || size.width != image.getWidth() || size.height != image.getHeight()) {
-			// FIXME SLIDE-TEMPLATE theres a problem here with position and sized slides in that if they are just one pixel width/height off the don't transition well
-			// its also a problem when they are just completely different. maybe if they are different we should instead, transition them out then
-			// transition the next in??? not real sure what to do here
-			image = component.getGraphicsConfiguration().createCompatibleImage(size.width, size.height, Transparency.TRANSLUCENT);
-		}
-		return image;
-	}
-	
-	/**
-	 * Clears the given image.
-	 * @param image the image
-	 */
-	protected static final void clearImage(BufferedImage image) {
-		Graphics2D g2d = image.createGraphics();
-		// set the background color to 100% transparent so that it clears
-		// the image when we call clearRect
-		g2d.setBackground(new Color(0, 0, 0, 0));
-		g2d.clearRect(0, 0, image.getWidth(), image.getHeight());
-		// for compatibility
-		g2d.setColor(new Color(0, 0, 0, 0));
-		g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
-		g2d.dispose();
 	}
 }

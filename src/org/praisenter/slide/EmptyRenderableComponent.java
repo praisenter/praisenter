@@ -77,6 +77,17 @@ public class EmptyRenderableComponent extends AbstractRenderableComponent {
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.AbstractRenderableComponent#isTransitionRequired(org.praisenter.slide.RenderableComponent)
+	 */
+	@Override
+	public boolean isTransitionRequired(RenderableComponent component) {
+		// a transition is required here unless the given component is of this type (or null)
+		if (component == null) return false;
+		if (component instanceof EmptyRenderableComponent) return false;
+		return true;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.RenderableComponent#renderPreview(java.awt.Graphics2D)
 	 */
 	@Override

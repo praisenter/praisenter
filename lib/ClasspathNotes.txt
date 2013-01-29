@@ -22,7 +22,7 @@
 | - | jogal-all-natives-windows-amd64.jar     | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
 | - | jogal-all-natives-windows-i586.jar      | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
 
-* This binary is licensed under the GPL Version 3.0 license.  Because of this, the Praisenter binaries are also released under GPL Version 3.0.  The source of Praisenter is
-  released under two licenses, BSD for the majority of the project, and GPL Version 3.0 for the interface with this binary.
+(*) This binary is licensed under the GPL Version 3.0 license.  Because of this, the Praisenter binaries are also released under GPL Version 3.0.  The source of Praisenter is
+	released under two licenses, BSD for the majority of the project, and GPL Version 3.0 for the interface with this binary.
   
-- These binaries are not being used at this time
+(-) These binaries are not being used at this time

@@ -27,25 +27,44 @@ package org.praisenter.slide.ui.present;
 import java.util.EventListener;
 
 /**
- * Interface to listen to presentation events..
+ * Interface to listen to presentation events.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public interface PresentListener extends EventListener {
+public interface PresentationListener extends EventListener {
+	/**
+	 * Called when an "in" transition begins.
+	 * @param event the issuing {@link PresentationEvent}
+	 */
 	public void inTransitionBegin(SendEvent event);
 	
+	/**
+	 * Called when an "out" transition begins.
+	 * @param event the issuing {@link PresentationEvent}
+	 */
 	public void outTransitionBegin(ClearEvent event);
 	
-	public void eventDropped(PresentEvent event);
+	/**
+	 * Called when an event gets dropped.
+	 * <p>
+	 * An event will be dropped when the user executes events too quickly
+	 * to be processed.  The last event issued will always be the one executed
+	 * and the rest will be dropped.  This will also happen if the event
+	 * issued will have not effect (clear event to an already cleared surface). 
+	 * @param event the issuing {@link PresentationEvent}
+	 */
+	public void eventDropped(PresentationEvent event);
 	
 	/**
 	 * Called when an "in" transition has completed.
+	 * @param event the issuing {@link PresentationEvent}
 	 */
 	public void inTransitionComplete(SendEvent event);
 	
 	/**
 	 * Called when an "out" transition has completed.
+	 * @param event the issuing {@link PresentationEvent}
 	 */
 	public void outTransitionComplete(ClearEvent event);
 }

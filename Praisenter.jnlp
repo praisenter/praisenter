@@ -15,16 +15,16 @@
 			<description>Praisenter BSD License</description>
 		</related-content>
 		<related-content href="latest/licenses/apache-license-2.0.txt">
-			<description>Apache 2.0 License</description>
+			<description>Apache 2.0 License - Derby, Codec, Lang</description>
 		</related-content>
 		<related-content href="latest/licenses/javamail-license.txt">
-			<description>Oracle binary Code License</description>
+			<description>Oracle binary Code License - JavaMail</description>
 		</related-content>
 		<related-content href="latest/licenses/slf4j-license.txt">
-			<description>MIT License</description>
+			<description>MIT License - SLF4J</description>
 		</related-content>
 		<related-content href="latest/licenses/xuggler-license.txt">
-			<description>GPL 3.0 License</description>
+			<description>GPL 3.0 License - Xuggler</description>
 		</related-content>
 	</information>
 	<security>
