@@ -22,49 +22,52 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.ui.present;
+package org.praisenter.notification.ui;
 
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.ui.present.PresentationEvent;
+import org.praisenter.slide.ui.present.SendEvent;
 import org.praisenter.transitions.TransitionAnimator;
 
 /**
- * Represents a send presentation event.
+ * Represents a custom {@link SendEvent} for notifications.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public class SendEvent implements PresentationEvent {
-	/** The slide */
-	protected Slide slide;
+public class SendWaitClearEvent extends SendEvent implements PresentationEvent {
+	/** The transition out animator */
+	protected TransitionAnimator outAnimator;
 	
-	/** The animator */
-	protected TransitionAnimator animator;
+	/** The wait period between the in and out transitions */
+	protected int waitPeriod;
 	
 	/**
 	 * Full constructor.
-	 * @param slide the slide; this will be copied
-	 * @param animator the animator
+	 * @param slide the slide
+	 * @param inAnimator the in animator; see {@link #getAnimator()}
+	 * @param outAnimator the out animator; see {@link #getOutAnimator()}
+	 * @param waitPeriod the wait period
 	 */
-	public SendEvent(Slide slide, TransitionAnimator animator) {
-		// always use a copy of the slide since it could be reused by 
-		// the rest of the application, this shouldn't be a problem anyway
-		// since the copy is really fast (mostly immutable objects)
-		this.slide = slide.copy();
-		this.animator = animator;
+	public SendWaitClearEvent(Slide slide, TransitionAnimator inAnimator, TransitionAnimator outAnimator, int waitPeriod) {
+		super(slide, inAnimator);
+		this.outAnimator = outAnimator;
+		this.waitPeriod = waitPeriod;
 	}
 	
 	/**
-	 * Returns the slide.
-	 * @return {@link Slide}
+	 * Returns the out transition animator.
+	 * @return {@link TransitionAnimator}
 	 */
-	public Slide getSlide() {
-		return this.slide;
+	public TransitionAnimator getOutAnimator() {
+		return this.outAnimator;
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.present.PresentationEvent#getAnimator()
+
+	/**
+	 * Returns the wait period between the in and out transitions.
+	 * @return int
 	 */
-	public TransitionAnimator getAnimator() {
-		return this.animator;
+	public int getWaitPeriod() {
+		return this.waitPeriod;
 	}
 }

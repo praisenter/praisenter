@@ -48,7 +48,7 @@ import org.praisenter.transitions.Transitions;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class SlideWindow extends JDialog implements PresentListener {
+public class SlideWindow extends JDialog implements PresentationListener {
 	/** The version id */
 	private static final long serialVersionUID = 3385134636780286237L;
 
@@ -129,18 +129,18 @@ public class SlideWindow extends JDialog implements PresentListener {
 	}
 
 	/**
-	 * Adds the given {@link PresentListener} to this surface.
+	 * Adds the given {@link PresentationListener} to this surface.
 	 * @param listener the listener
 	 */
-	public void addPresentListener(PresentListener listener) {
+	public void addPresentListener(PresentationListener listener) {
 		this.surface.addPresentListener(listener);
 	}
 	
 	/**
-	 * Removes the given {@link PresentListener} from this surface.
+	 * Removes the given {@link PresentationListener} from this surface.
 	 * @param listener the listener
 	 */
-	public void removePresentListener(PresentListener listener) {
+	public void removePresentListener(PresentationListener listener) {
 		this.surface.removePresentListener(listener);
 	}
 	
@@ -149,9 +149,6 @@ public class SlideWindow extends JDialog implements PresentListener {
 	 * @param event the event
 	 */
 	public void execute(SendEvent event) {
-		if (!this.fullScreen) {
-			this.setWindowSize(event.slide);
-		}
 		if (!this.setVisibleInternal(true)) {
 			// if transitions aren't supported, null out
 			// the animator
@@ -178,6 +175,12 @@ public class SlideWindow extends JDialog implements PresentListener {
 	 */
 	@Override
 	public void inTransitionBegin(SendEvent event) {
+		// we need to wait until the in transition begins before
+		// we can move/resize the window since the event could
+		// have been queued waiting on an existing event to finish
+		if (!this.fullScreen) {
+			this.setWindowSize(event.slide);
+		}
 		// its possible that when an out transition ends that there
 		// is still an in transition in the queue.  In which case
 		// we need to ensure the window is visible in this case
@@ -196,7 +199,7 @@ public class SlideWindow extends JDialog implements PresentListener {
 	 * @see org.praisenter.slide.ui.present.PresentListener#eventDropped(org.praisenter.slide.ui.present.PresentEvent)
 	 */
 	@Override
-	public void eventDropped(PresentEvent event) {}
+	public void eventDropped(PresentationEvent event) {}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.ui.present.PresentListener#inTransitionComplete(org.praisenter.slide.ui.present.SendEvent)

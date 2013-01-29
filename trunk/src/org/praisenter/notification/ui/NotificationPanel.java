@@ -27,6 +27,7 @@ package org.praisenter.notification.ui;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GraphicsDevice;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -51,9 +52,9 @@ import org.praisenter.preferences.NotificationPreferences;
 import org.praisenter.preferences.Preferences;
 import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
+import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.NotificationSlide;
 import org.praisenter.slide.NotificationSlideTemplate;
-import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
@@ -62,8 +63,8 @@ import org.praisenter.slide.ui.SlideLibraryListener;
 import org.praisenter.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.slide.ui.TransitionListCellRenderer;
 import org.praisenter.slide.ui.present.ClearEvent;
-import org.praisenter.slide.ui.present.PresentEvent;
-import org.praisenter.slide.ui.present.PresentListener;
+import org.praisenter.slide.ui.present.PresentationEvent;
+import org.praisenter.slide.ui.present.PresentationListener;
 import org.praisenter.slide.ui.present.SendEvent;
 import org.praisenter.slide.ui.present.SlideWindow;
 import org.praisenter.slide.ui.present.SlideWindows;
@@ -80,7 +81,7 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 1.0.0
  */
-public class NotificationPanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener, PresentListener {
+public class NotificationPanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener, PresentationListener {
 	/** The version id */
 	private static final long serialVersionUID = 20837022721408081L;
 	
@@ -130,7 +131,16 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	private Object waitTimerLock;
 	
 	/** The current present event */
-	private PresentEvent event;
+	private PresentationEvent event;
+	
+	/** The bounds of the last sent slide */
+	private Rectangle lastSlideBounds;
+	
+	/** The current state of the notification */
+	private NotificationState state = NotificationState.CLEAR;
+	
+	/** The last send/wait/clear event */
+	private SendWaitClearEvent queuedEvent = null;
 	
 	// preferences 
 	
@@ -470,7 +480,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	 * @param outAnimator the out transition animator
 	 * @param waitPeriod the wait period in milliseconds
 	 */
-	protected void sendWaitClear(Slide slide, TransitionAnimator inAnimator, final TransitionAnimator outAnimator, int waitPeriod) {
+	protected void sendWaitClear(AbstractPositionedSlide slide, TransitionAnimator inAnimator, final TransitionAnimator outAnimator, int waitPeriod) {
 		final SlideWindow window = SlideWindows.getPrimaryNotificationWindow();
 		if (window != null) {
 			// make sure we are listening to events on this window
@@ -481,13 +491,52 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 					// if so, then just stop it
 					this.waitTimer.stop();
 				}
+				// make sure there is no queued event
+				this.queuedEvent = null;
+				
 				// add the duration of the in transition to the total wait time
 				boolean ts = Transitions.isTransitionSupportAvailable(window.getDevice());
 				if (ts && inAnimator != null) {
 					waitPeriod += inAnimator.getDuration();
 				}
+				
 				SendEvent sendEvent = new SendEvent(slide, inAnimator);
-				// FIXME verify the position/width/height of the current slide and the new one; if different, immediately execute the clear and then the send
+				final ClearEvent clearEvent = new ClearEvent(outAnimator);
+				
+				// only do this if we have wait for transitions enabled
+				if (this.preferences.isWaitForTransitionEnabled()) {
+					// we need to check the position and size of the slide against the previous since they could
+					// be different. If they are different the transitions will not work (what are we transitioning
+					// at that point?). So instead, we need to end the current transition normally (just quickly)
+					// and begin the new send
+					boolean isSizePositionEqual = this.isSizePositionEqual(slide);
+					
+					if (!isSizePositionEqual) {
+						LOGGER.trace("Size/Position not equal.");
+						if ((this.state == NotificationState.IN || this.state == NotificationState.WAIT)) {
+							// in either case, stop the current wait timer, set its initial delay to zero,
+							// and execute it. In the case of the in transition, the timer will execute a 
+							// clear event which will be queued. In the case of the wait event the clear event
+							// will execute immediately. In both cases, when the clear event completes we
+							// being the queued event.
+							if (this.state == NotificationState.IN) {
+								LOGGER.trace("In transition executing. Setting the wait timer initial delay: 0.");
+							} else {
+								LOGGER.trace("Wait period in progress. Executing clear event.");
+							}
+							this.waitTimer.stop();
+							this.waitTimer.setInitialDelay(0);
+							this.waitTimer.start();
+							
+							this.queuedEvent = new SendWaitClearEvent(slide, inAnimator, outAnimator, waitPeriod);
+							return;
+						}
+						// if the current state is CLEAR or OUT just queue the next send normally
+					} else {
+						LOGGER.trace("Size/Position equal. Queueing send normally.");
+					}
+				}
+				
 				this.event = sendEvent;
 				this.waitTimer = new Timer(waitPeriod, new ActionListener() {
 					@Override
@@ -497,7 +546,6 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 						// when the timer executes this method the wait period
 						// has been reached, so create a clear event and 
 						// execute it
-						ClearEvent clearEvent = new ClearEvent(outAnimator);
 						event = clearEvent;
 						// once the wait period is up, then execute the clear operation
 						window.execute(clearEvent);
@@ -520,8 +568,43 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		}
 	}
 	
+	/**
+	 * Returns true if the given slide's size and position is equal to the current slide's size and position.
+	 * @param slide the new slide
+	 * @return boolean
+	 */
+	protected boolean isSizePositionEqual(AbstractPositionedSlide slide) {
+		int sx = slide.getX();
+		int sy = slide.getY();
+		int sw = slide.getWidth();
+		int sh = slide.getHeight();
+		
+		if (this.lastSlideBounds != null) {
+			int ox = this.lastSlideBounds.x;
+			int oy = this.lastSlideBounds.y;
+			int ow = this.lastSlideBounds.width;
+			int oh = this.lastSlideBounds.height;
+			
+			LOGGER.trace("Slide[" + sx + "," + sy + "," + sw + "," + sh + "] - Last[" + ox + "," + oy + "," + ow + "," + oh + "]");
+			return !(sx != ox || sy != oy || sw != ow || sh != oh);
+		}
+		
+		// if the last bounds are not set, assume its a normal send
+		return true;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.present.PresentListener#inTransitionBegin(org.praisenter.slide.ui.present.SendEvent)
+	 */
 	@Override
 	public void inTransitionBegin(SendEvent event) {
+		this.state = NotificationState.IN;
+		
+		// set the last slide bounds
+		this.lastSlideBounds = new Rectangle(
+				slide.getX(), slide.getY(),
+				slide.getWidth(), slide.getHeight());
+		
 		// if the event that was started was the one we executed
 		// then start the wait timer
 		if (this.event == event) {
@@ -531,23 +614,70 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.present.PresentListener#outTransitionBegin(org.praisenter.slide.ui.present.ClearEvent)
+	 */
 	@Override
 	public void outTransitionBegin(ClearEvent event) {
-		
+		this.state = NotificationState.OUT;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.present.PresentListener#eventDropped(org.praisenter.slide.ui.present.PresentEvent)
+	 */
 	@Override
-	public void eventDropped(PresentEvent event) {
-		
-	}
+	public void eventDropped(PresentationEvent event) {}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.present.PresentListener#inTransitionComplete(org.praisenter.slide.ui.present.SendEvent)
+	 */
 	@Override
 	public void inTransitionComplete(SendEvent event) {
-		
+		this.state = NotificationState.WAIT;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.present.PresentListener#outTransitionComplete(org.praisenter.slide.ui.present.ClearEvent)
+	 */
 	@Override
 	public void outTransitionComplete(ClearEvent event) {
+		this.state = NotificationState.CLEAR;
 		
+		// when an out transition ends we need to check if a queued event was stored
+		if (this.queuedEvent != null) {
+			// if so, we need to start this event
+			final SlideWindow window = SlideWindows.getPrimaryNotificationWindow();
+			if (window != null) {
+				window.addPresentListener(this);
+				
+				final SendWaitClearEvent qevent = this.queuedEvent;
+				this.queuedEvent = null;
+				
+				// set the send event
+				this.event = qevent;
+				// get the wait timer ready
+				this.waitTimer = new Timer(qevent.getWaitPeriod(), new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						// make sure the timer is ended
+						waitTimer.stop();
+						// when the timer executes this method the wait period
+						// has been reached, so create a clear event and 
+						// execute it
+						ClearEvent clearEvent = new ClearEvent(qevent.getOutAnimator());
+						NotificationPanel.this.event = clearEvent;
+						// once the wait period is up, then execute the clear operation
+						window.execute(clearEvent);
+					}
+				});
+				this.waitTimer.setRepeats(false);
+				
+				// execute the send event
+				window.execute(qevent);
+			} else {
+				// in this case don't show a message just log the error
+				LOGGER.warn("Display device no longer exists.");
+			}
+		}
 	}
 }

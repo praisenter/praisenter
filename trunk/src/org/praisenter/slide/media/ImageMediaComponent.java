@@ -114,6 +114,54 @@ public class ImageMediaComponent extends GenericComponent implements SlideCompon
 		this.scaleType = component.scaleType;
 		this.imageVisible = component.imageVisible;
 	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.GenericComponent#copy()
+	 */
+	@Override
+	public ImageMediaComponent copy() {
+		return new ImageMediaComponent(this);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.GenericComponent#isTransitionRequired(org.praisenter.slide.RenderableComponent)
+	 */
+	@Override
+	public boolean isTransitionRequired(RenderableComponent component) {
+		if (component == null) return true;
+		if (this == component) return false;
+		
+		// check the type
+		if (component instanceof ImageMediaComponent) {
+			ImageMediaComponent other = (ImageMediaComponent)component;
+			// the media must be the same
+			if (this.imageVisible && other.isImageVisible()) {
+				if (this.media != null && other.getMedia() != null) {
+					if (!this.media.equals(other.getMedia())) {
+						// the media items are not the same so we have to transition
+						return true;
+					}
+				} else if (this.media != null || other.getMedia() != null) {
+					// one is not null
+					return true;
+				}
+			} else if (this.imageVisible || other.isImageVisible()) {
+				// one is visible and the other isn't, so we have to transition
+				return true;
+			}
+			
+			// test the scaling type
+			if (this.scaleType != other.getScaleType()) {
+				return true;
+			}
+		} else {
+			// not the same type, so we must transition
+			return true;
+		}
+		
+		// else, pass on the test to the super class
+		return super.isTransitionRequired(component);
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.media.MediaComponent#setMedia(org.praisenter.media.Media)
@@ -129,14 +177,6 @@ public class ImageMediaComponent extends GenericComponent implements SlideCompon
 	@Override
 	public ImageMedia getMedia() {
 		return this.media;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.GenericComponent#copy()
-	 */
-	@Override
-	public ImageMediaComponent copy() {
-		return new ImageMediaComponent(this);
 	}
 	
 	/**

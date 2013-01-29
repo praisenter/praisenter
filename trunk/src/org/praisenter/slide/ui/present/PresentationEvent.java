@@ -24,47 +24,18 @@
  */
 package org.praisenter.slide.ui.present;
 
-import org.praisenter.slide.Slide;
 import org.praisenter.transitions.TransitionAnimator;
 
 /**
- * Represents a send presentation event.
+ * Interface for presentation events.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public class SendEvent implements PresentationEvent {
-	/** The slide */
-	protected Slide slide;
-	
-	/** The animator */
-	protected TransitionAnimator animator;
-	
+public interface PresentationEvent {
 	/**
-	 * Full constructor.
-	 * @param slide the slide; this will be copied
-	 * @param animator the animator
+	 * Returns the animator for the event.
+	 * @return {@link TransitionAnimator}
 	 */
-	public SendEvent(Slide slide, TransitionAnimator animator) {
-		// always use a copy of the slide since it could be reused by 
-		// the rest of the application, this shouldn't be a problem anyway
-		// since the copy is really fast (mostly immutable objects)
-		this.slide = slide.copy();
-		this.animator = animator;
-	}
-	
-	/**
-	 * Returns the slide.
-	 * @return {@link Slide}
-	 */
-	public Slide getSlide() {
-		return this.slide;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.present.PresentationEvent#getAnimator()
-	 */
-	public TransitionAnimator getAnimator() {
-		return this.animator;
-	}
+	public TransitionAnimator getAnimator();
 }

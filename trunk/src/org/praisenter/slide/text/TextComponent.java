@@ -186,6 +186,16 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.GenericComponent#isTransitionRequired(org.praisenter.slide.RenderableComponent)
+	 */
+	@Override
+	public boolean isTransitionRequired(RenderableComponent component) {
+		// this component shouldn't be used for backgrounds but can be because of the
+		// extension from generic component.
+		return true;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.GenericSlideComponent#render(java.awt.Graphics2D)
 	 */
 	@Override

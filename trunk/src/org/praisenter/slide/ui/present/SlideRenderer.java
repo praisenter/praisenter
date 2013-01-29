@@ -49,12 +49,6 @@ import org.praisenter.slide.text.DateTimeComponent;
  * @since 2.0.0
  */
 public class SlideRenderer {
-	/** The slide to render */
-	protected Slide slide;
-	
-	/** The graphics configuration to generate compatible images */
-	protected GraphicsConfiguration gc;
-	
 	/** The background component */
 	protected RenderGroup background;
 	
@@ -65,12 +59,10 @@ public class SlideRenderer {
 	 * Creates a new slide renderer for the given {@link Slide} and
 	 * graphics configuration.
 	 * @param slide the slide to render
-	 * @param gc the graphics configuration
+	 * @param configuration the graphics configuration
 	 */
-	public SlideRenderer(Slide slide, GraphicsConfiguration gc) {
-		this.slide = slide;
-		this.gc = gc;
-		this.createGroups();
+	public SlideRenderer(Slide slide, GraphicsConfiguration configuration) {
+		this.createGroups(slide, configuration);
 	}
 	
 	/**
@@ -93,27 +85,29 @@ public class SlideRenderer {
 	 * Method used to split the components by order and type and arranges
 	 * them into groups for faster rendering with videos.  In the case of
 	 * no videos, there will be only one group.
+	 * @param slide the slide to render
+	 * @param configuration the graphics configuration
 	 */
-	private void createGroups() {
+	private void createGroups(Slide slide, GraphicsConfiguration configuration) {
 		this.groups = new ArrayList<RenderGroup>();
 		
 		List<RenderableComponent> components = new ArrayList<>();
 		
-		int w = this.slide.getWidth();
-		int h = this.slide.getHeight();
+		int w = slide.getWidth();
+		int h = slide.getHeight();
 		
-		RenderableComponent background = this.slide.getBackground();
+		RenderableComponent background = slide.getBackground();
 		this.background = new DefaultRenderItem(background);
 		
 		// begin looping over the components and checking their types
-		List<RenderableComponent> sComponents = this.slide.getComponents(RenderableComponent.class);
+		List<RenderableComponent> sComponents = slide.getComponents(RenderableComponent.class);
 		for (RenderableComponent component : sComponents) {
 			// check for video components
 			if (component instanceof VideoMediaComponent) {
 				// if we find one, see if we have any normal components queued up in the list
 				if (components.size() > 0) {
 					// then we need to stop and make a group with the current components
-					RenderGroup group = new CachedRenderGroup(components, this.gc, w, h);
+					RenderGroup group = new CachedRenderGroup(components, configuration, w, h);
 					this.groups.add(group);
 					// create a new group for the next set of components
 					components = new ArrayList<RenderableComponent>();
@@ -143,7 +137,7 @@ public class SlideRenderer {
 		}
 		// create a group of the remaining components
 		if (components.size() > 0) {
-			RenderGroup group = new CachedRenderGroup(components, this.gc, w, h);
+			RenderGroup group = new CachedRenderGroup(components, configuration, w, h);
 			this.groups.add(group);
 		}
 	}

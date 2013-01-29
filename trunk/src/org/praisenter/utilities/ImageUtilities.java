@@ -287,4 +287,59 @@ public final class ImageUtilities {
 	    }
 	    return new ConvolveOp(new Kernel(size, size, data));
 	}
+	
+	
+	/**
+	 * Clears the target image and renders the source image to the target image.
+	 * <p>
+	 * This method uses a 100% transparent color to clear the target image.
+	 * @param source the source image
+	 * @param target the target image
+	 */
+	public static final void copyImage(BufferedImage source, BufferedImage target) {
+		copyImage(source, target, ColorUtilities.TRANSPARENT);
+	}
+	
+	/**
+	 * Clears the target image and renders the source image to the target image.
+	 * @param source the source image
+	 * @param target the target image
+	 * @param clearColor the clear color
+	 */
+	public static final void copyImage(BufferedImage source, BufferedImage target, Color clearColor) {
+		Graphics2D tg2d = target.createGraphics();
+		// clear the background
+		tg2d.setBackground(clearColor);
+		tg2d.clearRect(0, 0, target.getWidth(), target.getHeight());
+		// for compatibility for offscreen images we need to do this
+		tg2d.setColor(clearColor);
+		tg2d.fillRect(0, 0, target.getWidth(), target.getHeight());
+		// finally copy the image
+		tg2d.drawImage(source, 0, 0, null);
+		tg2d.dispose();
+	}
+	
+	/**
+	 * Clears the given image.
+	 * @param image the image
+	 */
+	public static final void clearImage(BufferedImage image) {
+		clearImage(image, ColorUtilities.TRANSPARENT);
+	}
+	
+	/**
+	 * Clears the given image using the given color.
+	 * @param image the image
+	 * @param clearColor the clear color
+	 */
+	public static final void clearImage(BufferedImage image, Color clearColor) {
+		Graphics2D g2d = image.createGraphics();
+		// clear the background
+		g2d.setBackground(clearColor);
+		g2d.clearRect(0, 0, image.getWidth(), image.getHeight());
+		// for compatibility for offscreen images we need to do this
+		g2d.setColor(clearColor);
+		g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
+		g2d.dispose();
+	}
 }
