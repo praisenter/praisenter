@@ -22,41 +22,76 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.ui.present;
+package org.praisenter.slide;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.preferences.Preferences;
-import org.praisenter.slide.RenderableComponent;
+import org.praisenter.xml.ClassTypeAdapter;
 
 /**
- * Represents a rendered item that uses the quality preferences.
+ * Class containing metadata information about an export file.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public class QualityRenderItem extends DefaultRenderItem implements RenderGroup {
+@XmlRootElement(name = "ExportItem")
+@XmlAccessorType(XmlAccessType.NONE)
+public class ExportItem {
+	/** The original file name */
+	@XmlElement(name = "FileName", nillable = false, required = true)
+	protected String fileName;
+	
+	/** The in-export file name */
+	@XmlElement(name = "ExportFileName", nillable = false, required = true)
+	protected String exportFileName;
+	
+	/** The class type */
+	@XmlElement(name = "Class", nillable = false, required = true)
+	@XmlJavaTypeAdapter(value = ClassTypeAdapter.class)
+	protected Class<?> type;
+	
+	/**
+	 * Default constructor.
+	 */
+	protected ExportItem() {}
+	
 	/**
 	 * Full constructor.
-	 * @param component the component
+	 * @param fileName the original file name
+	 * @param exportFileName the in-export file name
+	 * @param type the class type
 	 */
-	public QualityRenderItem(RenderableComponent component) {
-		super(component);
+	public ExportItem(String fileName, String exportFileName, Class<?> type) {
+		this.fileName = fileName;
+		this.exportFileName = exportFileName;
+		this.type = type;
+	}
+
+	/**
+	 * Returns the original file name.
+	 * @return String
+	 */
+	public String getFileName() {
+		return this.fileName;
+	}
+
+	/**
+	 * Returns the in-export file name.
+	 * @return String
+	 */
+	public String getExportFileName() {
+		return this.exportFileName;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.display.SlideComponentCache#render(java.awt.Graphics2D)
+	/**
+	 * Returns the class type.
+	 * @return Class&lt;?&gt;
 	 */
-	@Override
-	public void render(Graphics2D g) {
-		if (this.component != null) {
-			RenderingHints oHints = g.getRenderingHints();
-			// use the quality set in the preferences
-			Preferences preferences = Preferences.getInstance();
-			g.setRenderingHints(preferences.getRenderingHints());
-			this.component.render(g);
-			g.setRenderingHints(oHints);
-		}
+	public Class<?> getType() {
+		return this.type;
 	}
 }

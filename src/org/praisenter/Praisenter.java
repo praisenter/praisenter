@@ -55,7 +55,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.log4j.Logger;
 import org.praisenter.data.DataException;
 import org.praisenter.data.DataImportException;
-import org.praisenter.data.bible.UnboundBibleImporter;
+import org.praisenter.data.bible.ui.BibleLibraryDialog;
 import org.praisenter.data.bible.ui.BiblePanel;
 import org.praisenter.data.errors.Errors;
 import org.praisenter.data.errors.ui.ExceptionDialog;
@@ -77,7 +77,6 @@ import org.praisenter.threading.FileTask;
 import org.praisenter.threading.TaskProgressDialog;
 import org.praisenter.ui.AboutDialog;
 import org.praisenter.ui.ValidateFileChooser;
-import org.praisenter.ui.ZipFileFilter;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -87,7 +86,6 @@ import org.praisenter.xml.XmlIO;
  * @since 1.0.0
  */
 // TODO MEDIA add xuggler video downloader (to download videos from the web)
-// TODO BIBLES bible translation manager
 // TODO SONGS song manager
 // FIXME IMPORT-EXPORT Add a service schedule with import/export caps
 // FIXME SLIDE-TEMPLATE create a "quick create" function to quickly create a slide with an image/video background and optionally some text
@@ -133,24 +131,25 @@ public class Praisenter extends JFrame implements ActionListener {
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
 		
-		// create the notification panel
-		this.pnlNotification = new NotificationPanel();
-		
-		// create the slide panel
-		this.pnlSlides = new SlidePanel();
+		JTabbedPane tabs = new JTabbedPane();
 		
 		// create the bible panel
 		this.pnlBible = new BiblePanel();
+		tabs.addTab(Messages.getString("bible"), this.pnlBible);
 		
 		// create the songs panel
 		this.pnlSongs = new SongsPanel();
-		
-		JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab(Messages.getString("bible"), this.pnlBible);
 		tabs.addTab(Messages.getString("songs"), this.pnlSongs);
+		
+		// create the slide panel
+		this.pnlSlides = new SlidePanel();
 		tabs.addTab(Messages.getString("slides"), this.pnlSlides);
 		
-		container.add(pnlNotification, BorderLayout.PAGE_START);
+
+		// create the notification panel
+		this.pnlNotification = new NotificationPanel();
+		
+		container.add(this.pnlNotification, BorderLayout.PAGE_START);
 		container.add(tabs, BorderLayout.CENTER);
 		
 		// create the main menu bar
@@ -190,17 +189,8 @@ public class Praisenter extends JFrame implements ActionListener {
 					JMenu mnuImport = new JMenu(Messages.getString("menu.file.import"));
 					mnuFile.add(mnuImport);
 					
-					JMenu mnuImportBible = new JMenu(Messages.getString("menu.file.import.bible"));
-					mnuImport.add(mnuImportBible);
-					
 					JMenu mnuImportSongs = new JMenu(Messages.getString("menu.file.import.songs"));
 					mnuImport.add(mnuImportSongs);
-					
-					JMenuItem mnuImportUBBible = new JMenuItem(Messages.getString("menu.file.import.bible.unbound"));
-					mnuImportUBBible.setActionCommand("importUBBible");
-					mnuImportUBBible.setToolTipText(Messages.getString("menu.file.import.bible.unbound.tooltip"));
-					mnuImportUBBible.addActionListener(this);
-					mnuImportBible.add(mnuImportUBBible);
 					
 					JMenuItem mnuImportPraisenter = new JMenuItem(Messages.getString("menu.file.import.songs.praisenter"));
 					mnuImportPraisenter.setActionCommand("importPraisenterSongs");
@@ -228,6 +218,12 @@ public class Praisenter extends JFrame implements ActionListener {
 			JMenu mnuLibraries = new JMenu(Messages.getString("menu.libraries"));
 			barMenu.add(mnuLibraries);
 			{
+				// libraries->bible menu
+				JMenuItem mnuBibleLibrary = new JMenuItem(Messages.getString("menu.libraries.bible"));
+				mnuBibleLibrary.setActionCommand("bible");
+				mnuBibleLibrary.addActionListener(this);
+				mnuLibraries.add(mnuBibleLibrary);
+				
 				// libraries->media menu
 				JMenuItem mnuMediaLibrary = new JMenuItem(Messages.getString("menu.libraries.media"));
 				mnuMediaLibrary.setActionCommand("media");
@@ -357,14 +353,17 @@ public class Praisenter extends JFrame implements ActionListener {
 			this.showCurrentWindowSize();
 		} else if ("exportErrors".equals(command)) {
 			this.exportSavedErrorReports();
-		} else if ("importUBBible".equals(command)) {
-			this.importUnboundBible();
 		} else if ("importCVSongs".equals(command)) {
 			this.importChurchViewSongDatabase();
 		} else if ("exportSongs".equals(command)) {
 			this.exportSongs();
 		} else if ("importPraisenterSongs".equals(command)) {
 			this.importPraisenterSongDatabase();
+		} else if ("bible".equals(command)) {
+			boolean changed = BibleLibraryDialog.show(this);
+			if (changed) {
+				this.pnlBible.onBibleLibraryChanged();
+			}
 		} else if ("media".equals(command)) {
 			MediaLibraryDialog.show(this);
 		} else if ("slide".equals(command)) {
@@ -590,73 +589,6 @@ public class Praisenter extends JFrame implements ActionListener {
 					Messages.getString("dialog.export.songs.none.text"), 
 					Messages.getString("dialog.export.songs.none.title"), 
 					JOptionPane.INFORMATION_MESSAGE);
-		}
-	}
-	
-	/**
-	 * Attempts to import the user selected Unbound Bible .zip file.
-	 */
-	private void importUnboundBible() {
-		JFileChooser fileBrowser = new JFileChooser();
-		fileBrowser.setDialogTitle(Messages.getString("dialog.open.title"));
-		fileBrowser.setMultiSelectionEnabled(false);
-		fileBrowser.setAcceptAllFileFilterUsed(false);
-		fileBrowser.setFileFilter(new ZipFileFilter());
-		int option = fileBrowser.showOpenDialog(this);
-		// check the option
-		if (option == JFileChooser.APPROVE_OPTION) {
-			// get the selected file
-			File file = fileBrowser.getSelectedFile();
-			// make sure it exists and its a file
-			if (file.exists() && file.isFile()) {
-				// make sure they are sure
-				option = JOptionPane.showConfirmDialog(this, 
-						Messages.getString("dialog.import.bible.prompt.text"), 
-						MessageFormat.format(Messages.getString("dialog.import.bible.prompt.title"), file.getName()), 
-						JOptionPane.YES_NO_CANCEL_OPTION);
-				// check the user's choice
-				if (option == JOptionPane.YES_OPTION) {
-					// we need to execute this in a separate process
-					// and show a progress monitor
-					FileTask task = new FileTask(file) {
-						@Override
-						public void run() {
-							try {
-								// import the bible
-								UnboundBibleImporter.importBible(getFile());
-								setSuccessful(true);
-							} catch (DataImportException e) {
-								// handle the exception
-								handleException(e);
-							}
-						}
-					};
-					// show a task progress bar
-					TaskProgressDialog.show(
-							this, 
-							Messages.getString("importing"), 
-							task);
-					// show a message either way
-					if (task.isSuccessful()) {
-						// show a success message
-						JOptionPane.showMessageDialog(this, 
-								Messages.getString("dialog.import.bible.success.text"), 
-								Messages.getString("dialog.import.bible.success.title"), 
-								JOptionPane.INFORMATION_MESSAGE);
-						// update the bible panel
-						this.pnlBible.onBibleImport();
-					} else {
-						Exception e = task.getException();
-						// show an error message
-						ExceptionDialog.show(
-								this,
-								Messages.getString("dialog.import.bible.failed.title"), 
-								Messages.getString("dialog.import.bible.failed.text"), 
-								e);
-						LOGGER.error("An error occurred while importing an Unbound Bible bible:", e);
-					}
-				}
-			}
 		}
 	}
 	

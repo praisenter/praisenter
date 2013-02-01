@@ -128,7 +128,10 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	@Override
 	protected void renderSlide(Graphics2D g2d, Slide slide, SlidePreviewMetrics metrics) {
 		RenderingHints hints = g2d.getRenderingHints();
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+		g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 		
 		super.renderSlide(g2d, slide, metrics);
 		

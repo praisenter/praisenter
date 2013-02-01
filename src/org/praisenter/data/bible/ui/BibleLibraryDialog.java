@@ -22,41 +22,59 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.ui.present;
+package org.praisenter.data.bible.ui;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Window;
 
-import org.praisenter.preferences.Preferences;
-import org.praisenter.slide.RenderableComponent;
+import javax.swing.JDialog;
+
+import org.praisenter.resources.Messages;
 
 /**
- * Represents a rendered item that uses the quality preferences.
+ * Simple dialog to display the Bible Library.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public class QualityRenderItem extends DefaultRenderItem implements RenderGroup {
+public class BibleLibraryDialog extends JDialog {
+	/** The version id */
+	private static final long serialVersionUID = -2199731154364106350L;
+	
+	/** The bible library panel */
+	private BibleLibraryPanel pnlBibleLibrary;
+	
 	/**
-	 * Full constructor.
-	 * @param component the component
+	 * Minimal constructor.
+	 * @param owner the owner of the this dialog; can be null
 	 */
-	public QualityRenderItem(RenderableComponent component) {
-		super(component);
+	private BibleLibraryDialog(Window owner) {
+		super(owner, Messages.getString("dialog.bible.title"), ModalityType.APPLICATION_MODAL);
+		
+		this.pnlBibleLibrary = new BibleLibraryPanel();
+		
+		Container container = this.getContentPane();
+		container.setLayout(new BorderLayout());
+		container.add(this.pnlBibleLibrary, BorderLayout.CENTER);
+		
+		this.pack();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.display.SlideComponentCache#render(java.awt.Graphics2D)
+	/**
+	 * Shows a new Bible Library dialog and returns true if the bible library was updated.
+	 * @param owner the owner of this dialog; can be null
+	 * @return boolean
 	 */
-	@Override
-	public void render(Graphics2D g) {
-		if (this.component != null) {
-			RenderingHints oHints = g.getRenderingHints();
-			// use the quality set in the preferences
-			Preferences preferences = Preferences.getInstance();
-			g.setRenderingHints(preferences.getRenderingHints());
-			this.component.render(g);
-			g.setRenderingHints(oHints);
-		}
+	public static final boolean show(Window owner) {
+		BibleLibraryDialog dialog = new BibleLibraryDialog(owner);
+		dialog.setLocationRelativeTo(owner);
+		dialog.setVisible(true);
+		
+		boolean bibleLibraryUpdated = dialog.pnlBibleLibrary.isBibleLibraryUpdated();
+		
+		dialog.dispose();
+		
+		return bibleLibraryUpdated;
 	}
 }

@@ -156,6 +156,19 @@ public interface Slide {
 	public abstract <E extends SlideComponent> List<E> getComponents(Class<E> clazz);
 	
 	/**
+	 * Returns a list of the all the components of the given type.
+	 * <p>
+	 * This method will return the background component only if true is passed in
+	 * the includeBackground parameter.
+	 * <p>
+	 * This method will return the components in ascending order.
+	 * @param clazz the class type
+	 * @param includeBackground true if the background should be included in the list (if it matches the given type)
+	 * @return List&lt;E&gt;
+	 */
+	public abstract <E extends SlideComponent> List<E> getComponents(Class<E> clazz, boolean includeBackground);
+	
+	/**
 	 * Returns a list of the all the components of the given type that cannot
 	 * be removed from the slide.
 	 * @param clazz the class type

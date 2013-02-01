@@ -396,7 +396,18 @@ public class BasicSlide implements Slide {
 	 */
 	@Override
 	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz) {
+		return this.getComponents(clazz, false);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getComponents(java.lang.Class,boolean)
+	 */
+	@Override
+	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz, boolean includeBackground) {
 		List<E> components = new ArrayList<E>();
+		if (includeBackground && this.background != null && clazz.isInstance(this.background)) {
+			components.add(clazz.cast(this.background));
+		}
 		for (SlideComponent component : this.components) {
 			if (clazz.isInstance(component)) {
 				components.add(clazz.cast(component));

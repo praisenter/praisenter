@@ -55,6 +55,7 @@ import org.praisenter.icons.Icons;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.graphics.Fill;
+import org.praisenter.slide.graphics.LineStyle;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
@@ -87,6 +88,9 @@ public class TextComponentEditorPanel<E extends TextComponent> extends GenericCo
 	
 	/** The layout label */
 	protected JLabel lblLayout;
+	
+	/** The label for outline */
+	protected JLabel lblOutline;
 	
 	// controls
 	
@@ -147,6 +151,15 @@ public class TextComponentEditorPanel<E extends TextComponent> extends GenericCo
 	/** The text box for the text */
 	protected JTextArea txtText;
 
+	/** The button for the outline fill */
+	protected JButton btnOutlineFillEditor;
+	
+	/** The button for the outline style */
+	protected JButton btnOutlineStyleEditor;
+	
+	/** The button for the text outline */
+	protected JCheckBox chkOutlineVisible;
+	
 	/**
 	 * Default constructor.
 	 */
@@ -178,6 +191,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends GenericCo
 		this.lblFontFamily = new JLabel(Messages.getString("panel.slide.editor.text.font.family"));
 		this.lblFontSize = new JLabel(Messages.getString("panel.slide.editor.text.font.size"));
 		this.lblLayout = new JLabel(Messages.getString("panel.slide.editor.text.layout"));
+		this.lblOutline = new JLabel(Messages.getString("panel.slide.editor.text.outline"));
 		
 		// the font family selection
 		Font font = FontManager.getDefaultFont();
@@ -297,6 +311,19 @@ public class TextComponentEditorPanel<E extends TextComponent> extends GenericCo
 		txtPadding.setColumns(2);
 		txtPadding.addFocusListener(new SelectTextFocusListener(txtPadding));
 		
+		// outline
+		
+		this.btnOutlineFillEditor = new JButton(Icons.FILL);
+		this.btnOutlineFillEditor.addActionListener(this);
+		this.btnOutlineFillEditor.setActionCommand("outline-fill");
+		
+		this.btnOutlineStyleEditor = new JButton(Icons.BORDER);
+		this.btnOutlineStyleEditor.addActionListener(this);
+		this.btnOutlineStyleEditor.setActionCommand("outline-style");
+		
+		this.chkOutlineVisible = new JCheckBox(Messages.getString("panel.slide.editor.visible"));
+		this.chkOutlineVisible.addChangeListener(this);
+		
 		if (layout) {
 			this.createLayout();
 		}
@@ -325,6 +352,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends GenericCo
 								.addComponent(this.lblFontFamily)
 								.addComponent(this.lblFontSize)
 								.addComponent(this.lblLayout)
+								.addComponent(this.lblOutline)
 								.addComponent(this.lblText))
 						.addGroup(layout.createParallelGroup()
 								.addComponent(this.txtName)
@@ -352,6 +380,11 @@ public class TextComponentEditorPanel<E extends TextComponent> extends GenericCo
 								.addGroup(layout.createSequentialGroup()
 										.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(this.chkWrapText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								// outline row
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.btnOutlineFillEditor)
+										.addComponent(this.btnOutlineStyleEditor)
+										.addComponent(this.chkOutlineVisible))
 								.addComponent(this.chkTextVisible)))
 				.addComponent(scrText));
 		layout.setVerticalGroup(layout.createSequentialGroup()
@@ -389,6 +422,12 @@ public class TextComponentEditorPanel<E extends TextComponent> extends GenericCo
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.chkWrapText))
+				// outline row
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblOutline)
+						.addComponent(this.btnOutlineFillEditor)
+						.addComponent(this.btnOutlineStyleEditor)
+						.addComponent(this.chkOutlineVisible))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblText)
 						.addComponent(this.chkTextVisible))
@@ -463,6 +502,12 @@ public class TextComponentEditorPanel<E extends TextComponent> extends GenericCo
 				this.slideComponent.setTextVisible(flag);
 				this.notifyEditorListeners();
 			}
+		} else if (source == this.chkOutlineVisible) {
+			boolean flag = this.chkOutlineVisible.isSelected();
+			if (this.slideComponent != null) {
+				this.slideComponent.setTextOutlineVisible(flag);
+				this.notifyEditorListeners();
+			}
 		}
 	}
 	
@@ -533,6 +578,30 @@ public class TextComponentEditorPanel<E extends TextComponent> extends GenericCo
 			if (fill != null) {
 				if (this.slideComponent != null) {
 					this.slideComponent.setTextFill(fill);
+					this.notifyEditorListeners();
+				}
+			}
+		} else if ("outline-fill".equals(command)) {
+			Fill fill = new ColorFill();
+			if (this.slideComponent != null) {
+				fill = this.slideComponent.getTextOutlineFill();
+			}
+			fill = FillEditorDialog.show(WindowUtilities.getParentWindow(this), fill);
+			if (fill != null) {
+				if (this.slideComponent != null) {
+					this.slideComponent.setTextOutlineFill(fill);
+					this.notifyEditorListeners();
+				}
+			}
+		} else if ("outline-style".equals(command)) {
+			LineStyle style = new LineStyle();
+			if (this.slideComponent != null) {
+				style = this.slideComponent.getTextOutlineStyle();
+			}
+			style = LineStyleEditorDialog.show(WindowUtilities.getParentWindow(this), style);
+			if (style != null) {
+				if (this.slideComponent != null) {
+					this.slideComponent.setTextOutlineStyle(style);
 					this.notifyEditorListeners();
 				}
 			}

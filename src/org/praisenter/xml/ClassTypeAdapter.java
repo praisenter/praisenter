@@ -22,41 +22,30 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.ui.present;
+package org.praisenter.xml;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-
-import org.praisenter.preferences.Preferences;
-import org.praisenter.slide.RenderableComponent;
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
- * Represents a rendered item that uses the quality preferences.
+ * Class type adapter for xml output.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public class QualityRenderItem extends DefaultRenderItem implements RenderGroup {
-	/**
-	 * Full constructor.
-	 * @param component the component
+public class ClassTypeAdapter extends XmlAdapter<String, Class<?>> {
+	/* (non-Javadoc)
+	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
 	 */
-	public QualityRenderItem(RenderableComponent component) {
-		super(component);
+	@Override
+	public String marshal(Class<?> v) throws Exception {
+		return v.getName();
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.display.SlideComponentCache#render(java.awt.Graphics2D)
+	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#unmarshal(java.lang.Object)
 	 */
 	@Override
-	public void render(Graphics2D g) {
-		if (this.component != null) {
-			RenderingHints oHints = g.getRenderingHints();
-			// use the quality set in the preferences
-			Preferences preferences = Preferences.getInstance();
-			g.setRenderingHints(preferences.getRenderingHints());
-			this.component.render(g);
-			g.setRenderingHints(oHints);
-		}
+	public Class<?> unmarshal(String v) throws Exception {
+		return Class.forName(v);
 	}
 }

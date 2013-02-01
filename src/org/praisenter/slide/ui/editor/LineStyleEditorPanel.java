@@ -98,7 +98,7 @@ public class LineStyleEditorPanel extends JPanel implements ItemListener, Change
 	@SuppressWarnings("serial")
 	public LineStyleEditorPanel(LineStyle style) {
 		this.lblLineWidth = new JLabel(Messages.getString("panel.slide.editor.line.width"));
-		this.spnLineWidth = new JSpinner(new SpinnerNumberModel(5, 1, 1000, 1));
+		this.spnLineWidth = new JSpinner(new SpinnerNumberModel(5.0, 1.0, 1000.0, 1.0));
 		
 		this.lblCap = new JLabel(Messages.getString("panel.slide.editor.line.cap"));
 		this.cmbCap = new JComboBox<CapType>(CapType.values());

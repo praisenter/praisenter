@@ -28,7 +28,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Paint;
+import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.Stroke;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -41,9 +43,13 @@ import org.praisenter.slide.GenericComponent;
 import org.praisenter.slide.PositionedComponent;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.graphics.CapType;
 import org.praisenter.slide.graphics.ColorFill;
+import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.Fill;
 import org.praisenter.slide.graphics.FillTypeAdapter;
+import org.praisenter.slide.graphics.JoinType;
+import org.praisenter.slide.graphics.LineStyle;
 import org.praisenter.slide.graphics.LinearGradientFill;
 import org.praisenter.slide.graphics.RadialGradientFill;
 import org.praisenter.utilities.FontManager;
@@ -56,7 +62,6 @@ import org.praisenter.xml.FontTypeAdapter;
  * @since 2.0.0
  */
 // TODO SLIDE-TEMPALTE add text shadow (color, direction, width, visible)
-// TODO SLIDE-TEMPLATE add text outline (stroke, paint, visible)
 @XmlRootElement(name = "TextComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({
@@ -104,6 +109,19 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 	@XmlElement(name = "TextVisible", required = false, nillable = true)
 	protected boolean textVisible;
 	
+	/** True if the text outline should be visible */
+	@XmlElement(name = "TextOutlineVisible", required = false, nillable = true)
+	protected boolean textOutlineVisible;
+	
+	/** The text outline style */
+	@XmlElement(name = "TextOutlineStyle", required = false, nillable = true)
+	protected LineStyle textOutlineStyle;
+	
+	/** The text outline fill */
+	@XmlElement(name = "TextOutlineFill", required = false, nillable = true)
+	@XmlJavaTypeAdapter(value = FillTypeAdapter.class)
+	protected Fill textOutlineFill;
+	
 	/**
 	 * Default constructor.
 	 * <p>
@@ -111,7 +129,7 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected TextComponent() {
-		super(null, 0, 0, 0, 0);
+		this(null, 0, 0, 0, 0, "");
 	}
 	
 	/**
@@ -156,6 +174,9 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 		this.textWrapped = true;
 		this.textPadding = 5;
 		this.textVisible = true;
+		this.textOutlineFill = new ColorFill(Color.BLACK);
+		this.textOutlineStyle = new LineStyle(1.5f, CapType.ROUND, JoinType.ROUND, DashPattern.SOLID);
+		this.textOutlineVisible = false;
 	}
 	
 	/**
@@ -175,6 +196,9 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 		this.textWrapped = component.textWrapped;
 		this.textPadding = component.textPadding;
 		this.textVisible = component.textVisible;
+		this.textOutlineFill = component.textOutlineFill;
+		this.textOutlineStyle = component.textOutlineStyle;
+		this.textOutlineVisible = component.textOutlineVisible;
 	}
 	
 	/* (non-Javadoc)
@@ -205,7 +229,7 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 		// only render the text if its visible
 		if (this.textVisible) {
 			// render the text
-			this.renderText(g);
+			this.renderText(g, false);
 		}
 	}
 	
@@ -219,7 +243,7 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 		// only render the text if its visible
 		if (this.textVisible) {
 			// render the text
-			this.renderText(g);
+			this.renderText(g, true);
 		}
 	}
 	
@@ -238,8 +262,9 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 	/**
 	 * Renders the text to the given graphics object.
 	 * @param g the graphics object to render to
+	 * @param preview true if we are rending a preview
 	 */
-	protected void renderText(Graphics2D g) {
+	protected void renderText(Graphics2D g, boolean preview) {
 		// get the text
 		String text = this.getTextToRender();
 		if (text != null && text.length() > 0) {
@@ -297,6 +322,7 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 				}
 				
 				// see if we need to derive the font
+				// the text renderer uses the font on the graphics object
 				if (font.getSize2D() != metrics.fontSize) {
 					g.setFont(font.deriveFont(metrics.fontSize));
 				} else {
@@ -312,36 +338,60 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 					y += (float)rh - metrics.height;
 				}
 				
-				// set the text color
+				// get the text paint
+				Paint textPaint = null;
 				if (this.textFill != null) {
-					// make sure the fill is using the text metrics rather than the
-					// text components bounds
-					float fx = x;
-					// we also need to take the horizontal alignment into consideration
-					if (this.horizontalTextAlignment == HorizontalTextAlignment.RIGHT) {
-						fx = this.x + (this.width - this.textPadding - metrics.width);
-					} else if (this.horizontalTextAlignment == HorizontalTextAlignment.CENTER) {
-						fx = this.x + (this.width / 2.0f) - metrics.width / 2.0f;
-					}
-					Paint paint = this.textFill.getPaint(
-							(int)Math.floor(fx), 
-							(int)Math.floor(y), 
-							(int)Math.ceil(metrics.width), 
-							(int)Math.ceil(metrics.height));
-					g.setPaint(paint);
+					textPaint = this.getPaint(this.textFill, x, y, metrics.width, metrics.height);
 				} else {
-					g.setPaint(Color.WHITE);
+					textPaint = Color.WHITE;
 				}
+				
+				// get the outline paint
+				Paint outlinePaint = null;
+				if (this.textOutlineFill != null) {
+					outlinePaint = this.getPaint(this.textOutlineFill, x, y, metrics.width, metrics.height);
+				} else {
+					outlinePaint = Color.BLACK;
+				}
+				
+				// get the outline stroke
+				Stroke outlineStroke = null;
+				if (this.textOutlineStyle != null) {
+					outlineStroke = this.textOutlineStyle.getStroke();
+				}
+				
+				// setup the text properties
+				TextRenderProperties props = new TextRenderProperties(rw);
+				props.setX(x);
+				props.setY(y);
+				props.setHorizontalAlignment(this.horizontalTextAlignment);
+				props.setTextPaint(textPaint);
+				if (this.textOutlineVisible) {
+					props.setOutlinePaint(outlinePaint);
+					props.setOutlineStroke(outlineStroke);
+				}
+				
+				
+				// save the old rendering hints
+				RenderingHints oHints = g.getRenderingHints();
+				
+				// enable anti-aliasing to make the preview look good
+				if (this.textOutlineVisible && preview) {
+					// turn on anti-aliasing so that the text outlines don't look terrible
+					g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				}
+				
 				// setup the clip region
 				g.clipRect(this.x, this.y, this.width, this.height);
 				if (this.textWrapped) {
 					// render the text as a paragraph
-					TextRenderer.renderParagraph(g, text, this.horizontalTextAlignment, x, y, rw);
+					TextRenderer.renderParagraph(g, text, props);
 				} else {
 					// render the text as a line
-					TextRenderer.renderLine(g, text, this.horizontalTextAlignment, x, y, rw);
+					TextRenderer.renderLine(g, text, props);
 				}
 				
+				g.setRenderingHints(oHints);
 				g.setClip(oClip);
 				g.setPaint(oPaint);
 				g.setFont(oFont);
@@ -363,6 +413,29 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 	 */
 	protected int getTextHeight() {
 		return this.height - this.textPadding * 2 - 2;
+	}
+	
+	/**
+	 * Returns a customized fill for the horizontal location of the text.
+	 * @param fill the fill
+	 * @param x the x location
+	 * @param y the y location
+	 * @param width the text width
+	 * @param height the text height
+	 * @return {@link Paint}
+	 */
+	protected Paint getPaint(Fill fill, float x, float y, float width, float height) {
+		// make sure the fill is using the text metrics rather than the
+		// text components bounds
+		// we also need to take the horizontal alignment into consideration
+		if (this.horizontalTextAlignment == HorizontalTextAlignment.RIGHT) {
+			x = this.x + (this.width - this.textPadding - width);
+		} else if (this.horizontalTextAlignment == HorizontalTextAlignment.CENTER) {
+			x = this.x + (this.width / 2.0f) - width / 2.0f;
+		}
+		return fill.getPaint(
+				(int)Math.floor(x), (int)Math.floor(y), 
+				(int)Math.ceil(width), (int)Math.ceil(height));
 	}
 	
 	/**
@@ -510,5 +583,53 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 	 */
 	public void setTextVisible(boolean visible) {
 		this.textVisible = visible;
+	}
+
+	/**
+	 * Returns true if the text outline is visible.
+	 * @return boolean
+	 */
+	public boolean isTextOutlineVisible() {
+		return this.textOutlineVisible;
+	}
+
+	/**
+	 * Toggles the visibility of the text outline.
+	 * @param flag true if the text outline should be visible
+	 */
+	public void setTextOutlineVisible(boolean flag) {
+		this.textOutlineVisible = flag;
+	}
+
+	/**
+	 * Returns the text outline style.
+	 * @return {@link LineStyle}
+	 */
+	public LineStyle getTextOutlineStyle() {
+		return this.textOutlineStyle;
+	}
+
+	/**
+	 * Set the text outline style.
+	 * @param lineStyle the text outline style
+	 */
+	public void setTextOutlineStyle(LineStyle lineStyle) {
+		this.textOutlineStyle = lineStyle;
+	}
+
+	/**
+	 * Returns the text outline fill.
+	 * @return {@link Fill}
+	 */
+	public Fill getTextOutlineFill() {
+		return this.textOutlineFill;
+	}
+
+	/**
+	 * Sets the text outline fill.
+	 * @param fill the text outline fill
+	 */
+	public void setTextOutlineFill(Fill fill) {
+		this.textOutlineFill = fill;
 	}
 }

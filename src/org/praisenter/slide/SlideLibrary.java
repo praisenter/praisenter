@@ -27,20 +27,44 @@ package org.praisenter.slide;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.media.AbstractAudioMedia;
+import org.praisenter.media.AbstractVideoMedia;
+import org.praisenter.media.ImageMedia;
+import org.praisenter.media.Media;
+import org.praisenter.media.MediaException;
+import org.praisenter.media.MediaFile;
+import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaType;
+import org.praisenter.media.NoMediaLoaderException;
+import org.praisenter.resources.Messages;
+import org.praisenter.slide.media.AudioMediaComponent;
+import org.praisenter.slide.media.ImageMediaComponent;
+import org.praisenter.slide.media.MediaComponent;
+import org.praisenter.slide.media.VideoMediaComponent;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -296,6 +320,32 @@ public final class SlideLibrary {
 	// slide library
 	
 	/**
+	 * Returns true if the given slide exists in the slide library.
+	 * @param fileName the file name
+	 * @param clazz the slide type
+	 * @return boolean
+	 */
+	public static final synchronized <E extends Slide> boolean containsSlide(String fileName, Class<E> clazz) {
+		String path = getPath(clazz) + Constants.SEPARATOR + fileName;
+		// see if the type is a template
+		if (Template.class.isAssignableFrom(clazz)) {
+			// it could be a bible, song, or notification template
+			if (BibleSlide.class.isAssignableFrom(clazz)) {
+				return BIBLE_TEMPLATES.containsKey(path);
+			} else if (NotificationSlide.class.isAssignableFrom(clazz)) {
+				return NOTIFICATION_TEMPLATES.containsKey(path);
+			} else if (SongSlide.class.isAssignableFrom(clazz)) {
+				return SONG_TEMPLATES.containsKey(path);
+			} else {
+				// generic template
+				return TEMPLATES.containsKey(path);
+			}
+		} else {
+			return SLIDES.containsKey(path);
+		}
+	}
+	
+	/**
 	 * Returns the saved slide.
 	 * @param filePath the file name and path of the saved slide
 	 * @return {@link Slide}
@@ -545,5 +595,310 @@ public final class SlideLibrary {
 			return true;
 		}
 		return false;
+	}
+	
+	// import export
+
+	/**
+	 * Returns a unique file name for the given file name.
+	 * <p>
+	 * This will append the date and time to the file name.
+	 * @param fileName the file name
+	 * @return String
+	 */
+	private static final String getUniqueFileName(String fileName) {
+		// find the last period in the file name
+		int i = fileName.lastIndexOf(".");
+		String name = "";
+		// if the index is not 0 (for example 0 = ".xml" or -1 = "test")
+		if (i > 0) {
+			// then get the name of the file
+			name = fileName.substring(0, i < 0 ? fileName.length() : i);
+		}
+		String ext = "";
+		// if the index was zero or higher
+		if (i >= 0) {
+			// get the rest of the string
+			ext = fileName.substring(i, fileName.length());
+		}
+		// put them together using the name collision format
+		return MessageFormat.format(Messages.getString("panel.slide.import.fileNameCollision.format"), name, new Date(), ext);
+	}
+	
+	/**
+	 * Reads the given file path and writes it to the given zip output stream using the
+	 * given file name.
+	 * <p>
+	 * The file name can include the path inside the zip.
+	 * @param filePath the file name and path of the file to add to the zip
+	 * @param fileName the file name and path of the file inside the zip
+	 * @param zos the zip input stream
+	 * @throws FileNotFoundException thrown if the given file path does not exist
+	 * @throws ZipException thrown if an error occurs while writing the file to the zip output stream
+	 * @throws IOException thrown if an error occurs while reading or writing the file
+	 */
+	private static final void addFileToZip(String filePath, String fileName, ZipOutputStream zos) throws FileNotFoundException, ZipException, IOException {
+		// add the slide xml file
+		File sf = new File(filePath);
+		try (FileInputStream fis = new FileInputStream(sf)) {
+			ZipEntry entry = new ZipEntry(fileName);
+			zos.putNextEntry(entry);
+			// write the bytes of the file to the entry
+			byte[] bytes = new byte[1024];
+			int length;
+			while ((length = fis.read(bytes)) >= 0) {
+				zos.write(bytes, 0, length);
+			}
+			zos.closeEntry();
+		}
+	}
+	
+	/**
+	 * Exports the given slides to the given file name.
+	 * @param fileName the target zip file name
+	 * @param exports the array of slides to export
+	 * @throws SlideLibraryException thrown if an exception occurs while loading the slide/template
+	 * @throws JAXBException thrown if an error occurs while writing the types file
+	 * @throws IOException thrown if an error occurs while generating the export file
+	 */
+	public static final synchronized void exportSlides(String fileName, SlideExport... exports) throws SlideLibraryException, JAXBException, IOException {
+		// make sure the file ends with .zip
+		if (!fileName.toLowerCase().matches("^.+\\.zip$")) {
+			// append the .zip on the end
+			fileName += ".zip";
+		}
+		
+		// we must keep track of duplicated media items so that they
+		// are added only one time
+		List<String> paths = new ArrayList<String>();
+		try (FileOutputStream fos = new FileOutputStream(new File(fileName));
+			 ZipOutputStream zos = new ZipOutputStream(fos);) {
+			
+			ExportManifest manifest = new ExportManifest();
+			int i = 1;
+			for (SlideExport export : exports) {
+				// get the slide
+				SlideFile slideFile = export.getSlideFile();
+				String path = slideFile.getPath();
+				String name = slideFile.getName();
+				
+				Slide slide = null;
+				if (export.isTemplate()) {
+					slide = getTemplate(path, export.getTemplateType());
+				} else {
+					slide = getSlide(path);
+				}
+				
+				// add the slide xml file
+				String inExportFileName = "SlideTemplate" + i + ".xml";
+				addFileToZip(path, inExportFileName, zos);
+				
+				// add a types file to describe the type to file relationship
+				ExportItem item = new ExportItem(name, inExportFileName, slide.getClass());
+				manifest.getExportItems().add(item);
+				
+				// add any attached media
+				// audio
+				List<AudioMediaComponent> audioComponents = slide.getComponents(AudioMediaComponent.class, true);
+				for (AudioMediaComponent component : audioComponents) {
+					AbstractAudioMedia media = component.getMedia();
+					if (media != null) {
+						MediaFile mf = media.getFile();
+						String mPath = "audio/" + mf.getName();
+						if (!paths.contains(mPath)) {
+							addFileToZip(mf.getPath(), mPath, zos);
+							paths.add(mPath);
+						}
+					}
+				}
+				// image
+				List<ImageMediaComponent> imageComponents = slide.getComponents(ImageMediaComponent.class, true);
+				for (ImageMediaComponent component : imageComponents) {
+					ImageMedia media = component.getMedia();
+					if (media != null) {
+						MediaFile mf = media.getFile();
+						String mPath = "images/" + mf.getName();
+						if (!paths.contains(mPath)) {
+							addFileToZip(mf.getPath(), mPath, zos);
+							paths.add(mPath);
+						}
+					}
+				}
+				// video
+				List<VideoMediaComponent> videoComponents = slide.getComponents(VideoMediaComponent.class, true);
+				for (VideoMediaComponent component : videoComponents) {
+					AbstractVideoMedia media = component.getMedia();
+					if (media != null) {
+						MediaFile mf = media.getFile();
+						String mPath = "videos/" + mf.getName();
+						if (!paths.contains(mPath)) {
+							addFileToZip(mf.getPath(), mPath, zos);
+							paths.add(mPath);
+						}
+					}
+				}
+				i++;
+			}
+			
+			// add the manifest entry
+			ZipEntry entry = new ZipEntry("manifest.xml");
+			zos.putNextEntry(entry);
+			XmlIO.save(zos, manifest);
+			zos.closeEntry();
+		}
+	}
+	
+	/**
+	 * Imports the given slides export file.
+	 * @param file the zip file containing the exported contents
+	 * @throws SlideLibraryException thrown if an error occurs while adding the slide/templates
+	 * @throws MediaException thrown if an error occurs while adding media
+	 * @throws FileNotFoundException thrown if the manifest.xml file is not found
+	 * @throws JAXBException thrown if the xml files are invalid
+	 * @throws IOException thrown if any IO error occurs during the process
+	 */
+	public static final synchronized void importSlides(File file) throws SlideLibraryException, MediaException, FileNotFoundException, JAXBException, IOException {
+		// get a file reference to the zip
+		try (ZipFile zipFile = new ZipFile(file)) {
+			// read the types entry first
+			ZipEntry entry = zipFile.getEntry("manifest.xml");
+			if (entry == null) {
+				LOGGER.error("Types file [manifest.xml] not found.");
+				// throw exception since we wont know how to read the slide/template
+				// xml files unless we know what type they are
+				throw new FileNotFoundException();
+			}
+			LOGGER.debug("Reading [manifest.xml] file.");
+			ExportManifest manifest = XmlIO.read(zipFile.getInputStream(entry), ExportManifest.class);
+			
+			// read in the media items first
+			// reference the slide for later saving
+			Map<String, Slide> slides = new HashMap<String, Slide>();
+			Map<String, Media> renamedMedia = new HashMap<String, Media>();
+			Enumeration<? extends ZipEntry> entries = zipFile.entries();
+			while (entries.hasMoreElements()) {
+				// get the entry
+				entry = entries.nextElement();
+				String currentEntry = entry.getName();
+				
+				// skip directory
+				if (entry.isDirectory()) {
+					LOGGER.debug("Ignoring directory entry.");
+					continue;
+				}
+				
+				// check for the slide
+				if (currentEntry.toLowerCase().equals("manifest.xml")) {
+					// skip any xml files
+					continue;
+				}
+				
+				Path path = Paths.get(currentEntry);
+				String fileName = path.getFileName().toString();
+				// check for the slide
+				if (currentEntry.toLowerCase().endsWith(".xml")) {
+					// get the type for this file
+					ExportItem item = manifest.getExportItem(currentEntry);
+					if (item == null) {
+						LOGGER.warn("Export item not found for [" + currentEntry + "]. Ignoring entry.");
+						continue;
+					}
+					
+					// read the slide
+					LOGGER.debug("Reading [" + currentEntry + "] slide/template file with class [" + item.getType().getName() + "].");
+					Slide slide = (Slide)XmlIO.read(zipFile.getInputStream(entry), item.getType());
+					// use the original file name
+					slides.put(item.getFileName(), slide);
+					
+					// continue reading the other files
+					continue;
+				}
+				
+				MediaType type = null;
+				if (path.startsWith("audio")) {
+					type = MediaType.AUDIO;
+				} else if (path.startsWith("images")) {
+					type = MediaType.IMAGE;
+				} else if (path.startsWith("videos")) {
+					type = MediaType.VIDEO;
+				} else {
+					LOGGER.warn("[" + path + "] ignored");
+					// ignore it and continue
+					continue;
+				}
+				
+				try {
+					boolean renamed = false;
+					if (MediaLibrary.containsMedia(fileName, type)) {
+						LOGGER.warn("A media item in the Media Library already exists with the name [" + fileName + "].");
+						fileName = getUniqueFileName(fileName);
+						LOGGER.warn("Using file name [" + fileName + "] instead.");
+						renamed = true;
+					}
+					LOGGER.debug("Adding the media [" + fileName + "|" + type + "] to the media library.");
+					Media media = MediaLibrary.addMedia(zipFile.getInputStream(entry), type, fileName);
+					if (renamed) {
+						// save the original filename to new media mapping
+						renamedMedia.put(path.getFileName().toString(), media);
+					}
+					
+				} catch (NoMediaLoaderException e) {
+					LOGGER.warn("The media [" + path + "] is not supported. Media ignored.");
+				}
+			}
+			
+			// we support multiple slides in one file at this time
+			if (slides.size() > 0) {
+				for (String slideName : slides.keySet()) {
+					Slide slide = slides.get(slideName);
+					
+					// we need to update any slide components that use the renamed media
+					@SuppressWarnings("rawtypes")
+					List<MediaComponent> components = slide.getComponents(MediaComponent.class, true);
+					for (MediaComponent<? extends Media> component : components) {
+						Media media = component.getMedia();
+						// loop over the renamed media items
+						for (String originalName : renamedMedia.keySet()) {
+							if (media.getFile().getName().equals(originalName)) {
+								// get the new media
+								Media newMedia = renamedMedia.get(originalName);
+								// we need to change the media reference
+								if (component instanceof AudioMediaComponent && newMedia instanceof AbstractAudioMedia) {
+									AudioMediaComponent amc = (AudioMediaComponent)component;
+									AbstractAudioMedia am = (AbstractAudioMedia)newMedia;
+									amc.setMedia(am);
+								} else if (component instanceof ImageMediaComponent && newMedia instanceof ImageMedia) {
+									ImageMediaComponent imc = (ImageMediaComponent)component;
+									ImageMedia im = (ImageMedia)newMedia;
+									imc.setMedia(im);
+								} else if (component instanceof VideoMediaComponent && newMedia instanceof AbstractVideoMedia) {
+									VideoMediaComponent vmc = (VideoMediaComponent)component;
+									AbstractVideoMedia vm = (AbstractVideoMedia)newMedia;
+									vmc.setMedia(vm);
+								} else {
+									// just log the error
+									LOGGER.warn("Unable to change media because of unknown component type [" + component.getClass().getName() + "] or unknown media type [" + newMedia.getClass().getName() + "].");
+								}
+							}
+						}
+					}
+					
+					// if the name is already taken the change the name
+					if (SlideLibrary.containsSlide(slideName, slide.getClass())) {
+						LOGGER.warn("A slide or template in the Slide Library already exists with the name [" + slideName + "].");
+						slideName = getUniqueFileName(slideName);
+						LOGGER.warn("Using file name [" + slideName + "] instead.");
+					}
+					
+					// save the slide to the slide library
+					LOGGER.debug("Adding slide/template [" + slideName + "] to the slide library.");
+					if (slide instanceof Template) {
+						SlideLibrary.saveTemplate(slideName, (Template)slide);
+					} else {
+						SlideLibrary.saveSlide(slideName, (BasicSlide)slide);
+					}
+				}
+			}
+		}
 	}
 }
