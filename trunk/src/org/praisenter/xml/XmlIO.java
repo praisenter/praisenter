@@ -27,6 +27,8 @@ package org.praisenter.xml;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -98,6 +100,21 @@ public final class XmlIO {
 	}
 	
 	/**
+	 * Reads the given input stream.
+	 * @param stream the input stream to read
+	 * @param clazz the type to read in
+	 * @return E
+	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
+	 * @throws IOException thrown if an exception occurs while reading the XML file
+	 */
+	public static final <E> E read(InputStream stream, Class<E> clazz) throws JAXBException, IOException {
+		// otherwise attempt to read the file
+		XmlContext context = getXmlContext(clazz);
+		Unmarshaller unmarshaller = context.getUnmarshaller();
+		return clazz.cast(unmarshaller.unmarshal(stream));
+	}
+	
+	/**
 	 * Saves the given object to the given file file.
 	 * @param filePath the file name and path to save the file
 	 * @param object the object to save in the file
@@ -112,5 +129,18 @@ public final class XmlIO {
 		XmlContext context = getXmlContext(object.getClass());
 		Marshaller marshaller = context.getMarshaller();
 		marshaller.marshal(object, file);
+	}
+	
+	/**
+	 * Saves the given object to the given stream.
+	 * @param stream the stream to write to
+	 * @param object the object to save in the file
+	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
+	 * @throws IOException thrown if an exception occurs while writing the XML file
+	 */
+	public static final <E> void save(OutputStream stream, E object) throws JAXBException, IOException {
+		XmlContext context = getXmlContext(object.getClass());
+		Marshaller marshaller = context.getMarshaller();
+		marshaller.marshal(object, stream);
 	}
 }

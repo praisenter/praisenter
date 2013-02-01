@@ -330,12 +330,14 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 						// image0 still contains the background and it will appear as if we are
 						// still transitioning the background
 						SlideSurface.renderSlide(this.currentRenderer, false, this.image1);
-					} else {
-						// if the images are not the same then we need to transition them, but we need
-						// to make sure that the last time we transitioned, the background was present
-						SlideSurface.renderSlide(this.currentRenderer, true, this.image1);
 					}
 				}
+			}
+			
+			// if the backgrounds are not the same, then we need to repaint the current image
+			// with its background since the last iteration it could have been painted without it
+			if (this.transitionBackground) {
+				SlideSurface.renderSlide(this.currentRenderer, true, this.image1);
 			}
 		}
 				

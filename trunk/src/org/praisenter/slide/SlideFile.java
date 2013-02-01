@@ -144,7 +144,7 @@ public class SlideFile {
 	}
 	
 	/**
-	 * Returns the file name of the media.
+	 * Returns the file name of the slide.
 	 * @return String
 	 */
 	public String getName() {

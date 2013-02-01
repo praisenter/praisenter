@@ -32,8 +32,11 @@ import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Window;
+import java.text.MessageFormat;
 
 import javax.swing.JOptionPane;
+
+import org.praisenter.resources.Messages;
 
 /**
  * Utility class to help working with windows.
@@ -152,5 +155,26 @@ public final class WindowUtilities {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Returns a device name for the given device.
+	 * @param device the device
+	 * @param index the index of the display
+	 * @return String
+	 */
+	public static final String getDeviceName(GraphicsDevice device, int index) {
+		DisplayMode mode = device.getDisplayMode();
+		int rate = mode.getRefreshRate();
+		if (rate <= 0) {
+			// assume its 60 (mac os x and LCD monitors)
+			rate = 60;
+		}
+		return MessageFormat.format(Messages.getString("display.name.format"),
+				index + 1,
+				mode.getWidth(),
+				mode.getHeight(),
+				mode.getBitDepth(),
+				rate);
 	}
 }

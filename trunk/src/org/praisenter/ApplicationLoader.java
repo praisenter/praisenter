@@ -244,15 +244,15 @@ public final class ApplicationLoader {
 			// load the slide/template library
 			loadSlideLibrary();
 			
-			// initialize presentation windows
-			initializePresentationWindows();
-			
-			// load the main application window
 			try {
+				// initialize presentation windows
+				initializePresentationWindows();
+				
+				// load the main application window
 				preloadMainApplicationWindow();
 			} catch (Exception ex) {
 				// an error occurred trying to build
-				// the main application window
+				// the main application window or the presentation windows
 				close();
 				// log the error
 				LOGGER.error(ex);
@@ -319,29 +319,6 @@ public final class ApplicationLoader {
 	}
 	
 	/**
-	 * Preloads the main application window.
-	 * @throws InterruptedException if the thread was interrupted before completing execution
-	 * @throws InvocationTargetException if the thread encountered an error
-	 */
-	private void preloadMainApplicationWindow() throws InterruptedException, InvocationTargetException {
-		SwingUtilities.invokeAndWait(new Runnable() {
-			@Override
-			public void run() {
-				lblLoading.setText(Messages.getString("dialog.preload.app"));
-				lblLoadingText.setText("");
-				barProgress.setValue(0);
-				
-				// create the main app window
-				// needs to be run on the EDT
-				praisenter = new Praisenter();
-				praisenter.setVisible(true);
-				
-				barProgress.setValue(100);
-			}
-		});
-	}
-	
-	/**
 	 * Method to preload the fonts.
 	 * <p>
 	 * Getting the fonts or font family names from the graphics environment does not load everything.
@@ -390,12 +367,42 @@ public final class ApplicationLoader {
 	
 	/**
 	 * Initializes the presentation windows.
+	 * @throws InterruptedException if the thread was interrupted before completing execution
+	 * @throws InvocationTargetException if the thread encountered an error
 	 */
-	private void initializePresentationWindows() {
+	private void initializePresentationWindows() throws InvocationTargetException, InterruptedException {
 		updateProgress(true, Messages.getString("dialog.preload.presentWindows.label"));
-		SlideWindows.getPrimarySlideWindow();
-		SlideWindows.getPrimaryNotificationWindow();
-		updateProgress(true, 100);
+		SwingUtilities.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				SlideWindows.getPrimarySlideWindow();
+				SlideWindows.getPrimaryNotificationWindow();
+				barProgress.setValue(100);
+			}
+		});
+	}
+
+	/**
+	 * Preloads the main application window.
+	 * @throws InterruptedException if the thread was interrupted before completing execution
+	 * @throws InvocationTargetException if the thread encountered an error
+	 */
+	private void preloadMainApplicationWindow() throws InterruptedException, InvocationTargetException {
+		SwingUtilities.invokeAndWait(new Runnable() {
+			@Override
+			public void run() {
+				lblLoading.setText(Messages.getString("dialog.preload.app"));
+				lblLoadingText.setText("");
+				barProgress.setValue(0);
+				
+				// create the main app window
+				// needs to be run on the EDT
+				praisenter = new Praisenter();
+				praisenter.setVisible(true);
+				
+				barProgress.setValue(100);
+			}
+		});
 	}
 	
 	/**

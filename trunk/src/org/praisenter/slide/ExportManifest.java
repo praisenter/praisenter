@@ -22,41 +22,77 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.ui.present;
+package org.praisenter.slide;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.praisenter.preferences.Preferences;
-import org.praisenter.slide.RenderableComponent;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Represents a rendered item that uses the quality preferences.
+ * Represents a list of export items for exported slide or templates.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public class QualityRenderItem extends DefaultRenderItem implements RenderGroup {
+@XmlRootElement(name = "ExportManifest")
+@XmlAccessorType(XmlAccessType.NONE)
+public class ExportManifest {
+	/** The export types */
+	@XmlElement(name = "ExportItem", required = true, nillable = false)
+	protected List<ExportItem> exportItems;
+	
 	/**
-	 * Full constructor.
-	 * @param component the component
+	 * Default constructor.
 	 */
-	public QualityRenderItem(RenderableComponent component) {
-		super(component);
+	public ExportManifest() {
+		this(new ArrayList<ExportItem>());
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.display.SlideComponentCache#render(java.awt.Graphics2D)
+	/**
+	 * Optional constructor.
+	 * @param exportItem the export item
 	 */
-	@Override
-	public void render(Graphics2D g) {
-		if (this.component != null) {
-			RenderingHints oHints = g.getRenderingHints();
-			// use the quality set in the preferences
-			Preferences preferences = Preferences.getInstance();
-			g.setRenderingHints(preferences.getRenderingHints());
-			this.component.render(g);
-			g.setRenderingHints(oHints);
+	public ExportManifest(ExportItem exportItem) {
+		this.exportItems = new ArrayList<ExportItem>();
+		this.exportItems.add(exportItem);
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param exportItems the export items
+	 */
+	public ExportManifest(List<ExportItem> exportItems) {
+		if (exportItems == null) {
+			exportItems = new ArrayList<ExportItem>();
 		}
+		this.exportItems = exportItems;
+	}
+	
+	/**
+	 * Returns the export item for the given file name.
+	 * <p>
+	 * Returns null if the file name was not found.
+	 * @param exportFileName the in-export file name
+	 * @return {@link ExportItem}
+	 */
+	public ExportItem getExportItem(String exportFileName) {
+		for (ExportItem item : this.exportItems) {
+			if (item.getExportFileName().equals(exportFileName)) {
+				return item;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns the list of export items.
+	 * @return List&lt;{@link ExportItem}&gt;
+	 */
+	public List<ExportItem> getExportItems() {
+		return this.exportItems;
 	}
 }

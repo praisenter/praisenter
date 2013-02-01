@@ -121,6 +121,7 @@ public class DateTimeComponentEditorPanel extends TextComponentEditorPanel<DateT
 						.addComponent(this.lblFontFamily)
 						.addComponent(this.lblFontSize)
 						.addComponent(this.lblLayout)
+						.addComponent(this.lblOutline)
 						.addComponent(this.lblText)
 						.addComponent(this.lblDateTimeFormat))
 				.addGroup(layout.createParallelGroup()
@@ -149,6 +150,12 @@ public class DateTimeComponentEditorPanel extends TextComponentEditorPanel<DateT
 						.addGroup(layout.createSequentialGroup()
 								.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.chkWrapText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						// outline row
+						.addGroup(layout.createSequentialGroup()
+								.addComponent(this.btnOutlineFillEditor)
+								.addComponent(this.btnOutlineStyleEditor)
+								.addComponent(this.chkOutlineVisible))
+						// date/time row
 						.addGroup(layout.createSequentialGroup()
 								.addComponent(this.chkTextVisible)
 								.addComponent(this.chkDateTimeUpdate))
@@ -189,10 +196,17 @@ public class DateTimeComponentEditorPanel extends TextComponentEditorPanel<DateT
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.chkWrapText))
+				// outline row
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblOutline)
+						.addComponent(this.btnOutlineFillEditor)
+						.addComponent(this.btnOutlineStyleEditor)
+						.addComponent(this.chkOutlineVisible))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblText)
 						.addComponent(this.chkTextVisible)
 						.addComponent(this.chkDateTimeUpdate))
+				// date/time row
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblDateTimeFormat)
 						.addComponent(this.cmbDateTimeFormats, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))

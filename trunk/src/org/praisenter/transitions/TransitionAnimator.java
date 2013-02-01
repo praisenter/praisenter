@@ -115,7 +115,7 @@ public class TransitionAnimator implements ActionListener {
 		this.timer = new Timer(0, this);
 		
 		// set the frequency of updates based on the render quality
-		RenderQuality quality = Preferences.getInstance().getRenderQuality();
+		RenderQuality quality = Preferences.getInstance().getTransitionQuality();
 		
 		// the choice of delay is tricky since the user has control of the 
 		// duration of the animation.  They could choose 10 milliseconds. 

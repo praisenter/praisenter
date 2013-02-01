@@ -75,9 +75,7 @@ public class DateTimeComponent extends TextComponent {
 	 * This should only be used by JAXB.
 	 */
 	protected DateTimeComponent() {
-		super();
-		this.dateTimeFormat = new SimpleDateFormat(DEFAULT_FORMAT);
-		this.dateTimeUpdateEnabled = false;
+		this(null, 0, 0, 0, 0, null);
 	}
 
 	/**
@@ -87,7 +85,7 @@ public class DateTimeComponent extends TextComponent {
 	 * @param height the height in pixels
 	 */
 	public DateTimeComponent(String name, int width, int height) {
-		super(name, 0, 0, width, height);
+		this(name, 0, 0, width, height);
 	}
 	
 	/**

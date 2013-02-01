@@ -27,7 +27,9 @@ package org.praisenter.media;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
@@ -544,6 +546,26 @@ public class MediaLibrary {
 	}
 	
 	/**
+	 * Returns true if the given file is contained in the media library.
+	 * @param filePath the file name and path of the media
+	 * @return boolean
+	 */
+	public static synchronized final boolean containsMedia(String filePath) {
+		return MEDIA.containsKey(filePath);
+	}
+	
+	/**
+	 * Returns true if the given file is contained in the media library.
+	 * @param fileName the file name
+	 * @param type the media type
+	 * @return boolean
+	 */
+	public static synchronized final boolean containsMedia(String fileName, MediaType type) {
+		String path = getMediaTypePath(type);
+		return containsMedia(path + Constants.SEPARATOR + fileName);
+	}
+	
+	/**
 	 * Returns the list of thumbnails for the given media type.
 	 * @param type the media type
 	 * @return List&lt;{@link MediaThumbnail}&gt;
@@ -612,6 +634,60 @@ public class MediaLibrary {
 	}
 
 	/**
+	 * Adds the given media stream to the media library.
+	 * <p>
+	 * This will save the stream to a file.
+	 * @param stream the media stream
+	 * @param type the media type
+	 * @param fileName the destination file name
+	 * @return {@link Media}
+	 * @throws MediaException thrown if an exception occurs while reading the media
+	 * @throws NoMediaLoaderException thrown if no {@link MediaLoader} exists for the given media
+	 * @throws FileNotFoundException thrown if the given file does not exist
+	 * @throws FileAlreadyExistsException thrown if the given file name is already taken by a file in the media library
+	 * @throws IOException thrown if an IO error occurs
+	 */
+	public static synchronized final Media addMedia(InputStream stream, MediaType type, String fileName) throws FileNotFoundException, FileAlreadyExistsException, NoMediaLoaderException, MediaException, IOException {
+		// make sure the given type is supported
+		if (isMediaSupported(type)) {
+			// get the destination path
+			String mediaPath = getMediaTypePath(type);
+			String path = mediaPath + Constants.SEPARATOR + fileName;
+			File file = new File(path);
+			if (!file.exists()) {
+				// write the input stream to the file
+				try (FileOutputStream fos = new FileOutputStream(file)) {
+					byte[] buffer = new byte[1024];
+				    while (true) {
+				    	int readCount = stream.read(buffer);
+				    	if (readCount < 0) {
+				    		break;
+				    	}
+				    	fos.write(buffer, 0, readCount);
+				    }
+				}
+				
+				Media media = loadFromMediaLibrary(path);
+				
+				// add a weak reference to it
+				MEDIA.put(media.getFile().getPath(), new WeakReference<Media>(media));
+				// add it to the thumbnails list
+				THUMBNAILS.add(media.getThumbnail(THUMBNAIL_SIZE));
+				// resort the thumbnails
+				Collections.sort(THUMBNAILS);
+				// save a new thumbnails file
+				saveThumbnailsFile(media.getType());
+				
+				return media;
+			} else {
+				throw new FileAlreadyExistsException(path);
+			}
+		} else {
+			throw new NoMediaLoaderException(MessageFormat.format(Messages.getString("media.exception.mediaNotSupported"), type));
+		}
+	}
+	
+	/**
 	 * Returns the media from the media library.
 	 * <p>
 	 * Returns null if the media is not found.
@@ -622,6 +698,39 @@ public class MediaLibrary {
 	 */
 	public static synchronized final Media getMedia(String filePath) throws MediaException, NoMediaLoaderException {
 		return getMedia(filePath, false);
+	}
+	
+	/**
+	 * Returns the media from the media library.
+	 * <p>
+	 * Returns null if the media is not found.
+	 * @param fileName the file name of the media in the media library (not including path)
+	 * @param type the media type of the media
+	 * @return {@link Media}
+	 * @throws MediaException if an exception occurs while loading the media
+	 * @throws NoMediaLoaderException thrown if a media loader does not exist for the media
+	 */
+	public static synchronized final Media getMedia(String fileName, MediaType type) throws MediaException, NoMediaLoaderException {
+		return getMedia(fileName, type, false);
+	}
+	
+	/**
+	 * Returns the media from the media library.
+	 * <p>
+	 * Returns null if the media is not found.
+	 * <p>
+	 * If the newInstance parameter is true a new instance of the media is created. This is useful when a
+	 * media object has shared resources that should not be copied but multiple copies need to be used.
+	 * @param fileName the file name of the media in the media library (not including path)
+	 * @param type the media type of the media
+	 * @param newInstance true if a new instance of the media should be returned
+	 * @return {@link Media}
+	 * @throws MediaException if an exception occurs while loading the media
+	 * @throws NoMediaLoaderException thrown if a media loader does not exist for the media
+	 */
+	public static synchronized final Media getMedia(String fileName, MediaType type, boolean newInstance) throws MediaException, NoMediaLoaderException {
+		String path = getMediaTypePath(type);
+		return getMedia(path + Constants.SEPARATOR + fileName, newInstance);
 	}
 	
 	/**

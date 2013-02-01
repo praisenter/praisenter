@@ -11,12 +11,14 @@ New Features:
   - Slide/Template editor
   - Slide/Template Library for managing templates and slides.
   - Slide/Template resolution targeting
+  - Slide/Template import and export
   - Slide and component borders
   - Gradient support.
   - Preferences manager
   - More informative Error Reporting buttons (save vs. send)
   - A new easing "Back"
   - Transition waiting
+  - Render quality settings
   
 Bug Fixes:
   - Auto adjusting of slides and templates based on target resolution and

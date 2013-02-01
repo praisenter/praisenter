@@ -78,6 +78,39 @@ public final class Bibles {
 		return Bibles.getCountBySql("SELECT COUNT(*) FROM bibles");
 	}
 	
+	/**
+	 * Deletes the given bible.
+	 * @param bible the bible to delete
+	 * @throws DataException if an exception occurs while deleting the bible
+	 * @since 2.0.0
+	 */
+	public static final void deleteBible(Bible bible) throws DataException {
+		Bibles.deleteBible(bible.id);
+	}
+	
+	/**
+	 * Deletes the bible with the given id.
+	 * @param id the id of the bible to delete
+	 * @throws DataException if an exception occurs while deleting the bible
+	 * @since 2.0.0
+	 */
+	public static final void deleteBible(int id) throws DataException {
+		// execute the query
+		try (Connection connection = ConnectionFactory.getBibleConnection();
+			 Statement statement = connection.createStatement();)
+		{
+			// delete from the bottom up
+			statement.addBatch("DELETE FROM bible_verses WHERE bible_id = " + id);
+			statement.addBatch("DELETE FROM bible_books WHERE bible_id = " + id);
+			statement.addBatch("DELETE FROM bibles WHERE id = " + id);
+			
+			// execute the batch
+			statement.executeBatch();
+		} catch (SQLException e) {
+			throw new DataException(e);
+		}
+	}
+	
 	// books
 	
 	/**

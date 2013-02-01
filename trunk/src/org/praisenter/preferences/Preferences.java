@@ -26,8 +26,11 @@ package org.praisenter.preferences;
 
 import java.awt.Dimension;
 import java.awt.GraphicsDevice;
+import java.awt.RenderingHints;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -69,10 +72,6 @@ public class Preferences {
 	@XmlJavaTypeAdapter(DimensionTypeAdapter.class)
 	protected Dimension primaryDeviceResolution;
 	
-	/** The desired render quality of the application */
-	@XmlElement(name = "RenderQuality", required = true, nillable = false)
-	protected RenderQuality renderQuality;
-	
 	/** True if smart video transitions should be enabled */
 	@XmlElement(name = "SmartVideoTransitionsEnabled", required = true, nillable = false)
 	protected boolean smartVideoTransitionsEnabled;
@@ -84,6 +83,44 @@ public class Preferences {
 	/** True if a send or clear should wait for the currently executing transition to finish before being executed */
 	@XmlElement(name = "WaitForTransitionEnabled", required = true, nillable = false)
 	protected boolean waitForTransitionEnabled;
+	
+	// rendering
+
+	/** The overall render quality */
+	@XmlElement(name = "RenderQuality", required = true, nillable = false)
+	protected RenderQuality renderQuality;
+	
+	/** The transition quality */
+	@XmlElement(name = "TransitionQuality", required = true, nillable = false)
+	protected RenderQuality transitionQuality;
+		
+	/** The interpolation quality (scaling) */
+	@XmlElement(name = "InterpolationQuality", required = true, nillable = false)
+	protected RenderQuality interpolationQuality;
+	
+	/** The color quality (conversion) */
+	@XmlElement(name = "ColorQuality", required = true, nillable = false)
+	protected RenderQuality colorQuality;
+	
+	/** The alpha interpolation quality (alpha blending) */
+	@XmlElement(name = "AlphaInterpolationQuality", required = true, nillable = false)
+	protected RenderQuality alphaInterpolationQuality;
+	
+	/** The anti-aliasing quality */
+	@XmlElement(name = "AntialiasingQuality", required = true, nillable = false)
+	protected RenderQuality antialiasingQuality;
+	
+	/** The text anti-aliasing quality */
+	@XmlElement(name = "TextAntialiasingQuality", required = true, nillable = false)
+	protected RenderQuality textAntialiasingQuality;
+	
+	/** The fractional metrics quality (for text) */
+	@XmlElement(name = "FractionalMetricsQuality", required = true, nillable = false)
+	protected RenderQuality fractionalMetricsQuality;
+	
+	/** The stroke control quality (sub pixel accuracy) */
+	@XmlElement(name = "StrokeControlQuality", required = true, nillable = false)
+	protected RenderQuality strokeControlQuality;
 	
 	// other settings
 	
@@ -108,7 +145,17 @@ public class Preferences {
 	
 	/** Hidden constructor */
 	private Preferences() {
+		// default render qualities
 		this.renderQuality = RenderQuality.MEDIUM;
+		this.transitionQuality = RenderQuality.MEDIUM;
+		this.interpolationQuality = RenderQuality.MEDIUM;
+		this.colorQuality = RenderQuality.MEDIUM;
+		this.alphaInterpolationQuality = RenderQuality.MEDIUM;
+		this.antialiasingQuality = RenderQuality.HIGH;
+		this.textAntialiasingQuality = RenderQuality.HIGH;
+		this.fractionalMetricsQuality = RenderQuality.HIGH;
+		this.strokeControlQuality = RenderQuality.HIGH;
+		
 		this.smartVideoTransitionsEnabled = true;
 		this.smartImageTransitionsEnabled = false;
 		this.waitForTransitionEnabled = true;
@@ -201,8 +248,10 @@ public class Preferences {
 		this.primaryDeviceResolution = primaryDeviceResolution;
 	}
 
+	// render quality
+	
 	/**
-	 * Returns the render quality.
+	 * Returns the overall render quality.
 	 * @return {@link RenderQuality}
 	 */
 	public RenderQuality getRenderQuality() {
@@ -210,13 +259,173 @@ public class Preferences {
 	}
 
 	/**
-	 * Sets the render quality.
+	 * Sets the overall render quality.
 	 * @param renderQuality the render quality
 	 */
 	public void setRenderQuality(RenderQuality renderQuality) {
 		this.renderQuality = renderQuality;
 	}
+	
+	/**
+	 * Returns the transition quality.
+	 * @return {@link RenderQuality}
+	 */
+	public RenderQuality getTransitionQuality() {
+		return transitionQuality;
+	}
 
+	/**
+	 * Sets the transition quality.
+	 * <p>
+	 * This effects the number of updates are fired during animation (smoothness).
+	 * @param quality the quality
+	 */
+	public void setTransitionQuality(RenderQuality quality) {
+		this.transitionQuality = quality;
+	}
+
+	/**
+	 * Returns the interpolation quality.
+	 * @return {@link RenderQuality}
+	 */
+	public RenderQuality getInterpolationQuality() {
+		return this.interpolationQuality;
+	}
+
+	/**
+	 * Sets the interpolation quality.
+	 * <p>
+	 * This effects the quality of scaled graphics.
+	 * @param quality the quality
+	 */
+	public void setInterpolationQuality(RenderQuality quality) {
+		this.interpolationQuality = quality;
+	}
+
+	/**
+	 * Returns the color quality.
+	 * @return {@link RenderQuality}
+	 */
+	public RenderQuality getColorQuality() {
+		return this.colorQuality;
+	}
+
+	/**
+	 * Sets the color quality.
+	 * <p>
+	 * This effects the quality of color conversions.
+	 * @param quality the quality
+	 */
+	public void setColorQuality(RenderQuality quality) {
+		this.colorQuality = quality;
+	}
+
+	/**
+	 * Returns the alpha interpolation quality.
+	 * @return {@link RenderQuality}
+	 */
+	public RenderQuality getAlphaInterpolationQuality() {
+		return this.alphaInterpolationQuality;
+	}
+
+	/**
+	 * Sets the alpha interpolation quality.
+	 * <p>
+	 * This effects the quality of alpha blending.
+	 * @param quality the quality
+	 */
+	public void setAlphaInterpolationQuality(RenderQuality quality) {
+		this.alphaInterpolationQuality = quality;
+	}
+
+	/**
+	 * Returns the anti-aliasing quality.
+	 * @return {@link RenderQuality}
+	 */
+	public RenderQuality getAntialiasingQuality() {
+		return this.antialiasingQuality;
+	}
+
+	/**
+	 * Sets the anti-aliasing quality.
+	 * @param quality the quality
+	 */
+	public void setAntialiasingQuality(RenderQuality quality) {
+		this.antialiasingQuality = quality;
+	}
+
+	/**
+	 * Returns the text anti-aliasing quality.
+	 * @return {@link RenderQuality}
+	 */
+	public RenderQuality getTextAntialiasingQuality() {
+		return this.textAntialiasingQuality;
+	}
+
+	/**
+	 * Sets the text anti-aliasing quality.
+	 * @param quality the quality
+	 */
+	public void setTextAntialiasingQuality(RenderQuality quality) {
+		this.textAntialiasingQuality = quality;
+	}
+
+	/**
+	 * Returns the fractional metrics quality.
+	 * @return {@link RenderQuality}
+	 */
+	public RenderQuality getFractionalMetricsQuality() {
+		return this.fractionalMetricsQuality;
+	}
+
+	/**
+	 * Sets the fractional metrics quality.
+	 * <p>
+	 * This effects the sub-pixel accuracy of text.
+	 * @param quality the quality
+	 */
+	public void setFractionalMetricsQuality(RenderQuality quality) {
+		this.fractionalMetricsQuality = quality;
+	}
+
+	/**
+	 * Returns the stroke control quality.
+	 * @return {@link RenderQuality}
+	 */
+	public RenderQuality getStrokeControlQuality() {
+		return this.strokeControlQuality;
+	}
+
+	/**
+	 * Sets the stroke control quality.
+	 * <p>
+	 * This effects the stroke sub-pixel accuracy.
+	 * @param quality the quality
+	 */
+	public void setStrokeControlQuality(RenderQuality quality) {
+		this.strokeControlQuality = quality;
+	}
+
+	/**
+	 * Returns the rendering hints for the set render quality preferences.
+	 * @return RenderingHints
+	 */
+	public RenderingHints getRenderingHints() {
+		Map<RenderingHints.Key, Object> map = new HashMap<RenderingHints.Key, Object>();
+		// setup the rendering hints based on the set qualities
+		map.put(RenderingHints.KEY_INTERPOLATION, this.interpolationQuality.getRenderingHintValue(RenderingHints.KEY_INTERPOLATION));
+		map.put(RenderingHints.KEY_COLOR_RENDERING, this.colorQuality.getRenderingHintValue(RenderingHints.KEY_COLOR_RENDERING));
+		map.put(RenderingHints.KEY_ALPHA_INTERPOLATION, this.alphaInterpolationQuality.getRenderingHintValue(RenderingHints.KEY_ALPHA_INTERPOLATION));
+		map.put(RenderingHints.KEY_ANTIALIASING, this.antialiasingQuality.getRenderingHintValue(RenderingHints.KEY_ANTIALIASING));
+		map.put(RenderingHints.KEY_TEXT_ANTIALIASING, this.textAntialiasingQuality.getRenderingHintValue(RenderingHints.KEY_TEXT_ANTIALIASING));
+		map.put(RenderingHints.KEY_FRACTIONALMETRICS, this.fractionalMetricsQuality.getRenderingHintValue(RenderingHints.KEY_FRACTIONALMETRICS));
+		map.put(RenderingHints.KEY_STROKE_CONTROL, this.strokeControlQuality.getRenderingHintValue(RenderingHints.KEY_STROKE_CONTROL));
+		map.put(RenderingHints.KEY_RENDERING, this.renderQuality.getRenderingHintValue(RenderingHints.KEY_RENDERING));
+		return new RenderingHints(map);
+	}
+	
+	// other preferences
+	
 	/**
 	 * Returns true if smart video transitions should be used.
 	 * <p>

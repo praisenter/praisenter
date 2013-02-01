@@ -22,41 +22,60 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.ui.present;
+package org.praisenter.ui;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.text.MessageFormat;
 
-import org.praisenter.preferences.Preferences;
-import org.praisenter.slide.RenderableComponent;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+
+import org.apache.log4j.Logger;
+import org.praisenter.resources.Messages;
 
 /**
- * Represents a rendered item that uses the quality preferences.
+ * Implementation of a hyperlink listener used to open a link in the
+ * user's default browser.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public class QualityRenderItem extends DefaultRenderItem implements RenderGroup {
-	/**
-	 * Full constructor.
-	 * @param component the component
-	 */
-	public QualityRenderItem(RenderableComponent component) {
-		super(component);
-	}
+public class OpenUrlHyperlinkListener implements HyperlinkListener {
+	/** The class level logger */
+	private static final Logger LOGGER = Logger.getLogger(OpenUrlHyperlinkListener.class);
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.display.SlideComponentCache#render(java.awt.Graphics2D)
+	 * @see javax.swing.event.HyperlinkListener#hyperlinkUpdate(javax.swing.event.HyperlinkEvent)
 	 */
 	@Override
-	public void render(Graphics2D g) {
-		if (this.component != null) {
-			RenderingHints oHints = g.getRenderingHints();
-			// use the quality set in the preferences
-			Preferences preferences = Preferences.getInstance();
-			g.setRenderingHints(preferences.getRenderingHints());
-			this.component.render(g);
-			g.setRenderingHints(oHints);
+	public void hyperlinkUpdate(HyperlinkEvent e) {
+		// make sure the hyperlink event is a "onclick"
+		if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+			// make sure accessing the desktop is supported
+			if (Desktop.isDesktopSupported()) {
+				// get the current desktop
+				Desktop desktop = Desktop.getDesktop();
+				// make sure that browsing is supported
+				if (desktop.isSupported(Desktop.Action.BROWSE)) {
+					// if so then attempt to load the page
+					// in the default browser
+					try {
+						URI uri = e.getURL().toURI();
+						desktop.browse(uri);
+					} catch (URISyntaxException ex) {
+						// this shouldn't happen
+						LOGGER.error(MessageFormat.format(Messages.getString("dialog.about.uri.error"), e.getURL()));
+					} catch (IOException ex) {
+						// this shouldn't happen either since
+						// most desktops have a default program to
+						// open urls
+						LOGGER.error(Messages.getString("dialog.about.navigate.error"));
+					}
+				}
+			}
 		}
 	}
 }

@@ -26,9 +26,7 @@ package org.praisenter.preferences.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -39,15 +37,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import org.praisenter.icons.Icons;
@@ -81,10 +78,36 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 	/** The label for translucency support */
 	private JLabel lblTranslucency;
 	
-	// other
+	// render qualities
 	
-	/** The render qualities */
-	private JComboBox<RenderQuality> cmbRenderQualities;
+	/** The overall render quality */
+	private JComboBox<RenderQuality> cmbRenderQuality;
+	
+	/** The transition quality */
+	private JComboBox<RenderQuality> cmbTransitionQuality;
+	
+	/** The interpolation quality */
+	private JComboBox<RenderQuality> cmbInterpolationQuality;
+	
+	/** The color quality */
+	private JComboBox<RenderQuality> cmbColorQuality;
+	
+	/** The alpha interpolation quality */
+	private JComboBox<RenderQuality> cmbAlphaInterpolationQuality;
+	
+	/** The anti-aliasing quality */
+	private JComboBox<RenderQuality> cmbAntialiasingQuality;
+	
+	/** The text anti-aliasing quality */
+	private JComboBox<RenderQuality> cmbTextAntialiasingQuality;
+	
+	/** The fractional metrics quality */
+	private JComboBox<RenderQuality> cmbFractionalMetricsQuality;
+	
+	/** The stroke control quality */
+	private JComboBox<RenderQuality> cmbStrokeControlQuality;
+	
+	// transitions
 	
 	/** The check box for smart video transitions */
 	private JCheckBox chkSmartVideoTransitions;
@@ -124,7 +147,7 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		// drop down for the primary display device
 		this.cmbDevices = new JComboBox<GraphicsDevice>(this.devices);
 		this.cmbDevices.setToolTipText(Messages.getString("panel.general.preferences.display.primaryDisplay.tooltip"));
-		this.cmbDevices.setRenderer(new DeviceRenderer());
+		this.cmbDevices.setRenderer(new GraphicsDeviceListCellRenderer());
 		if (device != null) {
 			this.cmbDevices.setSelectedItem(device);
 		}
@@ -148,11 +171,67 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		}
 		
 		JLabel lblRenderQuality = new JLabel(Messages.getString("panel.general.preferences.quality"));
-		this.cmbRenderQualities = new JComboBox<RenderQuality>(RenderQuality.values());
-		this.cmbRenderQualities.setToolTipText(Messages.getString("panel.general.preferences.quality.tooltip"));
-		this.cmbRenderQualities.setRenderer(new RenderQualityRenderer());
-		this.cmbRenderQualities.setSelectedItem(preferences.getRenderQuality());
-		this.cmbRenderQualities.addItemListener(this);
+		this.cmbRenderQuality = new JComboBox<RenderQuality>(RenderQuality.values());
+		this.cmbRenderQuality.setToolTipText(Messages.getString("panel.general.preferences.quality.tooltip"));
+		this.cmbRenderQuality.setRenderer(new RenderQualityListCellRenderer());
+		this.cmbRenderQuality.setSelectedItem(preferences.getRenderQuality());
+		this.cmbRenderQuality.addItemListener(this);
+		
+		JLabel lblTransitionQuality = new JLabel(Messages.getString("panel.general.preferences.quality.transition"));
+		this.cmbTransitionQuality = new JComboBox<RenderQuality>(RenderQuality.values());
+		this.cmbTransitionQuality.setToolTipText(Messages.getString("panel.general.preferences.quality.transition.tooltip"));
+		this.cmbTransitionQuality.setRenderer(new RenderQualityListCellRenderer());
+		this.cmbTransitionQuality.setSelectedItem(preferences.getTransitionQuality());
+		this.cmbTransitionQuality.addItemListener(this);
+		
+		JLabel lblInterpolationQuality = new JLabel(Messages.getString("panel.general.preferences.quality.interpolation"));
+		this.cmbInterpolationQuality = new JComboBox<RenderQuality>(RenderQuality.values());
+		this.cmbInterpolationQuality.setToolTipText(Messages.getString("panel.general.preferences.quality.interpolation.tooltip"));
+		this.cmbInterpolationQuality.setRenderer(new RenderQualityListCellRenderer());
+		this.cmbInterpolationQuality.setSelectedItem(preferences.getInterpolationQuality());
+		this.cmbInterpolationQuality.addItemListener(this);
+		
+		JLabel lblColorQuality = new JLabel(Messages.getString("panel.general.preferences.quality.color"));
+		this.cmbColorQuality = new JComboBox<RenderQuality>(RenderQuality.values());
+		this.cmbColorQuality.setToolTipText(Messages.getString("panel.general.preferences.quality.color.tooltip"));
+		this.cmbColorQuality.setRenderer(new RenderQualityListCellRenderer());
+		this.cmbColorQuality.setSelectedItem(preferences.getColorQuality());
+		this.cmbColorQuality.addItemListener(this);
+		
+		JLabel lblAlphaInterpolationQuality = new JLabel(Messages.getString("panel.general.preferences.quality.alphaInterpolation"));
+		this.cmbAlphaInterpolationQuality = new JComboBox<RenderQuality>(RenderQuality.values());
+		this.cmbAlphaInterpolationQuality.setToolTipText(Messages.getString("panel.general.preferences.quality.alphaInterpolation.tooltip"));
+		this.cmbAlphaInterpolationQuality.setRenderer(new RenderQualityListCellRenderer());
+		this.cmbAlphaInterpolationQuality.setSelectedItem(preferences.getAlphaInterpolationQuality());
+		this.cmbAlphaInterpolationQuality.addItemListener(this);
+		
+		JLabel lblAntialiasingQuality = new JLabel(Messages.getString("panel.general.preferences.quality.antialiasing"));
+		this.cmbAntialiasingQuality = new JComboBox<RenderQuality>(RenderQuality.values());
+		this.cmbAntialiasingQuality.setToolTipText(Messages.getString("panel.general.preferences.quality.antialiasing.tooltip"));
+		this.cmbAntialiasingQuality.setRenderer(new RenderQualityListCellRenderer());
+		this.cmbAntialiasingQuality.setSelectedItem(preferences.getAntialiasingQuality());
+		this.cmbAntialiasingQuality.addItemListener(this);
+		
+		JLabel lblTextAntialiasingQuality = new JLabel(Messages.getString("panel.general.preferences.quality.textAntialiasing"));
+		this.cmbTextAntialiasingQuality = new JComboBox<RenderQuality>(RenderQuality.values());
+		this.cmbTextAntialiasingQuality.setToolTipText(Messages.getString("panel.general.preferences.quality.textAntialiasing.tooltip"));
+		this.cmbTextAntialiasingQuality.setRenderer(new RenderQualityListCellRenderer());
+		this.cmbTextAntialiasingQuality.setSelectedItem(preferences.getTextAntialiasingQuality());
+		this.cmbTextAntialiasingQuality.addItemListener(this);
+		
+		JLabel lblFractionalMetricsQuality = new JLabel(Messages.getString("panel.general.preferences.quality.fractionalMetrics"));
+		this.cmbFractionalMetricsQuality = new JComboBox<RenderQuality>(RenderQuality.values());
+		this.cmbFractionalMetricsQuality.setToolTipText(Messages.getString("panel.general.preferences.quality.fractionalMetrics.tooltip"));
+		this.cmbFractionalMetricsQuality.setRenderer(new RenderQualityListCellRenderer());
+		this.cmbFractionalMetricsQuality.setSelectedItem(preferences.getFractionalMetricsQuality());
+		this.cmbFractionalMetricsQuality.addItemListener(this);
+		
+		JLabel lblStrokeControlQuality = new JLabel(Messages.getString("panel.general.preferences.quality.strokeControl"));
+		this.cmbStrokeControlQuality = new JComboBox<RenderQuality>(RenderQuality.values());
+		this.cmbStrokeControlQuality.setToolTipText(Messages.getString("panel.general.preferences.quality.strokeControl.tooltip"));
+		this.cmbStrokeControlQuality.setRenderer(new RenderQualityListCellRenderer());
+		this.cmbStrokeControlQuality.setSelectedItem(preferences.getStrokeControlQuality());
+		this.cmbStrokeControlQuality.addItemListener(this);
 		
 		JLabel lblSmartVideoTransitions = new JLabel(Messages.getString("panel.general.preferences.smartVideoTransitions"));
 		this.chkSmartVideoTransitions = new JCheckBox();
@@ -170,29 +249,45 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		this.chkWaitForTransition.setSelected(preferences.isWaitForTransitionEnabled());
 		
 		// create the layout
-		JPanel pnlDisplays = new JPanel();
-		GroupLayout layout = new GroupLayout(pnlDisplays);
-		pnlDisplays.setLayout(layout);
+		JPanel pnlGeneral = new JPanel();
+		GroupLayout layout = new GroupLayout(pnlGeneral);
+		pnlGeneral.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
 						.addComponent(lblPrimaryDisplay)
-						.addComponent(lblRenderQuality)
 						.addComponent(lblSmartVideoTransitions)
 						.addComponent(lblSmartImageTransitions)
-						.addComponent(lblWaitForTransition))
+						.addComponent(lblWaitForTransition)
+						.addComponent(lblRenderQuality)
+						.addComponent(lblTransitionQuality)
+						.addComponent(lblInterpolationQuality)
+						.addComponent(lblColorQuality)
+						.addComponent(lblAlphaInterpolationQuality)
+						.addComponent(lblAntialiasingQuality)
+						.addComponent(lblTextAntialiasingQuality)
+						.addComponent(lblFractionalMetricsQuality)
+						.addComponent(lblStrokeControlQuality))
 				.addGroup(layout.createParallelGroup()
 						.addGroup(layout.createSequentialGroup()
 								.addComponent(this.cmbDevices, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(btnIdentify))
 						.addComponent(this.lblDisplayNotFound)
 						.addComponent(this.lblTranslucency)
-						.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.chkSmartVideoTransitions)
 						.addComponent(this.chkSmartImageTransitions)
-						.addComponent(this.chkWaitForTransition)));
+						.addComponent(this.chkWaitForTransition)
+						.addComponent(this.cmbRenderQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbTransitionQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbInterpolationQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbColorQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbAlphaInterpolationQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbAntialiasingQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbTextAntialiasingQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbFractionalMetricsQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbStrokeControlQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblPrimaryDisplay)
@@ -201,9 +296,6 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 				.addComponent(this.lblDisplayNotFound)
 				.addComponent(this.lblTranslucency)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(lblRenderQuality)
-						.addComponent(this.cmbRenderQualities, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblSmartVideoTransitions)
 						.addComponent(this.chkSmartVideoTransitions))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
@@ -211,7 +303,96 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 						.addComponent(this.chkSmartImageTransitions))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblWaitForTransition)
-						.addComponent(this.chkWaitForTransition)));
+						.addComponent(this.chkWaitForTransition))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblRenderQuality)
+						.addComponent(this.cmbRenderQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblTransitionQuality)
+						.addComponent(this.cmbTransitionQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblInterpolationQuality)
+						.addComponent(this.cmbInterpolationQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblColorQuality)
+						.addComponent(this.cmbColorQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblAlphaInterpolationQuality)
+						.addComponent(this.cmbAlphaInterpolationQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblAntialiasingQuality)
+						.addComponent(this.cmbAntialiasingQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblTextAntialiasingQuality)
+						.addComponent(this.cmbTextAntialiasingQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblFractionalMetricsQuality)
+						.addComponent(this.cmbFractionalMetricsQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblStrokeControlQuality)
+						.addComponent(this.cmbStrokeControlQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+		
+		JPanel pnlQuality = new JPanel();
+		layout = new GroupLayout(pnlQuality);
+		pnlQuality.setLayout(layout);
+		
+		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup()
+						.addComponent(lblRenderQuality)
+						.addComponent(lblTransitionQuality)
+						.addComponent(lblInterpolationQuality)
+						.addComponent(lblColorQuality)
+						.addComponent(lblAlphaInterpolationQuality))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(this.cmbRenderQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbTransitionQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbInterpolationQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbColorQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbAlphaInterpolationQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup()
+						.addGap(30)
+						.addGap(30)
+						.addGap(30)
+						.addGap(30)
+						.addGap(30))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(lblAntialiasingQuality)
+						.addComponent(lblTextAntialiasingQuality)
+						.addComponent(lblFractionalMetricsQuality)
+						.addComponent(lblStrokeControlQuality))
+				.addGroup(layout.createParallelGroup()
+						.addComponent(this.cmbAntialiasingQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbTextAntialiasingQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbFractionalMetricsQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.cmbStrokeControlQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+		layout.setVerticalGroup(layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblRenderQuality)
+						.addComponent(this.cmbRenderQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblTransitionQuality)
+						.addComponent(this.cmbTransitionQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblAntialiasingQuality)
+						.addComponent(this.cmbAntialiasingQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblInterpolationQuality)
+						.addComponent(this.cmbInterpolationQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblTextAntialiasingQuality)
+						.addComponent(this.cmbTextAntialiasingQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblColorQuality)
+						.addComponent(this.cmbColorQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblFractionalMetricsQuality)
+						.addComponent(this.cmbFractionalMetricsQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblAlphaInterpolationQuality)
+						.addComponent(this.cmbAlphaInterpolationQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblStrokeControlQuality)
+						.addComponent(this.cmbStrokeControlQuality, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+		
+		JSeparator sep1 = new JSeparator();
 		
 		// create the main layout
 		layout = new GroupLayout(this);
@@ -219,9 +400,13 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(pnlDisplays));
+				.addComponent(pnlGeneral)
+				.addComponent(sep1)
+				.addComponent(pnlQuality, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(pnlDisplays));
+				.addComponent(pnlGeneral)
+				.addComponent(sep1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addComponent(pnlQuality));
 	}
 	
 	/* (non-Javadoc)
@@ -245,7 +430,7 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 				// create a frame for each device
 				JDialog dialog = dialogs[i] = new JDialog(WindowUtilities.getParentWindow(this));
 				// create a label for each device
-				JLabel lblName = new JLabel(getDeviceName(device));
+				JLabel lblName = new JLabel(WindowUtilities.getDeviceName(device, i));
 				lblName.setFont(new Font(lblName.getFont().getName(), Font.PLAIN, 50));
 				lblName.setHorizontalAlignment(SwingConstants.CENTER);
 				// make sure the frame is sized and positioned correctly
@@ -302,106 +487,18 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 			preferences.setPrimaryDeviceId(device.getIDstring());
 			preferences.setPrimaryDeviceResolution(WindowUtilities.getDimension(device.getDisplayMode()));
 		}
-		preferences.setRenderQuality((RenderQuality)this.cmbRenderQualities.getSelectedItem());
 		preferences.setSmartVideoTransitionsEnabled(this.chkSmartVideoTransitions.isSelected());
 		preferences.setSmartImageTransitionsEnabled(this.chkSmartImageTransitions.isSelected());
 		preferences.setWaitForTransitionEnabled(this.chkWaitForTransition.isSelected());
-	}
-	
-	/**
-	 * Returns the device index.
-	 * @param device the device
-	 * @return int
-	 */
-	private final int getDeviceIndex(GraphicsDevice device) {
-		for (int i = 0; i < this.devices.length; i++) {
-			if (device == this.devices[i]) {
-				return i;
-			}
-		}
-		return -1;
-	}
-	
-	/**
-	 * Returns a device name for the given device.
-	 * @param device the device
-	 * @return String
-	 */
-	private final String getDeviceName(GraphicsDevice device) {
-		DisplayMode mode = device.getDisplayMode();
-		int rate = mode.getRefreshRate();
-		if (rate <= 0) {
-			// assume its 60 (mac os x and LCD monitors)
-			rate = 60;
-		}
-		StringBuilder sb = new StringBuilder();
-		sb.append(Messages.getString("panel.general.preferences.display.name"))
-		  .append(getDeviceIndex(device) + 1)
-		  .append(" ").append(mode.getWidth())
-		  .append("x").append(mode.getHeight())
-		  .append(" ").append(mode.getBitDepth())
-		  .append("bit at ").append(rate)
-		  .append("hz");
-		return sb.toString();
-	}
-	
-	/**
-	 * Renderer for showing devices.
-	 * @author William Bittle
-	 * @version 1.0.0
-	 * @since 1.0.0
-	 */
-	private class DeviceRenderer extends DefaultListCellRenderer {
-		/** The version id */
-		private static final long serialVersionUID = -909873909535605533L;
 		
-		/* (non-Javadoc)
-		 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
-		 */
-		@Override
-		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-			if (value instanceof GraphicsDevice) {
-				GraphicsDevice device = (GraphicsDevice)value;
-				
-				this.setText(getDeviceName(device));
-			}
-			
-			return this;
-		}
-	}
-	
-	/**
-	 * Renderer for showing render qualities.
-	 * @author William Bittle
-	 * @version 1.0.0
-	 * @since 1.0.0
-	 */
-	private class RenderQualityRenderer extends DefaultListCellRenderer {
-		/** The version id */
-		private static final long serialVersionUID = 3065297114501982402L;
-		
-		/* (non-Javadoc)
-		 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
-		 */
-		@Override
-		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-			if (value instanceof RenderQuality) {
-				RenderQuality quality = (RenderQuality)value;
-				if (quality == RenderQuality.HIGH) {
-					this.setText(Messages.getString("panel.general.preferences.quality.high"));
-					this.setToolTipText(Messages.getString("panel.general.preferences.quality.high.tooltip"));
-				} else if (quality == RenderQuality.MEDIUM) {
-					this.setText(Messages.getString("panel.general.preferences.quality.medium"));
-					this.setToolTipText(Messages.getString("panel.general.preferences.quality.medium.tooltip"));
-				} else {
-					this.setText(Messages.getString("panel.general.preferences.quality.low"));
-					this.setToolTipText(Messages.getString("panel.general.preferences.quality.low.tooltip"));
-				}
-			}
-			
-			return this;
-		}
+		preferences.setRenderQuality((RenderQuality)this.cmbRenderQuality.getSelectedItem());
+		preferences.setTransitionQuality((RenderQuality)this.cmbTransitionQuality.getSelectedItem());
+		preferences.setInterpolationQuality((RenderQuality)this.cmbInterpolationQuality.getSelectedItem());
+		preferences.setColorQuality((RenderQuality)this.cmbColorQuality.getSelectedItem());
+		preferences.setAlphaInterpolationQuality((RenderQuality)this.cmbAlphaInterpolationQuality.getSelectedItem());
+		preferences.setAntialiasingQuality((RenderQuality)this.cmbAntialiasingQuality.getSelectedItem());
+		preferences.setTextAntialiasingQuality((RenderQuality)this.cmbTextAntialiasingQuality.getSelectedItem());
+		preferences.setFractionalMetricsQuality((RenderQuality)this.cmbFractionalMetricsQuality.getSelectedItem());
+		preferences.setStrokeControlQuality((RenderQuality)this.cmbStrokeControlQuality.getSelectedItem());
 	}
 }

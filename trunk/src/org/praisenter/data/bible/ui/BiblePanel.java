@@ -1580,7 +1580,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	/**
 	 * Called when a bible is imported.
 	 */
-	public void onBibleImport() {
+	public void onBibleLibraryChanged() {
 		// get the selected items
 		Bible b1 = (Bible)this.cmbBiblesPrimary.getSelectedItem();
 		Bible b2 = (Bible)this.cmbBiblesSecondary.getSelectedItem();

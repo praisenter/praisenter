@@ -25,12 +25,9 @@
 package org.praisenter.ui;
 
 import java.awt.Container;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.MessageFormat;
 
 import javax.swing.BorderFactory;
@@ -39,8 +36,6 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 
 import org.praisenter.Version;
 import org.praisenter.icons.Icons;
@@ -87,36 +82,7 @@ public class AboutDialog extends JDialog {
 			text.setText(Messages.getString("dialog.about.html.error"));
 		}
 		// add a hyperlink listener to open links in the default browser
-		text.addHyperlinkListener(new HyperlinkListener() {
-			@Override
-			public void hyperlinkUpdate(HyperlinkEvent e) {
-				// make sure the hyperlink event is a "onclick"
-				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-					// make sure accessing the desktop is supported
-					if (Desktop.isDesktopSupported()) {
-						// get the current desktop
-						Desktop desktop = Desktop.getDesktop();
-						// make sure that browsing is supported
-						if (desktop.isSupported(Desktop.Action.BROWSE)) {
-							// if so then attempt to load the page
-							// in the default browser
-							try {
-								URI uri = e.getURL().toURI();
-								desktop.browse(uri);
-							} catch (URISyntaxException ex) {
-								// this shouldn't happen
-								System.err.println(MessageFormat.format(Messages.getString("dialog.about.uri.error"), e.getURL()));
-							} catch (IOException ex) {
-								// this shouldn't happen either since
-								// most desktops have a default program to
-								// open urls
-								System.err.println(Messages.getString("dialog.about.navigate.error"));
-							}
-						}
-					}
-				}
-			}
-		});
+		text.addHyperlinkListener(new OpenUrlHyperlinkListener());
 		// wrap the text pane in a scroll pane just in case
 		JScrollPane scroller = new JScrollPane(text);
 		

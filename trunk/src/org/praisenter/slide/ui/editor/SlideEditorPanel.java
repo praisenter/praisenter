@@ -359,9 +359,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				.addComponent(this.btnAddResolution));
 		
 		// get all the components on the slide/template
-		List<SlideComponent> components = slide.getComponents(SlideComponent.class);
-		// add in the background component
-		components.add(0, slide.getBackground());
+		List<SlideComponent> components = slide.getComponents(SlideComponent.class, true);
 		this.lstComponents = new JList<SlideComponent>();
 		this.lstComponents.setCellRenderer(new SlideComponentListCellRenderer());
 		this.lstComponents.addListSelectionListener(this);

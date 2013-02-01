@@ -28,12 +28,15 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -44,6 +47,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -66,6 +70,7 @@ import org.praisenter.slide.BibleSlideTemplate;
 import org.praisenter.slide.NotificationSlideTemplate;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.SlideExport;
 import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideThumbnail;
@@ -77,6 +82,8 @@ import org.praisenter.slide.ui.editor.SlideEditorResult;
 import org.praisenter.slide.ui.preview.SingleSlidePreviewPanel;
 import org.praisenter.threading.AbstractTask;
 import org.praisenter.threading.TaskProgressDialog;
+import org.praisenter.ui.ValidateFileChooser;
+import org.praisenter.ui.ZipFileFilter;
 import org.praisenter.utilities.WindowUtilities;
 
 /**
@@ -85,7 +92,6 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
-//FIXME IMPORT-EXPORT add import/export caps for slides and templates
 public class SlideLibraryPanel extends JPanel implements ListSelectionListener, ChangeListener, ItemListener, ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = -8314362249681392612L;
@@ -150,6 +156,9 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 	
 	/** The remove slide template button */
 	private JButton btnRemoveSlide;
+
+	/** The export slide/template button */
+	private JButton btnExportSlide;
 	
 	/** The slide/template tabs */
 	private JTabbedPane slideTabs;
@@ -250,6 +259,16 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		btnCreateSlide.setMinimumSize(new Dimension(0, 50));
 		btnCreateSlide.setFont(btnCreateSlide.getFont().deriveFont(Font.BOLD, btnCreateSlide.getFont().getSize2D() + 2.0f));
 		
+		JButton btnImport = new JButton(Messages.getString("panel.slide.import"));
+		btnImport.setActionCommand("import");
+		btnImport.setToolTipText(Messages.getString("panel.slide.import.tooltip"));
+		btnImport.addActionListener(this);
+		
+		JButton btnExport = new JButton(Messages.getString("panel.slide.export"));
+		btnExport.setActionCommand("export");
+		btnExport.setToolTipText(Messages.getString("panel.slide.export.tooltip"));
+		btnExport.addActionListener(this);
+		
 		this.btnEditSlide = new JButton(Messages.getString("panel.slide.edit"));
 		this.btnEditSlide.setActionCommand("edit");
 		this.btnEditSlide.addActionListener(this);
@@ -277,6 +296,11 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		this.btnRemoveSlide.addActionListener(this);
 		this.btnRemoveSlide.setEnabled(false);
 		
+		this.btnExportSlide = new JButton(Messages.getString("panel.slide.export.slide"));
+		this.btnExportSlide.setActionCommand("export-slide");
+		this.btnExportSlide.addActionListener(this);
+		this.btnExportSlide.setEnabled(false);
+		
 		// select the initial view
 		if (clazz != null) {
 			if (Template.class.isAssignableFrom(clazz)) {
@@ -293,27 +317,37 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 			}
 		}
 		
+		JPanel pnlLibraryButtons = new JPanel();
+		pnlLibraryButtons.setLayout(new GridLayout(1, 2));
+		pnlLibraryButtons.add(btnImport);
+		pnlLibraryButtons.add(btnExport);
+		
+		JPanel pnlSlideButtons = new JPanel();
+		pnlSlideButtons.setLayout(new GridLayout(2, 2));
+		pnlSlideButtons.add(this.btnEditSlide);
+		pnlSlideButtons.add(this.btnCopySlide);
+		pnlSlideButtons.add(this.btnExportSlide);
+		pnlSlideButtons.add(this.btnRemoveSlide);
+		
 		JPanel pnlRight = new JPanel();
 		GroupLayout layout = new GroupLayout(pnlRight);
 		pnlRight.setLayout(layout);
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 				.addComponent(btnCreateSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(pnlLibraryButtons)
 				.addComponent(this.pnlProperties)
-				.addComponent(this.btnEditSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(this.btnCopySlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(pnlSlideButtons)
 				.addComponent(this.btnCreateSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(this.btnCreateTemplate, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(this.btnRemoveSlide, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(this.pnlPreview));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(btnCreateSlide)
+				.addComponent(pnlLibraryButtons)
 				.addComponent(this.pnlProperties, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(this.btnEditSlide)
-				.addComponent(this.btnCopySlide)
+				.addComponent(pnlSlideButtons)
 				.addComponent(this.btnCreateSlide)
 				.addComponent(this.btnCreateTemplate)
-				.addComponent(this.btnRemoveSlide)
 				.addComponent(this.pnlPreview));
 		
 		this.slideTabs.addChangeListener(this);
@@ -407,18 +441,137 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 					} else {
 						list = this.lstSlides;
 					}
-					list.clearSelection();
-					// we need to reload all the thumbnails here since the user could do multiple save as...'es saving
-					// multiple slides or templates
-					DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
-					model.removeAllElements();
-					for (SlideThumbnail thumb : thumbnails) {
-						model.addElement(thumb);
-					}
-					list.setSelectedValue(result.getThumbnail(), true);
+					updateThumbnailJList(list, thumbnails);
 					this.slideLibraryUpdated = true;
 				}
 			}
+			return;
+		} else if ("import".equals(command)) {
+			// show a file browser with the allowed types
+			JFileChooser fc = new JFileChooser();
+			// the user can only select files
+			fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			fc.setMultiSelectionEnabled(true);
+			// they can only select zip files
+			fc.setFileFilter(new ZipFileFilter());
+			fc.setAcceptAllFileFilterUsed(false);
+			// show the dialog
+			int result = fc.showOpenDialog(this);
+			if (result == JFileChooser.APPROVE_OPTION) {
+				// get the file
+				final File file = fc.getSelectedFile();
+				
+				AbstractTask task = new AbstractTask() {
+					@Override
+					public void run() {
+						try {
+							SlideLibrary.importSlides(file);
+							this.setSuccessful(true);
+						} catch (Exception e) {
+							this.handleException(e);
+						}
+					}
+				};
+				
+				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("importing"), task);
+				
+				if (task.isSuccessful()) {
+					// update all the jlists since we could have imported all types
+					List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BasicSlide.class);
+					updateThumbnailJList(this.lstSlides, thumbnails);
+					
+					thumbnails = SlideLibrary.getThumbnails(BasicSlideTemplate.class);
+					updateThumbnailJList(this.lstTemplates, thumbnails);
+					
+					thumbnails = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
+					updateThumbnailJList(this.lstBibleTemplates, thumbnails);
+					
+					thumbnails = SlideLibrary.getThumbnails(SongSlideTemplate.class);
+					updateThumbnailJList(this.lstSongTemplates, thumbnails);
+					
+					thumbnails = SlideLibrary.getThumbnails(NotificationSlideTemplate.class);
+					updateThumbnailJList(this.lstNotificationTemplates, thumbnails);
+					
+					this.slideLibraryUpdated = true;
+				} else {
+					LOGGER.error("An error occurred while importing into the slide library: ", task.getException());
+					ExceptionDialog.show(
+							this, 
+							Messages.getString("panel.slide.import.exception.title"), 
+							MessageFormat.format(Messages.getString("panel.slide.import.exception.text"), file.getAbsolutePath()), 
+							task.getException());
+				}
+			}
+			
+			return;
+		} else if ("export".equals(command)) {
+			// create a class to show a "are you sure" message when over writing an existing file
+			JFileChooser fileBrowser = new ValidateFileChooser();
+			fileBrowser.setMultiSelectionEnabled(false);
+			fileBrowser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+			fileBrowser.setDialogTitle(Messages.getString("panel.slide.export"));
+			fileBrowser.setSelectedFile(new File(MessageFormat.format(Messages.getString("panel.slide.export.file"), "SlideLibrary")));
+			
+			int option = fileBrowser.showSaveDialog(this);
+			// check the option
+			if (option == JFileChooser.APPROVE_OPTION) {
+				File file = fileBrowser.getSelectedFile();
+				
+				final String targetFile = file.getAbsolutePath();
+				
+				// create a SlideExport object for all the slides and templates
+				List<SlideExport> exportList = new ArrayList<SlideExport>();
+				
+				// slides
+				List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BasicSlide.class);
+				for (SlideThumbnail thumbnail : thumbnails) {
+					exportList.add(new SlideExport(thumbnail.getFile()));
+				}
+				thumbnails = SlideLibrary.getThumbnails(BasicSlideTemplate.class);
+				for (SlideThumbnail thumbnail : thumbnails) {
+					exportList.add(new SlideExport(thumbnail.getFile(), BasicSlideTemplate.class));
+				}
+				thumbnails = SlideLibrary.getThumbnails(BibleSlideTemplate.class);
+				for (SlideThumbnail thumbnail : thumbnails) {
+					exportList.add(new SlideExport(thumbnail.getFile(), BibleSlideTemplate.class));
+				}
+				thumbnails = SlideLibrary.getThumbnails(SongSlideTemplate.class);
+				for (SlideThumbnail thumbnail : thumbnails) {
+					exportList.add(new SlideExport(thumbnail.getFile(), SongSlideTemplate.class));
+				}
+				thumbnails = SlideLibrary.getThumbnails(NotificationSlideTemplate.class);
+				for (SlideThumbnail thumbnail : thumbnails) {
+					exportList.add(new SlideExport(thumbnail.getFile(), NotificationSlideTemplate.class));
+				}
+				
+				final SlideExport[] exports = exportList.toArray(new SlideExport[0]);
+				
+				AbstractTask task = new AbstractTask() {
+					@Override
+					public void run() {
+						try {
+							SlideLibrary.exportSlides(targetFile, exports);
+							this.setSuccessful(true);
+						} catch (Exception e) {
+							this.handleException(e);
+						}
+					}
+				};
+				
+				// run the task
+				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("exporting"), task);
+				
+				// check the task result
+				if (!task.isSuccessful()) {
+					LOGGER.error("An error occurred while exporting the Slide/Template Library:", task.getException());
+					ExceptionDialog.show(
+							this, 
+							Messages.getString("panel.slide.export.exception.title"), 
+							Messages.getString("panel.slide.export.exception.text"), 
+							task.getException());
+				}
+			}
+			
 			return;
 		}
 		
@@ -485,15 +638,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 					} else if (result.getChoice() == SlideEditorOption.SAVE_AS) {
 						// when control returns here we need to update the items in the jlist with the current media library items
 						List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(clazz == null ? BasicSlide.class : clazz);
-						list.clearSelection();
-						// we need to reload all the thumbnails here since the user could do multiple save as...'es saving
-						// multiple slides or templates
-						DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
-						model.removeAllElements();
-						for (SlideThumbnail thumb : thumbnails) {
-							model.addElement(thumb);
-						}
-						list.setSelectedValue(result.getThumbnail(), true);
+						updateThumbnailJList(list, thumbnails);
 						this.slideLibraryUpdated = true;
 					}
 				} else {
@@ -543,15 +688,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				if (task.isSuccessful()) {
 					// when control returns here we need to update the items in the jlist with the current media library items
 					List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(clazz == null ? BasicSlide.class : clazz);
-					list.clearSelection();
-					// we need to reload all the thumbnails here since the user could do multiple save as...'es saving
-					// multiple slides or templates
-					DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
-					model.removeAllElements();
-					for (SlideThumbnail thumb : thumbnails) {
-						model.addElement(thumb);
-					}
-					list.setSelectedValue(thumbnail, true);
+					updateThumbnailJList(list, thumbnails);
 					this.slideLibraryUpdated = true;
 				} else {
 					ExceptionDialog.show(
@@ -596,13 +733,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				if (task.isSuccessful()) {
 					// when control returns here we need to update the items in the jlist with the current media library items
 					List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BasicSlideTemplate.class);
-					this.lstTemplates.clearSelection();
-					DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)this.lstTemplates.getModel();
-					model.removeAllElements();
-					for (SlideThumbnail thumb : thumbnails) {
-						model.addElement(thumb);
-					}
-					this.lstTemplates.setSelectedValue(thumbnail, true);
+					updateThumbnailJList(this.lstTemplates, thumbnails);
 					this.slideTabs.setSelectedIndex(1);
 					this.cmbTemplateType.setSelectedItem(TemplateType.SLIDE);
 					this.slideLibraryUpdated = true;
@@ -653,13 +784,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				if (task.isSuccessful()) {
 					// when control returns here we need to update the items in the jlist with the current media library items
 					List<SlideThumbnail> thumbnails = SlideLibrary.getThumbnails(BasicSlide.class);
-					this.lstSlides.clearSelection();
-					DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)this.lstSlides.getModel();
-					model.removeAllElements();
-					for (SlideThumbnail thumb : thumbnails) {
-						model.addElement(thumb);
-					}
-					this.lstSlides.setSelectedValue(thumbnail, true);
+					updateThumbnailJList(this.lstSlides, thumbnails);
 					this.slideTabs.setSelectedIndex(0);
 					this.slideLibraryUpdated = true;
 				} else {
@@ -709,7 +834,71 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getPath() + "] from the slide library: ", task.getException());
 					}
 				}
+			} else if ("export-slide".equals(command)) {
+				// strip the .xml from the end
+				String fileName = thumbnail.getFile().getName();
+				int k = fileName.lastIndexOf(".");
+				String name = fileName.substring(0, k < 0 ? fileName.length() : k);
+				
+				// create a class to show a "are you sure" message when over writing an existing file
+				JFileChooser fileBrowser = new ValidateFileChooser();
+				fileBrowser.setMultiSelectionEnabled(false);
+				fileBrowser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				fileBrowser.setDialogTitle(MessageFormat.format(Messages.getString("panel.slide.export.slide.title"), type));
+				fileBrowser.setSelectedFile(new File(MessageFormat.format(Messages.getString("panel.slide.export.file"), name)));
+				
+				int option = fileBrowser.showSaveDialog(this);
+				// check the option
+				if (option == JFileChooser.APPROVE_OPTION) {
+					File file = fileBrowser.getSelectedFile();
+					
+					final String targetFile = file.getAbsolutePath();
+					final SlideExport export = new SlideExport(thumbnail.getFile(), isSlide ? null : clazz);
+					
+					AbstractTask task = new AbstractTask() {
+						@Override
+						public void run() {
+							try {
+								SlideLibrary.exportSlides(targetFile, export);
+								this.setSuccessful(true);
+							} catch (Exception e) {
+								this.handleException(e);
+							}
+						}
+					};
+					
+					// run the task
+					TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("exporting"), task);
+					
+					// check the task result
+					if (!task.isSuccessful()) {
+						LOGGER.error("An error occurred while exporting the slide/template [" + thumbnail.getFile().getPath() + "]: ", task.getException());
+						ExceptionDialog.show(
+								this, 
+								MessageFormat.format(Messages.getString("panel.slide.export.slide.exception.title"), type), 
+								MessageFormat.format(Messages.getString("panel.slide.export.slide.exception.text"), type.toLowerCase(), thumbnail.getFile().getName()), 
+								task.getException());
+					}
+				}
 			}
+		}
+	}
+	
+	/**
+	 * Updates the given JList with the given thumbnails.
+	 * @param list the list to update
+	 * @param thumbnails the new list of thumbnails
+	 */
+	private static final void updateThumbnailJList(JList<SlideThumbnail> list, List<SlideThumbnail> thumbnails) {
+		SlideThumbnail thumbnail = list.getSelectedValue();
+		list.clearSelection();
+		DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)list.getModel();
+		model.removeAllElements();
+		for (SlideThumbnail thumb : thumbnails) {
+			model.addElement(thumb);
+		}
+		if (thumbnail != null) {
+			list.setSelectedValue(thumbnail, true);
 		}
 	}
 	
@@ -769,6 +958,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				}
 				this.btnCreateTemplate.setVisible(isSlide);
 				this.btnRemoveSlide.setEnabled(true);
+				this.btnExportSlide.setEnabled(true);
 			} else {
 				this.pnlPreview.setSlide(null);
 				this.pnlProperties.setSlideFile(null, true);
@@ -778,6 +968,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				this.btnCreateSlide.setVisible(false);
 				this.btnCreateTemplate.setVisible(false);
 				this.btnRemoveSlide.setEnabled(false);
+				this.btnExportSlide.setEnabled(false);
 			}
 		}
 	}
@@ -876,6 +1067,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 			}
 			this.btnCreateTemplate.setVisible(isSlide);
 			this.btnRemoveSlide.setEnabled(true);
+			this.btnExportSlide.setEnabled(true);
 		} else {
 			this.pnlProperties.setSlideFile(null, true);
 			this.pnlPreview.setSlide(null);
@@ -885,6 +1077,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 			this.btnCreateSlide.setVisible(false);
 			this.btnCreateTemplate.setVisible(false);
 			this.btnRemoveSlide.setEnabled(false);
+			this.btnExportSlide.setEnabled(false);
 		}
 	}
 	

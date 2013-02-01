@@ -22,41 +22,60 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.ui.present;
-
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-
-import org.praisenter.preferences.Preferences;
-import org.praisenter.slide.RenderableComponent;
+package org.praisenter.slide;
 
 /**
- * Represents a rendered item that uses the quality preferences.
+ * Represents the information required to export a slide/template.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public class QualityRenderItem extends DefaultRenderItem implements RenderGroup {
+public class SlideExport {
+	/** The slide file */
+	protected SlideFile slideFile;
+	
+	/** The template type; null if its a slide */
+	protected Class<? extends Template> templateType;
+	
 	/**
-	 * Full constructor.
-	 * @param component the component
+	 * Minimal constructor.
+	 * @param slideFile the slide file
 	 */
-	public QualityRenderItem(RenderableComponent component) {
-		super(component);
+	public SlideExport(SlideFile slideFile) {
+		this(slideFile, null);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.display.SlideComponentCache#render(java.awt.Graphics2D)
+	/**
+	 * Minimal constructor for templates.
+	 * @param slideFile the slide file
+	 * @param templateType the template class type
 	 */
-	@Override
-	public void render(Graphics2D g) {
-		if (this.component != null) {
-			RenderingHints oHints = g.getRenderingHints();
-			// use the quality set in the preferences
-			Preferences preferences = Preferences.getInstance();
-			g.setRenderingHints(preferences.getRenderingHints());
-			this.component.render(g);
-			g.setRenderingHints(oHints);
-		}
+	public SlideExport(SlideFile slideFile, Class<? extends Template> templateType) {
+		this.slideFile = slideFile;
+		this.templateType = templateType;
+	}
+
+	/**
+	 * Returns the slide file.
+	 * @return {@link SlideFile}
+	 */
+	public SlideFile getSlideFile() {
+		return this.slideFile;
+	}
+
+	/**
+	 * Returns true if this slide is a template.
+	 * @return boolean
+	 */
+	public boolean isTemplate() {
+		return this.templateType != null;
+	}
+	
+	/**
+	 * Returns the template type or null if its not a template.
+	 * @return Class&lt;? extends {@link Template}&gt;
+	 */
+	public Class<? extends Template> getTemplateType() {
+		return this.templateType;
 	}
 }

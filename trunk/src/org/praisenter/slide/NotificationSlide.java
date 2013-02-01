@@ -114,11 +114,11 @@ public class NotificationSlide extends AbstractPositionedSlide implements Slide 
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#getComponents(java.lang.Class)
+	 * @see org.praisenter.slide.BasicSlide#getComponents(java.lang.Class, boolean)
 	 */
 	@Override
-	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz) {
-		List<E> components = super.getComponents(clazz);
+	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz, boolean includeBackground) {
+		List<E> components = super.getComponents(clazz, includeBackground);
 		if (clazz.isAssignableFrom(TextComponent.class)) {
 			components.add(clazz.cast(this.textComponent));
 		}

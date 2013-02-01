@@ -26,10 +26,14 @@ package org.praisenter.slide.text;
 
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineBreakMeasurer;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
+import java.awt.geom.AffineTransform;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 
@@ -57,63 +61,20 @@ public final class TextRenderer {
 	 * Renders a paragraph of text bounded by the given width to the given graphics
 	 * object at the given coordinates.
 	 * <p>
-	 * This method will by default render to (0, 0) coordinates and use center alignment.
-	 * <p>
 	 * This method will also break on new line characters specified by {@link TextRenderer#LINE_SEPARATOR}.
 	 * @param g2d the graphics to render to
 	 * @param text the text to render
-	 * @param width the maximum width
+	 * @param properties the text properties
 	 */
-	public static final void renderParagraph(Graphics2D g2d, String text, float width) {
-		TextRenderer.renderParagraph(g2d, text, HorizontalTextAlignment.CENTER, 0, 0, width);
-	}
-	
-	/**
-	 * Renders a paragraph of text bounded by the given width to the given graphics
-	 * object at the given coordinates.
-	 * <p>
-	 * This method will default to center alignment of the text.
-	 * <p>
-	 * This method will also break on new line characters specified by {@link TextRenderer#LINE_SEPARATOR}.
-	 * @param g2d the graphics to render to
-	 * @param text the text to render
-	 * @param x the x coordinate
-	 * @param y the y coordinate
-	 * @param width the maximum width
-	 */
-	public static final void renderParagraph(Graphics2D g2d, String text, float x, float y, float width) {
-		TextRenderer.renderParagraph(g2d, text, HorizontalTextAlignment.CENTER, x, y, width);
-	}
-	
-	/**
-	 * Renders a paragraph of text bounded by the given width to the given graphics
-	 * object at the given coordinates.
-	 * <p>
-	 * This method will by default render to (0, 0) coordinates.
-	 * <p>
-	 * This method will also break on new line characters specified by {@link TextRenderer#LINE_SEPARATOR}.
-	 * @param g2d the graphics to render to
-	 * @param text the text to render
-	 * @param alignment the text alignment
-	 * @param width the maximum width
-	 */
-	public static final void renderParagraph(Graphics2D g2d, String text, HorizontalTextAlignment alignment, float width) {
-		TextRenderer.renderParagraph(g2d, text, alignment, 0, 0, width);
-	}
-	
-	/**
-	 * Renders a paragraph of text bounded by the given width to the given graphics
-	 * object at the given coordinates.
-	 * <p>
-	 * This method will also break on new line characters specified by {@link TextRenderer#LINE_SEPARATOR}.
-	 * @param g2d the graphics to render to
-	 * @param text the text to render
-	 * @param alignment the text alignment
-	 * @param x the x coordinate
-	 * @param y the y coordinate
-	 * @param width the maximum width
-	 */
-	public static final void renderParagraph(Graphics2D g2d, String text, HorizontalTextAlignment alignment, float x, float y, float width) {
+	public static final void renderParagraph(Graphics2D g2d, String text, TextRenderProperties properties) {
+		float x = properties.x;
+		float y = properties.y;
+		float width = properties.width;
+		HorizontalTextAlignment alignment = properties.horizontalAlignment;
+		Paint textPaint = properties.textPaint;
+		Paint outlinePaint = properties.outlinePaint;
+		Stroke outlineStroke = properties.outlineStroke;
+		
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
 		as.addAttribute(TextAttribute.FONT, g2d.getFont());
@@ -122,6 +83,9 @@ public final class TextRenderer {
 		// create a line break measurer to measure out lines
 		LineBreakMeasurer measurer = new LineBreakMeasurer(it, g2d.getFontRenderContext());
 	    
+		boolean paintOutline = properties.isOutlinePainted();
+		g2d.setPaint(textPaint);
+		
 		// compute the height by laying out the lines
 		boolean isLastLayoutNewLine = false;
 	    while (measurer.getPosition() < text.length()) {
@@ -180,8 +144,25 @@ public final class TextRenderer {
 	    			dx = (width + layout.getAdvance()) * 0.5f - layout.getAdvance();
 	    		}
 	    	}
+	    	
+	    	// paint the text
+	    	layout.draw(g2d, x + dx, y);
+	    	
+	    	// paint the outline if necessary
+	    	// painting the outline after painting the text is what must
+	    	// be done for good looking outlines
+	    	if (paintOutline) {
+	    		Stroke oStroke = g2d.getStroke();
+	    		g2d.setPaint(outlinePaint);
+	    		g2d.setStroke(outlineStroke);
+	    		
+	    		Shape shape = layout.getOutline(AffineTransform.getTranslateInstance(x + dx, y));
+	    		g2d.draw(shape);
+	    		
+	    		g2d.setStroke(oStroke);
+	    		g2d.setPaint(textPaint);
+	    	}
 	        
-	        layout.draw(g2d, x + dx, y);
 	        y += layout.getDescent() + layout.getLeading();
 	    }
 	}
@@ -328,61 +309,29 @@ public final class TextRenderer {
 	// line methods
 	
 	/**
-	 * Renders a line of text bounded by the given width to the given graphics object.
-	 * <p>
-	 * This method will by default render to (0, 0) coordinates and use center alignment.
-	 * @param g2d the graphics to render to
-	 * @param text the text to render
-	 * @param width the maximum width
-	 */
-	public static final void renderLine(Graphics2D g2d, String text, int width) {
-		TextRenderer.renderLine(g2d, text, HorizontalTextAlignment.CENTER, 0, 0, width);
-	}
-	
-	/**
-	 * Renders a line of text bounded by the given width to the given graphics object at the given coordinates.
-	 * <p>
-	 * This method will default to center alignment of the text.
-	 * @param g2d the graphics to render to
-	 * @param text the text to render
-	 * @param x the x coordinate
-	 * @param y the y coordinate
-	 * @param width the maximum width
-	 */
-	public static final void renderLine(Graphics2D g2d, String text, float x, float y, int width) {
-		TextRenderer.renderLine(g2d, text, HorizontalTextAlignment.CENTER, x, y, width);
-	}
-	
-	/**
-	 * Renders a paragraph of text bounded by the given width to the given graphics object at the given coordinates.
-	 * <p>
-	 * This method will by default render to (0, 0) coordinates.
-	 * @param g2d the graphics to render to
-	 * @param text the text to render
-	 * @param alignment the text alignment
-	 * @param width the maximum width
-	 */
-	public static final void renderLine(Graphics2D g2d, String text, HorizontalTextAlignment alignment, int width) {
-		TextRenderer.renderLine(g2d, text, alignment, 0, 0, width);
-	}
-	
-	/**
 	 * Renders a line of text bounded by the given width to the given graphics
 	 * object at the given coordinates.
 	 * @param g2d the graphics to render to
 	 * @param text the text to render
-	 * @param alignment the text alignment
-	 * @param x the x coordinate
-	 * @param y the y coordinate
-	 * @param width the maximum width
+	 * @param properties the text rendering properties
 	 */
-	public static final void renderLine(Graphics2D g2d, String text, HorizontalTextAlignment alignment, float x, float y, int width) {
+	public static final void renderLine(Graphics2D g2d, String text, TextRenderProperties properties) {
+		float x = properties.x;
+		float y = properties.y;
+		float width = properties.width;
+		HorizontalTextAlignment alignment = properties.horizontalAlignment;
+		Paint textPaint = properties.textPaint;
+		Paint outlinePaint = properties.outlinePaint;
+		Stroke outlineStroke = properties.outlineStroke;
+		
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
 		as.addAttribute(TextAttribute.FONT, g2d.getFont());
 		// get the character iterator
 		AttributedCharacterIterator it = as.getIterator();
 		TextLayout layout = new TextLayout(it, g2d.getFontRenderContext());
+		
+		boolean paintOutline = properties.isOutlinePainted();
 		
 		float dx = 0; 
     	boolean leftToRight = layout.isLeftToRight();
@@ -407,7 +356,23 @@ public final class TextRenderer {
     		}
     	}
         
-        layout.draw(g2d, x + dx, y + layout.getAscent());
+    	// paint the text
+    	g2d.setPaint(textPaint);
+    	layout.draw(g2d, x + dx, y + layout.getAscent());
+    	
+    	// paint the outline if necessary
+    	// painting the outline after painting the text is what must
+    	// be done for good looking outlines
+    	if (paintOutline) {
+    		Stroke oStroke = g2d.getStroke();
+    		g2d.setPaint(outlinePaint);
+    		g2d.setStroke(outlineStroke);
+    		
+    		Shape shape = layout.getOutline(AffineTransform.getTranslateInstance(x + dx, y + layout.getAscent()));
+    		g2d.draw(shape);
+    		
+    		g2d.setStroke(oStroke);
+    	}
 	}
 	
 	/**

@@ -22,41 +22,46 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.ui.present;
+package org.praisenter.preferences.ui;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.Component;
+import java.awt.GraphicsDevice;
 
-import org.praisenter.preferences.Preferences;
-import org.praisenter.slide.RenderableComponent;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
+
+import org.praisenter.utilities.WindowUtilities;
 
 /**
- * Represents a rendered item that uses the quality preferences.
+ * Renderer for showing devices.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public class QualityRenderItem extends DefaultRenderItem implements RenderGroup {
-	/**
-	 * Full constructor.
-	 * @param component the component
-	 */
-	public QualityRenderItem(RenderableComponent component) {
-		super(component);
-	}
+public class GraphicsDeviceListCellRenderer extends DefaultListCellRenderer {
+	/** The version id */
+	private static final long serialVersionUID = -909873909535605533L;
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.display.SlideComponentCache#render(java.awt.Graphics2D)
+	 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
 	 */
 	@Override
-	public void render(Graphics2D g) {
-		if (this.component != null) {
-			RenderingHints oHints = g.getRenderingHints();
-			// use the quality set in the preferences
-			Preferences preferences = Preferences.getInstance();
-			g.setRenderingHints(preferences.getRenderingHints());
-			this.component.render(g);
-			g.setRenderingHints(oHints);
+	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+		if (value instanceof GraphicsDevice) {
+			GraphicsDevice device = (GraphicsDevice)value;
+			// find its index in the list of devices
+			int n = list.getModel().getSize();
+			int i = 0;
+			for (int j = 0; j < n; j++) {
+				if (list.getModel().getElementAt(j) == value) {
+					i = j;
+					break;
+				}
+			}
+			this.setText(WindowUtilities.getDeviceName(device, i));
 		}
+		
+		return this;
 	}
 }

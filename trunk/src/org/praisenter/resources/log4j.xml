@@ -20,6 +20,12 @@
 		</layout> 
 	</appender> 
 
+	<logger name="org.praisenter" additivity="false">
+		<level value="info" />
+		<appender-ref ref="console" />
+		<appender-ref ref="file" />
+	</logger>
+
 	<root> 
 		<priority value ="info" /> 
 		<appender-ref ref="console" />

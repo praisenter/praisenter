@@ -48,7 +48,7 @@ public class SlideComponentCacheGroup implements SlideComponentCache {
 		Graphics2D g = this.image.createGraphics();
 		// use the configured quality
 		Preferences preferences = Preferences.getInstance();
-		g.setRenderingHints(preferences.getRenderQuality().getRenderingHints());
+		g.setRenderingHints(preferences.getRenderingHints());
 		// renders all the components to the given graphics
 		for (RenderableComponent component : this.components) {
 			component.render(g);
