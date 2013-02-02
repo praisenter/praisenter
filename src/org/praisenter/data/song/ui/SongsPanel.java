@@ -24,6 +24,7 @@
  */
 package org.praisenter.data.song.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -57,6 +58,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -521,18 +523,27 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		tabBottom.addTab(Messages.getString("panel.songs.tab.queue"), pnlSongQueue);
 		tabBottom.addTab(Messages.getString("panel.songs.tab.editSong"), this.pnlEditSong);
 		
-		GroupLayout layout = new GroupLayout(this);
-		this.setLayout(layout);
+		JPanel pnlTop = new JPanel();
+		GroupLayout layout = new GroupLayout(pnlTop);
+		pnlTop.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
 				.addComponent(this.scrPreview, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(pnlSending, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(tabBottom));
+				.addComponent(pnlSending, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addComponent(this.scrPreview, 200, 300, Short.MAX_VALUE)
-				.addComponent(pnlSending, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(tabBottom, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+				.addComponent(pnlSending, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+		
+		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+		split.setTopComponent(pnlTop);
+		split.setBottomComponent(tabBottom);
+		split.setResizeWeight(0.8);
+		split.setOneTouchExpandable(true);
+		
+		// create the layout
+		this.setLayout(new BorderLayout());
+		this.add(split, BorderLayout.CENTER);
 		
 		// setup hot keys for quick sending
 		SongQuickSendAction[] actions = SongQuickSendPanel.getQuickSendActions(this);

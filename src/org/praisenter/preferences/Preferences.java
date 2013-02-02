@@ -132,6 +132,10 @@ public class Preferences {
 	@XmlElement(name = "SongPreferences", required = true, nillable = false)
 	protected SongPreferences songPreferences;
 	
+	/** The slide preferences */
+	@XmlElement(name = "SlidePreferences", required = true, nillable = false)
+	protected SlidePreferences slidePreferences;
+	
 	/** The notification preferences */
 	@XmlElement(name = "NotificationPreferences", required = true, nillable = false)
 	protected NotificationPreferences notificationPreferences;
@@ -162,6 +166,7 @@ public class Preferences {
 		
 		this.biblePreferences = new BiblePreferences();
 		this.songPreferences = new SongPreferences();
+		this.slidePreferences = new SlidePreferences();
 		this.notificationPreferences = new NotificationPreferences();
 		this.errorReportingPreferences = new ErrorReportingPreferences();
 	}
@@ -505,6 +510,14 @@ public class Preferences {
 	 */
 	public SongPreferences getSongPreferences() {
 		return this.songPreferences;
+	}
+
+	/**
+	 * Returns the slide preferences.
+	 * @return {@link SlidePreferences}
+	 */
+	public SlidePreferences getSlidePreferences() {
+		return this.slidePreferences;
 	}
 
 	/**
