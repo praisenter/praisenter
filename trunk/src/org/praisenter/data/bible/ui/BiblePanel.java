@@ -84,6 +84,7 @@ import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.BibleSlide;
 import org.praisenter.slide.BibleSlideTemplate;
+import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
@@ -1279,7 +1280,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
-			primary.execute(new SendEvent(this.pnlPreview.getSlide(1), ta));
+			Slide slide = this.pnlPreview.getSlide(1);
+			if (slide != null) {
+				primary.execute(new SendEvent(slide.copy(), ta));
+			}
 		} else {
 			// the device is no longer available
 			LOGGER.warn("The primary display doesn't exist.");

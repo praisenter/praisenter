@@ -61,7 +61,7 @@ import org.praisenter.xml.FontTypeAdapter;
  * @version 2.0.0
  * @since 2.0.0
  */
-// TODO SLIDE-TEMPALTE add text shadow (color, direction, width, visible)
+// TODO [LOW] SLIDE-TEMPALTE add text shadow (color, direction, width, visible)
 @XmlRootElement(name = "TextComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({
@@ -70,7 +70,7 @@ import org.praisenter.xml.FontTypeAdapter;
 	RadialGradientFill.class
 })
 public class TextComponent extends GenericComponent implements SlideComponent, RenderableComponent, PositionedComponent {
-	// TODO SLIDE-TEMPLATE change this to a AttributedString so we can support all kinds of string formatting (highlighting, super/sub scripts, etc)
+	// TODO [LOW] SLIDE-TEMPLATE change this to a AttributedString so we can support all kinds of string formatting (highlighting, super/sub scripts, etc)
 	/** The text */
 	@XmlElement(name = "Text", required = false, nillable = true)
 	protected String text;

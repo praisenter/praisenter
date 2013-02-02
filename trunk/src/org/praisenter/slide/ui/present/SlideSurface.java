@@ -512,20 +512,23 @@ public class SlideSurface extends JPanel implements VideoMediaPlayerListener, Wi
 	private static final MediaPlayer<?> getMediaPlayer(PlayableMediaComponent<?> component) {
 		PlayableMedia media = component.getMedia();
 		
-		// create a player for the given media
-		MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(media.getClass());
-		if (factory != null) {
-			MediaPlayer player = factory.createMediaPlayer();
-			player.setMedia(media);
-			player.addMediaPlayerListener(component);
-			
-			// set the player configuration
-			MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
-			conf.setLoopEnabled(component.isLoopEnabled());
-			conf.setAudioMuted(component.isAudioMuted());
-			player.setConfiguration(conf);
-			
-			return player;
+		// make sure the media is not null
+		if (media != null) {
+			// create a player for the given media
+			MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(media.getClass());
+			if (factory != null) {
+				MediaPlayer player = factory.createMediaPlayer();
+				player.setMedia(media);
+				player.addMediaPlayerListener(component);
+				
+				// set the player configuration
+				MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
+				conf.setLoopEnabled(component.isLoopEnabled());
+				conf.setAudioMuted(component.isAudioMuted());
+				player.setConfiguration(conf);
+				
+				return player;
+			}
 		}
 		
 		return null;

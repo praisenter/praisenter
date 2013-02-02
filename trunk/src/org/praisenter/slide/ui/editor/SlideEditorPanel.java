@@ -39,6 +39,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -47,12 +48,14 @@ import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -60,6 +63,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
@@ -108,9 +112,8 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
-// TODO SLIDE-TEMPLATE snap to grid
-// TODO SLIDE-TEMPLATE add the "delete" key to remove component; maybe arrow keys too
-// TODO SLIDE-TEMPLATE add undo/redo functionality (store a list of slide/template copies after any change?)
+// TODO [MEDIUM] SLIDE-TEMPLATE snap to grid
+// TODO [MEDIUM] SLIDE-TEMPLATE add undo/redo functionality (store a list of slide/template copies after any change?)
 public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, ListSelectionListener, EditorListener, ActionListener, ItemListener, DocumentListener {
 	/** The version id */
 	private static final long serialVersionUID = -927595042247907332L;
@@ -529,6 +532,20 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		this.setLayout(new BorderLayout());
 		this.add(pnlTop, BorderLayout.PAGE_START);
 		this.add(splPreviewEditor, BorderLayout.CENTER);
+		
+		// add a key binding for the delete key to both the preview panel and the jlist
+		String deleteActionName = "deleteAction";
+		@SuppressWarnings("serial")
+		AbstractAction deleteAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				SlideEditorPanel.this.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, "remove"));
+			}
+		};
+		this.lstComponents.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), deleteActionName);
+		this.lstComponents.getActionMap().put(deleteActionName, deleteAction);
+		this.pnlSlidePreview.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), deleteActionName);
+		this.pnlSlidePreview.getActionMap().put(deleteActionName, deleteAction);
 	}
 	
 	/**
@@ -816,6 +833,8 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 					this.lstComponents.clearSelection();
 					this.pnlSlidePreview.repaint();
 				}
+				// request focus for the panel so that the key bindings work
+				this.pnlSlidePreview.requestFocus();
 			}
 		}
 	}
@@ -861,6 +880,8 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 			}
 			// if we modify a component then we need to redraw it
 			this.pnlSlidePreview.repaint();
+			// request focus for the panel so that the key bindings work
+			this.pnlSlidePreview.requestFocus();
 		}
 	}
 	
@@ -950,21 +971,25 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		String command = e.getActionCommand();
 		if ("remove".equals(command)) {
 			SlideComponent component = this.lstComponents.getSelectedValue();
-			int choice = JOptionPane.showConfirmDialog(
-							WindowUtilities.getParentWindow(this), 
-							Messages.getString("panel.slide.editor.remove.component.text"), 
-							Messages.getString("panel.slide.editor.remove.component.title"), 
-							JOptionPane.YES_NO_CANCEL_OPTION);
-			if (choice == JOptionPane.YES_OPTION) {
-				// remove the component from the slide
-				if (this.slide != null) {
-					// remove it from the list
-					DefaultListModel<SlideComponent> model = (DefaultListModel<SlideComponent>)this.lstComponents.getModel();
-					this.pnlSlidePreview.setSelectedComponent(null);
-					model.removeElement(component);
-					this.slide.removeComponent(component);
-					this.pnlSlidePreview.repaint();
-					this.slideUpdated = true;
+			// make sure a component is selected
+			if (component != null && this.slide != null) {
+				// make sure its not a static component
+				if (!this.slide.isStaticComponent(component)) {
+					// make sure the user really wants to
+					int choice = JOptionPane.showConfirmDialog(
+									WindowUtilities.getParentWindow(this), 
+									Messages.getString("panel.slide.editor.remove.component.text"), 
+									Messages.getString("panel.slide.editor.remove.component.title"), 
+									JOptionPane.YES_NO_CANCEL_OPTION);
+					if (choice == JOptionPane.YES_OPTION) {
+						// remove the component from the slide and the list
+						DefaultListModel<SlideComponent> model = (DefaultListModel<SlideComponent>)this.lstComponents.getModel();
+						this.pnlSlidePreview.setSelectedComponent(null);
+						model.removeElement(component);
+						this.slide.removeComponent(component);
+						this.pnlSlidePreview.repaint();
+						this.slideUpdated = true;
+					}
 				}
 			}
 		} else if ("add-generic".equals(command)) {

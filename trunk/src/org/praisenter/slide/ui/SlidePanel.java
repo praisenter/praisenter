@@ -285,13 +285,17 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 			if (primary != null) {
 				Dimension size = this.preferences.getPrimaryOrDefaultDeviceResolution();
 				Slide slide = this.pnlPreview.getSlide();
-				// check the slide size against the display size
-				if (slide.getWidth() != size.width || slide.getHeight() != size.height) {
-					// log a message and modify the template to fit
-					LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
-					slide.adjustSize(size.width, size.height);
+				if (slide != null) {
+					// use a copy
+					slide = slide.copy();
+					// check the slide size against the display size
+					if (slide.getWidth() != size.width || slide.getHeight() != size.height) {
+						// log a message and modify the template to fit
+						LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
+						slide.adjustSize(size.width, size.height);
+					}
+					primary.execute(new SendEvent(slide, ta));
 				}
-				primary.execute(new SendEvent(slide, ta));
 			} else {
 				// the device is no longer available
 				LOGGER.warn("The primary display doesn't exist.");
