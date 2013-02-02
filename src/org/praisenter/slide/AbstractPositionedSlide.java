@@ -85,7 +85,6 @@ public abstract class AbstractPositionedSlide extends BasicSlide {
 		this.deviceHeight = slide.deviceHeight;
 	}
 	
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#adjustSize(int, int)
 	 */

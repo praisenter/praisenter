@@ -19,6 +19,7 @@ New Features:
   - A new easing "Back"
   - Transition waiting
   - Render quality settings
+  - Text outline
   
 Bug Fixes:
   - Auto adjusting of slides and templates based on target resolution and

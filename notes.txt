@@ -1,5 +1,4 @@
 Fix logo on main site
-export/import slides/templates (zip format with media)
 service schedule (with scheduled transitions)
 	saved in a file format that can be transmitted from one location to another
 drag and drop

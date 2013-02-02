@@ -55,6 +55,7 @@ import org.praisenter.resources.Messages;
 import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.NotificationSlide;
 import org.praisenter.slide.NotificationSlideTemplate;
+import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideLibraryException;
@@ -482,6 +483,9 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	 */
 	protected void sendWaitClear(AbstractPositionedSlide slide, TransitionAnimator inAnimator, final TransitionAnimator outAnimator, int waitPeriod) {
 		final SlideWindow window = SlideWindows.getPrimaryNotificationWindow();
+		if (slide == null) {
+			return;
+		}
 		if (window != null) {
 			// make sure we are listening to events on this window
 			window.addPresentListener(this);
@@ -500,7 +504,8 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 					waitPeriod += inAnimator.getDuration();
 				}
 				
-				SendEvent sendEvent = new SendEvent(slide, inAnimator);
+				Slide copy = slide.copy();
+				SendEvent sendEvent = new SendEvent(copy, inAnimator);
 				final ClearEvent clearEvent = new ClearEvent(outAnimator);
 				
 				// only do this if we have wait for transitions enabled
@@ -528,7 +533,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 							this.waitTimer.setInitialDelay(0);
 							this.waitTimer.start();
 							
-							this.queuedEvent = new SendWaitClearEvent(slide, inAnimator, outAnimator, waitPeriod);
+							this.queuedEvent = new SendWaitClearEvent(copy, inAnimator, outAnimator, waitPeriod);
 							return;
 						}
 						// if the current state is CLEAR or OUT just queue the next send normally

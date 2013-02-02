@@ -893,7 +893,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 		SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 		if (primary != null) {
-			primary.execute(new SendEvent(slide, ta));
+			if (slide != null) {
+				primary.execute(new SendEvent(slide.copy(), ta));
+			}
 		} else {
 			// the device is no longer available
 			LOGGER.warn("The primary display doesn't exist.");

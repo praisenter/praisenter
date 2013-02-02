@@ -8,11 +8,11 @@
 		<icon href="latest/icon.jpg" />
 		<!-- <icon kind="splash" href="images/splash.gif"/> -->
 		<offline-allowed />
-		<related-content href="latest/licenses/gpl3-license.txt">
-			<description>Praisenter GPL 3 License</description>
+		<related-content href="latest/licenses/praisenter-license.txt">
+			<description>Praisenter License</description>
 		</related-content>
-		<related-content href="latest/licenses/bsd-license.txt">
-			<description>Praisenter BSD License</description>
+		<related-content href="latest/licenses/gpl3-license.txt">
+			<description>GPL v3 License</description>
 		</related-content>
 		<related-content href="latest/licenses/apache-license-2.0.txt">
 			<description>Apache 2.0 License - Derby, Codec, Lang</description>

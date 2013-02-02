@@ -85,10 +85,9 @@ import org.praisenter.xml.XmlIO;
  * @version 2.0.0
  * @since 1.0.0
  */
-// TODO MEDIA add xuggler video downloader (to download videos from the web)
-// TODO SONGS song manager
-// FIXME IMPORT-EXPORT Add a service schedule with import/export caps
-// FIXME SLIDE-TEMPLATE create a "quick create" function to quickly create a slide with an image/video background and optionally some text
+// TODO [LOW] MEDIA add xuggler video downloader (to download videos from the web)
+// TODO [HIGH] SONGS song manager; not sure what to do here since you have all the functionality on the main panel, but its all crunched together
+// TODO [HIGH] SLIDE-TEMPLATE Add a service schedule with import/export caps; not sure how i feel about this since our service are rarely scheduled
 // FIXME DEPLOYMENT remind mac users that they should install the JDK from oracle rather than the JRE since it updates the path;
 //       also make a note of how to allow the app to run (java control panel setting) (since it won't be deployed as a native .app)
 // FIXME DEPLOYMENT remind mac users that when they download a .zip from unbound bible that they need to recompress the contents into a zip

@@ -772,8 +772,10 @@ public final class SlideLibrary {
 			ExportManifest manifest = XmlIO.read(zipFile.getInputStream(entry), ExportManifest.class);
 			
 			// read in the media items first
-			// reference the slide for later saving
-			Map<String, Slide> slides = new HashMap<String, Slide>();
+			// we save the zip entry names of the slide files so that we can read them later
+			// we must do this since the media associated with the slide may come after the
+			// slide, which would make the slide media reference null
+			List<String> slideEntries = new ArrayList<String>();
 			Map<String, Media> renamedMedia = new HashMap<String, Media>();
 			Enumeration<? extends ZipEntry> entries = zipFile.entries();
 			while (entries.hasMoreElements()) {
@@ -797,19 +799,8 @@ public final class SlideLibrary {
 				String fileName = path.getFileName().toString();
 				// check for the slide
 				if (currentEntry.toLowerCase().endsWith(".xml")) {
-					// get the type for this file
-					ExportItem item = manifest.getExportItem(currentEntry);
-					if (item == null) {
-						LOGGER.warn("Export item not found for [" + currentEntry + "]. Ignoring entry.");
-						continue;
-					}
-					
-					// read the slide
-					LOGGER.debug("Reading [" + currentEntry + "] slide/template file with class [" + item.getType().getName() + "].");
-					Slide slide = (Slide)XmlIO.read(zipFile.getInputStream(entry), item.getType());
-					// use the original file name
-					slides.put(item.getFileName(), slide);
-					
+					// save the entry for later reading
+					slideEntries.add(currentEntry);
 					// continue reading the other files
 					continue;
 				}
@@ -848,9 +839,25 @@ public final class SlideLibrary {
 			}
 			
 			// we support multiple slides in one file at this time
-			if (slides.size() > 0) {
-				for (String slideName : slides.keySet()) {
-					Slide slide = slides.get(slideName);
+			if (slideEntries.size() > 0) {
+				for (String currentEntry : slideEntries) {
+					// get the zip entry
+					entry = zipFile.getEntry(currentEntry);
+					if (entry == null) {
+						continue;
+					}
+					// get the slide type for the entry using the manifest file
+					ExportItem item = manifest.getExportItem(currentEntry);
+					if (item == null) {
+						LOGGER.warn("Export item not found for [" + currentEntry + "]. Ignoring entry.");
+						continue;
+					}
+					
+					// read the slide
+					LOGGER.debug("Reading [" + currentEntry + "] slide/template file with class [" + item.getType().getName() + "].");
+					Slide slide = (Slide)XmlIO.read(zipFile.getInputStream(entry), item.getType());
+					// use the original file name
+					String slideName = item.getFileName();
 					
 					// we need to update any slide components that use the renamed media
 					@SuppressWarnings("rawtypes")

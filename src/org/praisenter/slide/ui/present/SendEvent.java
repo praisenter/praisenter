@@ -42,14 +42,11 @@ public class SendEvent implements PresentationEvent {
 	
 	/**
 	 * Full constructor.
-	 * @param slide the slide; this will be copied
+	 * @param slide the slide
 	 * @param animator the animator
 	 */
 	public SendEvent(Slide slide, TransitionAnimator animator) {
-		// always use a copy of the slide since it could be reused by 
-		// the rest of the application, this shouldn't be a problem anyway
-		// since the copy is really fast (mostly immutable objects)
-		this.slide = slide.copy();
+		this.slide = slide;
 		this.animator = animator;
 	}
 	

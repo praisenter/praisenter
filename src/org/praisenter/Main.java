@@ -45,7 +45,7 @@ import org.praisenter.utilities.LookAndFeelUtilities;
 import org.praisenter.utilities.SystemUtilities;
 import org.praisenter.utilities.ZipUtilities;
 
-// TODO MEDIA allow play/stop/pause/seek controls for playable media
+// TODO [MEDIUM] MEDIA allow play/stop/pause/seek controls for playable media
 
 /**
  * This class is the application entry point.
