@@ -681,6 +681,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends GenericCo
 			this.txtText.setText(slideComponent.getText());
 			this.txtText.setCaretPosition(0);
 			this.chkTextVisible.setSelected(slideComponent.isTextVisible());
+			this.chkOutlineVisible.setSelected(slideComponent.isTextOutlineVisible());
 		} else {
 			this.chkWrapText.setSelected(false);
 			this.cmbFontFamilies.setSelectedItem(FontManager.getDefaultFont().getFamily());
@@ -698,6 +699,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends GenericCo
 			this.txtText.setText("");
 			this.txtText.setCaretPosition(0);
 			this.chkTextVisible.setSelected(false);
+			this.chkOutlineVisible.setSelected(false);
 		}
 	}
 }

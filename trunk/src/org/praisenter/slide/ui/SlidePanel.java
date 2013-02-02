@@ -47,7 +47,6 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -55,10 +54,10 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.apache.log4j.Logger;
-import org.praisenter.easings.CubicEasing;
 import org.praisenter.easings.Easing;
 import org.praisenter.easings.Easings;
 import org.praisenter.preferences.Preferences;
+import org.praisenter.preferences.SlidePreferences;
 import org.praisenter.preferences.ui.PreferencesListener;
 import org.praisenter.resources.Messages;
 import org.praisenter.slide.BasicSlide;
@@ -66,13 +65,11 @@ import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.SlideThumbnail;
-import org.praisenter.slide.Template;
 import org.praisenter.slide.ui.present.ClearEvent;
 import org.praisenter.slide.ui.present.SendEvent;
 import org.praisenter.slide.ui.present.SlideWindow;
 import org.praisenter.slide.ui.present.SlideWindows;
 import org.praisenter.slide.ui.preview.SingleSlidePreviewPanel;
-import org.praisenter.transitions.Swap;
 import org.praisenter.transitions.Transition;
 import org.praisenter.transitions.TransitionAnimator;
 import org.praisenter.transitions.Transitions;
@@ -120,6 +117,9 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 	/** The preferences */
 	private Preferences preferences = Preferences.getInstance();
 	
+	/** The slide preferences */
+	private SlidePreferences sPreferences = this.preferences.getSlidePreferences();
+	
 	/**
 	 * Default constructor.
 	 */
@@ -144,20 +144,20 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(Swap.ID, Transition.Type.IN));
+		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(this.sPreferences.getSendTransitionId(), Transition.Type.IN));
 		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtSendTransitions.setValue(400);
+		this.txtSendTransitions.setValue(this.sPreferences.getSendTransitionDuration());
 		this.txtSendTransitions.setColumns(3);
 		
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
-		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(Swap.ID, Transition.Type.OUT));
+		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(this.sPreferences.getClearTransitionId(), Transition.Type.OUT));
 		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
-		this.txtClearTransitions.setValue(300);
+		this.txtClearTransitions.setValue(this.sPreferences.getClearTransitionDuration());
 		this.txtClearTransitions.setColumns(3);
 		
 		if (!transitionsSupported) {
@@ -208,25 +208,23 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 						.addComponent(btnSend)
 						.addComponent(btnClear)));
 		
-		JPanel pnlLeft = new JPanel();
-		GroupLayout layout = new GroupLayout(pnlLeft);
-		pnlLeft.setLayout(layout);
-		
-		JSeparator sep = new JSeparator();
+		JPanel pnlNoResize = new JPanel();
+		GroupLayout layout = new GroupLayout(pnlNoResize);
+		pnlNoResize.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-				.addComponent(this.pnlPreview)
-				.addComponent(sep)
 				.addComponent(pnlSendClearButtons, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.pnlPreview)
-				.addComponent(sep, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-				.addComponent(pnlSendClearButtons));
+				.addComponent(pnlSendClearButtons, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		
-		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pnlLeft, scrSlides);
+		JSplitPane pnePreview = new JSplitPane(JSplitPane.VERTICAL_SPLIT, this.pnlPreview, pnlNoResize);
+		pnePreview.setResizeWeight(0.6);
+		pnePreview.setOneTouchExpandable(true);
+		
+		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pnePreview, scrSlides);
 		pane.setOneTouchExpandable(true);
-		pane.setResizeWeight(0.4);
+		pane.setResizeWeight(0.60);
 		
 		this.setLayout(new BorderLayout());
 		this.add(pane, BorderLayout.CENTER);
@@ -268,6 +266,22 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		return list;
 	}
 	
+	/**
+	 * Verifies the slide is sized to the primary display size.
+	 * <p>
+	 * If not, the slide is adjusted to fit.
+	 * @param slide the slide
+	 */
+	private void verifySlideDimensions(BasicSlide slide) {
+		Dimension size = this.preferences.getPrimaryOrDefaultDeviceResolution();
+		// check the template size against the display size
+		if (slide.getWidth() != size.width || slide.getHeight() != size.height) {
+			// log a message and modify the template to fit
+			LOGGER.warn("Slide is not sized correctly for the primary display. Adjusing slide.");
+			slide.adjustSize(size.width, size.height);
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
@@ -276,18 +290,18 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		String command = e.getActionCommand();
 		
 		if ("send".equals(command)) {
-			// get the transition
-			Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
-			int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
-			Easing easing = Easings.getEasingForId(CubicEasing.ID);
-			TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
-			SlideWindow primary = SlideWindows.getPrimarySlideWindow();
-			if (primary != null) {
-				Dimension size = this.preferences.getPrimaryOrDefaultDeviceResolution();
-				Slide slide = this.pnlPreview.getSlide();
-				if (slide != null) {
-					// use a copy
-					slide = slide.copy();
+			Slide slide = this.pnlPreview.getSlide();
+			if (slide != null) {
+				// use a copy
+				slide = slide.copy();
+				// get the transition
+				Transition transition = (Transition)this.cmbSendTransitions.getSelectedItem();
+				int duration = ((Number)this.txtSendTransitions.getValue()).intValue();
+				Easing easing = Easings.getEasingForId(this.sPreferences.getSendTransitionEasingId());
+				TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
+				SlideWindow primary = SlideWindows.getPrimarySlideWindow();
+				if (primary != null) {
+					Dimension size = this.preferences.getPrimaryOrDefaultDeviceResolution();
 					// check the slide size against the display size
 					if (slide.getWidth() != size.width || slide.getHeight() != size.height) {
 						// log a message and modify the template to fit
@@ -295,20 +309,20 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 						slide.adjustSize(size.width, size.height);
 					}
 					primary.execute(new SendEvent(slide, ta));
+				} else {
+					// the device is no longer available
+					LOGGER.warn("The primary display doesn't exist.");
+					JOptionPane.showMessageDialog(
+							WindowUtilities.getParentWindow(this), 
+							Messages.getString("dialog.device.primary.missing.text"), 
+							Messages.getString("dialog.device.primary.missing.title"), 
+							JOptionPane.WARNING_MESSAGE);
 				}
-			} else {
-				// the device is no longer available
-				LOGGER.warn("The primary display doesn't exist.");
-				JOptionPane.showMessageDialog(
-						WindowUtilities.getParentWindow(this), 
-						Messages.getString("dialog.device.primary.missing.text"), 
-						Messages.getString("dialog.device.primary.missing.title"), 
-						JOptionPane.WARNING_MESSAGE);
 			}
 		} else if ("clear".equals(command)) {
 			Transition transition = (Transition)this.cmbClearTransitions.getSelectedItem();
 			int duration = ((Number)this.txtClearTransitions.getValue()).intValue();
-			Easing easing = Easings.getEasingForId(CubicEasing.ID);
+			Easing easing = Easings.getEasingForId(this.sPreferences.getClearTransitionEasingId());
 			TransitionAnimator ta = new TransitionAnimator(transition, duration, easing);
 			SlideWindow primary = SlideWindows.getPrimarySlideWindow();
 			if (primary != null) {
@@ -326,16 +340,14 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 			Object source = e.getSource();
 			if (source == this.lstSlides) {
 				SlideFile file = null;
-				PreviewAction<?> preview = null;
 				SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new SlidePreviewAction<BasicSlide>(file.getPath(), BasicSlide.class);
 				}
 				
-				if (preview != null && file != null) {
+				if (file != null) {
 					this.pnlPreview.setLoading(true);
-					this.getPreviewThread().queueSlide(preview);
+					this.getPreviewThread().queueSlide(file.getPath());
 				} else {
 					this.pnlPreview.setSlide(null);
 					this.pnlPreview.repaint();
@@ -344,11 +356,17 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.preferences.ui.PreferencesListener#preferencesChanged()
+	 */
 	@Override
 	public void preferencesChanged() {
 		this.onPreferencesOrSlideLibraryChanged();
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.SlideLibraryListener#slideLibraryChanged()
+	 */
 	@Override
 	public void slideLibraryChanged() {
 		this.onPreferencesOrSlideLibraryChanged();
@@ -398,7 +416,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 	 */
 	private class SlidePreivewThread extends Thread {
 		/** The blocking queue */
-		private final BlockingQueue<PreviewAction<?>> slideQueue;
+		private final BlockingQueue<String> slideQueue;
 		
 		/**
 		 * Default constructor.
@@ -406,15 +424,15 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		public SlidePreivewThread() {
 			super("SlidePreivewThread");
 			this.setDaemon(true);
-			this.slideQueue = new ArrayBlockingQueue<PreviewAction<?>>(10);
+			this.slideQueue = new ArrayBlockingQueue<String>(10);
 		}
 
 		/**
 		 * Queues a new preview.
-		 * @param preview the preview
+		 * @param path the path to the slide in the slide library
 		 */
-		public void queueSlide(PreviewAction<?> preview) {
-			this.slideQueue.add(preview);
+		public void queueSlide(String path) {
+			this.slideQueue.add(path);
 		}
 		
 		/* (non-Javadoc)
@@ -430,24 +448,25 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 						return;
 					}
 					// poll for any queued slides
-					PreviewAction<?> preview = this.slideQueue.poll(1000, TimeUnit.MILLISECONDS);
+					String path = this.slideQueue.poll(1000, TimeUnit.MILLISECONDS);
 					// check if its null
-					if (preview != null) {
+					if (path != null) {
 						// if it isnt then attempt to load the slide
-						Slide slide = null;
+						BasicSlide slide = null;
 						try {
 							// get the slide
-							if (Template.class.isAssignableFrom(preview.getSlideClass())) {
-								TemplatePreviewAction<?> tPreview = (TemplatePreviewAction<?>)preview;
-								slide = SlideLibrary.getTemplate(preview.path, tPreview.clazz);
-							} else {
-								slide = SlideLibrary.getSlide(preview.path);
+							slide = SlideLibrary.getSlide(path);
+							if (slide != null) {
+								// make a copy of the slide
+								slide = slide.copy();
+								// verify the dimensions of the slide
+								verifySlideDimensions(slide);
+								// update the slides (this method should not
+								// do anything that should normally be done on the EDT)
+								pnlPreview.setSlide(slide);
 							}
-							// update the slides (this method should not
-							// do anything that should normally be done on the EDT)
-							pnlPreview.setSlide(slide);
 						} catch (Exception e) {
-							LOGGER.error("An error occurred while loading the slide/template [" + preview.path + "]: ", e);
+							LOGGER.error("An error occurred while loading the slide [" + path + "]: ", e);
 						}
 					}
 					// update the preview panel

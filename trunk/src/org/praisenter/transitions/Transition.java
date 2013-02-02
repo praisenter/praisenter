@@ -30,7 +30,7 @@ import java.awt.image.BufferedImage;
 /**
  * Represents a transition from one image to another.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.0
  * @since 1.0.0
  */
 public abstract class Transition {
@@ -87,7 +87,7 @@ public abstract class Transition {
 	 * @param g2d the graphics to render to
 	 * @param image0 the beginning image
 	 * @param image1 the ending image
-	 * @param pc the percentage completed
+	 * @param pc the percentage completed; this can be less than zero or greater than 1 depending on the easing
 	 */
 	public abstract void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc);
 	

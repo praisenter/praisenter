@@ -74,6 +74,9 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 
 	/** The panel for the song settings */
 	private SongPreferencesPanel pnlSongPreferences;
+
+	/** The panel for the slide settings */
+	private SlidePreferencesPanel pnlSlidePreferences;
 	
 	/** The panel for the notification settings */
 	private NotificationPreferencesPanel pnlNotificationPreferences;
@@ -94,6 +97,7 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		this.pnlGeneralPreferences = new GeneralPreferencesPanel();
 		this.pnlBiblePreferences = new BiblePreferencesPanel();
 		this.pnlSongPreferences = new SongPreferencesPanel();
+		this.pnlSlidePreferences = new SlidePreferencesPanel();
 		this.pnlNotificationPreferences = new NotificationPreferencesPanel();
 		this.pnlErrorReportingPreferences = new ErrorReportingSettingsPanel();
 		
@@ -127,6 +131,7 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		pneTabs.addTab(Messages.getString("dialog.preferences.general"), this.pnlGeneralPreferences);
 		pneTabs.addTab(Messages.getString("dialog.preferences.bible"), this.pnlBiblePreferences);
 		pneTabs.addTab(Messages.getString("dialog.preferences.song"), this.pnlSongPreferences);
+		pneTabs.addTab(Messages.getString("dialog.preferences.slide"), this.pnlSlidePreferences);
 		pneTabs.addTab(Messages.getString("dialog.preferences.notification"), this.pnlNotificationPreferences);
 		pneTabs.addTab(Messages.getString("dialog.preferences.error"), this.pnlErrorReportingPreferences);
 		
@@ -172,6 +177,7 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 				pnlGeneralPreferences.applyPreferences();
 				pnlBiblePreferences.applyPreferences();
 				pnlSongPreferences.applyPreferences();
+				pnlSlidePreferences.applyPreferences();
 				pnlNotificationPreferences.applyPreferences();
 				pnlErrorReportingPreferences.applyPreferences();
 				try {

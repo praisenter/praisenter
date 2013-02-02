@@ -39,7 +39,7 @@ import org.praisenter.preferences.RenderQuality;
 /**
  * Represents an animator for a transtion.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.0
  * @since 1.0.0
  */
 public class TransitionAnimator implements ActionListener {
@@ -216,17 +216,17 @@ public class TransitionAnimator implements ActionListener {
 		
 		// compute the percent complete
 		if (this.duration > 0) {
-			// do the ease in/out depending on the transition type
-			double pc = 0.0;
-			if (this.transition.type == Transition.Type.IN) {
-				pc = this.easing.easeIn(dt, this.duration);
-			} else {
-				pc = this.easing.easeOut(dt, this.duration);
-			}
-			// clamp the percent complete
-			this.percentComplete = Math.min(pc, 1.0);
-			if (pc > 1.0) {
+			// we need to stop animating when the elapsed time is greater than the duration
+			if (dt > this.duration) {
 				this.lastIteration = true;
+				this.percentComplete = 1.0;
+			} else {
+				// do the ease in/out depending on the transition type
+				if (this.transition.type == Transition.Type.IN) {
+					this.percentComplete = this.easing.easeIn(dt, this.duration);
+				} else {
+					this.percentComplete = this.easing.easeOut(dt, this.duration);
+				}
 			}
 		} else {
 			// a duration of zero basically means swap
