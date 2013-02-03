@@ -227,7 +227,7 @@ public final class Main {
 					
 					// copy the file
 					LOGGER.info("Copying classpath [" + classpath + log4j + "] to [" + file.getAbsolutePath() + "].");
-					boolean copied = copyFileFromClasspath(classpath, log4j, fileLocation);
+					boolean copied = copyFileFromClasspath(classpath, log4j, Constants.CONFIGURATION_FILE_LOCATION);
 					if (copied) {
 						LOGGER.info("Log4j configuration file copied successfully.");
 					} else {

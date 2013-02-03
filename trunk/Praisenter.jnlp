@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<jnlp spec="6.0+" codebase="http://www.praisenter.org" href="latest/Praisenter.jnlp">
+<jnlp spec="7.0+" codebase="http://www.praisenter.org" href="latest/Praisenter.jnlp">
 	<information>
 		<title>Praisenter</title>
 		<vendor>William Bittle</vendor>
@@ -32,6 +32,7 @@
 	</security>
 	<update check="timeout" policy="always" />
 	<resources>
+		<!-- Dependencies -->
 		<jar href="latest/lib/log4j-1.2.17.jar" />
 		<jar href="latest/lib/commons-codec-1.6.jar" />
 		<jar href="latest/lib/commons-lang3-3.1.jar" />
@@ -40,16 +41,18 @@
 		<jar href="latest/lib/slf4j-api-1.7.2.jar" />
 		<jar href="latest/lib/slf4j-log4j12-1.7.2.jar" />
 		<jar href="latest/lib/xuggle-xuggler-5.4.jar" />
+		
+		<!-- Main application jars -->
 		<jar href="latest/Praisenter.jar" main="true" />
-	</resources>
-	<resources os="Windows">
-		<j2se version="1.7+" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" initial-heap-size="512m" />
-	</resources>
-	<resources os="Linux">
-		<j2se version="1.7+" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" initial-heap-size="512m" />
+		
+		<!-- Plugins -->
+		<jar href="latest/plugin/PraisenterMedia.jar" />
 	</resources>
 	<resources os="Mac OS X">
-		<j2se version="1.7+" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" initial-heap-size="512m" java-vm-args="-Xdock:name=Praisenter" />
+		<java version="1.7+" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" initial-heap-size="512m" java-vm-args="-Xdock:name=Praisenter" />
+	</resources>
+	<resources>
+		<java version="1.7+" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" initial-heap-size="512m" />
 	</resources>
 	<application-desc main-class="org.praisenter.Main"/>
 </jnlp> 
