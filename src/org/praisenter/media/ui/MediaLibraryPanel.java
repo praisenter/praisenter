@@ -359,7 +359,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 			// make sure something is selected
 			if (thumbnail != null) {
 				// remove the media from the media library
-				final String path = thumbnail.getFile().getPath();
+				final MediaFile file = thumbnail.getFile();
 				
 				// make sure the user wants to do this
 				int choice = JOptionPane.showConfirmDialog(
@@ -374,7 +374,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 						@Override
 						public void run() {
 							try {
-								MediaLibrary.removeMedia(path);
+								MediaLibrary.removeMedia(file);
 								this.setSuccessful(true);
 							} catch (Exception e) {
 								this.handleException(e);

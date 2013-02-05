@@ -1,58 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<jnlp spec="7.0+" codebase="http://www.praisenter.org" href="latest/Praisenter.jnlp">
+<jnlp spec="7.0+" codebase="http://www.praisenter.org/production/v2" href="Praisenter.jnlp" version="2">
 	<information>
 		<title>Praisenter</title>
 		<vendor>William Bittle</vendor>
-		<homepage href="/" />
+		<homepage href="http://www.praisenter.org/" />
 		<description>Free Church Presentation Software</description>
-		<icon href="latest/icon.jpg" />
+		<icon href="icon.jpg" />
 		<!-- <icon kind="splash" href="images/splash.gif"/> -->
+		
+		<!-- Allow offline running -->
 		<offline-allowed />
-		<related-content href="latest/licenses/praisenter-license.txt">
+		
+		<!-- Link to all the licenses -->
+		<related-content href="licenses/praisenter-license.txt">
 			<description>Praisenter License</description>
 		</related-content>
-		<related-content href="latest/licenses/gpl3-license.txt">
+		<related-content href="licenses/gpl3-license.txt">
 			<description>GPL v3 License</description>
 		</related-content>
-		<related-content href="latest/licenses/apache-license-2.0.txt">
-			<description>Apache 2.0 License - Derby, Codec, Lang</description>
+		<related-content href="licenses/apache-license-2.0.txt">
+			<description>Apache 2.0 License</description>
 		</related-content>
-		<related-content href="latest/licenses/javamail-license.txt">
-			<description>Oracle binary Code License - JavaMail</description>
+		<related-content href="licenses/javamail-license.txt">
+			<description>JavaMail License (BCL)</description>
 		</related-content>
-		<related-content href="latest/licenses/slf4j-license.txt">
-			<description>MIT License - SLF4J</description>
+		<related-content href="licenses/slf4j-license.txt">
+			<description>SLF4j License (MIT)</description>
 		</related-content>
-		<related-content href="latest/licenses/xuggler-license.txt">
-			<description>GPL 3.0 License - Xuggler</description>
+		<related-content href="licenses/xuggler-license.txt">
+			<description>Xuggler License (GPL3)</description>
 		</related-content>
+		
+		<!-- Add a desktop short cut and menu item (with uninstall option) -->
+		<shortcut online="false" install="true">
+			<desktop />
+			<menu submenu="Praisenter2"/>
+		</shortcut>
 	</information>
+	
 	<security>
-		<all-permissions/>
+		<!-- We need all permissions since Praisenter is file-system heavy -->
+		<all-permissions />
 	</security>
+	
+	<!-- Check for an update always but only wait so long -->
 	<update check="timeout" policy="always" />
+	
 	<resources>
 		<!-- Dependencies -->
-		<jar href="latest/lib/log4j-1.2.17.jar" />
-		<jar href="latest/lib/commons-codec-1.6.jar" />
-		<jar href="latest/lib/commons-lang3-3.1.jar" />
-		<jar href="latest/lib/derby.jar" />
-		<jar href="latest/lib/mail.jar" />
-		<jar href="latest/lib/slf4j-api-1.7.2.jar" />
-		<jar href="latest/lib/slf4j-log4j12-1.7.2.jar" />
-		<jar href="latest/lib/xuggle-xuggler-5.4.jar" />
+		<jar href="lib/log4j-1.2.17.jar" />
+		<jar href="lib/commons-codec-1.6.jar" />
+		<jar href="lib/commons-lang3-3.1.jar" />
+		<jar href="lib/derby-10.9.jar" />
+		<jar href="lib/mail-1.4.5.jar" />
+		<jar href="lib/slf4j-api-1.7.2.jar" />
+		<jar href="lib/slf4j-log4j12-1.7.2.jar" />
+		<jar href="lib/xuggle-xuggler-5.4.jar" />
 		
 		<!-- Main application jars -->
-		<jar href="latest/Praisenter.jar" main="true" />
+		<jar href="Praisenter-2.0.0.jar" main="true" />
 		
 		<!-- Plugins -->
-		<jar href="latest/plugin/PraisenterMedia.jar" />
+		<jar href="plugin/PraisenterMedia-2.0.0.jar" />
 	</resources>
+	
 	<resources os="Mac OS X">
 		<java version="1.7+" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" initial-heap-size="512m" java-vm-args="-Xdock:name=Praisenter" />
 	</resources>
 	<resources>
 		<java version="1.7+" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" initial-heap-size="512m" />
 	</resources>
+	
+	<!-- Specify the main class -->
 	<application-desc main-class="org.praisenter.Main"/>
 </jnlp> 

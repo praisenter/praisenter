@@ -12,7 +12,7 @@
 	</appender> 
 
 	<appender name="file" class="org.apache.log4j.RollingFileAppender"> 
-		<param name="File" value="logs/Praisenter.log" /> 
+		<param name="File" value="${praisenter.home}/logs/Praisenter.log" /> 
 		<param name="MaxFileSize" value="1000KB" />
 		<param name="MaxBackupIndex" value="5"/>
 		<layout class="org.apache.log4j.PatternLayout"> 

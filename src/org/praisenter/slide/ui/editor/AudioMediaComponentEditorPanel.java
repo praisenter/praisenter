@@ -188,7 +188,7 @@ public class AudioMediaComponentEditorPanel  extends SlideComponentEditorPanel<A
 					
 					if (this.slideComponent != null) {
 						try {
-							AbstractAudioMedia media = (AbstractAudioMedia)MediaLibrary.getMedia(file.getPath());
+							AbstractAudioMedia media = (AbstractAudioMedia)MediaLibrary.getMedia(file);
 							this.slideComponent.setMedia(media);
 							this.notifyEditorListeners();
 						} catch (NoMediaLoaderException ex) {
