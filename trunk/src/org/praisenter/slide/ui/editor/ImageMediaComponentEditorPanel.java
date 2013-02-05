@@ -189,7 +189,7 @@ public class ImageMediaComponentEditorPanel  extends GenericComponentEditorPanel
 					
 					if (this.slideComponent != null) {
 						try {
-							ImageMedia media = (ImageMedia)MediaLibrary.getMedia(file.getPath());
+							ImageMedia media = (ImageMedia)MediaLibrary.getMedia(file);
 							this.slideComponent.setMedia(media);
 							this.notifyEditorListeners();
 						} catch (NoMediaLoaderException ex) {

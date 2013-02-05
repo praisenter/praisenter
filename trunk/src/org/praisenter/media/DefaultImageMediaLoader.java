@@ -73,9 +73,7 @@ public class DefaultImageMediaLoader implements ImageMediaLoader, MediaLoader<Im
 	public ImageMedia load(String filePath) throws MediaException {
 		Path path = FileSystems.getDefault().getPath(filePath);
 		if (Files.exists(path) && Files.isRegularFile(path)) {
-			ImageInputStream in = null;
-			try {
-				in = ImageIO.createImageInputStream(path.toFile());
+			try (ImageInputStream in = ImageIO.createImageInputStream(path.toFile())) {
 				Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
 				// loop through the readers until we find one that works
 				while (readers.hasNext()) {
@@ -92,13 +90,6 @@ public class DefaultImageMediaLoader implements ImageMediaLoader, MediaLoader<Im
 				throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.noImageReader"), filePath));
 			} catch (IOException e) {
 				throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.io"), filePath));
-			} finally {
-				if (in != null) {
-					try {
-						in.close();
-						// just eat the exception if we get one here
-					} catch (IOException e) {}
-				}
 			}
 		} else {
 			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.notFound"), filePath));

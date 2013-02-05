@@ -208,7 +208,7 @@ public class VideoMediaComponentEditorPanel  extends GenericComponentEditorPanel
 					
 					if (this.slideComponent != null) {
 						try {
-							AbstractVideoMedia media = (AbstractVideoMedia)MediaLibrary.getMedia(file.getPath());
+							AbstractVideoMedia media = (AbstractVideoMedia)MediaLibrary.getMedia(file);
 							this.slideComponent.setMedia(media);
 							this.notifyEditorListeners();
 						} catch (NoMediaLoaderException ex) {

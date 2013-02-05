@@ -25,6 +25,7 @@
 package org.praisenter.media;
 
 import java.io.IOException;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +37,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.apache.log4j.Logger;
+import org.praisenter.Constants;
 
 /**
  * Generic file properties class.
@@ -53,7 +55,11 @@ public class MediaFile {
 	/** Number to represent unknown file size */
 	private static final int UNKNOWN_FILE_SIZE = -1;
 	
-	/** The file path and name */
+	/** The relative path to the application directory */
+	@XmlAttribute(name = "RelativePath")
+	protected String relativePath;
+
+	/** The full file path and name */
 	@XmlAttribute(name = "Path")
 	protected String path;
 	
@@ -82,7 +88,13 @@ public class MediaFile {
 	 * @param format the file format
 	 */
 	public MediaFile(String filePath, String format) {
-		Path path = FileSystems.getDefault().getPath(filePath);
+		FileSystem system = FileSystems.getDefault();
+		Path path = system.getPath(filePath);
+		// get the relative path
+		// we want to use this for storing the media in the media library
+		// so that when stuff that reference the media is exported to another
+		// system, we don't have file path problems
+		Path rel = system.getPath(Constants.BASE_PATH).relativize(path);
 		long size = UNKNOWN_FILE_SIZE;
 		try {
 			size = Files.size(path);
@@ -91,6 +103,7 @@ public class MediaFile {
 		}
 		String name = path.getFileName().toString();
 		this.path = path.toString();
+		this.relativePath = rel.toString();
 		this.name = name;
 		this.size = size;
 		this.format = format;
@@ -106,7 +119,7 @@ public class MediaFile {
 		if (obj instanceof MediaFile) {
 			MediaFile other = (MediaFile)obj;
 			// only path must be equal
-			if (other.path.equals(this.path)) {
+			if (other.relativePath.equals(this.relativePath)) {
 				return true;
 			}
 		}
@@ -128,6 +141,7 @@ public class MediaFile {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("MediaFile[Path=").append(this.path)
+		  .append("|RelativePath=").append(this.relativePath)
 		  .append("|Name=").append(this.name)
 		  .append("|Size=").append(this.size)
 		  .append("|Format=").append(this.format)
@@ -136,11 +150,23 @@ public class MediaFile {
 	}
 	
 	/**
-	 * Returns the file path and name.
+	 * Returns the full file path and name.
+	 * <p>
+	 * This should only be used for output to the user.
+	 * Instead the {@link #getRelativePath()} should be used
+	 * for all Media Library operations.
 	 * @return String
 	 */
 	public String getPath() {
 		return this.path;
+	}
+
+	/**
+	 * Returns the relative path.
+	 * @return String
+	 */
+	public String getRelativePath() {
+		return this.relativePath;
 	}
 	
 	/**

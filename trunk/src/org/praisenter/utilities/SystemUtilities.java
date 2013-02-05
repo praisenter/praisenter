@@ -97,4 +97,16 @@ public final class SystemUtilities {
 			return Messages.getString("exception.security");
 		}
 	}
+	
+	/**
+	 * Returns the user's home directory.
+	 * @return String
+	 */
+	public static final String getUserHomeDirectory() {
+		try{
+			return System.getProperty("user.home");
+		} catch (SecurityException e) {
+			return "";
+		}
+	}
 }

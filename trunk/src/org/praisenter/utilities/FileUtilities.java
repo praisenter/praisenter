@@ -25,6 +25,8 @@
 package org.praisenter.utilities;
 
 import java.io.File;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
@@ -38,6 +40,17 @@ import javax.activation.MimetypesFileTypeMap;
 public final class FileUtilities {
 	/** Hidden default constructor */
 	private FileUtilities() {}
+	
+	/** The default file system */
+	private static final FileSystem DEFAULT = FileSystems.getDefault();
+	
+	/**
+	 * Returns the separator for files.
+	 * @return String
+	 */
+	public static final String getFileSeparator() {
+		return DEFAULT.getSeparator();
+	}
 	
 	/**
 	 * Returns the lower case extension of the given file.

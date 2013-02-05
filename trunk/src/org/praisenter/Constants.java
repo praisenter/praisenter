@@ -24,7 +24,8 @@
  */
 package org.praisenter;
 
-import java.nio.file.FileSystems;
+import org.praisenter.utilities.FileUtilities;
+import org.praisenter.utilities.SystemUtilities;
 
 /**
  * Class containing various constants.
@@ -35,17 +36,23 @@ import java.nio.file.FileSystems;
 public final class Constants {
 	/** Hidden default constructor */
 	public Constants() {}
-	
+
 	/** File path separator */
-	public static final String SEPARATOR = FileSystems.getDefault().getSeparator();
+	public static final String SEPARATOR = FileUtilities.getFileSeparator();
 	
+	/** The user's home directory */
+	public static final String USER_HOME = SystemUtilities.getUserHomeDirectory();
+	
+	/** The application base path (user/home/dir/Praisenter2 or Praisenter2) */
+	public static final String BASE_PATH = (!USER_HOME.isEmpty() ? USER_HOME + SEPARATOR : "") + "Praisenter2";
+
 	/** The thumbnails file name */
 	public static final String THUMBNAIL_FILE = "_thumbs.xml";
 	
 	// config
 	
 	/** The configuration file location */
-	public static final String CONFIGURATION_FILE_LOCATION	= "config";
+	public static final String CONFIGURATION_FILE_LOCATION	= BASE_PATH + SEPARATOR + "config";
 	
 	/** The log4j configuration file name */
 	public static final String LOG4J_FILE_NAME = "log4j.xml";
@@ -54,12 +61,12 @@ public final class Constants {
 	public static final String LOG4J_FILE_PATH = CONFIGURATION_FILE_LOCATION + SEPARATOR + LOG4J_FILE_NAME;
 	
 	/** The log file folder */
-	public static final String LOG_FILE_LOCATION = "logs";
+	public static final String LOG_FILE_LOCATION = BASE_PATH + SEPARATOR + "logs";
 	
 	// database
 	
 	/** The database file location */
-	public static final String DATABASE_FILE_LOCATION = "database";
+	public static final String DATABASE_FILE_LOCATION = BASE_PATH + SEPARATOR + "database";
 	
 	/** The database file name (foldername in the case of derby) */
 	public static final String DATABASE_FILE_NAME = "praisenter";
@@ -73,7 +80,7 @@ public final class Constants {
 	// media
 	
 	/** The media library path */
-	public static final String MEDIA_LIBRARY_PATH = "media";
+	public static final String MEDIA_LIBRARY_PATH = BASE_PATH + SEPARATOR + "media";
 	
 	/** The media library images path */
 	public static final String MEDIA_LIBRARY_IMAGE_PATH = MEDIA_LIBRARY_PATH + SEPARATOR + "images";
@@ -87,10 +94,10 @@ public final class Constants {
 	// slides/templates
 	
 	/** The slide library slide path */
-	public static final String SLIDE_PATH = "slides";
+	public static final String SLIDE_PATH = BASE_PATH + SEPARATOR + "slides";
 	
 	/** The slide library slide template path */
-	public static final String TEMPLATE_PATH = "templates";
+	public static final String TEMPLATE_PATH = BASE_PATH + SEPARATOR + "templates";
 	
 	/** The slide library bible template path */
 	public static final String BIBLE_TEMPLATE_PATH = TEMPLATE_PATH + SEPARATOR + "bible";

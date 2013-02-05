@@ -105,6 +105,9 @@ public final class Main {
 		// setup mac os quit command to close all windows
 		setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS");
 		
+		// set the praisenter.home property for log4j file appender paths
+		setProperty("praisenter.home", Constants.BASE_PATH);
+		
 		try {
 			// initialize folder structure
 			initializeFolderStructure();
@@ -157,6 +160,9 @@ public final class Main {
 	 * we need to make sure they exist on each start up.
 	 */
 	private static final void initializeFolderStructure() {
+		// verify the base folder location
+		initializeFolder(Constants.BASE_PATH);
+		
 		// verify the existence of the /config directory
 		initializeFolder(Constants.CONFIGURATION_FILE_LOCATION);
 		

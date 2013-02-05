@@ -151,7 +151,7 @@ public class Preferences {
 	private Preferences() {
 		// default render qualities
 		this.renderQuality = RenderQuality.MEDIUM;
-		this.transitionQuality = RenderQuality.MEDIUM;
+		this.transitionQuality = RenderQuality.HIGH;
 		this.interpolationQuality = RenderQuality.MEDIUM;
 		this.colorQuality = RenderQuality.MEDIUM;
 		this.alphaInterpolationQuality = RenderQuality.MEDIUM;
@@ -183,7 +183,7 @@ public class Preferences {
 				instance = XmlIO.read(CONFIGURATION_FILE, Preferences.class);
 				return instance;
 			} catch (FileNotFoundException e) {
-				LOGGER.warn("Unable to find the configuration file [" + CONFIGURATION_FILE + "]: ", e);
+				LOGGER.warn("Unable to find the configuration file [" + CONFIGURATION_FILE + "]: ");
 				// just create a new instance and save that
 				instance = new Preferences();
 				// save the new instance

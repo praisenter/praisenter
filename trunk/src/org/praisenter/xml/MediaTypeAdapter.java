@@ -45,7 +45,7 @@ public class MediaTypeAdapter extends XmlAdapter<String, Media> {
 	 */
 	@Override
 	public String marshal(Media v) throws Exception {
-		return v.getFile().getPath();
+		return v.getFile().getRelativePath();
 	}
 	
 	/* (non-Javadoc)
@@ -53,10 +53,15 @@ public class MediaTypeAdapter extends XmlAdapter<String, Media> {
 	 */
 	@Override
 	public Media unmarshal(String v) throws Exception {
-		 Media media = MediaLibrary.getMedia(v);
-		 if (media == null) {
-			 LOGGER.warn("Media [" + v + "] does not exist in the media library.");
-		 }
-		 return media;
+		Media media = null;
+		try {
+			media = MediaLibrary.getMedia(v);
+		} catch (Exception e) {
+			LOGGER.error("An error occurred while retrieving the media [" + v + "] from the the Media Library: ", e);
+		}
+		if (media == null) {
+			LOGGER.warn("Media [" + v + "] does not exist in the media library.");
+		}
+		return media;
 	}
 }
