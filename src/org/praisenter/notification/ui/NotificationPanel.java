@@ -33,7 +33,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
-import java.text.NumberFormat;
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
 
@@ -188,10 +188,10 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
 		this.cmbTemplates.addItemListener(this);
 		
-		this.txtWaitPeriod = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtWaitPeriod = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtWaitPeriod.setToolTipText(Messages.getString("panel.notification.wait.tooltip"));
 		this.txtWaitPeriod.setValue(this.nPreferences.getWaitPeriod());
-		this.txtWaitPeriod.setColumns(5);
+		this.txtWaitPeriod.setColumns(4);
 		this.txtWaitPeriod.addFocusListener(new SelectTextFocusListener(this.txtWaitPeriod));
 		
 		// setup the transition lists
@@ -201,7 +201,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		this.cmbInTransition.setRenderer(new TransitionListCellRenderer());
 		this.cmbInTransition.setSelectedItem(Transitions.getTransitionForId(this.nPreferences.getSendTransitionId(), Transition.Type.IN));
 		this.cmbInTransition.setToolTipText(Messages.getString("panel.notification.send.inTransition"));
-		this.txtInTransition = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtInTransition = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtInTransition.addFocusListener(new SelectTextFocusListener(this.txtInTransition));
 		this.txtInTransition.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtInTransition.setValue(this.nPreferences.getSendTransitionDuration());
@@ -211,7 +211,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		this.cmbOutTransition.setRenderer(new TransitionListCellRenderer());
 		this.cmbOutTransition.setSelectedItem(Transitions.getTransitionForId(this.nPreferences.getClearTransitionId(), Transition.Type.OUT));
 		this.cmbOutTransition.setToolTipText(Messages.getString("panel.notification.send.outTransition"));
-		this.txtOutTransition = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtOutTransition = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtOutTransition.addFocusListener(new SelectTextFocusListener(this.txtOutTransition));
 		this.txtOutTransition.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtOutTransition.setValue(this.nPreferences.getClearTransitionDuration());
@@ -338,7 +338,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 				if (this.nPreferences.getTemplate() == null) {
 					return thumb;
 				}
-			} else if (thumb.getFile().getPath().equals(this.nPreferences.getTemplate())) {
+			} else if (thumb.getFile().getRelativePath().equals(this.nPreferences.getTemplate())) {
 				return thumb;
 			}
 		}
@@ -361,10 +361,10 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 						template = NotificationSlideTemplate.getDefaultTemplate(size.width, size.height);
 					} else {
 						try {
-							template = SlideLibrary.getTemplate(thumbnail.getFile().getPath(), NotificationSlideTemplate.class);
+							template = SlideLibrary.getTemplate(thumbnail.getFile(), NotificationSlideTemplate.class);
 						} catch (SlideLibraryException ex) {
 							// just log the error
-							LOGGER.error("Failed to switch to template: [" + thumbnail.getFile().getPath() + "]", ex);
+							LOGGER.error("Failed to switch to template: [" + thumbnail.getFile().getRelativePath() + "]", ex);
 							return;
 						}
 					}

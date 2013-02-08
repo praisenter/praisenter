@@ -55,13 +55,13 @@ public class ImageMediaFile extends MediaFile {
 	
 	/**
 	 * Full constructor.
-	 * @param filePath the file name and path
+	 * @param fullPath the full file name and path
 	 * @param format the file format
 	 * @param width the image width
 	 * @param height the image height
 	 */
-	public ImageMediaFile(String filePath, String format, int width, int height) {
-		super(filePath, format);
+	public ImageMediaFile(String fullPath, String format, int width, int height) {
+		super(fullPath, format);
 		this.width = width;
 		this.height = height;
 	}

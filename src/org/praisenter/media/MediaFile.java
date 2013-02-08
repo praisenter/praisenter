@@ -60,8 +60,8 @@ public class MediaFile {
 	protected String relativePath;
 
 	/** The full file path and name */
-	@XmlAttribute(name = "Path")
-	protected String path;
+	@XmlAttribute(name = "FullPath")
+	protected String fullPath;
 	
 	/** The file name */
 	@XmlAttribute(name = "Name")
@@ -84,26 +84,26 @@ public class MediaFile {
 	
 	/**
 	 * Full constructor.
-	 * @param filePath the file name and path
+	 * @param fullPath the full file name and path
 	 * @param format the file format
 	 */
-	public MediaFile(String filePath, String format) {
+	public MediaFile(String fullPath, String format) {
 		FileSystem system = FileSystems.getDefault();
-		Path path = system.getPath(filePath);
+		Path path = system.getPath(fullPath);
 		// get the relative path
 		// we want to use this for storing the media in the media library
 		// so that when stuff that reference the media is exported to another
 		// system, we don't have file path problems
 		Path rel = system.getPath(Constants.BASE_PATH).relativize(path);
+		this.fullPath = path.toString();
+		this.relativePath = rel.toString();
 		long size = UNKNOWN_FILE_SIZE;
 		try {
 			size = Files.size(path);
 		} catch (IOException ex) {
-			LOGGER.warn("Unable to read file size for [" + filePath + "]:", ex);
+			LOGGER.warn("Unable to read file size for [" + this.relativePath + "]:", ex);
 		}
 		String name = path.getFileName().toString();
-		this.path = path.toString();
-		this.relativePath = rel.toString();
 		this.name = name;
 		this.size = size;
 		this.format = format;
@@ -131,7 +131,7 @@ public class MediaFile {
 	 */
 	@Override
 	public int hashCode() {
-		return this.path.hashCode();
+		return this.relativePath.hashCode();
 	}
 	
 	/* (non-Javadoc)
@@ -140,7 +140,7 @@ public class MediaFile {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("MediaFile[Path=").append(this.path)
+		sb.append("MediaFile[Path=").append(this.fullPath)
 		  .append("|RelativePath=").append(this.relativePath)
 		  .append("|Name=").append(this.name)
 		  .append("|Size=").append(this.size)
@@ -157,8 +157,8 @@ public class MediaFile {
 	 * for all Media Library operations.
 	 * @return String
 	 */
-	public String getPath() {
-		return this.path;
+	public String getFullPath() {
+		return this.fullPath;
 	}
 
 	/**

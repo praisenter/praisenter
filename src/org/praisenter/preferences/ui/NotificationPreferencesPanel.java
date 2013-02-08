@@ -28,7 +28,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.text.NumberFormat;
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
 
@@ -106,7 +106,7 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 		
 		// general notification settings
 		JLabel lblDefaultWaitPeriod = new JLabel(Messages.getString("panel.notification.preferences.defaultWaitPeriod"));
-		this.txtDefaultWaitPeriod = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtDefaultWaitPeriod = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtDefaultWaitPeriod.setToolTipText(Messages.getString("panel.notification.preferences.defaultWaitPeriod.tooltip"));
 		this.txtDefaultWaitPeriod.setValue(nPreferences.getWaitPeriod());
 		this.txtDefaultWaitPeriod.setColumns(6);
@@ -129,7 +129,7 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 					selected = thumb;
 					break;
 				}
-			} else if (thumb.getFile().getPath().equals(nPreferences.getTemplate())) {
+			} else if (thumb.getFile().getRelativePath().equals(nPreferences.getTemplate())) {
 				selected = thumb;
 				break;
 			}
@@ -152,7 +152,7 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(nPreferences.getSendTransitionId(), Transition.Type.IN));
-		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtSendTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtSendTransitions.setValue(nPreferences.getSendTransitionDuration());
@@ -166,7 +166,7 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(nPreferences.getClearTransitionId(), Transition.Type.OUT));
-		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtClearTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtClearTransitions.setValue(nPreferences.getClearTransitionDuration());
@@ -273,7 +273,7 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 		SlideThumbnail thumbnail = ((SlideThumbnail)this.cmbTemplates.getSelectedItem());
 		// check for the default template
 		if (thumbnail.getFile() != SlideFile.NOT_STORED) {
-			nPreferences.setTemplate(thumbnail.getFile().getPath());
+			nPreferences.setTemplate(thumbnail.getFile().getRelativePath());
 		} else {
 			nPreferences.setTemplate(null);
 		}

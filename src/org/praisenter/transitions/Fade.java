@@ -57,6 +57,17 @@ public class Fade extends Transition {
 		return ID;
 	}
 	
+	/**
+	 * Clamps the given value between the min and max inclusive.
+	 * @param value the value to clamp
+	 * @param min the minimum value
+	 * @param max the maximum value
+	 * @return float
+	 */
+	private static final float clamp(float value, float min, float max) {
+		return Math.max(Math.min(value, max), min);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.transitions.Transition#render(java.awt.Graphics2D, java.awt.image.BufferedImage, java.awt.image.BufferedImage, double)
 	 */
@@ -64,15 +75,14 @@ public class Fade extends Transition {
 	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
 		// apply alpha composite
 		Composite composite = g2d.getComposite();
+		float alpha = Fade.clamp((float)pc, 0.0f, 1.0f);
 		if (this.type == Transition.Type.IN) {
 			// draw the old
 			g2d.drawImage(image0, 0, 0, null);
 			// fade in the new
-			float alpha = (float)Math.min(pc, 1.0);
 			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
 			g2d.drawImage(image1, 0, 0, null);
 		} else {
-			float alpha = (float)Math.min(pc, 1.0);
 			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f - alpha));
 			g2d.drawImage(image0, 0, 0, null);
 		}

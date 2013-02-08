@@ -152,9 +152,9 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 		IContainer container = IContainer.make();
 
 		// open the container format
-		String filePath = media.getFile().getPath();
+		String filePath = media.getFile().getFullPath();
 		if (container.open(filePath, IContainer.Type.READ, null) < 0) {
-			LOGGER.error("Could not open file [" + filePath + "].  Unsupported container format.");
+			LOGGER.error("Could not open file [" + media.getFile().getRelativePath() + "].  Unsupported container format.");
 			this.media = null;
 			if (container != null) {
 				container.close();

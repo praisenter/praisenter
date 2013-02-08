@@ -19,24 +19,20 @@ Some videos fail to loop correctly: https://groups.google.com/forum/?fromgroups=
 	b. Spawn another JVM which manages the presentation window (this may cause the memory requirements to increase; requires a communication layer; the idea here is we now have two EDTs in effect)
 	   RMI is a communication option.
 	   - Sadly this is just too slow and fragile
-	c. Take a screen shot of the desktop before presentation and use that as the background of the frame (this would work if the desktop is not changing or doesn't change during the life of the
-	   presented window.  This isn't really an option in my opinion as Windows 7 allows many desktop backgrounds (it goes through them like a slide show) and who knows what other things may
-	   be going on behind the window.
-	   - not really an option
-	d. Use JOGL 2.0 with NEWT which has an EDT for each Display. (unfortunately we don't gain much here since a lot of the rendering is just image copies and Java2D text rendering; still it could
+	c. Use JOGL 2.0 with NEWT which has an EDT for each Display. (unfortunately we don't gain much here since a lot of the rendering is just image copies and Java2D text rendering; still it could
 	   provide some performance increase) It looks like GLWindow supports translucency.
 	   - supports translucency and works ok with a Java2D texture renderer
 	   - we are having some weird threading issue with the media player
 	   - twice as slow on average which is just too slow
-	   - if we converted all the rendering to OpenGL it would be much faster
-	e. Use JavaFX for the presentation window (this is probably the best option; JavaFX supports translucent windows and uses a separate "Application thread" from the EDT; it also uses way less memory
+	   - if we converted all the rendering to OpenGL it may be faster; the problems here mostly include passing down the video image as a texture and rendering of text must be done on the cpu
+	d. Use JavaFX for the presentation window (this is probably the best option; JavaFX supports translucent windows and uses a separate "Application thread" from the EDT; it also uses way less memory
 	   and has a separate thread for rendering and UI interaction; Drawbacks are OS restrictions, see here: http://www.oracle.com/technetwork/java/javafx/downloads/supportedconfigurations-1506746.html)
 	   JavaFX also requires a separate packaging process (may not have to do this) but also offers native installer packaging for windows/linux/mac
 	   http://docs.oracle.com/javafx/2/deployment/deploy_quick_start.htm#CIHIHJJB
 	   - haven't done much with this to know how the deployment would be
 	   - performance was similar to Java2D
 	   - does have a separate EDT from Swing
-	f. Some other native solution (most of these are quite complex and would require even more development time)
+	e. Some other native solution (most of these are quite complex and would require even more development time)
 
 2. Rendering using the EDT is slow on the Windows Vista machine (which is generally much slower with java for some reason)
 	a. Perform active rendering (not an option with Swing (see 1.a), possible with JavaFX and JOGL)

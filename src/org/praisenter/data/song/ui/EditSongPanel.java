@@ -313,25 +313,23 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 				.addGroup(layout.createSequentialGroup()
 						.addComponent(scrSongParts, 400, 400, Short.MAX_VALUE)
 						.addGroup(layout.createParallelGroup()
-								.addGroup(layout.createSequentialGroup()
-										.addComponent(this.btnAddPart)
-										.addComponent(this.btnDeleteSelectedParts)
-										.addComponent(this.btnNotes))
-								.addComponent(this.pnlCards))));
+								.addComponent(this.btnAddPart, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(this.btnDeleteSelectedParts, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(this.btnNotes, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+						.addComponent(this.pnlCards)));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.lblId)
 						.addComponent(btnNew)
 						.addComponent(this.btnSave))
-				.addGroup(layout.createParallelGroup()
-						.addComponent(scrSongParts, 50, 150, Short.MAX_VALUE)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(scrSongParts, 0, 150, Short.MAX_VALUE)
 						.addGroup(layout.createSequentialGroup()
-								.addGroup(layout.createParallelGroup()
-										.addComponent(this.btnAddPart)
-										.addComponent(this.btnDeleteSelectedParts)
-										.addComponent(this.btnNotes))
-								.addComponent(this.pnlCards))));
+								.addComponent(this.btnAddPart)
+								.addComponent(this.btnDeleteSelectedParts)
+								.addComponent(this.btnNotes))
+						.addComponent(this.pnlCards)));
 	}
 	
 	/**

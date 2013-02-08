@@ -99,6 +99,7 @@ public class LineStyleEditorPanel extends JPanel implements ItemListener, Change
 	public LineStyleEditorPanel(LineStyle style) {
 		this.lblLineWidth = new JLabel(Messages.getString("panel.slide.editor.line.width"));
 		this.spnLineWidth = new JSpinner(new SpinnerNumberModel(5.0, 1.0, 1000.0, 1.0));
+		this.spnLineWidth.setEditor(new JSpinner.NumberEditor(this.spnLineWidth, "0.0"));
 		
 		this.lblCap = new JLabel(Messages.getString("panel.slide.editor.line.cap"));
 		this.cmbCap = new JComboBox<CapType>(CapType.values());

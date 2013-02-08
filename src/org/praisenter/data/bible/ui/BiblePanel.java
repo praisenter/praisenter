@@ -41,8 +41,8 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -250,7 +250,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		this.pnlPreview.addSlide(current);
 		this.pnlPreview.addSlide(next);
 		
-		this.pnlPreview.setMinimumSize(250);
+		this.pnlPreview.setMinimumSize(100);
 		
 		// normal bible lookup
 		
@@ -408,7 +408,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		});
 		
 		// chapter text box
-		this.txtChapter = new JFormattedTextField(new EmptyNumberFormatter(NumberFormat.getIntegerInstance())) {
+		this.txtChapter = new JFormattedTextField(new EmptyNumberFormatter(new DecimalFormat("0"))) {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
@@ -428,7 +428,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		this.txtChapter.addFocusListener(new SelectTextFocusListener(this.txtChapter));
 		
 		// verse text box
-		this.txtVerse = new JFormattedTextField(new EmptyNumberFormatter(NumberFormat.getIntegerInstance())) {
+		this.txtVerse = new JFormattedTextField(new EmptyNumberFormatter(new DecimalFormat("0"))) {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
@@ -463,7 +463,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(bPreferences.getSendTransitionId(), Transition.Type.IN));
-		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtSendTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtSendTransitions.setValue(bPreferences.getSendTransitionDuration());
@@ -472,7 +472,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(bPreferences.getClearTransitionId(), Transition.Type.OUT));
-		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtClearTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtClearTransitions.setValue(bPreferences.getClearTransitionDuration());
@@ -780,12 +780,12 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				.addGroup(svLayout.createSequentialGroup()
 						.addComponent(btnRemoveSelected)
 						.addComponent(btnRemoveAll))
-				.addComponent(scrVerseQueue, 400, 400, Short.MAX_VALUE));
+				.addComponent(scrVerseQueue, 0, 400, Short.MAX_VALUE));
 		svLayout.setVerticalGroup(svLayout.createSequentialGroup()
 				.addGroup(svLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(btnRemoveSelected, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnRemoveAll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrVerseQueue, 200, 200, Short.MAX_VALUE));
+				.addComponent(scrVerseQueue, 0, 150, Short.MAX_VALUE));
 		
 		JPanel pnlBibleSearch = new JPanel();
 		GroupLayout bsLayout = new GroupLayout(pnlBibleSearch);
@@ -799,14 +799,14 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.lblBibleSearchResults))
 				.addGroup(bsLayout.createSequentialGroup()
-						.addComponent(scrBibleSearchResults, 400, 400, Short.MAX_VALUE)));
+						.addComponent(scrBibleSearchResults, 0, 400, Short.MAX_VALUE)));
 		bsLayout.setVerticalGroup(bsLayout.createSequentialGroup()
 				.addGroup(bsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtBibleSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrBibleSearchResults, 200, 200, Short.MAX_VALUE));
+				.addComponent(scrBibleSearchResults, 0, 150, Short.MAX_VALUE));
 		
 		JTabbedPane tableTabs = new JTabbedPane();
 		tableTabs.addTab(Messages.getString("panel.bible.verseQueue"), pnlVerseQueue);
@@ -848,7 +848,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		split.setTopComponent(pnlTop);
 		split.setBottomComponent(tableTabs);
-		split.setResizeWeight(0.8);
+		split.setResizeWeight(1.0);
 		split.setOneTouchExpandable(true);
 		
 		// create the layout
@@ -932,7 +932,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				if (this.bPreferences.getTemplate() == null) {
 					return thumb;
 				}
-			} else if (thumb.getFile().getPath().equals(this.bPreferences.getTemplate())) {
+			} else if (thumb.getFile().getRelativePath().equals(this.bPreferences.getTemplate())) {
 				return thumb;
 			}
 		}
@@ -1039,10 +1039,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						template = BibleSlideTemplate.getDefaultTemplate(size.width, size.height);
 					} else {
 						try {
-							template = SlideLibrary.getTemplate(thumbnail.getFile().getPath(), BibleSlideTemplate.class);
+							template = SlideLibrary.getTemplate(thumbnail.getFile(), BibleSlideTemplate.class);
 						} catch (SlideLibraryException ex) {
 							// just log the error
-							LOGGER.error("Failed to switch to template: [" + thumbnail.getFile().getPath() + "]", ex);
+							LOGGER.error("Failed to switch to template: [" + thumbnail.getFile().getRelativePath() + "]", ex);
 							return;
 						}
 					}

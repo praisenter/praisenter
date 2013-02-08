@@ -31,7 +31,7 @@ import java.awt.GraphicsDevice;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
-import java.text.NumberFormat;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -145,7 +145,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(this.sPreferences.getSendTransitionId(), Transition.Type.IN));
-		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtSendTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtSendTransitions.setValue(this.sPreferences.getSendTransitionDuration());
@@ -154,7 +154,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(this.sPreferences.getClearTransitionId(), Transition.Type.OUT));
-		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtClearTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtClearTransitions.setValue(this.sPreferences.getClearTransitionDuration());
@@ -347,7 +347,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 				
 				if (file != null) {
 					this.pnlPreview.setLoading(true);
-					this.getPreviewThread().queueSlide(file.getPath());
+					this.getPreviewThread().queueSlide(file.getRelativePath());
 				} else {
 					this.pnlPreview.setSlide(null);
 					this.pnlPreview.repaint();

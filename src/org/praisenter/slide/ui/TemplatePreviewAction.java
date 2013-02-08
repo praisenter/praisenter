@@ -24,6 +24,7 @@
  */
 package org.praisenter.slide.ui;
 
+import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.Template;
 
 /**
@@ -39,11 +40,11 @@ public class TemplatePreviewAction<E extends Template> extends PreviewAction<E> 
 	
 	/**
 	 * Minimal constructor.
-	 * @param path the template path
+	 * @param file the template file
 	 * @param clazz the template type
 	 */
-	public TemplatePreviewAction(String path, Class<E> clazz) {
-		super(path);
+	public TemplatePreviewAction(SlideFile file, Class<E> clazz) {
+		super(file);
 		this.clazz = clazz;
 	}
 	

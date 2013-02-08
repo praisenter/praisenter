@@ -156,7 +156,7 @@ public class SlidePropertiesPanel extends JPanel {
 			this.txtName.setText(file.getName());
 			this.txtName.setToolTipText(MessageFormat.format(Messages.getString("panel.slide.properties.name.tooltip"), type));
 			this.txtName.setCaretPosition(0);
-			this.txtPath.setText(file.getPath());
+			this.txtPath.setText(file.getFullPath());
 			this.txtPath.setCaretPosition(0);
 			this.txtPath.setToolTipText(MessageFormat.format(Messages.getString("panel.slide.properties.path.tooltip"), type));
 			this.txtSize.setText(Formatter.getSizeFormattedString(file.getSize()));

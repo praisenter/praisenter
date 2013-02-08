@@ -645,9 +645,9 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 					ExceptionDialog.show(
 							this, 
 							Messages.getString("panel.slide.load.exception.title"), 
-							MessageFormat.format(Messages.getString("panel.slide.load.exception.text"), file.getPath()), 
+							MessageFormat.format(Messages.getString("panel.slide.load.exception.text"), file.getRelativePath()), 
 							task.getException());
-					LOGGER.error("Failed to load [" + file.getPath() + "] from the slide library: ", task.getException());
+					LOGGER.error("Failed to load [" + file.getRelativePath() + "] from the slide library: ", task.getException());
 				}
 			} else if ("copy".equals(command)) {
 				// get the selected slide or template
@@ -671,9 +671,9 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 							// save the slide
 							try {
 								if (!isTemplate) {
-									SlideLibrary.saveSlide(slide.getName(), (BasicSlide)slide);
+									SlideLibrary.addSlide(slide.getName(), (BasicSlide)slide);
 								} else {
-									SlideLibrary.saveTemplate(slide.getName(), (Template)slide);
+									SlideLibrary.addTemplate(slide.getName(), (Template)slide);
 								}
 								this.setSuccessful(true);
 							} catch (Exception e) {
@@ -694,9 +694,9 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 					ExceptionDialog.show(
 							this, 
 							MessageFormat.format(Messages.getString("panel.slide.copy.exception.title"), type), 
-							MessageFormat.format(Messages.getString("panel.slide.copy.exception.text"), type.toLowerCase(), file.getPath()), 
+							MessageFormat.format(Messages.getString("panel.slide.copy.exception.text"), type.toLowerCase(), file.getRelativePath()), 
 							task.getException());
-					LOGGER.error("Failed to copy [" + file.getPath() + "]: ", task.getException());
+					LOGGER.error("Failed to copy [" + file.getRelativePath() + "]: ", task.getException());
 				}
 			} else if ("createTemplate".equals(command)) {
 				// get the selected slide or template
@@ -719,7 +719,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 							
 							// save the slide
 							try {
-								SlideLibrary.saveTemplate(slide.getName(), slide);
+								SlideLibrary.addTemplate(slide.getName(), slide);
 								this.setSuccessful(true);
 							} catch (Exception e) {
 								this.setSuccessful(false);
@@ -741,9 +741,9 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 					ExceptionDialog.show(
 							this, 
 							Messages.getString("panel.slide.createTemplate.exception.title"), 
-							MessageFormat.format(Messages.getString("panel.slide.createTemplate.exception.text"), file.getPath()), 
+							MessageFormat.format(Messages.getString("panel.slide.createTemplate.exception.text"), file.getRelativePath()), 
 							task.getException());
-					LOGGER.error("Failed to create template from [" + file.getPath() + "]: ", task.getException());
+					LOGGER.error("Failed to create template from [" + file.getRelativePath() + "]: ", task.getException());
 				}
 			} else if ("createSlide".equals(command)) {
 				// get the selected slide or template
@@ -770,7 +770,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 							
 							// save the slide
 							try {
-								SlideLibrary.saveSlide(slide.getName(), (BasicSlide)slide);
+								SlideLibrary.addSlide(slide.getName(), (BasicSlide)slide);
 								this.setSuccessful(true);
 							} catch (Exception e) {
 								this.setSuccessful(false);
@@ -791,9 +791,9 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 					ExceptionDialog.show(
 							this, 
 							Messages.getString("panel.slide.createSlide.exception.title"), 
-							MessageFormat.format(Messages.getString("panel.slide.createSlide.exception.text"), file.getPath()), 
+							MessageFormat.format(Messages.getString("panel.slide.createSlide.exception.text"), file.getRelativePath()), 
 							task.getException());
-					LOGGER.error("Failed to create slide from [" + file.getPath() + "]: ", task.getException());
+					LOGGER.error("Failed to create slide from [" + file.getRelativePath() + "]: ", task.getException());
 				}
 			} else if ("remove".equals(command)) {
 				// show an are you sure dialog, then delete the slide
@@ -808,10 +808,10 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 						@Override
 						public void run() {
 							if (!isTemplate) {
-								SlideLibrary.deleteSlide(thumbnail.getFile().getPath());
+								SlideLibrary.deleteSlide(thumbnail.getFile());
 								this.setSuccessful(true);
 							} else {
-								SlideLibrary.deleteTemplate(thumbnail.getFile().getPath());
+								SlideLibrary.deleteTemplate(thumbnail.getFile());
 								this.setSuccessful(true);
 							}
 						}
@@ -831,7 +831,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 								MessageFormat.format(Messages.getString("panel.slide.remove.exception.title"), type), 
 								MessageFormat.format(Messages.getString("panel.slide.remove.exception.text"), type.toLowerCase(), thumbnail.getFile().getName()), 
 								task.getException());
-						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getPath() + "] from the slide library: ", task.getException());
+						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getRelativePath() + "] from the slide library: ", task.getException());
 					}
 				}
 			} else if ("export-slide".equals(command)) {
@@ -872,7 +872,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 					
 					// check the task result
 					if (!task.isSuccessful()) {
-						LOGGER.error("An error occurred while exporting the slide/template [" + thumbnail.getFile().getPath() + "]: ", task.getException());
+						LOGGER.error("An error occurred while exporting the slide/template [" + thumbnail.getFile().getRelativePath() + "]: ", task.getException());
 						ExceptionDialog.show(
 								this, 
 								MessageFormat.format(Messages.getString("panel.slide.export.slide.exception.title"), type), 
@@ -917,32 +917,32 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new SlidePreviewAction<BasicSlide>(file.getPath(), BasicSlide.class);
+					preview = new SlidePreviewAction<BasicSlide>(file, BasicSlide.class);
 					isSlide = true;
 				}
 			} else if (source == this.lstTemplates) {
 				SlideThumbnail thumbnail = this.lstTemplates.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new TemplatePreviewAction<BasicSlideTemplate>(file.getPath(), BasicSlideTemplate.class);
+					preview = new TemplatePreviewAction<BasicSlideTemplate>(file, BasicSlideTemplate.class);
 				}
 			} else if (source == this.lstBibleTemplates) {
 				SlideThumbnail thumbnail = this.lstBibleTemplates.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new TemplatePreviewAction<BibleSlideTemplate>(file.getPath(), BibleSlideTemplate.class);
+					preview = new TemplatePreviewAction<BibleSlideTemplate>(file, BibleSlideTemplate.class);
 				}
 			} else if (source == this.lstSongTemplates) {
 				SlideThumbnail thumbnail = this.lstSongTemplates.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new TemplatePreviewAction<SongSlideTemplate>(file.getPath(), SongSlideTemplate.class);
+					preview = new TemplatePreviewAction<SongSlideTemplate>(file, SongSlideTemplate.class);
 				}
 			} else if (source == this.lstNotificationTemplates) {
 				SlideThumbnail thumbnail = this.lstNotificationTemplates.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new TemplatePreviewAction<NotificationSlideTemplate>(file.getPath(), NotificationSlideTemplate.class);
+					preview = new TemplatePreviewAction<NotificationSlideTemplate>(file, NotificationSlideTemplate.class);
 				}
 			}
 			if (preview != null && file != null) {
@@ -1023,7 +1023,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 			SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
 			if (thumbnail != null) {
 				file = thumbnail.getFile();
-				preview = new SlidePreviewAction<BasicSlide>(file.getPath(), BasicSlide.class);
+				preview = new SlidePreviewAction<BasicSlide>(file, BasicSlide.class);
 				isSlide = true;
 			}
 		} else if (index == 1) {
@@ -1032,25 +1032,25 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 				SlideThumbnail thumbnail = this.lstTemplates.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new TemplatePreviewAction<BasicSlideTemplate>(file.getPath(), BasicSlideTemplate.class);
+					preview = new TemplatePreviewAction<BasicSlideTemplate>(file, BasicSlideTemplate.class);
 				}
 			} else if (type == TemplateType.BIBLE) {
 				SlideThumbnail thumbnail = this.lstBibleTemplates.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new TemplatePreviewAction<BibleSlideTemplate>(file.getPath(), BibleSlideTemplate.class);
+					preview = new TemplatePreviewAction<BibleSlideTemplate>(file, BibleSlideTemplate.class);
 				}
 			} else if (type == TemplateType.SONG) {
 				SlideThumbnail thumbnail = this.lstSongTemplates.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new TemplatePreviewAction<SongSlideTemplate>(file.getPath(), SongSlideTemplate.class);
+					preview = new TemplatePreviewAction<SongSlideTemplate>(file, SongSlideTemplate.class);
 				}
 			} else if (type == TemplateType.NOTIFICATION) {
 				SlideThumbnail thumbnail = this.lstNotificationTemplates.getSelectedValue();
 				if (thumbnail != null) {
 					file = thumbnail.getFile();
-					preview = new TemplatePreviewAction<NotificationSlideTemplate>(file.getPath(), NotificationSlideTemplate.class);
+					preview = new TemplatePreviewAction<NotificationSlideTemplate>(file, NotificationSlideTemplate.class);
 				}
 			}
 		}
@@ -1138,15 +1138,15 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 							// get the slide
 							if (Template.class.isAssignableFrom(preview.getSlideClass())) {
 								TemplatePreviewAction<?> tPreview = (TemplatePreviewAction<?>)preview;
-								slide = SlideLibrary.getTemplate(preview.path, tPreview.clazz);
+								slide = SlideLibrary.getTemplate(preview.file, tPreview.clazz);
 							} else {
-								slide = SlideLibrary.getSlide(preview.path);
+								slide = SlideLibrary.getSlide(preview.file);
 							}
 							// update the slides (this method should not
 							// do anything that should normally be done on the EDT)
 							pnlPreview.setSlide(slide);
 						} catch (Exception e) {
-							LOGGER.error("An error occurred while loading the slide/template [" + preview.path + "]: ", e);
+							LOGGER.error("An error occurred while loading the slide/template [" + preview.file.getRelativePath() + "]: ", e);
 						}
 					}
 					// update the preview panel
@@ -1206,9 +1206,9 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		public void run() {
 			try {
 				if (this.clazz != null) {
-					this.slide = SlideLibrary.getTemplate(this.file.getPath(), this.clazz);
+					this.slide = SlideLibrary.getTemplate(this.file, this.clazz);
 				} else {
-					this.slide = SlideLibrary.getSlide(this.file.getPath());
+					this.slide = SlideLibrary.getSlide(this.file);
 				}
 				this.setSuccessful(true);
 			} catch (Exception ex) {
