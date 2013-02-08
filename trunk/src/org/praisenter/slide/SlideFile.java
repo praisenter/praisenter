@@ -25,6 +25,7 @@
 package org.praisenter.slide;
 
 import java.io.IOException;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,6 +36,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.log4j.Logger;
+import org.praisenter.Constants;
 
 /**
  * Generic slide file information class.
@@ -54,9 +56,13 @@ public class SlideFile {
 	/** Static field for slides/templates that are not stored */
 	public static final SlideFile NOT_STORED = new SlideFile();
 	
-	/** The file path and name */
-	@XmlAttribute(name = "Path")
-	protected String path;
+	/** The path to the file relative to the application root */
+	@XmlAttribute(name = "RelativePath")
+	protected String relativePath;
+	
+	/** The full file path and name */
+	@XmlAttribute(name = "FullPath")
+	protected String fullPath;
 	
 	/** The file name */
 	@XmlAttribute(name = "Name")
@@ -75,18 +81,21 @@ public class SlideFile {
 	
 	/**
 	 * Full constructor.
-	 * @param filePath the file name and path
+	 * @param fullPath the file name and path
 	 */
-	public SlideFile(String filePath) {
-		Path path = FileSystems.getDefault().getPath(filePath);
+	public SlideFile(String fullPath) {
+		FileSystem system = FileSystems.getDefault();
+		Path path = system.getPath(fullPath);
+		Path root = system.getPath(Constants.BASE_PATH);
+		this.fullPath = path.toString();
+		this.relativePath = root.relativize(path).toString();
 		long size = UNKNOWN_FILE_SIZE;
 		try {
 			size = Files.size(path);
 		} catch (IOException ex) {
-			LOGGER.warn("Unable to read file size for [" + filePath + "]:", ex);
+			LOGGER.warn("Unable to read file size for [" + this.relativePath + "]:", ex);
 		}
 		String name = path.getFileName().toString();
-		this.path = path.toString();
 		this.name = name;
 		this.size = size;
 	}
@@ -107,7 +116,7 @@ public class SlideFile {
 		}
 		if (obj instanceof SlideFile) {
 			SlideFile sf = (SlideFile)obj;
-			if (this.path.equals(sf.path)) {
+			if (this.relativePath.equals(sf.relativePath)) {
 				return true;
 			}
 		}
@@ -119,7 +128,7 @@ public class SlideFile {
 	 */
 	@Override
 	public int hashCode() {
-		return this.path.hashCode();
+		return this.relativePath.hashCode();
 	}
 	
 	/* (non-Javadoc)
@@ -128,7 +137,7 @@ public class SlideFile {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("SlideFile[Path=").append(this.path)
+		sb.append("SlideFile[RelativePath=").append(this.relativePath)
 		  .append("|Name=").append(this.name)
 		  .append("|Size=").append(this.size)
 		  .append("]");
@@ -136,11 +145,19 @@ public class SlideFile {
 	}
 	
 	/**
-	 * Returns the file path and name.
+	 * Returns the relative path to this slide/template.
 	 * @return String
 	 */
-	public String getPath() {
-		return this.path;
+	public String getRelativePath() {
+		return this.relativePath;
+	}
+	
+	/**
+	 * Returns the full file path and name.
+	 * @return String
+	 */
+	public String getFullPath() {
+		return this.fullPath;
 	}
 	
 	/**

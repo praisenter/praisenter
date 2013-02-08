@@ -396,7 +396,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 								Messages.getString("panel.media.remove.exception.title"), 
 								MessageFormat.format(Messages.getString("panel.media.remove.exception.text"), thumbnail.getFile().getName()), 
 								task.getException());
-						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getPath() + "] from the media library: ", task.getException());
+						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getRelativePath() + "] from the media library: ", task.getException());
 					}
 				}
 			}

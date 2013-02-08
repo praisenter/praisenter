@@ -723,7 +723,7 @@ public final class MediaLibrary {
 		// check if it was reclaimed
 		if (ref.get() == null || newInstance) {
 			// then we need to reload the media
-			Media media = loadFromMediaLibrary(file.getPath());
+			Media media = loadFromMediaLibrary(file.getFullPath());
 			// create a new weak reference to the media
 			ref = new WeakReference<Media>(media);
 			// store the weak reference
@@ -791,7 +791,7 @@ public final class MediaLibrary {
 		MediaThumbnail thumbnail = getThumbnail(relativePath);
 		THUMBNAILS.remove(thumbnail);
 		// delete the file
-		Path path = FileSystems.getDefault().getPath(file.getPath());
+		Path path = FileSystems.getDefault().getPath(file.getFullPath());
 		boolean deleted = Files.deleteIfExists(path);
 		
 		if (media != null && deleted) {

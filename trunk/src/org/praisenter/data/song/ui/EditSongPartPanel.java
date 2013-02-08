@@ -24,6 +24,7 @@
  */
 package org.praisenter.data.song.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -32,6 +33,7 @@ import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
@@ -111,13 +113,12 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		
 		this.pnlPreview = new SingleSlidePreviewPanel();
 		// the maximum dimension (200 on the height)
-		final int h = 200;
+		final int h = 100;
 		// it should be ok to use the template width and height at this
 		// time since it should already be adjusted for the primary display
 		double s = (double)h / (double)template.getHeight();
 		int w = (int)Math.floor(template.getWidth() * s);
 		Dimension size = new Dimension(w, h);
-		this.pnlPreview.setMinimumSize(size);
 		this.pnlPreview.setPreferredSize(size);
 		
 		SongPartType type = SongPartType.CHORUS;
@@ -138,7 +139,8 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		this.spnPartIndex.setToolTipText(Messages.getString("panel.song.index.tooltip"));
 		this.spnPartIndex.setEnabled(edit);
 		this.spnPartIndex.addChangeListener(this);
-		JTextField txtPartIndex = ((DefaultEditor)this.spnPartIndex.getEditor()).getTextField();
+		this.spnPartIndex.setEditor(new JSpinner.NumberEditor(this.spnPartIndex, "0"));
+		JFormattedTextField txtPartIndex = ((DefaultEditor)this.spnPartIndex.getEditor()).getTextField();
 		txtPartIndex.setColumns(2);
 		txtPartIndex.addFocusListener(new SelectTextFocusListener(txtPartIndex));
 		
@@ -146,12 +148,13 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		this.spnFontSize.setToolTipText(Messages.getString("panel.song.fontSize.tooltip"));
 		this.spnFontSize.setEnabled(edit);
 		this.spnFontSize.addChangeListener(this);
+		this.spnFontSize.setEditor(new JSpinner.NumberEditor(this.spnFontSize, "0"));
 		JTextField txtFontSize = ((DefaultEditor)this.spnFontSize.getEditor()).getTextField();
 		txtFontSize.setColumns(3);
 		txtFontSize.addFocusListener(new SelectTextFocusListener(txtFontSize));
 		
 		this.txtPartText = new JTextArea(text);
-		this.txtPartText.setRows(6);
+		this.txtPartText.setRows(2);
 		this.txtPartText.setLineWrap(true);
 		this.txtPartText.setWrapStyleWord(true);
 		this.txtPartText.setEnabled(edit);
@@ -160,8 +163,9 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		
 		this.notificationsDisabled = false;
 		
-		GroupLayout layout = new GroupLayout(this);
-		this.setLayout(layout);
+		JPanel pnlConfigure = new JPanel();
+		GroupLayout layout = new GroupLayout(pnlConfigure);
+		pnlConfigure.setLayout(layout);
 		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
@@ -170,16 +174,18 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 								.addComponent(this.cmbPartTypes, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addComponent(pneText, 100, 200, Short.MAX_VALUE))
-				.addComponent(this.pnlPreview, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
+						.addComponent(pneText, 100, 200, Short.MAX_VALUE)));
 		layout.setVerticalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
 						.addGroup(layout.createParallelGroup()
 								.addComponent(this.cmbPartTypes, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addComponent(pneText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-				.addComponent(this.pnlPreview));
+						.addComponent(pneText, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+		
+		this.setLayout(new BorderLayout());
+		this.add(pnlConfigure, BorderLayout.LINE_START);
+		this.add(this.pnlPreview, BorderLayout.CENTER);
 	}
 	
 	// part type

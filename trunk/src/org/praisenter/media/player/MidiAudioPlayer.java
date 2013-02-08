@@ -102,7 +102,7 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 			// initialize the media
 			return this.initializeMedia(media);
 		} catch (MediaException e) {
-			LOGGER.error("An error occurred while initializing playback of the media: " + media.getFile().getPath(), e);
+			LOGGER.error("An error occurred while initializing playback of the media: " + media.getFile().getRelativePath(), e);
 		}
 		return false;
 	}
@@ -120,7 +120,7 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 		// attempt to load the sequence
 		try {
 			// use the class loader that loaded this class to load the resource
-			InputStream inputStream = new FileInputStream(new File(media.getFile().getPath()));
+			InputStream inputStream = new FileInputStream(new File(media.getFile().getFullPath()));
 	    	// if the stream does not support marking then use a 
 	    	// buffered input stream
 	        if (!inputStream.markSupported()) {
@@ -131,13 +131,13 @@ public class MidiAudioPlayer extends AbstractAudioPlayer<MidiAudioMedia> impleme
 	        // close the input stream
 	        inputStream.close();
 		} catch (FileNotFoundException e) {
-			LOGGER.error("The media file [" + media.getFile().getPath() + "] was not found: ", e);
+			LOGGER.error("The media file [" + media.getFile().getRelativePath() + "] was not found: ", e);
 			throw new MediaException(e);
 		} catch (InvalidMidiDataException e) {
-			LOGGER.error("The media file [" + media.getFile().getPath() + "] contains invalid Midi data: ", e);
+			LOGGER.error("The media file [" + media.getFile().getRelativePath() + "] contains invalid Midi data: ", e);
 			throw new MediaException(e);
 		} catch (IOException e) {
-			LOGGER.error("An IO error occurred while loading the file [" + media.getFile().getPath() + "]: ", e);
+			LOGGER.error("An IO error occurred while loading the file [" + media.getFile().getRelativePath() + "]: ", e);
 			throw new MediaException(e);
 		}
 		

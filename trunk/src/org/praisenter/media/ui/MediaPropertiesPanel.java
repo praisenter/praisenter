@@ -251,7 +251,7 @@ public class MediaPropertiesPanel extends JPanel {
 		if (file != null) {
 			this.txtName.setText(file.getName());
 			this.txtName.setCaretPosition(0);
-			this.txtPath.setText(file.getPath());
+			this.txtPath.setText(file.getFullPath());
 			this.txtPath.setCaretPosition(0);
 			this.txtSize.setText(Formatter.getSizeFormattedString(file.getSize()));
 			this.txtSize.setCaretPosition(0);

@@ -40,8 +40,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
+import java.text.DecimalFormat;
 import java.text.MessageFormat;
-import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -249,7 +249,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(this.sPreferences.getSendTransitionId(), Transition.Type.IN));
-		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtSendTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtSendTransitions.setValue(this.sPreferences.getSendTransitionDuration());
@@ -258,7 +258,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(this.sPreferences.getClearTransitionId(), Transition.Type.OUT));
-		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtClearTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtClearTransitions.setValue(this.sPreferences.getClearTransitionDuration());
@@ -419,14 +419,14 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 						.addComponent(btnSongSearch)
 						.addComponent(btnAdd)
 						.addComponent(btnDelete))
-				.addComponent(scrSongsSearchResults, 400, 400, Short.MAX_VALUE));
+				.addComponent(scrSongsSearchResults, 0, 400, Short.MAX_VALUE));
 		ssLayout.setVerticalGroup(ssLayout.createSequentialGroup()
 				.addGroup(ssLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtSongSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnSongSearch)
 						.addComponent(btnAdd)
 						.addComponent(btnDelete))
-				.addComponent(scrSongsSearchResults, 200, 200, Short.MAX_VALUE));
+				.addComponent(scrSongsSearchResults, 0, 150, Short.MAX_VALUE));
 		
 		// the song queue
 		this.tblSongQueue = new JTable(new MutableSongTableModel()) {
@@ -506,12 +506,12 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				.addGroup(sqLayout.createSequentialGroup()
 						.addComponent(btnRemoveSelected)
 						.addComponent(btnRemoveAll))
-				.addComponent(scrSongQueueResults, 400, 400, Short.MAX_VALUE));
+				.addComponent(scrSongQueueResults, 0, 400, Short.MAX_VALUE));
 		sqLayout.setVerticalGroup(sqLayout.createSequentialGroup()
 				.addGroup(sqLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(btnRemoveSelected)
 						.addComponent(btnRemoveAll))
-				.addComponent(scrSongQueueResults, 200, 200, Short.MAX_VALUE));
+				.addComponent(scrSongQueueResults, 0, 150, Short.MAX_VALUE));
 		
 		// edit panel
 		this.pnlEditSong = new EditSongPanel(getSelectedTemplate());
@@ -532,13 +532,13 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				.addComponent(this.scrPreview, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(pnlSending, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.scrPreview, 200, 300, Short.MAX_VALUE)
+				.addComponent(this.scrPreview, 0, 200, Short.MAX_VALUE)
 				.addComponent(pnlSending, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		
 		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		split.setTopComponent(pnlTop);
 		split.setBottomComponent(tabBottom);
-		split.setResizeWeight(0.8);
+		split.setResizeWeight(1.0);
 		split.setOneTouchExpandable(true);
 		
 		// create the layout
@@ -578,11 +578,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			}
 		} else {
 			if (thumb.getFile() != SlideFile.NOT_STORED) {
-				String path = thumb.getFile().getPath();
 				try {
-					template = SlideLibrary.getTemplate(path, SongSlideTemplate.class);
+					template = SlideLibrary.getTemplate(thumb.getFile(), SongSlideTemplate.class);
 				} catch (SlideLibraryException e) {
-					LOGGER.error("Unable to load selected song template [" + path + "]: ", e);
+					LOGGER.error("Unable to load selected song template [" + thumb.getFile().getRelativePath() + "]: ", e);
 				}
 			}
 		}
@@ -645,7 +644,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				if (this.sPreferences.getTemplate() == null) {
 					return thumb;
 				}
-			} else if (thumb.getFile().getPath().equals(this.sPreferences.getTemplate())) {
+			} else if (thumb.getFile().getRelativePath().equals(this.sPreferences.getTemplate())) {
 				return thumb;
 			}
 		}

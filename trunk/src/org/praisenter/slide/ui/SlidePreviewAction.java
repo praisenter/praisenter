@@ -25,6 +25,7 @@
 package org.praisenter.slide.ui;
 
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideFile;
 
 /**
  * Stores the data required to execute a preview of the given slide.
@@ -39,11 +40,11 @@ public class SlidePreviewAction<E extends Slide> extends PreviewAction<E> {
 	
 	/**
 	 * Minimal constructor.
-	 * @param path the slide path
+	 * @param file the slide file
 	 * @param clazz the slide type
 	 */
-	public SlidePreviewAction(String path, Class<E> clazz) {
-		super(path);
+	public SlidePreviewAction(SlideFile file, Class<E> clazz) {
+		super(file);
 		this.clazz = clazz;
 	}
 	

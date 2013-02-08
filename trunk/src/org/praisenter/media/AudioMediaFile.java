@@ -51,12 +51,12 @@ public class AudioMediaFile extends MediaFile {
 	
 	/**
 	 * Full constructor.
-	 * @param filePath the file name and path
+	 * @param fullPath the full file name and path
 	 * @param format the file format
 	 * @param length the audio length in seconds
 	 */
-	public AudioMediaFile(String filePath, String format, long length) {
-		super(filePath, format);
+	public AudioMediaFile(String fullPath, String format, long length) {
+		super(fullPath, format);
 		this.length = length;
 	}
 	

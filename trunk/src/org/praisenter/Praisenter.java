@@ -76,6 +76,7 @@ import org.praisenter.threading.AbstractTask;
 import org.praisenter.threading.FileTask;
 import org.praisenter.threading.TaskProgressDialog;
 import org.praisenter.ui.AboutDialog;
+import org.praisenter.ui.SystemDialog;
 import org.praisenter.ui.ValidateFileChooser;
 import org.praisenter.xml.XmlIO;
 
@@ -94,6 +95,9 @@ import org.praisenter.xml.XmlIO;
 //       since mac unzips it automatically
 // FIXME DEPLOYMENT remind mac users that the .jars are not signed nor identified by Apple, therefore they will have to command click the jar
 //       and click open, from there they will be asked if they really want to do it
+// FIXME DEPLOYMENT ubuntu users will need to download OpenJDK from the Software Center along with IcedTea java web start
+// 		 or download an rpm of the Oracle java
+// FIXME right now the app translucency just doesnt work on linux ubuntu
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;
@@ -144,7 +148,6 @@ public class Praisenter extends JFrame implements ActionListener {
 		this.pnlSlides = new SlidePanel();
 		tabs.addTab(Messages.getString("slides"), this.pnlSlides);
 		
-
 		// create the notification panel
 		this.pnlNotification = new NotificationPanel();
 		
@@ -267,6 +270,12 @@ public class Praisenter extends JFrame implements ActionListener {
 					mnuHelp.add(mnuLogs);
 				}
 				
+				// system menu
+				JMenuItem mnuSystem = new JMenuItem(Messages.getString("menu.help.system"));
+				mnuSystem.setActionCommand("system");
+				mnuSystem.addActionListener(this);
+				mnuHelp.add(mnuSystem);
+				
 				// about menu
 				JMenuItem mnuAbout = new JMenuItem(Messages.getString("menu.help.about"));
 				mnuAbout.setActionCommand("about");
@@ -380,6 +389,8 @@ public class Praisenter extends JFrame implements ActionListener {
 			} catch (IOException e) {
 				LOGGER.error("An error occurred while trying to open the log file location in the native system: ", e);
 			}
+		} else if ("system".equals(command)) {
+			SystemDialog.show(this);
 		} else if ("about".equals(command)) {
 			AboutDialog.show(this);
 		} else if ("exit".equals(command)) {

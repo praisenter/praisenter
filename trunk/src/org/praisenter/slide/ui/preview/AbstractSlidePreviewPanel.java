@@ -49,7 +49,6 @@ import org.praisenter.images.Images;
 import org.praisenter.preferences.RenderQuality;
 import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.Slide;
-import org.praisenter.utilities.FontManager;
 import org.praisenter.utilities.ImageUtilities;
 import org.praisenter.utilities.LookAndFeelUtilities;
 
@@ -264,7 +263,7 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 		String name = slide.getName();
 		if (this.includeSlideName && name != null) {
 			// render the text
-			this.renderSlideName(g2d, name, idw);
+			this.renderSlideName(g2d, name, metrics.totalWidth);
 
 			g2d.translate(0, th);
 		}
@@ -432,7 +431,7 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	 */
 	private void renderSlideName(Graphics2D g2d, String name, int w) {
 		if (name != null && name.trim().length() > 0) {
-			FontMetrics metrics = g2d.getFontMetrics(FontManager.getDefaultFont());
+			FontMetrics metrics = g2d.getFontMetrics(g2d.getFont());
 			int tw = metrics.stringWidth(name);
 			
 			g2d.setColor(Color.BLACK);

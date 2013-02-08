@@ -61,7 +61,7 @@
 		<jar href="Praisenter-2.0.0.jar" main="true" />
 		
 		<!-- Plugins -->
-		<jar href="plugin/PraisenterMedia-2.0.0.jar" />
+		<jar href="plugins/PraisenterMedia-2.0.0.jar" />
 	</resources>
 	
 	<resources os="Mac OS X">

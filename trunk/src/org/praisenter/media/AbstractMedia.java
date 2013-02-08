@@ -58,7 +58,7 @@ public abstract class AbstractMedia implements Media {
 			AbstractMedia media = (AbstractMedia)obj;
 			// their type and path must be equal
 			if (media.type == this.type &&
-				media.file.path.equals(this.file.path)) {
+				media.file.relativePath.equals(this.file.relativePath)) {
 				return true;
 			}
 		}
@@ -70,7 +70,7 @@ public abstract class AbstractMedia implements Media {
 	 */
 	@Override
 	public int hashCode() {
-		return this.file.path.hashCode();
+		return this.file.relativePath.hashCode();
 	}
 	
 	/* (non-Javadoc)
@@ -80,7 +80,7 @@ public abstract class AbstractMedia implements Media {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Media[Type=").append(this.type)
-		  .append("|Path=").append(this.file.path)
+		  .append("|RelativePath=").append(this.file.relativePath)
 		  .append("]");
 		return sb.toString();
 	}

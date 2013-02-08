@@ -25,6 +25,7 @@
 package org.praisenter.slide.ui;
 
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.Template;
 
 /**
@@ -35,23 +36,23 @@ import org.praisenter.slide.Template;
  * @param <E> the {@link Slide}/{@link Template} type
  */
 public abstract class PreviewAction<E extends Slide> {
-	/** The path to the slide/template */
-	protected String path;
+	/** The slide/template file */
+	protected SlideFile file;
 	
 	/**
 	 * Minimal constructor.
-	 * @param path the slide/template path
+	 * @param file the slide/template file
 	 */
-	public PreviewAction(String path) {
-		this.path = path;
+	public PreviewAction(SlideFile file) {
+		this.file = file;
 	}
 	
 	/**
-	 * Returns the slide path.
-	 * @return String
+	 * Returns the slide file.
+	 * @return SlideFile
 	 */
-	public String getPath() {
-		return this.path;
+	public SlideFile getFile() {
+		return this.file;
 	}
 	
 	/**

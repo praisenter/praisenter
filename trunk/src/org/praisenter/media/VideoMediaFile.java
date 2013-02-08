@@ -63,7 +63,7 @@ public class VideoMediaFile extends MediaFile {
 	
 	/**
 	 * Full constructor.
-	 * @param filePath the file name and path
+	 * @param fullPath the full file name and path
 	 * @param format the file format
 	 * @param width the image width
 	 * @param height the image height
@@ -71,10 +71,10 @@ public class VideoMediaFile extends MediaFile {
 	 * @param audioPresent true if the video contains audio
 	 */
 	public VideoMediaFile(
-			String filePath, String format, 
+			String fullPath, String format, 
 			int width, int height,
 			long length, boolean audioPresent) {
-		super(filePath, format);
+		super(fullPath, format);
 		this.width = width;
 		this.height = height;
 		this.length = length;

@@ -28,7 +28,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.text.NumberFormat;
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.List;
 
@@ -195,7 +195,7 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, 
 					selected = thumb;
 					break;
 				}
-			} else if (thumb.getFile().getPath().equals(bPreferences.getTemplate())) {
+			} else if (thumb.getFile().getRelativePath().equals(bPreferences.getTemplate())) {
 				selected = thumb;
 				break;
 			}
@@ -218,7 +218,7 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, 
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(bPreferences.getSendTransitionId(), Transition.Type.IN));
-		this.txtSendTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtSendTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
 		this.txtSendTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtSendTransitions.setValue(bPreferences.getSendTransitionDuration());
@@ -232,7 +232,7 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, 
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(bPreferences.getClearTransitionId(), Transition.Type.OUT));
-		this.txtClearTransitions = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		this.txtClearTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtClearTransitions.setValue(bPreferences.getClearTransitionDuration());
@@ -396,7 +396,7 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, 
 		SlideThumbnail thumbnail = ((SlideThumbnail)this.cmbTemplates.getSelectedItem());
 		// check for the default template
 		if (thumbnail.getFile() != SlideFile.NOT_STORED) {
-			bPreferences.setTemplate(thumbnail.getFile().getPath());
+			bPreferences.setTemplate(thumbnail.getFile().getRelativePath());
 		} else {
 			bPreferences.setTemplate(null);
 		}

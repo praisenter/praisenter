@@ -217,9 +217,9 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 			ExceptionDialog.show(
 					this, 
 					MessageFormat.format(Messages.getString("panel.slide.save.exception.title"), type), 
-					MessageFormat.format(Messages.getString("panel.slide.save.exception.text"), type.toLowerCase(), file.getPath()), 
+					MessageFormat.format(Messages.getString("panel.slide.save.exception.text"), type.toLowerCase(), file.getRelativePath()), 
 					task.getException());
-			LOGGER.error("An error occurred while attempting to save [" + file.getPath() + "]: ", task.getException());
+			LOGGER.error("An error occurred while attempting to save [" + file.getRelativePath() + "]: ", task.getException());
 		}
 		return false;
 	}
@@ -260,10 +260,10 @@ public class SlideEditorDialog extends JDialog implements ActionListener {
 				public void run() {
 					try {
 						if (isSlide) {
-							result.thumbnail = SlideLibrary.saveSlide(fileName, (BasicSlide)slide);
+							result.thumbnail = SlideLibrary.addSlide(fileName, (BasicSlide)slide);
 							this.setSuccessful(true);
 						} else {
-							result.thumbnail = SlideLibrary.saveTemplate(fileName, (Template)slide);
+							result.thumbnail = SlideLibrary.addTemplate(fileName, (Template)slide);
 							this.setSuccessful(true);
 						}
 					} catch (SlideLibraryException ex) {
