@@ -1,40 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<jnlp spec="7.0+" codebase="http://www.praisenter.org/production/v2" href="Praisenter.jnlp" version="2">
+<jnlp spec="6.0+" codebase="http://www.praisenter.org/production/v2" href="Praisenter.jnlp" version="2">
 	<information>
 		<title>Praisenter</title>
 		<vendor>William Bittle</vendor>
 		<homepage href="http://www.praisenter.org/" />
 		<description>Free Church Presentation Software</description>
-		<icon href="icon.jpg" />
+		<icon href="icon.gif" />
 		<!-- <icon kind="splash" href="images/splash.gif"/> -->
 		
 		<!-- Allow offline running -->
 		<offline-allowed />
 		
-		<!-- Link to all the licenses -->
-		<related-content href="licenses/praisenter-license.txt">
-			<description>Praisenter License</description>
-		</related-content>
-		<related-content href="licenses/gpl3-license.txt">
-			<description>GPL v3 License</description>
-		</related-content>
-		<related-content href="licenses/apache-license-2.0.txt">
-			<description>Apache 2.0 License</description>
-		</related-content>
-		<related-content href="licenses/javamail-license.txt">
-			<description>JavaMail License (BCL)</description>
-		</related-content>
-		<related-content href="licenses/slf4j-license.txt">
-			<description>SLF4j License (MIT)</description>
-		</related-content>
-		<related-content href="licenses/xuggler-license.txt">
-			<description>Xuggler License (GPL3)</description>
-		</related-content>
-		
-		<!-- Add a desktop short cut and menu item (with uninstall option) -->
-		<shortcut online="false" install="true">
+		<!-- Add a desktop short cut -->
+		<shortcut>
 			<desktop />
-			<menu submenu="Praisenter2"/>
 		</shortcut>
 	</information>
 	
