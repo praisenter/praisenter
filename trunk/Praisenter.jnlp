@@ -47,6 +47,9 @@
 	<update check="timeout" policy="always" />
 	
 	<resources>
+		<!-- Main application jars -->
+		<jar href="Praisenter-2.0.0.jar" main="true" />
+		
 		<!-- Dependencies -->
 		<jar href="lib/log4j-1.2.17.jar" />
 		<jar href="lib/commons-codec-1.6.jar" />
@@ -56,9 +59,6 @@
 		<jar href="lib/slf4j-api-1.7.2.jar" />
 		<jar href="lib/slf4j-log4j12-1.7.2.jar" />
 		<jar href="lib/xuggle-xuggler-5.4.jar" />
-		
-		<!-- Main application jars -->
-		<jar href="Praisenter-2.0.0.jar" main="true" />
 		
 		<!-- Plugins -->
 		<jar href="plugins/PraisenterMedia-2.0.0.jar" />
