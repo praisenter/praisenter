@@ -20,6 +20,7 @@ New Features:
   - Transition waiting
   - Render quality settings
   - Text outline
+  - Application working path moved to user/home directory
   
 Bug Fixes:
   - Auto adjusting of slides and templates based on target resolution and
