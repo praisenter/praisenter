@@ -22,24 +22,27 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.notification.ui;
+package org.praisenter.slide.ui.present;
 
 /**
- * Enumeration of the notification states.
+ * Enumeration of the presentation states.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public enum NotificationState {
-	/** Indicates that no notification is visible or running */
+public enum PresentationState {
+	/** Indicates that nothing is visible or running */
 	CLEAR,
 	
-	/** Indicates that the notification is transitioning in */
+	/** Indicates that a slide is transitioning in */
 	IN,
 	
-	/** Indicates that the notification is waiting to transition out */
+	/** Indicates that a slide is waiting to transition out */
 	WAIT,
 	
-	/** Indicates that the notification is transitioning out */
+	/** Indicates that a slide is transitioning out */
 	OUT,
+	
+	/** Indicates that a slide is showing (but not transitioning) */
+	SHOWING
 }
