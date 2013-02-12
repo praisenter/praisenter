@@ -31,13 +31,17 @@ import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsDevice.WindowTranslucency;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.Rectangle;
 
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
+import javax.swing.Timer;
 
 import org.apache.log4j.Logger;
 import org.praisenter.Main;
+import org.praisenter.preferences.Preferences;
 import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.Slide;
 import org.praisenter.transitions.Transitions;
@@ -67,6 +71,22 @@ public class SlideWindow extends JDialog implements PresentationListener {
 	/** True if the window is always on top of other windows */
 	protected boolean overlay;
 	
+	// state
+	
+	/** The current state */
+	protected PresentationState state;
+		
+	// send-wait-clear
+	
+	/** The queued send-wait-clear event if a current one is transitioning */
+	protected SendWaitClearEvent queuedEvent;
+	
+	/** The wait timer for the send-wait-clear event */
+	protected Timer waitTimer;
+	
+	/** The wait timer lock */
+	protected Object waitTimerLock = new Object();
+	
 	/**
 	 * Creates a new display window for the given device.
 	 * @param device the device
@@ -86,8 +106,19 @@ public class SlideWindow extends JDialog implements PresentationListener {
 		this.setFocusable(false);
 		this.setFocusableWindowState(false);
 		this.setFocusTraversalKeysEnabled(false);
-		// we need to enable per-pixel translucency if available
-		this.getRootPane().setOpaque(false);
+		
+		WindowTranslucency translucency = this.getWindowTranslucency();
+		if (translucency == WindowTranslucency.PERPIXEL_TRANSLUCENT) {
+			// this is the best since all transitions will work
+			this.setBackground(new Color(0, 0, 0, 0));
+			LOGGER.info("Per-pixel translucency supported (best).");
+		} else if (translucency == WindowTranslucency.TRANSLUCENT) {
+			LOGGER.info("Only uniform translucency supported.");
+		} else if (translucency == WindowTranslucency.PERPIXEL_TRANSPARENT) {
+			LOGGER.info("Only per-pixel transparency supported (only shaped windows possible).");
+		} else {
+			LOGGER.info("Translucency/Transparency not supported.");
+		}
 		
 		// get the device's default config
 		GraphicsConfiguration gc = this.device.getDefaultConfiguration();
@@ -123,25 +154,6 @@ public class SlideWindow extends JDialog implements PresentationListener {
 		
 		// make sure the panel is resized to fit the layout
 		this.pack();
-		
-		// prepare for display
-		this.prepareForDisplay();
-	}
-
-	/**
-	 * Adds the given {@link PresentationListener} to this surface.
-	 * @param listener the listener
-	 */
-	public void addPresentListener(PresentationListener listener) {
-		this.surface.addPresentListener(listener);
-	}
-	
-	/**
-	 * Removes the given {@link PresentationListener} from this surface.
-	 * @param listener the listener
-	 */
-	public void removePresentListener(PresentationListener listener) {
-		this.surface.removePresentListener(listener);
 	}
 	
 	/**
@@ -149,12 +161,76 @@ public class SlideWindow extends JDialog implements PresentationListener {
 	 * @param event the event
 	 */
 	public void execute(SendEvent event) {
-		if (!this.setVisibleInternal(true)) {
-			// if transitions aren't supported, null out
-			// the animator
-			event.animator = null;
+		// make sure its not a send-wait-clear event
+		if (event instanceof SendWaitClearEvent) {
+			this.execute((SendWaitClearEvent)event);
+		} else {
+			this.surface.execute(event);
 		}
-		this.surface.execute(event);
+	}
+	
+	/**
+	 * Executes the given send-wait-clear event.
+	 * @param event the event
+	 */
+	public void execute(SendWaitClearEvent event) {
+		// make sure transitions are supported
+		if (!Transitions.isTransitionSupportAvailable(this.device)) {
+			// if transitions aren't supported, null out the animator
+			event.animator = null;
+			event.outAnimator = null;
+		}
+		
+		// make sure we are listening to events on this window
+		synchronized (this.waitTimerLock) {
+			// make sure there is no queued event
+			this.queuedEvent = null;
+			
+			// only do this if we have wait for transitions enabled and this window is not a fullscreen window
+			if (!this.fullScreen && Preferences.getInstance().isWaitForTransitionEnabled()) {
+				// we need to check the position and size of the slide against the previous since they could
+				// be different. If they are different the transitions will not work (what are we transitioning
+				// at that point?). So instead, we need to end the current transition normally (just quickly)
+				// and begin the new send
+				boolean waitForCurrent = !this.isSizePositionEqual(event.slide);
+				
+				if (waitForCurrent) {
+					LOGGER.trace("Size/Position not equal.");
+					if ((this.state == PresentationState.IN || this.state == PresentationState.WAIT)) {
+						// in either case, stop the current wait timer, set its initial delay to zero,
+						// and execute it. In the case of the in transition, the timer will execute a 
+						// clear event which will be queued. In the case of the wait event the clear event
+						// will execute immediately. In both cases, when the clear event completes we
+						// begin the queued event.
+						if (this.state == PresentationState.IN) {
+							LOGGER.trace("In transition executing. Setting the wait timer initial delay: 0.");
+						} else {
+							LOGGER.trace("Wait period in progress. Executing clear event.");
+						}
+						
+						this.queuedEvent = event;
+						
+						if (this.waitTimer != null) {
+							this.waitTimer.stop();
+							this.waitTimer.setInitialDelay(0);
+							this.waitTimer.start();
+							// don't do anything else just yet
+							return;
+						}
+						// otherwise the wait timer was not setup (this can happen if the current
+						// event is just a send. In this case we need to just queue it up normally
+						LOGGER.trace("Timer is null. Queueing send normally.");
+					}
+					// if the current state is CLEAR or OUT just queue the next send normally
+					LOGGER.trace("Presentation state is CLEAR, OUT, or SHOWING. Queueing send normally.");
+				} else {
+					LOGGER.trace("Size/Position equal. Queueing send normally.");
+				}
+			}
+			
+			this.surface.execute(event);
+		}
+		
 	}
 	
 	/**
@@ -162,11 +238,13 @@ public class SlideWindow extends JDialog implements PresentationListener {
 	 * @param event the event
 	 */
 	public void execute(ClearEvent event) {
-		if (!this.setVisibleInternal(false)) {
-			// if transitions aren't supported, null out
-			// the animator
+		// make sure transitions are supported
+		if (!Transitions.isTransitionSupportAvailable(this.device)) {
+			// if transitions aren't supported, null out the animator
 			event.animator = null;
 		}
+		
+		// perform the clear
 		this.surface.execute(event);
 	}
 	
@@ -175,17 +253,32 @@ public class SlideWindow extends JDialog implements PresentationListener {
 	 */
 	@Override
 	public void inTransitionBegin(SendEvent event) {
+		this.state = PresentationState.IN;
+		
 		// we need to wait until the in transition begins before
 		// we can move/resize the window since the event could
 		// have been queued waiting on an existing event to finish
 		if (!this.fullScreen) {
 			this.setWindowSize(event.slide);
 		}
+		
 		// its possible that when an out transition ends that there
 		// is still an in transition in the queue.  In which case
 		// we need to ensure the window is visible in this case
 		if (!this.isVisible()) {
 			this.setVisible(true);
+		}
+		
+		// if you re-send the display then make sure it goes on
+		// top of all other windows
+		this.toFront();
+		
+		// stop the wait timer if its running
+		synchronized (this.waitTimerLock) {
+			if (this.waitTimer != null && this.waitTimer.isRunning()) {
+				this.waitTimer.stop();
+				LOGGER.trace("Wait timer stopped due to an 'In' transition beginning.");
+			}
 		}
 	}
 	
@@ -193,27 +286,83 @@ public class SlideWindow extends JDialog implements PresentationListener {
 	 * @see org.praisenter.slide.ui.present.PresentListener#outTransitionBegin(org.praisenter.slide.ui.present.ClearEvent)
 	 */
 	@Override
-	public void outTransitionBegin(ClearEvent event) {}
+	public void outTransitionBegin(ClearEvent event) {
+		this.state = PresentationState.OUT;
+		
+		// stop the wait timer if its running
+		synchronized (this.waitTimerLock) {
+			if (this.waitTimer != null && this.waitTimer.isRunning()) {
+				this.waitTimer.stop();
+				LOGGER.trace("Wait timer stopped due to an 'Out' transition beginning.");
+			}
+		}
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.ui.present.PresentListener#eventDropped(org.praisenter.slide.ui.present.PresentEvent)
 	 */
 	@Override
-	public void eventDropped(PresentationEvent event) {}
+	public void eventDropped(PresentationEvent event) {
+		// nothing to do here
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.ui.present.PresentListener#inTransitionComplete(org.praisenter.slide.ui.present.SendEvent)
 	 */
 	@Override
-	public void inTransitionComplete(SendEvent event) {}
+	public void inTransitionComplete(SendEvent event) {
+		if (event instanceof SendWaitClearEvent) {
+			this.state = PresentationState.WAIT;
+			
+			// begin the wait timer when the "in" transition completes
+			final SendWaitClearEvent swcEvent = (SendWaitClearEvent)event;
+			
+			// setup the wait timer
+			synchronized (this.waitTimerLock) {
+				this.waitTimer = new Timer(swcEvent.waitPeriod, new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						// the wait timer should always be non null if the code gets here
+						synchronized (waitTimerLock) {
+							if (waitTimer != null) {
+								// make sure the timer is ended (it should end anyway since
+								// it has setRepeats(false), but for good measure
+								waitTimer.stop();
+							}
+						}
+						ClearEvent event = new ClearEvent(swcEvent.outAnimator);
+						// once the wait period is up, then execute the clear operation
+						execute(event);
+						LOGGER.trace("Wait timer ended. Beginning clear event.");
+					}
+				});
+				this.waitTimer.setRepeats(false);
+				this.waitTimer.start();
+			}
+			
+			LOGGER.trace("Wait timer started after an 'In' transition has completed.");
+		} else {
+			this.state = PresentationState.SHOWING;
+		}
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.ui.present.PresentListener#outTransitionComplete(org.praisenter.slide.ui.present.ClearEvent)
 	 */
 	@Override
 	public void outTransitionComplete(ClearEvent event) {
+		this.state = PresentationState.CLEAR;
+		
 		// when the out transition is complete, hide the window
 		this.setVisible(false);
+		
+		// when an out transition ends we need to check if a queued event was stored
+		if (this.queuedEvent != null) {
+			SendWaitClearEvent qevent = this.queuedEvent;
+			this.queuedEvent = null;
+			this.execute(qevent);
+			LOGGER.trace("Executed queued event.");
+		}
 	}
 	
 	/**
@@ -262,45 +411,32 @@ public class SlideWindow extends JDialog implements PresentationListener {
 	}
 	
 	/**
-	 * This should be done at construction time of the {@link SlideWindow}.
-	 * <p>
-	 * This prepares the {@link SlideWindow} for display given the supported translucency of the
-	 * device.
-	 */
-	protected void prepareForDisplay() {
-		WindowTranslucency translucency = this.getWindowTranslucency();
-		if (translucency == WindowTranslucency.PERPIXEL_TRANSLUCENT) {
-			// this is the best since all transitions will work
-			this.setBackground(new Color(0, 0, 0, 0));
-			LOGGER.info("Per-pixel translucency supported (best).");
-		} else if (translucency == WindowTranslucency.TRANSLUCENT) {
-			LOGGER.info("Only uniform translucency supported.");
-		} else {
-			LOGGER.info("No translucency supported.");
-		}
-	}
-	
-	/**
-	 * Sets the display window to visible or invisible.
-	 * <p>
-	 * Returns true if transitions are supported.
-	 * @param flag true if the window should be visible
+	 * Returns true if the slide has the same position and size as this window.
+	 * @param slide the slide
 	 * @return boolean
 	 */
-	protected boolean setVisibleInternal(boolean flag) {
-		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(this.device);
-		if (flag) {
-			if (!this.isVisible()) {
-				// set the dialog to visible
-				this.setVisible(true);
-			}
-			
-			// if you re-send the display then make sure it goes on
-			// top of all other windows
-			this.toFront();
+	protected boolean isSizePositionEqual(Slide slide) {
+		int sx = 0;
+		int sy = 0;
+		int sw = slide.getWidth();
+		int sh = slide.getHeight();
+		if (slide instanceof AbstractPositionedSlide) {
+			AbstractPositionedSlide as = (AbstractPositionedSlide)slide;
+			sx = as.getX();
+			sy = as.getY();
 		}
 		
-		return transitionsSupported;
+		int wx = this.getX();
+		int wy = this.getY();
+		// account for device offset
+		Rectangle bounds = this.device.getDefaultConfiguration().getBounds();
+		wx -= bounds.x;
+		wy -= bounds.y;
+		int ww = this.getWidth();
+		int wh = this.getHeight();
+		
+		LOGGER.trace("Slide[" + sx + "," + sy + "," + sw + "," + sh + "] - Window[" + wx + "," + wy + "," + ww + "," + wh + "]");
+		return sx == wx && sy == wy && sw == ww && sh == wh;
 	}
 	
 	/**

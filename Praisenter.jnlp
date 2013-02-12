@@ -44,10 +44,10 @@
 	</resources>
 	
 	<resources os="Mac OS X">
-		<java version="1.7+" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" initial-heap-size="512m" java-vm-args="-Xdock:name=Praisenter" />
+		<java version="1.7+" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="512m" java-vm-args="-Xdock:name=Praisenter" />
 	</resources>
 	<resources>
-		<java version="1.7+" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" initial-heap-size="512m" />
+		<java version="1.7+" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="512m" />
 	</resources>
 	
 	<!-- Specify the main class -->
