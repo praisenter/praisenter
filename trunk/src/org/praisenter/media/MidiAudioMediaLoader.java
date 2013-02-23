@@ -30,13 +30,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.MessageFormat;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
-
-import org.praisenter.resources.Messages;
 
 /**
  * Midi loader using JavaSound.
@@ -65,10 +62,10 @@ public class MidiAudioMediaLoader implements MediaLoader<AbstractAudioMedia>, Au
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaLoader#load(java.lang.String)
+	 * @see org.praisenter.media.MediaLoader#load(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public AbstractAudioMedia load(String filePath) throws MediaException {
+	public AbstractAudioMedia load(String basePath, String filePath) throws MediaException {
 		try {
 			// use the class loader that loaded this class to load the resource
 			InputStream inputStream = new FileInputStream(new File(filePath));
@@ -82,15 +79,19 @@ public class MidiAudioMediaLoader implements MediaLoader<AbstractAudioMedia>, Au
 	        // close the input stream
 	        inputStream.close();
 	        // get the media file properties
-	        AudioMediaFile file = new AudioMediaFile(filePath, "midi", sequence.getMicrosecondLength() / 1000 / 1000);
+	        AudioMediaFile file = new AudioMediaFile(
+	        		basePath,
+	        		filePath, 
+	        		"midi", 
+	        		sequence.getMicrosecondLength() / 1000 / 1000);
 	        // create the media
 	        return new MidiAudioMedia(file);
 		} catch (FileNotFoundException e) {
-			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.notFound"), filePath));
+			throw new MediaException(e);
 		} catch (InvalidMidiDataException e) {
-			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.invalidMidiData"), filePath));
+			throw new MediaException(e);
 		} catch (IOException e) {
-			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.io"), filePath));
+			throw new MediaException(e);
 		}
 	}
 }

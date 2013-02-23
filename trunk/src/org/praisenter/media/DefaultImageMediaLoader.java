@@ -24,18 +24,16 @@
  */
 package org.praisenter.media;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.MessageFormat;
 import java.util.Iterator;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-
-import org.praisenter.resources.Messages;
 
 /**
  * Default implementation for loading image media.
@@ -67,10 +65,10 @@ public class DefaultImageMediaLoader implements ImageMediaLoader, MediaLoader<Im
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaLoader#load(java.lang.String)
+	 * @see org.praisenter.media.MediaLoader#load(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public ImageMedia load(String filePath) throws MediaException {
+	public ImageMedia load(String basePath, String filePath) throws MediaException {
 		Path path = FileSystems.getDefault().getPath(filePath);
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			try (ImageInputStream in = ImageIO.createImageInputStream(path.toFile())) {
@@ -79,7 +77,12 @@ public class DefaultImageMediaLoader implements ImageMediaLoader, MediaLoader<Im
 				while (readers.hasNext()) {
 					ImageReader reader = readers.next();
 					reader.setInput(in);
-					ImageMediaFile file = new ImageMediaFile(filePath, reader.getFormatName(), reader.getWidth(0), reader.getHeight(0));
+					ImageMediaFile file = new ImageMediaFile(
+							basePath,
+							filePath, 
+							reader.getFormatName(), 
+							reader.getWidth(0), 
+							reader.getHeight(0));
 					try {
 						return new ImageMedia(file, reader.read(0));
 					} finally {
@@ -87,12 +90,12 @@ public class DefaultImageMediaLoader implements ImageMediaLoader, MediaLoader<Im
 					}
 				}
 				// no readers
-				throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.noImageReader"), filePath));
+				throw new NoMediaLoaderException();
 			} catch (IOException e) {
-				throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.io"), filePath));
+				throw new MediaException(e);
 			}
 		} else {
-			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.notFound"), filePath));
+			throw new MediaException(new FileNotFoundException(path.toString()));
 		}
 	}
 }

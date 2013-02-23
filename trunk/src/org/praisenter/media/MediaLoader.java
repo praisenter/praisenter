@@ -47,9 +47,10 @@ public interface MediaLoader<E extends Media> {
 	
 	/**
 	 * Loads the given media.
+	 * @param basePath the base path
 	 * @param filePath the file path and name
 	 * @return E
 	 * @throws MediaException thrown if the media could not be read
 	 */
-	public abstract E load(String filePath) throws MediaException;
+	public abstract E load(String basePath, String filePath) throws MediaException;
 }

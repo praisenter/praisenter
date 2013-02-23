@@ -27,17 +27,15 @@ package org.praisenter.data.song;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.log4j.Logger;
+import org.praisenter.common.xml.XmlIO;
 import org.praisenter.data.DataException;
 import org.praisenter.data.DataImportException;
-import org.praisenter.resources.Messages;
-import org.praisenter.xml.XmlIO;
 import org.xml.sax.SAXException;
 
 /**
@@ -59,7 +57,7 @@ public final class SongImporter {
 	 * @throws DataImportException if an error occurs during import
 	 */
 	public static final void importPraisenterSongs(File file) throws DataImportException {
-		LOGGER.info("Reading Praisenter song file: " + file.getName());
+		LOGGER.debug("Reading Praisenter song file: " + file.getName());
 		List<Song> songs = null;
 		// load the songs xml file into objects
 		try {
@@ -70,9 +68,7 @@ public final class SongImporter {
 				songs = list.getSongs();
 			}
 		} catch (FileNotFoundException e) {
-			LOGGER.error(e);
-			// throw a translated error
-			throw new DataImportException(MessageFormat.format(Messages.getString("songs.import.fileNotFound"), file.getName()), e);
+			throw new DataImportException(e);
 		} catch (JAXBException e) {
 			LOGGER.warn("The song file is not in the expected format. Trying v1.0.0 format.", e);
 			// this is possible if we attempt to load up an older version (1.0.0 for example)
@@ -80,24 +76,16 @@ public final class SongImporter {
 			try {
 				songs = PraisenterSongReaderv1_0_0.fromXml(file);
 			} catch (ParserConfigurationException e1) {
-				LOGGER.error(e1);
-				// throw a translated error
-				throw new DataImportException(MessageFormat.format(Messages.getString("songs.import.unrecognizedFormat"), file.getName()), e1);
+				throw new DataImportException(e1);
 			} catch (SAXException e1) {
-				LOGGER.error(e1);
-				// throw a translated error
-				throw new DataImportException(MessageFormat.format(Messages.getString("songs.import.unrecognizedFormat"), file.getName()), e1);
+				throw new DataImportException(e1);
 			} catch (IOException e1) {
-				LOGGER.error(e1);
-				// throw a translated error
-				throw new DataImportException(Messages.getString("songs.import.io"), e1);
+				throw new DataImportException(e1);
 			}
 		} catch (IOException e) {
-			LOGGER.error(e);
-			// throw a translated error
-			throw new DataImportException(Messages.getString("songs.import.io"), e);
+			throw new DataImportException(e);
 		}
-		LOGGER.info("Praisenter song file read successfully: " + file.getName());
+		LOGGER.debug("Praisenter song file read successfully: " + file.getName());
 		
 		try {
 			// save the song
@@ -107,7 +95,7 @@ public final class SongImporter {
 			throw new DataImportException(e);
 		}
 		
-		LOGGER.info("Praisenter song file imported successfully: " + file.getName());
+		LOGGER.debug("Praisenter song file imported successfully: " + file.getName());
 	}
 	
 	/**
@@ -117,10 +105,10 @@ public final class SongImporter {
 	 */
 	public static final void importChurchViewSongs(File file) throws DataImportException {
 		try {
-			LOGGER.info("Reading ChurchView song file: " + file.getName());
+			LOGGER.debug("Reading ChurchView song file: " + file.getName());
 			// load the songs xml file into objects
 			List<Song> songs = ChurchViewSongReader.fromXml(file);
-			LOGGER.info("ChurchView song file read successfully: " + file.getName());
+			LOGGER.debug("ChurchView song file read successfully: " + file.getName());
 			
 			// insert the songs into the database
 			try {
@@ -131,19 +119,13 @@ public final class SongImporter {
 				throw new DataImportException(e);
 			}
 			
-			LOGGER.info("ChurchView song file imported successfully: " + file.getName());
+			LOGGER.debug("ChurchView song file imported successfully: " + file.getName());
 		} catch (ParserConfigurationException e) {
-			LOGGER.error(e);
-			// throw a translated error
-			throw new DataImportException(MessageFormat.format(Messages.getString("songs.import.unrecognizedFormat"), file.getName()), e);
+			throw new DataImportException(e);
 		} catch (SAXException e) {
-			LOGGER.error(e);
-			// throw a translated error
-			throw new DataImportException(MessageFormat.format(Messages.getString("songs.import.unrecognizedFormat"), file.getName()), e);
+			throw new DataImportException(e);
 		} catch (IOException e) {
-			LOGGER.error(e);
-			// throw a translated error
-			throw new DataImportException(Messages.getString("songs.import.io"), e);
+			throw new DataImportException(e);
 		}
 	}
 }

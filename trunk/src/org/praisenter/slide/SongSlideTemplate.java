@@ -25,23 +25,24 @@
 package org.praisenter.slide;
 
 import java.awt.Color;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.resources.Messages;
+import org.praisenter.common.utilities.ColorUtilities;
+import org.praisenter.common.utilities.FontManager;
 import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.graphics.Fill;
 import org.praisenter.slide.graphics.LinearGradientDirection;
 import org.praisenter.slide.graphics.LinearGradientFill;
 import org.praisenter.slide.graphics.Stop;
+import org.praisenter.slide.resources.Messages;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
-import org.praisenter.utilities.ColorUtilities;
-import org.praisenter.utilities.FontManager;
 
 /**
  * Represents a template of a {@link NotificationSlide}.
@@ -51,7 +52,10 @@ import org.praisenter.utilities.FontManager;
  */
 @XmlRootElement(name = "SongSlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
-public class SongSlideTemplate extends SongSlide implements Slide, Template {
+public class SongSlideTemplate extends SongSlide implements Slide, Template, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 6977301390036309443L;
+
 	/**
 	 * Default constructor.
 	 * <p>

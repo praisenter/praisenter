@@ -24,6 +24,7 @@
  */
 package org.praisenter.slide;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.resources.Messages;
+import org.praisenter.slide.resources.Messages;
 import org.praisenter.slide.text.TextComponent;
 
 /**
@@ -47,7 +48,10 @@ import org.praisenter.slide.text.TextComponent;
  */
 @XmlRootElement(name = "SongSlide")
 @XmlAccessorType(XmlAccessType.NONE)
-public class SongSlide extends BasicSlide implements Slide {
+public class SongSlide extends BasicSlide implements Slide, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -7587054117221063257L;
+	
 	/** The text component */
 	@XmlElement(name = "TextComponent")
 	protected TextComponent textComponent;

@@ -24,13 +24,18 @@
  */
 package org.praisenter.media;
 
+import java.io.Serializable;
+
 /**
  * Abstract implementation of the {@link Media} interface.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public abstract class AbstractMedia implements Media {
+public abstract class AbstractMedia implements Media, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 2285200233270846285L;
+
 	/** The media type */
 	protected MediaType type;
 	

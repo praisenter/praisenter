@@ -31,6 +31,7 @@ import java.awt.Paint;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -39,7 +40,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.slide.GenericComponent;
+import org.praisenter.common.utilities.FontManager;
+import org.praisenter.common.xml.FontTypeAdapter;
+import org.praisenter.slide.AbstractPositionedComponent;
 import org.praisenter.slide.PositionedComponent;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.SlideComponent;
@@ -52,8 +55,6 @@ import org.praisenter.slide.graphics.JoinType;
 import org.praisenter.slide.graphics.LineStyle;
 import org.praisenter.slide.graphics.LinearGradientFill;
 import org.praisenter.slide.graphics.RadialGradientFill;
-import org.praisenter.utilities.FontManager;
-import org.praisenter.xml.FontTypeAdapter;
 
 /**
  * Represents a component that displays text.
@@ -69,7 +70,10 @@ import org.praisenter.xml.FontTypeAdapter;
 	LinearGradientFill.class,
 	RadialGradientFill.class
 })
-public class TextComponent extends GenericComponent implements SlideComponent, RenderableComponent, PositionedComponent {
+public class TextComponent extends AbstractPositionedComponent implements PositionedComponent, RenderableComponent, SlideComponent, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 6365686545826144182L;
+
 	// TODO [LOW] SLIDE-TEMPLATE change this to a AttributedString so we can support all kinds of string formatting (highlighting, super/sub scripts, etc)
 	/** The text */
 	@XmlElement(name = "Text", required = false, nillable = true)
@@ -224,8 +228,14 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 	 */
 	@Override
 	public void render(Graphics2D g) {
-		// render the background/border
-		super.render(g);
+		// render the background
+		if (this.backgroundVisible) {
+			this.renderBackground(g, this.x, this.y);
+		}
+		// render the border
+		if (this.borderVisible) {
+			this.renderBorder(g);
+		}
 		// only render the text if its visible
 		if (this.textVisible) {
 			// render the text
@@ -238,8 +248,14 @@ public class TextComponent extends GenericComponent implements SlideComponent, R
 	 */
 	@Override
 	public void renderPreview(Graphics2D g) {
-		// render the background/border
-		super.renderPreview(g);
+		// render the background
+		if (this.backgroundVisible) {
+			this.renderBackground(g, this.x, this.y);
+		}
+		// render the border
+		if (this.borderVisible) {
+			this.renderBorder(g);
+		}
 		// only render the text if its visible
 		if (this.textVisible) {
 			// render the text

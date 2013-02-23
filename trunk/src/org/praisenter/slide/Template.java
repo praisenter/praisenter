@@ -24,13 +24,15 @@
  */
 package org.praisenter.slide;
 
+import java.io.Serializable;
+
 /**
  * Represents a slide template.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public interface Template extends Slide {
+public interface Template extends Slide, Serializable {
 	/**
 	 * Creates a new {@link Slide} from this template.
 	 * @return {@link Slide}

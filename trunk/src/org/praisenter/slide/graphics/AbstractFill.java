@@ -24,12 +24,17 @@
  */
 package org.praisenter.slide.graphics;
 
+import java.io.Serializable;
+
 /**
  * Abstract implementation of the {@link Fill} interface.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public abstract class AbstractFill implements Fill {
+public abstract class AbstractFill implements Fill, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -97259180623897517L;
+	
 	// no generic implementation at this time (but we need this for JAXB)
 }

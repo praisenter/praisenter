@@ -29,6 +29,7 @@ import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,22 +41,16 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.Version;
-import org.praisenter.images.Images;
+import org.praisenter.common.utilities.ImageUtilities;
 import org.praisenter.media.AbstractVideoMedia;
 import org.praisenter.media.ImageMedia;
-import org.praisenter.resources.Messages;
 import org.praisenter.slide.graphics.Fill;
-import org.praisenter.slide.media.AudioMediaComponent;
 import org.praisenter.slide.media.ImageMediaComponent;
 import org.praisenter.slide.media.PlayableMediaComponent;
 import org.praisenter.slide.media.VideoMediaComponent;
-import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.TextComponent;
-import org.praisenter.utilities.ImageUtilities;
+import org.praisenter.slide.resources.Messages;
 
 /**
  * Represents a slide with graphics, text, etc.
@@ -65,16 +60,15 @@ import org.praisenter.utilities.ImageUtilities;
  */
 @XmlRootElement(name = "Slide")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlSeeAlso({ 
-	GenericComponent.class,
-	ImageMediaComponent.class, 
-	VideoMediaComponent.class,
-	AudioMediaComponent.class,
-	TextComponent.class,
-	DateTimeComponent.class })
-public class BasicSlide implements Slide {
+public class BasicSlide implements Slide, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -1880708453806381323L;
+
 	/** Comparator for sorting by z-order */
 	private static final SlideComponentOrderComparator ORDER_COMPARATOR = new SlideComponentOrderComparator();
+
+	/** The transparent background */
+	protected static final BufferedImage TRANSPARENT_BACKGROUND = ImageUtilities.getImageFromClassPathSuppressExceptions("/org/praisenter/slide/resources/transparent.png");
 	
 	/** The width of the slide */
 	@XmlAttribute(name = "Width", required = true)
@@ -90,8 +84,8 @@ public class BasicSlide implements Slide {
 	
 	/** The slide background */
 	@XmlElement(name = "Background")
-	@XmlJavaTypeAdapter(value = RenderableComponentTypeAdapter.class)
-	protected RenderableComponent background;
+	@XmlJavaTypeAdapter(value = BackgroundComponentTypeAdapter.class)
+	protected BackgroundComponent background;
 	
 	/** The slide components */
 	@XmlElementWrapper(name = "Components")
@@ -118,7 +112,7 @@ public class BasicSlide implements Slide {
 		this.name = name;
 		this.width = width;
 		this.height = height;
-		this.background = new EmptyRenderableComponent(Messages.getString("slide.background.name"), width, height);
+		this.background = new EmptyBackgroundComponent(Messages.getString("slide.background.name"), width, height);
 		this.components = new ArrayList<SlideComponent>();
 	}
 	
@@ -154,7 +148,7 @@ public class BasicSlide implements Slide {
 	 */
 	@XmlAttribute(name = "Version")
 	protected String getVersion() {
-		return Version.getVersion();
+		return Slide.VERSION;
 	}
 	
 	/* (non-Javadoc)
@@ -250,26 +244,26 @@ public class BasicSlide implements Slide {
 	}
 	
 	/**
-	 * Returns a new {@link EmptyRenderableComponent} that is sized for the background.
-	 * @return {@link EmptyRenderableComponent}
+	 * Returns a new {@link EmptyBackgroundComponent} that is sized for the background.
+	 * @return {@link EmptyBackgroundComponent}
 	 */
-	public EmptyRenderableComponent createEmptyBackgroundComponent() {
-		return new EmptyRenderableComponent(Messages.getString("slide.background.name"), this.width, this.height);
+	public EmptyBackgroundComponent createEmptyBackgroundComponent() {
+		return new EmptyBackgroundComponent(Messages.getString("slide.background.name"), this.width, this.height);
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#getBackground()
 	 */
 	@Override
-	public RenderableComponent getBackground() {
+	public BackgroundComponent getBackground() {
 		return this.background;
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#setBackground(org.praisenter.slide.RenderableComponent)
+	 * @see org.praisenter.slide.Slide#setBackground(org.praisenter.slide.BackgroundComponent)
 	 */
 	@Override
-	public void setBackground(RenderableComponent component) {
+	public void setBackground(BackgroundComponent component) {
 		component.setOrder(0);
 		this.background = component;
 	}
@@ -556,7 +550,7 @@ public class BasicSlide implements Slide {
 		if (image.getHeight() != size.height) {
 			y = (size.height - image.getHeight()) / 2;
 		}
-		ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, g, x, y, image.getWidth(), image.getHeight());
+		ImageUtilities.renderTiledImage(TRANSPARENT_BACKGROUND, g, x, y, image.getWidth(), image.getHeight());
 		g.drawImage(image, x, y, null);
 		g.dispose();
 		// return it

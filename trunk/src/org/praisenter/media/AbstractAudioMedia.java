@@ -24,6 +24,8 @@
  */
 package org.praisenter.media;
 
+import java.io.Serializable;
+
 /**
  * Base class for audio media.
  * <p>
@@ -32,7 +34,10 @@ package org.praisenter.media;
  * @version 2.0.0
  * @since 2.0.0
  */
-public abstract class AbstractAudioMedia extends AbstractMedia implements Media, PlayableMedia {
+public abstract class AbstractAudioMedia extends AbstractMedia implements PlayableMedia, Media, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -3413789314484046082L;
+
 	/**
 	 * Full constructor.
 	 * @param file the file information

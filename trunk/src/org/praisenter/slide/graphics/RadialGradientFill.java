@@ -26,6 +26,7 @@ package org.praisenter.slide.graphics;
 
 import java.awt.Color;
 import java.awt.RadialGradientPaint;
+import java.io.Serializable;
 import java.util.Arrays;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -41,7 +42,10 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "RadialGradientFill")
 @XmlAccessorType(XmlAccessType.NONE)
-public class RadialGradientFill extends AbstractGradientFill implements Fill {
+public class RadialGradientFill extends AbstractGradientFill implements Fill, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -7948895575062286209L;
+	
 	/** The gradient direction */
 	@XmlElement(name = "Direction")
 	protected RadialGradientDirection direction;

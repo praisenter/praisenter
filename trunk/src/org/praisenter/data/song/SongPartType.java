@@ -24,8 +24,6 @@
  */
 package org.praisenter.data.song;
 
-import org.praisenter.resources.Messages;
-
 /**
  * Enumeration of the song part types.
  * @author William Bittle
@@ -34,42 +32,23 @@ import org.praisenter.resources.Messages;
  */
 public enum SongPartType {
 	/** Verse part */
-	VERSE(Messages.getString("song.part.type.verse")),
+	VERSE,
 	
 	/** Chorus part */
-	CHORUS(Messages.getString("song.part.type.chorus")),
+	CHORUS,
 	
 	/** Bridge part */
-	BRIDGE(Messages.getString("song.part.type.bridge")),
+	BRIDGE,
 
 	/** Tag part */
-	TAG(Messages.getString("song.part.type.tag")),
+	TAG,
 
 	/** Vamp part */
-	VAMP(Messages.getString("song.part.type.vamp")),
+	VAMP,
 	
 	/** End part */
-	END(Messages.getString("song.part.type.end")),
+	END,
 	
 	/** Other part */
-	OTHER(Messages.getString("song.part.type.other"));
-	
-	/** The user friendly part name */
-	private String name;
-	
-	/**
-	 * Minimal constructor.
-	 * @param name the user friendly part name
-	 */
-	private SongPartType(String name) {
-		this.name = name;
-	}
-	
-	/**
-	 * Returns the user friendly part name.
-	 * @return String
-	 */
-	public String getName() {
-		return this.name;
-	}
+	OTHER
 }

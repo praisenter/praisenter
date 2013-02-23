@@ -32,8 +32,6 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.Version;
-
 /**
  * Class purely used by JAXB to save or load a praisenter song file.
  * @author William Bittle
@@ -58,7 +56,7 @@ public class SongList {
 	 */
 	@XmlAttribute(name = "Version")
 	protected String getVersion() {
-		return Version.getVersion();
+		return Song.VERSION;
 	}
 
 	/** Default constructor */

@@ -25,10 +25,13 @@
 package org.praisenter.slide;
 
 import java.awt.Dimension;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+
+import org.praisenter.slide.resources.Messages;
 
 /**
  * Abstract implementation of a positioned and sized slide.
@@ -40,7 +43,10 @@ import javax.xml.bind.annotation.XmlAttribute;
  * @since 2.0.0
  */
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class AbstractPositionedSlide extends BasicSlide {
+public abstract class AbstractPositionedSlide extends BasicSlide implements Slide, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 8133828235948242803L;
+
 	/** The x coordinate of this slide */
 	@XmlAttribute(name = "X", required = true)
 	protected int x;
@@ -57,6 +63,15 @@ public abstract class AbstractPositionedSlide extends BasicSlide {
 	@XmlAttribute(name = "DeviceHeight", required = true)
 	protected int deviceHeight;
 
+	/**
+	 * Default constructor.
+	 * <p>
+	 * This should be used for JAXB only.
+	 */
+	protected AbstractPositionedSlide() {
+		this(Messages.getString("slide.unnamed"), 200, 200, 200, 200);
+	}
+	
 	/**
 	 * Full constructor.
 	 * @param name the name of the slide/template

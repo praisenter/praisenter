@@ -9,20 +9,6 @@
 |   | slf4j-api-1.7.2.jar                     | Required      | MIT                        | licenses/slf4j-license.txt          | Runtime/Xuggler logging interface
 |   | slf4j-log4j12-1.7.2.jar                 | Required      | MIT                        | licenses/slf4j-license.txt          | Runtime/Xuggler logging interface for log4j
 +---+-----------------------------------------+---------------+----------------------------+-------------------------------------+------------------------------------------------------------
-| - | jogl-all.jar                            | Required      | BSD                        | licenses/jogl-license.txt           | Build & Runtime/JOGL
-| - | gluegen-rt.jar                          | Required      | BSD                        | licenses/jogl-license.txt           | Build & Runtime/JOGL
-| - | gluegen-rt-natives-linux-amd64.jar      | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
-| - | gluegen-rt-natives-linux-i586.jar       | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
-| - | gluegen-rt-natives-macos-universal.jar  | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
-| - | gluegen-rt-natives-windows-amd64.jar    | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
-| - | gluegen-rt-natives-windows-i586.jar     | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
-| - | jogal-all-natives-linux-amd64.jar       | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
-| - | jogal-all-natives-linux-i586.jar        | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
-| - | jogal-all-natives-macos-universal.jar   | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
-| - | jogal-all-natives-windows-amd64.jar     | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
-| - | jogal-all-natives-windows-i586.jar      | OS Dependent  | BSD                        | licenses/jogl-license.txt           | Runtime/JOGL native
 
 (*) This binary is licensed under the GPL Version 3.0 license.  Because of this, the Praisenter binaries are also released under GPL Version 3.0.  The source of Praisenter is
 	released under two licenses, BSD for the majority of the project, and GPL Version 3.0 for the interface with this binary.
-  
-(-) These binaries are not being used at this time

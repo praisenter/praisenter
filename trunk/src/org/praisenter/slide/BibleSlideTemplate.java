@@ -25,23 +25,24 @@
 package org.praisenter.slide;
 
 import java.awt.Color;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.resources.Messages;
+import org.praisenter.common.utilities.ColorUtilities;
+import org.praisenter.common.utilities.FontManager;
 import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.graphics.Fill;
 import org.praisenter.slide.graphics.LinearGradientDirection;
 import org.praisenter.slide.graphics.LinearGradientFill;
 import org.praisenter.slide.graphics.Stop;
+import org.praisenter.slide.resources.Messages;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
-import org.praisenter.utilities.ColorUtilities;
-import org.praisenter.utilities.FontManager;
 
 /**
  * Represents a template of a {@link BibleSlide}.
@@ -51,7 +52,10 @@ import org.praisenter.utilities.FontManager;
  */
 @XmlRootElement(name = "BibleSlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
-public class BibleSlideTemplate extends BibleSlide implements Slide, Template {
+public class BibleSlideTemplate extends BibleSlide implements Slide, Template, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 4087075161706434146L;
+
 	/**
 	 * Default constructor.
 	 * <p>
@@ -59,7 +63,7 @@ public class BibleSlideTemplate extends BibleSlide implements Slide, Template {
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected BibleSlideTemplate() {
-		super(null, 0, 0);
+		super(Messages.getString("slide.unnamed"), 0, 0);
 	}
 	
 	/**

@@ -27,6 +27,7 @@ package org.praisenter.slide.media;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -38,13 +39,14 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.praisenter.media.AbstractVideoMedia;
 import org.praisenter.media.MediaPlayer;
 import org.praisenter.media.MediaPlayerListener;
+import org.praisenter.media.MediaTypeAdapter;
 import org.praisenter.media.VideoMediaPlayerListener;
+import org.praisenter.slide.BackgroundComponent;
 import org.praisenter.slide.GenericComponent;
 import org.praisenter.slide.PositionedComponent;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.graphics.ScaleType;
-import org.praisenter.xml.MediaTypeAdapter;
 
 /**
  * Component for showing videos from the media library.
@@ -54,7 +56,10 @@ import org.praisenter.xml.MediaTypeAdapter;
  */
 @XmlRootElement(name = "VideoMediaComponent")
 @XmlAccessorType(XmlAccessType.NONE)
-public class VideoMediaComponent extends GenericComponent implements SlideComponent, RenderableComponent, PositionedComponent, MediaComponent<AbstractVideoMedia>, PlayableMediaComponent<AbstractVideoMedia>, MediaPlayerListener, VideoMediaPlayerListener {
+public class VideoMediaComponent extends GenericComponent implements PlayableMediaComponent<AbstractVideoMedia>, MediaComponent<AbstractVideoMedia>, PositionedComponent, BackgroundComponent, RenderableComponent, VideoMediaPlayerListener, MediaPlayerListener, SlideComponent, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -6647856901334056371L;
+
 	/** The media */
 	@XmlElement(name = "Media", required = true, nillable = false)
 	@XmlJavaTypeAdapter(MediaTypeAdapter.class)
@@ -77,7 +82,7 @@ public class VideoMediaComponent extends GenericComponent implements SlideCompon
 	protected boolean videoVisible;
 	
 	/** The current frame */
-	protected BufferedImage currentFrame;
+	protected transient BufferedImage currentFrame;
 	
 	/**
 	 * Default constructor.

@@ -25,6 +25,7 @@
 package org.praisenter.slide.graphics;
 
 import java.awt.Color;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -39,7 +40,10 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "Stop")
 @XmlAccessorType(XmlAccessType.NONE)
-public class Stop {
+public class Stop implements Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 1608946723560199959L;
+
 	/** The stop location from 0.0 - 1.0 inclusive */
 	@XmlElement(name = "Fraction")
 	protected float fraction;

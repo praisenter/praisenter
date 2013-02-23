@@ -25,8 +25,10 @@
 package org.praisenter.media;
 
 import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import java.io.Serializable;
 
-import org.praisenter.images.Images;
+import org.praisenter.common.utilities.ImageUtilities;
 
 /**
  * Concrete class for Midi audio media.
@@ -34,7 +36,13 @@ import org.praisenter.images.Images;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class MidiAudioMedia extends AbstractAudioMedia {
+public class MidiAudioMedia extends AbstractAudioMedia implements Media, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 8558435947289808330L;
+	
+	/** Midi audio icon */
+	public static final BufferedImage MIDI_AUDIO = ImageUtilities.getImageFromClassPathSuppressExceptions("/org/praisenter/media/resources/midi-audio.png");
+	
 	/**
 	 * Full constructor.
 	 * @param file the file information
@@ -48,6 +56,6 @@ public class MidiAudioMedia extends AbstractAudioMedia {
 	 */
 	@Override
 	public MediaThumbnail getThumbnail(Dimension size) {
-		return new MediaThumbnail(this.file, Images.MIDI_AUDIO, MediaType.AUDIO);
+		return new MediaThumbnail(this.file, MIDI_AUDIO, MediaType.AUDIO);
 	}
 }

@@ -24,6 +24,8 @@
  */
 package org.praisenter.slide.media;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -33,8 +35,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.media.AbstractAudioMedia;
 import org.praisenter.media.MediaPlayerListener;
+import org.praisenter.media.MediaTypeAdapter;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.xml.MediaTypeAdapter;
 
 /**
  * Represents a coponent that plays audio.
@@ -44,7 +46,10 @@ import org.praisenter.xml.MediaTypeAdapter;
  */
 @XmlRootElement(name = "AudioMediaComponent")
 @XmlAccessorType(XmlAccessType.NONE)
-public class AudioMediaComponent implements SlideComponent, MediaComponent<AbstractAudioMedia>, PlayableMediaComponent<AbstractAudioMedia>, MediaPlayerListener {
+public class AudioMediaComponent implements PlayableMediaComponent<AbstractAudioMedia>, MediaComponent<AbstractAudioMedia>, MediaPlayerListener, SlideComponent, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 4375436580503250539L;
+
 	/** The name of the component */
 	@XmlElement(name = "Name", required = true, nillable = false)
 	protected String name;

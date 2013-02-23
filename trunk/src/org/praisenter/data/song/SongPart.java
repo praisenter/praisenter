@@ -24,15 +24,11 @@
  */
 package org.praisenter.data.song;
 
-import java.text.MessageFormat;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import org.praisenter.resources.Messages;
 
 /**
  * Represents a part of a {@link Song}; a verse for example.
@@ -209,18 +205,6 @@ public class SongPart implements Comparable<SongPart> {
 		  .append("|FontSize=").append(this.fontSize)
 		  .append("]");
 		return sb.toString();
-	}
-	
-	/**
-	 * Returns the name for this part.
-	 * @return String
-	 */
-	public String getName() {
-		SongPartType type = this.type;
-		if (type == null) {
-			type = SongPartType.OTHER;
-		}
-		return MessageFormat.format(Messages.getString("song.part.name.pattern"), type.getName(), this.index);
 	}
 	
 	/**

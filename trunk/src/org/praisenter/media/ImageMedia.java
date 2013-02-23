@@ -30,10 +30,10 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 
-import org.praisenter.images.Images;
-import org.praisenter.utilities.ImageUtilities;
-import org.praisenter.utilities.WindowUtilities;
+import org.praisenter.common.utilities.ImageUtilities;
+import org.praisenter.common.utilities.WindowUtilities;
 
 /**
  * Concrete class for image media.
@@ -41,9 +41,15 @@ import org.praisenter.utilities.WindowUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class ImageMedia extends AbstractMedia {
+public class ImageMedia extends AbstractMedia implements Media, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -8790039923595351453L;
+	
+	/** The transparent background */
+	private static final BufferedImage TRANSPARENT_BACKGROUND = ImageUtilities.getImageFromClassPathSuppressExceptions("/org/praisenter/media/resources/transparent.png");
+	
 	/** The image */
-	protected BufferedImage image;
+	protected transient BufferedImage image;
 	
 	/**
 	 * Full constructor.
@@ -87,7 +93,7 @@ public class ImageMedia extends AbstractMedia {
 		// render a tiled transparent background first
 		if (this.image.getTransparency() != Transparency.OPAQUE) {
 			// only render this if the image is translucent or bitmask
-			ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, g, x, y, w, h);
+			ImageUtilities.renderTiledImage(TRANSPARENT_BACKGROUND, g, x, y, w, h);
 		}
 		// render the scaled image to the graphics
 		g.drawImage(this.image, x, y, w, h, null);

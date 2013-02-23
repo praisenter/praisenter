@@ -31,7 +31,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.xml.BufferedImageTypeAdapter;
+import org.praisenter.common.xml.BufferedImageTypeAdapter;
 
 /**
  * Represents a thumbnail for a {@link Media} item.

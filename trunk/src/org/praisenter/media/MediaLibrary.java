@@ -37,7 +37,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,10 +48,9 @@ import java.util.ServiceLoader;
 import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
-import org.praisenter.Constants;
-import org.praisenter.resources.Messages;
-import org.praisenter.utilities.FileUtilities;
-import org.praisenter.xml.XmlIO;
+import org.praisenter.common.NotInitializedException;
+import org.praisenter.common.utilities.FileUtilities;
+import org.praisenter.common.xml.XmlIO;
 
 /**
  * Static thread-safe class for managing the media library.
@@ -64,34 +62,33 @@ public final class MediaLibrary {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(MediaLibrary.class);
 	
-	// media
+	// constants
 	
-	/** The map of media loaders */
-	private static Map<MediaType, List<MediaLoader<?>>> MEDIA_LOADERS = new HashMap<MediaType, List<MediaLoader<?>>>();
+	/** The media library path */
+	private static final String MEDIA_LIBRARY_PATH = "media";
 	
-	/** The map of weak references to media */
-	private static final Map<String, WeakReference<Media>> MEDIA = new HashMap<String, WeakReference<Media>>();
+	/** The media library images path */
+	private static final String MEDIA_LIBRARY_IMAGE_PATH = MEDIA_LIBRARY_PATH + FileUtilities.getSeparator() + "images";
 	
-	/** The list of available MediaPlayers */
-	private static final List<MediaPlayerFactory<?>> MEDIA_PLAYER_FACTORIES = new ArrayList<MediaPlayerFactory<?>>();
+	/** The media library videos path */
+	private static final String MEDIA_LIBRARY_VIDEO_PATH = MEDIA_LIBRARY_PATH + FileUtilities.getSeparator() + "videos";
 	
-	// thumbnails
-	
+	/** The media library audio path */
+	private static final String MEDIA_LIBRARY_AUDIO_PATH = MEDIA_LIBRARY_PATH + FileUtilities.getSeparator() + "audio";
+
 	/** The thumbnail size */
 	private static final Dimension THUMBNAIL_SIZE = new Dimension(64, 48);
 	
 	/** The thumbnail file name */
-	private static final String THUMBS_FILE = Constants.SEPARATOR + Constants.THUMBNAIL_FILE;
+	private static final String THUMBS_FILE = FileUtilities.getSeparator() + "_thumbs.xml";
 	
-	/** The list of all thumbnails */
-	private static final List<MediaThumbnail> THUMBNAILS = new ArrayList<MediaThumbnail>();
+	// media loaders and players
 	
-	// state
+	/** The map of media loaders */
+	private static Map<MediaType, List<MediaLoader<?>>> MEDIA_LOADERS = new HashMap<MediaType, List<MediaLoader<?>>>();
 	
-	/** True if the media library has been loaded */
-	private static boolean loaded = false;
-	
-	// static loading
+	/** The list of available MediaPlayers */
+	private static final List<MediaPlayerFactory<?>> MEDIA_PLAYER_FACTORIES = new ArrayList<MediaPlayerFactory<?>>();
 	
 	static {
 		// add the media loader lists
@@ -107,11 +104,6 @@ public final class MediaLibrary {
 		// add any class path media players
 		addClasspathMediaPlayerFactories();
 	}
-	
-	/**
-	 * Hidden constructor.
-	 */
-	private MediaLibrary() {}
 	
 	/**
 	 * Searches the classpath for any classes that implement sthe {@link ImageMediaLoader} interface
@@ -162,8 +154,87 @@ public final class MediaLibrary {
 		}
 	}
 
+	// members
+
+	/** The media library base path */
+	private String basePath;
+	
+	/** The full path to the media library images */
+	private final String imagePath;
+	
+	/** The full path to the media library audio */
+	private final String audioPath;
+	
+	/** The full path to the media library videos */
+	private final String videoPath;
+	
+	/** The map of weak references to media */
+	private Map<String, WeakReference<Media>> media;
+	
+	/** The list of all thumbnails */
+	private List<MediaThumbnail> thumbnails;
+	
+	// static members
+	
+	/** The current media library */
+	private static MediaLibrary instance;
+	
+	// static interface
+	
 	/**
-	 * Loads the media references and thumbnails from the given media library path.
+	 * Initializes the media library at the given path.
+	 * @param basePath the base path for the media library
+	 */
+	public static final synchronized void initialize(String basePath) {
+		if (basePath == null) {
+			basePath = "";
+		}
+		// create a new instance
+		MediaLibrary library = new MediaLibrary(basePath);
+		// assign the current instance
+		instance = library;
+	}
+	
+	/**
+	 * Returns the current media library.
+	 * @return {@link MediaLibrary}
+	 * @throws NotInitializedException thrown if {@link #initialize(String)} was not called
+	 */
+	public static final synchronized MediaLibrary getInstance() throws NotInitializedException {
+		if (instance == null) {
+			throw new NotInitializedException();
+		}
+		return instance;
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param basePath the base path
+	 */
+	private MediaLibrary(String basePath) {
+		this.basePath = basePath;
+		
+		String sep = FileUtilities.getSeparator();
+		this.imagePath = basePath + sep + MEDIA_LIBRARY_IMAGE_PATH;
+		this.audioPath = basePath + sep + MEDIA_LIBRARY_AUDIO_PATH;
+		this.videoPath = basePath + sep + MEDIA_LIBRARY_VIDEO_PATH;
+		
+		this.media = new HashMap<String, WeakReference<Media>>();
+		this.thumbnails = new ArrayList<MediaThumbnail>();
+		
+		// verify the existence of the /media and sub directories
+		FileUtilities.createFolder(this.imagePath);
+		FileUtilities.createFolder(this.audioPath);
+		FileUtilities.createFolder(this.videoPath);
+		
+		// load the media library (thumbnails only...usually)
+		this.loadMediaLibrary(MediaType.IMAGE);
+		this.loadMediaLibrary(MediaType.AUDIO);
+		this.loadMediaLibrary(MediaType.VIDEO);
+	}
+
+	/**
+	 * Loads the media references and thumbnails for the given media type.
 	 * <p>
 	 * This method does not do a recursive look up.
 	 * <p>
@@ -171,7 +242,7 @@ public final class MediaLibrary {
 	 * files in the directory.
 	 * @param type the media type
 	 */
-	private static synchronized final void loadMediaLibrary(MediaType type) {
+	private void loadMediaLibrary(MediaType type) {
 		String path = getMediaTypeFullPath(type);
 		if (!isMediaSupported(type)) {
 			return;
@@ -192,7 +263,7 @@ public final class MediaLibrary {
 		}
 		
 		FileSystem system = FileSystems.getDefault();
-		Path rootPath = system.getPath(Constants.BASE_PATH);
+		Path rootPath = system.getPath(this.basePath);
 		
 		// create a new list to store the thumbnails
 		List<MediaThumbnail> thumbnails = new ArrayList<MediaThumbnail>();
@@ -232,7 +303,7 @@ public final class MediaLibrary {
 						continue;
 					}
 					// add the media to the media library (might as well since we loaded it)
-					MEDIA.put(media.getFile().getRelativePath(), new WeakReference<Media>(media));
+					this.media.put(media.getFile().getRelativePath(), new WeakReference<Media>(media));
 					// create the thumbnail
 					MediaThumbnail thumbnail = media.getThumbnail(THUMBNAIL_SIZE);
 					// add the thumbnail to the list
@@ -244,42 +315,42 @@ public final class MediaLibrary {
 				}
 			} else {
 				// we need to add a media reference anyway (using the relative path)
-				MEDIA.put(rootPath.relativize(system.getPath(filePath)).toString(), new WeakReference<Media>(null));
+				this.media.put(rootPath.relativize(system.getPath(filePath)).toString(), new WeakReference<Media>(null));
 			}
 		}
 		// add all the thumbnails
-		THUMBNAILS.addAll(thumbnails);
+		this.thumbnails.addAll(thumbnails);
 		// sort the thumbnails
-		Collections.sort(THUMBNAILS);
+		Collections.sort(this.thumbnails);
 		// after we have read all the files we need to save the new thumbs xml
 		if (save || thumbnailsFromFile.size() != thumbnails.size()) {
-			saveThumbnailsFile(path, thumbnails);
+			this.saveThumbnailsFile(path, thumbnails);
 		}
 	}
 
-	/**
-	 * Writes the thumbnails file for the given media type.
-	 * @param type the media type
-	 */
-	private static synchronized final void saveThumbnailsFile(MediaType type) {
-		List<MediaThumbnail> thumbnails = getThumbnails(type);
-		String path = getMediaTypeFullPath(type);
-		saveThumbnailsFile(path, thumbnails);
-	}
-	
 	/**
 	 * Writes the thumbnails file for the given path and list of thumbnails.
 	 * @param path the path of the thumbnails file without file name
 	 * @param thumbnails the list of thumbnails
 	 */
-	private static synchronized final void saveThumbnailsFile(String path, List<MediaThumbnail> thumbnails) {
+	private void saveThumbnailsFile(String path, List<MediaThumbnail> thumbnails) {
 		try {
 			XmlIO.save(path + THUMBS_FILE, new MediaThumbnails(thumbnails));
-			LOGGER.info("File [" + path + THUMBS_FILE + "] updated.");
+			LOGGER.debug("File [" + path + THUMBS_FILE + "] updated.");
 		} catch (JAXBException | IOException e) {
 			// silently log this error
 			LOGGER.error("Failed to re-save [" + path + THUMBS_FILE + "]: ", e);
 		}
+	}
+	
+	/**
+	 * Writes the thumbnails file for the given media type.
+	 * @param type the media type
+	 */
+	private void saveThumbnailsFile(MediaType type) {
+		List<MediaThumbnail> thumbnails = getThumbnails(type);
+		String path = getMediaTypeFullPath(type);
+		this.saveThumbnailsFile(path, thumbnails);
 	}
 	
 	/**
@@ -294,7 +365,7 @@ public final class MediaLibrary {
 	 * @throws FileAlreadyExistsException thrown if the given file name is already taken by a file in the media library
 	 * @throws IOException thrown if an IO error occurs
 	 */
-	private static synchronized final Media loadFromFileSystem(String filePath) throws NoMediaLoaderException, MediaException, FileNotFoundException, FileAlreadyExistsException, IOException {
+	private Media loadFromFileSystem(String filePath) throws NoMediaLoaderException, MediaException, FileNotFoundException, FileAlreadyExistsException, IOException {
 		String contentType = FileUtilities.getContentType(filePath);
 		// get the media type
 		MediaType type = getMediaType(contentType);
@@ -307,7 +378,7 @@ public final class MediaLibrary {
 			// load and return the media
 			return loadFromMediaLibrary(mediaLibraryPath);
 		} else {
-			throw new NoMediaLoaderException(MessageFormat.format(Messages.getString("media.exception.mediaNotSupported"), type));
+			throw new NoMediaLoaderException(contentType);
 		}
 	}
 	
@@ -320,22 +391,22 @@ public final class MediaLibrary {
 	 * @throws FileAlreadyExistsException thrown if the given file name is already taken by a file in the media library
 	 * @throws IOException thrown if an IO error occurs
 	 */
-	private static final String copyToMediaLibrary(String filePath, String destPath) throws FileNotFoundException, FileAlreadyExistsException, IOException {
+	private String copyToMediaLibrary(String filePath, String destPath) throws FileNotFoundException, FileAlreadyExistsException, IOException {
 		// get a handle on the file to copy
 		FileSystem fs = FileSystems.getDefault();
 		Path source = fs.getPath(filePath);
 		// make sure it exists and is a file
 		if (Files.exists(source) && Files.isRegularFile(source)) {
 			String name = source.getFileName().toString();
-			Path target = fs.getPath(destPath + Constants.SEPARATOR + name);
+			Path target = fs.getPath(destPath + FileUtilities.getSeparator() + name);
 			// see if we can use the same name in the destination file
 			if (Files.exists(target)) {
-				throw new FileAlreadyExistsException(MessageFormat.format(Messages.getString("media.exception.fileExists"), name));
+				throw new FileAlreadyExistsException(target.toString());
 			}
 			Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 			return target.toString();
 		} else {
-			throw new FileNotFoundException(MessageFormat.format(Messages.getString("media.exception.fileNotFound"), source.toAbsolutePath().toString()));
+			throw new FileNotFoundException();
 		}
 	}
 	
@@ -346,11 +417,11 @@ public final class MediaLibrary {
 	 * @throws MediaException if an exception occurs while loading the media
 	 * @throws NoMediaLoaderException thrown if a media loader does not exist for the media
 	 */
-	private static synchronized final Media loadFromMediaLibrary(String fullPath) throws NoMediaLoaderException, MediaException {
+	private Media loadFromMediaLibrary(String fullPath) throws NoMediaLoaderException, MediaException {
 		String contentType = FileUtilities.getContentType(fullPath);
 		MediaType type = getMediaType(contentType);
 		MediaLoader<?> loader = getMediaLoader(type, contentType);
-		return loader.load(fullPath);
+		return loader.load(this.basePath, fullPath);
 	}
 	
 	/**
@@ -358,16 +429,15 @@ public final class MediaLibrary {
 	 * @param type the media type
 	 * @return String
 	 */
-	private static final String getMediaTypeFullPath(MediaType type) {
-		String path = Constants.MEDIA_LIBRARY_PATH;
+	private String getMediaTypeFullPath(MediaType type) {
 		if (type == MediaType.IMAGE) {
-			return Constants.MEDIA_LIBRARY_IMAGE_PATH;
+			return this.imagePath;
 		} else if (type == MediaType.VIDEO) {
-			return Constants.MEDIA_LIBRARY_VIDEO_PATH;
+			return this.videoPath;
 		} else if (type == MediaType.AUDIO) {
-			return Constants.MEDIA_LIBRARY_AUDIO_PATH;
+			return this.audioPath;
 		}
-		return path;
+		return this.basePath;
 	}
 	
 	/**
@@ -377,7 +447,7 @@ public final class MediaLibrary {
 	 * @return {@link MediaLoader}
 	 * @throws NoMediaLoaderException thrown if no media loader exists for the given media type
 	 */
-	private static synchronized final MediaLoader<?> getMediaLoader(MediaType type, String contentType) throws NoMediaLoaderException {
+	private MediaLoader<?> getMediaLoader(MediaType type, String contentType) throws NoMediaLoaderException {
 		List<MediaLoader<?>> loaders = MEDIA_LOADERS.get(type);
 		if (loaders != null) {
 			for (MediaLoader<?> loader : loaders) {
@@ -386,7 +456,7 @@ public final class MediaLibrary {
 				}
 			}
 		}
-		throw new NoMediaLoaderException(MessageFormat.format(Messages.getString("media.exception.noMediaLoader"), type, contentType));
+		throw new NoMediaLoaderException(contentType);
 	}
 	
 	/**
@@ -397,7 +467,7 @@ public final class MediaLibrary {
 	 * @return {@link MediaType}
 	 * @throws NoMediaLoaderException thrown if the content type is not image, video, or audio
 	 */
-	private static final MediaType getMediaType(String contentType) throws NoMediaLoaderException {
+	private MediaType getMediaType(String contentType) throws NoMediaLoaderException {
 		// attempt to determine the type of media
 		if (contentType.contains("image")) {
 			return MediaType.IMAGE;
@@ -407,24 +477,11 @@ public final class MediaLibrary {
 			return MediaType.AUDIO;
 		} else {
 			// if its not image, video, or audio, what is it?
-			throw new NoMediaLoaderException(MessageFormat.format(Messages.getString("media.exception.unknownMediaType"), contentType));
+			throw new NoMediaLoaderException(contentType);
 		}
 	}
 	
 	// public interface
-	
-	/**
-	 * Loads the media library.
-	 */
-	public static synchronized final void loadMediaLibrary() {
-		// see if the media library has already been loaded
-		if (!loaded) {
-			loadMediaLibrary(MediaType.IMAGE);
-			loadMediaLibrary(MediaType.AUDIO);
-			loadMediaLibrary(MediaType.VIDEO);
-			loaded = true;
-		}
-	}
 	
 	/**
 	 * Returns the first {@link MediaLoader} for the given media type.
@@ -554,16 +611,16 @@ public final class MediaLibrary {
 	 * @param type the media type
 	 * @return boolean
 	 */
-	public static synchronized final boolean containsMedia(String fileName, MediaType type) {
+	public synchronized boolean containsMedia(String fileName, MediaType type) {
 		FileSystem system = FileSystems.getDefault();
 		// get the full path to the media given the type
-		String path = getMediaTypeFullPath(type);
+		String path = this.getMediaTypeFullPath(type);
 		Path fullPath = system.getPath(path);
-		Path rootPath = system.getPath(Constants.BASE_PATH);
+		Path rootPath = system.getPath(this.basePath);
 		// if it exists on the file system or the media map (which both should
 		// always return the same boolean, but for extra assurance)
 		boolean fileExists = Files.exists(fullPath);
-		boolean inLibrary = MEDIA.containsKey(rootPath.relativize(fullPath));
+		boolean inLibrary = this.media.containsKey(rootPath.relativize(fullPath));
 		return fileExists || inLibrary;
 	}
 	
@@ -572,9 +629,9 @@ public final class MediaLibrary {
 	 * @param type the media type
 	 * @return List&lt;{@link MediaThumbnail}&gt;
 	 */
-	public static synchronized final List<MediaThumbnail> getThumbnails(MediaType type) {
+	public synchronized List<MediaThumbnail> getThumbnails(MediaType type) {
 		List<MediaThumbnail> thumbnails = new ArrayList<MediaThumbnail>();
-		for (MediaThumbnail thumbnail : THUMBNAILS) {
+		for (MediaThumbnail thumbnail : this.thumbnails) {
 			if (thumbnail.getMediaType() == type) {
 				thumbnails.add(thumbnail);
 			}
@@ -587,8 +644,8 @@ public final class MediaLibrary {
 	 * @param media the media
 	 * @return {@link MediaThumbnail}
 	 */
-	public static synchronized final MediaThumbnail getThumbnail(Media media) {
-		for (MediaThumbnail thumbnail : THUMBNAILS) {
+	public synchronized MediaThumbnail getThumbnail(Media media) {
+		for (MediaThumbnail thumbnail : this.thumbnails) {
 			if (thumbnail.getFile().getRelativePath().equals(media.getFile().getRelativePath())) {
 				return thumbnail;
 			}
@@ -601,8 +658,8 @@ public final class MediaLibrary {
 	 * @param filePath the relative file name and path of the media
 	 * @return {@link MediaThumbnail}
 	 */
-	private static synchronized final MediaThumbnail getThumbnail(String filePath) {
-		for (MediaThumbnail thumbnail : THUMBNAILS) {
+	private MediaThumbnail getThumbnail(String filePath) {
+		for (MediaThumbnail thumbnail : this.thumbnails) {
 			if (thumbnail.getFile().getRelativePath().equals(filePath)) {
 				return thumbnail;
 			}
@@ -620,17 +677,17 @@ public final class MediaLibrary {
 	 * @throws FileAlreadyExistsException thrown if the given file name is already taken by a file in the media library
 	 * @throws IOException thrown if an IO error occurs
 	 */
-	public static synchronized final Media addMedia(String filePath) throws FileNotFoundException, FileAlreadyExistsException, NoMediaLoaderException, MediaException, IOException {
-		Media media = loadFromFileSystem(filePath);
+	public synchronized Media addMedia(String filePath) throws FileNotFoundException, FileAlreadyExistsException, NoMediaLoaderException, MediaException, IOException {
+		Media media = this.loadFromFileSystem(filePath);
 		
 		// add a weak reference to it
-		MEDIA.put(media.getFile().getRelativePath(), new WeakReference<Media>(media));
+		this.media.put(media.getFile().getRelativePath(), new WeakReference<Media>(media));
 		// add it to the thumbnails list
-		THUMBNAILS.add(media.getThumbnail(THUMBNAIL_SIZE));
+		this.thumbnails.add(media.getThumbnail(THUMBNAIL_SIZE));
 		// resort the thumbnails
-		Collections.sort(THUMBNAILS);
+		Collections.sort(this.thumbnails);
 		// save a new thumbnails file
-		saveThumbnailsFile(media.getType());
+		this.saveThumbnailsFile(media.getType());
 		
 		return media;
 	}
@@ -649,12 +706,12 @@ public final class MediaLibrary {
 	 * @throws FileAlreadyExistsException thrown if the given file name is already taken by a file in the media library
 	 * @throws IOException thrown if an IO error occurs
 	 */
-	public static synchronized final Media addMedia(InputStream stream, MediaType type, String fileName) throws FileNotFoundException, FileAlreadyExistsException, NoMediaLoaderException, MediaException, IOException {
+	public synchronized Media addMedia(InputStream stream, MediaType type, String fileName) throws FileNotFoundException, FileAlreadyExistsException, NoMediaLoaderException, MediaException, IOException {
 		// make sure the given type is supported
 		if (isMediaSupported(type)) {
 			// get the destination path
-			String mediaPath = getMediaTypeFullPath(type);
-			String path = mediaPath + Constants.SEPARATOR + fileName;
+			String mediaPath = this.getMediaTypeFullPath(type);
+			String path = mediaPath + FileUtilities.getSeparator() + fileName;
 			File file = new File(path);
 			if (!file.exists()) {
 				// write the input stream to the file
@@ -669,23 +726,23 @@ public final class MediaLibrary {
 				    }
 				}
 				
-				Media media = loadFromMediaLibrary(path);
+				Media media = this.loadFromMediaLibrary(path);
 				
 				// add a weak reference to it
-				MEDIA.put(media.getFile().getRelativePath(), new WeakReference<Media>(media));
+				this.media.put(media.getFile().getRelativePath(), new WeakReference<Media>(media));
 				// add it to the thumbnails list
-				THUMBNAILS.add(media.getThumbnail(THUMBNAIL_SIZE));
+				this.thumbnails.add(media.getThumbnail(THUMBNAIL_SIZE));
 				// resort the thumbnails
-				Collections.sort(THUMBNAILS);
+				Collections.sort(this.thumbnails);
 				// save a new thumbnails file
-				saveThumbnailsFile(media.getType());
+				this.saveThumbnailsFile(media.getType());
 				
 				return media;
 			} else {
 				throw new FileAlreadyExistsException(path);
 			}
 		} else {
-			throw new NoMediaLoaderException(MessageFormat.format(Messages.getString("media.exception.mediaNotSupported"), type));
+			throw new NoMediaLoaderException(type.toString());
 		}
 	}
 	
@@ -698,8 +755,8 @@ public final class MediaLibrary {
 	 * @throws MediaException if an exception occurs while loading the media
 	 * @throws NoMediaLoaderException thrown if a media loader does not exist for the media
 	 */
-	public static synchronized final Media getMedia(MediaFile file) throws MediaException, NoMediaLoaderException {
-		return getMedia(file, false);
+	public synchronized Media getMedia(MediaFile file) throws MediaException, NoMediaLoaderException {
+		return this.getMedia(file, false);
 	}
 	
 	/**
@@ -715,19 +772,19 @@ public final class MediaLibrary {
 	 * @throws MediaException if an exception occurs while loading the media
 	 * @throws NoMediaLoaderException thrown if a media loader does not exist for the media
 	 */
-	public static synchronized final Media getMedia(MediaFile file, boolean newInstance) throws MediaException, NoMediaLoaderException {
+	public synchronized Media getMedia(MediaFile file, boolean newInstance) throws MediaException, NoMediaLoaderException {
 		String relativePath = file.getRelativePath();
-		WeakReference<Media> ref = MEDIA.get(relativePath);
+		WeakReference<Media> ref = this.media.get(relativePath);
 		// make sure the key is there
 		if (ref == null) return null;
 		// check if it was reclaimed
 		if (ref.get() == null || newInstance) {
 			// then we need to reload the media
-			Media media = loadFromMediaLibrary(file.getFullPath());
+			Media media = this.loadFromMediaLibrary(file.getFullPath());
 			// create a new weak reference to the media
 			ref = new WeakReference<Media>(media);
 			// store the weak reference
-			MEDIA.put(relativePath, ref);
+			this.media.put(relativePath, ref);
 			// return the media
 			return media;
 		}
@@ -743,8 +800,8 @@ public final class MediaLibrary {
 	 * @throws MediaException if an exception occurs while loading the media
 	 * @throws NoMediaLoaderException thrown if a media loader does not exist for the media
 	 */
-	public static synchronized final Media getMedia(String relativePath) throws MediaException, NoMediaLoaderException {
-		return getMedia(relativePath, false);
+	public synchronized Media getMedia(String relativePath) throws MediaException, NoMediaLoaderException {
+		return this.getMedia(relativePath, false);
 	}
 	
 	/**
@@ -757,20 +814,20 @@ public final class MediaLibrary {
 	 * @throws MediaException if an exception occurs while loading the media
 	 * @throws NoMediaLoaderException thrown if a media loader does not exist for the media
 	 */
-	public static synchronized final Media getMedia(String relativePath, boolean newInstance) throws MediaException, NoMediaLoaderException {
-		WeakReference<Media> ref = MEDIA.get(relativePath);
+	public synchronized Media getMedia(String relativePath, boolean newInstance) throws MediaException, NoMediaLoaderException {
+		WeakReference<Media> ref = this.media.get(relativePath);
 		// make sure the key is there
 		if (ref == null) return null;
 		// check if it was reclaimed
 		if (ref.get() == null || newInstance) {
 			// get the full path
-			String path = Constants.BASE_PATH + Constants.SEPARATOR + relativePath;
+			String path = this.basePath + FileUtilities.getSeparator() + relativePath;
 			// then we need to reload the media
-			Media media = loadFromMediaLibrary(path);
+			Media media = this.loadFromMediaLibrary(path);
 			// create a new weak reference to the media
 			ref = new WeakReference<Media>(media);
 			// store the weak reference
-			MEDIA.put(relativePath, ref);
+			this.media.put(relativePath, ref);
 			// return the media
 			return media;
 		}
@@ -783,20 +840,20 @@ public final class MediaLibrary {
 	 * @return boolean
 	 * @throws IOException thrown if the file fails to be deleted
 	 */
-	public static synchronized final boolean removeMedia(MediaFile file) throws IOException {
+	public synchronized boolean removeMedia(MediaFile file) throws IOException {
 		String relativePath = file.getRelativePath();
 		// make sure the media is removed
-		WeakReference<Media> media = MEDIA.remove(relativePath);
+		WeakReference<Media> media = this.media.remove(relativePath);
 		// remove the thumbnail (no resorting needed)
-		MediaThumbnail thumbnail = getThumbnail(relativePath);
-		THUMBNAILS.remove(thumbnail);
+		MediaThumbnail thumbnail = this.getThumbnail(relativePath);
+		this.thumbnails.remove(thumbnail);
 		// delete the file
 		Path path = FileSystems.getDefault().getPath(file.getFullPath());
 		boolean deleted = Files.deleteIfExists(path);
 		
 		if (media != null && deleted) {
 			// save a new thumbnails file
-			saveThumbnailsFile(thumbnail.getMediaType());
+			this.saveThumbnailsFile(thumbnail.getMediaType());
 			return true;
 		}
 		return false;

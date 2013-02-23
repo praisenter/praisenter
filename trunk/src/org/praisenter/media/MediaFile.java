@@ -25,6 +25,7 @@
 package org.praisenter.media;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -37,7 +38,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.apache.log4j.Logger;
-import org.praisenter.Constants;
 
 /**
  * Generic file properties class.
@@ -48,7 +48,10 @@ import org.praisenter.Constants;
 @XmlRootElement(name = "MediaFile")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({ImageMediaFile.class, VideoMediaFile.class, AudioMediaFile.class})
-public class MediaFile {
+public class MediaFile implements Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 303574109495901021L;
+
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(MediaFile.class);
 	
@@ -84,17 +87,18 @@ public class MediaFile {
 	
 	/**
 	 * Full constructor.
+	 * @param basePath the base path
 	 * @param fullPath the full file name and path
 	 * @param format the file format
 	 */
-	public MediaFile(String fullPath, String format) {
+	public MediaFile(String basePath, String fullPath, String format) {
 		FileSystem system = FileSystems.getDefault();
 		Path path = system.getPath(fullPath);
 		// get the relative path
 		// we want to use this for storing the media in the media library
 		// so that when stuff that reference the media is exported to another
 		// system, we don't have file path problems
-		Path rel = system.getPath(Constants.BASE_PATH).relativize(path);
+		Path rel = system.getPath(basePath).relativize(path);
 		this.fullPath = path.toString();
 		this.relativePath = rel.toString();
 		long size = UNKNOWN_FILE_SIZE;

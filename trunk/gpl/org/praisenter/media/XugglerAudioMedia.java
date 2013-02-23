@@ -18,8 +18,10 @@
 package org.praisenter.media;
 
 import java.awt.Dimension;
+import java.awt.image.BufferedImage;
+import java.io.Serializable;
 
-import org.praisenter.images.Images;
+import org.praisenter.common.utilities.ImageUtilities;
 
 /**
  * Represents an audio media type using the Xuggler library.
@@ -27,7 +29,13 @@ import org.praisenter.images.Images;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class XugglerAudioMedia extends AbstractAudioMedia implements Media, PlayableMedia, XugglerPlayableMedia {
+public class XugglerAudioMedia extends AbstractAudioMedia implements XugglerPlayableMedia, PlayableMedia, Media, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 9254649876754018L;
+
+	/** Sampled audio icon */
+	public static final BufferedImage SAMPLED_AUDIO = ImageUtilities.getImageFromClassPathSuppressExceptions("/org/praisenter/media/resources/sampled-audio.png");
+	
 	/**
 	 * Full constructor.
 	 * @param file the file information
@@ -41,6 +49,6 @@ public class XugglerAudioMedia extends AbstractAudioMedia implements Media, Play
 	 */
 	@Override
 	public MediaThumbnail getThumbnail(Dimension size) {
-		return new MediaThumbnail(this.file, Images.SAMPLED_AUDIO, MediaType.AUDIO);
+		return new MediaThumbnail(this.file, SAMPLED_AUDIO, MediaType.AUDIO);
 	}
 }

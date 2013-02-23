@@ -27,8 +27,9 @@ package org.praisenter.media;
 import java.awt.Dimension;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 
-import org.praisenter.utilities.ImageUtilities;
+import org.praisenter.common.utilities.ImageUtilities;
 
 /**
  * Base class for video media.
@@ -38,9 +39,12 @@ import org.praisenter.utilities.ImageUtilities;
  * @version 2.0.0
  * @since 2.0.0
  */
-public abstract class AbstractVideoMedia extends AbstractMedia implements Media, PlayableMedia {
+public abstract class AbstractVideoMedia extends AbstractMedia implements PlayableMedia, Media, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -8164681601398886021L;
+	
 	/** The first frame of the video */
-	protected BufferedImage firstFrame;
+	protected transient BufferedImage firstFrame;
 	
 	/**
 	 * Full constructor.

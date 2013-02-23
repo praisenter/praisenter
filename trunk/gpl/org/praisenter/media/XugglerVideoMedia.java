@@ -18,6 +18,7 @@
 package org.praisenter.media;
 
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 
 /**
  * Represents a video media type using the Xuggler library.
@@ -25,7 +26,10 @@ import java.awt.image.BufferedImage;
  * @version 2.0.0
  * @since 2.0.0
  */
-public class XugglerVideoMedia extends AbstractVideoMedia implements Media, PlayableMedia, XugglerPlayableMedia {
+public class XugglerVideoMedia extends AbstractVideoMedia implements XugglerPlayableMedia, PlayableMedia, Media, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -1977951803219495264L;
+
 	/**
 	 * Full constructor.
 	 * @param file the file information

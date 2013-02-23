@@ -29,6 +29,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,8 +50,10 @@ import org.xml.sax.helpers.DefaultHandler;
  * @version 1.0.0
  * @since 1.0.0
  */
-@SuppressWarnings("deprecation")
 public class PraisenterSongReaderv1_0_0 extends DefaultHandler {
+	/** The input date format */
+	protected static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+	
 	/**
 	 * Returns a new list of songs from the given file.
 	 * @param file the file to read from
@@ -183,7 +186,7 @@ public class PraisenterSongReaderv1_0_0 extends DefaultHandler {
 			if (this.dataBuilder != null) {
 				// set the song title
 				try {
-					this.song.setDateAdded(SongExporter.DATE_FORMAT.parse(this.dataBuilder.toString().trim()));
+					this.song.setDateAdded(DATE_FORMAT.parse(this.dataBuilder.toString().trim()));
 				} catch (ParseException e) {
 					throw new SAXException("Unable to parse date format: ", e);
 				}

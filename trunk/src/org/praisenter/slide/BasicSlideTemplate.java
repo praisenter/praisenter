@@ -24,11 +24,13 @@
  */
 package org.praisenter.slide;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.resources.Messages;
+import org.praisenter.slide.resources.Messages;
 
 /**
  * Represents a template of a {@link BasicSlide}.
@@ -38,7 +40,10 @@ import org.praisenter.resources.Messages;
  */
 @XmlRootElement(name = "SlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
-public class BasicSlideTemplate extends BasicSlide implements Slide, Template {
+public class BasicSlideTemplate extends BasicSlide implements Slide, Template, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -3183054978115388166L;
+
 	/**
 	 * Default constructor.
 	 * <p>

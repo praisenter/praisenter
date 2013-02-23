@@ -26,6 +26,7 @@ package org.praisenter.slide;
 
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.io.Serializable;
 
 import org.praisenter.slide.graphics.Fill;
 import org.praisenter.slide.graphics.LineStyle;
@@ -36,7 +37,7 @@ import org.praisenter.slide.graphics.LineStyle;
  * @version 2.0.0
  * @since 2.0.0
  */
-public interface PositionedComponent extends SlideComponent, RenderableComponent {
+public interface PositionedComponent extends RenderableComponent, SlideComponent, Serializable {
 	/**
 	 * Returns the x coordinate in slide space.
 	 * @return int
