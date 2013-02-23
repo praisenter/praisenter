@@ -44,6 +44,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "Song")
 @XmlAccessorType(XmlAccessType.NONE)
 public class Song implements Comparable<Song> {
+	/** The version of the song structure */
+	public static final String VERSION = "2.0.0";
+	
 	/** The id assigned to new songs */
 	protected static final int NEW_SONG_ID = -1;
 	

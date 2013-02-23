@@ -24,6 +24,7 @@
  */
 package org.praisenter.slide;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.resources.Messages;
+import org.praisenter.slide.resources.Messages;
 import org.praisenter.slide.text.TextComponent;
 
 /**
@@ -47,7 +48,10 @@ import org.praisenter.slide.text.TextComponent;
  */
 @XmlRootElement(name = "BibleSlide")
 @XmlAccessorType(XmlAccessType.NONE)
-public class BibleSlide extends BasicSlide implements Slide {
+public class BibleSlide extends BasicSlide implements Slide, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -4960923069594566353L;
+
 	/** The scripture location component (like: Genesis 1:1) */
 	@XmlElement(name = "ScriptureLocationComponent")
 	protected TextComponent scriptureLocationComponent;
@@ -91,8 +95,8 @@ public class BibleSlide extends BasicSlide implements Slide {
 		final int tth = (int)Math.ceil((double)h * 0.20);
 		final int th = h - tth - margin;
 		
-		this.scriptureLocationComponent = new TextComponent(Messages.getString("slide.bible.location.name"), margin, margin, w, tth);
-		this.scriptureTextComponent = new TextComponent(Messages.getString("slide.bible.text.name"), margin, tth + margin * 2, w, th);
+		this.scriptureLocationComponent = new TextComponent("", margin, margin, w, tth);
+		this.scriptureTextComponent = new TextComponent("", margin, tth + margin * 2, w, th);
 		
 		this.scriptureLocationComponent.setOrder(1);
 		this.scriptureTextComponent.setOrder(2);

@@ -26,6 +26,7 @@ package org.praisenter.slide;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
@@ -45,7 +46,7 @@ import org.praisenter.slide.text.TextComponent;
 	VideoMediaComponent.class,
 	TextComponent.class,
 	GenericComponent.class })
-public interface RenderableComponent extends SlideComponent {
+public interface RenderableComponent extends SlideComponent, Serializable {
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideComponent#copy()
 	 */

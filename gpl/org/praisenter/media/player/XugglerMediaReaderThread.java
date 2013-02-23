@@ -21,8 +21,8 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteOrder;
 
 import org.apache.log4j.Logger;
+import org.praisenter.common.threading.PausableThread;
 import org.praisenter.media.AudioDownmixer;
-import org.praisenter.threading.PausableThread;
 
 import com.xuggle.xuggler.IAudioSamples;
 import com.xuggle.xuggler.IContainer;

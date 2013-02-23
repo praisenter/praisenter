@@ -38,7 +38,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,10 +46,11 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 import org.apache.log4j.Logger;
-import org.praisenter.UnrecognizedFormatException;
+import org.praisenter.common.NotInitializedException;
+import org.praisenter.common.UnrecognizedFormatException;
 import org.praisenter.data.ConnectionFactory;
 import org.praisenter.data.DataImportException;
-import org.praisenter.resources.Messages;
+import org.praisenter.data.DataSaveException;
 
 /**
  * A bible importer for the bible data files hosted on The Unbound Bible at www.unboundbible.org.
@@ -121,7 +121,7 @@ public final class UnboundBibleImporter {
 		
 		// make sure the file exists
 		if (file.exists()) {
-			LOGGER.info("Reading UnboundBible .zip file: " + file.getName());
+			LOGGER.debug("Reading UnboundBible .zip file: " + file.getName());
 			// read the zip file
 			try (FileInputStream fis = new FileInputStream(file);
 				 BufferedInputStream bis = new BufferedInputStream(fis);
@@ -130,44 +130,36 @@ public final class UnboundBibleImporter {
 				ZipEntry entry = null;
 				while ((entry = zis.getNextEntry()) != null) {
 					if (entry.getName().equalsIgnoreCase(bookFileName)) {
-						try {
-							LOGGER.info("Reading UnboundBible .zip file contents: " + bookFileName);
-							books = readBooks(zis);
-						} catch (UnrecognizedFormatException e) {
-							throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.unrecognizedFormat"), bookFileName), e);
-						} catch (NumberFormatException e) {
-							throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.numberFormat"), bookFileName), e);
-						}
-						LOGGER.info("UnboundBible .zip file contents read successfully: " + bookFileName);
+						LOGGER.debug("Reading UnboundBible .zip file contents: " + bookFileName);
+						books = readBooks(zis);
+						LOGGER.debug("UnboundBible .zip file contents read successfully: " + bookFileName);
 					} else if (entry.getName().equalsIgnoreCase(verseFileName)) {
-						try {
-							LOGGER.info("Reading UnboundBible .zip file contents: " + verseFileName);
-							verses = readVerses(bible, zis);
-						} catch (UnrecognizedFormatException e) {
-							throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.unrecognizedFormat"), verseFileName), e);
-						} catch (NumberFormatException e) {
-							throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.numberFormat"), verseFileName), e);
-						}
-						LOGGER.info("UnboundBible .zip file contents read successfully: " + verseFileName);
+						LOGGER.debug("Reading UnboundBible .zip file contents: " + verseFileName);
+						verses = readVerses(bible, zis);
+						LOGGER.debug("UnboundBible .zip file contents read successfully: " + verseFileName);
 					}
 				}
+			} catch (UnrecognizedFormatException e) {
+				throw new DataImportException(e);
+			} catch (NumberFormatException e) {
+				throw new DataImportException(new UnrecognizedFormatException(e));
 			} catch (ZipException e) {
-				throw new DataImportException(Messages.getString("bible.import.zip"), e);
+				throw new DataImportException(e);
 			} catch (FileNotFoundException e) {
-				throw new DataImportException(Messages.getString("bible.import.fileNotFound"), e);
+				throw new DataImportException(e);
 			} catch (IOException e) {
-				throw new DataImportException(Messages.getString("bible.import.io"), e);
+				throw new DataImportException(e);
 			}
 			
 			// check for missing files
 			if (books.size() == 0 && verses.size() == 0) {
 				LOGGER.error("The file did not contain any books or verses. Import failed.");
-				throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.unrecognizedFormat"), file.getName()));
+				throw new DataImportException(new UnrecognizedFormatException(file.getName()));
 			}
 			
-			LOGGER.info("Importing new bible: " + bible.name);
+			LOGGER.debug("Importing new bible: " + bible.name);
 			// insert all the data into the tables
-			try (Connection connection = ConnectionFactory.getBibleConnection()) {
+			try (Connection connection = ConnectionFactory.getInstance().getConnection()) {
 				// begin the transaction
 				connection.setAutoCommit(false);
 				
@@ -177,11 +169,11 @@ public final class UnboundBibleImporter {
 					// make sure we didn't get anything
 					if (bqResult.next() && bqResult.getInt(1) > 0) {
 						connection.rollback();
-						throw new DataImportException(Messages.getString("bible.import.bibleExists"));
+						throw new BibleAlreadyExistsException();
 					}
 				} catch (SQLException e) {
 					connection.rollback();
-					throw new DataImportException(Messages.getString("bible.import.error"), e);
+					throw new DataImportException(e);
 				}
 				
 				// insert the bible
@@ -203,16 +195,16 @@ public final class UnboundBibleImporter {
 					} else {
 						// throw an error
 						connection.rollback();
-						throw new DataImportException(Messages.getString("bible.import.error"));
+						throw new DataImportException(new DataSaveException());
 					}
 				} catch (SQLException e) {
 					connection.rollback();
-					throw new DataImportException(Messages.getString("bible.import.error"), e);
+					throw new DataImportException(e);
 				}
 				
 				// make sure the bible was saved first
 				if (bible.id > 0) {
-					LOGGER.info("Bible inserted successfully: " + bible.name);
+					LOGGER.debug("Bible inserted successfully: " + bible.name);
 					// insert the books
 					try (PreparedStatement bookInsert = connection.prepareStatement(INSERT_BOOK)) {
 						for (Book book : books) {
@@ -227,14 +219,14 @@ public final class UnboundBibleImporter {
 								// roll back anything we've done
 								connection.rollback();
 								// throw an error
-								throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.book.error"), book.name));
+								throw new DataImportException(new DataSaveException());
 							}
 						}
 					} catch (SQLException e) {
 						connection.rollback();
-						throw new DataImportException(Messages.getString("bible.import.error"), e);
+						throw new DataImportException(e);
 					}
-					LOGGER.info("Bible books inserted successfully: " + bible.name);
+					LOGGER.debug("Bible books inserted successfully: " + bible.name);
 					
 					// insert the verses
 					try (PreparedStatement verseInsert = connection.prepareStatement(INSERT_VERSE)) {
@@ -254,26 +246,28 @@ public final class UnboundBibleImporter {
 								// roll back anything we've done
 								connection.rollback();
 								// throw an error
-								throw new DataImportException(MessageFormat.format(Messages.getString("bible.import.verse.error"), verse.book, verse.chapter, verse.verse));
+								throw new DataImportException(new DataSaveException());
 							}
 						}
 					} catch (SQLException e) {
 						connection.rollback();
-						throw new DataImportException(Messages.getString("bible.import.error"), e);
+						throw new DataImportException(e);
 					}
-					LOGGER.info("Bible verses inserted successfully: " + bible.name);
+					LOGGER.debug("Bible verses inserted successfully: " + bible.name);
 				}
 				
 				// commit all the changes
 				connection.commit();
 				
-				LOGGER.info("Bible imported successfully: " + bible.name);
+				LOGGER.debug("Bible imported successfully: " + bible.name);
+				
+				// rebuild the indexes after a bible has been imported
+				rebuildIndexes();
 			} catch (SQLException e) {
-				throw new DataImportException(Messages.getString("bible.import.error"), e);
+				throw new DataImportException(e);
+			} catch (NotInitializedException e) {
+				throw new DataImportException(e);
 			}
-			
-			// rebuild the indexes after a bible has been imported
-			rebuildIndexes();
 		}
 	}
 	
@@ -281,10 +275,11 @@ public final class UnboundBibleImporter {
 	 * Rebuilds the indexes for the verses tables.
 	 * <p>
 	 * This is useful after an import of a new bible.
+	 * @throws NotInitializedException thrown if the connection factory has not been initialized
 	 */
-	private static final void rebuildIndexes() {
-		LOGGER.info("Rebuilding bible indexes.");
-		try (Connection connection = ConnectionFactory.getBibleConnection()) {
+	private static final void rebuildIndexes() throws NotInitializedException {
+		LOGGER.debug("Rebuilding bible indexes.");
+		try (Connection connection = ConnectionFactory.getInstance().getConnection()) {
 			connection.setAutoCommit(false);
 			try (Statement statement = connection.createStatement();) {
 				statement.execute(DROP_INDEX_BO_A);
@@ -298,7 +293,7 @@ public final class UnboundBibleImporter {
 				
 				connection.commit();
 				
-				LOGGER.info("Bible indexes rebuilt successfully.");
+				LOGGER.debug("Bible indexes rebuilt successfully.");
 			} catch (SQLException e) {
 				// roll back any index changes we have done thus far
 				connection.rollback();

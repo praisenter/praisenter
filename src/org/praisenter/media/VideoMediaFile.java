@@ -24,6 +24,8 @@
  */
 package org.praisenter.media;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -37,7 +39,10 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "VideoMediaFile")
 @XmlAccessorType(XmlAccessType.NONE)
-public class VideoMediaFile extends MediaFile {
+public class VideoMediaFile extends MediaFile implements Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 6288507014572852477L;
+
 	/** The image width */
 	@XmlAttribute(name = "Width")
 	protected int width;
@@ -63,6 +68,7 @@ public class VideoMediaFile extends MediaFile {
 	
 	/**
 	 * Full constructor.
+	 * @param basePath the base path
 	 * @param fullPath the full file name and path
 	 * @param format the file format
 	 * @param width the image width
@@ -71,10 +77,10 @@ public class VideoMediaFile extends MediaFile {
 	 * @param audioPresent true if the video contains audio
 	 */
 	public VideoMediaFile(
-			String fullPath, String format, 
-			int width, int height,
-			long length, boolean audioPresent) {
-		super(fullPath, format);
+			String basePath, String fullPath, String format, 
+			int width, int height, long length, 
+			boolean audioPresent) {
+		super(basePath, fullPath, format);
 		this.width = width;
 		this.height = height;
 		this.length = length;

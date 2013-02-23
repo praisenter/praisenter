@@ -26,8 +26,8 @@ package org.praisenter.data.errors;
 
 import java.util.Date;
 
-import org.praisenter.utilities.ExceptionUtilities;
-import org.praisenter.utilities.SystemUtilities;
+import org.praisenter.common.utilities.ExceptionUtilities;
+import org.praisenter.common.utilities.SystemUtilities;
 
 /**
  * Represents an error message produced by the application
@@ -75,7 +75,7 @@ public class ErrorMessage {
 	 * @param message the error message
 	 * @param exception the exception
 	 */
-	protected ErrorMessage(String message, Exception exception) {
+	public ErrorMessage(String message, Exception exception) {
 		this(message, ExceptionUtilities.getStackTrace(exception));
 	}
 	
@@ -84,7 +84,7 @@ public class ErrorMessage {
 	 * @param message the error message
 	 * @param stacktrace the stacktrace
 	 */
-	protected ErrorMessage(String message, String stacktrace) {
+	public ErrorMessage(String message, String stacktrace) {
 		this(message, stacktrace, null, null);
 	}
 	
@@ -95,7 +95,7 @@ public class ErrorMessage {
 	 * @param contact the contact information
 	 * @param description the user description
 	 */
-	protected ErrorMessage(String message, Exception exception, String contact, String description) {
+	public ErrorMessage(String message, Exception exception, String contact, String description) {
 		this(message, ExceptionUtilities.getStackTrace(exception), contact, description);
 	}
 	
@@ -106,7 +106,7 @@ public class ErrorMessage {
 	 * @param contact the contact information
 	 * @param description the user description
 	 */
-	protected ErrorMessage(String message, String stacktrace, String contact, String description) {
+	public ErrorMessage(String message, String stacktrace, String contact, String description) {
 		this.id = NEW_ERROR_ID;
 		this.javaVersion = SystemUtilities.getJavaVersion();
 		this.javaVendor = SystemUtilities.getJavaVendor();
@@ -163,6 +163,28 @@ public class ErrorMessage {
 		  .append("|Description=").append(this.description)
 		  .append("|Timestamp=").append(this.timestamp)
 		  .append("]");
+		return sb.toString();
+	}
+	
+	/**
+	 * Returns a formatted string representation of this message.
+	 * @return String
+	 */
+	public String toFormattedString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(this.id).append(" ")
+		  .append(this.timestamp).append(" ")
+		  .append(this.message).append("\n")
+		  // details
+		  .append(this.javaVersion).append(" [")
+		  .append(this.javaVendor).append("] ")
+		  .append(this.os).append(" ")
+		  .append(this.architecture).append("\n")
+		  // user info
+		  .append(this.contact).append(" ")
+		  .append(this.description).append("\n")
+		  // stacktrace
+		  .append(this.stacktrace);
 		return sb.toString();
 	}
 	

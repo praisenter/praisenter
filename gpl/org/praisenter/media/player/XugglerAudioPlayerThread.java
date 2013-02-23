@@ -31,7 +31,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
 import org.apache.log4j.Logger;
-import org.praisenter.threading.PausableThread;
+import org.praisenter.common.threading.PausableThread;
 
 import com.xuggle.xuggler.IAudioSamples;
 import com.xuggle.xuggler.IStreamCoder;

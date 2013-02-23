@@ -27,6 +27,7 @@ package org.praisenter.slide;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -53,10 +54,14 @@ import org.praisenter.slide.text.TextComponent;
 	VideoMediaComponent.class,
 	AudioMediaComponent.class,
 	TextComponent.class,
-	DateTimeComponent.class })
-public interface Slide {
+	DateTimeComponent.class,
+	EmptyBackgroundComponent.class})
+public interface Slide extends Serializable {
 	/** The minimum size in pixels of a component or slide */
 	public static final int MINIMUM_SIZE = 20;
+	
+	/** The current version of the slide project */
+	public static final String VERSION = "1.0.0";
 	
 	/**
 	 * Returns a deep copy of this {@link Slide}.
@@ -89,18 +94,18 @@ public interface Slide {
 	/**
 	 * Returns the background component.
 	 * <p>
-	 * This can be any type of component, even a {@link RenderableComponent}. In this
+	 * This can be any type of component, even a {@link PositionedComponent}. In this
 	 * case the position should be 0,0. The width/height should also match the slide
 	 * width/height.
-	 * @return {@link SlideComponent}
+	 * @return {@link BackgroundComponent}
 	 */
-	public abstract RenderableComponent getBackground();
+	public abstract BackgroundComponent getBackground();
 	
 	/**
 	 * Sets the background to the given component.
 	 * @param component the background component
 	 */
-	public abstract void setBackground(RenderableComponent component);
+	public abstract void setBackground(BackgroundComponent component);
 	
 	/**
 	 * Adds the given component.

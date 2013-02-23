@@ -24,6 +24,8 @@
  */
 package org.praisenter.slide.media;
 
+import java.io.Serializable;
+
 import org.praisenter.media.MediaPlayerListener;
 import org.praisenter.media.PlayableMedia;
 import org.praisenter.slide.SlideComponent;
@@ -35,7 +37,7 @@ import org.praisenter.slide.SlideComponent;
  * @version 2.0.0
  * @since 2.0.0
  */
-public interface PlayableMediaComponent<E extends PlayableMedia> extends SlideComponent, MediaComponent<E>, MediaPlayerListener {
+public interface PlayableMediaComponent<E extends PlayableMedia> extends MediaComponent<E>, MediaPlayerListener, SlideComponent, Serializable {
 	/**
 	 * Returns true if looping of the media is enabled.
 	 * @return boolean

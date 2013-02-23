@@ -26,6 +26,7 @@ package org.praisenter.slide.graphics;
 
 import java.awt.BasicStroke;
 import java.awt.Stroke;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -40,7 +41,10 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "LineStyle")
 @XmlAccessorType(XmlAccessType.NONE)
-public class LineStyle {
+public class LineStyle implements Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 8619829633766048595L;
+
 	/** The line width */
 	@XmlElement(name = "Width")
 	protected float width;

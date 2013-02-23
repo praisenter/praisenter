@@ -29,20 +29,18 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Shape;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.resources.Messages;
 import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.graphics.Fill;
 import org.praisenter.slide.graphics.FillTypeAdapter;
-import org.praisenter.slide.graphics.LinearGradientFill;
-import org.praisenter.slide.graphics.RadialGradientFill;
+import org.praisenter.slide.resources.Messages;
 
 /**
  * Abstract implementation of the {@link RenderableComponent} interface.
@@ -51,15 +49,9 @@ import org.praisenter.slide.graphics.RadialGradientFill;
  * @since 2.0.0
  */
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlSeeAlso({
-	ColorFill.class,
-	LinearGradientFill.class,
-	RadialGradientFill.class
-})
-public abstract class AbstractRenderableComponent implements SlideComponent, RenderableComponent {
-	/** The component name */
-	@XmlElement(name = "Name")
-	protected String name;
+public abstract class AbstractRenderableComponent extends AbstractSlideComponent implements RenderableComponent, SlideComponent, Serializable {
+	/** The verison id */
+	private static final long serialVersionUID = 3914310150070868875L;
 
 	/** The z-ordering of this component */
 	@XmlAttribute(name = "Order")
@@ -98,7 +90,7 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	 * @param height the height in pixels
 	 */
 	public AbstractRenderableComponent(String name, int width, int height) {
-		this.name = name;
+		super(name);
 		this.order = 1;
 		this.width = width;
 		this.height = height;
@@ -113,7 +105,7 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	 * @param component the component to copy
 	 */
 	public AbstractRenderableComponent(AbstractRenderableComponent component) {
-		this.name = component.name;
+		super(component);
 		this.order = component.order;
 		this.width = component.width;
 		this.height = component.height;
@@ -295,19 +287,5 @@ public abstract class AbstractRenderableComponent implements SlideComponent, Ren
 	@Override
 	public void setOrder(int order) {
 		this.order = order;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#getName()
-	 */
-	public String getName() {
-		return this.name;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#setName(java.lang.String)
-	 */
-	public void setName(String name) {
-		this.name = name;
 	}
 }

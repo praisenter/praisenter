@@ -30,7 +30,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.xml.BufferedImageTypeAdapter;
+import org.praisenter.common.xml.BufferedImageTypeAdapter;
 
 /**
  * Represents a cached thumbnail on the file system.

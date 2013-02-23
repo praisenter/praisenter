@@ -31,7 +31,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -40,7 +39,6 @@ import java.util.List;
 
 import org.praisenter.data.ConnectionFactory;
 import org.praisenter.data.DataException;
-import org.praisenter.resources.Messages;
 
 /**
  * Data access class for {@link Song}s.
@@ -150,7 +148,7 @@ public final class Songs {
 	 */
 	private static final Song getSongBySql(String sql) throws DataException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getSongsConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -161,7 +159,7 @@ public final class Songs {
 			} 
 			
 			return song;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -176,7 +174,7 @@ public final class Songs {
 	 */
 	private static final List<Song> getSongsBySql(String sql) throws DataException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getSongsConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -188,7 +186,7 @@ public final class Songs {
 			} 
 			
 			return songs;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -203,7 +201,7 @@ public final class Songs {
 	 */
 	private static final List<SongPart> getSongPartsBySql(String sql) throws DataException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getSongsConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -215,7 +213,7 @@ public final class Songs {
 			} 
 			
 			return parts;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -228,7 +226,7 @@ public final class Songs {
 	 */
 	private static final int getCountBySql(String sql) throws DataException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -238,7 +236,7 @@ public final class Songs {
 			} 
 			
 			return 0;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -349,7 +347,7 @@ public final class Songs {
 	 * @throws DataException if an exception occurs during execution
 	 */
 	public static final void saveSong(Song song) throws DataException {
-		try (Connection connection = ConnectionFactory.getSongsConnection()) {
+		try (Connection connection = ConnectionFactory.getInstance().getConnection()) {
 			// start a transaction
 			connection.setAutoCommit(false);
 			try {
@@ -361,12 +359,12 @@ public final class Songs {
 				// rollback any changes
 				connection.rollback();
 				// throw an exception
-				throw new DataException(MessageFormat.format(Messages.getString("songs.save.failed"), song.title), e);
+				throw new DataException(e);
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			// this could happen if we couldnt get a connection or
 			// the auto-commit flag could not be set
-			throw new DataException(MessageFormat.format(Messages.getString("songs.save.failed"), song.title), e);
+			throw new DataException(e);
 		}
 	}
 	
@@ -376,7 +374,7 @@ public final class Songs {
 	 * @throws DataException if an exception occurs during execution
 	 */
 	public static final void saveSongPart(SongPart songPart) throws DataException {
-		try (Connection connection = ConnectionFactory.getSongsConnection()) {
+		try (Connection connection = ConnectionFactory.getInstance().getConnection()) {
 			// start a transaction
 			connection.setAutoCommit(false);
 			try {
@@ -388,12 +386,12 @@ public final class Songs {
 				// rollback any changes
 				connection.rollback();
 				// throw an exception
-				throw new DataException(MessageFormat.format(Messages.getString("songs.part.save.failed"), songPart.getType().getName(), songPart.getIndex(), songPart.getSongId()), e);
+				throw new DataException(e);
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			// this could happen if we couldnt get a connection or
 			// the auto-commit flag could not be set
-			throw new DataException(MessageFormat.format(Messages.getString("songs.part.save.failed"), songPart.getType().getName(), songPart.getIndex(), songPart.getSongId()), e);
+			throw new DataException(e);
 		}
 	}
 	
@@ -403,7 +401,7 @@ public final class Songs {
 	 * @throws DataException if an exception occurs during execution
 	 */
 	public static final void saveSongs(List<Song> songs) throws DataException {
-		try (Connection connection = ConnectionFactory.getSongsConnection()) {
+		try (Connection connection = ConnectionFactory.getInstance().getConnection()) {
 			// start a transaction
 			connection.setAutoCommit(false);
 			// loop over the songs
@@ -415,7 +413,7 @@ public final class Songs {
 					// rollback any changes
 					connection.rollback();
 					// throw an exception
-					throw new DataException(MessageFormat.format(Messages.getString("songs.save.failed"), song.title), e);
+					throw new DataException(e);
 				}
 			}
 			try {
@@ -425,12 +423,12 @@ public final class Songs {
 				// rollback any changes
 				connection.rollback();
 				// throw an exception
-				throw new DataException(Messages.getString("songs.save.all.failed"), e);
+				throw new DataException(e);
 			}
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			// this could happen if we couldnt get a connection or
 			// the auto-commit flag could not be set
-			throw new DataException(Messages.getString("songs.save.all.failed"), e);
+			throw new DataException(e);
 		}
 	}
 
@@ -555,7 +553,7 @@ public final class Songs {
 	public static final boolean deleteSong(int id) throws DataException {
 		// check the id
 		if (id != Song.NEW_SONG_ID) {
-			try (Connection connection = ConnectionFactory.getSongsConnection())
+			try (Connection connection = ConnectionFactory.getInstance().getConnection())
 			{
 				connection.setAutoCommit(false);
 				
@@ -578,10 +576,10 @@ public final class Songs {
 					// rollback any changes
 					connection.rollback();
 					// throw an exception
-					throw new DataException(Messages.getString("songs.delete.failed"), e);
+					throw new DataException(e);
 				}
-			} catch (SQLException e) {
-				throw new DataException(Messages.getString("songs.delete.failed"), e);
+			} catch (Exception e) {
+				throw new DataException(e);
 			}
 		}
 		return false;

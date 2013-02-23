@@ -30,7 +30,7 @@ package org.praisenter.data;
  * @version 1.0.0
  * @since 1.0.0
  */
-public class DataImportException extends Exception {
+public class DataImportException extends DataException {
 
 	/** The version id */
 	private static final long serialVersionUID = 5549378148489540081L;

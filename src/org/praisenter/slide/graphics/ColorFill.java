@@ -25,6 +25,7 @@
 package org.praisenter.slide.graphics;
 
 import java.awt.Color;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -39,7 +40,10 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "ColorFill")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ColorFill extends AbstractFill implements Fill {
+public class ColorFill extends AbstractFill implements Fill, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 5297424881541309870L;
+
 	/** The red component */
 	@XmlAttribute(name = "Red")
 	protected int red;

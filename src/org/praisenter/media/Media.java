@@ -25,6 +25,7 @@
 package org.praisenter.media;
 
 import java.awt.Dimension;
+import java.io.Serializable;
 
 /**
  * Represents a generic media object.
@@ -34,7 +35,7 @@ import java.awt.Dimension;
  * @version 2.0.0
  * @since 2.0.0
  */
-public interface Media {
+public interface Media extends Serializable {
 	/**
 	 * Returns the media type.
 	 * @return {@link MediaType}

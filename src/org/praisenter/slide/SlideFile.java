@@ -36,7 +36,6 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.log4j.Logger;
-import org.praisenter.Constants;
 
 /**
  * Generic slide file information class.
@@ -81,12 +80,13 @@ public class SlideFile {
 	
 	/**
 	 * Full constructor.
+	 * @param basePath the base path
 	 * @param fullPath the file name and path
 	 */
-	public SlideFile(String fullPath) {
+	protected SlideFile(String basePath, String fullPath) {
 		FileSystem system = FileSystems.getDefault();
 		Path path = system.getPath(fullPath);
-		Path root = system.getPath(Constants.BASE_PATH);
+		Path root = system.getPath(basePath);
 		this.fullPath = path.toString();
 		this.relativePath = root.relativize(path).toString();
 		long size = UNKNOWN_FILE_SIZE;

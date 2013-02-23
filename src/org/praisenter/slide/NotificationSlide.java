@@ -29,6 +29,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,10 +38,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.images.Images;
-import org.praisenter.resources.Messages;
+import org.praisenter.common.utilities.ImageUtilities;
+import org.praisenter.slide.resources.Messages;
 import org.praisenter.slide.text.TextComponent;
-import org.praisenter.utilities.ImageUtilities;
 
 /**
  * Specific slide for showing notification text.
@@ -58,7 +58,10 @@ import org.praisenter.utilities.ImageUtilities;
  */
 @XmlRootElement(name = "NotificationSlide")
 @XmlAccessorType(XmlAccessType.NONE)
-public class NotificationSlide extends AbstractPositionedSlide implements Slide {
+public class NotificationSlide extends AbstractPositionedSlide implements Slide, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -2265173376035060164L;
+	
 	/** The text component */
 	@XmlElement(name = "TextComponent")
 	protected TextComponent textComponent;
@@ -179,7 +182,7 @@ public class NotificationSlide extends AbstractPositionedSlide implements Slide 
 		BufferedImage img = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
 		g = img.createGraphics();
 		// render the scaled slide onto the transparent background
-		ImageUtilities.renderTiledImage(Images.TRANSPARENT_BACKGROUND, g, 0, 0, image.getWidth(), image.getHeight());
+		ImageUtilities.renderTiledImage(TRANSPARENT_BACKGROUND, g, 0, 0, image.getWidth(), image.getHeight());
 		g.drawImage(image, 0, 0, null);
 		g.dispose();
 		// return it

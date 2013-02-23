@@ -25,18 +25,19 @@
 package org.praisenter.slide;
 
 import java.awt.Color;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.resources.Messages;
+import org.praisenter.common.utilities.FontManager;
 import org.praisenter.slide.graphics.ColorFill;
+import org.praisenter.slide.resources.Messages;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
-import org.praisenter.utilities.FontManager;
 
 /**
  * Represents a template of a {@link NotificationSlide}.
@@ -46,7 +47,10 @@ import org.praisenter.utilities.FontManager;
  */
 @XmlRootElement(name = "NotificationSlideTemplate")
 @XmlAccessorType(XmlAccessType.NONE)
-public class NotificationSlideTemplate extends NotificationSlide implements Slide, Template {
+public class NotificationSlideTemplate extends NotificationSlide implements Slide, Template, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -3136596492866517853L;
+
 	/**
 	 * Default constructor.
 	 * <p>

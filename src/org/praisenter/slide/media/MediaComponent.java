@@ -24,6 +24,8 @@
  */
 package org.praisenter.slide.media;
 
+import java.io.Serializable;
+
 import org.praisenter.media.Media;
 import org.praisenter.slide.SlideComponent;
 
@@ -34,7 +36,7 @@ import org.praisenter.slide.SlideComponent;
  * @version 2.0.0
  * @since 2.0.0
  */
-public interface MediaComponent<E extends Media> extends SlideComponent {
+public interface MediaComponent<E extends Media> extends SlideComponent, Serializable {
 	/** 
 	 * Returns the media.
 	 * @return E

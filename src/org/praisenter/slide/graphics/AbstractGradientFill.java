@@ -24,6 +24,8 @@
  */
 package org.praisenter.slide.graphics;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -35,7 +37,10 @@ import javax.xml.bind.annotation.XmlElement;
  * @since 2.0.0
  */
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class AbstractGradientFill extends AbstractFill implements Fill {
+public abstract class AbstractGradientFill extends AbstractFill implements Fill, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -9215691278418625053L;
+
 	/** The offset to apply for gradients so that the middle stop can be all the way to either end */
 	protected static final int OFFSET = 5;
 	

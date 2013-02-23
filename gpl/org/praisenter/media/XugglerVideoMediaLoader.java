@@ -18,10 +18,8 @@
 package org.praisenter.media;
 
 import java.awt.image.BufferedImage;
-import java.text.MessageFormat;
 
 import org.apache.log4j.Logger;
-import org.praisenter.resources.Messages;
 
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
@@ -63,16 +61,17 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaLoader#load(java.lang.String)
+	 * @see org.praisenter.media.MediaLoader#load(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public XugglerVideoMedia load(String filePath) throws MediaException {
+	public XugglerVideoMedia load(String basePath, String filePath) throws MediaException {
 		// create the video container object
 		IContainer container = IContainer.make();
 
 		// open the container format
 		if (container.open(filePath, IContainer.Type.READ, null) < 0) {
-			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.container.format"), filePath));
+			LOGGER.error("Could not open container: [" + filePath + "].");
+			throw new UnsupportedMediaException();
 		}
 		// convert to seconds
 		long length = container.getDuration() / 1000 / 1000;
@@ -103,7 +102,8 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 		
 		// make sure we have a video stream
 		if (videoCoder == null) {
-			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.noVideo"), filePath));
+			LOGGER.error("No video coder found in container: [" + filePath + "].");
+			throw new UnsupportedMediaException();
 		}
 
 		// open the coder to read the video data
@@ -116,7 +116,8 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 		}
 		format += codecName;
 		if (videoCoder.open(null, null) < 0) {
-			throw new MediaException(MessageFormat.format(Messages.getString("media.loader.ex.decoder.video"), codecName));
+			LOGGER.error("Could not open coder with codec name: [" + codecName + "].");
+			throw new UnsupportedMediaException();
 		}		
 		LOGGER.debug("Video coder opened with format: " + codecName);
 		
@@ -134,6 +135,7 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 		LOGGER.debug("First frame read");
 		
 		VideoMediaFile file = new VideoMediaFile(
+				basePath,
 				filePath,
 				format,
 				videoWidth,
@@ -176,7 +178,8 @@ public class XugglerVideoMediaLoader implements VideoMediaLoader {
 				while (offset < packet.getSize()) {
 					int bytesDecoded = videoCoder.decodeVideo(picture, packet, offset);
 					if (bytesDecoded < 0) {
-						throw new MediaException(Messages.getString("media.player.ex.decode.video"));
+						LOGGER.error("No bytes found in container.");
+						throw new MediaException();
 					}
 					offset += bytesDecoded;
 

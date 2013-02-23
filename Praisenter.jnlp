@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<jnlp spec="6.0+" codebase="http://www.praisenter.org/production/v2" href="Praisenter.jnlp" version="2">
+<jnlp spec="6.0+" codebase="http://www.praisenter.org/release/production/v2" href="Praisenter.jnlp" version="2">
 	<information>
 		<title>Praisenter</title>
 		<vendor>William Bittle</vendor>
 		<homepage href="http://www.praisenter.org/" />
 		<description>Free Church Presentation Software</description>
-		<icon href="icon.gif" />
+		<icon href="icon.png" kind="default" />
 		<!-- <icon kind="splash" href="images/splash.gif"/> -->
 		
 		<!-- Allow offline running -->
 		<offline-allowed />
 		
-		<!-- Add a desktop short cut -->
-		<shortcut>
-			<desktop />
-		</shortcut>
+		<!-- Add desktop short cut -->
+		<shortcut online="false">
+      		<desktop/>
+    	</shortcut>
 	</information>
 	
 	<security>

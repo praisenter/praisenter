@@ -24,13 +24,15 @@
  */
 package org.praisenter.slide;
 
+import java.io.Serializable;
+
 /**
  * Common interface for all slide components.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public interface SlideComponent {
+public interface SlideComponent extends Serializable {
 	/**
 	 * Returns the name of the slide component.
 	 * @return String

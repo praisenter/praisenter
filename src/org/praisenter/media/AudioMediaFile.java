@@ -24,6 +24,8 @@
  */
 package org.praisenter.media;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -37,7 +39,10 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "AudioMediaFile")
 @XmlAccessorType(XmlAccessType.NONE)
-public class AudioMediaFile extends MediaFile {
+public class AudioMediaFile extends MediaFile implements Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -8487476068680536359L;
+	
 	/** The video length in seconds */
 	@XmlAttribute(name = "Length")
 	protected long length;
@@ -51,12 +56,13 @@ public class AudioMediaFile extends MediaFile {
 	
 	/**
 	 * Full constructor.
+	 * @param basePath the base path
 	 * @param fullPath the full file name and path
 	 * @param format the file format
 	 * @param length the audio length in seconds
 	 */
-	public AudioMediaFile(String fullPath, String format, long length) {
-		super(fullPath, format);
+	public AudioMediaFile(String basePath, String fullPath, String format, long length) {
+		super(basePath, fullPath, format);
 		this.length = length;
 	}
 	

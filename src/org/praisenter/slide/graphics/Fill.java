@@ -25,6 +25,7 @@
 package org.praisenter.slide.graphics;
 
 import java.awt.Paint;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -35,7 +36,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @since 2.0.0
  */
 @XmlRootElement(name = "Fill")
-public interface Fill {
+public interface Fill extends Serializable {
 	/**
 	 * Returns a paint for the given coordinates and width and height.
 	 * <p>

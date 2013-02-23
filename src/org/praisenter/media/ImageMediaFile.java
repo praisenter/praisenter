@@ -24,6 +24,8 @@
  */
 package org.praisenter.media;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -37,7 +39,10 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "ImageMediaFile")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ImageMediaFile extends MediaFile {
+public class ImageMediaFile extends MediaFile implements Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -1445203495754034684L;
+
 	/** The image width */
 	@XmlAttribute(name = "Width")
 	protected int width;
@@ -55,13 +60,14 @@ public class ImageMediaFile extends MediaFile {
 	
 	/**
 	 * Full constructor.
+	 * @param basePath the base path
 	 * @param fullPath the full file name and path
 	 * @param format the file format
 	 * @param width the image width
 	 * @param height the image height
 	 */
-	public ImageMediaFile(String fullPath, String format, int width, int height) {
-		super(fullPath, format);
+	public ImageMediaFile(String basePath, String fullPath, String format, int width, int height) {
+		super(basePath, fullPath, format);
 		this.width = width;
 		this.height = height;
 	}

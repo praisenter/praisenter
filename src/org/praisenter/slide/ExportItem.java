@@ -30,7 +30,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-import org.praisenter.xml.ClassTypeAdapter;
+import org.praisenter.common.xml.ClassTypeAdapter;
 
 /**
  * Class containing metadata information about an export file.

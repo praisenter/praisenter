@@ -27,6 +27,7 @@ package org.praisenter.slide.media;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -36,12 +37,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.media.ImageMedia;
+import org.praisenter.media.MediaTypeAdapter;
+import org.praisenter.slide.BackgroundComponent;
 import org.praisenter.slide.GenericComponent;
 import org.praisenter.slide.PositionedComponent;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.graphics.ScaleType;
-import org.praisenter.xml.MediaTypeAdapter;
 
 /**
  * Component for showing images from the media library.
@@ -51,7 +53,10 @@ import org.praisenter.xml.MediaTypeAdapter;
  */
 @XmlRootElement(name = "ImageMediaComponent")
 @XmlAccessorType(XmlAccessType.NONE)
-public class ImageMediaComponent extends GenericComponent implements SlideComponent, RenderableComponent, PositionedComponent, MediaComponent<ImageMedia> {
+public class ImageMediaComponent extends GenericComponent implements MediaComponent<ImageMedia>, PositionedComponent, BackgroundComponent, RenderableComponent, SlideComponent, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = 3720176009267303066L;
+
 	/** The media */
 	@XmlElement(name = "Media", required = true, nillable = false)
 	@XmlJavaTypeAdapter(MediaTypeAdapter.class)

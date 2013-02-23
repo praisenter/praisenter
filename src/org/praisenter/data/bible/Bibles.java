@@ -96,7 +96,7 @@ public final class Bibles {
 	 */
 	public static final void deleteBible(int id) throws DataException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();)
 		{
 			// delete from the bottom up
@@ -106,7 +106,7 @@ public final class Bibles {
 			
 			// execute the batch
 			statement.executeBatch();
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -228,7 +228,7 @@ public final class Bibles {
 		}
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 
@@ -238,7 +238,7 @@ public final class Bibles {
 			}
 			
 			return 0;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -259,7 +259,7 @@ public final class Bibles {
 		  .append("AND book_code = ?");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setString(2, bookCode);
@@ -270,7 +270,7 @@ public final class Bibles {
 			}
 			
 			return 0;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -298,7 +298,7 @@ public final class Bibles {
 		  .append("AND verse = ?");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setString(2, bookCode);
@@ -311,7 +311,7 @@ public final class Bibles {
 			}
 			
 			return null;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -348,7 +348,7 @@ public final class Bibles {
 		  .append("AND order_by > ?)");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, verse.bible.id);
 			statement.setInt(2, verse.bible.id);
@@ -360,7 +360,7 @@ public final class Bibles {
 			}
 			
 			return null;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -407,7 +407,7 @@ public final class Bibles {
 		  .append("AND verse = ?))");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setInt(2, bible.id);
@@ -422,7 +422,7 @@ public final class Bibles {
 			}
 			
 			return null;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -459,7 +459,7 @@ public final class Bibles {
 		  .append("AND order_by < ?)");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, verse.bible.id);
 			statement.setInt(2, verse.bible.id);
@@ -471,7 +471,7 @@ public final class Bibles {
 			}
 			
 			return null;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -518,7 +518,7 @@ public final class Bibles {
 		  .append("AND verse = ?))");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setInt(2, bible.id);
@@ -533,7 +533,7 @@ public final class Bibles {
 			}
 			
 			return null;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -893,7 +893,7 @@ public final class Bibles {
 		}
 
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 
@@ -903,7 +903,7 @@ public final class Bibles {
 			}
 			
 			return 0;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -922,7 +922,7 @@ public final class Bibles {
 		  .append("AND book_code = ?");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setString(2, bookCode);
@@ -933,7 +933,7 @@ public final class Bibles {
 			}
 			
 			return 0;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -954,7 +954,7 @@ public final class Bibles {
 		  .append("AND chapter = ?");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setString(2, bookCode);
@@ -966,7 +966,7 @@ public final class Bibles {
 			}
 			
 			return 0;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -990,7 +990,7 @@ public final class Bibles {
 	 */
 	private static final int getCountBySql(String sql) throws DataException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -1000,7 +1000,7 @@ public final class Bibles {
 			} 
 			
 			return 0;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -1013,7 +1013,7 @@ public final class Bibles {
 	 */
 	private static final List<Bible> getBiblesBySql(String sql) throws DataException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -1025,7 +1025,7 @@ public final class Bibles {
 			} 
 			
 			return bibles;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -1038,7 +1038,7 @@ public final class Bibles {
 	 */
 	private static final Bible getBibleBySql(String sql) throws DataException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -1049,7 +1049,7 @@ public final class Bibles {
 			} 
 			
 			return bible;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -1063,7 +1063,7 @@ public final class Bibles {
 	 */
 	private static final List<Book> getBooksBySql(Bible bible, String sql) throws DataException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -1075,7 +1075,7 @@ public final class Bibles {
 			} 
 			
 			return books;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}
@@ -1089,7 +1089,7 @@ public final class Bibles {
 	 */
 	private static final Book getBookBySql(Bible bible, String sql) throws DataException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -1098,7 +1098,7 @@ public final class Bibles {
 				Book book = getBook(bible, result);
 				return book;
 			} 
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 		
@@ -1114,7 +1114,7 @@ public final class Bibles {
 	 */
 	private static final List<Verse> getVersesBySql(Bible bible, String sql) throws DataException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getBibleConnection();
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -1126,7 +1126,7 @@ public final class Bibles {
 			} 
 			
 			return verses;
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DataException(e);
 		}
 	}

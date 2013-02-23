@@ -24,6 +24,7 @@
  */
 package org.praisenter.slide.text;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -35,10 +36,13 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.apache.log4j.Logger;
+import org.praisenter.common.xml.SimpleDateFormatTypeAdapter;
+import org.praisenter.slide.PositionedComponent;
+import org.praisenter.slide.RenderableComponent;
+import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.graphics.LinearGradientFill;
 import org.praisenter.slide.graphics.RadialGradientFill;
-import org.praisenter.xml.SimpleDateFormatTypeAdapter;
 
 /**
  * Text component in which displays a date and/or time.
@@ -53,7 +57,10 @@ import org.praisenter.xml.SimpleDateFormatTypeAdapter;
 	LinearGradientFill.class,
 	RadialGradientFill.class
 })
-public class DateTimeComponent extends TextComponent {
+public class DateTimeComponent extends TextComponent implements PositionedComponent, RenderableComponent, SlideComponent, Serializable {
+	/** The version id */
+	private static final long serialVersionUID = -5536740793364156423L;
+
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(DateTimeComponent.class);
 	
