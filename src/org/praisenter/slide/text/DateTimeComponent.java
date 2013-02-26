@@ -43,6 +43,7 @@ import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.graphics.LinearGradientFill;
 import org.praisenter.slide.graphics.RadialGradientFill;
+import org.praisenter.slide.resources.Messages;
 
 /**
  * Text component in which displays a date and/or time.
@@ -82,7 +83,7 @@ public class DateTimeComponent extends TextComponent implements PositionedCompon
 	 * This should only be used by JAXB.
 	 */
 	protected DateTimeComponent() {
-		this(null, 0, 0, 0, 0, null);
+		this(Messages.getString("slide.component.unnamed"), 0, 0, 0, 0, null);
 	}
 
 	/**

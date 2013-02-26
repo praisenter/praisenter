@@ -47,6 +47,7 @@ import org.praisenter.slide.PositionedComponent;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.graphics.ScaleType;
+import org.praisenter.slide.resources.Messages;
 
 /**
  * Component for showing videos from the media library.
@@ -91,7 +92,7 @@ public class VideoMediaComponent extends GenericComponent implements PlayableMed
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected VideoMediaComponent() {
-		this(null, null, 0, 0, 0, 0);
+		this(Messages.getString("slide.component.unnamed"), null, 0, 0, 0, 0);
 	}
 	
 	/**

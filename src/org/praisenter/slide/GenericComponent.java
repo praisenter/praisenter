@@ -34,6 +34,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.graphics.LineStyle;
+import org.praisenter.slide.resources.Messages;
 
 /**
  * Represents a generic slide component with positioning and border.
@@ -56,7 +57,7 @@ public class GenericComponent extends AbstractPositionedComponent implements Bac
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected GenericComponent() {
-		this("", 200, 200);
+		this(Messages.getString("slide.component.unnamed"), 200, 200);
 	}
 	
 	/**

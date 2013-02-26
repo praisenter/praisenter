@@ -67,13 +67,25 @@ public final class TextRenderer {
 	 * @param properties the text properties
 	 */
 	public static final void renderParagraph(Graphics2D g2d, String text, TextRenderProperties properties) {
+		// set the render location
 		float x = properties.x;
 		float y = properties.y;
-		float width = properties.width;
+		// get the text metrics
+		TextMetrics metrics = properties.textMetrics;
+		// set the bounded width
+		float width = metrics.width;
+		// offset the y by the vertical alignment
+		// (vertical align top is y = 0)
+		if (properties.verticalAlignment == VerticalTextAlignment.CENTER) {
+			y += ((float)metrics.height - metrics.textHeight) / 2.0f;
+		} else if (properties.verticalAlignment == VerticalTextAlignment.BOTTOM) {
+			y += (float)metrics.height - metrics.textHeight;
+		}
+		// set the horizontal alignment
 		HorizontalTextAlignment alignment = properties.horizontalAlignment;
-		Paint textPaint = properties.textPaint;
-		Paint outlinePaint = properties.outlinePaint;
-		Stroke outlineStroke = properties.outlineStroke;
+		// determine if we need to render the outline
+		boolean renderOutline = properties.outlineEnabled && properties.outlineFill != null && properties.outlineStyle != null;
+		Stroke outlineStroke = properties.outlineStyle.getStroke();
 		
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
@@ -83,9 +95,6 @@ public final class TextRenderer {
 		// create a line break measurer to measure out lines
 		LineBreakMeasurer measurer = new LineBreakMeasurer(it, g2d.getFontRenderContext());
 	    
-		boolean paintOutline = properties.isOutlinePainted();
-		g2d.setPaint(textPaint);
-		
 		// compute the height by laying out the lines
 		boolean isLastLayoutNewLine = false;
 	    while (measurer.getPosition() < text.length()) {
@@ -121,7 +130,6 @@ public final class TextRenderer {
 	    		isLastLayoutNewLine = false;
 	    	}
 	    	
-	    	y += (layout.getAscent());
 	    	float dx = 0; 
 	    	boolean leftToRight = layout.isLeftToRight();
 	    	if (alignment == HorizontalTextAlignment.LEFT) {
@@ -134,7 +142,7 @@ public final class TextRenderer {
 	    		if (leftToRight) {
 	    			dx = width - layout.getVisibleAdvance();
 	    		} else {
-	    			dx = 0;
+	    			dx = width - layout.getAdvance();
 	    		}
 	    	} else {
 	    		// default to center
@@ -144,23 +152,34 @@ public final class TextRenderer {
 	    			dx = (width + layout.getAdvance()) * 0.5f - layout.getAdvance();
 	    		}
 	    	}
+
+	    	int ix = (int)Math.floor(x + dx);
+	    	int iy = (int)Math.floor(y);
+	    	int iw = (int)Math.floor(layout.getAdvance());
+	    	int ih = (int)Math.floor(layout.getAscent() + layout.getDescent());
 	    	
+	    	y += layout.getAscent();
+	    	
+	    	// get the paint for the text
+	    	Paint paint = properties.textFill.getPaint(ix, iy, iw, ih);
+	    	g2d.setPaint(paint);
 	    	// paint the text
 	    	layout.draw(g2d, x + dx, y);
 	    	
 	    	// paint the outline if necessary
 	    	// painting the outline after painting the text is what must
 	    	// be done for good looking outlines
-	    	if (paintOutline) {
+	    	if (renderOutline) {
 	    		Stroke oStroke = g2d.getStroke();
-	    		g2d.setPaint(outlinePaint);
+	    		
+	    		paint = properties.outlineFill.getPaint(ix, iy, iw, ih);
+	    		g2d.setPaint(paint);
 	    		g2d.setStroke(outlineStroke);
 	    		
 	    		Shape shape = layout.getOutline(AffineTransform.getTranslateInstance(x + dx, y));
 	    		g2d.draw(shape);
 	    		
 	    		g2d.setStroke(oStroke);
-	    		g2d.setPaint(textPaint);
 	    	}
 	        
 	        y += layout.getDescent() + layout.getLeading();
@@ -175,9 +194,10 @@ public final class TextRenderer {
 	 * @param font the font
 	 * @param fontRenderContext the font rendering context
 	 * @param width the maximum width
+	 * @param height the height of the text area; the text is not bounded by this
 	 * @return {@link TextBounds}
 	 */
-	public static final TextBounds getParagraphBounds(String text, Font font, FontRenderContext fontRenderContext, float width) {
+	public static final TextBounds getParagraphBounds(String text, Font font, FontRenderContext fontRenderContext, float width, float height) {
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
 		as.addAttribute(TextAttribute.FONT, font);
@@ -189,6 +209,7 @@ public final class TextRenderer {
 		// compute the height by laying out the lines
 	    float h = 0;
 	    float w = 0;
+	    float lh = 0;
 	    boolean isLastLayoutNewLine = false;
 	    while (measurer.getPosition() < text.length()) {
 	    	// get the expected ending character for this line
@@ -225,10 +246,14 @@ public final class TextRenderer {
 	    	// keep the maximum width
 	    	float tw = layout.getAdvance();
 	    	w = w < tw ? tw : w;
+	    	// keep the line height
+	    	if (lh <= 0) {
+	    		lh = layout.getAscent() + layout.getDescent();
+	    	}
 	    }
 	    
 	    // return the bounds
-	    return new TextBounds(w, h);
+	    return new TextBounds(width, height, w, h, lh);
 	}
 	
 	/**
@@ -270,19 +295,19 @@ public final class TextRenderer {
 		// clamp the beginning size to 1
 		if (cur < 1.0f) cur = 1.0f;
 		// get the initial paragraph height
-		TextBounds bounds = getParagraphBounds(text, font, fontRenderContext, width);
+		TextBounds bounds = getParagraphBounds(text, font, fontRenderContext, width, height);
 		// loop until the text fills the area
 		// the if condition allows REDUCE_FONT_ONLY to exit early
-		float min = (bounds.height <= height && max != Float.MAX_VALUE) ? max : 1.0f;
+		float min = (bounds.textHeight <= height && max != Float.MAX_VALUE) ? max : 1.0f;
 		int i = 0;
-		while (bounds.height > height || (int)Math.floor(max - min) > 1) {
+		while (bounds.textHeight > height || (int)Math.floor(max - min) > 1) {
 			// check the paragraph height against the maximum height
-			if (bounds.height < height) {
+			if (bounds.textHeight < height) {
 				// we need to binary search up
 				min = cur;
 				// compute an estimated next size if the maximum begins with Float.MAX_VALUE
 				// this is to help convergence to a safe maximum
-				float rmax = (max == Float.MAX_VALUE ? height * (cur / bounds.height) : max);
+				float rmax = (max == Float.MAX_VALUE ? height * (cur / bounds.textHeight) : max);
 				cur = (float)Math.ceil((cur + rmax) * 0.5f);
 				font = font.deriveFont(cur);
 			} else {
@@ -297,13 +322,13 @@ public final class TextRenderer {
 				font = font.deriveFont(cur);
 			}
 			// get the new paragraph height for the new font size
-			bounds = getParagraphBounds(text, font, fontRenderContext, width);
+			bounds = getParagraphBounds(text, font, fontRenderContext, width, height);
 			i++;
 		}
 		if (i > 0) {
 			LOGGER.trace("Font fitting iterations: " + i);
 		}
-		return new TextMetrics(cur, bounds.width, bounds.height);
+		return new TextMetrics(cur, bounds);
 	}
 	
 	// line methods
@@ -316,13 +341,25 @@ public final class TextRenderer {
 	 * @param properties the text rendering properties
 	 */
 	public static final void renderLine(Graphics2D g2d, String text, TextRenderProperties properties) {
+		// set the render location
 		float x = properties.x;
 		float y = properties.y;
-		float width = properties.width;
+		// get the text metrics
+		TextMetrics metrics = properties.textMetrics;
+		// set the bounded width
+		float width = metrics.width;
+		// offset the y by the vertical alignment
+		// (vertical align top is y = 0)
+		if (properties.verticalAlignment == VerticalTextAlignment.CENTER) {
+			y += ((float)metrics.height - metrics.textHeight) / 2.0f;
+		} else if (properties.verticalAlignment == VerticalTextAlignment.BOTTOM) {
+			y += (float)metrics.height - metrics.textHeight;
+		}
+		// set the horizontal alignment
 		HorizontalTextAlignment alignment = properties.horizontalAlignment;
-		Paint textPaint = properties.textPaint;
-		Paint outlinePaint = properties.outlinePaint;
-		Stroke outlineStroke = properties.outlineStroke;
+		// determine if we need to render the outline
+		boolean renderOutline = properties.outlineEnabled && properties.outlineFill != null && properties.outlineStyle != null;
+		Stroke outlineStroke = properties.outlineStyle.getStroke();
 		
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
@@ -330,8 +367,6 @@ public final class TextRenderer {
 		// get the character iterator
 		AttributedCharacterIterator it = as.getIterator();
 		TextLayout layout = new TextLayout(it, g2d.getFontRenderContext());
-		
-		boolean paintOutline = properties.isOutlinePainted();
 		
 		float dx = 0; 
     	boolean leftToRight = layout.isLeftToRight();
@@ -345,7 +380,7 @@ public final class TextRenderer {
     		if (leftToRight) {
     			dx = width - layout.getVisibleAdvance();
     		} else {
-    			dx = 0;
+    			dx = width - layout.getAdvance();
     		}
     	} else {
     		// default to center
@@ -356,19 +391,30 @@ public final class TextRenderer {
     		}
     	}
         
+		int ix = (int)Math.floor(x + dx);
+    	int iy = (int)Math.floor(y);
+    	int iw = (int)Math.floor(layout.getAdvance());
+    	int ih = (int)Math.floor(layout.getAscent() + layout.getDescent());
+		
+    	y += layout.getAscent();
+    	
+    	// get the paint for the text
+    	Paint paint = properties.textFill.getPaint(ix, iy, iw, ih);
+    	g2d.setPaint(paint);
     	// paint the text
-    	g2d.setPaint(textPaint);
-    	layout.draw(g2d, x + dx, y + layout.getAscent());
+    	layout.draw(g2d, x + dx, y);
     	
     	// paint the outline if necessary
     	// painting the outline after painting the text is what must
     	// be done for good looking outlines
-    	if (paintOutline) {
+    	if (renderOutline) {
     		Stroke oStroke = g2d.getStroke();
-    		g2d.setPaint(outlinePaint);
+    		
+    		paint = properties.outlineFill.getPaint(ix, iy, iw, ih);
+    		g2d.setPaint(paint);
     		g2d.setStroke(outlineStroke);
     		
-    		Shape shape = layout.getOutline(AffineTransform.getTranslateInstance(x + dx, y + layout.getAscent()));
+    		Shape shape = layout.getOutline(AffineTransform.getTranslateInstance(x + dx, y));
     		g2d.draw(shape);
     		
     		g2d.setStroke(oStroke);
@@ -380,9 +426,11 @@ public final class TextRenderer {
 	 * @param font the text font
 	 * @param fontRenderContext the font rendering context
 	 * @param text the text
+	 * @param width the bounds width; the text is not bounded by this
+	 * @param height the bounds height; the text is not bounded by this
 	 * @return {@link TextBounds}
 	 */
-	public static final TextBounds getLineBounds(Font font, FontRenderContext fontRenderContext, String text) {
+	public static final TextBounds getLineBounds(Font font, FontRenderContext fontRenderContext, String text, float width, float height) {
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
 		as.addAttribute(TextAttribute.FONT, font);
@@ -391,9 +439,10 @@ public final class TextRenderer {
 		TextLayout layout = new TextLayout(it, fontRenderContext);
 		// get the single line text width
 		float tw = layout.getVisibleAdvance();
-		float th = layout.getAscent() + layout.getDescent() + layout.getLeading();
+		float tlh = layout.getAscent() + layout.getDescent();
+		float th = tlh + layout.getLeading();
 		// return the metrics
-		return new TextBounds(tw, th);
+		return new TextBounds(width, height, tw, th, tlh);
 	}
 	
 	/**
@@ -423,10 +472,10 @@ public final class TextRenderer {
 	 */
 	public static final TextMetrics getFittingLineMetrics(Font font, float max, FontRenderContext fontRenderContext, String text, float width, float height) {
 		// get the line bounds
-		TextBounds bounds = getLineBounds(font, fontRenderContext, text);
+		TextBounds bounds = getLineBounds(font, fontRenderContext, text, width, height);
 		// return the font size scaled by the difference in widths (or height)
-		float fw = width / bounds.width;
-		float fh = height / bounds.height;
+		float fw = width / bounds.textWidth;
+		float fh = height / bounds.textHeight;
 		// choose the smallest dimension
 		float factor = fw < fh ? fw : fh;
 		float cur = font.getSize2D();
@@ -438,25 +487,25 @@ public final class TextRenderer {
 			// its possible that the text does not fit within the bounds with the 
 			// scaled font size so we still need to perform a search for the font
 			// size if it doesnt work
-			bounds = getLineBounds(font.deriveFont(cur), fontRenderContext, text);
-			if (bounds.width <= width && bounds.height <= height && max != Float.MAX_VALUE) {
+			bounds = getLineBounds(font.deriveFont(cur), fontRenderContext, text, width, height);
+			if (bounds.textWidth <= width && bounds.textHeight <= height && max != Float.MAX_VALUE) {
 				// the estimate was precise enough so use that
 				LOGGER.trace("Font fitting iterations: 1");
-				return new TextMetrics(cur, bounds.width, bounds.height);
+				return new TextMetrics(cur, bounds);
 			} else {
 				// if the text is still too big or the maximum we passed in was Float.MAX_VALUE then
 				// we must binary search for the correct size
 				float min = 1.0f;
 				int i = 0;
-				while (bounds.height > height || bounds.width > width || (int)Math.floor(max - min) > 1) {
+				while (bounds.textHeight > height || bounds.textWidth > width || (int)Math.floor(max - min) > 1) {
 					// check the line height against the maximum height and width
-					if (bounds.height < height && bounds.width < width) {
+					if (bounds.textHeight < height && bounds.textWidth < width) {
 						// we need to binary search up
 						min = cur;
 						// compute an estimated next size if the maximum is Float.MAX_VALUE
 						// this is to help convergence to a safe maximum
-						float sw = width / bounds.width;
-						float sh = height / bounds.height;
+						float sw = width / bounds.textWidth;
+						float sh = height / bounds.textHeight;
 						// use the smallest scale, that way we increase the font size conservatively
 						float rmax = 0.0f;
 						if (max != Float.MAX_VALUE) {
@@ -480,7 +529,7 @@ public final class TextRenderer {
 						font = font.deriveFont(cur);
 					}
 					// get the new paragraph height for the new font size
-					bounds = getLineBounds(font, fontRenderContext, text);
+					bounds = getLineBounds(font, fontRenderContext, text, width, height);
 					i++;
 				}
 				if (i > 0) {
@@ -490,6 +539,6 @@ public final class TextRenderer {
 		} else {
 			LOGGER.trace("Font fitting iterations: 0");
 		}
-		return new TextMetrics(cur, bounds.width, bounds.height);
+		return new TextMetrics(cur, bounds);
 	}
 }

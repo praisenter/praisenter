@@ -30,7 +30,6 @@ import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.RenderingHints;
 import java.awt.Shape;
-import java.awt.Stroke;
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -55,6 +54,7 @@ import org.praisenter.slide.graphics.JoinType;
 import org.praisenter.slide.graphics.LineStyle;
 import org.praisenter.slide.graphics.LinearGradientFill;
 import org.praisenter.slide.graphics.RadialGradientFill;
+import org.praisenter.slide.resources.Messages;
 
 /**
  * Represents a component that displays text.
@@ -133,7 +133,7 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	 * marshalling and unmarshalling the objects.
 	 */
 	protected TextComponent() {
-		this(null, 0, 0, 0, 0, "");
+		this(Messages.getString("slide.component.unnamed"), 0, 0, 0, 0, "");
 	}
 	
 	/**
@@ -330,11 +330,11 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 					// get the bounds without modifying the font size
 					TextBounds bounds = null;
 					if (this.textWrapped) {
-						bounds = TextRenderer.getParagraphBounds(text, font, g.getFontRenderContext(), rw);
+						bounds = TextRenderer.getParagraphBounds(text, font, g.getFontRenderContext(), rw, rh);
 					} else {
-						bounds = TextRenderer.getLineBounds(font, g.getFontRenderContext(), text);
+						bounds = TextRenderer.getLineBounds(font, g.getFontRenderContext(), text, rw, rh);
 					}
-					metrics = new TextMetrics(font.getSize2D(), bounds.width, bounds.height);
+					metrics = new TextMetrics(font.getSize2D(), bounds);
 				}
 				
 				// see if we need to derive the font
@@ -345,54 +345,26 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 					g.setFont(font);
 				}
 				
-				// vertical align top is easy, just render at y=0
+				// apply the text padding
 				float x = this.x + this.textPadding;
 				float y = this.y + this.textPadding;
-				if (this.verticalTextAlignment == VerticalTextAlignment.CENTER) {
-					y += ((float)rh - metrics.height) / 2.0f;
-				} else if (this.verticalTextAlignment == VerticalTextAlignment.BOTTOM) {
-					y += (float)rh - metrics.height;
-				}
-				
-				// get the text paint
-				Paint textPaint = null;
-				if (this.textFill != null) {
-					textPaint = this.getPaint(this.textFill, x, y, metrics.width, metrics.height);
-				} else {
-					textPaint = Color.WHITE;
-				}
-				
-				// get the outline paint
-				Paint outlinePaint = null;
-				if (this.textOutlineFill != null) {
-					outlinePaint = this.getPaint(this.textOutlineFill, x, y, metrics.width, metrics.height);
-				} else {
-					outlinePaint = Color.BLACK;
-				}
-				
-				// get the outline stroke
-				Stroke outlineStroke = null;
-				if (this.textOutlineStyle != null) {
-					outlineStroke = this.textOutlineStyle.getStroke();
-				}
 				
 				// setup the text properties
-				TextRenderProperties props = new TextRenderProperties(rw);
-				props.setX(x);
-				props.setY(y);
-				props.setHorizontalAlignment(this.horizontalTextAlignment);
-				props.setTextPaint(textPaint);
-				if (this.textOutlineVisible) {
-					props.setOutlinePaint(outlinePaint);
-					props.setOutlineStroke(outlineStroke);
-				}
-				
+				TextRenderProperties properties = new TextRenderProperties(metrics);
+				properties.setX(x);
+				properties.setY(y);
+				properties.setVerticalAlignment(this.verticalTextAlignment);
+				properties.setHorizontalAlignment(this.horizontalTextAlignment);
+				properties.setTextFill(this.textFill);
+				properties.setOutlineEnabled(this.textOutlineVisible);
+				properties.setOutlineFill(this.textOutlineFill);
+				properties.setOutlineStyle(this.textOutlineStyle);
 				
 				// save the old rendering hints
 				RenderingHints oHints = g.getRenderingHints();
 				
-				// enable anti-aliasing to make the preview look good
-				if (this.textOutlineVisible && preview) {
+				// enable anti-aliasing to make the preview look decent
+				if (this.textOutlineVisible && this.textOutlineFill != null && this.textOutlineStyle != null && preview) {
 					// turn on anti-aliasing so that the text outlines don't look terrible
 					g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 				}
@@ -401,10 +373,10 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 				g.clipRect(this.x, this.y, this.width, this.height);
 				if (this.textWrapped) {
 					// render the text as a paragraph
-					TextRenderer.renderParagraph(g, text, props);
+					TextRenderer.renderParagraph(g, text, properties);
 				} else {
 					// render the text as a line
-					TextRenderer.renderLine(g, text, props);
+					TextRenderer.renderLine(g, text, properties);
 				}
 				
 				g.setRenderingHints(oHints);

@@ -324,7 +324,7 @@ public class FillEditorPanel extends JPanel implements ActionListener, ItemListe
 			this.cmbRadialDirection.setVisible(true);
 			this.pnlPreview.repaint();
 		} else if ("color".equals(command)) {
-			Color color = JColorChooser.showDialog(WindowUtilities.getParentWindow(this), "Browse", this.color.getColor());
+			Color color = JColorChooser.showDialog(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.editor.fill.selectColor"), this.color.getColor());
 			if (color != null) {
 				this.color = new ColorFill(color);
 				this.pnlPreview.repaint();
@@ -339,7 +339,7 @@ public class FillEditorPanel extends JPanel implements ActionListener, ItemListe
 			} else {
 				stops = this.radial.getStops();
 			}
-			color = JColorChooser.showDialog(WindowUtilities.getParentWindow(this), "Browse", stops[0].getColor());
+			color = JColorChooser.showDialog(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.editor.fill.selectColor"), stops[0].getColor());
 			if (color != null) {
 				// recreate the currently selected fill
 				Color other = stops[2].getColor();
@@ -368,7 +368,7 @@ public class FillEditorPanel extends JPanel implements ActionListener, ItemListe
 			} else {
 				stops = this.radial.getStops();
 			}
-			color = JColorChooser.showDialog(WindowUtilities.getParentWindow(this), "Browse", stops[2].getColor());
+			color = JColorChooser.showDialog(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.editor.fill.selectColor"), stops[2].getColor());
 			if (color != null) {
 				// recreate the currently selected fill
 				Color other = stops[0].getColor();

@@ -35,18 +35,12 @@ public class TextMetrics extends TextBounds {
 	protected float fontSize;
 	
 	/**
-	 * Default constructor.
-	 */
-	public TextMetrics() {}
-	
-	/**
 	 * Full constructor.
 	 * @param fontSize the font size
-	 * @param width the text width at the given font size
-	 * @param height the text height at the given font size
+	 * @param bounds the text bounds
 	 */
-	public TextMetrics(float fontSize, float width, float height) {
-		super(width, height);
+	public TextMetrics(float fontSize, TextBounds bounds) {
+		super(bounds);
 		this.fontSize = fontSize;
 	}
 	

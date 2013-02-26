@@ -25,8 +25,10 @@
 package org.praisenter.slide.text;
 
 import java.awt.Color;
-import java.awt.Paint;
-import java.awt.Stroke;
+
+import org.praisenter.slide.graphics.ColorFill;
+import org.praisenter.slide.graphics.Fill;
+import org.praisenter.slide.graphics.LineStyle;
 
 /**
  * Class to store the rendering properties of a piece of text that will
@@ -42,51 +44,49 @@ public class TextRenderProperties {
 	/** The y coordinate to render relative to */
 	protected float y;
 	
-	/** The constrained width of the rendered text (for wrapping or font scaling) */
-	protected float width;
+	/** The bounds and text metrics */
+	protected TextMetrics textMetrics;
+	
+	/** The vertical alignment */
+	protected VerticalTextAlignment verticalAlignment;
 	
 	/** The text horizontal alignment */
 	protected HorizontalTextAlignment horizontalAlignment;
 	
 	/** The text paint */
-	protected Paint textPaint;
+	protected Fill textFill;
+	
+	/** Returns true if the outline is enabled */
+	protected boolean outlineEnabled;
 	
 	/** The text outline paint */
-	protected Paint outlinePaint;
+	protected Fill outlineFill;
 	
 	/** The text outline stroke */
-	protected Stroke outlineStroke;
+	protected LineStyle outlineStyle;
 	
 	/**
 	 * Minimal constructor.
 	 * <p>
-	 * The x and y coorindates are defaulted to zero, the horizontal alignment
-	 * is defaulted to center, the text paint is defaulted to white, and the
-	 * outline paint/stroke is defaulted to null.
+	 * The x and y coorindates are defaulted to zero, the vertical alignment
+	 * is defaulted to top, the horizontal alignment is defaulted to center, 
+	 * the text fill is defaulted to white, and the outline is defaulted to 
+	 * off.
 	 * <p>
 	 * Use the setXXX methods to assign the remaining properties.
-	 * @param width the width the text is bound by
+	 * @param textMetrics the bounds and text metrics
 	 */
-	public TextRenderProperties(float width) {
+	public TextRenderProperties(TextMetrics textMetrics) {
 		this.x = 0;
 		this.y = 0;
-		this.width = width;
+		this.textMetrics = textMetrics;
+		this.verticalAlignment = VerticalTextAlignment.TOP;
 		this.horizontalAlignment = HorizontalTextAlignment.CENTER;
-		this.textPaint = Color.WHITE;
+		this.textFill = new ColorFill(Color.WHITE);
 		// no outline by default
-		this.outlinePaint = null;
-		this.outlineStroke = null;
-	}
-	
-	/**
-	 * Returns true if the outline should be painted.
-	 * <p>
-	 * The outline will be painted if both the outline paint and outline
-	 * stroke are non-null.
-	 * @return boolean
-	 */
-	public boolean isOutlinePainted() {
-		return this.outlinePaint != null && this.outlineStroke != null;
+		this.outlineEnabled = false;
+		this.outlineFill = new ColorFill();
+		this.outlineStyle = new LineStyle();
 	}
 	
 	/**
@@ -122,19 +122,35 @@ public class TextRenderProperties {
 	}
 	
 	/**
-	 * Returns the width the text is bound by.
-	 * @return float
+	 * Returns the bounds and text metrics.
+	 * @return {@link TextMetrics}
 	 */
-	public float getWidth() {
-		return this.width;
+	public TextMetrics getTextMetrics() {
+		return this.textMetrics;
 	}
 	
 	/**
-	 * Sets the width the text is bound by.
-	 * @param width the width in pixels
+	 * Sets the bounds and text metrics.
+	 * @param textMetrics the bounds and text metrics
 	 */
-	public void setWidth(float width) {
-		this.width = width;
+	public void setTextMetrics(TextMetrics textMetrics) {
+		this.textMetrics = textMetrics;
+	}
+	
+	/**
+	 * Returns the vertical text alignment.
+	 * @return {@link VerticalTextAlignment}
+	 */
+	public VerticalTextAlignment getVerticalAlignment() {
+		return this.verticalAlignment;
+	}
+	
+	/**
+	 * Sets the vertical text alignment.
+	 * @param alignment the alignment
+	 */
+	public void setVerticalAlignment(VerticalTextAlignment alignment) {
+		this.verticalAlignment = alignment;
 	}
 	
 	/**
@@ -147,57 +163,76 @@ public class TextRenderProperties {
 	
 	/**
 	 * Sets the horizontal text alignment.
-	 * @param horizontalAlignment the alignment
+	 * @param alignment the alignment
 	 */
-	public void setHorizontalAlignment(HorizontalTextAlignment horizontalAlignment) {
-		this.horizontalAlignment = horizontalAlignment;
+	public void setHorizontalAlignment(HorizontalTextAlignment alignment) {
+		this.horizontalAlignment = alignment;
 	}
 	
 	/**
-	 * Returns the paint used for the text.
-	 * @return Paint
+	 * Returns the fill used for the text.
+	 * @return {@link Fill}
 	 */
-	public Paint getTextPaint() {
-		return this.textPaint;
+	public Fill getTextFill() {
+		return this.textFill;
 	}
 	
 	/**
-	 * Sets the paint used for the text.
-	 * @param textPaint the paint for the text
+	 * Sets the fill used for the text.
+	 * @param fill the fill for the text
 	 */
-	public void setTextPaint(Paint textPaint) {
-		this.textPaint = textPaint;
+	public void setTextFill(Fill fill) {
+		this.textFill = fill;
+	}
+	
+	/**
+	 * Returns true if the outline is enabled.
+	 * @return boolean
+	 */
+	public boolean isOutlineEnabled() {
+		return this.outlineEnabled;
+	}
+	
+	/**
+	 * Toggles the rendering of the text outline.
+	 * <p>
+	 * The {@link #getOutlineFill()} and {@link #getOutlineStyle()} must
+	 * return non-null values for the outline to be rendered. 
+	 * @param outlineEnabled true if the outline should be rendered
+	 */
+	public void setOutlineEnabled(boolean outlineEnabled) {
+		this.outlineEnabled = outlineEnabled;
 	}
 	
 	/**
 	 * Returns the paint used for the text outline.
-	 * @return Paint
+	 * @return {@link Fill}
 	 */
-	public Paint getOutlinePaint() {
-		return this.outlinePaint;
+	public Fill getOutlineFill() {
+		return this.outlineFill;
 	}
 	
 	/**
-	 * Sets the paint used for the text outline.
-	 * @param outlinePaint the paint for the outline; can be null
+	 * Sets the fill used for the text outline.
+	 * @param fill the fill for the outline; can be null
 	 */
-	public void setOutlinePaint(Paint outlinePaint) {
-		this.outlinePaint = outlinePaint;
+	public void setOutlineFill(Fill fill) {
+		this.outlineFill = fill;
 	}
 	
 	/**
-	 * Returns the stroke used for the text outline.
-	 * @return Stroke
+	 * Returns the line style used for the text outline.
+	 * @return {@link LineStyle}
 	 */
-	public Stroke getOutlineStroke() {
-		return this.outlineStroke;
+	public LineStyle getOutlineStyle() {
+		return this.outlineStyle;
 	}
 	
 	/**
-	 * Sets the stroke used for the text outline.
-	 * @param outlineStroke the stroke for the outline; can be null
+	 * Sets the line style used for the text outline.
+	 * @param style the line style for the outline; can be null
 	 */
-	public void setOutlineStroke(Stroke outlineStroke) {
-		this.outlineStroke = outlineStroke;
+	public void setOutlineStyle(LineStyle style) {
+		this.outlineStyle = style;
 	}
 }

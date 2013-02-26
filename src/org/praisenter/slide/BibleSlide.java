@@ -95,8 +95,8 @@ public class BibleSlide extends BasicSlide implements Slide, Serializable {
 		final int tth = (int)Math.ceil((double)h * 0.20);
 		final int th = h - tth - margin;
 		
-		this.scriptureLocationComponent = new TextComponent("", margin, margin, w, tth);
-		this.scriptureTextComponent = new TextComponent("", margin, tth + margin * 2, w, th);
+		this.scriptureLocationComponent = new TextComponent(Messages.getString("slide.bible.location.name"), margin, margin, w, tth);
+		this.scriptureTextComponent = new TextComponent(Messages.getString("slide.bible.text.name"), margin, tth + margin * 2, w, th);
 		
 		this.scriptureLocationComponent.setOrder(1);
 		this.scriptureTextComponent.setOrder(2);
