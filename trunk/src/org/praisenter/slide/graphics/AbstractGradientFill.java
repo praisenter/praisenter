@@ -47,7 +47,7 @@ public abstract class AbstractGradientFill extends AbstractFill implements Fill,
 	/** The default stops */
 	protected static final Stop[] DEFAULT_STOPS = new Stop[] {
 		new Stop(0, 0, 0, 0, 255), 
-		new Stop(0.5f, 127, 127, 127, 127), 
+		new Stop(0.5f, 127, 127, 127, 255), 
 		new Stop(1.0f, 255, 255, 255, 255)
 	};
 	

@@ -31,56 +31,86 @@ package org.praisenter.slide.text;
  * @since 2.0.0
  */
 public class TextBounds {
-	/** The text width */
+	/** The width of the bounds */
 	protected float width;
 	
-	/** The text height */
+	/** The height of the bounds */
 	protected float height;
 	
-	/**
-	 * Default constructor.
-	 */
-	public TextBounds() {}
+	/** The text width */
+	protected float textWidth;
+	
+	/** The text height */
+	protected float textHeight;
+	
+	/** The height of one line of text */
+	protected float textLineHeight;
 	
 	/**
 	 * Full constructor.
-	 * @param width the width
-	 * @param height the height
+	 * @param width the bounds width
+	 * @param height the bounds height
+	 * @param textWidth the text width
+	 * @param textHeight the text height
+	 * @param textLineHeight the line height
 	 */
-	public TextBounds(float width, float height) {
+	public TextBounds(float width, float height, float textWidth, float textHeight, float textLineHeight) {
 		this.width = width;
 		this.height = height;
+		this.textWidth = textWidth;
+		this.textHeight = textHeight;
+		this.textLineHeight = textLineHeight;
 	}
 	
 	/**
-	 * Returns the text width.
+	 * Copy constructor.
+	 * @param bounds the bounds to copy
+	 */
+	public TextBounds(TextBounds bounds) {
+		this.width = bounds.width;
+		this.height = bounds.height;
+		this.textWidth = bounds.textWidth;
+		this.textHeight = bounds.textHeight;
+		this.textLineHeight = bounds.textLineHeight;
+	}
+	
+	/**
+	 * Returns the width of the bounds.
 	 * @return float
 	 */
 	public float getWidth() {
 		return this.width;
 	}
-	
+
 	/**
-	 * Sets the text width.
-	 * @param width the width
+	 * Returns the height of the bounds.
+	 * @return float
 	 */
-	public void setWidth(float width) {
-		this.width = width;
+	public float getHeight() {
+		return this.height;
+	}
+
+	/**
+	 * Returns the text width.
+	 * @return float
+	 */
+	public float getTextWidth() {
+		return this.textWidth;
 	}
 	
 	/**
 	 * Returns the text height.
 	 * @return float
 	 */
-	public float getHeight() {
-		return this.height;
+	public float getTextHeight() {
+		return this.textHeight;
 	}
 	
 	/**
-	 * Sets the text height.
-	 * @param height the height
+	 * Returns the line height.
+	 * @return float
 	 */
-	public void setHeight(float height) {
-		this.height = height;
+	public float getTextLineHeight() {
+		return this.textLineHeight;
 	}
 }
