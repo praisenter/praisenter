@@ -66,7 +66,7 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 	private static final long serialVersionUID = 7677045112182344610L;
 	
 	/** The list of devices (not static so that it will pick up new devices) */
-	private GraphicsDevice[] devices = WindowUtilities.getScreenDevices();
+	private GraphicsDevice[] devices = WindowUtilities.getDevices();
 	
 	// screens
 	
@@ -130,7 +130,7 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		String deviceId = preferences.getPrimaryDeviceId();
 		if (deviceId != null && deviceId.trim().length() > 0) {
 			// this will assign device to null if its not found
-			device = WindowUtilities.getScreenDeviceForId(preferences.getPrimaryDeviceId());
+			device = WindowUtilities.getDeviceForId(preferences.getPrimaryDeviceId());
 		}
 		
 		this.lblDisplayNotFound = new JLabel();

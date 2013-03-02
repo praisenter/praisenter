@@ -88,6 +88,7 @@ import org.praisenter.presentation.PresentationManager;
 // TODO [HIGH] SONGS song manager; not sure what to do here since you have all the functionality on the main panel, but its all crunched together
 // TODO [HIGH] SLIDE-TEMPLATE Add a service schedule with import/export caps; not sure how i feel about this since our service are rarely scheduled
 // TODO [LOW] ERRORS add an error manager with export and email features
+// FIXME rework the notification controls to allow Praisenter to be smaller width wise
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;
@@ -119,7 +120,7 @@ public class Praisenter extends JFrame implements ActionListener {
 	 */
 	public Praisenter() {
 		super(Messages.getString("praisenter"));
-		this.setIconImage(Icons.ICON.getImage());
+		this.setIconImages(Icons.APPLICATION_ICON_LIST);
 		
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());

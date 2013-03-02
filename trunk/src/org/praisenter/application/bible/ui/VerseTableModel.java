@@ -24,6 +24,7 @@
  */
 package org.praisenter.application.bible.ui;
 
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
@@ -116,6 +117,19 @@ public class VerseTableModel extends AbstractTableModel {
 	public Verse getRow(int rowIndex) {
 		if (this.verses != null && this.verses.size() > rowIndex) {
 			return this.verses.get(rowIndex);
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns an iterator for the rows.
+	 * <p>
+	 * Returns null if the verse list is null.
+	 * @return Iterator&lt;{@link Verse}&gt;
+	 */
+	public Iterator<Verse> getRowIterator() {
+		if (this.verses != null) {
+			return this.verses.iterator();
 		}
 		return null;
 	}

@@ -294,7 +294,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		// get the resolutions
 		List<Resolution> resolutions = Resolutions.getResolutions();
 		// add any window sizes to the targets
-		GraphicsDevice[] devices = WindowUtilities.getScreenDevices();
+		GraphicsDevice[] devices = WindowUtilities.getDevices();
 		for (int i = 0; i < devices.length; i++) {
 			GraphicsDevice device = devices[i];
 			DisplayMode mode = device.getDisplayMode();

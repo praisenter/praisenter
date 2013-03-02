@@ -66,7 +66,7 @@ public class AboutDialog extends JDialog {
 		container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
 		
 		// add the logo to the top
-		JLabel icon = new JLabel(Icons.ICON);
+		JLabel icon = new JLabel(Icons.ICON_64);
 		icon.setText(MessageFormat.format(Messages.getString("dialog.about.text"), Version.getVersion()));
 		icon.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 10));
 		icon.setIconTextGap(10);

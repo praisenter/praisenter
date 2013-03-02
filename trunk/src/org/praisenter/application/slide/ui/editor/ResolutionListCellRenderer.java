@@ -53,7 +53,7 @@ public class ResolutionListCellRenderer extends DefaultListCellRenderer {
 	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 		
-		GraphicsDevice[] devices = WindowUtilities.getScreenDevices();
+		GraphicsDevice[] devices = WindowUtilities.getDevices();
 		if (value instanceof Resolution) {
 			Resolution r = (Resolution)value;
 			for (GraphicsDevice device : devices) {
@@ -61,6 +61,7 @@ public class ResolutionListCellRenderer extends DefaultListCellRenderer {
 				Resolution o = new Resolution(mode.getWidth(), mode.getHeight());
 				if (r.equals(o)) {
 					this.setText(MessageFormat.format(Messages.getString("resolution.format.native"), r.getWidth(), r.getHeight()));
+					break;
 				} else {
 					this.setText(MessageFormat.format(Messages.getString("resolution.format"), r.getWidth(), r.getHeight()));
 				}

@@ -97,7 +97,7 @@ public final class PresentationWindows {
 			deviceId = device.getIDstring();
 		} else {
 			// get the graphics device
-			device = WindowUtilities.getScreenDeviceForId(deviceId);
+			device = WindowUtilities.getDeviceForId(deviceId);
 			// check if the device exists
 			if (device == null) {
 				// see if the we have any windows for it and remove them

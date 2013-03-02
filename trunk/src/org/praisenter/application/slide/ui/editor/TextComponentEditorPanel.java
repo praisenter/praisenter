@@ -202,6 +202,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 			this.cmbFontFamilies.setSelectedItem(font.getFamily());
 		}
 		this.cmbFontFamilies.addItemListener(this);
+		this.cmbFontFamilies.setToolTipText(Messages.getString("panel.slide.editor.text.font.family.tooltip"));
 		
 		// the font style(s)
 		this.tglBold = new JToggleButton(Icons.BOLD);

@@ -1095,7 +1095,8 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		} else {
 			// it could be that the song we deleted was in the edit song panel only
 			// which happens when its a new song
-			if (this.pnlEditSong.getSong().getId() == song.getId()) {
+			Song eSong = this.pnlEditSong.getSong();
+			if (eSong != null && eSong.getId() == song.getId()) {
 				this.pnlEditSong.setSong(null);
 			}
 		}

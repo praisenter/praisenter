@@ -24,6 +24,8 @@
  */
 package org.praisenter.application.preferences;
 
+import java.awt.DisplayMode;
+import java.awt.GraphicsDevice;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.log4j.Logger;
 import org.praisenter.application.Constants;
+import org.praisenter.common.utilities.WindowUtilities;
 import org.praisenter.common.xml.XmlIO;
 
 /**
@@ -100,6 +103,22 @@ public final class Resolutions {
 			if (resolutions.size() == 0) {
 				// if there aren't any, then use the default resolutions
 				Collections.addAll(resolutions, DEFAULT_RESOLUTIONS);
+			}
+			// make sure the user's screen resolutions are in the list
+			GraphicsDevice[] devices = WindowUtilities.getDevices();
+			for (GraphicsDevice device : devices) {
+				DisplayMode mode = device.getDisplayMode();
+				Resolution newResolution = new Resolution(mode.getWidth(), mode.getHeight());
+				boolean found = false;
+				for (Resolution resolution : resolutions) {
+					if (resolution.equals(newResolution)) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					resolutions.add(newResolution);
+				}
 			}
 			// make sure they are sorted
 			Collections.sort(resolutions);
