@@ -364,7 +364,7 @@ public class Preferences {
 	 * @return GraphicsDevice
 	 */
 	public GraphicsDevice getPrimaryOrDefaultDevice() {
-		GraphicsDevice device = WindowUtilities.getScreenDeviceForId(this.primaryDeviceId);
+		GraphicsDevice device = WindowUtilities.getDeviceForId(this.primaryDeviceId);
 		if (device == null) {
 			device = WindowUtilities.getSecondaryDevice();
 		}

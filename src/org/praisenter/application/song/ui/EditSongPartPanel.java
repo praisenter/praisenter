@@ -24,7 +24,6 @@
  */
 package org.praisenter.application.song.ui;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -183,9 +182,15 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 								.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 						.addComponent(pneText, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
 		
-		this.setLayout(new BorderLayout());
-		this.add(pnlConfigure, BorderLayout.LINE_START);
-		this.add(this.pnlPreview, BorderLayout.CENTER);
+		layout = new GroupLayout(this);
+		this.setLayout(layout);
+		layout.setAutoCreateGaps(true);
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+				.addComponent(pnlConfigure)
+				.addComponent(this.pnlPreview));
+		layout.setVerticalGroup(layout.createParallelGroup()
+				.addComponent(pnlConfigure)
+				.addComponent(this.pnlPreview));
 	}
 	
 	// part type

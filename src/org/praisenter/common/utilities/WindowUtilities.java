@@ -79,7 +79,7 @@ public final class WindowUtilities {
 	 * Returns the list of screen devices for the current graphics environment.
 	 * @return GraphicsDevice[]
 	 */
-	public static final GraphicsDevice[] getScreenDevices() {
+	public static final GraphicsDevice[] getDevices() {
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		return env.getScreenDevices();
 	}
@@ -100,7 +100,7 @@ public final class WindowUtilities {
 	 */
 	public static final GraphicsDevice getSecondaryDevice() {
 		// get all the screen devices
-		GraphicsDevice[] devices = WindowUtilities.getScreenDevices();
+		GraphicsDevice[] devices = WindowUtilities.getDevices();
 		// get the default screen device
 		GraphicsDevice defaultDevice = WindowUtilities.getDefaultDevice();
 		// check the length of the devices array
@@ -124,8 +124,8 @@ public final class WindowUtilities {
 	 * @param id the id
 	 * @return GraphicsDevice
 	 */
-	public static final GraphicsDevice getScreenDeviceForId(String id) {
-		GraphicsDevice[] devices = WindowUtilities.getScreenDevices();
+	public static final GraphicsDevice getDeviceForId(String id) {
+		GraphicsDevice[] devices = WindowUtilities.getDevices();
 		for (GraphicsDevice device : devices) {
 			if (device.getIDstring().equals(id)) {
 				return device;
@@ -147,7 +147,7 @@ public final class WindowUtilities {
 	 * @return boolean
 	 */
 	public static final boolean isValid(GraphicsDevice device) {
-		GraphicsDevice[] devices = WindowUtilities.getScreenDevices();
+		GraphicsDevice[] devices = WindowUtilities.getDevices();
 		for (GraphicsDevice cDevice : devices) {
 			if (cDevice.getIDstring().equals(device.getIDstring())) {
 				// determine if the bounds are the same

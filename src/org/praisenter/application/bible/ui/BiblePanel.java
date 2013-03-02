@@ -45,6 +45,7 @@ import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -1165,7 +1166,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				this.verseFound = false;
 			}
 		} catch (DataException ex) {
-			String message = MessageFormat.format(Messages.getString("panel.bible.data.find.exception.text"), bible.getName(), book.getName(), chapter, verse);
+			String message = MessageFormat.format(Messages.getString("panel.bible.data.find.exception.text"), bible != null ? bible.getName() : "", book != null ? book.getName() : "", chapter, verse);
 			ExceptionDialog.show(
 					BiblePanel.this, 
 					Messages.getString("panel.bible.data.find.exception.title"), 
@@ -1207,7 +1208,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				this.shiftVerseDisplays(+1, prev2);
 			}
 		} catch (DataException ex) {
-			String message = MessageFormat.format(Messages.getString("panel.bible.data.previous.exception.text"), bible.getName(), book.getName(), chapter, verse);
+			String message = MessageFormat.format(Messages.getString("panel.bible.data.previous.exception.text"), bible != null ? bible.getName() : "", book != null ? book.getName() : "", chapter, verse);
 			ExceptionDialog.show(
 					WindowUtilities.getParentWindow(BiblePanel.this), 
 					Messages.getString("panel.bible.data.previous.exception.title"), 
@@ -1246,7 +1247,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				this.shiftVerseDisplays(-1, next2);
 			}
 		} catch (DataException ex) {
-			String message = MessageFormat.format(Messages.getString("panel.bible.data.next.exception.text"), bible.getName(), book.getName(), chapter, verse);
+			String message = MessageFormat.format(Messages.getString("panel.bible.data.next.exception.text"), bible != null ? bible.getName() : "", book != null ? book.getName() : "", chapter, verse);
 			ExceptionDialog.show(
 					WindowUtilities.getParentWindow(BiblePanel.this), 
 					Messages.getString("panel.bible.data.next.exception.title"), 
@@ -1280,7 +1281,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				this.verseFound = false;
 			}
 		} catch (DataException ex) {
-			String message = MessageFormat.format(Messages.getString("panel.bible.data.next.exception.text"), bible.getName(), book.getName(), chapter, verse);
+			String message = MessageFormat.format(Messages.getString("panel.bible.data.next.exception.text"), bible != null ? bible.getName() : "", book != null ? book.getName() : "", chapter, verse);
 			ExceptionDialog.show(
 					WindowUtilities.getParentWindow(BiblePanel.this), 
 					Messages.getString("panel.bible.data.next.exception.title"), 
@@ -1386,25 +1387,27 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				try {
 					// get the secondary bible verses
 					Verse v2 = Bibles.getVerse(bible, verse.getBook().getCode(), verse.getChapter(), verse.getVerse());
-					Verse v2p = Bibles.getPreviousVerse(v2, ia);
-					Verse v2n = Bibles.getNextVerse(v2, ia);
-					// set the current verse text
-					this.setVerse(verse, v2, sCurrent);
-					// set the previous verse
-					if (prev != null) {
-						this.setVerse(prev, v2p, sPrevious);
-					} else {
-						this.clearVerse(sPrevious);
+					if (v2 != null) {
+						Verse v2p = Bibles.getPreviousVerse(v2, ia);
+						Verse v2n = Bibles.getNextVerse(v2, ia);
+						// set the current verse text
+						this.setVerse(verse, v2, sCurrent);
+						// set the previous verse
+						if (prev != null) {
+							this.setVerse(prev, v2p, sPrevious);
+						} else {
+							this.clearVerse(sPrevious);
+						}
+						// set the next verse
+						if (next != null) {
+							this.setVerse(next, v2n, sNext);
+						} else {
+							this.clearVerse(sNext);
+						}
+						// repaint the preview
+						this.pnlPreview.repaint();
+						return;
 					}
-					// set the next verse
-					if (next != null) {
-						this.setVerse(next, v2n, sNext);
-					} else {
-						this.clearVerse(sNext);
-					}
-					// repaint the preview
-					this.pnlPreview.repaint();
-					return;
 				} catch (DataException e) {
 					// the secondary bible isn't as important as the primary
 					// we should just log the error if the secondary throws an excpetion
@@ -1615,8 +1618,54 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				this.cmbBiblesSecondary.addItem(bible);
 			}
 			// reset the selected items
-			this.cmbBiblesPrimary.setSelectedItem(b1);
-			this.cmbBiblesSecondary.setSelectedItem(b2);
+			if (bibles.contains(b1)) {
+				this.cmbBiblesPrimary.setSelectedItem(b1);
+			}
+			if (bibles.contains(b2)) {
+				this.cmbBiblesSecondary.setSelectedItem(b2);
+			}
+			// check the saved verses
+			MutableVerseTableModel model = ((MutableVerseTableModel)this.tblVerseQueue.getModel());
+			Iterator<Verse> it = model.getRowIterator();
+			if (it != null) {
+				while (it.hasNext()) {
+					Verse verse = it.next();
+					boolean found = false;
+					for (Bible bible : bibles) {
+						if (verse.getBible().equals(bible)) {
+							found = true;
+							break;
+						}
+					}
+					// if the bible was not found then remove the saved verse
+					if (!found) {
+						it.remove();
+					}
+				}
+				model.fireTableDataChanged();
+			}
+			// check the bible search queue
+			VerseTableModel sModel = (VerseTableModel)this.tblBibleSearchResults.getModel();
+			it = sModel.getRowIterator();
+			if (it != null) {
+				while (it.hasNext()) {
+					Verse verse = it.next();
+					boolean found = false;
+					for (Bible bible : bibles) {
+						if (verse.getBible().equals(bible)) {
+							found = true;
+							break;
+						}
+					}
+					// if the bible was not found then remove the saved verse
+					if (!found) {
+						it.remove();
+					}
+				}
+				sModel.fireTableDataChanged();
+				// update the search results count label
+				this.lblBibleSearchResults.setText(MessageFormat.format(Messages.getString("panel.bible.search.results.pattern"), sModel.getRowCount()));
+			}
 		} catch (DataException e) {
 			ExceptionDialog.show(
 					WindowUtilities.getParentWindow(this), 

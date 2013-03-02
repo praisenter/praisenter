@@ -24,6 +24,11 @@
  */
 package org.praisenter.application.icons;
 
+import java.awt.Image;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import javax.swing.ImageIcon;
 
 import org.praisenter.common.utilities.ImageUtilities;
@@ -35,8 +40,60 @@ import org.praisenter.common.utilities.ImageUtilities;
  * @since 1.0.0
  */
 public class Icons {
-	/** Application icon */
-	public static final ImageIcon ICON = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/icon.png");
+	// application icons
+	
+	/** The 16x16 application icon */
+	public static final ImageIcon ICON_16 = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/icon16x16.png");
+	
+	/** The 32x32 application icon */
+	public static final ImageIcon ICON_32 = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/icon32x32.png");
+	
+	/** The 48x48 application icon */
+	public static final ImageIcon ICON_48 = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/icon48x48.png");
+	
+	/** The 64x64 application icon */
+	public static final ImageIcon ICON_64 = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/icon64x64.png");
+	
+	/** The 96x96 application icon */
+	public static final ImageIcon ICON_96 = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/icon96x96.png");
+	
+	/** The 128x128 application icon */
+	public static final ImageIcon ICON_128 = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/icon128x128.png");
+	
+	/** The 256x256 application icon */
+	public static final ImageIcon ICON_256 = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/icon256x256.png");
+	
+	/** The 512x512 application icon */
+	public static final ImageIcon ICON_512 = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/icon512x512.png");
+	
+	/** The Application icons */
+	public static final ImageIcon[] APPLICATION_ICONS = new ImageIcon[] {
+		ICON_16,
+		ICON_32,
+		ICON_48,
+		ICON_64,
+		ICON_96,
+		ICON_128,
+		ICON_256,
+		ICON_512
+	};
+
+	/** The unmodifiable list of application icons */
+	public static final List<Image> APPLICATION_ICON_LIST = getApplicationIcons();
+	
+	/**
+	 * Returns the application icons as an unmodifiable list.
+	 * @return List&lt;Image&gt;
+	 */
+	private static final List<Image> getApplicationIcons() {
+		List<Image> icons = new ArrayList<Image>(APPLICATION_ICONS.length);
+		for (ImageIcon icon : APPLICATION_ICONS) {
+			icons.add(icon.getImage());
+		}
+		return Collections.unmodifiableList(icons);
+	}
+	
+	// UI Icons
 	
 	/** Verse found icon */
 	public static final ImageIcon FOUND = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/found.png");

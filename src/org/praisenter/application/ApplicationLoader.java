@@ -103,7 +103,7 @@ public final class ApplicationLoader {
 	private ApplicationLoader() {
 		// create a new dialog
 		this.dialog = new JDialog(null, Messages.getString("dialog.preload.title"), ModalityType.MODELESS);
-		this.dialog.setIconImage(Icons.ICON.getImage());
+		this.dialog.setIconImages(Icons.APPLICATION_ICON_LIST);
 		// all the user to close it during startup
 		this.dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.dialog.setResizable(false);
@@ -284,7 +284,7 @@ public final class ApplicationLoader {
 		ConnectionFactory.initialize(Constants.DATABASE_FILE_PATH);
 		
 		// run a couple queries to ensure the tables exist
-		// TODO later we may want to verify the structure of the tables
+		// TODO [LOW] DATA later we may want to verify the structure of the tables
 		
 		// FIXME setup KJV if no bible present
 		

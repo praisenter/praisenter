@@ -350,7 +350,7 @@ public class BibleLibraryPanel extends JPanel implements ActionListener {
 				if (task.isSuccessful()) {
 					this.bibleLibraryUpdated = true;
 					// remove the items from the table
-					model.removeSelectedRows();
+					model.removeAllRows();
 				} else {
 					Exception e = task.getException();
 					// show an error message
