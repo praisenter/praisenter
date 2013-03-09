@@ -40,6 +40,7 @@ import javax.swing.event.ChangeListener;
 import org.praisenter.application.preferences.ErrorReportingPreferences;
 import org.praisenter.application.preferences.Preferences;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.WaterMark;
 import org.praisenter.common.utilities.ComponentUtilities;
 
@@ -112,6 +113,7 @@ public class ErrorReportingSettingsPanel extends JPanel implements PreferencesEd
 		this.txtSmtpHost.setText(erp.getSmtpHost());
 		this.txtSmtpHost.setColumns(25);
 		this.txtSmtpHost.setEnabled(enabled);
+		this.txtSmtpHost.addFocusListener(new SelectTextFocusListener(this.txtSmtpHost));
 		
 		JLabel lblSmtpPort = new JLabel(Messages.getString("panel.error.preferences.reporting.smtp.port"));
 		this.txtSmtpPort = new JFormattedTextField(NumberFormat.getIntegerInstance());
@@ -119,6 +121,7 @@ public class ErrorReportingSettingsPanel extends JPanel implements PreferencesEd
 		this.txtSmtpPort.setValue(erp.getSmtpPort());
 		this.txtSmtpPort.setColumns(5);
 		this.txtSmtpPort.setEnabled(enabled);
+		this.txtSmtpPort.addFocusListener(new SelectTextFocusListener(this.txtSmtpPort));
 		
 		JLabel lblStartTlsEnabled = new JLabel(Messages.getString("panel.error.preferences.reporting.smtp.tls"));
 		this.chkStartTlsEnabled = new JCheckBox();
@@ -139,6 +142,7 @@ public class ErrorReportingSettingsPanel extends JPanel implements PreferencesEd
 		this.txtUsername.setText(erp.getAccountUsername());
 		this.txtUsername.setColumns(20);
 		this.txtUsername.setEnabled(enabled);
+		this.txtUsername.addFocusListener(new SelectTextFocusListener(this.txtUsername));
 		JLabel lblPassword = new JLabel(Messages.getString("panel.error.preferences.reporting.smtp.pass"));
 		
 		JLabel lblEmail = new JLabel(Messages.getString("panel.error.preferences.reporting.smtp.email"));
@@ -154,6 +158,7 @@ public class ErrorReportingSettingsPanel extends JPanel implements PreferencesEd
 		this.txtEmail.setText(erp.getAccountEmail());
 		this.txtEmail.setColumns(30);
 		this.txtEmail.setEnabled(enabled);
+		this.txtEmail.addFocusListener(new SelectTextFocusListener(this.txtEmail));
 		
 		JPanel pnlGeneral = new JPanel();
 		GroupLayout layout = new GroupLayout(pnlGeneral);

@@ -39,11 +39,14 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.slide.graphics.CapType;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.JoinType;
@@ -98,8 +101,10 @@ public class LineStyleEditorPanel extends JPanel implements ItemListener, Change
 	@SuppressWarnings("serial")
 	public LineStyleEditorPanel(LineStyle style) {
 		this.lblLineWidth = new JLabel(Messages.getString("panel.slide.editor.line.width"));
-		this.spnLineWidth = new JSpinner(new SpinnerNumberModel(5.0, 1.0, 1000.0, 1.0));
+		this.spnLineWidth = new JSpinner(new SpinnerNumberModel(5.0, 0.0, 1000.0, 1.0));
 		this.spnLineWidth.setEditor(new JSpinner.NumberEditor(this.spnLineWidth, "0.0"));
+		JTextField txtLineWidth = ((DefaultEditor)this.spnLineWidth.getEditor()).getTextField();
+		txtLineWidth.addFocusListener(new SelectTextFocusListener(txtLineWidth));
 		
 		this.lblCap = new JLabel(Messages.getString("panel.slide.editor.line.cap"));
 		this.cmbCap = new JComboBox<CapType>(CapType.values());

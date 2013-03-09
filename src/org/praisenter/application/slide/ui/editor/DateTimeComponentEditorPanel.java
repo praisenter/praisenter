@@ -39,6 +39,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.WaterMark;
 import org.praisenter.slide.text.DateTimeComponent;
 
@@ -92,6 +93,7 @@ public class DateTimeComponentEditorPanel extends TextComponentEditorPanel<DateT
 			}
 		};
 		this.txtDateTimeFormat.getDocument().addDocumentListener(this);
+		this.txtDateTimeFormat.addFocusListener(new SelectTextFocusListener(this.txtDateTimeFormat));
 		
 		this.chkDateTimeUpdate = new JCheckBox(Messages.getString("panel.slide.editor.datetime.update"));
 		this.chkDateTimeUpdate.setToolTipText(Messages.getString("panel.slide.editor.datetime.update.tooltip"));

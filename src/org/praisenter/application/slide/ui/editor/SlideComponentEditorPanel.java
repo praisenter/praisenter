@@ -32,6 +32,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.WaterMark;
 import org.praisenter.slide.SlideComponent;
 
@@ -71,6 +72,7 @@ public abstract class SlideComponentEditorPanel<E extends SlideComponent> extend
 			}
 		};
 		this.txtName.getDocument().addDocumentListener(this);
+		this.txtName.addFocusListener(new SelectTextFocusListener(this.txtName));
 	}
 	
 	/* (non-Javadoc)

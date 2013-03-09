@@ -46,12 +46,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.JSpinner.DefaultEditor;
 
 import org.praisenter.application.icons.Icons;
 import org.praisenter.application.preferences.Preferences;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.common.utilities.WindowUtilities;
 import org.praisenter.slide.graphics.RenderQuality;
 
@@ -181,6 +184,8 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		this.spnTransitionDelay = new JSpinner(new SpinnerNumberModel(20, 0, 100, 10));
 		this.spnTransitionDelay.setEditor(new JSpinner.NumberEditor(this.spnTransitionDelay, "0"));
 		this.spnTransitionDelay.setToolTipText(Messages.getString("panel.general.preferences.quality.transition.tooltip"));
+		JTextField txtTransitionDelay = ((DefaultEditor)this.spnTransitionDelay.getEditor()).getTextField();
+		txtTransitionDelay.addFocusListener(new SelectTextFocusListener(txtTransitionDelay));
 		
 		JLabel lblInterpolationQuality = new JLabel(Messages.getString("panel.general.preferences.quality.interpolation"));
 		this.cmbInterpolationQuality = new JComboBox<RenderQuality>(RenderQuality.values());

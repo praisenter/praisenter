@@ -113,6 +113,7 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 		this.txtDefaultWaitPeriod.setToolTipText(Messages.getString("panel.notification.preferences.defaultWaitPeriod.tooltip"));
 		this.txtDefaultWaitPeriod.setValue(nPreferences.getWaitPeriod());
 		this.txtDefaultWaitPeriod.setColumns(6);
+		this.txtDefaultWaitPeriod.addFocusListener(new SelectTextFocusListener(this.txtDefaultWaitPeriod));
 
 		// template
 		
