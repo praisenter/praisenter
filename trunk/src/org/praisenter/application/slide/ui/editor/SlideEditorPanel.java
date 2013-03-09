@@ -50,8 +50,8 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -60,7 +60,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -68,8 +67,6 @@ import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
@@ -114,7 +111,7 @@ import org.praisenter.slide.text.TextComponent;
  */
 // TODO [MEDIUM] SLIDE-TEMPLATE snap to grid
 // TODO [MEDIUM] SLIDE-TEMPLATE add undo/redo functionality (store a list of slide/template copies after any change?)
-public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, ListSelectionListener, EditorListener, ActionListener, ItemListener, DocumentListener {
+public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, EditorListener, ActionListener, ItemListener, DocumentListener {
 	/** The version id */
 	private static final long serialVersionUID = -927595042247907332L;
 
@@ -170,7 +167,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	private JButton btnRemoveResolution;
 	
 	/** The list of components */
-	private JList<SlideComponent> lstComponents;
+	private JComboBox<SlideComponent> cmbComponents;
 	
 	/** The panel used to preview the changes */
 	private SlideEditorPreviewPanel pnlSlidePreview;
@@ -275,8 +272,8 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 			height = pSlide.getDeviceHeight();
 		}
 		
-		int dsw = width / 2;
-		int dsh = height / 2;
+		int dsw = (int)Math.floor(width * 0.45);
+		int dsh = (int)Math.floor(height * 0.45);
 		
 		// setup the preview panel
 		Dimension previewSize = new Dimension(dsw, dsh);
@@ -363,10 +360,9 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		
 		// get all the components on the slide/template
 		List<SlideComponent> components = slide.getComponents(SlideComponent.class, true);
-		this.lstComponents = new JList<SlideComponent>();
-		this.lstComponents.setCellRenderer(new SlideComponentListCellRenderer());
-		this.lstComponents.addListSelectionListener(this);
-		DefaultListModel<SlideComponent> model = new DefaultListModel<SlideComponent>();
+		this.cmbComponents = new JComboBox<SlideComponent>();
+		this.cmbComponents.addItemListener(this);
+		DefaultComboBoxModel<SlideComponent> model = new DefaultComboBoxModel<SlideComponent>();
 		
 		for (SlideComponent component : components) {
 			// verify the component types are supported
@@ -382,11 +378,8 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 			}
 			model.addElement(component);
 		}
-		this.lstComponents.setModel(model);
-		this.lstComponents.setCellRenderer(new ComponentListCellRenderer());
-		JScrollPane scrComponents = new JScrollPane(this.lstComponents);
-		scrComponents.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scrComponents.setMinimumSize(new Dimension(0, 100));
+		this.cmbComponents.setModel(model);
+		this.cmbComponents.setRenderer(new ComponentListCellRenderer());
 		
 		this.btnRemoveComponent = new JButton(Icons.REMOVE);
 		this.btnRemoveComponent.setToolTipText(Messages.getString("panel.slide.editor.remove"));
@@ -452,7 +445,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		clLayout.setAutoCreateGaps(true);
 		clLayout.setAutoCreateContainerGaps(true);
 		clLayout.setHorizontalGroup(clLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-				.addComponent(scrComponents, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(this.cmbComponents, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addGroup(clLayout.createSequentialGroup()
 						.addComponent(this.btnMoveBack)
 						.addComponent(this.btnMoveForward)
@@ -465,7 +458,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 						.addComponent(this.btnAddVideoComponent)
 						.addComponent(this.btnAddAudioComponent)));
 		clLayout.setVerticalGroup(clLayout.createSequentialGroup()
-				.addComponent(scrComponents)
+				.addComponent(this.cmbComponents)
 				.addGroup(clLayout.createParallelGroup()
 						.addComponent(this.btnMoveBack)
 						.addComponent(this.btnMoveForward)
@@ -542,8 +535,8 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				SlideEditorPanel.this.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, "remove"));
 			}
 		};
-		this.lstComponents.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), deleteActionName);
-		this.lstComponents.getActionMap().put(deleteActionName, deleteAction);
+		this.cmbComponents.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), deleteActionName);
+		this.cmbComponents.getActionMap().put(deleteActionName, deleteAction);
 		this.pnlSlidePreview.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), deleteActionName);
 		this.pnlSlidePreview.getActionMap().put(deleteActionName, deleteAction);
 	}
@@ -803,7 +796,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 					}
 					
 					this.pnlSlidePreview.setSelectedComponent(component);
-					this.lstComponents.setSelectedValue(component, true);
+					this.cmbComponents.setSelectedItem(component);
 					this.pnlSlidePreview.repaint();
 				} else if (this.slide != null && background != null && this.slide instanceof AbstractPositionedSlide) {
 					// then the background is set and the slide is an AbstractPositionedSlide
@@ -825,12 +818,14 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 						}
 					} else {
 						this.pnlSlidePreview.setSelectedBackgroundComponent(null);
-						this.lstComponents.clearSelection();
+						this.cmbComponents.setSelectedItem(null);
+						this.layEditorCards.show(this.pnlEditorCards, BLANK_CARD);
 						this.pnlSlidePreview.repaint();
 					}
 				} else {
 					this.pnlSlidePreview.setSelectedComponent(null);
-					this.lstComponents.clearSelection();
+					this.cmbComponents.setSelectedItem(null);
+					this.layEditorCards.show(this.pnlEditorCards, BLANK_CARD);
 					this.pnlSlidePreview.repaint();
 				}
 				// request focus for the panel so that the key bindings work
@@ -970,7 +965,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
 		if ("remove".equals(command)) {
-			SlideComponent component = this.lstComponents.getSelectedValue();
+			SlideComponent component = (SlideComponent)this.cmbComponents.getSelectedItem();
 			// make sure a component is selected
 			if (component != null && this.slide != null) {
 				// make sure its not a static component
@@ -983,7 +978,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 									JOptionPane.YES_NO_CANCEL_OPTION);
 					if (choice == JOptionPane.YES_OPTION) {
 						// remove the component from the slide and the list
-						DefaultListModel<SlideComponent> model = (DefaultListModel<SlideComponent>)this.lstComponents.getModel();
+						DefaultComboBoxModel<SlideComponent> model = (DefaultComboBoxModel<SlideComponent>)this.cmbComponents.getModel();
 						this.pnlSlidePreview.setSelectedComponent(null);
 						model.removeElement(component);
 						this.slide.removeComponent(component);
@@ -1057,7 +1052,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				this.onAddComponent(component);
 			}
 		} else if ("moveBack".equals(command)) {
-			SlideComponent component = this.lstComponents.getSelectedValue();
+			SlideComponent component = (SlideComponent)this.cmbComponents.getSelectedItem();
 			if (component != this.slide.getBackground() && component instanceof RenderableComponent) {
 				RenderableComponent rc = (RenderableComponent)component;
 				this.slide.moveComponentDown(rc);
@@ -1065,7 +1060,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				this.slideUpdated = true;
 			}
 		} else if ("moveForward".equals(command)) {
-			SlideComponent component = this.lstComponents.getSelectedValue();
+			SlideComponent component = (SlideComponent)this.cmbComponents.getSelectedItem();
 			if (component != this.slide.getBackground() && component instanceof RenderableComponent) {
 				RenderableComponent rc = (RenderableComponent)component;
 				this.slide.moveComponentUp(rc);
@@ -1155,7 +1150,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		this.slideUpdated = true;
 		
 		// add to the jlist
-		DefaultListModel<SlideComponent> model = (DefaultListModel<SlideComponent>)this.lstComponents.getModel();
+		DefaultComboBoxModel<SlideComponent> model = (DefaultComboBoxModel<SlideComponent>)this.cmbComponents.getModel();
 		// we need to remove all and add all components since the ordering can change if they add an audio component
 		if (component instanceof AudioMediaComponent) {
 			model.removeAllElements();
@@ -1172,22 +1167,45 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		}
 		
 		// set the new component as the selected component
-		this.lstComponents.setSelectedValue(component, true);
+		this.cmbComponents.setSelectedItem(component);
 		
 		// repaint the preview panel
 		this.pnlSlidePreview.repaint();
 	}
 	
 	/* (non-Javadoc)
-	 * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
+	 * @see org.praisenter.slide.ui.editor.EditorListener#editPerformed(org.praisenter.slide.ui.editor.EditEvent)
 	 */
 	@Override
-	public void valueChanged(ListSelectionEvent e) {
-		if (!e.getValueIsAdjusting()) {
+	public void editPerformed(EditEvent event) {
+		if (event.getSource() == this.pnlBackground) {
+			// the background panel is different in that we need to replace 
+			// the current background with the one configured
+			this.slide.setBackground(this.pnlBackground.getSlideComponent());
+		}
+		this.pnlSlidePreview.repaint();
+		this.cmbComponents.repaint();
+		this.slideUpdated = true;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
+	 */
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		if (e.getStateChange() == ItemEvent.SELECTED) {
 			Object source = e.getSource();
-			if (source == this.lstComponents) {
+			if (source == this.cmbResolutionTargets) {
+				Resolution resolution = (Resolution)e.getItem();
+				if (this.slide != null) {
+					// adjust the current slide
+					this.slide.adjustSize(resolution.getWidth(), resolution.getHeight());
+					this.pnlSlidePreview.repaint();
+					this.slideUpdated = true;
+				}
+			} else if (source == this.cmbComponents) {
 				if (this.slide == null) return;
-				SlideComponent component = this.lstComponents.getSelectedValue();
+				SlideComponent component = (SlideComponent)this.cmbComponents.getSelectedItem();
 				if (component != null) {
 					boolean isBackground = this.slide.getBackground() == component;
 					boolean isStatic = this.slide.isStaticComponent(component);
@@ -1249,40 +1267,6 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 					this.btnRemoveComponent.setEnabled(false);
 				}
 				this.pnlSlidePreview.repaint();
-			}
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.editor.EditorListener#editPerformed(org.praisenter.slide.ui.editor.EditEvent)
-	 */
-	@Override
-	public void editPerformed(EditEvent event) {
-		if (event.getSource() == this.pnlBackground) {
-			// the background panel is different in that we need to replace 
-			// the current background with the one configured
-			this.slide.setBackground(this.pnlBackground.getSlideComponent());
-		}
-		this.pnlSlidePreview.repaint();
-		this.lstComponents.repaint();
-		this.slideUpdated = true;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
-	 */
-	@Override
-	public void itemStateChanged(ItemEvent e) {
-		if (e.getStateChange() == ItemEvent.SELECTED) {
-			Object source = e.getSource();
-			if (source == this.cmbResolutionTargets) {
-				Resolution resolution = (Resolution)e.getItem();
-				if (this.slide != null) {
-					// adjust the current slide
-					this.slide.adjustSize(resolution.getWidth(), resolution.getHeight());
-					this.pnlSlidePreview.repaint();
-					this.slideUpdated = true;
-				}
 			}
 		}
 	}

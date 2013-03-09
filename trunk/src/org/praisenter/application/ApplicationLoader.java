@@ -28,6 +28,9 @@ import java.awt.Container;
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.text.MessageFormat;
 import java.util.List;
@@ -36,9 +39,12 @@ import javax.mail.MessagingException;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
@@ -48,11 +54,15 @@ import org.praisenter.application.errors.ui.ExceptionDialog;
 import org.praisenter.application.icons.Icons;
 import org.praisenter.application.preferences.Preferences;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.OpenUrlHyperlinkListener;
+import org.praisenter.application.ui.ZipFileFilter;
 import org.praisenter.common.InitializationException;
+import org.praisenter.common.utilities.ColorUtilities;
 import org.praisenter.common.utilities.FontManager;
 import org.praisenter.data.ConnectionFactory;
 import org.praisenter.data.DataException;
 import org.praisenter.data.bible.Bibles;
+import org.praisenter.data.bible.UnboundBibleImporter;
 import org.praisenter.data.errors.ErrorMessage;
 import org.praisenter.data.errors.Errors;
 import org.praisenter.data.song.Songs;
@@ -71,6 +81,9 @@ public final class ApplicationLoader {
 			
 	/** The loading dialog */
 	private JDialog dialog;
+	
+	/** True if the preload thread should stop */
+	private boolean stop;
 	
 	/** Progress bar for loading */
 	private JProgressBar barProgress;
@@ -105,8 +118,16 @@ public final class ApplicationLoader {
 		this.dialog = new JDialog(null, Messages.getString("dialog.preload.title"), ModalityType.MODELESS);
 		this.dialog.setIconImages(Icons.APPLICATION_ICON_LIST);
 		// all the user to close it during startup
-		this.dialog.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		this.dialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		this.dialog.setResizable(false);
+		this.dialog.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				stop = true;
+			}
+		});
+		
+		this.stop = false;
 		
 		// create the progress bar
 		this.barProgress = new JProgressBar(0, 100);
@@ -183,6 +204,18 @@ public final class ApplicationLoader {
 	 * some time in the future.
 	 */
 	private void close() {
+		if (this.stop) {
+			LOGGER.debug("Shutdown before startup complete.");
+			this.dialog.setVisible(false);
+			this.dialog.dispose();
+			
+			if (this.praisenter != null) {
+				this.praisenter.setVisible(false);
+				this.praisenter.dispose();
+			}
+			
+			System.exit(0);
+		}
 		// close the dialog on the EDT
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
@@ -229,18 +262,28 @@ public final class ApplicationLoader {
 				// don't continue any further
 				System.exit(1);
 			}
-	
+			
+			if (this.stop) close();
+			
 			// send saved errors
 			sendSavedErrorReports();
+			
+			if (this.stop) close();
 			
 			// load all fonts
 			preloadFonts();
 			
+			if (this.stop) close();
+			
 			// load the media library
 			loadMediaLibrary();
 			
+			if (this.stop) close();
+			
 			// load the slide/template library
 			loadSlideLibrary();
+			
+			if (this.stop) close();
 			
 			try {
 				// load the main application window
@@ -286,10 +329,72 @@ public final class ApplicationLoader {
 		// run a couple queries to ensure the tables exist
 		// TODO [LOW] DATA later we may want to verify the structure of the tables
 		
-		// FIXME setup KJV if no bible present
-		
 		// check the bible data store
-		Bibles.getBibleCount();
+		int n = Bibles.getBibleCount();
+		if (n <= 0) {
+			// show a message box saying where they can download the bibles and
+			// a short disclaimer about the copyrights, that allows them to then
+			// import a bible or skip this step
+			JTextPane message = new JTextPane();
+			message.setEditable(false);
+			message.setContentType("text/html");
+			String bg = ColorUtilities.toHex(this.dialog.getContentPane().getBackground());
+			message.setText(MessageFormat.format(Messages.getString("dialog.preload.bible.import.unbound"), bg));
+			// add a hyperlink listener to open links in the default browser
+			message.addHyperlinkListener(new OpenUrlHyperlinkListener());
+			message.setBorder(null);
+			
+			Object[] options = new Object[] { 
+					Messages.getString("dialog.preload.bible.noBibles.import"),
+					Messages.getString("dialog.preload.bible.noBibles.skip")
+			};
+			
+			// show the choice dialog
+			int choice = JOptionPane.showOptionDialog(
+					this.dialog, 
+					message, 
+					Messages.getString("dialog.preload.bible.noBibles.title"), 
+					JOptionPane.YES_NO_OPTION, 
+					JOptionPane.QUESTION_MESSAGE, 
+					null, 
+					options, 
+					options[1]);
+			
+			// see if they wanted to import
+			if (choice == JOptionPane.YES_OPTION) {
+				// they do, so show a file selection dialog
+				JFileChooser fileBrowser = new JFileChooser();
+				fileBrowser.setDialogTitle(Messages.getString("dialog.open.title"));
+				fileBrowser.setMultiSelectionEnabled(false);
+				fileBrowser.setAcceptAllFileFilterUsed(false);
+				fileBrowser.setFileFilter(new ZipFileFilter());
+				int option = fileBrowser.showOpenDialog(this.dialog);
+				// check the option
+				if (option == JFileChooser.APPROVE_OPTION) {
+					// get the selected file
+					final File file = fileBrowser.getSelectedFile();
+					// make sure it exists and its a file
+					if (file.exists() && file.isFile()) {
+						// make sure they are sure
+						option = JOptionPane.showConfirmDialog(this.dialog, 
+								Messages.getString("panel.bible.import.prompt.text"), 
+								MessageFormat.format(Messages.getString("panel.bible.import.prompt.title"), file.getName()), 
+								JOptionPane.YES_NO_CANCEL_OPTION);
+						// check the user's choice
+						if (option == JOptionPane.YES_OPTION) {
+							// update the status
+							updateProgress(true, 18, Messages.getString("importing"));
+							// attempt to import the bible
+							try {
+								UnboundBibleImporter.importBible(file);
+							} catch (Exception ex) {
+								LOGGER.error("An error occurred while importing [" + file.getAbsolutePath() + "]: ", ex);
+							}
+						}
+					}
+				}
+			}
+		}
 		updateProgress(true, 33);
 		
 		// check the songs data store
@@ -367,6 +472,8 @@ public final class ApplicationLoader {
 			cur++;
 			// update the progress bar on the EDT
 			updateProgress(true, (int)Math.floor(cur / max * 100), font);
+			// check if we need to stop
+			if (this.stop) break;
 		}
 		updateProgress(true, 100, FontManager.getDefaultFont());
 	}
@@ -402,12 +509,18 @@ public final class ApplicationLoader {
 				lblLoadingText.setText("");
 				barProgress.setValue(0);
 				
-				// create the main app window
-				// needs to be run on the EDT
-				praisenter = new Praisenter();
-				praisenter.setVisible(true);
+				if (!stop) {
+					// create the main app window
+					// needs to be run on the EDT
+					praisenter = new Praisenter();
 				
-				barProgress.setValue(100);
+					// one final check for closed
+					praisenter.setVisible(true);
+	
+					barProgress.setValue(100);
+					
+					LOGGER.info("Praisenter started successfully.");
+				}
 			}
 		});
 	}
@@ -454,7 +567,6 @@ public final class ApplicationLoader {
 	 * @param value the percent complete in the range [0, 100]
 	 * @param subTaskName the sub task name
 	 */
-	@SuppressWarnings("unused")
 	private void updateProgress(boolean wait, int value, String subTaskName) {
 		ProgressUpdate update = new ProgressUpdate(wait, value, null, subTaskName);
 		update.begin();

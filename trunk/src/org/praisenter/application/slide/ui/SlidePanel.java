@@ -127,8 +127,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 	 */
 	public SlidePanel() {
 		this.pnlPreview = new SingleSlidePreviewPanel();
-		Dimension size = new Dimension(300, 300);
-		this.pnlPreview.setMinimumSize(size);
+		Dimension size = new Dimension(100, 100);
 		this.pnlPreview.setPreferredSize(size);
 		
 		this.previewThread = new SlidePreivewThread();
@@ -142,6 +141,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		}
 		this.lstSlides = createJList(thumbnails);
 		JScrollPane scrSlides = new JScrollPane(this.lstSlides);
+		scrSlides.setPreferredSize(new Dimension(250, 400));
 		
 		// get the primary device
 		GraphicsDevice device = this.preferences.getPrimaryOrDefaultDevice();
@@ -226,12 +226,12 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 				.addComponent(pnlSendClearButtons, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		
 		JSplitPane pnePreview = new JSplitPane(JSplitPane.VERTICAL_SPLIT, this.pnlPreview, pnlNoResize);
-		pnePreview.setResizeWeight(0.6);
+		pnePreview.setResizeWeight(0.85);
 		pnePreview.setOneTouchExpandable(true);
 		
 		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pnePreview, scrSlides);
 		pane.setOneTouchExpandable(true);
-		pane.setResizeWeight(0.60);
+		pane.setResizeWeight(0.6);
 		
 		this.setLayout(new BorderLayout());
 		this.add(pane, BorderLayout.CENTER);

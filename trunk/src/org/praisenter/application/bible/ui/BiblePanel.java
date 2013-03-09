@@ -788,7 +788,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				.addGroup(svLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(btnRemoveSelected, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnRemoveAll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrVerseQueue, 0, 150, Short.MAX_VALUE));
+				.addComponent(scrVerseQueue, 0, 75, Short.MAX_VALUE));
 		
 		JPanel pnlBibleSearch = new JPanel();
 		GroupLayout bsLayout = new GroupLayout(pnlBibleSearch);
@@ -809,7 +809,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrBibleSearchResults, 0, 150, Short.MAX_VALUE));
+				.addComponent(scrBibleSearchResults, 0, 75, Short.MAX_VALUE));
 		
 		JTabbedPane tableTabs = new JTabbedPane();
 		tableTabs.addTab(Messages.getString("panel.bible.verseQueue"), pnlVerseQueue);
@@ -845,13 +845,13 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				.addComponent(this.pnlPreview)
 				.addComponent(pnlLookupPanel));
 		tLayout.setVerticalGroup(tLayout.createSequentialGroup()
-				.addComponent(this.pnlPreview)
+				.addComponent(this.pnlPreview, 0, 200, Short.MAX_VALUE)
 				.addComponent(pnlLookupPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		
 		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		split.setTopComponent(pnlTop);
 		split.setBottomComponent(tableTabs);
-		split.setResizeWeight(1.0);
+		split.setResizeWeight(0.9);
 		split.setOneTouchExpandable(true);
 		
 		// create the layout
@@ -1116,24 +1116,27 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		
 		// check for search
 		if ("search".equals(command)) {
-			// grab the text from the text box
-			String text = this.txtBibleSearch.getText();
-			// get the bible search type
-			BibleSearchType type = (BibleSearchType)this.cmbBibleSearchType.getSelectedItem();
-			if (text != null && text.length() > 0) {
-				// execute the search in another thread
-				// its possible that the search thread was interrupted or stopped
-				// so make sure its still running
-				if (!this.bibleSearchThread.isAlive()) {
-					// if the current thread is no longer alive (running) then
-					// create another and start it
-					this.bibleSearchThread = new BibleSearchThread();
-					this.bibleSearchThread.start();
+			// make sure a bible is set to search
+			if (bible != null) {
+				// grab the text from the text box
+				String text = this.txtBibleSearch.getText();
+				// get the bible search type
+				BibleSearchType type = (BibleSearchType)this.cmbBibleSearchType.getSelectedItem();
+				if (text != null && text.length() > 0) {
+					// execute the search in another thread
+					// its possible that the search thread was interrupted or stopped
+					// so make sure its still running
+					if (!this.bibleSearchThread.isAlive()) {
+						// if the current thread is no longer alive (running) then
+						// create another and start it
+						this.bibleSearchThread = new BibleSearchThread();
+						this.bibleSearchThread.start();
+					}
+					
+					// execute the search
+					BibleSearch search = new BibleSearch(bible, text, ia, type, new BiblePanelSearchCallback());
+					this.bibleSearchThread.queueSearch(search);
 				}
-				
-				// execute the search
-				BibleSearch search = new BibleSearch(bible, text, ia, type, new BiblePanelSearchCallback());
-				this.bibleSearchThread.queueSearch(search);
 			}
 		}
 		// check for remove selected

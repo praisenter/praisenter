@@ -271,7 +271,6 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 		this.btnNotes.setEnabled(edit);
 		
 		this.txtNotes = new JTextArea();
-		this.txtNotes.setRows(5);
 		this.txtNotes.setLineWrap(true);
 		this.txtNotes.setWrapStyleWord(true);
 		this.txtNotes.setText(notes);
@@ -324,7 +323,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 						.addComponent(btnNew)
 						.addComponent(this.btnSave))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(scrSongParts, 0, 150, Short.MAX_VALUE)
+						.addComponent(scrSongParts, 0, 75, Short.MAX_VALUE)
 						.addGroup(layout.createSequentialGroup()
 								.addComponent(this.btnAddPart)
 								.addComponent(this.btnDeleteSelectedParts)

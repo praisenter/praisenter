@@ -348,6 +348,8 @@ public class BasicSlide implements Slide, Serializable {
 				}
 				// move the given component up
 				component.setOrder(order + 1);
+				// resort the components
+				this.sortComponentsByOrder(this.components);
 			}
 		}
 	}
@@ -381,6 +383,8 @@ public class BasicSlide implements Slide, Serializable {
 				}
 				// move the given component up
 				component.setOrder(order - 1);
+				// resort the components
+				this.sortComponentsByOrder(this.components);
 			}
 		}
 	}
