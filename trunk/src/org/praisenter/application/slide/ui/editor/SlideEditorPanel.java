@@ -85,6 +85,7 @@ import org.praisenter.application.slide.ui.editor.command.ResizeProngLocation;
 import org.praisenter.application.slide.ui.editor.command.ResizeWidthAndHeightCommand;
 import org.praisenter.application.slide.ui.editor.command.ResizeWidthCommand;
 import org.praisenter.application.slide.ui.editor.command.SlideBoundsCommandBeingArguments;
+import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.common.utilities.FontManager;
 import org.praisenter.common.utilities.LookAndFeelUtilities;
 import org.praisenter.common.utilities.WindowUtilities;
@@ -287,6 +288,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		JLabel lblSlideName = new JLabel(Messages.getString("panel.slide.editor.name"));
 		this.txtSlideName = new JTextField(slide.getName());
 		this.txtSlideName.getDocument().addDocumentListener(this);
+		this.txtSlideName.addFocusListener(new SelectTextFocusListener(this.txtSlideName));
 		
 		// get the resolutions
 		List<Resolution> resolutions = Resolutions.getResolutions();
