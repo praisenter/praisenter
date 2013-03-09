@@ -130,4 +130,18 @@ public final class ColorUtilities {
 		int a = (c2.getAlpha() - c1.getAlpha()) / 2 + c1.getAlpha();
 		return new Color(r, g, b, a);
 	}
+	
+	/**
+	 * Returns a hex string for the given color in RGB format.
+	 * <p>
+	 * Transparency is ignored.
+	 * @param color the color
+	 * @return String
+	 */
+	public static final String toHex(Color color) {
+		int r = color.getRed();
+		int g = color.getGreen();
+		int b = color.getBlue();
+		return String.format("%02x", r) + String.format("%02x", g) + String.format("%02x", b);
+	}
 }

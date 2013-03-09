@@ -35,11 +35,13 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.Timer;
 
 import org.apache.log4j.Logger;
 import org.praisenter.animation.transitions.Transitions;
+import org.praisenter.application.Main;
 import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.Slide;
 
@@ -108,13 +110,13 @@ public class PresentationWindow extends JDialog implements PresentationListener 
 		if (translucency == WindowTranslucency.PERPIXEL_TRANSLUCENT) {
 			// this is the best since all transitions will work
 			this.setBackground(new Color(0, 0, 0, 0));
-			LOGGER.info("Per-pixel translucency supported (best).");
+			LOGGER.debug("Per-pixel translucency supported (best).");
 		} else if (translucency == WindowTranslucency.TRANSLUCENT) {
-			LOGGER.info("Only uniform translucency supported.");
+			LOGGER.debug("Only uniform translucency supported.");
 		} else if (translucency == WindowTranslucency.PERPIXEL_TRANSPARENT) {
-			LOGGER.info("Only per-pixel transparency supported (only shaped windows possible).");
+			LOGGER.debug("Only per-pixel transparency supported (only shaped windows possible).");
 		} else {
-			LOGGER.info("Translucency/Transparency not supported.");
+			LOGGER.debug("Translucency/Transparency not supported.");
 		}
 		
 		// get the device's default config
@@ -139,6 +141,10 @@ public class PresentationWindow extends JDialog implements PresentationListener 
 		this.surface = new PresentationSurface();
 		this.surface.addPresentListener(this);
 		this.addWindowListener(this.surface);
+		
+		if (Main.isDebugEnabled()) {
+			this.surface.setBorder(BorderFactory.createLineBorder(Color.RED, 10));
+		}
 		
 		container.add(this.surface, BorderLayout.CENTER);
 		

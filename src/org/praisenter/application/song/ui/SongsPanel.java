@@ -432,7 +432,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 						.addComponent(btnSongSearch)
 						.addComponent(btnAdd)
 						.addComponent(btnDelete))
-				.addComponent(scrSongsSearchResults, 0, 150, Short.MAX_VALUE));
+				.addComponent(scrSongsSearchResults, 0, 75, Short.MAX_VALUE));
 		
 		// the song queue
 		this.tblSongQueue = new JTable(new MutableSongTableModel()) {
@@ -517,7 +517,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				.addGroup(sqLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(btnRemoveSelected)
 						.addComponent(btnRemoveAll))
-				.addComponent(scrSongQueueResults, 0, 150, Short.MAX_VALUE));
+				.addComponent(scrSongQueueResults, 0, 75, Short.MAX_VALUE));
 		
 		// edit panel
 		this.pnlEditSong = new EditSongPanel(getSelectedTemplate());
@@ -538,13 +538,13 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				.addComponent(this.scrPreview, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(pnlSending, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(this.scrPreview, 0, 200, Short.MAX_VALUE)
+				.addComponent(this.scrPreview, 0, 100, Short.MAX_VALUE)
 				.addComponent(pnlSending, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		
 		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		split.setTopComponent(pnlTop);
 		split.setBottomComponent(tabBottom);
-		split.setResizeWeight(1.0);
+		split.setResizeWeight(0.9);
 		split.setOneTouchExpandable(true);
 		
 		// create the layout

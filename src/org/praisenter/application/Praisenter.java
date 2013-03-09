@@ -88,7 +88,6 @@ import org.praisenter.presentation.PresentationManager;
 // TODO [HIGH] SONGS song manager; not sure what to do here since you have all the functionality on the main panel, but its all crunched together
 // TODO [HIGH] SLIDE-TEMPLATE Add a service schedule with import/export caps; not sure how i feel about this since our service are rarely scheduled
 // TODO [LOW] ERRORS add an error manager with export and email features
-// FIXME rework the notification controls to allow Praisenter to be smaller width wise
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;
@@ -121,6 +120,9 @@ public class Praisenter extends JFrame implements ActionListener {
 	public Praisenter() {
 		super(Messages.getString("praisenter"));
 		this.setIconImages(Icons.APPLICATION_ICON_LIST);
+		
+		// we may end up doing this later down the road
+		//this.setMinimumSize(new Dimension(860, 680));
 		
 		Container container = this.getContentPane();
 		container.setLayout(new BorderLayout());
@@ -231,7 +233,7 @@ public class Praisenter extends JFrame implements ActionListener {
 			}
 			
 			// debugging menu
-			if (Main.getApplicationArguments().isDebugEnabled()) {
+			if (Main.isDebugEnabled()) {
 				JMenu mnuWindow = new JMenu(Messages.getString("menu.window"));
 				barMenu.add(mnuWindow);
 				
@@ -303,17 +305,17 @@ public class Praisenter extends JFrame implements ActionListener {
 					@Override
 					public void run() {
 						try {
-							LOGGER.info("The exit thread has started.");
+							LOGGER.debug("The exit thread has started.");
 							// wait 10 seconds before we forcefully shut down the JVM
 							Thread.sleep(10000);
-							LOGGER.info("The exit thread waited 10 seconds. Manually exiting.");
+							LOGGER.warn("The exit thread waited 10 seconds. Manually exiting.");
 							// shut her down...
 							System.exit(0);
 						} catch (InterruptedException e) {
 							// I'm not really sure what to do here since this could happen in a normal
 							// way (if the daemon threads are killed via interrupts). So for now we will
 							// just log the error and hope the JVM shuts down on its own
-							LOGGER.info("The exit thread was interrupted. No System.exit(0) call made.");
+							LOGGER.warn("The exit thread was interrupted. No System.exit(0) call made.");
 						}
 					}
 				}, "ExitJVMThread");

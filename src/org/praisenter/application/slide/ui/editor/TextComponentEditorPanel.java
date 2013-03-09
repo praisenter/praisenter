@@ -182,7 +182,6 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 		this.chkTextVisible.addChangeListener(this);
 		
 		this.txtText = new JTextArea();
-		this.txtText.setRows(8);
 		this.txtText.setLineWrap(true);
 		this.txtText.setWrapStyleWord(true);
 		this.txtText.getDocument().addDocumentListener(this);
@@ -337,8 +336,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		
-
-		this.txtText.setMinimumSize(new Dimension(50, 200));
+		this.txtText.setMinimumSize(new Dimension(50, 50));
 		JScrollPane scrText = new JScrollPane(this.txtText);
 		scrText.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		
@@ -364,11 +362,16 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 										.addComponent(this.btnBorderFill)
 										.addComponent(this.btnBorderStyle)
 										.addComponent(this.chkBorderVisible))
-								// font row
+								// font rows
 								.addComponent(this.cmbFontFamilies)
 								.addGroup(layout.createSequentialGroup()
-										.addComponent(this.pnlBoldItalic, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(this.btnFillEditor))
+										.addComponent(this.btnFillEditor)
+										.addComponent(this.pnlBoldItalic, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								// outline row
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.btnOutlineFillEditor)
+										.addComponent(this.btnOutlineStyleEditor)
+										.addComponent(this.chkOutlineVisible))
 								// size row
 								.addGroup(layout.createSequentialGroup()
 										.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -381,11 +384,6 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 								.addGroup(layout.createSequentialGroup()
 										.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 										.addComponent(this.chkWrapText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-								// outline row
-								.addGroup(layout.createSequentialGroup()
-										.addComponent(this.btnOutlineFillEditor)
-										.addComponent(this.btnOutlineStyleEditor)
-										.addComponent(this.chkOutlineVisible))
 								.addComponent(this.chkTextVisible)))
 				.addComponent(scrText));
 		layout.setVerticalGroup(layout.createSequentialGroup()
@@ -406,8 +404,14 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 						.addComponent(this.lblFontFamily)
 						.addComponent(this.cmbFontFamilies, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.pnlBoldItalic, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.btnFillEditor))
+						.addComponent(this.btnFillEditor)
+						.addComponent(this.pnlBoldItalic, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				// outline row
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblOutline)
+						.addComponent(this.btnOutlineFillEditor)
+						.addComponent(this.btnOutlineStyleEditor)
+						.addComponent(this.chkOutlineVisible))
 				// size row
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblFontSize)
@@ -423,12 +427,6 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.spnPadding, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.chkWrapText))
-				// outline row
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-						.addComponent(this.lblOutline)
-						.addComponent(this.btnOutlineFillEditor)
-						.addComponent(this.btnOutlineStyleEditor)
-						.addComponent(this.chkOutlineVisible))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblText)
 						.addComponent(this.chkTextVisible))

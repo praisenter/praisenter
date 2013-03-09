@@ -87,7 +87,6 @@ public class ScrollableInlineSlidePreviewPanel extends JScrollPane {
 	 */
 	protected void setPanelSize() {
 		Dimension size = this.getComputedPanelSize();
-		this.panel.setMinimumSize(size);
 		this.panel.setPreferredSize(size);
 		this.panel.setMaximumSize(size);
 		// revalidate the panel after the size has been set

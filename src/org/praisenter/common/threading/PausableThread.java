@@ -30,7 +30,7 @@ package org.praisenter.common.threading;
  * @version 1.0.0
  * @since 1.0.0
  */
-public abstract class PausableThread extends Thread {
+public class PausableThread extends Thread {
 	/** True if this thread is waiting to be unpaused */
 	private boolean paused;
 	

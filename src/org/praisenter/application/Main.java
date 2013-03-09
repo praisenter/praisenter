@@ -52,18 +52,36 @@ public final class Main {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(Main.class);
 	
-	/** The application arguments */
-	private static ApplicationArguments ARGUMENTS;
+	// command line arguments
+	
+	/** The -debug argument */
+	private static final String ARGUMENT_ENABLE_DEBUG = "-debug";
+	
+	/** True if debugging is enabled */
+	private static boolean debugEnabled = false; 
+	
+	// system properties
+	
+	/** The praisenter home system property name */
+	private static final String PROPERTY_PRAISENTER_HOME = "praisenter.home";
 	
 	/** Hidden default constructor. */
 	private Main() {}
 	
 	/**
-	 * Returns true if the -debug argument was passed to startup.
+	 * Returns true if the -debug flag was passed in the command line.
 	 * @return boolean
 	 */
-	public static final ApplicationArguments getApplicationArguments() {
-		return ARGUMENTS;
+	public static final boolean isDebugEnabled() {
+		return debugEnabled;
+	}
+	
+	/**
+	 * Returns the Praisenter home directory.
+	 * @return String
+	 */
+	public static final String getPraisenterHome() {
+		return System.getProperty(PROPERTY_PRAISENTER_HOME);
 	}
 	
 	/**
@@ -71,21 +89,53 @@ public final class Main {
 	 * <p>
 	 * Command line arguments:
 	 * <ul>
-	 * <li>-debug</li>
-	 * <li>-installEmptyDB</li>
-	 * <li>-installSpecifiedDB="database zip file name.zip"</li>
+	 * <li>-debug to enable debugging options in the GUI</li>
+	 * <li>-nosize to disable the window size calculation for the main window</li>
 	 * </ul>
 	 * @param args the command line arguments
 	 */
 	public static final void main(String[] args) {
-		// interpret command line
-		ARGUMENTS = new ApplicationArguments(args);
+		// get the parameters from the command line
+		if (args != null) {
+			for (String arg : args) {
+				// skip empty or null arguments
+				if (arg == null || arg.length() == 0) {
+					continue;
+				}
+				// check for the -debug argument
+				if (ARGUMENT_ENABLE_DEBUG.equals(arg)) {
+					debugEnabled = true;
+				}
+			}
+		}
 		
 		// initialize configuration files
-		Main.initializeConfiguration();
+		initializeConfiguration();
 		
 		// load the application
 		ApplicationLoader.load();
+	}
+
+	/**
+	 * Sets the given property.
+	 * <p>
+	 * This method will catch and output any exceptions generated but will
+	 * not terminate the application.
+	 * <p>
+	 * Returns true if the system property was set.
+	 * @param name the property name
+	 * @param value the property value
+	 * @return boolean
+	 */
+	private static final boolean setProperty(String name, String value) {
+		try {
+			System.setProperty(name, value);
+			return true;
+		} catch (Exception e) {
+			System.err.println("Failed to set property: [" + name + "] = [" + value + "]");
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 	/**
@@ -101,7 +151,7 @@ public final class Main {
 		setProperty("apple.eawt.quitStrategy", "CLOSE_ALL_WINDOWS");
 		
 		// set the praisenter.home property for log4j file appender paths
-		setProperty("praisenter.home", Constants.BASE_PATH);
+		setProperty(PROPERTY_PRAISENTER_HOME, Constants.BASE_PATH);
 		
 		try {
 			// initialize folder structure
@@ -126,25 +176,8 @@ public final class Main {
 		// initialize resolutions
 		Resolutions.getResolutions();
 		
-		// initialize the presentation manager (this depends on preferences being initialized)
+		// initialize the presentation manager
 		initializePresentationManager();
-	}
-	
-	/**
-	 * Sets the given property.
-	 * <p>
-	 * This method will catch and output any exceptions generated but will
-	 * not terminate the application.
-	 * @param name the property name
-	 * @param value the property value
-	 */
-	private static final void setProperty(String name, String value) {
-		try {
-			System.setProperty(name, value);
-		} catch (Exception e) {
-			System.err.println("Failed to set property: [" + name + "] = [" + value + "]");
-			e.printStackTrace();
-		}
 	}
 	
 	/**
@@ -210,7 +243,7 @@ public final class Main {
 					LOGGER.warn("An error occurred while configuring log4j using the classpath " + log4j + ". Using default configuration instead.", ex);
 				}
 			}
-			LOGGER.info("Log4j initialized successfully.");
+			LOGGER.debug("Log4j initialized successfully.");
 		} catch (Exception ex) {
 			// well, not sure what happened so use the basic configuration
 			BasicConfigurator.configure();
@@ -226,7 +259,7 @@ public final class Main {
 	 * feel is used.
 	 */
 	private static final void initializeDefaultLookAndFeel() {
-		LOGGER.info("Defaulting look and feel.");
+		LOGGER.debug("Defaulting look and feel.");
 		
 		// get the default look and feel
 		String defaultLookAndFeelClassName = null;
@@ -245,7 +278,7 @@ public final class Main {
 			} else {
 			    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 			        if (LookAndFeelUtilities.NIMBUS.equalsIgnoreCase(info.getName())) {
-			        	LOGGER.info("Nimbus look and feel found and applied.");
+			        	LOGGER.debug("Nimbus look and feel found and applied.");
 			            UIManager.setLookAndFeel(info.getClassName());
 			            // fix the nimbus disabled tooltip coloring
 			        	UIManager.put("ToolTip[Disabled].backgroundPainter", UIManager.get("ToolTip[Enabled].backgroundPainter"));

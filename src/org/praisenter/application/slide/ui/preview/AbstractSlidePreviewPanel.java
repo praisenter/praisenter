@@ -89,7 +89,7 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	protected static final String BACKGROUND_CACHE_PREFIX = "BACKGROUND";
 	
 	/** The available height for the slide text */
-	protected static final int TEXT_HEIGHT = 15;
+	protected static final int TEXT_HEIGHT = 10;
 	
 	// fields
 	

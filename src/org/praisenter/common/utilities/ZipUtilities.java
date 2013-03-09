@@ -59,8 +59,7 @@ public final class ZipUtilities {
 	 */
 	public static final void unzip(String zip, String folder) throws ZipException, FileNotFoundException, IOException, IllegalStateException, SecurityException {
 		// verify input
-		if (zip == null || zip.length() == 0 
-		 || folder == null || folder.length() == 0) {
+		if (zip == null || zip.length() == 0 || folder == null || folder.length() == 0) {
 			// in any of these cases just silently return
 			return;
 		}
