@@ -63,7 +63,7 @@ public class FillEditorDialog extends JDialog implements ActionListener {
 	private FillEditorDialog(Window owner, Fill fill) {
 		super(owner, Messages.getString("panel.slide.editor.fill"), ModalityType.APPLICATION_MODAL);
 		
-		this.isCancel = false;
+		this.isCancel = true;
 		this.pnlFillEditor = new FillEditorPanel(fill);
 		
 		Container container = this.getContentPane();
@@ -94,9 +94,9 @@ public class FillEditorDialog extends JDialog implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
 		if ("ok".equals(command)) {
+			this.isCancel = false;
 			this.setVisible(false);
 		} else if ("cancel".equals(command)) {
-			this.isCancel = true;
 			this.setVisible(false);
 		}
 	}

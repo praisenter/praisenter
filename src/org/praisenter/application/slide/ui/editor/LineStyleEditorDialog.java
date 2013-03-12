@@ -63,7 +63,7 @@ public class LineStyleEditorDialog extends JDialog implements ActionListener {
 	private LineStyleEditorDialog(Window owner, LineStyle style) {
 		super(owner, Messages.getString("panel.slide.editor.line"), ModalityType.APPLICATION_MODAL);
 		
-		this.isCancel = false;
+		this.isCancel = true;
 		this.pnlLineEditor = new LineStyleEditorPanel(style);
 		
 		Container container = this.getContentPane();
@@ -94,9 +94,9 @@ public class LineStyleEditorDialog extends JDialog implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
 		if ("ok".equals(command)) {
+			this.isCancel = false;
 			this.setVisible(false);
 		} else if ("cancel".equals(command)) {
-			this.isCancel = true;
 			this.setVisible(false);
 		}
 	}

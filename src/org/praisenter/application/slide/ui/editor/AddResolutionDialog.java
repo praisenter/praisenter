@@ -59,6 +59,9 @@ public class AddResolutionDialog extends JDialog implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 7219182229540375050L;
 
+	/** True if the action was cancelled */
+	private boolean isCancel;
+	
 	/** The resolution width */
 	private JFormattedTextField txtWidth;
 	
@@ -75,6 +78,8 @@ public class AddResolutionDialog extends JDialog implements ActionListener {
 	@SuppressWarnings("serial")
 	private AddResolutionDialog(Window owner) {
 		super(owner, Messages.getString("panel.slide.editor.resolution.new.title"), ModalityType.APPLICATION_MODAL);
+		
+		this.isCancel = true;
 		
 		this.txtWidth = new JFormattedTextField(new DecimalFormat("0")) {
 			@Override
@@ -169,6 +174,7 @@ public class AddResolutionDialog extends JDialog implements ActionListener {
 				}
 				// if we make it here the resolution is valid
 				this.resolution = new Resolution(w, h);
+				this.isCancel = false;
 				this.setVisible(false);
 			} else {
 				JOptionPane.showMessageDialog(
@@ -197,9 +203,13 @@ public class AddResolutionDialog extends JDialog implements ActionListener {
 		dialog.pack();
 		dialog.setLocationRelativeTo(owner);
 		dialog.setVisible(true);
-		
-		Resolution resolution = dialog.resolution;
 		dialog.dispose();
+		
+		
+		Resolution resolution = null;
+		if (!dialog.isCancel) {
+			resolution = dialog.resolution;
+		}
 		
 		return resolution;
 	}

@@ -509,6 +509,8 @@ public class FillEditorPanel extends JPanel implements ActionListener, ItemListe
 			this.tabs.setSelectedIndex(0);
 			this.rdoLinear.setSelected(true);
 			this.rdoRadial.setSelected(false);
+			this.cmbLinearDirection.setVisible(true);
+			this.cmbRadialDirection.setVisible(false);
 		}
 		this.cmbLinearDirection.setSelectedItem(lDirection);
 		this.cmbRadialDirection.setSelectedItem(rDirection);
