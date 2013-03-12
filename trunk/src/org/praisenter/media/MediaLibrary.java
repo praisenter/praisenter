@@ -275,10 +275,12 @@ public final class MediaLibrary {
 		for (File file : files) {
 			// skip directories
 			if (file.isDirectory()) continue;
+			// ignore hidden files
+			if (file.isHidden()) continue;
 			// get the file path
 			String filePath = file.getPath();
-			// skip xml files (these are the thumb files)
-			if (FileUtilities.getContentType(filePath).contains("xml")) continue;
+			// skip the thumbnail file
+			if (filePath.contains(THUMBS_FILE)) continue;
 			// make sure there exists a thumnail for the file
 			boolean exists = false;
 			for (MediaThumbnail thumb : thumbnailsFromFile) {

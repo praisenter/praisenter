@@ -253,10 +253,14 @@ public final class SlideLibrary {
 			for (File file : files) {
 				// skip directories
 				if (file.isDirectory()) continue;
+				// ignore hidden files
+				if (file.isHidden()) continue;
 				// get the file path
 				String filePath = file.getPath();
 				// skip the thumbnail file
 				if (filePath.contains(THUMBS_FILE)) continue;
+				// skip any file that doesn't end in .xml
+				if (!filePath.toLowerCase().endsWith(".xml")) continue;
 				// make sure there exists a thumnail for the file
 				SlideThumbnail thumbnail = null;
 				for (SlideThumbnail thumb : thumbnailsFromFile) {

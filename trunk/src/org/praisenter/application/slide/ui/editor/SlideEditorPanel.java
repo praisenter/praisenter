@@ -92,6 +92,7 @@ import org.praisenter.common.utilities.WindowUtilities;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
 import org.praisenter.slide.AbstractPositionedSlide;
+import org.praisenter.slide.BackgroundComponent;
 import org.praisenter.slide.GenericComponent;
 import org.praisenter.slide.PositionedComponent;
 import org.praisenter.slide.RenderableComponent;
@@ -541,6 +542,9 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		this.cmbComponents.getActionMap().put(deleteActionName, deleteAction);
 		this.pnlSlidePreview.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), deleteActionName);
 		this.pnlSlidePreview.getActionMap().put(deleteActionName, deleteAction);
+		
+		// make sure the first item is selected
+		this.itemStateChanged(new ItemEvent(this.cmbComponents, ItemEvent.ITEM_STATE_CHANGED, 0, ItemEvent.SELECTED));
 	}
 	
 	/**
@@ -1181,9 +1185,18 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	@Override
 	public void editPerformed(EditEvent event) {
 		if (event.getSource() == this.pnlBackground) {
-			// the background panel is different in that we need to replace 
-			// the current background with the one configured
-			this.slide.setBackground(this.pnlBackground.getSlideComponent());
+			// check if the background has been changed
+			BackgroundComponent oldbg = this.slide.getBackground();
+			BackgroundComponent newbg = this.pnlBackground.getSlideComponent();
+			if (newbg != oldbg) {
+				// if it has then we need to set it and update the component drop down
+				this.slide.setBackground(newbg);
+				DefaultComboBoxModel<SlideComponent> model = (DefaultComboBoxModel<SlideComponent>)this.cmbComponents.getModel();
+				// replace the item
+				int index = model.getIndexOf(oldbg);
+				model.insertElementAt(newbg, index);
+				model.removeElementAt(index + 1);
+			}
 		}
 		this.pnlSlidePreview.repaint();
 		this.cmbComponents.repaint();
