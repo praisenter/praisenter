@@ -184,63 +184,68 @@ public class BackgroundEditorPanel extends RenderableComponentEditorPanel<Backgr
 	public void setSlideComponent(BackgroundComponent slideComponent, boolean isStatic) {
 		super.setSlideComponent(slideComponent, isStatic);
 		
+		this.disableNotification();
 		if (slideComponent != null) {
-			this.cmbBackgroundType.setEnabled(true);
-			
-			String name = slideComponent.getName();
-			int w = slideComponent.getWidth();
-			int h = slideComponent.getHeight();
-			if (slideComponent instanceof ImageMediaComponent) {
-				this.emptyComponent = new EmptyBackgroundComponent(name, w, h);
-				this.genericComponent = new GenericComponent(name, w, h);
-				this.imageComponent = (ImageMediaComponent)slideComponent;
-				this.videoComponent = new VideoMediaComponent(name, null, w, h);
+			// we need to see if the new component being set is not one of the ones
+			// we are changing since we don't want to create new components and clear
+			// out the settings on the others
+			if (slideComponent != this.emptyComponent &&
+			    slideComponent != this.genericComponent &&
+			    slideComponent != this.imageComponent &&
+			    slideComponent != this.videoComponent) {
 				
-				this.cmbBackgroundType.setSelectedItem(BackgroundType.IMAGE);
-				this.layCards.show(this.pnlCards, IMAGE_CARD);
-			} else if (slideComponent instanceof VideoMediaComponent) {
-				this.emptyComponent = new EmptyBackgroundComponent(name, w, h);
-				this.genericComponent = new GenericComponent(name, w, h);
-				this.imageComponent = new ImageMediaComponent(name, null, w, h);
-				this.videoComponent = (VideoMediaComponent)slideComponent;
+				this.cmbBackgroundType.setEnabled(true);
 				
-				this.pnlVideo.setSlideComponent((VideoMediaComponent)slideComponent, isStatic);
-				this.cmbBackgroundType.setSelectedItem(BackgroundType.VIDEO);
-				this.layCards.show(this.pnlCards, VIDEO_CARD);
-			} else if (slideComponent instanceof GenericComponent) {
-				this.emptyComponent = new EmptyBackgroundComponent(name, w, h);
-				this.genericComponent = (GenericComponent)slideComponent;
-				this.videoComponent = new VideoMediaComponent(name, null, w, h);
-				this.imageComponent = new ImageMediaComponent(name, null, w, h);
+				String name = slideComponent.getName();
+				int w = slideComponent.getWidth();
+				int h = slideComponent.getHeight();
+				if (slideComponent instanceof ImageMediaComponent) {
+					this.emptyComponent = new EmptyBackgroundComponent(name, w, h);
+					this.genericComponent = new GenericComponent(name, w, h);
+					this.imageComponent = (ImageMediaComponent)slideComponent;
+					this.videoComponent = new VideoMediaComponent(name, null, w, h);
+					
+					this.cmbBackgroundType.setSelectedItem(BackgroundType.IMAGE);
+					this.layCards.show(this.pnlCards, IMAGE_CARD);
+				} else if (slideComponent instanceof VideoMediaComponent) {
+					this.emptyComponent = new EmptyBackgroundComponent(name, w, h);
+					this.genericComponent = new GenericComponent(name, w, h);
+					this.imageComponent = new ImageMediaComponent(name, null, w, h);
+					this.videoComponent = (VideoMediaComponent)slideComponent;
+					
+					this.cmbBackgroundType.setSelectedItem(BackgroundType.VIDEO);
+					this.layCards.show(this.pnlCards, VIDEO_CARD);
+				} else if (slideComponent instanceof GenericComponent) {
+					this.emptyComponent = new EmptyBackgroundComponent(name, w, h);
+					this.genericComponent = (GenericComponent)slideComponent;
+					this.videoComponent = new VideoMediaComponent(name, null, w, h);
+					this.imageComponent = new ImageMediaComponent(name, null, w, h);
+					
+					this.cmbBackgroundType.setSelectedItem(BackgroundType.PAINT);
+					this.layCards.show(this.pnlCards, GENERIC_CARD);
+				} else if (slideComponent instanceof EmptyBackgroundComponent) {
+					this.emptyComponent = (EmptyBackgroundComponent)slideComponent;
+					this.genericComponent = new GenericComponent(name, w, h);
+					this.videoComponent = new VideoMediaComponent(name, null, w, h);
+					this.imageComponent = new ImageMediaComponent(name, null, w, h);
+					
+					this.cmbBackgroundType.setSelectedItem(BackgroundType.NONE);
+					this.layCards.show(this.pnlCards, EMPTY_CARD);
+				} else {
+					this.emptyComponent = new EmptyBackgroundComponent(name, w, h);
+					this.genericComponent = new GenericComponent(name, w, h);
+					this.videoComponent = new VideoMediaComponent(name, null, w, h);
+					this.imageComponent = new ImageMediaComponent(name, null, w, h);
+					
+					this.cmbBackgroundType.setSelectedItem(BackgroundType.NONE);
+					this.layCards.show(this.pnlCards, EMPTY_CARD);
+					LOGGER.warn("Unknown component type: [" + slideComponent.getClass().getName() + "].");
+				}
 				
-				this.pnlGeneric.setSlideComponent((GenericComponent)slideComponent, isStatic);
-				this.cmbBackgroundType.setSelectedItem(BackgroundType.PAINT);
-				this.layCards.show(this.pnlCards, GENERIC_CARD);
-			} else if (slideComponent instanceof EmptyBackgroundComponent) {
-				this.emptyComponent = (EmptyBackgroundComponent)slideComponent;
-				this.genericComponent = new GenericComponent(name, w, h);
-				this.videoComponent = new VideoMediaComponent(name, null, w, h);
-				this.imageComponent = new ImageMediaComponent(name, null, w, h);
-				
-				this.cmbBackgroundType.setSelectedItem(BackgroundType.NONE);
-				this.layCards.show(this.pnlCards, EMPTY_CARD);
-			} else {
-				// assume its null and log an error
-				this.emptyComponent = null;
-				this.imageComponent = null;
-				this.videoComponent = null;
-				this.genericComponent = null;
-				
-				this.cmbBackgroundType.setSelectedItem(BackgroundType.NONE);
-				this.layCards.show(this.pnlCards, EMPTY_CARD);
-				this.cmbBackgroundType.setEnabled(false);
-				
-				LOGGER.error("Unknown component type: [" + slideComponent.getClass().getName() + "].");
+				this.pnlGeneric.setSlideComponent(this.genericComponent, isStatic);
+				this.pnlImage.setSlideComponent(this.imageComponent, isStatic);
+				this.pnlVideo.setSlideComponent(this.videoComponent, isStatic);
 			}
-			
-			this.pnlGeneric.setSlideComponent(this.genericComponent, isStatic);
-			this.pnlImage.setSlideComponent(this.imageComponent, isStatic);
-			this.pnlVideo.setSlideComponent(this.videoComponent, isStatic);
 		} else {
 			this.emptyComponent = null;
 			this.imageComponent = null;
@@ -251,6 +256,7 @@ public class BackgroundEditorPanel extends RenderableComponentEditorPanel<Backgr
 			this.layCards.show(this.pnlCards, EMPTY_CARD);
 			this.cmbBackgroundType.setEnabled(false);
 		}
+		this.enableNotification();
 	}
 	
 	/* (non-Javadoc)

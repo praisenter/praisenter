@@ -279,6 +279,7 @@ public class ImageMediaComponentEditorPanel  extends PositionedComponentEditor<I
 	public void setSlideComponent(ImageMediaComponent slideComponent, boolean isStatic) {
 		super.setSlideComponent(slideComponent, isStatic);
 		
+		this.disableNotification();
 		if (slideComponent != null) {
 			if (slideComponent.getMedia() != null) {
 				try {
@@ -297,5 +298,6 @@ public class ImageMediaComponentEditorPanel  extends PositionedComponentEditor<I
 			this.cmbScaleType.setSelectedIndex(0);
 			this.chkImageVisible.setSelected(false);
 		}
+		this.enableNotification();
 	}
 }

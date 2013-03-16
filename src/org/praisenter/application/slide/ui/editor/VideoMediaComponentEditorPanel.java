@@ -310,6 +310,7 @@ public class VideoMediaComponentEditorPanel  extends PositionedComponentEditor<V
 	public void setSlideComponent(VideoMediaComponent slideComponent, boolean isStatic) {
 		super.setSlideComponent(slideComponent, isStatic);
 		
+		this.disableNotification();
 		if (slideComponent != null) {
 			if (slideComponent.getMedia() != null) {
 				try {
@@ -332,5 +333,6 @@ public class VideoMediaComponentEditorPanel  extends PositionedComponentEditor<V
 			this.chkLooped.setSelected(false);
 			this.chkVideoVisible.setSelected(false);
 		}
+		this.enableNotification();
 	}
 }

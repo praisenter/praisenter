@@ -192,10 +192,12 @@ public class PositionedComponentEditor<E extends PositionedComponent> extends Re
 	public void setSlideComponent(E slideComponent, boolean isStatic) {
 		super.setSlideComponent(slideComponent, isStatic);
 		
+		this.disableNotification();
 		if (slideComponent != null) {
 			this.chkBorderVisible.setSelected(slideComponent.isBorderVisible());
 		} else {
 			this.chkBorderVisible.setSelected(false);
 		}
+		this.enableNotification();
 	}
 }

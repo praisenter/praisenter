@@ -280,6 +280,7 @@ public class DateTimeComponentEditorPanel extends TextComponentEditorPanel<DateT
 	public void setSlideComponent(DateTimeComponent slideComponent, boolean isStatic) {
 		super.setSlideComponent(slideComponent, isStatic);
 		
+		this.disableNotification();
 		if (slideComponent != null) {
 			this.txtDateTimeFormat.setText(slideComponent.getDateTimeFormat());
 			this.chkDateTimeUpdate.setSelected(slideComponent.isDateTimeUpdateEnabled());
@@ -287,5 +288,6 @@ public class DateTimeComponentEditorPanel extends TextComponentEditorPanel<DateT
 			this.txtDateTimeFormat.setText("EEEE MMMM, d yyyy");
 			this.chkDateTimeUpdate.setSelected(false);
 		}
+		this.enableNotification();
 	}
 }
