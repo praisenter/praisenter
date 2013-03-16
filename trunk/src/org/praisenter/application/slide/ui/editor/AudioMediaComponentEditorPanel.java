@@ -264,6 +264,7 @@ public class AudioMediaComponentEditorPanel  extends SlideComponentEditorPanel<A
 	public void setSlideComponent(AudioMediaComponent slideComponent, boolean isStatic) {
 		super.setSlideComponent(slideComponent, isStatic);
 		
+		this.disableNotification();
 		if (slideComponent != null) {
 			if (slideComponent.getMedia() != null) {
 				try {
@@ -282,5 +283,6 @@ public class AudioMediaComponentEditorPanel  extends SlideComponentEditorPanel<A
 			this.chkAudioMuted.setSelected(false);
 			this.chkLooped.setSelected(false);
 		}
+		this.enableNotification();
 	}
 }

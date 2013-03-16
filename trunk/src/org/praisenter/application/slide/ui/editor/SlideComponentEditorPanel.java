@@ -123,6 +123,7 @@ public abstract class SlideComponentEditorPanel<E extends SlideComponent> extend
 	public void setSlideComponent(E slideComponent, boolean isStatic) {
 		this.slideComponent = slideComponent;
 		
+		this.disableNotification();
 		if (slideComponent != null) {
 			this.txtName.setText(slideComponent.getName());
 			this.txtName.setCaretPosition(0);
@@ -131,5 +132,6 @@ public abstract class SlideComponentEditorPanel<E extends SlideComponent> extend
 			this.txtName.setText("");
 			this.txtName.setEnabled(false);
 		}
+		this.enableNotification();
 	}
 }

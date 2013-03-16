@@ -659,6 +659,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 	public void setSlideComponent(E slideComponent, boolean isStatic) {
 		super.setSlideComponent(slideComponent, isStatic);
 		
+		this.disableNotification();
 		if (slideComponent != null) {
 			this.chkWrapText.setSelected(slideComponent.isTextWrapped());
 			Font font = slideComponent.getTextFont();
@@ -700,5 +701,6 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 			this.chkTextVisible.setSelected(false);
 			this.chkOutlineVisible.setSelected(false);
 		}
+		this.enableNotification();
 	}
 }

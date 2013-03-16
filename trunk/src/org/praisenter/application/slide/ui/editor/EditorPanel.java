@@ -35,6 +35,25 @@ import javax.swing.JPanel;
 public abstract class EditorPanel extends JPanel {
 	/** The version id */
 	private static final long serialVersionUID = -7037896714849865050L;
+
+	// state
+	
+	/** True if changes should be notified of */
+	private boolean notify = true;
+	
+	/**
+	 * Enables EditEvents to be sent from the {@link #notifyEditorListeners()} method.
+	 */
+	public void enableNotification() {
+		this.notify = true;
+	}
+	
+	/**
+	 * Disables EditEvents to be sent from the {@link #notifyEditorListeners()} method.
+	 */
+	public void disableNotification() {
+		this.notify = false;
+	}
 	
 	/**
 	 * Adds the given {@link EditorListener} to this panel.
@@ -56,10 +75,12 @@ public abstract class EditorPanel extends JPanel {
 	 * Notifies all {@link EditorListener}s of the an edit event.
 	 */
 	protected void notifyEditorListeners() {
-		EditorListener[] listeners = this.listenerList.getListeners(EditorListener.class);
-		EditEvent event = new EditEvent(this);
-		for (EditorListener listener : listeners) {
-			listener.editPerformed(event);
+		if (this.notify) {
+			EditorListener[] listeners = this.listenerList.getListeners(EditorListener.class);
+			EditEvent event = new EditEvent(this);
+			for (EditorListener listener : listeners) {
+				listener.editPerformed(event);
+			}
 		}
 	}
 }

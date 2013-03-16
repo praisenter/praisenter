@@ -55,7 +55,7 @@ public class SlideThumbnailListCellRenderer extends DefaultListCellRenderer {
 			this.setHorizontalTextPosition(SwingConstants.CENTER);
 			this.setVerticalTextPosition(SwingConstants.BOTTOM);
 			this.setText(t.getName());
-			this.setToolTipText(t.getFile().getName());
+			this.setToolTipText(t.getName());
 			this.setHorizontalAlignment(CENTER);
 		}
 		return this;

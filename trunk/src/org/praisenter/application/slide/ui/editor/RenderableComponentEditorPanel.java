@@ -117,10 +117,12 @@ public abstract class RenderableComponentEditorPanel<E extends RenderableCompone
 	public void setSlideComponent(E slideComponent, boolean isStatic) {
 		super.setSlideComponent(slideComponent, isStatic);
 		
+		this.disableNotification();
 		if (slideComponent != null) {
 			this.chkBackgroundVisible.setSelected(slideComponent.isBackgroundVisible());
 		} else {
 			this.chkBackgroundVisible.setSelected(false);
 		}
+		this.enableNotification();
 	}
 }
