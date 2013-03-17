@@ -1,0 +1,145 @@
+===============================================================================
+Definitions
+===============================================================================
+Platforms		- These are the supported platforms and requirements.
+New Features 	- These are features added that were not available in a 
+				  previous version.
+Bug Fixes 		- These are bugs or functionality oddities that existed in the 
+				  previous version(s).
+Other 			- This describes any other changes that may be important.
+Open Issues		- These are unresolved issues still present.
+
+===============================================================================
+Dependency Notes
+===============================================================================
+Oracle Java 1.7 (other Java implementations may have different requirements)
+	o http://www.oracle.com/technetwork/java/javase/config-417990.html
+	o Windows XP SP3 or higher (32 or 64 bit)
+	o Ubuntu 11.04 or higher (32 or 64 bit)
+	o Mac OS X 10.7.3 or higher (64 bit only) Java 1.7.10+ needed
+
+Xuggler 5.4 Supported Platforms
+	o http://www.xuggle.com/downloads
+	o Java 1.5+
+	o Windows XP or higher (32 or 64 bit)
+	o Ubuntu 11.10 or later (32 or 64 bit)
+	o Mac OS X 10.7 or higher (32 or 64 bit)
+
+===============================================================================
+Version 2.0.0
+===============================================================================
+Platforms:
+  o Windows:
+  	- Vista or higher (32 or 64 bit); It may work on XP SP3 or higher but has 
+  	  not been tested.
+  o Mac:
+	- OS X 10.7.3 or higher (64 bit only); 10.7.3 is the earliest Oracle Java 
+	  1.7 supported OS
+	- OS X starting with Mountain Lion will begin phasing out the Apple 
+	  developed Java runtime. As a result, Java 1.7 is not available by 
+	  default. To get Java 1.7 go to the Oracle dowload page 
+	  (http://www.oracle.com/technetwork/java/javase/downloads/index.html) and
+	  download and install the Java 1.7 **JDK** for Mac OS. Installing the
+	  JRE does not update the path environment variables.
+	- OS X users must use the JNLP rather than the .zip distributable due to
+	  new OS X application security requirements that block the execution
+	  of untrusted applications.
+	- OS X will automatically unzip any downloaded zip files. This is a 
+	  problem for Praisenter as it expects to import bibles and slides using 
+	  the zip format. To fix this, re-compress the unzipped files before
+	  import.
+  o Linux ***Right now Ubuntu is broken. See Open Issues below.***
+	- Ubuntu 11.10 or higher (32 or 64 bit); It may work on other Linux 
+	  distributions but has not been tested
+	- Java 1.7 for Ubuntu by default uses the OpenJDK which is nearly identical
+	  to the Oracle version except that Java Webstart is not included. To run 
+	  Praisenter, you will need to download IcedTea from the Ubuntu Software 
+	  Center. Alternatively you can download and install the Oracle JVM from 
+	  http://www.oracle.com/technetwork/java/javase/downloads/index.html.
+  o Java 1.7 or higher.
+  o 512 MB of dedicated RAM (1 GB would be best for video)
+  
+New Features: 
+  o Video & Audio media support (still experimental) for backgrounds and
+    standalone components
+  o Media Library for managing images, video, and audio.
+  o Custom standalone slides
+  o Slide templates for notification, bible, and songs.
+  o Template switching
+  o Slide/Template editor
+  o Slide/Template Library for managing templates and slides.
+  o Slide/Template resolution targeting
+  o Slide/Template import and export
+  o Slide and component borders
+  o Gradient support.
+  o Preferences manager
+  o More informative Error Reporting buttons (save vs. send)
+  o A new easing "Back"
+  o Transition waiting
+  o Render quality settings
+  o Text outline
+  o Application working path moved to user/home directory
+  
+Bug Fixes:
+  o Auto adjusting of slides and templates based on target resolution and
+    actual resolution
+  o Reworked some transitions that were not pixel perfect
+  
+Other:
+  o Package separation. Not really useful to users but to developers this is
+  	key. The packages have been cleaned up to allow use of certain packages
+  	rather than the entire code base.
+  o New deployment license:
+  	The majority of Praisenter source code is released under the New BSD open 
+  	source license.  The video and audio support now requires the GPL v3 on 
+  	related sources (ones that directly interact with the GPL v3 libraries).
+  	The distribution binaries are required to be GPL v3 now.
+
+Open Issues:
+  o Ubuntu, the test Linux system, Per-pixel translucency is broken. This is a
+    Java problem and is still not fixed as of 1.7.0_13. This makes Praisenter
+    unusable on Ubuntu. It still may work on other Linux distributions.
+    http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=9000011
+  o Video looping. As of this release the video and audio support is mostly 
+    experimental, working with most of the audio/video on hand. However, a few
+    videos have been know to fail to loop correctly.
+    https://groups.google.com/forum/?fromgroups=#!topic/xuggler-users/bMQEJdQY2WU
+  o OGG video synchronization. As of this release the OGG audio/video 
+    synchronization of videos is not working correctly. Depending on the video,
+    you may have different results.
+    https://groups.google.com/forum/?fromgroups=#!topic/xuggler-users/CIti0aIsUlc
+  o Video jumping and overall video smoothness. This is typically caused by 
+    slower machines. The test hardware used is more than able to handle video 
+    playback. However, rendering the playing video in the same process causes 
+    some problems. When scrolling the song preview, the playing video may 
+    jitter and jump. This is due to Swing EDT locking on GUI tasks. Many 
+    attempts have been made to fix this with varying degrees of success:
+    	- Using another EDT by using Sun specific AppContext class. This does
+    	  not solve the problem because there is some underlying locking 
+    	  mechanism for Java2D rendering. This is also not desired since it 
+    	  would require the Oracle/OpenJDK JVMs and is not public API.
+    	- Using another Java process and communicated via Java RMI. This works
+    	  great minus one large hitch. When sending a new slide, Praisenter 
+    	  (the main process) cannot make the sub process the focused 
+    	  application and therefore cannot bring the slide to the front.
+    	- Use active rendering for the presentation window. This doesn't work
+    	  with window translucency (which is a requirement for transitions) in
+    	  Java.
+    	  https://forums.oracle.com/forums/thread.jspa?threadID=2468664
+    	- JOGL's NEWT windowing system has a separate EDT and use OpenGL. This
+    	  was too slow when rendering the composite in Java2D and sending it 
+    	  down to JOGL. Some more exploration is required on this one.
+    	- JavaFX has its own EDT as well. More exploration is required on this
+    	  one.
+  o The Xuggler API which is being used for audio/video playback and reading
+    is no longer receiving updates and the build server has been shutdown.
+    Short term this isn't a big deal, but long term this could be a problem
+    especially if any bugs arise. As of this release there is no alternative
+    which is easy to use, allows composition, and is packaged easy.
+
+===============================================================================
+Version 1.0.0 (initial release)
+===============================================================================
+New Features: N/A
+Bug Fixes: N/A
+Other: N/A
