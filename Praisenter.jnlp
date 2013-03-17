@@ -5,8 +5,15 @@
 		<vendor>William Bittle</vendor>
 		<homepage href="http://www.praisenter.org/" />
 		<description>Free Church Presentation Software</description>
-		<icon href="icon.png" kind="default" />
-		<!-- <icon kind="splash" href="images/splash.gif"/> -->
+		
+		<icon href="images/icon16x16.png" width="16" height="16" />
+		<icon href="images/icon32x32.png" width="32" height="32" />
+		<icon href="images/icon48x48.png" width="48" height="48" />
+		<icon href="images/icon64x64.png" width="64" height="64" />
+		<icon href="images/icon96x96.png" width="96" height="96" />
+		<icon href="images/icon128x128.png" width="128" height="128" />
+		<icon href="images/icon256x256.png" width="256" height="256" />
+		<icon href="images/icon512x512.png" width="512" height="512" />
 		
 		<!-- Allow offline running -->
 		<offline-allowed />
@@ -51,5 +58,5 @@
 	</resources>
 	
 	<!-- Specify the main class -->
-	<application-desc main-class="org.praisenter.Main"/>
+	<application-desc main-class="org.praisenter.application.Main"/>
 </jnlp> 
