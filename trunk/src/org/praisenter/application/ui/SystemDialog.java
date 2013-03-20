@@ -25,10 +25,14 @@
 package org.praisenter.application.ui;
 
 import java.awt.Container;
+import java.awt.Desktop;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsDevice.WindowTranslucency;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -38,17 +42,22 @@ import javax.swing.JDialog;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.UIManager;
 import javax.swing.table.TableModel;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.praisenter.application.Constants;
+import org.praisenter.application.Main;
+import org.praisenter.application.Version;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.common.utilities.FileUtilities;
 import org.praisenter.common.utilities.SystemUtilities;
+import org.praisenter.common.utilities.WindowUtilities;
 
 /**
  * Dialog showing the system information.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class SystemDialog extends JDialog {
@@ -65,6 +74,7 @@ public class SystemDialog extends JDialog {
 		// build the property listing
 		List<Pair<String, String>> properties = new ArrayList<Pair<String, String>>();
 		
+		properties.add(Pair.of(Messages.getString("dialog.system.praisenter.version"), Version.getVersion()));
 		properties.add(Pair.of(Messages.getString("dialog.system.java"), SystemUtilities.getJavaVersion()));
 		properties.add(Pair.of(Messages.getString("dialog.system.vendor"), SystemUtilities.getJavaVendor()));
 		properties.add(Pair.of(Messages.getString("dialog.system.javaPath"), SystemUtilities.getJavaHomeDirectory()));
@@ -72,8 +82,19 @@ public class SystemDialog extends JDialog {
 		properties.add(Pair.of(Messages.getString("dialog.system.architecture"), SystemUtilities.getArchitecture()));
 		properties.add(Pair.of(Messages.getString("dialog.system.cpus"), String.valueOf(Runtime.getRuntime().availableProcessors())));
 		properties.add(Pair.of(Messages.getString("dialog.system.locale"), Locale.getDefault().toString()));
+		properties.add(Pair.of(Messages.getString("dialog.system.separator"), FileUtilities.getSeparator()));
 		properties.add(Pair.of(Messages.getString("dialog.system.currentDirectory"), new File("").getAbsolutePath()));
+		properties.add(Pair.of(Messages.getString("dialog.system.userPath"), SystemUtilities.getUserHomeDirectory()));
 		properties.add(Pair.of(Messages.getString("dialog.system.basePath"), Constants.BASE_PATH));
+		properties.add(Pair.of(Messages.getString("dialog.system.desktopSupport"), String.valueOf(Desktop.isDesktopSupported())));
+		properties.add(Pair.of(Messages.getString("dialog.system.defaultDevice"), WindowUtilities.getDefaultDevice().getIDstring()));
+		GraphicsDevice[] devices = WindowUtilities.getDevices();
+		properties.add(Pair.of(Messages.getString("dialog.system.deviceCount"), String.valueOf(devices.length)));
+		for (GraphicsDevice device : devices) {
+			properties.add(Pair.of(MessageFormat.format(Messages.getString("dialog.system.translucencySupport"), device.getIDstring()), String.valueOf(device.isWindowTranslucencySupported(WindowTranslucency.PERPIXEL_TRANSLUCENT))));
+		}
+		properties.add(Pair.of(Messages.getString("dialog.system.laf"), UIManager.getLookAndFeel().getName()));
+		properties.add(Pair.of(Messages.getString("dialog.system.debugEnabled"), String.valueOf(Main.isDebugEnabled())));
 		
 		// create the verse queue table
 		@SuppressWarnings("serial")
