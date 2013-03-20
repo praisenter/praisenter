@@ -27,7 +27,7 @@ package org.praisenter.application;
 /**
  * The version of the application.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class Version {
@@ -38,7 +38,7 @@ public class Version {
 	private static final int MINOR = 0;
 	
 	/** The revision number; small impact changes; bug fixes, small enhancements, etc. */
-	private static final int REVISION = 0;
+	private static final int REVISION = 1;
 	
 	/**
 	 * Hide the constructor.
