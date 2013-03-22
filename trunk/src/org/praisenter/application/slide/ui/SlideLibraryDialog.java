@@ -36,7 +36,7 @@ import org.praisenter.slide.Slide;
 /**
  * Simple dialog to display the Slide Library.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class SlideLibraryDialog extends JDialog {
@@ -52,7 +52,7 @@ public class SlideLibraryDialog extends JDialog {
 	 * @param clazz the initial class type to have focused; can be null
 	 */
 	protected SlideLibraryDialog(Window owner, Class<? extends Slide> clazz) {
-		super(owner, Messages.getString("dialog.media.title"), ModalityType.APPLICATION_MODAL);
+		super(owner, Messages.getString("dialog.slide.title"), ModalityType.APPLICATION_MODAL);
 		
 		this.pnlSlideLibrary = new SlideLibraryPanel(clazz);
 		
