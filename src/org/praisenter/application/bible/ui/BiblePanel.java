@@ -32,6 +32,9 @@ import java.awt.Graphics;
 import java.awt.GraphicsDevice;
 import java.awt.GridLayout;
 import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -56,7 +59,9 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -90,6 +95,7 @@ import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.WaterMark;
 import org.praisenter.common.NotInitializedException;
 import org.praisenter.common.utilities.StringUtilities;
+import org.praisenter.common.utilities.SystemUtilities;
 import org.praisenter.common.utilities.WindowUtilities;
 import org.praisenter.data.DataException;
 import org.praisenter.data.bible.Bible;
@@ -114,7 +120,7 @@ import org.praisenter.slide.text.TextComponent;
 /**
  * Panel for bible lookup and searching.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class BiblePanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener {
@@ -659,6 +665,38 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						// should still be able to click the preview button
 						LOGGER.error("An error occurred while updating the verse displays from a queued verse: ", ex);
 					}
+				} else if (e.getButton() == MouseEvent.BUTTON3 ||
+						// support mac os x control click
+						(SystemUtilities.isMac() && e.getButton() == MouseEvent.BUTTON1 && e.isControlDown())) {
+					// get the selected row
+					int row = tblVerseQueue.rowAtPoint(e.getPoint());
+					// get the data
+					VerseTableModel model = (VerseTableModel)tblVerseQueue.getModel();
+					final Verse verse = model.getRow(row);
+					JPopupMenu menu = new JPopupMenu();
+					JMenuItem item = new JMenuItem(Messages.getString("menu.context.copy"));
+					item.addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent ae) {
+							try {
+								// format the string
+								String text = MessageFormat.format(
+										Messages.getString("panel.bible.copy.pattern"), 
+										verse.getBible().getName(), 
+										verse.getBook().getName(), 
+										verse.getChapter(), 
+										verse.getVerse(), 
+										verse.getText());
+								StringSelection selection = new StringSelection(text);
+								Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+								clipboard.setContents(selection, selection);
+							} catch (Exception e) {
+								LOGGER.error("Failed to copy verse to the clipboard: ", e);
+							}
+						}
+					});
+					menu.add(item);
+					menu.show(e.getComponent(), e.getX(), e.getY());
 				}
 			}
 		});
@@ -764,6 +802,38 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						// should still be able to click the preview button
 						LOGGER.error("An error occurred while updating the verse displays from a search result: ", ex);
 					}
+				} else if (e.getButton() == MouseEvent.BUTTON3 ||
+						// support mac os x control click
+						(SystemUtilities.isMac() && e.getButton() == MouseEvent.BUTTON1 && e.isControlDown())) {
+					// get the selected row
+					int row = tblBibleSearchResults.rowAtPoint(e.getPoint());
+					// get the data
+					VerseTableModel model = (VerseTableModel)tblBibleSearchResults.getModel();
+					final Verse verse = model.getRow(row);
+					JPopupMenu menu = new JPopupMenu();
+					JMenuItem item = new JMenuItem(Messages.getString("menu.context.copy"));
+					item.addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent ae) {
+							try {
+								// format the string
+								String text = MessageFormat.format(
+										Messages.getString("panel.bible.copy.pattern"), 
+										verse.getBible().getName(), 
+										verse.getBook().getName(), 
+										verse.getChapter(), 
+										verse.getVerse(), 
+										verse.getText());
+								StringSelection selection = new StringSelection(text);
+								Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+								clipboard.setContents(selection, selection);
+							} catch (Exception e) {
+								LOGGER.error("Failed to copy verse to the clipboard: ", e);
+							}
+						}
+					});
+					menu.add(item);
+					menu.show(e.getComponent(), e.getX(), e.getY());
 				}
 			}
 		});

@@ -1,13 +1,13 @@
 ===============================================================================
 Definitions
 ===============================================================================
-Platforms		- These are the supported platforms and requirements.
-New Features 	- These are features added that were not available in a 
-				  previous version.
-Bug Fixes 		- These are bugs or functionality oddities that existed in the 
-				  previous version(s).
-Other 			- This describes any other changes that may be important.
-Open Issues		- These are unresolved issues still present.
+Platforms     - These are the supported platforms and requirements.
+New Features  - These are features added that were not available in a 
+                previous version.
+Bug Fixes     - These are bugs or functionality oddities that existed in the 
+                previous version(s).
+Other         - This describes any other changes that may be important.
+Open Issues   - These are unresolved issues still present.
 
 ===============================================================================
 Dependency Notes
@@ -24,6 +24,27 @@ Xuggler 5.4 Supported Platforms
 	o Windows XP or higher (32 or 64 bit)
 	o Ubuntu 11.10 or later (32 or 64 bit)
 	o Mac OS X 10.7 or higher (32 or 64 bit)
+
+===============================================================================
+Version 2.0.1
+===============================================================================
+Platforms:
+  o Tested on Windows XP SP3 and seems to work well.
+  o Same as 2.0.0 other than the above.
+  
+New Features: 
+  o Copy verse text. Right click (or command click) the verse queue or bible
+    search to get the copy context menu.
+  o More system properties have been added to the System menu to aid in 
+    troubleshooting problems.
+  
+Bug Fixes:
+  o Fixed the dialog title on the Slide Library (says Media Library on 2.0.0)
+  
+Other: N/A
+
+Open Issues:
+  o Same as 2.0.0
 
 ===============================================================================
 Version 2.0.0
