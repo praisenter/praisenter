@@ -29,7 +29,7 @@ Xuggler 5.4 Supported Platforms
 Version 2.0.1
 ===============================================================================
 Platforms:
-  o Tested on Windows XP SP3 and seems to work well.
+  o Tested on Windows XP SP3
   o Same as 2.0.0 other than the above.
   
 New Features: 
@@ -40,11 +40,19 @@ New Features:
   
 Bug Fixes:
   o Fixed the dialog title on the Slide Library (says Media Library on 2.0.0)
+  o Fixed a bug on Linux which made translucent slides/templates not clear
+    their previous rendering. (this is one step towards fully supporting
+    linux, but did reveal another problem: flickering) The previous problem
+    of per-pixel translucency was caused by Ubuntu running under Oracle
+    Virtual box.  Installing Ubuntu along side Windows and booting to Ubuntu
+    revealed that this is not an issue.
   
 Other: N/A
 
 Open Issues:
-  o Same as 2.0.0
+  o On Ubuntu Linux we get flickering in the animations due to the use of
+    translucent windows.
+  o Same as 2.0.0 except for the above
 
 ===============================================================================
 Version 2.0.0

@@ -65,7 +65,7 @@ import org.praisenter.slide.text.DateTimeComponent;
 /**
  * Surface for rendering slides using transitions.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class PresentationSurface extends JPanel implements VideoMediaPlayerListener, WindowListener {
@@ -587,6 +587,10 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 		super.paintComponent(g);
 		
 		Graphics2D g2d = (Graphics2D)g;
+		
+		// clear the background (fixes Ubuntu Linux not clearing the previous contents, not needed on Mac OS X or Windows)
+		g2d.setBackground(ColorUtilities.TRANSPARENT);
+		g2d.clearRect(0, 0, this.getWidth(), this.getHeight());
 		
 		// update the images if necessary
 		if ((this.currentHasPlayableMedia || this.currentHasUpdatingDateTime) && this.currentSlide != null) {
