@@ -667,7 +667,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 					}
 				} else if (e.getButton() == MouseEvent.BUTTON3 ||
 						// support mac os x control click
-						(SystemUtilities.isMac() && e.getButton() == MouseEvent.BUTTON1 && e.isControlDown())) {
+						(SystemUtilities.IS_MAC_OS && e.getButton() == MouseEvent.BUTTON1 && e.isControlDown())) {
 					// get the selected row
 					int row = tblVerseQueue.rowAtPoint(e.getPoint());
 					// get the data
@@ -804,7 +804,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 					}
 				} else if (e.getButton() == MouseEvent.BUTTON3 ||
 						// support mac os x control click
-						(SystemUtilities.isMac() && e.getButton() == MouseEvent.BUTTON1 && e.isControlDown())) {
+						(SystemUtilities.IS_MAC_OS && e.getButton() == MouseEvent.BUTTON1 && e.isControlDown())) {
 					// get the selected row
 					int row = tblBibleSearchResults.rowAtPoint(e.getPoint());
 					// get the data

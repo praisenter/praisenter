@@ -27,10 +27,19 @@ package org.praisenter.common.utilities;
 /**
  * Utility class used to get system related information.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public final class SystemUtilities {
+	/** Returns true if the OS is Windows */
+	public static final boolean IS_WINDOWS_OS = isWindows();
+	
+	/** Returns true if the OS is Mac */
+	public static final boolean IS_MAC_OS = isMac();
+	
+	/** Returns true if the OS is Linux */
+	public static final boolean IS_LINUX_OS = isLinux();
+	
 	/** Hidden default constructor */
 	private SystemUtilities() {}
 	
@@ -77,14 +86,44 @@ public final class SystemUtilities {
 	}
 	
 	/**
+	 * Returns true if the operating system is Windows.
+	 * @return boolean
+	 * @since 2.0.1
+	 */
+	private static final boolean isWindows() {
+		try{
+			String os = System.getProperty("os.name");
+			if (os != null) {
+				return os.toLowerCase().startsWith("windows");
+			}
+		} catch (SecurityException e) {}
+		return false;
+	}
+	
+	/**
 	 * Returns true if the operating system is Mac Os.
 	 * @return boolean
 	 */
-	public static final boolean isMac() {
+	private static final boolean isMac() {
 		try{
 			String os = System.getProperty("os.name");
 			if (os != null) {
 				return os.toLowerCase().indexOf("mac") >= 0;
+			}
+		} catch (SecurityException e) {}
+		return false;
+	}
+	
+	/**
+	 * Returns true if the operating system is Linux.
+	 * @return boolean
+	 * @since 2.0.1
+	 */
+	private static final boolean isLinux() {
+		try{
+			String os = System.getProperty("os.name");
+			if (os != null) {
+				return os.toLowerCase().indexOf("linux") >= 0;
 			}
 		} catch (SecurityException e) {}
 		return false;

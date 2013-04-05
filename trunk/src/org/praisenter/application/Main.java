@@ -45,7 +45,7 @@ import org.praisenter.presentation.PresentationManager;
 /**
  * This class is the application entry point.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public final class Main {
@@ -272,7 +272,7 @@ public final class Main {
 		String defaultLookAndFeelName = defaultLookAndFeelClassName;
 		try {
 			// check the OS
-			if (SystemUtilities.isMac()) {
+			if (SystemUtilities.IS_MAC_OS) {
 				// on a mac we want to use the native look and feel
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			} else {
