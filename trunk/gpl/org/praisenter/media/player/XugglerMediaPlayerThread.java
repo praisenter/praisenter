@@ -18,6 +18,7 @@
 package org.praisenter.media.player;
 
 import java.awt.image.BufferedImage;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
@@ -36,14 +37,14 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 	/** The maximum video buffer size */
 	protected static final int SOFT_MAXIMUM_VIDEO_BUFFER_SIZE = 5;
 	
-	/** The maximum video buffer size */
-	protected static final int HARD_MAXIMUM_VIDEO_BUFFER_SIZE = 20;
+	/** The maximum video buffer size 1080p ~ 6MB per frame; 100 frames would be 600MB */
+	protected static final int HARD_MAXIMUM_VIDEO_BUFFER_SIZE = 100;
 	
-	/** The target video buffer size (the number of video frames needed before playback) */
+	/** The target video buffer size (the number of video frames needed before playback) wait on 3 */
 	protected static final int TARGET_VIDEO_BUFFER_SIZE = 3;
 	
-	/** The target audio buffer size (the number of audio sample frames needed before playback) */
-	protected static final int TARGET_AUDIO_BUFFER_SIZE	= 3;
+	/** The target audio buffer size (the number of audio sample frames needed before playback) only wait on one */
+	protected static final int TARGET_AUDIO_BUFFER_SIZE	= 1;
 	
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(XugglerMediaPlayerThread.class);
@@ -240,6 +241,8 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 		synchronized (this.bufferLock) {
 			int vbs = this.videoBufferSize;
 			int abs = this.audioBufferSize;
+			
+			LOGGER.trace(vbs);
 			// check if we have reached the hard limit, 
 			// then we need to start dropping frames
 			if (vbs >= HARD_MAXIMUM_VIDEO_BUFFER_SIZE) {
@@ -247,13 +250,17 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 				// (and there is audio in the video) because otherwise we will
 				// fill up the queue with potentially huge video images eating
 				// up tons of memory
-				XugglerTimedData data = this.buffer.poll();
-				boolean isVideo = data.getData() instanceof BufferedImage;
-				LOGGER.warn("Dropped frame due to memory limits: " + (isVideo ? "Video" : "Audio"));
-				if (isVideo) {
-					vbs = this.videoBufferSize--;
-				} else {
-					abs = this.audioBufferSize--;
+				
+				// only drop video frames since thats what's overflowing
+				Iterator<XugglerTimedData> it = this.buffer.iterator();
+				while (it.hasNext()) {
+					XugglerTimedData data = it.next();
+					if (data.getData() instanceof BufferedImage) {
+						it.remove();
+						vbs = --this.videoBufferSize;
+						LOGGER.warn("Dropped video frame due to memory limits. Timestamp: " + data.getTimestamp());
+						break;
+					}
 				}
 			}
 			// the video buffer is only full if we are at the maximum
@@ -471,6 +478,7 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 		
 		// synchronize the playback of the data with the system clock
 		// and its timestamp
+		LOGGER.trace((isVideo ? "Video " : "Audio ") + data.getTimestamp());
 		if (synchronize(data.getTimestamp(), isVideo)) {
 			// check the data type to figure out how to play it
 			if (isVideo) {
