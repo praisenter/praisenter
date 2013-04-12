@@ -46,6 +46,9 @@ Bug Fixes:
     of per-pixel translucency was caused by Ubuntu running under Oracle
     Virtual box.  Installing Ubuntu along side Windows and booting to Ubuntu
     revealed that this is not an issue.
+  o Fixed a bug with WMV video playback where the video playback would pause
+    after a second or two due to a large video frame rate and a low audio
+    frame rate.
   
 Other: N/A
 
@@ -62,29 +65,46 @@ Platforms:
   	- Vista or higher (32 or 64 bit); It may work on XP SP3 or higher but has 
   	  not been tested.
   o Mac:
-	- OS X 10.7.3 or higher (64 bit only); 10.7.3 is the earliest Oracle Java 
-	  1.7 supported OS
-	- OS X starting with Mountain Lion will begin phasing out the Apple 
-	  developed Java runtime. As a result, Java 1.7 is not available by 
-	  default. To get Java 1.7 go to the Oracle dowload page 
-	  (http://www.oracle.com/technetwork/java/javase/downloads/index.html) and
-	  download and install the Java 1.7 **JDK** for Mac OS. Installing the
-	  JRE does not update the path environment variables.
-	- OS X users must use the JNLP rather than the .zip distributable due to
-	  new OS X application security requirements that block the execution
-	  of untrusted applications.
-	- OS X will automatically unzip any downloaded zip files. This is a 
-	  problem for Praisenter as it expects to import bibles and slides using 
-	  the zip format. To fix this, re-compress the unzipped files before
-	  import.
-  o Linux ***Right now Ubuntu is broken. See Open Issues below.***
-	- Ubuntu 11.10 or higher (32 or 64 bit); It may work on other Linux 
-	  distributions but has not been tested
-	- Java 1.7 for Ubuntu by default uses the OpenJDK which is nearly identical
-	  to the Oracle version except that Java Webstart is not included. To run 
-	  Praisenter, you will need to download IcedTea from the Ubuntu Software 
-	  Center. Alternatively you can download and install the Oracle JVM from 
-	  http://www.oracle.com/technetwork/java/javase/downloads/index.html.
+	- Mac OS X (64 bit) 10.7.3 or higher is required for Java 1.7.
+	- Mac OS X has discontinued their implementation of Java (which stopped at
+	  Java 1.6) and is no longer distributing it with their operating systems.  
+	  See what this means for you: 
+	  http://www.java.com/en/download/faq/java_mac.xml 
+	  http://docs.oracle.com/javase/7/docs/webnotes/install/mac/mac-install-faq.html#revert2012-006.
+	  Be sure to read these before installing Oracle Java.
+	- Mac OS X users will need to download the Oracle JDK rather than the JRE 
+	  to make sure it updates the path environment variable.
+	- Mac OS X Mountain Lion has a new security model (Gatekeeper) for 
+	  untrusted applications.  Because of this you will need to use the 
+	  Webstart download of Praisenter rather than the .zip download.  You can 
+	  use the .zip download by changing some settings, but this is not 
+	  recommended; read why here: 
+	  http://docs.oracle.com/javase/7/docs/technotes/guides/jweb/mac-faq.html#gatekeeper.
+	- Mac OS X automatically decompresses archives after downloading.  This is 
+	  a problem since Praisenter uses the compressed format to import new 
+	  bibles and exported slides/templates.  To remedy this, re-compress the 
+	  uncompressed files.
+  o Linux
+	- As of the latest release of Praisenter, a critical feature of Java 1.7 
+	  is broken on Ubuntu, making Praisenter useless on this platform.  Other
+	  Linux distributions may work.
+	- Ubuntu 11.10 or higher 32 or 64 bit.  Other Linux distributions may 
+	  work as well but has not been tested.
+	- Be sure your system software is up to date.
+	- Linux users will typically have Java 6 installed (typically OpenJDK 
+	  which is basically the same as Oracle’s Java).  Open the Ubuntu 
+	  Software Center to check which version of Java you have installed (type 
+	  in Java in the search box).  Alternatively you can download and install
+	  Oracle Java 7.  This allows you to skip the next step, but may still 
+	  require the final step.
+	- You may also need to install the latest IcedTea Webstart (install from 
+	  the same place as Java 7) if you want to use the Java Webstart download.
+	  Alternatively you can use the .zip download.
+	- Linux users may get a error if Java 7 was installed along side Java 6.  
+	  Run the following command lines and select the Java 7 option by choosing 
+	  the correct number (this tells Ubuntu which Java to use by default):
+	  => sudo update-alternatives --config java
+	  => sudo update-alternatives --config javaws
   o Java 1.7 or higher.
   o 512 MB of dedicated RAM (1 GB would be best for video)
   

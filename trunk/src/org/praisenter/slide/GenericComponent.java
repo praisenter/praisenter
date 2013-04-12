@@ -42,8 +42,6 @@ import org.praisenter.slide.resources.Messages;
  * @version 2.0.0
  * @since 2.0.0
  */
-// TODO [LOW] SLIDE-TEMPLATE add rotation
-// TODO [LOW] SLIDE-TEMPLATE add effects (drop shadow)
 @XmlRootElement(name = "GenericSlideComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 public class GenericComponent extends AbstractPositionedComponent implements BackgroundComponent, PositionedComponent, RenderableComponent, SlideComponent, Serializable {

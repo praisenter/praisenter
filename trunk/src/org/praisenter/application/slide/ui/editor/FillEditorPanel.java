@@ -62,11 +62,6 @@ import org.praisenter.slide.graphics.RadialGradientDirection;
 import org.praisenter.slide.graphics.RadialGradientFill;
 import org.praisenter.slide.graphics.Stop;
 
-// TODO [LOW] SLIDE-TEMPLATE we need to support multi-stop gradients (multi-thumb slider would be best)
-// cycle method, focal point (radial only) aren't really needed since we are abstracting away
-// most of the details of the gradient selection. This could change when we do multi-stop
-// gradients
-
 /**
  * Editor panel for MultipleGradientPaint objects.
  * @author William Bittle

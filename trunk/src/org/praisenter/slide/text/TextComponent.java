@@ -62,7 +62,6 @@ import org.praisenter.slide.resources.Messages;
  * @version 2.0.0
  * @since 2.0.0
  */
-// TODO [LOW] SLIDE-TEMPALTE add text shadow (color, direction, width, visible)
 @XmlRootElement(name = "TextComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({
@@ -74,7 +73,6 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	/** The version id */
 	private static final long serialVersionUID = 6365686545826144182L;
 
-	// TODO [LOW] SLIDE-TEMPLATE change this to a AttributedString so we can support all kinds of string formatting (highlighting, super/sub scripts, etc)
 	/** The text */
 	@XmlElement(name = "Text", required = false, nillable = true)
 	protected String text;

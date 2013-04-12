@@ -327,7 +327,6 @@ public final class ApplicationLoader {
 		ConnectionFactory.initialize(Constants.DATABASE_FILE_PATH);
 		
 		// run a couple queries to ensure the tables exist
-		// TODO [LOW] DATA later we may want to verify the structure of the tables
 		
 		// check the bible data store
 		int n = Bibles.getBibleCount();

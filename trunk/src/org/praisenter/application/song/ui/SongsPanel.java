@@ -106,8 +106,6 @@ import org.praisenter.slide.SlideThumbnail;
 import org.praisenter.slide.SongSlide;
 import org.praisenter.slide.SongSlideTemplate;
 
-// TODO [LOW] SONGS add honorizing for common works Jesus, God, etc.
-
 /**
  * Main ui for song manipulation and display.
  * @author William Bittle

@@ -33,7 +33,6 @@ import java.awt.GraphicsDevice.WindowTranslucency;
  * @version 1.0.0
  * @since 1.0.0
  */
-// TODO [LOW] SLIDE-TEMPLATE additional transitions
 public final class Transitions {
 	/** Hidden default constructor */
 	private Transitions() {}
