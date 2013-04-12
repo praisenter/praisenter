@@ -39,9 +39,6 @@ import org.praisenter.common.utilities.LookAndFeelUtilities;
 import org.praisenter.common.utilities.SystemUtilities;
 import org.praisenter.presentation.PresentationManager;
 
-// TODO [MEDIUM] MEDIA allow play/stop/pause/seek controls for playable media
-// TODO [HIGH] GENERAL add spellchecking
-
 /**
  * This class is the application entry point.
  * @author William Bittle

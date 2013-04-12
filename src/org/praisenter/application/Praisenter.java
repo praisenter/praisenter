@@ -84,10 +84,6 @@ import org.praisenter.presentation.PresentationManager;
  * @version 2.0.0
  * @since 1.0.0
  */
-// TODO [LOW] MEDIA add xuggler video downloader (to download videos from the web)
-// TODO [HIGH] SONGS song manager; not sure what to do here since you have all the functionality on the main panel, but its all crunched together
-// TODO [HIGH] SLIDE-TEMPLATE Add a service schedule with import/export caps; not sure how i feel about this since our service are rarely scheduled
-// TODO [LOW] ERRORS add an error manager with export and email features
 public class Praisenter extends JFrame implements ActionListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;

@@ -111,8 +111,6 @@ import org.praisenter.slide.text.TextComponent;
  * @version 2.0.0
  * @since 2.0.0
  */
-// TODO [MEDIUM] SLIDE-TEMPLATE snap to grid
-// TODO [MEDIUM] SLIDE-TEMPLATE add undo/redo functionality (store a list of slide/template copies after any change?)
 public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, EditorListener, ActionListener, ItemListener, DocumentListener {
 	/** The version id */
 	private static final long serialVersionUID = -927595042247907332L;

@@ -403,7 +403,7 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	@Override
 	public void seek(long position) {
-		// TODO [MEDIUM] MEDIA implement seeking
+		// FIXME implement seeking
 		
 	}
 	
@@ -412,7 +412,7 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 	 */
 	@Override
 	public long getPosition() {
-		// TODO [MEDIUM] MEDIA implement seeking
+		// FIXME implement seeking
 		return 0;
 	}
 	
