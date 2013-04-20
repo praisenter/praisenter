@@ -29,6 +29,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.event.ActionEvent;
@@ -53,6 +54,7 @@ import org.praisenter.media.MediaPlayer;
 import org.praisenter.media.MediaPlayerConfiguration;
 import org.praisenter.media.MediaPlayerFactory;
 import org.praisenter.media.PlayableMedia;
+import org.praisenter.media.VideoMediaFile;
 import org.praisenter.media.VideoMediaPlayerListener;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.Slide;
@@ -296,6 +298,7 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 		List<PlayableMediaComponent<?>> playableMediaComponents = slide.getPlayableMediaComponents();
 		this.inHasPlayableMedia = false;
 		this.inHasUpdatingDateTime = PresentationSurface.hasUpdatingDateTimeComponent(slide);
+		boolean readTimeVideoConversionEnabled = event.getConfiguration().isReadTimeVideoConversionEnabled();
 		
 		// we will only NOT transition the background IF both slides have a video background component AND
 		// they are the same video
@@ -357,7 +360,7 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 			VideoMediaComponent bg = (VideoMediaComponent)background;
 			// make sure the video is visible
 			if (bg.isVideoVisible()) {
-				MediaPlayer<?> player = PresentationSurface.getMediaPlayer((PlayableMediaComponent<?>)background);
+				MediaPlayer<?> player = PresentationSurface.getMediaPlayer((PlayableMediaComponent<?>)background, readTimeVideoConversionEnabled);
 				if (player != null) {
 					player.addMediaPlayerListener(this);
 					this.inBackgroundMediaPlayer = player;
@@ -374,7 +377,7 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 					continue;
 				}
 			}
-			MediaPlayer<?> player = PresentationSurface.getMediaPlayer(component);
+			MediaPlayer<?> player = PresentationSurface.getMediaPlayer(component, readTimeVideoConversionEnabled);
 			if (player != null) {
 				player.addMediaPlayerListener(this);
 				this.inMediaPlayers.add(player);
@@ -504,10 +507,11 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 	 * <p>
 	 * Returns null if a {@link MediaPlayer} is not available for the given component.
 	 * @param component the component
+	 * @param readTimeVideoConversionEnabled true if read-time video conversion should be enabled
 	 * @return {@link MediaPlayer}
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static final MediaPlayer<?> getMediaPlayer(PlayableMediaComponent<?> component) {
+	private static final MediaPlayer<?> getMediaPlayer(PlayableMediaComponent<?> component, boolean readTimeVideoConversionEnabled) {
 		PlayableMedia media = component.getMedia();
 		
 		// make sure the media is not null
@@ -516,6 +520,8 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 			MediaPlayerFactory<?> factory = MediaLibrary.getMediaPlayerFactory(media.getClass());
 			if (factory != null) {
 				MediaPlayer player = factory.createMediaPlayer();
+				
+				// setting some configuration details requires that the media be set already
 				player.setMedia(media);
 				player.addMediaPlayerListener(component);
 				
@@ -523,6 +529,16 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 				MediaPlayerConfiguration conf = new MediaPlayerConfiguration();
 				conf.setLoopEnabled(component.isLoopEnabled());
 				conf.setAudioMuted(component.isAudioMuted());
+				if (component instanceof VideoMediaComponent) {
+					VideoMediaComponent vmc = (VideoMediaComponent)component;
+					VideoMediaFile file = (VideoMediaFile)media.getFile();
+					// get the scaled dimensions
+					Rectangle rect = vmc.getScaleType().getScaledDimensions(file.getWidth(), file.getHeight(), vmc.getWidth(), vmc.getHeight());
+					conf.setWidth(rect.width);
+					conf.setHeight(rect.height);
+					conf.setReadTimeVideoConversionEnabled(readTimeVideoConversionEnabled);
+				}
+				
 				player.setConfiguration(conf);
 				
 				return player;

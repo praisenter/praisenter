@@ -55,7 +55,6 @@ import org.praisenter.application.errors.ui.ExceptionDialog;
 import org.praisenter.application.resources.Messages;
 import org.praisenter.application.ui.AllFilesFileFilter;
 import org.praisenter.application.ui.ImageFileFilter;
-import org.praisenter.application.ui.ImageFilePreview;
 import org.praisenter.application.ui.TaskProgressDialog;
 import org.praisenter.common.NotInitializedException;
 import org.praisenter.common.threading.AbstractTask;
@@ -69,7 +68,7 @@ import org.praisenter.media.MediaType;
 /**
  * Panel used to maintain the Media Library.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class MediaLibraryPanel extends JPanel implements ActionListener, ListSelectionListener, ChangeListener {
@@ -281,9 +280,9 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 			// the user can only select files
 			fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 			fc.setMultiSelectionEnabled(true);
+			fc.setAcceptAllFileFilterUsed(true);
 			// they can only select image files
 			FileFilter filter = new ImageFileFilter();
-			fc.setFileFilter(filter);
 			fc.addChoosableFileFilter(filter);
 			if (VIDEOS_SUPPORTED) {
 				fc.addChoosableFileFilter(new AllFilesFileFilter(Messages.getString("filter.video.description")));
@@ -292,8 +291,9 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 				fc.addChoosableFileFilter(new AllFilesFileFilter(Messages.getString("filter.audio.description")));
 			}
 			// provide a preview for image files
-			fc.setAccessory(new ImageFilePreview(fc));
-			fc.setAcceptAllFileFilterUsed(true);
+			fc.setAccessory(new MediaFilePreview(fc));
+			// set the all the file filter as the default
+			fc.setFileFilter(fc.getAcceptAllFileFilter());
 			// show the dialog
 			int result = fc.showOpenDialog(this);
 			if (result == JFileChooser.APPROVE_OPTION) {

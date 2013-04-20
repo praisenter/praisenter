@@ -17,6 +17,10 @@
  */
 package org.praisenter.media.player;
 
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.nio.ByteOrder;
 
@@ -44,12 +48,32 @@ import com.xuggle.xuggler.video.IConverter;
  * <p>
  * This class is not designed to be used separately from the {@link XugglerMediaPlayer} class.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public abstract class XugglerMediaReaderThread extends PausableThread {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(XugglerMediaReaderThread.class);
+	
+	// config
+	
+	/** The media output width */
+	protected int outputWidth;
+	
+	/** The media output height */
+	protected int outputHeight;
+	
+	/** True if video frames should be converted */
+	protected boolean videoConversionEnabled;
+	
+	/** The media width */
+	private int width;
+	
+	/** The media height */
+	private int height;
+	
+	/** True if the media should be scaled to the output dimensions */
+	private boolean scale;
 	
 	// media objects
 	
@@ -78,22 +102,12 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 	
 	/** Audio samples data */
 	protected IAudioSamples samples;
-	
-//	protected long lastVideoTimestamp;
-//	protected long lastAudioTimestamp;
-//	protected long endVideoTimestamp;
-//	protected long endAudioTimestamp;
-	
+
 	/**
 	 * Default constructor.
 	 */
 	public XugglerMediaReaderThread() {
 		super("XugglerMediaReaderThread");
-		
-//		this.lastVideoTimestamp = -1;
-//		this.lastAudioTimestamp = -1;
-//		this.endVideoTimestamp = -1;
-//		this.endAudioTimestamp = -1;
 	}
 	
 	/**
@@ -105,6 +119,10 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 	 */
 	public void initialize(IContainer container, IStreamCoder videoCoder, IStreamCoder audioCoder, boolean downmix) {
 		// assign the local variables
+		this.outputWidth = 0;
+		this.outputHeight = 0;
+		this.videoConversionEnabled = false;
+		this.scale = false;
 		this.container = container;
 		this.videoCoder = videoCoder;
 		this.audioCoder = audioCoder;
@@ -115,11 +133,11 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 		
 		// create the image converter for the video
 		if (videoCoder != null) {
-			int vw = this.videoCoder.getWidth();
-			int vh = this.videoCoder.getHeight();
+			this.width = this.videoCoder.getWidth();
+			this.height = this.videoCoder.getHeight();
 			IPixelFormat.Type type = this.videoCoder.getPixelType();
-			this.picture = IVideoPicture.make(type, vw, vh);
-			BufferedImage target = new BufferedImage(vw, vh, BufferedImage.TYPE_3BYTE_BGR);
+			this.picture = IVideoPicture.make(type, this.width, this.height);
+			BufferedImage target = new BufferedImage(this.width, this.height, BufferedImage.TYPE_3BYTE_BGR);
 			this.videoConverter = ConverterFactory.createConverter(target, type);
 		}
 		
@@ -134,24 +152,39 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 	 * @return boolean true if the media was reset successfully
 	 */
 	public boolean loop() {
-//		this.endAudioTimestamp = this.lastAudioTimestamp;
-//		this.endVideoTimestamp = this.lastVideoTimestamp;
-		
 		if (this.container != null) {
-			int r = this.container.seekKeyFrame(-1, 0, this.container.getStartTime(), this.container.getStartTime(), IContainer.SEEK_FLAG_BACKWARDS);
+			int r = this.container.seekKeyFrame(-1, 0, this.container.getStartTime(), this.container.getStartTime(), IContainer.SEEK_FLAG_BACKWARDS | IContainer.SEEK_FLAG_ANY);
 			if (r < 0) {
 				IError error = IError.make(r);
 				LOGGER.error(error);
 			} else {
 				return true;
 			}
-//			if (container.seekKeyFrame(videoCoder.getStream().getIndex(), 0, 0, 0, 0) < 0) {
-//				
-//			}
+//			if (this.videoCoder != null) {
+//				int r = this.container.seekKeyFrame(
+//						this.videoCoder.getStream().getIndex(), 
+//						this.videoCoder.getStream().getStartTime(), 
+//						this.videoCoder.getStream().getStartTime(), 
+//						0, 
+//						IContainer.SEEK_FLAG_BACKWARDS | IContainer.SEEK_FLAG_ANY);
+//				if (r < 0) {
+//					IError error = IError.make(r);
+//					LOGGER.error(error);
+//					return false;
+//				}
+//			} else
 //			// seek the audio, if available
 //			if (audioCoder != null) {
-//				if (container.seekKeyFrame(audioCoder.getStream().getIndex(), 0, 0, 0, 0) < 0) {
-//					
+//				int r = this.container.seekKeyFrame(
+//						this.audioCoder.getStream().getIndex(), 
+//						this.audioCoder.getStream().getStartTime(), 
+//						this.audioCoder.getStream().getStartTime(), 
+//						0, 
+//						IContainer.SEEK_FLAG_BACKWARDS | IContainer.SEEK_FLAG_ANY);
+//				if (r < 0) {
+//					IError error = IError.make(r);
+//					LOGGER.error(error);
+//					return false;
 //				}
 //			}
 //			return true;
@@ -240,6 +273,36 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 //					}
 					// convert the picture to an Java buffered image
 					BufferedImage image = this.videoConverter.toImage(this.picture);
+					
+					// check if a conversion will be made between the image type and the device
+					GraphicsEnvironment genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
+					GraphicsDevice gdev = genv.getDefaultScreenDevice();
+					GraphicsConfiguration gconf = gdev.getDefaultConfiguration();
+					// we are going to convert the image if the sample model is not the same or 
+					// if we need to scale the image down.  We do this here since the reader thread
+					// is always way faster than the player
+					if (this.videoConversionEnabled && (!gconf.getColorModel().isCompatibleSampleModel(image.getSampleModel()) || this.scale)) {
+						int width = image.getWidth();
+						int height = image.getHeight();
+						// do we need to scale
+						if (this.scale) {
+							// if so, use the output width/height
+							width = this.outputWidth;
+							height = this.outputHeight;
+						}
+						BufferedImage cimage = gconf.createCompatibleImage(width, height);
+						Graphics2D g = cimage.createGraphics();
+						if (this.scale) {
+							// make sure we scale the image along with converting it
+							g.drawImage(image, 0, 0, width, height, null);
+						} else {
+							// only do the image conversion
+							g.drawImage(image, 0, 0, null);
+						}
+						g.dispose();
+						// use the converted image
+						image = cimage;
+					}
 					this.queueVideoImage(new XugglerVideoData(this.picture.getTimeStamp(), image));
 				}
 			}
@@ -296,4 +359,41 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 	 * This is called when the reader has reached the end of the media.
 	 */
 	protected abstract void onMediaEnd();
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.common.threading.PausableThread#onThreadResume()
+	 */
+	@Override
+	protected void onThreadResume() {
+		if (this.scale && this.videoConversionEnabled) {
+			LOGGER.debug("Scaling video from " + this.width + "x" + this.height + " to " + this.outputWidth + "x" + this.outputHeight);
+		}
+	}
+	
+	/**
+	 * Sets the output dimensions of the media reader.
+	 * @param width the width in pixels
+	 * @param height the height in pixels
+	 * @since 2.0.1
+	 */
+	public void setOutputDimensions(int width, int height) {
+		this.outputWidth = width;
+		this.outputHeight = height;
+		
+		// we want to scale down the image sent to the video player to reduce memory but only
+		// when the output size is smaller than the video size.  We do not want to scale up
+		// the image as this is actually slower than passing a small image down to the graphics
+		// hardware and letting it scale it.
+		this.scale = width < this.width || height < this.height;
+	}
+	
+	/**
+	 * Toggles the conversion of color space and size during reading of
+	 * video frames.
+	 * @param flag true if conversion should be performed
+	 * @since 2.0.1
+	 */
+	public void setVideoConversionEnabled(boolean flag) {
+		this.videoConversionEnabled = flag;
+	}
 }
