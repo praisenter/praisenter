@@ -55,7 +55,7 @@ import org.praisenter.common.xml.XmlIO;
 /**
  * Static thread-safe class for managing the media library.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public final class MediaLibrary {
@@ -370,7 +370,7 @@ public final class MediaLibrary {
 	private Media loadFromFileSystem(String filePath) throws NoMediaLoaderException, MediaException, FileNotFoundException, FileAlreadyExistsException, IOException {
 		String contentType = FileUtilities.getContentType(filePath);
 		// get the media type
-		MediaType type = getMediaType(contentType);
+		MediaType type = getMediaTypeFromMimeType(contentType);
 		// make sure we can load this type before copying it
 		if (isMediaSupported(type)) {
 			// get the folder for the media type
@@ -421,7 +421,7 @@ public final class MediaLibrary {
 	 */
 	private Media loadFromMediaLibrary(String fullPath) throws NoMediaLoaderException, MediaException {
 		String contentType = FileUtilities.getContentType(fullPath);
-		MediaType type = getMediaType(contentType);
+		MediaType type = getMediaTypeFromMimeType(contentType);
 		MediaLoader<?> loader = getMediaLoader(type, contentType);
 		return loader.load(this.basePath, fullPath);
 	}
@@ -462,14 +462,33 @@ public final class MediaLibrary {
 	}
 	
 	/**
+	 * Returns the {@link MediaType} for the given file.
+	 * <p>
+	 * Returns null if the media type is unknown.
+	 * @param filePath the file path or file name
+	 * @return {@link MediaType}
+	 * @since 2.0.1
+	 */
+	public static final MediaType getMediaType(String filePath) {
+		String contentType = FileUtilities.getContentType(filePath);
+		// get the media type
+		try {
+			return getMediaTypeFromMimeType(contentType);
+		} catch (NoMediaLoaderException e) {
+			return null;
+		}
+	}
+	
+	/**
 	 * Returns the media type of the given file name.
 	 * <p>
 	 * This method inspects the file extension and determines the content type.
 	 * @param contentType the file name
 	 * @return {@link MediaType}
 	 * @throws NoMediaLoaderException thrown if the content type is not image, video, or audio
+	 * @since 2.0.1
 	 */
-	private MediaType getMediaType(String contentType) throws NoMediaLoaderException {
+	private static final MediaType getMediaTypeFromMimeType(String contentType) throws NoMediaLoaderException {
 		// attempt to determine the type of media
 		if (contentType.contains("image")) {
 			return MediaType.IMAGE;

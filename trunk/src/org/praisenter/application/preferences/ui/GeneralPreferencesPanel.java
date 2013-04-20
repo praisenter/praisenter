@@ -61,7 +61,7 @@ import org.praisenter.slide.graphics.RenderQuality;
 /**
  * Panel used to setup the general preferences for the application.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor, ActionListener, ItemListener {
@@ -110,6 +110,9 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 	
 	/** The stroke control quality */
 	private JComboBox<RenderQuality> cmbStrokeControlQuality;
+	
+	/** The read-time video conversion flag */
+	private JCheckBox chkReadTimeVideoConversion;
 	
 	// transitions
 	
@@ -244,6 +247,11 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		this.chkWaitForTransition.setToolTipText(Messages.getString("panel.general.preferences.waitForTransition.tooltip"));
 		this.chkWaitForTransition.setSelected(preferences.isWaitForTransitionEnabled());
 		
+		JLabel lblReadTimeVideoConversion = new JLabel(Messages.getString("panel.general.preferences.readTimeVideoConversion"));
+		this.chkReadTimeVideoConversion = new JCheckBox();
+		this.chkReadTimeVideoConversion.setToolTipText(Messages.getString("panel.general.preferences.readTimeVideoConversion.tooltip"));
+		this.chkReadTimeVideoConversion.setSelected(preferences.isReadTimeVideoConversionEnabled());
+		
 		// create the layout
 		JPanel pnlGeneral = new JPanel();
 		GroupLayout layout = new GroupLayout(pnlGeneral);
@@ -256,7 +264,8 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 						.addComponent(lblPrimaryDisplay)
 						.addComponent(lblSmartVideoTransitions)
 						.addComponent(lblSmartImageTransitions)
-						.addComponent(lblWaitForTransition))
+						.addComponent(lblWaitForTransition)
+						.addComponent(lblReadTimeVideoConversion))
 				.addGroup(layout.createParallelGroup()
 						.addGroup(layout.createSequentialGroup()
 								.addComponent(this.cmbDevices, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -265,7 +274,8 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 						.addComponent(this.lblTranslucency)
 						.addComponent(this.chkSmartVideoTransitions)
 						.addComponent(this.chkSmartImageTransitions)
-						.addComponent(this.chkWaitForTransition)));
+						.addComponent(this.chkWaitForTransition)
+						.addComponent(this.chkReadTimeVideoConversion)));
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblPrimaryDisplay)
@@ -281,7 +291,10 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 						.addComponent(this.chkSmartImageTransitions))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblWaitForTransition)
-						.addComponent(this.chkWaitForTransition)));
+						.addComponent(this.chkWaitForTransition))
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(lblReadTimeVideoConversion)
+						.addComponent(this.chkReadTimeVideoConversion)));
 		
 		JPanel pnlQuality = new JPanel();
 		layout = new GroupLayout(pnlQuality);
@@ -454,5 +467,6 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		preferences.getRenderQualities().setTextAntialiasingQuality((RenderQuality)this.cmbTextAntialiasingQuality.getSelectedItem());
 		preferences.getRenderQualities().setFractionalMetricsQuality((RenderQuality)this.cmbFractionalMetricsQuality.getSelectedItem());
 		preferences.getRenderQualities().setStrokeControlQuality((RenderQuality)this.cmbStrokeControlQuality.getSelectedItem());
+		preferences.setReadTimeVideoConversionEnabled(this.chkReadTimeVideoConversion.isSelected());
 	}
 }

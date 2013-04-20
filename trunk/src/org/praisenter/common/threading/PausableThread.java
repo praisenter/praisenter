@@ -27,7 +27,7 @@ package org.praisenter.common.threading;
 /**
  * Represents a Thread that runs forever, that can be paused, resumed, and stopped.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class PausableThread extends Thread {
@@ -159,6 +159,7 @@ public class PausableThread extends Thread {
 					this.onThreadStopped();
 					break;
 				}
+				this.onThreadResume();
 			}
 			
 			// if we aren't stopped or paused, then execute
@@ -193,6 +194,16 @@ public class PausableThread extends Thread {
 	 * Called right before this thread ceases excecution due to being paused.
 	 */
 	protected void onThreadPaused() {}
+	
+	/**
+	 * Called after this thread has resumed execution.
+	 * <p>
+	 * This will not be called if the thread is stopped before being unpaused.
+	 * <p>
+	 * This will be called before {@link #executeTask()}.
+	 * @since 2.0.1
+	 */
+	protected void onThreadResume() {}
 	
 	/**
 	 * Called right before this thread stops execution.

@@ -30,7 +30,7 @@ import org.praisenter.common.threading.PausableThread;
  * <p>
  * This class is not designed to be used separately from the {@link XugglerMediaPlayer} class.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public abstract class XugglerMediaPlayerThread extends PausableThread {
@@ -439,6 +439,7 @@ public abstract class XugglerMediaPlayerThread extends PausableThread {
 					bufferLock.wait();
 				} catch (InterruptedException e) {
 					// we may have been stopped or paused
+					return;
 				}
 			}
 			if (this.isStopped() || this.isPaused()) {

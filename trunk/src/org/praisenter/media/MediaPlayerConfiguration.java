@@ -27,10 +27,19 @@ package org.praisenter.media;
 /**
  * Represents an object containing the configuration for a {@link MediaPlayer}.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class MediaPlayerConfiguration {
+	/** The media output width */
+	protected int width;
+	
+	/** The media output height */
+	protected int height;
+	
+	/** True if the media should be converted at read time */
+	protected boolean readTimeVideoConversionEnabled;
+	
 	/** True if the media should loop */
 	protected boolean loopEnabled;
 	
@@ -44,6 +53,9 @@ public class MediaPlayerConfiguration {
 	 * Default constructor.
 	 */
 	public MediaPlayerConfiguration() {
+		this.width = 0;
+		this.height = 0;
+		this.readTimeVideoConversionEnabled = false;
 		this.loopEnabled = false;
 		this.audioMuted = false;
 		this.volume = 100.0;
@@ -54,6 +66,9 @@ public class MediaPlayerConfiguration {
 	 * @param configuration the configuration to copy
 	 */
 	public MediaPlayerConfiguration(MediaPlayerConfiguration configuration) {
+		this.width = configuration.width;
+		this.height = configuration.height;
+		this.readTimeVideoConversionEnabled = configuration.readTimeVideoConversionEnabled;
 		this.loopEnabled = configuration.loopEnabled;
 		this.audioMuted = configuration.audioMuted;
 		this.volume = configuration.volume;
@@ -105,5 +120,59 @@ public class MediaPlayerConfiguration {
 	 */
 	public void setVolume(double volume) {
 		this.volume = volume;
+	}
+
+	/**
+	 * Returns the width of the media.
+	 * @return int
+	 * @since 2.0.1
+	 */
+	public int getWidth() {
+		return this.width;
+	}
+
+	/**
+	 * Sets the width of the media.
+	 * @param width the width in pixels
+	 * @since 2.0.1
+	 */
+	public void setWidth(int width) {
+		this.width = width;
+	}
+
+	/**
+	 * Returns the height of the media.
+	 * @return int
+	 * @since 2.0.1
+	 */
+	public int getHeight() {
+		return this.height;
+	}
+
+	/**
+	 * Sets the height of the media
+	 * @param height the height in pixels
+	 * @since 2.0.1
+	 */
+	public void setHeight(int height) {
+		this.height = height;
+	}
+	
+	/**
+	 * Returns true if read-time video conversion is enabled.
+	 * @return boolean
+	 * @since 2.0.1
+	 */
+	public boolean isReadTimeVideoConversionEnabled() {
+		return this.readTimeVideoConversionEnabled;
+	}
+	
+	/**
+	 * Toggles read-time conversion of video frames.
+	 * @param flag true if read-time conversion should be enabled
+	 * @since 2.0.1
+	 */
+	public void setReadTimeVideoConversionEnabled(boolean flag) {
+		this.readTimeVideoConversionEnabled = flag;
 	}
 }

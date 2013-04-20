@@ -49,7 +49,7 @@ import org.praisenter.slide.graphics.RenderQualities;
 /**
  * Class used to store application preferences.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 @XmlRootElement(name = "Preferences")
@@ -94,6 +94,10 @@ public class Preferences {
 	@XmlElement(name = "TransitionDelay", required = true, nillable = false)
 	protected int transitionDelay;
 	
+	/** True if read-time video conversion is enabled */
+	@XmlElement(name = "ReadTimeVideoConversionEnabled", required = false, nillable = true)
+	protected boolean readTimeVideoConversionEnabled;
+	
 	// other settings
 	
 	/** The bible preferences */
@@ -124,6 +128,7 @@ public class Preferences {
 		// default render qualities
 		this.renderQualities = new RenderQualities();
 		this.transitionDelay = 20;
+		this.readTimeVideoConversionEnabled = false;
 		
 		this.smartVideoTransitionsEnabled = true;
 		this.smartImageTransitionsEnabled = true;
@@ -244,6 +249,24 @@ public class Preferences {
 	 */
 	public void setTransitionDelay(int delay) {
 		this.transitionDelay = delay;
+	}
+	
+	/**
+	 * Returns true if read-time video conversion is enabled.
+	 * @return boolean
+	 * @since 2.0.1
+	 */
+	public boolean isReadTimeVideoConversionEnabled() {
+		return this.readTimeVideoConversionEnabled;
+	}
+	
+	/**
+	 * Toggles read-time video conversion.
+	 * @param flag true if read-time video conversion should be enabled.
+	 * @since 2.0.1
+	 */
+	public void setReadTimeVideoConversionEnabled(boolean flag) {
+		this.readTimeVideoConversionEnabled = flag;
 	}
 	
 	// other preferences
@@ -411,6 +434,7 @@ public class Preferences {
 		configuration.setWaitForTransitionEnabled(this.waitForTransitionEnabled);
 		configuration.setSmartImageTransitionsEnabled(this.smartImageTransitionsEnabled);
 		configuration.setSmartVideoTransitionsEnabled(this.smartVideoTransitionsEnabled);
+		configuration.setReadTimeVideoConversionEnabled(this.readTimeVideoConversionEnabled);
 		return configuration;
 	}
 }

@@ -25,6 +25,7 @@
 package org.praisenter.slide.media;
 
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
@@ -49,7 +50,7 @@ import org.praisenter.slide.resources.Messages;
 /**
  * Component for showing images from the media library.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 @XmlRootElement(name = "ImageMediaComponent")
@@ -259,24 +260,8 @@ public class ImageMediaComponent extends GenericComponent implements MediaCompon
 			int ih = image.getHeight();
 			
 			if (iw != this.width || ih != this.height) {
-				double sw = (double)this.width / (double)iw;
-				double sh = (double)this.height / (double)ih;
-				if (this.scaleType == ScaleType.UNIFORM) {
-					if (sw < sh) {
-						iw = this.width;
-						ih = (int)Math.ceil(sw * ih);
-					} else {
-						iw = (int)Math.ceil(sh * iw);
-						ih = this.height;
-					}
-				} else if (this.scaleType == ScaleType.NONUNIFORM) {
-					iw = this.width;
-					ih = this.height;
-				}
-				// center the image
-				int x = (this.width - iw) / 2;
-				int y = (this.height - ih) / 2;
-				g.drawImage(image, this.x + x, this.y + y, iw, ih, null);
+				Rectangle rect = this.scaleType.getScaledDimensions(iw, ih, this.width, this.height);
+				g.drawImage(image, this.x + rect.x, this.y + rect.y, rect.width, rect.height, null);
 			} else {
 				g.drawImage(image, this.x, this.y, null);
 			}

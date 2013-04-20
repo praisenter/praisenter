@@ -38,7 +38,7 @@ import com.xuggle.xuggler.IStreamCoder;
  * <p>
  * This class uses a number of threads to read and playback the given media.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
@@ -283,6 +283,8 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 		this.configuration = configuration;
 		this.audioPlayerThread.setVolume(configuration.getVolume());
 		this.audioPlayerThread.setMuted(configuration.isAudioMuted());
+		this.mediaReaderThread.setOutputDimensions(configuration.getWidth(), configuration.getHeight());
+		this.mediaReaderThread.setVideoConversionEnabled(configuration.isReadTimeVideoConversionEnabled());
 	}
 	
 	/* (non-Javadoc)

@@ -22,17 +22,15 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.application.ui;
+package org.praisenter.application.media.ui;
 
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.io.IOException;
+import java.util.List;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
@@ -40,20 +38,29 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
+import org.praisenter.application.Constants;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.ImagePanel;
+import org.praisenter.media.AbstractVideoMedia;
+import org.praisenter.media.ImageMedia;
+import org.praisenter.media.Media;
+import org.praisenter.media.MediaException;
+import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaLoader;
+import org.praisenter.media.MediaType;
 
 /**
  * Represents an image preview panel for a JFileChooser.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.1
+ * @since 2.0.1
  */
-public class ImageFilePreview extends JPanel implements PropertyChangeListener {
+public class MediaFilePreview extends JPanel implements PropertyChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -2940127890885508444L;
 	
 	/** Static logger */
-	private static final Logger LOGGER = Logger.getLogger(ImageFilePreview.class);
+	private static final Logger LOGGER = Logger.getLogger(MediaFilePreview.class);
 	
 	/** The panel to show the image */
 	private ImagePanel pnlImage;
@@ -62,7 +69,7 @@ public class ImageFilePreview extends JPanel implements PropertyChangeListener {
 	 * Minimal constructor.
 	 * @param fileChooser the file chooser
 	 */
-    public ImageFilePreview(JFileChooser fileChooser) {
+    public MediaFilePreview(JFileChooser fileChooser) {
     	this(fileChooser, 100, 100);
     }
     
@@ -72,11 +79,11 @@ public class ImageFilePreview extends JPanel implements PropertyChangeListener {
      * @param width the preview width
      * @param height the preview height
      */
-    public ImageFilePreview(JFileChooser fileChooser, int width, int height) {
+    public MediaFilePreview(JFileChooser fileChooser, int width, int height) {
     	fileChooser.addPropertyChangeListener(this);
     	
     	// the preview label
-    	JLabel lblPreview = new JLabel(Messages.getString("panel.image.preview"));
+    	JLabel lblPreview = new JLabel(Messages.getString("preview"));
     	lblPreview.setAlignmentX(Component.CENTER_ALIGNMENT);
     	this.pnlImage = new ImagePanel();
     	this.pnlImage.setPreferredSize(new Dimension(width, height));
@@ -100,16 +107,42 @@ public class ImageFilePreview extends JPanel implements PropertyChangeListener {
         } else if (JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(prop)) {
         	// otherwise get the file and create a thumbnail
             File file = (File) e.getNewValue();
+            // file will be null for folders
             if (file != null) {
-				try {
-					BufferedImage image = ImageIO.read(file);
-					this.pnlImage.setImage(image);
-				} catch (IOException ex) {
-					LOGGER.warn("Generation of the preview in the image selector failed: ", ex);
-				}
-            } else {
-            	this.pnlImage.setImage(null);
+	            // check the file type
+	            MediaType type = MediaLibrary.getMediaType(file.getAbsolutePath());
+	            // check if the type was known and its not audio (since there's no
+	            // preview to show for audio media)
+	            if (type != null && type != MediaType.AUDIO) {
+	            	// get a media loader for the type
+	            	List<MediaLoader<?>> loaders = MediaLibrary.getMediaLoaders(type);
+	            	// make sure there is a loader for the type
+	            	if (loaders != null && loaders.size() > 0) {
+	            		for (MediaLoader<?> loader : loaders) {
+			            	try {
+			            		// the base path parameter is only for loading it into the media library
+								Media media = loader.load(Constants.BASE_PATH, file.getAbsolutePath());
+								// make sure the media was loaded
+								if (media != null) {
+									// check the type an assign the preview image
+									if (media instanceof ImageMedia) {
+										this.pnlImage.setImage(((ImageMedia)media).getImage());
+									} else if (media instanceof AbstractVideoMedia) {
+										this.pnlImage.setImage(((AbstractVideoMedia)media).getFirstFrame());
+									}
+									// once one of the loaders works, then return
+									return;
+								}
+							} catch (MediaException ex) {
+								LOGGER.warn("MediaLoader [" + loader.getClass().getName() + "] failed to load the media [" + file.getAbsolutePath() + "] due to: ", ex);
+							}
+	            		}
+	            	} else {
+	            		LOGGER.warn("No MediaLoader for type [" + type + "].");
+	            	}
+	            }
             }
+            this.pnlImage.setImage(null);
         }
     }
 }

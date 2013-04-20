@@ -32,7 +32,7 @@ import org.praisenter.slide.graphics.RenderQualities;
 /**
  * Class containing the configuration of a {@link PresentationEvent}.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class PresentationEventConfiguration implements Serializable {
@@ -57,6 +57,9 @@ public class PresentationEventConfiguration implements Serializable {
 	/** True if we should use smart video transition */
 	protected boolean smartVideoTransitionsEnabled;
 
+	/** True if read-time video conversion is enabled */
+	protected boolean readTimeVideoConversionEnabled;
+	
 	/**
 	 * Default constructor.
 	 * <p>
@@ -70,6 +73,7 @@ public class PresentationEventConfiguration implements Serializable {
 		this.waitForTransitionEnabled = true;
 		this.smartImageTransitionsEnabled = true;
 		this.smartVideoTransitionsEnabled = true;
+		this.readTimeVideoConversionEnabled = false;
 	}
 	
 	/**
@@ -167,5 +171,23 @@ public class PresentationEventConfiguration implements Serializable {
 	 */
 	public void setSmartVideoTransitionsEnabled(boolean flag) {
 		this.smartVideoTransitionsEnabled = flag;
+	}
+
+	/**
+	 * Returns true if read-time video conversion is enabled.
+	 * @return boolean
+	 * @since 2.0.1
+	 */
+	public boolean isReadTimeVideoConversionEnabled() {
+		return this.readTimeVideoConversionEnabled;
+	}
+
+	/**
+	 * Toggles read-time video conversion.
+	 * @param flag true if read-time video conversion should be enabled
+	 * @since 2.0.1
+	 */
+	public void setReadTimeVideoConversionEnabled(boolean flag) {
+		this.readTimeVideoConversionEnabled = flag;
 	}
 }
