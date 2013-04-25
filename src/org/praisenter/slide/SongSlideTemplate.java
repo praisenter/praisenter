@@ -47,7 +47,7 @@ import org.praisenter.slide.text.VerticalTextAlignment;
 /**
  * Represents a template of a {@link NotificationSlide}.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 @XmlRootElement(name = "SongSlideTemplate")
@@ -112,8 +112,8 @@ public class SongSlideTemplate extends SongSlide implements Slide, Template, Ser
 		
 		Fill fill = new LinearGradientFill(LinearGradientDirection.TOP,
 				new Stop(0.0f, Color.BLACK),
-				new Stop(0.5f, ColorUtilities.getColorAtMidpoint(Color.BLACK, new Color(0, 0, 0, 0))),
-				new Stop(1.0f, 0, 0, 0, 0));
+				new Stop(0.5f, ColorUtilities.getColorAtMidpoint(Color.BLACK, Color.BLUE)),
+				new Stop(1.0f, Color.BLUE));
 		GenericComponent background = template.createFillBackgroundComponent(fill);
 		template.setBackground(background);
 		

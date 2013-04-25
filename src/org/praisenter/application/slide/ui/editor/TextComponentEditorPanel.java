@@ -682,6 +682,11 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 			this.txtText.setCaretPosition(0);
 			this.chkTextVisible.setSelected(slideComponent.isTextVisible());
 			this.chkOutlineVisible.setSelected(slideComponent.isTextOutlineVisible());
+			if (isStatic) {
+				this.txtText.setToolTipText(Messages.getString("panel.slide.editor.text.tooltip.static"));
+			} else {
+				this.txtText.setToolTipText(null);
+			}
 		} else {
 			this.chkWrapText.setSelected(false);
 			this.cmbFontFamilies.setSelectedItem(FontManager.getDefaultFont().getFamily());
@@ -698,6 +703,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 			this.spnPadding.setValue(5);
 			this.txtText.setText("");
 			this.txtText.setCaretPosition(0);
+			this.txtText.setToolTipText(null);
 			this.chkTextVisible.setSelected(false);
 			this.chkOutlineVisible.setSelected(false);
 		}

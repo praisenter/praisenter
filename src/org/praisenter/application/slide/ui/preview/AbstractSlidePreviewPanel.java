@@ -33,6 +33,7 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -54,7 +55,7 @@ import org.praisenter.slide.graphics.RenderQuality;
 /**
  * Generic slide preview panel containing the methods required to show a preview of a slide.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public abstract class AbstractSlidePreviewPanel extends JPanel implements ComponentListener {
@@ -264,8 +265,15 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 
 		String name = slide.getName();
 		if (this.includeSlideName && name != null) {
+			// use text anti-aliasing for the slide name
+			Object value = g2d.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
+			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			
 			// render the text
 			this.renderSlideName(g2d, name, metrics.totalWidth);
+			
+			// reset the text anti-aliasing to whatever it was before
+			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, value);
 
 			g2d.translate(0, th);
 		}
@@ -437,7 +445,8 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 			int tw = metrics.stringWidth(name);
 			
 			g2d.setColor(Color.BLACK);
-			g2d.drawString(name, (w - tw) / 2, metrics.getAscent());
+			// make sure all the text lines up with the line
+			g2d.drawString(name, (w - tw) / 2, TEXT_HEIGHT + metrics.getDescent());
 		}
 	}
 	
