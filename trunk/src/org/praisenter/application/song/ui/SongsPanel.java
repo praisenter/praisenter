@@ -109,7 +109,7 @@ import org.praisenter.slide.SongSlideTemplate;
 /**
  * Main ui for song manipulation and display.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class SongsPanel extends JPanel implements ActionListener, SongListener, ItemListener, PreferencesListener, SlideLibraryListener {
@@ -240,12 +240,16 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		this.btnSend.addActionListener(this);
 		this.btnSend.setActionCommand("send");
 		this.btnSend.setFont(this.btnSend.getFont().deriveFont(Font.BOLD, this.btnSend.getFont().getSize2D() + 3.0f));
-		this.btnSend.setEnabled(false);
 		
 		this.btnClear = new JButton(Messages.getString("panel.songs.clear"));
 		this.btnClear.setToolTipText(Messages.getString("panel.songs.clear.tooltip"));
 		this.btnClear.addActionListener(this);
 		this.btnClear.setActionCommand("clear");
+		
+		JButton btnBlank = new JButton(Messages.getString("panel.songs.blank"));
+		btnBlank.setToolTipText(Messages.getString("panel.songs.blank.tooltip"));
+		btnBlank.addActionListener(this);
+		btnBlank.setActionCommand("blank");
 		
 		// setup the transition lists
 		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(device);
@@ -286,7 +290,8 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 						.addComponent(this.pnlQuickSend)
 						.addGroup(sendLayout.createSequentialGroup()
 								.addComponent(lblParts)
-								.addComponent(this.cmbParts)))
+								.addComponent(this.cmbParts)
+								.addComponent(btnBlank)))
 				.addGroup(sendLayout.createParallelGroup()
 						.addComponent(this.cmbTemplates)
 						.addGroup(sendLayout.createSequentialGroup()
@@ -318,7 +323,8 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 								.addComponent(this.btnClear, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
 				.addGroup(sendLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(lblParts)
-						.addComponent(this.cmbParts, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+						.addComponent(this.cmbParts, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnBlank)));
 		
 		// searching
 		
@@ -782,6 +788,8 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			this.sendAction();
 		} else if ("clear".equals(command)) {
 			this.clearAction();
+		} else if ("blank".equals(command)) {
+			this.blankAction();
 		}
 	}
 	
@@ -902,6 +910,20 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			}
 		}
 	}
+	
+	/**
+	 * Sends a blank song part to the primary display.
+	 * @since 2.0.1
+	 */
+	private void blankAction() {
+		SongSlide slide = this.getSelectedTemplate().createSlide();
+		if (slide != null) {
+			slide.setName("");
+			slide.getTextComponent().setText("");
+			this.sendSlide(slide);
+		}
+	}
+	
 	
 	/**
 	 * Sends the given {@link SongSlide} to the primary display.

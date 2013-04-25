@@ -29,6 +29,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
 import java.awt.GridLayout;
 import java.awt.Point;
@@ -89,6 +90,7 @@ import org.praisenter.application.slide.ui.SlideLibraryListener;
 import org.praisenter.application.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.application.slide.ui.TransitionListCellRenderer;
 import org.praisenter.application.slide.ui.preview.InlineSlidePreviewPanel;
+import org.praisenter.application.slide.ui.preview.SlidePreviewMetrics;
 import org.praisenter.application.ui.AutoCompleteComboBoxEditor;
 import org.praisenter.application.ui.EmptyNumberFormatter;
 import org.praisenter.application.ui.SelectTextFocusListener;
@@ -252,7 +254,20 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		this.cmbTemplates.addItemListener(this);
 		
 		// create the preview panel
-		this.pnlPreview = new InlineSlidePreviewPanel(10, 5);
+		this.pnlPreview = new InlineSlidePreviewPanel(10, 5) {
+			// override the render slide method to bold the middle (current verse) slide name
+			protected void renderSlide(Graphics2D g2d, Slide slide, SlidePreviewMetrics metrics) {
+				if (this.slides.get(1) == slide) {
+					// if its the middle slide then override the font
+					Font font = g2d.getFont();
+					g2d.setFont(font.deriveFont(Font.BOLD, font.getSize2D() * 1.3f));
+					super.renderSlide(g2d, slide, metrics);
+					g2d.setFont(font);
+				} else {
+					super.renderSlide(g2d, slide, metrics);
+				}
+			}
+		};
 		this.pnlPreview.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY), BorderFactory.createEmptyBorder(15, 15, 15, 15)));
 		
 		this.pnlPreview.addSlide(previous);
@@ -1404,8 +1419,11 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	 * @param slide the slide
 	 */
 	private void setVerse(Verse verse, BibleSlide slide) {
+		String location = MessageFormat.format(Messages.getString("panel.bible.verse.location.pattern"), verse.getBook().getName(), verse.getChapter(), verse.getVerse());
+		slide.setName(location);
+		
 		TextComponent l = slide.getScriptureLocationComponent();
-		l.setText(verse.getBook().getName() + " " + verse.getChapter() + ":" + verse.getVerse());
+		l.setText(location);
 		
 		TextComponent t = slide.getScriptureTextComponent();
 		t.setText(verse.getText());
@@ -1418,8 +1436,11 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	 * @param slide the slide
 	 */
 	private void setVerse(Verse verse1, Verse verse2, BibleSlide slide) {
+		String location = MessageFormat.format(Messages.getString("panel.bible.verse.location.pattern"), verse1.getBook().getName(), verse1.getChapter(), verse1.getVerse());
+		slide.setName(location);
+		
 		TextComponent l = slide.getScriptureLocationComponent();
-		l.setText(verse1.getBook().getName() + " " + verse1.getChapter() + ":" + verse1.getVerse());
+		l.setText(location);
 		
 		TextComponent t = slide.getScriptureTextComponent();
 		t.setText(verse1.getText() + "\n\n" + verse2.getText());
@@ -1430,6 +1451,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	 * @param slide the slide
 	 */
 	private void clearVerse(BibleSlide slide) {
+		slide.setName("");
 		slide.getScriptureLocationComponent().setText("");
 		slide.getScriptureTextComponent().setText("");
 	}
@@ -1451,44 +1473,6 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		BibleSlide sCurrent = (BibleSlide)this.pnlPreview.getSlide(1);
 		BibleSlide sNext = (BibleSlide)this.pnlPreview.getSlide(2);
 		
-		// check the secondary bible
-		if (this.chkUseSecondaryBible.isSelected()) {
-			// get the secondary bible's text
-			Bible bible = (Bible)this.cmbBiblesSecondary.getSelectedItem();
-			// as long as they aren't the same bible
-			if (bible != null && !bible.equals(verse.getBible())) {
-				try {
-					// get the secondary bible verses
-					Verse v2 = Bibles.getVerse(bible, verse.getBook().getCode(), verse.getChapter(), verse.getVerse());
-					if (v2 != null) {
-						Verse v2p = Bibles.getPreviousVerse(v2, ia);
-						Verse v2n = Bibles.getNextVerse(v2, ia);
-						// set the current verse text
-						this.setVerse(verse, v2, sCurrent);
-						// set the previous verse
-						if (prev != null) {
-							this.setVerse(prev, v2p, sPrevious);
-						} else {
-							this.clearVerse(sPrevious);
-						}
-						// set the next verse
-						if (next != null) {
-							this.setVerse(next, v2n, sNext);
-						} else {
-							this.clearVerse(sNext);
-						}
-						// repaint the preview
-						this.pnlPreview.repaint();
-						return;
-					}
-				} catch (DataException e) {
-					// the secondary bible isn't as important as the primary
-					// we should just log the error if the secondary throws an excpetion
-					LOGGER.error("An error occurred while retrieving the previous, current, and next verses from the secondary bible: ", e);
-				}
-			}
-		}
-		
 		// set the current verse text
 		this.setVerse(verse, sCurrent);
 		// set the previous verse
@@ -1503,6 +1487,42 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		} else {
 			this.clearVerse(sNext);
 		}
+		
+		// check the secondary bible
+		if (this.chkUseSecondaryBible.isSelected()) {
+			// get the secondary bible's text
+			Bible bible = (Bible)this.cmbBiblesSecondary.getSelectedItem();
+			// as long as they aren't the same bible
+			if (bible != null && !bible.equals(verse.getBible())) {
+				try {
+					// get the secondary bible verses
+					Verse v2 = Bibles.getVerse(bible, verse.getBook().getCode(), verse.getChapter(), verse.getVerse());
+					if (v2 != null) {
+						// set the current verse text
+						this.setVerse(verse, v2, sCurrent);
+					}
+					// set the previous verse
+					if (prev != null) {
+						Verse v2p = Bibles.getVerse(bible, prev.getBook().getCode(), prev.getChapter(), prev.getVerse());
+						if (v2p != null) {
+							this.setVerse(prev, v2p, sPrevious);
+						}
+					}
+					// set the next verse
+					if (next != null) {
+						Verse v2n = Bibles.getVerse(bible, next.getBook().getCode(), next.getChapter(), next.getVerse());
+						if (v2n != null) {
+							this.setVerse(next, v2n, sNext);
+						}
+					}
+				} catch (DataException e) {
+					// the secondary bible isn't as important as the primary
+					// we should just log the error if the secondary throws an excpetion
+					LOGGER.error("An error occurred while retrieving the previous, current, and next verses from the secondary bible: ", e);
+				}
+			}
+		}
+
 		// repaint the preview
 		this.pnlPreview.repaint();
 	}
@@ -1529,9 +1549,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 			}
 			
 			// we need to make sure the slide labels remain stationary
-			this.pnlPreview.getSlide(0).setName(Messages.getString("panel.bible.preview.previous"));
-			this.pnlPreview.getSlide(1).setName(Messages.getString("panel.bible.preview.current"));
-			this.pnlPreview.getSlide(2).setName(Messages.getString("panel.bible.preview.next"));
+			// we are using the verse location now instead of the Previous/Current/Next labels
+//			this.pnlPreview.getSlide(0).setName(Messages.getString("panel.bible.preview.previous"));
+//			this.pnlPreview.getSlide(1).setName(Messages.getString("panel.bible.preview.current"));
+//			this.pnlPreview.getSlide(2).setName(Messages.getString("panel.bible.preview.next"));
 		}
 		
 		// check for null

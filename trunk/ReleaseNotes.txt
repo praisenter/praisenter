@@ -40,6 +40,8 @@ New Features:
   o Added a preference to do video color/size conversion at read time rather
     than at play time. This can boost performance in some cases.
   o Added video preview to the Add Media dialog.
+  o Added a Blank button for song display which allows a blank slide using
+    the current template to be sent.
   
 Bug Fixes:
   o Fixed the dialog title on the Slide Library (says Media Library on 2.0.0)
@@ -54,10 +56,16 @@ Bug Fixes:
     frame rate.
   o Fixed a bug where the XugglerMediaPlayer was not cleaning up all its
     resources (threads in this case).
+  o Small bug fix for dual translation display when one translation does
+    not have the current, next, or previous verse.
   
 Other:
   o When adding media, the media type defaults to All Files instead of
     image media.
+  o Default song template now matches the default bible template.
+  o Changed the Current/Previous/Next verse labels to the verse location and
+    increased the font size and bolded the current verse.
+  o Small GUI label/tooltip changes.
 
 Open Issues:
   o On Ubuntu Linux we get flickering in the animations due to the use of
