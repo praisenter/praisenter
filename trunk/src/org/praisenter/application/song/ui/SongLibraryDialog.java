@@ -24,64 +24,51 @@
  */
 package org.praisenter.application.song.ui;
 
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Window;
+
+import javax.swing.JDialog;
+
+import org.praisenter.application.resources.Messages;
+
 /**
- * Represents a text search in a song list.
+ * Simple dialog to display the Song Library.
  * @author William Bittle
  * @version 2.0.1
- * @since 1.0.0
+ * @since 2.0.1
  */
-public class SongSearch {
-	/** The text to search */
-	private String text;
+public class SongLibraryDialog extends JDialog {
+	/** The version id */
+	private static final long serialVersionUID = 6827271875643932106L;
 	
-	/** The search callback */
-	private SongSearchCallback callback;
-	
-	/** True if a distinct list of songs should be returned */
-	private boolean distinct;
+	/** The song library panel */
+	private SongLibraryPanel pnlSongLibrary;
 	
 	/**
 	 * Minimal constructor.
-	 * @param text the text to search for
-	 * @param callback the code to run after the search has completed
+	 * @param owner the owner of the this dialog; can be null
 	 */
-	public SongSearch(String text, SongSearchCallback callback) {
-		this(text, false, callback);
+	private SongLibraryDialog(Window owner) {
+		super(owner, Messages.getString("dialog.song.title"), ModalityType.APPLICATION_MODAL);
+		
+		this.pnlSongLibrary = new SongLibraryPanel();
+		
+		Container container = this.getContentPane();
+		container.setLayout(new BorderLayout());
+		container.add(this.pnlSongLibrary, BorderLayout.CENTER);
+		
+		this.pack();
 	}
 	
 	/**
-	 * Optional constructor.
-	 * @param text the text to search for
-	 * @param distinct true if a distinct song search should be used
-	 * @param callback the code to run after the search has completed
+	 * Shows a new Song Library dialog and returns true if the song library was updated.
+	 * @param owner the owner of this dialog; can be null
 	 */
-	public SongSearch(String text, boolean distinct, SongSearchCallback callback) {
-		this.text = text;
-		this.distinct = distinct;
-		this.callback = callback;
-	}
-	
-	/**
-	 * Returns the text to search for.
-	 * @return String
-	 */
-	public String getText() {
-		return this.text;
-	}
-	
-	/**
-	 * Returns true if a distinct song search should be used.
-	 * @return boolean
-	 */
-	public boolean isDistinct() {
-		return this.distinct;
-	}
-	
-	/**
-	 * Returns the code to run after the search is completed.
-	 * @return {@link SongSearchCallback}
-	 */
-	public SongSearchCallback getCallback() {
-		return this.callback;
+	public static final void show(Window owner) {
+		SongLibraryDialog dialog = new SongLibraryDialog(owner);
+		dialog.setLocationRelativeTo(owner);
+		dialog.setVisible(true);
+		dialog.dispose();
 	}
 }

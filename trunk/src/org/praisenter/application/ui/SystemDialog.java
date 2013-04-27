@@ -103,6 +103,9 @@ public class SystemDialog extends JDialog {
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				// since sorting is allowed, we need to translate the view row index
+				// into the model row index
+				row = this.convertRowIndexToModel(row);
 				
 				// get the text column value
 				TableModel model = this.getModel();
@@ -115,6 +118,7 @@ public class SystemDialog extends JDialog {
 				return super.getToolTipText(event);
 			}
 		};
+		tblProperties.setAutoCreateRowSorter(true);
 		tblProperties.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tblProperties.setColumnSelectionAllowed(false);
 		tblProperties.setCellSelectionEnabled(false);

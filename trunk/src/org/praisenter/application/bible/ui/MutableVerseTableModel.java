@@ -33,7 +33,7 @@ import org.praisenter.data.bible.Verse;
 /**
  * Table model for the SavedBibleVerses.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class MutableVerseTableModel extends VerseTableModel {
@@ -45,6 +45,29 @@ public class MutableVerseTableModel extends VerseTableModel {
 	
 	/** The list of selection status */
 	protected List<Boolean> selectedItems = new ArrayList<Boolean>();
+	
+	/**
+	 * Default constructor.
+	 */
+	public MutableVerseTableModel() {
+		this(new ArrayList<Verse>());
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param verses the verses
+	 * @since 2.0.1
+	 */
+	public MutableVerseTableModel(List<Verse> verses) {
+		if (verses == null) {
+			verses = new ArrayList<Verse>();
+		}
+		this.verses = verses;
+		this.selectedItems = new ArrayList<Boolean>();
+		for (int i = 0; i < verses.size(); i++) {
+			this.selectedItems.add(false);
+		}
+	}
 	
 	/**
 	 * Adds the given verse to this table model.
@@ -64,6 +87,24 @@ public class MutableVerseTableModel extends VerseTableModel {
 		// rows inserted
 		int index = this.verses.size() - 1;
 		this.fireTableRowsInserted(index, index);
+	}
+	
+	/**
+	 * Adds the given rows to this table model.
+	 * @param verses the verses to add
+	 * @since 2.0.1
+	 */
+	public void addRows(List<Verse> verses) {
+		if (this.verses == null) {
+			this.verses = new ArrayList<Verse>();
+		}
+		this.verses.addAll(verses);
+		int n = verses.size();
+		for (int i = 0; i < n; i++) {
+			this.selectedItems.add(false);
+		}
+		int ns = this.verses.size();
+		this.fireTableRowsInserted(ns - n, ns - 1);
 	}
 	
 	/**
@@ -130,6 +171,32 @@ public class MutableVerseTableModel extends VerseTableModel {
 			// table in some way
 			this.fireTableDataChanged();
 		}
+	}
+
+	/**
+	 * Returns all the currently selected rows.
+	 * @return List&lt;{@link Verse}&gt;
+	 * @since 2.0.1
+	 */
+	public List<Verse> getSelectedRows() {
+		List<Verse> verses = new ArrayList<Verse>();
+		for (int i = 0; i < this.verses.size(); i++) {
+			if (this.selectedItems.get(i)) {
+				verses.add(this.verses.get(i));
+			}
+		}
+		return verses;
+	}
+	
+	/**
+	 * Unchecks all selected rows.
+	 * @since 2.0.1
+	 */
+	public void clearSelections() {
+		for (int i = 0; i < this.selectedItems.size(); i++) {
+			this.selectedItems.set(i, false);
+		}
+		this.fireTableDataChanged();
 	}
 
 	/* (non-Javadoc)

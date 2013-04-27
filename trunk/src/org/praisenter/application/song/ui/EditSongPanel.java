@@ -43,7 +43,6 @@ import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -64,7 +63,6 @@ import org.praisenter.application.resources.Messages;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.WaterMark;
 import org.praisenter.common.utilities.StringUtilities;
-import org.praisenter.common.utilities.WindowUtilities;
 import org.praisenter.data.DataException;
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongPart;
@@ -75,7 +73,7 @@ import org.praisenter.slide.SongSlideTemplate;
 /**
  * Panel used to edit a song.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class EditSongPanel extends JPanel implements ActionListener, SongPartListener {
@@ -163,11 +161,6 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 		this.btnSave.addActionListener(this);
 		this.btnSave.setEnabled(edit);
 		
-		JButton btnNew = new JButton(Messages.getString("panel.song.new"));
-		btnNew.setToolTipText(Messages.getString("panel.song.new.tooltip"));
-		btnNew.setActionCommand("new");
-		btnNew.addActionListener(this);
-		
 		this.txtTitle = new JTextField() {
 			@Override
 			protected void paintComponent(Graphics g) {
@@ -204,6 +197,9 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				// since sorting is allowed, we need to translate the view row index
+				// into the model row index
+				row = this.convertRowIndexToModel(row);
 				
 				// get the column value
 				TableModel model = this.getModel();
@@ -220,6 +216,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 				return super.getToolTipText(event);
 			}
 		};
+		this.tblSongParts.setAutoCreateRowSorter(true);
 		this.tblSongParts.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		this.tblSongParts.setColumnSelectionAllowed(false);
 		this.tblSongParts.setCellSelectionEnabled(false);
@@ -231,6 +228,10 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 					// double clicked
 					// get the selected row
 					int row = tblSongParts.rowAtPoint(e.getPoint());
+					// since sorting is allowed, we need to translate the view row index
+					// into the model row index
+					row = tblSongParts.convertRowIndexToModel(row);
+					
 					// get the data
 					SongPartTableModel model = (SongPartTableModel)tblSongParts.getModel();
 					SongPart part = model.getRow(row);
@@ -307,7 +308,6 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 				.addGroup(layout.createSequentialGroup()
 						.addComponent(this.txtTitle)
 						.addComponent(this.lblId)
-						.addComponent(btnNew)
 						.addComponent(this.btnSave))
 				.addGroup(layout.createSequentialGroup()
 						.addComponent(scrSongParts, 400, 400, Short.MAX_VALUE)
@@ -320,7 +320,6 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.lblId)
-						.addComponent(btnNew)
 						.addComponent(this.btnSave))
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(scrSongParts, 0, 75, Short.MAX_VALUE)
@@ -545,40 +544,6 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 					this.setSongChanged(true);
 				}
 			}
-		} else if ("new".equals(command)) {
-			// check if the current song has changed first
-			if (this.isSongChanged()) {
-				int choice = JOptionPane.showConfirmDialog(
-						WindowUtilities.getParentWindow(this), 
-						MessageFormat.format(Messages.getString("panel.song.switch.confirm.message"), this.song.getTitle()), 
-						Messages.getString("panel.song.switch.confirm.title"), 
-						JOptionPane.YES_NO_CANCEL_OPTION);
-				if (choice == JOptionPane.YES_OPTION) {
-					// then save the song
-					try {
-						boolean isNew = this.song.isNew();
-						Collections.sort(this.song.getParts());
-						Songs.saveSong(this.song);
-						this.notifySongListeners(isNew);
-					} catch (DataException e) {
-						// if the song fails to be saved then show a message
-						// and dont continue
-						ExceptionDialog.show(
-								this, 
-								Messages.getString("panel.songs.save.exception.title"), 
-								MessageFormat.format(Messages.getString("panel.songs.save.exception.text"), this.song.getTitle()), 
-								e);
-						LOGGER.error("Failed to save song: ", e);
-						return;
-					}
-				} else if (choice == JOptionPane.CANCEL_OPTION) {
-					// don't continue
-					return;
-				}
-			}
-			// create a new song and setup the panel to edit it
-			this.setSong(new Song());
-			this.setSongChanged(true);
 		} else if ("save".equals(command)) {
 			try {
 				boolean isNew = this.song.isNew();

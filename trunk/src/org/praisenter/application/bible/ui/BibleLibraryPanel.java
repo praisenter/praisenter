@@ -61,7 +61,7 @@ import org.praisenter.data.bible.UnboundBibleImporter;
 /**
  * Panel used to maintain bibles.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class BibleLibraryPanel extends JPanel implements ActionListener {
@@ -96,6 +96,7 @@ public class BibleLibraryPanel extends JPanel implements ActionListener {
 		
 		// create the bible table
 		this.tblBibles = new JTable(new MutableBibleTableModel(bibles));
+		this.tblBibles.setAutoCreateRowSorter(true);
 		this.tblBibles.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		this.tblBibles.setColumnSelectionAllowed(false);
 		this.tblBibles.setCellSelectionEnabled(false);
