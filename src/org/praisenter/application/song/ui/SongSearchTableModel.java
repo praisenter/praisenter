@@ -35,7 +35,7 @@ import org.praisenter.data.song.Song;
 /**
  * Table model for the results of a song search.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class SongSearchTableModel extends AbstractTableModel {
@@ -88,11 +88,9 @@ public class SongSearchTableModel extends AbstractTableModel {
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (this.songs != null && this.songs.size() > rowIndex) {
 			Song song = this.songs.get(rowIndex);
-			// determine if we need to "group" the results
-			boolean groupHeader = this.isGroupHeader(rowIndex);
 			switch (columnIndex) {
 				case 0:
-					return groupHeader ? song.getTitle() : "";
+					return song.getTitle();
 				case 1:
 					// replace any new lines with space + new line
 					// this allows the text in the table to look normal at line breaks (with a space)
@@ -122,26 +120,6 @@ public class SongSearchTableModel extends AbstractTableModel {
 			// let the listeners know that the table had a row deleted
 			this.fireTableDataChanged();
 		}
-	}
-	
-	/**
-	 * Returns true if the current song at the given row index is a
-	 * group header or not.
-	 * @param rowIndex the row index
-	 * @return boolean
-	 */
-	protected boolean isGroupHeader(int rowIndex) {
-		Song song = this.songs.get(rowIndex);
-		// this only works because the results are sorted
-		if (rowIndex > 0) {
-			// get the previous song
-			Song prev = this.songs.get(rowIndex - 1);
-			// check if they are the same song
-			if (prev.getId() == song.getId()) {
-				return false;
-			}
-		}
-		return true;
 	}
 	
 	/**

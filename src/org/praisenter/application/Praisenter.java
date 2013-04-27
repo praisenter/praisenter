@@ -62,6 +62,7 @@ import org.praisenter.application.preferences.ui.PreferencesDialog;
 import org.praisenter.application.resources.Messages;
 import org.praisenter.application.slide.ui.SlideLibraryDialog;
 import org.praisenter.application.slide.ui.SlidePanel;
+import org.praisenter.application.song.ui.SongLibraryDialog;
 import org.praisenter.application.song.ui.SongsPanel;
 import org.praisenter.application.ui.AboutDialog;
 import org.praisenter.application.ui.SystemDialog;
@@ -81,7 +82,7 @@ import org.praisenter.presentation.PresentationManager;
 /**
  * Main window for the Praisenter application.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class Praisenter extends JFrame implements ActionListener {
@@ -215,6 +216,12 @@ public class Praisenter extends JFrame implements ActionListener {
 				mnuBibleLibrary.addActionListener(this);
 				mnuLibraries.add(mnuBibleLibrary);
 				
+				// libraries->song menu
+				JMenuItem mnuSongLibrary = new JMenuItem(Messages.getString("menu.libraries.song"));
+				mnuSongLibrary.setActionCommand("song");
+				mnuSongLibrary.addActionListener(this);
+				mnuLibraries.add(mnuSongLibrary);
+				
 				// libraries->media menu
 				JMenuItem mnuMediaLibrary = new JMenuItem(Messages.getString("menu.libraries.media"));
 				mnuMediaLibrary.setActionCommand("media");
@@ -257,6 +264,8 @@ public class Praisenter extends JFrame implements ActionListener {
 					mnuLogs.setActionCommand("logs");
 					mnuLogs.addActionListener(this);
 					mnuHelp.add(mnuLogs);
+					
+					mnuHelp.addSeparator();
 				}
 				
 				// system menu
@@ -362,6 +371,9 @@ public class Praisenter extends JFrame implements ActionListener {
 			if (changed) {
 				this.pnlBible.onBibleLibraryChanged();
 			}
+		} else if ("song".equals(command)) {
+			SongLibraryDialog.show(this);
+			this.pnlSongs.onReturnFromSongLibrary();
 		} else if ("media".equals(command)) {
 			MediaLibraryDialog.show(this);
 		} else if ("slide".equals(command)) {

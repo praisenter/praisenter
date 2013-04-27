@@ -196,6 +196,12 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	/** The bible search results table */
 	private JTable tblBibleSearchResults;
 	
+	/** The bible search results table scroll pane */
+	private JScrollPane scrBibleSearchResults;
+	
+	/** The bible search add to queue button */
+	private JButton btnAddSelectedVerses;
+	
 	// preview
 	
 	/** The preview panel */
@@ -637,6 +643,9 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				// since sorting is allowed, we need to translate the view row index
+				// into the model row index
+				row = this.convertRowIndexToModel(row);
 				
 				// get the text column value
 				TableModel model = this.getModel();
@@ -651,6 +660,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				return super.getToolTipText(event);
 			}
 		};
+		this.tblVerseQueue.setAutoCreateRowSorter(true);
 		this.tblVerseQueue.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		this.tblVerseQueue.setColumnSelectionAllowed(false);
 		this.tblVerseQueue.setCellSelectionEnabled(false);
@@ -662,6 +672,9 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				if (e.getClickCount() >= 2 && e.getButton() == MouseEvent.BUTTON1) {
 					// get the selected row
 					int row = tblVerseQueue.rowAtPoint(e.getPoint());
+					// since sorting is allowed, we need to translate the view row index
+					// into the model row index
+					row = tblVerseQueue.convertRowIndexToModel(row);
 					// get the data
 					VerseTableModel model = (VerseTableModel)tblVerseQueue.getModel();
 					Verse verse = model.getRow(row);
@@ -685,6 +698,9 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						(SystemUtilities.IS_MAC_OS && e.getButton() == MouseEvent.BUTTON1 && e.isControlDown())) {
 					// get the selected row
 					int row = tblVerseQueue.rowAtPoint(e.getPoint());
+					// since sorting is allowed, we need to translate the view row index
+					// into the model row index
+					row = tblVerseQueue.convertRowIndexToModel(row);
 					// get the data
 					VerseTableModel model = (VerseTableModel)tblVerseQueue.getModel();
 					final Verse verse = model.getRow(row);
@@ -762,18 +778,26 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		btnSearch.addActionListener(this);
 		btnSearch.setActionCommand("search");
 		
+		this.btnAddSelectedVerses = new JButton(Messages.getString("panel.bible.search.add"));
+		this.btnAddSelectedVerses.setToolTipText(Messages.getString("panel.bible.search.add.tooltip"));
+		this.btnAddSelectedVerses.addActionListener(this);
+		this.btnAddSelectedVerses.setActionCommand("addSelectedVerses");
+		
 		// create the search results label
 		this.lblBibleSearchResults = new JLabel();
 		this.lblBibleSearchResults.setHorizontalAlignment(SwingConstants.RIGHT);
-		this.lblBibleSearchResults.setMinimumSize(new Dimension(200, 0));
+		this.lblBibleSearchResults.setMinimumSize(new Dimension(50, 0));
 		this.lblBibleSearchResults.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 5));
 		
 		// create the search results table
-		this.tblBibleSearchResults = new JTable(new VerseTableModel()) {
+		this.tblBibleSearchResults = new JTable(new MutableVerseTableModel()) {
 			@Override
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				// since sorting is allowed, we need to translate the view row index
+				// into the model row index
+				row = this.convertRowIndexToModel(row);
 				
 				// get the text column value
 				TableModel model = this.getModel();
@@ -788,6 +812,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				return super.getToolTipText(event);
 			}
 		};
+		this.tblBibleSearchResults.setAutoCreateRowSorter(true);
 		this.tblBibleSearchResults.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		this.tblBibleSearchResults.setColumnSelectionAllowed(false);
 		this.tblBibleSearchResults.setCellSelectionEnabled(false);
@@ -799,6 +824,9 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				if (e.getClickCount() >= 2 && e.getButton() == MouseEvent.BUTTON1) {
 					// get the selected row
 					int row = tblBibleSearchResults.rowAtPoint(e.getPoint());
+					// since sorting is allowed, we need to translate the view row index
+					// into the model row index
+					row = tblBibleSearchResults.convertRowIndexToModel(row);
 					// get the data
 					VerseTableModel model = (VerseTableModel)tblBibleSearchResults.getModel();
 					Verse verse = model.getRow(row);
@@ -822,6 +850,9 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						(SystemUtilities.IS_MAC_OS && e.getButton() == MouseEvent.BUTTON1 && e.isControlDown())) {
 					// get the selected row
 					int row = tblBibleSearchResults.rowAtPoint(e.getPoint());
+					// since sorting is allowed, we need to translate the view row index
+					// into the model row index
+					row = tblBibleSearchResults.convertRowIndexToModel(row);
 					// get the data
 					VerseTableModel model = (VerseTableModel)tblBibleSearchResults.getModel();
 					final Verse verse = model.getRow(row);
@@ -856,7 +887,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		this.setBibleSearchTableWidths();
 		
 		// wrap the search table in a scroll pane
-		JScrollPane scrBibleSearchResults = new JScrollPane(this.tblBibleSearchResults);
+		this.scrBibleSearchResults = new JScrollPane(this.tblBibleSearchResults);
 		
 		// create the verse queue/bible search panels
 		JPanel pnlVerseQueue = new JPanel();
@@ -884,17 +915,19 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				.addGroup(bsLayout.createSequentialGroup()
 						.addComponent(this.txtBibleSearch)
 						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.lblBibleSearchResults))
+						.addComponent(btnSearch)
+						.addComponent(this.btnAddSelectedVerses)
+						.addComponent(this.lblBibleSearchResults, 50, GroupLayout.DEFAULT_SIZE, 125))
 				.addGroup(bsLayout.createSequentialGroup()
-						.addComponent(scrBibleSearchResults, 0, 400, Short.MAX_VALUE)));
+						.addComponent(this.scrBibleSearchResults, 0, 400, Short.MAX_VALUE)));
 		bsLayout.setVerticalGroup(bsLayout.createSequentialGroup()
 				.addGroup(bsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtBibleSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.btnAddSelectedVerses, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addComponent(scrBibleSearchResults, 0, 75, Short.MAX_VALUE));
+				.addComponent(this.scrBibleSearchResults, 0, 75, Short.MAX_VALUE));
 		
 		JTabbedPane tableTabs = new JTabbedPane();
 		tableTabs.addTab(Messages.getString("panel.bible.verseQueue"), pnlVerseQueue);
@@ -1233,6 +1266,17 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		else if ("remove-all".equals(command)) {
 			MutableVerseTableModel model = (MutableVerseTableModel)this.tblVerseQueue.getModel();
 			model.removeAllRows();
+		}
+		// check for add to queue
+		else if ("addSelectedVerses".equals(command)) {
+			// get the selected verses
+			MutableVerseTableModel model = (MutableVerseTableModel)this.tblBibleSearchResults.getModel();
+			List<Verse> verses = model.getSelectedRows();
+			// de-select all the selected verses
+			model.clearSelections();
+			// add them to the verse queue
+			model = (MutableVerseTableModel)this.tblVerseQueue.getModel();
+			model.addRows(verses);
 		}
 	}
 	
@@ -1666,14 +1710,16 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	 * Sets the table column widths for the bible search results table.
 	 */
 	private void setBibleSearchTableWidths() {
-		this.tblBibleSearchResults.getColumnModel().getColumn(0).setMaxWidth(300);
-		this.tblBibleSearchResults.getColumnModel().getColumn(0).setPreferredWidth(150);
-		this.tblBibleSearchResults.getColumnModel().getColumn(1).setMaxWidth(150);
-		this.tblBibleSearchResults.getColumnModel().getColumn(1).setPreferredWidth(110);
-		this.tblBibleSearchResults.getColumnModel().getColumn(2).setMaxWidth(35);
-		this.tblBibleSearchResults.getColumnModel().getColumn(2).setPreferredWidth(35);
+		this.tblBibleSearchResults.getColumnModel().getColumn(0).setMaxWidth(35);
+		this.tblBibleSearchResults.getColumnModel().getColumn(0).setPreferredWidth(35);
+		this.tblBibleSearchResults.getColumnModel().getColumn(1).setMaxWidth(300);
+		this.tblBibleSearchResults.getColumnModel().getColumn(1).setPreferredWidth(150);
+		this.tblBibleSearchResults.getColumnModel().getColumn(2).setMaxWidth(150);
+		this.tblBibleSearchResults.getColumnModel().getColumn(2).setPreferredWidth(110);
 		this.tblBibleSearchResults.getColumnModel().getColumn(3).setMaxWidth(35);
 		this.tblBibleSearchResults.getColumnModel().getColumn(3).setPreferredWidth(35);
+		this.tblBibleSearchResults.getColumnModel().getColumn(4).setMaxWidth(35);
+		this.tblBibleSearchResults.getColumnModel().getColumn(4).setPreferredWidth(35);
 	}
 	
 	/**
@@ -1751,7 +1797,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 							break;
 						}
 					}
-					// if the bible was not found then remove the saved verse
+					// if the bible was not found then remove the search result
 					if (!found) {
 						it.remove();
 					}
@@ -1866,12 +1912,14 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 			if (ex == null) {
 				String message = Messages.getString("panel.bible.search.results.pattern");
 				if (verses != null && verses.size() > 0) {
-					tblBibleSearchResults.setModel(new VerseTableModel(verses));
+					tblBibleSearchResults.setModel(new MutableVerseTableModel(verses));
 					lblBibleSearchResults.setText(MessageFormat.format(message, verses.size()));
 				} else {
-					tblBibleSearchResults.setModel(new VerseTableModel());
+					tblBibleSearchResults.setModel(new MutableVerseTableModel());
 					lblBibleSearchResults.setText(MessageFormat.format(message, 0));
 				}
+				// scroll back to the top
+				scrBibleSearchResults.getVerticalScrollBar().setValue(0);
 				setBibleSearchTableWidths();
 			} else {
 				String message = MessageFormat.format(Messages.getString("panel.bible.data.search.exception.text"), search.getText(), search.getBible().getName());

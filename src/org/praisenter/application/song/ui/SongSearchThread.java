@@ -43,7 +43,7 @@ import org.praisenter.data.song.Songs;
  * Searching the song data store can be a time consuming process and is best done on a separate thread
  * from the EDT.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class SongSearchThread extends Thread {
@@ -93,7 +93,11 @@ public class SongSearchThread extends Thread {
 					List<Song> songs = null;
 					try {
 						// search the songs
-						songs = Songs.searchSongsWithoutParts(text);
+						if (search.isDistinct()) {
+							songs = Songs.searchSongsDistinct(text);
+						} else {
+							songs = Songs.searchSongs(text);	
+						}
 						// assign the songs
 						callback.result = songs;
 					} catch (DataException ex) {

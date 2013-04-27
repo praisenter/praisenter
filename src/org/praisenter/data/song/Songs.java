@@ -33,6 +33,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -43,7 +44,7 @@ import org.praisenter.data.DataException;
 /**
  * Data access class for {@link Song}s.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public final class Songs {
@@ -275,34 +276,46 @@ public final class Songs {
 	}
 	
 	/**
-	 * Returns all the songs.
+	 * Returns all the songs with their parts.
 	 * @return &lt;{@link Song}&gt;
 	 * @throws DataException if an exception occurs during execution
 	 */
 	public static final List<Song> getSongs() throws DataException {
+		return getSongs(true);
+	}
+	
+	/**
+	 * Returns all the songs.
+	 * @param returnParts true if the song parts should be returned
+	 * @return &lt;{@link Song}&gt;
+	 * @throws DataException if an exception occurs during execution
+	 */
+	public static final List<Song> getSongs(boolean returnParts) throws DataException {
 		// get the songs
 		List<Song> songs = Songs.getSongsBySql("SELECT * FROM songs ORDER BY id");
 		
-		// get the song parts
-		List<SongPart> parts = Songs.getSongPartsBySql("SELECT * FROM song_parts ORDER BY song_id");
-		
-		// loop over the songs
-		for (Song song : songs) {
-			Iterator<SongPart> it = parts.iterator();
-			while (it.hasNext()) {
-				SongPart part = it.next();
-				if (song.id == part.songId) {
-					// remove the element
-					it.remove();
-					song.parts.add(part);
-				} else {
-					// we can break here since we are ordering both results
-					// by the song id, therefore we guarantee that there are
-					// no more parts past the first non-equal part
-					break;
+		if (returnParts) {
+			// get the song parts
+			List<SongPart> parts = Songs.getSongPartsBySql("SELECT * FROM song_parts ORDER BY song_id");
+			
+			// loop over the songs
+			for (Song song : songs) {
+				Iterator<SongPart> it = parts.iterator();
+				while (it.hasNext()) {
+					SongPart part = it.next();
+					if (song.id == part.songId) {
+						// remove the element
+						it.remove();
+						song.parts.add(part);
+					} else {
+						// we can break here since we are ordering both results
+						// by the song id, therefore we guarantee that there are
+						// no more parts past the first non-equal part
+						break;
+					}
 				}
+				Collections.sort(song.parts);
 			}
-			Collections.sort(song.parts);
 		}
 		
 		// sort by title
@@ -315,12 +328,14 @@ public final class Songs {
 	/**
 	 * Returns the list of matching songs for the given search criteria.
 	 * <p>
-	 * This will search song title and song part text but will only return the song data.
+	 * This will search song title and song part text and return a list of matching
+	 * parts or titles. This list will contain the matched text in the notes field and
+	 * may return duplicate song results if more than one part matches.
 	 * @param search the search criteria
 	 * @return List&lt;{@link Song}&gt;
 	 * @throws DataException if an exception occurs during execution
 	 */
-	public static final List<Song> searchSongsWithoutParts(String search) throws DataException {
+	public static final List<Song> searchSongs(String search) throws DataException {
 		String needle = search.trim().toUpperCase().replaceAll("'", "''");
 		StringBuilder sb = new StringBuilder();
 
@@ -335,6 +350,65 @@ public final class Songs {
 		
 		// merge the lists
 		songTitles.addAll(songTexts);
+		Collections.sort(songTitles);
+		
+		// return the songs
+		return songTitles;
+	}
+	
+	/**
+	 * Returns the list of matching songs for the given search criteria.
+	 * <p>
+	 * This will search song title and song part text and return a list of matching
+	 * songs. This list will contain a distinct listing of any matching songs. No song
+	 * parts are returned with the songs.
+	 * @param search the search criteria
+	 * @return List&lt;{@link Song}&gt;
+	 * @throws DataException if an exception occurs during execution
+	 */
+	public static final List<Song> searchSongsDistinct(String search) throws DataException {
+		String needle = search.trim().toUpperCase().replaceAll("'", "''");
+		StringBuilder sb = new StringBuilder();
+
+		// search song titles
+		sb.append("SELECT id, title, title AS notes, added_date FROM songs WHERE searchable_title LIKE '%").append(needle).append("%' ");
+		List<Song> songTitles = Songs.getSongsBySql(sb.toString());
+		
+		// search song parts
+		sb.delete(0, sb.length());
+		sb.append("SELECT songs.id, title, text AS notes, added_date FROM song_parts INNER JOIN songs ON song_parts.song_id = songs.id WHERE searchable_text LIKE '%").append(needle).append("%' ");
+		List<Song> songTexts = Songs.getSongsBySql(sb.toString());
+		
+		// merge the lists
+		songTitles.addAll(songTexts);
+		// sort by id
+		Collections.sort(songTitles, new Comparator<Song>() {
+			@Override
+			public int compare(Song o1, Song o2) {
+				return o1.id - o2.id;
+			}
+		});
+		
+		// perform the distinct operation
+		Iterator<Song> it = songTitles.iterator();
+		Song prev = null;
+		while (it.hasNext()) {
+			Song curr = it.next();
+			// set the initial one
+			if (prev == null) {
+				prev = curr;
+				continue;
+			}
+			if (prev.id == curr.id) {
+				// remove this one
+				it.remove();
+			} else {
+				// assign the next
+				prev = curr;
+			}
+		}
+		
+		// sort again using the normal sort
 		Collections.sort(songTitles);
 		
 		// return the songs

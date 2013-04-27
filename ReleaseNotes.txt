@@ -42,6 +42,8 @@ New Features:
   o Added video preview to the Add Media dialog.
   o Added a Blank button for song display which allows a blank slide using
     the current template to be sent.
+  o Added sorting to all tabular data (searches, queues, etc.)
+  o Add multiple verses from the Bible search to the verse queue at one time.
   
 Bug Fixes:
   o Fixed the dialog title on the Slide Library (says Media Library on 2.0.0)
@@ -58,6 +60,10 @@ Bug Fixes:
     resources (threads in this case).
   o Small bug fix for dual translation display when one translation does
     not have the current, next, or previous verse.
+  o Increased the scroll rate of the song slide preview when scrolling with
+    the mouse scroll wheel.
+  o When performing searches (bible and song), the scrollbar would stay
+    positioned. It now resets to the top on each search.
   
 Other:
   o When adding media, the media type defaults to All Files instead of

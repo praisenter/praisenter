@@ -139,6 +139,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	
 	/** The song search results table */
 	private JTable tblSongSearchResults;
+
+	/** The song search results table scroll pane */
+	private JScrollPane scrSongSearchResults;
 	
 	/** The song queue */
 	private JTable tblSongQueue;
@@ -207,6 +210,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		this.pnlPreview.setBorder(BorderFactory.createEmptyBorder(15, 15, 20, 15));
 		this.scrPreview = new ScrollableInlineSlidePreviewPanel(this.pnlPreview);
 		this.scrPreview.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+		this.scrPreview.getHorizontalScrollBar().setUnitIncrement(20);
 		
 		// song preview thread
 		this.previewThread = new SongPreivewThread();
@@ -354,16 +358,19 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		btnAdd.setActionCommand("add");
 		btnAdd.addActionListener(this);
 		
-		JButton btnDelete = new JButton(Messages.getString("panel.song.delete"));
-		btnDelete.setToolTipText(Messages.getString("panel.song.delete.tooltip"));
-		btnDelete.setActionCommand("delete");
-		btnDelete.addActionListener(this);
+		JButton btnSongLibrary = new JButton(Messages.getString("panel.song.library"));
+		btnSongLibrary.setToolTipText(Messages.getString("panel.song.library.tooltip"));
+		btnSongLibrary.setActionCommand("library");
+		btnSongLibrary.addActionListener(this);
 		
 		this.tblSongSearchResults = new JTable(new SongSearchTableModel()) {
 			@Override
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				// since sorting is allowed, we need to translate the view row index
+				// into the model row index
+				row = this.convertRowIndexToModel(row);
 				
 				// get the column value
 				TableModel model = this.getModel();
@@ -378,6 +385,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				return super.getToolTipText(event);
 			}
 		};
+		this.tblSongSearchResults.setAutoCreateRowSorter(true);
 		this.tblSongSearchResults.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		this.tblSongSearchResults.setColumnSelectionAllowed(false);
 		this.tblSongSearchResults.setCellSelectionEnabled(false);
@@ -391,6 +399,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 					// go to the data store and get the full song detail
 					// get the selected row
 					int row = tblSongSearchResults.rowAtPoint(e.getPoint());
+					// since sorting is allowed, we need to translate the view row index
+					// into the model row index
+					row = tblSongSearchResults.convertRowIndexToModel(row);
+					
 					// get the data
 					SongSearchTableModel model = (SongSearchTableModel)tblSongSearchResults.getModel();
 					Song song = model.getRow(row);
@@ -414,7 +426,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		// disable the default F2 functionality of the JTable
 		this.tblSongSearchResults.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "none");
 		this.setSongSearchTableWidths();
-		JScrollPane scrSongsSearchResults = new JScrollPane(this.tblSongSearchResults);
+		this.scrSongSearchResults = new JScrollPane(this.tblSongSearchResults);
 		
 		// search layout
 		JPanel pnlSongSearch = new JPanel();
@@ -428,15 +440,15 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 						.addComponent(this.txtSongSearch)
 						.addComponent(btnSongSearch)
 						.addComponent(btnAdd)
-						.addComponent(btnDelete))
-				.addComponent(scrSongsSearchResults, 0, 400, Short.MAX_VALUE));
+						.addComponent(btnSongLibrary))
+				.addComponent(this.scrSongSearchResults, 0, 400, Short.MAX_VALUE));
 		ssLayout.setVerticalGroup(ssLayout.createSequentialGroup()
 				.addGroup(ssLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtSongSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnSongSearch)
 						.addComponent(btnAdd)
-						.addComponent(btnDelete))
-				.addComponent(scrSongsSearchResults, 0, 75, Short.MAX_VALUE));
+						.addComponent(btnSongLibrary))
+				.addComponent(this.scrSongSearchResults, 0, 75, Short.MAX_VALUE));
 		
 		// the song queue
 		this.tblSongQueue = new JTable(new MutableSongTableModel()) {
@@ -444,6 +456,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				// since sorting is allowed, we need to translate the view row index
+				// into the model row index
+				row = this.convertRowIndexToModel(row);
 				
 				// get the column value
 				TableModel model = this.getModel();
@@ -458,6 +473,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				return super.getToolTipText(event);
 			}
 		};
+		this.tblSongQueue.setAutoCreateRowSorter(true);
 		this.tblSongQueue.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		this.tblSongQueue.setColumnSelectionAllowed(false);
 		this.tblSongQueue.setCellSelectionEnabled(false);
@@ -471,6 +487,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 					// go to the data store and get the full song detail
 					// get the selected row
 					int row = tblSongQueue.rowAtPoint(e.getPoint());
+					// since sorting is allowed, we need to translate the view row index
+					// into the model row index
+					row = tblSongQueue.convertRowIndexToModel(row);
+					
 					// get the data
 					SongTableModel model = (SongTableModel)tblSongQueue.getModel();
 					Song song = model.getRow(row);
@@ -743,6 +763,14 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		this.pnlPreview.repaint();
 	}
 	
+	/**
+	 * Called when the song library is closed.
+	 */
+	public void onReturnFromSongLibrary() {
+		// TODO implement
+		// we need to verify the songs in the search/queue/preview and quick edit
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
 	 */
@@ -772,8 +800,9 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		String command = e.getActionCommand();
 		if ("search".equals(command)) {
 			this.searchSongsAction();
-		} else if ("delete".equals(command)) {
-			this.deleteSongAction();
+		} else if ("library".equals(command)) {
+			SongLibraryDialog.show(WindowUtilities.getParentWindow(this));
+			this.onReturnFromSongLibrary();
 		} else if ("remove".equals(command)) {
 			MutableSongTableModel model = (MutableSongTableModel)this.tblSongQueue.getModel();
 			model.removeSelectedRows();
@@ -814,45 +843,6 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			// execute the search
 			SongSearch search = new SongSearch(text, new SongsPanelSearchCallback());
 			this.songSearchThread.queueSearch(search);
-		}
-	}
-	
-	/**
-	 * Deletes the selected song in the song search table.
-	 */
-	private void deleteSongAction() {
-		SongSearchTableModel model = (SongSearchTableModel)this.tblSongSearchResults.getModel();
-		int row = this.tblSongSearchResults.getSelectedRow();
-		// only prompt if there is a song selected
-		if (row >= 0) {
-			// get the song
-			Song song = model.getRow(row);
-			// verify the user wants to do it
-			int choice = JOptionPane.showConfirmDialog(
-					WindowUtilities.getParentWindow(this), 
-					MessageFormat.format(Messages.getString("panel.song.delete.message"), song.getTitle(), song.getId()),
-					Messages.getString("panel.song.delete.title"), 
-					JOptionPane.YES_NO_CANCEL_OPTION);
-			if (choice == JOptionPane.YES_OPTION) {
-				// remove the row(s) from the search results table
-				model.remove(song);
-				// remove the song from the data store
-				try {
-					Songs.deleteSong(song.getId());
-					// clear the current song preview (if needed)
-					// clear the song from the song queue (if there)
-					this.songDeleted(song);
-				} catch (DataException ex) {
-					// show an exception dialog
-					ExceptionDialog.show(
-							this, 
-							Messages.getString("panel.song.delete.exception.title"), 
-							MessageFormat.format(Messages.getString("panel.song.delete.exception.text"), song.getTitle(), song.getId()), 
-							ex);
-					// log the error
-					LOGGER.error("Error deleting song: ", ex);
-				}
-			}
 		}
 	}
 	
@@ -1160,12 +1150,14 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				} else {
 					tblSongSearchResults.setModel(new SongSearchTableModel());
 				}
+				// reset the scrollbar position
+				scrSongSearchResults.getVerticalScrollBar().setValue(0);
 				setSongSearchTableWidths();
 			} else {
-				String message = MessageFormat.format(Messages.getString("panel.bible.data.search.exception.text"), search.getText());
+				String message = MessageFormat.format(Messages.getString("panel.songs.data.search.exception.text"), search.getText());
 				ExceptionDialog.show(
 						SongsPanel.this, 
-						Messages.getString("panel.bible.data.search.exception.title"), 
+						Messages.getString("panel.songs.data.search.exception.title"), 
 						message, 
 						ex);
 				LOGGER.error(message, ex);

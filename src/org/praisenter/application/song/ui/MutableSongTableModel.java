@@ -33,7 +33,7 @@ import org.praisenter.data.song.Song;
 /**
  * Table model for the Song listing.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class MutableSongTableModel extends SongTableModel {
@@ -104,7 +104,7 @@ public class MutableSongTableModel extends SongTableModel {
 				this.selectedItems.add(false);
 			}
 			// let the listener know about the added rows
-			this.fireTableRowsInserted(size, size + songs.size() - 2);
+			this.fireTableRowsInserted(size, this.songs.size() - 1);
 		}
 	}
 

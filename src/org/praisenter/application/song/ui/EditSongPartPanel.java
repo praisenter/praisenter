@@ -31,6 +31,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.ParallelGroup;
+import javax.swing.GroupLayout.SequentialGroup;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
@@ -58,7 +61,7 @@ import org.praisenter.slide.text.TextComponent;
 /**
  * Sub panel for viewing/editing song parts.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class EditSongPartPanel extends JPanel implements ItemListener, DocumentListener, ChangeListener {
@@ -74,6 +77,9 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 	private SongPart part;
 	
 	// controls
+	
+	/** Checkbox for being selected */
+	private JCheckBox chkSelected;
 	
 	/** The combo box of part types */
 	private JComboBox<SongPartType> cmbPartTypes;
@@ -101,10 +107,19 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 	private boolean notificationsDisabled;
 	
 	/**
-	 * Full constructor.
+	 * Minimal constructor.
 	 * @param template the initial song slide template
 	 */
 	public EditSongPartPanel(SongSlideTemplate template) {
+		this(false, template);
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param selectable true if this panel is selectable; if true, this will show a checkbox to the left of the part type
+	 * @param template the initial song slide template
+	 */
+	public EditSongPartPanel(boolean selectable, SongSlideTemplate template) {
 		this.song = null;
 		this.part = null;
 		this.template = template;
@@ -126,6 +141,9 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		String text = "";
 		int[] takenIndices = null;
 		boolean edit = false;
+		
+		this.chkSelected = new JCheckBox();
+		this.chkSelected.setSelected(false);
 		
 		this.cmbPartTypes = new JComboBox<SongPartType>(SongPartType.values());
 		this.cmbPartTypes.setToolTipText(Messages.getString("panel.song.type.tooltip"));
@@ -166,20 +184,27 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		GroupLayout layout = new GroupLayout(pnlConfigure);
 		pnlConfigure.setLayout(layout);
 		
+		SequentialGroup hGroup = layout.createSequentialGroup();
+		ParallelGroup vGroup = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
+		if (selectable) {
+			hGroup.addComponent(this.chkSelected);
+			vGroup.addComponent(this.chkSelected);
+		}
+		hGroup.addComponent(this.cmbPartTypes);
+		hGroup.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+		hGroup.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+		vGroup.addComponent(this.cmbPartTypes, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+		vGroup.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+		vGroup.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+		
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup()
-						.addGroup(layout.createSequentialGroup()
-								.addComponent(this.cmbPartTypes, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addGroup(hGroup)
 						.addComponent(pneText, 100, 200, Short.MAX_VALUE)));
 		layout.setVerticalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
-						.addGroup(layout.createParallelGroup()
-								.addComponent(this.cmbPartTypes, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.spnPartIndex, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addGroup(vGroup)
 						.addComponent(pneText, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
 		
 		layout = new GroupLayout(this);
@@ -404,5 +429,13 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		// do anything that should normally be done on the EDT)
 		pnlPreview.setSlide(slide);
 		pnlPreview.repaint();
+	}
+	
+	/**
+	 * Returns true if this part is selected.
+	 * @return boolean
+	 */
+	public boolean isSelected() {
+		return this.chkSelected.isSelected();
 	}
 }
