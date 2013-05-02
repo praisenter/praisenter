@@ -25,19 +25,23 @@
 package org.praisenter.application.slide.ui;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.image.BufferedImage;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JList;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 
+import org.praisenter.application.resources.Messages;
 import org.praisenter.slide.SlideThumbnail;
 
 /**
  * Custom list cell renderer for {@link SlideThumbnail} combo boxes.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class SlideThumbnailComboBoxRenderer extends DefaultListCellRenderer {	
@@ -47,6 +51,15 @@ public class SlideThumbnailComboBoxRenderer extends DefaultListCellRenderer {
 	/** A transparent icon used to fill the space of the selected item */
 	private static final BufferedImage SELECTED_ICON = new BufferedImage(64, 1, BufferedImage.TYPE_INT_ARGB);
 	
+	/** A border to add some padding for string elements */
+	private static final Border STRING_ITEM_BORDER = BorderFactory.createEmptyBorder(10, 10, 10, 10);
+	
+	/** The original JLabel border */
+	private Border originalBorder = null;
+	
+	/** The original JLabel font */
+	private Font originalFont = null;
+	
 	/* (non-Javadoc)
 	 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
 	 */
@@ -55,6 +68,7 @@ public class SlideThumbnailComboBoxRenderer extends DefaultListCellRenderer {
 		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 		if (value instanceof SlideThumbnail) {
 			SlideThumbnail t = (SlideThumbnail)value;
+			this.setHorizontalAlignment(SwingConstants.LEFT);
 			this.setVerticalTextPosition(SwingConstants.CENTER);
 			this.setText(t.getName());
 			this.setToolTipText(t.getFile().getName());
@@ -64,6 +78,24 @@ public class SlideThumbnailComboBoxRenderer extends DefaultListCellRenderer {
 			} else {
 				this.setHorizontalTextPosition(SwingConstants.LEFT);
 				this.setIcon(new ImageIcon(SELECTED_ICON));
+			}
+			// use the old border if we have overridden it
+			// (originalBorder will be assigned if we override the border)
+			if (this.originalBorder != null) {
+				this.setBorder(this.originalBorder);
+				this.setFont(this.originalFont);
+			}
+		} else if (value instanceof String) {
+			if (index >= 0) {
+				// save the old border if we haven't already
+				if (this.originalBorder == null) {
+					this.originalBorder = this.getBorder();
+					this.originalFont = this.getFont();
+				}
+				this.setToolTipText(Messages.getString("template.manage.tooltip"));
+				this.setHorizontalAlignment(SwingConstants.CENTER);
+				this.setBorder(STRING_ITEM_BORDER);
+				this.setFont(this.originalFont.deriveFont(Font.BOLD, this.originalFont.getSize2D() * 1.2f));
 			}
 		}
 		return this;

@@ -33,10 +33,11 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.List;
 
 import javax.swing.JFileChooser;
@@ -69,14 +70,9 @@ import org.praisenter.application.ui.SystemDialog;
 import org.praisenter.application.ui.TaskProgressDialog;
 import org.praisenter.application.ui.ValidateFileChooser;
 import org.praisenter.common.threading.AbstractTask;
-import org.praisenter.common.xml.XmlIO;
 import org.praisenter.data.DataException;
 import org.praisenter.data.errors.ErrorMessage;
 import org.praisenter.data.errors.Errors;
-import org.praisenter.data.song.Song;
-import org.praisenter.data.song.SongImporter;
-import org.praisenter.data.song.SongList;
-import org.praisenter.data.song.Songs;
 import org.praisenter.presentation.PresentationManager;
 
 /**
@@ -85,12 +81,15 @@ import org.praisenter.presentation.PresentationManager;
  * @version 2.0.1
  * @since 1.0.0
  */
-public class Praisenter extends JFrame implements ActionListener {
+public class Praisenter extends JFrame implements ActionListener, PropertyChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = 4204856340044399264L;
 
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(Praisenter.class);
+	
+	/** A property name for listening for slide/template library changes from subcomponents */
+	public static final String PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED = "slideTemplateLibraryChanged";
 	
 	// menu
 	
@@ -144,6 +143,12 @@ public class Praisenter extends JFrame implements ActionListener {
 		container.add(this.pnlNotification, BorderLayout.PAGE_START);
 		container.add(tabs, BorderLayout.CENTER);
 		
+		// add listeners
+		this.pnlBible.addPropertyChangeListener(PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, this);
+		this.pnlSongs.addPropertyChangeListener(PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, this);
+		this.pnlSlides.addPropertyChangeListener(PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, this);
+		this.pnlNotification.addPropertyChangeListener(PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, this);
+		
 		// create the main menu bar
 		{
 			JMenuBar barMenu = new JMenuBar();
@@ -157,45 +162,6 @@ public class Praisenter extends JFrame implements ActionListener {
 				mnuPreferences.setActionCommand("preferences");
 				mnuPreferences.addActionListener(this);
 				mnuFile.add(mnuPreferences);
-	
-				mnuFile.addSeparator();
-				
-				// file->export menu
-				{
-					JMenu mnuExport = new JMenu(Messages.getString("menu.file.export"));
-					mnuFile.add(mnuExport);
-					
-					JMenuItem mnuExportErrors = new JMenuItem(Messages.getString("menu.file.export.errors"));
-					mnuExportErrors.setActionCommand("exportErrors");
-					mnuExportErrors.addActionListener(this);
-					mnuExport.add(mnuExportErrors);
-					
-					JMenuItem mnuExportSongs = new JMenuItem(Messages.getString("menu.file.export.songs"));
-					mnuExportSongs.setActionCommand("exportSongs");
-					mnuExportSongs.addActionListener(this);
-					mnuExport.add(mnuExportSongs);
-				}
-	
-				// file->import menu
-				{
-					JMenu mnuImport = new JMenu(Messages.getString("menu.file.import"));
-					mnuFile.add(mnuImport);
-					
-					JMenu mnuImportSongs = new JMenu(Messages.getString("menu.file.import.songs"));
-					mnuImport.add(mnuImportSongs);
-					
-					JMenuItem mnuImportPraisenter = new JMenuItem(Messages.getString("menu.file.import.songs.praisenter"));
-					mnuImportPraisenter.setActionCommand("importPraisenterSongs");
-					mnuImportPraisenter.setToolTipText(Messages.getString("menu.file.import.songs.praisenter.tooltip"));
-					mnuImportPraisenter.addActionListener(this);
-					mnuImportSongs.add(mnuImportPraisenter);
-					
-					JMenuItem mnuImportCVSongs = new JMenuItem(Messages.getString("menu.file.import.songs.churchview"));
-					mnuImportCVSongs.setActionCommand("importCVSongs");
-					mnuImportCVSongs.setToolTipText(Messages.getString("menu.file.import.songs.churchview.tooltip"));
-					mnuImportCVSongs.addActionListener(this);
-					mnuImportSongs.add(mnuImportCVSongs);
-				}
 				
 				mnuFile.addSeparator();
 				
@@ -257,6 +223,12 @@ public class Praisenter extends JFrame implements ActionListener {
 				JMenu mnuHelp = new JMenu(Messages.getString("menu.help"));
 				barMenu.add(mnuHelp);
 				
+				// about menu
+				JMenuItem mnuErrors = new JMenuItem(Messages.getString("menu.help.errors"));
+				mnuErrors.setActionCommand("errors");
+				mnuErrors.addActionListener(this);
+				mnuHelp.add(mnuErrors);
+				
 				// make sure the desktop is supported
 				if (Desktop.isDesktopSupported()) {
 					// about menu
@@ -264,9 +236,9 @@ public class Praisenter extends JFrame implements ActionListener {
 					mnuLogs.setActionCommand("logs");
 					mnuLogs.addActionListener(this);
 					mnuHelp.add(mnuLogs);
-					
-					mnuHelp.addSeparator();
 				}
+
+				mnuHelp.addSeparator();
 				
 				// system menu
 				JMenuItem mnuSystem = new JMenuItem(Messages.getString("menu.help.system"));
@@ -358,22 +330,20 @@ public class Praisenter extends JFrame implements ActionListener {
 			}
 		} else if ("size".equals(command)) {
 			this.showCurrentWindowSize();
-		} else if ("exportErrors".equals(command)) {
-			this.exportSavedErrorReports();
-		} else if ("importCVSongs".equals(command)) {
-			this.importChurchViewSongDatabase();
-		} else if ("exportSongs".equals(command)) {
-			this.exportSongs();
-		} else if ("importPraisenterSongs".equals(command)) {
-			this.importPraisenterSongDatabase();
 		} else if ("bible".equals(command)) {
 			boolean changed = BibleLibraryDialog.show(this);
 			if (changed) {
 				this.pnlBible.onBibleLibraryChanged();
 			}
 		} else if ("song".equals(command)) {
-			SongLibraryDialog.show(this);
-			this.pnlSongs.onReturnFromSongLibrary();
+			boolean updated = SongLibraryDialog.show(this);
+			if (updated) {
+				this.pnlNotification.slideLibraryChanged();
+				this.pnlSlides.slideLibraryChanged();
+				this.pnlBible.slideLibraryChanged();
+				this.pnlSongs.onReturnFromSongLibrary();
+				this.pnlSongs.slideLibraryChanged();
+			}
 		} else if ("media".equals(command)) {
 			MediaLibraryDialog.show(this);
 		} else if ("slide".equals(command)) {
@@ -384,6 +354,8 @@ public class Praisenter extends JFrame implements ActionListener {
 				this.pnlBible.slideLibraryChanged();
 				this.pnlSongs.slideLibraryChanged();
 			}
+		} else if ("errors".equals(command)) {
+			this.exportSavedErrorReports();
 		} else if ("logs".equals(command)) {
 			File file = new File(Constants.LOG_FILE_LOCATION);
 			try {
@@ -398,6 +370,19 @@ public class Praisenter extends JFrame implements ActionListener {
 		} else if ("exit".equals(command)) {
 			this.setVisible(false);
 			this.dispose();
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		if (PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED.equals(e.getPropertyName())) {
+			this.pnlNotification.slideLibraryChanged();
+			this.pnlSlides.slideLibraryChanged();
+			this.pnlBible.slideLibraryChanged();
+			this.pnlSongs.slideLibraryChanged();
 		}
 	}
 	
@@ -557,197 +542,6 @@ public class Praisenter extends JFrame implements ActionListener {
 					Messages.getString("dialog.export.errors.none.text"), 
 					Messages.getString("dialog.export.errors.none.title"), 
 					JOptionPane.INFORMATION_MESSAGE);
-		}
-	}
-	
-	/**
-	 * Exports the entire song database to an xml file.
-	 */
-	private void exportSongs() {
-		// get the song count
-		int songCount = 0;
-		try {
-			songCount = Songs.getSongCount();
-		} catch (DataException e) {}
-		
-		// see if we even need to export anything
-		if (songCount > 0) {
-			// create a class to show a "are you sure" message when over writing an existing file
-			JFileChooser fileBrowser = new ValidateFileChooser();
-			fileBrowser.setMultiSelectionEnabled(false);
-			fileBrowser.setDialogTitle(Messages.getString("dialog.export.songs.title"));
-			fileBrowser.setSelectedFile(new File(Messages.getString("dialog.export.songs.defaultFileName")));
-			
-			int option = fileBrowser.showSaveDialog(this);
-			// check the option
-			if (option == JFileChooser.APPROVE_OPTION) {
-				final File file = fileBrowser.getSelectedFile();
-				// create a new file task
-				AbstractTask task = new AbstractTask() {
-					@Override
-					public void run() {
-						try {
-							// load up the songs
-							List<Song> songs = Songs.getSongs();
-							// create the object to save
-							SongList list = new SongList(songs);
-							XmlIO.save(file.getAbsolutePath(), list);
-							this.setSuccessful(true);
-						} catch (Exception ex) {
-							this.handleException(ex);
-						}
-					}
-				};
-				
-				// run the task
-				TaskProgressDialog.show(this, Messages.getString("exporting"), task);
-				
-				// check the task result
-				if (task.isSuccessful()) {
-					JOptionPane.showMessageDialog(this, 
-							Messages.getString("dialog.export.songs.success.text"), 
-							Messages.getString("dialog.export.songs.success.title"), 
-							JOptionPane.INFORMATION_MESSAGE);
-				} else {
-					LOGGER.error("An error occurred while exporting the songs:", task.getException());
-					ExceptionDialog.show(
-							this,
-							Messages.getString("dialog.export.songs.error.title"), 
-							Messages.getString("dialog.export.songs.error.text"), 
-							task.getException());
-				}
-			}
-		} else {
-			JOptionPane.showMessageDialog(this, 
-					Messages.getString("dialog.export.songs.none.text"), 
-					Messages.getString("dialog.export.songs.none.title"), 
-					JOptionPane.INFORMATION_MESSAGE);
-		}
-	}
-	
-	/**
-	 * Attempts to import the user selected church view song file.
-	 */
-	private void importPraisenterSongDatabase() {
-		JFileChooser fileBrowser = new JFileChooser();
-		fileBrowser.setDialogTitle(Messages.getString("dialog.open.title"));
-		fileBrowser.setMultiSelectionEnabled(false);
-		int option = fileBrowser.showOpenDialog(this);
-		// check the option
-		if (option == JFileChooser.APPROVE_OPTION) {
-			// get the selected file
-			final File file = fileBrowser.getSelectedFile();
-			// make sure it exists and its a file
-			if (file.exists() && file.isFile()) {
-				// make sure they are sure
-				option = JOptionPane.showConfirmDialog(this, 
-						Messages.getString("dialog.import.songs.prompt.text"), 
-						MessageFormat.format(Messages.getString("dialog.import.songs.prompt.title"), file.getName()), 
-						JOptionPane.YES_NO_CANCEL_OPTION);
-				// check the user's choice
-				if (option == JOptionPane.YES_OPTION) {
-					// we need to execute this in a separate process
-					// and show a progress monitor
-					AbstractTask task = new AbstractTask() {
-						@Override
-						public void run() {
-							try {
-								// import the bible
-								SongImporter.importPraisenterSongs(file);
-								setSuccessful(true);
-							} catch (Exception e) {
-								// handle the exception
-								handleException(e);
-							}
-						}
-					};
-					// show a task progress bar
-					TaskProgressDialog.show(
-							this, 
-							Messages.getString("importing"), 
-							task);
-					// show a message either way
-					if (task.isSuccessful()) {
-						// show a success message
-						JOptionPane.showMessageDialog(this, 
-								Messages.getString("dialog.import.songs.success.text"), 
-								Messages.getString("dialog.import.songs.success.title"), 
-								JOptionPane.INFORMATION_MESSAGE);
-					} else {
-						Exception e = task.getException();
-						// show an error message
-						ExceptionDialog.show(
-								this,
-								Messages.getString("dialog.import.songs.failed.title"), 
-								Messages.getString("dialog.import.songs.failed.text"), 
-								e);
-						LOGGER.error("An error occurred while importing a ChurchView song database:", e);
-					}
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Attempts to import the user selected church view song file.
-	 */
-	private void importChurchViewSongDatabase() {
-		JFileChooser fileBrowser = new JFileChooser();
-		fileBrowser.setDialogTitle(Messages.getString("dialog.open.title"));
-		fileBrowser.setMultiSelectionEnabled(false);
-		int option = fileBrowser.showOpenDialog(this);
-		// check the option
-		if (option == JFileChooser.APPROVE_OPTION) {
-			// get the selected file
-			final File file = fileBrowser.getSelectedFile();
-			// make sure it exists and its a file
-			if (file.exists() && file.isFile()) {
-				// make sure they are sure
-				option = JOptionPane.showConfirmDialog(this, 
-						Messages.getString("dialog.import.songs.prompt.text"), 
-						MessageFormat.format(Messages.getString("dialog.import.songs.prompt.title"), file.getName()), 
-						JOptionPane.YES_NO_CANCEL_OPTION);
-				// check the user's choice
-				if (option == JOptionPane.YES_OPTION) {
-					// we need to execute this in a separate process
-					// and show a progress monitor
-					AbstractTask task = new AbstractTask() {
-						@Override
-						public void run() {
-							try {
-								// import the bible
-								SongImporter.importChurchViewSongs(file);
-								setSuccessful(true);
-							} catch (Exception e) {
-								// handle the exception
-								handleException(e);
-							}
-						}
-					};
-					// show a task progress bar
-					TaskProgressDialog.show(
-							this, 
-							Messages.getString("importing"), 
-							task);
-					// show a message either way
-					if (task.isSuccessful()) {
-						// show a success message
-						JOptionPane.showMessageDialog(this, 
-								Messages.getString("dialog.import.songs.success.text"), 
-								Messages.getString("dialog.import.songs.success.title"), 
-								JOptionPane.INFORMATION_MESSAGE);
-					} else {
-						Exception e = task.getException();
-						// show an error message
-						ExceptionDialog.show(
-								this,
-								Messages.getString("dialog.import.songs.failed.title"), 
-								Messages.getString("dialog.import.songs.failed.text"), 
-								e);
-						LOGGER.error("An error occurred while importing a ChurchView song database:", e);
-					}
-				}
-			}
 		}
 	}
 }

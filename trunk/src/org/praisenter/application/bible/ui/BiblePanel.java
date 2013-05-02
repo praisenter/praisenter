@@ -49,7 +49,6 @@ import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -80,12 +79,14 @@ import org.praisenter.animation.easings.Easings;
 import org.praisenter.animation.transitions.Transition;
 import org.praisenter.animation.transitions.TransitionType;
 import org.praisenter.animation.transitions.Transitions;
+import org.praisenter.application.Praisenter;
 import org.praisenter.application.errors.ui.ExceptionDialog;
 import org.praisenter.application.icons.Icons;
 import org.praisenter.application.preferences.BiblePreferences;
 import org.praisenter.application.preferences.Preferences;
 import org.praisenter.application.preferences.ui.PreferencesListener;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.slide.ui.SlideLibraryDialog;
 import org.praisenter.application.slide.ui.SlideLibraryListener;
 import org.praisenter.application.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.application.slide.ui.TransitionListCellRenderer;
@@ -165,7 +166,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	private JTable tblVerseQueue;
 
 	/** The template combo box */
-	private JComboBox<SlideThumbnail> cmbTemplates;
+	private JComboBox<Object> cmbTemplates;
 	
 	/** The combo box of transitions for sending */
 	private JComboBox<Transition> cmbSendTransitions;
@@ -212,6 +213,9 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	/** True if the user has found a verse */
 	private boolean verseFound;
 
+	/** This is used to store the previously selected template */
+	private Object previouslySelectedTemplate;
+	
 	// preferences 
 	
 	/** A local reference to the preferences */
@@ -251,9 +255,12 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		
 		SlideThumbnail[] thumbnails = this.getThumbnails();
 		SlideThumbnail selected = this.getSelectedThumbnail(thumbnails);
-		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbnails);
+		this.cmbTemplates = new JComboBox<Object>((Object[])thumbnails);
+		// add the "manage templates" item
+		this.cmbTemplates.addItem(Messages.getString("template.manage"));
 		if (selected != null) {
 			this.cmbTemplates.setSelectedItem(selected);
+			this.previouslySelectedTemplate = selected;
 		}
 		this.cmbTemplates.setToolTipText(Messages.getString("panel.template"));
 		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
@@ -643,6 +650,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				if (row < 0) return super.getToolTipText();
 				// since sorting is allowed, we need to translate the view row index
 				// into the model row index
 				row = this.convertRowIndexToModel(row);
@@ -795,13 +803,14 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				if (row < 0) return super.getToolTipText();
 				// since sorting is allowed, we need to translate the view row index
 				// into the model row index
 				row = this.convertRowIndexToModel(row);
 				
 				// get the text column value
 				TableModel model = this.getModel();
-				Object object = model.getValueAt(row, 4);
+				Object object = model.getValueAt(row, 5);
 				if (object != null) {
 					// get the verse text
 					String text = object.toString();
@@ -824,6 +833,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				if (e.getClickCount() >= 2 && e.getButton() == MouseEvent.BUTTON1) {
 					// get the selected row
 					int row = tblBibleSearchResults.rowAtPoint(e.getPoint());
+					if (row < 0) return;
 					// since sorting is allowed, we need to translate the view row index
 					// into the model row index
 					row = tblBibleSearchResults.convertRowIndexToModel(row);
@@ -850,6 +860,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						(SystemUtilities.IS_MAC_OS && e.getButton() == MouseEvent.BUTTON1 && e.isControlDown())) {
 					// get the selected row
 					int row = tblBibleSearchResults.rowAtPoint(e.getPoint());
+					if (row < 0) return;
 					// since sorting is allowed, we need to translate the view row index
 					// into the model row index
 					row = tblBibleSearchResults.convertRowIndexToModel(row);
@@ -1023,7 +1034,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		// check the template size against the display size
 		if (template.getWidth() != size.width || template.getHeight() != size.height) {
 			// log a message and modify the template to fit
-			LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
+			LOGGER.warn("Template [" + template.getName() + "] is not sized correctly for the primary display. Adjusing template.");
 			template.adjustSize(size.width, size.height);
 		}
 	}
@@ -1114,6 +1125,8 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		for (SlideThumbnail thumb : thumbnails) {
 			this.cmbTemplates.addItem(thumb);
 		}
+		// add the "manage templates" item
+		this.cmbTemplates.addItem(Messages.getString("template.manage"));
 		
 		// set the selected one
 		// selecting the item in the combo box will update the template
@@ -1157,37 +1170,69 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		next.getScriptureLocationComponent().setText(s2.getScriptureLocationComponent().getText());
 		next.getScriptureTextComponent().setText(s2.getScriptureTextComponent().getText());
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
 	 */
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		if (e.getStateChange() == ItemEvent.SELECTED) {
+		// on deselection of a template, set the previously selected
+		// template.  This is useful for when the user selects the
+		// "Manage Templates.." option.  We will swap back the selected
+		// item to the previous (since the user cant actually "select"
+		// the manage template item)
+		if (e.getStateChange() == ItemEvent.DESELECTED) {
 			Object source = e.getSource();
 			if (source == this.cmbTemplates) {
-				SlideThumbnail thumbnail = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
-				if (thumbnail != null) {
-					try {
-						SlideLibrary library = SlideLibrary.getInstance();
-						BibleSlideTemplate template = null;
-						Dimension size = this.preferences.getPrimaryOrDefaultDeviceResolution();
-						if (thumbnail.getFile() == SlideFile.NOT_STORED) {
-							template = BibleSlideTemplate.getDefaultTemplate(size.width, size.height);
-						} else {
-							try {
-								template = library.getTemplate(thumbnail.getFile(), BibleSlideTemplate.class);
-							} catch (SlideLibraryException ex) {
-								// just log the error
-								LOGGER.error("Failed to switch to template: [" + thumbnail.getFile().getRelativePath() + "]", ex);
-								return;
+				this.previouslySelectedTemplate = e.getItem();
+			}
+		} else if (e.getStateChange() == ItemEvent.SELECTED) {
+			Object source = e.getSource();
+			if (source == this.cmbTemplates) {
+				Object value = this.cmbTemplates.getSelectedItem();
+				if (value instanceof SlideThumbnail) {
+					SlideThumbnail thumbnail = (SlideThumbnail)value;
+					if (thumbnail != null) {
+						try {
+							SlideLibrary library = SlideLibrary.getInstance();
+							BibleSlideTemplate template = null;
+							Dimension size = this.preferences.getPrimaryOrDefaultDeviceResolution();
+							if (thumbnail.getFile() == SlideFile.NOT_STORED) {
+								template = BibleSlideTemplate.getDefaultTemplate(size.width, size.height);
+							} else {
+								try {
+									template = library.getTemplate(thumbnail.getFile(), BibleSlideTemplate.class);
+								} catch (SlideLibraryException ex) {
+									// just log the error
+									LOGGER.error("Failed to switch to template: [" + thumbnail.getFile().getRelativePath() + "]", ex);
+									return;
+								}
 							}
+							this.verifyTemplateDimensions(template, size);
+							this.updateSlideTemplate(template);
+							this.pnlPreview.repaint();
+						} catch (NotInitializedException e1) {
+							// ignore it
 						}
-						this.verifyTemplateDimensions(template, size);
-						this.updateSlideTemplate(template);
-						this.pnlPreview.repaint();
-					} catch (NotInitializedException e1) {
-						// ignore it
+					}
+				} else {
+					// if the selected item is not a SlideThumbnail, then its the "Manage Templates..." item
+					// hide the drop down popup
+					this.cmbTemplates.hidePopup();
+					// set the selected item back to the original template
+					if (this.previouslySelectedTemplate == null) {
+						// this shouldn't happen since there is a always a default template, but just in case
+						this.previouslySelectedTemplate = this.getSelectedThumbnail(this.getThumbnails());
+					}
+					// no change to the preview needed since it was selected previously
+					this.cmbTemplates.setSelectedItem(this.previouslySelectedTemplate);
+					// open the Template Library
+					boolean updated = SlideLibraryDialog.show(WindowUtilities.getParentWindow(this), BibleSlideTemplate.class);
+					if (updated) {
+						// we need to notify all the panels that the slide/template library has been changed
+						// since the user could change other slides/templates other than the ones displayed
+						// initially by the class type
+						firePropertyChange(Praisenter.PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, null, null);
 					}
 				}
 			}
@@ -1240,7 +1285,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				String text = this.txtBibleSearch.getText();
 				// get the bible search type
 				BibleSearchType type = (BibleSearchType)this.cmbBibleSearchType.getSelectedItem();
-				if (text != null && text.length() > 0) {
+				if (text != null && text.trim().length() > 0) {
 					// execute the search in another thread
 					// its possible that the search thread was interrupted or stopped
 					// so make sure its still running
@@ -1766,46 +1811,38 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 			}
 			// check the saved verses
 			MutableVerseTableModel model = ((MutableVerseTableModel)this.tblVerseQueue.getModel());
-			Iterator<Verse> it = model.getRowIterator();
-			if (it != null) {
-				while (it.hasNext()) {
-					Verse verse = it.next();
-					boolean found = false;
-					for (Bible bible : bibles) {
-						if (verse.getBible().equals(bible)) {
-							found = true;
-							break;
-						}
-					}
-					// if the bible was not found then remove the saved verse
-					if (!found) {
-						it.remove();
+			for (int i = model.getRowCount() - 1; i >= 0; i--) {
+				Verse verse = model.getRow(i);
+				boolean found = false;
+				for (Bible bible : bibles) {
+					if (verse.getBible().equals(bible)) {
+						found = true;
+						break;
 					}
 				}
-				model.fireTableDataChanged();
+				// if the bible was not found then remove the saved verse
+				if (!found) {
+					model.removeRow(i);
+				}
 			}
 			// check the bible search queue
-			VerseTableModel sModel = (VerseTableModel)this.tblBibleSearchResults.getModel();
-			it = sModel.getRowIterator();
-			if (it != null) {
-				while (it.hasNext()) {
-					Verse verse = it.next();
-					boolean found = false;
-					for (Bible bible : bibles) {
-						if (verse.getBible().equals(bible)) {
-							found = true;
-							break;
-						}
-					}
-					// if the bible was not found then remove the search result
-					if (!found) {
-						it.remove();
+			MutableVerseTableModel sModel = (MutableVerseTableModel)this.tblBibleSearchResults.getModel();
+			for (int i = sModel.getRowCount() - 1; i >= 0; i--) {
+				Verse verse = sModel.getRow(i);
+				boolean found = false;
+				for (Bible bible : bibles) {
+					if (verse.getBible().equals(bible)) {
+						found = true;
+						break;
 					}
 				}
-				sModel.fireTableDataChanged();
-				// update the search results count label
-				this.lblBibleSearchResults.setText(MessageFormat.format(Messages.getString("panel.bible.search.results.pattern"), sModel.getRowCount()));
+				// if the bible was not found then remove the search result
+				if (!found) {
+					sModel.removeRow(i);
+				}
 			}
+			// update the search results count label
+			this.lblBibleSearchResults.setText(MessageFormat.format(Messages.getString("panel.bible.search.results.pattern"), sModel.getRowCount()));
 		} catch (DataException e) {
 			ExceptionDialog.show(
 					WindowUtilities.getParentWindow(this), 
@@ -1921,6 +1958,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				// scroll back to the top
 				scrBibleSearchResults.getVerticalScrollBar().setValue(0);
 				setBibleSearchTableWidths();
+				tblBibleSearchResults.getColumnModel().getColumn(5).setCellRenderer(new BibleSearchTableCellRenderer(search));
 			} else {
 				String message = MessageFormat.format(Messages.getString("panel.bible.data.search.exception.text"), search.getText(), search.getBible().getName());
 				ExceptionDialog.show(

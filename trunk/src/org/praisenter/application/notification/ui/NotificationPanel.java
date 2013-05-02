@@ -50,16 +50,19 @@ import org.praisenter.animation.easings.Easings;
 import org.praisenter.animation.transitions.Transition;
 import org.praisenter.animation.transitions.TransitionType;
 import org.praisenter.animation.transitions.Transitions;
+import org.praisenter.application.Praisenter;
 import org.praisenter.application.preferences.NotificationPreferences;
 import org.praisenter.application.preferences.Preferences;
 import org.praisenter.application.preferences.ui.PreferencesListener;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.slide.ui.SlideLibraryDialog;
 import org.praisenter.application.slide.ui.SlideLibraryListener;
 import org.praisenter.application.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.application.slide.ui.TransitionListCellRenderer;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.WaterMark;
 import org.praisenter.common.NotInitializedException;
+import org.praisenter.common.utilities.WindowUtilities;
 import org.praisenter.presentation.ClearEvent;
 import org.praisenter.presentation.PresentationEventConfiguration;
 import org.praisenter.presentation.PresentationManager;
@@ -76,7 +79,7 @@ import org.praisenter.slide.SlideThumbnail;
 /**
  * Panel used to send notifications.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class NotificationPanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener {
@@ -97,7 +100,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	private JTextField txtText;
 
 	/** The template combo box */
-	private JComboBox<SlideThumbnail> cmbTemplates;
+	private JComboBox<Object> cmbTemplates;
 	
 	/** The notification wait period */
 	private JFormattedTextField txtWaitPeriod;
@@ -119,6 +122,11 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	
 	/** The manual clear button */
 	private JButton btnClear;
+	
+	// state
+	
+	/** This is used to store the previously selected template */
+	private Object previouslySelectedTemplate;
 	
 	// preferences 
 	
@@ -155,9 +163,12 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		
 		SlideThumbnail[] thumbnails = this.getThumbnails();
 		SlideThumbnail selected = this.getSelectedThumbnail(thumbnails);
-		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbnails);
+		this.cmbTemplates = new JComboBox<Object>((Object[])thumbnails);
+		// add the "manage templates" item
+		this.cmbTemplates.addItem(Messages.getString("template.manage"));
 		if (selected != null) {
 			this.cmbTemplates.setSelectedItem(selected);
+			this.previouslySelectedTemplate = selected;
 		}
 		this.cmbTemplates.setToolTipText(Messages.getString("panel.template"));
 		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
@@ -343,30 +354,61 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	 */
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		if (e.getStateChange() == ItemEvent.SELECTED) {
+		// on deselection of a template, set the previously selected
+		// template.  This is useful for when the user selects the
+		// "Manage Templates.." option.  We will swap back the selected
+		// item to the previous (since the user cant actually "select"
+		// the manage template item)
+		if (e.getStateChange() == ItemEvent.DESELECTED) {
 			Object source = e.getSource();
 			if (source == this.cmbTemplates) {
-				SlideThumbnail thumbnail = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
-				if (thumbnail != null) {
-					try {
-						SlideLibrary library = SlideLibrary.getInstance();
-						NotificationSlideTemplate template = null;
-						Dimension size = this.preferences.getPrimaryOrDefaultDeviceResolution();
-						if (thumbnail.getFile() == SlideFile.NOT_STORED) {
-							template = NotificationSlideTemplate.getDefaultTemplate(size.width, size.height);
-						} else {
-							try {
-								template = library.getTemplate(thumbnail.getFile(), NotificationSlideTemplate.class);
-							} catch (SlideLibraryException ex) {
-								// just log the error
-								LOGGER.error("Failed to switch to template: [" + thumbnail.getFile().getRelativePath() + "]", ex);
-								return;
+				this.previouslySelectedTemplate = e.getItem();
+			}
+		} else if (e.getStateChange() == ItemEvent.SELECTED) {
+			Object source = e.getSource();
+			if (source == this.cmbTemplates) {
+				Object value = this.cmbTemplates.getSelectedItem();
+				if (value instanceof SlideThumbnail) {
+					SlideThumbnail thumbnail = (SlideThumbnail)value;
+					if (thumbnail != null) {
+						try {
+							SlideLibrary library = SlideLibrary.getInstance();
+							NotificationSlideTemplate template = null;
+							Dimension size = this.preferences.getPrimaryOrDefaultDeviceResolution();
+							if (thumbnail.getFile() == SlideFile.NOT_STORED) {
+								template = NotificationSlideTemplate.getDefaultTemplate(size.width, size.height);
+							} else {
+								try {
+									template = library.getTemplate(thumbnail.getFile(), NotificationSlideTemplate.class);
+								} catch (SlideLibraryException ex) {
+									// just log the error
+									LOGGER.error("Failed to switch to template: [" + thumbnail.getFile().getRelativePath() + "]", ex);
+									return;
+								}
 							}
+							this.verifyTemplateDimensions(template, size);
+							this.slide = template.createSlide();
+						} catch (NotInitializedException e1) {
+							// ignore the error
 						}
-						this.verifyTemplateDimensions(template, size);
-						this.slide = template.createSlide();
-					} catch (NotInitializedException e1) {
-						// ignore the error
+					}
+				} else {
+					// if the selected item is not a SlideThumbnail, then its the "Manage Templates..." item
+					// hide the drop down popup
+					this.cmbTemplates.hidePopup();
+					// set the selected item back to the original template
+					if (this.previouslySelectedTemplate == null) {
+						// this shouldn't happen since there is a always a default template, but just in case
+						this.previouslySelectedTemplate = this.getSelectedThumbnail(this.getThumbnails());
+					}
+					this.cmbTemplates.setSelectedItem(this.previouslySelectedTemplate);
+					// open the Template Library
+					boolean updated = SlideLibraryDialog.show(WindowUtilities.getParentWindow(this), NotificationSlideTemplate.class);
+					if (updated) {
+						// we need to notify all the panels that the slide/template library has been changed
+						// since the user could change other slides/templates other than the ones displayed
+						// initially by the class type
+						firePropertyChange(Praisenter.PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, null, null);
 					}
 				}
 			}
@@ -408,6 +450,8 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		for (SlideThumbnail thumb : thumbnails) {
 			this.cmbTemplates.addItem(thumb);
 		}
+		// add the "manage templates" item
+		this.cmbTemplates.addItem(Messages.getString("template.manage"));
 		
 		// set the selected one
 		if (selected != null) {

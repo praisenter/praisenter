@@ -103,6 +103,7 @@ public class SystemDialog extends JDialog {
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				if (row < 0) return super.getToolTipText();
 				// since sorting is allowed, we need to translate the view row index
 				// into the model row index
 				row = this.convertRowIndexToModel(row);

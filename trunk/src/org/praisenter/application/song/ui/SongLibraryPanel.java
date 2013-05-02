@@ -67,6 +67,8 @@ import org.praisenter.application.errors.ui.ExceptionDialog;
 import org.praisenter.application.preferences.Preferences;
 import org.praisenter.application.preferences.SongPreferences;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.slide.ui.SlideLibraryDialog;
+import org.praisenter.application.slide.ui.SlideLibraryListener;
 import org.praisenter.application.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.WaterMark;
@@ -90,7 +92,7 @@ import org.praisenter.slide.SongSlideTemplate;
  * @version 2.0.1
  * @since 2.0.1
  */
-public class SongLibraryPanel extends JPanel implements ActionListener, ItemListener, SongPartListener {
+public class SongLibraryPanel extends JPanel implements ActionListener, ItemListener, SongPartListener, SlideLibraryListener {
 	/** The version id */
 	private static final long serialVersionUID = 9093357926870453088L;
 
@@ -112,7 +114,7 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 	private JScrollPane scrSongSearchResults;
 	
 	/** The template combo box */
-	private JComboBox<SlideThumbnail> cmbTemplates;
+	private JComboBox<Object> cmbTemplates;
 	
 	// song editing
 	
@@ -153,6 +155,12 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 	/** True if notifications are disabled */
 	private boolean notificationsDisabled;
 	
+	/** True if the song library has been changed */
+	private boolean songLibraryChanged;
+	
+	/** This is used to store the previously selected template */
+	private Object previouslySelectedTemplate;
+	
 	// preferences
 	
 	/** Local reference to the preferences */
@@ -167,6 +175,7 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 	@SuppressWarnings("serial")
 	public SongLibraryPanel() {
 		this.notificationsDisabled = true;
+		this.songLibraryChanged = false;
 		
 		// create and start the song search thread
 		this.songSearchThread = new SongSearchThread();
@@ -182,7 +191,7 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 		};
 		this.txtSongSearch.setActionCommand("search");
 		this.txtSongSearch.addActionListener(this);
-		this.txtSongSearch.addFocusListener(new SelectTextFocusListener(txtSongSearch));
+		this.txtSongSearch.addFocusListener(new SelectTextFocusListener(this.txtSongSearch));
 		
 		JButton btnSongSearch = new JButton(Messages.getString("panel.songs.search"));
 		btnSongSearch.setToolTipText(Messages.getString("panel.songs.search.tooltip"));
@@ -201,6 +210,7 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				if (row < 0) return super.getToolTipText();
 				// since sorting is allowed, we need to translate the view row index
 				// into the model row index
 				row = this.convertRowIndexToModel(row);
@@ -229,10 +239,38 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 			public void mouseClicked(MouseEvent e) {
 				// make sure its a double click
 				if (e.getClickCount() >= 2 && e.getButton() == MouseEvent.BUTTON1) {
+					if (songChanged) {
+						int choice = JOptionPane.showConfirmDialog(
+								WindowUtilities.getParentWindow(SongLibraryPanel.this), 
+								MessageFormat.format(Messages.getString("panel.song.switch.confirm.message"), song.getTitle()), 
+								Messages.getString("panel.song.switch.confirm.title"), 
+								JOptionPane.YES_NO_CANCEL_OPTION);
+						if (choice == JOptionPane.YES_OPTION) {
+							// then save the song
+							try {
+								Collections.sort(song.getParts());
+								Songs.saveSong(song);
+							} catch (DataException ex) {
+								// if the song fails to be saved then show a message
+								// and dont continue
+								ExceptionDialog.show(
+										SongLibraryPanel.this, 
+										Messages.getString("panel.songs.save.exception.title"), 
+										MessageFormat.format(Messages.getString("panel.songs.save.exception.text"), song.getTitle()), 
+										ex);
+								LOGGER.error("Failed to save song: ", ex);
+								return;
+							}
+						} else if (choice == JOptionPane.CANCEL_OPTION) {
+							// don't continue
+							return;
+						}
+					}
 					// assume single click
 					// go to the data store and get the full song detail
 					// get the selected row
 					int row = tblSongSearchResults.rowAtPoint(e.getPoint());
+					if (row < 0) return;
 					// since sorting is allowed, we need to translate the view row index
 					// into the model row index
 					row = tblSongSearchResults.convertRowIndexToModel(row);
@@ -261,9 +299,12 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 		
 		SlideThumbnail[] thumbnails = this.getThumbnails();
 		SlideThumbnail selected = this.getSelectedThumbnail(thumbnails);
-		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbnails);
+		this.cmbTemplates = new JComboBox<Object>((Object[])thumbnails);
+		// add the "manage templates" item
+		this.cmbTemplates.addItem(Messages.getString("template.manage"));
 		if (selected != null) {
 			this.cmbTemplates.setSelectedItem(selected);
+			this.previouslySelectedTemplate = selected;
 		}
 		this.cmbTemplates.setToolTipText(Messages.getString("panel.songs.template"));
 		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
@@ -352,6 +393,16 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 		
 		this.notificationsDisabled = false;
 		
+		JPanel pnlDeleteAddSong = new JPanel();
+		pnlDeleteAddSong.setLayout(new GridLayout(1, 2));
+		pnlDeleteAddSong.add(btnDeleteSelected);
+		pnlDeleteAddSong.add(btnNew);
+		
+		JPanel pnlDeleteAddPart = new JPanel();
+		pnlDeleteAddPart.setLayout(new GridLayout(1, 2));
+		pnlDeleteAddPart.add(this.btnDeleteParts);
+		pnlDeleteAddPart.add(this.btnAddPart);
+		
 		JPanel pnlLeft = new JPanel();
 		GroupLayout leftLayout = new GroupLayout(pnlLeft);
 		pnlLeft.setLayout(leftLayout);
@@ -359,43 +410,36 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 		
 		JSeparator sep = new JSeparator();
 		
+		leftLayout.setAutoCreateContainerGaps(true);
 		leftLayout.setAutoCreateGaps(true);
 		leftLayout.setHorizontalGroup(leftLayout.createParallelGroup()
-							.addGroup(leftLayout.createSequentialGroup()
-									.addComponent(this.txtSongSearch)
-									.addComponent(btnSongSearch))
-							.addComponent(this.scrSongSearchResults)
-							.addComponent(this.cmbTemplates, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addGroup(leftLayout.createSequentialGroup()
-									.addComponent(btnDeleteSelected, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-									.addComponent(btnNew, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-							.addComponent(sep)
-							.addGroup(leftLayout.createSequentialGroup()
-									.addComponent(this.txtTitle)
-									.addComponent(this.lblId))
-							.addComponent(pneNotes)
-							.addGroup(leftLayout.createSequentialGroup()
-									.addComponent(this.btnAddPart, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-									.addComponent(this.btnDeleteParts, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-							.addComponent(this.btnSave, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+				.addGroup(leftLayout.createSequentialGroup()
+						.addComponent(this.txtSongSearch)
+						.addComponent(btnSongSearch))
+				.addComponent(this.scrSongSearchResults)
+				.addComponent(this.cmbTemplates, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(pnlDeleteAddSong, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(sep)
+				.addGroup(leftLayout.createSequentialGroup()
+						.addComponent(this.txtTitle)
+						.addComponent(this.lblId))
+				.addComponent(pneNotes)
+				.addComponent(pnlDeleteAddPart, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(this.btnSave, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		leftLayout.setVerticalGroup(leftLayout.createSequentialGroup()
-						.addGroup(leftLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-								.addComponent(this.txtSongSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(btnSongSearch))
-						.addComponent(this.scrSongSearchResults)
-						.addComponent(this.cmbTemplates)
-						.addGroup(leftLayout.createParallelGroup()
-								.addComponent(btnDeleteSelected)
-								.addComponent(btnNew))
-						.addComponent(sep, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addGroup(leftLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
-								.addComponent(this.txtTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.lblId, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addComponent(pneNotes)
-						.addGroup(leftLayout.createParallelGroup()
-								.addComponent(this.btnAddPart)
-								.addComponent(this.btnDeleteParts))
-						.addComponent(this.btnSave));
+				.addGroup(leftLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.txtSongSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnSongSearch))
+				.addComponent(this.scrSongSearchResults)
+				.addComponent(this.cmbTemplates)
+				.addComponent(pnlDeleteAddSong)
+				.addComponent(sep, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+				.addGroup(leftLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.txtTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.lblId, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addComponent(pneNotes)
+				.addComponent(pnlDeleteAddPart)
+				.addComponent(this.btnSave));
 		
 		this.pnlSongParts = new JPanel();
 		this.pnlSongParts.setLayout(new GridLayout(0, 1));
@@ -404,9 +448,11 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 		this.scrSongParts.setMinimumSize(new Dimension(620, 0));
 		this.scrSongParts.setPreferredSize(new Dimension(620, 600));
 		this.scrSongParts.getVerticalScrollBar().setUnitIncrement(20);
+		this.scrSongParts.setBorder(BorderFactory.createEmptyBorder());
 		
 		JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pnlLeft, this.scrSongParts);
 		split.setResizeWeight(0.5);
+		split.setBorder(BorderFactory.createEmptyBorder());
 		
 		this.setLayout(new BorderLayout());
 		this.add(split, BorderLayout.CENTER);
@@ -519,25 +565,97 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 		}
 		return null;
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.SlideLibraryListener#slideLibraryChanged()
+	 */
+	@Override
+	public void slideLibraryChanged() {
+		// update the template listing and previews
+		SlideThumbnail[] thumbnails = this.getThumbnails();
+		
+		// update the list of templates
+		SlideThumbnail selected = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
+		if (selected == null) {
+			selected = this.getSelectedThumbnail(thumbnails);
+		}
+		this.cmbTemplates.removeAllItems();
+		for (SlideThumbnail thumb : thumbnails) {
+			this.cmbTemplates.addItem(thumb);
+		}
+		// add the "manage templates" item
+		this.cmbTemplates.addItem(Messages.getString("template.manage"));
+		
+		// set the selected one
+		// selecting the item in the combo box will update the template
+		// and the preview panel
+		if (selected != null) {
+			this.cmbTemplates.setSelectedItem(selected);
+		} else {
+			this.cmbTemplates.setSelectedIndex(0);
+		}
+		
+		// update the parts preview
+		SongSlideTemplate template = this.getSelectedTemplate();
+		Component[] components = this.pnlSongParts.getComponents();
+		for (Component component : components) {
+			if (component instanceof EditSongPartPanel) {
+				EditSongPartPanel spp = (EditSongPartPanel)component;
+				spp.setTemplate(template);
+			}
+		}
+		this.pnlSongParts.repaint();
+	}
+
 	/* (non-Javadoc)
 	 * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
 	 */
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		if (e.getStateChange() == ItemEvent.SELECTED) {
+		// on deselection of a template, set the previously selected
+		// template.  This is useful for when the user selects the
+		// "Manage Templates.." option.  We will swap back the selected
+		// item to the previous (since the user cant actually "select"
+		// the manage template item)
+		if (e.getStateChange() == ItemEvent.DESELECTED) {
 			Object source = e.getSource();
 			if (source == this.cmbTemplates) {
-				SlideThumbnail thumbnail = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
-				if (thumbnail != null) {
-					// refresh the song preview panels
-					SongSlideTemplate template = this.getSelectedTemplate();
-					Component[] components = this.pnlSongParts.getComponents();
-					for (Component component : components) {
-						if (component instanceof EditSongPartPanel) {
-							EditSongPartPanel spp = (EditSongPartPanel)component;
-							spp.setTemplate(template);
+				this.previouslySelectedTemplate = e.getItem();
+			}
+		} else if (e.getStateChange() == ItemEvent.SELECTED) {
+			Object source = e.getSource();
+			if (source == this.cmbTemplates) {
+				Object value = this.cmbTemplates.getSelectedItem();
+				if (value instanceof SlideThumbnail) {
+					SlideThumbnail thumbnail = (SlideThumbnail)value;
+					if (thumbnail != null) {
+						// refresh the song preview panels
+						SongSlideTemplate template = this.getSelectedTemplate();
+						Component[] components = this.pnlSongParts.getComponents();
+						for (Component component : components) {
+							if (component instanceof EditSongPartPanel) {
+								EditSongPartPanel spp = (EditSongPartPanel)component;
+								spp.setTemplate(template);
+							}
 						}
+					}
+				} else {
+					// if the selected item is not a SlideThumbnail, then its the "Manage Templates..." item
+					// hide the drop down popup
+					this.cmbTemplates.hidePopup();
+					// set the selected item back to the original template
+					if (this.previouslySelectedTemplate == null) {
+						// this shouldn't happen since there is a always a default template, but just in case
+						this.previouslySelectedTemplate = this.getSelectedThumbnail(this.getThumbnails());
+					}
+					// no change to the preview needed since it was selected previously
+					this.cmbTemplates.setSelectedItem(this.previouslySelectedTemplate);
+					// open the Template Library
+					boolean updated = SlideLibraryDialog.show(WindowUtilities.getParentWindow(this), SongSlideTemplate.class);
+					if (updated) {
+						// update the template dropdown and previews
+						this.slideLibraryChanged();
+						this.songLibraryChanged = true;
 					}
 				}
 			}
@@ -647,6 +765,14 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 	}
 
 	/**
+	 * Clears the search text and shows all the songs.
+	 */
+	public void clearSearch() {
+		this.txtSongSearch.setText("");
+		this.searchSongsAction();
+	}
+	
+	/**
 	 * Creates a new song.
 	 */
 	private void newSongAction() {
@@ -721,6 +847,7 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 						LOGGER.error("Error deleting song: ", ex);
 					}
 				}
+				this.songLibraryChanged = true;
 			}
 		}
 	}
@@ -780,6 +907,21 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 			// update the id label
 			this.lblId.setText(String.valueOf(this.song.getId()));
 			this.setSongChanged(false);
+			this.songLibraryChanged = true;
+			// update the song search table
+			MutableSongTableModel model = (MutableSongTableModel)this.tblSongSearchResults.getModel();
+			// loop over the rows to find the saved song, then update it
+			for (int i = 0; i < model.getRowCount(); i++) {
+				Song song = model.getRow(i);
+				if (song.getId() == this.song.getId()) {
+					// update the song
+					model.songs.set(i, this.song);
+					// notify of the update
+					model.fireTableRowsUpdated(i, i);
+					// shouldn't have anything else to do
+					break;
+				}
+			}
 		} catch (DataException e) {
 			ExceptionDialog.show(
 					this, 
@@ -863,6 +1005,14 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 	private void setSongTableWidths() {
 		this.tblSongSearchResults.getColumnModel().getColumn(0).setMaxWidth(30);
 		this.tblSongSearchResults.getColumnModel().getColumn(0).setPreferredWidth(30);
+	}
+	
+	/**
+	 * Returns true if the song library was changed.
+	 * @return boolean
+	 */
+	public boolean isSongLibraryChanged() {
+		return this.songLibraryChanged;
 	}
 	
 	/**

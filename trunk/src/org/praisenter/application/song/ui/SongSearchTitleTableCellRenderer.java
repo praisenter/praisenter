@@ -22,20 +22,39 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.application.preferences.ui;
+package org.praisenter.application.song.ui;
+
+import java.awt.Component;
+
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 
 /**
- * Listener interface to listen for preference changed events.
+ * Custom cell renderer for Bible searching used to show titles grouped.
  * @author William Bittle
  * @version 2.0.1
- * @since 2.0.0
+ * @since 2.0.1
  */
-public interface PreferencesListener {
-	/**
-	 * Called when the preferences have been changed (and saved).
-	 * <p>
-	 * This will also be called when the slide/template library was changed
-	 * via the preferences ui.
+public class SongSearchTitleTableCellRenderer extends DefaultTableCellRenderer {
+	/** The version id */
+	private static final long serialVersionUID = -3829968073151086211L;
+	
+	/* (non-Javadoc)
+	 * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable, java.lang.Object, boolean, boolean, int, int)
 	 */
-	public abstract void preferencesChanged();
+	@Override
+	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+		super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+		
+		SongSearchTableModel model = (SongSearchTableModel)table.getModel();
+		row = table.convertRowIndexToModel(row);
+		// get the previous row
+		
+		// make sure the value is of type string (sanity check)
+		if (!model.isGroupHeader(row)) {
+			this.setText("");
+		}
+		
+		return this;
+	}
 }

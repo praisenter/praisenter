@@ -39,7 +39,7 @@ import org.praisenter.data.DataException;
 /**
  * Data access class for {@link Bible} verses.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public final class Bibles {
@@ -625,7 +625,7 @@ public final class Bibles {
 	private static final String getSearchWhereCondition(String search, BibleSearchType type) {
 		StringBuilder sb = new StringBuilder();
 		// clean the search term
-		search = cleanSearchTerm(search).toUpperCase().replaceAll("\\s+", " ");
+		search = cleanSearchTerm(search).toUpperCase().replaceAll("(\\s*,)?\\s+", " ");
 		// check the search type
 		if (type == BibleSearchType.ALL_WORDS || type == BibleSearchType.ANY_WORD) {
 			sb.append("( ");

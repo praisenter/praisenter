@@ -27,8 +27,10 @@ package org.praisenter.application.bible.ui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -44,6 +46,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.table.TableModel;
 
 import org.apache.log4j.Logger;
 import org.praisenter.application.errors.ui.ExceptionDialog;
@@ -82,6 +85,7 @@ public class BibleLibraryPanel extends JPanel implements ActionListener {
 	/**
 	 * Default constructor.
 	 */
+	@SuppressWarnings("serial")
 	public BibleLibraryPanel() {
 		this.bibleLibraryUpdated = false;
 		
@@ -95,7 +99,27 @@ public class BibleLibraryPanel extends JPanel implements ActionListener {
 		}
 		
 		// create the bible table
-		this.tblBibles = new JTable(new MutableBibleTableModel(bibles));
+		this.tblBibles = new JTable(new MutableBibleTableModel(bibles)) {
+			@Override
+			public String getToolTipText(MouseEvent event) {
+				Point p = event.getPoint();
+				int row = this.rowAtPoint(p);
+				if (row < 0) return super.getToolTipText();
+				// since sorting is allowed, we need to translate the view row index
+				// into the model row index
+				row = this.convertRowIndexToModel(row);
+				
+				// get the column value
+				TableModel model = this.getModel();
+				Object object = model.getValueAt(row, 1);
+				if (object != null) {
+					// get the bible name
+					return object.toString();
+				}
+				
+				return super.getToolTipText(event);
+			}
+		};
 		this.tblBibles.setAutoCreateRowSorter(true);
 		this.tblBibles.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		this.tblBibles.setColumnSelectionAllowed(false);
