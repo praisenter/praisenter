@@ -67,6 +67,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 
 import org.apache.log4j.Logger;
 import org.praisenter.animation.TransitionAnimator;
@@ -75,11 +76,13 @@ import org.praisenter.animation.easings.Easings;
 import org.praisenter.animation.transitions.Transition;
 import org.praisenter.animation.transitions.TransitionType;
 import org.praisenter.animation.transitions.Transitions;
+import org.praisenter.application.Praisenter;
 import org.praisenter.application.errors.ui.ExceptionDialog;
 import org.praisenter.application.preferences.Preferences;
 import org.praisenter.application.preferences.SongPreferences;
 import org.praisenter.application.preferences.ui.PreferencesListener;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.slide.ui.SlideLibraryDialog;
 import org.praisenter.application.slide.ui.SlideLibraryListener;
 import org.praisenter.application.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.application.slide.ui.TransitionListCellRenderer;
@@ -169,7 +172,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	private JComboBox<SongPart> cmbParts;
 
 	/** The template combo box */
-	private JComboBox<SlideThumbnail> cmbTemplates;
+	private JComboBox<Object> cmbTemplates;
 	
 	/** The send button for the selected song part */
 	private JButton btnSend;
@@ -188,6 +191,11 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	
 	/** The text box of clear transition duration */
 	private JFormattedTextField txtClearTransitions;
+	
+	// state
+	
+	/** This is used to store the previously selected template */
+	private Object previouslySelectedTemplate;
 	
 	// preferences
 	
@@ -231,9 +239,12 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 
 		SlideThumbnail[] thumbnails = this.getThumbnails();
 		SlideThumbnail selected = this.getSelectedThumbnail(thumbnails);
-		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbnails);
+		this.cmbTemplates = new JComboBox<Object>((Object[])thumbnails);
+		// add the "manage templates" item
+		this.cmbTemplates.addItem(Messages.getString("template.manage"));
 		if (selected != null) {
 			this.cmbTemplates.setSelectedItem(selected);
+			this.previouslySelectedTemplate = selected;
 		}
 		this.cmbTemplates.setToolTipText(Messages.getString("panel.template"));
 		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
@@ -368,13 +379,14 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				if (row < 0) return super.getToolTipText();
 				// since sorting is allowed, we need to translate the view row index
 				// into the model row index
 				row = this.convertRowIndexToModel(row);
 				
 				// get the column value
 				TableModel model = this.getModel();
-				Object object = model.getValueAt(row, 1);
+				Object object = model.getValueAt(row, 2);
 				if (object != null) {
 					// get the song title
 					String text = object.toString();
@@ -385,7 +397,6 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				return super.getToolTipText(event);
 			}
 		};
-		this.tblSongSearchResults.setAutoCreateRowSorter(true);
 		this.tblSongSearchResults.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		this.tblSongSearchResults.setColumnSelectionAllowed(false);
 		this.tblSongSearchResults.setCellSelectionEnabled(false);
@@ -399,6 +410,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 					// go to the data store and get the full song detail
 					// get the selected row
 					int row = tblSongSearchResults.rowAtPoint(e.getPoint());
+					if (row < 0) return;
 					// since sorting is allowed, we need to translate the view row index
 					// into the model row index
 					row = tblSongSearchResults.convertRowIndexToModel(row);
@@ -456,6 +468,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				if (row < 0) return super.getToolTipText();
 				// since sorting is allowed, we need to translate the view row index
 				// into the model row index
 				row = this.convertRowIndexToModel(row);
@@ -487,6 +500,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 					// go to the data store and get the full song detail
 					// get the selected row
 					int row = tblSongQueue.rowAtPoint(e.getPoint());
+					if (row < 0) return;
 					// since sorting is allowed, we need to translate the view row index
 					// into the model row index
 					row = tblSongQueue.convertRowIndexToModel(row);
@@ -643,7 +657,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		// check the template size against the display size
 		if (template.getWidth() != size.width || template.getHeight() != size.height) {
 			// log a message and modify the template to fit
-			LOGGER.warn("Template is not sized correctly for the primary display. Adjusing template.");
+			LOGGER.warn("Template [" + template.getName() + "] is not sized correctly for the primary display. Adjusing template.");
 			template.adjustSize(size.width, size.height);
 		}
 	}
@@ -749,6 +763,8 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		for (SlideThumbnail thumb : thumbnails) {
 			this.cmbTemplates.addItem(thumb);
 		}
+		// add the "manage templates" item
+		this.cmbTemplates.addItem(Messages.getString("template.manage"));
 		
 		// set the selected one
 		// selecting the item in the combo box will update the template
@@ -767,8 +783,78 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	 * Called when the song library is closed.
 	 */
 	public void onReturnFromSongLibrary() {
-		// TODO implement
-		// we need to verify the songs in the search/queue/preview and quick edit
+		// verify the currently selected song
+		if (this.song != null) {
+			// clear any edit state from the edit song panel
+			this.pnlEditSong.setSong(null);
+			try {
+				// re-lookup the song
+				Song song = Songs.getSong(this.song.getId());
+				this.setSong(song);
+			} catch (DataException ex) {
+				LOGGER.error("An error occurred while trying to lookup song id " + this.song.getId(), ex);
+			}
+		}
+		
+		// we need to verify the song search by removing songs that have been deleted
+		// and updating songs (just the title) that have been changed
+		// since we have to verify the existence of each song, its best to just re-run the search
+		// there shouldn't be anything to do if the song search is null
+		// trying to validate each song via the database was far too slow
+		SongSearchTableModel searchModel = (SongSearchTableModel)this.tblSongSearchResults.getModel();
+		SongSearch search = searchModel.getSearch();
+		if (search != null) {
+			this.songSearchThread.queueSearch(search);
+		}
+//		SongSearchTableModel searchModel = (SongSearchTableModel)this.tblSongSearchResults.getModel();
+//		List<Integer> remove = new ArrayList<Integer>();
+//		for (int i = 0; i < searchModel.getRowCount(); i++) {
+//			Song song = searchModel.getRow(i);
+//			try {
+//				// re-lookup the song
+//				Song songTemp = Songs.getSong(song.getId());
+//				if (songTemp == null) {
+//					remove.add(i);
+//				} else {
+//					// only update the title
+//					// since the notes field contains the matched text
+//					song.setTitle(songTemp.getTitle());
+//				}
+//			} catch (DataException ex) {
+//				LOGGER.error("An error occurred while trying to lookup song id " + this.song.getId(), ex);
+//			}
+//		}
+//		// we need to go backwards through the deletions since we are doing it by row index
+//		for (int i = remove.size() - 1; i >= 0; i--) {
+//			int row = (int)remove.get(i);
+//			searchModel.removeRow(row);
+//		}
+//		searchModel.fireTableDataChanged();
+		
+		// we need to verify the song queue by removing songs that have been deleted
+		// and updating songs that have been changed
+		MutableSongTableModel queueModel = (MutableSongTableModel)this.tblSongQueue.getModel();
+		List<Integer> remove = new ArrayList<Integer>();
+		for (int i = 0; i < queueModel.getRowCount(); i++) {
+			Song song = queueModel.getRow(i);
+			try {
+				// re-lookup the song
+				Song songTemp = Songs.getSong(song.getId());
+				if (songTemp == null) {
+					remove.add(i);
+				} else {
+					queueModel.songs.set(i, songTemp);
+				}
+			} catch (DataException ex) {
+				LOGGER.error("An error occurred while trying to lookup song id " + this.song.getId(), ex);
+			}
+		}
+		// we need to go backwards through the deletions since we are doing it by row index
+		for (int i = remove.size() - 1; i >= 0; i--) {
+			int row = (int)remove.get(i);
+			queueModel.removeRow(row);
+		}
+		queueModel.fireTableDataChanged();
 	}
 	
 	/* (non-Javadoc)
@@ -776,16 +862,48 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	 */
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		if (e.getStateChange() == ItemEvent.SELECTED) {
+		// on deselection of a template, set the previously selected
+		// template.  This is useful for when the user selects the
+		// "Manage Templates.." option.  We will swap back the selected
+		// item to the previous (since the user cant actually "select"
+		// the manage template item)
+		if (e.getStateChange() == ItemEvent.DESELECTED) {
 			Object source = e.getSource();
 			if (source == this.cmbTemplates) {
-				SlideThumbnail thumbnail = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
-				if (thumbnail != null) {
-					// refresh the song preview panel
-					if (this.song != null) {
-						// set the loading status
-						this.scrPreview.setLoading(true);
-						this.queueSongPreview(this.song);
+				this.previouslySelectedTemplate = e.getItem();
+			}
+		} else if (e.getStateChange() == ItemEvent.SELECTED) {
+			Object source = e.getSource();
+			if (source == this.cmbTemplates) {
+				Object value = this.cmbTemplates.getSelectedItem();
+				if (value instanceof SlideThumbnail) {
+					SlideThumbnail thumbnail = (SlideThumbnail)value;
+					if (thumbnail != null) {
+						// refresh the song preview panel
+						if (this.song != null) {
+							// set the loading status
+							this.scrPreview.setLoading(true);
+							this.queueSongPreview(this.song);
+						}
+					}
+				} else {
+					// if the selected item is not a SlideThumbnail, then its the "Manage Templates..." item
+					// hide the drop down popup
+					this.cmbTemplates.hidePopup();
+					// set the selected item back to the original template
+					if (this.previouslySelectedTemplate == null) {
+						// this shouldn't happen since there is a always a default template, but just in case
+						this.previouslySelectedTemplate = this.getSelectedThumbnail(this.getThumbnails());
+					}
+					// no change to the preview needed since it was selected previously
+					this.cmbTemplates.setSelectedItem(this.previouslySelectedTemplate);
+					// open the Template Library
+					boolean updated = SlideLibraryDialog.show(WindowUtilities.getParentWindow(this), SongSlideTemplate.class);
+					if (updated) {
+						// we need to notify all the panels that the slide/template library has been changed
+						// since the user could change other slides/templates other than the ones displayed
+						// initially by the class type
+						firePropertyChange(Praisenter.PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, null, null);
 					}
 				}
 			}
@@ -801,8 +919,11 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		if ("search".equals(command)) {
 			this.searchSongsAction();
 		} else if ("library".equals(command)) {
-			SongLibraryDialog.show(WindowUtilities.getParentWindow(this));
-			this.onReturnFromSongLibrary();
+			boolean updated = SongLibraryDialog.show(WindowUtilities.getParentWindow(this));
+			if (updated) {
+				this.onReturnFromSongLibrary();
+				this.firePropertyChange(Praisenter.PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, null, null);
+			}
 		} else if ("remove".equals(command)) {
 			MutableSongTableModel model = (MutableSongTableModel)this.tblSongQueue.getModel();
 			model.removeSelectedRows();
@@ -810,7 +931,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			MutableSongTableModel model = (MutableSongTableModel)this.tblSongQueue.getModel();
 			model.removeAllRows();
 		} else if ("add".equals(command)) {
-			this.addSongToSongQueueAction();
+			this.addSongsToSongQueueAction();
 		} else if (command.startsWith("quickSend=")) {
 			this.quickSendAction(command);
 		} else if ("send".equals(command)) {
@@ -829,7 +950,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	private void searchSongsAction() {
 		// grab the text from the text box
 		String text = this.txtSongSearch.getText();
-		if (text != null && text.length() > 0) {
+		if (text != null && text.trim().length() > 0) {
 			// execute the search in another thread
 			// its possible that the search thread was interrupted or stopped
 			// so make sure its still running
@@ -849,15 +970,14 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	/**
 	 * Adds the selected song in the song search table to the song queue table.
 	 */
-	private void addSongToSongQueueAction() {
+	private void addSongsToSongQueueAction() {
 		SongSearchTableModel model = (SongSearchTableModel)this.tblSongSearchResults.getModel();
-		int row = this.tblSongSearchResults.getSelectedRow();
-		// only prompt if there is a song selected
-		if (row >= 0) {
-			Song song = model.getRow(row);
-			MutableSongTableModel qModel = (MutableSongTableModel)this.tblSongQueue.getModel();
-			qModel.addRow(song);
-		}
+		List<Song> songs = model.getSelectedRows();
+
+		MutableSongTableModel qModel = (MutableSongTableModel)this.tblSongQueue.getModel();
+		qModel.addRows(songs);
+		
+		model.deselectAll();
 	}
 	
 	/**
@@ -1116,8 +1236,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 	 * Sets the table column widths for the song search results table.
 	 */
 	private void setSongSearchTableWidths() {
-		this.tblSongSearchResults.getColumnModel().getColumn(0).setMaxWidth(200);
-		this.tblSongSearchResults.getColumnModel().getColumn(0).setPreferredWidth(200);
+		this.tblSongSearchResults.getColumnModel().getColumn(0).setMaxWidth(35);
+		this.tblSongSearchResults.getColumnModel().getColumn(0).setPreferredWidth(35);
+		this.tblSongSearchResults.getColumnModel().getColumn(1).setMaxWidth(200);
+		this.tblSongSearchResults.getColumnModel().getColumn(1).setPreferredWidth(200);
 	}
 	
 	/**
@@ -1145,14 +1267,25 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			Exception ex = this.getException();
 			SongSearch search = this.getSearch();
 			if (ex == null) {
+				SongSearchTableModel model = null;
 				if (songs != null && songs.size() > 0) {
-					tblSongSearchResults.setModel(new SongSearchTableModel(songs));
+					model = new SongSearchTableModel(search, songs);
 				} else {
-					tblSongSearchResults.setModel(new SongSearchTableModel());
+					model = new SongSearchTableModel();
 				}
+				tblSongSearchResults.setModel(model);
 				// reset the scrollbar position
 				scrSongSearchResults.getVerticalScrollBar().setValue(0);
 				setSongSearchTableWidths();
+				tblSongSearchResults.getColumnModel().getColumn(0).setCellRenderer(new SongSearchCheckTableCellRenderer(tblSongSearchResults.getDefaultRenderer(Boolean.class)));
+				tblSongSearchResults.getColumnModel().getColumn(1).setCellRenderer(new SongSearchTitleTableCellRenderer());
+				tblSongSearchResults.getColumnModel().getColumn(2).setCellRenderer(new SongSearchMatchTableCellRenderer(search));
+				// disable sorting any column other than the title column
+				// it doesn't make sense to sort the matched text or selection column
+				TableRowSorter<SongSearchTableModel> sorter = new TableRowSorter<SongSearchTableModel>(model);
+				sorter.setSortable(0, false);
+				sorter.setSortable(2, false);
+				tblSongSearchResults.setRowSorter(sorter);
 			} else {
 				String message = MessageFormat.format(Messages.getString("panel.songs.data.search.exception.text"), search.getText());
 				ExceptionDialog.show(

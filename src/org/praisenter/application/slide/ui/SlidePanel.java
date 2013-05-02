@@ -81,7 +81,7 @@ import org.praisenter.slide.SlideThumbnail;
 /**
  * Panel for custom slides.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class SlidePanel extends JPanel implements ListSelectionListener, ActionListener, SlideLibraryListener, PreferencesListener {
@@ -284,7 +284,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		// check the template size against the display size
 		if (slide.getWidth() != size.width || slide.getHeight() != size.height) {
 			// log a message and modify the template to fit
-			LOGGER.warn("Slide is not sized correctly for the primary display. Adjusing slide.");
+			LOGGER.warn("Slide [" + slide.getName() + "] is not sized correctly for the primary display. Adjusing slide.");
 			slide.adjustSize(size.width, size.height);
 		}
 	}

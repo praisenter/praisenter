@@ -30,6 +30,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -51,6 +52,7 @@ import org.praisenter.application.preferences.SongPreferences;
 import org.praisenter.application.resources.Messages;
 import org.praisenter.application.slide.ui.EasingListCellRenderer;
 import org.praisenter.application.slide.ui.SlideLibraryDialog;
+import org.praisenter.application.slide.ui.SlideLibraryListener;
 import org.praisenter.application.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.application.slide.ui.TransitionListCellRenderer;
 import org.praisenter.application.ui.SelectTextFocusListener;
@@ -65,10 +67,10 @@ import org.praisenter.slide.SongSlideTemplate;
 /**
  * Panel used to set the {@link SongPreferences}.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
-public class SongPreferencesPanel extends JPanel implements PreferencesEditor, ActionListener {
+public class SongPreferencesPanel extends JPanel implements PreferencesEditor, ActionListener, SlideLibraryListener {
 	/** The verison id */
 	private static final long serialVersionUID = -3575533232722870706L;
 	
@@ -107,18 +109,7 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor, A
 		// template
 		
 		JLabel lblTemplate = new JLabel(Messages.getString("panel.preferences.template"));
-		List<SlideThumbnail> thumbs = null;
-		try {
-			thumbs = SlideLibrary.getInstance().getThumbnails(SongSlideTemplate.class);
-		} catch (NotInitializedException e) {
-			thumbs = new ArrayList<SlideThumbnail>();
-		}
-		// add in the default template
-		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
-		SongSlideTemplate template = SongSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
-		BufferedImage image = template.getThumbnail(SlideLibrary.THUMBNAIL_SIZE);
-		SlideThumbnail temp = new SlideThumbnail(SlideFile.NOT_STORED, template.getName(), image);
-		thumbs.add(temp);
+		SlideThumbnail[] thumbs = this.getSlideThumnails();
 		// find the selected template
 		SlideThumbnail selected = null;
 		for (SlideThumbnail thumb : thumbs) {
@@ -132,16 +123,16 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor, A
 				break;
 			}
 		}
-		Collections.sort(thumbs);
-		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbs.toArray(new SlideThumbnail[0]));
+		Arrays.sort(thumbs);
+		this.cmbTemplates = new JComboBox<SlideThumbnail>(thumbs);
 		if (selected != null) {
 			this.cmbTemplates.setSelectedItem(selected);
 		}
 		this.cmbTemplates.setToolTipText(Messages.getString("panel.preferences.template.tooltip"));
 		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
-		JButton btnAddTemplate = new JButton(Messages.getString("panel.preferences.template.add"));
+		JButton btnAddTemplate = new JButton(Messages.getString("template.manage"));
 		btnAddTemplate.setActionCommand("addTemplate");
-		btnAddTemplate.setToolTipText(Messages.getString("panel.preferences.template.add.tooltip"));
+		btnAddTemplate.setToolTipText(Messages.getString("template.manage.tooltip"));
 		btnAddTemplate.addActionListener(this);
 		
 		// transitions
@@ -237,40 +228,60 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor, A
 				.addComponent(pnlTransitions));
 	}
 
+	/**
+	 * Returns the slide thumbnail list for all the templates.
+	 * @return {@link SlideThumbnail}[]
+	 */
+	private SlideThumbnail[] getSlideThumnails() {
+		// we need to refresh the templates listing
+		List<SlideThumbnail> thumbs = null;
+		try {
+			thumbs = SlideLibrary.getInstance().getThumbnails(SongSlideTemplate.class);
+		} catch (NotInitializedException ex) {
+			thumbs = new ArrayList<SlideThumbnail>();
+		}
+		
+		// add in the default template
+		Preferences preferences = Preferences.getInstance();
+		Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
+		SongSlideTemplate template = SongSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
+		BufferedImage image = template.getThumbnail(SlideLibrary.THUMBNAIL_SIZE);
+		SlideThumbnail temp = new SlideThumbnail(SlideFile.NOT_STORED, template.getName(), image);
+		thumbs.add(temp);
+		
+		Collections.sort(thumbs);
+		
+		return thumbs.toArray(new SlideThumbnail[0]);
+	}
+
 	/* (non-Javadoc)
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
-		Preferences preferences = Preferences.getInstance();
 		
 		if ("addTemplate".equals(command)) {
 			boolean libraryUpdated = SlideLibraryDialog.show(WindowUtilities.getParentWindow(this), SongSlideTemplate.class);
 			if (libraryUpdated) {
-				// we need to refresh the templates listing
-				List<SlideThumbnail> thumbs = null;
-				try {
-					thumbs = SlideLibrary.getInstance().getThumbnails(SongSlideTemplate.class);
-				} catch (NotInitializedException ex) {
-					thumbs = new ArrayList<SlideThumbnail>();
-				}
-				// add in the default template
-				Dimension displaySize = preferences.getPrimaryOrDefaultDeviceResolution();
-				SongSlideTemplate template = SongSlideTemplate.getDefaultTemplate(displaySize.width, displaySize.height);
-				BufferedImage image = template.getThumbnail(SlideLibrary.THUMBNAIL_SIZE);
-				SlideThumbnail temp = new SlideThumbnail(SlideFile.NOT_STORED, template.getName(), image);
-				thumbs.add(temp);
-				// store the selected template
-				SlideThumbnail selected = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
-				Collections.sort(thumbs);
-				this.cmbTemplates.removeAllItems();
-				for (SlideThumbnail thumb : thumbs) {
-					this.cmbTemplates.addItem(thumb);
-				}
-				this.cmbTemplates.setSelectedItem(selected);
+				firePropertyChange(PreferencesDialog.PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, null, null);
 			}
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.application.slide.ui.SlideLibraryListener#slideLibraryChanged()
+	 */
+	@Override
+	public void slideLibraryChanged() {
+		SlideThumbnail[] thumbs = this.getSlideThumnails();
+		// save the currently selected template
+		SlideThumbnail selected = (SlideThumbnail)this.cmbTemplates.getSelectedItem();
+		this.cmbTemplates.removeAllItems();
+		for (SlideThumbnail thumb : thumbs) {
+			this.cmbTemplates.addItem(thumb);
+		}
+		this.cmbTemplates.setSelectedItem(selected);
 	}
 	
 	/* (non-Javadoc)

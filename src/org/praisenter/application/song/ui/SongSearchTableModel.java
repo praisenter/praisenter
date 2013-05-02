@@ -24,10 +24,7 @@
  */
 package org.praisenter.application.song.ui;
 
-import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.table.AbstractTableModel;
 
 import org.praisenter.application.resources.Messages;
 import org.praisenter.data.song.Song;
@@ -38,47 +35,24 @@ import org.praisenter.data.song.Song;
  * @version 2.0.1
  * @since 1.0.0
  */
-public class SongSearchTableModel extends AbstractTableModel {
+public class SongSearchTableModel extends MutableSongTableModel {
 	/** The version id */
 	private static final long serialVersionUID = -1023237320303369947L;
 	
-	/** The column names */
-	protected final String[] columnNames = new String[] {
-		Messages.getString("panel.songs.songTitle"),
-		Messages.getString("panel.songs.matchedText")
-	};
-	
-	/** The data (list of songs) */
-	protected List<Song> songs;
+	/** The song search producing the results */
+	private SongSearch search;
 	
 	/** Default constructor */
 	public SongSearchTableModel() {}
 	
 	/**
 	 * Full constructor.
+	 * @param search the search
 	 * @param songs the list of songs
 	 */
-	public SongSearchTableModel(List<Song> songs) {
-		this.songs = songs;
-	}
-	
-	/* (non-Javadoc)
-	 * @see javax.swing.table.TableModel#getColumnCount()
-	 */
-	@Override
-	public int getColumnCount() {
-		return this.columnNames.length;
-	}
-	
-	/* (non-Javadoc)
-	 * @see javax.swing.table.TableModel#getRowCount()
-	 */
-	@Override
-	public int getRowCount() {
-		if (this.songs != null) {
-			return this.songs.size();
-		}
-		return 0;
+	public SongSearchTableModel(SongSearch search, List<Song> songs) {
+		super(songs);
+		this.search = search;
 	}
 	
 	/* (non-Javadoc)
@@ -88,10 +62,13 @@ public class SongSearchTableModel extends AbstractTableModel {
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (this.songs != null && this.songs.size() > rowIndex) {
 			Song song = this.songs.get(rowIndex);
+			// determine if we need to "group" the results
 			switch (columnIndex) {
 				case 0:
-					return song.getTitle();
+					return super.getValueAt(rowIndex, columnIndex);
 				case 1:
+					return song.getTitle();
+				case 2:
 					// replace any new lines with space + new line
 					// this allows the text in the table to look normal at line breaks (with a space)
 					// but also allows the on hover tooltip to break by line breaks
@@ -102,51 +79,66 @@ public class SongSearchTableModel extends AbstractTableModel {
 		}
 		return null;
 	}
-
-	/**
-	 * Removes all rows of the given song.
-	 * @param song the song to remove
-	 */
-	public void remove(Song song) {
-		// make sure the row exists
-		if (this.songs != null) {
-			Iterator<Song> it = this.songs.iterator();
-			while (it.hasNext()) {
-				Song s = it.next();
-				if (s.getId() == song.getId()) {
-					it.remove();
-				}
-			}
-			// let the listeners know that the table had a row deleted
-			this.fireTableDataChanged();
-		}
-	}
 	
 	/**
-	 * Returns the row data for the given row index.
+	 * Returns true if the current song at the given row index is a
+	 * group header or not.
 	 * @param rowIndex the row index
-	 * @return {@link Song}
+	 * @return boolean
 	 */
-	public Song getRow(int rowIndex) {
-		if (this.songs != null && this.songs.size() > rowIndex) {
-			return this.songs.get(rowIndex);
+	protected boolean isGroupHeader(int rowIndex) {
+		Song song = this.songs.get(rowIndex);
+		// this only works because the results are sorted
+		if (rowIndex > 0) {
+			// get the previous song
+			Song prev = this.songs.get(rowIndex - 1);
+			// check if they are the same song
+			if (prev.getId() == song.getId()) {
+				return false;
+			}
 		}
-		return null;
+		return true;
 	}
 	
 	/* (non-Javadoc)
-	 * @see javax.swing.table.AbstractTableModel#isCellEditable(int, int)
+	 * @see org.praisenter.application.song.ui.MutableSongTableModel#isCellEditable(int, int)
 	 */
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex) {
-		return false;
+		if (this.songs != null && this.songs.size() > rowIndex && columnIndex == 0) {
+			// dont allow editing in rows that are not group headers
+			// this makes it to where a checkbox will not show on click of the column
+			return this.isGroupHeader(rowIndex);
+		}
+		return super.isCellEditable(rowIndex, columnIndex);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.panel.bible.BibleTableModel#getColumnCount()
+	 */
+	@Override
+	public int getColumnCount() {
+		// the mutable table has one more column
+		return super.getColumnCount() + 1;
 	}
 	
 	/* (non-Javadoc)
-	 * @see javax.swing.table.AbstractTableModel#getColumnName(int)
+	 * @see org.praisenter.panel.bible.BibleTableModel#getColumnName(int)
 	 */
 	@Override
 	public String getColumnName(int column) {
-		return this.columnNames[column];
+		if (column < 2) {
+			return super.getColumnName(column);
+		} else {
+			return Messages.getString("panel.songs.matchedText");
+		}
+	}
+	
+	/**
+	 * Returns the song search.
+	 * @return {@link SongSearch}
+	 */
+	public SongSearch getSearch() {
+		return this.search;
 	}
 }

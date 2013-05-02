@@ -197,6 +197,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
 				int row = this.rowAtPoint(p);
+				if (row < 0) return super.getToolTipText();
 				// since sorting is allowed, we need to translate the view row index
 				// into the model row index
 				row = this.convertRowIndexToModel(row);
@@ -228,6 +229,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 					// double clicked
 					// get the selected row
 					int row = tblSongParts.rowAtPoint(e.getPoint());
+					if (row < 0) return;
 					// since sorting is allowed, we need to translate the view row index
 					// into the model row index
 					row = tblSongParts.convertRowIndexToModel(row);

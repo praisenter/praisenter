@@ -27,28 +27,61 @@ package org.praisenter.data.song;
 /**
  * Enumeration of the song part types.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public enum SongPartType {
 	/** Verse part */
-	VERSE,
+	VERSE("V"),
 	
 	/** Chorus part */
-	CHORUS,
+	CHORUS("C"),
 	
 	/** Bridge part */
-	BRIDGE,
+	BRIDGE("B"),
 
 	/** Tag part */
-	TAG,
+	TAG("T"),
 
 	/** Vamp part */
-	VAMP,
+	VAMP("A"),
 	
 	/** End part */
-	END,
+	END("E"),
 	
 	/** Other part */
-	OTHER
+	OTHER("O");
+	
+	/** The song part type value */
+	private String value;
+	
+	/**
+	 * Minimal constructor.
+	 * @param value the song part type value
+	 */
+	private SongPartType(String value) {
+		this.value = value;
+	}
+	
+	/**
+	 * Returns the {@link SongPartType} for the given value.
+	 * @param value the value
+	 * @return {@link SongPartType}
+	 */
+	public static final SongPartType getSongPart(String value) {
+		for (SongPartType type : SongPartType.values()) {
+			if (type.value.equals(value)) {
+				return type;
+			}
+		}
+		return OTHER;
+	}
+	
+	/**
+	 * Returns the value of this song part type. 
+	 * @return String
+	 */
+	public String getValue() {
+		return this.value;
+	}
 }

@@ -30,6 +30,8 @@ import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -48,15 +50,18 @@ import org.praisenter.common.threading.AbstractTask;
 /**
  * Dialog used to set the preferences.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
-public class PreferencesDialog extends JDialog implements ActionListener {
+public class PreferencesDialog extends JDialog implements ActionListener, PropertyChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -40624031567071023L;
 
 	/** The static logger */
 	private static final Logger LOGGER = Logger.getLogger(PreferencesDialog.class);
+
+	/** A property name for listening for slide/template library changes from subcomponents */
+	public static final String PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED = "slideTemplateLibraryChanged";
 	
 	// data
 	
@@ -99,6 +104,11 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		this.pnlSlidePreferences = new SlidePreferencesPanel();
 		this.pnlNotificationPreferences = new NotificationPreferencesPanel();
 		this.pnlErrorReportingPreferences = new ErrorReportingSettingsPanel();
+		
+		// add listeners
+		this.pnlBiblePreferences.addPropertyChangeListener(PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, this);
+		this.pnlSongPreferences.addPropertyChangeListener(PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, this);
+		this.pnlNotificationPreferences.addPropertyChangeListener(PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, this);
 		
 		// create the bottom buttons
 		
@@ -160,6 +170,23 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		} else if ("cancel".equals(command)) {
 			// don't save the preferences and just close the dialog
 			this.setVisible(false);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		if (PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED.equals(e.getPropertyName())) {
+			// update all the panels due to the library change
+			this.pnlBiblePreferences.slideLibraryChanged();
+			this.pnlSongPreferences.slideLibraryChanged();
+			this.pnlNotificationPreferences.slideLibraryChanged();
+			// update the preferencesChanged flag to yes (even if the modal is closed
+			// and preferences were not changed we need to still return true so that
+			// the main panel knows it needs to update the listings of templates)
+			this.preferencesUpdated = true;
 		}
 	}
 	

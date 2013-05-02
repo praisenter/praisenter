@@ -33,7 +33,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * Represents a part of a {@link Song}; a verse for example.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 @XmlRootElement(name = "Part")
@@ -43,7 +43,7 @@ public class SongPart implements Comparable<SongPart> {
 	protected static final int NEW_SONG_PART_ID = -1;
 	
 	/** The default song font size */
-	public static final int DEFAULT_FONT_SIZE = 40;
+	public static final int DEFAULT_FONT_SIZE = 60;
 	
 	/** The beginning index for a song part */
 	public static final int BEGINNING_INDEX = 1;

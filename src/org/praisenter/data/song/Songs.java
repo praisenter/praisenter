@@ -55,52 +55,6 @@ public final class Songs {
 	// internal methods
 	
 	/**
-	 * Returns the data equivalent of the given part type enum.
-	 * @param type the part type enum
-	 * @return String
-	 */
-	private static final String getStringForPartType(SongPartType type) {
-		if (type == SongPartType.BRIDGE) {
-			return "B";
-		} else if (type == SongPartType.CHORUS) {
-			return "C";
-		} else if (type == SongPartType.END) {
-			return "E";
-		} else if (type == SongPartType.TAG) {
-			return "T";
-		} else if (type == SongPartType.VAMP) {
-			return "A";
-		} else if (type == SongPartType.VERSE) {
-			return "V";
-		} else {
-			return "O";
-		}
-	}
-	
-	/**
-	 * Returns the part type enum for the given data part type.
-	 * @param type the data part type
-	 * @return {@link SongPartType}
-	 */
-	private static final SongPartType getPartTypeForString(String type) {
-		if ("B".equals(type)) {
-			return SongPartType.BRIDGE;
-		} else if ("C".equals(type)) {
-			return SongPartType.CHORUS;
-		} else if ("E".equals(type)) {
-			return SongPartType.END;
-		} else if ("T".equals(type)) {
-			return SongPartType.TAG;
-		} else if ("A".equals(type)) {
-			return SongPartType.VAMP;
-		} else if ("V".equals(type)) {
-			return SongPartType.VERSE;
-		} else {
-			return SongPartType.OTHER;
-		}
-	}
-	
-	/**
 	 * Interprets the given result set as one {@link Song}.
 	 * @param result the result set
 	 * @return {@link Song}
@@ -129,7 +83,7 @@ public final class Songs {
 			return new SongPart(
 					result.getInt("id"),
 					result.getInt("song_id"),
-					Songs.getPartTypeForString(result.getString("part_type")),
+					SongPartType.getSongPart(result.getString("part_type")),
 					result.getInt("part_index"),
 					result.getString("text"),
 					result.getInt("order_by"),
@@ -584,7 +538,7 @@ public final class Songs {
 			// perform an insert
 			PreparedStatement statement = connection.prepareStatement("INSERT INTO song_parts (song_id, part_type, part_index, order_by, font_size, text) VALUES(?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 			statement.setInt(1, songPart.songId);
-			statement.setString(2, Songs.getStringForPartType(songPart.type));
+			statement.setString(2, songPart.type.getValue());
 			statement.setInt(3, songPart.index);
 			statement.setInt(4, songPart.order);
 			statement.setInt(5, songPart.fontSize);
