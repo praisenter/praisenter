@@ -48,7 +48,7 @@ New Features:
   o Bible and song searches with highlighted matched text.
   o Bible search All Words or Any Words allow the use of commas to separate
     search terms (in addition to spaces).
-  o The template drop downs now include an item to manage templates. This
+  o The template drop downs now includes an item to manage templates. This
     saves time finding the menu item and switching to the right template
     set. This will also aid first time users trying to find where to add
     more templates. 
