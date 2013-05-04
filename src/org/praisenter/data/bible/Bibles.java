@@ -255,6 +255,36 @@ public final class Bibles {
 	public static final int getChapterCount(Bible bible, String bookCode) throws DataException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
+		sb.append("SELECT COUNT(DISTINCT chapter) FROM bible_verses WHERE bible_id = ? ")
+		  .append("AND book_code = ?");
+		
+		// execute the query
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, bible.id);
+			statement.setString(2, bookCode);
+
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return result.getInt(1);
+			}
+			
+			return 0;
+		} catch (Exception e) {
+			throw new DataException(e);
+		}
+	}
+	
+	/**
+	 * Returns the last chapter number in the given {@link Bible} and {@link Book}.
+	 * @param bible the bible
+	 * @param bookCode the book code
+	 * @return int
+	 * @throws DataException if an exception occurs while retrieving the data
+	 */
+	public static final int getLastChapter(Bible bible, String bookCode) throws DataException {
+		// create the query
+		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT MAX(chapter) FROM bible_verses WHERE bible_id = ? ")
 		  .append("AND book_code = ?");
 		
@@ -295,7 +325,8 @@ public final class Bibles {
 		  .append("WHERE bible_verses.bible_id = ? ")
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
-		  .append("AND verse = ?");
+		  .append("AND verse = ? ")
+		  .append("AND sub_verse = 0");
 		
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
@@ -343,8 +374,9 @@ public final class Bibles {
 		if (!includeApocrypha) {
 			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
-		sb.append("AND order_by = ")
-		  .append("(SELECT MIN(order_by) FROM bible_verses WHERE bible_id = ? ")
+		sb.append("AND sub_verse = 0 ")
+		  .append("AND order_by = ")
+		  .append("(SELECT MIN(order_by) FROM bible_verses WHERE bible_id = ? AND sub_verse = 0 ")
 		  .append("AND order_by > ?)");
 		
 		// execute the query
@@ -399,12 +431,13 @@ public final class Bibles {
 			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
 		sb.append("AND order_by = ")
-		  .append("(SELECT MIN(order_by) FROM bible_verses WHERE bible_id = ? ")
+		  .append("(SELECT MIN(order_by) FROM bible_verses WHERE bible_id = ? AND sub_verse = 0 ")
 		  .append("AND order_by > ")
 		  .append("(SELECT order_by FROM bible_verses WHERE bible_id = ? ")
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
-		  .append("AND verse = ?))");
+		  .append("AND verse = ? ")
+		  .append("AND sub_verse = 0))");
 		
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
@@ -454,8 +487,9 @@ public final class Bibles {
 		if (!includeApocrypha) {
 			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
-		sb.append("AND order_by = ")
-		  .append("(SELECT MAX(order_by) FROM bible_verses WHERE bible_id = ? ")
+		sb.append("AND sub_verse = 0 ")
+		  .append("AND order_by = ")
+		  .append("(SELECT MAX(order_by) FROM bible_verses WHERE bible_id = ? AND sub_verse = 0 ")
 		  .append("AND order_by < ?)");
 		
 		// execute the query
@@ -510,12 +544,13 @@ public final class Bibles {
 			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
 		sb.append("AND order_by = ")
-		  .append("(SELECT MAX(order_by) FROM bible_verses WHERE bible_id = ? ")
+		  .append("(SELECT MAX(order_by) FROM bible_verses WHERE bible_id = ? AND sub_verse = 0 ")
 		  .append("AND order_by < ")
 		  .append("(SELECT order_by FROM bible_verses WHERE bible_id = ? ")
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
-		  .append("AND verse = ?))");
+		  .append("AND verse = ? ")
+		  .append("AND sub_verse = 0))");
 		
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
@@ -610,8 +645,8 @@ public final class Bibles {
 				sb.append(" AND chapter = ").append(parts[2]);
 			}
 		}
-		
-		sb.append(" ORDER BY order_by");
+		sb.append(" AND sub_verse = 0 ");
+		sb.append("ORDER BY order_by");
 		
 		return getVersesBySql(bible, sb.toString());
 	}
@@ -719,7 +754,8 @@ public final class Bibles {
 		if (!includeApocrypha) {
 			sb.append(" AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
-		sb.append(" AND ").append(getSearchWhereCondition(search, type))
+		sb.append(" AND sub_verse = 0")
+		  .append(" AND ").append(getSearchWhereCondition(search, type))
 		  .append(" ORDER BY order_by");
 		
 		return getVersesBySql(bible, sb.toString());
@@ -768,6 +804,7 @@ public final class Bibles {
 		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
 		  .append(" WHERE bible_verses.bible_id = ").append(bible.id)
 		  .append(" AND bible_books.code LIKE '%").append(division.getCode()).append("'")
+		  .append(" AND sub_verse = 0")
 		  .append(" AND").append(getSearchWhereCondition(search, type))
 		  .append(" ORDER BY order_by");
 				
@@ -813,6 +850,7 @@ public final class Bibles {
 		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
 		  .append(" WHERE bible_verses.bible_id = ").append(bible.id)
 		  .append(" AND bible_books.code = ").append(bookCode)
+		  .append(" AND sub_verse = 0")
 		  .append(" AND").append(getSearchWhereCondition(search, type))
 		  .append(" ORDER BY order_by");
 				
@@ -861,6 +899,7 @@ public final class Bibles {
 		  .append(" WHERE bible_verses.bible_id = ").append(bible.id)
 		  .append(" AND bible_books.code = ").append(bookCode)
 		  .append(" AND chapter = ").append(chapter)
+		  .append(" AND sub_verse = 0")
 		  .append(" AND").append(getSearchWhereCondition(search, type))
 		  .append(" ORDER BY order_by");
 				
@@ -891,6 +930,7 @@ public final class Bibles {
 		if (!includeApocrypha) {
 			sb.append("AND book_code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
+		sb.append(" AND sub_verse = 0");
 
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
@@ -919,7 +959,7 @@ public final class Bibles {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ")
-		  .append("AND book_code = ?");
+		  .append("AND book_code = ? AND sub_verse = 0");
 		
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
@@ -951,7 +991,43 @@ public final class Bibles {
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ")
 		  .append("AND book_code = ? ")
-		  .append("AND chapter = ?");
+		  .append("AND chapter = ? ")
+		  .append("AND sub_verse = 0");
+		
+		// execute the query
+		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
+			statement.setInt(1, bible.id);
+			statement.setString(2, bookCode);
+			statement.setInt(3, chapter);
+
+			ResultSet result = statement.executeQuery();
+			if (result.next()) {
+				return result.getInt(1);
+			}
+			
+			return 0;
+		} catch (Exception e) {
+			throw new DataException(e);
+		}
+	}
+	
+	/**
+	 * Returns the last verse number in the given chapter of the {@link Bible}.
+	 * @param bible the bible
+	 * @param bookCode the book code
+	 * @param chapter the chapter number
+	 * @return int
+	 * @throws DataException if any exception occurs while retrieving the data
+	 * @since 2.0.1
+	 */
+	public static final int getLastVerse(Bible bible, String bookCode, int chapter) throws DataException {
+		// build the query
+		StringBuilder sb = new StringBuilder();
+		sb.append("SELECT MAX(verse) FROM bible_verses WHERE bible_id = ? ")
+		  .append("AND book_code = ? ")
+		  .append("AND chapter = ? ")
+		  .append("AND sub_verse = 0");
 		
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();

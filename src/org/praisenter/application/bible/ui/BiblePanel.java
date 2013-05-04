@@ -68,7 +68,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
 import javax.swing.table.TableModel;
 import javax.swing.text.JTextComponent;
 
@@ -190,9 +189,6 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 	
 	/** The bible searching type combo box */
 	private JComboBox<BibleSearchType> cmbBibleSearchType;
-	
-	/** The bible search results label */
-	private JLabel lblBibleSearchResults;
 	
 	/** The bible search results table */
 	private JTable tblBibleSearchResults;
@@ -361,6 +357,11 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		}
 		this.cmbBiblesSecondary.setToolTipText(Messages.getString("panel.bible.secondary.tooltip"));
 		this.cmbBiblesSecondary.setRenderer(new BibleListCellRenderer());
+		
+		JButton btnBibles = new JButton(Messages.getString("panel.bible.bibles"));
+		btnBibles.setToolTipText(Messages.getString("panel.bible.bibles.tooltip"));
+		btnBibles.setActionCommand("bibles");
+		btnBibles.addActionListener(this);
 		
 		this.chkUseSecondaryBible = new JCheckBox(Messages.getString("panel.bible.secondary.use"));
 		this.chkUseSecondaryBible.setToolTipText(Messages.getString("panel.bible.secondary.use.tooltip"));
@@ -601,32 +602,36 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		pnlLookupPanel.setLayout(subLayout);
 		
 		subLayout.setAutoCreateGaps(true);
-		subLayout.setHorizontalGroup(subLayout.createParallelGroup()
-				.addGroup(subLayout.createSequentialGroup()
-						.addGroup(subLayout.createParallelGroup()
-								.addComponent(lblPrimaryBible)
-								.addComponent(lblSecondaryBible))
-						.addGroup(subLayout.createParallelGroup()
-								.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-						.addComponent(this.chkUseSecondaryBible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-				.addGroup(subLayout.createSequentialGroup()
-						.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-								.addComponent(this.cmbBooks, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.lblChapterCount))
-						.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-								.addComponent(this.txtChapter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.lblVerseCount))
-						.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-								.addComponent(this.txtVerse, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(this.lblFound))
-						.addComponent(pnlLookupButtons, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(pnlSendClearButtons, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
+		subLayout.setHorizontalGroup(subLayout.createSequentialGroup()
+				.addGroup(subLayout.createParallelGroup()
+						.addGroup(subLayout.createSequentialGroup()
+								.addGroup(subLayout.createParallelGroup()
+										.addComponent(lblPrimaryBible)
+										.addComponent(lblSecondaryBible))
+								.addGroup(subLayout.createParallelGroup()
+										.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+								.addGroup(subLayout.createParallelGroup()
+										.addComponent(btnBibles)
+										.addComponent(this.chkUseSecondaryBible, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+						.addGroup(subLayout.createSequentialGroup()
+								.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+										.addComponent(this.cmbBooks, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.lblChapterCount))
+								.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+										.addComponent(this.txtChapter, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.lblVerseCount))
+								.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+										.addComponent(this.txtVerse, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.lblFound))
+								.addComponent(pnlLookupButtons, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+				.addComponent(pnlSendClearButtons, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		subLayout.setVerticalGroup(subLayout.createParallelGroup()
 						.addGroup(subLayout.createSequentialGroup()
 								.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 										.addComponent(lblPrimaryBible)
-										.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+										.addComponent(this.cmbBiblesPrimary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(btnBibles))
 								.addGroup(subLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 										.addComponent(lblSecondaryBible)
 										.addComponent(this.cmbBiblesSecondary, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -686,6 +691,8 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 					// get the data
 					VerseTableModel model = (VerseTableModel)tblVerseQueue.getModel();
 					Verse verse = model.getRow(row);
+					// set the bible
+					cmbBiblesPrimary.setSelectedItem(verse.getBible());
 					// set the selection
 					cmbBooks.setSelectedItem(verse.getBook());
 					// set the numbers
@@ -791,11 +798,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		this.btnAddSelectedVerses.addActionListener(this);
 		this.btnAddSelectedVerses.setActionCommand("addSelectedVerses");
 		
-		// create the search results label
-		this.lblBibleSearchResults = new JLabel();
-		this.lblBibleSearchResults.setHorizontalAlignment(SwingConstants.RIGHT);
-		this.lblBibleSearchResults.setMinimumSize(new Dimension(50, 0));
-		this.lblBibleSearchResults.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 5));
+		JButton btnBiblesSearch = new JButton(Messages.getString("panel.bible.biblesSearch"));
+		btnBiblesSearch.setToolTipText(Messages.getString("panel.bible.bibles.tooltip"));
+		btnBiblesSearch.setActionCommand("bibles");
+		btnBiblesSearch.addActionListener(this);
 		
 		// create the search results table
 		this.tblBibleSearchResults = new JTable(new MutableVerseTableModel()) {
@@ -840,6 +846,8 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 					// get the data
 					VerseTableModel model = (VerseTableModel)tblBibleSearchResults.getModel();
 					Verse verse = model.getRow(row);
+					// set the bible
+					cmbBiblesPrimary.setSelectedItem(verse.getBible());
 					// set the selection
 					cmbBooks.setSelectedItem(verse.getBook());
 					// set the numbers
@@ -928,7 +936,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnSearch)
 						.addComponent(this.btnAddSelectedVerses)
-						.addComponent(this.lblBibleSearchResults, 50, GroupLayout.DEFAULT_SIZE, 125))
+						.addComponent(btnBiblesSearch))
 				.addGroup(bsLayout.createSequentialGroup()
 						.addComponent(this.scrBibleSearchResults, 0, 400, Short.MAX_VALUE)));
 		bsLayout.setVerticalGroup(bsLayout.createSequentialGroup()
@@ -937,7 +945,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						.addComponent(this.cmbBibleSearchType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.btnAddSelectedVerses, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(this.lblBibleSearchResults, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+						.addComponent(btnBiblesSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addComponent(this.scrBibleSearchResults, 0, 75, Short.MAX_VALUE));
 		
 		JTabbedPane tableTabs = new JTabbedPane();
@@ -1323,6 +1331,13 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 			model = (MutableVerseTableModel)this.tblVerseQueue.getModel();
 			model.addRows(verses);
 		}
+		// check for the bible manager
+		else if ("bibles".equals(command)) {
+			boolean updated = BibleLibraryDialog.show(WindowUtilities.getParentWindow(this));
+			if (updated) {
+				this.onBibleLibraryChanged();
+			}
+		}
 	}
 	
 	/**
@@ -1696,8 +1711,8 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		if (bible != null && book != null) {
 			// show the number of chapters
 			try {
-				int count = Bibles.getChapterCount(bible, book.getCode());
-				this.lblChapterCount.setText(MessageFormat.format(Messages.getString("panel.bible.chapterCount"), count));
+				int last = Bibles.getLastChapter(bible, book.getCode());
+				this.lblChapterCount.setText(MessageFormat.format(Messages.getString("panel.bible.chapterCount"), last));
 			} catch (DataException ex) {
 				LOGGER.error(MessageFormat.format(Messages.getString("panel.bible.data.chapterCount.exception.text"), bible.getName(), book.getName()), ex);
 				this.lblChapterCount.setText("");
@@ -1707,8 +1722,8 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				// show the number of verses
 				int chapter = ((Number) chap).intValue();
 				try {
-					int count = Bibles.getVerseCount(bible, book.getCode(), chapter);
-					this.lblVerseCount.setText(MessageFormat.format(Messages.getString("panel.bible.verseCount"), count));
+					int last = Bibles.getLastVerse(bible, book.getCode(), chapter);
+					this.lblVerseCount.setText(MessageFormat.format(Messages.getString("panel.bible.verseCount"), last));
 				} catch (DataException ex) {
 					LOGGER.error(MessageFormat.format(Messages.getString("panel.bible.data.verseCount.exception.text"), bible.getName(), book.getName(), chapter), ex);
 					this.lblVerseCount.setText("");
@@ -1841,8 +1856,6 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 					sModel.removeRow(i);
 				}
 			}
-			// update the search results count label
-			this.lblBibleSearchResults.setText(MessageFormat.format(Messages.getString("panel.bible.search.results.pattern"), sModel.getRowCount()));
 		} catch (DataException e) {
 			ExceptionDialog.show(
 					WindowUtilities.getParentWindow(this), 
@@ -1947,13 +1960,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 			Exception ex = this.getException();
 			BibleSearch search = this.getSearch();
 			if (ex == null) {
-				String message = Messages.getString("panel.bible.search.results.pattern");
 				if (verses != null && verses.size() > 0) {
 					tblBibleSearchResults.setModel(new MutableVerseTableModel(verses));
-					lblBibleSearchResults.setText(MessageFormat.format(message, verses.size()));
 				} else {
 					tblBibleSearchResults.setModel(new MutableVerseTableModel());
-					lblBibleSearchResults.setText(MessageFormat.format(message, 0));
 				}
 				// scroll back to the top
 				scrBibleSearchResults.getVerticalScrollBar().setValue(0);

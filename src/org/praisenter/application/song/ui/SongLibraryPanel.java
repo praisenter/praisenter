@@ -453,6 +453,7 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 		JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pnlLeft, this.scrSongParts);
 		split.setResizeWeight(0.5);
 		split.setBorder(BorderFactory.createEmptyBorder());
+		split.setOneTouchExpandable(true);
 		
 		this.setLayout(new BorderLayout());
 		this.add(split, BorderLayout.CENTER);

@@ -28,10 +28,12 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GraphicsDevice;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -45,6 +47,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -60,13 +63,21 @@ import org.praisenter.animation.easings.Easings;
 import org.praisenter.animation.transitions.Transition;
 import org.praisenter.animation.transitions.TransitionType;
 import org.praisenter.animation.transitions.Transitions;
+import org.praisenter.application.Praisenter;
+import org.praisenter.application.errors.ui.ExceptionDialog;
 import org.praisenter.application.preferences.Preferences;
 import org.praisenter.application.preferences.SlidePreferences;
 import org.praisenter.application.preferences.ui.PreferencesListener;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.slide.ui.editor.SlideEditorDialog;
+import org.praisenter.application.slide.ui.editor.SlideEditorOption;
+import org.praisenter.application.slide.ui.editor.SlideEditorResult;
 import org.praisenter.application.slide.ui.preview.SingleSlidePreviewPanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
+import org.praisenter.application.ui.TaskProgressDialog;
 import org.praisenter.common.NotInitializedException;
+import org.praisenter.common.threading.AbstractTask;
+import org.praisenter.common.utilities.WindowUtilities;
 import org.praisenter.presentation.ClearEvent;
 import org.praisenter.presentation.PresentationEventConfiguration;
 import org.praisenter.presentation.PresentationManager;
@@ -111,6 +122,12 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 	/** The text box of clear transition duration */
 	private JFormattedTextField txtClearTransitions;
 	
+	/** The edit slide button */
+	private JButton btnEdit;
+	
+	/** The remove slide button */
+	private JButton btnRemove;
+	
 	// state
 	
 	/** The slide/template preview thread */
@@ -142,6 +159,47 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		this.lstSlides = createJList(thumbnails);
 		JScrollPane scrSlides = new JScrollPane(this.lstSlides);
 		scrSlides.setPreferredSize(new Dimension(250, 400));
+
+		JButton btnNewSlide = new JButton(Messages.getString("panel.slide.new"));
+		btnNewSlide.setToolTipText(Messages.getString("panel.slide.new.tooltip"));
+		btnNewSlide.addActionListener(this);
+		btnNewSlide.setActionCommand("newSlide");
+		
+		this.btnEdit = new JButton(Messages.getString("slide.edit"));
+		this.btnEdit.setToolTipText(Messages.getString("slide.edit.tooltip"));
+		this.btnEdit.setEnabled(false);
+		this.btnEdit.setActionCommand("editSlide");
+		this.btnEdit.addActionListener(this);
+		
+		this.btnRemove = new JButton(Messages.getString("panel.slide.remove"));
+		this.btnRemove.setToolTipText(Messages.getString("panel.slide.remove.tooltip"));
+		this.btnRemove.addActionListener(this);
+		this.btnRemove.setActionCommand("removeSlide");
+		this.btnRemove.setEnabled(false);
+		
+		JButton btnManageSlides = new JButton(Messages.getString("slide.manage"));
+		btnManageSlides.setToolTipText(Messages.getString("slide.manage.tooltip"));
+		btnManageSlides.addActionListener(this);
+		btnManageSlides.setActionCommand("manageSlides");
+		
+		JPanel pnlSlideControls = new JPanel();
+		pnlSlideControls.setLayout(new GridLayout(2, 2, 4, 4));
+		pnlSlideControls.add(btnNewSlide);
+		pnlSlideControls.add(this.btnEdit);
+		pnlSlideControls.add(this.btnRemove);
+		pnlSlideControls.add(btnManageSlides);
+		
+		JPanel pnlRight = new JPanel();
+		GroupLayout rLayout = new GroupLayout(pnlRight);
+		pnlRight.setLayout(rLayout);
+		
+		rLayout.setAutoCreateGaps(true);
+		rLayout.setHorizontalGroup(rLayout.createParallelGroup()
+				.addComponent(scrSlides)
+				.addComponent(pnlSlideControls));
+		rLayout.setVerticalGroup(rLayout.createSequentialGroup()
+				.addComponent(scrSlides)
+				.addComponent(pnlSlideControls, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE));
 		
 		// get the primary device
 		GraphicsDevice device = this.preferences.getPrimaryOrDefaultDevice();
@@ -229,7 +287,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		pnePreview.setResizeWeight(0.85);
 		pnePreview.setOneTouchExpandable(true);
 		
-		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pnePreview, scrSlides);
+		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pnePreview, pnlRight);
 		pane.setOneTouchExpandable(true);
 		pane.setResizeWeight(0.6);
 		
@@ -332,6 +390,89 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 			PresentationEventConfiguration configuration = this.preferences.getPresentationEventConfiguration(PresentationWindowType.FULLSCREEN);
 			// execute a new clear event to the primary fullscreen display
 			PresentationManager.getInstance().execute(new ClearEvent(configuration, animator));
+		} else if ("editSlide".equals(command)) {
+			SlideFile file = null;
+			SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
+			if (thumbnail != null) {
+				file = thumbnail.getFile();
+				// load the slide on another thread
+				LoadSlideTask task = new LoadSlideTask(file, null);
+				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.loading"), task);
+				
+				if (task.isSuccessful()) {
+					// edit a copy just in case they cancel or do a save as to a new file
+					Slide slide = task.getSlide().copy();
+					SlideEditorResult result = SlideEditorDialog.show(WindowUtilities.getParentWindow(this), slide, file);
+					if (result.getChoice() == SlideEditorOption.SAVE || result.getChoice() == SlideEditorOption.SAVE_AS) {
+						firePropertyChange(Praisenter.PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, null, null);
+					}
+				} else {
+					ExceptionDialog.show(
+							this, 
+							Messages.getString("panel.slide.load.exception.title"), 
+							MessageFormat.format(Messages.getString("panel.slide.load.exception.text"), file.getRelativePath()), 
+							task.getException());
+					LOGGER.error("Failed to load [" + file.getRelativePath() + "] from the slide library: ", task.getException());
+				}
+			}
+		} else if ("newSlide".equals(command)) {
+			// get the target display size
+			Dimension size = Preferences.getInstance().getPrimaryOrDefaultDeviceResolution();
+			BasicSlide slide = new BasicSlide(Messages.getString("panel.slide.create.slide.name"), size.width, size.height);
+			// check for null (null means the user canceled)
+			if (slide != null) {
+				// open the slide/template editor
+				SlideEditorResult result = SlideEditorDialog.show(WindowUtilities.getParentWindow(this), slide, null);
+				// check the return type
+				if (result.getChoice() != SlideEditorOption.CANCEL) {
+					// update this panel only
+					this.onPreferencesOrSlideLibraryChanged();
+				}
+			}
+		} else if ("removeSlide".equals(command)) {
+			// get the selected slide
+			final SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
+			if (thumbnail != null) {
+				// show an are you sure dialog, then delete the slide
+				int choice = JOptionPane.showConfirmDialog(
+						this, 
+						MessageFormat.format(Messages.getString("panel.slide.remove.message"), thumbnail.getName()),
+						MessageFormat.format(Messages.getString("panel.slide.remove.title"), Messages.getString("panel.slide")),
+						JOptionPane.YES_NO_CANCEL_OPTION);
+				if (choice == JOptionPane.YES_OPTION) {
+					// remove the slide/template in another thread
+					AbstractTask task = new AbstractTask() {
+						@Override
+						public void run() {
+							try {
+								SlideLibrary library = SlideLibrary.getInstance();
+								library.deleteSlide(thumbnail.getFile());
+								this.setSuccessful(true);
+							} catch (Exception ex) {
+								this.handleException(ex);
+							}
+						}
+					};
+					
+					TaskProgressDialog.show(WindowUtilities.getParentWindow(this), MessageFormat.format(Messages.getString("panel.slide.removing"), Messages.getString("panel.slide")), task);
+					if (task.isSuccessful()) {
+						// update the listing
+						this.onPreferencesOrSlideLibraryChanged();
+					} else {
+						ExceptionDialog.show(
+								this, 
+								MessageFormat.format(Messages.getString("panel.slide.remove.exception.title"), Messages.getString("panel.slide")), 
+								MessageFormat.format(Messages.getString("panel.slide.remove.exception.text"), Messages.getString("panel.slide").toLowerCase(), thumbnail.getFile().getName()), 
+								task.getException());
+						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getRelativePath() + "] from the slide library: ", task.getException());
+					}
+				}
+			}
+		} else if ("manageSlides".equals(command)) {
+			boolean updated = SlideLibraryDialog.show(WindowUtilities.getParentWindow(this), BasicSlide.class);
+			if (updated) {
+				firePropertyChange(Praisenter.PROPERTY_SLIDE_TEMPLATE_LIBRARY_CHANGED, null, null);
+			}
 		}
 	}
 	
@@ -352,7 +493,11 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 				if (file != null) {
 					this.pnlPreview.setLoading(true);
 					this.getPreviewThread().queueSlide(file.getRelativePath());
+					this.btnEdit.setEnabled(true);
+					this.btnRemove.setEnabled(true);
 				} else {
+					this.btnEdit.setEnabled(false);
+					this.btnRemove.setEnabled(false);
 					this.pnlPreview.setSlide(null);
 					this.pnlPreview.repaint();
 				}
