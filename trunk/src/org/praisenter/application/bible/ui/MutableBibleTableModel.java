@@ -36,7 +36,7 @@ import org.praisenter.data.bible.Bible;
 /**
  * Table model for the bible library.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class MutableBibleTableModel extends AbstractTableModel {
@@ -235,9 +235,11 @@ public class MutableBibleTableModel extends AbstractTableModel {
 	 */
 	public List<Bible> getSelectedRows() {
 		List<Bible> bibles = new ArrayList<Bible>();
-		for (int i = 0; i < this.bibles.size(); i++) {
-			if (this.selectedItems.get(i)) {
-				bibles.add(this.bibles.get(i));
+		if (this.bibles != null) {
+			for (int i = 0; i < this.bibles.size(); i++) {
+				if (this.selectedItems.get(i)) {
+					bibles.add(this.bibles.get(i));
+				}
 			}
 		}
 		return bibles;

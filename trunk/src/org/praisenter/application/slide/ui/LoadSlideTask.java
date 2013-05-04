@@ -24,40 +24,77 @@
  */
 package org.praisenter.application.slide.ui;
 
-import java.awt.Component;
-
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.ImageIcon;
-import javax.swing.JList;
-import javax.swing.SwingConstants;
-
-import org.praisenter.slide.SlideThumbnail;
+import org.praisenter.common.threading.AbstractTask;
+import org.praisenter.slide.BasicSlide;
+import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideFile;
+import org.praisenter.slide.SlideLibrary;
+import org.praisenter.slide.Template;
 
 /**
- * Custom list cell renderer for {@link SlideThumbnail}s.
+ * Task to load a slide from the Slide Library.
  * @author William Bittle
- * @version 2.0.0
- * @since 2.0.0
+ * @version 2.0.1
+ * @since 2.0.1
  */
-public class SlideThumbnailListCellRenderer extends DefaultListCellRenderer {	
-	/** The version id */
-	private static final long serialVersionUID = -8260540909617276091L;
-
+public class LoadSlideTask extends AbstractTask {
+	/** The slide file */
+	protected SlideFile file;
+	
+	/** The slide class; null if {@link BasicSlide} */
+	protected Class<? extends Template> clazz;
+	
+	/** The loaded slide */
+	protected Slide slide;
+	
+	/**
+	 * Full constructor.
+	 * @param file the slide file
+	 * @param clazz the slide class; null if {@link BasicSlide}
+	 */
+	public LoadSlideTask(SlideFile file, Class<? extends Template> clazz) {
+		this.file = file;
+		this.clazz = clazz;
+	}
+	
 	/* (non-Javadoc)
-	 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
+	 * @see java.lang.Runnable#run()
 	 */
 	@Override
-	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-		if (value instanceof SlideThumbnail) {
-			SlideThumbnail t = (SlideThumbnail)value;
-			this.setIcon(new ImageIcon(t.getImage()));
-			this.setHorizontalTextPosition(SwingConstants.CENTER);
-			this.setVerticalTextPosition(SwingConstants.BOTTOM);
-			this.setText(t.getName());
-			this.setToolTipText("<html>" + t.getName() + "<br />" + t.getFile().getName() + "</html>");
-			this.setHorizontalAlignment(CENTER);
+	public void run() {
+		try {
+			if (this.clazz != null) {
+				this.slide = SlideLibrary.getInstance().getTemplate(this.file, this.clazz);
+			} else {
+				this.slide = SlideLibrary.getInstance().getSlide(this.file);
+			}
+			this.setSuccessful(true);
+		} catch (Exception ex) {
+			this.handleException(ex);
 		}
-		return this;
+	}
+	
+	/**
+	 * Returns the slide file.
+	 * @return {@link SlideFile}
+	 */
+	public SlideFile getFile() {
+		return this.file;
+	}
+	
+	/**
+	 * Returns the class type.
+	 * @return Class&lt;{@link Template}&gt;
+	 */
+	public Class<? extends Template> getClazz() {
+		return this.clazz;
+	}
+	
+	/**
+	 * Returns the loaded slide.
+	 * @return {@link Slide}
+	 */
+	public Slide getSlide() {
+		return this.slide;
 	}
 }

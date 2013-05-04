@@ -37,6 +37,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -240,14 +241,21 @@ public final class UnboundBibleImporter {
 							verseInsert.setInt(6, verse.order);
 							verseInsert.setClob(7, new StringReader(verse.text));
 							// execute the insert
-							int n = verseInsert.executeUpdate();
-							// make sure it worked
-							if (n <= 0) {
-								// roll back anything we've done
-								connection.rollback();
-								// throw an error
-								throw new DataImportException(new DataSaveException());
+							try {
+								int n = verseInsert.executeUpdate();
+								// make sure it worked
+								if (n <= 0) {
+									// roll back anything we've done
+									connection.rollback();
+									// throw an error
+									throw new DataImportException(new DataSaveException());
+								}
+							} catch (SQLIntegrityConstraintViolationException e) {
+								// its possible that the dumps have duplicate keys (book, chapter, verse, subverse)
+								// in this case we will ignore these and continue but log them as warnings
+								LOGGER.warn("Duplicate verse in file [" + verse.book.code + "|" + verse.chapter + "|" + verse.verse + "|" + verse.subVerse + "]. Dropping verse.");
 							}
+							// let the outer try/catch handle other exceptions
 						}
 					} catch (SQLException e) {
 						connection.rollback();
@@ -362,6 +370,7 @@ public final class UnboundBibleImporter {
 		Arrays.fill(columnMapping, -1);
 		final int increment = 10;
 		int order = increment;
+		int lastSubVerse = -1;
 		while ((line = reader.readLine()) != null) {
 			if (line.startsWith("#")) {
 				// it's a comment, but some comments will provide data
@@ -406,7 +415,29 @@ public final class UnboundBibleImporter {
 					verse.verse = Integer.parseInt(data[columnMapping[2]].trim());
 					// the sub verse is rarely populated (and sometimes not present)
 					if (columnMapping[3] != -1 && data[columnMapping[3]].trim().length() > 0) {
-						verse.subVerse = Integer.parseInt(data[columnMapping[3]].trim());
+						String subVerse = data[columnMapping[3]].trim();
+						// some sub verses start with a . and have numbers (these are pre-verse sub verses)
+						if (subVerse.startsWith(".")) {
+							subVerse = subVerse.replaceAll("\\.", "");
+							// convert the subverse to an int
+							try {
+								// we will reverse order them
+								verse.subVerse = -Integer.parseInt(subVerse);
+							} catch (NumberFormatException e) {
+								LOGGER.warn("Unknown sub-verse format [" + verse.book.code + "|" + verse.chapter + "|" + verse.verse + "|" + data[columnMapping[3]].trim() + "]. Dropping verse.");
+								continue;
+							}
+						} else {
+							// apparently the sub-verse field is a character field rather than a number
+							if (lastSubVerse < 0) {
+								lastSubVerse = 1;
+							} else {
+								lastSubVerse++;
+							}
+							verse.subVerse = lastSubVerse;
+						}
+					} else {
+						lastSubVerse = -1;
 					}
 					// order isn't always present
 					if (columnMapping[4] != -1) {
@@ -418,7 +449,14 @@ public final class UnboundBibleImporter {
 						verse.order = order;
 						order += increment;
 					}
-					verse.text = data[columnMapping[5]].trim();
+					// make sure the text is there
+					if (data.length > columnMapping[5]) {
+						verse.text = data[columnMapping[5]].trim();
+					} else {
+						verse.text = "";
+						// continue, but log a warning
+						LOGGER.warn("Verse [" + verse.book.code + "|" + verse.chapter + "|" + verse.verse + "|" + verse.subVerse + "] is missing text.");
+					}
 					verses.add(verse);
 				}
 			}

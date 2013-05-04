@@ -87,14 +87,16 @@ public class SongSearchTableModel extends MutableSongTableModel {
 	 * @return boolean
 	 */
 	protected boolean isGroupHeader(int rowIndex) {
-		Song song = this.songs.get(rowIndex);
-		// this only works because the results are sorted
-		if (rowIndex > 0) {
-			// get the previous song
-			Song prev = this.songs.get(rowIndex - 1);
-			// check if they are the same song
-			if (prev.getId() == song.getId()) {
-				return false;
+		if (this.songs != null) {
+			Song song = this.songs.get(rowIndex);
+			// this only works because the results are sorted
+			if (rowIndex > 0) {
+				// get the previous song
+				Song prev = this.songs.get(rowIndex - 1);
+				// check if they are the same song
+				if (prev.getId() == song.getId()) {
+					return false;
+				}
 			}
 		}
 		return true;

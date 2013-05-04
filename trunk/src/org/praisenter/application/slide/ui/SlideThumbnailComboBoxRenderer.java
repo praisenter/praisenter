@@ -36,6 +36,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
 import org.praisenter.application.resources.Messages;
+import org.praisenter.slide.SlideFile;
 import org.praisenter.slide.SlideThumbnail;
 
 /**
@@ -71,7 +72,11 @@ public class SlideThumbnailComboBoxRenderer extends DefaultListCellRenderer {
 			this.setHorizontalAlignment(SwingConstants.LEFT);
 			this.setVerticalTextPosition(SwingConstants.CENTER);
 			this.setText(t.getName());
-			this.setToolTipText(t.getFile().getName());
+			if (t.getFile() != SlideFile.NOT_STORED) {
+				this.setToolTipText("<html>" + t.getName() + "<br />" + t.getFile().getName() + "</html>");
+			} else {
+				this.setToolTipText(null);
+			}
 			if (index >= 0) {
 				this.setHorizontalTextPosition(SwingConstants.RIGHT);
 				this.setIcon(new ImageIcon(t.getImage()));

@@ -77,6 +77,10 @@ Bug Fixes:
     template drop downs.
   o Adding templates from the preferences dialog would not update the template
     drop downs on the bible and song panels and the slide tab.
+  o Fixed some bugs with the UnboundBibleImporter where errors would occur
+    if a bible had subverses or duplicate verses.
+  o Fixed a bug where the verse count and book count were misleading when
+    a Bible with missing verses or chapters was imported.
   
 Other:
   o When adding media, the media type defaults to All Files instead of

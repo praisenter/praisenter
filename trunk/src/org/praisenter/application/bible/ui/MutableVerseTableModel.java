@@ -98,8 +98,9 @@ public class MutableVerseTableModel extends VerseTableModel {
 		if (this.verses == null) {
 			this.verses = new ArrayList<Verse>();
 		}
-		this.verses.addAll(verses);
 		int n = verses.size();
+		if (n == 0) return;
+		this.verses.addAll(verses);
 		for (int i = 0; i < n; i++) {
 			this.selectedItems.add(false);
 		}
@@ -180,9 +181,11 @@ public class MutableVerseTableModel extends VerseTableModel {
 	 */
 	public List<Verse> getSelectedRows() {
 		List<Verse> verses = new ArrayList<Verse>();
-		for (int i = 0; i < this.verses.size(); i++) {
-			if (this.selectedItems.get(i)) {
-				verses.add(this.verses.get(i));
+		if (this.verses != null) {
+			for (int i = 0; i < this.verses.size(); i++) {
+				if (this.selectedItems.get(i)) {
+					verses.add(this.verses.get(i));
+				}
 			}
 		}
 		return verses;
@@ -193,10 +196,12 @@ public class MutableVerseTableModel extends VerseTableModel {
 	 * @since 2.0.1
 	 */
 	public void clearSelections() {
-		for (int i = 0; i < this.selectedItems.size(); i++) {
-			this.selectedItems.set(i, false);
+		if (this.selectedItems != null) {
+			for (int i = 0; i < this.selectedItems.size(); i++) {
+				this.selectedItems.set(i, false);
+			}
+			this.fireTableDataChanged();
 		}
-		this.fireTableDataChanged();
 	}
 
 	/* (non-Javadoc)

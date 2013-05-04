@@ -35,7 +35,7 @@ import org.praisenter.data.song.SongPart;
 /**
  * Table model for the parts of a song.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class SongPartTableModel extends AbstractTableModel {
@@ -124,10 +124,12 @@ public class SongPartTableModel extends AbstractTableModel {
 	 * @return int
 	 */
 	public int getRowIndex(SongPart part) {
-		for (int i = 0; i < this.parts.size(); i++) {
-			SongPart p = this.parts.get(i);
-			if (p.equals(part)) {
-				return i;
+		if (this.parts != null) {
+			for (int i = 0; i < this.parts.size(); i++) {
+				SongPart p = this.parts.get(i);
+				if (p.equals(part)) {
+					return i;
+				}
 			}
 		}
 		return -1;

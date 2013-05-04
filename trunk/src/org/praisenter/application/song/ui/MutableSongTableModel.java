@@ -223,9 +223,11 @@ public class MutableSongTableModel extends SongTableModel {
 	 */
 	public List<Song> getSelectedRows() {
 		List<Song> songs = new ArrayList<Song>();
-		for (int i = 0; i < this.songs.size(); i++) {
-			if (this.selectedItems.get(i)) {
-				songs.add(this.songs.get(i));
+		if (this.songs != null) {
+			for (int i = 0; i < this.songs.size(); i++) {
+				if (this.selectedItems.get(i)) {
+					songs.add(this.songs.get(i));
+				}
 			}
 		}
 		return songs;
@@ -248,10 +250,12 @@ public class MutableSongTableModel extends SongTableModel {
 	 * De-selects all selected rows.
 	 */
 	public void deselectAll() {
-		for (int i = 0; i < this.selectedItems.size(); i++) {
-			this.selectedItems.set(i, false);
+		if (this.selectedItems != null) {
+			for (int i = 0; i < this.selectedItems.size(); i++) {
+				this.selectedItems.set(i, false);
+			}
+			this.fireTableDataChanged();
 		}
-		this.fireTableDataChanged();
 	}
 	
 	/* (non-Javadoc)
