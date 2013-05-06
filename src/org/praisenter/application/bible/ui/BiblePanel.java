@@ -1280,13 +1280,12 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 				this.addVerseAction(bible, book, chapter, verse);
 			} else if ("send".equals(command) && this.verseFound) {
 				this.sendVerseAction();
-			} else if ("clear".equals(command)) {
-				this.clearVerseAction();
 			}
 		}
 		
-		// check for search
-		if ("search".equals(command)) {
+		if ("clear".equals(command)) {
+			this.clearVerseAction();
+		} else if ("search".equals(command)) {
 			// make sure a bible is set to search
 			if (bible != null) {
 				// grab the text from the text box

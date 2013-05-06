@@ -41,7 +41,7 @@ import com.xuggle.xuggler.IStreamCoder;
  * <p>
  * This class is not designed to be used separately from the {@link XugglerMediaPlayer} class.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class XugglerAudioPlayerThread extends PausableThread {
@@ -189,9 +189,11 @@ public class XugglerAudioPlayerThread extends PausableThread {
 			if (this.line.isControlSupported(FloatControl.Type.VOLUME)) {
 				// create the volume control
 				FloatControl volumeControl = (FloatControl) this.line.getControl(FloatControl.Type.VOLUME);
+				// compute the target volume
+				float tVolume = (float)volumePercent * volumeControl.getMaximum();
 				// only update the volume if it has changed
-				if (volumeControl.getValue() != volumePercent) {
-					volumeControl.setValue((float) volumePercent);
+				if (volumeControl.getValue() != volume) {
+					volumeControl.setValue(tVolume);
 				}
 				// log that the audio volume has been changed
 				LOGGER.debug("Volume changed using VOLUME contorl.");

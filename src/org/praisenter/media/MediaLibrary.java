@@ -635,7 +635,7 @@ public final class MediaLibrary {
 	public synchronized boolean containsMedia(String fileName, MediaType type) {
 		FileSystem system = FileSystems.getDefault();
 		// get the full path to the media given the type
-		String path = this.getMediaTypeFullPath(type);
+		String path = this.getMediaTypeFullPath(type) + system.getSeparator() + fileName;
 		Path fullPath = system.getPath(path);
 		Path rootPath = system.getPath(this.basePath);
 		// if it exists on the file system or the media map (which both should
