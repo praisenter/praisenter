@@ -24,14 +24,17 @@
  */
 package org.praisenter.media;
 
+import java.util.regex.Matcher;
+
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 import org.apache.log4j.Logger;
+import org.praisenter.common.utilities.FileUtilities;
 
 /**
  * Represents an XML adapter for {@link Media} objects.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class MediaTypeAdapter extends XmlAdapter<String, Media> {
@@ -52,6 +55,14 @@ public class MediaTypeAdapter extends XmlAdapter<String, Media> {
 	@Override
 	public Media unmarshal(String v) throws Exception {
 		Media media = null;
+		// v should be a relative path, but could be wrong if it was created on
+		// windows and imported on linux (or the other way around)
+		// to fix this we need to cleanse the path
+		String sep = FileUtilities.getSeparator();
+		// if it doesn't contain the separator then we need to fix it
+		if (!v.contains(sep)) {
+			v = v.replaceAll("\\\\|/|:", Matcher.quoteReplacement(sep));
+		}
 		try {
 			media = MediaLibrary.getInstance().getMedia(v);
 		} catch (Exception e) {
