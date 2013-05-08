@@ -87,6 +87,7 @@ import org.praisenter.application.slide.ui.SlideLibraryListener;
 import org.praisenter.application.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.application.slide.ui.TransitionListCellRenderer;
 import org.praisenter.application.slide.ui.preview.ScrollableInlineSlidePreviewPanel;
+import org.praisenter.application.ui.OpaquePanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.WaterMark;
 import org.praisenter.common.NotInitializedException;
@@ -115,7 +116,7 @@ import org.praisenter.slide.SongSlideTemplate;
  * @version 2.0.1
  * @since 1.0.0
  */
-public class SongsPanel extends JPanel implements ActionListener, SongListener, ItemListener, PreferencesListener, SlideLibraryListener {
+public class SongsPanel extends OpaquePanel implements ActionListener, SongListener, ItemListener, PreferencesListener, SlideLibraryListener {
 	/** The version id */
 	private static final long serialVersionUID = 2646140774751357022L;
 
@@ -219,6 +220,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		this.scrPreview = new ScrollableInlineSlidePreviewPanel(this.pnlPreview);
 		this.scrPreview.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 		this.scrPreview.getHorizontalScrollBar().setUnitIncrement(20);
+		this.scrPreview.setOpaque(false);
 		
 		// song preview thread
 		this.previewThread = new SongPreivewThread();
@@ -226,16 +228,16 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		
 		// current song and sending
 		
-		this.lblSongTitle = new JLabel(MessageFormat.format(Messages.getString("panel.songs.current.pattern"), Messages.getString("panel.songs.default.title"), ""));
+		this.lblSongTitle = new JLabel(MessageFormat.format(Messages.getString("panel.song.current.pattern"), Messages.getString("panel.song.default.title"), ""));
 		this.lblSongTitle.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 		this.pnlQuickSend = new SongQuickSendPanel(this);
 		
-		JLabel lblParts = new JLabel(Messages.getString("panel.song.parts"));
+		JLabel lblParts = new JLabel(Messages.getString("panel.song.parts.select"));
 		lblParts.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
 		this.cmbParts = new JComboBox<SongPart>(new SongPart[] { new SongPart() });
 		this.cmbParts.setRenderer(new SongPartCellRenderer());
 		this.cmbParts.setEnabled(false);
-		this.cmbParts.setToolTipText(Messages.getString("panel.songs.part.list"));
+		this.cmbParts.setToolTipText(Messages.getString("panel.song.part.list"));
 
 		SlideThumbnail[] thumbnails = this.getThumbnails();
 		SlideThumbnail selected = this.getSelectedThumbnail(thumbnails);
@@ -250,19 +252,19 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
 		this.cmbTemplates.addItemListener(this);
 		
-		this.btnSend = new JButton(Messages.getString("panel.songs.send"));
-		this.btnSend.setToolTipText(Messages.getString("panel.songs.send.tooltip"));
+		this.btnSend = new JButton(Messages.getString("panel.song.send"));
+		this.btnSend.setToolTipText(Messages.getString("panel.song.send.tooltip"));
 		this.btnSend.addActionListener(this);
 		this.btnSend.setActionCommand("send");
 		this.btnSend.setFont(this.btnSend.getFont().deriveFont(Font.BOLD, this.btnSend.getFont().getSize2D() + 3.0f));
 		
-		this.btnClear = new JButton(Messages.getString("panel.songs.clear"));
-		this.btnClear.setToolTipText(Messages.getString("panel.songs.clear.tooltip"));
+		this.btnClear = new JButton(Messages.getString("panel.song.clear"));
+		this.btnClear.setToolTipText(Messages.getString("panel.song.clear.tooltip"));
 		this.btnClear.addActionListener(this);
 		this.btnClear.setActionCommand("clear");
 		
-		JButton btnBlank = new JButton(Messages.getString("panel.songs.blank"));
-		btnBlank.setToolTipText(Messages.getString("panel.songs.blank.tooltip"));
+		JButton btnBlank = new JButton(Messages.getString("panel.song.blank"));
+		btnBlank.setToolTipText(Messages.getString("panel.song.blank.tooltip"));
 		btnBlank.addActionListener(this);
 		btnBlank.setActionCommand("blank");
 		
@@ -294,9 +296,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			this.txtClearTransitions.setEnabled(false);
 		}
 		
-		JPanel pnlSending = new JPanel();
+		JPanel pnlSending = new OpaquePanel();
 		GroupLayout sendLayout = new GroupLayout(pnlSending);
 		pnlSending.setLayout(sendLayout);
+		
 		sendLayout.setAutoCreateContainerGaps(true);
 		sendLayout.setAutoCreateGaps(true);
 		sendLayout.setHorizontalGroup(sendLayout.createSequentialGroup()
@@ -320,6 +323,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 											.addComponent(this.cmbClearTransitions)
 											.addComponent(this.txtClearTransitions))
 									.addComponent(this.btnClear, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))));
+		
 		sendLayout.setVerticalGroup(sendLayout.createSequentialGroup()
 				.addGroup(sendLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblSongTitle)
@@ -352,15 +356,15 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				// paint a watermark over the text box
-				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.songs.search.watermark"));
+				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.song.search.watermark"));
 			}
 		};
 		this.txtSongSearch.setActionCommand("search");
 		this.txtSongSearch.addActionListener(this);
 		this.txtSongSearch.addFocusListener(new SelectTextFocusListener(this.txtSongSearch));
 		
-		JButton btnSongSearch = new JButton(Messages.getString("panel.songs.search"));
-		btnSongSearch.setToolTipText(Messages.getString("panel.songs.search.tooltip"));
+		JButton btnSongSearch = new JButton(Messages.getString("panel.song.search"));
+		btnSongSearch.setToolTipText(Messages.getString("panel.song.search.tooltip"));
 		btnSongSearch.setActionCommand("search");
 		btnSongSearch.addActionListener(this);
 		
@@ -441,7 +445,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		this.scrSongSearchResults = new JScrollPane(this.tblSongSearchResults);
 		
 		// search layout
-		JPanel pnlSongSearch = new JPanel();
+		JPanel pnlSongSearch = new OpaquePanel();
 		GroupLayout ssLayout = new GroupLayout(pnlSongSearch);
 		pnlSongSearch.setLayout(ssLayout);
 		
@@ -454,6 +458,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 						.addComponent(btnAdd)
 						.addComponent(btnSongLibrary))
 				.addComponent(this.scrSongSearchResults, 0, 400, Short.MAX_VALUE));
+		
 		ssLayout.setVerticalGroup(ssLayout.createSequentialGroup()
 				.addGroup(ssLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtSongSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -540,7 +545,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		btnRemoveAll.addActionListener(this);
 		
 		// queue layout
-		JPanel pnlSongQueue = new JPanel();
+		JPanel pnlSongQueue = new OpaquePanel();
 		GroupLayout sqLayout = new GroupLayout(pnlSongQueue);
 		pnlSongQueue.setLayout(sqLayout);
 		
@@ -551,6 +556,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 						.addComponent(btnRemoveSelected)
 						.addComponent(btnRemoveAll))
 				.addComponent(scrSongQueueResults, 0, 400, Short.MAX_VALUE));
+		
 		sqLayout.setVerticalGroup(sqLayout.createSequentialGroup()
 				.addGroup(sqLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(btnRemoveSelected)
@@ -563,11 +569,11 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		
 		// song search/queue tabs
 		JTabbedPane tabBottom = new JTabbedPane();
-		tabBottom.addTab(Messages.getString("panel.songs.tab.search"), pnlSongSearch);
-		tabBottom.addTab(Messages.getString("panel.songs.tab.queue"), pnlSongQueue);
-		tabBottom.addTab(Messages.getString("panel.songs.tab.editSong"), this.pnlEditSong);
+		tabBottom.addTab(Messages.getString("panel.song.tab.search"), pnlSongSearch);
+		tabBottom.addTab(Messages.getString("panel.song.tab.queue"), pnlSongQueue);
+		tabBottom.addTab(Messages.getString("panel.song.tab.editSong"), this.pnlEditSong);
 		
-		JPanel pnlTop = new JPanel();
+		JPanel pnlTop = new OpaquePanel();
 		GroupLayout layout = new GroupLayout(pnlTop);
 		pnlTop.setLayout(layout);
 		
@@ -584,6 +590,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 		split.setBottomComponent(tabBottom);
 		split.setResizeWeight(0.9);
 		split.setOneTouchExpandable(true);
+		split.setBorder(null);
 		
 		// create the layout
 		this.setLayout(new BorderLayout());
@@ -1105,8 +1112,8 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 					// and dont continue
 					ExceptionDialog.show(
 							this, 
-							Messages.getString("panel.songs.save.exception.title"), 
-							MessageFormat.format(Messages.getString("panel.songs.save.exception.text"), temp.getTitle()), 
+							Messages.getString("panel.song.save.exception.title"), 
+							MessageFormat.format(Messages.getString("panel.song.save.exception.text"), temp.getTitle()), 
 							e);
 					LOGGER.error("Failed to save song: ", e);
 					return;
@@ -1141,7 +1148,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				}
 			}
 			// set the song label text
-			this.lblSongTitle.setText(MessageFormat.format(Messages.getString("panel.songs.current.pattern"), song.getTitle(), notes));
+			this.lblSongTitle.setText(MessageFormat.format(Messages.getString("panel.song.current.pattern"), song.getTitle(), notes));
 			// set the song label tooltip
 			if (song.getNotes() != null && song.getNotes().length() > 0) {
 				this.lblSongTitle.setToolTipText(StringUtilities.addLineBreaksAtInterval(song.getNotes(), 50, true));
@@ -1157,7 +1164,7 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 			this.queueSongPreview(this.song);
 		} else {
 			// set the song label text
-			this.lblSongTitle.setText(MessageFormat.format(Messages.getString("panel.songs.current.pattern"), Messages.getString("panel.songs.default.title"), ""));
+			this.lblSongTitle.setText(MessageFormat.format(Messages.getString("panel.song.current.pattern"), Messages.getString("panel.song.default.title"), ""));
 			this.lblSongTitle.setToolTipText(null);
 			// add one dummy item to the parts combo box
 			this.cmbParts.addItem(new SongPart());
@@ -1287,10 +1294,10 @@ public class SongsPanel extends JPanel implements ActionListener, SongListener, 
 				sorter.setSortable(2, false);
 				tblSongSearchResults.setRowSorter(sorter);
 			} else {
-				String message = MessageFormat.format(Messages.getString("panel.songs.data.search.exception.text"), search.getText());
+				String message = MessageFormat.format(Messages.getString("panel.song.data.search.exception.text"), search.getText());
 				ExceptionDialog.show(
 						SongsPanel.this, 
-						Messages.getString("panel.songs.data.search.exception.title"), 
+						Messages.getString("panel.song.data.search.exception.title"), 
 						message, 
 						ex);
 				LOGGER.error(message, ex);

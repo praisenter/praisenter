@@ -158,7 +158,7 @@ public class SongQuickSendPanel extends JPanel {
 			// so its possible that the button doesnt exist for the part
 			if (button != null) {
 				button.setEnabled(true);
-				button.setToolTipText(StringUtilities.addLineBreaksAtInterval("<html><b>" + Messages.getString("panel.songs.quickSend") + " (" + HOTKEYS.get(key) + ")</b>\n" + part.getText() + "</html>", 50, true));
+				button.setToolTipText(StringUtilities.addLineBreaksAtInterval("<html><b>" + Messages.getString("panel.song.quickSend") + " (" + HOTKEYS.get(key) + ")</b>\n" + part.getText() + "</html>", 50, true));
 			}
 		}
 	}

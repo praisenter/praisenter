@@ -189,6 +189,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.mediaTabs, pnlRight);
 		pane.setOneTouchExpandable(true);
 		pane.setResizeWeight(1.0);
+		pane.setBorder(null);
 		
 		this.setLayout(new BorderLayout());
 		this.add(pane, BorderLayout.CENTER);
@@ -405,6 +406,8 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 						// remove the thumbnail from the list
 						DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)list.getModel();
 						model.removeElement(thumbnail);
+						list.clearSelection();
+						this.pnlProperties.setMediaFile(null);
 						
 						this.mediaLibraryUpdated = true;
 					} else {

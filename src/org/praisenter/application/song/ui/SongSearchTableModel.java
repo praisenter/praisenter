@@ -132,7 +132,7 @@ public class SongSearchTableModel extends MutableSongTableModel {
 		if (column < 2) {
 			return super.getColumnName(column);
 		} else {
-			return Messages.getString("panel.songs.matchedText");
+			return Messages.getString("panel.song.matchedText");
 		}
 	}
 	

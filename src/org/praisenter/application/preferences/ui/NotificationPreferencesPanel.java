@@ -55,6 +55,7 @@ import org.praisenter.application.slide.ui.SlideLibraryDialog;
 import org.praisenter.application.slide.ui.SlideLibraryListener;
 import org.praisenter.application.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.application.slide.ui.TransitionListCellRenderer;
+import org.praisenter.application.ui.OpaquePanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.common.NotInitializedException;
 import org.praisenter.common.utilities.ComponentUtilities;
@@ -70,7 +71,7 @@ import org.praisenter.slide.SlideThumbnail;
  * @version 2.0.1
  * @since 2.0.0
  */
-public class NotificationPreferencesPanel extends JPanel implements PreferencesEditor, ActionListener, SlideLibraryListener {
+public class NotificationPreferencesPanel extends OpaquePanel implements PreferencesEditor, ActionListener, SlideLibraryListener {
 	/** The verison id */
 	private static final long serialVersionUID = -2274087793090854194L;
 
@@ -176,7 +177,7 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 		this.cmbClearEasings.setSelectedItem(Easings.getEasingForId(nPreferences.getClearTransitionEasingId()));
 		this.cmbClearEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
-		JPanel pnlTransitions = new JPanel();
+		JPanel pnlTransitions = new OpaquePanel();
 		GroupLayout layout = new GroupLayout(pnlTransitions);
 		pnlTransitions.setLayout(layout);
 		
@@ -208,9 +209,10 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 						.addComponent(this.cmbClearEasings, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		
 		// setup the template panel
-		JPanel pnlTemplate = new JPanel();
+		JPanel pnlTemplate = new OpaquePanel();
 		layout = new GroupLayout(pnlTemplate);
 		pnlTemplate.setLayout(layout);
+		
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
@@ -223,9 +225,10 @@ public class NotificationPreferencesPanel extends JPanel implements PreferencesE
 				.addComponent(btnAddTemplate));
 		
 		// setup the layout
-		JPanel pnlGeneral = new JPanel();
+		JPanel pnlGeneral = new OpaquePanel();
 		layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
+		
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()

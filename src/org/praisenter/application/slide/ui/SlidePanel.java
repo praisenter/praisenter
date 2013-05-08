@@ -73,6 +73,7 @@ import org.praisenter.application.slide.ui.editor.SlideEditorDialog;
 import org.praisenter.application.slide.ui.editor.SlideEditorOption;
 import org.praisenter.application.slide.ui.editor.SlideEditorResult;
 import org.praisenter.application.slide.ui.preview.SingleSlidePreviewPanel;
+import org.praisenter.application.ui.OpaquePanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.TaskProgressDialog;
 import org.praisenter.common.NotInitializedException;
@@ -95,7 +96,7 @@ import org.praisenter.slide.SlideThumbnail;
  * @version 2.0.1
  * @since 2.0.0
  */
-public class SlidePanel extends JPanel implements ListSelectionListener, ActionListener, SlideLibraryListener, PreferencesListener {
+public class SlidePanel extends OpaquePanel implements ListSelectionListener, ActionListener, SlideLibraryListener, PreferencesListener {
 	/** The version id */
 	private static final long serialVersionUID = 5740087054031715193L;
 
@@ -144,6 +145,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 	 */
 	public SlidePanel() {
 		this.pnlPreview = new SingleSlidePreviewPanel();
+		this.pnlPreview.setOpaque(false);
 		Dimension size = new Dimension(100, 100);
 		this.pnlPreview.setPreferredSize(size);
 		
@@ -182,14 +184,14 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		btnManageSlides.addActionListener(this);
 		btnManageSlides.setActionCommand("manageSlides");
 		
-		JPanel pnlSlideControls = new JPanel();
+		JPanel pnlSlideControls = new OpaquePanel();
 		pnlSlideControls.setLayout(new GridLayout(2, 2, 4, 4));
 		pnlSlideControls.add(btnNewSlide);
 		pnlSlideControls.add(this.btnEdit);
 		pnlSlideControls.add(this.btnRemove);
 		pnlSlideControls.add(btnManageSlides);
 		
-		JPanel pnlRight = new JPanel();
+		JPanel pnlRight = new OpaquePanel();
 		GroupLayout rLayout = new GroupLayout(pnlRight);
 		pnlRight.setLayout(rLayout);
 		
@@ -246,7 +248,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		btnClear.setMinimumSize(new Dimension(0, 50));
 		
 		// create a panel and layout for the send/clear controls
-		JPanel pnlSendClearButtons = new JPanel();
+		JPanel pnlSendClearButtons = new OpaquePanel();
 		GroupLayout subLayout = new GroupLayout(pnlSendClearButtons);
 		pnlSendClearButtons.setLayout(subLayout);
 		pnlSendClearButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -273,7 +275,7 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 						.addComponent(btnSend)
 						.addComponent(btnClear)));
 		
-		JPanel pnlNoResize = new JPanel();
+		JPanel pnlNoResize = new OpaquePanel();
 		GroupLayout layout = new GroupLayout(pnlNoResize);
 		pnlNoResize.setLayout(layout);
 		
@@ -286,10 +288,12 @@ public class SlidePanel extends JPanel implements ListSelectionListener, ActionL
 		JSplitPane pnePreview = new JSplitPane(JSplitPane.VERTICAL_SPLIT, this.pnlPreview, pnlNoResize);
 		pnePreview.setResizeWeight(0.85);
 		pnePreview.setOneTouchExpandable(true);
+		pnePreview.setBorder(null);
 		
 		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pnePreview, pnlRight);
 		pane.setOneTouchExpandable(true);
 		pane.setResizeWeight(0.6);
+		pane.setBorder(null);
 		
 		this.setLayout(new BorderLayout());
 		this.add(pane, BorderLayout.CENTER);

@@ -50,6 +50,7 @@ import javax.swing.event.DocumentListener;
 
 import org.praisenter.application.resources.Messages;
 import org.praisenter.application.slide.ui.preview.SingleSlidePreviewPanel;
+import org.praisenter.application.ui.OpaquePanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongPart;
@@ -64,7 +65,7 @@ import org.praisenter.slide.text.TextComponent;
  * @version 2.0.1
  * @since 1.0.0
  */
-public class EditSongPartPanel extends JPanel implements ItemListener, DocumentListener, ChangeListener {
+public class EditSongPartPanel extends OpaquePanel implements ItemListener, DocumentListener, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -6670959052726030508L;
 	
@@ -126,6 +127,7 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		this.notificationsDisabled = true;
 		
 		this.pnlPreview = new SingleSlidePreviewPanel();
+		this.pnlPreview.setOpaque(false);
 		// the maximum dimension (200 on the height)
 		final int h = 100;
 		// it should be ok to use the template width and height at this
@@ -180,7 +182,7 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		
 		this.notificationsDisabled = false;
 		
-		JPanel pnlConfigure = new JPanel();
+		JPanel pnlConfigure = new OpaquePanel();
 		GroupLayout layout = new GroupLayout(pnlConfigure);
 		pnlConfigure.setLayout(layout);
 		
@@ -202,6 +204,7 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 				.addGroup(layout.createParallelGroup()
 						.addGroup(hGroup)
 						.addComponent(pneText, 100, 200, Short.MAX_VALUE)));
+		
 		layout.setVerticalGroup(layout.createParallelGroup()
 				.addGroup(layout.createSequentialGroup()
 						.addGroup(vGroup)
@@ -213,6 +216,7 @@ public class EditSongPartPanel extends JPanel implements ItemListener, DocumentL
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 				.addComponent(pnlConfigure)
 				.addComponent(this.pnlPreview));
+		
 		layout.setVerticalGroup(layout.createParallelGroup()
 				.addComponent(pnlConfigure)
 				.addComponent(this.pnlPreview));

@@ -41,7 +41,7 @@ import org.xml.sax.SAXException;
 /**
  * Song list importer for song database files.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public final class SongImporter {
@@ -53,10 +53,26 @@ public final class SongImporter {
 	
 	/**
 	 * Imports the songs contained in the given file.
+	 * @param file the file
+	 * @param format the file format
+	 * @throws DataImportException if an error occurs during import
+	 */
+	public static final void importSongs(File file, SongFormat format) throws DataImportException {
+		if (format == SongFormat.CHURCHVIEW) {
+			importChurchViewSongs(file);
+		} else if (format == SongFormat.PRAISENTER) {
+			importPraisenterSongs(file);
+		} else {
+			throw new DataImportException("SongFormat [" + format + "] is not supported for import.");
+		}
+	}
+	
+	/**
+	 * Imports the songs contained in the given file.
 	 * @param file the file to import
 	 * @throws DataImportException if an error occurs during import
 	 */
-	public static final void importPraisenterSongs(File file) throws DataImportException {
+	private static final void importPraisenterSongs(File file) throws DataImportException {
 		LOGGER.debug("Reading Praisenter song file: " + file.getName());
 		List<Song> songs = null;
 		// load the songs xml file into objects
@@ -103,7 +119,7 @@ public final class SongImporter {
 	 * @param file the file to import
 	 * @throws DataImportException if an error occurs during import
 	 */
-	public static final void importChurchViewSongs(File file) throws DataImportException {
+	private static final void importChurchViewSongs(File file) throws DataImportException {
 		try {
 			LOGGER.debug("Reading ChurchView song file: " + file.getName());
 			// load the songs xml file into objects

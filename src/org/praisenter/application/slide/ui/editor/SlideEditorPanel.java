@@ -108,7 +108,7 @@ import org.praisenter.slide.text.TextComponent;
 /**
  * Panel used to edit a slide.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, EditorListener, ActionListener, ItemListener, DocumentListener {
@@ -518,10 +518,12 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		JSplitPane splEditorControls = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		splEditorControls.setTopComponent(pnlComponentLists);
 		splEditorControls.setBottomComponent(this.pnlEditorCards);
+		splEditorControls.setBorder(null);
 		
 		JSplitPane splPreviewEditor = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		splPreviewEditor.setLeftComponent(splEditorControls);
 		splPreviewEditor.setRightComponent(this.pnlSlidePreview);
+		splPreviewEditor.setBorder(null);
 		
 		this.setLayout(new BorderLayout());
 		this.add(pnlTop, BorderLayout.PAGE_START);

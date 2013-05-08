@@ -54,6 +54,7 @@ import javax.swing.JSpinner.DefaultEditor;
 import org.praisenter.application.icons.Icons;
 import org.praisenter.application.preferences.Preferences;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.OpaquePanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.common.utilities.WindowUtilities;
 import org.praisenter.slide.graphics.RenderQuality;
@@ -64,7 +65,7 @@ import org.praisenter.slide.graphics.RenderQuality;
  * @version 2.0.1
  * @since 2.0.0
  */
-public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor, ActionListener, ItemListener {
+public class GeneralPreferencesPanel extends OpaquePanel implements PreferencesEditor, ActionListener, ItemListener {
 	/** The version id */
 	private static final long serialVersionUID = 7677045112182344610L;
 	
@@ -253,7 +254,7 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 		this.chkReadTimeVideoConversion.setSelected(preferences.isReadTimeVideoConversionEnabled());
 		
 		// create the layout
-		JPanel pnlGeneral = new JPanel();
+		JPanel pnlGeneral = new OpaquePanel();
 		GroupLayout layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
 		
@@ -296,7 +297,7 @@ public class GeneralPreferencesPanel extends JPanel implements PreferencesEditor
 						.addComponent(lblReadTimeVideoConversion)
 						.addComponent(this.chkReadTimeVideoConversion)));
 		
-		JPanel pnlQuality = new JPanel();
+		JPanel pnlQuality = new OpaquePanel();
 		layout = new GroupLayout(pnlQuality);
 		pnlQuality.setLayout(layout);
 		

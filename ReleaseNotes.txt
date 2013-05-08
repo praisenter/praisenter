@@ -81,6 +81,10 @@ Bug Fixes:
     if a bible had subverses or duplicate verses.
   o Fixed a bug where the verse count and book count were misleading when
     a Bible with missing verses or chapters was imported.
+  o Fixed a bug on Linux where audio volume was not set appropriately which
+    made the volume zero.
+  o Fixed a bug that was caused by different file separators when transferring
+    exported slides, templates, or libraries.
   
 Other:
   o When adding media, the media type defaults to All Files instead of
@@ -90,6 +94,8 @@ Other:
     increased the font size and bolded the current verse.
   o Small GUI label/tooltip changes.
   o Song file import/export has been moved to the Song Library.
+  o More UI fixes for the Mac OS X look and feel.
+  o Reduced the force shutdown thread wait time from 10 seconds to 3 seconds.
 
 Open Issues:
   o On Ubuntu Linux we get flickering in the animations due to the use of

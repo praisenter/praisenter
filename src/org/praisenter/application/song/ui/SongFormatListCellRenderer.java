@@ -24,66 +24,33 @@
  */
 package org.praisenter.application.song.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Window;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.Component;
 
-import javax.swing.JDialog;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
 
-import org.praisenter.application.resources.Messages;
+import org.praisenter.data.song.SongFormat;
 
 /**
- * Simple dialog to display the Song Library.
+ * List cell renderer for a list of {@link SongFormat} objects.
  * @author William Bittle
  * @version 2.0.1
  * @since 2.0.1
  */
-public class SongLibraryDialog extends JDialog {
+public class SongFormatListCellRenderer extends DefaultListCellRenderer {
 	/** The version id */
-	private static final long serialVersionUID = 6827271875643932106L;
+	private static final long serialVersionUID = 7547430216627572126L;
 	
-	/** The song library panel */
-	private SongLibraryPanel pnlSongLibrary;
-	
-	/**
-	 * Minimal constructor.
-	 * @param owner the owner of the this dialog; can be null
+	/* (non-Javadoc)
+	 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
 	 */
-	private SongLibraryDialog(Window owner) {
-		super(owner, Messages.getString("dialog.song.title"), ModalityType.APPLICATION_MODAL);
-		
-		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		
-		this.pnlSongLibrary = new SongLibraryPanel();
-		this.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				// check for unsaved work
-				if (pnlSongLibrary.checkForUnsavedWork()) {
-					setVisible(false);
-				}
-			}
-		});
-		
-		Container container = this.getContentPane();
-		container.setLayout(new BorderLayout());
-		container.add(this.pnlSongLibrary, BorderLayout.CENTER);
-		
-		this.pack();
-	}
-	
-	/**
-	 * Shows a new Song Library dialog.
-	 * @param owner the owner of this dialog; can be null
-	 * @return boolean true if the song library was changed
-	 */
-	public static final boolean show(Window owner) {
-		SongLibraryDialog dialog = new SongLibraryDialog(owner);
-		dialog.setLocationRelativeTo(owner);
-		dialog.setVisible(true);
-		dialog.dispose();
-		return dialog.pnlSongLibrary.isSongLibraryChanged();
+	@Override
+	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+		if (value instanceof SongFormat) {
+			SongFormat format = (SongFormat)value;
+			this.setText(format.getName());
+		}
+		return this;
 	}
 }

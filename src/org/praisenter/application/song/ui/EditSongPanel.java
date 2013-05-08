@@ -60,6 +60,7 @@ import javax.swing.table.TableModel;
 import org.apache.log4j.Logger;
 import org.praisenter.application.errors.ui.ExceptionDialog;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.OpaquePanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.WaterMark;
 import org.praisenter.common.utilities.StringUtilities;
@@ -76,7 +77,7 @@ import org.praisenter.slide.SongSlideTemplate;
  * @version 2.0.1
  * @since 1.0.0
  */
-public class EditSongPanel extends JPanel implements ActionListener, SongPartListener {
+public class EditSongPanel extends OpaquePanel implements ActionListener, SongPartListener {
 	/** The version id */
 	private static final long serialVersionUID = -6559268693745087405L;
 	
@@ -243,7 +244,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 					btnNotes.setSelected(false);
 					CardLayout layout = (CardLayout)pnlCards.getLayout();
 					layout.show(pnlCards, CARD_PARTS);
-					btnNotes.setText(Messages.getString("panel.songs.notes"));
+					btnNotes.setText(Messages.getString("panel.song.notes"));
 				}
 			}
 		});
@@ -267,8 +268,8 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 		this.btnDeleteSelectedParts.addActionListener(this);
 		this.btnDeleteSelectedParts.setEnabled(edit);
 		
-		this.btnNotes = new JToggleButton(Messages.getString("panel.songs.notes"));
-		this.btnNotes.setToolTipText(Messages.getString("panel.songs.notes.tooltip"));
+		this.btnNotes = new JToggleButton(Messages.getString("panel.song.notes"));
+		this.btnNotes.setToolTipText(Messages.getString("panel.song.notes.tooltip"));
 		this.btnNotes.setActionCommand("notes");
 		this.btnNotes.addActionListener(this);
 		this.btnNotes.setEnabled(edit);
@@ -294,7 +295,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 		});
 		JScrollPane pneNotes = new JScrollPane(this.txtNotes);
 		
-		this.pnlCards = new JPanel();
+		this.pnlCards = new OpaquePanel();
 		this.pnlCards.setLayout(new CardLayout());
 		
 		this.pnlCards.add(this.pnlEditPart, CARD_PARTS);
@@ -318,6 +319,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 								.addComponent(this.btnDeleteSelectedParts, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 								.addComponent(this.btnNotes, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 						.addComponent(this.pnlCards)));
+		
 		layout.setVerticalGroup(layout.createSequentialGroup()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -474,7 +476,7 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 			this.btnNotes.setSelected(false);
 			CardLayout layout = (CardLayout)this.pnlCards.getLayout();
 			layout.show(this.pnlCards, CARD_PARTS);
-			this.btnNotes.setText(Messages.getString("panel.songs.notes"));
+			this.btnNotes.setText(Messages.getString("panel.song.notes"));
 			
 			this.notificationsDisabled = false;
 		}
@@ -558,8 +560,8 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 			} catch (DataException e) {
 				ExceptionDialog.show(
 						this, 
-						Messages.getString("panel.songs.save.exception.title"), 
-						MessageFormat.format(Messages.getString("panel.songs.save.exception.text"), this.song.getTitle()), 
+						Messages.getString("panel.song.save.exception.title"), 
+						MessageFormat.format(Messages.getString("panel.song.save.exception.text"), this.song.getTitle()), 
 						e);
 				LOGGER.error("Failed to save song: ", e);
 			}
@@ -567,10 +569,10 @@ public class EditSongPanel extends JPanel implements ActionListener, SongPartLis
 			CardLayout layout = (CardLayout)this.pnlCards.getLayout();
 			if (this.btnNotes.isSelected()) {
 				layout.show(this.pnlCards, CARD_NOTES);
-				this.btnNotes.setText(Messages.getString("panel.songs.parts"));
+				this.btnNotes.setText(Messages.getString("panel.song.parts"));
 			} else {
 				layout.show(this.pnlCards, CARD_PARTS);
-				this.btnNotes.setText(Messages.getString("panel.songs.notes"));
+				this.btnNotes.setText(Messages.getString("panel.song.notes"));
 			}
 		}
 	}
