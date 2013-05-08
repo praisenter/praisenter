@@ -118,6 +118,9 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 	
 	// song editing
 	
+	/** The button to discard changes */
+	private JButton btnDiscardChanges;
+	
 	/** The save button */
 	private JButton btnSave;
 	
@@ -186,15 +189,15 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				// paint a watermark over the text box
-				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.songs.search.watermark"));
+				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.song.search.watermark"));
 			}
 		};
 		this.txtSongSearch.setActionCommand("search");
 		this.txtSongSearch.addActionListener(this);
 		this.txtSongSearch.addFocusListener(new SelectTextFocusListener(this.txtSongSearch));
 		
-		JButton btnSongSearch = new JButton(Messages.getString("panel.songs.search"));
-		btnSongSearch.setToolTipText(Messages.getString("panel.songs.search.tooltip"));
+		JButton btnSongSearch = new JButton(Messages.getString("panel.song.search"));
+		btnSongSearch.setToolTipText(Messages.getString("panel.song.search.tooltip"));
 		btnSongSearch.setActionCommand("search");
 		btnSongSearch.addActionListener(this);
 		
@@ -255,8 +258,8 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 								// and dont continue
 								ExceptionDialog.show(
 										SongLibraryPanel.this, 
-										Messages.getString("panel.songs.save.exception.title"), 
-										MessageFormat.format(Messages.getString("panel.songs.save.exception.text"), song.getTitle()), 
+										Messages.getString("panel.song.save.exception.title"), 
+										MessageFormat.format(Messages.getString("panel.song.save.exception.text"), song.getTitle()), 
 										ex);
 								LOGGER.error("Failed to save song: ", ex);
 								return;
@@ -306,17 +309,27 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 			this.cmbTemplates.setSelectedItem(selected);
 			this.previouslySelectedTemplate = selected;
 		}
-		this.cmbTemplates.setToolTipText(Messages.getString("panel.songs.template"));
+		this.cmbTemplates.setToolTipText(Messages.getString("panel.song.template"));
 		this.cmbTemplates.setRenderer(new SlideThumbnailComboBoxRenderer());
 		this.cmbTemplates.addItemListener(this);
 		
-		JButton btnNew = new JButton(Messages.getString("panel.songs.newSong"));
-		btnNew.setToolTipText(Messages.getString("panel.songs.newSong.tooltip"));
+		JButton btnImport = new JButton(Messages.getString("panel.song.import"));
+		btnImport.setToolTipText(Messages.getString("panel.song.import.tooltip"));
+		btnImport.setActionCommand("import");
+		btnImport.addActionListener(this);
+		
+		JButton btnExport = new JButton(Messages.getString("panel.song.export"));
+		btnExport.setToolTipText(Messages.getString("panel.song.export.tooltip"));
+		btnExport.setActionCommand("export");
+		btnExport.addActionListener(this);
+		
+		JButton btnNew = new JButton(Messages.getString("panel.song.newSong"));
+		btnNew.setToolTipText(Messages.getString("panel.song.newSong.tooltip"));
 		btnNew.setActionCommand("new");
 		btnNew.addActionListener(this);
 		
-		JButton btnDeleteSelected = new JButton(Messages.getString("panel.songs.deleteSelected"));
-		btnDeleteSelected.setToolTipText(Messages.getString("panel.songs.deleteSelected.tooltip"));
+		JButton btnDeleteSelected = new JButton(Messages.getString("panel.song.deleteSelected"));
+		btnDeleteSelected.setToolTipText(Messages.getString("panel.song.deleteSelected.tooltip"));
 		btnDeleteSelected.setActionCommand("deleteSelectedSongs");
 		btnDeleteSelected.addActionListener(this);
 		
@@ -355,7 +368,7 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 		this.txtNotes.setLineWrap(true);
 		this.txtNotes.setWrapStyleWord(true);
 		this.txtNotes.setEnabled(false);
-		this.txtNotes.setToolTipText(Messages.getString("panel.songs.library.notes.tooltip"));
+		this.txtNotes.setToolTipText(Messages.getString("panel.song.library.notes.tooltip"));
 		this.txtNotes.getDocument().addDocumentListener(new DocumentListener() {
 			@Override
 			public void changedUpdate(DocumentEvent e) {
@@ -373,17 +386,23 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 		JScrollPane pneNotes = new JScrollPane(this.txtNotes);
 		pneNotes.setMinimumSize(new Dimension(0, 75));
 		
-		this.btnAddPart = new JButton(Messages.getString("panel.songs.part.new"));
-		this.btnAddPart.setToolTipText(Messages.getString("panel.songs.part.new.tooltip"));
+		this.btnAddPart = new JButton(Messages.getString("panel.song.part.newPart"));
+		this.btnAddPart.setToolTipText(Messages.getString("panel.song.part.newPart.tooltip"));
 		this.btnAddPart.setActionCommand("addPart");
 		this.btnAddPart.addActionListener(this);
 		this.btnAddPart.setEnabled(false);
 		
-		this.btnDeleteParts = new JButton(Messages.getString("panel.songs.part.delete"));
-		this.btnDeleteParts.setToolTipText(Messages.getString("panel.songs.part.delete.tooltip"));
+		this.btnDeleteParts = new JButton(Messages.getString("panel.song.part.deleteParts"));
+		this.btnDeleteParts.setToolTipText(Messages.getString("panel.song.part.deleteParts.tooltip"));
 		this.btnDeleteParts.setActionCommand("deleteParts");
 		this.btnDeleteParts.addActionListener(this);
 		this.btnDeleteParts.setEnabled(false);
+		
+		this.btnDiscardChanges = new JButton(Messages.getString("panel.song.discard"));
+		this.btnDiscardChanges.setToolTipText(Messages.getString("panel.song.discard.tooltip"));
+		this.btnDiscardChanges.setActionCommand("discard");
+		this.btnDiscardChanges.addActionListener(this);
+		this.btnDiscardChanges.setEnabled(false);
 		
 		this.btnSave = new JButton(Messages.getString("panel.song.save"));
 		this.btnSave.setToolTipText(Messages.getString("panel.song.save.tooltip"));
@@ -393,15 +412,19 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 		
 		this.notificationsDisabled = false;
 		
-		JPanel pnlDeleteAddSong = new JPanel();
-		pnlDeleteAddSong.setLayout(new GridLayout(1, 2));
-		pnlDeleteAddSong.add(btnDeleteSelected);
-		pnlDeleteAddSong.add(btnNew);
+		JPanel pnlImportExportDeleteAdd = new JPanel();
+		pnlImportExportDeleteAdd.setLayout(new GridLayout(2, 2));
+		pnlImportExportDeleteAdd.add(btnImport);
+		pnlImportExportDeleteAdd.add(btnExport);
+		pnlImportExportDeleteAdd.add(btnDeleteSelected);
+		pnlImportExportDeleteAdd.add(btnNew);
 		
-		JPanel pnlDeleteAddPart = new JPanel();
-		pnlDeleteAddPart.setLayout(new GridLayout(1, 2));
-		pnlDeleteAddPart.add(this.btnDeleteParts);
-		pnlDeleteAddPart.add(this.btnAddPart);
+		JPanel pnlDeleteAddDiscardSave = new JPanel();
+		pnlDeleteAddDiscardSave.setLayout(new GridLayout(2, 2));
+		pnlDeleteAddDiscardSave.add(this.btnDeleteParts);
+		pnlDeleteAddDiscardSave.add(this.btnAddPart);
+		pnlDeleteAddDiscardSave.add(this.btnDiscardChanges);
+		pnlDeleteAddDiscardSave.add(this.btnSave);
 		
 		JPanel pnlLeft = new JPanel();
 		GroupLayout leftLayout = new GroupLayout(pnlLeft);
@@ -418,28 +441,26 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 						.addComponent(btnSongSearch))
 				.addComponent(this.scrSongSearchResults)
 				.addComponent(this.cmbTemplates, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(pnlDeleteAddSong, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(pnlImportExportDeleteAdd, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(sep)
 				.addGroup(leftLayout.createSequentialGroup()
 						.addComponent(this.txtTitle)
 						.addComponent(this.lblId))
 				.addComponent(pneNotes)
-				.addComponent(pnlDeleteAddPart, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-				.addComponent(this.btnSave, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
+				.addComponent(pnlDeleteAddDiscardSave, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE));
 		leftLayout.setVerticalGroup(leftLayout.createSequentialGroup()
 				.addGroup(leftLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtSongSearch, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnSongSearch))
 				.addComponent(this.scrSongSearchResults)
 				.addComponent(this.cmbTemplates)
-				.addComponent(pnlDeleteAddSong)
+				.addComponent(pnlImportExportDeleteAdd)
 				.addComponent(sep, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addGroup(leftLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.txtTitle, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.lblId, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addComponent(pneNotes)
-				.addComponent(pnlDeleteAddPart)
-				.addComponent(this.btnSave));
+				.addComponent(pnlDeleteAddDiscardSave));
 		
 		this.pnlSongParts = new JPanel();
 		this.pnlSongParts.setLayout(new GridLayout(0, 1));
@@ -727,6 +748,15 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 			this.deletePartsAction();
 		} else if ("save".equals(command)) {
 			this.saveAction();
+		} else if ("import".equals(command)) {
+			boolean updated = ImportExportSongsDialog.show(WindowUtilities.getParentWindow(this), false);
+			if (updated) {
+				this.clearSearch();
+			}
+		} else if ("export".equals(command)) {
+			ImportExportSongsDialog.show(WindowUtilities.getParentWindow(this), true);
+		} else if ("discard".equals(command)) {
+			this.discardAction();
 		}
 	}
 	
@@ -794,8 +824,8 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 					// and dont continue
 					ExceptionDialog.show(
 							this, 
-							Messages.getString("panel.songs.save.exception.title"), 
-							MessageFormat.format(Messages.getString("panel.songs.save.exception.text"), this.song.getTitle()), 
+							Messages.getString("panel.song.save.exception.title"), 
+							MessageFormat.format(Messages.getString("panel.song.save.exception.text"), this.song.getTitle()), 
 							e);
 					LOGGER.error("Failed to save song: ", e);
 					return;
@@ -806,7 +836,9 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 			}
 		}
 		// create a new song and setup the panel to edit it
-		this.setSong(new Song());
+		Song song = new Song();
+		song.addSongPart(SongPartType.CHORUS, "");
+		this.setSong(song);
 		this.setSongChanged(true);
 	}
 	
@@ -866,6 +898,8 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 			final EditSongPartPanel panel = new EditSongPartPanel(true, this.getSelectedTemplate());
 			panel.setSongPart(this.song, part);
 			panel.addSongPartListener(this);
+			panel.setPreferredSize(new Dimension(550, 200));
+			panel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, panel.getBackground().darker()), BorderFactory.createEmptyBorder(5, 0, 5, 0)));
 			this.pnlSongParts.add(panel);
 			this.pnlSongParts.revalidate();
 			// scroll to it
@@ -894,6 +928,7 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 				}
 			}
 			this.pnlSongParts.revalidate();
+			this.pnlSongParts.repaint();
 			this.setSongChanged(true);
 		}
 	}
@@ -926,11 +961,80 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 		} catch (DataException e) {
 			ExceptionDialog.show(
 					this, 
-					Messages.getString("panel.songs.save.exception.title"), 
-					MessageFormat.format(Messages.getString("panel.songs.save.exception.text"), this.song.getTitle()), 
+					Messages.getString("panel.song.save.exception.title"), 
+					MessageFormat.format(Messages.getString("panel.song.save.exception.text"), this.song.getTitle()), 
 					e);
 			LOGGER.error("Failed to save song: ", e);
 		}
+	}
+	
+	/**
+	 * Discards any changes made.
+	 */
+	private void discardAction() {
+		if (this.song != null) {
+			int choice = JOptionPane.showConfirmDialog(
+					WindowUtilities.getParentWindow(SongLibraryPanel.this), 
+					MessageFormat.format(Messages.getString("panel.song.discard.confirm.message"), song.getTitle()), 
+					Messages.getString("panel.song.discard.confirm.title"), 
+					JOptionPane.YES_NO_CANCEL_OPTION);
+			if (choice == JOptionPane.YES_OPTION) {
+				// if yes, then just reload the song, or if its a new song, just null it out
+				if (this.song.isNew()) {
+					this.setSong(null);
+				} else {
+					try {
+						Song song = Songs.getSong(this.song.getId());
+						this.setSong(song);
+					} catch (DataException e) {
+						// just log this exception
+						LOGGER.error("An error occurred while loading the song [" + this.song.getId() + "|" + this.song.getTitle() + "]: ", e);
+						// and null it out
+						this.setSong(null);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * This method will check if a song has not been saved and prompt the user
+	 * if they want to save it or not.
+	 * <p>
+	 * If the user chooses yes then it is saved and true is returned.  If the
+	 * user chooses no, it is not saved and true is returned.  If the user
+	 * chooses cancel, it is not saved and false is returned.
+	 * @return boolean true if the user chooses yes or no; false if they choose cancel
+	 */
+	public boolean checkForUnsavedWork() {
+		// check if the current song has changed first
+		if (this.songChanged) {
+			int choice = JOptionPane.showConfirmDialog(
+					WindowUtilities.getParentWindow(this), 
+					MessageFormat.format(Messages.getString("panel.song.switch.confirm.message"), this.song.getTitle()), 
+					Messages.getString("panel.song.switch.confirm.title"), 
+					JOptionPane.YES_NO_CANCEL_OPTION);
+			if (choice == JOptionPane.YES_OPTION) {
+				// then save the song
+				try {
+					Collections.sort(this.song.getParts());
+					Songs.saveSong(this.song);
+				} catch (DataException e) {
+					// if the song fails to be saved then show a message
+					// and dont continue
+					ExceptionDialog.show(
+							this, 
+							Messages.getString("panel.song.save.exception.title"), 
+							MessageFormat.format(Messages.getString("panel.song.save.exception.text"), this.song.getTitle()), 
+							e);
+					LOGGER.error("Failed to save song: ", e);
+				}
+			} else if (choice == JOptionPane.CANCEL_OPTION) {
+				// don't continue
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	/**
@@ -998,6 +1102,7 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 	private void setSongChanged(boolean flag) {
 		this.songChanged = flag;
 		this.btnSave.setEnabled(flag);
+		this.btnDiscardChanges.setEnabled(flag);
 	}
 	
 	/**
@@ -1041,10 +1146,10 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 				scrSongSearchResults.getVerticalScrollBar().setValue(0);
 				setSongTableWidths();
 			} else {
-				String message = MessageFormat.format(Messages.getString("panel.songs.data.search.exception.text"), search.getText());
+				String message = MessageFormat.format(Messages.getString("panel.song.data.search.exception.text"), search.getText());
 				ExceptionDialog.show(
 						SongLibraryPanel.this, 
-						Messages.getString("panel.songs.data.search.exception.title"), 
+						Messages.getString("panel.song.data.search.exception.title"), 
 						message, 
 						ex);
 				LOGGER.error(message, ex);

@@ -22,68 +22,44 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.application.song.ui;
+package org.praisenter.data.song;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Window;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.util.List;
 
-import javax.swing.JDialog;
+import javax.xml.bind.JAXBException;
 
-import org.praisenter.application.resources.Messages;
+import org.praisenter.common.xml.XmlIO;
+import org.praisenter.data.DataException;
 
 /**
- * Simple dialog to display the Song Library.
+ * Class used to export a listing of songs.
  * @author William Bittle
  * @version 2.0.1
  * @since 2.0.1
  */
-public class SongLibraryDialog extends JDialog {
-	/** The version id */
-	private static final long serialVersionUID = 6827271875643932106L;
-	
-	/** The song library panel */
-	private SongLibraryPanel pnlSongLibrary;
+public final class SongExporter {
+	/** Hidden constructor */
+	private SongExporter() {}
 	
 	/**
-	 * Minimal constructor.
-	 * @param owner the owner of the this dialog; can be null
+	 * Exports the given list of songs to the given file in the given format.
+	 * @param file the file name and path to write to
+	 * @param songs the list of songs to export
+	 * @param format the format to export in
+	 * @throws DataException thrown if an error occurs during export
 	 */
-	private SongLibraryDialog(Window owner) {
-		super(owner, Messages.getString("dialog.song.title"), ModalityType.APPLICATION_MODAL);
-		
-		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		
-		this.pnlSongLibrary = new SongLibraryPanel();
-		this.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				// check for unsaved work
-				if (pnlSongLibrary.checkForUnsavedWork()) {
-					setVisible(false);
-				}
+	public static final void exportSongs(String file, List<Song> songs, SongFormat format) throws DataException {
+		if (format == SongFormat.PRAISENTER) {
+			// create the object to save
+			SongList list = new SongList(songs);
+			try {
+				XmlIO.save(file, list);
+			} catch (JAXBException | IOException e) {
+				throw new DataException(e);
 			}
-		});
-		
-		Container container = this.getContentPane();
-		container.setLayout(new BorderLayout());
-		container.add(this.pnlSongLibrary, BorderLayout.CENTER);
-		
-		this.pack();
-	}
-	
-	/**
-	 * Shows a new Song Library dialog.
-	 * @param owner the owner of this dialog; can be null
-	 * @return boolean true if the song library was changed
-	 */
-	public static final boolean show(Window owner) {
-		SongLibraryDialog dialog = new SongLibraryDialog(owner);
-		dialog.setLocationRelativeTo(owner);
-		dialog.setVisible(true);
-		dialog.dispose();
-		return dialog.pnlSongLibrary.isSongLibraryChanged();
+		} else {
+			throw new DataException("SongFormat [" + format + "] is not supported for export.");
+		}
 	}
 }

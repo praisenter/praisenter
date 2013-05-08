@@ -283,9 +283,9 @@ public class Praisenter extends JFrame implements ActionListener, PropertyChange
 					public void run() {
 						try {
 							LOGGER.debug("The exit thread has started.");
-							// wait 10 seconds before we forcefully shut down the JVM
-							Thread.sleep(10000);
-							LOGGER.warn("The exit thread waited 10 seconds. Manually exiting.");
+							// wait 3 seconds before we forcefully shut down the JVM
+							Thread.sleep(3000);
+							LOGGER.warn("The exit thread waited 3 seconds. Manually exiting.");
 							// shut her down...
 							System.exit(0);
 						} catch (InterruptedException e) {

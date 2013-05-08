@@ -58,6 +58,7 @@ import org.praisenter.application.slide.ui.SlideLibraryDialog;
 import org.praisenter.application.slide.ui.SlideLibraryListener;
 import org.praisenter.application.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.application.slide.ui.TransitionListCellRenderer;
+import org.praisenter.application.ui.OpaquePanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.common.NotInitializedException;
 import org.praisenter.common.utilities.ComponentUtilities;
@@ -76,7 +77,7 @@ import org.praisenter.slide.SlideThumbnail;
  * @version 2.0.1
  * @since 2.0.0
  */
-public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, ActionListener, SlideLibraryListener {
+public class BiblePreferencesPanel extends OpaquePanel implements PreferencesEditor, ActionListener, SlideLibraryListener {
 	/** The verison id */
 	private static final long serialVersionUID = 460972285830298448L;
 
@@ -241,7 +242,7 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, 
 		this.cmbClearEasings.setSelectedItem(Easings.getEasingForId(bPreferences.getClearTransitionEasingId()));
 		this.cmbClearEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
-		JPanel pnlTransitions = new JPanel();
+		JPanel pnlTransitions = new OpaquePanel();
 		GroupLayout layout = new GroupLayout(pnlTransitions);
 		pnlTransitions.setLayout(layout);
 		
@@ -272,9 +273,10 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, 
 						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbClearEasings, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		
-		JPanel pnlTemplate = new JPanel();
+		JPanel pnlTemplate = new OpaquePanel();
 		layout = new GroupLayout(pnlTemplate);
 		pnlTemplate.setLayout(layout);
+		
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
@@ -287,9 +289,10 @@ public class BiblePreferencesPanel extends JPanel implements PreferencesEditor, 
 				.addComponent(btnAddTemplate));
 		
 		// setup the layout
-		JPanel pnlGeneral = new JPanel();
+		JPanel pnlGeneral = new OpaquePanel();
 		layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
+		
 		layout.setAutoCreateGaps(true);
 		layout.setAutoCreateContainerGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()

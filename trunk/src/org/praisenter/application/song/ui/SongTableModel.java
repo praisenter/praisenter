@@ -43,7 +43,7 @@ public class SongTableModel extends AbstractTableModel {
 
 	/** The column names */
 	protected final String[] columnNames = new String[] {
-		Messages.getString("panel.songs.title")
+		Messages.getString("panel.song.title")
 	};
 	
 	/** The data (list of songs) */

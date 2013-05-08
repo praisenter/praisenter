@@ -30,7 +30,6 @@ import javax.swing.GroupLayout;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 import org.praisenter.animation.easings.Easing;
 import org.praisenter.animation.easings.Easings;
@@ -42,15 +41,16 @@ import org.praisenter.application.preferences.SlidePreferences;
 import org.praisenter.application.resources.Messages;
 import org.praisenter.application.slide.ui.EasingListCellRenderer;
 import org.praisenter.application.slide.ui.TransitionListCellRenderer;
+import org.praisenter.application.ui.OpaquePanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
 
 /**
  * Panel used to set the {@link SlidePreferences}.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
-public class SlidePreferencesPanel extends JPanel implements PreferencesEditor {
+public class SlidePreferencesPanel extends OpaquePanel implements PreferencesEditor {
 	/** The verison id */
 	private static final long serialVersionUID = -960727558805912048L;
 

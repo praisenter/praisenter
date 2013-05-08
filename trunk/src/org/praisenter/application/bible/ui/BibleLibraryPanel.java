@@ -130,6 +130,7 @@ public class BibleLibraryPanel extends JPanel implements ActionListener {
 		
 		// wrap the bible table in a scroll pane
 		JScrollPane scrBibles = new JScrollPane(this.tblBibles);
+		scrBibles.setBorder(null);
 
 		JButton btnImport = new JButton(Messages.getString("panel.bible.import.unbound"));
 		btnImport.setToolTipText(Messages.getString("panel.bible.import.unbound.tooltip"));
@@ -178,6 +179,7 @@ public class BibleLibraryPanel extends JPanel implements ActionListener {
 		JSplitPane pneSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrBibles, pnlRight);
 		pneSplit.setOneTouchExpandable(true);
 		pneSplit.setResizeWeight(1.0);
+		pneSplit.setBorder(null);
 		
 		this.setLayout(new BorderLayout());
 		this.add(pneSplit, BorderLayout.CENTER);

@@ -93,6 +93,7 @@ import org.praisenter.application.slide.ui.preview.InlineSlidePreviewPanel;
 import org.praisenter.application.slide.ui.preview.SlidePreviewMetrics;
 import org.praisenter.application.ui.AutoCompleteComboBoxEditor;
 import org.praisenter.application.ui.EmptyNumberFormatter;
+import org.praisenter.application.ui.OpaquePanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.WaterMark;
 import org.praisenter.common.NotInitializedException;
@@ -125,7 +126,7 @@ import org.praisenter.slide.text.TextComponent;
  * @version 2.0.1
  * @since 1.0.0
  */
-public class BiblePanel extends JPanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener {
+public class BiblePanel extends OpaquePanel implements ActionListener, ItemListener, PreferencesListener, SlideLibraryListener {
 	/** The version id */
 	private static final long serialVersionUID = 5706187704789309806L;
 
@@ -278,6 +279,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 			}
 		};
 		this.pnlPreview.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY), BorderFactory.createEmptyBorder(15, 15, 15, 15)));
+		this.pnlPreview.setOpaque(false);
 		
 		this.pnlPreview.addSlide(previous);
 		this.pnlPreview.addSlide(current);
@@ -545,7 +547,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		btnPrev.setActionCommand("prev");
 		
 		// create a panel/layout for the find/add/next/prev controls
-		JPanel pnlLookupButtons = new JPanel();
+		JPanel pnlLookupButtons = new OpaquePanel();
 		pnlLookupButtons.setLayout(new GridLayout(2, 2, 5, 5));
 		pnlLookupButtons.add(btnFind);
 		pnlLookupButtons.add(btnAdd);
@@ -566,7 +568,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		btnClear.setActionCommand("clear");
 		
 		// create a panel and layout for the send/clear controls
-		JPanel pnlSendClearButtons = new JPanel();
+		JPanel pnlSendClearButtons = new OpaquePanel();
 		GroupLayout subLayout = new GroupLayout(pnlSendClearButtons);
 		pnlSendClearButtons.setLayout(subLayout);
 		
@@ -596,10 +598,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						.addComponent(btnClear, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
 		
 		// create a panel and layout for all the lookup controls
-		JPanel pnlLookupPanel = new JPanel();
-		pnlLookupPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JPanel pnlLookupPanel = new OpaquePanel();
 		subLayout = new GroupLayout(pnlLookupPanel);
 		pnlLookupPanel.setLayout(subLayout);
+		pnlLookupPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		
 		subLayout.setAutoCreateGaps(true);
 		subLayout.setHorizontalGroup(subLayout.createSequentialGroup()
@@ -909,9 +911,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		this.scrBibleSearchResults = new JScrollPane(this.tblBibleSearchResults);
 		
 		// create the verse queue/bible search panels
-		JPanel pnlVerseQueue = new JPanel();
+		JPanel pnlVerseQueue = new OpaquePanel();
 		GroupLayout svLayout = new GroupLayout(pnlVerseQueue);
 		pnlVerseQueue.setLayout(svLayout);
+		
 		svLayout.setAutoCreateContainerGaps(true);
 		svLayout.setAutoCreateGaps(true);
 		svLayout.setHorizontalGroup(svLayout.createParallelGroup()
@@ -925,9 +928,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 						.addComponent(btnRemoveAll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addComponent(scrVerseQueue, 0, 75, Short.MAX_VALUE));
 		
-		JPanel pnlBibleSearch = new JPanel();
+		JPanel pnlBibleSearch = new OpaquePanel();
 		GroupLayout bsLayout = new GroupLayout(pnlBibleSearch);
 		pnlBibleSearch.setLayout(bsLayout);
+		
 		bsLayout.setAutoCreateContainerGaps(true);
 		bsLayout.setAutoCreateGaps(true);
 		bsLayout.setHorizontalGroup(bsLayout.createParallelGroup()
@@ -974,9 +978,10 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		}
 		
 		// split the preview and controls with the table panels
-		JPanel pnlTop = new JPanel();
+		JPanel pnlTop = new OpaquePanel();
 		GroupLayout tLayout = new GroupLayout(pnlTop);
 		pnlTop.setLayout(tLayout);
+		
 		tLayout.setAutoCreateGaps(true);
 		tLayout.setHorizontalGroup(tLayout.createParallelGroup()
 				.addComponent(this.pnlPreview)
@@ -990,6 +995,7 @@ public class BiblePanel extends JPanel implements ActionListener, ItemListener, 
 		split.setBottomComponent(tableTabs);
 		split.setResizeWeight(0.9);
 		split.setOneTouchExpandable(true);
+		split.setBorder(null);
 		
 		// create the layout
 		this.setLayout(new BorderLayout());

@@ -40,6 +40,7 @@ import javax.swing.event.ChangeListener;
 import org.praisenter.application.preferences.ErrorReportingPreferences;
 import org.praisenter.application.preferences.Preferences;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.OpaquePanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.application.ui.WaterMark;
 import org.praisenter.common.utilities.ComponentUtilities;
@@ -47,10 +48,10 @@ import org.praisenter.common.utilities.ComponentUtilities;
 /**
  * Panel used to setup {@link ErrorReportingPreferences}.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
-public class ErrorReportingSettingsPanel extends JPanel implements PreferencesEditor, ChangeListener {
+public class ErrorReportingSettingsPanel extends OpaquePanel implements PreferencesEditor, ChangeListener {
 	/** The version id */
 	private static final long serialVersionUID = -4554732355783276924L;
 	
@@ -160,7 +161,7 @@ public class ErrorReportingSettingsPanel extends JPanel implements PreferencesEd
 		this.txtEmail.setEnabled(enabled);
 		this.txtEmail.addFocusListener(new SelectTextFocusListener(this.txtEmail));
 		
-		JPanel pnlGeneral = new JPanel();
+		JPanel pnlGeneral = new OpaquePanel();
 		GroupLayout layout = new GroupLayout(pnlGeneral);
 		pnlGeneral.setLayout(layout);
 		
@@ -178,7 +179,7 @@ public class ErrorReportingSettingsPanel extends JPanel implements PreferencesEd
 						.addComponent(this.chkReportingEnabled))
 				.addComponent(lblReporting));
 		
-		JPanel pnlSmtp = new JPanel();
+		JPanel pnlSmtp = new OpaquePanel();
 		layout = new GroupLayout(pnlSmtp);
 		pnlSmtp.setLayout(layout);
 		

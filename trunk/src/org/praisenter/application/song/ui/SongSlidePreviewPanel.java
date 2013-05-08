@@ -51,6 +51,7 @@ public class SongSlidePreviewPanel extends InlineSlidePreviewPanel {
 	 */
 	public SongSlidePreviewPanel() {
 		super(10, 5);
+		this.setOpaque(false);
 		this.map = new HashMap<SongPartKey, SongSlide>();
 	}
 	

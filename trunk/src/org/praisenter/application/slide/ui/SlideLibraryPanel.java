@@ -90,7 +90,7 @@ import org.praisenter.slide.Template;
 /**
  * Panel used to maintain the Slide Library.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class SlideLibraryPanel extends JPanel implements ListSelectionListener, ChangeListener, ItemListener, ActionListener {
@@ -364,6 +364,7 @@ public class SlideLibraryPanel extends JPanel implements ListSelectionListener, 
 		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.slideTabs, pnlRight);
 		pane.setOneTouchExpandable(true);
 		pane.setResizeWeight(1.0);
+		pane.setBorder(null);
 		
 		this.setLayout(new BorderLayout());
 		this.add(pane, BorderLayout.CENTER);

@@ -22,68 +22,28 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.application.song.ui;
+package org.praisenter.application.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Window;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-
-import javax.swing.JDialog;
-
-import org.praisenter.application.resources.Messages;
+import javax.swing.JPanel;
 
 /**
- * Simple dialog to display the Song Library.
+ * Custom JPanel that sets itself to opaque.
+ * <p>
+ * This is necessary for the Mac OS X look and feel (Aqua) since for some reason the UIManager property
+ * "Panel.opaque" is not honored.
  * @author William Bittle
  * @version 2.0.1
  * @since 2.0.1
  */
-public class SongLibraryDialog extends JDialog {
+public class OpaquePanel extends JPanel {
 	/** The version id */
-	private static final long serialVersionUID = 6827271875643932106L;
-	
-	/** The song library panel */
-	private SongLibraryPanel pnlSongLibrary;
-	
+	private static final long serialVersionUID = 7400180652090468769L;
+
 	/**
-	 * Minimal constructor.
-	 * @param owner the owner of the this dialog; can be null
+	 * Default constructor.
 	 */
-	private SongLibraryDialog(Window owner) {
-		super(owner, Messages.getString("dialog.song.title"), ModalityType.APPLICATION_MODAL);
-		
-		this.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		
-		this.pnlSongLibrary = new SongLibraryPanel();
-		this.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				// check for unsaved work
-				if (pnlSongLibrary.checkForUnsavedWork()) {
-					setVisible(false);
-				}
-			}
-		});
-		
-		Container container = this.getContentPane();
-		container.setLayout(new BorderLayout());
-		container.add(this.pnlSongLibrary, BorderLayout.CENTER);
-		
-		this.pack();
-	}
-	
-	/**
-	 * Shows a new Song Library dialog.
-	 * @param owner the owner of this dialog; can be null
-	 * @return boolean true if the song library was changed
-	 */
-	public static final boolean show(Window owner) {
-		SongLibraryDialog dialog = new SongLibraryDialog(owner);
-		dialog.setLocationRelativeTo(owner);
-		dialog.setVisible(true);
-		dialog.dispose();
-		return dialog.pnlSongLibrary.isSongLibraryChanged();
+	public OpaquePanel() {
+		super();
+		this.setOpaque(false);
 	}
 }

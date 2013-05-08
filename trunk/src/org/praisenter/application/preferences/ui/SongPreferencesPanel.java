@@ -55,6 +55,7 @@ import org.praisenter.application.slide.ui.SlideLibraryDialog;
 import org.praisenter.application.slide.ui.SlideLibraryListener;
 import org.praisenter.application.slide.ui.SlideThumbnailComboBoxRenderer;
 import org.praisenter.application.slide.ui.TransitionListCellRenderer;
+import org.praisenter.application.ui.OpaquePanel;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.common.NotInitializedException;
 import org.praisenter.common.utilities.ComponentUtilities;
@@ -70,7 +71,7 @@ import org.praisenter.slide.SongSlideTemplate;
  * @version 2.0.1
  * @since 2.0.0
  */
-public class SongPreferencesPanel extends JPanel implements PreferencesEditor, ActionListener, SlideLibraryListener {
+public class SongPreferencesPanel extends OpaquePanel implements PreferencesEditor, ActionListener, SlideLibraryListener {
 	/** The verison id */
 	private static final long serialVersionUID = -3575533232722870706L;
 	
@@ -165,7 +166,7 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor, A
 		this.cmbClearEasings.setSelectedItem(Easings.getEasingForId(sPreferences.getClearTransitionEasingId()));
 		this.cmbClearEasings.setToolTipText(Messages.getString("easing.tooltip"));
 		
-		JPanel pnlTransitions = new JPanel();
+		JPanel pnlTransitions = new OpaquePanel();
 		GroupLayout layout = new GroupLayout(pnlTransitions);
 		pnlTransitions.setLayout(layout);
 		
@@ -196,9 +197,10 @@ public class SongPreferencesPanel extends JPanel implements PreferencesEditor, A
 						.addComponent(this.txtClearTransitions, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						.addComponent(this.cmbClearEasings, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 		
-		JPanel pnlTemplate = new JPanel();
+		JPanel pnlTemplate = new OpaquePanel();
 		layout = new GroupLayout(pnlTemplate);
 		pnlTemplate.setLayout(layout);
+		
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
