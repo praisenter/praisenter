@@ -283,15 +283,16 @@ public class Praisenter extends JFrame implements ActionListener, PropertyChange
 					public void run() {
 						try {
 							LOGGER.debug("The exit thread has started.");
-							// wait 3 seconds before we forcefully shut down the JVM
-							Thread.sleep(3000);
-							LOGGER.warn("The exit thread waited 3 seconds. Manually exiting.");
+							int waitTime = 3000;
+							// wait "waitTime" seconds before we forcefully shut down the JVM
+							Thread.sleep(waitTime);
+							LOGGER.warn("The exit thread waited " + (waitTime / 1000) + " seconds. Manually exiting.");
 							// shut her down...
 							System.exit(0);
 						} catch (InterruptedException e) {
 							// I'm not really sure what to do here since this could happen in a normal
-							// way (if the daemon threads are killed via interrupts). So for now we will
-							// just log the error and hope the JVM shuts down on its own
+							// way (if the daemon threads are killed via interrupts as the VM shuts down). 
+							// So for now we will just log the error and hope the JVM shuts down on its own
 							LOGGER.warn("The exit thread was interrupted. No System.exit(0) call made.");
 						}
 					}

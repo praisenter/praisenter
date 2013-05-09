@@ -137,6 +137,7 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 		this.lblLoading.setVisible(false);
 		this.lblLoading.setHorizontalAlignment(JLabel.CENTER);
 		this.lblLoading.setVerticalAlignment(JLabel.CENTER);
+		this.lblLoading.setOpaque(false);
 		
 		this.setLayout(new BorderLayout());
 		this.add(this.lblLoading, BorderLayout.CENTER);

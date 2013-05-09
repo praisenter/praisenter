@@ -289,11 +289,13 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 		pnePreview.setResizeWeight(0.85);
 		pnePreview.setOneTouchExpandable(true);
 		pnePreview.setBorder(null);
+		pnePreview.setOpaque(false);
 		
 		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, pnePreview, pnlRight);
 		pane.setOneTouchExpandable(true);
 		pane.setResizeWeight(0.6);
 		pane.setBorder(null);
+		pane.setOpaque(false);
 		
 		this.setLayout(new BorderLayout());
 		this.add(pane, BorderLayout.CENTER);
