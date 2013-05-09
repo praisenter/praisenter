@@ -217,10 +217,13 @@ public class SongsPanel extends OpaquePanel implements ActionListener, SongListe
 		// song preview
 		this.pnlPreview = new SongSlidePreviewPanel();
 		this.pnlPreview.setBorder(BorderFactory.createEmptyBorder(15, 15, 20, 15));
+		
 		this.scrPreview = new ScrollableInlineSlidePreviewPanel(this.pnlPreview);
 		this.scrPreview.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 		this.scrPreview.getHorizontalScrollBar().setUnitIncrement(20);
 		this.scrPreview.setOpaque(false);
+		this.scrPreview.getViewport().setOpaque(false);
+		this.scrPreview.setViewportBorder(null);
 		
 		// song preview thread
 		this.previewThread = new SongPreivewThread();
@@ -231,6 +234,7 @@ public class SongsPanel extends OpaquePanel implements ActionListener, SongListe
 		this.lblSongTitle = new JLabel(MessageFormat.format(Messages.getString("panel.song.current.pattern"), Messages.getString("panel.song.default.title"), ""));
 		this.lblSongTitle.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
 		this.pnlQuickSend = new SongQuickSendPanel(this);
+		this.pnlQuickSend.setOpaque(false);
 		
 		JLabel lblParts = new JLabel(Messages.getString("panel.song.parts.select"));
 		lblParts.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));

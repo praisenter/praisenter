@@ -100,6 +100,9 @@ Other:
 Open Issues:
   o On Ubuntu Linux we get flickering in the animations due to the use of
     translucent windows.
+  o Rendering anti-aliased text on a translucent surface has some nasty edges
+    around the text due to a bug in Java:
+    http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6749069
   o Same as 2.0.0 except for the above
 
 ===============================================================================
