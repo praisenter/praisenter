@@ -595,6 +595,7 @@ public class SongsPanel extends OpaquePanel implements ActionListener, SongListe
 		split.setResizeWeight(0.9);
 		split.setOneTouchExpandable(true);
 		split.setBorder(null);
+		split.setOpaque(false);
 		
 		// create the layout
 		this.setLayout(new BorderLayout());
