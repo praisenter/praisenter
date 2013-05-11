@@ -85,6 +85,10 @@ Bug Fixes:
     made the volume zero.
   o Fixed a bug that was caused by different file separators when transferring
     exported slides, templates, or libraries.
+  o Fixed a bug on Ubuntu where the presentation windows would not be
+    translucent.
+  o Fixed a bug with image background smart transition support where the
+    background would not be retained until the 2nd send.
   
 Other:
   o When adding media, the media type defaults to All Files instead of
@@ -96,10 +100,12 @@ Other:
   o Song file import/export has been moved to the Song Library.
   o More UI fixes for the Mac OS X look and feel.
   o Reduced the force shutdown thread wait time from 10 seconds to 3 seconds.
+  o Added anti-aliasing to text field water marks.
 
 Open Issues:
   o On Ubuntu Linux we get flickering in the animations due to the use of
-    translucent windows.
+    translucent windows.  Swap transitions will work fine.  Video playback
+    also flickers for the same reason.
   o Rendering anti-aliased text on a translucent surface has some nasty edges
     around the text due to a bug in Java:
     http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6749069

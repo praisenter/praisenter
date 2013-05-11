@@ -123,7 +123,7 @@ public abstract class AbstractRenderableComponent extends AbstractSlideComponent
 		
 		// check the width and height
 		if (this.width != component.getWidth() || this.height != component.getHeight()) {
-			return false;
+			return true;
 		}
 		
 		// check the background
