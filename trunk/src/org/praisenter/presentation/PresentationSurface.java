@@ -341,7 +341,7 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 						// re-render the current slide without the background. if we don't do this
 						// image0 still contains the background and it will appear as if we are
 						// still transitioning the background
-						PresentationSurface.renderSlide(this.currentRenderer, this.currentRenderQualities, false, this.image1);
+						PresentationSurface.renderSlide(this.currentRenderer, this.currentRenderQualities, false, this.image0);
 					}
 				}
 			}

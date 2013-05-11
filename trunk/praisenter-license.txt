@@ -7,7 +7,7 @@ License.
 | GPL v3 License                                                              |
 +-----------------------------------------------------------------------------+
 Praisenter: A free open source church presentation software package.
-Copyright (C) 2012-2013  William Bittle  http://www.praisenter.org/
+Copyright (C) 2011-2013  William Bittle  http://www.praisenter.org/
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

@@ -42,6 +42,7 @@ import javax.swing.Timer;
 import org.apache.log4j.Logger;
 import org.praisenter.animation.transitions.Transitions;
 import org.praisenter.application.Main;
+import org.praisenter.common.utilities.WindowUtilities;
 import org.praisenter.slide.AbstractPositionedSlide;
 import org.praisenter.slide.Slide;
 
@@ -93,6 +94,7 @@ public class PresentationWindow extends JDialog implements PresentationListener 
 	 * @param overlay true if the window should always be on top of other windows
 	 */
 	public PresentationWindow(GraphicsDevice device, boolean fullScreen, boolean overlay) {
+		super(null, "PresentationWindow", ModalityType.MODELESS, WindowUtilities.getTranslucentConfiguration(device));
 		// simple assignments
 		this.device = device;
 		this.fullScreen = fullScreen;

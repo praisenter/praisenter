@@ -548,7 +548,7 @@ public class BiblePanel extends OpaquePanel implements ActionListener, ItemListe
 		
 		// create a panel/layout for the find/add/next/prev controls
 		JPanel pnlLookupButtons = new OpaquePanel();
-		pnlLookupButtons.setLayout(new GridLayout(2, 2, 5, 5));
+		pnlLookupButtons.setLayout(new GridLayout(2, 2));
 		pnlLookupButtons.add(btnFind);
 		pnlLookupButtons.add(btnAdd);
 		pnlLookupButtons.add(btnPrev);

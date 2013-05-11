@@ -29,6 +29,7 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.DisplayMode;
 import java.awt.Frame;
+import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Window;
@@ -39,7 +40,7 @@ import javax.swing.JOptionPane;
 /**
  * Utility class to help working with windows.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public final class WindowUtilities {
@@ -182,4 +183,29 @@ public final class WindowUtilities {
 				mode.getBitDepth(),
 				rate);
 	}
+	
+	/**
+     * Returns a GraphicsConfiguration that supports translucency for the given device.
+     * <p>
+     * If a configuration does not exist, the default configuration will be returned.
+     * @param device the device
+     * @return GraphicsConfiguration
+     * @since 2.0.1
+     */
+    public static final GraphicsConfiguration getTranslucentConfiguration(GraphicsDevice device) {
+        GraphicsConfiguration configuration = device.getDefaultConfiguration();
+        // check the default configuration for translucency
+        if (configuration.isTranslucencyCapable()) {
+            return configuration;
+        }
+        // if not, search through the other configurations
+        for (GraphicsConfiguration gc : device.getConfigurations()) {
+            if (gc.isTranslucencyCapable()) {
+                // return the first one found
+                return gc;
+            }
+        }
+        // if we dont find any, then just return the default configuration
+        return configuration;
+    }
 }

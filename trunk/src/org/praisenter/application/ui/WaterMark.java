@@ -27,8 +27,10 @@ package org.praisenter.application.ui;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 
 import javax.swing.UIManager;
@@ -37,7 +39,7 @@ import javax.swing.text.JTextComponent;
 /**
  * Class used to draw water marks on text fields.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public final class WaterMark {
@@ -63,6 +65,11 @@ public final class WaterMark {
             	// if its not found, then just use gray
             	g.setColor(Color.GRAY);
             }
+            
+            // enable anti-aliasing
+            Graphics2D g2d = (Graphics2D)g;
+            Object aaValue = g2d.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
+            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                         
             // compute the location of the text
             Insets insets = field.getInsets();
@@ -82,8 +89,9 @@ public final class WaterMark {
             g.drawString(text, x, field.getHeight() / 2 + metrics.getHeight() / 2 - metrics.getDescent());
             
             // reset the color & clip
-            g.setColor(prevColor);
             g.setClip(clip);
+            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, aaValue);
+            g.setColor(prevColor);
         }
 	}
 }
