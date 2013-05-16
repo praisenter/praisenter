@@ -52,6 +52,8 @@ New Features:
     saves time finding the menu item and switching to the right template
     set. This will also aid first time users trying to find where to add
     more templates. 
+  o Multi-select slides, templates and media for bulk actions like remove
+    copy and export.
   
 Bug Fixes:
   o Fixed the dialog title on the Slide Library (says Media Library on 2.0.0)

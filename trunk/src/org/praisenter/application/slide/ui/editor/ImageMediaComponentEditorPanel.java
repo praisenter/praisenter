@@ -24,6 +24,7 @@
  */
 package org.praisenter.application.slide.ui.editor;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -40,6 +41,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -47,7 +49,7 @@ import javax.swing.event.ListSelectionListener;
 
 import org.apache.log4j.Logger;
 import org.praisenter.application.media.ui.MediaLibraryDialog;
-import org.praisenter.application.media.ui.MediaUI;
+import org.praisenter.application.media.ui.MediaThumbnailListCellRenderer;
 import org.praisenter.application.resources.Messages;
 import org.praisenter.common.NotInitializedException;
 import org.praisenter.common.utilities.WindowUtilities;
@@ -62,7 +64,7 @@ import org.praisenter.slide.media.ImageMediaComponent;
 /**
  * Editor panel for {@link ImageMediaComponent}s.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class ImageMediaComponentEditorPanel  extends PositionedComponentEditor<ImageMediaComponent> implements ListSelectionListener, ItemListener, ChangeListener, ActionListener {
@@ -108,7 +110,7 @@ public class ImageMediaComponentEditorPanel  extends PositionedComponentEditor<I
 		} catch (NotInitializedException ex) {
 			images = new ArrayList<MediaThumbnail>();
 		}
-		this.lstImages = MediaUI.createJList(images);
+		this.lstImages = this.createJList(images);
 		this.lstImages.addListSelectionListener(this);
 		
 		this.lblScaleType = new JLabel(Messages.getString("panel.slide.editor.image.scaleType"));
@@ -123,6 +125,29 @@ public class ImageMediaComponentEditorPanel  extends PositionedComponentEditor<I
 		this.createLayout();
 	}
 
+	/**
+	 * Creates a new JList for the given list of {@link MediaThumbnail}s.
+	 * @param thumbnails the list of thumbnails
+	 * @return JList
+	 */
+	private JList<MediaThumbnail> createJList(List<MediaThumbnail> thumbnails) {
+		JList<MediaThumbnail> list = new JList<MediaThumbnail>();
+		list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		list.setFixedCellWidth(100);
+		list.setVisibleRowCount(-1);
+		list.setCellRenderer(new MediaThumbnailListCellRenderer());
+		list.setLayout(new BorderLayout());
+		// setup the items
+		DefaultListModel<MediaThumbnail> model = new DefaultListModel<MediaThumbnail>();
+		for (MediaThumbnail thumbnail : thumbnails) {
+			model.addElement(thumbnail);
+		}
+		list.setModel(model);
+		
+		return list;
+	}
+	
 	/**
 	 * Creates the layout for an image media component.
 	 */

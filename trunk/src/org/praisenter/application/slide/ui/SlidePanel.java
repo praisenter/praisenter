@@ -167,20 +167,20 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 		btnNewSlide.addActionListener(this);
 		btnNewSlide.setActionCommand("newSlide");
 		
-		this.btnEdit = new JButton(Messages.getString("slide.edit"));
-		this.btnEdit.setToolTipText(Messages.getString("slide.edit.tooltip"));
+		this.btnEdit = new JButton(Messages.getString("panel.slide.edit"));
+		this.btnEdit.setToolTipText(Messages.getString("panel.slide.edit.slide.tooltip"));
 		this.btnEdit.setEnabled(false);
 		this.btnEdit.setActionCommand("editSlide");
 		this.btnEdit.addActionListener(this);
 		
 		this.btnRemove = new JButton(Messages.getString("panel.slide.remove"));
-		this.btnRemove.setToolTipText(Messages.getString("panel.slide.remove.tooltip"));
+		this.btnRemove.setToolTipText(Messages.getString("panel.slide.remove.slide.tooltip"));
 		this.btnRemove.addActionListener(this);
 		this.btnRemove.setActionCommand("removeSlide");
 		this.btnRemove.setEnabled(false);
 		
-		JButton btnManageSlides = new JButton(Messages.getString("slide.manage"));
-		btnManageSlides.setToolTipText(Messages.getString("slide.manage.tooltip"));
+		JButton btnManageSlides = new JButton(Messages.getString("panel.slide.manage"));
+		btnManageSlides.setToolTipText(Messages.getString("panel.slide.manage.tooltip"));
 		btnManageSlides.addActionListener(this);
 		btnManageSlides.setActionCommand("manageSlides");
 		
@@ -321,7 +321,7 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 	private final JList<SlideThumbnail> createJList(List<SlideThumbnail> thumbnails) {
 		JList<SlideThumbnail> list = new JList<SlideThumbnail>();
 		list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		list.setFixedCellWidth(100);
 		list.setVisibleRowCount(-1);
 		list.setCellRenderer(new SlideThumbnailListCellRenderer());
@@ -398,11 +398,11 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 			PresentationManager.getInstance().execute(new ClearEvent(configuration, animator));
 		} else if ("editSlide".equals(command)) {
 			SlideFile file = null;
-			SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
-			if (thumbnail != null) {
-				file = thumbnail.getFile();
+			List<SlideThumbnail> thumbnails = this.lstSlides.getSelectedValuesList();
+			if (thumbnails.size() > 0) {
+				file = thumbnails.get(0).getFile();
 				// load the slide on another thread
-				LoadSlideTask task = new LoadSlideTask(file, null);
+				LoadSlidesTask task = new LoadSlidesTask(file, null);
 				TaskProgressDialog.show(WindowUtilities.getParentWindow(this), Messages.getString("panel.slide.loading"), task);
 				
 				if (task.isSuccessful()) {
@@ -437,13 +437,13 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 			}
 		} else if ("removeSlide".equals(command)) {
 			// get the selected slide
-			final SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
-			if (thumbnail != null) {
+			final List<SlideThumbnail> thumbnails = this.lstSlides.getSelectedValuesList();
+			if (thumbnails.size() > 0) {
 				// show an are you sure dialog, then delete the slide
 				int choice = JOptionPane.showConfirmDialog(
 						this, 
-						MessageFormat.format(Messages.getString("panel.slide.remove.message"), thumbnail.getName()),
-						MessageFormat.format(Messages.getString("panel.slide.remove.title"), Messages.getString("panel.slide")),
+						Messages.getString("panel.slide.remove.message"),
+						Messages.getString("panel.slide.remove.title"),
 						JOptionPane.YES_NO_CANCEL_OPTION);
 				if (choice == JOptionPane.YES_OPTION) {
 					// remove the slide/template in another thread
@@ -452,10 +452,13 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 						public void run() {
 							try {
 								SlideLibrary library = SlideLibrary.getInstance();
-								library.deleteSlide(thumbnail.getFile());
+								for (SlideThumbnail thumb : thumbnails) {
+									library.delete(thumb.getFile());
+								}
 								this.setSuccessful(true);
 							} catch (Exception ex) {
 								this.handleException(ex);
+								this.setSuccessful(false);
 							}
 						}
 					};
@@ -467,10 +470,10 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 					} else {
 						ExceptionDialog.show(
 								this, 
-								MessageFormat.format(Messages.getString("panel.slide.remove.exception.title"), Messages.getString("panel.slide")), 
-								MessageFormat.format(Messages.getString("panel.slide.remove.exception.text"), Messages.getString("panel.slide").toLowerCase(), thumbnail.getFile().getName()), 
+								Messages.getString("panel.slide.remove.exception.title"), 
+								Messages.getString("panel.slide.remove.exception.text"), 
 								task.getException());
-						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getRelativePath() + "] from the slide library: ", task.getException());
+						LOGGER.error("An error occurred while attempting to remove slides from the slide library: ", task.getException());
 					}
 				}
 			}
@@ -490,17 +493,20 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 		if (!e.getValueIsAdjusting()) {
 			Object source = e.getSource();
 			if (source == this.lstSlides) {
-				SlideFile file = null;
-				SlideThumbnail thumbnail = this.lstSlides.getSelectedValue();
-				if (thumbnail != null) {
-					file = thumbnail.getFile();
-				}
+				List<SlideThumbnail> thumbnails = this.lstSlides.getSelectedValuesList();
+				int n = thumbnails.size();
 				
-				if (file != null) {
+				if (n == 1) {
+					SlideFile file = thumbnails.get(0).getFile();
 					this.pnlPreview.setLoading(true);
 					this.getPreviewThread().queueSlide(file.getRelativePath());
 					this.btnEdit.setEnabled(true);
 					this.btnRemove.setEnabled(true);
+				} else if (n > 1) {
+					this.btnEdit.setEnabled(false);
+					this.btnRemove.setEnabled(true);
+					this.pnlPreview.setSlide(null);
+					this.pnlPreview.repaint();
 				} else {
 					this.btnEdit.setEnabled(false);
 					this.btnRemove.setEnabled(false);
@@ -548,20 +554,32 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 		}
 		
 		// update the list of templates
-		SlideThumbnail selected = this.lstSlides.getSelectedValue();
+		
+		List<SlideThumbnail> selected = this.lstSlides.getSelectedValuesList();
+		this.lstSlides.clearSelection();
 		DefaultListModel<SlideThumbnail> model = (DefaultListModel<SlideThumbnail>)this.lstSlides.getModel();
 		model.removeAllElements();
+		List<Integer> indices = new ArrayList<Integer>();
+		int i = 0;
 		for (SlideThumbnail thumb : thumbnails) {
 			model.addElement(thumb);
+			for (SlideThumbnail st : selected) {
+				if (st.equals(thumb)) {
+					indices.add(i);
+					break;
+				}
+			}
+			i++;
 		}
 		
 		// set the selected one
 		// selecting the item in the combo box will update the template
 		// and the preview panel
-		if (selected != null) {
-			this.lstSlides.setSelectedValue(selected, true);
-		} else {
-			this.lstSlides.setSelectedIndex(0);
+		if (indices.size() > 0) {
+			ListSelectionModel selectionModel = this.lstSlides.getSelectionModel();
+			for (int j : indices) {
+				selectionModel.addSelectionInterval(j, j);
+			}
 		}
 		
 		// redraw the preview panel

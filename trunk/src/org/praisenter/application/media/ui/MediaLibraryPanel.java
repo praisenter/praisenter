@@ -44,6 +44,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -132,7 +133,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		if (IMAGES_SUPPORTED) {
 			// load up all the thumbnails for the media in the media library
 			List<MediaThumbnail> images = library != null ? library.getThumbnails(MediaType.IMAGE) : empty;
-			this.lstImages = MediaUI.createJList(images);
+			this.lstImages = this.createJList(images);
 			this.lstImages.addListSelectionListener(this);
 			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.images"), new JScrollPane(this.lstImages));
 		}
@@ -140,7 +141,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		// make sure the media library supports the media
 		if (VIDEOS_SUPPORTED) {
 			List<MediaThumbnail> videos = library != null ? library.getThumbnails(MediaType.VIDEO) : empty;
-			this.lstVideos = MediaUI.createJList(videos);
+			this.lstVideos = this.createJList(videos);
 			this.lstVideos.addListSelectionListener(this);
 			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.videos"), new JScrollPane(this.lstVideos));
 		}
@@ -148,7 +149,7 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		// make sure the media library supports the media
 		if (AUDIO_SUPPORTED) {
 			List<MediaThumbnail> audio = library != null ? library.getThumbnails(MediaType.AUDIO) : empty;
-			this.lstAudio = MediaUI.createJList(audio);
+			this.lstAudio = this.createJList(audio);
 			this.lstAudio.addListSelectionListener(this);
 			this.mediaTabs.addTab(Messages.getString("panel.media.tabs.audio"), new JScrollPane(this.lstAudio));
 		}
@@ -195,6 +196,29 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		this.add(pane, BorderLayout.CENTER);
 	}
 	
+	/**
+	 * Creates a new JList for the given list of {@link MediaThumbnail}s.
+	 * @param thumbnails the list of thumbnails
+	 * @return JList
+	 */
+	private JList<MediaThumbnail> createJList(List<MediaThumbnail> thumbnails) {
+		JList<MediaThumbnail> list = new JList<MediaThumbnail>();
+		list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+		list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		list.setFixedCellWidth(100);
+		list.setVisibleRowCount(-1);
+		list.setCellRenderer(new MediaThumbnailListCellRenderer());
+		list.setLayout(new BorderLayout());
+		// setup the items
+		DefaultListModel<MediaThumbnail> model = new DefaultListModel<MediaThumbnail>();
+		for (MediaThumbnail thumbnail : thumbnails) {
+			model.addElement(thumbnail);
+		}
+		list.setModel(model);
+		
+		return list;
+	}
+	
 	/* (non-Javadoc)
 	 * @see javax.swing.event.ListSelectionListener#valueChanged(javax.swing.event.ListSelectionEvent)
 	 */
@@ -203,26 +227,41 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		if (!e.getValueIsAdjusting()) {
 			Object source = e.getSource();
 			if (source == this.lstImages) {
-				MediaThumbnail thumbnail = this.lstImages.getSelectedValue();
-				if (thumbnail != null) {
-					MediaFile file = thumbnail.getFile();
-					this.pnlProperties.setMediaFile(file);
-					this.btnRemoveMedia.setEnabled(true);
-				}
+				updateMediaControls(MediaType.IMAGE);
 			} else if (source == this.lstVideos) {
-				MediaThumbnail thumbnail = this.lstVideos.getSelectedValue();
-				if (thumbnail != null) {
-					MediaFile file = thumbnail.getFile();
-					this.pnlProperties.setMediaFile(file);
-					this.btnRemoveMedia.setEnabled(true);
-				}
+				updateMediaControls(MediaType.VIDEO);
 			} else if (source == this.lstAudio) {
-				MediaThumbnail thumbnail = this.lstAudio.getSelectedValue();
-				if (thumbnail != null) {
-					MediaFile file = thumbnail.getFile();
-					this.pnlProperties.setMediaFile(file);
-					this.btnRemoveMedia.setEnabled(true);
-				}
+				updateMediaControls(MediaType.AUDIO);
+			}
+		}
+	}
+	
+	/**
+	 * Updates the left panel based on the selected items for the given media type.
+	 * @param type the media type
+	 */
+	private void updateMediaControls(MediaType type) {
+		List<MediaThumbnail> thumbnails = null;
+		if (type == MediaType.IMAGE) {
+			thumbnails = this.lstImages.getSelectedValuesList();
+		} else if (type == MediaType.VIDEO) {
+			thumbnails = this.lstVideos.getSelectedValuesList();
+		} else if (type == MediaType.AUDIO) {
+			thumbnails = this.lstAudio.getSelectedValuesList();
+		}
+		
+		if (thumbnails != null) {
+			int n = thumbnails.size();
+			if (n == 1) {
+				MediaFile file = thumbnails.get(0).getFile();
+				this.pnlProperties.setMediaFile(file);
+				this.btnRemoveMedia.setEnabled(true);
+			} else if (n > 1) {
+				this.pnlProperties.setMediaFile(null);
+				this.btnRemoveMedia.setEnabled(true);
+			} else {
+				this.pnlProperties.setMediaFile(null);
+				this.btnRemoveMedia.setEnabled(false);
 			}
 		}
 	}
@@ -236,35 +275,11 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 		if (source == this.mediaTabs) {
 			int index = this.mediaTabs.getSelectedIndex();
 			if (index == 0) {
-				MediaThumbnail thumbnail = this.lstImages.getSelectedValue();
-				if (thumbnail != null) {
-					MediaFile file = thumbnail.getFile();
-					this.pnlProperties.setMediaFile(file);
-					this.btnRemoveMedia.setEnabled(true);
-				} else {
-					this.pnlProperties.setMediaFile(null);
-					this.btnRemoveMedia.setEnabled(false);
-				}
+				updateMediaControls(MediaType.IMAGE);
 			} else if (index == 1) {
-				MediaThumbnail thumbnail = this.lstVideos.getSelectedValue();
-				if (thumbnail != null) {
-					MediaFile file = thumbnail.getFile();
-					this.pnlProperties.setMediaFile(file);
-					this.btnRemoveMedia.setEnabled(true);
-				} else {
-					this.pnlProperties.setMediaFile(null);
-					this.btnRemoveMedia.setEnabled(false);
-				}
+				updateMediaControls(MediaType.VIDEO);
 			} else if (index == 2) {
-				MediaThumbnail thumbnail = this.lstAudio.getSelectedValue();
-				if (thumbnail != null) {
-					MediaFile file = thumbnail.getFile();
-					this.pnlProperties.setMediaFile(file);
-					this.btnRemoveMedia.setEnabled(true);
-				} else {
-					this.pnlProperties.setMediaFile(null);
-					this.btnRemoveMedia.setEnabled(false);
-				}
+				updateMediaControls(MediaType.AUDIO);
 			}
 		}
 	}
@@ -373,16 +388,19 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 			}
 			
 			// image tab
-			MediaThumbnail thumbnail = list.getSelectedValue();
+			List<MediaThumbnail> thumbnails = list.getSelectedValuesList();
 			// make sure something is selected
-			if (thumbnail != null) {
+			if (thumbnails.size() > 0) {
 				// remove the media from the media library
-				final MediaFile file = thumbnail.getFile();
+				final List<MediaFile> files = new ArrayList<MediaFile>();
+				for (MediaThumbnail thumbnail : thumbnails) {
+					files.add(thumbnail.getFile());
+				}
 				
 				// make sure the user wants to do this
 				int choice = JOptionPane.showConfirmDialog(
 						this,
-						MessageFormat.format(Messages.getString("panel.media.remove.areYouSure.message"), thumbnail.getFile().getName()),
+						Messages.getString("panel.media.remove.areYouSure.message"),
 						Messages.getString("panel.media.remove.areYouSure.title"),
 						JOptionPane.YES_NO_CANCEL_OPTION);
 				
@@ -391,12 +409,16 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 					AbstractTask task = new AbstractTask() {
 						@Override
 						public void run() {
-							try {
-								MediaLibrary.getInstance().removeMedia(file);
-								this.setSuccessful(true);
-							} catch (Exception e) {
-								this.handleException(e);
+							for (MediaFile file : files) {
+								try {
+									MediaLibrary.getInstance().removeMedia(file);
+								} catch (Exception e) {
+									this.setSuccessful(false);
+									this.handleException(e);
+									return;
+								}
 							}
+							this.setSuccessful(true);
 						}
 					};
 					
@@ -405,18 +427,19 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 					if (task.isSuccessful()) {
 						// remove the thumbnail from the list
 						DefaultListModel<MediaThumbnail> model = (DefaultListModel<MediaThumbnail>)list.getModel();
-						model.removeElement(thumbnail);
 						list.clearSelection();
+						for (MediaThumbnail thumbnail : thumbnails) {
+							model.removeElement(thumbnail);
+						}
 						this.pnlProperties.setMediaFile(null);
-						
 						this.mediaLibraryUpdated = true;
 					} else {
 						ExceptionDialog.show(
 								this, 
 								Messages.getString("panel.media.remove.exception.title"), 
-								MessageFormat.format(Messages.getString("panel.media.remove.exception.text"), thumbnail.getFile().getName()), 
+								Messages.getString("panel.media.remove.exception.text"), 
 								task.getException());
-						LOGGER.error("An error occurred while attempting to remove [" + thumbnail.getFile().getRelativePath() + "] from the media library: ", task.getException());
+						LOGGER.error("An error occurred while attempting to remove the selected media from the library: ", task.getException());
 					}
 				}
 			}
