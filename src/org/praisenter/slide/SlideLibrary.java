@@ -73,7 +73,7 @@ import org.praisenter.slide.resources.Messages;
 /**
  * Static interface for loading and saving slides and templates.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public final class SlideLibrary {
@@ -711,7 +711,33 @@ public final class SlideLibrary {
 			this.songTemplates.remove(relativePath);
 			this.notificationTemplates.remove(relativePath);
 			// remove the thumbnail
+			this.thumbnails.remove(relativePath);
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Removes the given slide or template.
+	 * @param slideFile the slide file
+	 * @return boolean
+	 * @since 2.0.1
+	 */
+	public synchronized boolean delete(SlideFile slideFile) {
+		String relativePath = slideFile.getRelativePath();
+		File file = new File(slideFile.getFullPath());
+		// delete the file
+		if (file.delete()) {
+			// remove the references
+			this.slides.remove(relativePath);
+			// remove the weak reference
+			// remove it from all template maps (since its a no-op if its not there)
 			this.templates.remove(relativePath);
+			this.bibleTemplates.remove(relativePath);
+			this.songTemplates.remove(relativePath);
+			this.notificationTemplates.remove(relativePath);
+			// remove the thumbnail
+			this.thumbnails.remove(relativePath);
 			return true;
 		}
 		return false;

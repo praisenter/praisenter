@@ -105,9 +105,13 @@ public class NewSlideDialog extends JDialog implements ActionListener {
 		bgType.add(this.rdoTemplate);
 		
 		this.rdoSlideTemplate = new JRadioButton(Messages.getString("panel.slide.create.template.basic"));
+		this.rdoSlideTemplate.setToolTipText(Messages.getString("panel.slide.create.template.basic.tooltip"));
 		this.rdoBibleTemplate = new JRadioButton(Messages.getString("panel.slide.create.template.bible"));
+		this.rdoBibleTemplate.setToolTipText(Messages.getString("panel.slide.create.template.bible.tooltip"));
 		this.rdoSongTemplate = new JRadioButton(Messages.getString("panel.slide.create.template.song"));
+		this.rdoSongTemplate.setToolTipText(Messages.getString("panel.slide.create.template.song.tooltip"));
 		this.rdoNotificationTemplate = new JRadioButton(Messages.getString("panel.slide.create.template.notification"));
+		this.rdoNotificationTemplate.setToolTipText(Messages.getString("panel.slide.create.template.notification.tooltip"));
 		
 		ButtonGroup bgTemplateType = new ButtonGroup();
 		bgTemplateType.add(this.rdoSlideTemplate);

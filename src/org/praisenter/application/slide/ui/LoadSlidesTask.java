@@ -24,6 +24,9 @@
  */
 package org.praisenter.application.slide.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.praisenter.common.threading.AbstractTask;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.Slide;
@@ -32,29 +35,42 @@ import org.praisenter.slide.SlideLibrary;
 import org.praisenter.slide.Template;
 
 /**
- * Task to load a slide from the Slide Library.
+ * Task to load slides from the Slide Library.
  * @author William Bittle
  * @version 2.0.1
  * @since 2.0.1
  */
-public class LoadSlideTask extends AbstractTask {
-	/** The slide file */
-	protected SlideFile file;
+public class LoadSlidesTask extends AbstractTask {
+	/** The slide files */
+	protected List<SlideFile> files;
 	
-	/** The slide class; null if {@link BasicSlide} */
+	/** The slide class; all the slides must be the same type; null if {@link BasicSlide} */
 	protected Class<? extends Template> clazz;
 	
 	/** The loaded slide */
-	protected Slide slide;
+	protected List<Slide> slides;
 	
 	/**
 	 * Full constructor.
 	 * @param file the slide file
 	 * @param clazz the slide class; null if {@link BasicSlide}
 	 */
-	public LoadSlideTask(SlideFile file, Class<? extends Template> clazz) {
-		this.file = file;
+	public LoadSlidesTask(SlideFile file, Class<? extends Template> clazz) {
+		this.files = new ArrayList<SlideFile>();
+		this.files.add(file);
 		this.clazz = clazz;
+		this.slides = new ArrayList<Slide>();
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param files the slide files
+	 * @param clazz the slide class; null if {@link BasicSlide}
+	 */
+	public LoadSlidesTask(List<SlideFile> files, Class<? extends Template> clazz) {
+		this.files = files;
+		this.clazz = clazz;
+		this.slides = new ArrayList<Slide>();
 	}
 	
 	/* (non-Javadoc)
@@ -63,10 +79,14 @@ public class LoadSlideTask extends AbstractTask {
 	@Override
 	public void run() {
 		try {
-			if (this.clazz != null) {
-				this.slide = SlideLibrary.getInstance().getTemplate(this.file, this.clazz);
-			} else {
-				this.slide = SlideLibrary.getInstance().getSlide(this.file);
+			for (SlideFile file : this.files) {
+				Slide slide = null;
+				if (this.clazz != null) {
+					slide = SlideLibrary.getInstance().getTemplate(file, this.clazz);
+				} else {
+					slide = SlideLibrary.getInstance().getSlide(file);
+				}
+				this.slides.add(slide);
 			}
 			this.setSuccessful(true);
 		} catch (Exception ex) {
@@ -75,11 +95,11 @@ public class LoadSlideTask extends AbstractTask {
 	}
 	
 	/**
-	 * Returns the slide file.
-	 * @return {@link SlideFile}
+	 * Returns the slide files.
+	 * @return List&lt;{@link SlideFile}&gt;
 	 */
-	public SlideFile getFile() {
-		return this.file;
+	public List<SlideFile> getFiles() {
+		return this.files;
 	}
 	
 	/**
@@ -91,10 +111,18 @@ public class LoadSlideTask extends AbstractTask {
 	}
 	
 	/**
-	 * Returns the loaded slide.
+	 * Returns the (first) loaded slide.
 	 * @return {@link Slide}
 	 */
 	public Slide getSlide() {
-		return this.slide;
+		return this.slides.get(0);
+	}
+	
+	/**
+	 * Returns the loaded slides.
+	 * @return List&lt;{@link Slide}&gt;
+	 */
+	public List<Slide> getSlides() {
+		return this.slides;
 	}
 }
