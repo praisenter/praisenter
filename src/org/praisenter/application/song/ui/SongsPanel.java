@@ -601,6 +601,10 @@ public class SongsPanel extends OpaquePanel implements ActionListener, SongListe
 		this.setLayout(new BorderLayout());
 		this.add(split, BorderLayout.CENTER);
 		
+		// remove hotkeys from the jsplitpane
+		split.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0), "none");
+		split.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0), "none");
+		
 		// setup hot keys for quick sending
 		SongQuickSendAction[] actions = SongQuickSendPanel.getQuickSendActions(this);
 		for (int i = 0; i < actions.length; i++) {

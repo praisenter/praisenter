@@ -54,6 +54,7 @@ New Features:
     more templates. 
   o Multi-select slides, templates and media for bulk actions like remove
     copy and export.
+  o Added a song importer for the OpenLyrics format.
   
 Bug Fixes:
   o Fixed the dialog title on the Slide Library (says Media Library on 2.0.0)

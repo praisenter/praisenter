@@ -847,9 +847,8 @@ public class SongLibraryPanel extends JPanel implements ActionListener, ItemList
 	 */
 	private void deleteSongsAction() {
 		MutableSongTableModel model = (MutableSongTableModel)this.tblSongSearchResults.getModel();
-		int[] rows = this.tblSongSearchResults.getSelectedRows();
 		// only prompt if there is a song selected
-		if (rows.length > 0) {
+		if (model.isSongSelected()) {
 			// verify the user wants to do it
 			int choice = JOptionPane.showConfirmDialog(
 					WindowUtilities.getParentWindow(this), 

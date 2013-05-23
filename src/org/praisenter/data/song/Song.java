@@ -188,10 +188,11 @@ public class Song implements Comparable<Song> {
 	/**
 	 * Adds the given song part to this song.
 	 * <p>
-	 * This method will copy the given song part.
+	 * This method will copy the given song part and return the copy.
 	 * @param songPart the song part
+	 * @return {@link SongPart}
 	 */
-	public void addSongPart(SongPart songPart) {
+	public SongPart addSongPart(SongPart songPart) {
 		// create a new one just in case this one came from another song
 		SongPart part = new SongPart(songPart);
 		// set the song id
@@ -204,6 +205,7 @@ public class Song implements Comparable<Song> {
 		// add the song part
 		this.parts.add(part);
 		Collections.sort(this.parts);
+		return part;
 	}
 	
 	/**

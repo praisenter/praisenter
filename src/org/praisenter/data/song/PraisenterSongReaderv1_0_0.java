@@ -24,11 +24,14 @@
  */
 package org.praisenter.data.song;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -47,7 +50,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * SAX XML reader for the Praisenter's song format v1.0.0.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class PraisenterSongReaderv1_0_0 extends DefaultHandler {
@@ -63,7 +66,7 @@ public class PraisenterSongReaderv1_0_0 extends DefaultHandler {
 	 * @throws IOException thrown if an IO error occurs
 	 */
 	public static List<Song> fromXml(File file) throws ParserConfigurationException, SAXException, IOException {
-		return PraisenterSongReaderv1_0_0.fromXml(new InputSource(new FileReader(file)));
+		return PraisenterSongReaderv1_0_0.fromXml(new InputSource(new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))));
 	}
 	
 	/**
@@ -87,7 +90,7 @@ public class PraisenterSongReaderv1_0_0 extends DefaultHandler {
 	 * @throws IOException thrown if an IO error occurs
 	 */
 	public static List<Song> fromXml(InputStream stream) throws ParserConfigurationException, SAXException, IOException {
-		return PraisenterSongReaderv1_0_0.fromXml(new InputSource(stream));
+		return PraisenterSongReaderv1_0_0.fromXml(new InputSource(new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))));
 	}
 	
 	/**
