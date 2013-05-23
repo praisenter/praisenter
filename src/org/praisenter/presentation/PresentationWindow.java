@@ -28,6 +28,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsDevice.WindowTranslucency;
@@ -94,7 +95,7 @@ public class PresentationWindow extends JDialog implements PresentationListener 
 	 * @param overlay true if the window should always be on top of other windows
 	 */
 	public PresentationWindow(GraphicsDevice device, boolean fullScreen, boolean overlay) {
-		super(null, "PresentationWindow", ModalityType.MODELESS, WindowUtilities.getTranslucentConfiguration(device));
+		super((Frame)null, "Praisenter Presentation Window", false, WindowUtilities.getTranslucentConfiguration(device));
 		// simple assignments
 		this.device = device;
 		this.fullScreen = fullScreen;
