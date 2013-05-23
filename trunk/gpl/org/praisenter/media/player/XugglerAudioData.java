@@ -17,13 +17,25 @@
  */
 package org.praisenter.media.player;
 
+import com.xuggle.xuggler.IAudioSamples;
+import com.xuggle.xuggler.IAudioSamples.Format;
+
 /**
  * Xuggler timed audio data.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public class XugglerAudioData extends XugglerTimedData {
+	/** Specifies no audio sample conversion required */
+	public static final int CONVERSION_NONE = 0;
+	
+	/** Specifies an audio sample conversion from more than 2 channels down to stereo (2 channels) */
+	public static final int CONVERSION_TO_STEREO = 1;
+	
+	/** Specifies an audio sample conversion from a bit depth higher than 16 to 16 bit integer */
+	public static final int CONVERSION_TO_BIT_DEPTH_16 = 2;
+	
 	/**
 	 * Full constructor.
 	 * @param timestamp the samples timestamp
@@ -31,5 +43,26 @@ public class XugglerAudioData extends XugglerTimedData {
 	 */
 	public XugglerAudioData(long timestamp, byte[] data) {
 		super(timestamp, data);
+	}
+	
+	/**
+	 * Returns the class type for the given format.
+	 * @param format the format
+	 * @return Class&lt;Number&gt;
+	 * @since 2.0.1
+	 */
+	public static final Class<? extends Number> getDataTypeForFormat(IAudioSamples.Format format) {
+		if (format == Format.FMT_DBL || format == Format.FMT_DBLP) {
+			return Double.class;
+		} else if (format == Format.FMT_FLT || format == Format.FMT_FLTP) {
+			return Float.class;
+		} else if (format == Format.FMT_S16 || format == Format.FMT_S16P) {
+			return Short.class;
+		} else if (format == Format.FMT_S32 || format == Format.FMT_S32P) {
+			return Integer.class;
+		} else if (format == Format.FMT_U8 || format == Format.FMT_U8P) {
+			return Byte.class;
+		}
+		return null;
 	}
 }

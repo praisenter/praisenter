@@ -21,6 +21,7 @@ video/3gpp2													3g2 3G2
 video/h261													h261 H261
 video/h263													h263 H263
 video/h264													h264 H264
+video/webm													webm WEBM
 
 # audio types
 audio/midi 													mid MID midi MIDI kar KAR rmi RMI

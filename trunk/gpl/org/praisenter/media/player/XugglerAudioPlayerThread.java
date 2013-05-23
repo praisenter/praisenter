@@ -72,11 +72,11 @@ public class XugglerAudioPlayerThread extends PausableThread {
 	/**
 	 * Initializes this audio player thread with the given audio coder information.
 	 * <p>
-	 * Returns true if the no downmixing is necessary.
+	 * Returns an integer representing any conversions that must be performed on the audio data.
 	 * @param audioCoder the audio coder
-	 * @return boolean
+	 * @return int
 	 */
-	public boolean initialize(IStreamCoder audioCoder) {
+	public int initialize(IStreamCoder audioCoder) {
 		if (this.line != null) {
 			this.line.close();
 			this.line = null;
@@ -85,34 +85,47 @@ public class XugglerAudioPlayerThread extends PausableThread {
 		// make sure the given audio coder is not null
 		// this can happen with videos that are just video
 		if (audioCoder != null) {
-			boolean downMixingRequired = false;
-			// attempt to use the media's audio format
-			AudioFormat format = new AudioFormat(
-					audioCoder.getSampleRate(), 
-					(int)IAudioSamples.findSampleBitDepth(audioCoder.getSampleFormat()),
-					audioCoder.getChannels(), 
-					true, 
-					false);
-			DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
+			int result = XugglerAudioData.CONVERSION_NONE;
 			
+			int sampleRate = audioCoder.getSampleRate();
+			int bitDepth = (int)IAudioSamples.findSampleBitDepth(audioCoder.getSampleFormat());
+			int channels = audioCoder.getChannels();
+			
+			// attempt to use the media's audio format
+			AudioFormat format = new AudioFormat(sampleRate, bitDepth, channels, true, false);
+			DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
 			// see if its supported
 			if (!AudioSystem.isLineSupported(info)) {
 				// if its not supported, this is typically due to the number of playback channels
 				// lets try the same format with just 2 channels (stereo)
-				format = new AudioFormat(
-						audioCoder.getSampleRate(), 
-						(int)IAudioSamples.findSampleBitDepth(audioCoder.getSampleFormat()),
-						2, 
-						true, 
-						false);
-				info = new DataLine.Info(SourceDataLine.class, format);
-				if (AudioSystem.isLineSupported(info)) {
-					downMixingRequired = true;
-				} else {
-					// format just isn't supported so log it and dont play the audio
-					LOGGER.warn("The audio format is not supported by JavaSound: " + format);
-					this.line = null;
-					return false;
+				if (channels > 2) {
+					format = new AudioFormat(sampleRate, bitDepth, 2, true, false);
+					info = new DataLine.Info(SourceDataLine.class, format);
+					// check if its supported
+					if (AudioSystem.isLineSupported(info)) {
+						// flag that downmixing must take place
+						result |= XugglerAudioData.CONVERSION_TO_STEREO;
+					}
+				}
+				// if its still not supported check the bit depth
+				if (!AudioSystem.isLineSupported(info)) {
+					// otherwise it could be due to the bit depth
+					// use either the audio format or the down mixed format
+					AudioFormat source = format;
+					// try to see if converting it to 16 bit will work
+					AudioFormat target = new AudioFormat(sampleRate, 16, format.getChannels(), true, false);
+					if (AudioSystem.isConversionSupported(target, source)) {
+						// setup the line
+						info = new DataLine.Info(SourceDataLine.class, target);
+						format = target;
+						// flag that a bit depth conversion must take place
+						result |= XugglerAudioData.CONVERSION_TO_BIT_DEPTH_16;
+					} else {
+						// if we still can't get it to be supported just give up and log a message
+						LOGGER.warn("The audio format is not supported by JavaSound and could not be converted: " + format);
+						this.line = null;
+						return -1;
+					}
 				}
 			}
 			
@@ -121,17 +134,18 @@ public class XugglerAudioPlayerThread extends PausableThread {
 				this.line = (SourceDataLine)AudioSystem.getLine(info);
 				this.line.open(format);
 				this.line.start();
-				return downMixingRequired;
+				
+				return result;
 			} catch (LineUnavailableException e) {
 				// if a line isn't available then just dont play any sound
 				// and just continue normally
 				LOGGER.error("Line not available for audio playback: ", e);
 				this.line = null;
-				return false;
+				return -1;
 			}
 		}
 		
-		return false;
+		return -1;
 	}
 	
 	/**
@@ -221,6 +235,9 @@ public class XugglerAudioPlayerThread extends PausableThread {
 	 * @param samples the samples
 	 */
 	public void queue(byte[] samples) {
+		// by the time the samples get here, they have already been down sampled
+		// and converted so that Java sound can play them back
+		
 		// if the line is null, then dont bother queuing
 		// data up since we can't play it anyway
 		if (this.line != null) {
