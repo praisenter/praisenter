@@ -40,7 +40,10 @@ public enum SongFormat {
 	PRAISENTER("Praisenter", true, true),
 	
 	/** The ChurchView format */
-	CHURCHVIEW("ChurchView", true, false);
+	CHURCHVIEW("ChurchView", true, false),
+	
+	/** The OpenLyrics format */
+	OPENLYRICS("OpenLyrics", true, false);
 	
 	/**
 	 * Returns the list of supported import formats.

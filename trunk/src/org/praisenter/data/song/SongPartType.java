@@ -34,6 +34,9 @@ public enum SongPartType {
 	/** Verse part */
 	VERSE("V"),
 	
+	/** Pre-Chorus part */
+	PRECHORUS("P"),
+	
 	/** Chorus part */
 	CHORUS("C"),
 	

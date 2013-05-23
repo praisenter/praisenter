@@ -68,6 +68,8 @@ public final class SongHelper {
 	public static final String getPartTypeName(SongPartType type) {
 		if (type == SongPartType.VERSE) {
 			return Messages.getString("song.part.type.verse");
+		} else if (type == SongPartType.PRECHORUS) {
+			return Messages.getString("song.part.type.prechorus");
 		} else if (type == SongPartType.CHORUS) {
 			return Messages.getString("song.part.type.chorus");
 		} else if (type == SongPartType.BRIDGE) {

@@ -62,6 +62,8 @@ public final class SongImporter {
 			importChurchViewSongs(file);
 		} else if (format == SongFormat.PRAISENTER) {
 			importPraisenterSongs(file);
+		} else if (format == SongFormat.OPENLYRICS) {
+			importOpenLyricsSongs(file);
 		} else {
 			throw new DataImportException("SongFormat [" + format + "] is not supported for import.");
 		}
@@ -136,6 +138,37 @@ public final class SongImporter {
 			}
 			
 			LOGGER.debug("ChurchView song file imported successfully: " + file.getName());
+		} catch (ParserConfigurationException e) {
+			throw new DataImportException(e);
+		} catch (SAXException e) {
+			throw new DataImportException(e);
+		} catch (IOException e) {
+			throw new DataImportException(e);
+		}
+	}
+	
+	/**
+	 * Imports the songs contained in the given file.
+	 * @param file the file to import
+	 * @throws DataImportException if an error occurs during import
+	 */
+	private static final void importOpenLyricsSongs(File file) throws DataImportException {
+		try {
+			LOGGER.debug("Reading OpenLyrics song file: " + file.getName());
+			// load the songs xml file into objects
+			List<Song> songs = OpenLyricsSongReader.fromXml(file);
+			LOGGER.debug("OpenLyrics song file read successfully: " + file.getName());
+			
+			// insert the songs into the database
+			try {
+				// save the song
+				Songs.saveSongs(songs);
+			} catch (DataException e) {
+				// just throw this error
+				throw new DataImportException(e);
+			}
+			
+			LOGGER.debug("OpenLyrics song file imported successfully: " + file.getName());
 		} catch (ParserConfigurationException e) {
 			throw new DataImportException(e);
 		} catch (SAXException e) {

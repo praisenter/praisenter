@@ -24,10 +24,12 @@
  */
 package org.praisenter.data.song;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -50,7 +52,7 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * SAX XML reader for the ChurchView program's song export.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class ChurchViewSongReader extends DefaultHandler {
@@ -78,7 +80,7 @@ public class ChurchViewSongReader extends DefaultHandler {
 	 * @throws IOException thrown if an IO error occurs
 	 */
 	public static List<Song> fromXml(File file) throws ParserConfigurationException, SAXException, IOException {
-		return ChurchViewSongReader.fromXml(new InputSource(new FileReader(file)));
+		return ChurchViewSongReader.fromXml(new InputSource(new BufferedReader(new InputStreamReader(new FileInputStream(file)))));
 	}
 	
 	/**
@@ -102,7 +104,7 @@ public class ChurchViewSongReader extends DefaultHandler {
 	 * @throws IOException thrown if an IO error occurs
 	 */
 	public static List<Song> fromXml(InputStream stream) throws ParserConfigurationException, SAXException, IOException {
-		return ChurchViewSongReader.fromXml(new InputSource(stream));
+		return ChurchViewSongReader.fromXml(new InputSource(new BufferedReader(new InputStreamReader(stream))));
 	}
 	
 	/**

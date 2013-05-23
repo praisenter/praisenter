@@ -81,8 +81,16 @@ public class SongQuickSendPanel extends JPanel {
 			this.buttons.put(key, button);
 		}
 		
+		// add a pre-chorus
+		{
+			SongPartKey key = new SongPartKey(SongPartType.PRECHORUS, 1);
+			JButton button = new JButton(SongHelper.getPartName(SongPartType.PRECHORUS, 1));
+			button.setActionCommand("quickSend=PRECHORUS|1");
+			this.buttons.put(key, button);
+		}
+		
 		// add the chorus buttons
-		for (int i = 0; i < n; i++) {
+		for (int i = 0; i < n-1; i++) {
 			SongPartKey key = new SongPartKey(SongPartType.CHORUS, i + 1);
 			JButton button = new JButton(SongHelper.getPartName(SongPartType.CHORUS, i + 1));
 			button.setActionCommand("quickSend=CHORUS|" + (i + 1));
@@ -187,11 +195,11 @@ public class SongQuickSendPanel extends JPanel {
 		keys.put(new SongPartKey(SongPartType.VERSE, 4), "F4");
 		keys.put(new SongPartKey(SongPartType.VERSE, 5), "F5");
 		
-		keys.put(new SongPartKey(SongPartType.CHORUS, 1), "F6");
-		keys.put(new SongPartKey(SongPartType.CHORUS, 2), "F7");
-		keys.put(new SongPartKey(SongPartType.CHORUS, 3), "F8");
-		keys.put(new SongPartKey(SongPartType.CHORUS, 4), "F9");
-		keys.put(new SongPartKey(SongPartType.CHORUS, 5), "F10");
+		keys.put(new SongPartKey(SongPartType.PRECHORUS, 1), "F6");
+		keys.put(new SongPartKey(SongPartType.CHORUS, 1), "F7");
+		keys.put(new SongPartKey(SongPartType.CHORUS, 2), "F8");
+		keys.put(new SongPartKey(SongPartType.CHORUS, 3), "F9");
+		keys.put(new SongPartKey(SongPartType.CHORUS, 4), "F10");
 		
 		keys.put(new SongPartKey(SongPartType.BRIDGE, 1), "F11");
 		keys.put(new SongPartKey(SongPartType.TAG, 1), "F12");
@@ -216,11 +224,11 @@ public class SongQuickSendPanel extends JPanel {
 			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0), "quickSend=VERSE|4"),
 			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), "quickSend=VERSE|5"),
 			// chorus
-			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0), "quickSend=CHORUS|1"),
-			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0), "quickSend=CHORUS|2"),
-			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0), "quickSend=CHORUS|3"),
-			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0), "quickSend=CHORUS|4"),
-			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F10, 0), "quickSend=CHORUS|5"),
+			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0), "quickSend=PRECHORUS|1"),
+			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0), "quickSend=CHORUS|1"),
+			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0), "quickSend=CHORUS|2"),
+			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0), "quickSend=CHORUS|3"),
+			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F10, 0), "quickSend=CHORUS|4"),
 			// others
 			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0), "quickSend=BRIDGE|1"),
 			new SongQuickSendAction(listener, KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0), "quickSend=TAG|1"),
