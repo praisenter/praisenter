@@ -26,7 +26,7 @@ import java.nio.ByteOrder;
 
 import org.apache.log4j.Logger;
 import org.praisenter.common.threading.PausableThread;
-import org.praisenter.media.AudioDownmixer;
+import org.praisenter.media.AudioUtilities;
 
 import com.xuggle.xuggler.IAudioSamples;
 import com.xuggle.xuggler.IContainer;
@@ -89,8 +89,8 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 	/** The audio decoder */
 	protected IStreamCoder audioCoder;
 	
-	/** True if audio down mixing needs to be done */
-	protected boolean downmix;
+	/** The flags to perform any audio conversions */
+	protected int audioConversions;
 	
 	// reusables
 	
@@ -115,9 +115,9 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 	 * @param container the media container
 	 * @param videoCoder the media video decoder
 	 * @param audioCoder the media audio decoder
-	 * @param downmix true if audio down mixing must be done
+	 * @param audioConversions the flag(s) for any audio conversions to must take place
 	 */
-	public void initialize(IContainer container, IStreamCoder videoCoder, IStreamCoder audioCoder, boolean downmix) {
+	public void initialize(IContainer container, IStreamCoder videoCoder, IStreamCoder audioCoder, int audioConversions) {
 		// assign the local variables
 		this.outputWidth = 0;
 		this.outputHeight = 0;
@@ -126,7 +126,7 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 		this.container = container;
 		this.videoCoder = videoCoder;
 		this.audioCoder = audioCoder;
-		this.downmix = downmix;
+		this.audioConversions = audioConversions;
 		
 		// create a packet for reading
 		this.packet = IPacket.make();
@@ -222,7 +222,7 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
 		this.videoCoder = null;
 		this.audioCoder = null;
 		this.videoConverter = null;
-		this.downmix = false;
+		this.audioConversions = XugglerAudioData.CONVERSION_NONE;
 		this.packet = null;
 		this.picture = null;
 		this.samples = null;
@@ -330,12 +330,16 @@ public abstract class XugglerMediaReaderThread extends PausableThread {
                 	// get the sample data to send to JavaSound
                 	byte[] data = this.samples.getData().getByteArray(0, this.samples.getSize());
                 	// see if we need to downmix
-                	if (this.downmix) {
-                    	data = AudioDownmixer.downmixToStereo(
-								data, 
-								(int)IAudioSamples.findSampleBitDepth(this.audioCoder.getSampleFormat()), 
-								this.audioCoder.getChannels(),
-								ByteOrder.LITTLE_ENDIAN);
+                	int bitDepth = (int)IAudioSamples.findSampleBitDepth(this.audioCoder.getSampleFormat());
+                	int channels = this.audioCoder.getChannels();
+                	Class<? extends Number> format = XugglerAudioData.getDataTypeForFormat(this.audioCoder.getSampleFormat());
+                	if ((this.audioConversions & XugglerAudioData.CONVERSION_TO_STEREO) == XugglerAudioData.CONVERSION_TO_STEREO) {
+                    	data = AudioUtilities.downmixToStereo(data, bitDepth, channels, ByteOrder.LITTLE_ENDIAN, format);
+                    	// channel should be 2 now (stereo)
+                    	channels = 2;
+                	}
+                	if ((this.audioConversions & XugglerAudioData.CONVERSION_TO_BIT_DEPTH_16) == XugglerAudioData.CONVERSION_TO_BIT_DEPTH_16) {
+                    	data = AudioUtilities.convertTo16Bit(data, bitDepth, channels, ByteOrder.LITTLE_ENDIAN, format);
                 	}
                 	this.queueAudioImage(new XugglerAudioData(this.samples.getTimeStamp(), data));
                 }

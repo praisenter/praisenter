@@ -21,6 +21,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.praisenter.media.MediaPlayer;
 import org.praisenter.media.MediaPlayerConfiguration;
@@ -28,6 +29,7 @@ import org.praisenter.media.MediaPlayerListener;
 import org.praisenter.media.VideoMediaPlayerListener;
 import org.praisenter.media.XugglerPlayableMedia;
 
+import com.xuggle.xuggler.IAudioSamples;
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
 import com.xuggle.xuggler.IStream;
@@ -235,12 +237,19 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 		}
 		
 		// initialize the playback threads
-		boolean downmix = this.audioPlayerThread.initialize(audioCoder);
-		if (downmix) {
-			LOGGER.info("Downmixing required.");
+		int audioConversions = this.audioPlayerThread.initialize(audioCoder);
+		if (audioConversions != XugglerAudioData.CONVERSION_NONE) {
+			List<String> conversions = new ArrayList<String>();
+			if ((audioConversions & XugglerAudioData.CONVERSION_TO_BIT_DEPTH_16) == XugglerAudioData.CONVERSION_TO_BIT_DEPTH_16) {
+				conversions.add("BitDepth[" + (int)IAudioSamples.findSampleBitDepth(audioCoder.getSampleFormat()) + " to 16]");
+			}
+			if ((audioConversions & XugglerAudioData.CONVERSION_TO_STEREO) == XugglerAudioData.CONVERSION_TO_STEREO) {
+				conversions.add("Channels[" + audioCoder.getChannels() + " to 2]");
+			}
+			LOGGER.info("Audio conversions [" + StringUtils.join(conversions, ",") + "] required for audio in: " + media.getFile().getFullPath());
 		}
 		this.mediaPlayerThread.initialize(videoCoder != null, audioCoder != null);
-		this.mediaReaderThread.initialize(container, videoCoder, audioCoder, downmix);
+		this.mediaReaderThread.initialize(container, videoCoder, audioCoder, audioConversions);
 		
 		return true;
 	}
