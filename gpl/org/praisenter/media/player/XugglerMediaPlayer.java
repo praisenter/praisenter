@@ -238,7 +238,8 @@ public class XugglerMediaPlayer implements MediaPlayer<XugglerPlayableMedia> {
 		
 		// initialize the playback threads
 		int audioConversions = this.audioPlayerThread.initialize(audioCoder);
-		if (audioConversions != XugglerAudioData.CONVERSION_NONE) {
+		// make sure the initialization worked (-1 if it didnt)
+		if (audioConversions >= 0 && audioConversions != XugglerAudioData.CONVERSION_NONE) {
 			List<String> conversions = new ArrayList<String>();
 			if ((audioConversions & XugglerAudioData.CONVERSION_TO_BIT_DEPTH_16) == XugglerAudioData.CONVERSION_TO_BIT_DEPTH_16) {
 				conversions.add("BitDepth[" + (int)IAudioSamples.findSampleBitDepth(audioCoder.getSampleFormat()) + " to 16]");
