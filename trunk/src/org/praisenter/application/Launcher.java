@@ -88,11 +88,8 @@ public final class Launcher {
 		}
 		
 		try {
-			// create the command line
-			String command = java + " " + args + " -jar Praisenter.jar";
-			
 			// launch the real jar
-			Runtime.getRuntime().exec(command);
+			Runtime.getRuntime().exec(new String[] { java, args, "-jar", "Praisenter.jar" });
 		} catch (Exception e) {
 			System.err.println("Error executing command: ");
 			e.printStackTrace();
