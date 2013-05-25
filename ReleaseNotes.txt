@@ -94,6 +94,7 @@ Bug Fixes:
     background would not be retained until the 2nd send.
   o Fixed a bug with high bit depth audio not being supported by JavaSound.
   o Fixed a bug with audio down-mixing when the audio is float or double.
+  o Fixed a bug on Ubuntu with the display identifier being non-translucent.
   
 Other:
   o When adding media, the media type defaults to All Files instead of

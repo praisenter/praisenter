@@ -26,6 +26,7 @@ package org.praisenter.application.preferences.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GraphicsConfiguration;
@@ -46,10 +47,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
+import javax.swing.JSpinner.DefaultEditor;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
-import javax.swing.JSpinner.DefaultEditor;
 
 import org.praisenter.application.icons.Icons;
 import org.praisenter.application.preferences.Preferences;
@@ -393,7 +394,7 @@ public class GeneralPreferencesPanel extends OpaquePanel implements PreferencesE
 				// get the device
 				GraphicsDevice device = this.devices[i];
 				// create a frame for each device
-				JDialog dialog = dialogs[i] = new JDialog(WindowUtilities.getParentWindow(this));
+				JDialog dialog = dialogs[i] = new JDialog(WindowUtilities.getParentWindow(this), "", ModalityType.MODELESS, WindowUtilities.getTranslucentConfiguration(device));
 				// create a label for each device
 				JLabel lblName = new JLabel(WindowUtilities.getDeviceName(device, i, Messages.getString("display.name.format")));
 				lblName.setFont(new Font(lblName.getFont().getName(), Font.PLAIN, 50));
