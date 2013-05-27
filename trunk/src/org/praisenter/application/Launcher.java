@@ -24,15 +24,19 @@
  */
 package org.praisenter.application;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.util.Properties;
+
+import javax.swing.JOptionPane;
 
 /**
  * Helper class for starting the main app without the need for java
  * to be on the PATH or equivalent environment variable.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public final class Launcher {
@@ -47,26 +51,38 @@ public final class Launcher {
 		String java = null;
 		String args = null;
 		
+		String sep = System.getProperty("file.separator");
+		
+		// determine if the working directory is the application directory
+		// this can happen depending on how the jar is launched
+		// if the working directory is not the jar's directory it won't be
+		// able to find the Laucher.properties or the Praisenter.jar files
+		String appDir = getExecutionPath();
+		String workDir = System.getProperty("user.dir");
+		boolean isAppDir = workDir.equals(appDir);
+		
 		// attempt to use the Launch.properties file first
+		String launcherProperties = isAppDir ? "Launcher.properties" : appDir + sep + "Launcher.properties";
 		try {
+			File file = new File(launcherProperties);
 			Properties properties = new Properties();
-			properties.load(new FileInputStream(new File("Launcher.properties")));
+			properties.load(new FileInputStream(file));
 			
 			// set the configured properties
 			java = properties.getProperty("java");
 			args = properties.getProperty("args");
 		} catch (Exception ex) {
 			// ignore the error and continue
+			JOptionPane.showMessageDialog(null, "Unable to find [" + launcherProperties + "]. Using defaults.", "Warning", JOptionPane.WARNING_MESSAGE);
 		}
 		
 		// check for null, empty, or an invalid path
-		File file = new File(java);
-		if (java == null || java.length() == 0 || !file.exists()) {
+		if (java == null || java.length() == 0 || !(new File(java)).exists()) {
+			// use the java executable that launched this code
 			String home = System.getProperty("java.home");
-			String slash = System.getProperty("file.separator");
 			
 			// then attempt to build the path that launched this code
-			java = home + slash + "bin" + slash + "java";
+			java = home + sep + "bin" + sep + "java";
 		}
 		
 		if (args == null || args.length() == 0) {
@@ -89,10 +105,32 @@ public final class Launcher {
 		
 		try {
 			// launch the real jar
-			Runtime.getRuntime().exec(new String[] { java, args, "-jar", "Praisenter.jar" });
+			Process process = Runtime.getRuntime().exec(new String[] { java, args, "-jar", isAppDir ? "Praisenter.jar" : appDir + sep + "Praisenter.jar" });
+			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line);
+			}
+			if (sb.length() > 0) {
+				JOptionPane.showMessageDialog(null, sb.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+			}
 		} catch (Exception e) {
-			System.err.println("Error executing command: ");
-			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
+	}
+	
+	/**
+	 * Returns the execution path of the Launcher.jar.
+	 * <p>
+	 * This may be different than the current working directory.
+	 * @return String
+	 * @since 2.0.1
+	 */
+	private static final String getExecutionPath() {
+		// get the path without the file:// prefix
+	    String absolutePath = Launcher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+	    // strip the Launcher.jar from the end
+	    return absolutePath.substring(0, absolutePath.lastIndexOf("/"));
 	}
 }
