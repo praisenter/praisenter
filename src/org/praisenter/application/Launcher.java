@@ -58,12 +58,19 @@ public final class Launcher {
 		// this can happen depending on how the jar is launched
 		// if the working directory is not the jar's directory it won't be
 		// able to find the Laucher.properties or the Praisenter.jar files
-		String appDir = getExecutionPath();
-		String workDir = System.getProperty("user.dir");
-		boolean isAppDir = workDir.equals(appDir);
+		String currentDir = System.getProperty("user.dir");
+		String execDir = currentDir;
+		boolean isExecDir = true;
+		
+		try {
+			execDir = getExecutionPath();
+			isExecDir = currentDir.equals(execDir);
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Unable to get execution directory, trying current directory:\n[" + currentDir + "].", "Error", JOptionPane.ERROR_MESSAGE);
+		}
 		
 		// attempt to use the Launch.properties file first
-		String launcherProperties = isAppDir ? "Launcher.properties" : appDir + sep + "Launcher.properties";
+		String launcherProperties = isExecDir ? "Launcher.properties" : execDir + sep + "Launcher.properties";
 		try {
 			File file = new File(launcherProperties);
 			Properties properties = new Properties();
@@ -106,7 +113,8 @@ public final class Launcher {
 		
 		try {
 			// launch the real jar
-			Process process = Runtime.getRuntime().exec(new String[] { java, args, "-jar", isAppDir ? "Praisenter.jar" : appDir + sep + "Praisenter.jar" });
+			Process process = Runtime.getRuntime().exec(new String[] { java, args, "-jar", isExecDir ? "Praisenter.jar" : execDir + sep + "Praisenter.jar" });
+			// check the error stream for anything
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 			StringBuilder sb = new StringBuilder();
 			String line = null;
@@ -114,6 +122,7 @@ public final class Launcher {
 				sb.append(line);
 			}
 			if (sb.length() > 0) {
+				// show it if there was something
 				JOptionPane.showMessageDialog(null, sb.toString(), "Error", JOptionPane.ERROR_MESSAGE);
 			}
 		} catch (Exception e) {
@@ -126,18 +135,13 @@ public final class Launcher {
 	 * <p>
 	 * This may be different than the current working directory.
 	 * @return String
+	 * @throws URISyntaxException thrown if the URL cannot be converted
 	 * @since 2.0.1
 	 */
-	private static final String getExecutionPath() {
+	private static final String getExecutionPath() throws URISyntaxException {
 		// get the path without the file:// prefix
-	    try {
-			String path = new File(Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getAbsolutePath();
-			// strip the Launcher.jar from the path
-			return path.substring(0, path.lastIndexOf(System.getProperty("file.separator")));
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    return "";
+		String path = new File(Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getAbsolutePath();
+		// strip the Launcher.jar from the path
+		return path.substring(0, path.lastIndexOf(System.getProperty("file.separator")));
 	}
 }

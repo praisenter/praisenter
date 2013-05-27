@@ -26,20 +26,28 @@ package org.praisenter.application.song.ui;
 
 import java.awt.Component;
 
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
+import org.praisenter.application.ui.PraisenterListCellRenderer;
 import org.praisenter.data.song.SongPartType;
 
 /**
  * List cell renderer for a list of {@link SongPartType} objects.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
-public class SongPartTypeCellRenderer extends DefaultListCellRenderer {
+public class SongPartTypeCellRenderer extends PraisenterListCellRenderer {
 	/** The version id */
 	private static final long serialVersionUID = -2458454838431829762L;
+
+	/**
+	 * Minimal constructor.
+	 * @param component the component this renderer is for
+	 */
+	public SongPartTypeCellRenderer(Component component) {
+		super(component);
+	}
 	
 	/* (non-Javadoc)
 	 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)

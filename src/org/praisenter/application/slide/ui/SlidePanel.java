@@ -60,6 +60,7 @@ import org.apache.log4j.Logger;
 import org.praisenter.animation.TransitionAnimator;
 import org.praisenter.animation.easings.Easing;
 import org.praisenter.animation.easings.Easings;
+import org.praisenter.animation.transitions.Swap;
 import org.praisenter.animation.transitions.Transition;
 import org.praisenter.animation.transitions.TransitionType;
 import org.praisenter.animation.transitions.Transitions;
@@ -208,8 +209,14 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 		
 		// setup the transition lists
 		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(device);
+		Transition[] in = Transitions.IN, out = Transitions.OUT;
+		if (!transitionsSupported) {
+			// if transitions are not supported then only allow the swap transition
+			in = new Transition[] { Transitions.getTransitionForId(Swap.ID, TransitionType.IN) };
+			out = new Transition[] { Transitions.getTransitionForId(Swap.ID, TransitionType.OUT) };
+		}
 		
-		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
+		this.cmbSendTransitions = new JComboBox<Transition>(in);
 		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(this.sPreferences.getSendTransitionId(), TransitionType.IN));
 		this.txtSendTransitions = new JFormattedTextField(new DecimalFormat("0"));
@@ -218,7 +225,7 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 		this.txtSendTransitions.setValue(this.sPreferences.getSendTransitionDuration());
 		this.txtSendTransitions.setColumns(3);
 		
-		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
+		this.cmbClearTransitions = new JComboBox<Transition>(out);
 		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
 		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(this.sPreferences.getClearTransitionId(), TransitionType.OUT));
 		this.txtClearTransitions = new JFormattedTextField(new DecimalFormat("0"));
@@ -226,13 +233,6 @@ public class SlidePanel extends OpaquePanel implements ListSelectionListener, Ac
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtClearTransitions.setValue(this.sPreferences.getClearTransitionDuration());
 		this.txtClearTransitions.setColumns(3);
-		
-		if (!transitionsSupported) {
-			this.cmbSendTransitions.setEnabled(false);
-			this.txtSendTransitions.setEnabled(false);
-			this.cmbClearTransitions.setEnabled(false);
-			this.txtClearTransitions.setEnabled(false);
-		}
 		
 		JButton btnSend = new JButton(Messages.getString("panel.bible.send"));
 		btnSend.setToolTipText(Messages.getString("panel.bible.send.tooltip"));

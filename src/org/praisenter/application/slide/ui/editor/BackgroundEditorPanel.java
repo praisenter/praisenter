@@ -110,7 +110,7 @@ public class BackgroundEditorPanel extends RenderableComponentEditorPanel<Backgr
 		this.cmbBackgroundType = new JComboBox<BackgroundType>(BackgroundType.values());
 		this.cmbBackgroundType.setToolTipText(Messages.getString("panel.slide.editor.background.type.tooltip"));
 		this.cmbBackgroundType.addItemListener(this);
-		this.cmbBackgroundType.setRenderer(new BackgroundTypeListCellRenderer());
+		this.cmbBackgroundType.setRenderer(new BackgroundTypeListCellRenderer(this.cmbBackgroundType));
 		JPanel pnlPadding = new JPanel();
 		pnlPadding.setLayout(new BorderLayout());
 		pnlPadding.add(this.cmbBackgroundType, BorderLayout.CENTER);

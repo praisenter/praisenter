@@ -46,7 +46,7 @@ import org.praisenter.data.song.SongPartType;
 /**
  * Panel used to quick send common song parts.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.1
  * @since 1.0.0
  */
 public class SongQuickSendPanel extends JPanel {
@@ -84,7 +84,7 @@ public class SongQuickSendPanel extends JPanel {
 		// add a pre-chorus
 		{
 			SongPartKey key = new SongPartKey(SongPartType.PRECHORUS, 1);
-			JButton button = new JButton(SongHelper.getPartName(SongPartType.PRECHORUS, 1));
+			JButton button = new JButton(SongHelper.getAbbreviatedPartName(SongPartType.PRECHORUS, 1));
 			button.setActionCommand("quickSend=PRECHORUS|1");
 			this.buttons.put(key, button);
 		}

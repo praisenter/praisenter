@@ -149,7 +149,7 @@ public class EditSongPartPanel extends OpaquePanel implements ItemListener, Docu
 		
 		this.cmbPartTypes = new JComboBox<SongPartType>(SongPartType.values());
 		this.cmbPartTypes.setToolTipText(Messages.getString("panel.song.type.tooltip"));
-		this.cmbPartTypes.setRenderer(new SongPartTypeCellRenderer());
+		this.cmbPartTypes.setRenderer(new SongPartTypeCellRenderer(this.cmbPartTypes));
 		this.cmbPartTypes.setSelectedItem(type);
 		this.cmbPartTypes.setEnabled(edit);
 		this.cmbPartTypes.addItemListener(this);

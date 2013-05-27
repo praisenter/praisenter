@@ -22,50 +22,56 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.common.utilities;
+package org.praisenter.application.ui;
 
 import java.awt.Color;
+import java.awt.Component;
 
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JList;
 import javax.swing.UIManager;
 
+import org.praisenter.common.utilities.LookAndFeelUtilities;
+
 /**
- * Utility class for managing look and feels.
+ * Custom ListCellRenderer to fix the Nimbus look and feel default disabled text color.
  * @author William Bittle
  * @version 2.0.1
- * @since 1.0.0
+ * @since 2.0.1
  */
-public final class LookAndFeelUtilities {
-	/** The Nimbus look and feel name */
-	public static final String NIMBUS = "Nimbus";
+public class PraisenterListCellRenderer extends DefaultListCellRenderer {
+	/** The version id */
+	private static final long serialVersionUID = 3374595763745425422L;
 	
-	/** The Metal (default) look and feel name */
-	public static final String METAL = "Metal";
-	
-	/** Hidden default constructor */
-	private LookAndFeelUtilities() {}
+	/** The component this renderer is for */
+	protected Component component;
 	
 	/**
-	 * Returns true if the Nimbus look and feel is used.
-	 * @return boolean
+	 * Minimal constructor.
+	 * @param component the component this renderer is for
 	 */
-	public static final boolean isNimbusLookAndFeel() {
-		return NIMBUS.equalsIgnoreCase(UIManager.getLookAndFeel().getName());
+	public PraisenterListCellRenderer(Component component) {
+		this.component = component;
 	}
 	
-	/**
-	 * Returns the Nimbus look and feel's disabled text color.
-	 * @return Color
-	 * @since 2.0.1
+	/* (non-Javadoc)
+	 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
 	 */
-	public static final Color getNimbusDisabledTextColor() {
-		return new Color(UIManager.getColor("nimbusDisabledText").getRGB());
-	}
-	
-	/**
-	 * Returns true if the Metal look and feel is used.
-	 * @return boolean
-	 */
-	public static final boolean isMetalLookAndFeel() {
-		return METAL.equalsIgnoreCase(UIManager.getLookAndFeel().getName());
+	@Override
+	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+		super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+		
+		// handle Nimbus look and feel disabled drop down color
+		if (LookAndFeelUtilities.isNimbusLookAndFeel()) {
+			if (!this.component.isEnabled()) {
+				Color color = LookAndFeelUtilities.getNimbusDisabledTextColor();
+				this.setForeground(color);
+			} else {
+				// swap back to the default forground
+				this.setForeground(UIManager.getColor("ComboBox.foreground"));
+			}
+		}
+		
+		return this;
 	}
 }
