@@ -152,9 +152,9 @@ public abstract class AbstractSlidePreviewPanel extends JPanel implements Compon
 	 * @return ImageIcon
 	 */
 	private ImageIcon getLoadingIcon() {
-		if (LookAndFeelUtilities.IsNimbusLookAndFeel()) {
+		if (LookAndFeelUtilities.isNimbusLookAndFeel()) {
 			return new ImageIcon(AbstractSlidePreviewPanel.class.getResource("/org/praisenter/application/icons/loading-nimbus.gif"));
-		} else if (LookAndFeelUtilities.IsMetalLookAndFeel()) {
+		} else if (LookAndFeelUtilities.isMetalLookAndFeel()) {
 			return new ImageIcon(AbstractSlidePreviewPanel.class.getResource("/org/praisenter/application/icons/loading-metal.gif"));
 		} else {
 			return new ImageIcon(AbstractSlidePreviewPanel.class.getResource("/org/praisenter/application/icons/loading-generic.gif"));

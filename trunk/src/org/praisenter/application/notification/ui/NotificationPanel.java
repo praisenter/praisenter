@@ -47,6 +47,7 @@ import javax.swing.JTextField;
 import org.apache.log4j.Logger;
 import org.praisenter.animation.TransitionAnimator;
 import org.praisenter.animation.easings.Easings;
+import org.praisenter.animation.transitions.Swap;
 import org.praisenter.animation.transitions.Transition;
 import org.praisenter.animation.transitions.TransitionType;
 import org.praisenter.animation.transitions.Transitions;
@@ -182,8 +183,14 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		
 		// setup the transition lists
 		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(device);
+		Transition[] in = Transitions.IN, out = Transitions.OUT;
+		if (!transitionsSupported) {
+			// if transitions are not supported then only allow the swap transition
+			in = new Transition[] { Transitions.getTransitionForId(Swap.ID, TransitionType.IN) };
+			out = new Transition[] { Transitions.getTransitionForId(Swap.ID, TransitionType.OUT) };
+		}
 		
-		this.cmbInTransition = new JComboBox<Transition>(Transitions.IN);
+		this.cmbInTransition = new JComboBox<Transition>(in);
 		this.cmbInTransition.setRenderer(new TransitionListCellRenderer());
 		this.cmbInTransition.setSelectedItem(Transitions.getTransitionForId(this.nPreferences.getSendTransitionId(), TransitionType.IN));
 		this.cmbInTransition.setToolTipText(Messages.getString("panel.notification.send.inTransition"));
@@ -193,7 +200,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		this.txtInTransition.setValue(this.nPreferences.getSendTransitionDuration());
 		this.txtInTransition.setColumns(3);
 		
-		this.cmbOutTransition = new JComboBox<Transition>(Transitions.OUT);
+		this.cmbOutTransition = new JComboBox<Transition>(out);
 		this.cmbOutTransition.setRenderer(new TransitionListCellRenderer());
 		this.cmbOutTransition.setSelectedItem(Transitions.getTransitionForId(this.nPreferences.getClearTransitionId(), TransitionType.OUT));
 		this.cmbOutTransition.setToolTipText(Messages.getString("panel.notification.send.outTransition"));

@@ -26,21 +26,29 @@ package org.praisenter.application.slide.ui.editor;
 
 import java.awt.Component;
 
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.PraisenterListCellRenderer;
 
 /**
  * List cell renderer for a list of {@link BackgroundType} objects.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
-public class BackgroundTypeListCellRenderer extends DefaultListCellRenderer {
+public class BackgroundTypeListCellRenderer extends PraisenterListCellRenderer {
 	/** The version id */
 	private static final long serialVersionUID = -544122893593864480L;
-
+	
+	/**
+	 * Minimal constructor.
+	 * @param component the component this renderer is for
+	 */
+	public BackgroundTypeListCellRenderer(Component component) {
+		super(component);
+	}
+	
 	/* (non-Javadoc)
 	 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
 	 */

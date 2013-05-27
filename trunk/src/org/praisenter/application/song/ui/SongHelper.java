@@ -34,12 +34,21 @@ import org.praisenter.data.song.SongPartType;
 /**
  * Small helper class for {@link Song}s and {@link SongPart}s.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
 public final class SongHelper {
 	/** Hidden default constructor. */
 	private SongHelper() {}
+	
+	/**
+	 * Returns the abbreviated name of the given part.
+	 * @param part the part
+	 * @return String
+	 */
+	public static final String getAbbreviatedPartName(SongPart part) {
+		return MessageFormat.format(Messages.getString("song.part.name.pattern"), getAbbreviatedPartTypeName(part.getType()), part.getIndex());
+	}
 	
 	/**
 	 * Returns the name of the given part.
@@ -48,6 +57,16 @@ public final class SongHelper {
 	 */
 	public static final String getPartName(SongPart part) {
 		return MessageFormat.format(Messages.getString("song.part.name.pattern"), getPartTypeName(part.getType()), part.getIndex());
+	}
+	
+	/**
+	 * Returns the abbreviated name of a song part given the type and index.
+	 * @param type the song part type
+	 * @param index the song part index
+	 * @return String
+	 */
+	public static final String getAbbreviatedPartName(SongPartType type, int index) {
+		return MessageFormat.format(Messages.getString("song.part.name.pattern"), getAbbreviatedPartTypeName(type), index);
 	}
 	
 	/**
@@ -82,6 +101,31 @@ public final class SongHelper {
 			return Messages.getString("song.part.type.end");
 		} else {
 			return Messages.getString("song.part.type.other");
+		}
+	}
+	
+	/**
+	 * Returns the abbreviated name of the given part type.
+	 * @param type the part type
+	 * @return String
+	 */
+	public static final String getAbbreviatedPartTypeName(SongPartType type) {
+		if (type == SongPartType.VERSE) {
+			return Messages.getString("song.part.type.verse.abbreviation");
+		} else if (type == SongPartType.PRECHORUS) {
+			return Messages.getString("song.part.type.prechorus.abbreviation");
+		} else if (type == SongPartType.CHORUS) {
+			return Messages.getString("song.part.type.chorus.abbreviation");
+		} else if (type == SongPartType.BRIDGE) {
+			return Messages.getString("song.part.type.bridge.abbreviation");
+		} else if (type == SongPartType.TAG) {
+			return Messages.getString("song.part.type.tag.abbreviation");
+		} else if (type == SongPartType.VAMP) {
+			return Messages.getString("song.part.type.vamp.abbreviation");
+		} else if (type == SongPartType.END) {
+			return Messages.getString("song.part.type.end.abbreviation");
+		} else {
+			return Messages.getString("song.part.type.other.abbreviation");
 		}
 	}
 }

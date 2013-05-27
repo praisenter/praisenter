@@ -333,7 +333,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		JPanel pnlTop = new JPanel();
 		// attempt to use the border color of the laf
 		Color color = Color.GRAY;
-		if (LookAndFeelUtilities.IsNimbusLookAndFeel()) {
+		if (LookAndFeelUtilities.isNimbusLookAndFeel()) {
 			color = UIManager.getColor("nimbusBorder");
 		} else {
 			color = UIManager.getColor("Separator.foreground");
