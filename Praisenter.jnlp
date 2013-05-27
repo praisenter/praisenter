@@ -34,20 +34,20 @@
 	
 	<resources>
 		<!-- Main application jars -->
-		<jar href="Praisenter-2.0.1.jar" main="true" />
+		<jar href="Praisenter.jar" main="true" />
 		
 		<!-- Dependencies -->
-		<jar href="lib/log4j-1.2.17.jar" />
-		<jar href="lib/commons-codec-1.6.jar" />
-		<jar href="lib/commons-lang3-3.1.jar" />
-		<jar href="lib/derby-10.9.jar" />
-		<jar href="lib/mail-1.4.5.jar" />
-		<jar href="lib/slf4j-api-1.7.2.jar" />
-		<jar href="lib/slf4j-log4j12-1.7.2.jar" />
-		<jar href="lib/xuggle-xuggler-5.4.jar" />
+		<jar href="lib/log4j.jar" />
+		<jar href="lib/commons-codec.jar" />
+		<jar href="lib/commons-lang.jar" />
+		<jar href="lib/derby.jar" />
+		<jar href="lib/mail.jar" />
+		<jar href="lib/slf4j-api.jar" />
+		<jar href="lib/slf4j-log4j.jar" />
+		<jar href="lib/xuggle-xuggler.jar" />
 		
 		<!-- Plugins -->
-		<jar href="plugins/PraisenterMedia-2.0.1.jar" />
+		<jar href="plugins/PraisenterMedia.jar" />
 	</resources>
 	
 	<resources os="Mac OS X">

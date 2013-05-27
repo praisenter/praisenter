@@ -28,6 +28,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.util.Properties;
 
 import javax.swing.JOptionPane;
@@ -129,8 +130,14 @@ public final class Launcher {
 	 */
 	private static final String getExecutionPath() {
 		// get the path without the file:// prefix
-	    String absolutePath = Launcher.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-	    // strip the Launcher.jar from the end
-	    return absolutePath.substring(0, absolutePath.lastIndexOf("/"));
+	    try {
+			String path = new File(Launcher.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getAbsolutePath();
+			// strip the Launcher.jar from the path
+			return path.substring(0, path.lastIndexOf(System.getProperty("file.separator")));
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    return "";
 	}
 }

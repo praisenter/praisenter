@@ -95,6 +95,7 @@ Bug Fixes:
   o Fixed a bug with high bit depth audio not being supported by JavaSound.
   o Fixed a bug with audio down-mixing when the audio is float or double.
   o Fixed a bug on Ubuntu with the display identifier being non-translucent.
+  o Fixed some bugs with the Launcher.jar file not working on Ubuntu.
   
 Other:
   o When adding media, the media type defaults to All Files instead of
@@ -107,6 +108,7 @@ Other:
   o More UI fixes for the Mac OS X look and feel.
   o Reduced the force shutdown thread wait time from 10 seconds to 3 seconds.
   o Added anti-aliasing to text field water marks.
+  o Updated JNLP to help ease of getting newer versions.
 
 Open Issues:
   o On Ubuntu Linux we get flickering in the animations due to the use of
