@@ -191,7 +191,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		}
 		
 		this.cmbInTransition = new JComboBox<Transition>(in);
-		this.cmbInTransition.setRenderer(new TransitionListCellRenderer());
+		this.cmbInTransition.setRenderer(new TransitionListCellRenderer(this.cmbInTransition));
 		this.cmbInTransition.setSelectedItem(Transitions.getTransitionForId(this.nPreferences.getSendTransitionId(), TransitionType.IN));
 		this.cmbInTransition.setToolTipText(Messages.getString("panel.notification.send.inTransition"));
 		this.txtInTransition = new JFormattedTextField(new DecimalFormat("0"));
@@ -201,7 +201,7 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 		this.txtInTransition.setColumns(3);
 		
 		this.cmbOutTransition = new JComboBox<Transition>(out);
-		this.cmbOutTransition.setRenderer(new TransitionListCellRenderer());
+		this.cmbOutTransition.setRenderer(new TransitionListCellRenderer(this.cmbOutTransition));
 		this.cmbOutTransition.setSelectedItem(Transitions.getTransitionForId(this.nPreferences.getClearTransitionId(), TransitionType.OUT));
 		this.cmbOutTransition.setToolTipText(Messages.getString("panel.notification.send.outTransition"));
 		this.txtOutTransition = new JFormattedTextField(new DecimalFormat("0"));
@@ -446,6 +446,21 @@ public class NotificationPanel extends JPanel implements ActionListener, ItemLis
 	 * to perform the same action for both events.
 	 */
 	private void onPreferencesOrSlideLibraryChanged() {
+		// see if the primary display changed to one supporting transitions
+		GraphicsDevice device = this.preferences.getPrimaryOrDefaultDevice();
+		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(device);
+		if (transitionsSupported) {
+			this.cmbInTransition.setEnabled(true);
+			this.txtInTransition.setEnabled(true);
+			this.cmbOutTransition.setEnabled(true);
+			this.txtOutTransition.setEnabled(true);
+		} else {
+			this.cmbInTransition.setEnabled(false);
+			this.txtInTransition.setEnabled(false);
+			this.cmbOutTransition.setEnabled(false);
+			this.txtOutTransition.setEnabled(false);
+		}
+		
 		SlideThumbnail[] thumbnails = this.getThumbnails();
 		
 		// update the list of templates

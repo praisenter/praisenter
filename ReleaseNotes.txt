@@ -96,6 +96,8 @@ Bug Fixes:
   o Fixed a bug with audio down-mixing when the audio is float or double.
   o Fixed a bug on Ubuntu with the display identifier being non-translucent.
   o Fixed some bugs with the Launcher.jar file not working on Ubuntu.
+  o Fixed a bug where the transition options would not enable if a device
+    that supports them was choosen from the preferences.
   
 Other:
   o When adding media, the media type defaults to All Files instead of

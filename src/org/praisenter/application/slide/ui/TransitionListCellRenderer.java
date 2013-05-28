@@ -26,7 +26,6 @@ package org.praisenter.application.slide.ui;
 
 import java.awt.Component;
 
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
 import org.apache.log4j.Logger;
@@ -48,20 +47,29 @@ import org.praisenter.animation.transitions.Transition;
 import org.praisenter.animation.transitions.VerticalSplitCollapse;
 import org.praisenter.animation.transitions.VerticalSplitExpand;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.application.ui.PraisenterListCellRenderer;
 
 /**
  * List cell renderer for a list of {@link Transition} objects.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.1
  * @since 2.0.0
  */
-public class TransitionListCellRenderer extends DefaultListCellRenderer {
+public class TransitionListCellRenderer extends PraisenterListCellRenderer {
 	/** The version id */
 	private static final long serialVersionUID = 8489812432376046994L;
 
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(TransitionListCellRenderer.class);
 	
+	/**
+	 * Minimal constructor.
+	 * @param component the component this renderer is for
+	 */
+	public TransitionListCellRenderer(Component component) {
+		super(component);
+	}
+
 	/* (non-Javadoc)
 	 * @see javax.swing.DefaultListCellRenderer#getListCellRendererComponent(javax.swing.JList, java.lang.Object, int, boolean, boolean)
 	 */
