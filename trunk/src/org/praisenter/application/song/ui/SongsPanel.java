@@ -73,7 +73,6 @@ import org.apache.log4j.Logger;
 import org.praisenter.animation.TransitionAnimator;
 import org.praisenter.animation.easings.Easing;
 import org.praisenter.animation.easings.Easings;
-import org.praisenter.animation.transitions.Swap;
 import org.praisenter.animation.transitions.Transition;
 import org.praisenter.animation.transitions.TransitionType;
 import org.praisenter.animation.transitions.Transitions;
@@ -275,15 +274,9 @@ public class SongsPanel extends OpaquePanel implements ActionListener, SongListe
 		
 		// setup the transition lists
 		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(device);
-		Transition[] in = Transitions.IN, out = Transitions.OUT;
-		if (!transitionsSupported) {
-			// if transitions are not supported then only allow the swap transition
-			in = new Transition[] { Transitions.getTransitionForId(Swap.ID, TransitionType.IN) };
-			out = new Transition[] { Transitions.getTransitionForId(Swap.ID, TransitionType.OUT) };
-		}
 		
-		this.cmbSendTransitions = new JComboBox<Transition>(in);
-		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
+		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer(this.cmbSendTransitions));
 		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(this.sPreferences.getSendTransitionId(), TransitionType.IN));
 		this.txtSendTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
@@ -291,14 +284,21 @@ public class SongsPanel extends OpaquePanel implements ActionListener, SongListe
 		this.txtSendTransitions.setValue(this.sPreferences.getSendTransitionDuration());
 		this.txtSendTransitions.setColumns(3);
 		
-		this.cmbClearTransitions = new JComboBox<Transition>(out);
-		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
+		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer(this.cmbClearTransitions));
 		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(this.sPreferences.getClearTransitionId(), TransitionType.OUT));
 		this.txtClearTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
 		this.txtClearTransitions.setToolTipText(Messages.getString("transition.duration.tooltip"));
 		this.txtClearTransitions.setValue(this.sPreferences.getClearTransitionDuration());
 		this.txtClearTransitions.setColumns(3);
+		
+		if (!transitionsSupported) {
+			this.cmbSendTransitions.setEnabled(false);
+			this.txtSendTransitions.setEnabled(false);
+			this.cmbClearTransitions.setEnabled(false);
+			this.txtClearTransitions.setEnabled(false);
+		}
 		
 		JPanel pnlSending = new OpaquePanel();
 		GroupLayout sendLayout = new GroupLayout(pnlSending);
@@ -763,6 +763,21 @@ public class SongsPanel extends OpaquePanel implements ActionListener, SongListe
 	 * Called when the preferences or the slide library changes.
 	 */
 	private void onPreferencesOrSlideLibraryChanged() {
+		// see if the primary display changed to one supporting transitions
+		GraphicsDevice device = this.preferences.getPrimaryOrDefaultDevice();
+		boolean transitionsSupported = Transitions.isTransitionSupportAvailable(device);
+		if (transitionsSupported) {
+			this.cmbSendTransitions.setEnabled(true);
+			this.txtSendTransitions.setEnabled(true);
+			this.cmbClearTransitions.setEnabled(true);
+			this.txtClearTransitions.setEnabled(true);
+		} else {
+			this.cmbSendTransitions.setEnabled(false);
+			this.txtSendTransitions.setEnabled(false);
+			this.cmbClearTransitions.setEnabled(false);
+			this.txtClearTransitions.setEnabled(false);
+		}
+				
 		// if the preferences or slide library changes we only want to make
 		// sure that we are using the latest template (so if it was edited
 		// we need to update the preview) and that we are using the latest

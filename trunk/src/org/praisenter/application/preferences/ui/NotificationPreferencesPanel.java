@@ -151,7 +151,7 @@ public class NotificationPreferencesPanel extends OpaquePanel implements Prefere
 		
 		JLabel lblSendTransition = new JLabel(Messages.getString("panel.preferences.transition.defaultSend"));
 		this.cmbSendTransitions = new JComboBox<Transition>(Transitions.IN);
-		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbSendTransitions.setRenderer(new TransitionListCellRenderer(this.cmbSendTransitions));
 		this.cmbSendTransitions.setSelectedItem(Transitions.getTransitionForId(nPreferences.getSendTransitionId(), TransitionType.IN));
 		this.txtSendTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtSendTransitions.addFocusListener(new SelectTextFocusListener(this.txtSendTransitions));
@@ -165,7 +165,7 @@ public class NotificationPreferencesPanel extends OpaquePanel implements Prefere
 		
 		JLabel lblClearTransition = new JLabel(Messages.getString("panel.preferences.transition.defaultClear"));
 		this.cmbClearTransitions = new JComboBox<Transition>(Transitions.OUT);
-		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer());
+		this.cmbClearTransitions.setRenderer(new TransitionListCellRenderer(this.cmbClearTransitions));
 		this.cmbClearTransitions.setSelectedItem(Transitions.getTransitionForId(nPreferences.getClearTransitionId(), TransitionType.OUT));
 		this.txtClearTransitions = new JFormattedTextField(new DecimalFormat("0"));
 		this.txtClearTransitions.addFocusListener(new SelectTextFocusListener(this.txtClearTransitions));
