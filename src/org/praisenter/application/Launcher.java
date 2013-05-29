@@ -24,11 +24,11 @@
  */
 package org.praisenter.application;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.swing.JOptionPane;
@@ -50,7 +50,8 @@ public final class Launcher {
 	 */
 	public static final void main(String[] params) {
 		String java = null;
-		String args = null;
+		String jvmArgs = null;
+		String appArgs = null;
 		
 		String sep = System.getProperty("file.separator");
 		
@@ -78,7 +79,8 @@ public final class Launcher {
 			
 			// set the configured properties
 			java = properties.getProperty("java");
-			args = properties.getProperty("args");
+			jvmArgs = properties.getProperty("jvmargs");
+			appArgs = properties.getProperty("appargs");
 		} catch (Exception ex) {
 			// ignore the error and continue
 			JOptionPane.showMessageDialog(null, "Unable to find [" + launcherProperties + "]. Using defaults.", "Warning", JOptionPane.WARNING_MESSAGE);
@@ -93,8 +95,21 @@ public final class Launcher {
 			java = home + sep + "bin" + sep + "java";
 		}
 		
-		if (args == null || args.length() == 0) {
-			args = "-Xms512m";
+		// put all the command line stuff into a string list
+		List<String> command = new ArrayList<String>();
+		
+		// add the java executable command
+		command.add(java);
+		
+		// add any JVM arguments from the properties file
+		if (jvmArgs != null && jvmArgs.length() > 0) {
+			// handle multiple arguments
+			for (String arg : jvmArgs.split(",")) {
+				// dont add empty arguments
+				if (arg != null && !arg.isEmpty()) {
+					command.add(arg);
+				}
+			}
 		}
 		
 		try {
@@ -104,7 +119,9 @@ public final class Launcher {
 			if (os != null) {
 				if (os.toLowerCase().indexOf("mac") >= 0) {
 					// add the dock name parameter
-					args += " -Xdock:name=Praisenter";
+					command.add("-Xdock:name=Praisenter");
+					// add the dock icon parameter
+					command.add("-Xdock:icon=icon.png");
 				}
 			}
 		} catch (Exception e) {
@@ -112,19 +129,33 @@ public final class Launcher {
 		}
 		
 		try {
+			// let the java executable know we are using a Jar file
+			command.add("-jar");
+			// tell it which jar to execute
+			command.add((isExecDir ? "" : execDir + sep) + "Praisenter.jar");
+			
+			// add any application arguments from the properties file
+			if (appArgs != null && appArgs.length() > 0) {
+				// handle multiple arguments
+				for (String arg : appArgs.split(",")) {
+					// dont add empty arguments
+					if (arg != null && !arg.isEmpty()) {
+						command.add(arg);
+					}
+				}
+			}
+			
+			// create a log file for Praisenter to catch any stderr logging
+			String launcherLog = (isExecDir ? "" : execDir + sep) + "Launcher.log";
+			File file = new File(launcherLog);
+			file.createNewFile();
+			
 			// launch the real jar
-			Process process = Runtime.getRuntime().exec(new String[] { java, args, "-jar", isExecDir ? "Praisenter.jar" : execDir + sep + "Praisenter.jar" });
-			// check the error stream for anything
-			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-			StringBuilder sb = new StringBuilder();
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				sb.append(line);
-			}
-			if (sb.length() > 0) {
-				// show it if there was something
-				JOptionPane.showMessageDialog(null, sb.toString(), "Error", JOptionPane.ERROR_MESSAGE);
-			}
+			ProcessBuilder builder = new ProcessBuilder(command);
+			// redirect stderr of the subprocess
+			builder.redirectError(file);
+			// start Praisenter
+			builder.start();
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
