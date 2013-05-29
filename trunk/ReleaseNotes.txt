@@ -55,6 +55,10 @@ New Features:
   o Multi-select slides, templates and media for bulk actions like remove
     copy and export.
   o Added a song importer for the OpenLyrics format.
+  o Added better JVM argument handling to the Launcher.jar and added an
+    application specific argument option to the Launcher.properties file.
+  o Added an option in the System dialog listing command line arguments
+    used to start the JVM.
   
 Bug Fixes:
   o Fixed the dialog title on the Slide Library (says Media Library on 2.0.0)
@@ -98,6 +102,8 @@ Bug Fixes:
   o Fixed some bugs with the Launcher.jar file not working on Ubuntu.
   o Fixed a bug where the transition options would not enable if a device
     that supports them was choosen from the preferences.
+  o Fixed many bugs with the Launcher.jar for all platforms and added a 
+    Launcher.log file that error output will be directed.
   
 Other:
   o When adding media, the media type defaults to All Files instead of

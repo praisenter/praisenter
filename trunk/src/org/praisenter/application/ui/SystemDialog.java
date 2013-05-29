@@ -78,6 +78,7 @@ public class SystemDialog extends JDialog {
 		properties.add(Pair.of(Messages.getString("dialog.system.java"), SystemUtilities.getJavaVersion()));
 		properties.add(Pair.of(Messages.getString("dialog.system.vendor"), SystemUtilities.getJavaVendor()));
 		properties.add(Pair.of(Messages.getString("dialog.system.javaPath"), SystemUtilities.getJavaHomeDirectory()));
+		properties.add(Pair.of(Messages.getString("dialog.system.args"), SystemUtilities.getJvmArguments()));
 		properties.add(Pair.of(Messages.getString("dialog.system.os"), SystemUtilities.getOperatingSystem()));
 		properties.add(Pair.of(Messages.getString("dialog.system.architecture"), SystemUtilities.getArchitecture()));
 		properties.add(Pair.of(Messages.getString("dialog.system.cpus"), String.valueOf(Runtime.getRuntime().availableProcessors())));

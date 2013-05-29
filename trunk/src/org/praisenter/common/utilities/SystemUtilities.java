@@ -24,6 +24,10 @@
  */
 package org.praisenter.common.utilities;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.util.List;
+
 /**
  * Utility class used to get system related information.
  * @author William Bittle
@@ -169,5 +173,20 @@ public final class SystemUtilities {
 		} catch (SecurityException e) {
 			return null;
 		}
+	}
+	
+	/**
+	 * Returns a string of all the JVM arguments used to start this VM.
+	 * @return String
+	 * @since 2.0.1
+	 */
+	public static final String getJvmArguments() {
+		RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
+		List<String> arguments = runtimeBean.getInputArguments();
+		StringBuilder sb = new StringBuilder();
+		for (String argument : arguments) {
+			sb.append(argument).append(" ");
+		}
+		return sb.toString();
 	}
 }
