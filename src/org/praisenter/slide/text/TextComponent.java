@@ -52,14 +52,17 @@ import org.praisenter.slide.graphics.Fill;
 import org.praisenter.slide.graphics.FillTypeAdapter;
 import org.praisenter.slide.graphics.JoinType;
 import org.praisenter.slide.graphics.LineStyle;
+import org.praisenter.slide.graphics.LinearGradientDirection;
 import org.praisenter.slide.graphics.LinearGradientFill;
+import org.praisenter.slide.graphics.Point;
 import org.praisenter.slide.graphics.RadialGradientFill;
+import org.praisenter.slide.graphics.Stop;
 import org.praisenter.slide.resources.Messages;
 
 /**
  * Represents a component that displays text.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.2
  * @since 2.0.0
  */
 @XmlRootElement(name = "TextComponent")
@@ -124,6 +127,19 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	@XmlJavaTypeAdapter(value = FillTypeAdapter.class)
 	protected Fill textOutlineFill;
 	
+	/** True if the text shadow should be visible */
+	@XmlElement(name = "TextShadowVisible", required = false, nillable = true)
+	protected boolean textShadowVisible;
+	
+	/** The text shadow fill */
+	@XmlElement(name = "TextShadowFill", required = false, nillable = true)
+	@XmlJavaTypeAdapter(value = FillTypeAdapter.class)
+	protected Fill textShadowFill;
+	
+	/** The text shadow offset */
+	@XmlElement(name = "TextShadowOffset", required = false, nillable = true)
+	protected Point textShadowOffset;
+	
 	/**
 	 * Default constructor.
 	 * <p>
@@ -179,6 +195,13 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 		this.textOutlineFill = new ColorFill(Color.BLACK);
 		this.textOutlineStyle = new LineStyle(1.5f, CapType.ROUND, JoinType.ROUND, DashPattern.SOLID);
 		this.textOutlineVisible = false;
+		this.textShadowVisible = false;
+		this.textShadowFill = new LinearGradientFill(
+				LinearGradientDirection.TOP, 
+				new Stop(0.0f, new Color(0, 0, 0, 255)),
+				new Stop(0.5f, new Color(0, 0, 0, 153)),
+				new Stop(1.0f, new Color(0, 0, 0, 50)));
+		this.textShadowOffset = new Point(3, 3);
 	}
 	
 	/**
@@ -201,6 +224,9 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 		this.textOutlineFill = component.textOutlineFill;
 		this.textOutlineStyle = component.textOutlineStyle;
 		this.textOutlineVisible = component.textOutlineVisible;
+		this.textShadowVisible = component.textShadowVisible;
+		this.textShadowFill = component.textShadowFill;
+		this.textShadowOffset = component.textShadowOffset;
 	}
 	
 	/* (non-Javadoc)
@@ -357,6 +383,9 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 				properties.setOutlineEnabled(this.textOutlineVisible);
 				properties.setOutlineFill(this.textOutlineFill);
 				properties.setOutlineStyle(this.textOutlineStyle);
+				properties.setShadowEnabled(this.textShadowVisible);
+				properties.setShadowFill(this.textShadowFill);
+				properties.setShadowOffset(this.textShadowOffset);
 				
 				// save the old rendering hints
 				RenderingHints oHints = g.getRenderingHints();
@@ -617,5 +646,59 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	 */
 	public void setTextOutlineFill(Fill fill) {
 		this.textOutlineFill = fill;
+	}
+
+	/**
+	 * Returns true if the text shadow is visible.
+	 * @return boolean
+	 * @since 2.0.2
+	 */
+	public boolean isTextShadowVisible() {
+		return this.textShadowVisible;
+	}
+
+	/**
+	 * Toggles the visibility of the text shadow.
+	 * @param flag true if the text shadow should be visible
+	 * @since 2.0.2
+	 */
+	public void setTextShadowVisible(boolean flag) {
+		this.textShadowVisible = flag;
+	}
+
+	/**
+	 * Returns the text shadow fill.
+	 * @return {@link Fill}
+	 * @since 2.0.2
+	 */
+	public Fill getTextShadowFill() {
+		return this.textShadowFill;
+	}
+
+	/**
+	 * Sets the text shadow fill.
+	 * @param fill the text shadow fill
+	 * @since 2.0.2
+	 */
+	public void setTextShadowFill(Fill fill) {
+		this.textShadowFill = fill;
+	}
+
+	/**
+	 * Returns the text shadow offset.
+	 * @return {@link Point}
+	 * @since 2.0.2
+	 */
+	public Point getTextShadowOffset() {
+		return this.textShadowOffset;
+	}
+
+	/**
+	 * Sets the text shadow offset.
+	 * @param offset the text shadow offset
+	 * @since 2.0.2
+	 */
+	public void setTextShadowOffset(Point offset) {
+		this.textShadowOffset = offset;
 	}
 }

@@ -24,8 +24,10 @@
  */
 package org.praisenter.application.slide.ui.editor;
 
+import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Composite;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
@@ -34,6 +36,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.text.MessageFormat;
 
@@ -84,6 +87,14 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	/** The border 2 stroke */
 	private static final Stroke BORDER_STROKE_2 = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, Math.max(1.0f, HALF_LINE_WIDTH), new float[] { DASH_LENGTH, DASH_SPACE_LENGTH }, DASH_LENGTH * 2.0f);
 
+	// for grid
+	
+	/** The border 1 stroke */
+	private static final Stroke GRID_STROKE_1 = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, Math.max(1.0f, HALF_LINE_WIDTH), new float[] { DASH_LENGTH, DASH_SPACE_LENGTH }, 0);
+	
+	/** The border 2 stroke */
+	private static final Stroke GRID_STROKE_2 = new BasicStroke(LINE_WIDTH, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, Math.max(1.0f, HALF_LINE_WIDTH), new float[] { DASH_LENGTH, DASH_SPACE_LENGTH }, DASH_LENGTH * 2.0f);
+	
 	// for selected
 	
 	/** The current mouse over component */
@@ -97,6 +108,9 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	
 	/** The current scale factor */
 	protected double scale;
+	
+	/** The grid spacing */
+	protected int gridSpacing;
 	
 	/**
 	 * Returns the equivalent point in Slide space from the given
@@ -149,6 +163,46 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 			AbstractPositionedSlide pSlide = (AbstractPositionedSlide)slide;
 			sx = (int)Math.round(pSlide.getX() * metrics.scale);
 			sy = (int)Math.round(pSlide.getY() * metrics.scale);
+		}
+		
+		// render the grid
+		if (this.gridSpacing > 0) {
+			// save the old stroke & clip
+			Shape oClip = g2d.getClip();
+			Stroke oStroke = g2d.getStroke();
+			Composite oComposite = g2d.getComposite();
+			AffineTransform oTransform = g2d.getTransform();
+			
+			// set the clip; clip by the bounds of this panel rather than the offset bounds
+			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+			g2d.translate(offset.x, offset.y);
+			g2d.clipRect(0, 0, metrics.width, metrics.height);
+			
+			final int grid = this.gridSpacing;
+			int max = slide.getWidth() > slide.getHeight() ? slide.getWidth() : slide.getHeight();
+			if (slide instanceof AbstractPositionedSlide) {
+				AbstractPositionedSlide pSlide = (AbstractPositionedSlide)slide;
+				max = pSlide.getDeviceWidth() > pSlide.getDeviceHeight() ? pSlide.getDeviceWidth() : pSlide.getDeviceHeight();
+			}
+			final int n = max / grid;
+			
+			final int t = (int)Math.ceil(max * metrics.scale) + 1;
+			for (int i = 1; i < n; i++) {
+				int d = (int)Math.floor((double)i * (double)grid * metrics.scale);
+				g2d.setStroke(GRID_STROKE_1);
+				g2d.setColor(BORDER_COLOR_1);
+				g2d.drawLine(d, 0, d, t);
+				g2d.drawLine(0, d, t, d);
+				g2d.setStroke(GRID_STROKE_2);
+				g2d.setColor(BORDER_COLOR_2);
+				g2d.drawLine(d, 0, d, t);
+				g2d.drawLine(0, d, t, d);
+			}
+			
+			g2d.setClip(oClip);
+			g2d.setTransform(oTransform);
+			g2d.setComposite(oComposite);
+			g2d.setStroke(oStroke);
 		}
 		
 		// render the border over the normal rendering
@@ -232,9 +286,15 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 			// background of a normal slide, then show the resize prongs
 			if (slide instanceof AbstractPositionedSlide) {
 				this.drawProngs(g2d, sx + x, sy + y, w, h);
+				
+				AbstractPositionedSlide pSlide = (AbstractPositionedSlide)slide;
+				String name = MessageFormat.format(Messages.getString("panel.slide.editor.name.overlay"),
+						this.backgroundComponent.getName(),
+						pSlide.getX(), pSlide.getY(), slide.getWidth(), slide.getHeight());
+				this.drawName(g2d, name, sx + x, sy + y);
+			} else {
+				this.drawName(g2d, this.backgroundComponent.getName(), sx + x, sy + y);
 			}
-			
-			this.drawName(g2d, this.backgroundComponent.getName(), sx + x, sy + y);
 			
 			g2d.setClip(clip);
 		}
@@ -392,5 +452,16 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	 */
 	public void setSelectedBackgroundComponent(RenderableComponent background) {
 		this.backgroundComponent = background;
+	}
+	
+	/**
+	 * Sets the grid spacing.
+	 * <p>
+	 * Use zero to indicate no rendering of the grid.
+	 * @param spacing the grid spacing
+	 * @since 3.0.2
+	 */
+	public void setGridSpacing(int spacing) {
+		this.gridSpacing = spacing;
 	}
 }

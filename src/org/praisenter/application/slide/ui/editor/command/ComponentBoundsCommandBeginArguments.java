@@ -22,69 +22,54 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.application;
+package org.praisenter.application.slide.ui.editor.command;
+
+import java.awt.Dimension;
+import java.awt.Point;
+
+import org.praisenter.slide.PositionedComponent;
 
 /**
- * The version of the application.
+ * Class used as input for the {@link Command#begin(Object)} method for {@link BoundsCommand}s for {@link PositionedComponent}s.
  * @author William Bittle
  * @version 2.0.2
- * @since 1.0.0
+ * @since 2.0.0
  */
-public class Version {
-	/** The major version number; high impact changes; changes that require a migration plan */
-	private static final int MAJOR = 2;
-	
-	/** The minor version number; medium impact changes; changes that do not require a migration plan */
-	private static final int MINOR = 0;
-	
-	/** The revision number; small impact changes; bug fixes, small enhancements, etc. */
-	private static final int REVISION = 2;
+public class ComponentBoundsCommandBeginArguments extends AbstractBoundsCommandBeginArguments implements BoundsCommandBeginArguments {
+	/** The component */
+	protected PositionedComponent component;
 	
 	/**
-	 * Hide the constructor.
+	 * Full constructor.
+	 * @param start the start point in slide space
+	 * @param component the component
 	 */
-	private Version() {}
+	public ComponentBoundsCommandBeginArguments(Point start, PositionedComponent component) {
+		super(start);
+		this.component = component;
+	}
 	
-	/**
-	 * Returns the version as a string.
-	 * @return String
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.editor.command.BoundsCommandBeginArguments#translate(int, int)
 	 */
-	public static String getVersion() {
-		return MAJOR + "." + MINOR + "." + REVISION;
+	@Override
+	public void translate(int dx, int dy) {
+		this.component.translate(dx, dy);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.ui.editor.command.BoundsCommandBeginArguments#resize(int, int)
+	 */
+	@Override
+	public Dimension resize(int dw, int dh) {
+		return this.component.resize(dw, dh);
 	}
 	
 	/**
-	 * Returns the version numbers in an array of ints.
-	 * <p>
-	 * The array is of length 3 and has the major, minor, and
-	 * revision numbers in that order.
-	 * @return int[] the major, minor, and revision numbers
+	 * Returns the component.
+	 * @return {@link PositionedComponent}
 	 */
-	public static int[] getVersionNumbers() {
-		return new int[] { MAJOR, MINOR, REVISION };
-	}
-	
-	/**
-	 * Returns the major version number.
-	 * @return int
-	 */
-	public static int getMajorNumber() {
-		return MAJOR;
-	}
-	
-	/**
-	 * Returns the minor version number.
-	 * @return int
-	 */
-	public static int getMinorNumber() {
-		return MINOR;
-	}
-	
-	/**
-	 * Returns the revision number.
-	 * @return int
-	 */
-	public static int getRevisionNumber() {
-		return REVISION;
+	public PositionedComponent getComponent() {
+		return this.component;
 	}
 }

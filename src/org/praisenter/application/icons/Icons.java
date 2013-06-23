@@ -184,4 +184,7 @@ public class Icons {
 	
 	/** Remove icon */
 	public static final ImageIcon REMOVE = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/remove.png");
+
+	/** Snap to grid icon */
+	public static final ImageIcon SNAP = ImageUtilities.getIconFromClassPathSuppressExceptions("/org/praisenter/application/icons/snap.png");
 }
