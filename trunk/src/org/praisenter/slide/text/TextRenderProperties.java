@@ -29,12 +29,13 @@ import java.awt.Color;
 import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.graphics.Fill;
 import org.praisenter.slide.graphics.LineStyle;
+import org.praisenter.slide.graphics.Point;
 
 /**
  * Class to store the rendering properties of a piece of text that will
  * be rendered by the {@link TextRenderer}.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.2
  * @since 2.0.0
  */
 public class TextRenderProperties {
@@ -65,6 +66,15 @@ public class TextRenderProperties {
 	/** The text outline stroke */
 	protected LineStyle outlineStyle;
 	
+	/** Returns true if the shadow is enabled */
+	protected boolean shadowEnabled;
+	
+	/** The shadow fill */
+	protected Fill shadowFill;
+	
+	/** The shadow offset */
+	protected Point shadowOffset;
+	
 	/**
 	 * Minimal constructor.
 	 * <p>
@@ -87,6 +97,10 @@ public class TextRenderProperties {
 		this.outlineEnabled = false;
 		this.outlineFill = new ColorFill();
 		this.outlineStyle = new LineStyle();
+		// no shadow by default
+		this.shadowEnabled = false;
+		this.shadowFill = new ColorFill();
+		this.shadowOffset = new Point();
 	}
 	
 	/**
@@ -234,5 +248,62 @@ public class TextRenderProperties {
 	 */
 	public void setOutlineStyle(LineStyle style) {
 		this.outlineStyle = style;
+	}
+	
+	/**
+	 * Returns true if text shadow is enabled.
+	 * @return boolean
+	 * @since 2.0.2
+	 */
+	public boolean isShadowEnabled() {
+		return this.shadowEnabled;
+	}
+
+	/**
+	 * Toggles the rendering of the text shadow.
+	 * <p>
+	 * The {@link #getShadowFill()}  return non-null values for 
+	 * the shadow to be rendered. 
+	 * @param shadowEnabled true if the shadow should be rendered
+	 * @since 2.0.2
+	 */
+	public void setShadowEnabled(boolean shadowEnabled) {
+		this.shadowEnabled = shadowEnabled;
+	}
+
+	/**
+	 * Returns the fill used to paint the text shadow.
+	 * @return {@link Fill}
+	 * @since 2.0.2
+	 */
+	public Fill getShadowFill() {
+		return this.shadowFill;
+	}
+
+	/**
+	 * Sets the fill used to paint the text shadow.
+	 * @param fill the shadow fill
+	 * @since 2.0.2
+	 */
+	public void setShadowFill(Fill fill) {
+		this.shadowFill = fill;
+	}
+
+	/**
+	 * Returns the text shadow offset.
+	 * @return {@link Point}
+	 * @since 2.0.2
+	 */
+	public Point getShadowOffset() {
+		return this.shadowOffset;
+	}
+
+	/**
+	 * Sets the text shadow offset.
+	 * @param offset the offset in pixels
+	 * @since 2.0.2
+	 */
+	public void setShadowOffset(Point offset) {
+		this.shadowOffset = offset;
 	}
 }

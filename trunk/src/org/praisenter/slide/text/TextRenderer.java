@@ -42,7 +42,7 @@ import org.apache.log4j.Logger;
 /**
  * Class containing helper methods for rendering text.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.2
  * @since 2.0.0
  */
 public final class TextRenderer {
@@ -86,6 +86,8 @@ public final class TextRenderer {
 		// determine if we need to render the outline
 		boolean renderOutline = properties.outlineEnabled && properties.outlineFill != null && properties.outlineStyle != null;
 		Stroke outlineStroke = properties.outlineStyle.getStroke();
+		// determine if we need to render the shadow
+		boolean renderShadow = properties.shadowEnabled && properties.shadowFill != null;
 		
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
@@ -159,6 +161,13 @@ public final class TextRenderer {
 	    	int ih = (int)Math.floor(layout.getAscent() + layout.getDescent());
 	    	
 	    	y += layout.getAscent();
+	    	
+	    	// paint the shadow if necessary
+	    	if (renderShadow) {
+	    		Paint paint = properties.shadowFill.getPaint(ix, iy, iw, ih);
+	    		g2d.setPaint(paint);
+	    		layout.draw(g2d, x + dx + properties.shadowOffset.getX(), y + properties.shadowOffset.getY());
+	    	}
 	    	
 	    	// get the paint for the text
 	    	Paint paint = properties.textFill.getPaint(ix, iy, iw, ih);
@@ -360,6 +369,8 @@ public final class TextRenderer {
 		// determine if we need to render the outline
 		boolean renderOutline = properties.outlineEnabled && properties.outlineFill != null && properties.outlineStyle != null;
 		Stroke outlineStroke = properties.outlineStyle.getStroke();
+		// determine if we need to render the shadow
+		boolean renderShadow = properties.shadowEnabled && properties.shadowFill != null;
 		
 		// create an attributed string and assign the font
 		AttributedString as = new AttributedString(text);
@@ -397,6 +408,13 @@ public final class TextRenderer {
     	int ih = (int)Math.floor(layout.getAscent() + layout.getDescent());
 		
     	y += layout.getAscent();
+    	
+    	// paint the shadow if necessary
+    	if (renderShadow) {
+    		Paint paint = properties.shadowFill.getPaint(ix, iy, iw, ih);
+    		g2d.setPaint(paint);
+    		layout.draw(g2d, x + dx + properties.shadowOffset.getX(), y + properties.shadowOffset.getY());
+    	}
     	
     	// get the paint for the text
     	Paint paint = properties.textFill.getPaint(ix, iy, iw, ih);

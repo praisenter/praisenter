@@ -27,16 +27,19 @@ package org.praisenter.application.slide.ui.editor;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.text.NumberFormat;
 
 import javax.swing.ButtonGroup;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -54,11 +57,13 @@ import javax.swing.event.DocumentListener;
 import org.praisenter.application.icons.Icons;
 import org.praisenter.application.resources.Messages;
 import org.praisenter.application.ui.SelectTextFocusListener;
+import org.praisenter.application.ui.WaterMark;
 import org.praisenter.common.utilities.FontManager;
 import org.praisenter.common.utilities.WindowUtilities;
 import org.praisenter.slide.graphics.ColorFill;
 import org.praisenter.slide.graphics.Fill;
 import org.praisenter.slide.graphics.LineStyle;
+import org.praisenter.slide.graphics.Point;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
@@ -67,7 +72,7 @@ import org.praisenter.slide.text.VerticalTextAlignment;
 /**
  * Editor panel for {@link TextComponent}s.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.2
  * @since 2.0.0
  * @param <E> the {@link TextComponent} type
  */
@@ -89,8 +94,11 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 	/** The layout label */
 	protected JLabel lblLayout;
 	
-	/** The label for outline */
+	/** The label for the outline */
 	protected JLabel lblOutline;
+	
+	/** The label for the shadow */
+	protected JLabel lblShadow;
 	
 	// controls
 	
@@ -160,6 +168,18 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 	/** The button for the text outline */
 	protected JCheckBox chkOutlineVisible;
 	
+	/** The button for the shadow fill */
+	protected JButton btnShadowFillEditor;
+	
+	/** The button for the text shadow */
+	protected JCheckBox chkShadowVisible;
+	
+	/** The text box for the horizontal text shadow offset */
+	protected JFormattedTextField txtShadowOffsetX;
+	
+	/** The text box for the vertical text shadow offset */
+	protected JFormattedTextField txtShadowOffsetY;
+	
 	/**
 	 * Default constructor.
 	 */
@@ -171,6 +191,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 	 * Full constructor.
 	 * @param layout true if this component should layout its controls
 	 */
+	@SuppressWarnings("serial")
 	public TextComponentEditorPanel(boolean layout) {
 		// pass false down so that GenericSlideComponentEditorPanel doesn't build
 		// the layout, we need this class to build its own layout
@@ -191,6 +212,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 		this.lblFontSize = new JLabel(Messages.getString("panel.slide.editor.text.font.size"));
 		this.lblLayout = new JLabel(Messages.getString("panel.slide.editor.text.layout"));
 		this.lblOutline = new JLabel(Messages.getString("panel.slide.editor.text.outline"));
+		this.lblShadow = new JLabel(Messages.getString("panel.slide.editor.text.shadow"));
 		
 		// the font family selection
 		Font font = FontManager.getDefaultFont();
@@ -324,6 +346,41 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 		this.chkOutlineVisible = new JCheckBox(Messages.getString("panel.slide.editor.visible"));
 		this.chkOutlineVisible.addChangeListener(this);
 		
+		// shadow
+		
+		this.btnShadowFillEditor = new JButton(Icons.FILL);
+		this.btnShadowFillEditor.addActionListener(this);
+		this.btnShadowFillEditor.setActionCommand("shadow-fill");
+		
+		this.txtShadowOffsetX = new JFormattedTextField(NumberFormat.getIntegerInstance()) {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.slide.editor.text.shadow.offset.x"));
+			}
+		};
+		this.txtShadowOffsetX.setValue(3);
+		this.txtShadowOffsetX.addFocusListener(new SelectTextFocusListener(this.txtShadowOffsetX));
+		this.txtShadowOffsetX.getDocument().addDocumentListener(this);
+		this.txtShadowOffsetX.setColumns(3);
+		this.txtShadowOffsetX.setToolTipText(Messages.getString("panel.slide.editor.text.shadow.offset.x.tooltip"));
+		
+		this.txtShadowOffsetY = new JFormattedTextField(NumberFormat.getIntegerInstance()) {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				WaterMark.paintTextWaterMark(g, this, Messages.getString("panel.slide.editor.text.shadow.offset.y"));
+			}
+		};
+		this.txtShadowOffsetY.setValue(3);
+		this.txtShadowOffsetY.addFocusListener(new SelectTextFocusListener(this.txtShadowOffsetY));
+		this.txtShadowOffsetY.getDocument().addDocumentListener(this);
+		this.txtShadowOffsetY.setColumns(3);
+		this.txtShadowOffsetY.setToolTipText(Messages.getString("panel.slide.editor.text.shadow.offset.y.tooltip"));
+		
+		this.chkShadowVisible = new JCheckBox(Messages.getString("panel.slide.editor.visible"));
+		this.chkShadowVisible.addChangeListener(this);
+		
 		if (layout) {
 			this.createLayout();
 		}
@@ -352,6 +409,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 								.addComponent(this.lblFontSize)
 								.addComponent(this.lblLayout)
 								.addComponent(this.lblOutline)
+								.addComponent(this.lblShadow)
 								.addComponent(this.lblText))
 						.addGroup(layout.createParallelGroup()
 								.addComponent(this.txtName)
@@ -372,6 +430,12 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 										.addComponent(this.btnOutlineFillEditor)
 										.addComponent(this.btnOutlineStyleEditor)
 										.addComponent(this.chkOutlineVisible))
+								// shadow row
+								.addGroup(layout.createSequentialGroup()
+										.addComponent(this.btnShadowFillEditor)
+										.addComponent(this.txtShadowOffsetX, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.txtShadowOffsetY, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+										.addComponent(this.chkShadowVisible))										
 								// size row
 								.addGroup(layout.createSequentialGroup()
 										.addComponent(this.spnFontSize, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -412,6 +476,13 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 						.addComponent(this.btnOutlineFillEditor)
 						.addComponent(this.btnOutlineStyleEditor)
 						.addComponent(this.chkOutlineVisible))
+				// shadow row
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+						.addComponent(this.lblShadow)
+						.addComponent(this.btnShadowFillEditor)
+						.addComponent(this.txtShadowOffsetX, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.txtShadowOffsetY, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(this.chkShadowVisible))
 				// size row
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 						.addComponent(this.lblFontSize)
@@ -507,6 +578,12 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 				this.slideComponent.setTextOutlineVisible(flag);
 				this.notifyEditorListeners();
 			}
+		} else if (source == this.chkShadowVisible) {
+			boolean flag = this.chkShadowVisible.isSelected();
+			if (this.slideComponent != null) {
+				this.slideComponent.setTextShadowVisible(flag);
+				this.notifyEditorListeners();
+			}
 		}
 	}
 	
@@ -592,6 +669,18 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 					this.notifyEditorListeners();
 				}
 			}
+		} else if ("shadow-fill".equals(command)) {
+			Fill fill = new ColorFill();
+			if (this.slideComponent != null) {
+				fill = this.slideComponent.getTextShadowFill();
+			}
+			fill = FillEditorDialog.show(WindowUtilities.getParentWindow(this), fill);
+			if (fill != null) {
+				if (this.slideComponent != null) {
+					this.slideComponent.setTextShadowFill(fill);
+					this.notifyEditorListeners();
+				}
+			}
 		} else if ("outline-style".equals(command)) {
 			LineStyle style = new LineStyle();
 			if (this.slideComponent != null) {
@@ -613,12 +702,7 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 	@Override
 	public void insertUpdate(DocumentEvent e) {
 		super.insertUpdate(e);
-		if (this.txtText.getDocument() == e.getDocument()) {
-			if (this.slideComponent != null) {
-				this.slideComponent.setText(this.txtText.getText());
-				this.notifyEditorListeners();
-			}
-		}
+		this.documentChanged(e);
 	}
 	
 	/* (non-Javadoc)
@@ -627,9 +711,41 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 	@Override
 	public void removeUpdate(DocumentEvent e) {
 		super.removeUpdate(e);
+		this.documentChanged(e);
+	}
+	
+	/**
+	 * Handles when the text fields are changed.
+	 * @param e the document event
+	 */
+	private void documentChanged(DocumentEvent e) {
 		if (this.txtText.getDocument() == e.getDocument()) {
 			if (this.slideComponent != null) {
 				this.slideComponent.setText(this.txtText.getText());
+				this.notifyEditorListeners();
+			}
+		} else if (this.txtShadowOffsetX.getDocument() == e.getDocument()) {
+			if (this.slideComponent != null) {
+				Point offset = this.slideComponent.getTextShadowOffset();
+				int v = ((Number)this.txtShadowOffsetX.getValue()).intValue();
+				if (offset == null) {
+					offset = new Point(v, 0);
+				} else {
+					offset = new Point(v, offset.getY());
+				}
+				this.slideComponent.setTextShadowOffset(offset);
+				this.notifyEditorListeners();
+			}
+		} else if (this.txtShadowOffsetY.getDocument() == e.getDocument()) {
+			if (this.slideComponent != null) {
+				Point offset = this.slideComponent.getTextShadowOffset();
+				int v = ((Number)this.txtShadowOffsetY.getValue()).intValue();
+				if (offset == null) {
+					offset = new Point(0, v);
+				} else {
+					offset = new Point(offset.getX(), v);
+				}
+				this.slideComponent.setTextShadowOffset(offset);
 				this.notifyEditorListeners();
 			}
 		}
@@ -682,6 +798,9 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 			this.txtText.setCaretPosition(0);
 			this.chkTextVisible.setSelected(slideComponent.isTextVisible());
 			this.chkOutlineVisible.setSelected(slideComponent.isTextOutlineVisible());
+			this.chkShadowVisible.setSelected(slideComponent.isTextShadowVisible());
+			this.txtShadowOffsetX.setValue(slideComponent.getTextShadowOffset().getX());
+			this.txtShadowOffsetY.setValue(slideComponent.getTextShadowOffset().getY());
 			if (isStatic) {
 				this.txtText.setToolTipText(Messages.getString("panel.slide.editor.text.tooltip.static"));
 			} else {
@@ -706,6 +825,9 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 			this.txtText.setToolTipText(null);
 			this.chkTextVisible.setSelected(false);
 			this.chkOutlineVisible.setSelected(false);
+			this.chkShadowVisible.setSelected(false);
+			this.txtShadowOffsetX.setValue(3);
+			this.txtShadowOffsetY.setValue(3);
 		}
 		this.enableNotification();
 	}

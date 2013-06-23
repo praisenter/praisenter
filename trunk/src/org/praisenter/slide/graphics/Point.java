@@ -22,54 +22,61 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.application.slide.ui.editor.command;
+package org.praisenter.slide.graphics;
 
-import java.awt.Dimension;
-import java.awt.Point;
-
-import org.praisenter.slide.AbstractPositionedSlide;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Class used as input for the {@link Command#begin(Object)} method for {@link BoundsCommand}s for {@link AbstractPositionedSlide}s.
+ * Class used to represent a point, offset or vector.
  * @author William Bittle
- * @version 2.0.0
- * @since 2.0.0
+ * @version 2.0.2
+ * @since 2.0.2
  */
-public class SlideBoundsCommandBeingArguments extends AbstractBoundsCommandBeginArguments implements BoundsCommandBeginArguments {
-	/** The slide */
-	protected AbstractPositionedSlide slide;
+@XmlRootElement(name = "Point")
+@XmlAccessorType(XmlAccessType.NONE)
+public class Point {
+	/** The x coordinate */
+	@XmlAttribute(name = "X", required = false)
+	protected int x;
+	
+	/** The y coordinate */
+	@XmlAttribute(name = "Y", required = false)
+	protected int y;
+	
+	/**
+	 * Default constructor.
+	 */
+	public Point() {
+		this.x = 0;
+		this.y = 0;
+	}
 	
 	/**
 	 * Full constructor.
-	 * @param start the start point in slide space
-	 * @param slide the slide
+	 * @param x the x coordinate
+	 * @param y the y coordinate
 	 */
-	public SlideBoundsCommandBeingArguments(Point start, AbstractPositionedSlide slide) {
-		super(start);
-		this.slide = slide;
+	public Point(int x, int y) {
+		this.x = x;
+		this.y = y;
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.editor.command.BoundsCommandBeginArguments#translate(int, int)
-	 */
-	@Override
-	public void translate(int dx, int dy) {
-		this.slide.translate(dx, dy);
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.ui.editor.command.BoundsCommandBeginArguments#resize(int, int)
-	 */
-	@Override
-	public Dimension resize(int dw, int dh) {
-		return this.slide.resize(dw, dh);
-	}
-	
+
 	/**
-	 * Returns the slide.
-	 * @return {@link AbstractPositionedSlide}
+	 * Returns the x coordinate.
+	 * @return int
 	 */
-	public AbstractPositionedSlide getSlide() {
-		return this.slide;
+	public int getX() {
+		return this.x;
+	}
+
+	/**
+	 * Returns the y coordinate.
+	 * @return int
+	 */
+	public int getY() {
+		return this.y;
 	}
 }

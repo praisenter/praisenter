@@ -27,26 +27,26 @@ package org.praisenter.application.slide.ui.editor.command;
 import java.awt.Dimension;
 import java.awt.Point;
 
-import org.praisenter.slide.PositionedComponent;
+import org.praisenter.slide.AbstractPositionedSlide;
 
 /**
- * Class used as input for the {@link Command#begin(Object)} method for {@link BoundsCommand}s for {@link PositionedComponent}s.
+ * Class used as input for the {@link Command#begin(Object)} method for {@link BoundsCommand}s for {@link AbstractPositionedSlide}s.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.2
  * @since 2.0.0
  */
-public class ComponentBoundsCommandBeingArguments extends AbstractBoundsCommandBeginArguments implements BoundsCommandBeginArguments {
-	/** The component */
-	protected PositionedComponent component;
+public class SlideBoundsCommandBeginArguments extends AbstractBoundsCommandBeginArguments implements BoundsCommandBeginArguments {
+	/** The slide */
+	protected AbstractPositionedSlide slide;
 	
 	/**
 	 * Full constructor.
 	 * @param start the start point in slide space
-	 * @param component the component
+	 * @param slide the slide
 	 */
-	public ComponentBoundsCommandBeingArguments(Point start, PositionedComponent component) {
+	public SlideBoundsCommandBeginArguments(Point start, AbstractPositionedSlide slide) {
 		super(start);
-		this.component = component;
+		this.slide = slide;
 	}
 	
 	/* (non-Javadoc)
@@ -54,7 +54,7 @@ public class ComponentBoundsCommandBeingArguments extends AbstractBoundsCommandB
 	 */
 	@Override
 	public void translate(int dx, int dy) {
-		this.component.translate(dx, dy);
+		this.slide.translate(dx, dy);
 	}
 	
 	/* (non-Javadoc)
@@ -62,14 +62,14 @@ public class ComponentBoundsCommandBeingArguments extends AbstractBoundsCommandB
 	 */
 	@Override
 	public Dimension resize(int dw, int dh) {
-		return this.component.resize(dw, dh);
+		return this.slide.resize(dw, dh);
 	}
 	
 	/**
-	 * Returns the component.
-	 * @return {@link PositionedComponent}
+	 * Returns the slide.
+	 * @return {@link AbstractPositionedSlide}
 	 */
-	public PositionedComponent getComponent() {
-		return this.component;
+	public AbstractPositionedSlide getSlide() {
+		return this.slide;
 	}
 }

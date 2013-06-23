@@ -62,6 +62,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
@@ -75,7 +76,7 @@ import org.praisenter.application.preferences.Resolution;
 import org.praisenter.application.preferences.Resolutions;
 import org.praisenter.application.resources.Messages;
 import org.praisenter.application.slide.ui.editor.command.BoundsCommand;
-import org.praisenter.application.slide.ui.editor.command.ComponentBoundsCommandBeingArguments;
+import org.praisenter.application.slide.ui.editor.command.ComponentBoundsCommandBeginArguments;
 import org.praisenter.application.slide.ui.editor.command.MoveCommand;
 import org.praisenter.application.slide.ui.editor.command.MutexCommandGroup;
 import org.praisenter.application.slide.ui.editor.command.ResizeCommandBeginArguments;
@@ -84,7 +85,7 @@ import org.praisenter.application.slide.ui.editor.command.ResizeOperation;
 import org.praisenter.application.slide.ui.editor.command.ResizeProngLocation;
 import org.praisenter.application.slide.ui.editor.command.ResizeWidthAndHeightCommand;
 import org.praisenter.application.slide.ui.editor.command.ResizeWidthCommand;
-import org.praisenter.application.slide.ui.editor.command.SlideBoundsCommandBeingArguments;
+import org.praisenter.application.slide.ui.editor.command.SlideBoundsCommandBeginArguments;
 import org.praisenter.application.ui.SelectTextFocusListener;
 import org.praisenter.common.utilities.FontManager;
 import org.praisenter.common.utilities.LookAndFeelUtilities;
@@ -108,7 +109,7 @@ import org.praisenter.slide.text.TextComponent;
 /**
  * Panel used to edit a slide.
  * @author William Bittle
- * @version 2.0.1
+ * @version 2.0.2
  * @since 2.0.0
  */
 public class SlideEditorPanel extends JPanel implements MouseMotionListener, MouseListener, EditorListener, ActionListener, ItemListener, DocumentListener {
@@ -141,7 +142,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	
 	/** The background editor panel card */
 	private static final String BACKGROUND_CARD = "Background";
-	
+
 	// data
 	
 	/** True if the slide/template has been changed */
@@ -199,6 +200,9 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 	/** Button to add a new audio component */
 	private JButton btnAddAudioComponent;
 	
+	/** Toggle button to snap components to a grid */
+	private JToggleButton tglSnapToGrid;
+	
 	// editor panels
 	
 	/** Generic editor panel for {@link GenericComponent}s */
@@ -250,6 +254,11 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 			this.resizeHeightCommand
 	});
 	
+	// computed 
+
+	/** The grid spacing */
+	protected int gridSpacing = 20;
+	
 	/**
 	 * Minimal constructor.
 	 * @param slide the slide to edit
@@ -275,6 +284,9 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		int dsw = (int)Math.floor(width * 0.45);
 		int dsh = (int)Math.floor(height * 0.45);
 		
+		// compute grid spacing
+		this.gridSpacing = width > height ? width / 32 : height / 32;
+		
 		// setup the preview panel
 		Dimension previewSize = new Dimension(dsw, dsh);
 		this.pnlSlidePreview = new SlideEditorPreviewPanel();
@@ -283,6 +295,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		this.pnlSlidePreview.setPreferredSize(previewSize);
 		this.pnlSlidePreview.addMouseListener(this);
 		this.pnlSlidePreview.addMouseMotionListener(this);
+		this.pnlSlidePreview.setGridSpacing(this.gridSpacing);
 		
 		JLabel lblSlideName = new JLabel(Messages.getString("panel.slide.editor.name"));
 		this.txtSlideName = new JTextField(slide.getName());
@@ -439,6 +452,10 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 			this.btnAddAudioComponent.setEnabled(false);
 		}
 		
+		this.tglSnapToGrid = new JToggleButton(Icons.SNAP);
+		this.tglSnapToGrid.setToolTipText(Messages.getString("panel.slide.editor.snap"));
+		this.tglSnapToGrid.setEnabled(false);
+		
 		JPanel pnlComponentLists = new JPanel();
 		GroupLayout clLayout = new GroupLayout(pnlComponentLists);
 		pnlComponentLists.setLayout(clLayout);
@@ -450,7 +467,8 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				.addGroup(clLayout.createSequentialGroup()
 						.addComponent(this.btnMoveBack)
 						.addComponent(this.btnMoveForward)
-						.addComponent(this.btnRemoveComponent))
+						.addComponent(this.btnRemoveComponent)
+						.addComponent(this.tglSnapToGrid))
 				.addGroup(clLayout.createSequentialGroup()
 						.addComponent(this.btnAddGenericComponent)
 						.addComponent(this.btnAddTextComponent)
@@ -463,7 +481,8 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				.addGroup(clLayout.createParallelGroup()
 						.addComponent(this.btnMoveBack)
 						.addComponent(this.btnMoveForward)
-						.addComponent(this.btnRemoveComponent))
+						.addComponent(this.btnRemoveComponent)
+						.addComponent(this.tglSnapToGrid))
 				.addGroup(clLayout.createParallelGroup()
 						.addComponent(this.btnAddGenericComponent)
 						.addComponent(this.btnAddTextComponent)
@@ -733,6 +752,51 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		}
 		return null;
 	}
+
+	/**
+	 * Returns a rounded value.
+	 * @param value the value to normalize
+	 * @param factor the normalization factor
+	 * @return int
+	 */
+	private static final int round(int value, int factor) {
+		return (value / factor) * factor;
+	}
+
+	/**
+	 * Returns a rounded value.
+	 * <p>
+	 * If the modulus of the value and factor is greater than half of factor
+	 * the value is rounded up, otherwise its rounded down.
+	 * @param value the value to normalize
+	 * @param factor the normalization factor
+	 * @return int
+	 */
+	private static final int roundAtHalf(int value, int factor) {
+		int mod = value % factor;
+		if (mod == 0) return value;
+		if (mod < (factor / 2)) {
+			return (value / factor) * factor;
+		} else {
+			return ((value / factor) + 1) * factor;
+		}
+	}
+	
+	/**
+	 * Returns a point on the grid closest to the given point.
+	 * @param point the point
+	 * @return Point
+	 */
+	protected Point getSnapToGridPoint(Point point) {
+		int gs = this.gridSpacing;
+		int x = point.x;
+		int y = point.y;
+		
+		x = roundAtHalf(x, gs);
+		y = roundAtHalf(y, gs);
+		
+		return new Point(x, y);
+	}
 	
 	/* (non-Javadoc)
 	 * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
@@ -772,7 +836,6 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				PositionedComponent cMouseOver = this.pnlSlidePreview.getMouseOverComponent();
 				PositionedComponent cSelected = this.pnlSlidePreview.getSelectedComponent();
 				PositionedComponent component = null;
-				RenderableComponent background = this.pnlSlidePreview.getSelectedBackgroundComponent();
 				// see if we are still over the same component
 				if (cSelected != null && this.isInside(point, cSelected)) {
 					// then set the component as the one we are still over
@@ -787,7 +850,15 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				if (this.slide != null && component != null) {
 					// see what command we need to begin
 					ResizeProngLocation location = this.getResizeProngLocation(point, component);
-					ComponentBoundsCommandBeingArguments bArgs = new ComponentBoundsCommandBeingArguments(point, component);
+					if (this.tglSnapToGrid.isSelected()) {
+						point = this.getSnapToGridPoint(point);
+						// normalize the component coordinates and height/width
+						component.setX(round(component.getX(), this.gridSpacing));
+						component.setY(round(component.getY(), this.gridSpacing));
+						component.setWidth(round(component.getWidth(), this.gridSpacing));
+						component.setHeight(round(component.getHeight(), this.gridSpacing));
+					}
+					ComponentBoundsCommandBeginArguments bArgs = new ComponentBoundsCommandBeginArguments(point, component);
 					if (location != null) {
 						ResizeCommandBeginArguments rArgs = new ResizeCommandBeginArguments(bArgs, location);
 						if (location.getResizeOperation() == ResizeOperation.BOTH) {
@@ -804,12 +875,26 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 					this.pnlSlidePreview.setSelectedComponent(component);
 					this.cmbComponents.setSelectedItem(component);
 					this.pnlSlidePreview.repaint();
-				} else if (this.slide != null && background != null && this.slide instanceof AbstractPositionedSlide) {
-					// then the background is set and the slide is an AbstractPositionedSlide
-					if (this.isInsideSlide(point)) {
+				// now check if they are wanting the background component
+				} else if (this.slide != null && this.isInsideSlide(point)) {
+					// assume they want to select the background component
+					this.pnlSlidePreview.setSelectedBackgroundComponent(this.slide.getBackground());
+					this.cmbComponents.setSelectedItem(this.slide.getBackground());
+					this.pnlSlidePreview.repaint();
+					// now if its a positioned slide, then we need to show prongs
+					if (this.slide instanceof AbstractPositionedSlide) {
+						AbstractPositionedSlide aps = (AbstractPositionedSlide)this.slide;
 						// see what command we need to begin
 						ResizeProngLocation location = this.getResizeProngLocation(point);
-						SlideBoundsCommandBeingArguments bArgs = new SlideBoundsCommandBeingArguments(point, (AbstractPositionedSlide)this.slide);
+						if (this.tglSnapToGrid.isSelected()) {
+							point = this.getSnapToGridPoint(point);
+							// normalize the component coordinates and height/width
+							aps.setX(round(aps.getX(), this.gridSpacing));
+							aps.setY(round(aps.getY(), this.gridSpacing));
+							aps.setWidth(round(aps.getWidth(), this.gridSpacing));
+							aps.setHeight(round(aps.getHeight(), this.gridSpacing));
+						}
+						SlideBoundsCommandBeginArguments bArgs = new SlideBoundsCommandBeginArguments(point, aps);
 						if (location != null) {
 							ResizeCommandBeginArguments rArgs = new ResizeCommandBeginArguments(bArgs, location);
 							if (location.getResizeOperation() == ResizeOperation.BOTH) {
@@ -822,14 +907,10 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 						} else {
 							this.moveCommand.begin(bArgs);
 						}
-					} else {
-						this.pnlSlidePreview.setSelectedBackgroundComponent(null);
-						this.cmbComponents.setSelectedItem(null);
-						this.layEditorCards.show(this.pnlEditorCards, BLANK_CARD);
-						this.pnlSlidePreview.repaint();
 					}
 				} else {
 					this.pnlSlidePreview.setSelectedComponent(null);
+					this.pnlSlidePreview.setSelectedBackgroundComponent(null);
 					this.cmbComponents.setSelectedItem(null);
 					this.layEditorCards.show(this.pnlEditorCards, BLANK_CARD);
 					this.pnlSlidePreview.repaint();
@@ -864,9 +945,11 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 		if (this.mouseCommandGroup.isCommandActive()) {
 			// convert the point to display space
 			Point end = this.pnlSlidePreview.getSlideSpacePoint(e.getPoint());
+			if (this.tglSnapToGrid.isSelected()) {
+				end = this.getSnapToGridPoint(end);
+			}
 			// check if we are still over a component
 			if (this.moveCommand.isActive()) {
-				// move the component
 				this.moveCommand.update(end);
 				this.slideUpdated = true;
 			} else if (this.resizeCommand.isActive()) {
@@ -898,7 +981,6 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 			PositionedComponent cMouseOver = this.pnlSlidePreview.getMouseOverComponent();
 			PositionedComponent cSelected = this.pnlSlidePreview.getSelectedComponent();
 			PositionedComponent component = null;
-			RenderableComponent background = this.pnlSlidePreview.getSelectedBackgroundComponent();
 			// see if we are still over the same component
 			if (cSelected != null && this.isInside(point, cSelected)) {
 				// then set the component as the one we are still over
@@ -915,14 +997,18 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 					this.pnlSlidePreview.repaint();
 				}
 				// see if we need to change the cursor
-				ResizeProngLocation location = this.getResizeProngLocation(point, component);
-				this.setCursorByResizeProngLocation(location);
+				if (component == cSelected) {
+					ResizeProngLocation location = this.getResizeProngLocation(point, component);
+					this.setCursorByResizeProngLocation(location);
+				} else {
+					this.setCursorByResizeProngLocation(null);
+				}
 			} else {
 				this.pnlSlidePreview.setMouseOverComponent(null);
 				this.pnlSlidePreview.repaint();
 				
 				// check the background
-				if (this.slide != null && background != null && this.slide instanceof AbstractPositionedSlide) {
+				if (this.slide != null && this.slide instanceof AbstractPositionedSlide) {
 					// see if we are inside the slide
 					if (this.isInsideSlide(point)) {
 						// see if we need to change the cursor
@@ -1271,18 +1357,34 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 						this.btnMoveForward.setEnabled(false);
 					}
 					
-					this.btnRemoveComponent.setEnabled(!isStatic);
-				} else {
-					this.pnlSlidePreview.setSelectedComponent(null);
-					this.pnlSlidePreview.setSelectedBackgroundComponent(null);
-					this.layEditorCards.show(this.pnlEditorCards, BLANK_CARD);
+					if (component instanceof RenderableComponent) {
+						if (component instanceof BackgroundComponent) {
+							if (this.slide instanceof AbstractPositionedSlide) {
+								this.tglSnapToGrid.setEnabled(true);
+							} else {
+								this.tglSnapToGrid.setEnabled(false);
+							}
+						} else {
+							this.tglSnapToGrid.setEnabled(true);
+						}
+					} else {
+						this.tglSnapToGrid.setEnabled(false);
+					}
 					
-					this.btnMoveBack.setEnabled(false);
-					this.btnMoveForward.setEnabled(false);
-					this.btnRemoveComponent.setEnabled(false);
+					this.btnRemoveComponent.setEnabled(!isStatic);
 				}
 				this.pnlSlidePreview.repaint();
 			}
+		// handle setting the selected item to null
+		} else if (e.getStateChange() == ItemEvent.DESELECTED && e.getSource() == this.cmbComponents) {
+			this.pnlSlidePreview.setSelectedComponent(null);
+			this.pnlSlidePreview.setSelectedBackgroundComponent(null);
+			this.layEditorCards.show(this.pnlEditorCards, BLANK_CARD);
+			
+			this.btnMoveBack.setEnabled(false);
+			this.btnMoveForward.setEnabled(false);
+			this.btnRemoveComponent.setEnabled(false);
+			this.tglSnapToGrid.setEnabled(false);
 		}
 	}
 	
