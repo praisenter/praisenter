@@ -27,6 +27,7 @@ package org.praisenter.slide;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -37,6 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
@@ -53,6 +55,8 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.praisenter.common.NotInitializedException;
+import org.praisenter.common.NullProgressListener;
+import org.praisenter.common.ProgressListener;
 import org.praisenter.common.utilities.FileUtilities;
 import org.praisenter.common.xml.XmlIO;
 import org.praisenter.media.AbstractAudioMedia;
@@ -73,7 +77,7 @@ import org.praisenter.slide.resources.Messages;
 /**
  * Static interface for loading and saving slides and templates.
  * @author William Bittle
- * @version 2.0.1
+ * @version 2.0.2
  * @since 2.0.0
  */
 public final class SlideLibrary {
@@ -155,11 +159,23 @@ public final class SlideLibrary {
 	 * @param basePath the base path
 	 */
 	public static final synchronized void initialize(String basePath) {
+		SlideLibrary.initialize(basePath, new NullProgressListener());
+	}
+	
+	/**
+	 * Initializes the singleton {@link SlideLibrary} instance using the given base path.
+	 * @param basePath the base path
+	 * @param progressListener the progress listener
+	 * @since 2.0.2
+	 */
+	public static final synchronized void initialize(String basePath, ProgressListener progressListener) {
 		if (basePath == null) {
 			basePath = "";
 		}
 		// create a new library
 		SlideLibrary library = new SlideLibrary(basePath);
+		// load the library
+		library.load(progressListener);
 		// set the instance
 		instance = library;
 	}
@@ -200,7 +216,14 @@ public final class SlideLibrary {
 		this.notificationTemplates = new HashMap<String, NotificationSlideTemplate>();
 		
 		this.thumbnails = new HashMap<String, SlideThumbnail>();
-		
+	}
+	
+	/**
+	 * Loads the slides and templates from the file system.
+	 * @param listener the progress listener
+	 * @since 2.0.2
+	 */
+	private void load(ProgressListener listener) {
 		// initialize the slide library at the given base path
 		FileUtilities.createFolder(this.slidePath);
 		FileUtilities.createFolder(this.templatePath);
@@ -209,11 +232,16 @@ public final class SlideLibrary {
 		FileUtilities.createFolder(this.notificationsTemplatePath);
 		
 		// preload all the slide/templates and thumbnails
-		this.loadSlideLibrary(this.slidePath, BasicSlide.class, this.slides);
-		this.loadSlideLibrary(this.templatePath, BasicSlideTemplate.class, this.templates);
-		this.loadSlideLibrary(this.bibleTemplatePath, BibleSlideTemplate.class, this.bibleTemplates);
-		this.loadSlideLibrary(this.songsTemplatePath, SongSlideTemplate.class, this.songTemplates);
-		this.loadSlideLibrary(this.notificationsTemplatePath, NotificationSlideTemplate.class, this.notificationTemplates);
+		this.loadSlideLibrary(this.slidePath, BasicSlide.class, this.slides, listener, 0);
+		listener.updateProgress(true, 20);
+		this.loadSlideLibrary(this.templatePath, BasicSlideTemplate.class, this.templates, listener, 20);
+		listener.updateProgress(true, 40);
+		this.loadSlideLibrary(this.bibleTemplatePath, BibleSlideTemplate.class, this.bibleTemplates, listener, 40);
+		listener.updateProgress(true, 60);
+		this.loadSlideLibrary(this.songsTemplatePath, SongSlideTemplate.class, this.songTemplates, listener, 60);
+		listener.updateProgress(true, 80);
+		this.loadSlideLibrary(this.notificationsTemplatePath, NotificationSlideTemplate.class, this.notificationTemplates, listener, 80);
+		listener.updateProgress(true, 100);
 	}
 	
 	/**
@@ -223,8 +251,10 @@ public final class SlideLibrary {
 	 * @param path the path for the thumbnail file
 	 * @param clazz the type to load
 	 * @param map the map to add the loaded slide/template
+	 * @param listener the progress listener
+	 * @param offset the progress offset
 	 */
-	private <E extends Slide> void loadSlideLibrary(String path, Class<E> clazz, Map<String, E> map) {
+	private <E extends Slide> void loadSlideLibrary(String path, Class<E> clazz, Map<String, E> map, ProgressListener listener, int offset) {
 		// attempt to read the thumbs file in the respective folder
 		List<SlideThumbnail> thumbnailsFromFile = null;
 		try {
@@ -248,20 +278,29 @@ public final class SlideLibrary {
 		boolean save = false;
 		
 		// read the slide library file names
-		File[] files = new File(path).listFiles();
-		if (files != null) {
-			for (File file : files) {
+		File[] files = new File(path).listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File file) {
 				// skip directories
-				if (file.isDirectory()) continue;
+				if (file.isDirectory()) return false;
 				// ignore hidden files
-				if (file.isHidden()) continue;
+				if (file.isHidden()) return false;
+				// check the file path
+				String path = file.getPath();
+				// skip the thumbnails file
+				if (path.contains(THUMBS_FILE)) return false;
+				// skip any file that doesn't end in .xml
+				if (!path.toLowerCase().endsWith(".xml")) return false;
+				// otherwise we'll try it
+				return true;
+			}
+		});
+		if (files != null) {
+			int size = files.length;
+			int i = 0;
+			for (File file : files) {
 				// get the file path
 				String filePath = file.getPath();
-				// skip the thumbnail file
-				if (filePath.contains(THUMBS_FILE)) continue;
-				// skip any file that doesn't end in .xml
-				if (!filePath.toLowerCase().endsWith(".xml")) continue;
-				// make sure there exists a thumnail for the file
 				SlideThumbnail thumbnail = null;
 				for (SlideThumbnail thumb : thumbnailsFromFile) {
 					if (thumb.getFile().getName().equals(file.getName())) {
@@ -294,6 +333,7 @@ public final class SlideLibrary {
 				} catch (SlideLibraryException e) {
 					LOGGER.error("Unable to load slide/template [" + filePath + "|" + clazz.getName() + "]: ", e);
 				}
+				listener.updateProgress(true, offset + (100 * (i++)) / (size * 5));
 			}
 			// add all the thumbnails
 			for (SlideThumbnail thumbnail : thumbnails) {
@@ -743,7 +783,63 @@ public final class SlideLibrary {
 		return false;
 	}
 	
-	// import export
+	// test for media usage
+	
+	/**
+	 * Returns a list of slides and templates that are using the any of the given media.
+	 * @param files the media
+	 * @return List&lt;{@link Slide}&gt;
+	 */
+	public synchronized List<Slide> getSlidesOrTemplatesUsingMedia(List<MediaFile> files) {
+		return this.getSlidesOrTemplatesUsingMedia(files.toArray(new MediaFile[0]));
+	}
+	
+	/**
+	 * Returns a list of slides and templates that are using the any of the given media.
+	 * @param files the media
+	 * @return List&lt;{@link Slide}&gt;
+	 */
+	public synchronized List<Slide> getSlidesOrTemplatesUsingMedia(MediaFile... files) {
+		List<Slide> slides = new ArrayList<Slide>();
+		slides.addAll(this.getSlidesUsingMedia(this.slides.values(), files));
+		slides.addAll(this.getSlidesUsingMedia(this.templates.values(), files));
+		slides.addAll(this.getSlidesUsingMedia(this.bibleTemplates.values(), files));
+		slides.addAll(this.getSlidesUsingMedia(this.songTemplates.values(), files));
+		slides.addAll(this.getSlidesUsingMedia(this.notificationTemplates.values(), files));
+		return slides;
+	}
+	
+	/**
+	 * Returns a list of slides and templates that are using the any of the given media from the
+	 * given collection of slides/templates.
+	 * @param slides the collection of slides to search
+	 * @param files the media
+	 * @return List&lt;{@link Slide}&gt;
+	 */
+	private List<Slide> getSlidesUsingMedia(Collection<? extends Slide> slides, MediaFile... files) {
+		List<Slide> inUseSlides = new ArrayList<Slide>();
+		for (Slide slide : slides) {
+			@SuppressWarnings("rawtypes")
+			List<MediaComponent> components = slide.getComponents(MediaComponent.class, true);
+			for (MediaComponent<?> mc : components) {
+				boolean found = false;
+				Media media = mc.getMedia();
+				for (MediaFile file : files) {
+					if (media.getFile().equals(file)) {
+						inUseSlides.add(slide);
+						found = true;
+						// no reason to continue
+						break;
+					}
+				}
+				// no reason to continue
+				if (found) break;
+			}
+		}
+		return inUseSlides;
+	}
+	
+	// import/export
 
 	/**
 	 * Returns a unique file name for the given file name.

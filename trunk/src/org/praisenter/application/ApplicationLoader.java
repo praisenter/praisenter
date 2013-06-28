@@ -57,6 +57,7 @@ import org.praisenter.application.resources.Messages;
 import org.praisenter.application.ui.OpenUrlHyperlinkListener;
 import org.praisenter.application.ui.ZipFileFilter;
 import org.praisenter.common.InitializationException;
+import org.praisenter.common.ProgressListener;
 import org.praisenter.common.utilities.ColorUtilities;
 import org.praisenter.common.utilities.FontManager;
 import org.praisenter.data.ConnectionFactory;
@@ -75,7 +76,7 @@ import org.praisenter.slide.SlideLibrary;
  * @version 2.0.0
  * @since 1.0.0
  */
-public final class ApplicationLoader {
+public final class ApplicationLoader implements ProgressListener {
 	/** The class level logger */
 	private static final Logger LOGGER = Logger.getLogger(ApplicationLoader.class);
 			
@@ -482,7 +483,7 @@ public final class ApplicationLoader {
 	 */
 	private void loadMediaLibrary() {
 		updateProgress(true, Messages.getString("dialog.preload.mediaLibrary.label"));
-		MediaLibrary.initialize(Constants.BASE_PATH);
+		MediaLibrary.initialize(Constants.BASE_PATH, this);
 		updateProgress(true, 100);
 	}
 	
@@ -491,7 +492,7 @@ public final class ApplicationLoader {
 	 */
 	private void loadSlideLibrary() {
 		updateProgress(true, Messages.getString("dialog.preload.slideLibrary.label"));
-		SlideLibrary.initialize(Constants.BASE_PATH);
+		SlideLibrary.initialize(Constants.BASE_PATH, this);
 		updateProgress(true, 100);
 	}
 	
@@ -537,48 +538,34 @@ public final class ApplicationLoader {
 		} catch (InterruptedException e) {}
 	}
 	
-	/**
-	 * Updates the progress bar to 0 complete using the given task name
-	 * as the new task (clearing the sub task).
-	 * @param wait true to wait until the task finishes
-	 * @param taskName the task name
+	/* (non-Javadoc)
+	 * @see org.praisenter.common.ProgressListener#updateProgress(boolean, java.lang.String)
 	 */
-	private void updateProgress(boolean wait, String taskName) {
+	public void updateProgress(boolean wait, String taskName) {
 		ProgressUpdate update = new ProgressUpdate(wait, 0, taskName, "");
 		update.begin();
 	}
 	
-	/**
-	 * Updates the progress bar percent complete.  The current task names
-	 * are retained.
-	 * @param wait true to wait until the task finishes
-	 * @param value the percent complete in the range [0, 100]
+	/* (non-Javadoc)
+	 * @see org.praisenter.common.ProgressListener#updateProgress(boolean, int)
 	 */
-	private void updateProgress(boolean wait, int value) {
+	public void updateProgress(boolean wait, int value) {
 		ProgressUpdate update = new ProgressUpdate(wait, value, null, null);
 		update.begin();
 	}
 	
-	/**
-	 * Updates the progress bar percent complete and sub task name.  The main
-	 * task name is retained.
-	 * @param wait true to wait until the task finishes
-	 * @param value the percent complete in the range [0, 100]
-	 * @param subTaskName the sub task name
+	/* (non-Javadoc)
+	 * @see org.praisenter.common.ProgressListener#updateProgress(boolean, int, java.lang.String)
 	 */
-	private void updateProgress(boolean wait, int value, String subTaskName) {
+	public void updateProgress(boolean wait, int value, String subTaskName) {
 		ProgressUpdate update = new ProgressUpdate(wait, value, null, subTaskName);
 		update.begin();
 	}
 	
-	/**
-	 * Updates the progress bar percent complete, task name, and sub task name.
-	 * @param wait true to wait until the task finishes
-	 * @param value the percent complete in the range [0, 100]
-	 * @param taskName the task name
-	 * @param subTaskName the sub task name
+	/* (non-Javadoc)
+	 * @see org.praisenter.common.ProgressListener#updateProgress(boolean, int, java.lang.String, java.lang.String)
 	 */
-	private void updateProgress(boolean wait, int value, String taskName, String subTaskName) {
+	public void updateProgress(boolean wait, int value, String taskName, String subTaskName) {
 		ProgressUpdate update = new ProgressUpdate(wait, value, taskName, subTaskName);
 		update.begin();
 	}

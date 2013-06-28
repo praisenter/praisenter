@@ -396,6 +396,8 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 		this.txtText.setMinimumSize(new Dimension(50, 50));
 		JScrollPane scrText = new JScrollPane(this.txtText);
 		scrText.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scrText.setPreferredSize(new Dimension(100, 100));
+		scrText.setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
 		
 		layout.setAutoCreateContainerGaps(true);
 		layout.setAutoCreateGaps(true);
@@ -406,10 +408,10 @@ public class TextComponentEditorPanel<E extends TextComponent> extends Positione
 								.addComponent(this.lblBackground)
 								.addComponent(this.lblBorder)
 								.addComponent(this.lblFontFamily)
-								.addComponent(this.lblFontSize)
-								.addComponent(this.lblLayout)
 								.addComponent(this.lblOutline)
 								.addComponent(this.lblShadow)
+								.addComponent(this.lblFontSize)
+								.addComponent(this.lblLayout)
 								.addComponent(this.lblText))
 						.addGroup(layout.createParallelGroup()
 								.addComponent(this.txtName)

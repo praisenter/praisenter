@@ -34,12 +34,18 @@ Platforms:
 New Features: 
   o Added text shadow options to the text components with offsets and
     color/gradient support.
+  o Added snap to grid functionality for the slide editor.
   
 Bug Fixes:
   o Fixed some small usability bugs on the slide editor panel when editing
     the the background component.
   
 Other:
+  o Fixed the slide/template library loading to show progress.
+  o Organized the Date/Time component controls in the same order as the text
+    component.
+  o Made the preferred size of the text box on the text component edit panel
+    taller.
 
 Open Issues:
   o Same as 2.0.1
