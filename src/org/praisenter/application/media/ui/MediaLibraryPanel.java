@@ -38,12 +38,14 @@ import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -65,6 +67,13 @@ import org.praisenter.media.MediaFile;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnail;
 import org.praisenter.media.MediaType;
+import org.praisenter.slide.BasicSlideTemplate;
+import org.praisenter.slide.BibleSlideTemplate;
+import org.praisenter.slide.NotificationSlideTemplate;
+import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideLibrary;
+import org.praisenter.slide.SongSlideTemplate;
+import org.praisenter.slide.media.MediaComponent;
 
 /**
  * Panel used to maintain the Media Library.
@@ -397,12 +406,88 @@ public class MediaLibraryPanel extends JPanel implements ActionListener, ListSel
 					files.add(thumbnail.getFile());
 				}
 				
-				// make sure the user wants to do this
-				int choice = JOptionPane.showConfirmDialog(
-						this,
-						Messages.getString("panel.media.remove.areYouSure.message"),
-						Messages.getString("panel.media.remove.areYouSure.title"),
-						JOptionPane.YES_NO_CANCEL_OPTION);
+				int choice = JOptionPane.CANCEL_OPTION;
+				
+				try {
+					List<Slide> slides = SlideLibrary.getInstance().getSlidesOrTemplatesUsingMedia(files);
+					StringBuilder sb = new StringBuilder();
+					if (!slides.isEmpty()) {
+						for (Slide slide : slides) {
+							// get slide type name
+							String slideType = Messages.getString("slide.type.slide");
+							if (slide instanceof BibleSlideTemplate) {
+								slideType = Messages.getString("slide.type.bibleTemplate");
+							} else if (slide instanceof SongSlideTemplate) {
+								slideType = Messages.getString("slide.type.songTemplate");
+							} else if (slide instanceof NotificationSlideTemplate) {
+								slideType = Messages.getString("slide.type.notificationTemplate");
+							} else if (slide instanceof BasicSlideTemplate) {
+								slideType = Messages.getString("slide.type.template");
+							}
+							// get the media being used
+							StringBuilder msb = new StringBuilder();
+							@SuppressWarnings("rawtypes")
+							List<MediaComponent> mcs = slide.getComponents(MediaComponent.class, true);
+							for (MediaFile file : files) {
+								for (MediaComponent<?> mc : mcs) {
+									if (mc.getMedia().getFile().equals(file)) {
+										msb.append("'")
+										   .append(file.getName())
+										   .append("' ");
+										break;
+									}
+								}
+							}
+							sb.append(MessageFormat.format(Messages.getString("panel.media.remove.areYouSure.message2.part"),
+									// type
+									slideType,
+									// slide name
+									"'" + slide.getName() + "'",
+									// media name
+									msb.toString()));
+						}
+						
+						// show an are you sure message with all the slides and associated media
+						// listed out so that they can make an intelligent decision
+						JPanel pnlMessage = new JPanel();
+						pnlMessage.setLayout(new BorderLayout());
+						// setup the text pane to show the in use media/slides
+						JTextPane txtMessage = new JTextPane();
+						txtMessage.setContentType("text/html");
+						txtMessage.setText("<html>" + sb.toString() + "</html>");
+						txtMessage.setEditable(false);
+						txtMessage.setCaretPosition(0);
+						// setup a scrollpane since there could be a lot
+						JScrollPane scrMessage = new JScrollPane(txtMessage);
+						scrMessage.setPreferredSize(new Dimension(400, 200));
+						scrMessage.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+						scrMessage.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+						// add the text pane and the message label to the panel
+						pnlMessage.add(new JLabel(Messages.getString("panel.media.remove.areYouSure.message2")), BorderLayout.PAGE_START);
+						pnlMessage.add(scrMessage, BorderLayout.CENTER);
+						// show the are-you-sure dialog
+						choice = JOptionPane.showConfirmDialog(
+								this,
+								pnlMessage,
+								Messages.getString("panel.media.remove.areYouSure.title"),
+								JOptionPane.YES_NO_CANCEL_OPTION);
+					} else {
+						// show a standard are you sure dialog
+						choice = JOptionPane.showConfirmDialog(
+								this,
+								Messages.getString("panel.media.remove.areYouSure.message3"),
+								Messages.getString("panel.media.remove.areYouSure.title"),
+								JOptionPane.YES_NO_CANCEL_OPTION);
+					}
+				} catch (NotInitializedException ex) {
+					LOGGER.warn("An error occurred while trying to get the slides/templates that use the selected media: ", ex);
+					// just show the generic are you sure dialog with a comment how it might affect slides
+					choice = JOptionPane.showConfirmDialog(
+							this,
+							Messages.getString("panel.media.remove.areYouSure.message1"),
+							Messages.getString("panel.media.remove.areYouSure.title"),
+							JOptionPane.YES_NO_CANCEL_OPTION);
+				}
 				
 				if (choice == JOptionPane.YES_OPTION) {
 					// create a remove task

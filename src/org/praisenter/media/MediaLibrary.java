@@ -49,13 +49,15 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.praisenter.common.NotInitializedException;
+import org.praisenter.common.NullProgressListener;
+import org.praisenter.common.ProgressListener;
 import org.praisenter.common.utilities.FileUtilities;
 import org.praisenter.common.xml.XmlIO;
 
 /**
  * Static thread-safe class for managing the media library.
  * @author William Bittle
- * @version 2.0.1
+ * @version 2.0.2
  * @since 2.0.0
  */
 public final class MediaLibrary {
@@ -186,11 +188,23 @@ public final class MediaLibrary {
 	 * @param basePath the base path for the media library
 	 */
 	public static final synchronized void initialize(String basePath) {
+		MediaLibrary.initialize(basePath, new NullProgressListener());
+	}
+	
+	/**
+	 * Initializes the media library at the given path.
+	 * @param basePath the base path for the media library
+	 * @param progressListener a listener for the progress of the initialization
+	 * @since 2.0.2
+	 */
+	public static final synchronized void initialize(String basePath, ProgressListener progressListener) {
 		if (basePath == null) {
 			basePath = "";
 		}
 		// create a new instance
 		MediaLibrary library = new MediaLibrary(basePath);
+		// load the library
+		library.load(progressListener);
 		// assign the current instance
 		instance = library;
 	}
@@ -221,16 +235,27 @@ public final class MediaLibrary {
 		
 		this.media = new HashMap<String, WeakReference<Media>>();
 		this.thumbnails = new ArrayList<MediaThumbnail>();
-		
+	}
+	
+	/**
+	 * Loads the media into the library from the file system.
+	 * @param listener the progress listener
+	 * @since 2.0.2
+	 */
+	private void load(ProgressListener listener) {
 		// verify the existence of the /media and sub directories
 		FileUtilities.createFolder(this.imagePath);
 		FileUtilities.createFolder(this.audioPath);
 		FileUtilities.createFolder(this.videoPath);
 		
+		listener.updateProgress(true, 5);
 		// load the media library (thumbnails only...usually)
 		this.loadMediaLibrary(MediaType.IMAGE);
+		listener.updateProgress(true, 33);
 		this.loadMediaLibrary(MediaType.AUDIO);
+		listener.updateProgress(true, 66);
 		this.loadMediaLibrary(MediaType.VIDEO);
+		listener.updateProgress(true, 100);
 	}
 
 	/**
@@ -243,10 +268,10 @@ public final class MediaLibrary {
 	 * @param type the media type
 	 */
 	private void loadMediaLibrary(MediaType type) {
-		String path = getMediaTypeFullPath(type);
 		if (!isMediaSupported(type)) {
 			return;
 		}
+		String path = getMediaTypeFullPath(type);
 		// attempt to read the thumbs file in the respective folder
 		List<MediaThumbnail> thumbnailsFromFile = null;
 		try {

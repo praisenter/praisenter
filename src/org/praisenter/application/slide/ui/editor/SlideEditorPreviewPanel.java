@@ -44,8 +44,8 @@ import org.praisenter.application.resources.Messages;
 import org.praisenter.application.slide.ui.preview.SingleSlidePreviewPanel;
 import org.praisenter.application.slide.ui.preview.SlidePreviewMetrics;
 import org.praisenter.slide.AbstractPositionedSlide;
+import org.praisenter.slide.BackgroundComponent;
 import org.praisenter.slide.PositionedComponent;
-import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.Slide;
 
 /**
@@ -104,7 +104,7 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	protected PositionedComponent selectedComponent;
 	
 	/** The selected background component */
-	protected RenderableComponent backgroundComponent;
+	protected BackgroundComponent backgroundComponent;
 	
 	/** The current scale factor */
 	protected double scale;
@@ -440,9 +440,9 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	 * Returns the background component.
 	 * <p>
 	 * Returns null if the background component is not currently selected.
-	 * @return {@link RenderableComponent}
+	 * @return {@link BackgroundComponent}
 	 */
-	public RenderableComponent getSelectedBackgroundComponent() {
+	public BackgroundComponent getSelectedBackgroundComponent() {
 		return this.backgroundComponent;
 	}
 
@@ -450,7 +450,7 @@ public class SlideEditorPreviewPanel extends SingleSlidePreviewPanel {
 	 * Sets the selected background component.
 	 * @param background the background component
 	 */
-	public void setSelectedBackgroundComponent(RenderableComponent background) {
+	public void setSelectedBackgroundComponent(BackgroundComponent background) {
 		this.backgroundComponent = background;
 	}
 	

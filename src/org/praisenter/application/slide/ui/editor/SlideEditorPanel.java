@@ -477,7 +477,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 						.addComponent(this.btnAddVideoComponent)
 						.addComponent(this.btnAddAudioComponent)));
 		clLayout.setVerticalGroup(clLayout.createSequentialGroup()
-				.addComponent(this.cmbComponents)
+				.addComponent(this.cmbComponents, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				.addGroup(clLayout.createParallelGroup()
 						.addComponent(this.btnMoveBack)
 						.addComponent(this.btnMoveForward)
@@ -1308,7 +1308,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 				if (this.slide == null) return;
 				SlideComponent component = (SlideComponent)this.cmbComponents.getSelectedItem();
 				if (component != null) {
-					boolean isBackground = this.slide.getBackground() == component;
+					boolean isBackground = component instanceof BackgroundComponent && this.slide.getBackground() == component;
 					boolean isStatic = this.slide.isStaticComponent(component);
 					
 					if (isBackground) {
@@ -1345,7 +1345,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 						}
 						this.pnlSlidePreview.setSelectedBackgroundComponent(null);
 					} else {
-						this.pnlSlidePreview.setSelectedBackgroundComponent((RenderableComponent)component);
+						this.pnlSlidePreview.setSelectedBackgroundComponent((BackgroundComponent)component);
 						this.pnlSlidePreview.setSelectedComponent(null);
 					}
 					
@@ -1358,7 +1358,7 @@ public class SlideEditorPanel extends JPanel implements MouseMotionListener, Mou
 					}
 					
 					if (component instanceof RenderableComponent) {
-						if (component instanceof BackgroundComponent) {
+						if (isBackground) {
 							if (this.slide instanceof AbstractPositionedSlide) {
 								this.tglSnapToGrid.setEnabled(true);
 							} else {

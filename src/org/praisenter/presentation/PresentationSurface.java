@@ -522,7 +522,12 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 				MediaPlayer player = factory.createMediaPlayer();
 				
 				// setting some configuration details requires that the media be set already
-				player.setMedia(media);
+				boolean success = player.setMedia(media);
+				if (!success) {
+					// return a null player if the player could not assign
+					// the media
+					return null;
+				}
 				player.addMediaPlayerListener(component);
 				
 				// set the player configuration
