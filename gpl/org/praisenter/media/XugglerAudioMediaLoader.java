@@ -17,17 +17,23 @@
  */
 package org.praisenter.media;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
+import com.xuggle.xuggler.IContainerFormat;
 import com.xuggle.xuggler.IStream;
 import com.xuggle.xuggler.IStreamCoder;
 
 /**
  * Media loader for audio using the Xuggler API.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.2
  * @since 2.0.0
  */
 public class XugglerAudioMediaLoader implements AudioMediaLoader {
@@ -48,6 +54,19 @@ public class XugglerAudioMediaLoader implements AudioMediaLoader {
 			return true;
 		}
 		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaLoader#getSupportedFormats()
+	 */
+	@Override
+	public List<Pair<String, String>> getSupportedContainerFormats() {
+		List<Pair<String, String>> out = new ArrayList<Pair<String, String>>();
+		Collection<IContainerFormat> formats = IContainerFormat.getInstalledInputFormats();
+		for (IContainerFormat format : formats) {
+			out.add(Pair.of(format.getInputFormatShortName(), format.getInputFormatLongName()));
+		}
+		return out;
 	}
 	
 	/* (non-Javadoc)

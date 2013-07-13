@@ -30,15 +30,19 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 /**
  * Midi loader using JavaSound.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.2
  * @since 2.0.0
  */
 public class MidiAudioMediaLoader implements MediaLoader<AbstractAudioMedia>, AudioMediaLoader {
@@ -93,5 +97,19 @@ public class MidiAudioMediaLoader implements MediaLoader<AbstractAudioMedia>, Au
 		} catch (IOException e) {
 			throw new MediaException(e);
 		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaLoader#getSupportedFormats()
+	 */
+	@Override
+	public List<Pair<String, String>> getSupportedContainerFormats() {
+		List<Pair<String, String>> out = new ArrayList<Pair<String, String>>();
+		
+		out.add(Pair.of("mid", "Musical Instrument Digital Interface"));
+		out.add(Pair.of("midi", "Musical Instrument Digital Interface"));
+		out.add(Pair.of("kar", "Tune 1000 MIDI for Karaoke"));
+		
+		return out;
 	}
 }

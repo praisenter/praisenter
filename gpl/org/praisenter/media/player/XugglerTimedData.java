@@ -20,7 +20,7 @@ package org.praisenter.media.player;
 /**
  * Represents timed media stream data.
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.2
  * @since 2.0.0
  */
 public abstract class XugglerTimedData implements Comparable<XugglerTimedData> {
@@ -66,7 +66,10 @@ public abstract class XugglerTimedData implements Comparable<XugglerTimedData> {
 		if (obj == this) return true;
 		if (obj instanceof XugglerTimedData) {
 			XugglerTimedData data = (XugglerTimedData)obj;
-			return data.timestamp == this.timestamp;
+			// they are the same if their timestamps are equal
+			// and they contain the same type of data
+			return (data.timestamp == this.timestamp &&
+					data.data.getClass() == this.data.getClass());
 		}
 		return false;
 	}
@@ -79,6 +82,11 @@ public abstract class XugglerTimedData implements Comparable<XugglerTimedData> {
 		int hash = 1;
 		hash = hash * 31 + (int)(this.timestamp);
 		hash = hash * 31 + (int)(this.timestamp >> 8);
+		if (this.data instanceof byte[]) {
+			hash = hash * 31 + 39;
+		} else {
+			hash = hash * 31 + 41;
+		}
 		return hash;
 	}
 	
@@ -90,6 +98,7 @@ public abstract class XugglerTimedData implements Comparable<XugglerTimedData> {
 		StringBuilder sb = new StringBuilder();
 		sb.append("XugglerTimedData[Timestamp=")
 		  .append(this.timestamp)
+		  .append("|Type=").append(this.data.getClass().getSimpleName())
 		  .append("]");
 		return sb.toString();
 	}
@@ -105,7 +114,12 @@ public abstract class XugglerTimedData implements Comparable<XugglerTimedData> {
 		} else if (diff < 0) {
 			return -1;
 		} else {
-			return 0;
+			// favor audio data more than video
+			if (this.data instanceof byte[]) {
+				return -1;
+			} else {
+				return 1;
+			}
 		}
 	}
 }

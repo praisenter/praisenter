@@ -39,6 +39,10 @@ New Features:
 Bug Fixes:
   o Fixed some small usability bugs on the slide editor panel when editing
     the the background component.
+  o Small bug fix in the Xuggler media player plug-in where audio/video data
+    were considered equal due to equal time-stamps (which rarely happens).
+  o Fixed a bug in the presentation code where if you cleared the slide too
+    quickly it would have a rendering artifact.
   
 Other:
   o Fixed the slide/template library loading to show progress.
@@ -46,6 +50,8 @@ Other:
     component.
   o Made the preferred size of the text box on the text component edit panel
     taller.
+  o Added a Supported Media Formats dialog to the help menu.
+  o Changed the About and System dialogs to non-modal.
 
 Open Issues:
   o Same as 2.0.1

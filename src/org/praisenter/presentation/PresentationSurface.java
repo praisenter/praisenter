@@ -67,7 +67,7 @@ import org.praisenter.slide.text.DateTimeComponent;
 /**
  * Surface for rendering slides using transitions.
  * @author William Bittle
- * @version 2.0.1
+ * @version 2.0.2
  * @since 2.0.0
  */
 public class PresentationSurface extends JPanel implements VideoMediaPlayerListener, WindowListener {
@@ -436,14 +436,6 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 		
 		// set the transition
 		this.animator = animator;
-		
-		// check the current slide background type
-		if (this.currentSlide.getBackground() instanceof ImageMediaComponent) {
-			// if the current slide background type is image its possible that image0 does not
-			// contain the background. So we need to re-render the image
-			// with the background to ensure the clear includes the background
-			PresentationSurface.renderSlide(this.currentRenderer, this.currentRenderQualities, true, this.image0);
-		}
 		
 		// on a clear operation we need to transition the background
 		this.transitionBackground = true;
