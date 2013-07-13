@@ -44,7 +44,7 @@ import org.praisenter.application.resources.Messages;
 /**
  * Dialog showing the about information.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.2
  * @since 1.0.0
  */
 public class AboutDialog extends JDialog {
@@ -56,7 +56,7 @@ public class AboutDialog extends JDialog {
 	 * @param owner the dialog owner
 	 */
 	private AboutDialog(Window owner) {
-		super(owner, Messages.getString("dialog.about.title"), ModalityType.APPLICATION_MODAL);
+		super(owner, Messages.getString("dialog.about.title"), ModalityType.MODELESS);
 		// set the size
 		this.setPreferredSize(new Dimension(450, 500));
 		
@@ -102,7 +102,5 @@ public class AboutDialog extends JDialog {
 		dialog.setLocationRelativeTo(owner);
 		// show the dialog
 		dialog.setVisible(true);
-		
-		dialog.dispose();
 	}
 }

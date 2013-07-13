@@ -66,6 +66,7 @@ import org.praisenter.application.slide.ui.SlidePanel;
 import org.praisenter.application.song.ui.SongLibraryDialog;
 import org.praisenter.application.song.ui.SongsPanel;
 import org.praisenter.application.ui.AboutDialog;
+import org.praisenter.application.ui.FormatsDialog;
 import org.praisenter.application.ui.SystemDialog;
 import org.praisenter.application.ui.TaskProgressDialog;
 import org.praisenter.application.ui.ValidateFileChooser;
@@ -78,7 +79,7 @@ import org.praisenter.presentation.PresentationManager;
 /**
  * Main window for the Praisenter application.
  * @author William Bittle
- * @version 2.0.1
+ * @version 2.0.2
  * @since 1.0.0
  */
 public class Praisenter extends JFrame implements ActionListener, PropertyChangeListener {
@@ -223,11 +224,17 @@ public class Praisenter extends JFrame implements ActionListener, PropertyChange
 				JMenu mnuHelp = new JMenu(Messages.getString("menu.help"));
 				barMenu.add(mnuHelp);
 				
-				// about menu
+				// errors menu
 				JMenuItem mnuErrors = new JMenuItem(Messages.getString("menu.help.errors"));
 				mnuErrors.setActionCommand("errors");
 				mnuErrors.addActionListener(this);
 				mnuHelp.add(mnuErrors);
+				
+				// formats menu
+				JMenuItem mnuFormats = new JMenuItem(Messages.getString("menu.help.formats"));
+				mnuFormats.setActionCommand("formats");
+				mnuFormats.addActionListener(this);
+				mnuHelp.add(mnuFormats);
 				
 				// make sure the desktop is supported
 				if (Desktop.isDesktopSupported()) {
@@ -357,6 +364,8 @@ public class Praisenter extends JFrame implements ActionListener, PropertyChange
 			}
 		} else if ("errors".equals(command)) {
 			this.exportSavedErrorReports();
+		} else if ("formats".equals(command)) {
+			FormatsDialog.show(this);
 		} else if ("logs".equals(command)) {
 			File file = new File(Constants.LOG_FILE_LOCATION);
 			try {

@@ -24,11 +24,15 @@
  */
 package org.praisenter.media;
 
+import java.util.List;
+
+import org.apache.commons.lang3.tuple.Pair;
+
 /**
  * Represents a class that can load a type of media.
  * @param <E> the {@link MediaType}
  * @author William Bittle
- * @version 2.0.0
+ * @version 2.0.2
  * @since 2.0.0
  */
 public interface MediaLoader<E extends Media> {
@@ -53,4 +57,10 @@ public interface MediaLoader<E extends Media> {
 	 * @throws MediaException thrown if the media could not be read
 	 */
 	public abstract E load(String basePath, String filePath) throws MediaException;
+	
+	/**
+	 * Prints the supported formats to the given print stream.
+	 * @return List&lt;Pair&lt;String,String&gt;&gt;
+	 */
+	public abstract List<Pair<String, String>> getSupportedContainerFormats();
 }

@@ -24,8 +24,10 @@
  */
 package org.praisenter.application.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsDevice.WindowTranslucency;
 import java.awt.Point;
@@ -37,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import javax.swing.GroupLayout;
 import javax.swing.JDialog;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -57,7 +58,7 @@ import org.praisenter.common.utilities.WindowUtilities;
 /**
  * Dialog showing the system information.
  * @author William Bittle
- * @version 2.0.1
+ * @version 2.0.2
  * @since 2.0.0
  */
 public class SystemDialog extends JDialog {
@@ -69,7 +70,7 @@ public class SystemDialog extends JDialog {
 	 * @param owner the dialog owner
 	 */
 	private SystemDialog(Window owner) {
-		super(owner, Messages.getString("dialog.system.title"), ModalityType.APPLICATION_MODAL);
+		super(owner, Messages.getString("dialog.system.title"), ModalityType.MODELESS);
 		
 		// build the property listing
 		List<Pair<String, String>> properties = new ArrayList<Pair<String, String>>();
@@ -126,22 +127,18 @@ public class SystemDialog extends JDialog {
 		tblProperties.setCellSelectionEnabled(false);
 		tblProperties.setRowSelectionAllowed(true);
 		tblProperties.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		tblProperties.getColumnModel().getColumn(0).setMaxWidth(200);
 		tblProperties.getColumnModel().getColumn(0).setPreferredWidth(150);
+		tblProperties.getColumnModel().getColumn(1).setPreferredWidth(250);
 		
 		JScrollPane scrProperties = new JScrollPane(tblProperties);
+		scrProperties.setBorder(null);
+		
+		// set the size
+		this.setPreferredSize(new Dimension(550, 400));
 		
 		Container container = this.getContentPane();
-		GroupLayout layout = new GroupLayout(container);
-		container.setLayout(layout);
-		
-		layout.setAutoCreateContainerGaps(true);
-		layout.setAutoCreateGaps(true);
-		
-		layout.setHorizontalGroup(layout.createSequentialGroup()
-				.addComponent(scrProperties));
-		layout.setVerticalGroup(layout.createSequentialGroup()
-				.addComponent(scrProperties));
+		container.setLayout(new BorderLayout());
+		container.add(scrProperties, BorderLayout.CENTER);
 		
 		this.pack();
 	}
@@ -156,7 +153,5 @@ public class SystemDialog extends JDialog {
 		dialog.setLocationRelativeTo(owner);
 		// show the dialog
 		dialog.setVisible(true);
-		
-		dialog.dispose();
 	}
 }

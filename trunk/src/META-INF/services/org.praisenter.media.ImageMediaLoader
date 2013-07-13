@@ -1,2 +1,2 @@
 # ImageMediaLoader using Java ImageIO
-org.praisenter.media.DefaultImageMediaLoader
+org.praisenter.media.ImageIOImageMediaLoader
