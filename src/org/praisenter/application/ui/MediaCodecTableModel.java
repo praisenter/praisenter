@@ -28,36 +28,36 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.media.MediaCodec;
 
 /**
- * Table model for media formats.
+ * Table model for media codecs.
  * @author William Bittle
  * @version 2.0.2
  * @since 2.0.2
  */
-public class MediaFormatsTableModel extends AbstractTableModel {
+public class MediaCodecTableModel extends AbstractTableModel {
 	/** The version id */
-	private static final long serialVersionUID = -6686294809881047940L;
+	private static final long serialVersionUID = -4962825804423328528L;
 
 	/** The column names */
 	protected final String[] columnNames = new String[] {
-		Messages.getString("dialog.formats.format"),
+		Messages.getString("dialog.formats.name"),
 		Messages.getString("dialog.formats.description")
 	};
 	
 	/** The data */
-	protected List<Pair<String, String>> formats;
+	protected List<MediaCodec> formats;
 	
 	/** Default constructor */
-	public MediaFormatsTableModel() {}
+	public MediaCodecTableModel() {}
 	
 	/**
 	 * Full constructor.
 	 * @param formats the list of properties
 	 */
-	public MediaFormatsTableModel(List<Pair<String, String>> formats) {
+	public MediaCodecTableModel(List<MediaCodec> formats) {
 		this.formats = formats;
 	}
 	
@@ -86,12 +86,12 @@ public class MediaFormatsTableModel extends AbstractTableModel {
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		if (this.formats != null && this.formats.size() > rowIndex) {
-			Pair<String, String> pair = this.formats.get(rowIndex);
+			MediaCodec codec = this.formats.get(rowIndex);
 			switch (columnIndex) {
 				case 0:
-					return pair.getKey();
+					return codec.getName();
 				case 1:
-					return pair.getValue();
+					return codec.getDescription();
 				default:
 					return "";
 			}

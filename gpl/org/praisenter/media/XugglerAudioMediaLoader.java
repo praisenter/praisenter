@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 
 import com.xuggle.xuggler.ICodec;
@@ -41,6 +40,14 @@ public class XugglerAudioMediaLoader implements AudioMediaLoader {
 	private static final Logger LOGGER = Logger.getLogger(XugglerAudioMediaLoader.class);
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaLoader#getMediaType()
+	 */
+	@Override
+	public Class<XugglerAudioMedia> getMediaType() {
+		return XugglerAudioMedia.class;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaLoader#isSupported(java.lang.String)
 	 */
 	@Override
@@ -57,24 +64,29 @@ public class XugglerAudioMediaLoader implements AudioMediaLoader {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaLoader#getSupportedFormats()
+	 * @see org.praisenter.media.MediaLoader#getSupportedContainerFormats()
 	 */
 	@Override
-	public List<Pair<String, String>> getSupportedContainerFormats() {
-		List<Pair<String, String>> out = new ArrayList<Pair<String, String>>();
+	public List<MediaContainerFormat> getSupportedContainerFormats() {
+		List<MediaContainerFormat> out = new ArrayList<MediaContainerFormat>();
 		Collection<IContainerFormat> formats = IContainerFormat.getInstalledInputFormats();
 		for (IContainerFormat format : formats) {
-			out.add(Pair.of(format.getInputFormatShortName(), format.getInputFormatLongName()));
+			out.add(new MediaContainerFormat(format.getInputFormatShortName(), format.getInputFormatLongName()));
 		}
 		return out;
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaLoader#getMediaType()
+	 * @see org.praisenter.media.MediaLoader#getSupportedCodecs()
 	 */
 	@Override
-	public Class<XugglerAudioMedia> getMediaType() {
-		return XugglerAudioMedia.class;
+	public List<MediaCodec> getSupportedCodecs() {
+		List<MediaCodec> out = new ArrayList<MediaCodec>();
+		Collection<ICodec> codecs = ICodec.getInstalledCodecs();
+		for (ICodec codec : codecs) {
+			out.add(new MediaCodec(codec.getName(), codec.getLongName()));
+		}
+		return out;
 	}
 	
 	/* (non-Javadoc)

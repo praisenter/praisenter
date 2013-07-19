@@ -145,6 +145,14 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 	/** The cached current image */
 	protected BufferedImage image1;
 	
+	/** 
+	 * A temporary image to render when executing an event
+	 * <p>
+	 * The surface uses image0 to render while idle and therefore
+	 * writing to image0 while its rendering causes artifacts.
+	 */
+	protected BufferedImage temp0;
+	
 	/** True if the panel is clear */
 	protected boolean clear;
 	
@@ -173,6 +181,7 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 		
 		this.image0 = null;
 		this.image1 = null;
+		this.temp0 = null;
 		
 		this.currentSlide = null;
 		this.currentBackgroundMediaPlayer = null;
@@ -341,7 +350,11 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 						// re-render the current slide without the background. if we don't do this
 						// image0 still contains the background and it will appear as if we are
 						// still transitioning the background
-						PresentationSurface.renderSlide(this.currentRenderer, this.currentRenderQualities, false, this.image0);
+						PresentationSurface.renderSlide(this.currentRenderer, this.currentRenderQualities, false, this.temp0);
+						// swap the images
+						BufferedImage image = this.image0;
+						this.image0 = this.temp0;
+						this.temp0 = image;
 					}
 				}
 			}
@@ -392,6 +405,7 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 		// make sure our offscreen images are still the correct size
 		this.image0 = PresentationSurface.validateOffscreenImage(this.image0, this);
 		this.image1 = PresentationSurface.validateOffscreenImage(this.image1, this);
+		this.temp0 = PresentationSurface.validateOffscreenImage(this.temp0, this);
 		
 		// paint the display to the image
 		PresentationSurface.renderSlide(this.inRenderer, this.inRenderQualities, this.transitionBackground, this.image1);
@@ -436,6 +450,18 @@ public class PresentationSurface extends JPanel implements VideoMediaPlayerListe
 		
 		// set the transition
 		this.animator = animator;
+		
+		// check the current slide background type
+		if (this.currentSlide.getBackground() instanceof ImageMediaComponent) {
+			// if the current slide background type is image its possible that image0 does not
+			// contain the background. So we need to re-render the image
+			// with the background to ensure the clear includes the background
+			PresentationSurface.renderSlide(this.currentRenderer, this.currentRenderQualities, true, this.temp0);
+			// swap the images
+			BufferedImage image = this.image0;
+			this.image0 = this.temp0;
+			this.temp0 = image;
+		}
 		
 		// on a clear operation we need to transition the background
 		this.transitionBackground = true;

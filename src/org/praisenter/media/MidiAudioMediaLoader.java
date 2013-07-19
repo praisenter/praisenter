@@ -31,13 +31,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Midi loader using JavaSound.
@@ -63,6 +62,28 @@ public class MidiAudioMediaLoader implements MediaLoader<AbstractAudioMedia>, Au
 			return true;
 		}
 		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaLoader#getSupportedFormats()
+	 */
+	@Override
+	public List<MediaContainerFormat> getSupportedContainerFormats() {
+		List<MediaContainerFormat> out = new ArrayList<MediaContainerFormat>();
+		
+		out.add(new MediaContainerFormat("mid", "Musical Instrument Digital Interface"));
+		out.add(new MediaContainerFormat("midi", "Musical Instrument Digital Interface"));
+		out.add(new MediaContainerFormat("kar", "Tune 1000 MIDI for Karaoke"));
+		
+		return out;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaLoader#getSupportedCodecs()
+	 */
+	@Override
+	public List<MediaCodec> getSupportedCodecs() {
+		return Collections.emptyList();
 	}
 	
 	/* (non-Javadoc)
@@ -97,19 +118,5 @@ public class MidiAudioMediaLoader implements MediaLoader<AbstractAudioMedia>, Au
 		} catch (IOException e) {
 			throw new MediaException(e);
 		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaLoader#getSupportedFormats()
-	 */
-	@Override
-	public List<Pair<String, String>> getSupportedContainerFormats() {
-		List<Pair<String, String>> out = new ArrayList<Pair<String, String>>();
-		
-		out.add(Pair.of("mid", "Musical Instrument Digital Interface"));
-		out.add(Pair.of("midi", "Musical Instrument Digital Interface"));
-		out.add(Pair.of("kar", "Tune 1000 MIDI for Karaoke"));
-		
-		return out;
 	}
 }
