@@ -30,10 +30,10 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.swing.JDialog;
 import javax.swing.JScrollPane;
@@ -42,8 +42,9 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.TableModel;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.praisenter.application.resources.Messages;
+import org.praisenter.media.MediaCodec;
+import org.praisenter.media.MediaContainerFormat;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaLoader;
 import org.praisenter.media.MediaType;
@@ -72,37 +73,9 @@ public class FormatsDialog extends JDialog {
 		// set the layout
 		container.setLayout(new BorderLayout());
 		
-		JTable tblImageFormats = this.getTableForMediaType(MediaType.IMAGE);
-		JTable tblAudioFormats = this.getTableForMediaType(MediaType.AUDIO);
-		JTable tblVideoFormats = this.getTableForMediaType(MediaType.VIDEO);
-		
-		JTabbedPane tabs = new JTabbedPane();
-		
-		JScrollPane scrImage = new JScrollPane(tblImageFormats);
-		scrImage.setBorder(null);
-		tabs.addTab(Messages.getString("dialog.formats.image"), scrImage);
-		
-		JScrollPane scrAudio = new JScrollPane(tblAudioFormats);
-		scrAudio.setBorder(null);
-		tabs.addTab(Messages.getString("dialog.formats.audio"), scrAudio);
-		
-		JScrollPane scrVideo = new JScrollPane(tblVideoFormats);
-		scrVideo.setBorder(null);
-		tabs.addTab(Messages.getString("dialog.formats.video"), scrVideo);
-		
-		container.add(tabs, BorderLayout.CENTER);
-		
-		this.pack();
-	}
-	
-	/**
-	 * Returns a JTable of formats for the given media type.
-	 * @param type the media type
-	 * @return JTable
-	 */
-	private JTable getTableForMediaType(MediaType type) {
+		// the container format table
 		@SuppressWarnings("serial")
-		JTable tblFormats = new JTable(new MediaFormatsTableModel(this.getSupportedFormats(type))) {
+		JTable tblFormats = new JTable(new MediaContainerFormatsTableModel(this.getSupportedContainerFormats())) {
 			@Override
 			public String getToolTipText(MouseEvent event) {
 				Point p = event.getPoint();
@@ -135,31 +108,117 @@ public class FormatsDialog extends JDialog {
 		tblFormats.getColumnModel().getColumn(1).setPreferredWidth(300);
 		tblFormats.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 		
-		return tblFormats;
+		// the codecs table
+		@SuppressWarnings("serial")
+		JTable tblCodecs = new JTable(new MediaCodecTableModel(this.getSupportedCodecs())) {
+			@Override
+			public String getToolTipText(MouseEvent event) {
+				Point p = event.getPoint();
+				int row = this.rowAtPoint(p);
+				int col = this.columnAtPoint(p);
+				if (row < 0) return super.getToolTipText();
+				if (col < 0) return super.getToolTipText();
+				// since sorting is allowed, we need to translate the view row index
+				// into the model row index
+				row = this.convertRowIndexToModel(row);
+				col = this.convertColumnIndexToModel(col);
+				
+				// get the text column value
+				TableModel model = this.getModel();
+				Object object = model.getValueAt(row, col);
+				if (object != null) {
+					// get the text
+					return object.toString();
+				}
+				
+				return super.getToolTipText(event);
+			}
+		};
+		tblCodecs.setAutoCreateRowSorter(true);
+		tblCodecs.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		tblCodecs.setColumnSelectionAllowed(false);
+		tblCodecs.setCellSelectionEnabled(false);
+		tblCodecs.setRowSelectionAllowed(true);
+		tblCodecs.getColumnModel().getColumn(0).setPreferredWidth(50);
+		tblCodecs.getColumnModel().getColumn(1).setPreferredWidth(300);
+		tblCodecs.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		
+		// setup the tabs
+		JTabbedPane tabs = new JTabbedPane();
+		
+		JScrollPane scrFormats = new JScrollPane(tblFormats);
+		scrFormats.setBorder(null);
+		tabs.addTab(Messages.getString("dialog.formats.formats"), scrFormats);
+		
+		JScrollPane scrCodecs = new JScrollPane(tblCodecs);
+		scrCodecs.setBorder(null);
+		tabs.addTab(Messages.getString("dialog.formats.codecs"), scrCodecs);
+		
+		container.add(tabs, BorderLayout.CENTER);
+		
+		this.pack();
 	}
 	
 	/**
-	 * Returns the formats for the given media type.
-	 * @param type the media type
-	 * @return List&lt;Pair&lt;String,String&gt;&gt;
+	 * Returns all the supported codecs.
+	 * @return List&lt;{@link MediaCodec}&gt;
 	 */
-	private List<Pair<String, String>> getSupportedFormats(MediaType type) {
-		List<Pair<String, String>> formats = new ArrayList<Pair<String, String>>();
+	private List<MediaCodec> getSupportedCodecs() {
+		SortedSet<MediaCodec> formats = new TreeSet<MediaCodec>();
+		
 		// get all the loaders for images
-		List<MediaLoader<?>> loaders = MediaLibrary.getMediaLoaders(type);
+		List<MediaLoader<?>> loaders = MediaLibrary.getMediaLoaders(MediaType.IMAGE);
+		// combine all the supported formats into one list
+		for (MediaLoader<?> loader : loaders) {
+			formats.addAll(loader.getSupportedCodecs());
+		}
+		
+		// get all the loaders for images
+		loaders = MediaLibrary.getMediaLoaders(MediaType.AUDIO);
+		// combine all the supported formats into one list
+		for (MediaLoader<?> loader : loaders) {
+			formats.addAll(loader.getSupportedCodecs());
+		}
+		
+		// get all the loaders for images
+		loaders = MediaLibrary.getMediaLoaders(MediaType.VIDEO);
+		// combine all the supported formats into one list
+		for (MediaLoader<?> loader : loaders) {
+			formats.addAll(loader.getSupportedCodecs());
+		}
+		
+		return Arrays.asList(formats.toArray(new MediaCodec[0]));
+	}
+	
+	/**
+	 * Returns all the supported container formats.
+	 * @return List&lt;{@link MediaContainerFormat}&gt;
+	 */
+	private List<MediaContainerFormat> getSupportedContainerFormats() {
+		SortedSet<MediaContainerFormat> formats = new TreeSet<MediaContainerFormat>();
+		
+		// get all the loaders for images
+		List<MediaLoader<?>> loaders = MediaLibrary.getMediaLoaders(MediaType.IMAGE);
 		// combine all the supported formats into one list
 		for (MediaLoader<?> loader : loaders) {
 			formats.addAll(loader.getSupportedContainerFormats());
 		}
-		// sort the formats by the format name
-		Collections.sort(formats, new Comparator<Pair<String,String>>() {
-			@Override
-			public int compare(Pair<String, String> o1, Pair<String, String> o2) {
-				// compare by the first element
-				return o1.getLeft().compareToIgnoreCase(o2.getLeft());
-			}
-		});
-		return formats;
+		
+		// get all the loaders for images
+		loaders = MediaLibrary.getMediaLoaders(MediaType.AUDIO);
+		// combine all the supported formats into one list
+		for (MediaLoader<?> loader : loaders) {
+			formats.addAll(loader.getSupportedContainerFormats());
+		}
+		
+		// get all the loaders for images
+		loaders = MediaLibrary.getMediaLoaders(MediaType.VIDEO);
+		// combine all the supported formats into one list
+		for (MediaLoader<?> loader : loaders) {
+			formats.addAll(loader.getSupportedContainerFormats());
+		}
+		
+		return Arrays.asList(formats.toArray(new MediaContainerFormat[0]));
 	}
 	
 	/**

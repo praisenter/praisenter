@@ -42,7 +42,8 @@ Bug Fixes:
   o Small bug fix in the Xuggler media player plug-in where audio/video data
     were considered equal due to equal time-stamps (which rarely happens).
   o Fixed a bug in the presentation code where if you cleared the slide too
-    quickly it would have a rendering artifact.
+    quickly it would have a rendering artifact.  Due to rendering to an image
+    which was used to render the current slide.
   
 Other:
   o Fixed the slide/template library loading to show progress.

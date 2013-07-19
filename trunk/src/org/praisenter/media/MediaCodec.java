@@ -24,48 +24,77 @@
  */
 package org.praisenter.media;
 
-import java.util.List;
-
 /**
- * Represents a class that can load a type of media.
- * @param <E> the {@link MediaType}
+ * Simple class to store a codec name and description.
  * @author William Bittle
  * @version 2.0.2
- * @since 2.0.0
+ * @since 2.0.2
  */
-public interface MediaLoader<E extends Media> {
-	/**
-	 * Returns true if the given mime type is supported.
-	 * @param mimeType the mime type
-	 * @return boolean
-	 */
-	public abstract boolean isSupported(String mimeType);
+public class MediaCodec implements Comparable<MediaCodec> {
+	/** The format short name (H.264 for example) */
+	protected String name;
+	
+	/** The format description (H.264/MPEG-4 Part 10 for example) */
+	protected String description;
 	
 	/**
-	 * Returns the media types supported by this loader.
-	 * @return Class&lt;E&gt;
+	 * Full constructor.
+	 * @param name the codec short name
+	 * @param description the codec description
 	 */
-	public abstract Class<? extends Media> getMediaType();
+	public MediaCodec(String name, String description) {
+		this.name = name;
+		this.description = description;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof MediaCodec) {
+			MediaCodec mc = (MediaCodec)obj;
+			if (mc.name.equals(this.name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(MediaCodec o) {
+		return this.name.compareToIgnoreCase(o.name);
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hash = 17;
+		hash = hash * 31 + this.name.hashCode();
+		hash = hash * 31 + this.description.hashCode();
+		return hash;
+	}
 	
 	/**
-	 * Loads the given media.
-	 * @param basePath the base path
-	 * @param filePath the file path and name
-	 * @return E
-	 * @throws MediaException thrown if the media could not be read
+	 * Returns the codec short name.
+	 * @return String
 	 */
-	public abstract E load(String basePath, String filePath) throws MediaException;
+	public String getName() {
+		return this.name;
+	}
 	
 	/**
-	 * Returns a list of container formats supported by this media loader.
-	 * @return List&lt;{@link MediaContainerFormat}&gt;
+	 * Returns the codec description.
+	 * @return String
 	 */
-	public abstract List<MediaContainerFormat> getSupportedContainerFormats();
-	
-	/**
-	 * Returns a list of codecs supported by this media loader.
-	 * @return List&lt;{@link MediaCodec}&gt;
-	 */
-	public abstract List<MediaCodec> getSupportedCodecs();
-	
+	public String getDescription() {
+		return this.description;
+	}
 }
