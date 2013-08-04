@@ -272,6 +272,7 @@ public final class Main {
 			if (SystemUtilities.IS_MAC_OS) {
 				// on a mac we want to use the native look and feel
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+				return;
 			} else {
 			    for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 			        if (LookAndFeelUtilities.NIMBUS.equalsIgnoreCase(info.getName())) {
