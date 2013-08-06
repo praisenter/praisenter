@@ -19,7 +19,7 @@
 		<offline-allowed />
 		
 		<!-- Add desktop short cut -->
-		<shortcut online="false">
+		<shortcut online="true">
       		<desktop/>
     	</shortcut>
 	</information>
