@@ -1,0 +1,296 @@
+===============================================================================
+Definitions
+===============================================================================
+Platforms     - These are the supported platforms and requirements.
+New Features  - These are features added that were not available in a 
+                previous version.
+Bug Fixes     - These are bugs or functionality oddities that existed in the 
+                previous version(s).
+Other         - This describes any other changes that may be important.
+Open Issues   - These are unresolved issues still present.
+
+===============================================================================
+Dependency Notes
+===============================================================================
+Oracle Java 1.7 (other Java implementations may have different requirements)
+	o http://www.oracle.com/technetwork/java/javase/config-417990.html
+	o Windows XP SP3 or higher (32 or 64 bit)
+	o Ubuntu 11.04 or higher (32 or 64 bit)
+	o Mac OS X 10.7.3 or higher (64 bit only) Java 1.7.10+ needed
+
+Xuggler 5.4 Supported Platforms
+	o http://www.xuggle.com/downloads
+	o Java 1.5+
+	o Windows XP or higher (32 or 64 bit)
+	o Ubuntu 11.10 or later (32 or 64 bit)
+	o Mac OS X 10.7 or higher (32 or 64 bit)
+
+===============================================================================
+Version 2.0.2
+===============================================================================
+Platforms:
+  o Same as 2.0.1
+  
+New Features: 
+  o Added text shadow options to the text components with offsets and
+    color/gradient support.
+  o Added snap to grid functionality for the slide editor.
+  
+Bug Fixes:
+  o Fixed some small usability bugs on the slide editor panel when editing
+    the the background component.
+  o Small bug fix in the Xuggler media player plug-in where audio/video data
+    were considered equal due to equal time-stamps (which rarely happens).
+  o Fixed a bug in the presentation code where if you cleared the slide too
+    quickly it would have a rendering artifact.  Due to rendering to an image
+    which was used to render the current slide.
+  
+Other:
+  o Fixed the slide/template library loading to show progress.
+  o Organized the Date/Time component controls in the same order as the text
+    component.
+  o Made the preferred size of the text box on the text component edit panel
+    taller.
+  o Added a Supported Media Formats dialog to the help menu.
+  o Changed the About and System dialogs to non-modal.
+
+Open Issues:
+  o Same as 2.0.1
+
+===============================================================================
+Version 2.0.1
+===============================================================================
+Platforms:
+  o Tested on Windows XP SP3
+  o Same as 2.0.0 other than the above.
+  
+New Features: 
+  o Copy verse text. Right click (or command click) the verse queue or bible
+    search to get the copy context menu.
+  o More system properties have been added to the System menu to aid in 
+    troubleshooting problems.
+  o Added a preference to do video color/size conversion at read time rather
+    than at play time. This can boost performance in some cases.
+  o Added video preview to the Add Media dialog.
+  o Added a Blank button for song display which allows a blank slide using
+    the current template to be sent.
+  o Added sorting to all tabular data (searches, queues, etc.)
+  o Add multiple verses from the Bible search to the verse queue at one time.
+  o Add multiple songs from the song search to the song queue at one time.
+  o Bible and song searches with highlighted matched text.
+  o Bible search All Words or Any Words allow the use of commas to separate
+    search terms (in addition to spaces).
+  o The template drop downs now includes an item to manage templates. This
+    saves time finding the menu item and switching to the right template
+    set. This will also aid first time users trying to find where to add
+    more templates. 
+  o Multi-select slides, templates and media for bulk actions like remove
+    copy and export.
+  o Added a song importer for the OpenLyrics format.
+  o Added better JVM argument handling to the Launcher.jar and added an
+    application specific argument option to the Launcher.properties file.
+  o Added an option in the System dialog listing command line arguments
+    used to start the JVM.
+  
+Bug Fixes:
+  o Fixed the dialog title on the Slide Library (says Media Library on 2.0.0)
+  o Fixed a bug on Linux which made translucent slides/templates not clear
+    their previous rendering. (this is one step towards fully supporting
+    linux, but did reveal another problem: flickering) The previous problem
+    of per-pixel translucency was caused by Ubuntu running under Oracle
+    Virtual box.  Installing Ubuntu along side Windows and booting to Ubuntu
+    revealed that this is not an issue.
+  o Fixed a bug with WMV video playback where the video playback would pause
+    after a second or two due to a large video frame rate and a low audio
+    frame rate.
+  o Fixed a bug where the XugglerMediaPlayer was not cleaning up all its
+    resources (threads in this case).
+  o Small bug fix for dual translation display when one translation does
+    not have the current, next, or previous verse.
+  o Increased the scroll rate of the song slide preview when scrolling with
+    the mouse scroll wheel.
+  o When performing searches (bible and song), the scrollbar would stay
+    positioned. It now resets to the top on each search.
+  o Adding templates of a different type or slides than the template type
+    requested initially from the preferences would not update the other
+    template drop downs.
+  o Adding templates from the preferences dialog would not update the template
+    drop downs on the bible and song panels and the slide tab.
+  o Fixed some bugs with the UnboundBibleImporter where errors would occur
+    if a bible had subverses or duplicate verses.
+  o Fixed a bug where the verse count and book count were misleading when
+    a Bible with missing verses or chapters was imported.
+  o Fixed a bug on Linux where audio volume was not set appropriately which
+    made the volume zero.
+  o Fixed a bug that was caused by different file separators when transferring
+    exported slides, templates, or libraries.
+  o Fixed a bug on Ubuntu where the presentation windows would not be
+    translucent.
+  o Fixed a bug with image background smart transition support where the
+    background would not be retained until the 2nd send.
+  o Fixed a bug with high bit depth audio not being supported by JavaSound.
+  o Fixed a bug with audio down-mixing when the audio is float or double.
+  o Fixed a bug on Ubuntu with the display identifier being non-translucent.
+  o Fixed some bugs with the Launcher.jar file not working on Ubuntu.
+  o Fixed a bug where the transition options would not enable if a device
+    that supports them was choosen from the preferences.
+  o Fixed many bugs with the Launcher.jar for all platforms and added a 
+    Launcher.log file that error output will be directed.
+  
+Other:
+  o When adding media, the media type defaults to All Files instead of
+    image media.
+  o Default song template now matches the default bible template.
+  o Changed the Current/Previous/Next verse labels to the verse location and
+    increased the font size and bolded the current verse.
+  o Small GUI label/tooltip changes.
+  o Song file import/export has been moved to the Song Library.
+  o More UI fixes for the Mac OS X look and feel.
+  o Reduced the force shutdown thread wait time from 10 seconds to 3 seconds.
+  o Added anti-aliasing to text field water marks.
+  o Updated JNLP to help ease of getting newer versions.
+
+Open Issues:
+  o On Ubuntu Linux we get flickering in the animations due to the use of
+    translucent windows.  Swap transitions will work fine.  Video playback
+    also flickers for the same reason.
+  o Rendering anti-aliased text on a translucent surface has some nasty edges
+    around the text due to a bug in Java:
+    http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6749069
+  o Same as 2.0.0 except for the above
+
+===============================================================================
+Version 2.0.0
+===============================================================================
+Platforms:
+  o Windows:
+  	- Vista or higher (32 or 64 bit); It may work on XP SP3 or higher but has 
+  	  not been tested.
+  o Mac:
+	- Mac OS X (64 bit) 10.7.3 or higher is required for Java 1.7.
+	- Mac OS X has discontinued their implementation of Java (which stopped at
+	  Java 1.6) and is no longer distributing it with their operating systems.  
+	  See what this means for you: 
+	  http://www.java.com/en/download/faq/java_mac.xml 
+	  http://docs.oracle.com/javase/7/docs/webnotes/install/mac/mac-install-faq.html#revert2012-006.
+	  Be sure to read these before installing Oracle Java.
+	- Mac OS X users will need to download the Oracle JDK rather than the JRE 
+	  to make sure it updates the path environment variable.
+	- Mac OS X Mountain Lion has a new security model (Gatekeeper) for 
+	  untrusted applications.  Because of this you will need to use the 
+	  Webstart download of Praisenter rather than the .zip download.  You can 
+	  use the .zip download by changing some settings, but this is not 
+	  recommended; read why here: 
+	  http://docs.oracle.com/javase/7/docs/technotes/guides/jweb/mac-faq.html#gatekeeper.
+	- Mac OS X automatically decompresses archives after downloading.  This is 
+	  a problem since Praisenter uses the compressed format to import new 
+	  bibles and exported slides/templates.  To remedy this, re-compress the 
+	  uncompressed files.
+  o Linux
+	- As of the latest release of Praisenter, a critical feature of Java 1.7 
+	  is broken on Ubuntu, making Praisenter useless on this platform.  Other
+	  Linux distributions may work.
+	- Ubuntu 11.10 or higher 32 or 64 bit.  Other Linux distributions may 
+	  work as well but has not been tested.
+	- Be sure your system software is up to date.
+	- Linux users will typically have Java 6 installed (typically OpenJDK 
+	  which is basically the same as Oracle’s Java).  Open the Ubuntu 
+	  Software Center to check which version of Java you have installed (type 
+	  in Java in the search box).  Alternatively you can download and install
+	  Oracle Java 7.  This allows you to skip the next step, but may still 
+	  require the final step.
+	- You may also need to install the latest IcedTea Webstart (install from 
+	  the same place as Java 7) if you want to use the Java Webstart download.
+	  Alternatively you can use the .zip download.
+	- Linux users may get a error if Java 7 was installed along side Java 6.  
+	  Run the following command lines and select the Java 7 option by choosing 
+	  the correct number (this tells Ubuntu which Java to use by default):
+	  => sudo update-alternatives --config java
+	  => sudo update-alternatives --config javaws
+  o Java 1.7 or higher.
+  o 512 MB of dedicated RAM (1 GB would be best for video)
+  
+New Features: 
+  o Video & Audio media support (still experimental) for backgrounds and
+    standalone components
+  o Media Library for managing images, video, and audio.
+  o Custom standalone slides
+  o Slide templates for notification, bible, and songs.
+  o Template switching
+  o Slide/Template editor
+  o Slide/Template Library for managing templates and slides.
+  o Slide/Template resolution targeting
+  o Slide/Template import and export
+  o Slide and component borders
+  o Gradient support.
+  o Preferences manager
+  o More informative Error Reporting buttons (save vs. send)
+  o A new easing "Back"
+  o Transition waiting
+  o Render quality settings
+  o Text outline
+  o Application working path moved to user/home directory
+  
+Bug Fixes:
+  o Auto adjusting of slides and templates based on target resolution and
+    actual resolution
+  o Reworked some transitions that were not pixel perfect
+  
+Other:
+  o Package separation. Not really useful to users but to developers this is
+  	key. The packages have been cleaned up to allow use of certain packages
+  	rather than the entire code base.
+  o New deployment license:
+  	The majority of Praisenter source code is released under the New BSD open 
+  	source license.  The video and audio support now requires the GPL v3 on 
+  	related sources (ones that directly interact with the GPL v3 libraries).
+  	The distribution binaries are required to be GPL v3 now.
+
+Open Issues:
+  o Ubuntu, the test Linux system, Per-pixel translucency is broken. This is a
+    Java problem and is still not fixed as of 1.7.0_13. This makes Praisenter
+    unusable on Ubuntu. It still may work on other Linux distributions.
+    http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=9000011
+  o Video looping. As of this release the video and audio support is mostly 
+    experimental, working with most of the audio/video on hand. However, a few
+    videos have been know to fail to loop correctly.
+    https://groups.google.com/forum/?fromgroups=#!topic/xuggler-users/bMQEJdQY2WU
+  o OGG video synchronization. As of this release the OGG audio/video 
+    synchronization of videos is not working correctly. Depending on the video,
+    you may have different results.
+    https://groups.google.com/forum/?fromgroups=#!topic/xuggler-users/CIti0aIsUlc
+  o Video jumping and overall video smoothness. This is typically caused by 
+    slower machines. The test hardware used is more than able to handle video 
+    playback. However, rendering the playing video in the same process causes 
+    some problems. When scrolling the song preview, the playing video may 
+    jitter and jump. This is due to Swing EDT locking on GUI tasks. Many 
+    attempts have been made to fix this with varying degrees of success:
+    	- Using another EDT by using Sun specific AppContext class. This does
+    	  not solve the problem because there is some underlying locking 
+    	  mechanism for Java2D rendering. This is also not desired since it 
+    	  would require the Oracle/OpenJDK JVMs and is not public API.
+    	- Using another Java process and communicated via Java RMI. This works
+    	  great minus one large hitch. When sending a new slide, Praisenter 
+    	  (the main process) cannot make the sub process the focused 
+    	  application and therefore cannot bring the slide to the front.
+    	- Use active rendering for the presentation window. This doesn't work
+    	  with window translucency (which is a requirement for transitions) in
+    	  Java.
+    	  https://forums.oracle.com/forums/thread.jspa?threadID=2468664
+    	- JOGL's NEWT windowing system has a separate EDT and use OpenGL. This
+    	  was too slow when rendering the composite in Java2D and sending it 
+    	  down to JOGL. Some more exploration is required on this one.
+    	- JavaFX has its own EDT as well. More exploration is required on this
+    	  one.
+  o The Xuggler API which is being used for audio/video playback and reading
+    is no longer receiving updates and the build server has been shutdown.
+    Short term this isn't a big deal, but long term this could be a problem
+    especially if any bugs arise. As of this release there is no alternative
+    which is easy to use, allows composition, and is packaged easy.
+
+===============================================================================
+Version 1.0.0 (initial release)
+===============================================================================
+New Features: N/A
+Bug Fixes: N/A
+Other: N/A

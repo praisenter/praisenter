@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="6.0+" codebase="http://www.praisenter.org/release/production/v2" href="Praisenter.jnlp" version="2">
+	<information>
+		<title>Praisenter</title>
+		<vendor>William Bittle</vendor>
+		<homepage href="http://www.praisenter.org/" />
+		<description>Free Church Presentation Software</description>
+		
+		<icon href="images/icon16x16.png" width="16" height="16" />
+		<icon href="images/icon32x32.png" width="32" height="32" />
+		<icon href="images/icon48x48.png" width="48" height="48" />
+		<icon href="images/icon64x64.png" width="64" height="64" kind="default" />
+		<icon href="images/icon96x96.png" width="96" height="96" />
+		<icon href="images/icon128x128.png" width="128" height="128" />
+		<icon href="images/icon256x256.png" width="256" height="256" />
+		<icon href="images/icon512x512.png" width="512" height="512" />
+		
+		<!-- Allow offline running -->
+		<offline-allowed />
+		
+		<!-- Add desktop short cut -->
+		<shortcut online="true">
+      		<desktop/>
+    	</shortcut>
+	</information>
+	
+	<security>
+		<!-- We need all permissions since Praisenter is file-system heavy -->
+		<all-permissions />
+	</security>
+	
+	<!-- Check for an update always but only wait so long -->
+	<update check="timeout" policy="always" />
+	
+	<resources>
+		<!-- Main application jars -->
+		<jar href="Praisenter.jar" main="true" />
+		
+		<!-- Dependencies -->
+		<jar href="lib/log4j.jar" />
+		<jar href="lib/commons-codec.jar" />
+		<jar href="lib/commons-lang.jar" />
+		<jar href="lib/derby.jar" />
+		<jar href="lib/mail.jar" />
+		<jar href="lib/slf4j-api.jar" />
+		<jar href="lib/slf4j-log4j.jar" />
+		<jar href="lib/xuggle-xuggler.jar" />
+		
+		<!-- Plugins -->
+		<jar href="plugins/PraisenterMedia.jar" />
+	</resources>
+	
+	<resources os="Mac OS X">
+		<java version="1.7+" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="512m" java-vm-args="-Xdock:name=Praisenter" />
+	</resources>
+	<resources>
+		<java version="1.7+" href="http://java.sun.com/products/autodl/j2se" initial-heap-size="512m" />
+	</resources>
+	
+	<!-- Specify the main class -->
+	<application-desc main-class="org.praisenter.application.Main"/>
+</jnlp> 
