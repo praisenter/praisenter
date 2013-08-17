@@ -24,71 +24,85 @@
  */
 package org.praisenter.animation.transitions;
 
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.Arc2D;
+import java.awt.geom.Area;
+import java.awt.image.BufferedImage;
 import java.io.Serializable;
 
 /**
- * Represents a transition from one image to another.
+ * Represents a swipe clockwise {@link Transition}.
  * @author William Bittle
- * @version 2.0.0
- * @since 2.0.0
+ * @version 2.0.3
+ * @since 2.0.3
  */
-public abstract class AbstractTransition implements Transition, Serializable {
+public class SwipeCounterClockwise extends AbstractTransition implements Transition, Serializable {
 	/** The version id */
-	private static final long serialVersionUID = -1234134548695396136L;
+	private static final long serialVersionUID = 5407152766361638359L;
 	
-	/** The transition type */
-	protected TransitionType type;
+	/** The {@link SwipeCounterClockwise} transition id */
+	public static final int ID = 35;
 	
 	/**
-	 * Minimal constructor.
+	 * Full constructor.
 	 * @param type the transition type
 	 */
-	public AbstractTransition(TransitionType type) {
-		if (type == null) throw new NullPointerException();
-		this.type = type;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj == this) return true;
-		if (obj instanceof Transition) {
-			Transition other = (Transition)obj;
-			// the id and type must be equal
-			if (this.getId() == other.getId()
-			 && this.getType() == other.getType()) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return this.getId();
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#getType()
-	 */
-	public TransitionType getType() {
-		return this.type;
-	}
+	public SwipeCounterClockwise(TransitionType type) {
+		super(type);
+	} 
 
-	/**
-	 * Clamps the given value between the min and max inclusive.
-	 * @param value the value to clamp
-	 * @param min the minimum value
-	 * @param max the maximum value
-	 * @return float
+	/* (non-Javadoc)
+	 * @see org.praisenter.transitions.Transition#getTransitionId()
 	 */
-	protected static final float clamp(float value, float min, float max) {
-		return Math.max(Math.min(value, max), min);
+	@Override
+	public int getId() {
+		return ID;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.transitions.Transition#render(java.awt.Graphics2D, java.awt.image.BufferedImage, java.awt.image.BufferedImage, double)
+	 */
+	@Override
+	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
+		// clamp the percentage
+		pc = clamp((float)pc, 0.0f, 1.0f);
+		
+		// save the current clip
+		Shape clip = g2d.getClip();
+		
+		// build the clip shape
+		double w = image1.getWidth();
+		double h = image1.getHeight();
+		double a = 2.0 * Math.PI * pc;
+		double hyp = Math.hypot(w, h);
+		Arc2D.Double arc = new Arc2D.Double(
+				w * 0.5 - hyp * 0.5,
+				h * 0.5 - hyp * 0.5,
+				hyp,
+				hyp,
+				90.0,
+				Math.toDegrees(a),
+				Arc2D.PIE);
+		
+		if (this.type == TransitionType.IN) {
+			// draw the old
+			g2d.drawImage(image0, 0, 0, null);
+
+			// draw the new
+			g2d.setClip(arc);
+			g2d.drawImage(image1, 0, 0, null);
+		} else {
+			// do an xor clipping op here
+			Area area = new Area(new Rectangle(0, 0, image0.getWidth(), image0.getHeight()));
+			area.exclusiveOr(new Area(arc));
+			g2d.setClip(area);
+			
+			g2d.drawImage(image0, 0, 0, null);
+		}
+		
+		// restore the old clip
+		g2d.setClip(clip);
 	}
 }
