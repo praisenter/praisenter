@@ -39,6 +39,8 @@ import org.praisenter.animation.transitions.PushLeft;
 import org.praisenter.animation.transitions.PushRight;
 import org.praisenter.animation.transitions.PushUp;
 import org.praisenter.animation.transitions.Swap;
+import org.praisenter.animation.transitions.SwipeClockwise;
+import org.praisenter.animation.transitions.SwipeCounterClockwise;
 import org.praisenter.animation.transitions.SwipeDown;
 import org.praisenter.animation.transitions.SwipeLeft;
 import org.praisenter.animation.transitions.SwipeRight;
@@ -46,6 +48,8 @@ import org.praisenter.animation.transitions.SwipeUp;
 import org.praisenter.animation.transitions.Transition;
 import org.praisenter.animation.transitions.VerticalSplitCollapse;
 import org.praisenter.animation.transitions.VerticalSplitExpand;
+import org.praisenter.animation.transitions.ZoomIn;
+import org.praisenter.animation.transitions.ZoomOut;
 import org.praisenter.application.resources.Messages;
 import org.praisenter.application.ui.PraisenterListCellRenderer;
 
@@ -108,10 +112,18 @@ public class TransitionListCellRenderer extends PraisenterListCellRenderer {
 				this.setText(Messages.getString("transition.swipeRight"));
 			} else if (id == SwipeUp.ID) {
 				this.setText(Messages.getString("transition.swipeUp"));
+			} else if (id == SwipeClockwise.ID) {
+				this.setText(Messages.getString("transition.swipeClockwise"));
+			} else if (id == SwipeCounterClockwise.ID) {
+				this.setText(Messages.getString("transition.swipeCounterClockwise"));
 			} else if (id == VerticalSplitCollapse.ID) {
 				this.setText(Messages.getString("transition.verticalSplitCollapse"));
 			} else if (id == VerticalSplitExpand.ID) {
 				this.setText(Messages.getString("transition.verticalSplitExpand"));
+			} else if (id == ZoomIn.ID) {
+				this.setText(Messages.getString("transition.zoomIn"));
+			} else if (id == ZoomOut.ID) {
+				this.setText(Messages.getString("transition.zoomOut"));
 			} else {
 				LOGGER.warn("Unknown transition: " + transition.getClass().getName());
 				this.setText(transition.getClass().getSimpleName());

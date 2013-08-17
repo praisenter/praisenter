@@ -24,30 +24,32 @@
  */
 package org.praisenter.animation.transitions;
 
-import java.awt.AlphaComposite;
-import java.awt.Composite;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.Area;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 
 /**
- * Represents a fade-in {@link Transition}.
+ * Represents a zoom-out {@link Transition}.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 2.0.3
+ * @since 2.0.3
  */
-public class Fade extends AbstractTransition implements Transition, Serializable {
+public class ZoomOut extends AbstractTransition implements Transition, Serializable {
 	/** The version id */
-	private static final long serialVersionUID = 4521579928761125629L;
+	private static final long serialVersionUID = -2972075914435814292L;
 	
-	/** The {@link Fade} transition id */
-	public static final int ID = 20;
+	/** The {@link ZoomOut} transition id */
+	public static final int ID = 71;
 	
 	/**
 	 * Full constructor.
 	 * @param type the transition type
 	 */
-	public Fade(TransitionType type) {
+	public ZoomOut(TransitionType type) {
 		super(type);
 	} 
 
@@ -64,19 +66,38 @@ public class Fade extends AbstractTransition implements Transition, Serializable
 	 */
 	@Override
 	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
-		// apply alpha composite
-		Composite composite = g2d.getComposite();
-		float alpha = clamp((float)pc, 0.0f, 1.0f);
+		// clamp the percentage
+		pc = clamp((float)pc, 0.0f, 1.0f);
 		if (this.type == TransitionType.IN) {
-			// draw the old
-			g2d.drawImage(image0, 0, 0, null);
-			// fade in the new
-			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+			Shape clip = g2d.getClip();
+			Area area = new Area(new Rectangle(0, 0, image1.getWidth(), image1.getHeight()));
+			area.exclusiveOr(new Area(new Rectangle2D.Double(
+					image1.getWidth() * 0.5 * pc,
+					image1.getHeight() * 0.5 * pc,
+					image1.getWidth() * (1.0 - pc),
+					image1.getHeight() * (1.0 - pc))));
+			g2d.setClip(area);
+			// draw the new behind the old
 			g2d.drawImage(image1, 0, 0, null);
+			g2d.setClip(clip);
+			// draw the old but sized down
+			if (pc > 0.0) {
+				g2d.drawImage(
+						image0, 
+						(int)Math.floor(image0.getWidth() * 0.5 * pc), 
+						(int)Math.floor(image0.getHeight() * 0.5 * pc),
+						(int)Math.floor(image0.getWidth() * (1.0 - pc)), 
+						(int)Math.floor(image0.getHeight() * (1.0 - pc)),
+						null);
+			}
 		} else {
-			g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f - alpha));
-			g2d.drawImage(image0, 0, 0, null);
+			g2d.drawImage(
+					image0, 
+					(int)Math.floor(image0.getWidth() * 0.5 * pc), 
+					(int)Math.floor(image0.getHeight() * 0.5 * pc),
+					(int)Math.floor(image0.getWidth() * (1.0 - pc)), 
+					(int)Math.floor(image0.getHeight() * (1.0 - pc)),
+					null);
 		}
-		g2d.setComposite(composite);
 	}
 }
