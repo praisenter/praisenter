@@ -32,6 +32,7 @@ import org.apache.log4j.Logger;
 import org.praisenter.animation.transitions.CircularCollapse;
 import org.praisenter.animation.transitions.CircularExpand;
 import org.praisenter.animation.transitions.Fade;
+import org.praisenter.animation.transitions.HorizontalBlinds;
 import org.praisenter.animation.transitions.HorizontalSplitCollapse;
 import org.praisenter.animation.transitions.HorizontalSplitExpand;
 import org.praisenter.animation.transitions.PushDown;
@@ -45,7 +46,10 @@ import org.praisenter.animation.transitions.SwipeDown;
 import org.praisenter.animation.transitions.SwipeLeft;
 import org.praisenter.animation.transitions.SwipeRight;
 import org.praisenter.animation.transitions.SwipeUp;
+import org.praisenter.animation.transitions.SwipeWedgeDown;
+import org.praisenter.animation.transitions.SwipeWedgeUp;
 import org.praisenter.animation.transitions.Transition;
+import org.praisenter.animation.transitions.VerticalBlinds;
 import org.praisenter.animation.transitions.VerticalSplitCollapse;
 import org.praisenter.animation.transitions.VerticalSplitExpand;
 import org.praisenter.animation.transitions.ZoomIn;
@@ -56,7 +60,7 @@ import org.praisenter.application.ui.PraisenterListCellRenderer;
 /**
  * List cell renderer for a list of {@link Transition} objects.
  * @author William Bittle
- * @version 2.0.1
+ * @version 2.0.3
  * @since 2.0.0
  */
 public class TransitionListCellRenderer extends PraisenterListCellRenderer {
@@ -116,6 +120,10 @@ public class TransitionListCellRenderer extends PraisenterListCellRenderer {
 				this.setText(Messages.getString("transition.swipeClockwise"));
 			} else if (id == SwipeCounterClockwise.ID) {
 				this.setText(Messages.getString("transition.swipeCounterClockwise"));
+			} else if (id == SwipeWedgeUp.ID) {
+				this.setText(Messages.getString("transition.swipeWedgeUp"));
+			} else if (id == SwipeWedgeDown.ID) {
+				this.setText(Messages.getString("transition.swipeWedgeDown"));
 			} else if (id == VerticalSplitCollapse.ID) {
 				this.setText(Messages.getString("transition.verticalSplitCollapse"));
 			} else if (id == VerticalSplitExpand.ID) {
@@ -124,6 +132,10 @@ public class TransitionListCellRenderer extends PraisenterListCellRenderer {
 				this.setText(Messages.getString("transition.zoomIn"));
 			} else if (id == ZoomOut.ID) {
 				this.setText(Messages.getString("transition.zoomOut"));
+			} else if (id == VerticalBlinds.ID) {
+				this.setText(Messages.getString("transition.verticalBlinds"));
+			} else if (id == HorizontalBlinds.ID) {
+				this.setText(Messages.getString("transition.horizontalBlinds"));
 			} else {
 				LOGGER.warn("Unknown transition: " + transition.getClass().getName());
 				this.setText(transition.getClass().getSimpleName());

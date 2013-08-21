@@ -30,7 +30,7 @@ import java.awt.GraphicsDevice.WindowTranslucency;
 /**
  * Helper class for transitions.
  * @author William Bittle
- * @version 1.0.0
+ * @version 2.0.3
  * @since 1.0.0
  */
 public final class Transitions {
@@ -38,63 +38,60 @@ public final class Transitions {
 	private Transitions() {}
 	
 	/** The list of "in" transitions */
-	public static final Transition[] IN = new Transition[] {
-		new Swap(TransitionType.IN),
-		new Fade(TransitionType.IN),
-		new SwipeRight(TransitionType.IN),
-		new SwipeLeft(TransitionType.IN),
-		new SwipeUp(TransitionType.IN),
-		new SwipeDown(TransitionType.IN),
-		new SwipeClockwise(TransitionType.IN),
-		new SwipeCounterClockwise(TransitionType.IN),
-		new VerticalSplitExpand(TransitionType.IN),
-		new VerticalSplitCollapse(TransitionType.IN),
-		new HorizontalSplitExpand(TransitionType.IN),
-		new HorizontalSplitCollapse(TransitionType.IN),
-		new CircularExpand(TransitionType.IN),
-		new CircularCollapse(TransitionType.IN),
-		new PushRight(TransitionType.IN),
-		new PushLeft(TransitionType.IN),
-		new PushUp(TransitionType.IN),
-		new PushDown(TransitionType.IN),
-		new ZoomIn(TransitionType.IN),
-		new ZoomOut(TransitionType.IN)
-	};
+	public static final Transition[] IN = Transitions.getTransitions(TransitionType.IN);
 	
 	/** The list of "out" transitions */
-	public static final Transition[] OUT = new Transition[] {
-		new Swap(TransitionType.OUT),
-		new Fade(TransitionType.OUT),
-		new SwipeRight(TransitionType.OUT),
-		new SwipeLeft(TransitionType.OUT),
-		new SwipeUp(TransitionType.OUT),
-		new SwipeDown(TransitionType.OUT),
-		new SwipeClockwise(TransitionType.OUT),
-		new SwipeCounterClockwise(TransitionType.OUT),
-		new VerticalSplitExpand(TransitionType.OUT),
-		new VerticalSplitCollapse(TransitionType.OUT),
-		new HorizontalSplitExpand(TransitionType.OUT),
-		new HorizontalSplitCollapse(TransitionType.OUT),
-		new CircularExpand(TransitionType.OUT),
-		new CircularCollapse(TransitionType.OUT),
-		new PushRight(TransitionType.OUT),
-		new PushLeft(TransitionType.OUT),
-		new PushUp(TransitionType.OUT),
-		new PushDown(TransitionType.OUT),
-		new ZoomIn(TransitionType.OUT),
-		new ZoomOut(TransitionType.OUT)
-	};
+	public static final Transition[] OUT = Transitions.getTransitions(TransitionType.OUT);
 	
 	/** The default "in" transition */
-	public static final Transition DEFAULT_IN_TRANSITION = IN[0];
+	public static final Transition DEFAULT_IN_TRANSITION = new Swap(TransitionType.IN);
 	
 	/** The default "out" transition */
-	public static final Transition DEFAULT_OUT_TRANSITION = OUT[0];
+	public static final Transition DEFAULT_OUT_TRANSITION = new Swap(TransitionType.IN);
+	
+	/**
+	 * Returns a new array of transitions for the given type.
+	 * @param type the transition type
+	 * @return {@link Transition}[]
+	 * @since 2.0.3
+	 */
+	private static final Transition[] getTransitions(TransitionType type) {
+		// return a new array of transitions with the given type
+		// in order of transition name
+		Transition[] transitions = new Transition[] {
+			new HorizontalBlinds(type),
+			new VerticalBlinds(type),
+			new CircularCollapse(type),
+			new CircularExpand(type),
+			new Fade(type),
+			new PushDown(type),
+			new PushLeft(type),
+			new PushRight(type),
+			new PushUp(type),
+			new HorizontalSplitCollapse(type),
+			new HorizontalSplitExpand(type),
+			new VerticalSplitCollapse(type),
+			new VerticalSplitExpand(type),
+			new Swap(type),
+			new SwipeClockwise(type),
+			new SwipeCounterClockwise(type),
+			new SwipeDown(type),
+			new SwipeLeft(type),
+			new SwipeRight(type),
+			new SwipeUp(type),
+			new SwipeWedgeDown(type),
+			new SwipeWedgeUp(type),
+			new ZoomIn(type),
+			new ZoomOut(type)
+		};
+		
+		return transitions;
+	}
 	
 	/**
 	 * Returns a transition for the given id.
 	 * <p>
-	 * Returns the default if not found.
+	 * Returns the default (Swap) if not found.
 	 * @param id the transition id
 	 * @param type the transition type
 	 * @return {@link Transition}
