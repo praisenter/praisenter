@@ -81,8 +81,8 @@ public class ImportExportSongsDialog extends JDialog implements ActionListener {
 	/** True if the dialog should show the export options; false if the import options should be presented */
 	private boolean export;
 	
-	/** The selected file */
-	private File file;
+	/** The selected files */
+	private File[] files;
 	
 	/** True if songs were imported */
 	private boolean updated;
@@ -203,25 +203,38 @@ public class ImportExportSongsDialog extends JDialog implements ActionListener {
 				int option = fileBrowser.showSaveDialog(this);
 				// check the option
 				if (option == JFileChooser.APPROVE_OPTION) {
-					this.file = fileBrowser.getSelectedFile();
-					this.txtFileLocation.setText(this.file.getAbsolutePath());
+					File file = fileBrowser.getSelectedFile();
+					this.files = new File[] { file };
+					this.txtFileLocation.setText(file.getAbsolutePath());
 					this.btnImportExport.setEnabled(true);
 				}
 			} else {
 				JFileChooser fileBrowser = new JFileChooser();
 				fileBrowser.setDialogTitle(Messages.getString("dialog.open.title"));
-				fileBrowser.setMultiSelectionEnabled(false);
+				if (format == SongFormat.OPENLYRICS) {
+					fileBrowser.setMultiSelectionEnabled(true);
+				} else {
+					fileBrowser.setMultiSelectionEnabled(false);
+				}
 				int option = fileBrowser.showOpenDialog(this);
 				// check the option
 				if (option == JFileChooser.APPROVE_OPTION) {
-					// get the selected file
-					final File file = fileBrowser.getSelectedFile();
-					// make sure it exists and is a file
-					if (file.exists() && file.isFile()) {
-						this.file = file;
-						this.txtFileLocation.setText(this.file.getAbsolutePath());
-						this.btnImportExport.setEnabled(true);
+					// get the selected file(s)
+					String filePath = null;
+					if (format == SongFormat.OPENLYRICS) {
+						this.files = fileBrowser.getSelectedFiles();
+						StringBuilder sb = new StringBuilder();
+						for (File file : this.files) {
+							sb.append(file.getAbsolutePath()).append(";");
+						}
+						filePath = sb.toString();
+					} else {
+						File file = fileBrowser.getSelectedFile();
+						this.files = new File[] { file };
+						filePath = file.getAbsolutePath();
 					}
+					this.txtFileLocation.setText(filePath);
+					this.btnImportExport.setEnabled(true);
 				}
 			}
 		}
@@ -232,12 +245,13 @@ public class ImportExportSongsDialog extends JDialog implements ActionListener {
 	 * @param format the song file format
 	 */
 	private void exportSongs(final SongFormat format) {
-		if (this.file != null) {
-			if (this.file.exists()) {
+		if (this.files != null && this.files.length == 1) {
+			final File file = this.files[0];
+			if (file.exists()) {
 				// see if the user is ok with it
 				int response = JOptionPane.showConfirmDialog(
 								this,
-								MessageFormat.format(Messages.getString("save.replace.text"), this.file.getName()),
+								MessageFormat.format(Messages.getString("save.replace.text"), file.getName()),
 								Messages.getString("save.replace.title"),
 								JOptionPane.YES_NO_OPTION,
 								JOptionPane.WARNING_MESSAGE);
@@ -287,14 +301,15 @@ public class ImportExportSongsDialog extends JDialog implements ActionListener {
 	 * @param format the song file format
 	 */
 	private void importSongs(final SongFormat format) {
-		if (this.file != null) {
+		if (this.files != null && this.files.length > 0) {
 			// make sure they are sure
 			int option = JOptionPane.showConfirmDialog(this, 
-					Messages.getString("dialog.import.songs.prompt.text"), 
-					MessageFormat.format(Messages.getString("dialog.import.songs.prompt.title"), this.file.getName()), 
+					this.files.length == 1 ? Messages.getString("dialog.import.songs.prompt.text") : Messages.getString("dialog.import.songs.prompt.text.multiple"), 
+					this.files.length == 1 ? MessageFormat.format(Messages.getString("dialog.import.songs.prompt.title"), this.files[0].getName()) : Messages.getString("dialog.import.songs.prompt.title.multiple"), 
 					JOptionPane.YES_NO_CANCEL_OPTION);
 			// check the user's choice
 			if (option == JOptionPane.YES_OPTION) {
+				final File[] files = this.files;
 				// we need to execute this in a separate process
 				// and show a progress monitor
 				AbstractTask task = new AbstractTask() {
@@ -302,7 +317,9 @@ public class ImportExportSongsDialog extends JDialog implements ActionListener {
 					public void run() {
 						try {
 							// import the bible
-							SongImporter.importSongs(file, format);
+							for (File file : files) {
+								SongImporter.importSongs(file, format);
+							}
 							setSuccessful(true);
 						} catch (Exception e) {
 							// handle the exception
