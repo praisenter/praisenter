@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Implementation-Vendor: Praisenter
+Implementation-Title: Audio/Video Media Plugin for Praisenter using Xuggler API
+Implementation-Version: 2.0.4

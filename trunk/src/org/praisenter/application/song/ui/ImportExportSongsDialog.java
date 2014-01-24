@@ -55,7 +55,7 @@ import org.praisenter.data.song.Songs;
 /**
  * Dialog to present the user with the available import or export formats.
  * @author William Bittle
- * @version 2.0.1
+ * @version 2.0.4
  * @since 2.0.1
  */
 public class ImportExportSongsDialog extends JDialog implements ActionListener {
