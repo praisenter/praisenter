@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Implementation-Vendor: Praisenter
+Implementation-Title: Praisenter
+Implementation-Version: 2.0.4
+Application-Name: Praisenter
+Trusted-Only: true
+Name: Praisenter
+Class-Path: lib/commons-codec.jar lib/commons-lang.jar lib/derby.jar lib/log4j.jar lib/mail.jar lib/slf4j-api.jar lib/slf4j-log4j.jar lib/xuggle-xuggler.jar plugins/PraisenterMedia.jar
+Main-Class: org.praisenter.application.Main
+Permissions: all-permissions
+Codebase: *.praisenter.org

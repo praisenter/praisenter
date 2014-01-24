@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Implementation-Vendor: Praisenter
+Implementation-Title: Praisenter
+Implementation-Version: 2.0.4
+Application-Name: Praisenter
+Trusted-Only: true
+Name: Praisenter
+Permissions: all-permissions
+Main-Class: org.praisenter.application.Main
+Codebase: *.praisenter.org
