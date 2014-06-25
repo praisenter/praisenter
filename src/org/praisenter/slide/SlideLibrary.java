@@ -1105,7 +1105,7 @@ public final class SlideLibrary {
 					// we need to update any slide components that use the renamed media
 					@SuppressWarnings("rawtypes")
 					List<MediaComponent> components = slide.getComponents(MediaComponent.class, true);
-					for (MediaComponent<? extends Media> component : components) {
+					for (MediaComponent<?> component : components) {
 						Media media = component.getMedia();
 						// loop over the renamed media items
 						for (String originalName : renamedMedia.keySet()) {
