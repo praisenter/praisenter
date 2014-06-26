@@ -26,6 +26,22 @@ Xuggler 5.4 Supported Platforms
 	o Mac OS X 10.7 or higher (32 or 64 bit)
 
 ===============================================================================
+Version 2.0.4
+===============================================================================
+Platforms:
+  o Same as 2.0.1
+  
+New Features: 
+  o Added the ability to import multiple songs for the Open Lyrics format.
+  
+Bug Fixes:
+  
+Other:
+
+Open Issues:
+  o Same as 2.0.1
+
+===============================================================================
 Version 2.0.3
 ===============================================================================
 Platforms:
