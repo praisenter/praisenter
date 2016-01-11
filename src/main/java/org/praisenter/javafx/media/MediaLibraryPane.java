@@ -11,9 +11,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
@@ -29,6 +32,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.DragEvent;
@@ -89,20 +93,21 @@ public class MediaLibraryPane extends Application {
 		}
     	
 		final MediaLibrary lbr = library;
-        List<Media> all = library.all();
         Set<Tag> tags = new TreeSet<Tag>(library.getTags());
         
-        ObservableList<MediaListItem> om = FXCollections.observableArrayList();
-        for (Media media : all) {
-        	om.add(new MediaListItem(media));
+        List<MediaListItem> master = new ArrayList<MediaListItem>();
+        for (Media media : library.all()) {
+        	master.add(new MediaListItem(media));
         }
-        //om.addAll(all);
+        
+        ObservableList<MediaListItem> display = FXCollections.observableArrayList();
+        display.addAll(master);
         // by default sort by name asc
-        Collections.sort(om);
+        Collections.sort(display);
         
         // the right side of the split pane
         FlowListView<MediaListItem> left = new FlowListView<MediaListItem>(new MediaListViewCellFactory());
-        left.itemsProperty().bindContent(om);
+        left.itemsProperty().bindContent(display);
         
         EventHandler<KeyEvent> handler = new EventHandler<KeyEvent>() {
 			@Override
@@ -138,7 +143,8 @@ public class MediaLibraryPane extends Application {
 									Platform.runLater(new Runnable() {
 										@Override
 										public void run() {
-											om.removeAll(succeeded);
+											display.removeAll(succeeded);
+											master.removeAll(succeeded);
 											// TODO then show a error report of those that failed?
 										}
 									});
@@ -185,7 +191,8 @@ public class MediaLibraryPane extends Application {
 						for (File file : files) {
 							loadings.add(new MediaListItem(file.toPath().getFileName().toString()));
 						}
-						om.addAll(loadings);
+						display.addAll(loadings);
+						master.addAll(loadings);
 					}
 					
 					// import the media
@@ -210,8 +217,10 @@ public class MediaLibraryPane extends Application {
 								Platform.runLater(new Runnable() {
 									@Override
 									public void run() {
-										om.removeAll(loadings);
-										om.addAll(succeeded);
+										display.removeAll(loadings);
+										master.removeAll(loadings);
+										display.addAll(succeeded);
+										master.addAll(succeeded);
 										// TODO show error report
 									}
 								});
@@ -236,6 +245,7 @@ public class MediaLibraryPane extends Application {
         rightScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         rightScroller.setFitToWidth(true);
         rightScroller.setContent(right);
+        rightScroller.setMinWidth(150);
         
         SplitPane split = new SplitPane();
         split.setOrientation(Orientation.HORIZONTAL);
@@ -252,7 +262,22 @@ public class MediaLibraryPane extends Application {
         top.setAlignment(Pos.BASELINE_LEFT);
         
         Label lblFilter = new Label("filter by:");
-        ChoiceBox<MediaType> cbTypes = new ChoiceBox<MediaType>(FXCollections.observableArrayList(MediaType.values()));
+        ChoiceBox<MediaTypeFilter> cbTypes = new ChoiceBox<MediaTypeFilter>(FXCollections.observableArrayList(MediaTypeFilter.FILTERS));
+        cbTypes.setValue(MediaTypeFilter.getMediaTypeFilter(null));
+        cbTypes.valueProperty().addListener(new ChangeListener<MediaTypeFilter>() {
+        	@Override
+        	public void changed(ObservableValue<? extends MediaTypeFilter> ob, MediaTypeFilter oldValue, MediaTypeFilter newValue) {
+        		if (newValue.type != null) {
+	        		// filter the master list
+	        		List<MediaListItem> filtered = master.stream().filter(m -> !m.loaded || m.media.getMetadata().getType() == newValue.type).collect(Collectors.toList());
+	        		display.setAll(filtered);
+        		} else {
+        			display.setAll(master);
+        		}
+        	}
+		});
+        
+        
         ChoiceBox<Tag> cbTags = new ChoiceBox<Tag>(FXCollections.observableArrayList(allTags));
         
         Label lblSort = new Label("sort by:");

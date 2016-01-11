@@ -4,6 +4,7 @@ import javax.xml.bind.annotation.XmlEnum;
 
 @XmlEnum
 public enum MediaType {
+	// TODO translate
 	IMAGE("Image"),
 	VIDEO("Video"),
 	AUDIO("Audio"),

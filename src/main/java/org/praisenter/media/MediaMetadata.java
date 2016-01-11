@@ -76,11 +76,11 @@ public final class MediaMetadata {
 	}
 
 	public static MediaMetadata forVideo(Path path, MediaFormat format, int width, int height, long length, boolean audio, Set<Tag> tags) {
-		return new MediaMetadata(path, format, height, width, length, audio, tags);
+		return new MediaMetadata(path, format, width, height, length, audio, tags);
 	}
 	
 	public static MediaMetadata forRenamed(Path path, MediaMetadata media) {
-		return new MediaMetadata(path, media.format, media.height, media.width, media.length, media.audio, new TreeSet<Tag>(media.tags));
+		return new MediaMetadata(path, media.format, media.width, media.height, media.length, media.audio, new TreeSet<Tag>(media.tags));
 	}
 	
 	private MediaMetadata() {

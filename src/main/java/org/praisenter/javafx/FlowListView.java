@@ -63,7 +63,7 @@ public final class FlowListView<T> extends TilePane {
 	                         nodes.removeIf(v -> v.getData().equals(remitem));
 	                         // clear it from selections
 	                         T selectedItem = singleSelection.get();
-	                         if (selectedItem.equals(remitem)) {
+	                         if (selectedItem != null && selectedItem.equals(remitem)) {
 	                        	 singleSelection.set(null);
 	                         }
 	                         selections.remove(remitem);

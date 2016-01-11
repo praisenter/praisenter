@@ -8,6 +8,7 @@ import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -69,32 +70,34 @@ public final class FlowListItemView<T> extends VBox implements EventTarget {
     	cell.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
     		@Override
     		public void handle(MouseEvent event) {
-    			// are we being selected?
-				boolean select = !selected.get();
-				
-				// toggle the selected flag
-    			selected.set(!selected.get());
-    			
-    			// build a select event to notify any node interested
-    			SelectionEvent selectEvent = null;
-    			if (event.isControlDown()) {
-    				// then its a multi-(de)select
-    				if (select) {
-    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.SELECT_MULTIPLE);
-    				} else {
-    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DESELECT_MULTIPLE);
-    				}
-    			} else {
-    				// then its a single select
-    				if (select) {
-    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.SELECT);
-    				} else {
-    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DESELECT);
-    				}
+    			if (event.getButton() == MouseButton.PRIMARY) {
+	    			// are we being selected?
+					boolean select = !selected.get();
+					
+					// toggle the selected flag
+	    			selected.set(!selected.get());
+	    			
+	    			// build a select event to notify any node interested
+	    			SelectionEvent selectEvent = null;
+	    			if (event.isControlDown()) {
+	    				// then its a multi-(de)select
+	    				if (select) {
+	    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.SELECT_MULTIPLE);
+	    				} else {
+	    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DESELECT_MULTIPLE);
+	    				}
+	    			} else {
+	    				// then its a single select
+	    				if (select) {
+	    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.SELECT);
+	    				} else {
+	    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DESELECT);
+	    				}
+	    			}
+	    			
+	    			// fire the event
+	    			fireEvent(selectEvent);
     			}
-    			
-    			// fire the event
-    			fireEvent(selectEvent);
     		}
     	});
     	

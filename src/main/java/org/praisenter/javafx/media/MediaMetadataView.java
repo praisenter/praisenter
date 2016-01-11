@@ -9,19 +9,12 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -31,7 +24,6 @@ import javafx.scene.layout.ConstraintsBase;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
-import javafx.util.Callback;
 
 import javax.xml.bind.JAXBException;
 
@@ -47,7 +39,7 @@ import org.praisenter.utility.Formatter;
 final class MediaMetadataView extends GridPane {
 	private static final String NOT_APPLICABLE = "";
 	
-	private static final Border VALUE_BORDER = new Border(new BorderStroke(Color.GRAY, BorderStrokeStyle.DASHED, null, new BorderWidths(0, 0, 1, 0)));
+	private static final Border VALUE_BORDER = new Border(new BorderStroke(Color.color(0.7, 0.7, 0.7), BorderStrokeStyle.DASHED, null, new BorderWidths(0, 0, 1, 0)));
 	
 	private final ObjectProperty<MediaListItem> media = new SimpleObjectProperty<MediaListItem>();
 	
@@ -58,19 +50,6 @@ final class MediaMetadataView extends GridPane {
 	private final StringProperty format = new SimpleStringProperty();
 	
 	private final TagView tagView;
-	
-	public static final class Kvp {
-		public StringProperty name = new SimpleStringProperty("test");
-		public StringProperty value = new SimpleStringProperty("sfadf");
-		
-		public StringProperty nameProperty() {
-			return this.name;
-		}
-		
-		public StringProperty valueProperty() {
-			return this.value;
-		}
-	}
 	
 	public MediaMetadataView(MediaLibrary library, ObservableSet<Tag> allTags) {
 		this.setHgap(10);
@@ -85,26 +64,6 @@ final class MediaMetadataView extends GridPane {
         
         // for debugging
         //this.setGridLinesVisible(true);
-        
-//        ObservableList<Kvp> info = FXCollections.observableArrayList();
-//        info.add(new Kvp());
-//        TableView<Kvp> tbl = new TableView<Kvp>(info);
-//        tbl.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-//        
-//        TableColumn<Kvp, String> c1 = new TableColumn<Kvp, String>();
-//        c1.setCellValueFactory(new PropertyValueFactory<Kvp, String>("name"));
-//        c1.setSortable(false);
-//        c1.setText("Property");
-//        c1.setEditable(false);
-//        TableColumn<Kvp, String> c2 = new TableColumn<Kvp, String>();
-//        c2.setCellValueFactory(new PropertyValueFactory<Kvp, String>("value"));
-//        c2.setSortable(false);
-//        c2.setText("Value");
-//        
-//        tbl.getColumns().add(c1);
-//        tbl.getColumns().add(c2);
-//        
-//        this.add(tbl, 0, 0, 2, 1);
         
         Label lblWidth = new Label(Translations.getTranslation("media.metadata.width"));
         Label lblWidthValue = new Label();
