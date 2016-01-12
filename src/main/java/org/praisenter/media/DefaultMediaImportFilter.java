@@ -24,43 +24,39 @@
  */
 package org.praisenter.media;
 
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+
 /**
- * Exception thrown when a file's format cannot be read.
+ * The default media import filter which simply copies the source to the target.
  * @author William Bittle
  * @version 3.0.0
  */
-public class MediaFormatException extends Exception {
-	private static final long serialVersionUID = 6330495060583102082L;
-
-	/**
-	 * Default constructor.
+public class DefaultMediaImportFilter implements MediaImportFilter {
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaImportFilter#getTarget(java.nio.file.Path, java.lang.String, org.praisenter.media.MediaType)
 	 */
-	public MediaFormatException() {
-		super();
+	@Override
+	public Path getTarget(Path location, String name, MediaType type) {
+		// by default it should be the file name in the location
+		return location.resolve(name);
 	}
-
-	/**
-	 * Full constructor.
-	 * @param message the message
-	 * @param cause the cause
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaImportFilter#filter(java.nio.file.Path, java.nio.file.Path, org.praisenter.media.MediaType)
 	 */
-	public MediaFormatException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	/**
-	 * Optional constructor.
-	 * @param message the message
-	 */
-	public MediaFormatException(String message) {
-		super(message);
-	}
-
-	/**
-	 * Optional constructor.
-	 * @param cause the cause
-	 */
-	public MediaFormatException(Throwable cause) {
-		super(cause);
+	@Override
+	public void filter(Path source, Path target, MediaType type) throws TranscodeException, FileAlreadyExistsException, IOException {
+		// just copy from source to target
+		
+		// see if we can use the same name in the destination file
+		if (Files.exists(target)) {
+			throw new FileAlreadyExistsException(target.toAbsolutePath().toString());
+		}
+		
+		Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 	}
 }

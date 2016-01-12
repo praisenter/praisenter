@@ -1,11 +1,33 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.media;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -29,58 +51,128 @@ import javax.xml.bind.JAXBException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
-import org.praisenter.utility.RuntimeProperties;
 import org.praisenter.xml.XmlIO;
 
+/**
+ * A collection of media that has been loaded into a specific location and converted
+ * into supported formats with additional files generated for enhanced performance.
+ * <p>
+ * Obtain a {@link MediaLibrary} instance by calling the {@link #open(Path, MediaThumbnailSettings)}
+ * static method. Only one instance should be created for each path. Multiple instances
+ * modifying the same path can have unexpected results and can show different sets of media.
+ * <p>
+ * This class is intended to be thread safe within this application but can still contend
+ * with other programs during disk operations.
+ * <p>
+ * Opening a media library will initiate a process of verification of the current media
+ * at the given path. This process can take some time as it generates any missing metadata, 
+ * thumbnails and frames.
+ * <p>  
+ * While it is possible to place media directly into the path and have the {@link MediaLibrary}
+ * generate the necessary files as described above, this is not recommended, but cannot
+ * be prevented.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class MediaLibrary {
-	private static final Logger LOGGER = LogManager.getLogger(MediaLibrary.class);
+	/** The class-level logger */
+	private static final Logger LOGGER = LogManager.getLogger();
 	
+	// constants
+	
+	/** The directory to store the metadata files */
 	private static final String METADATA_DIR = "_metadata";
+	
+	/** The directory to store the thumbnail files */
 	private static final String THUMB_DIR = "_thumbs";
+	
+	/** The directory to store the video frame files */
 	private static final String FRAME_DIR = "_frames";
-	private static final String FFMPEG_DIR = "_ffmpeg";
+	
+	/** The directory to store temporary files */
 	private static final String TEMP_DIR = "_temp";
 	
+	/** The suffix added to a media file for metadata */
 	private static final String METADATA_EXT = "_metadata.xml";
-	private static final String THUMB_EXT = "_thumb.png";
-	private static final String FRAME_EXT = "_frame.jpg";
-	private static final String VIDEO_EXT = ".mp4";
-	private static final String AUDIO_EXT = ".m4a";
-
-	private final Path path;
-	private final Path metadataPath;
-	private final Path thumbsPath;
-	private final Path framesPath;
-	// executable
-	private final Path ffmpeg;
 	
+	/** The suffix added to a media file for thumbnails */
+	private static final String THUMB_EXT = "_thumb.png";
+	
+	/** The suffix added to a media file for frames */
+	private static final String FRAME_EXT = "_frame.jpg";
+
+	// instance variables
+	
+	/** The root path to the media library */
+	private final Path path;
+	
+	/** The full path to the metatdata */
+	private final Path metadataPath;
+	
+	/** The full path to the thumbnails */
+	private final Path thumbsPath;
+	
+	/** The full path to the frames */
+	private final Path framesPath;
+	
+	/** The import filter */
+	private final MediaImportFilter importFilter;
+	
+	/** The thumbnail settings */
 	private final MediaThumbnailSettings settings;
 	
+	// loaded
+	
+	/** The media loaders */
 	private final MediaLoader[] loaders;
+	
+	/** The media */
 	private final Map<Path, Media> media;
 	
-	/** The global set of media tags */
 	// FIXME this should be global so the tags can be used for slides and such
+	/** The global set of media tags */
 	private final Set<Tag> tags;
 	
+	/**
+	 * Sets up a new {@link MediaLibrary} at the given path using the {@link DefaultMediaImportFilter}
+	 * with the given {@link MediaThumbnailSettings}.
+	 * @param path the root path to the media library
+	 * @param settings the thumbnail settings
+	 * @return {@link MediaLibrary}
+	 * @throws IOException if an IO error occurs
+	 */
 	public static final MediaLibrary open(Path path, MediaThumbnailSettings settings) throws IOException {
-		MediaLibrary library = new MediaLibrary(path, settings);
-		
+		return open(path, null, settings);
+	}
+	
+	/**
+	 * Sets up a new {@link MediaLibrary} at the given path using the {@link DefaultMediaImportFilter}
+	 * with the given {@link MediaThumbnailSettings}.
+	 * @param path the root path to the media library
+	 * @param importFilter the import filter
+	 * @param settings the thumbnail settings
+	 * @return {@link MediaLibrary}
+	 * @throws IOException if an IO error occurs
+	 */
+	public static final MediaLibrary open(Path path, MediaImportFilter importFilter, MediaThumbnailSettings settings) throws IOException {
+		MediaLibrary library = new MediaLibrary(path, importFilter, settings);
 		library.initialize();
-		
 		return library;
 	}
 	
 	/**
 	 * Private constructor.
 	 * @param path the path to initialize in
+	 * @param importFilter the import filter
 	 * @param settings the thumbnail settings
 	 */
-	private MediaLibrary(Path path, MediaThumbnailSettings settings) {
+	private MediaLibrary(Path path, MediaImportFilter importFilter, MediaThumbnailSettings settings) {
 		this.path = path;
 		this.metadataPath = path.resolve(METADATA_DIR);
 		this.thumbsPath = path.resolve(THUMB_DIR);
 		this.framesPath = path.resolve(FRAME_DIR);
+		
+		this.importFilter = importFilter == null ? new DefaultMediaImportFilter() : importFilter;
 		
 		this.settings = settings;
 		
@@ -92,17 +184,6 @@ public final class MediaLibrary {
 		
 		this.media = new HashMap<Path, Media>();
 		this.tags = new TreeSet<Tag>();
-		
-		// choose the correct FFmpeg binary
-		if (RuntimeProperties.IS_WINDOWS_OS) {
-			this.ffmpeg = path.resolve(FFMPEG_DIR).resolve("ffmpeg.exe");
-		} else if (RuntimeProperties.IS_MAC_OS) {
-			this.ffmpeg = path.resolve(FFMPEG_DIR).resolve("ffmpeg");
-		} else if (RuntimeProperties.IS_LINUX_OS) {
-			this.ffmpeg = path.resolve(FFMPEG_DIR).resolve("ffmpeg");
-		} else {
-			this.ffmpeg = null;
-		}
 	}
 
 	/**
@@ -116,19 +197,6 @@ public final class MediaLibrary {
 		Files.createDirectories(this.metadataPath);
 		Files.createDirectories(this.thumbsPath);
 		Files.createDirectories(this.framesPath);
-		
-		// setup for ffmpeg transcoding
-		if (this.ffmpeg != null) {
-			Path ffmpegFolder = this.ffmpeg.getParent();
-			Files.createDirectories(ffmpegFolder);
-			if (RuntimeProperties.IS_WINDOWS_OS) {
-				Files.copy(MediaLibrary.class.getResourceAsStream("/org/praisenter/resources/windows/ffmpeg.exe"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);
-			} else if (RuntimeProperties.IS_MAC_OS) {
-				Files.copy(MediaLibrary.class.getResourceAsStream("/org/praisenter/resources/macos/ffmpeg"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);
-			} else if (RuntimeProperties.IS_LINUX_OS) {
-				Files.copy(MediaLibrary.class.getResourceAsStream("/org/praisenter/resources/linux/ffmpeg"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);
-			}
-		}
 		
 		// load existing meta data into a temporary map for verification
 		Map<Path, MediaMetadata> metadata = new HashMap<Path, MediaMetadata>();
@@ -439,33 +507,12 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	private final Path insert(Path source, MediaType type, String name) throws FileAlreadyExistsException, IOException, TranscodeException, MediaFormatException {
-		Path target = null;
-		if (type == MediaType.VIDEO || type == MediaType.AUDIO) {
-			String ext = type == MediaType.VIDEO ? VIDEO_EXT : AUDIO_EXT;
-			if (!name.toLowerCase().endsWith(ext)) {
-				name += ext;
-			}
-			target = this.path.resolve(name);
-			
-			// see if we can use the same name in the destination file
-			if (Files.exists(target)) {
-				throw new FileAlreadyExistsException(target.toAbsolutePath().toString());
-			}
-			
-			transcode(source, target, type);
-		} else if (type == MediaType.IMAGE) {
-			target = this.path.resolve(name);
-			
-			// see if we can use the same name in the destination file
-			if (Files.exists(target)) {
-				throw new FileAlreadyExistsException(target.toAbsolutePath().toString());
-			}
-			
-			Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
-		} else {
-			throw new MediaFormatException("No matching mimetype for file '" + source.toAbsolutePath().toString() + "'.");
+		if (type == MediaType.UNKNOWN) {
+			throw new MediaFormatException("Unknown media type for file '" + source.toAbsolutePath().toString() + "'.");
 		}
 		
+		Path target = this.importFilter.getTarget(this.path, name, type);
+		this.importFilter.filter(source, target, type);
 		return target;
 	}
 	
@@ -478,84 +525,6 @@ public final class MediaLibrary {
 		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
 		String mimeType = map.getContentType(name);
 		return MediaType.getMediaTypeFromMimeType(mimeType);
-	}
-	
-	/**
-	 * Transcodes the given source file from its current format to a supported format using FFmpeg CLI.
-	 * <p>
-	 * This method blocks until transcoding is complete.
-	 * @param source the source file
-	 * @param target the target file (with extension to determine output format)
-	 * @param type the media type; should only be {@link MediaType#VIDEO} or {@link MediaType#AUDIO}
-	 * @throws TranscodeException
-	 */
-	private final void transcode(Path source, Path target, MediaType type) throws TranscodeException {
-		// shouldn't happen, but lets plan for it
-		if (this.ffmpeg == null) {
-			throw new TranscodeException("FFmpeg executable not available.");
-		}
-		
-		List<String> command = new ArrayList<String>();
-		command.add(ffmpeg.toAbsolutePath().toString());
-		// input file
-		command.add("-i");
-		command.add(source.toAbsolutePath().toString());
-		// overwrite files without asking
-		command.add("-y");
-		// ignore unknown stream types
-		command.add("-ignore_unknown");
-		
-		if (type == MediaType.VIDEO) {
-			// -fix_fmt yuv420p for old media players, javafx for example...
-			command.add("-pix_fmt");
-			command.add("yuv420p");
-		}
-		
-		command.add(target.toAbsolutePath().toString());
-		
-		// run the command
-		ProcessBuilder pb = new ProcessBuilder(command);
-		pb.redirectErrorStream(true);
-		Process process = null;
-		
-		try {
-			LOGGER.info("Starting FFmpeg process with command: " + String.join(" ", command));
-			process = pb.start();
-			LOGGER.info("Waiting for FFmpeg to complete transcoding...");
-			
-			// we must read the input streams otherwise they fill up
-			// and the sub process will hang
-			BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-	        String line = null;
-	        StringBuilder s = new StringBuilder();
-	        // readLine is a blocking call so this will pause us until the
-	        // executable completes or encounters an error
-	        while((line = input.readLine()) != null) {            
-	            s.append(line).append(RuntimeProperties.NEW_LINE_SEPARATOR);
-	        }
-	        
-	        try {
-	        	// just in case i guess
-	        	int exitCode = process.waitFor();
-	        	LOGGER.info("FFmpeg completed with exitcode = " + exitCode);
-	        	try {
-					input.close();
-				} catch (IOException e) {}
-	        	
-	        	if (exitCode != 0) {
-	        		LOGGER.error(s.toString());
-	    			throw new TranscodeException("Please refer to the log for FFmpeg output.");
-	    		}
-	        } catch (InterruptedException ex) {
-	        	throw new TranscodeException("The thread was interrupted while wait for the transcoding to complete.", ex);
-	        }
-		} catch (IOException ex) {
-			throw new TranscodeException("Failed to transcode file '" + source.toAbsolutePath().toString() + "'.", ex);
-		} finally {
-			if (process != null) {
-				process.destroy();
-			}
-		}
 	}
 	
 	/**
@@ -590,6 +559,7 @@ public final class MediaLibrary {
 	 */
 	private final boolean move(Media media, String name) throws FileAlreadyExistsException, IOException {
 		// FIXME test what happens when file is in use during presentation
+		// FIXME we need to make sure the old extension is retained
 		Path source = media.metadata.path;
 		String name0 = source.getFileName().toString();
 		String name1 = name;
@@ -713,29 +683,26 @@ public final class MediaLibrary {
 		// remove from the library's cache
 		this.media.remove(path);
 	}
-	
+
 	/**
-	 * Removes the media from the library and deletes all generated files.
-	 * @param path the path of the media to remove
+	 * Renames the media to the given name.
+	 * @param media the media
+	 * @param name the new name
+	 * @throws FileAlreadyExistsException if a file already exists with the given name
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized void remove(Path path) throws IOException {
-		// delete the files
-		delete(path);
-		
-		// remove from the library's cache
-		this.media.remove(path);
-	}
-
 	public synchronized void rename(Media media, String name) throws FileAlreadyExistsException, IOException {
 		move(media, name);
 	}
 	
-	public synchronized void rename(Path path, String name) throws FileAlreadyExistsException, IOException {
-		Media media = this.media.get(path);
-		move(media, name);
-	}
-	
+	/**
+	 * Adds the given tag to the given media and saves the metadata.
+	 * @param media the media
+	 * @param tag the new tag
+	 * @return boolean true if the tag was added successfully
+	 * @throws JAXBException if the media metadata failed to save
+	 * @throws IOException if an IO error occurs
+	 */
 	public synchronized boolean addTag(Media media, Tag tag) throws JAXBException, IOException {
 		this.tags.add(tag);
 		boolean added = media.metadata.tags.add(tag);
@@ -745,6 +712,14 @@ public final class MediaLibrary {
 		return added;
 	}
 	
+	/**
+	 * Adds the given tags to the given media and saves the metadata.
+	 * @param media the media
+	 * @param tags the new tags
+	 * @return boolean true if the tags were added successfully
+	 * @throws JAXBException if the media metadata failed to save
+	 * @throws IOException if an IO error occurs
+	 */	
 	public synchronized boolean addTags(Media media, Collection<Tag> tags) throws JAXBException, IOException {
 		this.tags.addAll(tags);
 		boolean added = media.metadata.tags.addAll(tags);
@@ -754,6 +729,14 @@ public final class MediaLibrary {
 		return added;
 	}
 	
+	/**
+	 * Sets the given tags on the given media and saves the metadata.
+	 * @param media the media
+	 * @param tags the new tags
+	 * @return boolean true if the tags were set successfully
+	 * @throws JAXBException if the media metadata failed to save
+	 * @throws IOException if an IO error occurs
+	 */	
 	public synchronized boolean setTags(Media media, Collection<Tag> tags) throws JAXBException, IOException {
 		this.tags.addAll(tags);
 		boolean changed = media.metadata.tags.addAll(tags);
@@ -764,6 +747,14 @@ public final class MediaLibrary {
 		return changed;
 	}
 	
+	/**
+	 * Removes the given tag from the given media and saves the metadata.
+	 * @param media the media
+	 * @param tag the tag to remove
+	 * @return boolean true if the tag was removed successfully
+	 * @throws JAXBException if the media metadata failed to save
+	 * @throws IOException if an IO error occurs
+	 */	
 	public synchronized boolean removeTag(Media media, Tag tag) throws JAXBException, IOException {
 		boolean removed = media.metadata.tags.remove(tag);
 		if (removed) {
@@ -772,6 +763,14 @@ public final class MediaLibrary {
 		return removed;
 	}
 	
+	/**
+	 * Removes the given tags from the given media and saves the metadata.
+	 * @param media the media
+	 * @param tags the tags to remove
+	 * @return boolean true if the tags were removed successfully
+	 * @throws JAXBException if the media metadata failed to save
+	 * @throws IOException if an IO error occurs
+	 */	
 	public synchronized boolean removeTags(Media media, Collection<Tag> tags) throws JAXBException, IOException {
 		boolean removed = media.metadata.tags.removeAll(tags);
 		if (removed) {
@@ -780,6 +779,10 @@ public final class MediaLibrary {
 		return removed;
 	}
 
+	/**
+	 * Returns a snapshot of all the tags on the media.	
+	 * @return Set&lt;{@link Tag}&gt;
+	 */
 	public synchronized Set<Tag> getTags() {
 		return new TreeSet<Tag>(this.tags);
 	}

@@ -86,7 +86,7 @@ public class MediaLibraryPane extends Application {
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/video-default-thumbnail.png"));
     	MediaLibrary library = null;
 		try {
-			library = MediaLibrary.open(path, settings);
+			library = MediaLibrary.open(path, new JavaFXMediaImportFilter(path), settings);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

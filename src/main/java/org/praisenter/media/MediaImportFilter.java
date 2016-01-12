@@ -24,43 +24,38 @@
  */
 package org.praisenter.media;
 
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Path;
+
 /**
- * Exception thrown when a file's format cannot be read.
+ * Interface for performing filtering on media before being added to a {@link MediaLibrary}.
  * @author William Bittle
  * @version 3.0.0
  */
-public class MediaFormatException extends Exception {
-	private static final long serialVersionUID = 6330495060583102082L;
-
+public interface MediaImportFilter {
 	/**
-	 * Default constructor.
+	 * Returns the path to the imported media.
+	 * <p>
+	 * This method only creates the path, no other file operation is performed.
+	 * <p>
+	 * This method may return a path with a file name differing from the name supplied
+	 * to conform to the filter's desired output.
+	 * @param location the media library location
+	 * @param name the file name of the media
+	 * @param type the media type
+	 * @return Path
 	 */
-	public MediaFormatException() {
-		super();
-	}
-
+	public Path getTarget(Path location, String name, MediaType type);
+	
 	/**
-	 * Full constructor.
-	 * @param message the message
-	 * @param cause the cause
+	 * Performs the filtering operation on the source media to the target.
+	 * @param source the source media file
+	 * @param target the target media file location and name
+	 * @param type the media type
+	 * @throws TranscodeException if the media failed to transcode into the filter's intended format
+	 * @throws FileAlreadyExistsException if the target media file name already exists
+	 * @throws IOException if an IO error occurs
 	 */
-	public MediaFormatException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	/**
-	 * Optional constructor.
-	 * @param message the message
-	 */
-	public MediaFormatException(String message) {
-		super(message);
-	}
-
-	/**
-	 * Optional constructor.
-	 * @param cause the cause
-	 */
-	public MediaFormatException(Throwable cause) {
-		super(cause);
-	}
+	public void filter(Path source, Path target, MediaType type) throws TranscodeException, FileAlreadyExistsException, IOException;
 }
