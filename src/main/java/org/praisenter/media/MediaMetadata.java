@@ -170,7 +170,7 @@ public final class MediaMetadata {
 	private MediaMetadata() {
 		// for jaxb
 		this.mimeType = null;
-		this.type = MediaType.UNKNOWN;
+		this.type = null;
 		this.path = null;
 		this.name = null;
 		this.size = UNKNOWN;

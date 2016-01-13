@@ -104,6 +104,8 @@ public class TagView extends BorderPane {
 				Tag tag = new Tag(name);
 				tags.add(tag);
 				textField.clear();
+				
+				fireEvent(new TagEvent(textField, TagView.this, TagEvent.ADDED, tag));
 			}
 		});
 		
@@ -123,6 +125,8 @@ public class TagView extends BorderPane {
 				// remove the item from the tags
 				Tag tag = new Tag(btn.getText());
 				tags.remove(tag);
+				
+				fireEvent(new TagEvent(btn, TagView.this, TagEvent.REMOVED, tag));
 			}
 		});
 		

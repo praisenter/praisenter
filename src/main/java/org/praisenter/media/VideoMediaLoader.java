@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.media;
 
 import io.humble.video.Codec;
@@ -22,13 +46,26 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.utility.ImageManipulator;
 
+/**
+ * {@link MediaLoader} that loads video media.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class VideoMediaLoader extends AbstractMediaLoader implements MediaLoader {
-	private static Logger LOGGER = LogManager.getLogger(VideoMediaLoader.class);
+	/** The class-level logger */
+	private static Logger LOGGER = LogManager.getLogger();
 	
+	/**
+	 * Minimal constructor.
+	 * @param settings the thumbnail settings
+	 */
 	public VideoMediaLoader(MediaThumbnailSettings settings) {
 		super(settings);
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaLoader#isSupported(java.lang.String)
+	 */
 	@Override
 	public boolean isSupported(String mimeType) {
 		if (mimeType != null && mimeType.contains("video")) {
@@ -38,6 +75,9 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 		return false;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
+	 */
 	@Override
 	public LoadedMedia load(Path path) throws IOException, FileNotFoundException, MediaFormatException {
 		Demuxer demuxer = null;
@@ -75,7 +115,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 						// a piece of film
 						drawFilmOnFrame(thumb);
 					} catch (Exception e) {
-						LOGGER.warn("Failed to read first frame of video '" + path.toAbsolutePath().toString() + "'", e);
+						LOGGER.warn("Failed to read first frame of video '{}': {}", path.toAbsolutePath().toString(), e.getMessage());
 						image = null;
 						thumb = settings.videoDefaultThumbnail;
 					}
@@ -88,7 +128,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 			
 			// we must have a video, audio is optional
 			if (video == null) {
-				LOGGER.error("File '" + path.toString() + "' does not have a video stream.");
+				LOGGER.error("File '{}' does not have a video stream.", path.toAbsolutePath().toString());
 				throw new MediaFormatException();
 			}
 			
@@ -111,12 +151,25 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 					demuxer.close();
 				} catch (Exception e) {
 					// just eat them
-					LOGGER.warn("Failed to close demuxer on: '" + path.toString() + "': ", e);
+					LOGGER.warn("Failed to close demuxer on: '{}': {}", path.toAbsolutePath().toString(), e.getMessage());
 				}
 			}
 		}
 	}
 	
+	/**
+	 * Returns a frame of the video that would be "best" for a thumbnail and frame.
+	 * <p>
+	 * Ideally this method will return a frame of the video that is not too light or dark with
+	 * enough detail to allow easy recognition.
+	 * @param path the path to the media
+	 * @param demuxer the demuxer
+	 * @param decoder the decoder
+	 * @param streamIndex the stream index
+	 * @return BufferedImage
+	 * @throws IOException if an IO error occurs
+	 * @throws InterruptedException if reading of a packet from the file is interrupted
+	 */
 	private static final BufferedImage readBestFrame(Path path, Demuxer demuxer, Decoder decoder, int streamIndex) throws IOException, InterruptedException {
 		
 		// we are using a lightness metric to determine the "best" frame for a video
@@ -222,9 +275,14 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 		return highest;
 	}
 	
+	/**
+	 * Draws onto the given image to make it look like film.
+	 * @param image the image to draw on
+	 */
 	private void drawFilmOnFrame(BufferedImage image) {
 		final int w = image.getWidth();
 		final int h = image.getHeight();
+		// FEATURE film settings should be dependent on size of thumbnails
 		final int lineWidth = 2;
 		final int edgeWidth = 5;
 		final int blockHeight = 5;

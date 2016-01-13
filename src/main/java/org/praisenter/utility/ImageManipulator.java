@@ -100,59 +100,56 @@ public final class ImageManipulator {
 		AffineTransformOp op = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
 		return op.filter(image, null);
 	}
-	
-	
-	
-	
-	/**
-	 * Returns an image with the given image tiled onto it.
-	 * @param image the image to tile
-	 * @param gc the graphics configuration
-	 * @param w the rectangle width
-	 * @param h the rectangle height
-	 * @return BufferedImage
-	 */
-	public static final BufferedImage getTiledImage(BufferedImage image, GraphicsConfiguration gc, int w, int h) {
-		// create a new image of the right size
-		BufferedImage tiled = gc.createCompatibleImage(w, h, Transparency.BITMASK);
-		Graphics2D g2d = tiled.createGraphics();
-		renderTiledImage(image, g2d, 0, 0, w, h);
-		g2d.dispose();
-		return tiled;
-	}
-	
-	/**
-	 * Tiles the given tile image onto the given surface starting from the given location and filling the given
-	 * width and height. 
-	 * @param tile the tile to render
-	 * @param surface the surface to render to
-	 * @param x the starting x position
-	 * @param y the starting y position
-	 * @param w the rendering width
-	 * @param h the rendering height
-	 */
-	public static final void renderTiledImage(BufferedImage tile, Graphics surface, int x, int y, int w, int h) {
-		int tw = tile.getWidth();
-		int th = tile.getHeight();
-		
-		int cx = x;
-		int cy = y;
-		
-		int xn = w / tw + 1;
-		int yn = h / th + 1;
-		
-		surface.clipRect(x, y, w, h);
-		// tile the image
-		for (int i = 0; i < xn; i++) {
-			for (int j = 0; j < yn; j++) {
-				surface.drawImage(tile, cx, cy, null);
-				cy += th;
-			}
-			cx += tw;
-			cy = y;
-		}
-	}
-	
+//	
+//	/**
+//	 * Returns an image with the given image tiled onto it.
+//	 * @param image the image to tile
+//	 * @param gc the graphics configuration
+//	 * @param w the rectangle width
+//	 * @param h the rectangle height
+//	 * @return BufferedImage
+//	 */
+//	public static final BufferedImage getTiledImage(BufferedImage image, GraphicsConfiguration gc, int w, int h) {
+//		// create a new image of the right size
+//		BufferedImage tiled = gc.createCompatibleImage(w, h, Transparency.BITMASK);
+//		Graphics2D g2d = tiled.createGraphics();
+//		renderTiledImage(image, g2d, 0, 0, w, h);
+//		g2d.dispose();
+//		return tiled;
+//	}
+//	
+//	/**
+//	 * Tiles the given tile image onto the given surface starting from the given location and filling the given
+//	 * width and height. 
+//	 * @param tile the tile to render
+//	 * @param surface the surface to render to
+//	 * @param x the starting x position
+//	 * @param y the starting y position
+//	 * @param w the rendering width
+//	 * @param h the rendering height
+//	 */
+//	public static final void renderTiledImage(BufferedImage tile, Graphics surface, int x, int y, int w, int h) {
+//		int tw = tile.getWidth();
+//		int th = tile.getHeight();
+//		
+//		int cx = x;
+//		int cy = y;
+//		
+//		int xn = w / tw + 1;
+//		int yn = h / th + 1;
+//		
+//		surface.clipRect(x, y, w, h);
+//		// tile the image
+//		for (int i = 0; i < xn; i++) {
+//			for (int j = 0; j < yn; j++) {
+//				surface.drawImage(tile, cx, cy, null);
+//				cy += th;
+//			}
+//			cx += tw;
+//			cy = y;
+//		}
+//	}
+//	
 	/**
 	 * Returns a non-uniformly scaled image of the given image.
 	 * @param image the image to scale
@@ -205,46 +202,46 @@ public final class ImageManipulator {
 	    AffineTransformOp scale = new AffineTransformOp(AffineTransform.getScaleInstance(s, s), quality);
 	    return scale.filter(image, null);
 	}
-	
-	/**
-	 * Returns a drop shadow for the given rectangle specified by the given width and height.
-	 * @param gc the graphics configuration
-	 * @param w the rectangle width
-	 * @param h the rectangle height
-	 * @param sw the 
-	 * @return BufferedImage
-	 */
-	public static final BufferedImage getDropShadowImage(GraphicsConfiguration gc, int w, int h, int sw) {
-		return getDropShadowImage(gc, w, h, sw, Color.BLACK);
-	}
-	
-	/**
-	 * Returns a drop shadow for the given rectangle specified by the given width and height.
-	 * @param gc the graphics configuration
-	 * @param w the rectangle width
-	 * @param h the rectangle height
-	 * @param sw the 
-	 * @param color the shadow color
-	 * @return BufferedImage
-	 */
-	public static final BufferedImage getDropShadowImage(GraphicsConfiguration gc, int w, int h, int sw, Color color) {
-		// create a new image of the right size
-		BufferedImage image = gc.createCompatibleImage(w + 2 * sw, h + 2 * sw, Transparency.TRANSLUCENT);
-					
-		Graphics2D ig2d = image.createGraphics();
-		ig2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		ig2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-		
-		// render the shadow rectangle
-		ig2d.setColor(color);
-		ig2d.fillRect(sw, sw, w, h);
-		ig2d.dispose();
-		
-		// perform the linear blur
-		ConvolveOp op = ImageManipulator.getLinearBlurOp(sw);
-		return op.filter(image, null);
-	}
-	
+//	
+//	/**
+//	 * Returns a drop shadow for the given rectangle specified by the given width and height.
+//	 * @param gc the graphics configuration
+//	 * @param w the rectangle width
+//	 * @param h the rectangle height
+//	 * @param sw the 
+//	 * @return BufferedImage
+//	 */
+//	public static final BufferedImage getDropShadowImage(GraphicsConfiguration gc, int w, int h, int sw) {
+//		return getDropShadowImage(gc, w, h, sw, Color.BLACK);
+//	}
+//	
+//	/**
+//	 * Returns a drop shadow for the given rectangle specified by the given width and height.
+//	 * @param gc the graphics configuration
+//	 * @param w the rectangle width
+//	 * @param h the rectangle height
+//	 * @param sw the 
+//	 * @param color the shadow color
+//	 * @return BufferedImage
+//	 */
+//	public static final BufferedImage getDropShadowImage(GraphicsConfiguration gc, int w, int h, int sw, Color color) {
+//		// create a new image of the right size
+//		BufferedImage image = gc.createCompatibleImage(w + 2 * sw, h + 2 * sw, Transparency.TRANSLUCENT);
+//					
+//		Graphics2D ig2d = image.createGraphics();
+//		ig2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//		ig2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+//		
+//		// render the shadow rectangle
+//		ig2d.setColor(color);
+//		ig2d.fillRect(sw, sw, w, h);
+//		ig2d.dispose();
+//		
+//		// perform the linear blur
+//		ConvolveOp op = ImageManipulator.getLinearBlurOp(sw);
+//		return op.filter(image, null);
+//	}
+//	
 	/**
 	 * Returns a linear blur ConvoleOp.
 	 * @param size the blur size
@@ -289,28 +286,28 @@ public final class ImageManipulator {
 		tg2d.drawImage(source, 0, 0, null);
 		tg2d.dispose();
 	}
-	
-	/**
-	 * Clears the given image.
-	 * @param image the image
-	 */
-	public static final void clearImage(BufferedImage image) {
-		clearImage(image, TRANSPARENT);
-	}
-	
-	/**
-	 * Clears the given image using the given color.
-	 * @param image the image
-	 * @param clearColor the clear color
-	 */
-	public static final void clearImage(BufferedImage image, Color clearColor) {
-		Graphics2D g2d = image.createGraphics();
-		// clear the background
-		g2d.setBackground(clearColor);
-		g2d.clearRect(0, 0, image.getWidth(), image.getHeight());
-		// for compatibility for offscreen images we need to do this
-		g2d.setColor(clearColor);
-		g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
-		g2d.dispose();
-	}
+//	
+//	/**
+//	 * Clears the given image.
+//	 * @param image the image
+//	 */
+//	public static final void clearImage(BufferedImage image) {
+//		clearImage(image, TRANSPARENT);
+//	}
+//	
+//	/**
+//	 * Clears the given image using the given color.
+//	 * @param image the image
+//	 * @param clearColor the clear color
+//	 */
+//	public static final void clearImage(BufferedImage image, Color clearColor) {
+//		Graphics2D g2d = image.createGraphics();
+//		// clear the background
+//		g2d.setBackground(clearColor);
+//		g2d.clearRect(0, 0, image.getWidth(), image.getHeight());
+//		// for compatibility for offscreen images we need to do this
+//		g2d.setColor(clearColor);
+//		g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
+//		g2d.dispose();
+//	}
 }

@@ -1,7 +1,19 @@
 package org.praisenter.javafx.media;
 
-import java.io.IOException;
-import java.util.Set;
+import java.text.MessageFormat;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.Tag;
+import org.praisenter.javafx.Alerts;
+import org.praisenter.javafx.TagEvent;
+import org.praisenter.javafx.TagView;
+import org.praisenter.media.Media;
+import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaMetadata;
+import org.praisenter.media.MediaType;
+import org.praisenter.resources.translations.Translations;
+import org.praisenter.utility.Formatter;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -10,9 +22,9 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableSet;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Border;
@@ -23,20 +35,12 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.ConstraintsBase;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-import javax.xml.bind.JAXBException;
-
-import org.praisenter.Tag;
-import org.praisenter.javafx.TagView;
-import org.praisenter.media.Media;
-import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaMetadata;
-import org.praisenter.media.MediaType;
-import org.praisenter.resources.translations.Translations;
-import org.praisenter.utility.Formatter;
-
-final class MediaMetadataView extends GridPane {
+final class MediaMetadataView extends VBox {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private static final String NOT_APPLICABLE = "";
 	
 	private static final Border VALUE_BORDER = new Border(new BorderStroke(Color.color(0.7, 0.7, 0.7), BorderStrokeStyle.DASHED, null, new BorderWidths(0, 0, 1, 0)));
@@ -52,15 +56,18 @@ final class MediaMetadataView extends GridPane {
 	private final TagView tagView;
 	
 	public MediaMetadataView(MediaLibrary library, ObservableSet<Tag> allTags) {
-		this.setHgap(10);
-        this.setVgap(5);
-        this.setPadding(new Insets(5));
-        this.setDisable(true);
-        
+		this.setPadding(new Insets(0, 5, 10, 5));
+		this.setDisable(true);
+		
+		GridPane grid = new GridPane();
+		grid.setHgap(10);
+		grid.setVgap(5);
+		grid.setPadding(new Insets(5));
+		
         ColumnConstraints labels = new ColumnConstraints();
         labels.setHgrow(Priority.NEVER);
         labels.setMinWidth(ConstraintsBase.CONSTRAIN_TO_PREF);
-        this.getColumnConstraints().add(labels);
+        grid.getColumnConstraints().add(labels);
         
         // for debugging
         //this.setGridLinesVisible(true);
@@ -71,8 +78,8 @@ final class MediaMetadataView extends GridPane {
         lblWidthValue.setTooltip(new Tooltip());
         lblWidthValue.getTooltip().textProperty().bind(width);
         lblWidthValue.setBorder(VALUE_BORDER);
-        this.add(lblWidth, 0, 0, 1, 1);
-        this.add(lblWidthValue, 1, 0, 1, 1);
+        grid.add(lblWidth, 0, 0, 1, 1);
+        grid.add(lblWidthValue, 1, 0, 1, 1);
         
         Label lblHeight = new Label(Translations.getTranslation("media.metadata.height"));
         Label lblHeightValue = new Label();
@@ -80,8 +87,8 @@ final class MediaMetadataView extends GridPane {
         lblHeightValue.setTooltip(new Tooltip());
         lblHeightValue.getTooltip().textProperty().bind(height);
         lblHeightValue.setBorder(VALUE_BORDER);
-        this.add(lblHeight, 0, 1, 1, 1);
-        this.add(lblHeightValue, 1, 1, 1, 1);
+        grid.add(lblHeight, 0, 1, 1, 1);
+        grid.add(lblHeightValue, 1, 1, 1, 1);
         
         Label lblLength = new Label(Translations.getTranslation("media.metadata.length"));
         Label lblLengthValue = new Label();
@@ -89,8 +96,8 @@ final class MediaMetadataView extends GridPane {
         lblLengthValue.setTooltip(new Tooltip());
         lblLengthValue.getTooltip().textProperty().bind(length);
         lblLengthValue.setBorder(VALUE_BORDER);
-        this.add(lblLength, 0, 2, 1, 1);
-        this.add(lblLengthValue, 1, 2, 1, 1);
+        grid.add(lblLength, 0, 2, 1, 1);
+        grid.add(lblLengthValue, 1, 2, 1, 1);
         
         Label lblSound = new Label(Translations.getTranslation("media.metadata.sound"));
         Label lblSoundValue = new Label();
@@ -98,8 +105,8 @@ final class MediaMetadataView extends GridPane {
         lblSoundValue.setTooltip(new Tooltip());
         lblSoundValue.getTooltip().textProperty().bind(audio);
         lblSoundValue.setBorder(VALUE_BORDER);
-        this.add(lblSound, 0, 3, 1, 1);
-        this.add(lblSoundValue, 1, 3, 1, 1);
+        grid.add(lblSound, 0, 3, 1, 1);
+        grid.add(lblSoundValue, 1, 3, 1, 1);
         
         Label lblFormat = new Label(Translations.getTranslation("media.metadata.format"));
         Label lblFormatValue = new Label();
@@ -107,29 +114,44 @@ final class MediaMetadataView extends GridPane {
         lblFormatValue.setTooltip(new Tooltip());
         lblFormatValue.getTooltip().textProperty().bind(format);
         lblFormatValue.setBorder(VALUE_BORDER);
-        this.add(lblFormat, 0, 4, 1, 1);
-        this.add(lblFormatValue, 1, 4, 1, 1);
+        grid.add(lblFormat, 0, 4, 1, 1);
+        grid.add(lblFormatValue, 1, 4, 1, 1);
         
         this.tagView = new TagView(allTags);
         // handle when an action is perfomed on the tag view
-        this.tagView.addEventHandler(ActionEvent.ACTION, new EventHandler<ActionEvent>() {
+        this.tagView.addEventHandler(TagEvent.ALL, new EventHandler<TagEvent>() {
 			@Override
-			public void handle(ActionEvent event) {
+			public void handle(TagEvent event) {
 				Media media = MediaMetadataView.this.media.get().media;
-				Set<Tag> tags = tagView.getTags();
-				try {
-					library.setTags(media, tags);
-					allTags.addAll(tags);
-				} catch (JAXBException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				Tag tag = event.getTag();
+				if (event.getEventType() == TagEvent.ADDED) {
+					try {
+						library.addTag(media, tag);
+						allTags.add(tag);
+					} catch (Exception e) {
+						// remove it from the tags
+						tagView.getTags().remove(tag);
+						// log the error
+						LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
+						// show an error to the user
+						Alert alert = Alerts.exception(MessageFormat.format(Translations.getTranslation("tags.add.error"), tag.getName()), e);
+						alert.show();
+					}
+				} else if (event.getEventType() == TagEvent.REMOVED) {
+					try {
+						library.removeTag(media, tag);
+					} catch (Exception e) {
+						// add it back
+						tagView.getTags().add(tag);
+						// log the error
+						LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
+						// show an error to the user
+						Alert alert = Alerts.exception(MessageFormat.format(Translations.getTranslation("tags.remove.error"), tag.getName()), e);
+						alert.show();
+					}
 				}
 			}
         });
-        this.add(tagView, 0, 5, 2, 1);
         
         // handle when the media is changed
         this.media.addListener(new ChangeListener<MediaListItem>() {
@@ -137,6 +159,7 @@ final class MediaMetadataView extends GridPane {
         	public void changed(ObservableValue<? extends MediaListItem> ob, MediaListItem oldValue, MediaListItem newValue) {
         		MediaListItem item = newValue;
         		
+//        		tagView.setValue(null);
         		tagView.setText(null);
         		
         		if (item == null || !item.loaded) {
@@ -186,6 +209,8 @@ final class MediaMetadataView extends GridPane {
         		}
         	}
 		});
+        
+        this.getChildren().addAll(grid, tagView);
 	}
 	
 	public MediaListItem getMedia() {

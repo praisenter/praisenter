@@ -507,7 +507,7 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	private final Path insert(Path source, MediaType type, String name) throws FileAlreadyExistsException, IOException, TranscodeException, MediaFormatException {
-		if (type == MediaType.UNKNOWN) {
+		if (type == null) {
 			throw new MediaFormatException("Unknown media type for file '" + source.toAbsolutePath().toString() + "'.");
 		}
 		
@@ -559,10 +559,16 @@ public final class MediaLibrary {
 	 */
 	private final boolean move(Media media, String name) throws FileAlreadyExistsException, IOException {
 		// FIXME test what happens when file is in use during presentation
-		// FIXME we need to make sure the old extension is retained
 		Path source = media.metadata.path;
 		String name0 = source.getFileName().toString();
 		String name1 = name;
+		
+		// make sure the file will have the same extension
+		int idx = name0.lastIndexOf('.');
+		String ext = name0.substring(idx);
+		if (!name1.endsWith(ext)) {
+			name1 += ext;
+		}
 		
 		// create paths to copy the file and metadata
 		Path target = source.getParent().resolve(name);

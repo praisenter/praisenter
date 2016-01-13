@@ -30,6 +30,7 @@ package org.praisenter.media;
  * @version 3.0.0
  */
 public class MediaFormatException extends Exception {
+	/** The serialization id */
 	private static final long serialVersionUID = 6330495060583102082L;
 
 	/**

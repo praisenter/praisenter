@@ -39,7 +39,7 @@ final class MediaListItem implements Comparable<MediaListItem> {
 	public boolean equals(Object obj) {
 		if (obj == null) return false;
 		if (obj == this) return true;
-		if (obj instanceof MediaTypeFilter) {
+		if (obj instanceof MediaListItem) {
 			MediaListItem item = (MediaListItem)obj;
 			if (item.loaded == this.loaded) {
 				if (item.loaded) {

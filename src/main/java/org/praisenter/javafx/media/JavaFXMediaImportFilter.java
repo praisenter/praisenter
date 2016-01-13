@@ -41,13 +41,26 @@ import org.praisenter.media.MediaType;
 import org.praisenter.media.TranscodeException;
 import org.praisenter.utility.RuntimeProperties;
 
-public class JavaFXMediaImportFilter extends FFmpegMediaImportFilter implements MediaImportFilter {
+/**
+ * {@link MediaImportFilter} used to transcode audio and video into the formats playable by JavaFX.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter implements MediaImportFilter {
+	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	/** The video target extension (will be treated as the destination format as well) */
 	private static final String VIDEO_EXT = ".mp4";
+	
+	/** The audio target extension (will be treated as the destination format as well) */
 	private static final String AUDIO_EXT = ".m4a";
 	
-	public JavaFXMediaImportFilter(Path path) {
+	/**
+	 * Minimal constructor.
+	 * @param path the path to place the files required for filtering
+	 */
+	JavaFXMediaImportFilter(Path path) {
 		super(path);
 	}
 	
@@ -78,6 +91,7 @@ public class JavaFXMediaImportFilter extends FFmpegMediaImportFilter implements 
 			}
 			// transcode to supported formats
 			this.transcode(source, target, type);
+			return;
 		}
 		super.filter(source, target, type);
 	}
