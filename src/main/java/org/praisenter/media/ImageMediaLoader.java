@@ -29,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.Iterator;
 
 import javax.imageio.ImageIO;
@@ -37,6 +38,7 @@ import javax.imageio.stream.ImageInputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.ImageManipulator;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -118,10 +120,10 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 				}
 				
 				// no readers
-				throw new MediaFormatException("No image readers available for format.");
+				throw new MediaFormatException(MessageFormat.format(Translations.getTranslation("media.import.error.image.reader.missing"), path.toAbsolutePath().toString()));
 			}
 		} else {
-			throw new FileNotFoundException();
+			throw new FileNotFoundException(MessageFormat.format(Translations.getTranslation("error.file.missing"), path.toAbsolutePath().toString()));
 		}
 	}
 	

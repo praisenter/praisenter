@@ -134,7 +134,7 @@ final class MediaMetadataView extends VBox {
 						// log the error
 						LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
 						// show an error to the user
-						Alert alert = Alerts.exception(MessageFormat.format(Translations.getTranslation("tags.add.error"), tag.getName()), e);
+						Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.getTranslation("tags.add.error"), tag.getName()), e);
 						alert.show();
 					}
 				} else if (event.getEventType() == TagEvent.REMOVED) {
@@ -146,7 +146,7 @@ final class MediaMetadataView extends VBox {
 						// log the error
 						LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
 						// show an error to the user
-						Alert alert = Alerts.exception(MessageFormat.format(Translations.getTranslation("tags.remove.error"), tag.getName()), e);
+						Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.getTranslation("tags.remove.error"), tag.getName()), e);
 						alert.show();
 					}
 				}

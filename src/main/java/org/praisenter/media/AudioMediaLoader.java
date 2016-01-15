@@ -36,9 +36,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.resources.translations.Translations;
 
 /**
  * {@link MediaLoader} that loads audio media.
@@ -109,8 +111,9 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 					}
 				}
 				
+				LOGGER.warn("No audio stream present on file: '{}'", path.toAbsolutePath().toString());
 				// no audio stream present
-				throw new MediaFormatException("No audio stream present.");
+				throw new MediaFormatException(MessageFormat.format(Translations.getTranslation("media.load.error.audio.missing"), path.toAbsolutePath().toString()));
 			} catch (InterruptedException ex) {
 				throw new IOException(ex.getMessage(), ex);
 			} finally {
@@ -124,7 +127,7 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 				}
 			}
 		} else {
-			throw new FileNotFoundException();
+			throw new FileNotFoundException(MessageFormat.format(Translations.getTranslation("error.file.missing"), path.toAbsolutePath().toString()));
 		}
 	}
 }

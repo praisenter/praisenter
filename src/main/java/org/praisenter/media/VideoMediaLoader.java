@@ -40,10 +40,13 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.ImageManipulator;
 
 /**
@@ -80,80 +83,84 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 	 */
 	@Override
 	public LoadedMedia load(Path path) throws IOException, FileNotFoundException, MediaFormatException {
-		Demuxer demuxer = null;
-		try {
-			demuxer = Demuxer.make();
-			demuxer.open(path.toString(), null, false, true, null, null);
-			
-			final DemuxerFormat format = demuxer.getFormat();
-			final long length = demuxer.getDuration() / 1000 / 1000;
-			
-			MediaCodec video = null;
-			MediaCodec audio = null;
-			int width = 0;
-			int height = 0;
-			BufferedImage image = null;
-			BufferedImage thumb = null;
-			
-			final int streams = demuxer.getNumStreams();
-			for (int i = 0; i < streams; i++) {
-				final DemuxerStream stream = demuxer.getStream(i);
-				final Decoder decoder = stream.getDecoder();
-				if (video == null && decoder.getCodecType() == MediaDescriptor.Type.MEDIA_VIDEO) {
-					// get the width and height
-					width = decoder.getWidth();
-					height = decoder.getHeight();
-					// get the codec
-					final Codec codec = decoder.getCodec();
-					video = new MediaCodec(CodecType.VIDEO, codec.getName(), codec.getLongName());
-					// attempt to read the first image of the stream
-					try {
-						image = readBestFrame(path, demuxer, decoder, i);
-						thumb = createThumbnail(image);
-						
-						// draw on the thumb nail to make it look like
-						// a piece of film
-						drawFilmOnFrame(thumb);
-					} catch (Exception e) {
-						LOGGER.warn("Failed to read first frame of video '{}': {}", path.toAbsolutePath().toString(), e.getMessage());
-						image = null;
-						thumb = settings.videoDefaultThumbnail;
+		if (Files.exists(path) && Files.isRegularFile(path)) {
+			Demuxer demuxer = null;
+			try {
+				demuxer = Demuxer.make();
+				demuxer.open(path.toString(), null, false, true, null, null);
+				
+				final DemuxerFormat format = demuxer.getFormat();
+				final long length = demuxer.getDuration() / 1000 / 1000;
+				
+				MediaCodec video = null;
+				MediaCodec audio = null;
+				int width = 0;
+				int height = 0;
+				BufferedImage image = null;
+				BufferedImage thumb = null;
+				
+				final int streams = demuxer.getNumStreams();
+				for (int i = 0; i < streams; i++) {
+					final DemuxerStream stream = demuxer.getStream(i);
+					final Decoder decoder = stream.getDecoder();
+					if (video == null && decoder.getCodecType() == MediaDescriptor.Type.MEDIA_VIDEO) {
+						// get the width and height
+						width = decoder.getWidth();
+						height = decoder.getHeight();
+						// get the codec
+						final Codec codec = decoder.getCodec();
+						video = new MediaCodec(CodecType.VIDEO, codec.getName(), codec.getLongName());
+						// attempt to read the first image of the stream
+						try {
+							image = readBestFrame(path, demuxer, decoder, i);
+							thumb = createThumbnail(image);
+							
+							// draw on the thumb nail to make it look like
+							// a piece of film
+							drawFilmOnFrame(thumb);
+						} catch (Exception e) {
+							LOGGER.warn("Failed to read first frame of video '{}': {}", path.toAbsolutePath().toString(), e.getMessage());
+							image = null;
+							thumb = settings.videoDefaultThumbnail;
+						}
+					}
+					if (audio == null && decoder.getCodecType() == MediaDescriptor.Type.MEDIA_AUDIO) {
+						final Codec codec = decoder.getCodec();
+						audio = new MediaCodec(CodecType.AUDIO, codec.getName(), codec.getLongName());
 					}
 				}
-				if (audio == null && decoder.getCodecType() == MediaDescriptor.Type.MEDIA_AUDIO) {
-					final Codec codec = decoder.getCodec();
-					audio = new MediaCodec(CodecType.AUDIO, codec.getName(), codec.getLongName());
+				
+				// we must have a video, audio is optional
+				if (video == null) {
+					LOGGER.error("No video stream present on file: '{}'", path.toAbsolutePath().toString());
+					throw new MediaFormatException(MessageFormat.format(Translations.getTranslation("media.import.error.video.missing"), path.toAbsolutePath().toString()));
+				}
+				
+				final MediaCodec[] codecs;
+				if (audio != null) {
+					codecs = new MediaCodec[] { video, audio };
+				} else {
+					codecs = new MediaCodec[] { video };
+				}
+				
+				final MediaFormat mf = new MediaFormat(format.getName().toLowerCase(), format.getLongName(), codecs);
+				final MediaMetadata metadata = MediaMetadata.forVideo(path, mf, width, height, length, audio != null, null);
+				Media media = new Media(metadata, thumb);
+				return new LoadedMedia(media, image);
+			} catch (InterruptedException ex) {
+				throw new IOException(ex);
+			} finally {
+				if (demuxer != null) {
+					try {
+						demuxer.close();
+					} catch (Exception e) {
+						// just eat them
+						LOGGER.warn("Failed to close demuxer on: '{}': {}", path.toAbsolutePath().toString(), e.getMessage());
+					}
 				}
 			}
-			
-			// we must have a video, audio is optional
-			if (video == null) {
-				LOGGER.error("File '{}' does not have a video stream.", path.toAbsolutePath().toString());
-				throw new MediaFormatException();
-			}
-			
-			final MediaCodec[] codecs;
-			if (audio != null) {
-				codecs = new MediaCodec[] { video, audio };
-			} else {
-				codecs = new MediaCodec[] { video };
-			}
-			
-			final MediaFormat mf = new MediaFormat(format.getName().toLowerCase(), format.getLongName(), codecs);
-			final MediaMetadata metadata = MediaMetadata.forVideo(path, mf, width, height, length, audio != null, null);
-			Media media = new Media(metadata, thumb);
-			return new LoadedMedia(media, image);
-		} catch (InterruptedException ex) {
-			throw new IOException(ex);
-		} finally {
-			if (demuxer != null) {
-				try {
-					demuxer.close();
-				} catch (Exception e) {
-					// just eat them
-					LOGGER.warn("Failed to close demuxer on: '{}': {}", path.toAbsolutePath().toString(), e.getMessage());
-				}
-			}
+		} else {
+			throw new FileNotFoundException(MessageFormat.format(Translations.getTranslation("error.file.missing"), path.toAbsolutePath().toString()));
 		}
 	}
 	

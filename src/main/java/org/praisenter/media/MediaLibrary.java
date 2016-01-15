@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -51,6 +52,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -401,7 +403,7 @@ public final class MediaLibrary {
 		// any supporting media loaders?
 		if (loaders.size() == 0) {
 			LOGGER.warn("No supporting media loaders for file '" + path.toAbsolutePath().toString() + "'.");
-			throw new MediaFormatException();
+			throw new MediaFormatException(MessageFormat.format(Translations.getTranslation("media.import.error.loader.none"), path.toAbsolutePath().toString()));
 		}
 		
 		LoadedMedia media = null;
@@ -423,7 +425,7 @@ public final class MediaLibrary {
 		
 		if (media == null) {
 			LOGGER.warn("The supporting media loaders couldn't load '" + path.toAbsolutePath().toString() + "'.");
-			throw new MediaFormatException();
+			throw new MediaFormatException(MessageFormat.format(Translations.getTranslation("media.import.error.loaders.failed"), path.toAbsolutePath().toString()));
 		}
 		
 		return media;
@@ -457,17 +459,17 @@ public final class MediaLibrary {
 	 * @return Path the new media library path
 	 * @throws FileNotFoundException if the given source file isn't found
 	 * @throws FileAlreadyExistsException if a file with the same name already exists
-	 * @throws MediaFormatException if the media format isn't something recognized or readable
+	 * @throws UnknownMediaTypeException if the media's mime type was not discernible
 	 * @throws TranscodeException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	private final Path copy(Path source) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, MediaFormatException {
+	private final Path copy(Path source) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, UnknownMediaTypeException {
 		// make sure it exists and is a file
 		if (Files.exists(source) && Files.isRegularFile(source)) {
 			MediaType type = getMediaType(source.toString());
 			return insert(source, type, source.getFileName().toString());
 		} else {
-			throw new FileNotFoundException();
+			throw new FileNotFoundException(MessageFormat.format(Translations.getTranslation("error.file.missing"), source.toAbsolutePath().toString()));
 		}
 	}
 
@@ -477,11 +479,11 @@ public final class MediaLibrary {
 	 * @param name the file name of the input stream
 	 * @return Path the new media library path
 	 * @throws FileAlreadyExistsException if a file with the same name already exists
-	 * @throws MediaFormatException if the media format isn't something recognized or readable
+	 * @throws UnknownMediaTypeException if the media's mime type was not discernible
 	 * @throws TranscodeException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	private final Path copy(InputStream source, String name) throws FileAlreadyExistsException, IOException, TranscodeException, MediaFormatException {
+	private final Path copy(InputStream source, String name) throws FileAlreadyExistsException, IOException, TranscodeException, UnknownMediaTypeException {
 		// copy to a temp file
 		Path temp = this.path.resolve(TEMP_DIR).resolve(UUID.randomUUID().toString() + "_" + name);
 		Files.copy(source, temp, StandardCopyOption.REPLACE_EXISTING);
@@ -502,13 +504,13 @@ public final class MediaLibrary {
 	 * @param name the file name
 	 * @return Path the new media library path
 	 * @throws FileAlreadyExistsException if a file with the same name already exists
-	 * @throws MediaFormatException if the media format isn't something recognized or readable
+	 * @throws UnknownMediaTypeException if the media's mime type was not discernible
 	 * @throws TranscodeException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	private final Path insert(Path source, MediaType type, String name) throws FileAlreadyExistsException, IOException, TranscodeException, MediaFormatException {
+	private final Path insert(Path source, MediaType type, String name) throws FileAlreadyExistsException, IOException, TranscodeException, UnknownMediaTypeException {
 		if (type == null) {
-			throw new MediaFormatException("Unknown media type for file '" + source.toAbsolutePath().toString() + "'.");
+			throw new UnknownMediaTypeException(MessageFormat.format(Translations.getTranslation("media.import.error.type.unknown"), source.toAbsolutePath().toString()));
 		}
 		
 		Path target = this.importFilter.getTarget(this.path, name, type);
@@ -643,11 +645,12 @@ public final class MediaLibrary {
 	 * @return {@link Media}
 	 * @throws FileNotFoundException if the given source file isn't found
 	 * @throws FileAlreadyExistsException if a file with the same name already exists
+	 * @throws UnknownMediaTypeException if the media's mime type was not discernible
 	 * @throws MediaFormatException if the media format isn't something recognized or readable
 	 * @throws TranscodeException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized Media add(Path path) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, MediaFormatException {
+	public synchronized Media add(Path path) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, UnknownMediaTypeException, MediaFormatException {
 		// copy it to the library
 		Path libraryPath = copy(path);
 		// attempt to load it
@@ -662,11 +665,12 @@ public final class MediaLibrary {
 	 * @param name the file name
 	 * @return {@link Media}
 	 * @throws FileAlreadyExistsException if a file with the same name already exists
+	 * @throws UnknownMediaTypeException if the media's mime type was not discernible
 	 * @throws MediaFormatException if the media format isn't something recognized or readable
 	 * @throws TranscodeException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized Media add(InputStream stream, String name) throws FileAlreadyExistsException, IOException, TranscodeException, MediaFormatException {
+	public synchronized Media add(InputStream stream, String name) throws FileAlreadyExistsException, IOException, TranscodeException, UnknownMediaTypeException, MediaFormatException {
 		// copy it to the library
 		Path libraryPath = copy(stream, name);
 		// attempt to load it

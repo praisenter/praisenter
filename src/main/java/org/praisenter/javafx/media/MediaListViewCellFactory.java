@@ -1,5 +1,8 @@
 package org.praisenter.javafx.media;
 
+import org.praisenter.javafx.FlowListItemView;
+import org.praisenter.media.MediaType;
+
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
@@ -10,15 +13,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Callback;
 
-import org.praisenter.javafx.FlowListItemView;
-import org.praisenter.media.MediaType;
-
 final class MediaListViewCellFactory implements Callback<MediaListItem, FlowListItemView<MediaListItem>> {
 	@Override
 	public FlowListItemView<MediaListItem> call(MediaListItem item) {
 		FlowListItemView<MediaListItem> cell = new FlowListItemView<MediaListItem>(item);
 		
-		cell.setPrefSize(130, 100);
+		cell.setPrefSize(130, 130);
 		
 		String name = null;
 		

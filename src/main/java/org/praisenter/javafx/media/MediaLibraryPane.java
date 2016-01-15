@@ -13,9 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.Callable;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -26,6 +23,7 @@ import org.praisenter.Tag;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.FilterOption;
 import org.praisenter.javafx.FlowListView;
+import org.praisenter.javafx.Testing;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
@@ -35,16 +33,14 @@ import org.praisenter.utility.ClasspathLoader;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -65,15 +61,13 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 
 public class MediaLibraryPane extends Application {
 	static {
@@ -85,6 +79,8 @@ public class MediaLibraryPane extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+    
+    private MediaFilter filter;
     
     // TODO sorting by 1) name or 2) type-then-name
     // TODO filtering by 1) type and 2) tag(s)
@@ -120,11 +116,38 @@ public class MediaLibraryPane extends Application {
         for (Media media : library.all()) {
         	master.add(new MediaListItem(media));
         }
+        // by default sort by name asc
+        Collections.sort(master);
         
         ObservableList<MediaListItem> display = FXCollections.observableArrayList();
         display.addAll(master);
-        // by default sort by name asc
-        Collections.sort(display);
+        
+        ObservableSet<Tag> allTags = FXCollections.observableSet(tags);
+
+        ObservableList<FilterOption<MediaType>> opTypes = FXCollections.observableArrayList();
+        // add the all option
+        opTypes.add(new FilterOption<>());
+        // add the current options
+        opTypes.addAll(Arrays.asList(MediaType.values()).stream().map(t -> new FilterOption<MediaType>(t.getName(), t)).collect(Collectors.toList()));
+        
+        ObservableList<FilterOption<Tag>> opTags = FXCollections.observableArrayList();
+        // add the all option
+        opTags.add(new FilterOption<>());
+        // add the current options
+        opTags.addAll(allTags.stream().map(t -> new FilterOption<Tag>(t.getName(), t)).collect(Collectors.toList()));
+        // add a listener for more tags being added
+        allTags.addListener(new SetChangeListener<Tag>() {
+        	@Override
+        	public void onChanged(SetChangeListener.Change<? extends Tag> change) {
+        		if (change.wasRemoved()) {
+        			opTags.removeIf(fo -> fo.getData().equals(change.getElementRemoved()));
+        		}
+        		if (change.wasAdded()) {
+        			Tag tag = change.getElementAdded();
+        			opTags.add(new FilterOption<Tag>(tag.getName(), tag));
+        		}
+        	}
+		});
         
         // the right side of the split pane
         FlowListView<MediaListItem> left = new FlowListView<MediaListItem>(new MediaListViewCellFactory());
@@ -172,7 +195,7 @@ public class MediaLibraryPane extends Application {
 												Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
 												// get the failed media
 												String list = String.join(", ", failed.stream().map(f -> f.getData().getMetadata().getName()).collect(Collectors.toList()));
-												Alert alert = Alerts.exception(MessageFormat.format(Translations.getTranslation("media.remove.error"), list), exceptions);
+												Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.getTranslation("media.remove.error"), list), exceptions);
 												alert.show();
 											}
 										}
@@ -207,6 +230,24 @@ public class MediaLibraryPane extends Application {
 				}
 			}
         });
+        left.itemsProperty().addListener(new ListChangeListener<MediaListItem>() {
+        	@Override
+        	public void onChanged(javafx.collections.ListChangeListener.Change<? extends MediaListItem> c) {
+        		boolean added = false;
+        		while (c.next()) {
+        			added |= c.wasAdded();
+        		}
+        		if (added) {
+        			leftScroller.setVvalue(leftScroller.getVmax());
+        		}
+        	}
+        });
+//        .addListener(new ChangeListener<Number>() {
+//        	@Override
+//        	public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+//        		leftScroller.setVvalue(leftScroller.getVmax());
+//        	}
+//        });
         leftScroller.setOnDragDropped(new EventHandler<DragEvent>() {
 			@Override
 			public void handle(DragEvent event) {
@@ -255,7 +296,7 @@ public class MediaLibraryPane extends Application {
 											Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
 											// get the failed media
 											String list = String.join(", ", failed.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
-											Alert alert = Alerts.exception(MessageFormat.format(Translations.getTranslation("media.import.error"), list), exceptions);
+											Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.getTranslation("media.import.error"), list), exceptions);
 											alert.show();
 										}
 									}
@@ -271,7 +312,6 @@ public class MediaLibraryPane extends Application {
 			}
         });
 
-        ObservableSet<Tag> allTags = FXCollections.observableSet(tags);
         MediaMetadataView right = new MediaMetadataView(library, allTags);
         
         // wire up the selected media to the media metadata view with a unidirectional binding
@@ -291,83 +331,18 @@ public class MediaLibraryPane extends Application {
         split.setDividerPositions(0.75);
         SplitPane.setResizableWithParent(rightScroller, Boolean.FALSE);
         
-        // TODO fix when resized too small
-        HBox top = new HBox();
-        top.setPadding(new Insets(5));
-        top.setSpacing(5);
-        top.setAlignment(Pos.BASELINE_LEFT);
-        
         // FILTERING
         
-        final MediaFilter filter = new MediaFilter();
-        
-        final Supplier<List<MediaListItem>> filterFunction = new Supplier<List<MediaListItem>>() {
-        	@Override
-        	public List<MediaListItem> get() {
-        		final MediaType mType = filter.typeProperty().get().getData();
-				final Tag mTag = filter.tagProperty().get().getData();
-				final String mSearch = filter.searchProperty().get();
-				System.out.println("filtering " + mSearch);
-        		// filter the master list
-        		List<MediaListItem> filtered = master.stream().filter(m -> {
-        			// if the media is being imported
-        			if (!m.loaded || 
-        				((mType == null || m.media.getMetadata().getType() == mType) &&
-        				 (mTag == null || m.media.getMetadata().getTags().contains(mTag)) &&
-        				 (mSearch == null || mSearch.length() == 0 || m.media.getMetadata().getName().contains(mSearch)))) {
-        				return true;
-        			}
-        			return false;
-        		}).collect(Collectors.toList());
-        		return filtered;
-        	}
-		};
-        
-        ObservableList<FilterOption<MediaType>> opTypes = FXCollections.observableArrayList();
-        // add the all option
-        opTypes.add(new FilterOption<>());
-        // add the current options
-        opTypes.addAll(Arrays.asList(MediaType.values()).stream().map(t -> new FilterOption<MediaType>(t.getName(), t)).collect(Collectors.toList()));
+        this.filter = new MediaFilter(master, display);
         
         Label lblFilter = new Label("filter by:");
         ComboBox<FilterOption<MediaType>> cbTypes = new ComboBox<FilterOption<MediaType>>(opTypes);
-        cbTypes.valueProperty().bindBidirectional(filter.typeProperty());
         cbTypes.setValue(new FilterOption<>());
-        cbTypes.valueProperty().addListener(new ChangeListener<FilterOption<MediaType>>() {
-        	@Override
-        	public void changed(ObservableValue<? extends FilterOption<MediaType>> ob, FilterOption<MediaType> oldValue, FilterOption<MediaType> newValue) {
-        		display.setAll(filterFunction.get());
-        	}
-		});
-        
-        ObservableList<FilterOption<Tag>> opTags = FXCollections.observableArrayList();
-        // add the all option
-        opTags.add(new FilterOption<>());
-        // add the current options
-        opTags.addAll(allTags.stream().map(t -> new FilterOption<Tag>(t.getName(), t)).collect(Collectors.toList()));
-        // add a listener for more tags being added
-        allTags.addListener(new SetChangeListener<Tag>() {
-        	@Override
-        	public void onChanged(SetChangeListener.Change<? extends Tag> change) {
-        		if (change.wasRemoved()) {
-        			opTags.removeIf(fo -> fo.getData().equals(change.getElementRemoved()));
-        		}
-        		if (change.wasAdded()) {
-        			Tag tag = change.getElementAdded();
-        			opTags.add(new FilterOption<Tag>(tag.getName(), tag));
-        		}
-        	}
-		});
+        cbTypes.valueProperty().bindBidirectional(this.filter.typeFilterOptionProperty());
         
         ComboBox<FilterOption<Tag>> cbTags = new ComboBox<FilterOption<Tag>>(opTags);
-        cbTags.valueProperty().bindBidirectional(filter.tagProperty());
+        cbTags.valueProperty().bindBidirectional(this.filter.tagFilterOptionProperty());
         cbTags.setValue(new FilterOption<>());
-        cbTags.valueProperty().addListener(new ChangeListener<FilterOption<Tag>>() {
-        	@Override
-        	public void changed(ObservableValue<? extends FilterOption<Tag>> ob, FilterOption<Tag> oldValue, FilterOption<Tag> newValue) {
-        		display.setAll(filterFunction.get());
-        	}
-		});
         
         Label lblSort = new Label("sort by:");
         ChoiceBox<String> cbSort = new ChoiceBox<String>(FXCollections.observableArrayList("Name", "Type", "Date Added"));
@@ -375,19 +350,27 @@ public class MediaLibraryPane extends Application {
         
         TextField txtSearch = new TextField();
         txtSearch.setPromptText("search");
-        //txtSearch.textProperty().bindBidirectional(filter.searchProperty());
-        txtSearch.textProperty().addListener(new ChangeListener<String>() {
-        	@Override
-        	public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        		filter.tagProperty().set(new FilterOption<>());
-        		filter.typeProperty().set(new FilterOption<>());
-        		filter.searchProperty().set(newValue);
-        		display.setAll(filterFunction.get());
-        	}
-        });
+        txtSearch.textProperty().bindBidirectional(this.filter.searchProperty());
         
-        top.getChildren().addAll(lblFilter, cbTypes, cbTags,
-        						 lblSort, cbSort, tgl, txtSearch);
+        HBox pFilter = new HBox(); 
+        pFilter.setSpacing(5);
+        pFilter.getChildren().addAll(lblFilter, cbTypes, cbTags, txtSearch);
+//        pFilter.setBorder(Testing.border(Color.GREEN));
+        
+        HBox pSort = new HBox();
+        pSort.setSpacing(5);
+        pSort.getChildren().addAll(lblSort, cbSort, tgl);
+//        pSort.setBorder(Testing.border(Color.RED));
+        
+        FlowPane top = new FlowPane();
+        top.setHgap(5);
+        top.setVgap(5);
+        top.setAlignment(Pos.BASELINE_LEFT);
+        top.setPadding(new Insets(5));
+        top.setPrefWrapLength(0);
+//        top.setBorder(Testing.border(Color.YELLOW));
+        
+        top.getChildren().addAll(pFilter, pSort);
         
         BorderPane root = new BorderPane();
         root.setTop(top);

@@ -24,42 +24,44 @@
  */
 package org.praisenter.media;
 
-import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.text.MessageFormat;
-
-import org.praisenter.resources.translations.Translations;
-
 /**
- * The default media import filter which simply copies the source to the target.
+ * Exception thrown when a file's extension does not map to a supported mime type.
  * @author William Bittle
  * @version 3.0.0
  */
-public class DefaultMediaImportFilter implements MediaImportFilter {
-	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaImportFilter#getTarget(java.nio.file.Path, java.lang.String, org.praisenter.media.MediaType)
+public class UnknownMediaTypeException extends Exception {
+	/** The serialization id */
+	private static final long serialVersionUID = 6330495060583102082L;
+
+	/**
+	 * Default constructor.
 	 */
-	@Override
-	public Path getTarget(Path location, String name, MediaType type) {
-		// by default it should be the file name in the location
-		return location.resolve(name);
+	public UnknownMediaTypeException() {
+		super();
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.media.MediaImportFilter#filter(java.nio.file.Path, java.nio.file.Path, org.praisenter.media.MediaType)
+
+	/**
+	 * Full constructor.
+	 * @param message the message
+	 * @param cause the cause
 	 */
-	@Override
-	public void filter(Path source, Path target, MediaType type) throws TranscodeException, FileAlreadyExistsException, IOException {
-		// just copy from source to target
-		
-		// see if we can use the same name in the destination file
-		if (Files.exists(target)) {
-			throw new FileAlreadyExistsException(MessageFormat.format(Translations.getTranslation("error.file.exists"), target.toAbsolutePath().toString()));
-		}
-		
-		Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+	public UnknownMediaTypeException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	/**
+	 * Optional constructor.
+	 * @param message the message
+	 */
+	public UnknownMediaTypeException(String message) {
+		super(message);
+	}
+
+	/**
+	 * Optional constructor.
+	 * @param cause the cause
+	 */
+	public UnknownMediaTypeException(Throwable cause) {
+		super(cause);
 	}
 }
