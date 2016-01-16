@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.praisenter.data.ConnectionFactory;
-import org.praisenter.data.DataException;
 
 /**
  * Data access class for {@link Bible} verses.
@@ -54,47 +53,47 @@ public final class Bibles {
 	 * Returns the bible with the given id.
 	 * @param id the bible id
 	 * @return Bible the bible
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Bible getBible(int id) throws DataException {
+	public static final Bible getBible(int id) throws SQLException {
 		return Bibles.getBibleBySql("SELECT id, data_source, name, language FROM bibles WHERE id = " + id);
 	}
 	
 	/**
 	 * Returns all the bibles.
 	 * @return List&lt;{@link Bible}&gt;
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final List<Bible> getBibles() throws DataException {
+	public static final List<Bible> getBibles() throws SQLException {
 		return Bibles.getBiblesBySql("SELECT id, data_source, name, language FROM bibles ORDER BY name");
 	}
 	
 	/**
 	 * Returns the number of bibles.
 	 * @return int
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final int getBibleCount() throws DataException {
+	public static final int getBibleCount() throws SQLException {
 		return Bibles.getCountBySql("SELECT COUNT(*) FROM bibles");
 	}
 	
 	/**
 	 * Deletes the given bible.
 	 * @param bible the bible to delete
-	 * @throws DataException if an exception occurs while deleting the bible
+	 * @throws SQLException if an exception occurs while deleting the bible
 	 * @since 2.0.0
 	 */
-	public static final void deleteBible(Bible bible) throws DataException {
+	public static final void deleteBible(Bible bible) throws SQLException {
 		Bibles.deleteBible(bible.id);
 	}
 	
 	/**
 	 * Deletes the bible with the given id.
 	 * @param id the id of the bible to delete
-	 * @throws DataException if an exception occurs while deleting the bible
+	 * @throws SQLException if an exception occurs while deleting the bible
 	 * @since 2.0.0
 	 */
-	public static final void deleteBible(int id) throws DataException {
+	public static final void deleteBible(int id) throws SQLException {
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();)
@@ -107,7 +106,7 @@ public final class Bibles {
 			// execute the batch
 			statement.executeBatch();
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -119,9 +118,9 @@ public final class Bibles {
 	 * Returns an empty list if the bible was not found.
 	 * @param bible the bible
 	 * @return List&lt;{@link Book}&gt;
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final List<Book> getBooks(Bible bible) throws DataException {
+	public static final List<Book> getBooks(Bible bible) throws SQLException {
 		return getBooks(bible, false);
 	}
 	
@@ -132,9 +131,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param includeApocrypha true if the apocrypha should be included
 	 * @return List&lt;{@link Book}&gt;
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final List<Book> getBooks(Bible bible, boolean includeApocrypha) throws DataException {
+	public static final List<Book> getBooks(Bible bible, boolean includeApocrypha) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT code, name FROM bible_books WHERE bible_id = ").append(bible.id);
@@ -153,9 +152,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param code the book code
 	 * @return {@link Book}
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Book getBook(Bible bible, String code) throws DataException {
+	public static final Book getBook(Bible bible, String code) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT code, name FROM bible_books WHERE bible_id = ").append(bible.getId())
@@ -171,9 +170,9 @@ public final class Bibles {
 	 * @param bible the bible to search
 	 * @param search the search; (by book name)
 	 * @return List&lt;{@link Book}&gt;
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final List<Book> searchBooks(Bible bible, String search) throws DataException {
+	public static final List<Book> searchBooks(Bible bible, String search) throws SQLException {
 		return searchBooks(bible, search, false);
 	}
 	
@@ -185,9 +184,9 @@ public final class Bibles {
 	 * @param includeApocrypha true if the apocrypha should be included
 	 * @param search the search; (by book name)
 	 * @return List&lt;{@link Book}&gt;
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final List<Book> searchBooks(Bible bible, String search, boolean includeApocrypha) throws DataException {
+	public static final List<Book> searchBooks(Bible bible, String search, boolean includeApocrypha) throws SQLException {
 		String term = cleanSearchTerm(search);
 		// build the query
 		StringBuilder sb = new StringBuilder();
@@ -205,9 +204,9 @@ public final class Bibles {
 	 * Returns the number of {@link Book}s contained in the given {@link Bible}.
 	 * @param bible the bible
 	 * @return int
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final int getBookCount(Bible bible) throws DataException {
+	public static final int getBookCount(Bible bible) throws SQLException {
 		return getBookCount(bible, false);
 	}
 	
@@ -217,9 +216,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param includeApocrypha true if the apocrypha should be included
 	 * @return int
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final int getBookCount(Bible bible, boolean includeApocrypha) throws DataException {
+	public static final int getBookCount(Bible bible, boolean includeApocrypha) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT COUNT(code) FROM bible_books WHERE bible_id = ? ");
@@ -239,7 +238,7 @@ public final class Bibles {
 			
 			return 0;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -250,9 +249,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param bookCode the book code
 	 * @return int
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final int getChapterCount(Bible bible, String bookCode) throws DataException {
+	public static final int getChapterCount(Bible bible, String bookCode) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT COUNT(DISTINCT chapter) FROM bible_verses WHERE bible_id = ? ")
@@ -271,7 +270,7 @@ public final class Bibles {
 			
 			return 0;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -280,9 +279,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param bookCode the book code
 	 * @return int
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final int getLastChapter(Bible bible, String bookCode) throws DataException {
+	public static final int getLastChapter(Bible bible, String bookCode) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT MAX(chapter) FROM bible_verses WHERE bible_id = ? ")
@@ -301,7 +300,7 @@ public final class Bibles {
 			
 			return 0;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -314,9 +313,9 @@ public final class Bibles {
 	 * @param chapter the chapter number
 	 * @param verse the verse number
 	 * @return {@link Verse}
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getVerse(Bible bible, String bookCode, int chapter, int verse) throws DataException {
+	public static final Verse getVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
@@ -343,7 +342,7 @@ public final class Bibles {
 			
 			return null;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -351,9 +350,9 @@ public final class Bibles {
 	 * Returns the next verse for the given {@link Verse}.
 	 * @param verse the verse
 	 * @return {@link Verse}
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getNextVerse(Verse verse) throws DataException {
+	public static final Verse getNextVerse(Verse verse) throws SQLException {
 		return getNextVerse(verse, false);
 	}
 	
@@ -362,9 +361,9 @@ public final class Bibles {
 	 * @param verse the verse
 	 * @param includeApocrypha true if the apocrypha should be included
 	 * @return {@link Verse}
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getNextVerse(Verse verse, boolean includeApocrypha) throws DataException {
+	public static final Verse getNextVerse(Verse verse, boolean includeApocrypha) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
@@ -393,7 +392,7 @@ public final class Bibles {
 			
 			return null;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -404,9 +403,9 @@ public final class Bibles {
 	 * @param chapter the chapter number
 	 * @param verse the verse number
 	 * @return {@link Verse}
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getNextVerse(Bible bible, String bookCode, int chapter, int verse) throws DataException {
+	public static final Verse getNextVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
 		return getNextVerse(bible, bookCode, chapter, verse, false);
 	}
 
@@ -418,9 +417,9 @@ public final class Bibles {
 	 * @param verse the verse number
 	 * @param includeApocrypha true if the apocrypha should be included
 	 * @return {@link Verse}
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getNextVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws DataException {
+	public static final Verse getNextVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
@@ -456,7 +455,7 @@ public final class Bibles {
 			
 			return null;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -464,9 +463,9 @@ public final class Bibles {
 	 * Returns the previous verse for the given {@link Verse}.
 	 * @param verse the verse
 	 * @return {@link Verse}
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getPreviousVerse(Verse verse) throws DataException {
+	public static final Verse getPreviousVerse(Verse verse) throws SQLException {
 		return getPreviousVerse(verse, false);
 	}
 
@@ -475,9 +474,9 @@ public final class Bibles {
 	 * @param verse the verse
 	 * @param includeApocrypha true if the apocrypha should be included
 	 * @return {@link Verse}
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getPreviousVerse(Verse verse, boolean includeApocrypha) throws DataException {
+	public static final Verse getPreviousVerse(Verse verse, boolean includeApocrypha) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
@@ -506,7 +505,7 @@ public final class Bibles {
 			
 			return null;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -517,9 +516,9 @@ public final class Bibles {
 	 * @param chapter the chapter number
 	 * @param verse the verse number
 	 * @return {@link Verse}
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getPreviousVerse(Bible bible, String bookCode, int chapter, int verse) throws DataException {
+	public static final Verse getPreviousVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
 		return getPreviousVerse(bible, bookCode, chapter, verse, false);
 	}
 
@@ -531,9 +530,9 @@ public final class Bibles {
 	 * @param verse the verse number
 	 * @param includeApocrypha true if the apocrypha should be included
 	 * @return {@link Verse}
-	 * @throws DataException if an exception occurs while retrieving the data
+	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getPreviousVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws DataException {
+	public static final Verse getPreviousVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
@@ -569,7 +568,7 @@ public final class Bibles {
 			
 			return null;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -581,9 +580,9 @@ public final class Bibles {
 	 * @param search the search criteria
 	 * @param includeApocrypha true if the apocrypha should be included
 	 * @return List&lt;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	private static final List<Verse> searchVersesByLocation(Bible bible, String search, boolean includeApocrypha) throws DataException {
+	private static final List<Verse> searchVersesByLocation(Bible bible, String search, boolean includeApocrypha) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
@@ -695,9 +694,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param search the search term
 	 * @return List&tl;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String search) throws DataException {
+	public static final List<Verse> searchVerses(Bible bible, String search) throws SQLException {
 		return searchVerses(bible, search, BibleSearchType.PHRASE, false);
 	}
 	
@@ -709,9 +708,9 @@ public final class Bibles {
 	 * @param search the search term
 	 * @param includeApocrypha true if the apocrypha should be included
 	 * @return List&tl;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String search, boolean includeApocrypha) throws DataException {
+	public static final List<Verse> searchVerses(Bible bible, String search, boolean includeApocrypha) throws SQLException {
 		return searchVerses(bible, search, BibleSearchType.PHRASE, includeApocrypha);
 	}
 	
@@ -721,9 +720,9 @@ public final class Bibles {
 	 * @param search the search term
 	 * @param type the search type
 	 * @return List&tl;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String search, BibleSearchType type) throws DataException {
+	public static final List<Verse> searchVerses(Bible bible, String search, BibleSearchType type) throws SQLException {
 		return searchVerses(bible, search, type, false);
 	}
 	
@@ -734,9 +733,9 @@ public final class Bibles {
 	 * @param type the search type
 	 * @param includeApocrypha true if the apocrypha should be included
 	 * @return List&tl;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String search, BibleSearchType type, boolean includeApocrypha) throws DataException {
+	public static final List<Verse> searchVerses(Bible bible, String search, BibleSearchType type, boolean includeApocrypha) throws SQLException {
 		// check the search criteria
 		if (search == null || search.trim().isEmpty()) {
 			return Collections.emptyList();
@@ -769,9 +768,9 @@ public final class Bibles {
 	 * @param division the bible division
 	 * @param search the search term
 	 * @return List&tl;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, Division division, String search) throws DataException {
+	public static final List<Verse> searchVerses(Bible bible, Division division, String search) throws SQLException {
 		return searchVerses(bible, division, search, BibleSearchType.PHRASE);
 	}
 	
@@ -782,9 +781,9 @@ public final class Bibles {
 	 * @param search the search term
 	 * @param type the search type
 	 * @return List&tl;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, Division division, String search, BibleSearchType type) throws DataException {
+	public static final List<Verse> searchVerses(Bible bible, Division division, String search, BibleSearchType type) throws SQLException {
 		// check the search criteria
 		if (search == null || search.trim().isEmpty()) {
 			return Collections.emptyList();
@@ -819,9 +818,9 @@ public final class Bibles {
 	 * @param bookCode the book code of the book to search
 	 * @param search the search term
 	 * @return List&tl;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String bookCode, String search) throws DataException {
+	public static final List<Verse> searchVerses(Bible bible, String bookCode, String search) throws SQLException {
 		return searchVerses(bible, bookCode, search, BibleSearchType.PHRASE);
 	}
 
@@ -832,9 +831,9 @@ public final class Bibles {
 	 * @param search the search term
 	 * @param type the search type
 	 * @return List&tl;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String bookCode, String search, BibleSearchType type) throws DataException {
+	public static final List<Verse> searchVerses(Bible bible, String bookCode, String search, BibleSearchType type) throws SQLException {
 		// check the search criteria
 		if (search == null || search.trim().isEmpty()) {
 			return Collections.emptyList();
@@ -866,9 +865,9 @@ public final class Bibles {
 	 * @param chapter the chapter number
 	 * @param search the search term
 	 * @return List&tl;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String bookCode, int chapter, String search) throws DataException {
+	public static final List<Verse> searchVerses(Bible bible, String bookCode, int chapter, String search) throws SQLException {
 		return searchVerses(bible, bookCode, chapter, search, BibleSearchType.PHRASE);
 	}
 	
@@ -880,9 +879,9 @@ public final class Bibles {
 	 * @param search the search term
 	 * @param type the search type
 	 * @return List&tl;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String bookCode, int chapter, String search, BibleSearchType type) throws DataException {
+	public static final List<Verse> searchVerses(Bible bible, String bookCode, int chapter, String search, BibleSearchType type) throws SQLException {
 		// check the search criteria
 		if (search == null || search.trim().isEmpty()) {
 			return Collections.emptyList();
@@ -910,9 +909,9 @@ public final class Bibles {
 	 * Returns the total number of verses in the given {@link Bible}.
 	 * @param bible the bible
 	 * @return int
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final int getVerseCount(Bible bible) throws DataException {
+	public static final int getVerseCount(Bible bible) throws SQLException {
 		return getVerseCount(bible, false);
 	}
 
@@ -921,9 +920,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param includeApocrypha true if the apocrypha should be included
 	 * @return int
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final int getVerseCount(Bible bible, boolean includeApocrypha) throws DataException {
+	public static final int getVerseCount(Bible bible, boolean includeApocrypha) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ");
@@ -944,7 +943,7 @@ public final class Bibles {
 			
 			return 0;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -953,9 +952,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param bookCode the book code
 	 * @return int
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final int getVerseCount(Bible bible, String bookCode) throws DataException {
+	public static final int getVerseCount(Bible bible, String bookCode) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ")
@@ -974,7 +973,7 @@ public final class Bibles {
 			
 			return 0;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 
@@ -984,9 +983,9 @@ public final class Bibles {
 	 * @param bookCode the book code
 	 * @param chapter the chapter number
 	 * @return int
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final int getVerseCount(Bible bible, String bookCode, int chapter) throws DataException {
+	public static final int getVerseCount(Bible bible, String bookCode, int chapter) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ")
@@ -1008,7 +1007,7 @@ public final class Bibles {
 			
 			return 0;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -1018,10 +1017,10 @@ public final class Bibles {
 	 * @param bookCode the book code
 	 * @param chapter the chapter number
 	 * @return int
-	 * @throws DataException if any exception occurs while retrieving the data
+	 * @throws SQLException if any exception occurs while retrieving the data
 	 * @since 2.0.1
 	 */
-	public static final int getLastVerse(Bible bible, String bookCode, int chapter) throws DataException {
+	public static final int getLastVerse(Bible bible, String bookCode, int chapter) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT MAX(verse) FROM bible_verses WHERE bible_id = ? ")
@@ -1043,7 +1042,7 @@ public final class Bibles {
 			
 			return 0;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -1062,9 +1061,9 @@ public final class Bibles {
 	 * Executes the given sql returning the count.
 	 * @param sql the sql query
 	 * @return int the count
-	 * @throws DataException if any exception occurs during processing
+	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final int getCountBySql(String sql) throws DataException {
+	private static final int getCountBySql(String sql) throws SQLException {
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
@@ -1077,7 +1076,7 @@ public final class Bibles {
 			
 			return 0;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -1085,9 +1084,9 @@ public final class Bibles {
 	 * Executes the given sql returning a list of {@link Bible}s.
 	 * @param sql the sql query
 	 * @return List&lt;{@link Bible}&gt;
-	 * @throws DataException if any exception occurs during processing
+	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final List<Bible> getBiblesBySql(String sql) throws DataException {
+	private static final List<Bible> getBiblesBySql(String sql) throws SQLException {
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
@@ -1102,7 +1101,7 @@ public final class Bibles {
 			
 			return bibles;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 
@@ -1110,9 +1109,9 @@ public final class Bibles {
 	 * Executes the given sql returning a {@link Bible}.
 	 * @param sql the sql query
 	 * @return {@link Bible}
-	 * @throws DataException if any exception occurs during processing
+	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final Bible getBibleBySql(String sql) throws DataException {
+	private static final Bible getBibleBySql(String sql) throws SQLException {
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
@@ -1126,7 +1125,7 @@ public final class Bibles {
 			
 			return bible;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 
@@ -1135,9 +1134,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param sql the sql query
 	 * @return List&lt;{@link Book}&gt;
-	 * @throws DataException if any exception occurs during processing
+	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final List<Book> getBooksBySql(Bible bible, String sql) throws DataException {
+	private static final List<Book> getBooksBySql(Bible bible, String sql) throws SQLException {
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
@@ -1152,7 +1151,7 @@ public final class Bibles {
 			
 			return books;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -1161,9 +1160,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param sql the sql query
 	 * @return {@link Book}
-	 * @throws DataException if any exception occurs during processing
+	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final Book getBookBySql(Bible bible, String sql) throws DataException {
+	private static final Book getBookBySql(Bible bible, String sql) throws SQLException {
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
@@ -1175,7 +1174,7 @@ public final class Bibles {
 				return book;
 			} 
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 		
 		return null;
@@ -1186,9 +1185,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param sql the sql query
 	 * @return List&lt;{@link Verse}&gt;
-	 * @throws DataException if any exception occurs during processing
+	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final List<Verse> getVersesBySql(Bible bible, String sql) throws DataException {
+	private static final List<Verse> getVersesBySql(Bible bible, String sql) throws SQLException {
 		// execute the query
 		try (Connection connection = ConnectionFactory.getInstance().getConnection();
 			 Statement statement = connection.createStatement();
@@ -1203,7 +1202,7 @@ public final class Bibles {
 			
 			return verses;
 		} catch (Exception e) {
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
@@ -1211,9 +1210,9 @@ public final class Bibles {
 	 * Converts the given result to a {@link Bible}.
 	 * @param result the result
 	 * @return {@link Bible}
-	 * @throws DataException if an exception occurs while processing the result
+	 * @throws SQLException if an exception occurs while processing the result
 	 */
-	private static final Bible getBibleFromResultSet(ResultSet result) throws DataException {
+	private static final Bible getBibleFromResultSet(ResultSet result) throws SQLException {
 		try {
 			return new Bible(
 					result.getInt("id"),
@@ -1221,7 +1220,7 @@ public final class Bibles {
 					result.getString("language"),
 					result.getString("data_source"));
 		} catch (SQLException e) {
-			throw new DataException("An error occurred when interpreting the bible result.", e);
+			throw new SQLException("An error occurred when interpreting the bible result.", e);
 		}
 	}
 
@@ -1230,16 +1229,16 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param result the result
 	 * @return {@link Book}
-	 * @throws DataException if an exception occurs while processing the result
+	 * @throws SQLException if an exception occurs while processing the result
 	 */
-	private static final Book getBook(Bible bible, ResultSet result) throws DataException {
+	private static final Book getBook(Bible bible, ResultSet result) throws SQLException {
 		try {
 			return new Book(
 					bible,
 					result.getString("code"),
 					result.getString("name"));
 		} catch (SQLException e) {
-			throw new DataException("An error occurred when interpreting the book result.", e);
+			throw new SQLException("An error occurred when interpreting the book result.", e);
 		}
 	}
 	
@@ -1248,9 +1247,9 @@ public final class Bibles {
 	 * @param bible the bible
 	 * @param result the result
 	 * @return {@link Verse}
-	 * @throws DataException if an exception occurs while processing the result
+	 * @throws SQLException if an exception occurs while processing the result
 	 */
-	private static final Verse getVerse(Bible bible, ResultSet result) throws DataException {
+	private static final Verse getVerse(Bible bible, ResultSet result) throws SQLException {
 		try {
 			return new Verse(
 					bible,
@@ -1265,7 +1264,7 @@ public final class Bibles {
 					result.getInt("order_by"),
 					result.getString("text"));
 		} catch (SQLException e) {
-			throw new DataException("An error occurred when interpreting the verse result.", e);
+			throw new SQLException("An error occurred when interpreting the verse result.", e);
 		}
 	}
 }
