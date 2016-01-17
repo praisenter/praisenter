@@ -96,22 +96,22 @@ public final class XmlIO {
 		Unmarshaller unmarshaller = context.unmarshaller;
 		return clazz.cast(unmarshaller.unmarshal(path.toFile()));
 	}
-//	
-//	/**
-//	 * Reads the given input stream.
-//	 * @param stream the input stream to read
-//	 * @param clazz the type to read in
-//	 * @return E
-//	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
-//	 * @throws IOException thrown if an exception occurs while reading the XML file
-//	 */
-//	public static final <E> E read(InputStream stream, Class<E> clazz) throws JAXBException, IOException {
-//		// otherwise attempt to read the file
-//		XmlContext context = getXmlContext(clazz);
-//		Unmarshaller unmarshaller = context.unmarshaller;
-//		return clazz.cast(unmarshaller.unmarshal(stream));
-//	}
-//	
+	
+	/**
+	 * Reads the given input stream.
+	 * @param stream the input stream to read
+	 * @param clazz the type to read in
+	 * @return E
+	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
+	 * @throws IOException thrown if an exception occurs while reading the XML file
+	 */
+	public static final <E> E read(InputStream stream, Class<E> clazz) throws JAXBException, IOException {
+		// otherwise attempt to read the file
+		XmlContext context = getXmlContext(clazz);
+		Unmarshaller unmarshaller = context.unmarshaller;
+		return clazz.cast(unmarshaller.unmarshal(stream));
+	}
+	
 	/**
 	 * Saves the given object to the given file file.
 	 * @param path the path to save the file to
@@ -131,17 +131,17 @@ public final class XmlIO {
 		Marshaller marshaller = context.marshaller;
 		marshaller.marshal(object, path.toFile());
 	}
-//	
-//	/**
-//	 * Saves the given object to the given stream.
-//	 * @param stream the stream to write to
-//	 * @param object the object to save in the file
-//	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
-//	 * @throws IOException thrown if an exception occurs while writing the XML file
-//	 */
-//	public static final <E> void save(OutputStream stream, E object) throws JAXBException, IOException {
-//		XmlContext context = getXmlContext(object.getClass());
-//		Marshaller marshaller = context.marshaller;
-//		marshaller.marshal(object, stream);
-//	}
+	
+	/**
+	 * Saves the given object to the given stream.
+	 * @param stream the stream to write to
+	 * @param object the object to save in the file
+	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
+	 * @throws IOException thrown if an exception occurs while writing the XML file
+	 */
+	public static final <E> void save(OutputStream stream, E object) throws JAXBException, IOException {
+		XmlContext context = getXmlContext(object.getClass());
+		Marshaller marshaller = context.marshaller;
+		marshaller.marshal(object, stream);
+	}
 }

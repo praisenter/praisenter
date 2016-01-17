@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -24,39 +24,44 @@
  */
 package org.praisenter.data.song;
 
-import java.text.Collator;
-import java.util.Comparator;
-
 /**
- * Comparator used to sort a collection of {@link Song}s by their title.
+ * Exception thrown when a {@link SongFormatReader} encounters a problem.
  * @author William Bittle
- * @version 2.0.1
- * @since 1.0.0
+ * @version 3.0.0
  */
-public class SongTitleComparator implements Comparator<Song> {
-	/** Use the default locale collator */
-	private static final Collator COLLATOR = getCollator();
-	
+public class SongFormatReaderException extends Exception {
+	/** The version id */
+	private static final long serialVersionUID = -5899650103924741150L;
+
 	/**
-	 * Returns the default collator for the current thread locale.
-	 * @return Collator
-	 * @since 2.0.1
+	 * Default constructor.
 	 */
-	private static final Collator getCollator() {
-		Collator collator = Collator.getInstance();
-		return collator;
+	public SongFormatReaderException() {
+		super();
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+	/**
+	 * Full constructor.
+	 * @param message the message
+	 * @param cause the root exception
 	 */
-	@Override
-	public int compare(Song song1, Song song2) {
-		if (song1.title == null) return -1;
-		if (song2.title == null) return 1;
-		if (song1 == song2) return 0;
-		// perform natural language sorting rather than just string value sorting
-		// this is also done in the JTable auto sorting
-		return COLLATOR.compare(song1.title, song2.title);
+	public SongFormatReaderException(String message, Throwable cause) {
+		super(message, cause);
+	}
+	
+	/**
+	 * Optional constructor.
+	 * @param message the message
+	 */
+	public SongFormatReaderException(String message) {
+		super(message);
+	}
+
+	/**
+	 * Optional constructor.
+	 * @param cause the root exception
+	 */
+	public SongFormatReaderException(Throwable cause) {
+		super(cause);
 	}
 }

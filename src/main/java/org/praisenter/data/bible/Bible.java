@@ -31,16 +31,19 @@ package org.praisenter.data.bible;
  */
 public final class Bible implements Comparable<Bible> {
 	/** The bible id */
-	final int id;
+	int id;
 	
 	/** The name of the bible */
-	final String name;
+	String name;
 	
 	/** The language the bible is in (non-ISO unfortunately) */
-	final String language;
+	String language;
 
 	/** The source for the bible's contents */
-	final String source;
+	String source;
+	
+	/** Hidden default constructor */
+	Bible() {}
 	
 	/**
 	 * Full constructor.
@@ -49,7 +52,7 @@ public final class Bible implements Comparable<Bible> {
 	 * @param language the bible language
 	 * @param source the bible source
 	 */
-	protected Bible(int id, String name, String language, String source) {
+	Bible(int id, String name, String language, String source) {
 		this.id = id;
 		this.name = name;
 		this.language = language;

@@ -24,7 +24,6 @@
  */
 package org.praisenter.data;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,31 +34,48 @@ import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.zip.ZipException;
 
+import javax.sql.DataSource;
+
+import org.apache.commons.dbcp2.ConnectionFactory;
+import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
+import org.apache.commons.dbcp2.PoolableConnection;
+import org.apache.commons.dbcp2.PoolableConnectionFactory;
+import org.apache.commons.dbcp2.PoolingDataSource;
+import org.apache.commons.pool2.ObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.derby.jdbc.EmbeddedDriver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Zip;
 
-public final class ConnectionFactory {
+public final class Database {
 
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	private static final String CLASSPATH_DATABASE_FILE_NAME = "praisenter-blank-db.zip";
+	private static final String CLASSPATH_DATABASE_FILE_NAME = "blank.zip";
 	
 	private final Path path;
+	private DataSource dataSource;
 	
-	public static final ConnectionFactory open(Path path) throws FileNotFoundException, ZipException, IOException { 
-		ConnectionFactory factory = new ConnectionFactory(path);
-		factory.initialize();
-		return factory;
+	public static final Database open(Path path) throws ZipException, IOException, SQLException { 
+		Database db = new Database(path);
+		db.initialize();
+		return db;
 	}
 	
-	private ConnectionFactory(Path path) {
+	private Database(Path path) {
 		this.path = path;
 	}
 	
-	private void initialize() throws IOException, FileNotFoundException, ZipException {
+	private void initialize() throws IOException, ZipException, SQLException {
+		// make sure the driver is registered
+		if (!isDriverRegistered()) {
+			// register the driver
+			DriverManager.registerDriver(new EmbeddedDriver());
+		}
+		
+		// verify the database exists
 		if (Files.isDirectory(this.path)) {
 			LOGGER.debug("The database folder exists.");
 		} else {
@@ -84,6 +100,13 @@ public final class ConnectionFactory {
 			
 			LOGGER.debug("Blank database installed successfully.");
 		}
+
+        ConnectionFactory connectionFactory = new DriverManagerConnectionFactory("jdbc:derby:" + this.path, null);
+        PoolableConnectionFactory poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);
+        ObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<PoolableConnection>(poolableConnectionFactory);
+        // set the pool
+        poolableConnectionFactory.setPool(connectionPool);
+        this.dataSource = new PoolingDataSource<PoolableConnection>(connectionPool);
 	}
 	
 	private static final boolean isDriverRegistered() {
@@ -98,23 +121,7 @@ public final class ConnectionFactory {
 		return false;
 	}
 
-	private static final Connection getConnectionByUrl(String url) throws SQLException {
-		// if not, then make sure the driver is registered
-		if (!isDriverRegistered()) {
-			// register the driver
-			DriverManager.registerDriver(new EmbeddedDriver());
-		}
-		
-		// create the connection
-		return DriverManager.getConnection(url);
-	}
-	
-	private static final synchronized Connection getConnection(String path) throws SQLException {
-		return getConnectionByUrl("jdbc:derby:" + path);
-	}
-
-
 	public Connection getConnection() throws SQLException {
-		return getConnection(this.path.toAbsolutePath().toString());
+		return this.dataSource.getConnection();
 	}
 }

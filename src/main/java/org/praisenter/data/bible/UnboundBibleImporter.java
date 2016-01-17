@@ -26,19 +26,15 @@ package org.praisenter.data.bible;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.SQLException;
-import java.sql.SQLIntegrityConstraintViolationException;
-import java.sql.Statement;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,9 +44,8 @@ import java.util.zip.ZipInputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.data.ConnectionFactory;
-import org.praisenter.data.DataImportException;
-import org.praisenter.data.DataSaveException;
+import org.praisenter.data.Database;
+import org.praisenter.resources.translations.Translations;
 
 /**
  * A bible importer for the bible data files hosted on The Unbound Bible at www.unboundbible.org.
@@ -59,52 +54,22 @@ import org.praisenter.data.DataSaveException;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class UnboundBibleImporter {
-	/** The class level logger */
+public final class UnboundBibleImporter extends AbstractBibleImporter implements BibleImporter {
+	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	/** The prepared statement SQL for inserting a bible */
-	private static final String INSERT_BIBLE = "INSERT INTO BIBLES (DATA_SOURCE,NAME,LANGUAGE) VALUES(?, ?, ?)";
+	private Bible bible;
+	private List<Book> books;
+	private List<Verse> verses;
 	
-	/** The prepared statement SQL for inserting a book */
-	private static final String INSERT_BOOK = "INSERT INTO BIBLE_BOOKS (BIBLE_ID,CODE,NAME) VALUES(?, ?, ?)";
-
-	/** The prepared statement SQL for inserting a verse */
-	private static final String INSERT_VERSE = "INSERT INTO BIBLE_VERSES (BIBLE_ID,BOOK_CODE,CHAPTER,VERSE,SUB_VERSE,ORDER_BY,TEXT) VALUES(?, ?, ?, ?, ?, ?, ?)";
+	public UnboundBibleImporter(Database database) {
+		super(database);
+	}
 	
-	// index rebuilding
-	
-	/** SQL for dropping the BO_A index */
-	private static final String DROP_INDEX_BO_A = "DROP INDEX BO_A";
-	
-	/** SQL for recreating the BO_A index */
-	private static final String CREATE_INDEX_BO_A = "CREATE INDEX BO_A ON BIBLE_VERSES(BIBLE_ID,ORDER_BY)";
-	
-	/** SQL for dropping the BO_D index */
-	private static final String DROP_INDEX_BO_D = "DROP INDEX BO_D";
-	
-	/** SQL for recreating the BO_D index */
-	private static final String CREATE_INDEX_BO_D = "CREATE INDEX BO_D ON BIBLE_VERSES(BIBLE_ID,ORDER_BY DESC)";
-	
-	/** SQL for dropping the BBCV index */
-	private static final String DROP_INDEX_BBCV = "DROP INDEX BBCV";
-	
-	/** SQL for recreating the BBCV index */
-	private static final String CREATE_INDEX_BBCV = "CREATE INDEX BBCV ON BIBLE_VERSES(BIBLE_ID,BOOK_CODE,CHAPTER,VERSE)";
-	
-	/**
-	 * Attempts to import the selected file into the bible database.
-	 * @param file the file; should be a .zip from http://unbound.biola.edu/
-	 * @throws DataImportException if any exception occurs during import
-	 */
-	public static final void importBible(File file) throws DataImportException {
-		// check for null
-		if (file == null) throw new DataImportException(new NullPointerException());
-		// check for directory
-		if (file.isDirectory()) throw new DataImportException();
-		
+	@Override
+	public void execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, BibleFormatException, BibleImportException {
 		// get the file name
-		String fileName = file.getName();
+		String fileName = path.getFileName().toString();
 		int d = fileName.lastIndexOf(".");
 		String name = fileName.substring(0, d);
 		
@@ -112,17 +77,17 @@ public final class UnboundBibleImporter {
 		final String bookFileName = "book_names.txt";
 		final String verseFileName = name + "_utf8.txt";
 		
-		Bible bible = new Bible();
-		bible.source = "THE UNBOUND BIBLE (www.unboundbible.org)";
+		this.bible = new Bible();
+		this.bible.source = "THE UNBOUND BIBLE (www.unboundbible.org)";
 		
-		List<Book> books = new ArrayList<Book>();
-		List<Verse> verses = new ArrayList<Verse>();
+		this.books = new ArrayList<Book>();
+		this.verses = new ArrayList<Verse>();
 		
 		// make sure the file exists
-		if (file.exists()) {
-			LOGGER.debug("Reading UnboundBible .zip file: " + file.getName());
+		if (Files.exists(path)) {
+			LOGGER.debug("Reading UnboundBible .zip file: " + path.toAbsolutePath().toString());
 			// read the zip file
-			try (FileInputStream fis = new FileInputStream(file);
+			try (FileInputStream fis = new FileInputStream(path.toFile());
 				 BufferedInputStream bis = new BufferedInputStream(fis);
 				 ZipInputStream zis = new ZipInputStream(bis);) {
 				// read the entries
@@ -130,201 +95,39 @@ public final class UnboundBibleImporter {
 				while ((entry = zis.getNextEntry()) != null) {
 					if (entry.getName().equalsIgnoreCase(bookFileName)) {
 						LOGGER.debug("Reading UnboundBible .zip file contents: " + bookFileName);
-						books = readBooks(zis);
+						readBooks(zis);
 						LOGGER.debug("UnboundBible .zip file contents read successfully: " + bookFileName);
 					} else if (entry.getName().equalsIgnoreCase(verseFileName)) {
 						LOGGER.debug("Reading UnboundBible .zip file contents: " + verseFileName);
-						verses = readVerses(bible, zis);
+						readVerses(zis);
 						LOGGER.debug("UnboundBible .zip file contents read successfully: " + verseFileName);
 					}
 				}
-			} catch (UnrecognizedFormatException e) {
-				throw new DataImportException(e);
-			} catch (NumberFormatException e) {
-				throw new DataImportException(new UnrecognizedFormatException(e));
-			} catch (ZipException e) {
-				throw new DataImportException(e);
-			} catch (FileNotFoundException e) {
-				throw new DataImportException(e);
-			} catch (IOException e) {
-				throw new DataImportException(e);
 			}
 			
 			// check for missing files
 			if (books.size() == 0 && verses.size() == 0) {
 				LOGGER.error("The file did not contain any books or verses. Import failed.");
-				throw new DataImportException(new UnrecognizedFormatException(file.getName()));
+				throw new BibleFormatException(Translations.getTranslation("bible.import.error.unbound.empty"));
 			}
 			
-			LOGGER.debug("Importing new bible: " + bible.name);
-			// insert all the data into the tables
-			try (Connection connection = ConnectionFactory.getInstance().getConnection()) {
-				// begin the transaction
-				connection.setAutoCommit(false);
-				
-				// verify the bible doesn't exist already
-				try (Statement bibleQuery = connection.createStatement();
-					 ResultSet bqResult = bibleQuery.executeQuery("SELECT COUNT(*) FROM BIBLES WHERE NAME = '" + bible.name + "'");) {
-					// make sure we didn't get anything
-					if (bqResult.next() && bqResult.getInt(1) > 0) {
-						connection.rollback();
-						throw new BibleAlreadyExistsException();
-					}
-				} catch (SQLException e) {
-					connection.rollback();
-					throw new DataImportException(e);
-				}
-				
-				// insert the bible
-				try (PreparedStatement bibleInsert = connection.prepareStatement(INSERT_BIBLE, Statement.RETURN_GENERATED_KEYS)) {
-					// set the parameters
-					bibleInsert.setString(1, bible.source);
-					bibleInsert.setString(2, bible.name);
-					bibleInsert.setString(3, bible.language);
-					// insert the bible
-					int n = bibleInsert.executeUpdate();
-					// get the generated id
-					if (n > 0) {
-						ResultSet result = bibleInsert.getGeneratedKeys();
-						if (result.next()) {
-							// get the song id
-							int id = result.getInt(1);
-							bible.id = id;
-						}
-					} else {
-						// throw an error
-						connection.rollback();
-						throw new DataImportException(new DataSaveException());
-					}
-				} catch (SQLException e) {
-					connection.rollback();
-					throw new DataImportException(e);
-				}
-				
-				// make sure the bible was saved first
-				if (bible.id > 0) {
-					LOGGER.debug("Bible inserted successfully: " + bible.name);
-					// insert the books
-					try (PreparedStatement bookInsert = connection.prepareStatement(INSERT_BOOK)) {
-						for (Book book : books) {
-							// set the parameters
-							bookInsert.setInt(1, bible.id);
-							bookInsert.setString(2, book.code);
-							bookInsert.setString(3, book.name);
-							// execute the insert
-							int n = bookInsert.executeUpdate();
-							// make sure it worked
-							if (n <= 0) {
-								// roll back anything we've done
-								connection.rollback();
-								// throw an error
-								throw new DataImportException(new DataSaveException());
-							}
-						}
-					} catch (SQLException e) {
-						connection.rollback();
-						throw new DataImportException(e);
-					}
-					LOGGER.debug("Bible books inserted successfully: " + bible.name);
-					
-					// insert the verses
-					try (PreparedStatement verseInsert = connection.prepareStatement(INSERT_VERSE)) {
-						for (Verse verse : verses) {
-							// set the parameters
-							verseInsert.setInt(1, bible.id);
-							verseInsert.setString(2, verse.book.code);
-							verseInsert.setInt(3, verse.chapter);
-							verseInsert.setInt(4, verse.verse);
-							verseInsert.setInt(5, verse.subVerse);
-							verseInsert.setInt(6, verse.order);
-							verseInsert.setClob(7, new StringReader(verse.text));
-							// execute the insert
-							try {
-								int n = verseInsert.executeUpdate();
-								// make sure it worked
-								if (n <= 0) {
-									// roll back anything we've done
-									connection.rollback();
-									// throw an error
-									throw new DataImportException(new DataSaveException());
-								}
-							} catch (SQLIntegrityConstraintViolationException e) {
-								// its possible that the dumps have duplicate keys (book, chapter, verse, subverse)
-								// in this case we will ignore these and continue but log them as warnings
-								LOGGER.warn("Duplicate verse in file [" + verse.book.code + "|" + verse.chapter + "|" + verse.verse + "|" + verse.subVerse + "]. Dropping verse.");
-							}
-							// let the outer try/catch handle other exceptions
-						}
-					} catch (SQLException e) {
-						connection.rollback();
-						throw new DataImportException(e);
-					}
-					LOGGER.debug("Bible verses inserted successfully: " + bible.name);
-				}
-				
-				// commit all the changes
-				connection.commit();
-				
-				LOGGER.debug("Bible imported successfully: " + bible.name);
-				
-				// rebuild the indexes after a bible has been imported
-				rebuildIndexes();
-			} catch (SQLException e) {
-				throw new DataImportException(e);
-			} catch (NotInitializedException e) {
-				throw new DataImportException(e);
-			}
-		}
-	}
-	
-	/**
-	 * Rebuilds the indexes for the verses tables.
-	 * <p>
-	 * This is useful after an import of a new bible.
-	 * @throws NotInitializedException thrown if the connection factory has not been initialized
-	 */
-	private static final void rebuildIndexes() throws NotInitializedException {
-		LOGGER.debug("Rebuilding bible indexes.");
-		try (Connection connection = ConnectionFactory.getInstance().getConnection()) {
-			connection.setAutoCommit(false);
-			try (Statement statement = connection.createStatement();) {
-				statement.execute(DROP_INDEX_BO_A);
-				statement.execute(CREATE_INDEX_BO_A);
-				
-				statement.execute(DROP_INDEX_BO_D);
-				statement.execute(CREATE_INDEX_BO_D);
-				
-				statement.execute(DROP_INDEX_BBCV);
-				statement.execute(CREATE_INDEX_BBCV);
-				
-				connection.commit();
-				
-				LOGGER.debug("Bible indexes rebuilt successfully.");
-			} catch (SQLException e) {
-				// roll back any index changes we have done thus far
-				connection.rollback();
-				// just log this error
-				LOGGER.error("An error occurred when rebuilding the indexes after a successful import of a bible:", e);
-			}
-		} catch (SQLException e) {
-			// just log this error
-			LOGGER.error("An error occurred when rebuilding the indexes after a successful import of a bible:", e);
+			// import into the database
+			this.insert(bible, books, verses);
 		}
 	}
 	
 	/**
 	 * Reads the books file.
 	 * @param zis the ZipInputStream
-	 * @return List&lt;Book&gt;
-	 * @throws UnrecognizedFormatException if the data is in an unexpected format
+	 * @throws BibleFormatException if the data is in an unexpected format
 	 * @throws IOException if an IO error occurs
 	 */
-	private static final List<Book> readBooks(ZipInputStream zis) throws UnrecognizedFormatException, IOException {
-		List<Book> books = new ArrayList<Book>();
+	private void readBooks(ZipInputStream zis) throws BibleFormatException, IOException {
 		// load up the book names
 		BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
 		// read them line by line
 		String line = null;
+		int i = 1;
 		while ((line = reader.readLine()) != null) {
 			if (line.startsWith("#")) {
 				// ignore the line, its a comment
@@ -332,34 +135,26 @@ public final class UnboundBibleImporter {
 				// split the line by tabs
 				String[] data = line.split("\\t");
 				if (data.length != 2) {
-					throw new UnrecognizedFormatException();
+					throw new BibleFormatException(MessageFormat.format(Translations.getTranslation("bible.import.error.unbound.book.format.unknown"), i));
 				} else {
-					Book book = new Book();
-					book.code = data[0];
-					book.name = data[1];
-					// the unbound bible sources use a long name for Acts
-					if (book.name.equalsIgnoreCase("Acts of the Apostles")) {
-						book.name = "Acts";
-					}
-					books.add(book);
+					Book book = new Book(
+							this.bible,
+							data[0],
+							data[1].equalsIgnoreCase("Acts of the Apostles") ? "Acts" : data[1]);
+					this.books.add(book);
 				}
 			}
+			i++;
 		}
-		
-		return books;
 	}
 	
 	/**
 	 * Reads the verses and assigns some bible fields.
-	 * @param bible the bible object
 	 * @param zis the ZipInputStream
-	 * @return List&tl;Verse&gt;
-	 * @throws UnrecognizedFormatException if the data is in an unexpected format
-	 * @throws NumberFormatException if a field failed to be parsed as an integer
+	 * @throws BibleFormatException if the data is in an unexpected format
 	 * @throws IOException if an IO error occurs
 	 */
-	private static final List<Verse> readVerses(Bible bible, ZipInputStream zis) throws UnrecognizedFormatException, NumberFormatException, IOException {
-		List<Verse> verses = new ArrayList<Verse>();
+	private void readVerses(ZipInputStream zis) throws BibleFormatException, IOException {
 		// load up the verses
 		BufferedReader reader = new BufferedReader(new InputStreamReader(zis, StandardCharsets.UTF_8));
 		// read them line by line
@@ -369,7 +164,9 @@ public final class UnboundBibleImporter {
 		final int increment = 10;
 		int order = increment;
 		int lastSubVerse = -1;
+		int i = 0;
 		while ((line = reader.readLine()) != null) {
+			i++;
 			if (line.startsWith("#")) {
 				// it's a comment, but some comments will provide data
 				if (line.startsWith("#name")) {
@@ -403,63 +200,65 @@ public final class UnboundBibleImporter {
 				String[] data = line.split("\\t");
 				// we need at least 4 columns to continue (book,chapter,verse,text)
 				if (data.length < 4) {
-					throw new UnrecognizedFormatException();
+					throw new BibleFormatException(Translations.getTranslation("bible.import.error.unbound.verse.format.unknown"));
 				} else {
-					Verse verse = new Verse();
-					verse.book = new Book();
-					// dont bother checking the mapping on these since they are necessary
-					verse.book.code = data[columnMapping[0]].trim();
-					verse.chapter = Integer.parseInt(data[columnMapping[1]].trim());
-					verse.verse = Integer.parseInt(data[columnMapping[2]].trim());
-					// the sub verse is rarely populated (and sometimes not present)
-					if (columnMapping[3] != -1 && data[columnMapping[3]].trim().length() > 0) {
-						String subVerse = data[columnMapping[3]].trim();
-						// some sub verses start with a . and have numbers (these are pre-verse sub verses)
-						if (subVerse.startsWith(".")) {
-							subVerse = subVerse.replaceAll("\\.", "");
-							// convert the subverse to an int
-							try {
-								// we will reverse order them
-								verse.subVerse = -Integer.parseInt(subVerse);
-							} catch (NumberFormatException e) {
-								LOGGER.warn("Unknown sub-verse format [" + verse.book.code + "|" + verse.chapter + "|" + verse.verse + "|" + data[columnMapping[3]].trim() + "]. Dropping verse.");
-								continue;
+					try {
+						Verse verse = new Verse();
+						verse.book = new Book();
+						// dont bother checking the mapping on these since they are necessary
+						verse.book.code = data[columnMapping[0]].trim();
+						verse.chapter = Integer.parseInt(data[columnMapping[1]].trim());
+						verse.verse = Integer.parseInt(data[columnMapping[2]].trim());
+						// the sub verse is rarely populated (and sometimes not present)
+						if (columnMapping[3] != -1 && data[columnMapping[3]].trim().length() > 0) {
+							String subVerse = data[columnMapping[3]].trim();
+							// some sub verses start with a . and have numbers (these are pre-verse sub verses)
+							if (subVerse.startsWith(".")) {
+								subVerse = subVerse.replaceAll("\\.", "");
+								// convert the subverse to an int
+								try {
+									// we will reverse order them
+									verse.subVerse = -Integer.parseInt(subVerse);
+								} catch (NumberFormatException e) {
+									LOGGER.warn("Unknown sub-verse format [{}|{}|{}|{}] on line {}. Dropping verse.", verse.book.code, verse.chapter, verse.verse, data[columnMapping[3]].trim(), i);
+									continue;
+								}
+							} else {
+								// apparently the sub-verse field is a character field rather than a number
+								if (lastSubVerse < 0) {
+									lastSubVerse = 1;
+								} else {
+									lastSubVerse++;
+								}
+								verse.subVerse = lastSubVerse;
 							}
 						} else {
-							// apparently the sub-verse field is a character field rather than a number
-							if (lastSubVerse < 0) {
-								lastSubVerse = 1;
-							} else {
-								lastSubVerse++;
-							}
-							verse.subVerse = lastSubVerse;
+							lastSubVerse = -1;
 						}
-					} else {
-						lastSubVerse = -1;
+						// order isn't always present
+						if (columnMapping[4] != -1) {
+							verse.order = Integer.parseInt(data[columnMapping[4]].trim());
+						} else {
+							// if order isn't present then attempt to generate the ordering
+							// NOTE this assumes that the verses are in the correct order in the file
+							// and are read in the same order (which should be the case)
+							verse.order = order;
+							order += increment;
+						}
+						// make sure the text is there
+						if (data.length > columnMapping[5]) {
+							verse.text = data[columnMapping[5]].trim();
+						} else {
+							verse.text = "";
+							// continue, but log a warning
+							LOGGER.warn("Verse [{}|{}|{}|{}] is missing text on line {}.", verse.book.code, verse.chapter, verse.verse, verse.subVerse, i);
+						}
+						this.verses.add(verse);
+					} catch (NumberFormatException e) {
+						throw new BibleFormatException(MessageFormat.format(Translations.getTranslation("bible.import.error.unbound.verse.parse.number"), i));
 					}
-					// order isn't always present
-					if (columnMapping[4] != -1) {
-						verse.order = Integer.parseInt(data[columnMapping[4]].trim());
-					} else {
-						// if order isn't present then attempt to generate the ordering
-						// NOTE this assumes that the verses are in the correct order in the file
-						// and are read in the same order (which should be the case)
-						verse.order = order;
-						order += increment;
-					}
-					// make sure the text is there
-					if (data.length > columnMapping[5]) {
-						verse.text = data[columnMapping[5]].trim();
-					} else {
-						verse.text = "";
-						// continue, but log a warning
-						LOGGER.warn("Verse [" + verse.book.code + "|" + verse.chapter + "|" + verse.verse + "|" + verse.subVerse + "] is missing text.");
-					}
-					verses.add(verse);
 				}
 			}
 		}
-		
-		return verses;
 	}
 }

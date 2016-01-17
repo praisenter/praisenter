@@ -31,13 +31,16 @@ package org.praisenter.data.bible;
  */
 public final class Book implements Comparable<Book> {
 	/** The {@link Bible} this {@link Book} came from */
-	final Bible bible;
+	Bible bible;
 	
 	/** The book code */
-	final String code;
+	String code;
 	
 	/** The book name */
-	final String name;
+	String name;
+
+	/** Hidden default constructor */
+	Book() {}
 	
 	/**
 	 * Full constructor.
@@ -45,7 +48,7 @@ public final class Book implements Comparable<Book> {
 	 * @param code the book code (id)
 	 * @param name the book name
 	 */
-	protected Book(Bible bible, String code, String name) {
+	Book(Bible bible, String code, String name) {
 		this.bible = bible;
 		this.code = code;
 		this.name = name;

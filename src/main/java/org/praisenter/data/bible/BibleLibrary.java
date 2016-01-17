@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification, are permitted 
- * provided that the following conditions are met:
- * 
- *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
- *     and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
- *     and the following disclaimer in the documentation and/or other materials provided with the 
- *     distribution.
- *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
- *     promote products derived from this software without specific prior written permission.
- *     
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package org.praisenter.data.bible;
 
 import java.sql.Connection;
@@ -33,17 +9,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.praisenter.data.ConnectionFactory;
+import org.praisenter.data.Database;
 
-/**
- * Data access class for {@link Bible} verses.
- * @author William Bittle
- * @version 2.0.1
- * @since 1.0.0
- */
-public final class Bibles {
-	/** Hidden default constructor */
-	private Bibles() {}
+public final class BibleLibrary {
+	private final Database database;
+	
+	public BibleLibrary(Database database) {
+		this.database = database;
+	}
 	
 	// public interface
 	
@@ -55,8 +28,8 @@ public final class Bibles {
 	 * @return Bible the bible
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Bible getBible(int id) throws SQLException {
-		return Bibles.getBibleBySql("SELECT id, data_source, name, language FROM bibles WHERE id = " + id);
+	public Bible getBible(int id) throws SQLException {
+		return getBibleBySql("SELECT id, data_source, name, language FROM bible WHERE id = " + id);
 	}
 	
 	/**
@@ -64,8 +37,8 @@ public final class Bibles {
 	 * @return List&lt;{@link Bible}&gt;
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final List<Bible> getBibles() throws SQLException {
-		return Bibles.getBiblesBySql("SELECT id, data_source, name, language FROM bibles ORDER BY name");
+	public List<Bible> getBibles() throws SQLException {
+		return getBiblesBySql("SELECT id, data_source, name, language FROM bible ORDER BY name");
 	}
 	
 	/**
@@ -73,35 +46,32 @@ public final class Bibles {
 	 * @return int
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final int getBibleCount() throws SQLException {
-		return Bibles.getCountBySql("SELECT COUNT(*) FROM bibles");
+	public int getBibleCount() throws SQLException {
+		return getCountBySql("SELECT COUNT(*) FROM bible");
 	}
 	
 	/**
 	 * Deletes the given bible.
 	 * @param bible the bible to delete
 	 * @throws SQLException if an exception occurs while deleting the bible
-	 * @since 2.0.0
 	 */
-	public static final void deleteBible(Bible bible) throws SQLException {
-		Bibles.deleteBible(bible.id);
+	public void deleteBible(Bible bible) throws SQLException {
+		deleteBible(bible.id);
 	}
 	
 	/**
 	 * Deletes the bible with the given id.
 	 * @param id the id of the bible to delete
 	 * @throws SQLException if an exception occurs while deleting the bible
-	 * @since 2.0.0
 	 */
-	public static final void deleteBible(int id) throws SQLException {
+	public void deleteBible(int id) throws SQLException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
-			 Statement statement = connection.createStatement();)
-		{
+		try (Connection connection = this.database.getConnection();
+			 Statement statement = connection.createStatement()) {
 			// delete from the bottom up
-			statement.addBatch("DELETE FROM bible_verses WHERE bible_id = " + id);
-			statement.addBatch("DELETE FROM bible_books WHERE bible_id = " + id);
-			statement.addBatch("DELETE FROM bibles WHERE id = " + id);
+			statement.addBatch("DELETE FROM bible_verse WHERE bible_id = " + id);
+			statement.addBatch("DELETE FROM bible_book WHERE bible_id = " + id);
+			statement.addBatch("DELETE FROM bible WHERE id = " + id);
 			
 			// execute the batch
 			statement.executeBatch();
@@ -120,7 +90,7 @@ public final class Bibles {
 	 * @return List&lt;{@link Book}&gt;
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final List<Book> getBooks(Bible bible) throws SQLException {
+	public List<Book> getBooks(Bible bible) throws SQLException {
 		return getBooks(bible, false);
 	}
 	
@@ -133,16 +103,16 @@ public final class Bibles {
 	 * @return List&lt;{@link Book}&gt;
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final List<Book> getBooks(Bible bible, boolean includeApocrypha) throws SQLException {
+	public List<Book> getBooks(Bible bible, boolean includeApocrypha) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT code, name FROM bible_books WHERE bible_id = ").append(bible.id);
+		sb.append("SELECT code, name FROM bible_book WHERE bible_id = ").append(bible.id);
 		if (!includeApocrypha) {
 			sb.append(" AND code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
 		sb.append(" ORDER BY code");
 				
-		return Bibles.getBooksBySql(bible, sb.toString());
+		return getBooksBySql(bible, sb.toString());
 	}
 	
 	/**
@@ -154,10 +124,10 @@ public final class Bibles {
 	 * @return {@link Book}
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Book getBook(Bible bible, String code) throws SQLException {
+	public Book getBook(Bible bible, String code) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT code, name FROM bible_books WHERE bible_id = ").append(bible.getId())
+		sb.append("SELECT code, name FROM bible_book WHERE bible_id = ").append(bible.getId())
 		  .append(" AND code = '").append(code.replace("'", "''").trim()).append("'");
 		
 		return getBookBySql(bible, sb.toString());
@@ -172,7 +142,7 @@ public final class Bibles {
 	 * @return List&lt;{@link Book}&gt;
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final List<Book> searchBooks(Bible bible, String search) throws SQLException {
+	public List<Book> searchBooks(Bible bible, String search) throws SQLException {
 		return searchBooks(bible, search, false);
 	}
 	
@@ -186,11 +156,11 @@ public final class Bibles {
 	 * @return List&lt;{@link Book}&gt;
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final List<Book> searchBooks(Bible bible, String search, boolean includeApocrypha) throws SQLException {
+	public List<Book> searchBooks(Bible bible, String search, boolean includeApocrypha) throws SQLException {
 		String term = cleanSearchTerm(search);
 		// build the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT code, name FROM bible_books WHERE bible_id = ").append(bible.id);
+		sb.append("SELECT code, name FROM bible_book WHERE bible_id = ").append(bible.id);
 		if (!includeApocrypha) {
 			sb.append(" AND code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
@@ -206,7 +176,7 @@ public final class Bibles {
 	 * @return int
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final int getBookCount(Bible bible) throws SQLException {
+	public int getBookCount(Bible bible) throws SQLException {
 		return getBookCount(bible, false);
 	}
 	
@@ -218,16 +188,16 @@ public final class Bibles {
 	 * @return int
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final int getBookCount(Bible bible, boolean includeApocrypha) throws SQLException {
+	public int getBookCount(Bible bible, boolean includeApocrypha) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(code) FROM bible_books WHERE bible_id = ? ");
+		sb.append("SELECT COUNT(code) FROM bible_book WHERE bible_id = ? ");
 		if (!includeApocrypha) {
 			sb.append("AND code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 
@@ -251,14 +221,14 @@ public final class Bibles {
 	 * @return int
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final int getChapterCount(Bible bible, String bookCode) throws SQLException {
+	public int getChapterCount(Bible bible, String bookCode) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(DISTINCT chapter) FROM bible_verses WHERE bible_id = ? ")
+		sb.append("SELECT COUNT(DISTINCT chapter) FROM bible_verse WHERE bible_id = ? ")
 		  .append("AND book_code = ?");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setString(2, bookCode);
@@ -281,14 +251,14 @@ public final class Bibles {
 	 * @return int
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final int getLastChapter(Bible bible, String bookCode) throws SQLException {
+	public int getLastChapter(Bible bible, String bookCode) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT MAX(chapter) FROM bible_verses WHERE bible_id = ? ")
+		sb.append("SELECT MAX(chapter) FROM bible_verse WHERE bible_id = ? ")
 		  .append("AND book_code = ?");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setString(2, bookCode);
@@ -315,20 +285,20 @@ public final class Bibles {
 	 * @return {@link Verse}
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
+	public Verse getVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append("FROM bible_verses ")
-		  .append("INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id ")
-		  .append("WHERE bible_verses.bible_id = ? ")
+		  .append("FROM bible_verse ")
+		  .append("INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id ")
+		  .append("WHERE bible_verse.bible_id = ? ")
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
 		  .append("AND verse = ? ")
 		  .append("AND sub_verse = 0");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setString(2, bookCode);
@@ -352,7 +322,7 @@ public final class Bibles {
 	 * @return {@link Verse}
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getNextVerse(Verse verse) throws SQLException {
+	public Verse getNextVerse(Verse verse) throws SQLException {
 		return getNextVerse(verse, false);
 	}
 	
@@ -363,23 +333,23 @@ public final class Bibles {
 	 * @return {@link Verse}
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getNextVerse(Verse verse, boolean includeApocrypha) throws SQLException {
+	public Verse getNextVerse(Verse verse, boolean includeApocrypha) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append("FROM bible_verses ")
-		  .append("INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id ")
-		  .append("WHERE bible_verses.bible_id = ? ");
+		  .append("FROM bible_verse ")
+		  .append("INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id ")
+		  .append("WHERE bible_verse.bible_id = ? ");
 		if (!includeApocrypha) {
-			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
+			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
 		sb.append("AND sub_verse = 0 ")
 		  .append("AND order_by = ")
-		  .append("(SELECT MIN(order_by) FROM bible_verses WHERE bible_id = ? AND sub_verse = 0 ")
+		  .append("(SELECT MIN(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = 0 ")
 		  .append("AND order_by > ?)");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, verse.bible.id);
 			statement.setInt(2, verse.bible.id);
@@ -405,7 +375,7 @@ public final class Bibles {
 	 * @return {@link Verse}
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getNextVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
+	public Verse getNextVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
 		return getNextVerse(bible, bookCode, chapter, verse, false);
 	}
 
@@ -419,27 +389,27 @@ public final class Bibles {
 	 * @return {@link Verse}
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getNextVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws SQLException {
+	public Verse getNextVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append("FROM bible_verses ")
-		  .append("INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id ")
-		  .append("WHERE bible_verses.bible_id = ? ");
+		  .append("FROM bible_verse ")
+		  .append("INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id ")
+		  .append("WHERE bible_verse.bible_id = ? ");
 		if (!includeApocrypha) {
-			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
+			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
 		sb.append("AND order_by = ")
-		  .append("(SELECT MIN(order_by) FROM bible_verses WHERE bible_id = ? AND sub_verse = 0 ")
+		  .append("(SELECT MIN(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = 0 ")
 		  .append("AND order_by > ")
-		  .append("(SELECT order_by FROM bible_verses WHERE bible_id = ? ")
+		  .append("(SELECT order_by FROM bible_verse WHERE bible_id = ? ")
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
 		  .append("AND verse = ? ")
 		  .append("AND sub_verse = 0))");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setInt(2, bible.id);
@@ -465,7 +435,7 @@ public final class Bibles {
 	 * @return {@link Verse}
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getPreviousVerse(Verse verse) throws SQLException {
+	public Verse getPreviousVerse(Verse verse) throws SQLException {
 		return getPreviousVerse(verse, false);
 	}
 
@@ -476,23 +446,23 @@ public final class Bibles {
 	 * @return {@link Verse}
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getPreviousVerse(Verse verse, boolean includeApocrypha) throws SQLException {
+	public Verse getPreviousVerse(Verse verse, boolean includeApocrypha) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append("FROM bible_verses ")
-		  .append("INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id ")
-		  .append("WHERE bible_verses.bible_id = ? ");
+		  .append("FROM bible_verse ")
+		  .append("INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id ")
+		  .append("WHERE bible_verse.bible_id = ? ");
 		if (!includeApocrypha) {
-			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
+			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
 		sb.append("AND sub_verse = 0 ")
 		  .append("AND order_by = ")
-		  .append("(SELECT MAX(order_by) FROM bible_verses WHERE bible_id = ? AND sub_verse = 0 ")
+		  .append("(SELECT MAX(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = 0 ")
 		  .append("AND order_by < ?)");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, verse.bible.id);
 			statement.setInt(2, verse.bible.id);
@@ -518,7 +488,7 @@ public final class Bibles {
 	 * @return {@link Verse}
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getPreviousVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
+	public Verse getPreviousVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
 		return getPreviousVerse(bible, bookCode, chapter, verse, false);
 	}
 
@@ -532,27 +502,27 @@ public final class Bibles {
 	 * @return {@link Verse}
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
-	public static final Verse getPreviousVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws SQLException {
+	public Verse getPreviousVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws SQLException {
 		// create the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append("FROM bible_verses ")
-		  .append("INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id ")
-		  .append("WHERE bible_verses.bible_id = ? ");
+		  .append("FROM bible_verse ")
+		  .append("INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id ")
+		  .append("WHERE bible_verse.bible_id = ? ");
 		if (!includeApocrypha) {
-			sb.append("AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
+			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
 		sb.append("AND order_by = ")
-		  .append("(SELECT MAX(order_by) FROM bible_verses WHERE bible_id = ? AND sub_verse = 0 ")
+		  .append("(SELECT MAX(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = 0 ")
 		  .append("AND order_by < ")
-		  .append("(SELECT order_by FROM bible_verses WHERE bible_id = ? ")
+		  .append("(SELECT order_by FROM bible_verse WHERE bible_id = ? ")
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
 		  .append("AND verse = ? ")
 		  .append("AND sub_verse = 0))");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setInt(2, bible.id);
@@ -582,15 +552,15 @@ public final class Bibles {
 	 * @return List&lt;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	private static final List<Verse> searchVersesByLocation(Bible bible, String search, boolean includeApocrypha) throws SQLException {
+	private List<Verse> searchVersesByLocation(Bible bible, String search, boolean includeApocrypha) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verses")
-		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
-		  .append(" WHERE bible_verses.bible_id = ").append(bible.id);
+		  .append(" FROM bible_verse")
+		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
+		  .append(" WHERE bible_verse.bible_id = ").append(bible.id);
 		if (!includeApocrypha) {
-			sb.append(" AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
+			sb.append(" AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
 		
 		// replace multiple whitespaces with single whitespace
@@ -606,13 +576,13 @@ public final class Bibles {
 		// there is a possibility of 3 parts (booknum)(bookname)(chapter:verse)
 		if (parts.length == 1) {
 			// assume that its the book name
-			sb.append(" AND bible_books.searchable_name LIKE '%").append(parts[0]).append("%'");
+			sb.append(" AND bible_book.searchable_name LIKE '%").append(parts[0]).append("%'");
 		} else if (parts.length == 2) {
 			// what do we have (booknum)(bookname) or (bookname)(chapter:verse)?
 			// if part[1] contains : or ends with a number then its the second case
 			if (parts[1].matches("^\\d+(:)?(\\d+)?$")) {
 				// second case
-				sb.append(" AND bible_books.searchable_name LIKE '%").append(parts[0]).append("%'");
+				sb.append(" AND bible_book.searchable_name LIKE '%").append(parts[0]).append("%'");
 				if (parts[1].contains(":")) {
 					// it has chapter and verse
 					String[] cv = parts[1].split(":");
@@ -626,11 +596,11 @@ public final class Bibles {
 				}
 			} else {
 				// first case
-				sb.append(" AND bible_books.searchable_name LIKE '%").append(parts[0]).append(" ").append(parts[1]).append("%'");
+				sb.append(" AND bible_book.searchable_name LIKE '%").append(parts[0]).append(" ").append(parts[1]).append("%'");
 			}
 		} else {
 			// we have all three pieces
-			sb.append(" AND bible_books.searchable_name LIKE '%").append(parts[0]).append(" ").append(parts[1]).append("%'");
+			sb.append(" AND bible_book.searchable_name LIKE '%").append(parts[0]).append(" ").append(parts[1]).append("%'");
 			// see what we have in the last piece
 			if (parts[2].contains(":")) {
 				// it has chapter and verse
@@ -656,7 +626,7 @@ public final class Bibles {
 	 * @param type the search type
 	 * @return String
 	 */
-	private static final String getSearchWhereCondition(String search, BibleSearchType type) {
+	private String getSearchWhereCondition(String search, BibleSearchType type) {
 		StringBuilder sb = new StringBuilder();
 		// clean the search term
 		search = cleanSearchTerm(search).toUpperCase().replaceAll("(\\s*,)?\\s+", " ");
@@ -696,7 +666,7 @@ public final class Bibles {
 	 * @return List&tl;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String search) throws SQLException {
+	public List<Verse> searchVerses(Bible bible, String search) throws SQLException {
 		return searchVerses(bible, search, BibleSearchType.PHRASE, false);
 	}
 	
@@ -710,7 +680,7 @@ public final class Bibles {
 	 * @return List&tl;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String search, boolean includeApocrypha) throws SQLException {
+	public List<Verse> searchVerses(Bible bible, String search, boolean includeApocrypha) throws SQLException {
 		return searchVerses(bible, search, BibleSearchType.PHRASE, includeApocrypha);
 	}
 	
@@ -722,7 +692,7 @@ public final class Bibles {
 	 * @return List&tl;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String search, BibleSearchType type) throws SQLException {
+	public List<Verse> searchVerses(Bible bible, String search, BibleSearchType type) throws SQLException {
 		return searchVerses(bible, search, type, false);
 	}
 	
@@ -735,7 +705,7 @@ public final class Bibles {
 	 * @return List&tl;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String search, BibleSearchType type, boolean includeApocrypha) throws SQLException {
+	public List<Verse> searchVerses(Bible bible, String search, BibleSearchType type, boolean includeApocrypha) throws SQLException {
 		// check the search criteria
 		if (search == null || search.trim().isEmpty()) {
 			return Collections.emptyList();
@@ -747,11 +717,11 @@ public final class Bibles {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verses")
-		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
-		  .append(" WHERE bible_verses.bible_id = ").append(bible.id);
+		  .append(" FROM bible_verse")
+		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
+		  .append(" WHERE bible_verse.bible_id = ").append(bible.id);
 		if (!includeApocrypha) {
-			sb.append(" AND bible_books.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
+			sb.append(" AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
 		sb.append(" AND sub_verse = 0")
 		  .append(" AND ").append(getSearchWhereCondition(search, type))
@@ -770,7 +740,7 @@ public final class Bibles {
 	 * @return List&tl;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, Division division, String search) throws SQLException {
+	public List<Verse> searchVerses(Bible bible, Division division, String search) throws SQLException {
 		return searchVerses(bible, division, search, BibleSearchType.PHRASE);
 	}
 	
@@ -783,7 +753,7 @@ public final class Bibles {
 	 * @return List&tl;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, Division division, String search, BibleSearchType type) throws SQLException {
+	public List<Verse> searchVerses(Bible bible, Division division, String search, BibleSearchType type) throws SQLException {
 		// check the search criteria
 		if (search == null || search.trim().isEmpty()) {
 			return Collections.emptyList();
@@ -799,10 +769,10 @@ public final class Bibles {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verses")
-		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
-		  .append(" WHERE bible_verses.bible_id = ").append(bible.id)
-		  .append(" AND bible_books.code LIKE '%").append(division.getCode()).append("'")
+		  .append(" FROM bible_verse")
+		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
+		  .append(" WHERE bible_verse.bible_id = ").append(bible.id)
+		  .append(" AND bible_book.code LIKE '%").append(division.getCode()).append("'")
 		  .append(" AND sub_verse = 0")
 		  .append(" AND").append(getSearchWhereCondition(search, type))
 		  .append(" ORDER BY order_by");
@@ -820,7 +790,7 @@ public final class Bibles {
 	 * @return List&tl;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String bookCode, String search) throws SQLException {
+	public List<Verse> searchVerses(Bible bible, String bookCode, String search) throws SQLException {
 		return searchVerses(bible, bookCode, search, BibleSearchType.PHRASE);
 	}
 
@@ -833,7 +803,7 @@ public final class Bibles {
 	 * @return List&tl;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String bookCode, String search, BibleSearchType type) throws SQLException {
+	public List<Verse> searchVerses(Bible bible, String bookCode, String search, BibleSearchType type) throws SQLException {
 		// check the search criteria
 		if (search == null || search.trim().isEmpty()) {
 			return Collections.emptyList();
@@ -845,10 +815,10 @@ public final class Bibles {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verses")
-		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
-		  .append(" WHERE bible_verses.bible_id = ").append(bible.id)
-		  .append(" AND bible_books.code = ").append(bookCode)
+		  .append(" FROM bible_verse")
+		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
+		  .append(" WHERE bible_verse.bible_id = ").append(bible.id)
+		  .append(" AND bible_book.code = ").append(bookCode)
 		  .append(" AND sub_verse = 0")
 		  .append(" AND").append(getSearchWhereCondition(search, type))
 		  .append(" ORDER BY order_by");
@@ -867,7 +837,7 @@ public final class Bibles {
 	 * @return List&tl;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String bookCode, int chapter, String search) throws SQLException {
+	public List<Verse> searchVerses(Bible bible, String bookCode, int chapter, String search) throws SQLException {
 		return searchVerses(bible, bookCode, chapter, search, BibleSearchType.PHRASE);
 	}
 	
@@ -881,7 +851,7 @@ public final class Bibles {
 	 * @return List&tl;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final List<Verse> searchVerses(Bible bible, String bookCode, int chapter, String search, BibleSearchType type) throws SQLException {
+	public List<Verse> searchVerses(Bible bible, String bookCode, int chapter, String search, BibleSearchType type) throws SQLException {
 		// check the search criteria
 		if (search == null || search.trim().isEmpty()) {
 			return Collections.emptyList();
@@ -893,10 +863,10 @@ public final class Bibles {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verses")
-		  .append(" INNER JOIN bible_books ON bible_verses.book_code = bible_books.code AND bible_verses.bible_id = bible_books.bible_id")
-		  .append(" WHERE bible_verses.bible_id = ").append(bible.id)
-		  .append(" AND bible_books.code = ").append(bookCode)
+		  .append(" FROM bible_verse")
+		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
+		  .append(" WHERE bible_verse.bible_id = ").append(bible.id)
+		  .append(" AND bible_book.code = ").append(bookCode)
 		  .append(" AND chapter = ").append(chapter)
 		  .append(" AND sub_verse = 0")
 		  .append(" AND").append(getSearchWhereCondition(search, type))
@@ -911,7 +881,7 @@ public final class Bibles {
 	 * @return int
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final int getVerseCount(Bible bible) throws SQLException {
+	public int getVerseCount(Bible bible) throws SQLException {
 		return getVerseCount(bible, false);
 	}
 
@@ -922,17 +892,17 @@ public final class Bibles {
 	 * @return int
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final int getVerseCount(Bible bible, boolean includeApocrypha) throws SQLException {
+	public int getVerseCount(Bible bible, boolean includeApocrypha) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ");
+		sb.append("SELECT COUNT(id) FROM bible_verse WHERE bible_id = ? ");
 		if (!includeApocrypha) {
 			sb.append("AND book_code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
 		sb.append(" AND sub_verse = 0");
 
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 
@@ -954,14 +924,14 @@ public final class Bibles {
 	 * @return int
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final int getVerseCount(Bible bible, String bookCode) throws SQLException {
+	public int getVerseCount(Bible bible, String bookCode) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ")
+		sb.append("SELECT COUNT(id) FROM bible_verse WHERE bible_id = ? ")
 		  .append("AND book_code = ? AND sub_verse = 0");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setString(2, bookCode);
@@ -985,7 +955,7 @@ public final class Bibles {
 	 * @return int
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 */
-	public static final int getVerseCount(Bible bible, String bookCode, int chapter) throws SQLException {
+	public int getVerseCount(Bible bible, String bookCode, int chapter) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ")
@@ -994,7 +964,7 @@ public final class Bibles {
 		  .append("AND sub_verse = 0");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setString(2, bookCode);
@@ -1020,16 +990,16 @@ public final class Bibles {
 	 * @throws SQLException if any exception occurs while retrieving the data
 	 * @since 2.0.1
 	 */
-	public static final int getLastVerse(Bible bible, String bookCode, int chapter) throws SQLException {
+	public int getLastVerse(Bible bible, String bookCode, int chapter) throws SQLException {
 		// build the query
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT MAX(verse) FROM bible_verses WHERE bible_id = ? ")
+		sb.append("SELECT MAX(verse) FROM bible_verse WHERE bible_id = ? ")
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
 		  .append("AND sub_verse = 0");
 		
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
 			statement.setInt(1, bible.id);
 			statement.setString(2, bookCode);
@@ -1063,9 +1033,9 @@ public final class Bibles {
 	 * @return int the count
 	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final int getCountBySql(String sql) throws SQLException {
+	private int getCountBySql(String sql) throws SQLException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -1086,16 +1056,16 @@ public final class Bibles {
 	 * @return List&lt;{@link Bible}&gt;
 	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final List<Bible> getBiblesBySql(String sql) throws SQLException {
+	private List<Bible> getBiblesBySql(String sql) throws SQLException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
 			List<Bible> bibles = new ArrayList<Bible>();
 			while (result.next()) {
 				// interpret the result
-				Bible bible = getBibleFromResultSet(result);
+				Bible bible = getBible(result);
 				bibles.add(bible);
 			} 
 			
@@ -1111,16 +1081,16 @@ public final class Bibles {
 	 * @return {@link Bible}
 	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final Bible getBibleBySql(String sql) throws SQLException {
+	private Bible getBibleBySql(String sql) throws SQLException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
 			Bible bible = null;
 			if (result.next()) {
 				// interpret the result
-				bible = getBibleFromResultSet(result);
+				bible = getBible(result);
 			} 
 			
 			return bible;
@@ -1136,9 +1106,9 @@ public final class Bibles {
 	 * @return List&lt;{@link Book}&gt;
 	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final List<Book> getBooksBySql(Bible bible, String sql) throws SQLException {
+	private List<Book> getBooksBySql(Bible bible, String sql) throws SQLException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -1162,9 +1132,9 @@ public final class Bibles {
 	 * @return {@link Book}
 	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final Book getBookBySql(Bible bible, String sql) throws SQLException {
+	private Book getBookBySql(Bible bible, String sql) throws SQLException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -1187,9 +1157,9 @@ public final class Bibles {
 	 * @return List&lt;{@link Verse}&gt;
 	 * @throws SQLException if any exception occurs during processing
 	 */
-	private static final List<Verse> getVersesBySql(Bible bible, String sql) throws SQLException {
+	private List<Verse> getVersesBySql(Bible bible, String sql) throws SQLException {
 		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
+		try (Connection connection = this.database.getConnection();
 			 Statement statement = connection.createStatement();
 			 ResultSet result = statement.executeQuery(sql);)
 		{
@@ -1212,7 +1182,7 @@ public final class Bibles {
 	 * @return {@link Bible}
 	 * @throws SQLException if an exception occurs while processing the result
 	 */
-	private static final Bible getBibleFromResultSet(ResultSet result) throws SQLException {
+	private static final Bible getBible(ResultSet result) throws SQLException {
 		try {
 			return new Bible(
 					result.getInt("id"),

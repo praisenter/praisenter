@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -25,41 +25,46 @@
 package org.praisenter.data.song;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 
-import org.praisenter.common.xml.XmlIO;
-import org.praisenter.data.DataException;
+import org.praisenter.xml.XmlIO;
 
 /**
  * Class used to export a listing of songs.
  * @author William Bittle
- * @version 2.0.1
- * @since 2.0.1
+ * @version 3.0.0
  */
 public final class SongExporter {
 	/** Hidden constructor */
 	private SongExporter() {}
 	
 	/**
-	 * Exports the given list of songs to the given file in the given format.
-	 * @param file the file name and path to write to
+	 * Exports the given list of songs.
+	 * @param path the path to write the files
 	 * @param songs the list of songs to export
-	 * @param format the format to export in
-	 * @throws DataException thrown if an error occurs during export
+	 * @throws IOException 
+	 * @throws JAXBException 
 	 */
-	public static final void exportSongs(String file, List<Song> songs, SongFormat format) throws DataException {
-		if (format == SongFormat.PRAISENTER) {
-			// create the object to save
-			SongList list = new SongList(songs);
-			try {
-				XmlIO.save(file, list);
-			} catch (JAXBException | IOException e) {
-				throw new DataException(e);
+	public static final void exportSongs(Path path, List<Song> songs) throws JAXBException, IOException {
+		for (Song song : songs) {
+			Title title = song.getDefaultTitle();
+			String variant = song.properties.variant;
+			
+			String name = title.text.replaceAll("\\W+", "") + "_" + variant.replaceAll("\\W+", "");
+			Path file = path.resolve(name + ".xml");
+			
+			// see if it exists
+			if (Files.exists(file)) {
+				// append a UUID to the name
+				file = path.resolve(name + "_" + UUID.randomUUID().toString().replaceAll("-", "") + ".xml");
 			}
-		} else {
-			throw new DataException("SongFormat [" + format + "] is not supported for export.");
+			
+			XmlIO.save(file, song);
 		}
 	}
 }

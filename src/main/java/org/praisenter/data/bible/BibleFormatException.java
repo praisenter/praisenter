@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -22,59 +22,46 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.data.song;
-
-import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+package org.praisenter.data.bible;
 
 /**
- * Class purely used by JAXB to save or load a praisenter song file.
+ * Exception thrown when a bible file doesn't match the expected format.
  * @author William Bittle
- * @version 2.0.0
- * @since 2.0.0
+ * @version 3.0.0
  */
-@XmlRootElement(name = "Songs")
-@XmlAccessorType(XmlAccessType.NONE)
-public class SongList {
-	/** The song list */
-	@XmlElement(name = "Song", required = false, nillable = true)
-	public List<Song> songs;
+public class BibleFormatException extends Exception {
+	/** The version id */
+	private static final long serialVersionUID = -52154769039743628L;
+
+	/**
+	 * Default constructor.
+	 */
+	public BibleFormatException() {
+		super();
+	}
 	
 	/**
-	 * Returns the version of Praisenter to be placed in the generated
-	 * XML document.
-	 * <p>
-	 * This method is solely for JAXB and the generated XML document thereof
-	 * for versioning. The versioning will be of help later if the format
-	 * of the XML changes.
-	 * @return String
+	 * Full constructor.
+	 * @param message the message
+	 * @param cause the root exception
 	 */
-	@XmlAttribute(name = "Version")
-	protected String getVersion() {
-		return Song.VERSION;
+	public BibleFormatException(String message, Throwable cause) {
+		super(message, cause);
+	}
+	
+	/**
+	 * Optional constructor.
+	 * @param message the message
+	 */
+	public BibleFormatException(String message) {
+		super(message);
 	}
 
-	/** Default constructor */
-	protected SongList() {}
-	
 	/**
-	 * Minimal constructor.
-	 * @param songs the songs
+	 * Optional constructor.
+	 * @param cause the root exception
 	 */
-	public SongList(List<Song> songs) {
-		this.songs = songs;
-	}
-	
-	/**
-	 * Returns the songs.
-	 * @return List&lt;{@link Song}&gt;
-	 */
-	public List<Song> getSongs() {
-		return this.songs;
+	public BibleFormatException(Throwable cause) {
+		super(cause);
 	}
 }

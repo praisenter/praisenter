@@ -31,13 +31,12 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xml.sax.Attributes;
@@ -46,11 +45,11 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * SAX XML reader for the ChurchView program's song format.
+ * SAX XML reader for the Praisenter's song format v2.0.0.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class ChurchViewSongReader extends DefaultHandler implements SongFormatReader {
+public class PraisenterSongReader_v2_0_0 extends DefaultHandler implements SongFormatReader {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -72,15 +71,6 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	}
 	
 	// SAX parser implementation
-
-	/** Regular expression pattern used to parse the song part name */
-	private static final Pattern SONG_PART_PATTERN = Pattern.compile("(.*)(\\d+)", Pattern.CASE_INSENSITIVE);
-	
-	/** Regular expression pattern used to parse the song part font size */
-	private static final Pattern SONG_PART_SIZE_PATTERN = Pattern.compile("([CVBTE])(\\d+)?Size", Pattern.CASE_INSENSITIVE);
-	
-	/** Scale factor for the font size */
-	private static final double FONT_SIZE_SCALE = 1.5;
 	
 	/** The songs */
 	private List<Song> songs;
@@ -88,13 +78,16 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	/** The song currently being processed */
 	private Song song;
 	
+	/** The verse currently being processed */
+	private Verse verse;
+	
 	/** Buffer for tag contents */
 	private StringBuilder dataBuilder;
 	
 	/**
 	 * Default constructor.
 	 */
-	public ChurchViewSongReader() {
+	public PraisenterSongReader_v2_0_0() {
 		this.songs = new ArrayList<Song>();
 	}
 	
@@ -104,9 +97,22 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 		// inspect the tag name
-		if (qName.equalsIgnoreCase("Songs")) {
+		if (qName.equalsIgnoreCase("Song")) {
 			// when we see the <Songs> tag we create a new song
 			this.song = new Song();
+		} else if (qName.equalsIgnoreCase("Part")) {
+			this.verse = new Verse();
+			this.verse.setType(getType(attributes.getValue("Type")));
+			try {
+				this.verse.setNumber(Integer.parseInt(attributes.getValue("Index")));
+			} catch (NumberFormatException e) {
+				LOGGER.warn("Failed to read verse number: {}", attributes.getValue("Index"));
+			}
+			try {
+				this.verse.setFontSize(Integer.parseInt(attributes.getValue("FontSize")));
+			} catch (NumberFormatException e) {
+				LOGGER.warn("Failed to read verse font size: {}", attributes.getValue("FontSize"));
+			}
 		}
 	}
 	
@@ -130,85 +136,35 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	 */
 	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
-		if ("Songs".equalsIgnoreCase(qName)) {
+		if ("Song".equalsIgnoreCase(qName)) {
 			// we are done with the song so add it to the list
 			this.songs.add(this.song);
 			this.song = null;
-		} else if ("SongTitle".equalsIgnoreCase(qName)) {
+		} else if ("Part".equalsIgnoreCase(qName)) {
+			this.song.getVerses().add(this.verse);
+			this.verse = null;
+		} else if ("Title".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				// set the song title
 				Title title = new Title();
 				title.setOriginal(true);
-				title.setText(this.dataBuilder.toString().trim());
+				title.setText(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
 				this.song.getProperties().getTitles().add(title);
 			}
-		} else if ("Song".equalsIgnoreCase(qName) ||
-				"Bridge".equalsIgnoreCase(qName) ||
-				qName.startsWith("Verse") ||
-				qName.startsWith("Chorus") ||
-				"Tag".equalsIgnoreCase(qName) ||
-				"Ending".equalsIgnoreCase(qName) ||
-				"Vamp".equalsIgnoreCase(qName)) {
+		} else if ("Notes".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
-				// get the text
-				String text = this.dataBuilder.toString().trim();
-				// only add the part if its not empty
-				if (!text.isEmpty()) {
-					Verse verse = new Verse();
-					
-					// set the type
-					verse.setType(getType(qName));
-					
-					// set the number
-					if (qName.startsWith("Verse") || qName.startsWith("Chorus")) {
-						Matcher matcher = SONG_PART_PATTERN.matcher(qName);
-						if (matcher.matches()) {
-							String n = matcher.group(2);
-							try {
-								int index = Integer.parseInt(n);
-								verse.setNumber(index);
-							} catch (NumberFormatException e) {
-								LOGGER.warn("Failed to read verse part number: {}", n);
-							}
-						} else {
-							LOGGER.warn("Failed to read verse part number from: {}", qName);
-						}
-					}
-					
-					// set the text
-					verse.setText(text.replaceAll("(\\r|\\r\\n|\\n\\r|\\n)", "<br/>"));
-					
-					this.song.getVerses().add(verse);
-				}
+				// set the song title
+				Comment comment = new Comment();
+				comment.setText(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
+				this.song.getProperties().getComments().add(comment);
 			}
-		} else if ("cDate".equalsIgnoreCase(qName)) {
-			// ignore, use today's date
-		} else if ("NOTES".equalsIgnoreCase(qName)) {
+		} else if ("Text".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				String data = this.dataBuilder.toString().trim();
-				Comment comment = new Comment();
-				comment.setText(data);
-				this.song.getProperties().getComments().add(comment);
-			}
-		} else if (qName.contains("Size")) {
-			// make sure the tag was not self terminating
-			if (this.dataBuilder != null) {
-				List<Verse> verses = this.getVersesForSize(qName);
-				if (verses != null && verses.size() > 0) {
-					// interpret the size
-					String s = this.dataBuilder.toString().trim();
-					try {
-						int size = (int)Math.floor(Integer.parseInt(s) * FONT_SIZE_SCALE);
-						for (Verse verse : verses) {
-							verse.setFontSize(size);
-						}
-					} catch (NumberFormatException e) {
-						LOGGER.warn("Failed to read verse font size: {}", s);
-					}
-				}
+				this.verse.setText(StringEscapeUtils.unescapeXml(data).replaceAll("(\\r|\\r\\n|\\n\\r|\\n)", "<br/>"));
 			}
 		}
 		
@@ -216,75 +172,27 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	}
 	
 	/**
-	 * Returns the type of verse based on the tag name.
-	 * @param name the tag name
+	 * Returns the type string for the given type.
+	 * @param type the type
 	 * @return String
 	 */
-	private static final String getType(String name) {
-		if (name.startsWith("Verse")) {
+	private static final String getType(String type) {
+		if ("VERSE".equals(type)) {
 			return "v";
-		} else if (name.startsWith("Chorus") || name.equalsIgnoreCase("Song")) {
+		} else if ("PRECHORUS".equals(type)) {
+			return "p";
+		} else if ("CHORUS".equals(type)) {
 			return "c";
-		} else if (name.equalsIgnoreCase("Bridge")) {
+		} else if ("BRIDGE".equals(type)) {
 			return "b";
-		} else if (name.equalsIgnoreCase("Ending")) {
-			return "e";
-		} else if (name.equalsIgnoreCase("Tag")) {
+		} else if ("TAG".equals(type)) {
 			return "t";
-		} else if (name.equalsIgnoreCase("Vamp")) {
+		} else if ("VAMP".equals(type)) {
+			return "e";
+		} else if ("END".equals(type)) {
 			return "e";
 		} else {
 			return "o";
 		}
-	}
-	
-	/**
-	 * Returns the verses for the given font size tag name.
-	 * @param name the font size tag name
-	 * @return List&lt;{@link Verse}&gt;
-	 */
-	private final List<Verse> getVersesForSize(String name) {
-		if ("FontSize".equalsIgnoreCase(name)) {
-			return null;
-		}
-		Matcher matcher = SONG_PART_SIZE_PATTERN.matcher(name);
-		if (matcher.matches()) {
-			String t = matcher.group(1);
-			String i = matcher.group(2);
-			if (i == null) {
-				// then its a vamp, bridge, tag or end size
-				if ("V".equalsIgnoreCase(t)) {
-					return this.song.getVerses("v1");
-				} else if ("B".equalsIgnoreCase(t)) {
-					return this.song.getVerses("b1");
-				} else if ("T".equalsIgnoreCase(t)) {
-					return this.song.getVerses("t1");
-				} else if ("E".equalsIgnoreCase(t)) {
-					return this.song.getVerses("e1");
-				} else {
-					return null;
-				}
-			} else {
-				int index = 0;
-				try {
-					index = Integer.parseInt(i);
-				} catch (NumberFormatException e) {
-					LOGGER.warn("Failed to read verse part number: {}", i);
-					return null;
-				}
-				// then its a chorus or verse tag
-				if ("C".equalsIgnoreCase(t)) {
-					// chorus
-					return this.song.getVerses("c" + index);
-				} else if ("V".equalsIgnoreCase(t)) {
-					// verse
-					return this.song.getVerses("v" + index);
-				} else {
-					return null;
-				}
-			}
-		}
-		
-		return null;
 	}
 }

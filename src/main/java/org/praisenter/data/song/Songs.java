@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -38,191 +38,74 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.praisenter.data.ConnectionFactory;
-import org.praisenter.data.DataException;
+import org.praisenter.data.Database;
 
 /**
  * Data access class for {@link Song}s.
  * @author William Bittle
- * @version 2.0.1
- * @since 1.0.0
+ * @version 3.0.0
  */
 public final class Songs {
 	
-	/** Hidden default constructor */
-	private Songs() {}
+	private final Database database;
 	
-	// internal methods
-	
-	/**
-	 * Interprets the given result set as one {@link Song}.
-	 * @param result the result set
-	 * @return {@link Song}
-	 * @throws DataException if an exception occurs while interpreting the result set
-	 */
-	private static final Song getSong(ResultSet result) throws DataException {
-		try {
-			return new Song(
-					result.getInt("id"),
-					result.getString("title"),
-					result.getString("notes"),
-					new Date(result.getTimestamp("added_date").getTime()));
-		} catch (SQLException e) {
-			throw new DataException("An error occurred when interpreting the song result.", e);
-		}
+	public Songs(Database database) {
+		this.database = database;
 	}
 	
-	/**
-	 * Interprets the given result set as one {@link SongPart}.
-	 * @param result the result set
-	 * @return {@link SongPart}
-	 * @throws DataException if an exception occurs while interpreting the result set
-	 */
-	private static final SongPart getSongPart(ResultSet result) throws DataException {
-		try {
-			return new SongPart(
-					result.getInt("id"),
-					result.getInt("song_id"),
-					SongPartType.getSongPart(result.getString("part_type")),
-					result.getInt("part_index"),
-					result.getString("text"),
-					result.getInt("order_by"),
-					result.getInt("font_size"));
-		} catch (SQLException e) {
-			throw new DataException("An error occurred when interpreting the song part result.", e);
-		}
-	}
-	
-	/**
-	 * Returns the {@link Song} (without the song parts) for the given sql statement.
-	 * <p>
-	 * No check is performed to verify the sql given is valid.
-	 * @param sql the sql statement
-	 * @return {@link Song}
-	 * @throws DataException if an exception occurs during execution
-	 */
-	private static final Song getSongBySql(String sql) throws DataException {
-		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet result = statement.executeQuery(sql);)
-		{
-			Song song = null;
-			if (result.next()) {
-				// interpret the result
-				song = Songs.getSong(result);
-			} 
-			
-			return song;
-		} catch (Exception e) {
-			throw new DataException(e);
-		}
-	}
-	
-	/**
-	 * Returns the list of {@link Song}s (without the song parts) for the given sql statement.
-	 * <p>
-	 * No check is performed to verify the sql given is valid.
-	 * @param sql the sql statement
-	 * @return List&lt;{@link Song}&gt;
-	 * @throws DataException if an exception occurs during execution
-	 */
-	private static final List<Song> getSongsBySql(String sql) throws DataException {
-		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet result = statement.executeQuery(sql);)
-		{
-			List<Song> songs = new ArrayList<Song>();
-			while (result.next()) {
-				// interpret the result
-				Song song = Songs.getSong(result);
-				songs.add(song);
-			} 
-			
-			return songs;
-		} catch (Exception e) {
-			throw new DataException(e);
-		}
-	}
-
-	/**
-	 * Returns the list of {@link SongPart}s for the given sql statement.
-	 * <p>
-	 * No check is performed to verify the sql given is valid.
-	 * @param sql the sql statement
-	 * @return List&lt;{@link SongPart}&gt;
-	 * @throws DataException if an exception occurs during execution
-	 */
-	private static final List<SongPart> getSongPartsBySql(String sql) throws DataException {
-		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet result = statement.executeQuery(sql);)
-		{
-			List<SongPart> parts = new ArrayList<SongPart>();
-			while (result.next()) {
-				// interpret the result
-				SongPart part = Songs.getSongPart(result);
-				parts.add(part);
-			} 
-			
-			return parts;
-		} catch (Exception e) {
-			throw new DataException(e);
-		}
-	}
-
-	/**
-	 * Executes the given sql returning the count.
-	 * @param sql the sql query
-	 * @return int the count
-	 * @throws DataException if any exception occurs during processing
-	 */
-	private static final int getCountBySql(String sql) throws DataException {
-		// execute the query
-		try (Connection connection = ConnectionFactory.getInstance().getConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet result = statement.executeQuery(sql);)
-		{
-			if (result.next()) {
-				// interpret the result
-				return result.getInt(1);
-			} 
-			
-			return 0;
-		} catch (Exception e) {
-			throw new DataException(e);
-		}
-	}
+	// public interface
 	
 	/**
 	 * Returns the number of songs in the data store.
 	 * @return int
-	 * @throws DataException if an exception occurs during execution
+	 * @throws SQLException if an exception occurs during execution
 	 */
-	public static final int getSongCount() throws DataException {
-		return Songs.getCountBySql("SELECT COUNT(*) FROM songs");
+	public int getSongCount() throws SQLException {
+		return getCountBySql("SELECT COUNT(*) FROM song");
 	}
 	
 	/**
 	 * Returns the song for the given id.
 	 * @param id the song id
 	 * @return {@link Song}
-	 * @throws DataException if an exception occurs during execution
+	 * @throws SQLException if an exception occurs during execution
 	 */
-	public static final Song getSong(int id) throws DataException {
+	public Song getSong(int id) throws SQLException {
 		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT * FROM songs WHERE id = ").append(id);
+		sb.append("SELECT * FROM song WHERE id = ").append(id);
 		// get the song
-		Song song = Songs.getSongBySql(sb.toString());
+		Song song = getSongBySql(sb.toString());
 		
 		if (song != null) {
+			// get authors
 			sb = new StringBuilder();
-			sb.append("SELECT * FROM song_parts WHERE song_id = ").append(id);
-			// get the song parts
-			song.parts = Songs.getSongPartsBySql(sb.toString());
-			Collections.sort(song.parts);
+			sb.append("SELECT * FROM song_author WHERE song_id = ").append(id);
+			song.properties.authors = getAuthorsBySql(sb.toString());
+			
+			// get songbooks
+			sb = new StringBuilder();
+			sb.append("SELECT * FROM song_book WHERE song_id = ").append(id);
+			song.properties.songbooks = getSongbooksBySql(sb.toString());
+			
+			// get titles
+			sb = new StringBuilder();
+			sb.append("SELECT * FROM song_title WHERE song_id = ").append(id);
+			song.properties.titles = getTitlesBySql(sb.toString());
+			
+			// get comments
+			sb = new StringBuilder();
+			sb.append("SELECT * FROM song_comment WHERE song_id = ").append(id);
+			song.properties.comments = getCommentsBySql(sb.toString());
+			
+			// get themes
+			sb = new StringBuilder();
+			sb.append("SELECT * FROM song_theme WHERE song_id = ").append(id);
+			song.properties.themes = getThemesBySql(sb.toString());
+			
+			// get verses
+			sb = new StringBuilder();
+			sb.append("SELECT * FROM song_verse WHERE song_id = ").append(id);
+			song.verses = getVersesBySql(sb.toString());
 		}
 		
 		// return the song
@@ -230,50 +113,106 @@ public final class Songs {
 	}
 	
 	/**
-	 * Returns all the songs with their parts.
-	 * @return &lt;{@link Song}&gt;
-	 * @throws DataException if an exception occurs during execution
-	 */
-	public static final List<Song> getSongs() throws DataException {
-		return getSongs(true);
-	}
-	
-	/**
 	 * Returns all the songs.
-	 * @param returnParts true if the song parts should be returned
 	 * @return &lt;{@link Song}&gt;
-	 * @throws DataException if an exception occurs during execution
+	 * @throws SQLException if an exception occurs during execution
 	 */
-	public static final List<Song> getSongs(boolean returnParts) throws DataException {
+	public List<Song> getSongs() throws SQLException {
 		// get the songs
-		List<Song> songs = Songs.getSongsBySql("SELECT * FROM songs ORDER BY id");
+		List<Song> songs = getSongsBySql("SELECT * FROM songs ORDER BY id");
+
+		// get authors
+		List<Author> authors = getAuthorsBySql("SELECT * FROM song_author ORDER BY song_id");
 		
-		if (returnParts) {
-			// get the song parts
-			List<SongPart> parts = Songs.getSongPartsBySql("SELECT * FROM song_parts ORDER BY song_id");
-			
-			// loop over the songs
-			for (Song song : songs) {
-				Iterator<SongPart> it = parts.iterator();
-				while (it.hasNext()) {
-					SongPart part = it.next();
-					if (song.id == part.songId) {
-						// remove the element
-						it.remove();
-						song.parts.add(part);
-					} else {
-						// we can break here since we are ordering both results
-						// by the song id, therefore we guarantee that there are
-						// no more parts past the first non-equal part
-						break;
-					}
+		// get songbooks
+		List<Songbook> songbooks = getSongbooksBySql("SELECT * FROM song_book ORDER BY song_id");
+		
+		// get titles
+		List<Title> titles = getTitlesBySql("SELECT * FROM song_title ORDER BY song_id");
+		
+		// get comments
+		List<Comment> comments = getCommentsBySql("SELECT * FROM song_comment ORDER BY song_id");
+		
+		// get themes
+		List<Theme> themes = getThemesBySql("SELECT * FROM song_theme ORDER BY song_id");
+		
+		// get themes
+		List<Verse> verses = getVersesBySql("SELECT * FROM song_verse ORDER BY song_id");
+		
+		// loop over the songs
+		int a = 0, 
+			b = 0, 
+			t = 0, 
+			c = 0, 
+			m = 0, 
+			v = 0;
+		int as = authors.size(),
+			bs = songbooks.size(),
+			ts = titles.size(),
+			cs = comments.size(),
+			ms = themes.size(),
+			vs = verses.size();
+		for (Song song : songs) {
+			// add authors
+			for (;a < as; a++) {
+				Author author = authors.get(a);
+				if (song.id == author.songId) {
+					song.properties.authors.add(author);
+				} else {
+					break;
 				}
-				Collections.sort(song.parts);
+			}
+			
+			// add songbooks
+			for (;b < bs; b++) {
+				Songbook book = songbooks.get(b);
+				if (song.id == book.songId) {
+					song.properties.songbooks.add(book);
+				} else {
+					break;
+				}
+			}
+			
+			// add titles
+			for (;t < ts; t++) {
+				Title title = titles.get(t);
+				if (song.id == title.songId) {
+					song.properties.titles.add(title);
+				} else {
+					break;
+				}
+			}
+			
+			// add comments
+			for (;c < cs; c++) {
+				Comment comment = comments.get(c);
+				if (song.id == comment.songId) {
+					song.properties.comments.add(comment);
+				} else {
+					break;
+				}
+			}
+			
+			// add themes
+			for (;m < ms; m++) {
+				Theme theme = themes.get(m);
+				if (song.id == theme.songId) {
+					song.properties.themes.add(theme);
+				} else {
+					break;
+				}
+			}
+			
+			// add verses
+			for (;v < vs; v++) {
+				Verse verse = verses.get(v);
+				if (song.id == verse.songId) {
+					song.verses.add(verse);
+				} else {
+					break;
+				}
 			}
 		}
-		
-		// sort by title
-		Collections.sort(songs, new SongTitleComparator());
 		
 		// return the songs
 		return songs;
@@ -287,9 +226,9 @@ public final class Songs {
 	 * may return duplicate song results if more than one part matches.
 	 * @param search the search criteria
 	 * @return List&lt;{@link Song}&gt;
-	 * @throws DataException if an exception occurs during execution
+	 * @throws SQLException if an exception occurs during execution
 	 */
-	public static final List<Song> searchSongs(String search) throws DataException {
+	public static final List<Song> searchSongs(String search) throws SQLException {
 		String needle = search.trim().toUpperCase().replaceAll("'", "''");
 		StringBuilder sb = new StringBuilder();
 
@@ -318,9 +257,9 @@ public final class Songs {
 	 * parts are returned with the songs.
 	 * @param search the search criteria
 	 * @return List&lt;{@link Song}&gt;
-	 * @throws DataException if an exception occurs during execution
+	 * @throws SQLException if an exception occurs during execution
 	 */
-	public static final List<Song> searchSongsDistinct(String search) throws DataException {
+	public static final List<Song> searchSongsDistinct(String search) throws SQLException {
 		String needle = search.trim().toUpperCase().replaceAll("'", "''");
 		StringBuilder sb = new StringBuilder();
 
@@ -372,10 +311,10 @@ public final class Songs {
 	/**
 	 * Saves the given song.
 	 * @param song the song to save
-	 * @throws DataException if an exception occurs during execution
+	 * @throws SQLException if an exception occurs during execution
 	 */
-	public static final void saveSong(Song song) throws DataException {
-		try (Connection connection = ConnectionFactory.getInstance().getConnection()) {
+	public static final void saveSong(Song song) throws SQLException {
+		try (Connection connection = Database.getInstance().getConnection()) {
 			// start a transaction
 			connection.setAutoCommit(false);
 			try {
@@ -387,22 +326,22 @@ public final class Songs {
 				// rollback any changes
 				connection.rollback();
 				// throw an exception
-				throw new DataException(e);
+				throw new SQLException(e);
 			}
 		} catch (Exception e) {
 			// this could happen if we couldnt get a connection or
 			// the auto-commit flag could not be set
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
 	/**
 	 * Saves the given song part.
 	 * @param songPart the song part to save
-	 * @throws DataException if an exception occurs during execution
+	 * @throws SQLException if an exception occurs during execution
 	 */
-	public static final void saveSongPart(SongPart songPart) throws DataException {
-		try (Connection connection = ConnectionFactory.getInstance().getConnection()) {
+	public static final void saveSongPart(SongPart songPart) throws SQLException {
+		try (Connection connection = Database.getInstance().getConnection()) {
 			// start a transaction
 			connection.setAutoCommit(false);
 			try {
@@ -414,22 +353,22 @@ public final class Songs {
 				// rollback any changes
 				connection.rollback();
 				// throw an exception
-				throw new DataException(e);
+				throw new SQLException(e);
 			}
 		} catch (Exception e) {
 			// this could happen if we couldnt get a connection or
 			// the auto-commit flag could not be set
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 	
 	/**
 	 * Saves all the given songs.
 	 * @param songs the songs to save
-	 * @throws DataException if an exception occurs during execution
+	 * @throws SQLException if an exception occurs during execution
 	 */
-	public static final void saveSongs(List<Song> songs) throws DataException {
-		try (Connection connection = ConnectionFactory.getInstance().getConnection()) {
+	public static final void saveSongs(List<Song> songs) throws SQLException {
+		try (Connection connection = Database.getInstance().getConnection()) {
 			// start a transaction
 			connection.setAutoCommit(false);
 			// loop over the songs
@@ -441,7 +380,7 @@ public final class Songs {
 					// rollback any changes
 					connection.rollback();
 					// throw an exception
-					throw new DataException(e);
+					throw new SQLException(e);
 				}
 			}
 			try {
@@ -451,12 +390,12 @@ public final class Songs {
 				// rollback any changes
 				connection.rollback();
 				// throw an exception
-				throw new DataException(e);
+				throw new SQLException(e);
 			}
 		} catch (Exception e) {
 			// this could happen if we couldnt get a connection or
 			// the auto-commit flag could not be set
-			throw new DataException(e);
+			throw new SQLException(e);
 		}
 	}
 
@@ -576,12 +515,12 @@ public final class Songs {
 	 * Deletes the song and returns true if successful.
 	 * @param id the song id
 	 * @return boolean
-	 * @throws DataException if an exception occurs during execution
+	 * @throws SQLException if an exception occurs during execution
 	 */
-	public static final boolean deleteSong(int id) throws DataException {
+	public static final boolean deleteSong(int id) throws SQLException {
 		// check the id
 		if (id != Song.NEW_SONG_ID) {
-			try (Connection connection = ConnectionFactory.getInstance().getConnection())
+			try (Connection connection = Database.getInstance().getConnection())
 			{
 				connection.setAutoCommit(false);
 				
@@ -604,12 +543,355 @@ public final class Songs {
 					// rollback any changes
 					connection.rollback();
 					// throw an exception
-					throw new DataException(e);
+					throw new SQLException(e);
 				}
 			} catch (Exception e) {
-				throw new DataException(e);
+				throw new SQLException(e);
 			}
 		}
 		return false;
 	}
+
+	// internal methods
+	
+	/**
+	 * Interprets the given result set as one {@link Song}.
+	 * @param result the result set
+	 * @return {@link Song}
+	 * @throws SQLException if an exception occurs while interpreting the result set
+	 */
+	private Song getSong(ResultSet result) throws SQLException {
+		Song song = new Song();
+		song.dateAdded = new Date(result.getTimestamp("added_date").getTime());
+		song.id = result.getInt("id");
+		song.properties.ccli = result.getInt("ccli");
+		song.properties.copyright = result.getString("copyright");
+		song.properties.key = result.getString("key");
+		song.properties.keywords = result.getString("keywords");
+		song.properties.publisher = result.getString("publisher");
+		song.properties.released = result.getString("released");
+		String tempo = result.getString("tempo");
+		if (tempo != null && !tempo.isEmpty())
+		song.properties.tempo = new Tempo();
+		song.properties.tempo.text = tempo;
+		song.properties.tempo.type = result.getString("tempo_type");
+		song.properties.transposition = result.getInt("transposition");
+		song.properties.variant = result.getString("variant");
+		song.properties.verseOrder = result.getString("verse_order");
+		return song;
+	}
+	
+	/**
+	 * Interprets the given result set as one {@link Author}.
+	 * @param result the result set
+	 * @return {@link Author}
+	 * @throws SQLException if an exception occurs while interpreting the result set
+	 */
+	private Author getAuthor(ResultSet result) throws SQLException {
+		Author author = new Author();
+		author.songId = result.getInt("song_id");
+		author.name = result.getString("name");
+		author.type = result.getString("type");
+		author.language = result.getString("language");
+		return author;
+	}
+	
+	/**
+	 * Interprets the given result set as one {@link Songbook}.
+	 * @param result the result set
+	 * @return {@link Songbook}
+	 * @throws SQLException if an exception occurs while interpreting the result set
+	 */
+	private Songbook getSongbook(ResultSet result) throws SQLException {
+		Songbook book = new Songbook();
+		book.songId = result.getInt("song_id");
+		book.name = result.getString("name");
+		book.entry = result.getString("entry");
+		return book;
+	}
+	
+	/**
+	 * Interprets the given result set as one {@link Comment}.
+	 * @param result the result set
+	 * @return {@link Comment}
+	 * @throws SQLException if an exception occurs while interpreting the result set
+	 */
+	private Comment getComment(ResultSet result) throws SQLException {
+		Comment comment = new Comment();
+		comment.songId = result.getInt("song_id");
+		comment.text = result.getString("text");
+		return comment;
+	}
+
+	/**
+	 * Interprets the given result set as one {@link Theme}.
+	 * @param result the result set
+	 * @return {@link Theme}
+	 * @throws SQLException if an exception occurs while interpreting the result set
+	 */
+	private Theme getTheme(ResultSet result) throws SQLException {
+		Theme theme = new Theme();
+		theme.songId = result.getInt("song_id");
+		theme.text = result.getString("text");
+		theme.language = result.getString("language");
+		theme.transliteration = result.getString("translit");
+		return theme;
+	}
+
+	/**
+	 * Interprets the given result set as one {@link Title}.
+	 * @param result the result set
+	 * @return {@link Title}
+	 * @throws SQLException if an exception occurs while interpreting the result set
+	 */
+	private Title getTitle(ResultSet result) throws SQLException {
+		Title title = new Title();
+		title.songId = result.getInt("song_id");
+		title.original = result.getInt("original") == 1;
+		title.text = result.getString("text");
+		title.language = result.getString("language");
+		title.transliteration = result.getString("translit");
+		return title;
+	}
+	
+	/**
+	 * Interprets the given result set as one {@link Verse}.
+	 * @param result the result set
+	 * @return {@link Verse}
+	 * @throws SQLException if an exception occurs while interpreting the result set
+	 */
+	private Verse getVerse(ResultSet result) throws SQLException {
+		Verse verse = new Verse();
+		verse.songId = result.getInt("song_id");
+		verse.fontSize = result.getInt("font_size");
+		verse.number = result.getInt("number");
+		verse.part = result.getString("part");
+		// use setType to generate the name field
+		verse.setType(result.getString("type"));
+		verse.text = result.getString("text");
+		verse.language = result.getString("language");
+		verse.transliteration = result.getString("translit");
+		return verse;
+	}
+	
+	/**
+	 * Returns the {@link Song} (without the song parts) for the given sql statement.
+	 * <p>
+	 * No check is performed to verify the sql given is valid.
+	 * @param sql the sql statement
+	 * @return {@link Song}
+	 * @throws SQLException if an exception occurs during execution
+	 */
+	private Song getSongBySql(String sql) throws SQLException {
+		// execute the query
+		try (Connection connection = this.database.getConnection();
+			 Statement statement = connection.createStatement();
+			 ResultSet result = statement.executeQuery(sql);)
+		{
+			Song song = null;
+			if (result.next()) {
+				// interpret the result
+				song = getSong(result);
+			} 
+			
+			return song;
+		}
+	}
+	
+	/**
+	 * Returns the list of {@link Song}s (without the song parts) for the given sql statement.
+	 * <p>
+	 * No check is performed to verify the sql given is valid.
+	 * @param sql the sql statement
+	 * @return List&lt;{@link Song}&gt;
+	 * @throws SQLException if an exception occurs during execution
+	 */
+	private List<Song> getSongsBySql(String sql) throws SQLException {
+		// execute the query
+		try (Connection connection = this.database.getConnection();
+			 Statement statement = connection.createStatement();
+			 ResultSet result = statement.executeQuery(sql);)
+		{
+			List<Song> songs = new ArrayList<Song>();
+			while (result.next()) {
+				// interpret the result
+				Song song = getSong(result);
+				songs.add(song);
+			} 
+			
+			return songs;
+		}
+	}
+
+	/**
+	 * Returns the list of {@link Authors}s for the given sql statement.
+	 * <p>
+	 * No check is performed to verify the sql given is valid.
+	 * @param sql the sql statement
+	 * @return List&lt;{@link Author}&gt;
+	 * @throws SQLException if an exception occurs during execution
+	 */
+	private List<Author> getAuthorsBySql(String sql) throws SQLException {
+		// execute the query
+		try (Connection connection = this.database.getConnection();
+			 Statement statement = connection.createStatement();
+			 ResultSet result = statement.executeQuery(sql);)
+		{
+			List<Author> authors = new ArrayList<Author>();
+			while (result.next()) {
+				// interpret the result
+				Author author = getAuthor(result);
+				authors.add(author);
+			} 
+			
+			return authors;
+		}
+	}
+
+	/**
+	 * Returns the list of {@link Songbook}s for the given sql statement.
+	 * <p>
+	 * No check is performed to verify the sql given is valid.
+	 * @param sql the sql statement
+	 * @return List&lt;{@link Songbook}&gt;
+	 * @throws SQLException if an exception occurs during execution
+	 */
+	private List<Songbook> getSongbooksBySql(String sql) throws SQLException {
+		// execute the query
+		try (Connection connection = this.database.getConnection();
+			 Statement statement = connection.createStatement();
+			 ResultSet result = statement.executeQuery(sql);)
+		{
+			List<Songbook> songbooks = new ArrayList<Songbook>();
+			while (result.next()) {
+				// interpret the result
+				Songbook songbook = getSongbook(result);
+				songbooks.add(songbook);
+			} 
+			
+			return songbooks;
+		}
+	}
+
+	/**
+	 * Returns the list of {@link Comment}s for the given sql statement.
+	 * <p>
+	 * No check is performed to verify the sql given is valid.
+	 * @param sql the sql statement
+	 * @return List&lt;{@link Comment}&gt;
+	 * @throws SQLException if an exception occurs during execution
+	 */
+	private List<Comment> getCommentsBySql(String sql) throws SQLException {
+		// execute the query
+		try (Connection connection = this.database.getConnection();
+			 Statement statement = connection.createStatement();
+			 ResultSet result = statement.executeQuery(sql);)
+		{
+			List<Comment> comments = new ArrayList<Comment>();
+			while (result.next()) {
+				// interpret the result
+				Comment comment = getComment(result);
+				comments.add(comment);
+			} 
+			
+			return comments;
+		}
+	}
+
+	/**
+	 * Returns the list of {@link Theme}s for the given sql statement.
+	 * <p>
+	 * No check is performed to verify the sql given is valid.
+	 * @param sql the sql statement
+	 * @return List&lt;{@link Theme}&gt;
+	 * @throws SQLException if an exception occurs during execution
+	 */
+	private List<Theme> getThemesBySql(String sql) throws SQLException {
+		// execute the query
+		try (Connection connection = this.database.getConnection();
+			 Statement statement = connection.createStatement();
+			 ResultSet result = statement.executeQuery(sql);)
+		{
+			List<Theme> themes = new ArrayList<Theme>();
+			while (result.next()) {
+				// interpret the result
+				Theme theme = getTheme(result);
+				themes.add(theme);
+			} 
+			
+			return themes;
+		}
+	}
+
+	/**
+	 * Returns the list of {@link Title}s for the given sql statement.
+	 * <p>
+	 * No check is performed to verify the sql given is valid.
+	 * @param sql the sql statement
+	 * @return List&lt;{@link Title}&gt;
+	 * @throws SQLException if an exception occurs during execution
+	 */
+	private List<Title> getTitlesBySql(String sql) throws SQLException {
+		// execute the query
+		try (Connection connection = this.database.getConnection();
+			 Statement statement = connection.createStatement();
+			 ResultSet result = statement.executeQuery(sql);)
+		{
+			List<Title> titles = new ArrayList<Title>();
+			while (result.next()) {
+				// interpret the result
+				Title title = getTitle(result);
+				titles.add(title);
+			} 
+			
+			return titles;
+		}
+	}
+
+	/**
+	 * Returns the list of {@link Verse}s for the given sql statement.
+	 * <p>
+	 * No check is performed to verify the sql given is valid.
+	 * @param sql the sql statement
+	 * @return List&lt;{@link Verse}&gt;
+	 * @throws SQLException if an exception occurs during execution
+	 */
+	private List<Verse> getVersesBySql(String sql) throws SQLException {
+		// execute the query
+		try (Connection connection = this.database.getConnection();
+			 Statement statement = connection.createStatement();
+			 ResultSet result = statement.executeQuery(sql);)
+		{
+			List<Verse> verses = new ArrayList<Verse>();
+			while (result.next()) {
+				// interpret the result
+				Verse verse = getVerse(result);
+				verses.add(verse);
+			} 
+			
+			return verses;
+		}
+	}
+
+	/**
+	 * Executes the given sql returning the count.
+	 * @param sql the sql query
+	 * @return int the count
+	 * @throws SQLException if any exception occurs during processing
+	 */
+	private int getCountBySql(String sql) throws SQLException {
+		// execute the query
+		try (Connection connection = this.database.getConnection();
+			 Statement statement = connection.createStatement();
+			 ResultSet result = statement.executeQuery(sql);)
+		{
+			if (result.next()) {
+				// interpret the result
+				return result.getInt(1);
+			} 
+			
+			return 0;
+		}
+	}
+	
 }

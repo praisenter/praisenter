@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -25,15 +25,10 @@
 package org.praisenter.data.song;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.ParseException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +37,8 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -50,84 +47,47 @@ import org.xml.sax.helpers.DefaultHandler;
 /**
  * SAX XML reader for the Praisenter's song format v1.0.0.
  * @author William Bittle
- * @version 2.0.1
- * @since 1.0.0
+ * @version 3.0.0
  */
-public class PraisenterSongReaderv1_0_0 extends DefaultHandler {
-	/** The input date format */
-	protected static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-	
-	/**
-	 * Returns a new list of songs from the given file.
-	 * @param file the file to read from
-	 * @return List&lt;Song&gt; the list of songs
-	 * @throws ParserConfigurationException thrown if a SAX configuration error occurs
-	 * @throws SAXException thrown if a parsing error occurs
-	 * @throws IOException thrown if an IO error occurs
+public class PraisenterSongReader_v1_0_0 extends DefaultHandler implements SongFormatReader {
+	/** The class-level logger */
+	private static final Logger LOGGER = LogManager.getLogger();
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.data.song.SongFormatReader#read(java.nio.file.Path)
 	 */
-	public static List<Song> fromXml(File file) throws ParserConfigurationException, SAXException, IOException {
-		return PraisenterSongReaderv1_0_0.fromXml(new InputSource(new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))));
+	@Override
+	public List<Song> read(Path path) throws IOException, SongFormatReaderException {
+		try {
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+			SAXParser parser = factory.newSAXParser();
+			
+			parser.parse(new InputSource(new BufferedReader(new InputStreamReader(new FileInputStream(path.toFile())))), this);
+			
+			return this.songs;
+		} catch (SAXException | ParserConfigurationException e) {
+			throw new SongFormatReaderException(e.getMessage(), e);
+		}
 	}
 	
-	/**
-	 * Returns a new list of songs from the given string.
-	 * @param xml the string containing the XML to read from
-	 * @return List&lt;Song&gt; the list of songs
-	 * @throws ParserConfigurationException thrown if a SAX configuration error occurs
-	 * @throws SAXException thrown if a parsing error occurs
-	 * @throws IOException thrown if an IO error occurs
-	 */
-	public static List<Song> fromXml(String xml) throws ParserConfigurationException, SAXException, IOException {
-		return PraisenterSongReaderv1_0_0.fromXml(new InputSource(new StringReader(xml)));
-	}
-	
-	/**
-	 * Returns a new list of songs from the given stream.
-	 * @param stream the input stream containing the xml
-	 * @return List&lt;Song&gt; the list of songs
-	 * @throws ParserConfigurationException thrown if a SAX configuration error occurs
-	 * @throws SAXException thrown if a parsing error occurs
-	 * @throws IOException thrown if an IO error occurs
-	 */
-	public static List<Song> fromXml(InputStream stream) throws ParserConfigurationException, SAXException, IOException {
-		return PraisenterSongReaderv1_0_0.fromXml(new InputSource(new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))));
-	}
-	
-	/**
-	 * Returns a new list of songs from the given input source.
-	 * @param source the source containing the XML
-	 * @return List&lt;Song&gt; the list of songs
-	 * @throws ParserConfigurationException thrown if a SAX configuration error occurs
-	 * @throws SAXException thrown if a parsing error occurs
-	 * @throws IOException thrown if an IO error occurs
-	 */
-	private static List<Song> fromXml(InputSource source) throws ParserConfigurationException, SAXException, IOException {
-		SAXParserFactory factory = SAXParserFactory.newInstance();
-		SAXParser parser = factory.newSAXParser();
-		
-		PraisenterSongReaderv1_0_0 reader = new PraisenterSongReaderv1_0_0();
-		
-		parser.parse(source, reader);
-		
-		return reader.songs;
-	}
-	
+	// SAX parser implementation
+
 	/** The songs */
 	private List<Song> songs;
 	
 	/** The song currently being processed */
 	private Song song;
 	
-	/** The song part currently being processed */
-	private SongPart part;
+	/** The verse currently being processed */
+	private Verse part;
 	
 	/** Buffer for tag contents */
 	private StringBuilder dataBuilder;
 	
 	/**
-	 * Hidden constructor.
+	 * Default constructor.
 	 */
-	private PraisenterSongReaderv1_0_0() {
+	public PraisenterSongReader_v1_0_0() {
 		this.songs = new ArrayList<Song>();
 	}
 	
@@ -141,7 +101,7 @@ public class PraisenterSongReaderv1_0_0 extends DefaultHandler {
 			// when we see the <Songs> tag we create a new song
 			this.song = new Song();
 		} else if (qName.equalsIgnoreCase("SongPart")) {
-			this.part = new SongPart();
+			this.part = new Verse();
 		}
 	}
 	
@@ -170,62 +130,49 @@ public class PraisenterSongReaderv1_0_0 extends DefaultHandler {
 			this.songs.add(this.song);
 			this.song = null;
 		} else if ("SongPart".equalsIgnoreCase(qName)) {
-			this.song.parts.add(this.part);
+			this.song.getVerses().add(this.part);
 			this.part = null;
 		} else if ("Title".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				// set the song title
-				this.song.setTitle(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
+				Title title = new Title();
+				title.setOriginal(true);
+				title.setText(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
+				this.song.getProperties().getTitles().add(title);
 			}
 		} else if ("Notes".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				// set the song title
-				this.song.setNotes(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
+				Comment comment = new Comment();
+				comment.setText(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
+				this.song.getProperties().getComments().add(comment);
 			}
 		} else if ("DateAdded".equalsIgnoreCase(qName)) {
-			// make sure the tag was not self terminating
-			if (this.dataBuilder != null) {
-				// set the song title
-				try {
-					this.song.setDateAdded(DATE_FORMAT.parse(this.dataBuilder.toString().trim()));
-				} catch (ParseException e) {
-					throw new SAXException("Unable to parse date format: ", e);
-				}
-			}
+			// ignore
 		} else if ("Type".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				// get the type
 				String type = this.dataBuilder.toString().trim();
-				this.part.setType(SongPartType.valueOf(type));
+				this.part.setType(getType(type));
 			}
 		} else if ("Index".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				String data = this.dataBuilder.toString().trim();
 				try {
-					this.part.setIndex(Integer.parseInt(data));
+					this.part.setNumber(Integer.parseInt(data));
 				} catch (NumberFormatException e) {
-					throw new SAXException("Unable to parse part index: ", e);
-				}
-			}
-		} else if ("Order".equalsIgnoreCase(qName)) {
-			// make sure the tag was not self terminating
-			if (this.dataBuilder != null) {
-				String data = this.dataBuilder.toString().trim();
-				try {
-					this.part.setOrder(Integer.parseInt(data));
-				} catch (NumberFormatException e) {
-					throw new SAXException("Unable to parse part order: ", e);
+					LOGGER.warn("Failed to read verse number: {}", data);
 				}
 			}
 		} else if ("Text".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				String data = this.dataBuilder.toString().trim();
-				this.part.setText(StringEscapeUtils.unescapeXml(data));
+				this.part.setText(StringEscapeUtils.unescapeXml(data).replaceAll("(\\r|\\r\\n|\\n\\r|\\n)", "<br/>"));
 			}
 		} else if ("FontSize".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
@@ -234,11 +181,36 @@ public class PraisenterSongReaderv1_0_0 extends DefaultHandler {
 				try {
 					this.part.setFontSize(Integer.parseInt(data));
 				} catch (NumberFormatException e) {
-					throw new SAXException("Unable to parse font size: ", e);
+					LOGGER.warn("Failed to read verse font size: {}", data);
 				}
 			}
 		}
 		
 		this.dataBuilder = null;
+	}
+
+	/**
+	 * Returns the type string for the given type.
+	 * @param type the type
+	 * @return String
+	 */
+	private static final String getType(String type) {
+		if ("VERSE".equals(type)) {
+			return "v";
+		} else if ("PRECHORUS".equals(type)) {
+			return "p";
+		} else if ("CHORUS".equals(type)) {
+			return "c";
+		} else if ("BRIDGE".equals(type)) {
+			return "b";
+		} else if ("TAG".equals(type)) {
+			return "t";
+		} else if ("VAMP".equals(type)) {
+			return "e";
+		} else if ("END".equals(type)) {
+			return "e";
+		} else {
+			return "o";
+		}
 	}
 }

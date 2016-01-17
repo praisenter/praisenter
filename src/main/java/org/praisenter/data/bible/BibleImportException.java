@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -22,69 +22,46 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.data.song;
+package org.praisenter.data.bible;
 
 /**
- * Enumeration of the song part types.
+ * Exception thrown when a bible import fails.
  * @author William Bittle
- * @version 2.0.1
- * @since 1.0.0
+ * @version 3.0.0
  */
-public enum SongPartType {
-	/** Verse part */
-	VERSE("V"),
-	
-	/** Pre-Chorus part */
-	PRECHORUS("P"),
-	
-	/** Chorus part */
-	CHORUS("C"),
-	
-	/** Bridge part */
-	BRIDGE("B"),
+public class BibleImportException extends Exception {
+	/** The version id */
+	private static final long serialVersionUID = -4541129135637594279L;
 
-	/** Tag part */
-	TAG("T"),
-
-	/** Vamp part */
-	VAMP("A"),
-	
-	/** End part */
-	END("E"),
-	
-	/** Other part */
-	OTHER("O");
-	
-	/** The song part type value */
-	private String value;
-	
 	/**
-	 * Minimal constructor.
-	 * @param value the song part type value
+	 * Default constructor.
 	 */
-	private SongPartType(String value) {
-		this.value = value;
+	public BibleImportException() {
+		super();
 	}
 	
 	/**
-	 * Returns the {@link SongPartType} for the given value.
-	 * @param value the value
-	 * @return {@link SongPartType}
+	 * Full constructor.
+	 * @param message the message
+	 * @param cause the root exception
 	 */
-	public static final SongPartType getSongPart(String value) {
-		for (SongPartType type : SongPartType.values()) {
-			if (type.value.equals(value)) {
-				return type;
-			}
-		}
-		return OTHER;
+	public BibleImportException(String message, Throwable cause) {
+		super(message, cause);
 	}
 	
 	/**
-	 * Returns the value of this song part type. 
-	 * @return String
+	 * Optional constructor.
+	 * @param message the message
 	 */
-	public String getValue() {
-		return this.value;
+	public BibleImportException(String message) {
+		super(message);
+	}
+
+	/**
+	 * Optional constructor.
+	 * @param cause the root exception
+	 */
+	public BibleImportException(Throwable cause) {
+		super(cause);
 	}
 }
