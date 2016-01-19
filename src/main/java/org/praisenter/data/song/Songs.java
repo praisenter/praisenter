@@ -317,8 +317,8 @@ public final class Songs {
 	 * @param song the song to save
 	 * @throws SQLException if an exception occurs during execution
 	 */
-	public static final void saveSong(Song song) throws SQLException {
-		try (Connection connection = Database.getInstance().getConnection()) {
+	public void saveSong(Song song) throws SQLException {
+		try (Connection connection = this.database.getConnection()) {
 			// start a transaction
 			connection.setAutoCommit(false);
 			try {
@@ -330,12 +330,8 @@ public final class Songs {
 				// rollback any changes
 				connection.rollback();
 				// throw an exception
-				throw new SQLException(e);
+				throw e;
 			}
-		} catch (Exception e) {
-			// this could happen if we couldnt get a connection or
-			// the auto-commit flag could not be set
-			throw new SQLException(e);
 		}
 	}
 	
@@ -344,13 +340,13 @@ public final class Songs {
 	 * @param songPart the song part to save
 	 * @throws SQLException if an exception occurs during execution
 	 */
-	public static final void saveSongPart(SongPart songPart) throws SQLException {
-		try (Connection connection = Database.getInstance().getConnection()) {
+	public void saveAuthor(Author author) throws SQLException {
+		try (Connection connection = this.database.getConnection()) {
 			// start a transaction
 			connection.setAutoCommit(false);
 			try {
 				// attempt to save the song part
-				saveSongPart(songPart, connection);
+				saveAuthor(author, connection);
 				// commit the transaction
 				connection.commit();
 			} catch (SQLException e) {
