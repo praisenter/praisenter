@@ -14,7 +14,7 @@ import org.praisenter.xml.XmlIO;
 public class TestOpenLyricsJaxb {
 	public static void main(String[] args) {
 		try {
-			Song song = XmlIO.read(Paths.get("C:\\Users\\wbittle\\Desktop\\openlyrics-0.8\\openlyrics-0.8\\examples\\format2.xml"), Song.class);
+			Song song = XmlIO.read(Paths.get("C:\\Users\\William\\Desktop\\test\\openlyrics-0.8\\openlyrics-0.8\\examples\\format2.xml"), Song.class);
 			
 //			Verse v = new Verse();
 //			v.setFontSize(40);

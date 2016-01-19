@@ -12,57 +12,57 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "properties")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Properties {
-	@XmlElement(name = "title", required = false, nillable = true)
-	@XmlElementWrapper(name = "titles", required = false, nillable = true)
+	@XmlElement(name = "title", required = false)
+	@XmlElementWrapper(name = "titles", required = false)
 	List<Title> titles;
 	
-	@XmlElement(name = "author", required = false, nillable = true)
-	@XmlElementWrapper(name = "authors", required = false, nillable = true)
+	@XmlElement(name = "author", required = false)
+	@XmlElementWrapper(name = "authors", required = false)
 	List<Author> authors;
 
-	@XmlElement(name = "copyright", required = false, nillable = true)
+	@XmlElement(name = "copyright", required = false)
 	String copyright;
 	
-	@XmlElement(name = "ccliNo", required = false, nillable = true)
+	@XmlElement(name = "ccliNo", required = false)
 	int ccli;
 	
-	@XmlElement(name = "released", required = false, nillable = true)
+	@XmlElement(name = "released", required = false)
 	String released;
 	
-	@XmlElement(name = "transposition", required = false, nillable = true)
+	@XmlElement(name = "transposition", required = false)
 	int transposition;
 	
-	@XmlElement(name = "tempo", required = false, nillable = true)
+	@XmlElement(name = "tempo", required = false)
 	Tempo tempo;
 	
-	@XmlElement(name = "key", required = false, nillable = true)
+	@XmlElement(name = "key", required = false)
 	String key;
 	
-	@XmlElement(name = "variant", required = false, nillable = true)
+	@XmlElement(name = "variant", required = false)
 	String variant;
 	
-	@XmlElement(name = "publisher", required = false, nillable = true)
+	@XmlElement(name = "publisher", required = false)
 	String publisher;
 	
-	@XmlElement(name = "version", required = false, nillable = true)
+	@XmlElement(name = "version", required = false)
 	String version;
 	
-	@XmlElement(name = "keywords", required = false, nillable = true)
+	@XmlElement(name = "keywords", required = false)
 	String keywords;
 	
-	@XmlElement(name = "verseOrder", required = false, nillable = true)
+	@XmlElement(name = "verseOrder", required = false)
 	String verseOrder;
 	
-	@XmlElement(name = "songbook", required = false, nillable = true)
-	@XmlElementWrapper(name = "songbooks", required = false, nillable = true)
+	@XmlElement(name = "songbook", required = false)
+	@XmlElementWrapper(name = "songbooks", required = false)
 	List<Songbook> songbooks;
 	
-	@XmlElement(name = "theme", required = false, nillable = true)
-	@XmlElementWrapper(name = "themes", required = false, nillable = true)
+	@XmlElement(name = "theme", required = false)
+	@XmlElementWrapper(name = "themes", required = false)
 	List<Theme> themes;
 	
-	@XmlElement(name = "comment", required = false, nillable = true)
-	@XmlElementWrapper(name = "comments", required = false, nillable = true)
+	@XmlElement(name = "comment", required = false)
+	@XmlElementWrapper(name = "comments", required = false)
 	List<Comment> comments;
 
 	public Properties() {

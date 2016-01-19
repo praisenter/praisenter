@@ -90,6 +90,7 @@ public class Song implements Comparable<Song>, DisplayText {
 	 */
 	@Override
 	public String toString() {
+		// FIXME needs to be fixed
 		StringBuilder sb = new StringBuilder();
 		sb.append("Song[Id=").append(this.id)
 		  .append("|DateAdded=").append(this.dateAdded)
@@ -131,6 +132,27 @@ public class Song implements Comparable<Song>, DisplayText {
 			}
 		}
 		return verses;
+	}
+	
+	public Author getDefaultAuthor() {
+		Author author = null;
+		if (this.properties.authors.size() > 0) {
+			// default to the first one
+			author = this.properties.authors.get(0);
+			// try to find the best one
+			for (Author auth : this.properties.authors) {
+				// don't choose an empty one
+				if (auth.name == null || auth.name.length() <= 0) {
+					continue;
+				}
+				// otherwise its the one without a language setting
+				if (auth.language == null || auth.language.isEmpty()) {
+					author = auth;
+				}
+				// or the first if we don't find any of the above
+			}
+		}
+		return author;
 	}
 	
 	public Title getDefaultTitle() {

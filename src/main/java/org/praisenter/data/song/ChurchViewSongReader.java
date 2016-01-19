@@ -38,6 +38,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.xml.sax.Attributes;
@@ -178,7 +179,7 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 					}
 					
 					// set the text
-					verse.setText(text.replaceAll("(\\r|\\r\\n|\\n\\r|\\n)", "<br/>"));
+					verse.setText(StringEscapeUtils.escapeXml11(text).replaceAll("(\\r|\\r\\n|\\n\\r|\\n)", "<br/>"));
 					
 					this.song.getVerses().add(verse);
 				}
