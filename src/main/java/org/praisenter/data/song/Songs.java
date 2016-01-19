@@ -45,6 +45,10 @@ import org.praisenter.data.Database;
  * @author William Bittle
  * @version 3.0.0
  */
+
+// FIXME instead store the entire song xml in a CLOB
+// FIXME build a new table that stores searchable text for the song
+// FIXME build a new table for additional Praisenter specific settings
 public final class Songs {
 	
 	private final Database database;

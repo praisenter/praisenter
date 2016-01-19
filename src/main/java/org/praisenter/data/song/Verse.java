@@ -1,37 +1,39 @@
 package org.praisenter.data.song;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.beans.binding.StringBinding;
-
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.praisenter.DisplayText;
+import org.praisenter.DisplayType;
 import org.praisenter.utility.RuntimeProperties;
 import org.praisenter.xml.XmlIO;
 
 @XmlRootElement(name = "verse")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Verse {
+public final class Verse implements DisplayText {
 	int songId;
 	
+	/** The type (c, v, p, b, e...) */
 	String type;
+	
+	/** The number (1, 2, 3...) */
 	int number;
+	
+	/** The part (a, b, c...) */
 	String part;
+	
+	/** The font size */
 	int fontSize;
 	
+	/** The verse name */
 	@XmlAttribute(name = "name", required = false)
 	String name;
 	
@@ -41,10 +43,9 @@ public final class Verse {
 	@XmlAttribute(name = "translit", required = false)
 	String transliteration;
 	
+	/** The verse lines */
 	@XmlElement(name = "lines")
 	List<Line> lines;
-	
-	String text;
 	
 	public Verse() {
 		this.type = "c";
@@ -54,10 +55,25 @@ public final class Verse {
 		this.lines = new ArrayList<Line>();
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return this.getDisplayText(DisplayType.MAIN);
+	}
+	
+	/**
+	 * Generates the verse name based on the type, number and part.
+	 */
 	private void setName() {
 		this.name = type + String.valueOf(number) + (part == null ? "" : part);
 	}
-	
+
+	public String getName() {
+		return name;
+	}
+
 	public int getSongId() {
 		return songId;
 	}
@@ -93,10 +109,6 @@ public final class Verse {
 		setName();
 	}
 
-	public String getName() {
-		return name;
-	}
-
 	public String getLanguage() {
 		return language;
 	}
@@ -113,34 +125,16 @@ public final class Verse {
 		this.transliteration = transliteration;
 	}
 
-	public String getDisplayText() {
+	@Override
+	public String getDisplayText(DisplayType type) {
 		StringBuilder sb = new StringBuilder();
 		for (Line line : this.lines) {
-			for (Object o : line.text) {
-				if (o instanceof String) {
-					sb.append(o.toString());
-				} else if (o instanceof Br) {
-					sb.append(RuntimeProperties.NEW_LINE_SEPARATOR);
-				} else if (o instanceof Tag) {
-					sb.append(((Tag)o).text);
-				}
-			}
+			sb.append(line.getDisplayText(type)).append(RuntimeProperties.NEW_LINE_SEPARATOR);
 		}
 		return sb.toString();
 	}
 	
-	public String getText() {
-		StringBuilder sb = new StringBuilder();
-		for (Line line : this.lines) {
-			for (Object o : line.text) {
-				sb.append(o.toString());
-			}
-		}
-		return sb.toString();
-	}
-
 	public void setText(String text) {
-		this.text = text;
 		if (this.lines == null) {
 			this.lines = new ArrayList<Line>();
 		}

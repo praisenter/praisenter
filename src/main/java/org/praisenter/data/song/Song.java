@@ -6,13 +6,18 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.praisenter.DisplayText;
+import org.praisenter.DisplayType;
+import org.praisenter.utility.RuntimeProperties;
+
 @XmlRootElement(name = "song")
 @XmlAccessorType(XmlAccessType.NONE)
-public class Song implements Comparable<Song> {
+public class Song implements Comparable<Song>, DisplayText {
 	/** The version of openlyrics the song classes conform to */
 	public static final String VERSION = "0.8";
 	
@@ -20,6 +25,26 @@ public class Song implements Comparable<Song> {
 	protected static final int NEW_SONG_ID = -1;
 	
 	int id;
+	
+	// metadata used only for openlyrics format
+	
+	/** The openlyrics format version */
+	@XmlAttribute(name = "version")
+	final String version = VERSION;
+	
+	/** The original created in application */
+	@XmlAttribute(name = "createdIn")
+	String createdIn;
+	
+	/** The last modified in application */
+	@XmlAttribute(name = "modifiedIn")
+	String modifiedIn;
+	
+	/** The last modified date */
+	@XmlAttribute(name = "modifiedDate")
+	Date modifiedDate;
+	
+	// data
 	
 	Date dateAdded;
 	
@@ -126,9 +151,55 @@ public class Song implements Comparable<Song> {
 				} else if (ttl.language == null || ttl.language.isEmpty()) {
 					title = ttl;
 				}
+				// or the first if we don't find any of the above
 			}
 		}
 		return title;
+	}
+	
+	public void removeTags() {
+		for (Verse verse : this.verses) {
+			for (Line line : verse.lines) {
+				line.removeTags();
+			}
+		}
+	}
+	
+	@Override
+	public String getDisplayText(DisplayType type) {
+		StringBuilder sb = new StringBuilder();
+		for (Verse verse : this.verses) {
+			if (type == DisplayType.EDIT) {
+				sb.append(verse.getName()).append(RuntimeProperties.NEW_LINE_SEPARATOR);
+			}
+			sb.append(verse.getDisplayText(type))
+			  .append(RuntimeProperties.NEW_LINE_SEPARATOR);
+		}
+		return sb.toString();
+	}
+	
+	public List<SearchableText> getSearchableText() {
+		// FIXME include titles, song text, what else?
+		List<SearchableText> txt = new ArrayList<SearchableText>();
+		for (Verse verse : this.verses) {
+			SearchableText st = new SearchableText();
+			st.songId = this.id;
+			st.part = verse.part;
+			st.text = verse.getDisplayText(DisplayType.MAIN).toUpperCase();
+			st.language = verse.language;
+			st.translit = verse.transliteration;
+			txt.add(st);
+		}
+		for (Title title : this.properties.titles) {
+			SearchableText st = new SearchableText();
+			st.songId = this.id;
+			st.part = "title";
+			st.text = title.text.toUpperCase();
+			st.language = title.language;
+			st.translit = title.transliteration;
+			txt.add(st);
+		}
+		return txt;
 	}
 
 	public int getId() {
