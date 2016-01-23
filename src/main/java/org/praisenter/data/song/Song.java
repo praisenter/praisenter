@@ -1,5 +1,6 @@
 package org.praisenter.data.song;
 
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -18,13 +19,17 @@ import org.praisenter.utility.RuntimeProperties;
 @XmlRootElement(name = "song")
 @XmlAccessorType(XmlAccessType.NONE)
 public class Song implements Comparable<Song>, DisplayText {
+	/** A regex to match new lines */
+	static final String NEW_LINE_REGEX = "\\n|\\r|\\n\\r|\\r\\n";
+	
+	/** A regex to match whitespace */
+	static final String NEW_LINE_WHITESPACE = "\\s+";
+	
+	/** For string comparison */
+	static final Collator COLLATOR = Collator.getInstance();
+	
 	/** The version of openlyrics the song classes conform to */
 	public static final String VERSION = "0.8";
-	
-	/** The id assigned to new songs */
-	protected static final int NEW_SONG_ID = -1;
-	
-	int id;
 	
 	// metadata used only for openlyrics format
 	
@@ -46,8 +51,6 @@ public class Song implements Comparable<Song>, DisplayText {
 	
 	// data
 	
-	Date dateAdded;
-	
 	@XmlElement(name = "properties", required = false, nillable = true)
 	Properties properties;
 	
@@ -55,8 +58,11 @@ public class Song implements Comparable<Song>, DisplayText {
 	@XmlElement(name = "verse")
 	List<Verse> verses;
 	
+	// praisenter metadata
+	
+	SongMetadata metadata;
+	
 	public Song() {
-		this.id = NEW_SONG_ID;
 		this.properties = new Properties();
 		this.verses = new ArrayList<Verse>();
 	}
@@ -70,7 +76,7 @@ public class Song implements Comparable<Song>, DisplayText {
 		if (obj == this) return true;
 		if (obj instanceof Song) {
 			Song song = (Song)obj;
-			if (song.id == this.id) {
+			if (song.metadata.path.equals(this.metadata.path)) {
 				return true;
 			}
 		}
@@ -82,7 +88,7 @@ public class Song implements Comparable<Song>, DisplayText {
 	 */
 	@Override
 	public int hashCode() {
-		return this.id;
+		return this.metadata.path.hashCode();
 	}
 	
 	/* (non-Javadoc)
@@ -90,12 +96,11 @@ public class Song implements Comparable<Song>, DisplayText {
 	 */
 	@Override
 	public String toString() {
-		// FIXME needs to be fixed
-		StringBuilder sb = new StringBuilder();
-		sb.append("Song[Id=").append(this.id)
-		  .append("|DateAdded=").append(this.dateAdded)
-		  .append("]");
-		return sb.toString();
+		Title title = this.getDefaultTitle();
+		if (title == null) {
+			return "Untitled";
+		}
+		return title.text;
 	}
 	
 	/* (non-Javadoc)
@@ -104,24 +109,28 @@ public class Song implements Comparable<Song>, DisplayText {
 	@Override
 	public int compareTo(Song o) {
 		// sort by title first
-		int diff = 0; // FIXME this.title.compareToIgnoreCase(o.title);
+		Title t0 = this.getDefaultTitle();
+		Title t1 = o.getDefaultTitle();
+		String s0 = t0 == null ? "" : t0.text;
+		String s1 = t1 == null ? "" : t1.text;
+		int diff = COLLATOR.compare(s0, s1);
 		if (diff == 0) {
-			// then sort by date added
-			diff = this.dateAdded.compareTo(o.dateAdded);
+			// then sort by variant
+			diff = COLLATOR.compare(this.properties.variant, o.properties.variant);
 			if (diff == 0) {
-				// finally sort by id
-				diff = this.id - o.id;
+				// then sort by author
+				Author a0 = this.getDefaultAuthor();
+				Author a1 = o.getDefaultAuthor();
+				s0 = a0 == null ? "" : a0.name;
+				s1 = a1 == null ? "" : a1.name;
+				diff = COLLATOR.compare(s0, s1);
+				if (diff == 0) {
+					// then by added date
+					diff = this.metadata.dateAdded.compareTo(o.metadata.dateAdded);
+				}
 			}
 		}
 		return diff;
-	}
-	
-	/**
-	 * Returns true if this song is a new song (that has not been saved).
-	 * @return boolean
-	 */
-	public boolean isNew() {
-		return this.id == Song.NEW_SONG_ID;
 	}
 	
 	public List<Verse> getVerses(String name) {
@@ -179,10 +188,10 @@ public class Song implements Comparable<Song>, DisplayText {
 		return title;
 	}
 	
-	public void removeTags() {
+	public void prepare() {
 		for (Verse verse : this.verses) {
 			for (Line line : verse.lines) {
-				line.removeTags();
+				line.prepare();
 			}
 		}
 	}
@@ -200,46 +209,6 @@ public class Song implements Comparable<Song>, DisplayText {
 		return sb.toString();
 	}
 	
-	public List<SearchableText> getSearchableText() {
-		// FIXME include titles, song text, what else?
-		List<SearchableText> txt = new ArrayList<SearchableText>();
-		for (Verse verse : this.verses) {
-			SearchableText st = new SearchableText();
-			st.songId = this.id;
-			st.part = verse.part;
-			st.text = verse.getDisplayText(DisplayType.MAIN).toUpperCase();
-			st.language = verse.language;
-			st.translit = verse.transliteration;
-			txt.add(st);
-		}
-		for (Title title : this.properties.titles) {
-			SearchableText st = new SearchableText();
-			st.songId = this.id;
-			st.part = "title";
-			st.text = title.text.toUpperCase();
-			st.language = title.language;
-			st.translit = title.transliteration;
-			txt.add(st);
-		}
-		return txt;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public Date getDateAdded() {
-		return dateAdded;
-	}
-
-	public void setDateAdded(Date dateAdded) {
-		this.dateAdded = dateAdded;
-	}
-
 	public Properties getProperties() {
 		return properties;
 	}

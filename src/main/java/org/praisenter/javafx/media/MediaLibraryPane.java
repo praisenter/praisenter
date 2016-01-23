@@ -83,8 +83,6 @@ public class MediaLibraryPane extends Application {
     private MediaFilter filter;
     
     // TODO sorting by 1) name or 2) type-then-name
-    // TODO filtering by 1) type and 2) tag(s)
-    // TODO search by name
     // TODO need a generic way of communicating between multiple instances
     // TODO flag to control flow (horizontal or vertical)
     // TODO add ability to rename
@@ -353,11 +351,13 @@ public class MediaLibraryPane extends Application {
         txtSearch.textProperty().bindBidirectional(this.filter.searchProperty());
         
         HBox pFilter = new HBox(); 
+        pFilter.setAlignment(Pos.BASELINE_LEFT);
         pFilter.setSpacing(5);
         pFilter.getChildren().addAll(lblFilter, cbTypes, cbTags, txtSearch);
 //        pFilter.setBorder(Testing.border(Color.GREEN));
         
         HBox pSort = new HBox();
+        pSort.setAlignment(Pos.BASELINE_LEFT);
         pSort.setSpacing(5);
         pSort.getChildren().addAll(lblSort, cbSort, tgl);
 //        pSort.setBorder(Testing.border(Color.RED));

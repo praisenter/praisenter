@@ -11,6 +11,7 @@ import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.commons.lang3.StringUtils;
 import org.praisenter.DisplayText;
 import org.praisenter.DisplayType;
 
@@ -51,29 +52,56 @@ public final class Line implements DisplayText {
 	}
 	
 	/**
-	 * Removes (unwraps) all tag tags from the line.
+	 * Removes (unwraps) all tag tags from the line and remove new line characters and beginning whitespace.
 	 * <p>
 	 * The tag tags are there for formatting which we will likely not support in the
 	 * same manner as another application.
 	 * <p>
-	 * Returns true if the line contained tag tags.
+	 * Returns true if the song was modified.
 	 * @return boolean
 	 */
-	public boolean removeTags() {
-		boolean containsTags = false;
+	public boolean prepare() {
+		boolean modified = false;
 		List<Object> unwrapped = new ArrayList<Object>();
+		// pass 1
+		// 1. remove tags
+		// 2. remove new line characters (use <br/> instead)
+		// 3. remove consecutive whitespace
 		for (int i = 0; i < this.elements.size(); i++) {
 			Object node = this.elements.get(i);
 			if (node instanceof Tag) {
-				containsTags = true;
-				removeTags((Tag)node, unwrapped);
+				modified = true;
+				prepare((Tag)node, unwrapped);
+			} else if (node instanceof String) {
+				modified = true;
+				String s = (String)node;
+				// take out all new line characters
+				s = s.replaceAll(Song.NEW_LINE_REGEX, "");
+				// condense consecutive whitespace with a single whitespace
+				s = s.replaceAll(Song.NEW_LINE_WHITESPACE, " ");
+				unwrapped.add(s);
 			} else {
 				unwrapped.add(node);
 			}
 		}
+		// pass 2
+		// 1. strip beginning whitespace on each string node if it comes after a br
+		Class<?> last = null;
+		for (int i = 0; i < unwrapped.size(); i++) {
+			Object node = unwrapped.get(i);
+			if (node instanceof String) {
+				modified = true;
+				String s = (String)node;
+				if (last == Br.class || last == null) {
+					s = StringUtils.stripStart(s, null);
+				}
+				unwrapped.set(i, s);
+			}
+			last = node.getClass();
+		}
 		// we should only contain comment, br, chord, and String elements now
 		this.elements = unwrapped;
-		return containsTags;
+		return modified;
 	}
 	
 	/**
@@ -82,11 +110,16 @@ public final class Line implements DisplayText {
 	 * @param unwrapped the list of unwrapped elements
 	 * @see #removeTags()
 	 */
-	private void removeTags(Tag tag, List<Object> unwrapped) {
+	private void prepare(Tag tag, List<Object> unwrapped) {
 		for (int i = 0; i < tag.elements.size(); i++) {
 			Object node = tag.elements.get(i);
 			if (node instanceof Tag) {
-				removeTags((Tag)node, unwrapped);
+				prepare((Tag)node, unwrapped);
+			} else if (node instanceof String) {
+				String s = (String)node;
+				s = s.replaceAll(Song.NEW_LINE_REGEX, "");
+				s = s.replaceAll(Song.NEW_LINE_WHITESPACE, " ");
+				unwrapped.add(s);
 			} else {
 				unwrapped.add(node);
 			}

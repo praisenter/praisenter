@@ -30,9 +30,6 @@ public final class Verse implements DisplayText {
 	/** The part (a, b, c...) */
 	String part;
 	
-	/** The font size */
-	int fontSize;
-	
 	/** The verse name */
 	@XmlAttribute(name = "name", required = false)
 	String name;
@@ -50,7 +47,6 @@ public final class Verse implements DisplayText {
 	public Verse() {
 		this.type = "c";
 		this.number = 1;
-		this.fontSize = 60;
 		this.name = "c1";
 		this.lines = new ArrayList<Line>();
 	}
@@ -67,7 +63,7 @@ public final class Verse implements DisplayText {
 	 * Generates the verse name based on the type, number and part.
 	 */
 	private void setName() {
-		this.name = type + String.valueOf(number) + (part == null ? "" : part);
+		this.name = this.type + String.valueOf(this.number) + (this.part == null ? "" : this.part);
 	}
 
 	public String getName() {
@@ -148,13 +144,5 @@ public final class Verse implements DisplayText {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	public int getFontSize() {
-		return fontSize;
-	}
-
-	public void setFontSize(int fontSize) {
-		this.fontSize = fontSize;
 	}
 }

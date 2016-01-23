@@ -1,7 +1,7 @@
 /**
  * FIXME need documentation
  * 
- * 
+ * TODO change package to just org.praisenter.song?
  * 
  * 
  */

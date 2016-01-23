@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -100,6 +101,7 @@ public class PraisenterSongReader_v1_0_0 extends DefaultHandler implements SongF
 		if (qName.equalsIgnoreCase("Song")) {
 			// when we see the <Songs> tag we create a new song
 			this.song = new Song();
+			this.song.metadata = new SongMetadata();
 		} else if (qName.equalsIgnoreCase("SongPart")) {
 			this.part = new Verse();
 		}
@@ -179,7 +181,7 @@ public class PraisenterSongReader_v1_0_0 extends DefaultHandler implements SongF
 			if (this.dataBuilder != null) {
 				String data = this.dataBuilder.toString().trim();
 				try {
-					this.part.setFontSize(Integer.parseInt(data));
+					this.song.metadata.verses.add(new VerseMetadata(this.part.name, Integer.parseInt(data)));
 				} catch (NumberFormatException e) {
 					LOGGER.warn("Failed to read verse font size: {}", data);
 				}

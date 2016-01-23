@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.praisenter.SearchType;
 import org.praisenter.data.song.Author;
 import org.praisenter.data.song.ChurchViewSongReader;
 import org.praisenter.data.song.Song;
@@ -24,39 +25,43 @@ import org.praisenter.xml.XmlIO;
 public class TestSongLibrary {
 	public static void main(String[] args) {
 		try {
-			Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\songs");
+			Path path = Paths.get("D:\\Personal\\Praisenter\\songs");
 			
-			Map<String, Integer> nameMap = new HashMap<String, Integer>();
-			ChurchViewSongReader reader = new ChurchViewSongReader();
-			List<Song> songs = reader.read(Paths.get("C:\\Users\\William\\Desktop\\test\\ChurchViewSongs.cvDat"));
-			
-			for (Song song : songs) {
-				Title title = song.getDefaultTitle();
-				String variant = song.getProperties().getVariant();
-				Author author = song.getDefaultAuthor();
-				
-				String name = (title != null ? title.getText().replaceAll("\\W+", "_") : "") +
-							  (variant != null && variant.length() > 0 ? "_" + variant.replaceAll("\\W+", "_") : "") +
-							  (author != null ? "_" + author.getName().replaceAll("\\W+", "_") : "");
-				
-				Path dest = path.resolve(name + ".xml");
-				if (nameMap.containsKey(name + ".xml")) {
-					Integer n = nameMap.get(name + ".xml");
-					n++;
-					dest = path.resolve(name + String.valueOf(n) + ".xml");
-					nameMap.put(name + ".xml", n);
-				} else {
-					nameMap.put(name + ".xml", 1);
-				}
-				
-				XmlIO.save(dest, song);
-			}
+//			Map<String, Integer> nameMap = new HashMap<String, Integer>();
+//			ChurchViewSongReader reader = new ChurchViewSongReader();
+//			List<Song> songs = reader.read(Paths.get("D:\\Personal\\Eclipse\\GitRepository\\praisenter\\data\\ChurchViewSongs.cvDat"));
+//			
+//			for (Song song : songs) {
+//				Title title = song.getDefaultTitle();
+//				String variant = song.getProperties().getVariant();
+//				Author author = song.getDefaultAuthor();
+//				
+//				String name = (title != null ? title.getText().replaceAll("\\W+", "_") : "") +
+//							  (variant != null && variant.length() > 0 ? "_" + variant.replaceAll("\\W+", "_") : "") +
+//							  (author != null ? "_" + author.getName().replaceAll("\\W+", "_") : "");
+//				
+//				Path dest = path.resolve(name + ".xml");
+//				if (nameMap.containsKey(name + ".xml")) {
+//					Integer n = nameMap.get(name + ".xml");
+//					n++;
+//					dest = path.resolve(name + String.valueOf(n) + ".xml");
+//					nameMap.put(name + ".xml", n);
+//				} else {
+//					nameMap.put(name + ".xml", 1);
+//				}
+//				
+//				XmlIO.save(dest, song);
+//			}
 			
 			SongLibrary sl = SongLibrary.open(path);
 			
 			System.out.println("-------------------------------------------------------------");
 			
-			sl.search("morning");
+			long t0 = System.nanoTime();
+			sl.search("glory hallelu", SearchType.PHRASE);
+			long t1 = System.nanoTime();
+			System.out.println();
+			System.out.println(((t1 - t0) / 1e6) + " ms");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

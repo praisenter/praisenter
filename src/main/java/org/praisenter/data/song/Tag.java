@@ -55,7 +55,7 @@ public final class Tag implements DisplayText {
 		
 		for (Object o : this.elements) {
 			if (o instanceof String) {
-				sb.append(o.toString());
+				sb.append(o);
 			} else if (o instanceof DisplayText) {
 				sb.append(((DisplayText)o).getDisplayText(type));
 			}

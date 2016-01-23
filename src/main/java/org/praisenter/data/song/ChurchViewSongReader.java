@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -108,6 +109,7 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 		if (qName.equalsIgnoreCase("Songs")) {
 			// when we see the <Songs> tag we create a new song
 			this.song = new Song();
+			this.song.metadata = new SongMetadata();
 		}
 	}
 	
@@ -204,7 +206,7 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 					try {
 						int size = (int)Math.floor(Integer.parseInt(s) * FONT_SIZE_SCALE);
 						for (Verse verse : verses) {
-							verse.setFontSize(size);
+							song.metadata.verses.add(new VerseMetadata(verse.name, size));
 						}
 					} catch (NumberFormatException e) {
 						LOGGER.warn("Failed to read verse font size: {}", s);
