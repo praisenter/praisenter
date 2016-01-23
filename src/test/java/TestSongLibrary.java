@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.praisenter.SearchType;
-import org.praisenter.data.song.Author;
-import org.praisenter.data.song.ChurchViewSongReader;
-import org.praisenter.data.song.Song;
-import org.praisenter.data.song.SongLibrary;
-import org.praisenter.data.song.Title;
+import org.praisenter.song.Author;
+import org.praisenter.song.ChurchViewSongReader;
+import org.praisenter.song.Song;
+import org.praisenter.song.SongLibrary;
+import org.praisenter.song.Title;
 import org.praisenter.xml.XmlIO;
 
 /**

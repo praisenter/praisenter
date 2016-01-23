@@ -4,9 +4,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.zip.ZipException;
 
+import org.praisenter.bible.Bible;
+import org.praisenter.bible.BibleLibrary;
 import org.praisenter.data.Database;
-import org.praisenter.data.bible.Bible;
-import org.praisenter.data.bible.BibleLibrary;
 
 
 public class TestBibleLibrary {

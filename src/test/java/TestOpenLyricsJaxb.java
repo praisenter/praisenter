@@ -5,9 +5,9 @@ import java.nio.file.Paths;
 import javax.xml.bind.JAXBException;
 
 import org.praisenter.DisplayType;
-import org.praisenter.data.song.Song;
-import org.praisenter.data.song.Songbook;
-import org.praisenter.data.song.Verse;
+import org.praisenter.song.Song;
+import org.praisenter.song.Songbook;
+import org.praisenter.song.Verse;
 import org.praisenter.xml.XmlIO;
 
 
