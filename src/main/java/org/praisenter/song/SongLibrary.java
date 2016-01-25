@@ -1,10 +1,7 @@
 package org.praisenter.song;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,6 +10,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.activation.FileTypeMap;
+import javax.activation.MimetypesFileTypeMap;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -20,43 +22,40 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.Terms;
-import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.queryparser.complexPhrase.ComplexPhraseQueryParser;
+import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.PhraseQuery;
-import org.apache.lucene.search.PrefixQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.Scorer;
-import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.BytesRef;
 import org.praisenter.DisplayType;
 import org.praisenter.SearchType;
+import org.praisenter.song.openlyrics.OpenLyricsSong;
+import org.praisenter.song.openlyrics.OpenLyricsTitle;
+import org.praisenter.song.openlyrics.OpenLyricsVerse;
 import org.praisenter.xml.XmlIO;
 
 public final class SongLibrary {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private static final String FIELD_TITLE = "title";
 	private static final String FIELD_VERSE = "verse";
 	private static final String FIELD_KEYWORD = "keyword";
@@ -70,11 +69,13 @@ public final class SongLibrary {
 	
 	
 	private final Path path;
+	private final Path indexPath;
+	private final Path metadataPath;
 	
 	private Directory directory;
 	private Analyzer analyzer;
 	
-	private final Map<Path, Song> songs;
+	private final Map<Path, OpenLyricsSong> songs;
 	
 	public static final SongLibrary open(Path path) throws IOException {
 		SongLibrary sl = new SongLibrary(path);
@@ -85,7 +86,10 @@ public final class SongLibrary {
 	private SongLibrary(Path path) {
 		this.path = path;
 		
-		this.songs = new HashMap<Path, Song>();
+		this.indexPath = this.path.resolve(INDEX_DIR);
+		this.metadataPath = this.path.resolve(METADATA_DIR);
+		
+		this.songs = new HashMap<Path, OpenLyricsSong>();
 	}
 	
 	// TODO import methods
@@ -93,19 +97,37 @@ public final class SongLibrary {
 	// TODO delete methods
 	
 	private void initialize() throws IOException {
+		Files.createDirectories(this.indexPath);
+		Files.createDirectories(this.metadataPath);
 		
-		Path index = this.path.resolve(INDEX_DIR);
-		Path metadata = this.path.resolve(METADATA_DIR);
-		Files.createDirectories(index);
-		Files.createDirectories(metadata);
+		// load existing meta data into a temporary map
+		Map<Path, SongMetadata> metadata = new HashMap<Path, SongMetadata>();
+		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
+		try (DirectoryStream<Path> dir = Files.newDirectoryStream(this.metadataPath)) {
+			for (Path path : dir) {
+				if (Files.isRegularFile(path)) {
+					String mimeType = map.getContentType(path.toString());
+					if (mimeType.equals("application/xml")) {
+						try {
+							SongMetadata meta = XmlIO.read(path, SongMetadata.class);
+							metadata.put(meta.path, meta);
+						} catch (Exception e) {
+							// just continue loading
+							LOGGER.warn("Failed to read file '" + path.toAbsolutePath().toString() + "'.", e);
+						}
+					}
+				}
+			}
+		} catch (Exception ex) {
+			LOGGER.warn("Failed loading existing song metadata.", ex);
+		}
 		
-		// load existing metadata
+		// load and update the index
+		this.directory = FSDirectory.open(this.indexPath);
 		
-		this.directory = FSDirectory.open(index);
-		// don't exclude stop words
+		// don't exclude stop words!
 		this.analyzer = new StandardAnalyzer(new CharArraySet(1, false));
 		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-		
 		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
 		
 		IndexWriter writer = new IndexWriter(this.directory, config);
@@ -113,47 +135,67 @@ public final class SongLibrary {
 		// index existing documents
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(this.path)) {
 			for (Path file : stream) {
-				if (Files.isRegularFile(file) && file.getFileName().toString().endsWith(".xml")) {
-					try (InputStream is = Files.newInputStream(file)) {
-						Document document = new Document();
-						
-						// store the path so we know where to get the song
-						Field pathField = new StringField(FIELD_PATH, file.toAbsolutePath().toString(), Field.Store.YES);
-						document.add(pathField);
-						
-						try {
-							// read in the xml
-							Song song = XmlIO.read(is, Song.class);
+				if (Files.isRegularFile(file)) {
+					String mimeType = map.getContentType(file.toString());
+					if (mimeType.equals("application/xml")) {
+						try (InputStream is = Files.newInputStream(file)) {
+							Document document = new Document();
 							
-							// clean it up for use in Praisenter
-							song.prepare();
+							// store the path so we know where to get the song
+							Field pathField = new StringField(FIELD_PATH, file.toAbsolutePath().toString(), Field.Store.YES);
+							document.add(pathField);
 							
-							// add it to the song map
-							this.songs.put(file.toAbsolutePath(), song);
-							
-							// keywords
-							if (song.properties.keywords != null) {
-								Field keyWordsField = new TextField(FIELD_KEYWORD, song.properties.keywords, Field.Store.YES);
-								document.add(keyWordsField);
+							try {
+								// read in the xml
+								OpenLyricsSong song = XmlIO.read(is, OpenLyricsSong.class);
+								
+								// clean it up for use in Praisenter
+								song.prepare();
+								
+								// check for metadata
+								if (metadata.containsKey(file)) {
+									song.metadata = metadata.get(file);
+								} else {
+									// save a new metadata
+									SongMetadata sm = new SongMetadata();
+									sm.path = file;
+									song.metadata = sm;
+									
+									try {
+										Path mp = this.metadataPath.resolve(file.getFileName().toString() + METADATA_EXT);
+										XmlIO.save(mp, sm);
+									} catch (Exception ex) {
+										LOGGER.warn("Failed to save metadata for '" + file.toAbsolutePath().toString() + "'", ex);
+									}
+								}
+								
+								// add it to the song map
+								this.songs.put(file.toAbsolutePath(), song);
+								
+								// keywords
+								if (song.properties.keywords != null) {
+									Field keyWordsField = new TextField(FIELD_KEYWORD, song.properties.keywords, Field.Store.YES);
+									document.add(keyWordsField);
+								}
+								
+								// title fields
+								for (OpenLyricsTitle title : song.properties.titles) {
+									Field titleField = new TextField(FIELD_TITLE, title.text, Field.Store.YES);
+									document.add(titleField);
+								}
+								
+								// verse fields
+								for (OpenLyricsVerse verse : song.verses) {
+									Field verseField = new TextField(FIELD_VERSE, verse.getDisplayText(DisplayType.MAIN), Field.Store.YES);
+									document.add(verseField);
+								}
+								
+								writer.updateDocument(new Term(FIELD_PATH, file.toAbsolutePath().toString()), document);
+							} catch (Exception e) {
+								LOGGER.warn("Failed to load song '" + file.toAbsolutePath().toString() + "'", e);
+								writer.deleteDocuments(new Term(FIELD_PATH, file.toAbsolutePath().toString()));
 							}
-							
-							// title fields
-							for (Title title : song.properties.titles) {
-								Field titleField = new TextField(FIELD_TITLE, title.text, Field.Store.YES);
-								document.add(titleField);
-							}
-							
-							// verse fields
-							for (Verse verse : song.verses) {
-								Field verseField = new TextField(FIELD_VERSE, verse.getDisplayText(DisplayType.MAIN), Field.Store.YES);
-								document.add(verseField);
-							}
-						} catch (Exception e) {
-							// FIXME fix
-							e.printStackTrace(System.err);
 						}
-						
-						writer.updateDocument(new Term(FIELD_PATH, file.toAbsolutePath().toString()), document);
 					}
 				}
 			}
@@ -319,9 +361,5 @@ public final class SongLibrary {
 		}
 		
 		reader.close();
-	}
-	
-	public void save(Song song) {
-		
 	}
 }

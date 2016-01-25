@@ -5,18 +5,17 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
 
-@XmlRootElement(name = "comment")
+@XmlRootElement(name = "text")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Comment implements VerseFragment {
-	/** The comment text */
+public final class Text implements VerseFragment {
 	@XmlValue
-	String comment;
+	String text;
 
-	public String getComment() {
-		return comment;
+	public String getText() {
+		return text;
 	}
 
-	public void setComment(String comment) {
-		this.comment = comment;
+	public void setText(String text) {
+		this.text = text;
 	}
 }

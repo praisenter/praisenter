@@ -32,6 +32,8 @@ import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 
+import org.praisenter.song.openlyrics.OpenLyricsSong;
+import org.praisenter.song.openlyrics.OpenLyricsTitle;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -50,9 +52,9 @@ public final class SongExporter {
 	 * @throws IOException 
 	 * @throws JAXBException 
 	 */
-	public static final void exportSongs(Path path, List<Song> songs) throws JAXBException, IOException {
-		for (Song song : songs) {
-			Title title = song.getDefaultTitle();
+	public static final void exportSongs(Path path, List<OpenLyricsSong> songs) throws JAXBException, IOException {
+		for (OpenLyricsSong song : songs) {
+			OpenLyricsTitle title = song.getDefaultTitle();
 			String variant = song.properties.variant;
 			
 			String name = title.text.replaceAll("\\W+", "") + "_" + variant.replaceAll("\\W+", "");

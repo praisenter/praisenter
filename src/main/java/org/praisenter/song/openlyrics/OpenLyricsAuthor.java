@@ -1,4 +1,4 @@
-package org.praisenter.song;
+package org.praisenter.song.openlyrics;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlValue;
 
 @XmlRootElement(name = "author")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Author {
+public final class OpenLyricsAuthor {
 	public static final String TYPE_WORDS = "words";
 	public static final String TYPE_MUSIC = "music";
 	public static final String TYPE_TRANSLATION = "translation";

@@ -5,16 +5,16 @@ import java.nio.file.Paths;
 import javax.xml.bind.JAXBException;
 
 import org.praisenter.DisplayType;
-import org.praisenter.song.Song;
-import org.praisenter.song.Songbook;
-import org.praisenter.song.Verse;
+import org.praisenter.song.openlyrics.OpenLyricsSong;
+import org.praisenter.song.openlyrics.OpenLyricsSongbook;
+import org.praisenter.song.openlyrics.OpenLyricsVerse;
 import org.praisenter.xml.XmlIO;
 
 
 public class TestOpenLyricsJaxb {
 	public static void main(String[] args) {
 		try {
-			Song song = XmlIO.read(Paths.get("C:\\Users\\wbittle\\Desktop\\openlyrics-0.8\\openlyrics-0.8\\examples\\format2.xml"), Song.class);
+			OpenLyricsSong song = XmlIO.read(Paths.get("C:\\Users\\wbittle\\Desktop\\openlyrics-0.8\\openlyrics-0.8\\examples\\format2.xml"), OpenLyricsSong.class);
 			
 //			Verse v = new Verse();
 //			v.setFontSize(40);

@@ -1,4 +1,4 @@
-package org.praisenter.song;
+package org.praisenter.song.openlyrics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,14 +11,14 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "properties")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Properties {
+public class OpenLyricsProperties {
 	@XmlElement(name = "title", required = false)
 	@XmlElementWrapper(name = "titles", required = false)
-	List<Title> titles;
+	List<OpenLyricsTitle> titles;
 	
 	@XmlElement(name = "author", required = false)
 	@XmlElementWrapper(name = "authors", required = false)
-	List<Author> authors;
+	List<OpenLyricsAuthor> authors;
 
 	@XmlElement(name = "copyright", required = false)
 	String copyright;
@@ -33,7 +33,7 @@ public class Properties {
 	int transposition;
 	
 	@XmlElement(name = "tempo", required = false)
-	Tempo tempo;
+	OpenLyricsTempo tempo;
 	
 	@XmlElement(name = "key", required = false)
 	String key;
@@ -55,37 +55,37 @@ public class Properties {
 	
 	@XmlElement(name = "songbook", required = false)
 	@XmlElementWrapper(name = "songbooks", required = false)
-	List<Songbook> songbooks;
+	List<OpenLyricsSongbook> songbooks;
 	
 	@XmlElement(name = "theme", required = false)
 	@XmlElementWrapper(name = "themes", required = false)
-	List<Theme> themes;
+	List<OpenLyricsTheme> themes;
 	
 	@XmlElement(name = "comment", required = false)
 	@XmlElementWrapper(name = "comments", required = false)
-	List<Comment> comments;
+	List<OpenLyricsComment> comments;
 
-	public Properties() {
-		this.titles = new ArrayList<Title>();
-		this.authors = new ArrayList<Author>();
-		this.songbooks = new ArrayList<Songbook>();
-		this.themes = new ArrayList<Theme>();
-		this.comments = new ArrayList<Comment>();
+	public OpenLyricsProperties() {
+		this.titles = new ArrayList<OpenLyricsTitle>();
+		this.authors = new ArrayList<OpenLyricsAuthor>();
+		this.songbooks = new ArrayList<OpenLyricsSongbook>();
+		this.themes = new ArrayList<OpenLyricsTheme>();
+		this.comments = new ArrayList<OpenLyricsComment>();
 	}
 	
-	public List<Title> getTitles() {
+	public List<OpenLyricsTitle> getTitles() {
 		return titles;
 	}
 
-	public void setTitles(List<Title> titles) {
+	public void setTitles(List<OpenLyricsTitle> titles) {
 		this.titles = titles;
 	}
 
-	public List<Author> getAuthors() {
+	public List<OpenLyricsAuthor> getAuthors() {
 		return authors;
 	}
 
-	public void setAuthors(List<Author> authors) {
+	public void setAuthors(List<OpenLyricsAuthor> authors) {
 		this.authors = authors;
 	}
 
@@ -121,11 +121,11 @@ public class Properties {
 		this.transposition = transposition;
 	}
 
-	public Tempo getTempo() {
+	public OpenLyricsTempo getTempo() {
 		return tempo;
 	}
 
-	public void setTempo(Tempo tempo) {
+	public void setTempo(OpenLyricsTempo tempo) {
 		this.tempo = tempo;
 	}
 
@@ -177,27 +177,27 @@ public class Properties {
 		this.verseOrder = verseOrder;
 	}
 
-	public List<Songbook> getSongbooks() {
+	public List<OpenLyricsSongbook> getSongbooks() {
 		return songbooks;
 	}
 
-	public void setSongbooks(List<Songbook> songbooks) {
+	public void setSongbooks(List<OpenLyricsSongbook> songbooks) {
 		this.songbooks = songbooks;
 	}
 
-	public List<Theme> getThemes() {
+	public List<OpenLyricsTheme> getThemes() {
 		return themes;
 	}
 
-	public void setThemes(List<Theme> themes) {
+	public void setThemes(List<OpenLyricsTheme> themes) {
 		this.themes = themes;
 	}
 
-	public List<Comment> getComments() {
+	public List<OpenLyricsComment> getComments() {
 		return comments;
 	}
 
-	public void setComments(List<Comment> comments) {
+	public void setComments(List<OpenLyricsComment> comments) {
 		this.comments = comments;
 	}
 }

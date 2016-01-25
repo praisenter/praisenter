@@ -3,7 +3,7 @@ package org.praisenter;
 public class ProgressState {
 	private String text;
 	private double value;
-	private Exception exception;
+	private String errors;
 	
 	public String getText() {
 		return text;
@@ -20,12 +20,12 @@ public class ProgressState {
 	public void setValue(double value) {
 		this.value = value;
 	}
-	
-	public Exception getException() {
-		return exception;
+
+	public String getErrors() {
+		return errors;
 	}
-	
-	public void setException(Exception exception) {
-		this.exception = exception;
+
+	public void setErrors(String errors) {
+		this.errors = errors;
 	}
 }

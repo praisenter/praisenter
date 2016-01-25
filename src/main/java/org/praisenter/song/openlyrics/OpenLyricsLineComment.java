@@ -1,4 +1,4 @@
-package org.praisenter.song;
+package org.praisenter.song.openlyrics;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -10,9 +10,7 @@ import org.praisenter.DisplayType;
 
 @XmlRootElement(name = "comment")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class LineComment implements DisplayText {
-	int songId;
-	
+public final class OpenLyricsLineComment implements DisplayText {
 	/** The comment text */
 	@XmlValue
 	String comment;
@@ -29,14 +27,6 @@ public final class LineComment implements DisplayText {
 		}
 	}
 	
-	public int getSongId() {
-		return songId;
-	}
-
-	public void setSongId(int songId) {
-		this.songId = songId;
-	}
-
 	public String getComment() {
 		return comment;
 	}

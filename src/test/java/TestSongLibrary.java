@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.praisenter.SearchType;
-import org.praisenter.song.Author;
 import org.praisenter.song.ChurchViewSongReader;
-import org.praisenter.song.Song;
 import org.praisenter.song.SongLibrary;
-import org.praisenter.song.Title;
+import org.praisenter.song.openlyrics.OpenLyricsAuthor;
+import org.praisenter.song.openlyrics.OpenLyricsSong;
+import org.praisenter.song.openlyrics.OpenLyricsTitle;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -25,7 +25,7 @@ import org.praisenter.xml.XmlIO;
 public class TestSongLibrary {
 	public static void main(String[] args) {
 		try {
-			Path path = Paths.get("D:\\Personal\\Praisenter\\songs");
+			Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\songs");
 			
 //			Map<String, Integer> nameMap = new HashMap<String, Integer>();
 //			ChurchViewSongReader reader = new ChurchViewSongReader();

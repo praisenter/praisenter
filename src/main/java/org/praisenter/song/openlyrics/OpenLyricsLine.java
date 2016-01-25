@@ -1,4 +1,4 @@
-package org.praisenter.song;
+package org.praisenter.song.openlyrics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ import org.praisenter.DisplayType;
 
 @XmlRootElement(name = "lines")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Line implements DisplayText {
+public final class OpenLyricsLine implements DisplayText {
 	/** Parts are ignored right now */
 	@XmlAttribute(name = "part", required = false)
 	String part;
@@ -28,10 +28,10 @@ public final class Line implements DisplayText {
 	
 	/** The sub elements, can be tag, comment, br, chord, or text all mixed together... lovely */
 	@XmlElementRefs({
-		@XmlElementRef(name = "tag", type = Tag.class),
-		@XmlElementRef(name = "comment", type = LineComment.class),
-		@XmlElementRef(name = "br", type = Br.class),
-		@XmlElementRef(name = "chord", type = Chord.class)
+		@XmlElementRef(name = "tag", type = OpenLyricsTag.class),
+		@XmlElementRef(name = "comment", type = OpenLyricsLineComment.class),
+		@XmlElementRef(name = "br", type = OpenLyricsBr.class),
+		@XmlElementRef(name = "chord", type = OpenLyricsChord.class)
 	})
 	@XmlMixed
 	List<Object> elements;
@@ -39,7 +39,7 @@ public final class Line implements DisplayText {
 	/**
 	 * Default constructor.
 	 */
-	public Line() {
+	public OpenLyricsLine() {
 		this.elements = new ArrayList<Object>();
 	}
 
@@ -69,16 +69,16 @@ public final class Line implements DisplayText {
 		// 3. remove consecutive whitespace
 		for (int i = 0; i < this.elements.size(); i++) {
 			Object node = this.elements.get(i);
-			if (node instanceof Tag) {
+			if (node instanceof OpenLyricsTag) {
 				modified = true;
-				prepare((Tag)node, unwrapped);
+				prepare((OpenLyricsTag)node, unwrapped);
 			} else if (node instanceof String) {
 				modified = true;
 				String s = (String)node;
 				// take out all new line characters
-				s = s.replaceAll(Song.NEW_LINE_REGEX, "");
+				s = s.replaceAll(OpenLyricsSong.NEW_LINE_REGEX, "");
 				// condense consecutive whitespace with a single whitespace
-				s = s.replaceAll(Song.NEW_LINE_WHITESPACE, " ");
+				s = s.replaceAll(OpenLyricsSong.NEW_LINE_WHITESPACE, " ");
 				unwrapped.add(s);
 			} else {
 				unwrapped.add(node);
@@ -92,7 +92,7 @@ public final class Line implements DisplayText {
 			if (node instanceof String) {
 				modified = true;
 				String s = (String)node;
-				if (last == Br.class || last == null) {
+				if (last == OpenLyricsBr.class || last == null) {
 					s = StringUtils.stripStart(s, null);
 				}
 				unwrapped.set(i, s);
@@ -110,15 +110,15 @@ public final class Line implements DisplayText {
 	 * @param unwrapped the list of unwrapped elements
 	 * @see #removeTags()
 	 */
-	private void prepare(Tag tag, List<Object> unwrapped) {
+	private void prepare(OpenLyricsTag tag, List<Object> unwrapped) {
 		for (int i = 0; i < tag.elements.size(); i++) {
 			Object node = tag.elements.get(i);
-			if (node instanceof Tag) {
-				prepare((Tag)node, unwrapped);
+			if (node instanceof OpenLyricsTag) {
+				prepare((OpenLyricsTag)node, unwrapped);
 			} else if (node instanceof String) {
 				String s = (String)node;
-				s = s.replaceAll(Song.NEW_LINE_REGEX, "");
-				s = s.replaceAll(Song.NEW_LINE_WHITESPACE, " ");
+				s = s.replaceAll(OpenLyricsSong.NEW_LINE_REGEX, "");
+				s = s.replaceAll(OpenLyricsSong.NEW_LINE_WHITESPACE, " ");
 				unwrapped.add(s);
 			} else {
 				unwrapped.add(node);

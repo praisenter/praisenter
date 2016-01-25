@@ -8,22 +8,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "songbook")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Songbook {
-	int songId;
-	
 	@XmlAttribute(name = "name", required = false)
 	String name;
 	
 	@XmlAttribute(name = "entry", required = false)
 	String entry;
 	
-	public int getSongId() {
-		return songId;
-	}
-
-	public void setSongId(int songId) {
-		this.songId = songId;
-	}
-
 	public String getName() {
 		return name;
 	}

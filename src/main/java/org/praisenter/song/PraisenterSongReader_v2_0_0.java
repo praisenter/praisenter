@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -40,6 +39,10 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.song.openlyrics.OpenLyricsComment;
+import org.praisenter.song.openlyrics.OpenLyricsSong;
+import org.praisenter.song.openlyrics.OpenLyricsTitle;
+import org.praisenter.song.openlyrics.OpenLyricsVerse;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -58,7 +61,7 @@ public class PraisenterSongReader_v2_0_0 extends DefaultHandler implements SongF
 	 * @see org.praisenter.data.song.SongFormatReader#read(java.nio.file.Path)
 	 */
 	@Override
-	public List<Song> read(Path path) throws IOException, SongFormatReaderException {
+	public List<OpenLyricsSong> read(Path path) throws IOException, SongFormatReaderException {
 		try {
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser parser = factory.newSAXParser();
@@ -74,13 +77,13 @@ public class PraisenterSongReader_v2_0_0 extends DefaultHandler implements SongF
 	// SAX parser implementation
 	
 	/** The songs */
-	private List<Song> songs;
+	private List<OpenLyricsSong> songs;
 	
 	/** The song currently being processed */
-	private Song song;
+	private OpenLyricsSong song;
 	
 	/** The verse currently being processed */
-	private Verse verse;
+	private OpenLyricsVerse verse;
 	
 	/** Buffer for tag contents */
 	private StringBuilder dataBuilder;
@@ -89,7 +92,7 @@ public class PraisenterSongReader_v2_0_0 extends DefaultHandler implements SongF
 	 * Default constructor.
 	 */
 	public PraisenterSongReader_v2_0_0() {
-		this.songs = new ArrayList<Song>();
+		this.songs = new ArrayList<OpenLyricsSong>();
 	}
 	
 	/* (non-Javadoc)
@@ -100,10 +103,10 @@ public class PraisenterSongReader_v2_0_0 extends DefaultHandler implements SongF
 		// inspect the tag name
 		if (qName.equalsIgnoreCase("Song")) {
 			// when we see the <Songs> tag we create a new song
-			this.song = new Song();
+			this.song = new OpenLyricsSong();
 			this.song.metadata = new SongMetadata();
 		} else if (qName.equalsIgnoreCase("Part")) {
-			this.verse = new Verse();
+			this.verse = new OpenLyricsVerse();
 			this.verse.setType(getType(attributes.getValue("Type")));
 			try {
 				this.verse.setNumber(Integer.parseInt(attributes.getValue("Index")));
@@ -149,7 +152,7 @@ public class PraisenterSongReader_v2_0_0 extends DefaultHandler implements SongF
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				// set the song title
-				Title title = new Title();
+				OpenLyricsTitle title = new OpenLyricsTitle();
 				title.setOriginal(true);
 				title.setText(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
 				this.song.getProperties().getTitles().add(title);
@@ -158,7 +161,7 @@ public class PraisenterSongReader_v2_0_0 extends DefaultHandler implements SongF
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				// set the song title
-				Comment comment = new Comment();
+				OpenLyricsComment comment = new OpenLyricsComment();
 				comment.setText(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
 				this.song.getProperties().getComments().add(comment);
 			}

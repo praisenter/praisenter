@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,6 +41,10 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.song.openlyrics.OpenLyricsComment;
+import org.praisenter.song.openlyrics.OpenLyricsSong;
+import org.praisenter.song.openlyrics.OpenLyricsTitle;
+import org.praisenter.song.openlyrics.OpenLyricsVerse;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -60,7 +63,7 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	 * @see org.praisenter.data.song.SongFormatReader#read(java.nio.file.Path)
 	 */
 	@Override
-	public List<Song> read(Path path) throws IOException, SongFormatReaderException {
+	public List<OpenLyricsSong> read(Path path) throws IOException, SongFormatReaderException {
 		try {
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser parser = factory.newSAXParser();
@@ -85,10 +88,10 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	private static final double FONT_SIZE_SCALE = 1.5;
 	
 	/** The songs */
-	private List<Song> songs;
+	private List<OpenLyricsSong> songs;
 	
 	/** The song currently being processed */
-	private Song song;
+	private OpenLyricsSong song;
 	
 	/** Buffer for tag contents */
 	private StringBuilder dataBuilder;
@@ -97,7 +100,7 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	 * Default constructor.
 	 */
 	public ChurchViewSongReader() {
-		this.songs = new ArrayList<Song>();
+		this.songs = new ArrayList<OpenLyricsSong>();
 	}
 	
 	/* (non-Javadoc)
@@ -108,7 +111,7 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 		// inspect the tag name
 		if (qName.equalsIgnoreCase("Songs")) {
 			// when we see the <Songs> tag we create a new song
-			this.song = new Song();
+			this.song = new OpenLyricsSong();
 			this.song.metadata = new SongMetadata();
 		}
 	}
@@ -141,7 +144,7 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				// set the song title
-				Title title = new Title();
+				OpenLyricsTitle title = new OpenLyricsTitle();
 				title.setOriginal(true);
 				title.setText(this.dataBuilder.toString().trim());
 				this.song.getProperties().getTitles().add(title);
@@ -159,7 +162,7 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 				String text = this.dataBuilder.toString().trim();
 				// only add the part if its not empty
 				if (!text.isEmpty()) {
-					Verse verse = new Verse();
+					OpenLyricsVerse verse = new OpenLyricsVerse();
 					
 					// set the type
 					verse.setType(getType(qName));
@@ -192,20 +195,20 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				String data = this.dataBuilder.toString().trim();
-				Comment comment = new Comment();
+				OpenLyricsComment comment = new OpenLyricsComment();
 				comment.setText(data);
 				this.song.getProperties().getComments().add(comment);
 			}
 		} else if (qName.contains("Size")) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
-				List<Verse> verses = this.getVersesForSize(qName);
+				List<OpenLyricsVerse> verses = this.getVersesForSize(qName);
 				if (verses != null && verses.size() > 0) {
 					// interpret the size
 					String s = this.dataBuilder.toString().trim();
 					try {
 						int size = (int)Math.floor(Integer.parseInt(s) * FONT_SIZE_SCALE);
-						for (Verse verse : verses) {
+						for (OpenLyricsVerse verse : verses) {
 							song.metadata.verses.add(new VerseMetadata(verse.name, size));
 						}
 					} catch (NumberFormatException e) {
@@ -244,9 +247,9 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	/**
 	 * Returns the verses for the given font size tag name.
 	 * @param name the font size tag name
-	 * @return List&lt;{@link Verse}&gt;
+	 * @return List&lt;{@link OpenLyricsVerse}&gt;
 	 */
-	private final List<Verse> getVersesForSize(String name) {
+	private final List<OpenLyricsVerse> getVersesForSize(String name) {
 		if ("FontSize".equalsIgnoreCase(name)) {
 			return null;
 		}

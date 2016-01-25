@@ -1,4 +1,4 @@
-package org.praisenter.song;
+package org.praisenter.song.openlyrics;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlValue;
 
 @XmlRootElement(name = "tempo")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Tempo {
+public final class OpenLyricsTempo {
 	@XmlAttribute(name = "type", required = false)
 	String type;
 	

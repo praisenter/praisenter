@@ -1,4 +1,4 @@
-package org.praisenter.song;
+package org.praisenter.song.openlyrics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,17 +16,17 @@ import org.praisenter.DisplayType;
 
 @XmlRootElement(name = "tag")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Tag implements DisplayText {
+public final class OpenLyricsTag implements DisplayText {
 	/** The name of the tag */
 	@XmlAttribute(name = "name")
 	String name;
 	
 	/** The tag's child elements */
 	@XmlElementRefs({
-		@XmlElementRef(name = "tag", type = Tag.class),
-		@XmlElementRef(name = "comment", type = LineComment.class),
-		@XmlElementRef(name = "br", type = Br.class),
-		@XmlElementRef(name = "chord", type = Chord.class)
+		@XmlElementRef(name = "tag", type = OpenLyricsTag.class),
+		@XmlElementRef(name = "comment", type = OpenLyricsLineComment.class),
+		@XmlElementRef(name = "br", type = OpenLyricsBr.class),
+		@XmlElementRef(name = "chord", type = OpenLyricsChord.class)
 	})
 	@XmlMixed
 	List<Object> elements;
@@ -34,7 +34,7 @@ public final class Tag implements DisplayText {
 	/** 
 	 * Default constructor. 
 	 */
-	public Tag() {
+	public OpenLyricsTag() {
 		this.elements = new ArrayList<Object>();
 	}
 	

@@ -1,4 +1,4 @@
-package org.praisenter.song;
+package org.praisenter.song.openlyrics;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -8,23 +8,15 @@ import javax.xml.bind.annotation.XmlValue;
 
 @XmlRootElement(name = "theme")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Theme {
-	@XmlValue
-	String text;
-	
+public final class OpenLyricsTheme {
 	@XmlAttribute(name = "lang", required = false)
 	String language;
 	
 	@XmlAttribute(name = "translit", required = false)
-	String translit;
+	String transliteration;
 	
-	public String getText() {
-		return text;
-	}
-
-	public void setText(String text) {
-		this.text = text;
-	}
+	@XmlValue
+	String text;
 
 	public String getLanguage() {
 		return language;
@@ -34,11 +26,19 @@ public final class Theme {
 		this.language = language;
 	}
 
-	public String getTranslit() {
-		return translit;
+	public String getTransliteration() {
+		return transliteration;
 	}
 
-	public void setTranslit(String translit) {
-		this.translit = translit;
+	public void setTransliteration(String transliteration) {
+		this.transliteration = transliteration;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public void setText(String text) {
+		this.text = text;
 	}
 }

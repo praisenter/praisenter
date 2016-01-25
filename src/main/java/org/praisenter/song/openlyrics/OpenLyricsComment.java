@@ -1,4 +1,4 @@
-package org.praisenter.song;
+package org.praisenter.song.openlyrics;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -7,16 +7,20 @@ import javax.xml.bind.annotation.XmlValue;
 
 @XmlRootElement(name = "comment")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Comment implements VerseFragment {
-	/** The comment text */
+public final class OpenLyricsComment {
 	@XmlValue
-	String comment;
-
-	public String getComment() {
-		return comment;
+	String text;
+	
+	@Override
+	public String toString() {
+		return text;
+	}
+	
+	public String getText() {
+		return text;
 	}
 
-	public void setComment(String comment) {
-		this.comment = comment;
+	public void setText(String text) {
+		this.text = text;
 	}
 }
