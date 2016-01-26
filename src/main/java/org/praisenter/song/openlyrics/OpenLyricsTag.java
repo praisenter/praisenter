@@ -11,12 +11,9 @@ import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.DisplayText;
-import org.praisenter.DisplayType;
-
 @XmlRootElement(name = "tag")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class OpenLyricsTag implements DisplayText {
+public final class OpenLyricsTag {
 	/** The name of the tag */
 	@XmlAttribute(name = "name")
 	String name;
@@ -36,36 +33,6 @@ public final class OpenLyricsTag implements DisplayText {
 	 */
 	public OpenLyricsTag() {
 		this.elements = new ArrayList<Object>();
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.DisplayText#getDisplayText(org.praisenter.DisplayType)
-	 */
-	@Override
-	public String getDisplayText(DisplayType type) {
-		StringBuilder sb = new StringBuilder();
-		if (type == DisplayType.EDIT) {
-			sb.append("<tag");
-			if (this.name != null && this.name.length() > 0) {
-				sb.append(" name='").append(this.name).append("'>");
-			} else {
-				sb.append(">");
-			}
-		}
-		
-		for (Object o : this.elements) {
-			if (o instanceof String) {
-				sb.append(o);
-			} else if (o instanceof DisplayText) {
-				sb.append(((DisplayText)o).getDisplayText(type));
-			}
-		}
-		
-		if (type == DisplayType.EDIT) {
-			sb.append("</tag>");
-		}
-		
-		return sb.toString();
 	}
 	
 	public String getName() {

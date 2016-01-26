@@ -7,10 +7,20 @@ import javax.xml.bind.annotation.XmlValue;
 
 @XmlRootElement(name = "text")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Text implements VerseFragment {
+public final class TextFragment implements VerseFragment, SongOutput {
 	@XmlValue
 	String text;
 
+	@Override
+	public String toString() {
+		return this.text;
+	}
+	
+	@Override
+	public String getOutput(SongOutputType type) {
+		return this.text;
+	}
+	
 	public String getText() {
 		return text;
 	}

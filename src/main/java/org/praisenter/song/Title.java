@@ -12,15 +12,15 @@ public final class Title {
 	@XmlAttribute(name = "original", required = false)
 	boolean original;
 	
+	@XmlAttribute(name = "language", required = false)
+	String language;
+	
+	@XmlAttribute(name = "transliteration", required = false)
+	String transliteration;
+
 	@XmlValue
 	String text;
 	
-	@XmlAttribute(name = "lang", required = false)
-	String language;
-	
-	@XmlAttribute(name = "translit", required = false)
-	String translit;
-
 	public boolean isOriginal() {
 		return original;
 	}
@@ -45,11 +45,11 @@ public final class Title {
 		this.language = language;
 	}
 
-	public String getTranslit() {
-		return translit;
+	public String getTransliteration() {
+		return transliteration;
 	}
 
-	public void setTranslit(String translit) {
-		this.translit = translit;
+	public void setTransliteration(String transliteration) {
+		this.transliteration = transliteration;
 	}
 }

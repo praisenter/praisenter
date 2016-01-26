@@ -1,7 +1,5 @@
 package org.praisenter.song.openlyrics;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,14 +9,9 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.DisplayText;
-import org.praisenter.DisplayType;
-import org.praisenter.utility.RuntimeProperties;
-import org.praisenter.xml.XmlIO;
-
 @XmlRootElement(name = "verse")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class OpenLyricsVerse implements DisplayText {
+public final class OpenLyricsVerse {
 	/** The verse name */
 	@XmlAttribute(name = "name", required = false)
 	String name;
@@ -37,15 +30,7 @@ public final class OpenLyricsVerse implements DisplayText {
 		this.name = "c1";
 		this.lines = new ArrayList<OpenLyricsLine>();
 	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return this.getDisplayText(DisplayType.MAIN);
-	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -70,28 +55,11 @@ public final class OpenLyricsVerse implements DisplayText {
 		this.transliteration = transliteration;
 	}
 
-	@Override
-	public String getDisplayText(DisplayType type) {
-		StringBuilder sb = new StringBuilder();
-		for (OpenLyricsLine line : this.lines) {
-			sb.append(line.getDisplayText(type)).append(RuntimeProperties.NEW_LINE_SEPARATOR);
-		}
-		return sb.toString();
+	public List<OpenLyricsLine> getLines() {
+		return lines;
 	}
-	
-	public void setText(String text) {
-		if (this.lines == null) {
-			this.lines = new ArrayList<OpenLyricsLine>();
-		}
-		this.lines.clear();
-		
-		try {
-			InputStream stream = new ByteArrayInputStream(("<lines xmlns=\"http://openlyrics.info/namespace/2009/song\">" + text + "</lines>").getBytes("UTF-8"));
-			OpenLyricsLine line = XmlIO.read(stream, OpenLyricsLine.class);
-			this.lines.add(line);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
+	public void setLines(List<OpenLyricsLine> lines) {
+		this.lines = lines;
 	}
 }

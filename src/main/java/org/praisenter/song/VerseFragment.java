@@ -6,8 +6,8 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 		Br.class,
 		Chord.class,
 		Comment.class,
-		Text.class
+		TextFragment.class
 })
-public interface VerseFragment {
+public interface VerseFragment extends SongOutput {
 
 }

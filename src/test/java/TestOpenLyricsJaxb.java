@@ -4,7 +4,7 @@ import java.nio.file.Paths;
 
 import javax.xml.bind.JAXBException;
 
-import org.praisenter.DisplayType;
+import org.praisenter.song.SongOutputType;
 import org.praisenter.song.openlyrics.OpenLyricsSong;
 import org.praisenter.song.openlyrics.OpenLyricsSongbook;
 import org.praisenter.song.openlyrics.OpenLyricsVerse;
@@ -34,19 +34,15 @@ public class TestOpenLyricsJaxb {
 			
 			//XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\openlyrics-0.8\\openlyrics-0.8\\examples\\complex2.xml"), song);
 			
-			System.out.println(song.getDisplayText(DisplayType.MAIN));
-			System.out.println("MUSICIAN -------------------------------------------------");
-			System.out.println(song.getDisplayText(DisplayType.MUSICIAN));
+			System.out.println(song.getOutput(SongOutputType.TEXT));
 			System.out.println("EDIT -------------------------------------------------");
-			System.out.println(song.getDisplayText(DisplayType.EDIT));
+			System.out.println(song.getOutput(SongOutputType.EDIT));
 			
 			song.prepare();
 			
-			System.out.println(song.getDisplayText(DisplayType.MAIN));
-			System.out.println("MUSICIAN -------------------------------------------------");
-			System.out.println(song.getDisplayText(DisplayType.MUSICIAN));
+			System.out.println(song.getOutput(SongOutputType.TEXT));
 			System.out.println("EDIT -------------------------------------------------");
-			System.out.println(song.getDisplayText(DisplayType.EDIT));
+			System.out.println(song.getOutput(SongOutputType.EDIT));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.praisenter.SearchType;
-import org.praisenter.song.ChurchViewSongReader;
 import org.praisenter.song.SongLibrary;
+import org.praisenter.song.churchview.ChurchViewSongImporter;
 import org.praisenter.song.openlyrics.OpenLyricsAuthor;
 import org.praisenter.song.openlyrics.OpenLyricsSong;
 import org.praisenter.song.openlyrics.OpenLyricsTitle;

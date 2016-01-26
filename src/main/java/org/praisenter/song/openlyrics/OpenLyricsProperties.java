@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "properties")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class OpenLyricsProperties {
+public final class OpenLyricsProperties {
 	@XmlElement(name = "title", required = false)
 	@XmlElementWrapper(name = "titles", required = false)
 	List<OpenLyricsTitle> titles;
@@ -72,7 +72,7 @@ public class OpenLyricsProperties {
 		this.themes = new ArrayList<OpenLyricsTheme>();
 		this.comments = new ArrayList<OpenLyricsComment>();
 	}
-	
+
 	public List<OpenLyricsTitle> getTitles() {
 		return titles;
 	}

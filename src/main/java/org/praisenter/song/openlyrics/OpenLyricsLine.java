@@ -12,17 +12,15 @@ import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.commons.lang3.StringUtils;
-import org.praisenter.DisplayText;
-import org.praisenter.DisplayType;
 
 @XmlRootElement(name = "lines")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class OpenLyricsLine implements DisplayText {
+public final class OpenLyricsLine {
 	/** Parts are ignored right now */
 	@XmlAttribute(name = "part", required = false)
 	String part;
 	
-	// FIXME not handled at the moment, I'm not really sure what this does, the only value is "optional" which i think means you can break here into two slides if its too long?
+	/** Break is ignored right now */
 	@XmlAttribute(name = "break", required = false)
 	String lineBreak;
 	
@@ -43,14 +41,6 @@ public final class OpenLyricsLine implements DisplayText {
 		this.elements = new ArrayList<Object>();
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return this.getDisplayText(DisplayType.MAIN);
-	}
-	
 	/**
 	 * Removes (unwraps) all tag tags from the line and remove new line characters and beginning whitespace.
 	 * <p>
@@ -126,27 +116,27 @@ public final class OpenLyricsLine implements DisplayText {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.DisplayText#getDisplayText(org.praisenter.DisplayType)
-	 */
-	@Override
-	public String getDisplayText(DisplayType type) {
-		StringBuilder sb = new StringBuilder();
-		for (Object o : this.elements) {
-			if (o instanceof String) {
-				sb.append(o);
-			} else if (o instanceof DisplayText) {
-				sb.append(((DisplayText)o).getDisplayText(type));
-			}
-		}
-		return sb.toString();
-	}
-	
 	public String getPart() {
 		return part;
 	}
 
 	public void setPart(String part) {
 		this.part = part;
+	}
+
+	public String getLineBreak() {
+		return lineBreak;
+	}
+
+	public void setLineBreak(String lineBreak) {
+		this.lineBreak = lineBreak;
+	}
+
+	public List<Object> getElements() {
+		return elements;
+	}
+
+	public void setElements(List<Object> elements) {
+		this.elements = elements;
 	}
 }

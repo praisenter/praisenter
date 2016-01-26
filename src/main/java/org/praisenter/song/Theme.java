@@ -12,11 +12,11 @@ public final class Theme {
 	@XmlValue
 	String text;
 	
-	@XmlAttribute(name = "lang", required = false)
+	@XmlAttribute(name = "language", required = false)
 	String language;
 	
-	@XmlAttribute(name = "translit", required = false)
-	String translit;
+	@XmlAttribute(name = "transliteration", required = false)
+	String transliteration;
 	
 	public String getText() {
 		return text;
@@ -34,11 +34,11 @@ public final class Theme {
 		this.language = language;
 	}
 
-	public String getTranslit() {
-		return translit;
+	public String getTransliteration() {
+		return transliteration;
 	}
 
-	public void setTranslit(String translit) {
-		this.translit = translit;
+	public void setTransliteration(String transliteration) {
+		this.transliteration = transliteration;
 	}
 }

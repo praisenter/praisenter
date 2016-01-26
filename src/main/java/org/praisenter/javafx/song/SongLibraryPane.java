@@ -32,7 +32,7 @@ public class SongLibraryPane  extends Application {
     	
     	
     	
-    	primaryStage.setScene(new Scene(root, 500, 500));
+    	primaryStage.setScene(new Scene(null, 500, 500));
         primaryStage.show();
     }
 }

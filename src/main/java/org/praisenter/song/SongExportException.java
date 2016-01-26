@@ -25,18 +25,18 @@
 package org.praisenter.song;
 
 /**
- * Exception thrown when a {@link SongFormatReader} encounters a problem.
+ * Exception thrown when a {@link SongExporter} encounters a problem.
  * @author William Bittle
  * @version 3.0.0
  */
-public class SongFormatReaderException extends Exception {
+public class SongExportException extends Exception {
 	/** The version id */
 	private static final long serialVersionUID = -5899650103924741150L;
 
 	/**
 	 * Default constructor.
 	 */
-	public SongFormatReaderException() {
+	public SongExportException() {
 		super();
 	}
 	
@@ -45,7 +45,7 @@ public class SongFormatReaderException extends Exception {
 	 * @param message the message
 	 * @param cause the root exception
 	 */
-	public SongFormatReaderException(String message, Throwable cause) {
+	public SongExportException(String message, Throwable cause) {
 		super(message, cause);
 	}
 	
@@ -53,7 +53,7 @@ public class SongFormatReaderException extends Exception {
 	 * Optional constructor.
 	 * @param message the message
 	 */
-	public SongFormatReaderException(String message) {
+	public SongExportException(String message) {
 		super(message);
 	}
 
@@ -61,7 +61,7 @@ public class SongFormatReaderException extends Exception {
 	 * Optional constructor.
 	 * @param cause the root exception
 	 */
-	public SongFormatReaderException(Throwable cause) {
+	public SongExportException(Throwable cause) {
 		super(cause);
 	}
 }

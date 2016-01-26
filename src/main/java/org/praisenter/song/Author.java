@@ -16,7 +16,7 @@ public final class Author {
 	@XmlAttribute(name = "type", required = false)
 	String type;
 	
-	@XmlAttribute(name = "lang", required = false)
+	@XmlAttribute(name = "language", required = false)
 	String language;
 	
 	@XmlValue

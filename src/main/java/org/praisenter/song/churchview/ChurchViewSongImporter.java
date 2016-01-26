@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.song;
+package org.praisenter.song.churchview;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -38,13 +38,16 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.song.openlyrics.OpenLyricsComment;
-import org.praisenter.song.openlyrics.OpenLyricsSong;
-import org.praisenter.song.openlyrics.OpenLyricsTitle;
-import org.praisenter.song.openlyrics.OpenLyricsVerse;
+import org.praisenter.song.Br;
+import org.praisenter.song.Lyrics;
+import org.praisenter.song.Song;
+import org.praisenter.song.SongImporter;
+import org.praisenter.song.SongImportException;
+import org.praisenter.song.TextFragment;
+import org.praisenter.song.Title;
+import org.praisenter.song.Verse;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -55,7 +58,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class ChurchViewSongReader extends DefaultHandler implements SongFormatReader {
+public final class ChurchViewSongImporter extends DefaultHandler implements SongImporter {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -63,7 +66,7 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	 * @see org.praisenter.data.song.SongFormatReader#read(java.nio.file.Path)
 	 */
 	@Override
-	public List<OpenLyricsSong> read(Path path) throws IOException, SongFormatReaderException {
+	public List<Song> read(Path path) throws IOException, SongImportException {
 		try {
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser parser = factory.newSAXParser();
@@ -72,7 +75,7 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 			
 			return this.songs;
 		} catch (SAXException | ParserConfigurationException e) {
-			throw new SongFormatReaderException(e.getMessage(), e);
+			throw new SongImportException(e.getMessage(), e);
 		}
 	}
 	
@@ -88,10 +91,13 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	private static final double FONT_SIZE_SCALE = 1.5;
 	
 	/** The songs */
-	private List<OpenLyricsSong> songs;
+	private List<Song> songs;
 	
 	/** The song currently being processed */
-	private OpenLyricsSong song;
+	private Song song;
+	
+	/** The lyrics currently being processed */
+	private Lyrics lyrics;
 	
 	/** Buffer for tag contents */
 	private StringBuilder dataBuilder;
@@ -99,8 +105,8 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	/**
 	 * Default constructor.
 	 */
-	public ChurchViewSongReader() {
-		this.songs = new ArrayList<OpenLyricsSong>();
+	public ChurchViewSongImporter() {
+		this.songs = new ArrayList<Song>();
 	}
 	
 	/* (non-Javadoc)
@@ -111,8 +117,9 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 		// inspect the tag name
 		if (qName.equalsIgnoreCase("Songs")) {
 			// when we see the <Songs> tag we create a new song
-			this.song = new OpenLyricsSong();
-			this.song.metadata = new SongMetadata();
+			this.song = new Song();
+			this.lyrics = new Lyrics();
+			this.song.getLyrics().add(lyrics);
 		}
 	}
 	
@@ -140,14 +147,15 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 			// we are done with the song so add it to the list
 			this.songs.add(this.song);
 			this.song = null;
+			this.lyrics = null;
 		} else if ("SongTitle".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				// set the song title
-				OpenLyricsTitle title = new OpenLyricsTitle();
+				Title title = new Title();
 				title.setOriginal(true);
 				title.setText(this.dataBuilder.toString().trim());
-				this.song.getProperties().getTitles().add(title);
+				this.song.getTitles().add(title);
 			}
 		} else if ("Song".equalsIgnoreCase(qName) ||
 				"Bridge".equalsIgnoreCase(qName) ||
@@ -162,7 +170,7 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 				String text = this.dataBuilder.toString().trim();
 				// only add the part if its not empty
 				if (!text.isEmpty()) {
-					OpenLyricsVerse verse = new OpenLyricsVerse();
+					Verse verse = new Verse();
 					
 					// set the type
 					verse.setType(getType(qName));
@@ -184,9 +192,17 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 					}
 					
 					// set the text
-					verse.setText(StringEscapeUtils.escapeXml11(text).replaceAll("(\\r|\\r\\n|\\n\\r|\\n)", "<br/>"));
+					String[] lines = text.split("(\\r|\\r\\n|\\n\\r|\\n)");
+					for (int i = 0; i < lines.length; i++) {
+						if (i != 0) {
+							verse.getFragments().add(new Br());
+						}
+						TextFragment txt = new TextFragment();
+						txt.setText(lines[i]);
+						verse.getFragments().add(txt);
+					}
 					
-					this.song.getVerses().add(verse);
+					this.lyrics.getVerses().add(verse);
 				}
 			}
 		} else if ("cDate".equalsIgnoreCase(qName)) {
@@ -195,22 +211,18 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				String data = this.dataBuilder.toString().trim();
-				OpenLyricsComment comment = new OpenLyricsComment();
-				comment.setText(data);
-				this.song.getProperties().getComments().add(comment);
+				this.song.setComments(data);
 			}
 		} else if (qName.contains("Size")) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
-				List<OpenLyricsVerse> verses = this.getVersesForSize(qName);
-				if (verses != null && verses.size() > 0) {
+				Verse verse = this.getVerseForSize(qName);
+				if (verse != null) {
 					// interpret the size
 					String s = this.dataBuilder.toString().trim();
 					try {
 						int size = (int)Math.floor(Integer.parseInt(s) * FONT_SIZE_SCALE);
-						for (OpenLyricsVerse verse : verses) {
-							song.metadata.verses.add(new VerseMetadata(verse.name, size));
-						}
+						verse.setFontSize(size);
 					} catch (NumberFormatException e) {
 						LOGGER.warn("Failed to read verse font size: {}", s);
 					}
@@ -245,11 +257,11 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 	}
 	
 	/**
-	 * Returns the verses for the given font size tag name.
+	 * Returns the verse for the given font size tag name.
 	 * @param name the font size tag name
-	 * @return List&lt;{@link OpenLyricsVerse}&gt;
+	 * @return List&lt;{@link Verse}&gt;
 	 */
-	private final List<OpenLyricsVerse> getVersesForSize(String name) {
+	private final Verse getVerseForSize(String name) {
 		if ("FontSize".equalsIgnoreCase(name)) {
 			return null;
 		}
@@ -260,13 +272,13 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 			if (i == null) {
 				// then its a vamp, bridge, tag or end size
 				if ("V".equalsIgnoreCase(t)) {
-					return this.song.getVerses("v1");
+					return this.lyrics.getVerse("v1");
 				} else if ("B".equalsIgnoreCase(t)) {
-					return this.song.getVerses("b1");
+					return this.lyrics.getVerse("b1");
 				} else if ("T".equalsIgnoreCase(t)) {
-					return this.song.getVerses("t1");
+					return this.lyrics.getVerse("t1");
 				} else if ("E".equalsIgnoreCase(t)) {
-					return this.song.getVerses("e1");
+					return this.lyrics.getVerse("e1");
 				} else {
 					return null;
 				}
@@ -281,10 +293,10 @@ public final class ChurchViewSongReader extends DefaultHandler implements SongFo
 				// then its a chorus or verse tag
 				if ("C".equalsIgnoreCase(t)) {
 					// chorus
-					return this.song.getVerses("c" + index);
+					return this.lyrics.getVerse("c" + index);
 				} else if ("V".equalsIgnoreCase(t)) {
 					// verse
-					return this.song.getVerses("v" + index);
+					return this.lyrics.getVerse("v" + index);
 				} else {
 					return null;
 				}

@@ -9,10 +9,6 @@ import javax.xml.bind.annotation.XmlValue;
 @XmlRootElement(name = "author")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class OpenLyricsAuthor {
-	public static final String TYPE_WORDS = "words";
-	public static final String TYPE_MUSIC = "music";
-	public static final String TYPE_TRANSLATION = "translation";
-
 	@XmlAttribute(name = "type", required = false)
 	String type;
 	
@@ -22,6 +18,11 @@ public final class OpenLyricsAuthor {
 	@XmlValue
 	String name;
 
+	@Override
+	public String toString() {
+		return name;
+	}
+	
 	public String getType() {
 		return type;
 	}

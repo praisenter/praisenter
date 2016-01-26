@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.song;
+package org.praisenter.song.old;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -39,10 +39,14 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.song.openlyrics.OpenLyricsComment;
-import org.praisenter.song.openlyrics.OpenLyricsSong;
-import org.praisenter.song.openlyrics.OpenLyricsTitle;
-import org.praisenter.song.openlyrics.OpenLyricsVerse;
+import org.praisenter.song.Br;
+import org.praisenter.song.Lyrics;
+import org.praisenter.song.Song;
+import org.praisenter.song.SongImporter;
+import org.praisenter.song.SongImportException;
+import org.praisenter.song.TextFragment;
+import org.praisenter.song.Title;
+import org.praisenter.song.Verse;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -53,7 +57,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author William Bittle
  * @version 3.0.0
  */
-public class PraisenterSongReader_v1_0_0 extends DefaultHandler implements SongFormatReader {
+public class PraisenterSongImporter_v1_0_0 extends DefaultHandler implements SongImporter {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 
@@ -61,7 +65,7 @@ public class PraisenterSongReader_v1_0_0 extends DefaultHandler implements SongF
 	 * @see org.praisenter.data.song.SongFormatReader#read(java.nio.file.Path)
 	 */
 	@Override
-	public List<OpenLyricsSong> read(Path path) throws IOException, SongFormatReaderException {
+	public List<Song> read(Path path) throws IOException, SongImportException {
 		try {
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser parser = factory.newSAXParser();
@@ -70,20 +74,23 @@ public class PraisenterSongReader_v1_0_0 extends DefaultHandler implements SongF
 			
 			return this.songs;
 		} catch (SAXException | ParserConfigurationException e) {
-			throw new SongFormatReaderException(e.getMessage(), e);
+			throw new SongImportException(e.getMessage(), e);
 		}
 	}
 	
 	// SAX parser implementation
 
 	/** The songs */
-	private List<OpenLyricsSong> songs;
+	private List<Song> songs;
 	
 	/** The song currently being processed */
-	private OpenLyricsSong song;
+	private Song song;
+
+	/** The lyrics currently being processed */
+	private Lyrics lyrics;
 	
 	/** The verse currently being processed */
-	private OpenLyricsVerse part;
+	private Verse verse;
 	
 	/** Buffer for tag contents */
 	private StringBuilder dataBuilder;
@@ -91,8 +98,8 @@ public class PraisenterSongReader_v1_0_0 extends DefaultHandler implements SongF
 	/**
 	 * Default constructor.
 	 */
-	public PraisenterSongReader_v1_0_0() {
-		this.songs = new ArrayList<OpenLyricsSong>();
+	public PraisenterSongImporter_v1_0_0() {
+		this.songs = new ArrayList<Song>();
 	}
 	
 	/* (non-Javadoc)
@@ -103,10 +110,11 @@ public class PraisenterSongReader_v1_0_0 extends DefaultHandler implements SongF
 		// inspect the tag name
 		if (qName.equalsIgnoreCase("Song")) {
 			// when we see the <Songs> tag we create a new song
-			this.song = new OpenLyricsSong();
-			this.song.metadata = new SongMetadata();
+			this.song = new Song();
+			this.lyrics = new Lyrics();
+			this.song.getLyrics().add(lyrics);
 		} else if (qName.equalsIgnoreCase("SongPart")) {
-			this.part = new OpenLyricsVerse();
+			this.verse = new Verse();
 		}
 	}
 	
@@ -134,25 +142,23 @@ public class PraisenterSongReader_v1_0_0 extends DefaultHandler implements SongF
 			// we are done with the song so add it to the list
 			this.songs.add(this.song);
 			this.song = null;
+			this.lyrics = null;
 		} else if ("SongPart".equalsIgnoreCase(qName)) {
-			this.song.getVerses().add(this.part);
-			this.part = null;
+			this.lyrics.getVerses().add(this.verse);
+			this.verse = null;
 		} else if ("Title".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				// set the song title
-				OpenLyricsTitle title = new OpenLyricsTitle();
+				Title title = new Title();
 				title.setOriginal(true);
 				title.setText(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
-				this.song.getProperties().getTitles().add(title);
+				this.song.getTitles().add(title);
 			}
 		} else if ("Notes".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
-				// set the song title
-				OpenLyricsComment comment = new OpenLyricsComment();
-				comment.setText(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
-				this.song.getProperties().getComments().add(comment);
+				this.song.setComments(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
 			}
 		} else if ("DateAdded".equalsIgnoreCase(qName)) {
 			// ignore
@@ -161,14 +167,14 @@ public class PraisenterSongReader_v1_0_0 extends DefaultHandler implements SongF
 			if (this.dataBuilder != null) {
 				// get the type
 				String type = this.dataBuilder.toString().trim();
-				this.part.setType(getType(type));
+				this.verse.setType(getType(type));
 			}
 		} else if ("Index".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				String data = this.dataBuilder.toString().trim();
 				try {
-					this.part.setNumber(Integer.parseInt(data));
+					this.verse.setNumber(Integer.parseInt(data));
 				} catch (NumberFormatException e) {
 					LOGGER.warn("Failed to read verse number: {}", data);
 				}
@@ -176,15 +182,26 @@ public class PraisenterSongReader_v1_0_0 extends DefaultHandler implements SongF
 		} else if ("Text".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
-				String data = this.dataBuilder.toString().trim();
-				this.part.setText(StringEscapeUtils.unescapeXml(data).replaceAll("(\\r|\\r\\n|\\n\\r|\\n)", "<br/>"));
+				String data = StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim());
+				
+				// set the text
+				String[] lines = data.split("(\\r|\\r\\n|\\n\\r|\\n)");
+				for (int i = 0; i < lines.length; i++) {
+					if (i != 0) {
+						this.verse.getFragments().add(new Br());
+					}
+					TextFragment txt = new TextFragment();
+					txt.setText(lines[i]);
+					this.verse.getFragments().add(txt);
+				}
 			}
 		} else if ("FontSize".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				String data = this.dataBuilder.toString().trim();
 				try {
-					this.song.metadata.verses.add(new VerseMetadata(this.part.name, Integer.parseInt(data)));
+					int size = Integer.parseInt(data);
+					this.verse.setFontSize(size);
 				} catch (NumberFormatException e) {
 					LOGGER.warn("Failed to read verse font size: {}", data);
 				}
