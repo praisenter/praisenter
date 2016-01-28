@@ -7,6 +7,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -23,7 +25,12 @@ public final class Verse implements SongOutput {
 	String name;
 	
 	/** The verse lines */
-	@XmlElement(name = "fragment")
+	@XmlElementRefs({
+			@XmlElementRef(name = "text", type = TextFragment.class),
+			@XmlElementRef(name = "br", type = Br.class),
+			@XmlElementRef(name = "chord", type = Chord.class),
+			@XmlElementRef(name = "comment", type = Comment.class)
+	})
 	@XmlElementWrapper(name = "fragments", required = false)
 	List<VerseFragment> fragments;
 	
@@ -32,7 +39,7 @@ public final class Verse implements SongOutput {
 	
 	public Verse() {
 		this.type = "c";
-		this.number = 1;
+		this.number = 0;
 		this.part = null;
 		this.name = "c1";
 		this.fragments = new ArrayList<VerseFragment>();
@@ -61,8 +68,8 @@ public final class Verse implements SongOutput {
 	
 	private void setName() {
 		this.name = 
-				(this.type == null || this.type.length() == 0 ? "c" : this.part) + 
-				this.number + 
+				(this.type == null || this.type.length() == 0 ? "c" : this.type) + 
+				(this.number > 0 ? this.number : "") + 
 				(this.part == null || this.part.length() == 0 ? "" : this.part);
 	}
 	

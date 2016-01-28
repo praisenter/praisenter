@@ -1,14 +1,18 @@
 package org.praisenter.song;
 
+import java.util.Locale;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
 
+import org.praisenter.Localized;
+
 @XmlRootElement(name = "author")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Author {
+public final class Author implements Localized {
 	public static final String TYPE_WORDS = "words";
 	public static final String TYPE_MUSIC = "music";
 	public static final String TYPE_TRANSLATION = "translation";
@@ -22,6 +26,11 @@ public final class Author {
 	@XmlValue
 	String name;
 
+	@Override
+	public Locale getLocale() {
+		return Song.getLocale(this.language);
+	}
+	
 	public String getType() {
 		return type;
 	}

@@ -4,6 +4,9 @@ import org.praisenter.utility.RuntimeProperties;
 
 public final class Constants {
 	
+	/** The new line character should be consistent to avoid issues cross-platform */
+	public static final String NEW_LINE = "\n";
+	
 	public static final String ROOT_RELATIVE_PATH = "Praisenter3" + RuntimeProperties.PATH_SEPARATOR;
 	public static final String ROOT_PATH = RuntimeProperties.USER_HOME.isEmpty() ? 
 			// Praisenter3/

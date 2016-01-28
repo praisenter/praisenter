@@ -89,8 +89,27 @@ public final class OpenLyricsLine {
 			}
 			last = node.getClass();
 		}
+		// pass 3
+		// 1. condense adjacent String nodes, this will also remove empty string nodes
+		StringBuilder sb = new StringBuilder();
+		List<Object> condensed = new ArrayList<Object>();
+		for (int i = 0; i < unwrapped.size(); i++) {
+			Object node = unwrapped.get(i);
+			if (node.getClass() == String.class) {
+				sb.append(node);
+				if (i + 1 != unwrapped.size() && unwrapped.get(i + 1).getClass() != String.class) {
+					condensed.add(sb.toString());
+					sb = new StringBuilder();
+				}
+			} else {
+				condensed.add(node);
+			}
+		}
+		if (sb.length() > 0) {
+			condensed.add(sb.toString());
+		}
 		// we should only contain comment, br, chord, and String elements now
-		this.elements = unwrapped;
+		this.elements = condensed;
 		return modified;
 	}
 	

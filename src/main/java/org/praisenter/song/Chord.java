@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "chord")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Chord implements VerseFragment, SongOutput {
-	private static final String FORMAT = "<chord name=\"{0}\"></chord>";
+	private static final String EDIT_FORMAT = "<chord name=\"{0}\"/>";
 	
 	/** The chord */
 	@XmlAttribute(name = "name", required = false)
@@ -26,7 +26,7 @@ public final class Chord implements VerseFragment, SongOutput {
 		if (type == SongOutputType.TEXT) {
 			return "";
 		} else {
-			return MessageFormat.format(FORMAT, this.name);
+			return MessageFormat.format(EDIT_FORMAT, this.name);
 		}
 	}
 	

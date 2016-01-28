@@ -7,9 +7,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBException;
 
+import org.praisenter.Constants;
 import org.praisenter.song.Author;
 import org.praisenter.song.Br;
 import org.praisenter.song.Chord;
@@ -27,6 +30,8 @@ import org.praisenter.utility.RuntimeProperties;
 import org.praisenter.xml.XmlIO;
 
 public final class OpenLyricsSongImporter implements SongImporter {
+	private static final Pattern PATTERN_VERSE_NAME = Pattern.compile("^([a-zA-Z]+)(\\d+)?([a-zA-Z]+)?$");
+	
 	@Override
 	public List<Song> read(Path path) throws IOException, SongImportException {
 		try {
@@ -47,7 +52,9 @@ public final class OpenLyricsSongImporter implements SongImporter {
 			song.setLastModifiedIn(olsong.modifiedIn);
 			song.setPublisher(olsong.properties.publisher);
 			song.setReleased(olsong.properties.released);
-			song.setTempo(olsong.properties.tempo.text);
+			if (olsong.properties.tempo != null) {
+				song.setTempo(olsong.properties.tempo.text);
+			}
 			song.setTransposition(olsong.properties.transposition);
 			song.setVariant(olsong.properties.variant);
 			song.setSequence(olsong.properties.verseOrder);
@@ -91,8 +98,12 @@ public final class OpenLyricsSongImporter implements SongImporter {
 			
 			// condense comments into one
 			StringBuilder sb = new StringBuilder();
-			for (OpenLyricsComment comment : olsong.properties.comments) {
-				sb.append(comment.text).append(RuntimeProperties.NEW_LINE_SEPARATOR);
+			for (int i = 0; i < olsong.properties.comments.size(); i++) {
+				OpenLyricsComment comment = olsong.properties.comments.get(i);
+				if (i != 0) {
+					sb.append(Constants.NEW_LINE);
+				}
+				sb.append(comment.text);
 			}
 			song.setComments(sb.toString());
 			
@@ -109,12 +120,39 @@ public final class OpenLyricsSongImporter implements SongImporter {
 					lmap.put(key, lyrics);
 				}
 				
+				String type = "c";
+				int number = 0;
+				String part = null;
+				
+				// get the parts of the name
+				Matcher matcher = PATTERN_VERSE_NAME.matcher(verse.name);
+				if (matcher.matches()) {
+					if (matcher.groupCount() > 0) {
+						type = matcher.group(1);
+					} 
+					if (matcher.groupCount() > 1) {
+						try {
+							number = Integer.parseInt(matcher.group(2));
+						} catch (Exception e) {
+							
+						}
+					}
+					if (matcher.groupCount() > 2) {
+						part = matcher.group(3);
+					}
+				}
+				
 				// handle the case where there's more than one of the same verse name
 				// the format says this isn't allowed but it's not gauranteed that this
 				// will always be the case
 				Verse v = lyrics.getVerse(verse.name);
 				if (v == null) {
 					v = new Verse();
+					// set the name
+					v.setType(type);
+					v.setNumber(number);
+					v.setPart(part);
+					lyrics.getVerses().add(v);
 				}
 				
 				// each verse can have many 'lines' elements which indicate parts or optional

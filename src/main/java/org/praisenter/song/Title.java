@@ -1,14 +1,18 @@
 package org.praisenter.song;
 
+import java.util.Locale;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
 
+import org.praisenter.Localized;
+
 @XmlRootElement(name = "title")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Title {
+public final class Title implements Localized {
 	@XmlAttribute(name = "original", required = false)
 	boolean original;
 	
@@ -20,6 +24,14 @@ public final class Title {
 
 	@XmlValue
 	String text;
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.Localized#getLocale()
+	 */
+	@Override
+	public Locale getLocale() {
+		return Song.getLocale(this.language);
+	}
 	
 	public boolean isOriginal() {
 		return original;

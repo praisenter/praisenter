@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlValue;
 @XmlRootElement(name = "comment")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Comment implements VerseFragment, SongOutput {
-	private static final String FORMAT = "<comment>{0}</comment>";
+	private static final String EDIT_FORMAT = "<comment>{0}</comment>";
 	
 	/** The comment text */
 	@XmlValue
@@ -26,7 +26,7 @@ public final class Comment implements VerseFragment, SongOutput {
 		if (type == SongOutputType.TEXT) {
 			return "";
 		} else {
-			return MessageFormat.format(FORMAT, this.text);
+			return MessageFormat.format(EDIT_FORMAT, this.text);
 		}
 	}
 	

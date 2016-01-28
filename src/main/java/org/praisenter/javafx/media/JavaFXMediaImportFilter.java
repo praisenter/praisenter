@@ -35,6 +35,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Constants;
 import org.praisenter.media.FFmpegMediaImportFilter;
 import org.praisenter.media.MediaImportFilter;
 import org.praisenter.media.MediaType;
@@ -147,7 +148,7 @@ final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter implements M
 	        // readLine is a blocking call so this will pause us until the
 	        // executable completes or encounters an error
 	        while((line = input.readLine()) != null) {            
-	            s.append(line).append(RuntimeProperties.NEW_LINE_SEPARATOR);
+	            s.append(line).append(Constants.NEW_LINE);
 	        }
 	        
 	        try {
