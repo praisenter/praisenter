@@ -31,6 +31,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
@@ -63,54 +64,58 @@ public final class MediaMetadata {
 	/** Represents an unknown or not-applicable quantity */
 	public static final int UNKNOWN = -1;
 	
+	/** The media's unique id */
+	@XmlAttribute(name = "id", required = false)
+	final UUID id;
+	
 	/** The path to the media file */
-	@XmlAttribute
+	@XmlAttribute(name = "path", required = false)
 	@XmlJavaTypeAdapter(value = PathXmlAdapter.class)
 	final Path path;
 	
 	/** The media type */
-	@XmlAttribute
+	@XmlAttribute(name = "type", required = false)
 	final MediaType type;
 	
 	/** The mime type */
-	@XmlAttribute
+	@XmlAttribute(name = "mimeType", required = false)
 	final String mimeType;
 	
 	/** The file name */
-	@XmlAttribute
+	@XmlAttribute(name = "name", required = false)
 	final String name;
 	
 	/** The file's last modified timestamp */
-	@XmlAttribute
+	@XmlAttribute(name = "lastModified", required = false)
 	final long lastModified;
 	
 	/** The file's size in bytes */
-	@XmlAttribute
+	@XmlAttribute(name = "size", required = false)
 	final long size;
 	
 	/** The file's format */
-	@XmlElement
+	@XmlElement(name = "format", required = false)
 	final MediaFormat format;
 	
 	/** The file's width in pixels (if applicable) */
-	@XmlAttribute
+	@XmlAttribute(name = "width", required = false)
 	final int width;
 	
 	/** The file's height in pixels (if applicable) */
-	@XmlAttribute
+	@XmlAttribute(name = "height", required = false)
 	final int height;
 	
 	/** The file's length in seconds (if applicable) */
-	@XmlAttribute
+	@XmlAttribute(name = "length", required = false)
 	final long length;
 	
 	/** True if the media contains audio */
-	@XmlAttribute
+	@XmlAttribute(name = "audio", required = false)
 	final boolean audio;
 	
 	/** The media's tags for searching/sorting */
-	@XmlElementWrapper
-	@XmlElement(name = "tag")
+	@XmlElementWrapper(name = "tags", required = false)
+	@XmlElement(name = "tag", required = false)
 	final Set<Tag> tags;
 
 	/**
@@ -122,8 +127,8 @@ public final class MediaMetadata {
 	 * @param tags the tags; can be null
 	 * @return {@link MediaMetadata}
 	 */
-	public static final MediaMetadata forImage(Path path, MediaFormat format, int width, int height, Set<Tag> tags) {
-		return new MediaMetadata(path, format, width, height, UNKNOWN, false, tags);
+	static final MediaMetadata forImage(Path path, MediaFormat format, int width, int height, Set<Tag> tags) {
+		return new MediaMetadata(null, path, format, width, height, UNKNOWN, false, tags);
 	}
 	
 	/**
@@ -134,8 +139,8 @@ public final class MediaMetadata {
 	 * @param tags the tags; can be null
 	 * @return {@link MediaMetadata}
 	 */
-	public static final MediaMetadata forAudio(Path path, MediaFormat format, long length, Set<Tag> tags) {
-		return new MediaMetadata(path, format, UNKNOWN, UNKNOWN, length, true, tags);
+	static final MediaMetadata forAudio(Path path, MediaFormat format, long length, Set<Tag> tags) {
+		return new MediaMetadata(null, path, format, UNKNOWN, UNKNOWN, length, true, tags);
 	}
 
 	/**
@@ -149,8 +154,8 @@ public final class MediaMetadata {
 	 * @param tags the tags; can be null
 	 * @return {@link MediaMetadata}
 	 */
-	public static final MediaMetadata forVideo(Path path, MediaFormat format, int width, int height, long length, boolean audio, Set<Tag> tags) {
-		return new MediaMetadata(path, format, width, height, length, audio, tags);
+	static final MediaMetadata forVideo(Path path, MediaFormat format, int width, int height, long length, boolean audio, Set<Tag> tags) {
+		return new MediaMetadata(null, path, format, width, height, length, audio, tags);
 	}
 	
 	/**
@@ -160,7 +165,7 @@ public final class MediaMetadata {
 	 * @return {@link MediaMetadata}
 	 */
 	final static MediaMetadata forRenamed(Path path, MediaMetadata media) {
-		return new MediaMetadata(path, media.format, media.width, media.height, media.length, media.audio, new TreeSet<Tag>(media.tags));
+		return new MediaMetadata(media.id, path, media.format, media.width, media.height, media.length, media.audio, new TreeSet<Tag>(media.tags));
 	}
 	
 	/**
@@ -169,6 +174,7 @@ public final class MediaMetadata {
 	 */
 	private MediaMetadata() {
 		// for jaxb
+		this.id = null;
 		this.mimeType = null;
 		this.type = null;
 		this.path = null;
@@ -185,6 +191,7 @@ public final class MediaMetadata {
 	
 	/**
 	 * Full constructor.
+	 * @param id the id
 	 * @param path the path to the media
 	 * @param format the format
 	 * @param width the width; {@link #UNKNOWN} if not applicable
@@ -193,7 +200,9 @@ public final class MediaMetadata {
 	 * @param audio if audio is present
 	 * @param tags the tags; can be null
 	 */
-	private MediaMetadata(Path path, MediaFormat format, int width, int height, long length, boolean audio, Set<Tag> tags) {
+	private MediaMetadata(UUID id, Path path, MediaFormat format, int width, int height, long length, boolean audio, Set<Tag> tags) {
+		this.id = id == null ? UUID.randomUUID() : id;
+		
 		// get the media type
 		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
 		this.mimeType = map.getContentType(path.toString());
@@ -228,6 +237,14 @@ public final class MediaMetadata {
 		this.tags = (tags == null ? new TreeSet<Tag>() : tags);
 	}
 
+	/**
+	 * Returns the unique id for this media.
+	 * @return UUID
+	 */
+	public UUID getId() {
+		return this.id;
+	}
+	
 	/**
 	 * Returns the path to the media.
 	 * @return Path

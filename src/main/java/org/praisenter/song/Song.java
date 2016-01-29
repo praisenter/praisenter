@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -23,6 +24,9 @@ public class Song implements SongOutput, Comparable<Song> {
 	/** For string comparison */
 	static final Collator COLLATOR = Collator.getInstance();
 
+	@XmlAttribute(name = "id", required = false)
+	UUID id;
+	
 	@XmlAttribute(name = "createdDate", required = false)
 	Date createdDate;
 	
@@ -74,26 +78,27 @@ public class Song implements SongOutput, Comparable<Song> {
 	// lists
 	
 	@XmlElement(name = "title", required = false)
-	@XmlElementWrapper(name = "titles")
+	@XmlElementWrapper(name = "titles", required = false)
 	List<Title> titles;
 	
 	@XmlElement(name = "author", required = false)
-	@XmlElementWrapper(name = "authors")
+	@XmlElementWrapper(name = "authors", required = false)
 	List<Author> authors;
 
 	@XmlElement(name = "theme", required = false)
-	@XmlElementWrapper(name = "themes")
+	@XmlElementWrapper(name = "themes", required = false)
 	List<Theme> themes;
 	
 	@XmlElement(name = "songbook", required = false)
-	@XmlElementWrapper(name = "songbooks")
+	@XmlElementWrapper(name = "songbooks", required = false)
 	List<Songbook> songbooks;
 	
 	@XmlElement(name = "lyrics", required = false)
-	@XmlElementWrapper(name = "lyricsets")
+	@XmlElementWrapper(name = "lyricsets", required = false)
 	List<Lyrics> lyrics;
 	
 	public Song() {
+		this.id = UUID.randomUUID();
 		this.ccli = -1;
 		this.transposition = 0;
 		this.titles = new ArrayList<>();
@@ -325,6 +330,10 @@ public class Song implements SongOutput, Comparable<Song> {
 			}
 		}
 		return null;
+	}
+	
+	public UUID getId() {
+		return id;
 	}
 	
 	public Date getCreatedDate() {

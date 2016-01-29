@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
@@ -65,7 +66,7 @@ public final class SongLibrary {
 	private Directory directory;
 	private Analyzer analyzer;
 	
-	private final Map<Path, Song> songs;
+	private final Map<UUID, Song> songs;
 	
 	public static final SongLibrary open(Path path) throws IOException {
 		SongLibrary sl = new SongLibrary(path);
@@ -78,7 +79,7 @@ public final class SongLibrary {
 		
 		this.indexPath = this.path.resolve(INDEX_DIR);
 		
-		this.songs = new HashMap<Path, Song>();
+		this.songs = new HashMap<UUID, Song>();
 	}
 	
 	// TODO import methods
@@ -119,7 +120,7 @@ public final class SongLibrary {
 								Song song = XmlIO.read(is, Song.class);
 								
 								// add it to the song map
-								this.songs.put(file.toAbsolutePath(), song);
+								this.songs.put(song.id, song);
 								
 								// TODO lump all the text into one field
 								

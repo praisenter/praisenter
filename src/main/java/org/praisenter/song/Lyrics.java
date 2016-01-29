@@ -28,7 +28,7 @@ public final class Lyrics implements SongOutput, Localized {
 	String transliteration;
 
 	@XmlElement(name = "verse", required = false)
-	@XmlElementWrapper(name = "verses")
+	@XmlElementWrapper(name = "verses", required = false)
 	List<Verse> verses;
 
 	public Lyrics() {

@@ -129,7 +129,7 @@ public final class MediaLibrary {
 	private final MediaLoader[] loaders;
 	
 	/** The media */
-	private final Map<Path, Media> media;
+	private final Map<UUID, Media> media;
 	
 	// FIXME this should be global so the tags can be used for slides and such
 	/** The global set of media tags */
@@ -184,7 +184,7 @@ public final class MediaLibrary {
 			new AudioMediaLoader(settings)
 		};
 		
-		this.media = new HashMap<Path, Media>();
+		this.media = new HashMap<UUID, Media>();
 		this.tags = new TreeSet<Tag>();
 	}
 
@@ -280,7 +280,7 @@ public final class MediaLibrary {
 						} else {
 							media = new Media(meta, settings.audioDefaultThumbnail);
 						}
-						this.media.put(media.metadata.path, media);
+						this.media.put(media.metadata.id, media);
 					}
 				}
 			}
@@ -351,7 +351,7 @@ public final class MediaLibrary {
 		}
 		
 		// we loaded the media, so add it to the map
-		this.media.put(media.metadata.path, media);
+		this.media.put(media.metadata.id, media);
 		
 		return media;
 	}
@@ -599,8 +599,8 @@ public final class MediaLibrary {
 		
 		Media media1 = new Media(MediaMetadata.forRenamed(target, media.metadata), media.thumbnail);
 		
-		this.media.remove(source);
-		this.media.put(target, media1);
+		// just overwrite the media item with the new one
+		this.media.put(media.metadata.id, media1);
 		
 		return true;
 	}
@@ -609,11 +609,11 @@ public final class MediaLibrary {
 	
 	/**
 	 * Returns true if the given path is in the library.
-	 * @param path the path
+	 * @param id the id
 	 * @return boolean
 	 */
-	public synchronized boolean contains(Path path) {
-		return this.media.containsKey(path);
+	public synchronized boolean contains(UUID id) {
+		return this.media.containsKey(id);
 	}
 	
 	/**
@@ -624,11 +624,11 @@ public final class MediaLibrary {
 	 * <p>
 	 * Returns null if the media is not in the library or hasn't
 	 * been initialized.
-	 * @param path the path
+	 * @param id the id
 	 * @return {@link Media}
 	 */
-	public synchronized Media get(Path path) {
-		return this.media.get(path);
+	public synchronized Media get(UUID id) {
+		return this.media.get(id);
 	}
 	
 	/**
