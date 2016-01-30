@@ -37,8 +37,8 @@ public class TestSongLibrary {
 	
 	public static void main(String[] args) {
 		try {
-			Path path = Paths.get("D:\\Personal\\Praisenter\\songs");
-			//Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\songs");
+//			Path path = Paths.get("D:\\Personal\\Praisenter\\songs");
+			Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\songs");
 			
 			Map<String, Integer> nameMap = new HashMap<String, Integer>();
 			
@@ -49,7 +49,8 @@ public class TestSongLibrary {
 			// openlyrics testing
 			OpenLyricsSongImporter importer = new OpenLyricsSongImporter();
 			List<Song> songs = new ArrayList<Song>();
-			Path olPath = Paths.get("C:\\Users\\wbittle\\Desktop\\openlyrics-0.8\\openlyrics-0.8\\examples");
+//			Path olPath = Paths.get("C:\\Users\\wbittle\\Desktop\\openlyrics-0.8\\openlyrics-0.8\\examples");
+			Path olPath = Paths.get("C:\\Users\\William\\Desktop\\test\\openlyrics-0.8\\openlyrics-0.8\\examples");
 			try (DirectoryStream<Path> dir = Files.newDirectoryStream(olPath)) {
 				for (Path file : dir) {
 					if (Files.isRegularFile(file)) {

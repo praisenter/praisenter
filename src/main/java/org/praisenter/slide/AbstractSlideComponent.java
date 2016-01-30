@@ -13,7 +13,6 @@ public abstract class AbstractSlideComponent extends AbstractSlideRegion impleme
 	
 	@Override
 	public int getOrder() {
-		// TODO Auto-generated method stub
 		return this.order;
 	}
 	
