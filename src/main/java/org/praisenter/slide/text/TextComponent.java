@@ -45,18 +45,18 @@ import org.praisenter.slide.AbstractPositionedComponent;
 import org.praisenter.slide.PositionedComponent;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.graphics.CapType;
-import org.praisenter.slide.graphics.ColorFill;
+import org.praisenter.slide.graphics.SlideStrokeCap;
+import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.DashPattern;
-import org.praisenter.slide.graphics.Fill;
-import org.praisenter.slide.graphics.FillTypeAdapter;
-import org.praisenter.slide.graphics.JoinType;
+import org.praisenter.slide.graphics.SlidePaint;
+import org.praisenter.slide.graphics.SlidePaint;
+import org.praisenter.slide.graphics.SlideStrokeJoin;
 import org.praisenter.slide.graphics.LineStyle;
 import org.praisenter.slide.graphics.LinearGradientDirection;
-import org.praisenter.slide.graphics.LinearGradientFill;
+import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.Point;
 import org.praisenter.slide.graphics.RadialGradientFill;
-import org.praisenter.slide.graphics.Stop;
+import org.praisenter.slide.graphics.SlideGradientStop;
 import org.praisenter.slide.resources.Messages;
 
 /**
@@ -68,8 +68,8 @@ import org.praisenter.slide.resources.Messages;
 @XmlRootElement(name = "TextComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({
-	ColorFill.class,
-	LinearGradientFill.class,
+	SlideColor.class,
+	SlideLinearGradient.class,
 	RadialGradientFill.class
 })
 public class TextComponent extends AbstractPositionedComponent implements PositionedComponent, RenderableComponent, SlideComponent, Serializable {
@@ -83,7 +83,7 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	/** The text color */
 	@XmlElement(name = "TextFill")
 	@XmlJavaTypeAdapter(value = FillTypeAdapter.class)
-	protected Fill textFill;
+	protected SlidePaint textFill;
 	
 	/** The text font */
 	@XmlElement(name = "TextFont", required = false, nillable = true)
@@ -125,7 +125,7 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	/** The text outline fill */
 	@XmlElement(name = "TextOutlineFill", required = false, nillable = true)
 	@XmlJavaTypeAdapter(value = FillTypeAdapter.class)
-	protected Fill textOutlineFill;
+	protected SlidePaint textOutlineFill;
 	
 	/** True if the text shadow should be visible */
 	@XmlElement(name = "TextShadowVisible", required = false, nillable = true)
@@ -134,7 +134,7 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	/** The text shadow fill */
 	@XmlElement(name = "TextShadowFill", required = false, nillable = true)
 	@XmlJavaTypeAdapter(value = FillTypeAdapter.class)
-	protected Fill textShadowFill;
+	protected SlidePaint textShadowFill;
 	
 	/** The text shadow offset */
 	@XmlElement(name = "TextShadowOffset", required = false, nillable = true)
@@ -184,7 +184,7 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	public TextComponent(String name, int x, int y, int width, int height, String text) {
 		super(name, x, y, width, height);
 		this.text = text;
-		this.textFill = new ColorFill(Color.WHITE);
+		this.textFill = new SlideColor(Color.WHITE);
 		this.textFont = null;
 		this.horizontalTextAlignment = HorizontalTextAlignment.CENTER;
 		this.verticalTextAlignment = VerticalTextAlignment.TOP;
@@ -192,15 +192,15 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 		this.textWrapped = true;
 		this.textPadding = 5;
 		this.textVisible = true;
-		this.textOutlineFill = new ColorFill(Color.BLACK);
-		this.textOutlineStyle = new LineStyle(1.5f, CapType.ROUND, JoinType.ROUND, DashPattern.SOLID);
+		this.textOutlineFill = new SlideColor(Color.BLACK);
+		this.textOutlineStyle = new LineStyle(1.5f, SlideStrokeCap.ROUND, SlideStrokeJoin.ROUND, DashPattern.SOLID);
 		this.textOutlineVisible = false;
 		this.textShadowVisible = false;
-		this.textShadowFill = new LinearGradientFill(
+		this.textShadowFill = new SlideLinearGradient(
 				LinearGradientDirection.TOP, 
-				new Stop(0.0f, new Color(0, 0, 0, 255)),
-				new Stop(0.5f, new Color(0, 0, 0, 153)),
-				new Stop(1.0f, new Color(0, 0, 0, 50)));
+				new SlideGradientStop(0.0f, new Color(0, 0, 0, 255)),
+				new SlideGradientStop(0.5f, new Color(0, 0, 0, 153)),
+				new SlideGradientStop(1.0f, new Color(0, 0, 0, 50)));
 		this.textShadowOffset = new Point(3, 3);
 	}
 	
@@ -439,7 +439,7 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	 * @param height the text height
 	 * @return {@link Paint}
 	 */
-	protected Paint getPaint(Fill fill, float x, float y, float width, float height) {
+	protected Paint getPaint(SlidePaint fill, float x, float y, float width, float height) {
 		// make sure the fill is using the text metrics rather than the
 		// text components bounds
 		// we also need to take the horizontal alignment into consideration
@@ -474,9 +474,9 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	
 	/**
 	 * Returns the text fill.
-	 * @return {@link Fill}
+	 * @return {@link SlidePaint}
 	 */
-	public Fill getTextFill() {
+	public SlidePaint getTextFill() {
 		return this.textFill;
 	}
 	
@@ -484,7 +484,7 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	 * Sets the text fill.
 	 * @param fill the text fill
 	 */
-	public void setTextFill(Fill fill) {
+	public void setTextFill(SlidePaint fill) {
 		this.textFill = fill;
 	}
 	
@@ -634,9 +634,9 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 
 	/**
 	 * Returns the text outline fill.
-	 * @return {@link Fill}
+	 * @return {@link SlidePaint}
 	 */
-	public Fill getTextOutlineFill() {
+	public SlidePaint getTextOutlineFill() {
 		return this.textOutlineFill;
 	}
 
@@ -644,7 +644,7 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	 * Sets the text outline fill.
 	 * @param fill the text outline fill
 	 */
-	public void setTextOutlineFill(Fill fill) {
+	public void setTextOutlineFill(SlidePaint fill) {
 		this.textOutlineFill = fill;
 	}
 
@@ -668,10 +668,10 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 
 	/**
 	 * Returns the text shadow fill.
-	 * @return {@link Fill}
+	 * @return {@link SlidePaint}
 	 * @since 2.0.2
 	 */
-	public Fill getTextShadowFill() {
+	public SlidePaint getTextShadowFill() {
 		return this.textShadowFill;
 	}
 
@@ -680,7 +680,7 @@ public class TextComponent extends AbstractPositionedComponent implements Positi
 	 * @param fill the text shadow fill
 	 * @since 2.0.2
 	 */
-	public void setTextShadowFill(Fill fill) {
+	public void setTextShadowFill(SlidePaint fill) {
 		this.textShadowFill = fill;
 	}
 

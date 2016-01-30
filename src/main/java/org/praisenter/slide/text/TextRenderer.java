@@ -37,7 +37,9 @@ import java.awt.geom.AffineTransform;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 /**
  * Class containing helper methods for rendering text.
@@ -47,10 +49,7 @@ import org.apache.log4j.Logger;
  */
 public final class TextRenderer {
 	/** The static logger */
-	private static final Logger LOGGER = Logger.getLogger(TextRenderer.class);
-	
-	/** The line separator character */
-	public static final char LINE_SEPARATOR = '\n';
+	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** Hidding default constructor */
 	private TextRenderer() {}

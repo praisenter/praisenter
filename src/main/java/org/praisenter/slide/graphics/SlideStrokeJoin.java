@@ -1,6 +1,6 @@
 package org.praisenter.slide.graphics;
 
-public enum JoinType {
+public enum SlideStrokeJoin {
 	/** The default bevel join type */
 	BEVEL,
 	

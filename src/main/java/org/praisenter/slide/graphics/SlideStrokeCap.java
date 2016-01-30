@@ -1,6 +1,6 @@
 package org.praisenter.slide.graphics;
 
-public enum CapType {
+public enum SlideStrokeCap {
 	/** The butt cap type */
 	BUTT,
 	

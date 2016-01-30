@@ -26,8 +26,8 @@ package org.praisenter.slide.text;
 
 import java.awt.Color;
 
-import org.praisenter.slide.graphics.ColorFill;
-import org.praisenter.slide.graphics.Fill;
+import org.praisenter.slide.graphics.SlideColor;
+import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.LineStyle;
 import org.praisenter.slide.graphics.Point;
 
@@ -55,13 +55,13 @@ public class TextRenderProperties {
 	protected HorizontalTextAlignment horizontalAlignment;
 	
 	/** The text paint */
-	protected Fill textFill;
+	protected SlidePaint textFill;
 	
 	/** Returns true if the outline is enabled */
 	protected boolean outlineEnabled;
 	
 	/** The text outline paint */
-	protected Fill outlineFill;
+	protected SlidePaint outlineFill;
 	
 	/** The text outline stroke */
 	protected LineStyle outlineStyle;
@@ -70,7 +70,7 @@ public class TextRenderProperties {
 	protected boolean shadowEnabled;
 	
 	/** The shadow fill */
-	protected Fill shadowFill;
+	protected SlidePaint shadowFill;
 	
 	/** The shadow offset */
 	protected Point shadowOffset;
@@ -92,14 +92,14 @@ public class TextRenderProperties {
 		this.textMetrics = textMetrics;
 		this.verticalAlignment = VerticalTextAlignment.TOP;
 		this.horizontalAlignment = HorizontalTextAlignment.CENTER;
-		this.textFill = new ColorFill(Color.WHITE);
+		this.textFill = new SlideColor(Color.WHITE);
 		// no outline by default
 		this.outlineEnabled = false;
-		this.outlineFill = new ColorFill();
+		this.outlineFill = new SlideColor();
 		this.outlineStyle = new LineStyle();
 		// no shadow by default
 		this.shadowEnabled = false;
-		this.shadowFill = new ColorFill();
+		this.shadowFill = new SlideColor();
 		this.shadowOffset = new Point();
 	}
 	
@@ -185,9 +185,9 @@ public class TextRenderProperties {
 	
 	/**
 	 * Returns the fill used for the text.
-	 * @return {@link Fill}
+	 * @return {@link SlidePaint}
 	 */
-	public Fill getTextFill() {
+	public SlidePaint getTextFill() {
 		return this.textFill;
 	}
 	
@@ -195,7 +195,7 @@ public class TextRenderProperties {
 	 * Sets the fill used for the text.
 	 * @param fill the fill for the text
 	 */
-	public void setTextFill(Fill fill) {
+	public void setTextFill(SlidePaint fill) {
 		this.textFill = fill;
 	}
 	
@@ -220,9 +220,9 @@ public class TextRenderProperties {
 	
 	/**
 	 * Returns the paint used for the text outline.
-	 * @return {@link Fill}
+	 * @return {@link SlidePaint}
 	 */
-	public Fill getOutlineFill() {
+	public SlidePaint getOutlineFill() {
 		return this.outlineFill;
 	}
 	
@@ -230,7 +230,7 @@ public class TextRenderProperties {
 	 * Sets the fill used for the text outline.
 	 * @param fill the fill for the outline; can be null
 	 */
-	public void setOutlineFill(Fill fill) {
+	public void setOutlineFill(SlidePaint fill) {
 		this.outlineFill = fill;
 	}
 	
@@ -273,10 +273,10 @@ public class TextRenderProperties {
 
 	/**
 	 * Returns the fill used to paint the text shadow.
-	 * @return {@link Fill}
+	 * @return {@link SlidePaint}
 	 * @since 2.0.2
 	 */
-	public Fill getShadowFill() {
+	public SlidePaint getShadowFill() {
 		return this.shadowFill;
 	}
 
@@ -285,7 +285,7 @@ public class TextRenderProperties {
 	 * @param fill the shadow fill
 	 * @since 2.0.2
 	 */
-	public void setShadowFill(Fill fill) {
+	public void setShadowFill(SlidePaint fill) {
 		this.shadowFill = fill;
 	}
 

@@ -1,19 +1,32 @@
 package org.praisenter.slide;
 
-import java.util.List;
+import java.util.Objects;
 
-import org.praisenter.slide.graphics.Fill;
-import org.praisenter.slide.graphics.LineStyle;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+
+import org.praisenter.slide.graphics.Rectangle;
+import org.praisenter.slide.graphics.SlidePaint;
+import org.praisenter.slide.graphics.SlideStroke;
 
 public abstract class AbstractSlideRegion implements SlideRegion {
-
+	@XmlAttribute(name = "x", required = false)
 	int x;
+	
+	@XmlAttribute(name = "y", required = false)
 	int y;
+	
+	@XmlAttribute(name = "width", required = false)
 	int width;
+	
+	@XmlAttribute(name = "height", required = false)
 	int height;
 	
-	LineStyle border;
-	Fill background;
+	@XmlElement(name = "border", required = false)
+	SlideStroke border;
+	
+	@XmlElement(name = "background", required = false)
+	SlidePaint background;
 	
 	@Override
 	public int getX() {
@@ -56,22 +69,22 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	}
 	
 	@Override
-	public Fill getBackground() {
+	public SlidePaint getBackground() {
 		return this.background;
 	}
 	
 	@Override
-	public void setBackground(Fill background) {
+	public void setBackground(SlidePaint background) {
 		this.background = background;
 	}
 	
 	@Override
-	public LineStyle getBorder() {
+	public SlideStroke getBorder() {
 		return this.border;
 	}
 	
 	@Override
-	public void setBorder(LineStyle border) {
+	public void setBorder(SlideStroke border) {
 		this.border = border;
 	}
 	
@@ -87,39 +100,47 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	}
 	
 	@Override
-	public void resize(int dw, int dh) {
-		// TODO Auto-generated method stub
+	public Rectangle resize(int dw, int dh) {
+		// update
+		this.width += dw;
+		this.height += dh;
 		
+		// make sure we dont go too small width/height
+		if (this.width < Slide.MIN_SIZE) {
+			this.width = Slide.MIN_SIZE;
+		}
+		if (this.height < Slide.MIN_SIZE) {
+			this.height = Slide.MIN_SIZE;
+		}
+		
+		return new Rectangle(this.x, this.y, this.width, this.height);
 	}
 	
+	@Override
+	public void translate(int dx, int dy) {
+		this.x += dx;
+		this.y += dy;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#isTransitionRequired(org.praisenter.slide.SlideRegion)
+	 */
 	@Override
 	public boolean isTransitionRequired(SlideRegion region) {
 		if (region == null) return true;
 		if (region == this) return false;
 		
-		// check the width and height
-		if (this.width != region.getWidth() || this.height != region.getHeight()) {
+		// we need a transition if the position, size, background
+		// or border are different
+		if (this.x != region.getX() ||
+			this.y != region.getY() ||
+			this.width != region.getWidth() || 
+			this.height != region.getHeight() ||
+			!Objects.equals(this.background, region.getBackground()) ||
+			!Objects.equals(this.border, region.getBorder())) {
 			return true;
 		}
 		
-		// check the backgrounds
-		if (this.background != null && region.getBackground() != null) {
-			// if both are visible then compare them
-			if (this.backgroundFill != null && component.getBackgroundFill() != null) {
-				if (!this.backgroundFill.equals(component.getBackgroundFill())) {
-					// the background fills are not the same, so we must transition
-					return true;
-				}
-			} else if (this.backgroundFill != null || component.getBackgroundFill() != null) {
-				// if one background is not null, then we must transition
-				return true;
-			}
-		} else if (this.backgroundVisible || component.isBackgroundVisible()) {
-			// if both backgrounds are not visible but one is, then we must transition
-			return true;
-		}
-		
-		// otherwise they are visually the same so no transition is necessary
 		return false;
 	}
 }

@@ -31,8 +31,4 @@ public interface Slide extends SlideRegion {
 	
 	public abstract void moveComponentUp(SlideComponent component);
 	public abstract void moveComponentDown(SlideComponent component);
-	
-	// other 
-	
-	public abstract void resize(int dw, int dh);
 }

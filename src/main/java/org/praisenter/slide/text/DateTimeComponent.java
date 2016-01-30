@@ -40,8 +40,8 @@ import org.praisenter.common.xml.SimpleDateFormatTypeAdapter;
 import org.praisenter.slide.PositionedComponent;
 import org.praisenter.slide.RenderableComponent;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.graphics.ColorFill;
-import org.praisenter.slide.graphics.LinearGradientFill;
+import org.praisenter.slide.graphics.SlideColor;
+import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.RadialGradientFill;
 import org.praisenter.slide.resources.Messages;
 
@@ -54,8 +54,8 @@ import org.praisenter.slide.resources.Messages;
 @XmlRootElement(name = "DateTimeComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({
-	ColorFill.class,
-	LinearGradientFill.class,
+	SlideColor.class,
+	SlideLinearGradient.class,
 	RadialGradientFill.class
 })
 public class DateTimeComponent extends TextComponent implements PositionedComponent, RenderableComponent, SlideComponent, Serializable {

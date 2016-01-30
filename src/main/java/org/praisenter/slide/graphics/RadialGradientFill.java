@@ -35,14 +35,14 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Represents a radial gradient {@link Fill} .
+ * Represents a radial gradient {@link SlidePaint} .
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
 @XmlRootElement(name = "RadialGradientFill")
 @XmlAccessorType(XmlAccessType.NONE)
-public class RadialGradientFill extends AbstractGradientFill implements Fill, Serializable {
+public class RadialGradientFill extends SlideGradient implements SlidePaint, Serializable {
 	/** The version id */
 	private static final long serialVersionUID = -7948895575062286209L;
 	
@@ -63,7 +63,7 @@ public class RadialGradientFill extends AbstractGradientFill implements Fill, Se
 	 * @param direction the center location
 	 * @param stops the stops
 	 */
-	public RadialGradientFill(RadialGradientDirection direction, Stop... stops) {
+	public RadialGradientFill(RadialGradientDirection direction, SlideGradientStop... stops) {
 		super(stops);
 		this.direction = direction;
 	}
@@ -79,7 +79,7 @@ public class RadialGradientFill extends AbstractGradientFill implements Fill, Se
 		float[] fractions = new float[size];
 		Color[] colors = new Color[size];
 		for (int i = 0; i < size; i++) {
-			Stop stop = this.stops[i];
+			SlideGradientStop stop = this.stops[i];
 			fractions[i] = stop.fraction;
 			colors[i] = stop.color.getPaint(x, y, w, h);
 		}
@@ -131,7 +131,7 @@ public class RadialGradientFill extends AbstractGradientFill implements Fill, Se
 	public int hashCode() {
 		int r = 37;
 		r = 37 * r + this.direction.ordinal();
-		for (Stop stop : this.stops) {
+		for (SlideGradientStop stop : this.stops) {
 			r = 37 * r + stop.hashCode();
 		}
 		return r;
@@ -145,7 +145,7 @@ public class RadialGradientFill extends AbstractGradientFill implements Fill, Se
 		StringBuilder sb = new StringBuilder();
 		sb.append("RadialGradientFill[Direction=").append(this.direction)
 		  .append("|Stops={");
-		for (Stop stop : this.stops) {
+		for (SlideGradientStop stop : this.stops) {
 			sb.append(stop.toString());
 		}
 		sb.append("}]");
