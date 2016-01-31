@@ -10,33 +10,36 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-
-import org.praisenter.slide.text.BasicTextComponent;
-import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.SongTextComponent;
 
 @XmlRootElement(name = "slide")
 @XmlAccessorType(XmlAccessType.NONE)
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion {
 	@XmlAttribute(name = "id", required = false)
-	UUID id;
-	
-	@XmlAttribute(name = "path", required = false)
-	Path path;
+	final UUID id;
 	
 	@XmlAttribute(name = "version", required = false)
-	final String version = "3.0.0";
+	final String version = Slide.VERSION;
 	
 	@XmlElement(name = "component", required = false)
 	@XmlElementWrapper(name = "components", required = false)
 	final List<SlideComponent> components;
+
+	// note: path wont be assigned until saved
+	
+	@XmlAttribute(name = "path", required = false)
+	Path path;
+	
+	@XmlAttribute(name = "transition", required = false)
+	int transition;
 	
 	public BasicSlide() {
+		// this should be overwritten by jaxb when loaded
+		this.id = UUID.randomUUID();
+		
 		this.components = new ArrayList<SlideComponent>();
+		this.transition = -1;
 	}
 	
 	@Override
@@ -57,6 +60,16 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@Override
 	public String getVersion() {
 		return this.version;
+	}
+	
+	@Override
+	public int getTransition() {
+		return transition;
+	}
+	
+	@Override
+	public void setTransition(int transition) {
+		this.transition = transition;
 	}
 	
 	@Override

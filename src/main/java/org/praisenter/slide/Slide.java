@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 	BasicSlide.class
 })
 public interface Slide extends SlideRegion {
+	public static final String VERSION = "3.0.0";
 	
 	// properties
 	
@@ -29,4 +30,9 @@ public interface Slide extends SlideRegion {
 	
 	public abstract void moveComponentUp(SlideComponent component);
 	public abstract void moveComponentDown(SlideComponent component);
+	
+	// other
+	
+	public abstract int getTransition();
+	public abstract void setTransition(int id);
 }
