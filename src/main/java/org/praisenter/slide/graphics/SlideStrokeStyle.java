@@ -1,11 +1,28 @@
 package org.praisenter.slide.graphics;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.praisenter.utility.Maf;
 
+@XmlRootElement(name = "strokeStyle")
+@XmlAccessorType(XmlAccessType.NONE)
 public final class SlideStrokeStyle {
+	@XmlAttribute(name = "type", required = false)
 	final SlideStrokeType type;
+	
+	@XmlAttribute(name = "join", required = false)
 	final SlideStrokeJoin join;
+	
+	@XmlAttribute(name = "cap", required = false)
 	final SlideStrokeCap cap;
+	
+	@XmlElement(name = "length", required = false)
+	@XmlElementWrapper(name = "dashes", required = false)
 	final double[] dashes;
 	
 	private SlideStrokeStyle() {

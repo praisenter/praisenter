@@ -1,11 +1,26 @@
 package org.praisenter.slide.graphics;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.praisenter.utility.Maf;
 
+@XmlRootElement(name = "paintStroke")
+@XmlAccessorType(XmlAccessType.NONE)
 public final class SlidePaintStroke implements SlideStroke {
+	@XmlElement(name = "paint", required = false)
 	final SlidePaint paint;
+	
+	@XmlElement(name = "style", required = false)
 	final SlideStrokeStyle style;
+	
+	@XmlAttribute(name = "width", required = false)
 	final double width;
+	
+	@XmlAttribute(name = "radius", required = false)
 	final double radius;
 	
 	private SlidePaintStroke() {

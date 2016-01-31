@@ -1,16 +1,14 @@
 package org.praisenter.slide;
 
-import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlSeeAlso;
 
-import javafx.scene.image.Image;
-
-@XmlAccessorType(XmlAccessType.NONE)
+@XmlSeeAlso({
+	BasicSlide.class
+})
 public interface Slide extends SlideRegion {
 	
 	// properties

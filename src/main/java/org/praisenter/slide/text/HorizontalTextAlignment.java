@@ -1,5 +1,8 @@
 package org.praisenter.slide.text;
 
+import javax.xml.bind.annotation.XmlEnum;
+
+@XmlEnum
 public enum HorizontalTextAlignment {
 	/** Text should be aligned to the left */
 	LEFT,

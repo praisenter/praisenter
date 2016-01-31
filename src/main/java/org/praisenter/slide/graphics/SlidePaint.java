@@ -1,7 +1,11 @@
 package org.praisenter.slide.graphics;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 
-@XmlRootElement(name = "paint")
+@XmlSeeAlso({
+	SlideColor.class,
+	SlideLinearGradient.class,
+	SlideRadialGradient.class
+})
 public interface SlidePaint {
 }

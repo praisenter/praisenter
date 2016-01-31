@@ -4,9 +4,12 @@ import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlElementRefs;
 
 import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlidePaint;
+import org.praisenter.slide.graphics.SlidePaintStroke;
 import org.praisenter.slide.graphics.SlideStroke;
 
 public abstract class AbstractSlideRegion implements SlideRegion {

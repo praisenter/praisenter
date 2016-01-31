@@ -9,12 +9,19 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.DateTimeComponent;
+import org.praisenter.slide.text.SongTextComponent;
+
 @XmlRootElement(name = "slide")
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion {
+public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion {
 	@XmlAttribute(name = "id", required = false)
 	UUID id;
 	
@@ -24,12 +31,7 @@ public abstract class BasicSlide extends AbstractSlideRegion implements Slide, S
 	@XmlAttribute(name = "version", required = false)
 	final String version = "3.0.0";
 	
-//	@XmlElementRefs({
-//		@XmlElementRef(name = "", type = ),
-//		@XmlElementRef(name = "", type = ),
-//		@XmlElementRef(name = "", type = ),
-//		@XmlElementRef(name = "", type = )
-//	})
+	@XmlElement(name = "component", required = false)
 	@XmlElementWrapper(name = "components", required = false)
 	final List<SlideComponent> components;
 	

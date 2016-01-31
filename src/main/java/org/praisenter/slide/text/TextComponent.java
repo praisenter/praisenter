@@ -1,10 +1,17 @@
 package org.praisenter.slide.text;
 
+import javax.xml.bind.annotation.XmlSeeAlso;
+
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 
+@XmlSeeAlso({
+	BasicTextComponent.class,
+	DateTimeComponent.class,
+	SongTextComponent.class
+})
 public interface TextComponent extends SlideRegion, SlideComponent {
 	public abstract SlidePaint getTextPaint();
 	public abstract void setTextPaint(SlidePaint paint);
