@@ -4,19 +4,24 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.slide.AbstractSlideComponent;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.SlidePaintXmlAdapter;
 import org.praisenter.slide.SlideRegion;
+import org.praisenter.slide.SlideStrokeXmlAdapter;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractTextComponent extends AbstractSlideComponent implements SlideRegion, SlideComponent, TextComponent {
 	@XmlElement(name = "textPaint", required = false)
+	@XmlJavaTypeAdapter(value = SlidePaintXmlAdapter.class)
 	SlidePaint textPaint;
 	
 	@XmlElement(name = "textBorder", required = false)
+	@XmlJavaTypeAdapter(value = SlideStrokeXmlAdapter.class)
 	SlideStroke textBorder;
 	
 	@XmlAttribute(name = "fontName", required = false)
@@ -36,6 +41,14 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	
 	@XmlAttribute(name = "padding", required = false)
 	int padding;
+	
+	public AbstractTextComponent() {
+		this.fontScaleType = FontScaleType.NONE;
+		this.fontSize = 30;
+		this.verticalTextAlignment = VerticalTextAlignment.TOP;
+		this.horizontalTextAlignment = HorizontalTextAlignment.LEFT;
+		this.padding = 0;
+	}
 	
 	@Override
 	public SlidePaint getTextPaint() {

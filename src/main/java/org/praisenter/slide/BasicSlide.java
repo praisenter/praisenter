@@ -8,10 +8,20 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.DateTimeComponent;
+import org.praisenter.slide.text.SongTextComponent;
+import org.praisenter.xml.adapters.PathXmlAdapter;
 
 @XmlRootElement(name = "slide")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -22,13 +32,20 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@XmlAttribute(name = "version", required = false)
 	final String version = Slide.VERSION;
 	
-	@XmlElement(name = "component", required = false)
+	@XmlElementRefs({
+		@XmlElementRef(type = MediaComponent.class),
+		@XmlElementRef(type = BasicTextComponent.class),
+		@XmlElementRef(type = DateTimeComponent.class),
+		@XmlElementRef(type = SongTextComponent.class)
+	})
+	//@XmlElement(name = "component", required = false)
 	@XmlElementWrapper(name = "components", required = false)
 	final List<SlideComponent> components;
 
 	// note: path wont be assigned until saved
 	
 	@XmlAttribute(name = "path", required = false)
+	@XmlJavaTypeAdapter(value = PathXmlAdapter.class)
 	Path path;
 	
 	@XmlAttribute(name = "transition", required = false)

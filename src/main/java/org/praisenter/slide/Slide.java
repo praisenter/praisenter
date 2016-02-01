@@ -6,8 +6,15 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.DateTimeComponent;
+import org.praisenter.slide.text.SongTextComponent;
+
 @XmlSeeAlso({
-	BasicSlide.class
+	BasicTextComponent.class,
+	MediaComponent.class,
+	DateTimeComponent.class,
+	SongTextComponent.class
 })
 public interface Slide extends SlideRegion {
 	public static final String VERSION = "3.0.0";

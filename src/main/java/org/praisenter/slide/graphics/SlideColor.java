@@ -7,7 +7,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "color")
 @XmlAccessorType(XmlAccessType.NONE)
-public class SlideColor implements SlidePaint {
+public class SlideColor extends AbstractSlidePaint implements SlidePaint {
 	/** The red component */
 	@XmlAttribute(name = "r", required = false)
 	final int red;

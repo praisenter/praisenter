@@ -2,16 +2,28 @@ package org.praisenter.slide;
 
 import java.util.Objects;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlElementRefs;
+import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.slide.graphics.Rectangle;
+import org.praisenter.slide.graphics.SlideColor;
+import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlidePaintStroke;
+import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.slide.graphics.SlideStroke;
 
+@XmlAccessorType(XmlAccessType.NONE)
+@XmlSeeAlso({
+	SlidePaintStroke.class,
+	SlideColor.class,
+	SlideLinearGradient.class,
+	SlideRadialGradient.class
+})
 public abstract class AbstractSlideRegion implements SlideRegion {
 	@XmlAttribute(name = "x", required = false)
 	int x;
@@ -26,9 +38,11 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	int height;
 	
 	@XmlElement(name = "border", required = false)
+	@XmlJavaTypeAdapter(value = SlideStrokeXmlAdapter.class)
 	SlideStroke border;
 	
 	@XmlElement(name = "background", required = false)
+	@XmlJavaTypeAdapter(value = SlidePaintXmlAdapter.class)
 	SlidePaint background;
 	
 	@Override

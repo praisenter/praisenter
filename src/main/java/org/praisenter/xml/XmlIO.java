@@ -17,6 +17,7 @@ import javax.xml.bind.Unmarshaller;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Reference;
 
 public final class XmlIO {
 	/** The class level logger */
@@ -35,20 +36,27 @@ public final class XmlIO {
 	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
 	 */
 	private static final XmlContext getXmlContext(final Class<?> clazz) throws JAXBException {
+		final Reference<JAXBException> ref = new Reference<JAXBException>();
 		XmlContext context = CONTEXTS.computeIfAbsent(clazz, new Function<Class<?>, XmlContext>() {
 			public XmlContext apply(Class<?> clazz) {
 				try {
 					return XmlContext.create(clazz);
 				} catch (PropertyException e) {
 					LOGGER.error("Couldn't assign context property for class [" + clazz.getName() + "]: ", e);
+					ref.set(e);
 				} catch (JAXBException e) {
 					LOGGER.error("Couldn't create context for class [" + clazz.getName() + "]: ", e);
+					ref.set(e);
 				}
 				return null;
 			}
 		});
 		if (context == null) {
-			throw new JAXBException("");
+			if (ref.get() != null) {
+				throw ref.get();
+			} else {
+				throw new JAXBException("");
+			}
 		}
 		return context;
 	}

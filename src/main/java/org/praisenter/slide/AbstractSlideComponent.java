@@ -1,7 +1,10 @@
 package org.praisenter.slide;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 
+@XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractSlideComponent extends AbstractSlideRegion implements SlideRegion, SlideComponent {
 	@XmlAttribute(name = "order", required = false)
 	int order;
