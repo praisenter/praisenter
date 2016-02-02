@@ -5,6 +5,7 @@ import javax.xml.bind.JAXBException;
 
 import org.praisenter.javafx.easing.Easing;
 import org.praisenter.slide.BasicSlide;
+import org.praisenter.slide.Slide;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
 import org.praisenter.slide.graphics.SlideGradientStop;
@@ -36,7 +37,7 @@ public class TestSlideSaving {
 		
 		SlidePaintStroke stroke = new SlidePaintStroke(
 				gradient, 
-				new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, new double[] { 20, 10 }), 
+				new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, 20.0, 10.0), 
 				5, 
 				0);
 		
@@ -59,6 +60,9 @@ public class TestSlideSaving {
 		txt.setText("hello");
 		slide.addComponent(txt);
 		
-		XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), slide);
+		//XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), slide);
+		XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), slide);
+		
+		Slide s = XmlIO.read(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), BasicSlide.class);
 	}
 }

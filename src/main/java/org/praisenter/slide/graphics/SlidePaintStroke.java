@@ -16,11 +16,6 @@ import org.praisenter.utility.Maf;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlidePaintStroke extends AbstractSlideStroke implements SlideStroke {
 	@XmlElement(name = "paint", required = false)
-//	@XmlElementRefs({
-//		@XmlElementRef(name = "paint", type = SlideColor.class),
-//		@XmlElementRef(name = "paint", type = SlideLinearGradient.class),
-//		@XmlElementRef(name = "paint", type = SlideRadialGradient.class)
-//	})
 	@XmlJavaTypeAdapter(value = SlidePaintXmlAdapter.class)
 	final SlidePaint paint;
 	

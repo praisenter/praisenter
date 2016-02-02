@@ -105,7 +105,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	
 	@Override
 	public List<SlideComponent> getComponents() {
-		return new ArrayList<SlideComponent>(this.components);
+		return this.components;
 	}
 	
 	@Override

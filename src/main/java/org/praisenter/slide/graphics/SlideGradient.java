@@ -1,7 +1,7 @@
 package org.praisenter.slide.graphics;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -31,12 +31,12 @@ public abstract class SlideGradient extends AbstractSlidePaint implements SlideP
 		if (stops == null) {
 			stops = DEFAULT_STOPS;
 		}
-		this.stops = Arrays.asList(stops);
+		this.stops = new ArrayList<SlideGradientStop>(Arrays.asList(stops));
 	}
 	
 	public SlideGradient(List<SlideGradientStop> stops) {
 		if (stops == null) {
-			stops = Arrays.asList(DEFAULT_STOPS);
+			stops = new ArrayList<SlideGradientStop>(Arrays.asList(DEFAULT_STOPS));
 		}
 		this.stops = stops;
 	}
@@ -61,6 +61,6 @@ public abstract class SlideGradient extends AbstractSlidePaint implements SlideP
 	}
 	
 	public List<SlideGradientStop> getStops() {
-		return Collections.unmodifiableList(this.stops);
+		return this.stops;
 	}
 }

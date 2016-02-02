@@ -9,7 +9,7 @@ public final class PathXmlAdapter extends XmlAdapter<String, Path> {
 
 	@Override
 	public String marshal(Path path) throws Exception {
-		return path.toAbsolutePath().toString();
+		return path != null ? path.toAbsolutePath().toString() : "";
 	}
 
 	@Override

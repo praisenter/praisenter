@@ -33,7 +33,7 @@ public final class SlideStrokeStyle {
 		this.dashes = new double[0];
 	}
 	
-	public SlideStrokeStyle(SlideStrokeType type, SlideStrokeJoin join, SlideStrokeCap cap, double[] dashes) {
+	public SlideStrokeStyle(SlideStrokeType type, SlideStrokeJoin join, SlideStrokeCap cap, double... dashes) {
 		this.type = type;
 		this.join = join;
 		this.cap = cap;
