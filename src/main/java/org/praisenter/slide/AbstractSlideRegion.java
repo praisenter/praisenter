@@ -13,13 +13,13 @@ import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlidePaint;
-import org.praisenter.slide.graphics.SlidePaintStroke;
+import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.slide.graphics.SlideStroke;
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({
-	SlidePaintStroke.class,
+	SlideStroke.class,
 	SlideColor.class,
 	SlideLinearGradient.class,
 	SlideRadialGradient.class
@@ -38,7 +38,6 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	int height;
 	
 	@XmlElement(name = "border", required = false)
-	@XmlJavaTypeAdapter(value = SlideStrokeXmlAdapter.class)
 	SlideStroke border;
 	
 	@XmlElement(name = "background", required = false)

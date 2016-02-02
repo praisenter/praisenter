@@ -10,7 +10,6 @@ import org.praisenter.slide.AbstractSlideComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlidePaintXmlAdapter;
 import org.praisenter.slide.SlideRegion;
-import org.praisenter.slide.SlideStrokeXmlAdapter;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 
@@ -21,7 +20,6 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	SlidePaint textPaint;
 	
 	@XmlElement(name = "textBorder", required = false)
-	@XmlJavaTypeAdapter(value = SlideStrokeXmlAdapter.class)
 	SlideStroke textBorder;
 	
 	@XmlAttribute(name = "fontName", required = false)
@@ -40,7 +38,10 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	HorizontalTextAlignment horizontalTextAlignment;
 	
 	@XmlAttribute(name = "padding", required = false)
-	int padding;
+	double padding;
+	
+	@XmlAttribute(name = "lineSpacing", required = false)
+	double lineSpacing;
 	
 	public AbstractTextComponent() {
 		this.fontScaleType = FontScaleType.NONE;
@@ -48,6 +49,7 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 		this.verticalTextAlignment = VerticalTextAlignment.TOP;
 		this.horizontalTextAlignment = HorizontalTextAlignment.LEFT;
 		this.padding = 0;
+		this.lineSpacing = 0;
 	}
 	
 	@Override
@@ -121,12 +123,20 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	}
 
 	@Override
-	public void setPadding(int padding) {
+	public void setPadding(double padding) {
 		this.padding = padding;
 	}
 
 	@Override
-	public int getPadding() {
+	public double getPadding() {
 		return this.padding;
+	}
+
+	public double getLineSpacing() {
+		return lineSpacing;
+	}
+
+	public void setLineSpacing(double lineSpacing) {
+		this.lineSpacing = lineSpacing;
 	}
 }

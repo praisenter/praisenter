@@ -23,7 +23,7 @@ public class SlideGradientStop {
 	
 	private SlideGradientStop() {
 		// for jaxb
-		this(0.0f, 0, 0, 0, 255);
+		this(0.0f, 0, 0, 0, 1.0);
 	}
 	
 	public SlideGradientStop(double offset, SlideColor color) {
@@ -31,7 +31,7 @@ public class SlideGradientStop {
 		this.color = color;
 	}
 	
-	public SlideGradientStop(double offset, int red, int green, int blue, int alpha) {
+	public SlideGradientStop(double offset, int red, int green, int blue, double alpha) {
 		this.offset = offset;
 		this.color = new SlideColor(red, green, blue, alpha);
 	}

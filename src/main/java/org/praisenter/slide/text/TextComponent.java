@@ -27,6 +27,8 @@ public interface TextComponent extends SlideRegion, SlideComponent {
 	public abstract HorizontalTextAlignment getHorizontalTextAlignment();
 	public abstract void setFontScaleType(FontScaleType type);
 	public abstract FontScaleType getFontScaleType();
-	public abstract void setPadding(int padding);
-	public abstract int getPadding();
+	public abstract void setPadding(double padding);
+	public abstract double getPadding();
+	public abstract double getLineSpacing();
+	public abstract void setLineSpacing(double spacing);
 }

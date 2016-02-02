@@ -22,7 +22,7 @@ public class SlideColor extends AbstractSlidePaint implements SlidePaint {
 	
 	/** The alpha component */
 	@XmlAttribute(name = "a", required = false)
-	final int alpha;
+	final double alpha;
 	
 	private SlideColor() {
 		// for jaxb
@@ -32,7 +32,7 @@ public class SlideColor extends AbstractSlidePaint implements SlidePaint {
 		this.alpha = 0;
 	}
 	
-	public SlideColor(int red, int green, int blue, int alpha) {
+	public SlideColor(int red, int green, int blue, double alpha) {
 		this.red = red;
 		this.green = green;
 		this.blue = blue;
@@ -67,7 +67,7 @@ public class SlideColor extends AbstractSlidePaint implements SlidePaint {
 		return blue;
 	}
 
-	public int getAlpha() {
+	public double getAlpha() {
 		return alpha;
 	}
 }
