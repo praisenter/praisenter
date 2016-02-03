@@ -59,7 +59,7 @@ public class TestSlideDisplay extends Application {
 		SlideStroke stroke = new SlideStroke(
 				gradient, 
 				new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, 5.0, 10.0), 
-				5, 
+				1, 
 				0);
 		
 		SlideRadialGradient radial = new SlideRadialGradient(
@@ -69,19 +69,21 @@ public class TestSlideDisplay extends Application {
 				new SlideGradientStop(1, new SlideColor(0, 200, 200, 0.8)));
 		
 		BasicTextComponent txt = new BasicTextComponent();
-		txt.setFontName("Segoe UI Light");
+		txt.setFontName("Impact");
 		txt.setFontScaleType(FontScaleType.BEST_FIT);
-		txt.setFontSize(15);
+		txt.setFontSize(10);
 		txt.setWidth(400);
 		txt.setHeight(400);
 		txt.setX(20);
 		txt.setY(100);
-		txt.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT);
+		txt.setHorizontalTextAlignment(HorizontalTextAlignment.RIGHT);
+		txt.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
 		txt.setOrder(5);
 		txt.setPadding(5);
 		txt.setBackground(color);
 		txt.setBorder(stroke);
 		txt.setTextPaint(radial);
+		txt.setTextBorder(stroke);
 		txt.setText("hello");
 		
 		Node text = SlideConverter.to(txt);

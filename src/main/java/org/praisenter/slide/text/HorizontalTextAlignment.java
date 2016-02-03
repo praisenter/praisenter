@@ -6,8 +6,13 @@ import javax.xml.bind.annotation.XmlEnum;
 public enum HorizontalTextAlignment {
 	/** Text should be aligned to the left */
 	LEFT,
+	
 	/** Text should be aligned to the right */
 	RIGHT,
+	
 	/** Text should be aligned to the center */
-	CENTER
+	CENTER,
+	
+	/** Text should be aligned justified */
+	JUSTIFY
 }
