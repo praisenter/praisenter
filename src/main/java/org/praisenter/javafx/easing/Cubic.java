@@ -2,7 +2,7 @@ package org.praisenter.javafx.easing;
 
 class Cubic extends Easing {
 	/** The id for the easing */
-	public static final int ID = 30;
+	static final int ID = 30;
 	
 	public Cubic(EasingType type) {
 		super(type);

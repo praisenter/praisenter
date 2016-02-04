@@ -5,7 +5,7 @@ import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 
 public interface SlideRegion {
-	public static final int MIN_SIZE = 20;
+	static final int MIN_SIZE = 20;
 	
 	public abstract int getX();
 	public abstract void setX(int x);

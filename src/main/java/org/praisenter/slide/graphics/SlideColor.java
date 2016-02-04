@@ -10,15 +10,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class SlideColor extends AbstractSlidePaint implements SlidePaint {
 	/** The red component */
 	@XmlAttribute(name = "r", required = false)
-	final int red;
+	final double red;
 	
 	/** The green component */
 	@XmlAttribute(name = "g", required = false)
-	final int green;
+	final double green;
 	
 	/** The blue component */
 	@XmlAttribute(name = "b", required = false)
-	final int blue;
+	final double blue;
 	
 	/** The alpha component */
 	@XmlAttribute(name = "a", required = false)
@@ -31,8 +31,8 @@ public class SlideColor extends AbstractSlidePaint implements SlidePaint {
 		this.blue = 0;
 		this.alpha = 0;
 	}
-	
-	public SlideColor(int red, int green, int blue, double alpha) {
+
+	public SlideColor(double red, double green, double blue, double alpha) {
 		this.red = red;
 		this.green = green;
 		this.blue = blue;
@@ -55,15 +55,15 @@ public class SlideColor extends AbstractSlidePaint implements SlidePaint {
 		return false;
 	}
 	
-	public int getRed() {
+	public double getRed() {
 		return red;
 	}
 
-	public int getGreen() {
+	public double getGreen() {
 		return green;
 	}
 
-	public int getBlue() {
+	public double getBlue() {
 		return blue;
 	}
 

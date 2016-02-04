@@ -2,7 +2,7 @@ package org.praisenter.javafx.easing;
 
 class Exponential extends Easing {
 	/** The id for the easing */
-	public static final int ID = 70;
+	static final int ID = 70;
 	
 	public Exponential(EasingType type) {
 		super(type);

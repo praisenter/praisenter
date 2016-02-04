@@ -14,7 +14,7 @@ import javafx.stage.Stage;
 import javax.xml.bind.JAXBException;
 
 import org.praisenter.javafx.easing.Easing;
-import org.praisenter.javafx.slide.SlideConverter;
+import org.praisenter.javafx.slide.JavaFxConverter;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
@@ -48,13 +48,13 @@ public class TestSlideDisplay extends Application {
 	public void start(Stage stage) throws Exception {
 		BasicSlide slide = new BasicSlide();
 		
-		SlideColor color = new SlideColor(0, 0, 200, 0.7);
+		SlideColor color = new SlideColor(0, 0, 0.8, 0.7);
 		
 		SlideLinearGradient gradient = new SlideLinearGradient(
 				0, 0, 1, 1, 
 				SlideGradientCycleType.NONE, 
-				new SlideGradientStop(0, new SlideColor(0, 100, 0, 1)),
-				new SlideGradientStop(1, new SlideColor(0, 0, 100, 1)));
+				new SlideGradientStop(0, new SlideColor(0, 1, 0, 1)),
+				new SlideGradientStop(1, new SlideColor(0, 0, 1, 1)));
 		
 		SlideStroke stroke = new SlideStroke(
 				gradient, 
@@ -66,7 +66,7 @@ public class TestSlideDisplay extends Application {
 				0.5, 0.5, 1.5, 
 				SlideGradientCycleType.NONE, 
 				new SlideGradientStop(0, new SlideColor(0, 0, 0, 0.8)),
-				new SlideGradientStop(1, new SlideColor(0, 200, 200, 0.8)));
+				new SlideGradientStop(1, new SlideColor(0, 1, 1, 0.8)));
 		
 		BasicTextComponent txt = new BasicTextComponent();
 		txt.setFontName("Impact");
@@ -84,9 +84,9 @@ public class TestSlideDisplay extends Application {
 		txt.setBorder(stroke);
 		txt.setTextPaint(radial);
 		txt.setTextBorder(stroke);
-		txt.setText("hello");
+		txt.setText("Lorem ipsum dolor \n\nsit amet, consectetur adipiscing elit. Nam viverra tristique mauris. Suspendisse potenti. Etiam justo erat, mollis eget mi nec, euismod interdum magna. Aenean ac nulla fermentum, ullamcorper arcu sed, fermentum orci. Donec varius neque eget sapien cursus maximus. Fusce mauris lectus, pellentesque vel sem cursus, dapibus vehicula est. In tincidunt ultrices est nec finibus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eu nisi augue. Integer commodo enim sed rutrum rutrum. Quisque tristique id ipsum sed malesuada. Maecenas non diam eget felis pulvinar sodales.");
 		
-		Node text = SlideConverter.to(txt);
+		Node text = JavaFxConverter.to(txt);
 		
 		Pane pane = new Pane();
 		pane.getChildren().add(text);

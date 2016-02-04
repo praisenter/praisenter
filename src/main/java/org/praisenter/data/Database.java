@@ -49,6 +49,8 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Zip;
 
+// FIXME move this into the bible package
+// FIXME fix the database to only include bible stuff
 public final class Database {
 
 	private static final Logger LOGGER = LogManager.getLogger();

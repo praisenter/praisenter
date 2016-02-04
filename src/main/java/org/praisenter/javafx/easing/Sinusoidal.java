@@ -2,7 +2,7 @@ package org.praisenter.javafx.easing;
 
 class Sinusoidal extends Easing {
 	/** The id for the easing */
-	public static final int ID = 60;
+	static final int ID = 60;
 	
 	public Sinusoidal(EasingType type) {
 		super(type);

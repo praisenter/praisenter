@@ -1,11 +1,8 @@
 package org.praisenter.javafx.easing;
 
 class Circular extends Easing {
-	/** The version id */
-	private static final long serialVersionUID = 1925488232244427160L;
-	
 	/** The id for the easing */
-	public static final int ID = 80;
+	static final int ID = 80;
 	
 	public Circular(EasingType type) {
 		super(type);

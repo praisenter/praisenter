@@ -7,8 +7,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.utility.Maf;
-
 @XmlRootElement(name = "radialGradient")
 @XmlAccessorType(XmlAccessType.NONE)
 public class SlideRadialGradient extends SlideGradient implements SlidePaint {
@@ -50,9 +48,9 @@ public class SlideRadialGradient extends SlideGradient implements SlidePaint {
 		if (obj == this) return true;
 		if (obj instanceof SlideRadialGradient) {
 			SlideRadialGradient g = (SlideRadialGradient)obj;
-			if (!Maf.equals(this.centerX, g.centerX) ||
-				!Maf.equals(this.centerY, g.centerY) ||
-				!Maf.equals(this.radius, g.radius) ||
+			if (this.centerX != g.centerX ||
+				this.centerY != g.centerY ||
+				this.radius != g.radius ||
 				this.cycleType != g.cycleType) {
 				return false;
 			}

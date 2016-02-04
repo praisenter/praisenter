@@ -7,8 +7,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.utility.Maf;
-
 @XmlRootElement(name = "linearGradient")
 @XmlAccessorType(XmlAccessType.NONE)
 public class SlideLinearGradient extends SlideGradient implements SlidePaint {
@@ -55,10 +53,10 @@ public class SlideLinearGradient extends SlideGradient implements SlidePaint {
 		if (obj == this) return true;
 		if (obj instanceof SlideLinearGradient) {
 			SlideLinearGradient g = (SlideLinearGradient)obj;
-			if (!Maf.equals(this.startX, g.startX) ||
-				!Maf.equals(this.startY, g.startY) ||
-				!Maf.equals(this.endX, g.endX) ||
-				!Maf.equals(this.endY, g.endY) ||
+			if (this.startX != g.startX ||
+				this.startY != g.startY ||
+				this.endX != g.endX ||
+				this.endY != g.endY ||
 				this.cycleType != g.cycleType) {
 				return false;
 			}

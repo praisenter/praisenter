@@ -2,7 +2,7 @@ package org.praisenter.javafx.easing;
 
 class Elastic extends Easing {
 	/** The id for the easing */
-	public static final int ID = 110;
+	static final int ID = 110;
 	
 	private static final double s = 1;
 	private static final double o = 3;

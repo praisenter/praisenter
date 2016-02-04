@@ -7,8 +7,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.utility.Maf;
-
 @XmlRootElement(name = "strokeStyle")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideStrokeStyle {
@@ -23,22 +21,22 @@ public final class SlideStrokeStyle {
 	
 	@XmlElement(name = "length", required = false)
 	@XmlElementWrapper(name = "dashes", required = false)
-	final double[] dashes;
+	final Double[] dashes;
 	
 	private SlideStrokeStyle() {
 		// for jaxb
 		this.type = SlideStrokeType.CENTERED;
 		this.join = SlideStrokeJoin.MITER;
 		this.cap = SlideStrokeCap.SQUARE;
-		this.dashes = new double[0];
+		this.dashes = new Double[0];
 	}
 	
-	public SlideStrokeStyle(SlideStrokeType type, SlideStrokeJoin join, SlideStrokeCap cap, double... dashes) {
+	public SlideStrokeStyle(SlideStrokeType type, SlideStrokeJoin join, SlideStrokeCap cap, Double... dashes) {
 		this.type = type;
 		this.join = join;
 		this.cap = cap;
 		if (dashes == null) {
-			dashes = new double[0];
+			dashes = new Double[0];
 		}
 		this.dashes = dashes;
 	}
@@ -58,7 +56,7 @@ public final class SlideStrokeStyle {
 				return false;
 			}
 			for (int i = 0; i < this.dashes.length; i++) {
-				if (!Maf.equals(this.dashes[i], s.dashes[i])) {
+				if (this.dashes[i] == s.dashes[i]) {
 					return false;
 				}
 			}
@@ -79,7 +77,7 @@ public final class SlideStrokeStyle {
 		return cap;
 	}
 
-	public double[] getDashes() {
+	public Double[] getDashes() {
 		return dashes;
 	}
 }

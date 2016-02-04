@@ -2,7 +2,7 @@ package org.praisenter.javafx.easing;
 
 class Bounce extends Easing {
 	/** The id for the easing */
-	public static final int ID = 100;
+	static final int ID = 100;
 	
 	public Bounce(EasingType type) {
 		super(type);

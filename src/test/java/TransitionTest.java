@@ -1,4 +1,5 @@
 import javafx.animation.ParallelTransition;
+import javafx.animation.Transition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
@@ -15,6 +16,11 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 import org.praisenter.javafx.easing.Easing;
+import org.praisenter.javafx.easing.EasingType;
+import org.praisenter.javafx.easing.Easings;
+import org.praisenter.javafx.transition.CustomTransition;
+import org.praisenter.javafx.transition.TransitionType;
+import org.praisenter.javafx.transition.Transitions;
 
 
 public class TransitionTest extends Application {
@@ -37,7 +43,8 @@ public class TransitionTest extends Application {
 		}
 
 		Screen screen = screens.get(1);
-		Rectangle2D bounds = screen.getBounds();
+//		Rectangle2D bounds = screen.getBounds();
+		Rectangle2D bounds = new Rectangle2D(0, 0, 400, 400);
 		// creating a new window
 		// transparent background
 		Stage other = new Stage(StageStyle.TRANSPARENT);
@@ -52,15 +59,18 @@ public class TransitionTest extends Application {
 		VBox s1 = new VBox();
 		s1.setBackground(new Background(new BackgroundFill(Color.rgb(0, 0, 255, 0.5), null, null)));
 		s1.setMinSize(bounds.getWidth(), bounds.getHeight());
-		s1.relocate(0, 0);
 		
+		stack.getChildren().add(s1);
+		
+		// now say we want to transition a new piece
+		// TODO scaling
 		VBox s2 = new VBox();
 		s2.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0, 0.5), null, null)));
 		s2.setMinSize(bounds.getWidth(), bounds.getHeight());
-		s2.relocate(bounds.getWidth(), 0);
 		
-		stack.getChildren().add(s1);
 		stack.getChildren().add(s2);
+		
+		Transition tx = Transitions.getCircularCollapse(bounds, s1, s2, Duration.millis(500), Easings.getBounce(EasingType.IN));
 		
 		Scene scene = new Scene(stack, Color.TRANSPARENT);
 		other.setScene(scene);
@@ -68,15 +78,19 @@ public class TransitionTest extends Application {
 //		stage.setScene(scene);
 //		stage.show();
 		
-		TranslateTransition tx1 = new TranslateTransition(Duration.millis(500), s1);
-		tx1.setToX(-s1.getMinWidth());
-		tx1.setInterpolator(Easing.IN_BACK);
-		TranslateTransition tx2 = new TranslateTransition(Duration.millis(500), s2);
-		tx2.setByX(-s2.getLayoutX());
-		tx2.setInterpolator(Easing.IN_BACK);
+//		TranslateTransition tx1 = new TranslateTransition(Duration.millis(500), s1);
+//		tx1.setToX(-s1.getMinWidth());
+//		tx1.setInterpolator(Easings.getBack(EasingType.IN));
+//		TranslateTransition tx2 = new TranslateTransition(Duration.millis(500), s2);
+//		tx2.setByX(-s2.getLayoutX());
+//		tx2.setInterpolator(Easings.getBack(EasingType.IN));
+//		
+//		ParallelTransition px = new ParallelTransition(tx1, tx2);
+//		
+//		px.play();
 		
-		ParallelTransition px = new ParallelTransition(tx1, tx2);
+
 		
-		px.play();
+		tx.play();
 	}
 }

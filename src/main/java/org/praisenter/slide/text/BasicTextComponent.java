@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 
-@XmlRootElement(name = "basicTextComponent")
+@XmlRootElement(name = "textComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 public class BasicTextComponent extends AbstractTextComponent implements SlideRegion, SlideComponent, TextComponent {
 	/** The text */

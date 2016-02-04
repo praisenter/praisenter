@@ -10,7 +10,7 @@ import org.praisenter.slide.graphics.SlideStroke;
 @XmlSeeAlso({
 	BasicTextComponent.class,
 	DateTimeComponent.class,
-	SongTextComponent.class
+	TextPlaceholderComponent.class
 })
 public interface TextComponent extends SlideRegion, SlideComponent {
 	public abstract SlidePaint getTextPaint();
@@ -31,4 +31,6 @@ public interface TextComponent extends SlideRegion, SlideComponent {
 	public abstract double getPadding();
 	public abstract double getLineSpacing();
 	public abstract void setLineSpacing(double spacing);
+	public abstract String getText();
+	public abstract void setText(String text);
 }

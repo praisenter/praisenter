@@ -29,6 +29,12 @@ public class DateTimeComponent extends AbstractTextComponent implements SlideReg
 	@XmlJavaTypeAdapter(value = SimpleDateFormatTypeAdapter.class)
 	SimpleDateFormat format;
 	
+	@Override
+	public void setText(String text) {
+		// no-op
+	}
+	
+	@Override
 	public String getText() {
 		return this.format.format(new Date());
 	}

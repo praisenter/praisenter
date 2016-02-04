@@ -19,10 +19,11 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.SongTextComponent;
 import org.praisenter.xml.adapters.PathXmlAdapter;
 
+// TODO we'll need specific slide classes to store stuff like songid, bible references, etc so they can be added to a slide show.  We'll use whatever placeholders that are on the slide to display the text.
 @XmlRootElement(name = "slide")
 @XmlAccessorType(XmlAccessType.NONE)
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion {
@@ -36,7 +37,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		@XmlElementRef(type = MediaComponent.class),
 		@XmlElementRef(type = BasicTextComponent.class),
 		@XmlElementRef(type = DateTimeComponent.class),
-		@XmlElementRef(type = SongTextComponent.class)
+		@XmlElementRef(type = TextPlaceholderComponent.class)
 	})
 	//@XmlElement(name = "component", required = false)
 	@XmlElementWrapper(name = "components", required = false)
@@ -48,8 +49,21 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@XmlJavaTypeAdapter(value = PathXmlAdapter.class)
 	Path path;
 	
+	// transition
+	
 	@XmlAttribute(name = "transition", required = false)
 	int transition;
+	
+	@XmlAttribute(name = "easing", required = false)
+	int easing;
+	
+	@XmlAttribute(name = "duration", required = false)
+	int duration;
+	
+	// other
+	
+	@XmlAttribute(name = "time", required = false)
+	int time;
 	
 	public BasicSlide() {
 		// this should be overwritten by jaxb when loaded
@@ -57,6 +71,9 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		
 		this.components = new ArrayList<SlideComponent>();
 		this.transition = -1;
+		this.easing = -1;
+		this.duration = -1;
+		this.time = -1;
 	}
 	
 	@Override
@@ -88,7 +105,37 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	public void setTransition(int transition) {
 		this.transition = transition;
 	}
-	
+
+	@Override
+	public int getEasing() {
+		return easing;
+	}
+
+	@Override
+	public void setEasing(int easing) {
+		this.easing = easing;
+	}
+
+	@Override
+	public int getDuration() {
+		return duration;
+	}
+
+	@Override
+	public void setDuration(int duration) {
+		this.duration = duration;
+	}
+
+	@Override
+	public int getTime() {
+		return time;
+	}
+
+	@Override
+	public void setTime(int time) {
+		this.time = time;
+	}
+
 	@Override
 	public void addComponent(SlideComponent component) {
 		int order = this.getNextIndex();

@@ -32,6 +32,15 @@ public final class Constants {
 	
 	// /user/home/dir/Praisenter3/songs
 	public static final String SONGS_ABSOLUTE_PATH = Constants.ROOT_PATH + SONGS_RELATIVE_PATH;
+
+	///////////////////////////
+	// SLIDES
+	
+	// /slides
+	public static final String SLIDES_RELATIVE_PATH = "slides" + RuntimeProperties.PATH_SEPARATOR;
+	
+	// /user/home/dir/Praisenter3/slides
+	public static final String SLIDES_ABSOLUTE_PATH = Constants.ROOT_PATH + SLIDES_RELATIVE_PATH;
 	
 	private Constants() {}
 }

@@ -2,7 +2,7 @@ package org.praisenter.javafx.easing;
 
 class Quintic extends Easing {
 	/** The id for the easing */
-	public static final int ID = 50;
+	static final int ID = 50;
 
 	public Quintic(EasingType type) {
 		super(type);

@@ -2,7 +2,7 @@ package org.praisenter.javafx.easing;
 
 class Linear extends Easing {
 	/** The id for the easing */
-	public static final int ID = 10;
+	static final int ID = 10;
 
 	public Linear(EasingType type) {
 		super(type);

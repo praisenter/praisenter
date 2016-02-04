@@ -8,13 +8,13 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.SongTextComponent;
+import org.praisenter.slide.text.TextPlaceholderComponent;
 
 @XmlSeeAlso({
 	BasicTextComponent.class,
 	MediaComponent.class,
 	DateTimeComponent.class,
-	SongTextComponent.class
+	TextPlaceholderComponent.class
 })
 public interface Slide extends SlideRegion {
 	public static final String VERSION = "3.0.0";
@@ -38,8 +38,18 @@ public interface Slide extends SlideRegion {
 	public abstract void moveComponentUp(SlideComponent component);
 	public abstract void moveComponentDown(SlideComponent component);
 	
-	// other
+	// transition
 	
 	public abstract int getTransition();
 	public abstract void setTransition(int id);
+	public abstract int getEasing();
+	public abstract void setEasing(int id);
+	public abstract int getDuration();
+	public abstract void setDuration(int duration);
+	
+	// other
+	
+	// this is the time the slide should stay visible in an automatic show
+	public abstract int getTime();
+	public abstract void setTime(int time);
 }

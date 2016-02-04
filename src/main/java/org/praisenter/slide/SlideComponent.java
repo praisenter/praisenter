@@ -4,13 +4,13 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.SongTextComponent;
+import org.praisenter.slide.text.TextPlaceholderComponent;
 
 @XmlSeeAlso({
 	MediaComponent.class,
 	BasicTextComponent.class,
 	DateTimeComponent.class,
-	SongTextComponent.class
+	TextPlaceholderComponent.class
 })
 public interface SlideComponent extends SlideRegion, Comparable<SlideComponent> {
 	// properties

@@ -5,30 +5,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 public abstract class Easing extends Interpolator {
-	public static final Easing LINEAR = new Linear(EasingType.IN);
-	
-	public static final Easing IN_QUADRATIC = new Quadratic(EasingType.IN);
-	public static final Easing IN_CUBIC = new Cubic(EasingType.IN);
-	public static final Easing IN_QUARTIC = new Quartic(EasingType.IN);
-	public static final Easing IN_QUINTIC = new Quintic(EasingType.IN);
-	public static final Easing IN_CIRCULAR = new Circular(EasingType.IN);
-	public static final Easing IN_EXPONENTIAL = new Exponential(EasingType.IN);
-	public static final Easing IN_SINUSOIDAL = new Sinusoidal(EasingType.IN);
-	public static final Easing IN_BACK = new Back(EasingType.IN);
-	public static final Easing IN_BOUNCE = new Bounce(EasingType.IN);
-	public static final Easing IN_ELASTIC = new Elastic(EasingType.IN);
-	
-	public static final Easing OUT_QUADRATIC = new Quadratic(EasingType.OUT);
-	public static final Easing OUT_CUBIC = new Cubic(EasingType.OUT);
-	public static final Easing OUT_QUARTIC = new Quartic(EasingType.OUT);
-	public static final Easing OUT_QUOUTTIC = new Quintic(EasingType.OUT);
-	public static final Easing OUT_CIRCULAR = new Circular(EasingType.OUT);
-	public static final Easing OUT_EXPONENTIAL = new Exponential(EasingType.OUT);
-	public static final Easing OUT_SOUTUSOIDAL = new Sinusoidal(EasingType.OUT);
-	public static final Easing OUT_BACK = new Back(EasingType.OUT);
-	public static final Easing OUT_BOUNCE = new Bounce(EasingType.OUT);
-	public static final Easing OUT_ELASTIC = new Elastic(EasingType.OUT);
-	
 	final EasingType type;
 
     public Easing(EasingType type) {
@@ -74,28 +50,4 @@ public abstract class Easing extends Interpolator {
         }
         return baseCurve(v);
     }
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj == this) return true;
-		if (obj instanceof Easing) {
-			Easing o = (Easing)obj;
-			if (o.getId() == this.getId()) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return this.getId();
-	}
 }

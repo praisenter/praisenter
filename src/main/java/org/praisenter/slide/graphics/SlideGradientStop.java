@@ -8,8 +8,6 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.praisenter.utility.Maf;
-
 @XmlRootElement(name = "stop")
 @XmlAccessorType(XmlAccessType.NONE)
 public class SlideGradientStop {
@@ -33,7 +31,7 @@ public class SlideGradientStop {
 	
 	public SlideGradientStop(double offset, int red, int green, int blue, double alpha) {
 		this.offset = offset;
-		this.color = new SlideColor(red, green, blue, alpha);
+		this.color = new SlideColor(red / 255.0, green / 255.0, blue / 255.0, alpha);
 	}
 
 	@Override
@@ -43,7 +41,7 @@ public class SlideGradientStop {
 		if (obj instanceof SlideGradientStop) {
 			SlideGradientStop s = (SlideGradientStop)obj;
 			if (Objects.equals(this.color, s.color) &&
-				Maf.equals(this.offset, s.offset)) {
+				this.offset == s.offset) {
 				return true;
 			}
 		}
