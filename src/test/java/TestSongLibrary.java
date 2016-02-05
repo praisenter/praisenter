@@ -119,7 +119,6 @@ public class TestSongLibrary {
 			System.out.println();
 			System.out.println(((t1 - t0) / 1e6) + " ms");
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		

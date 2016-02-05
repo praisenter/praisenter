@@ -70,7 +70,7 @@ public class TransitionTest extends Application {
 		
 		stack.getChildren().add(s2);
 		
-		Transition tx = Transitions.getCircularCollapse(bounds, s1, s2, Duration.millis(500), Easings.getBounce(EasingType.IN));
+		Transition tx = Transitions.getCircularCollapse(bounds, s1, s2, Duration.millis(2000), Easings.getBounce(EasingType.IN));
 		
 		Scene scene = new Scene(stack, Color.TRANSPARENT);
 		other.setScene(scene);

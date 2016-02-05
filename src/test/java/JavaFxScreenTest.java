@@ -16,16 +16,10 @@ import javafx.util.Duration;
 public class JavaFxScreenTest extends Application {
 	public static void main(String[] args) {
 		Application.launch(args);
-		
-		
-		
-		
 	}
 
 	@Override
 	public void start(Stage arg0) throws Exception {
-		// TODO Auto-generated method stub
-
 		// detection
 		ObservableList<Screen> screens = Screen.getScreens();
 		for (Screen screen : screens) {
