@@ -19,14 +19,13 @@ import org.praisenter.song.Chord;
 import org.praisenter.song.Comment;
 import org.praisenter.song.Lyrics;
 import org.praisenter.song.Song;
-import org.praisenter.song.SongImporter;
 import org.praisenter.song.SongImportException;
+import org.praisenter.song.SongImporter;
 import org.praisenter.song.Songbook;
 import org.praisenter.song.TextFragment;
 import org.praisenter.song.Theme;
 import org.praisenter.song.Title;
 import org.praisenter.song.Verse;
-import org.praisenter.utility.RuntimeProperties;
 import org.praisenter.xml.XmlIO;
 
 public final class OpenLyricsSongImporter implements SongImporter {
@@ -143,15 +142,13 @@ public final class OpenLyricsSongImporter implements SongImporter {
 				}
 				
 				// handle the case where there's more than one of the same verse name
-				// the format says this isn't allowed but it's not gauranteed that this
+				// the format says this isn't allowed but it's not guaranteed that this
 				// will always be the case
 				Verse v = lyrics.getVerse(verse.name);
 				if (v == null) {
 					v = new Verse();
 					// set the name
-					v.setType(type);
-					v.setNumber(number);
-					v.setPart(part);
+					v.setName(type, number, part);
 					lyrics.getVerses().add(v);
 				}
 				

@@ -108,6 +108,10 @@ public final class Song implements SongOutput, Comparable<Song> {
 	/** The file path */
 	Path path;
 	
+	/** The format version */
+	@XmlAttribute(name = "format", required = false)
+	final String format = Constants.VERSION;
+	
 	/** The song unique id */
 	@XmlAttribute(name = "id", required = false)
 	final UUID id;
@@ -362,6 +366,18 @@ public final class Song implements SongOutput, Comparable<Song> {
 		return author;
 	}
 	
+	/**
+	 * Returns the default title for the song using the following criteria:
+	 * <br>
+	 * The first non-empty title to match:
+	 * <ol>
+	 * <li>No language or transliteration</li>
+	 * <li>The language/country that matches the current locale</li>
+	 * <li>The language that matches the current locale</li>
+	 * <li>The first title in the list</li>
+	 * </ol>
+	 * @return {@link Title}
+	 */
 	public Title getDefaultTitle() {
 		Locale locale = Locale.getDefault();
 		Title title = null;
@@ -406,6 +422,18 @@ public final class Song implements SongOutput, Comparable<Song> {
 		return title;
 	}
 	
+	/**
+	 * Returns the default set of lyrics using the following criteria:
+	 * <br>
+	 * The first non-empty author to match:
+	 * <ol>
+	 * <li>No type attribute</li>
+	 * <li>The type == words</li>
+	 * <li>The type == music</li>
+	 * <li>The first author in the list</li>
+	 * </ol>
+	 * @return {@link Lyrics}
+	 */
 	public Lyrics getDefaultLyrics() {
 		Locale locale = Locale.getDefault();
 		Lyrics lyrics = null;
@@ -453,6 +481,12 @@ public final class Song implements SongOutput, Comparable<Song> {
 		return lyrics;
 	}
 
+	/**
+	 * Returns the lyrics for the given language and, optionally, transliteration.
+	 * @param language the language; can be null
+	 * @param transliteration the transliteration; can be null
+	 * @return {@link Lyrics}
+	 */
 	public Lyrics getLyrics(String language, String transliteration) {
 		for (Lyrics lyrics : this.lyrics) {
 			if (StringUtils.equalsIgnoreCase(lyrics.language, language) &&
@@ -480,174 +514,346 @@ public final class Song implements SongOutput, Comparable<Song> {
 		return locales;
 	}
 	
+	/**
+	 * Returns the unique identifier.
+	 * @return UUID
+	 */
 	public UUID getId() {
-		return id;
+		return this.id;
 	}
 	
+	/**
+	 * Returns the created on date.
+	 * @return Date
+	 */
 	public Date getCreatedDate() {
-		return createdDate;
+		return this.createdDate;
 	}
 
+	/**
+	 * Sets the created date.
+	 * @param createdDate the created date
+	 */
 	public void setCreatedDate(Date createdDate) {
 		this.createdDate = createdDate;
 	}
 
+	/**
+	 * Returns the created in application.
+	 * @return String
+	 */
 	public String getCreatedIn() {
-		return createdIn;
+		return this.createdIn;
 	}
 
+	/**
+	 * Sets the created in application.
+	 * @param createdIn the created in application
+	 */
 	public void setCreatedIn(String createdIn) {
 		this.createdIn = createdIn;
 	}
 
+	/**
+	 * Returns the last modified in application.
+	 * @return String
+	 */
 	public String getLastModifiedIn() {
-		return lastModifiedIn;
+		return this.lastModifiedIn;
 	}
 
+	/**
+	 * Sets the last modified in application.
+	 * @param lastModifiedIn the last modified in application
+	 */
 	public void setLastModifiedIn(String lastModifiedIn) {
 		this.lastModifiedIn = lastModifiedIn;
 	}
 
+	/**
+	 * Returns the last modified date.
+	 * @return Date
+	 */
 	public Date getLastModifiedDate() {
-		return lastModifiedDate;
+		return this.lastModifiedDate;
 	}
 
+	/**
+	 * Sets the last modified date.
+	 * @param lastModifiedDate the last modified date
+	 */
 	public void setLastModifiedDate(Date lastModifiedDate) {
 		this.lastModifiedDate = lastModifiedDate;
 	}
 
+	/**
+	 * Returns the copyright.
+	 * @return String
+	 */
 	public String getCopyright() {
-		return copyright;
+		return this.copyright;
 	}
 
+	/**
+	 * Sets the copyright.
+	 * @param copyright the copyright
+	 */
 	public void setCopyright(String copyright) {
 		this.copyright = copyright;
 	}
 
+	/**
+	 * Returns the CCLI number.
+	 * @return int
+	 */
 	public int getCcli() {
-		return ccli;
+		return this.ccli;
 	}
 
+	/**
+	 * Sets the CCLI number.
+	 * @param ccli the ccli number
+	 */
 	public void setCcli(int ccli) {
 		this.ccli = ccli;
 	}
 
+	/**
+	 * Returns the release date.
+	 * @return String
+	 */
 	public String getReleased() {
-		return released;
+		return this.released;
 	}
 
+	/**
+	 * Sets the release date.
+	 * @param released the release date
+	 */
 	public void setReleased(String released) {
 		this.released = released;
 	}
 
+	/**
+	 * Returns the transposition.
+	 * @return int
+	 */
 	public int getTransposition() {
-		return transposition;
+		return this.transposition;
 	}
 
+	/**
+	 * Sets the transposition.
+	 * @param transposition the transposition
+	 */
 	public void setTransposition(int transposition) {
 		this.transposition = transposition;
 	}
 
+	/**
+	 * Returns the tempo.
+	 * @return String
+	 */
 	public String getTempo() {
-		return tempo;
+		return this.tempo;
 	}
 
+	/**
+	 * Sets the tempo.
+	 * @param tempo the tempo
+	 */
 	public void setTempo(String tempo) {
 		this.tempo = tempo;
 	}
 
+	/**
+	 * Returns the key (Eb for example).
+	 * @return String
+	 */
 	public String getKey() {
-		return key;
+		return this.key;
 	}
 
+	/**
+	 * Sets the key.
+	 * @param key the key
+	 */
 	public void setKey(String key) {
 		this.key = key;
 	}
 
+	/**
+	 * Returns the variant.
+	 * @return String
+	 */
 	public String getVariant() {
-		return variant;
+		return this.variant;
 	}
 
+	/**
+	 * Sets the variant.
+	 * @param variant the variant
+	 */
 	public void setVariant(String variant) {
 		this.variant = variant;
 	}
 
+	/**
+	 * Returns the publisher
+	 * @return String
+	 */
 	public String getPublisher() {
-		return publisher;
+		return this.publisher;
 	}
 
+	/**
+	 * Sets the publisher
+	 * @param publisher the publisher
+	 */
 	public void setPublisher(String publisher) {
 		this.publisher = publisher;
 	}
 
+	/**
+	 * Returns the version.
+	 * @return String
+	 */
 	public String getVersion() {
-		return version;
+		return this.version;
 	}
 
+	/**
+	 * Sets the version.
+	 * @param version the version
+	 */
 	public void setVersion(String version) {
 		this.version = version;
 	}
 
+	/**
+	 * Returns the keywords in a space separated string.
+	 * @return String
+	 */
 	public String getKeywords() {
-		return keywords;
+		return this.keywords;
 	}
 
+	/**
+	 * Sets the keywords.
+	 * @param keywords the keywords in a space separated string
+	 */
 	public void setKeywords(String keywords) {
 		this.keywords = keywords;
 	}
 
+	/**
+	 * Returns the verse sequence space separated.
+	 * @return String
+	 */
 	public String getSequence() {
-		return sequence;
+		return this.sequence;
 	}
 
+	/**
+	 * Sets the verse sequence.
+	 * @param sequence the verse sequence space separated
+	 */
 	public void setSequence(String sequence) {
 		this.sequence = sequence;
 	}
 
+	/**
+	 * Returns the comments.
+	 * @return String
+	 */
 	public String getComments() {
-		return comments;
+		return this.comments;
 	}
 
+	/**
+	 * Sets the comments.
+	 * @param comments the comments
+	 */
 	public void setComments(String comments) {
 		this.comments = comments;
 	}
 
+	/**
+	 * Returns the titles.
+	 * @return List&lt;{@link Title}&gtl;
+	 */
 	public List<Title> getTitles() {
-		return titles;
+		return this.titles;
 	}
 
+	/**
+	 * Sets the titles.
+	 * @param titles the titles
+	 */
 	public void setTitles(List<Title> titles) {
 		this.titles = titles;
 	}
 
+	/**
+	 * Returns the authors.
+	 * @return List&lt;{@link Author}&gt;
+	 */
 	public List<Author> getAuthors() {
-		return authors;
+		return this.authors;
 	}
 
+	/**
+	 * Sets the authors.
+	 * @param authors the authors
+	 */
 	public void setAuthors(List<Author> authors) {
 		this.authors = authors;
 	}
 
+	/**
+	 * Returns the themes.
+	 * @return List&lt;{@link Theme}&gt;
+	 */
 	public List<Theme> getThemes() {
-		return themes;
+		return this.themes;
 	}
 
+	/**
+	 * Sets the themes.
+	 * @param themes the themes
+	 */
 	public void setThemes(List<Theme> themes) {
 		this.themes = themes;
 	}
 
+	/**
+	 * Returns the song books.
+	 * @return List&lt;{@link Songbook}&gt;
+	 */
 	public List<Songbook> getSongbooks() {
-		return songbooks;
+		return this.songbooks;
 	}
 
+	/**
+	 * Sets the song books.
+	 * @param songbooks the song books
+	 */
 	public void setSongbooks(List<Songbook> songbooks) {
 		this.songbooks = songbooks;
 	}
 
+	/**
+	 * Returns the lyrics.
+	 * @return List&lt;{@link Lyrics}&gt;
+	 */
 	public List<Lyrics> getLyrics() {
-		return lyrics;
+		return this.lyrics;
 	}
 
+	/**
+	 * Sets the lyrics.
+	 * @param lyrics the lyrics
+	 */
 	public void setLyrics(List<Lyrics> lyrics) {
 		this.lyrics = lyrics;
 	}

@@ -43,8 +43,8 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.song.Br;
 import org.praisenter.song.Lyrics;
 import org.praisenter.song.Song;
-import org.praisenter.song.SongImporter;
 import org.praisenter.song.SongImportException;
+import org.praisenter.song.SongImporter;
 import org.praisenter.song.TextFragment;
 import org.praisenter.song.Title;
 import org.praisenter.song.Verse;
@@ -173,7 +173,8 @@ public final class ChurchViewSongImporter extends DefaultHandler implements Song
 					Verse verse = new Verse();
 					
 					// set the type
-					verse.setType(getType(qName));
+					String type = getType(qName);
+					int number = 1;
 					
 					// set the number
 					if (qName.startsWith("Verse") || qName.startsWith("Chorus")) {
@@ -181,8 +182,7 @@ public final class ChurchViewSongImporter extends DefaultHandler implements Song
 						if (matcher.matches()) {
 							String n = matcher.group(2);
 							try {
-								int index = Integer.parseInt(n);
-								verse.setNumber(index);
+								number = Integer.parseInt(n);
 							} catch (NumberFormatException e) {
 								LOGGER.warn("Failed to read verse part number: {}", n);
 							}
@@ -190,6 +190,8 @@ public final class ChurchViewSongImporter extends DefaultHandler implements Song
 							LOGGER.warn("Failed to read verse part number from: {}", qName);
 						}
 					}
+					
+					verse.setName(type, number, null);
 					
 					// set the text
 					String[] lines = text.split("(\\r|\\r\\n|\\n\\r|\\n)");

@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.text;
 
 import javafx.geometry.Bounds;
@@ -5,18 +29,35 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 
+/**
+ * Class used to measure text in JavaFX for doing automatic text resizing.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class TextMeasurer {
-	// the node used for measuring
+	/** Hidden constructor */
+	private TextMeasurer() {}
 	
+	/** A reusable node for measuring */
     private static final Text JAVAFX_TEXT_NODE = new Text();
     
     // defaults 
     
+    /** The default wrapping width */
     private static final double DEFAULT_WRAPPING_WIDTH = JAVAFX_TEXT_NODE.getWrappingWidth();
+    
+    /** The default line spacing */
     private static final double DEFAULT_LINE_SPACING = JAVAFX_TEXT_NODE.getLineSpacing();
+    
+    /** The default text */
     private static final String DEFAULT_TEXT = JAVAFX_TEXT_NODE.getText();
+    
+    /** The default bounds type */
     private static final TextBoundsType DEFAULT_BOUNDS_TYPE = JAVAFX_TEXT_NODE.getBoundsType();
 
+    /**
+     * Resets the shared text node after measuring.
+     */
     private static final void reset() {
     	JAVAFX_TEXT_NODE.setWrappingWidth(DEFAULT_WRAPPING_WIDTH);
         JAVAFX_TEXT_NODE.setLineSpacing(DEFAULT_LINE_SPACING);
@@ -24,6 +65,16 @@ public final class TextMeasurer {
         JAVAFX_TEXT_NODE.setBoundsType(DEFAULT_BOUNDS_TYPE);
     }
     
+    /**
+     * Returns the bounds of a paragraph for the given text, font, target width, line spacing
+     * and bounds type. 
+     * @param text the text to measure
+     * @param font the font
+     * @param targetWidth the target wrapping width
+     * @param lineSpacing the line spacing
+     * @param boundsType the bounds type
+     * @return Bounds
+     */
     public static final Bounds getParagraphBounds(String text, Font font, double targetWidth, double lineSpacing, TextBoundsType boundsType) {
         // setup the node
     	JAVAFX_TEXT_NODE.setText(text);
@@ -38,6 +89,18 @@ public final class TextMeasurer {
         return bounds;
     }
     
+    /**
+     * Returns a new font that allows the text to fit within the given bounds, increasing up
+     * to the given maxFontSize and decreasing to fit if needed.
+     * @param text the text to measure
+     * @param font the font
+     * @param maxFontSize the maximum font size
+     * @param targetWidth the target wrapping width
+     * @param targetHeight the target height
+     * @param lineSpacing the line spacing
+     * @param boundsType the bounds type
+     * @return Bounds
+     */
     public static final Font getFittingFontForParagraph(String text, Font font, double maxFontSize, double targetWidth, double targetHeight, double lineSpacing, TextBoundsType boundsType) {
     	Bounds bounds = TextMeasurer.getParagraphBounds(text, font, targetWidth, lineSpacing, boundsType);
 		double max = maxFontSize;
@@ -81,6 +144,12 @@ public final class TextMeasurer {
 		return nf;
     }
     
+    /**
+     * Returns the bounds of a line for the given text and font.
+     * @param text the text to measure
+     * @param font the font
+     * @return Bounds
+     */
     public static final Bounds getLineBounds(String text, Font font) {
     	// setup the node
     	JAVAFX_TEXT_NODE.setText(text);
@@ -95,6 +164,15 @@ public final class TextMeasurer {
         return bounds;
     }
     
+    /**
+     * Returns a new font that allows the text to fit within the given width, increasing up
+     * to the given maxFontSize and decreasing to fit if needed.
+     * @param text the text to measure
+     * @param font the font
+     * @param maxFontSize the maximum font size
+     * @param targetWidth the target width
+     * @return Bounds
+     */
     public static final Font getFittingFontForLine(String text, Font font, double maxFontSize, double targetWidth) {
     	Bounds bounds = TextMeasurer.getLineBounds(text, font);
 		double max = maxFontSize;

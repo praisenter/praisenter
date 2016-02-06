@@ -42,8 +42,8 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.song.Br;
 import org.praisenter.song.Lyrics;
 import org.praisenter.song.Song;
-import org.praisenter.song.SongImporter;
 import org.praisenter.song.SongImportException;
+import org.praisenter.song.SongImporter;
 import org.praisenter.song.TextFragment;
 import org.praisenter.song.Title;
 import org.praisenter.song.Verse;
@@ -115,12 +115,14 @@ public class PraisenterSongImporter_v2_0_0 extends DefaultHandler implements Son
 			this.song.getLyrics().add(lyrics);
 		} else if (qName.equalsIgnoreCase("Part")) {
 			this.verse = new Verse();
-			this.verse.setType(getType(attributes.getValue("Type")));
+			String type = getType(attributes.getValue("Type"));
+			int number = 1;
 			try {
-				this.verse.setNumber(Integer.parseInt(attributes.getValue("Index")));
+				number = Integer.parseInt(attributes.getValue("Index"));
 			} catch (NumberFormatException e) {
 				LOGGER.warn("Failed to read verse number: {}", attributes.getValue("Index"));
 			}
+			this.verse.setName(type, number, null);
 			try {
 				int size = Integer.parseInt(attributes.getValue("FontSize"));
 				this.verse.setFontSize(size);

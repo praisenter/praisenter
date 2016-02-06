@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -30,7 +30,12 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.PropertyException;
 import javax.xml.bind.Unmarshaller;
 
-class XmlContext {
+/**
+ * Represents a XML context, marshaller and unmarshaller for a given class.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+final class XmlContext {
 	/** The JAXB context */
 	final JAXBContext context;
 	
