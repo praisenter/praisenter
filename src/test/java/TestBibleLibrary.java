@@ -21,13 +21,10 @@ public class TestBibleLibrary {
 //		try {
 //			importer.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\kjv_apocrypha.zip"));
 //		} catch (BibleAlreadyExistsException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		} catch (BibleFormatException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		} catch (BibleImportException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 	}
