@@ -26,6 +26,10 @@ public class StringManipulator {
 //	}
 
 	public static String toFileName(String str) {
+		return toFileName(str, '-');
+	}
+	
+	public static String toFileName(String str, char replacement) {
 		StringBuilder filename = new StringBuilder();
 
 		int[] codes = str.codePoints().toArray();
@@ -33,12 +37,12 @@ public class StringManipulator {
 			if (Character.isLetterOrDigit(c)) {
 				filename.appendCodePoint(c);
 			} else {
-				filename.append('-');
+				filename.append(replacement);
 			}
 		}
 		
 		// condense consecutive dashes
-		String name = filename.toString().replaceAll("[-]+", "-");
+		String name = filename.toString().replaceAll("[" + replacement + "]+", Character.toString(replacement));
 		
 		return name;
 	}

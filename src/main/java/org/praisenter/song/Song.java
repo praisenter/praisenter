@@ -1,10 +1,37 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.song;
 
+import java.nio.file.Path;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -16,89 +43,176 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.commons.lang3.StringUtils;
 import org.praisenter.Constants;
-import org.praisenter.utility.RuntimeProperties;
 
+/**
+ * Represents a song.
+ * <p>
+ * A song is typically broken into various verses like verse 1, chorus, etc.  This collection
+ * of verses are called lyrics.  Some songs are translated or transliterated for other language
+ * speakers.  Each translation-transliteration combination is a separate set of lyrics in 
+ * {@link #getLyrics()}.  The lyrics without a translation/transliteration are typically the
+ * default lyrics or the lyrics the song was in originally, althought this may not always be
+ * the case.  Use the {@link #getDefaultLyrics()} method to get the default lyrics of the song.
+ * This method may not return the correct set, but does a best effort based on the following
+ * priority:
+ * <br>
+ * The first set of non-empty lyrics to match:
+ * <ol>
+ * <li>No language or transliteration</li>
+ * <li>The language/country that matches the current locale</li>
+ * <li>The language that matches the current locale</li>
+ * <li>The lyrics with the most verses</li>
+ * </ol>
+ * Likewise, a song my also have it's title translated or transliterated.  You can get the default
+ * title by calling the {@link #getDefaultTitle()} method.  This method does a best effort based
+ * on the following priority:
+ * <br>
+ * The first non-empty title to match:
+ * <ol>
+ * <li>No language or transliteration</li>
+ * <li>The language/country that matches the current locale</li>
+ * <li>The language that matches the current locale</li>
+ * <li>The first title in the list</li>
+ * </ol>
+ * To get a list of all the locales for the titles and lyrics use the {@link #getLocales()} method.
+ * <p>
+ * In addition, a song may have many authors.  Each author may have authored a different part
+ * of the song (words, music, translation, etc).  The {@link #getDefaultAuthor()} method will
+ * return the main author using the following priority:
+ * <br>
+ * The first non-empty author to match:
+ * <ol>
+ * <li>No type attribute</li>
+ * <li>The type == words</li>
+ * <li>The type == music</li>
+ * <li>The first author in the list</li>
+ * </ol>
+ * Apart from these, the song will contain a number of metadata that can assist with searching
+ * and cataloging, {@link #getKeywords()} and {@link #getThemes()} in particular.
+ * <p>
+ * Creating a new song defaults the created and modified properties to be created in Praisenter
+ * and today.
+ * <p>
+ * Songs implement the {@link SongOutput} interface to provide a way to store the raw version
+ * of the song and also the viewable version.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 @XmlRootElement(name = "song")
 @XmlAccessorType(XmlAccessType.NONE)
-public class Song implements SongOutput, Comparable<Song> {
-	/** For string comparison */
+public final class Song implements SongOutput, Comparable<Song> {
+	/** For string comparison (current locale) */
 	static final Collator COLLATOR = Collator.getInstance();
 
-	@XmlAttribute(name = "id", required = false)
-	UUID id;
+	// for internal use really
+	/** The file path */
+	Path path;
 	
+	/** The song unique id */
+	@XmlAttribute(name = "id", required = false)
+	final UUID id;
+	
+	/** The created on date */
 	@XmlAttribute(name = "createdDate", required = false)
 	Date createdDate;
 	
+	/** The created in application */
 	@XmlAttribute(name = "createdIn", required = false)
 	String createdIn;
 	
+	/** The last modified in application */
 	@XmlAttribute(name = "lastModifiedIn", required = false)
 	String lastModifiedIn;
 
+	/** The last modified date */
 	@XmlAttribute(name = "lastModifiedDate", required = false)
 	Date lastModifiedDate;
 
+	/** The song's copyright information */
 	@XmlAttribute(name = "copyright", required = false)
 	String copyright;
 	
+	/** The song's CCLI number */
 	@XmlAttribute(name = "ccli", required = false)
 	int ccli;
 	
+	/** The song's release date */
 	@XmlAttribute(name = "released", required = false)
 	String released;
 	
+	/** The song's transposition */
 	@XmlAttribute(name = "transposition", required = false)
 	int transposition;
 	
+	/** The song's tempo; typically in bpm */
 	@XmlAttribute(name = "tempo", required = false)
 	String tempo;
 	
+	/** The song's key */
 	@XmlAttribute(name = "key", required = false)
 	String key;
 	
+	/** The variant name for this song */
 	@XmlAttribute(name = "variant", required = false)
 	String variant;
 	
+	/** The publisher */
 	@XmlAttribute(name = "publisher", required = false)
 	String publisher;
 	
+	/** The version of this song */
 	@XmlAttribute(name = "version", required = false)
 	String version;
 	
+	/** A space separated list of keywords for searching */
 	@XmlElement(name = "keywords", required = false)
 	String keywords;
 
+	/** The sequence of verses space separated */
 	@XmlElement(name = "sequence", required = false)
 	String sequence;
 
+	/** The comments */
 	@XmlElement(name = "comments", required = false)
 	String comments;
 
 	// lists
 	
+	/** The titles */
 	@XmlElement(name = "title", required = false)
 	@XmlElementWrapper(name = "titles", required = false)
 	List<Title> titles;
 	
+	/** The authors */
 	@XmlElement(name = "author", required = false)
 	@XmlElementWrapper(name = "authors", required = false)
 	List<Author> authors;
 
+	/** The themes; useful for searching or grouping */
 	@XmlElement(name = "theme", required = false)
 	@XmlElementWrapper(name = "themes", required = false)
 	List<Theme> themes;
 	
+	/** The song books that this song is in */
 	@XmlElement(name = "songbook", required = false)
 	@XmlElementWrapper(name = "songbooks", required = false)
 	List<Songbook> songbooks;
 	
+	/** The lyrics */
 	@XmlElement(name = "lyrics", required = false)
 	@XmlElementWrapper(name = "lyricsets", required = false)
 	List<Lyrics> lyrics;
 	
+	/**
+	 * Default constructor.
+	 */
 	public Song() {
+		this.path = null;
 		this.id = UUID.randomUUID();
+		this.createdDate = new Date();
+		this.createdIn = Constants.NAME + " " + Constants.VERSION;
+		this.lastModifiedDate = this.createdDate;
+		this.lastModifiedIn = this.createdIn;
 		this.ccli = -1;
 		this.transposition = 0;
 		this.titles = new ArrayList<>();
@@ -108,11 +222,16 @@ public class Song implements SongOutput, Comparable<Song> {
 		this.lyrics = new ArrayList<>();
 	}
 	
-	// BCP 47
-	// ISO-639 language code
-	// ISO-3166-1 country code
-	// format xx-YY
-	// at this time variants and other designations not supported
+	/**
+	 * Returns the locale for the given language.
+	 * <p>
+	 * The language should be in the BCP 47 format (xx-YY) using
+	 * ISO-639 language codes and ISO-3166-1 country codes.
+	 * <p>
+	 * At this time variants and other designations not supported.
+	 * @param language the language
+	 * @return Locale
+	 */
 	static final Locale getLocale(String language) {
 		// converts the language to a locale
 		if (language != null && language.length() > 0) {
@@ -201,6 +320,18 @@ public class Song implements SongOutput, Comparable<Song> {
 		return diff;
 	}
 	
+	/**
+	 * Returns the default author based on the following criteria:
+	 * <br>
+	 * The first non-empty author to match:
+	 * <ol>
+	 * <li>No type attribute</li>
+	 * <li>The type == words</li>
+	 * <li>The type == music</li>
+	 * <li>The first author in the list</li>
+	 * </ol>
+	 * @return {@link Author}
+	 */
 	public Author getDefaultAuthor() {
 		Author author = null;
 		int matchType = 0;
@@ -330,6 +461,23 @@ public class Song implements SongOutput, Comparable<Song> {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Returns a list of locales in this song's lyrics and titles.
+	 * @return List&lt;Locale&gt;
+	 */
+	public Set<Locale> getLocales() {
+		Set<Locale> locales = new TreeSet<Locale>();
+		// loop over the titles
+		for (Title title : this.titles) {
+			locales.add(title.getLocale());
+		}
+		// loop over the lyrics
+		for (Lyrics lyrics : this.lyrics) {
+			locales.add(lyrics.getLocale());
+		}
+		return locales;
 	}
 	
 	public UUID getId() {
@@ -503,26 +651,4 @@ public class Song implements SongOutput, Comparable<Song> {
 	public void setLyrics(List<Lyrics> lyrics) {
 		this.lyrics = lyrics;
 	}
-	
-//	public void prepare() {
-//		for (Verse verse : this.verses) {
-//			for (OpenLyricsLine line : verse.lines) {
-//				line.prepare();
-//			}
-//		}
-//	}
-//	
-//	@Override
-//	public String getDisplayText(DisplayType type) {
-//		StringBuilder sb = new StringBuilder();
-//		for (Verse verse : this.verses) {
-//			if (type == DisplayType.EDIT) {
-//				sb.append(verse.getName()).append(RuntimeProperties.NEW_LINE_SEPARATOR);
-//			}
-//			sb.append(verse.getDisplayText(type))
-//			  .append(RuntimeProperties.NEW_LINE_SEPARATOR);
-//		}
-//		return sb.toString();
-//	}
-
 }

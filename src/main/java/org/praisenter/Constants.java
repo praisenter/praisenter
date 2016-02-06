@@ -5,6 +5,8 @@ import org.praisenter.utility.RuntimeProperties;
 public final class Constants {
 	public static final String VERSION = "3.0.0";
 	
+	public static final String NAME = "Praisenter";
+	
 	/** The new line character should be consistent to avoid issues cross-platform */
 	public static final String NEW_LINE = "\n";
 	

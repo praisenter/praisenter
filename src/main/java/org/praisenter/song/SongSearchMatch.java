@@ -24,44 +24,55 @@
  */
 package org.praisenter.song;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
- * A lucene song search result.
+ * A matched section of text for a given lucene field for a lucene search.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SongSearchResult {
-	/** The matched song */
-	final Song song;
+public final class SongSearchMatch {
+	/** The field */
+	final String field;
 	
-	/** The matched text */
-	final List<SongSearchMatch> matches;
+	/** The field value */
+	final String value;
+	
+	/** The matched part of the value with highlight indicators */
+	final String matchedText;
 	
 	/**
 	 * Full constructor.
-	 * @param song the song
-	 * @param matches the matched text
+	 * @param field the lucene field
+	 * @param value the value of the field
+	 * @param matchedText the matched text and surrounding text
 	 */
-	public SongSearchResult(Song song, List<SongSearchMatch> matches) {
-		this.song = song;
-		this.matches = Collections.unmodifiableList(matches);
+	public SongSearchMatch(String field, String value, String matchedText) {
+		this.field = field;
+		this.value = value;
+		this.matchedText = matchedText;
+	}
+	
+	/**
+	 * The field that matched.
+	 * @return String
+	 */
+	public String getField() {
+		return field;
 	}
 
 	/**
-	 * Returns the matched song.
-	 * @return {@link Song}
+	 * The full value of the field that was matched.
+	 * @return String
 	 */
-	public Song getSong() {
-		return song;
+	public String getValue() {
+		return value;
 	}
-
+	
 	/**
-	 * Returns an unmodifiable list of the matches.
-	 * @return List&lt;{@link SongSearchMatch}&gt;
+	 * Returns the text around a match with the matched text
+	 * highlighted using &lt;b&gt; tags.
+	 * @return String
 	 */
-	public List<SongSearchMatch> getMatches() {
-		return matches;
+	public String getMatchedText() {
+		return matchedText;
 	}
 }
