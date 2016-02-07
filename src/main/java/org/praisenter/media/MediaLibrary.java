@@ -796,4 +796,18 @@ public final class MediaLibrary {
 	public synchronized Set<Tag> getTags() {
 		return new TreeSet<Tag>(this.tags);
 	}
+
+	/**
+	 * Returns the path to a frame extracted from a video.
+	 * <p>
+	 * Returns null if the media is not a video.
+	 * @param media a video media
+	 * @return Path
+	 */
+	public synchronized Path getFramePath(Media media) {
+		if (media.metadata.type == MediaType.VIDEO) {
+			return this.framesPath.resolve(media.metadata.path.getFileName().toString() + FRAME_EXT);
+		}
+		return null;
+	}
 }

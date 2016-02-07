@@ -26,6 +26,7 @@ package org.praisenter;
 
 import org.praisenter.utility.RuntimeProperties;
 
+// TODO verify logging configuration
 public final class Constants {
 	public static final String VERSION = "3.0.0";
 	

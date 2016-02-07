@@ -12,6 +12,10 @@ import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -33,10 +37,15 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextBoundsType;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.text.TextMeasurer;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
+import org.praisenter.slide.Slide;
+import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
 import org.praisenter.slide.graphics.SlideGradientStop;
@@ -54,20 +63,27 @@ import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 
-public final class JavaFxConverter {
-	private JavaFxConverter() {}
+// FIXME we may just end up editing the slide types and regenerating the JavaFX UI for editing
+public final class JavaFxSlideConverter {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
+	private final PraisenterContext context;
+	
+	public JavaFxSlideConverter(PraisenterContext context) {
+		this.context = context;
+	}
 	
 	// graphics
 	
-	public static final Color to(SlideColor color) {
+	public Color to(SlideColor color) {
 		return new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
 	}
 	
-	public static final SlideColor from(Color color) {
+	public SlideColor from(Color color) {
 		return new SlideColor(color.getRed(), color.getGreen(), color.getBlue(), color.getOpacity());
 	}
 	
-	public static final CycleMethod to(SlideGradientCycleType cycle) {
+	public CycleMethod to(SlideGradientCycleType cycle) {
 		switch (cycle) {
 			case REPEAT:
 				return CycleMethod.REPEAT;
@@ -78,7 +94,7 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final SlideGradientCycleType from(CycleMethod cycle) {
+	public SlideGradientCycleType from(CycleMethod cycle) {
 		switch (cycle) {
 			case REPEAT:
 				return SlideGradientCycleType.REPEAT;
@@ -89,7 +105,7 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final StrokeLineCap to(SlideStrokeCap cap) {
+	public StrokeLineCap to(SlideStrokeCap cap) {
 		switch (cap) {
 			case BUTT:
 				return StrokeLineCap.BUTT;
@@ -100,7 +116,7 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final SlideStrokeCap from(StrokeLineCap cap) {
+	public SlideStrokeCap from(StrokeLineCap cap) {
 		switch (cap) {
 			case BUTT:
 				return SlideStrokeCap.BUTT;
@@ -111,7 +127,7 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final StrokeLineJoin to(SlideStrokeJoin join) {
+	public StrokeLineJoin to(SlideStrokeJoin join) {
 		switch (join) {
 			case BEVEL:
 				return StrokeLineJoin.BEVEL;
@@ -122,7 +138,7 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final SlideStrokeJoin from(StrokeLineJoin join) {
+	public SlideStrokeJoin from(StrokeLineJoin join) {
 		switch (join) {
 			case BEVEL:
 				return SlideStrokeJoin.BEVEL;
@@ -133,7 +149,7 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final StrokeType to(SlideStrokeType type) {
+	public StrokeType to(SlideStrokeType type) {
 		switch (type) {
 			case INSIDE:
 				return StrokeType.INSIDE;
@@ -144,7 +160,7 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final SlideStrokeType from(StrokeType type) {
+	public SlideStrokeType from(StrokeType type) {
 		switch (type) {
 			case INSIDE:
 				return SlideStrokeType.INSIDE;
@@ -155,7 +171,7 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final TextAlignment to(HorizontalTextAlignment alignment) {
+	public TextAlignment to(HorizontalTextAlignment alignment) {
 		switch (alignment) {
 			case RIGHT:
 				return TextAlignment.RIGHT;
@@ -168,7 +184,7 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final HorizontalTextAlignment from(TextAlignment alignment) {
+	public HorizontalTextAlignment from(TextAlignment alignment) {
 		switch (alignment) {
 			case RIGHT:
 				return HorizontalTextAlignment.RIGHT;
@@ -181,7 +197,7 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final Pos to(VerticalTextAlignment alignment) {
+	public Pos to(VerticalTextAlignment alignment) {
 		switch (alignment) {
 			case CENTER:
 				return Pos.CENTER_LEFT;
@@ -192,7 +208,7 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final VerticalTextAlignment from(Pos alignment) {
+	public VerticalTextAlignment from(Pos alignment) {
 		switch (alignment) {
 			case CENTER:
 			case CENTER_LEFT:
@@ -207,15 +223,15 @@ public final class JavaFxConverter {
 		}
 	}
 	
-	public static final Stop to(SlideGradientStop stop) {
+	public Stop to(SlideGradientStop stop) {
 		return new Stop(stop.getOffset(), to(stop.getColor()));
 	}
 	
-	public static final SlideGradientStop from(Stop stop) {
+	public SlideGradientStop from(Stop stop) {
 		return new SlideGradientStop(stop.getOffset(), from(stop.getColor()));
 	}
 	
-	public static final List<Stop> to(List<SlideGradientStop> stops) {
+	public List<Stop> to(List<SlideGradientStop> stops) {
 		if (stops == null) {
 			return null;
 		}
@@ -227,7 +243,7 @@ public final class JavaFxConverter {
 		return stps;
 	}
 	
-	public static final List<SlideGradientStop> from(List<Stop> stops) {
+	public List<SlideGradientStop> from(List<Stop> stops) {
 		if (stops == null) {
 			return null;
 		}
@@ -239,7 +255,7 @@ public final class JavaFxConverter {
 		return stps;
 	}
 	
-	public static final BorderStrokeStyle to(SlideStrokeStyle style) {
+	public BorderStrokeStyle to(SlideStrokeStyle style) {
 		if (style == null) {
 			return null;
 		}
@@ -253,7 +269,7 @@ public final class JavaFxConverter {
 				Arrays.asList(style.getDashes()));
 	}
 	
-	public static final SlideStrokeStyle from(BorderStrokeStyle style) {
+	public SlideStrokeStyle from(BorderStrokeStyle style) {
 		if (style == null) {
 			return null;
 		}
@@ -265,7 +281,7 @@ public final class JavaFxConverter {
 				style.getDashArray().toArray(new Double[0]));
 	}
 	
-	public static final LinearGradient to(SlideLinearGradient gradient) {
+	public LinearGradient to(SlideLinearGradient gradient) {
 		if (gradient == null) {
 			return null;
 		}
@@ -280,7 +296,7 @@ public final class JavaFxConverter {
 				to(gradient.getStops()));
 	}
 	
-	public static final SlideLinearGradient from(LinearGradient gradient) {
+	public SlideLinearGradient from(LinearGradient gradient) {
 		if (gradient == null) {
 			return null;
 		}
@@ -294,7 +310,7 @@ public final class JavaFxConverter {
 				from(gradient.getStops()));
 	}
 	
-	public static final RadialGradient to(SlideRadialGradient gradient) {
+	public RadialGradient to(SlideRadialGradient gradient) {
 		if (gradient == null) {
 			return null;
 		}
@@ -310,7 +326,7 @@ public final class JavaFxConverter {
 				to(gradient.getStops()));
 	}
 	
-	public static final SlideRadialGradient from(RadialGradient gradient) {
+	public SlideRadialGradient from(RadialGradient gradient) {
 		if (gradient == null) {
 			return null;
 		}
@@ -323,7 +339,7 @@ public final class JavaFxConverter {
 				from(gradient.getStops()));
 	}
 	
-	public static final Paint to(SlidePaint paint) {
+	public Paint to(SlidePaint paint) {
 		if (paint == null) {
 			return null;
 		}
@@ -339,21 +355,30 @@ public final class JavaFxConverter {
 			return to(g);
 		} else if (paint instanceof MediaObject) {
 			MediaObject mo = (MediaObject)paint;
-			// FIXME need PraisenterContext to get media
-			MediaLibrary ml = null;
+			MediaLibrary ml = this.context.getMediaLibrary();
 			Media media = ml.get(mo.getId());
-			if (media.getMetadata().getType() == MediaType.IMAGE) {
-				// FIXME need container dimensions to determine width/height
-				// FIXME loading of the image.... what to do... I'm thinking a WeakHashMap for caching or maybe a custom hashmap that only caches so many
-				ImagePattern ptrn = new ImagePattern(new Image(media.getMetadata().getPath().toUri().toString(), w, h, true, true, false));
-				return ptrn;
+			if (media != null) {
+				if (media.getMetadata().getType() == MediaType.IMAGE) {
+					try {
+						Image image = this.context.getImageCache().get(media.getMetadata().getPath());
+						ImagePattern ptrn = new ImagePattern(image);
+						return ptrn;
+					} catch (Exception ex) {
+						// just log the error
+						LOGGER.warn("Failed to load image " + media.getMetadata().getPath() + ".", ex);
+					}
+				}
+			} else {
+				// log warning about missing media
+				LOGGER.warn("The referenced media {} was not found in the media library.", mo.getId());
 			}
-			// audio/video is ignored here
+			// audio is ignored obviously
+			// video is ignored because it should only be used for backgrounds
 		}
 		return null;
 	}
 	
-	public static final SlidePaint from(Paint paint) {
+	public SlidePaint from(Paint paint) {
 		if (paint == null) {
 			return null;
 		}
@@ -367,11 +392,13 @@ public final class JavaFxConverter {
 		} else if (paint instanceof RadialGradient) {
 			RadialGradient g = (RadialGradient)paint;
 			return from(g);
+		} else if (paint instanceof ImagePattern) {
+			// TODO may need to have subclass of Image that contains the media UUID
 		}
 		return null;
 	}
 	
-	public static final BorderStroke to(SlideStroke stroke) {
+	public BorderStroke to(SlideStroke stroke) {
 		return new BorderStroke(
 				to(stroke.getPaint()),
 				to(stroke.getStyle()),
@@ -379,7 +406,7 @@ public final class JavaFxConverter {
 				new BorderWidths(stroke.getWidth()));
 	}
 	
-	public static final SlideStroke from(BorderStroke stroke) {
+	public SlideStroke from(BorderStroke stroke) {
 		return new SlideStroke(
 				from(stroke.getTopStroke()),
 				from(stroke.getTopStyle()),
@@ -387,9 +414,34 @@ public final class JavaFxConverter {
 				stroke.getRadii().getTopLeftHorizontalRadius());
 	}
 	
+	public BackgroundSize to(ScaleType scaling) {
+		BackgroundSize size = BackgroundSize.DEFAULT;
+		if (scaling == ScaleType.NONUNIFORM) {
+			size = new BackgroundSize(1.0, 1.0, true, true, false, false);
+		} else if (scaling == ScaleType.UNIFORM) {
+			size = new BackgroundSize(0.0, 0.0, false, false, true, false);
+		}
+		return size;
+	}
+	
+	public ScaleType from(BackgroundSize size) {
+		if (size == BackgroundSize.DEFAULT) {
+			return ScaleType.NONE;
+		} else if (size.isContain()) {
+			return ScaleType.UNIFORM;
+		} else {
+			return ScaleType.NONUNIFORM;
+		}
+	}
+	
 	// nodes
 	
-	public static final Node to(TextComponent component) {
+	public SlideScene to(Slide slide, boolean edit) {
+		// FIXME implement
+		return null;
+	}
+	
+	public Node to(TextComponent component) {
 		// compute the bounding text width and height so 
 		// we can compute an accurate font size
 		double padding = component.getPadding();
@@ -444,10 +496,35 @@ public final class JavaFxConverter {
 		box.setAlignment(to(component.getVerticalTextAlignment()));
 		
 		// background
-		// FIXME check for media object - video
 		SlidePaint bg = component.getBackground();
 		if (bg != null) {
-			box.setBackground(new Background(new BackgroundFill(to(bg), ss != null ? new CornerRadii(ss.getRadius()) : null, null)));
+			if (bg instanceof MediaObject) {
+				MediaObject m = (MediaObject)bg;
+				Media media = this.context.getMediaLibrary().get(m.getId());
+				if (media != null) {
+					if (media.getMetadata().getType() == MediaType.VIDEO) {
+						// TODO video - we need to know if we are editing or displaying
+					} else if (media.getMetadata().getType() == MediaType.IMAGE) {
+						// image
+						try  {
+							Image image = this.context.getImageCache().get(media.getMetadata().getPath());
+							box.setBackground(new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, to(m.getScaling()))));
+						} catch (Exception ex) {
+							// just log the error
+							LOGGER.warn("Failed to load image " + media.getMetadata().getPath() + ".", ex);
+						}
+					} else {
+						// log warning about type (audio)
+						LOGGER.warn("The media type {} for media {} is not valid for a background.", media.getMetadata().getType(), media.getMetadata().getPath());
+					}
+				} else {
+					// log warning about missing media
+					LOGGER.warn("The referenced media {} was not found in the media library.", m.getId());
+				}
+			} else {
+				// color or gradient
+				box.setBackground(new Background(new BackgroundFill(to(bg), ss != null ? new CornerRadii(ss.getRadius()) : null, null)));
+			}
 		}
 		
 		// border

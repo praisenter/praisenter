@@ -47,7 +47,7 @@ import org.praisenter.utility.RuntimeProperties;
  * @author William Bittle
  * @version 3.0.0
  */
-final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter implements MediaImportFilter {
+public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter implements MediaImportFilter {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -61,7 +61,7 @@ final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter implements M
 	 * Minimal constructor.
 	 * @param path the path to place the files required for filtering
 	 */
-	JavaFXMediaImportFilter(Path path) {
+	public JavaFXMediaImportFilter(Path path) {
 		super(path);
 	}
 	

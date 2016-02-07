@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.UUID;
@@ -13,8 +14,12 @@ import javafx.stage.Stage;
 
 import javax.xml.bind.JAXBException;
 
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.easing.Easing;
-import org.praisenter.javafx.slide.JavaFxConverter;
+import org.praisenter.javafx.media.JavaFXMediaImportFilter;
+import org.praisenter.javafx.slide.JavaFxSlideConverter;
+import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
@@ -29,11 +34,13 @@ import org.praisenter.slide.graphics.SlideStrokeCap;
 import org.praisenter.slide.graphics.SlideStrokeJoin;
 import org.praisenter.slide.graphics.SlideStrokeStyle;
 import org.praisenter.slide.graphics.SlideStrokeType;
+import org.praisenter.slide.object.MediaObject;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.VerticalTextAlignment;
+import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.xml.XmlIO;
 
 import com.sun.prism.paint.Stop;
@@ -86,7 +93,29 @@ public class TestSlideDisplay extends Application {
 		txt.setTextBorder(stroke);
 		txt.setText("Lorem ipsum dolor \n\nsit amet, consectetur adipiscing elit. Nam viverra tristique mauris. Suspendisse potenti. Etiam justo erat, mollis eget mi nec, euismod interdum magna. Aenean ac nulla fermentum, ullamcorper arcu sed, fermentum orci. Donec varius neque eget sapien cursus maximus. Fusce mauris lectus, pellentesque vel sem cursus, dapibus vehicula est. In tincidunt ultrices est nec finibus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eu nisi augue. Integer commodo enim sed rutrum rutrum. Quisque tristique id ipsum sed malesuada. Maecenas non diam eget felis pulvinar sodales.");
 		
-		Node text = JavaFxConverter.to(txt);
+//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		MediaThumbnailSettings settings = new MediaThumbnailSettings(
+				100, 100,
+				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
+				ClasspathLoader.getBufferedImage("/org/praisenter/resources/music-default-thumbnail.png"),
+				ClasspathLoader.getBufferedImage("/org/praisenter/resources/video-default-thumbnail.png"));
+    	MediaLibrary library = null;
+		try {
+			library = MediaLibrary.open(path, new JavaFXMediaImportFilter(path), settings);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		MediaObject mo = new MediaObject();
+		mo.setId(UUID.fromString("3a455fd7-c8f0-4c81-955b-0bcb3e4c47ef"));
+		mo.setScaling(ScaleType.NONE);
+		txt.setBackground(mo);
+		
+		PraisenterContext context = new PraisenterContext(library, null, null);
+		JavaFxSlideConverter converter = new JavaFxSlideConverter(context);
+		
+		Node text = converter.to(txt);
 		
 		Pane pane = new Pane();
 		pane.getChildren().add(text);
