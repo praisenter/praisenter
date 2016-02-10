@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.bible;
 
 import java.io.StringReader;
@@ -15,6 +39,11 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.data.Database;
 import org.praisenter.resources.translations.Translations;
 
+/**
+ * Abstract class for importing bibles into the bible library.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public abstract class AbstractBibleImporter implements BibleImporter {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -48,12 +77,26 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 	/** SQL for recreating the BBCV index */
 	private static final String CREATE_INDEX_BBCV = "CREATE INDEX BBCV ON BIBLE_VERSE(BIBLE_ID,BOOK_CODE,CHAPTER,VERSE)";
 
+	/** The database */
 	private final Database database;
 	
+	/**
+	 * Minimal constructor.
+	 * @param database the database
+	 */
 	public AbstractBibleImporter(Database database) {
 		this.database = database;
 	}
 	
+	/**
+	 * Imports the given bible, books and verses.
+	 * @param bible the bible
+	 * @param books the books of the bible
+	 * @param verses the verses of the bible
+	 * @throws SQLException if an error occurs while saving the data to the database
+	 * @throws BibleAlreadyExistsException if the bible already exists in the library
+	 * @throws BibleImportException if an insert fails silently
+	 */
 	protected final void insert(Bible bible, List<Book> books, List<Verse> verses) throws SQLException, BibleAlreadyExistsException, BibleImportException {
 		LOGGER.debug("Importing new bible: " + bible.name);
 		// insert all the data into the tables
@@ -210,5 +253,4 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 			LOGGER.warn("An error occurred when rebuilding the indexes after a successful import of a bible:", e);
 		}
 	}
-	
 }

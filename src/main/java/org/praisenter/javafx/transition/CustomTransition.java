@@ -10,12 +10,14 @@ public abstract class CustomTransition extends Transition {
 	final TransitionType type;
 	Duration duration;
 	Region node;
+	Rectangle2D bounds;
 	
-	public CustomTransition(TransitionType type, Region node, Duration duration) {
+	public CustomTransition(TransitionType type, Region node, Duration duration, Rectangle2D bounds) {
 		if (node == null) throw new NullPointerException();
 		this.setCycleDuration(duration);
 		this.type = type;
 		this.node = node;
+		this.bounds = bounds;
 	}
 	
 	/**
@@ -23,8 +25,6 @@ public abstract class CustomTransition extends Transition {
 	 * @return int
 	 */
 	public abstract int getId();
-	
-	public abstract void initialize(Rectangle2D bounds);
 	
 	public TransitionType getType() {
 		return type;

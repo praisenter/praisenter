@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 
 import org.apache.logging.log4j.LogManager;
@@ -58,14 +57,26 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	/** The Bible being imported */
 	private Bible bible;
+	
+	/** The list of books */
 	private List<Book> books;
+	
+	/** The list of verses */
 	private List<Verse> verses;
 	
+	/**
+	 * Minimal constructor.
+	 * @param database the database
+	 */
 	public UnboundBibleImporter(Database database) {
 		super(database);
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
+	 */
 	@Override
 	public void execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, BibleFormatException, BibleImportException {
 		// get the file name

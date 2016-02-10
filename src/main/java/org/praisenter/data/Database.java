@@ -71,16 +71,34 @@ public final class Database {
 	/** The datasource connection */
 	private DataSource dataSource;
 	
+	/**
+	 * Opens the database at the given path.
+	 * @param path the path
+	 * @return {@link Database}
+	 * @throws ZipException if installing the blank database failed
+	 * @throws IOException if an IO error occurs
+	 * @throws SQLException if a connection could not be made
+	 */
 	public static final Database open(Path path) throws ZipException, IOException, SQLException { 
 		Database db = new Database(path);
 		db.initialize();
 		return db;
 	}
 	
+	/**
+	 * Minimal constructor.
+	 * @param path the path to the database.
+	 */
 	private Database(Path path) {
 		this.path = path;
 	}
 	
+	/**
+	 * Initializes the database.
+	 * @throws ZipException if installing the blank database failed
+	 * @throws IOException if an IO error occurs
+	 * @throws SQLException if a connection could not be made
+	 */
 	private void initialize() throws IOException, ZipException, SQLException {
 		// make sure the driver is registered
 		if (!isDriverRegistered()) {
@@ -89,20 +107,28 @@ public final class Database {
 		}
 		
 		// verify the database exists
-		if (Files.isDirectory(this.path)) {
-			LOGGER.debug("The database folder exists.");
+		if (Files.exists(this.path)) {
+			// make sure the path is a directory
+			if (Files.isDirectory(this.path)) {
+				LOGGER.debug("The database folder exists.");
+			} else {
+				LOGGER.error("The given path {} is not a directory.", this.path.toAbsolutePath().toString());
+				// TODO translate error message
+				throw new IOException("The path to the database is not correct.");
+			}
 		} else {
-			LOGGER.error("The given path {} is not a directory.", this.path.toAbsolutePath().toString());
-			// TODO translate error message
-			throw new IOException("The path to the database is not correct.");
+			LOGGER.debug("Database does not exist. Installing blank database.");
+			// if it doesn't exist then install the blank database
+			installBlankDatabase(this.path);
 		}
 
+		// create a datasource for this path
 		DataSource dataSource = createDataSource(this.path);
 		
 		try {
-		// attempt to get a connection
-		Connection connection = dataSource.getConnection();
-		connection.isValid(5000);
+			// attempt to get a connection
+			Connection connection = dataSource.getConnection();
+			connection.isValid(5000);
 		} catch (Exception ex) {
 			// TODO translate
 			throw new SQLException("Failed to connect to database.", ex);
@@ -111,6 +137,10 @@ public final class Database {
         this.dataSource = dataSource;
 	}
 	
+	/**
+	 * Returns true if the database driver has been registered.
+	 * @return boolean
+	 */
 	private static final boolean isDriverRegistered() {
 		Enumeration<Driver> drivers = DriverManager.getDrivers();
 		while (drivers.hasMoreElements()) {
@@ -123,9 +153,14 @@ public final class Database {
 		return false;
 	}
 
+	/**
+	 * Installs the blank database in the given path.
+	 * @param path the path
+	 * @throws ZipException if installing the blank database failed
+	 * @throws IOException if an IO error occurs
+	 * @throws FileNotFoundException if the blank database is not found
+	 */
 	public static final void installBlankDatabase(Path path) throws FileNotFoundException, ZipException, IOException {
-		LOGGER.debug("Database does not exist. Installing blank database.");
-		
 		// make sure the path exists
 		Files.createDirectories(path);
 		
@@ -146,6 +181,11 @@ public final class Database {
 		LOGGER.debug("Blank database installed successfully.");
 	}
 	
+	/**
+	 * Creates a data source for the given path.
+	 * @param path the path
+	 * @return DataSource
+	 */
 	private static final DataSource createDataSource(Path path) {
 		ConnectionFactory connectionFactory = new DriverManagerConnectionFactory("jdbc:derby:" + path, null);
         PoolableConnectionFactory poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);
@@ -155,6 +195,11 @@ public final class Database {
         return new PoolingDataSource<PoolableConnection>(connectionPool);
 	}
 	
+	/**
+	 * Returns a connection to the database.
+	 * @return Connection
+	 * @throws SQLException if a database error occurs
+	 */
 	public Connection getConnection() throws SQLException {
 		return this.dataSource.getConnection();
 	}

@@ -17,17 +17,15 @@ public final class Transitions {
 		// get the transition for the existing node
 		CircularCollapse cTx = null;
 		if (cNode != null) {
-			cTx = new CircularCollapse(TransitionType.OUT, cNode, duration);
+			cTx = new CircularCollapse(TransitionType.OUT, cNode, duration, bounds);
 			cTx.setInterpolator(easing);
-			cTx.initialize(bounds);
 		}
 		
 		// get the transition for the incoming node
 		CircularCollapse tTx = null;
 		if (tNode != null) {
-			tTx = new CircularCollapse(TransitionType.IN, tNode, duration);
+			tTx = new CircularCollapse(TransitionType.IN, tNode, duration, bounds);
 			tTx.setInterpolator(easing);
-			tTx.initialize(bounds);
 		}
 		
 		if (cTx != null && tTx != null) {
