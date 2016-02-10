@@ -24,6 +24,7 @@
  */
 package org.praisenter.data;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,15 +50,25 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Zip;
 
-// FIXME move this into the bible package
-// FIXME fix the database to only include bible stuff
+/**
+ * This class is effectively a connection factory for an embedded derby database.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class Database {
-
+	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 
+	/** The name of the database file */
 	private static final String CLASSPATH_DATABASE_FILE_NAME = "blank.zip";
 	
+	/** The path to a blank version (as in no data, the schema should exist however) of the database */
+	private static final String BLANK_DATABASE_CLASSPATH = "/org/praisenter/data/resources/";
+	
+	/** The path to house the database files */
 	private final Path path;
+	
+	/** The datasource connection */
 	private DataSource dataSource;
 	
 	public static final Database open(Path path) throws ZipException, IOException, SQLException { 
@@ -81,34 +92,23 @@ public final class Database {
 		if (Files.isDirectory(this.path)) {
 			LOGGER.debug("The database folder exists.");
 		} else {
-			LOGGER.debug("Database does not exist. Installing blank database.");
-			
-			// make sure the path exists
-			Files.createDirectories(this.path);
-			
-			// copy the blank database zip from the classpath
-			Path target = this.path.resolve(CLASSPATH_DATABASE_FILE_NAME);
-			ClasspathLoader.copy("/org/praisenter/data/resources/" + CLASSPATH_DATABASE_FILE_NAME, target);
-			
-			// unzip the blank database zip into the full path
-			Zip.unzip(target, this.path);
-			
-			// delete the zip to clean up
-			try {
-				Files.delete(target);
-			} catch (IOException ex) {
-				LOGGER.warn("Failed to delete the database zip: {}.", target.toAbsolutePath().toString());
-			}
-			
-			LOGGER.debug("Blank database installed successfully.");
+			LOGGER.error("The given path {} is not a directory.", this.path.toAbsolutePath().toString());
+			// TODO translate error message
+			throw new IOException("The path to the database is not correct.");
 		}
 
-        ConnectionFactory connectionFactory = new DriverManagerConnectionFactory("jdbc:derby:" + this.path, null);
-        PoolableConnectionFactory poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);
-        ObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<PoolableConnection>(poolableConnectionFactory);
-        // set the pool
-        poolableConnectionFactory.setPool(connectionPool);
-        this.dataSource = new PoolingDataSource<PoolableConnection>(connectionPool);
+		DataSource dataSource = createDataSource(this.path);
+		
+		try {
+		// attempt to get a connection
+		Connection connection = dataSource.getConnection();
+		connection.isValid(5000);
+		} catch (Exception ex) {
+			// TODO translate
+			throw new SQLException("Failed to connect to database.", ex);
+		}
+		
+        this.dataSource = dataSource;
 	}
 	
 	private static final boolean isDriverRegistered() {
@@ -123,6 +123,38 @@ public final class Database {
 		return false;
 	}
 
+	public static final void installBlankDatabase(Path path) throws FileNotFoundException, ZipException, IOException {
+		LOGGER.debug("Database does not exist. Installing blank database.");
+		
+		// make sure the path exists
+		Files.createDirectories(path);
+		
+		// copy the blank database zip from the classpath
+		Path target = path.resolve(CLASSPATH_DATABASE_FILE_NAME);
+		ClasspathLoader.copy(BLANK_DATABASE_CLASSPATH + CLASSPATH_DATABASE_FILE_NAME, target);
+		
+		// unzip the blank database zip into the full path
+		Zip.unzip(target, path);
+		
+		// delete the zip to clean up
+		try {
+			Files.delete(target);
+		} catch (IOException ex) {
+			LOGGER.warn("Failed to delete the database zip: {}.", target.toAbsolutePath().toString());
+		}
+		
+		LOGGER.debug("Blank database installed successfully.");
+	}
+	
+	private static final DataSource createDataSource(Path path) {
+		ConnectionFactory connectionFactory = new DriverManagerConnectionFactory("jdbc:derby:" + path, null);
+        PoolableConnectionFactory poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory, null);
+        ObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<PoolableConnection>(poolableConnectionFactory);
+        // set the pool
+        poolableConnectionFactory.setPool(connectionPool);
+        return new PoolingDataSource<PoolableConnection>(connectionPool);
+	}
+	
 	public Connection getConnection() throws SQLException {
 		return this.dataSource.getConnection();
 	}
