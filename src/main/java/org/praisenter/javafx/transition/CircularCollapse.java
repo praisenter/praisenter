@@ -7,7 +7,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
 
-class CircularCollapse extends CustomTransition {
+final class CircularCollapse extends CustomTransition {
 	/** The {@link CircularCollapse} transition id */
 	static final int ID = 51;
 	
@@ -34,17 +34,9 @@ class CircularCollapse extends CustomTransition {
 		}
 		
 		// compute shape params
-		double w = this.node.getWidth();
-		double h = this.node.getHeight();
-		double bw = bounds.getWidth();
-		double bh = bounds.getHeight();
-		double x = (bw - w) * 0.5;
-		double y = (bh - h) * 0.5;
-		
-		// set the location
-		this.node.setLayoutX(0);
-		this.node.setLayoutY(0);
-		
+		double w = this.node.getPrefWidth();
+		double h = this.node.getPrefHeight();
+
 		double hw = w * 0.5;
 		double hh = h * 0.5;
 		double r = Math.sqrt(hw * hw + hh * hh) * (1.0 - frac);
