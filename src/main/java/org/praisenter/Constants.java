@@ -27,6 +27,7 @@ package org.praisenter;
 import org.praisenter.utility.RuntimeProperties;
 
 // TODO verify logging configuration
+// TODO setProperty("derby.stream.error.file", Constants.DATABASE_LOG_FILE_PATH);
 public final class Constants {
 	public static final String VERSION = "3.0.0";
 	
