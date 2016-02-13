@@ -1,17 +1,15 @@
 package org.praisenter.javafx.transition;
 
 import javafx.scene.Node;
+import javafx.scene.layout.Region;
+import javafx.util.Duration;
 
-public final class Fade extends CustomTransition {
+final class Fade extends CustomTransition {
 	/** The {@link Fade} transition id */
 	public static final int ID = 20;
 	
-	/**
-	 * Full constructor.
-	 * @param type the transition type
-	 */
-	public Fade(TransitionType type) {
-		super(type);
+	public Fade(Region node, TransitionType type, Duration duration) {
+		super(node, type, duration);
 	}
 
 	@Override

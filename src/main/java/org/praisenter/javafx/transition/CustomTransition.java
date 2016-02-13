@@ -6,18 +6,21 @@ import javafx.scene.layout.Region;
 import javafx.util.Duration;
 
 public abstract class CustomTransition extends Transition {
+	/** The node being transitioned */
+	final Region node;
+	
 	/** The transition type */
 	final TransitionType type;
-	Duration duration;
-	Region node;
-	Rectangle2D bounds;
 	
-	public CustomTransition(TransitionType type, Region node, Duration duration, Rectangle2D bounds) {
+	/** The transition duration */
+	final Duration duration;
+	
+	public CustomTransition(Region node, TransitionType type, Duration duration) {
 		if (node == null) throw new NullPointerException();
-		this.setCycleDuration(duration);
 		this.type = type;
 		this.node = node;
-		this.bounds = bounds;
+		this.duration = duration;
+		this.setCycleDuration(duration);
 	}
 	
 	/**

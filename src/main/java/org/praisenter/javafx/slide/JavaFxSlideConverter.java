@@ -436,7 +436,7 @@ public final class JavaFxSlideConverter {
 	
 	// nodes01
 	
-	public SlideScene to(Slide slide, boolean edit) {
+	public JavaFxSlide to(Slide slide, boolean edit) {
 		// FIXME implement
 		return null;
 	}

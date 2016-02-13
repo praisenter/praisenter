@@ -21,6 +21,7 @@ import org.praisenter.javafx.easing.Easings;
 import org.praisenter.javafx.transition.CustomTransition;
 import org.praisenter.javafx.transition.TransitionType;
 import org.praisenter.javafx.transition.Transitions;
+import org.praisenter.javafx.utility.JavaFxNodeHelper;
 
 
 public class TransitionTest extends Application {
@@ -32,6 +33,9 @@ public class TransitionTest extends Application {
 	// on button click
 	// 	1. build node (the slide contents)
 	//	2. Add node to scene with offset position (if necessary)
+	//  2.1 check if transition already in progress
+	//  2.2 wait until complete (based on config setting?)
+	//  2.3 make sure we only have one transition queued ever (so if the user queue's two transitions, always use the last)
 	//  3. perform animation (on correct nodes, ie. smart/stationary backgrounds)
 	//  4. remove other node
 	
@@ -42,7 +46,7 @@ public class TransitionTest extends Application {
 			System.out.println(screen.getBounds());
 		}
 
-		Screen screen = screens.get(1);
+		Screen screen = screens.get(0);
 //		Rectangle2D bounds = screen.getBounds();
 		Rectangle2D bounds = new Rectangle2D(0, 0, 400, 400);
 		// creating a new window
@@ -58,7 +62,7 @@ public class TransitionTest extends Application {
 
 		VBox s1 = new VBox();
 		s1.setBackground(new Background(new BackgroundFill(Color.rgb(0, 0, 255, 0.5), null, null)));
-		s1.setMinSize(bounds.getWidth(), bounds.getHeight());
+		JavaFxNodeHelper.setSize(s1, bounds.getWidth(), bounds.getHeight());
 		
 		stack.getChildren().add(s1);
 		
@@ -66,11 +70,12 @@ public class TransitionTest extends Application {
 		// TODO scaling
 		VBox s2 = new VBox();
 		s2.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0, 0.5), null, null)));
-		s2.setMinSize(bounds.getWidth(), bounds.getHeight());
+		JavaFxNodeHelper.setSize(s2, bounds.getWidth(), bounds.getHeight());
 		
 		stack.getChildren().add(s2);
 		
-		Transition tx = Transitions.getCircularCollapse(bounds, s1, s2, Duration.millis(5000), Easings.getQuadratic(EasingType.IN));
+		// TODO based on slide position and size, determine if we need to do a parallel or sequential transition
+		Transition tx = Transitions.getFade(s1, s2, Duration.millis(2000), Easings.getBounce(EasingType.IN), true);
 		
 		Scene scene = new Scene(stack, Color.TRANSPARENT);
 		other.setScene(scene);

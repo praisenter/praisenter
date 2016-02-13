@@ -1,32 +1,30 @@
 package org.praisenter.javafx.transition;
 
-import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 import javafx.util.Duration;
 
-final class CircularCollapse extends CustomTransition {
+final class CircularCollapse extends ClipTransition {
 	/** The {@link CircularCollapse} transition id */
 	static final int ID = 51;
 	
-	/**
-	 * Full constructor.
-	 * @param type the transition type
-	 */
-	public CircularCollapse(TransitionType type, Region node, Duration duration, Rectangle2D bounds) {
-		super(type, node, duration, bounds);
+	public CircularCollapse(Region node, TransitionType type, Duration duration) {
+		super(node, type, duration);
 	} 
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#getTransitionId()
+	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
 	 */
 	@Override
 	public int getId() {
 		return ID;
 	}
 
+	/* (non-Javadoc)
+	 * @see javafx.animation.Transition#interpolate(double)
+	 */
 	@Override
 	protected void interpolate(double frac) {
 		if (frac >= 1.0) {
@@ -48,7 +46,7 @@ final class CircularCollapse extends CustomTransition {
 		if (this.type == TransitionType.IN) {
 			clip = Shape.subtract(all, circle);
 		} else {
-			clip = circle;//Shape.intersect(all, circle);
+			clip = circle;
 		}
 		
 		this.node.setClip(clip);

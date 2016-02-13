@@ -73,7 +73,7 @@ public final class Easings {
 	 * @param type the easing type
 	 * @return Easing
 	 */
-	public static final Easing getQintic(EasingType type) { 
+	public static final Easing getQuintic(EasingType type) { 
 		return new Quintic(type); 
 	}
 	
@@ -145,7 +145,7 @@ public final class Easings {
 		} else if (Quartic.ID == id) {
 			return getQuartic(type);
 		} else if (Quintic.ID == id) {
-			return getQintic(type);
+			return getQuintic(type);
 		} else if (Circular.ID == id) {
 			return getCircular(type);
 		} else if (Exponential.ID == id) {

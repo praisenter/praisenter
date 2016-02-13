@@ -6,7 +6,9 @@ import javafx.animation.AnimationTimer;
 import javafx.scene.layout.Region;
 import javafx.scene.media.MediaPlayer;
 
-public final class SlideScene {
+public final class JavaFxSlide {
+	// the background node
+	Region background;
 	// the root element of the slide
 	Region root;
 	// for audio/video
