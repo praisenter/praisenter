@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -24,26 +24,25 @@
  */
 package org.praisenter.javafx.transition;
 
-import java.io.Serializable;
+import javafx.scene.layout.Region;
+import javafx.util.Duration;
 
 /**
- * Represents an abstract blinds {@link CustomTransition}.
+ * A blinds transition.
  * @author William Bittle
- * @version 2.0.3
- * @since 2.0.3
+ * @version 3.0.0
  */
-public abstract class AbstractBlindsTransition extends AbstractTransition implements CustomTransition, Serializable {
-	/** The version id */
-	private static final long serialVersionUID = -6879004983356274217L;
-	
+public abstract class AbstractBlindsTransition extends ClipTransition {
 	/** The vertical blind count factor: 12 bars for 1280 pixels */
 	protected static final double BLIND_COUNT_FACTOR = 12.0 / 1280.0;
-	
+
 	/**
 	 * Full constructor.
+	 * @param node the node to animate
 	 * @param type the transition type
+	 * @param duration the transition duration
 	 */
-	public AbstractBlindsTransition(TransitionType type) {
-		super(type);
-	} 
+	public AbstractBlindsTransition(Region node, TransitionType type, Duration duration) {
+		super(node, type, duration);
+	}
 }

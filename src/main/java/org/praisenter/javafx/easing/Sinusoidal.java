@@ -29,9 +29,9 @@ package org.praisenter.javafx.easing;
  * @author William Bittle
  * @version 3.0.0
  */
-final class Sinusoidal extends Easing {
+public final class Sinusoidal extends Easing {
 	/** The id for the easing */
-	static final int ID = 60;
+	public static final int ID = 60;
 	
 	/**
 	 * Full constructor.

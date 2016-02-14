@@ -24,14 +24,68 @@
  */
 package org.praisenter.javafx.easing;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Factory class for easings.
  * @author William Bittle
  * @version 3.0.0
  */
 public final class Easings {
+	/** The class-level logger */
+	private static final Logger LOGGER = LogManager.getLogger();
+	
+	/** All easings by id */
+	private static final Map<Integer, Class<?>> BY_ID;
+	
+	static {
+		BY_ID = new HashMap<Integer, Class<?>>();
+		BY_ID.put(Linear.ID, Linear.class);
+		BY_ID.put(Quadratic.ID, Quadratic.class);
+		BY_ID.put(Cubic.ID, Cubic.class);
+		BY_ID.put(Quartic.ID, Quartic.class);
+		BY_ID.put(Quintic.ID, Quintic.class);
+		BY_ID.put(Circular.ID, Circular.class);
+		BY_ID.put(Exponential.ID, Exponential.class);
+		BY_ID.put(Sinusoidal.ID, Sinusoidal.class);
+		BY_ID.put(Back.ID, Back.class);
+		BY_ID.put(Bounce.ID, Bounce.class);
+		BY_ID.put(Elastic.ID, Elastic.class);
+	}
+	
 	/** Hidden constructor */
 	private Easings() {}
+	
+	/**
+	 * Returns a new instance of the given easing class.
+	 * @param clazz the easing class
+	 * @param type the easing type
+	 * @return {@link Easing}
+	 */
+	private static final Easing getEasing(Class<?> clazz, EasingType type) {
+		if (clazz != null) {
+			try {
+				return (Easing)clazz.getConstructor(EasingType.class).newInstance(type);
+			} catch (Exception e) {
+				LOGGER.warn("Failed to instantiate class " + clazz.getName() + ".", e);
+			}
+		}
+		return new Linear(type);
+	}
+	
+	/**
+	 * Returns a new easing for the given id and type.
+	 * @param id the easing id 
+	 * @param type the easing type
+	 * @return {@link Easing}
+	 */
+	public static final Easing getEasing(int id, EasingType type) {
+		return getEasing(BY_ID.get(id), type);
+	}
 	
 	/**
 	 * Returns a new linear easing.
@@ -129,36 +183,5 @@ public final class Easings {
 	 */
 	public static final Easing getElastic(EasingType type) { 
 		return new Elastic(type); 
-	}
-	
-	/**
-	 * Returns a new easing for the given id and type.
-	 * @param id the easing id 
-	 * @param type the easing type
-	 * @return {@link Easing}
-	 */
-	public static final Easing get(int id, EasingType type) { 
-		if (Quadratic.ID == id) {
-			return getQuadratic(type);
-		} else if (Cubic.ID == id) {
-			return getCubic(type);
-		} else if (Quartic.ID == id) {
-			return getQuartic(type);
-		} else if (Quintic.ID == id) {
-			return getQuintic(type);
-		} else if (Circular.ID == id) {
-			return getCircular(type);
-		} else if (Exponential.ID == id) {
-			return getExponential(type);
-		} else if (Sinusoidal.ID == id) {
-			return getSinusoidal(type);
-		} else if (Back.ID == id) {
-			return getBack(type);
-		} else if (Bounce.ID == id) {
-			return getBounce(type);
-		} else if (Elastic.ID == id) {
-			return getElastic(type);
-		}
-		return getLinear();
 	}
 }

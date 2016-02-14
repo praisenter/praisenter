@@ -29,9 +29,9 @@ package org.praisenter.javafx.easing;
  * @author William Bittle
  * @version 3.0.0
  */
-final class Linear extends Easing {
+public final class Linear extends Easing {
 	/** The id for the easing */
-	static final int ID = 10;
+	public static final int ID = 10;
 
 	/**
 	 * Full constructor.

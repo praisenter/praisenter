@@ -29,9 +29,9 @@ package org.praisenter.javafx.easing;
  * @author William Bittle
  * @version 3.0.0
  */
-final class Quartic extends Easing {
+public final class Quartic extends Easing {
 	/** The id for the easing */
-	static final int ID = 40;
+	public static final int ID = 40;
 
 	/**
 	 * Full constructor.

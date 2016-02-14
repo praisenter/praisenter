@@ -29,9 +29,9 @@ package org.praisenter.javafx.easing;
  * @author William Bittle
  * @version 3.0.0
  */
-final class Exponential extends Easing {
+public final class Exponential extends Easing {
 	/** The id for the easing */
-	static final int ID = 70;
+	public static final int ID = 70;
 	
 	/**
 	 * Full constructor.

@@ -29,9 +29,9 @@ package org.praisenter.javafx.easing;
  * @author William Bittle
  * @version 3.0.0
  */
-final class Circular extends Easing {
+public final class Circular extends Easing {
 	/** The id for the easing */
-	static final int ID = 80;
+	public static final int ID = 80;
 	
 	/**
 	 * Full constructor.

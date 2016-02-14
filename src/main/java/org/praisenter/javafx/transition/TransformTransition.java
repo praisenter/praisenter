@@ -24,15 +24,24 @@
  */
 package org.praisenter.javafx.transition;
 
+import javafx.scene.layout.Region;
+import javafx.util.Duration;
+
 /**
- * The transition type.
+ * Represents a transition that performs a transformation operation
+ * to produce the animation.
  * @author William Bittle
  * @version 3.0.0
  */
-public enum TransitionType {
-	/** Transition in */
-	IN,
-	
-	/** Transition out */
-	OUT
+public abstract class TransformTransition extends CustomTransition {
+	/**
+	 * Full constructor.
+	 * @param node the node to animate
+	 * @param type the transition type
+	 * @param duration the transition duration
+	 */
+	public TransformTransition(Region node, TransitionType type, Duration duration) {
+		super(node, type, duration);
+	}
+
 }

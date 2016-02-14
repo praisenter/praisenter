@@ -29,9 +29,9 @@ package org.praisenter.javafx.easing;
  * @author William Bittle
  * @version 3.0.0
  */
-final class Elastic extends Easing {
+public final class Elastic extends Easing {
 	/** The id for the easing */
-	static final int ID = 110;
+	public static final int ID = 110;
 	
 	/** The overshoot factor */
 	private static final double s = 1;

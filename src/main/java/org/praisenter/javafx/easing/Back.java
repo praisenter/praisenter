@@ -29,9 +29,9 @@ package org.praisenter.javafx.easing;
  * @author William Bittle
  * @version 3.0.0
  */
-final class Back extends Easing {
+public final class Back extends Easing {
 	/** The id for the easing */
-	static final int ID = 90;
+	public static final int ID = 90;
 	
 	/** The over-shoot factor */
 	private static final double s = 1.70158;

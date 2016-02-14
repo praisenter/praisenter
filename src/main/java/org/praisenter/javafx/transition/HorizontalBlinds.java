@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -24,37 +24,32 @@
  */
 package org.praisenter.javafx.transition;
 
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.io.Serializable;
+import javafx.scene.layout.Region;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
+import javafx.util.Duration;
 
 /**
- * Represents a horizontal blinds {@link CustomTransition}.
+ * Horizontal blinds transition.
  * @author William Bittle
- * @version 2.0.3
- * @since 2.0.3
+ * @version 3.0.0
  */
-public class HorizontalBlinds extends AbstractBlindsTransition implements CustomTransition, Serializable {
-	/** The version id */
-	private static final long serialVersionUID = 6033288490467318927L;
-	
-	/** The {@link HorizontalBlinds} transition id */
+public final class HorizontalBlinds extends AbstractBlindsTransition {
+	/** The transition id */
 	public static final int ID = 91;
 	
 	/**
 	 * Full constructor.
+	 * @param node the node to animate
 	 * @param type the transition type
+	 * @param duration the transition duration
 	 */
-	public HorizontalBlinds(TransitionType type) {
-		super(type);
-	} 
+	public HorizontalBlinds(Region node, TransitionType type, Duration duration) {
+		super(node, type, duration);
+	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#getTransitionId()
+	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
 	 */
 	@Override
 	public int getId() {
@@ -62,53 +57,38 @@ public class HorizontalBlinds extends AbstractBlindsTransition implements Custom
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#render(java.awt.Graphics2D, java.awt.image.BufferedImage, java.awt.image.BufferedImage, double)
+	 * @see javafx.animation.Transition#interpolate(double)
 	 */
 	@Override
-	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
-		int w = 0;
-		int h = 0;
-		
-		Area area = null;
+	protected void interpolate(double frac) {
+		double w = this.node.getPrefWidth();
+		double h = this.node.getPrefHeight();
+		Rectangle rect = new Rectangle();
 		if (this.type == TransitionType.IN) {
 			// for the IN transition we will subtract areas from the full rectangle
-			w = image1.getWidth();
-			h = image1.getHeight();
-			area = new Area(new Rectangle(0, 0, w, h));
-		} else {
-			// for the OUT transition we will add areas
-			w = image0.getWidth();
-			h = image0.getHeight();
-			area = new Area();
+			rect.setWidth(w);
+			rect.setHeight(h);
 		}
+		// for the OUT transition we will add areas
 		
 		// compute the number of blinds
 		final int blinds = (int)Math.ceil((double)h * BLIND_COUNT_FACTOR);
 		double y = 0;
 		// compute the blind width
-		double bh = (double)h / (double)blinds;
+		double bh = h / blinds;
 		// compute the area that needs to be painted by either removing
 		// vertical bars or adding vertical bars
+		Shape clip = rect;
 		for (int i = 0; i < blinds; i++) {
-			Rectangle2D.Double blind = new Rectangle2D.Double(0, y + bh * pc, w, bh * (1.0 - pc));
+			Rectangle blind = new Rectangle(0, y + bh * frac, w, bh * (1.0 - frac));
 			if (this.type == TransitionType.IN) {
-				area.subtract(new Area(blind));
+				clip = Shape.subtract(clip, blind);
 			} else {
-				area.add(new Area(blind));
+				clip = Shape.union(clip, blind);
 			}
 			y += bh;
 		}
 		
-		// draw the animation
-		Shape shape = g2d.getClip();
-		if (this.type == TransitionType.IN) {
-			g2d.drawImage(image0, 0, 0, null);
-			g2d.setClip(area);
-			g2d.drawImage(image1, 0, 0, null);
-		} else {
-			g2d.setClip(area);
-			g2d.drawImage(image0, 0, 0, null);
-		}
-		g2d.setClip(shape);
+		this.node.setClip(clip);
 	}
 }

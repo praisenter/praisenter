@@ -29,9 +29,9 @@ package org.praisenter.javafx.easing;
  * @author William Bittle
  * @version 3.0.0
  */
-final class Bounce extends Easing {
+public final class Bounce extends Easing {
 	/** The id for the easing */
-	static final int ID = 100;
+	public static final int ID = 100;
 	
 	/**
 	 * Full constructor.
@@ -41,6 +41,9 @@ final class Bounce extends Easing {
 		super(type);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.easing.Easing#baseCurve(double)
+	 */
 	@Override
 	protected double baseCurve(double v) {
 		for (double a = 0, b = 1; true; a += b, b /= 2) {

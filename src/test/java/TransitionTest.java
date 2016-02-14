@@ -1,6 +1,4 @@
-import javafx.animation.ParallelTransition;
 import javafx.animation.Transition;
-import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.geometry.Rectangle2D;
@@ -15,11 +13,9 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
-import org.praisenter.javafx.easing.Easing;
 import org.praisenter.javafx.easing.EasingType;
 import org.praisenter.javafx.easing.Easings;
-import org.praisenter.javafx.transition.CustomTransition;
-import org.praisenter.javafx.transition.TransitionType;
+import org.praisenter.javafx.transition.Swap;
 import org.praisenter.javafx.transition.Transitions;
 import org.praisenter.javafx.utility.JavaFxNodeHelper;
 
@@ -74,8 +70,10 @@ public class TransitionTest extends Application {
 		
 		stack.getChildren().add(s2);
 		
+		// TODO need to check if Swap, then just remove the other node
+		// if (Swap.ID == slide.transition)
 		// TODO based on slide position and size, determine if we need to do a parallel or sequential transition
-		Transition tx = Transitions.getFade(s1, s2, Duration.millis(2000), Easings.getBounce(EasingType.IN), true);
+		Transition tx = Transitions.getHorizontalSplitCollapse(s1, s2, Duration.millis(2000), Easings.getBounce(EasingType.IN), true);
 		
 		Scene scene = new Scene(stack, Color.TRANSPARENT);
 		other.setScene(scene);
