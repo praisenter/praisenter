@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -24,54 +24,52 @@
  */
 package org.praisenter.javafx.transition;
 
-import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.image.BufferedImage;
-import java.io.Serializable;
+import javafx.scene.layout.Region;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
+import javafx.util.Duration;
 
 /**
- * Represents a swipe up {@link CustomTransition}.
+ * Clips the node by an expanding rectangle whose height increases up.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 3.0.0
  */
-public class SwipeUp extends AbstractTransition implements CustomTransition, Serializable {
-	/** The version id */
-	private static final long serialVersionUID = 5984276036376165630L;
-	
-	/** The {@link SwipeUp} transition id */
+public final class SwipeUp extends CustomTransition {
+	/** The transition id */
 	public static final int ID = 32;
-	
+
 	/**
 	 * Full constructor.
+	 * @param node the node to animate
 	 * @param type the transition type
+	 * @param duration the transition duration
 	 */
-	public SwipeUp(TransitionType type) {
-		super(type);
-	} 
+	public SwipeUp(Region node, TransitionType type, Duration duration) {
+		super(node, type, duration);
+	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#getTransitionId()
+	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
 	 */
 	@Override
 	public int getId() {
 		return ID;
 	}
-	
+
 	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#render(java.awt.Graphics2D, java.awt.image.BufferedImage, java.awt.image.BufferedImage, double)
+	 * @see javafx.animation.Transition#interpolate(double)
 	 */
 	@Override
-	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
-		Shape shape = g2d.getClip();
-		if (image0 != null) {
-			g2d.setClip(0, 0, image0.getWidth(), image0.getHeight() - (int)Math.ceil(image0.getHeight() * pc));
-			g2d.drawImage(image0, 0, 0, null);
+	protected void interpolate(double frac) {
+		double w = this.node.getPrefWidth();
+		double h = this.node.getPrefHeight();
+		double p = Math.ceil(h * (1.0 - frac));
+		Shape clip = null;
+		if (this.type == TransitionType.IN) {
+			clip = new Rectangle(0, p, w, h);
+		} else {
+			clip = new Rectangle(0, 0, w, p);
 		}
-		if (this.type == TransitionType.IN && image1 != null) {
-			g2d.setClip(0, image1.getHeight() - (int)Math.ceil(image1.getHeight() * pc), image1.getWidth(), image1.getHeight());
-			g2d.drawImage(image1, 0, 0, null);
-		}
-		g2d.setClip(shape);
+		this.node.setClip(clip);
 	}
 }

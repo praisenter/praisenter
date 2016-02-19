@@ -22,26 +22,88 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.transition;
+package org.praisenter.javafx;
 
-import javafx.scene.layout.Region;
-import javafx.util.Duration;
+import java.util.Objects;
+
+import org.praisenter.resources.translations.Translations;
 
 /**
- * Represents a transition that performs a transformation operation
- * to produce the animation.
+ * Class used to represent an option in a list.
  * @author William Bittle
  * @version 3.0.0
+ * @param <T> the option's data
  */
-public abstract class TransformTransition extends CustomTransition {
+public final class Option<T> {
+	/** The option name */
+	final String name;
+	
+	/** The option's value */
+	final T value;
+	
 	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
+	 * Creates an "all" option.
 	 */
-	public TransformTransition(Region node, TransitionType type, Duration duration) {
-		super(node, type, duration);
+	public Option() {
+		this.name = Translations.getTranslation("options.all");
+		this.value = null;
 	}
-
+	
+	/**
+	 * Creates a new option.
+	 * @param name the name
+	 * @param value the value
+	 */
+	public Option(String name, T value) {
+		this.name = name;
+		this.value = value;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return name == null ? -1 : name.hashCode();
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof Option) {
+			Option<?> mtf = (Option<?>)obj;
+			if (Objects.equals(mtf.name, this.name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return this.name;
+	}
+	
+	/**
+	 * Returns the name of this option.
+	 * @return String
+	 */
+	public String getName() {
+		return this.name;
+	}
+	
+	/**
+	 * Returns the value of this option.
+	 * @return T
+	 */
+	public T getValue() {
+		return this.value;
+	}
 }

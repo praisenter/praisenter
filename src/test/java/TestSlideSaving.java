@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
@@ -8,8 +9,12 @@ import javax.xml.bind.JAXBException;
 import org.praisenter.javafx.easing.Easing;
 import org.praisenter.javafx.easing.Easings;
 import org.praisenter.slide.BasicSlide;
+import org.praisenter.slide.BibleSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideShow;
+import org.praisenter.slide.SongSlide;
+import org.praisenter.slide.SongSlideLyrics;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
@@ -35,7 +40,9 @@ import com.sun.prism.paint.Stop;
 
 public class TestSlideSaving {
 	public static void main(String[] args) throws JAXBException, IOException {
-		BasicSlide slide = new BasicSlide();
+//		BasicSlide slide = new BasicSlide();
+		SongSlide slide = new SongSlide();
+//		BibleSlide slide = new BibleSlide();
 		
 		SlideColor color = new SlideColor(0.5, 0.5, 1, 0.5);
 		
@@ -70,11 +77,7 @@ public class TestSlideSaving {
 		med.setBackground(radial);
 		med.setHeight(300);
 		med.setWidth(300);
-		MediaObject mp = new MediaObject();
-		mp.setId(UUID.randomUUID());
-		mp.setLoop(true);
-		mp.setMute(true);
-		mp.setScaling(ScaleType.UNIFORM);
+		MediaObject mp = new MediaObject(UUID.randomUUID(), ScaleType.UNIFORM, true, true);
 		med.setMedia(mp);
 		med.setOrder(10);
 		med.setX(200);
@@ -99,9 +102,19 @@ public class TestSlideSaving {
 		slide.addComponent(dtc);
 		
 		TextPlaceholderComponent tpc = new TextPlaceholderComponent();
-		tpc.addType(TextPlaceholderComponent.TYPE_PRIMARY);
-		tpc.addType(TextPlaceholderComponent.TYPE_TERTIARY);
+		tpc.setType(TextPlaceholderComponent.TYPE_PRIMARY | TextPlaceholderComponent.TYPE_SECONDARY);
+		tpc.setText("hello\nHola");
 		slide.addComponent(tpc);
+		
+		slide.setSongId(UUID.randomUUID());
+		slide.setVerse("v1");
+		slide.getLyrics().add(new SongSlideLyrics("en"));
+		slide.getLyrics().add(new SongSlideLyrics("es-MX"));
+		
+//		slide.setBookCode("01O");
+//		slide.setChapter(1);
+//		slide.setVerse(1);
+//		slide.getBibles().add("KJV");
 		
 //		XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), slide);
 //		Slide s = XmlIO.read(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), BasicSlide.class);
@@ -109,6 +122,17 @@ public class TestSlideSaving {
 		XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), slide);
 		Slide s = XmlIO.read(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), BasicSlide.class);
 		
-		System.out.println(s.getId());
+		System.out.println(s.getId() + " " + s.getClass().getName());
+		
+		SlideShow show = new SlideShow();
+		show.getSlides().add(s);
+		
+//		XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\show.xml"), show);
+//		SlideShow ss = XmlIO.read(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\show.xml"), SlideShow.class);
+		
+		XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\show.xml"), show);
+		SlideShow ss = XmlIO.read(Paths.get("D:\\Personal\\Praisenter\\slides\\show.xml"), SlideShow.class);
+		
+		System.out.println(ss.getSlides().size());
 	}
 }

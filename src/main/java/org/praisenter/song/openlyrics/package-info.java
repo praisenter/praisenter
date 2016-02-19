@@ -1,8 +1,7 @@
 /**
- * FIXME need documentation
- *
- * 
- * 
+ * This package represents the JAXB implementation of the OpenLyrics song format
+ * allowing both reading and writing.
+ * @see <a href="http://openlyrics.info/namespace/2009/song">OpenLyrics</a>
  */
 @javax.xml.bind.annotation.XmlSchema(
 		namespace = "http://openlyrics.info/namespace/2009/song", 

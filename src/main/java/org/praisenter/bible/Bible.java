@@ -36,7 +36,7 @@ public final class Bible implements Comparable<Bible> {
 	/** The name of the bible */
 	String name;
 	
-	/** The language the bible is in (non-ISO unfortunately) */
+	/** The language the bible is in (using ISO 639-2 and ISO 639-3 codes along with micro variants (but all three code it seems)) */
 	String language;
 
 	/** The source for the bible's contents */

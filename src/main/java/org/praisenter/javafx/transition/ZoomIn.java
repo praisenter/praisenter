@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -24,37 +24,32 @@
  */
 package org.praisenter.javafx.transition;
 
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.Area;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.io.Serializable;
+import javafx.scene.layout.Region;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
+import javafx.util.Duration;
 
 /**
- * Represents a zoom-in {@link CustomTransition}.
+ * Scales the node from 0 to it's size.
  * @author William Bittle
- * @version 2.0.3
- * @since 2.0.3
+ * @version 3.0.0
  */
-public class ZoomIn extends AbstractTransition implements CustomTransition, Serializable {
-	/** The version id */
-	private static final long serialVersionUID = 859864787761263155L;
-	
-	/** The {@link ZoomIn} transition id */
+public final class ZoomIn extends CustomTransition {
+	/** The transition id */
 	public static final int ID = 70;
-	
+
 	/**
 	 * Full constructor.
+	 * @param node the node to animate
 	 * @param type the transition type
+	 * @param duration the transition duration
 	 */
-	public ZoomIn(TransitionType type) {
-		super(type);
-	} 
+	public ZoomIn(Region node, TransitionType type, Duration duration) {
+		super(node, type, duration);
+	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#getTransitionId()
+	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
 	 */
 	@Override
 	public int getId() {
@@ -62,41 +57,22 @@ public class ZoomIn extends AbstractTransition implements CustomTransition, Seri
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#render(java.awt.Graphics2D, java.awt.image.BufferedImage, java.awt.image.BufferedImage, double)
+	 * @see javafx.animation.Transition#interpolate(double)
 	 */
 	@Override
-	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
-		// clamp the percentage
-		pc = clamp((float)pc, 0.0f, 1.0f);
+	protected void interpolate(double frac) {
 		if (this.type == TransitionType.IN) {
-			// draw the old
-			g2d.drawImage(image0, 0, 0, null);
-			// draw the new but sized down
-			if (pc > 0.0) {
-				g2d.drawImage(
-						image1, 
-						(int)Math.floor(image1.getWidth() * 0.5 * (1.0 - pc)), 
-						(int)Math.floor(image1.getHeight() * 0.5 * (1.0 - pc)),
-						(int)Math.floor(image1.getWidth() * pc), 
-						(int)Math.floor(image1.getHeight() * pc),
-						null);
-			}
+			this.node.setScaleX(frac);
+			this.node.setScaleY(frac);
 		} else {
-			// setup a rectangular clip
-			Shape clip = g2d.getClip();
-			// don't bother with a clip region if pc <= 0
-			if (pc > 0.0) {
-				Area area = new Area(new Rectangle(0, 0, image0.getWidth(), image0.getHeight()));
-				area.exclusiveOr(new Area(new Rectangle2D.Double(
-						(1.0 - pc) * image0.getWidth() * 0.5,
-						(1.0 - pc) * image0.getHeight() * 0.5,
-						pc * image0.getWidth(),
-						pc * image0.getHeight())));
-				g2d.setClip(area);
-			}
-			g2d.drawImage(image0, 0, 0, null);
-			// restore the old clip
-			g2d.setClip(clip);
+			// for the out transition we'll just clip the center
+			double w = this.node.getPrefWidth();
+			double h = this.node.getPrefHeight();
+			double hw = w * 0.5;
+			double hh = h * 0.5;
+			Shape clip = new Rectangle(0, 0, w, h);
+			Shape center = new Rectangle(hw * (1.0 - frac), hh * (1.0 - frac), h * frac, h * frac);
+			this.node.setClip(Shape.subtract(clip, center));
 		}
 	}
 }

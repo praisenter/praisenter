@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -24,34 +24,30 @@
  */
 package org.praisenter.javafx.transition;
 
-import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.image.BufferedImage;
-import java.io.Serializable;
+import javafx.scene.layout.Region;
+import javafx.util.Duration;
 
 /**
- * Represents a push right {@link CustomTransition}.
+ * Translates the node's x coordinate right.
  * @author William Bittle
- * @version 1.0.0
- * @since 1.0.0
+ * @version 3.0.0
  */
-public class PushRight extends AbstractTransition implements CustomTransition, Serializable {
-	/** The version id */
-	private static final long serialVersionUID = 6629770865374742189L;
-	
-	/** The {@link PushRight} transition id */
+public final class PushRight extends CustomTransition {
+	/** The transition id */
 	public static final int ID = 60;
-	
+
 	/**
 	 * Full constructor.
+	 * @param node the node to animate
 	 * @param type the transition type
+	 * @param duration the transition duration
 	 */
-	public PushRight(TransitionType type) {
-		super(type);
-	} 
+	public PushRight(Region node, TransitionType type, Duration duration) {
+		super(node, type, duration);
+	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#getTransitionId()
+	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
 	 */
 	@Override
 	public int getId() {
@@ -59,21 +55,16 @@ public class PushRight extends AbstractTransition implements CustomTransition, S
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#render(java.awt.Graphics2D, java.awt.image.BufferedImage, java.awt.image.BufferedImage, double)
+	 * @see javafx.animation.Transition#interpolate(double)
 	 */
 	@Override
-	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
-		Shape shape = g2d.getClip();
-		if (image0 != null) {
-			int x = (int)Math.ceil(image0.getWidth() * pc);
-			g2d.setClip(0, 0, image0.getWidth(), image0.getHeight());
-			g2d.drawImage(image0, x, 0, null);
+	protected void interpolate(double frac) {
+		double x = 0;
+		if (this.type == TransitionType.IN) {
+			x = -this.node.getPrefWidth() * (1.0 - frac);
+		} else {
+			x = this.node.getPrefWidth() * frac;
 		}
-		if (this.type == TransitionType.IN && image1 != null) {
-			int x = (int)Math.ceil(-image1.getWidth() * (1.0 - pc));
-			g2d.setClip(0, 0, image1.getWidth(), image1.getHeight());
-			g2d.drawImage(image1, x, 0, null);
-		}
-		g2d.setClip(shape);
+		this.node.setLayoutX(x);
 	}
 }

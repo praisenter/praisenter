@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -36,6 +37,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextBoundsType;
+import javafx.scene.transform.Transform;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,6 +47,7 @@ import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SongSlide;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
@@ -63,7 +66,7 @@ import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 
-// FIXME we may just end up editing the slide types and regenerating the JavaFX UI for editing
+// FIXME we may just end up editing the slide types and regenerating the JavaFX UI for editing 
 public final class JavaFxSlideConverter {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -393,7 +396,7 @@ public final class JavaFxSlideConverter {
 			RadialGradient g = (RadialGradient)paint;
 			return from(g);
 		} else if (paint instanceof ImagePattern) {
-			// TODO may need to have subclass of Image that contains the media UUID
+			// TODO may need to have subclass of Image that contains the media UUID; the Image class is not final
 		}
 		return null;
 	}
@@ -434,10 +437,37 @@ public final class JavaFxSlideConverter {
 		}
 	}
 	
-	// nodes01
+	// nodes
 	
-	public JavaFxSlide to(Slide slide, boolean edit) {
+	// TODO will need parameters for song/bible or we force the placeholders to be replaced already
+	
+	public JavaFxSlide to(Slide slide, SlideMode mode, int placeHolders) {
 		// FIXME implement
+		
+		if (slide instanceof SongSlide) {
+			// look up the song
+			// if not found then what?
+			if (mode == SlideMode.PRESENT || mode == SlideMode.EDIT) {
+				// Note: EDIT in this context is edit of the slide, not the song
+				// then replace the placeholders specified in the placeHolders int
+				
+				// its possible the song is not found, so use the stored text in the placeholder
+				
+				// check for xml formatting and strip it
+			} else if (mode == SlideMode.MUSICIAN) {
+				// we need to format the "xml" properly with a TextPane or group of Text objects
+				
+				// in fact we probably want to have the song prompt to be statically configured some where with
+				// just a background color & text color (for high contrast)
+				
+				// FEATURE show a scan of the music or something side by side
+				
+				// we may want to show the musician slide before we show the main one or maybe show the whole song or
+				// the current verse + the next
+			}
+		}
+		
+		// then do normal slide conversion
 		return null;
 	}
 	
@@ -453,7 +483,8 @@ public final class JavaFxSlideConverter {
 		text.setWrappingWidth(pw);
 		text.setBoundsType(TextBoundsType.VISUAL);
 		
-//		component.getOrder() --- handled by order of nodes in scene graph
+		// component.getOrder()
+		// handled by order of nodes in scene graph
 
 		// component.getText()
 		String str = component.getText();
@@ -536,5 +567,14 @@ public final class JavaFxSlideConverter {
 		box.getChildren().add(text);
 		
 		return box;
+	}
+	
+	public Image thumbnail(Node node, double width, double height) {
+		SnapshotParameters params = new SnapshotParameters();
+		// TODO fill with the transparent background image
+		//params.setFill(fill);
+		// TODO scale to fit desired thumbnail size
+		//params.setTransform(Transform.scale(x, y));
+		return node.snapshot(params, null);
 	}
 }

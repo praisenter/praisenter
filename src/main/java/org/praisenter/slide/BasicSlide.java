@@ -23,9 +23,12 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.xml.adapters.PathXmlAdapter;
 
-// TODO we'll need specific slide classes to store stuff like songid, bible references, etc so they can be added to a slide show.  We'll use whatever placeholders that are on the slide to display the text.
 @XmlRootElement(name = "slide")
 @XmlAccessorType(XmlAccessType.NONE)
+@XmlSeeAlso({
+	SongSlide.class,
+	BibleSlide.class
+})
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion {
 	@XmlAttribute(name = "id", required = false)
 	final UUID id;
@@ -66,14 +69,51 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	int time;
 	
 	public BasicSlide() {
-		// this should be overwritten by jaxb when loaded
-		this.id = UUID.randomUUID();
-		
+		// JAXB should overwrite the id
+		this(UUID.randomUUID());
+	}
+	
+	BasicSlide(UUID id) {
+		this.id = id;
 		this.components = new ArrayList<SlideComponent>();
 		this.transition = -1;
 		this.easing = -1;
 		this.duration = -1;
 		this.time = -1;
+	}
+	
+	/**
+	 * Copies over the values of this slide to the given slide.
+	 * @param to the slide to copy to
+	 */
+	protected void copy(Slide to) {
+		// copy over the super class stuff
+		this.copy((SlideRegion)to);
+		// copy the components
+		for (int i = 0; i < this.components.size(); i++) {
+			to.addComponent(this.components.get(i).copy());
+		}
+		// copy other props
+		to.setTransition(this.transition);
+		to.setEasing(this.easing);
+		to.setDuration(this.duration);
+		to.setTime(this.time);
+		
+		// NOTE: path is NOT copied
+		// NOTE: this method should copy everything since it
+		// will be used by subclasses
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#copy()
+	 */
+	@Override
+	public BasicSlide copy() {
+		// NOTE: this generates a new id
+		BasicSlide slide = new BasicSlide();
+		// copy over the stuff
+		this.copy(slide);
+		return slide;
 	}
 	
 	@Override
@@ -166,6 +206,9 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		return components;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#moveComponentUp(org.praisenter.slide.SlideComponent)
+	 */
 	@Override
 	public void moveComponentUp(SlideComponent component) {
 		// move the given component up in the order
@@ -200,6 +243,9 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#moveComponentDown(org.praisenter.slide.SlideComponent)
+	 */
 	@Override
 	public void moveComponentDown(SlideComponent component) {
 		// move the given component down in the order
@@ -259,4 +305,16 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#hasPlaceholders()
+	 */
+	@Override
+	public boolean hasPlaceholders() {
+		for (SlideComponent component : this.components) {
+			if (TextPlaceholderComponent.class.isInstance(component)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

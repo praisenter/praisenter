@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.praisenter.Tag;
-import org.praisenter.javafx.FilterOption;
+import org.praisenter.javafx.Option;
 import org.praisenter.media.MediaType;
 
 import javafx.beans.property.ObjectProperty;
@@ -52,10 +52,10 @@ final class MediaFilter {
 	private final ObservableList<MediaListItem> filtered;
 	
 	/** The media type filter */
-	private final ObjectProperty<FilterOption<MediaType>> typeFilterOption;
+	private final ObjectProperty<Option<MediaType>> typeFilterOption;
 	
 	/** The tag filter */
-	private final ObjectProperty<FilterOption<Tag>> tagFilterOption;
+	private final ObjectProperty<Option<Tag>> tagFilterOption;
 	
 	/** The search */
 	private final StringProperty search;
@@ -76,32 +76,32 @@ final class MediaFilter {
 		this.master = master;
 		this.filtered = filtered;
 		
-		this.typeFilterOption = new SimpleObjectProperty<>(new FilterOption<>());
-		this.tagFilterOption = new SimpleObjectProperty<>(new FilterOption<>());
+		this.typeFilterOption = new SimpleObjectProperty<>(new Option<>());
+		this.tagFilterOption = new SimpleObjectProperty<>(new Option<>());
 		this.search = new SimpleStringProperty();
 		
 		this.searching = false;
 		
-		this.typeFilterOption.addListener(new ChangeListener<FilterOption<MediaType>>() {
+		this.typeFilterOption.addListener(new ChangeListener<Option<MediaType>>() {
 			@Override
-			public void changed(ObservableValue<? extends FilterOption<MediaType>> observable, FilterOption<MediaType> oldValue, FilterOption<MediaType> newValue) {
+			public void changed(ObservableValue<? extends Option<MediaType>> observable, Option<MediaType> oldValue, Option<MediaType> newValue) {
 				if (searching) return;
 				searching = true;
-				tagFilterOption.set(new FilterOption<>());
+				tagFilterOption.set(new Option<>());
 				search.set(null);
-				filter(newValue.getData(), null, null);
+				filter(newValue.getValue(), null, null);
 				searching = false;
 			}
 		});
 		
-		this.tagFilterOption.addListener(new ChangeListener<FilterOption<Tag>>() {
+		this.tagFilterOption.addListener(new ChangeListener<Option<Tag>>() {
 			@Override
-			public void changed(ObservableValue<? extends FilterOption<Tag>> observable, FilterOption<Tag> oldValue, FilterOption<Tag> newValue) {
+			public void changed(ObservableValue<? extends Option<Tag>> observable, Option<Tag> oldValue, Option<Tag> newValue) {
 				if (searching) return;
 				searching = true;
-				typeFilterOption.set(new FilterOption<>());
+				typeFilterOption.set(new Option<>());
 				search.set(null);
-				filter(null, newValue.getData(), null);
+				filter(null, newValue.getValue(), null);
 				searching = false;
 			}
 		});
@@ -111,8 +111,8 @@ final class MediaFilter {
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
 				if (searching) return;
 				searching = true;
-				typeFilterOption.set(new FilterOption<>());
-				tagFilterOption.set(new FilterOption<>());
+				typeFilterOption.set(new Option<>());
+				tagFilterOption.set(new Option<>());
 				filter(null, null, newValue);
 				searching = false;
 			}
@@ -123,8 +123,8 @@ final class MediaFilter {
 	 * Filter based on the current criteria.
 	 */
 	public final void filter() {
-		filter(this.typeFilterOption.get().getData(),
-			   this.tagFilterOption.get().getData(),
+		filter(this.typeFilterOption.get().getValue(),
+			   this.tagFilterOption.get().getValue(),
 			   this.search.get());
 	}
 	
@@ -150,27 +150,27 @@ final class MediaFilter {
 		this.filtered.setAll(filtered);
 	}
 
-	public void setTypeFilterOption(FilterOption<MediaType> type) {
+	public void setTypeFilterOption(Option<MediaType> type) {
 		this.typeFilterOption.set(type);
 	}
 	
-	public FilterOption<MediaType> getTypeFilterOption() {
+	public Option<MediaType> getTypeFilterOption() {
 		return typeFilterOption.get();
 	}
 
-	public ObjectProperty<FilterOption<MediaType>> typeFilterOptionProperty() {
+	public ObjectProperty<Option<MediaType>> typeFilterOptionProperty() {
 		return this.typeFilterOption;
 	}
 
-	public void setTagFilterOption(FilterOption<Tag> tag) {
+	public void setTagFilterOption(Option<Tag> tag) {
 		this.tagFilterOption.set(tag);
 	}
 	
-	public FilterOption<Tag> getTagFilterOption() {
+	public Option<Tag> getTagFilterOption() {
 		return tagFilterOption.get();
 	}
 
-	public ObjectProperty<FilterOption<Tag>> tagFilterOptionProperty() {
+	public ObjectProperty<Option<Tag>> tagFilterOptionProperty() {
 		return this.tagFilterOption;
 	}
 	

@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.utility;
 
 import java.lang.management.ManagementFactory;
@@ -6,24 +30,73 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.util.List;
 
+import org.praisenter.Constants;
+
+/**
+ * Class containing properties/configuration that is set at runtime.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class RuntimeProperties {
+	/** The default file system */
 	private static final FileSystem FILE_SYSTEM = FileSystems.getDefault();
 	
+	/** 
+	 * The new line separator for the system
+	 * <p>
+	 * NOTE: Callers should instead use {@link Constants#NEW_LINE} when creating
+	 * new content for the best portability between systems.
+	 */
 	public static final String NEW_LINE_SEPARATOR = getNewLineSeparator();
+	
+	/** The system path separator */
 	public static final String PATH_SEPARATOR = FILE_SYSTEM.getSeparator();
+	
+	/** The java runtime version */
 	public static final String JAVA_VERSION = getJavaVersion();
+	
+	/** The java vendor */
 	public static final String JAVA_VENDOR = getJavaVendor();
+	
+	/** The operating system */
 	public static final String OPERATING_SYSTEM = getOperatingSystem();
+	
+	/** True if the operating system is Windows */
 	public static final boolean IS_WINDOWS_OS = isWindows();
+	
+	/** True if the operating system is Mac OS */
 	public static final boolean IS_MAC_OS = isMac();
+	
+	/** True if the operating system is a Linux system */
 	public static final boolean IS_LINUX_OS = isLinux();
+	
+	/** The system architecture */
 	public static final String ARCHITECTURE = getArchitecture();
+	
+	/** 
+	 * The path to the user's home directory
+	 * <p>
+	 * For example:<br>
+	 * C:\Users\name\<br>
+	 * /user/home/dir
+	 */
 	public static final String USER_HOME = getUserHomeDirectory();
+	
+	/** The path to where the JVM was started from */
 	public static final String JAVA_HOME = getJavaHomeDirectory();
+	
+	/** Any JVM arguments */
 	public static final String JVM_ARGUMENTS = getJvmArguments();
 	
+	/** Hidden default constructor */
 	private RuntimeProperties() {}
 	
+	/**
+	 * Returns the system new line separator.
+	 * <p>
+	 * Returns '\n' if an exception occurs.
+	 * @return String
+	 */
 	private static final String getNewLineSeparator() {
 		try {
 			return System.getProperty("line.separator");
@@ -77,7 +150,6 @@ public final class RuntimeProperties {
 	/**
 	 * Returns true if the operating system is Windows.
 	 * @return boolean
-	 * @since 2.0.1
 	 */
 	private static final boolean isWindows() {
 		try{
@@ -106,7 +178,6 @@ public final class RuntimeProperties {
 	/**
 	 * Returns true if the operating system is Linux.
 	 * @return boolean
-	 * @since 2.0.1
 	 */
 	private static final boolean isLinux() {
 		try{
@@ -163,7 +234,6 @@ public final class RuntimeProperties {
 	/**
 	 * Returns a string of all the JVM arguments used to start this VM.
 	 * @return String
-	 * @since 2.0.1
 	 */
 	private static final String getJvmArguments() {
 		RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();

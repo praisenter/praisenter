@@ -50,10 +50,12 @@ public final class Lyrics implements SongOutput, Localized {
 	/** The edit format */
 	private static final String EDIT_FORMAT = "<verse name=\"{0}\" />";
 	
+	// TODO auto-complete text box
 	/** The language */
 	@XmlAttribute(name = "language", required = false)
 	String language;
-	
+
+	// TODO auto-complete text box
 	/** The transliteration */
 	@XmlAttribute(name = "transliteration", required = false)
 	String transliteration;

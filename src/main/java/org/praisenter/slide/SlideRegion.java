@@ -30,4 +30,8 @@ public interface SlideRegion {
 	// transition
 	
 	public abstract boolean isTransitionRequired(SlideRegion region);
+	
+	// copying
+	
+	public abstract SlideRegion copy();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -24,37 +24,34 @@
  */
 package org.praisenter.javafx.transition;
 
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.Arc2D;
-import java.awt.geom.Area;
-import java.awt.image.BufferedImage;
-import java.io.Serializable;
+import javafx.scene.layout.Region;
+import javafx.scene.shape.Arc;
+import javafx.scene.shape.ArcType;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
+import javafx.util.Duration;
 
 /**
- * Represents a swipe clockwise {@link CustomTransition}.
+ * Clips the node by a clockwise sweep.
  * @author William Bittle
- * @version 2.0.3
- * @since 2.0.3
+ * @version 3.0.0
  */
-public class SwipeClockwise extends AbstractTransition implements CustomTransition, Serializable {
-	/** The version id */
-	private static final long serialVersionUID = 5674224321005962262L;
-	
-	/** The {@link SwipeClockwise} transition id */
+public final class SwipeClockwise extends CustomTransition {
+	/** The transition id */
 	public static final int ID = 34;
 	
 	/**
 	 * Full constructor.
+	 * @param node the node to animate
 	 * @param type the transition type
+	 * @param duration the transition duration
 	 */
-	public SwipeClockwise(TransitionType type) {
-		super(type);
-	} 
+	public SwipeClockwise(Region node, TransitionType type, Duration duration) {
+		super(node, type, duration);
+	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#getTransitionId()
+	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
 	 */
 	@Override
 	public int getId() {
@@ -62,47 +59,26 @@ public class SwipeClockwise extends AbstractTransition implements CustomTransiti
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.transitions.Transition#render(java.awt.Graphics2D, java.awt.image.BufferedImage, java.awt.image.BufferedImage, double)
+	 * @see javafx.animation.Transition#interpolate(double)
 	 */
 	@Override
-	public void render(Graphics2D g2d, BufferedImage image0, BufferedImage image1, double pc) {
-		// clamp the percentage
-		pc = clamp((float)pc, 0.0f, 1.0f);
-
-		// save the current clip
-		Shape clip = g2d.getClip();
+	protected void interpolate(double frac) {
+		double w = this.node.getPrefWidth();
+		double h = this.node.getPrefHeight();
+		double hw = w * 0.5;
+		double hh = h * 0.5;
+		double r = Math.sqrt(hw * hw + hh * hh);
 		
-		// build the clip shape
-		double w = image1.getWidth();
-		double h = image1.getHeight();
-		double a = -2.0 * Math.PI * pc;
-		double hyp = Math.hypot(w, h);
-		Arc2D.Double arc = new Arc2D.Double(
-				w * 0.5 - hyp * 0.5,
-				h * 0.5 - hyp * 0.5,
-				hyp,
-				hyp,
-				90.0,
-				Math.toDegrees(a),
-				Arc2D.PIE);
+		Rectangle all = new Rectangle(0, 0, w, h);
+		Arc arc = new Arc(hw, hh, r, r, 90.0, -360 * frac);
+		arc.setType(ArcType.ROUND);
 		
+		Shape clip = null;
 		if (this.type == TransitionType.IN) {
-			// draw the old
-			g2d.drawImage(image0, 0, 0, null);
-
-			// draw the new
-			g2d.setClip(arc);
-			g2d.drawImage(image1, 0, 0, null);
+			clip = arc;
 		} else {
-			// do an xor clipping op here
-			Area area = new Area(new Rectangle(0, 0, image0.getWidth(), image0.getHeight()));
-			area.exclusiveOr(new Area(arc));
-			g2d.setClip(area);
-				
-			g2d.drawImage(image0, 0, 0, null);
+			clip = Shape.subtract(all, arc);
 		}
-
-		// restore the old clip
-		g2d.setClip(clip);
+		this.node.setClip(clip);
 	}
 }

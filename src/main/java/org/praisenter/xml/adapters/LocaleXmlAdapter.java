@@ -22,25 +22,31 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.transition;
+package org.praisenter.xml.adapters;
 
-import javafx.scene.layout.Region;
-import javafx.util.Duration;
+import java.util.Locale;
+
+import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 /**
- * Represents a transition that performs a clipping operation
- * to produce the animation.
+ * Xml adapter for Path objects.
  * @author William Bittle
  * @version 3.0.0
  */
-public abstract class ClipTransition extends CustomTransition {
-	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
+public final class LocaleXmlAdapter extends XmlAdapter<String, Locale> {
+	/* (non-Javadoc)
+	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
 	 */
-	public ClipTransition(Region node, TransitionType type, Duration duration) {
-		super(node, type, duration);
+	@Override
+	public String marshal(Locale locale) throws Exception {
+		return locale != null ? locale.toLanguageTag() : "";
+	}
+
+	/* (non-Javadoc)
+	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#unmarshal(java.lang.Object)
+	 */
+	@Override
+	public Locale unmarshal(String locale) throws Exception {
+		return Locale.forLanguageTag(locale);
 	}
 }

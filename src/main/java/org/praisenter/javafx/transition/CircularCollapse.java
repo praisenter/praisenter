@@ -35,7 +35,7 @@ import javafx.util.Duration;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class CircularCollapse extends ClipTransition {
+public final class CircularCollapse extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 51;
 	

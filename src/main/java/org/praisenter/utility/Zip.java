@@ -33,8 +33,22 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+/**
+ * Class used to manipulate zip files.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class Zip {
-
+	/** Hidden default constructor */
+	private Zip() {}
+	
+	/**
+	 * Unzips the given file into the target directory.
+	 * @param source the zip file path
+	 * @param target the target directory path
+	 * @throws ZipException if an error occurs unpacking the zip
+	 * @throws IOException if an IO error occurs
+	 */
 	public static final void unzip(Path source, Path target) throws ZipException, IOException {
 		// get a file reference to the zip
 		try (ZipFile zipFile = new ZipFile(source.toFile())) {

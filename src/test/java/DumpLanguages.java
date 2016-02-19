@@ -15,5 +15,13 @@ public class DumpLanguages {
 		for (Locale locale : locales) {
 			System.out.println(locale.getDisplayName() + " " + locale.getLanguage() + "_" + locale.getCountry() + "_" + locale.getVariant());
 		}
+		
+		
+		Locale test1 = new Locale("ger");
+		Locale test2 = new Locale("ara");
+		System.out.println(test2.getLanguage());
+		System.out.println(test2.getCountry());
+		System.out.println(test2.toLanguageTag());
+		System.out.println(test2.getISO3Language());
 	}
 }

@@ -44,6 +44,20 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	@XmlJavaTypeAdapter(value = SlidePaintXmlAdapter.class)
 	SlidePaint background;
 	
+	/**
+	 * Copies over the values of this region to the given region.
+	 * @param to the region to copy to
+	 */
+	protected void copy(SlideRegion to) {
+		// shouldn't need a deep copy of any of these
+		to.setX(this.x);
+		to.setY(this.y);
+		to.setWidth(this.width);
+		to.setHeight(this.height);
+		to.setBorder(this.border);
+		to.setBackground(this.background);
+	}
+	
 	@Override
 	public int getX() {
 		return this.x;

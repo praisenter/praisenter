@@ -27,16 +27,30 @@ package org.praisenter;
 import org.praisenter.utility.RuntimeProperties;
 
 // TODO verify logging configuration
-// TODO setProperty("derby.stream.error.file", Constants.DATABASE_LOG_FILE_PATH);
+// TODO set derby log directory: setProperty("derby.stream.error.file", Constants.DATABASE_LOG_FILE_PATH);
+
+/**
+ * Class containing Praisenter constants.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class Constants {
+	/** Hidden constructor */
+	private Constants() {}
+	
+	/** The version string */
 	public static final String VERSION = "3.0.0";
 	
+	/** The application name */
 	public static final String NAME = "Praisenter";
 	
 	/** The new line character should be consistent to avoid issues cross-platform */
 	public static final String NEW_LINE = "\n";
 	
+	/** The relative path to the root of all the Praisenter files */
 	public static final String ROOT_RELATIVE_PATH = "Praisenter3" + RuntimeProperties.PATH_SEPARATOR;
+	
+	/** The absolute path to the root of all the Praisenter files */
 	public static final String ROOT_PATH = RuntimeProperties.USER_HOME.isEmpty() ? 
 			// Praisenter3/
 			ROOT_RELATIVE_PATH :
@@ -47,29 +61,32 @@ public final class Constants {
 	// MEDIA
 
 	// /media
+	/** The relative path to the media folder */
 	public static final String MEDIA_RELATIVE_PATH = "media" + RuntimeProperties.PATH_SEPARATOR;
 	
 	// /user/home/dir/Praisenter3/media/
+	/** The absolute path to the media folder */
 	public static final String MEDIA_ABSOLUTE_PATH = Constants.ROOT_PATH + MEDIA_RELATIVE_PATH;
 	
 	///////////////////////////
 	// SONGS
 	
 	// /songs
+	/** The relative path to the songs folder */
 	public static final String SONGS_RELATIVE_PATH = "songs" + RuntimeProperties.PATH_SEPARATOR;
 	
 	// /user/home/dir/Praisenter3/songs
+	/** The absolute path to the media folder */
 	public static final String SONGS_ABSOLUTE_PATH = Constants.ROOT_PATH + SONGS_RELATIVE_PATH;
 
 	///////////////////////////
 	// SLIDES
 	
 	// /slides
+	/** The relative path to the slides folder */
 	public static final String SLIDES_RELATIVE_PATH = "slides" + RuntimeProperties.PATH_SEPARATOR;
 	
 	// /user/home/dir/Praisenter3/slides
+	/** The absolute path to the media folder */
 	public static final String SLIDES_ABSOLUTE_PATH = Constants.ROOT_PATH + SLIDES_RELATIVE_PATH;
-	
-	/** Hidden constructor */
-	private Constants() {}
 }

@@ -32,7 +32,7 @@ import javafx.util.Duration;
  * @author William Bittle
  * @version 3.0.0
  */
-public abstract class AbstractBlindsTransition extends ClipTransition {
+public abstract class AbstractBlindsTransition extends CustomTransition {
 	/** The vertical blind count factor: 12 bars for 1280 pixels */
 	protected static final double BLIND_COUNT_FACTOR = 12.0 / 1280.0;
 

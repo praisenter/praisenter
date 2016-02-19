@@ -30,12 +30,12 @@ import javafx.scene.shape.Shape;
 import javafx.util.Duration;
 
 /**
- * Represents a horizontal split collapse {@link CustomTransition}.
+ * Clips the node by two horizontal rectangles (top and bottom) who's heights converge on the center.
  * @author William Bittle
  * @version 1.0.0
  * @since 1.0.0
  */
-public final class HorizontalSplitCollapse extends ClipTransition {
+public final class HorizontalSplitCollapse extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 43;
 	

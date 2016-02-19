@@ -21,7 +21,7 @@ import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
 import org.praisenter.javafx.Alerts;
-import org.praisenter.javafx.FilterOption;
+import org.praisenter.javafx.Option;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Testing;
 import org.praisenter.media.Media;
@@ -123,27 +123,27 @@ public class MediaLibraryPane extends Application {
         
         ObservableSet<Tag> allTags = FXCollections.observableSet(tags);
 
-        ObservableList<FilterOption<MediaType>> opTypes = FXCollections.observableArrayList();
+        ObservableList<Option<MediaType>> opTypes = FXCollections.observableArrayList();
         // add the all option
-        opTypes.add(new FilterOption<>());
+        opTypes.add(new Option<>());
         // add the current options
-        opTypes.addAll(Arrays.asList(MediaType.values()).stream().map(t -> new FilterOption<MediaType>(t.getName(), t)).collect(Collectors.toList()));
+        opTypes.addAll(Arrays.asList(MediaType.values()).stream().map(t -> new Option<MediaType>(t.getName(), t)).collect(Collectors.toList()));
         
-        ObservableList<FilterOption<Tag>> opTags = FXCollections.observableArrayList();
+        ObservableList<Option<Tag>> opTags = FXCollections.observableArrayList();
         // add the all option
-        opTags.add(new FilterOption<>());
+        opTags.add(new Option<>());
         // add the current options
-        opTags.addAll(allTags.stream().map(t -> new FilterOption<Tag>(t.getName(), t)).collect(Collectors.toList()));
+        opTags.addAll(allTags.stream().map(t -> new Option<Tag>(t.getName(), t)).collect(Collectors.toList()));
         // add a listener for more tags being added
         allTags.addListener(new SetChangeListener<Tag>() {
         	@Override
         	public void onChanged(SetChangeListener.Change<? extends Tag> change) {
         		if (change.wasRemoved()) {
-        			opTags.removeIf(fo -> fo.getData().equals(change.getElementRemoved()));
+        			opTags.removeIf(fo -> fo.getValue().equals(change.getElementRemoved()));
         		}
         		if (change.wasAdded()) {
         			Tag tag = change.getElementAdded();
-        			opTags.add(new FilterOption<Tag>(tag.getName(), tag));
+        			opTags.add(new Option<Tag>(tag.getName(), tag));
         		}
         	}
 		});
@@ -335,13 +335,13 @@ public class MediaLibraryPane extends Application {
         this.filter = new MediaFilter(master, display);
         
         Label lblFilter = new Label("filter by:");
-        ComboBox<FilterOption<MediaType>> cbTypes = new ComboBox<FilterOption<MediaType>>(opTypes);
-        cbTypes.setValue(new FilterOption<>());
+        ComboBox<Option<MediaType>> cbTypes = new ComboBox<Option<MediaType>>(opTypes);
+        cbTypes.setValue(new Option<>());
         cbTypes.valueProperty().bindBidirectional(this.filter.typeFilterOptionProperty());
         
-        ComboBox<FilterOption<Tag>> cbTags = new ComboBox<FilterOption<Tag>>(opTags);
+        ComboBox<Option<Tag>> cbTags = new ComboBox<Option<Tag>>(opTags);
         cbTags.valueProperty().bindBidirectional(this.filter.tagFilterOptionProperty());
-        cbTags.setValue(new FilterOption<>());
+        cbTags.setValue(new Option<>());
         
         Label lblSort = new Label("sort by:");
         ChoiceBox<String> cbSort = new ChoiceBox<String>(FXCollections.observableArrayList("Name", "Type", "Date Added"));

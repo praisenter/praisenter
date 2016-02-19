@@ -63,18 +63,18 @@ public class TransitionTest extends Application {
 		stack.getChildren().add(s1);
 		
 		// now say we want to transition a new piece
-		// TODO scaling
+		// TODO scaling to fit window bounds
 		VBox s2 = new VBox();
 		s2.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0, 0.5), null, null)));
 		JavaFxNodeHelper.setSize(s2, bounds.getWidth(), bounds.getHeight());
 		
 		stack.getChildren().add(s2);
 		
-		// TODO need to check if Swap, then just remove the other node
+		// TODO need listen for completion so we can remove the outgoing node
 		// if (Swap.ID == slide.transition)
 		// TODO based on slide position and size, determine if we need to do a parallel or sequential transition
-		Transition tx = Transitions.getHorizontalSplitCollapse(s1, s2, Duration.millis(2000), Easings.getBounce(EasingType.IN), true);
-		
+		Transition tx = Transitions.getZoomOut(s2, s1, Duration.millis(1000), Easings.getQuadratic(EasingType.IN), true);
+//		Transition tx = Transitions.getSwap(s2, s1);
 		Scene scene = new Scene(stack, Color.TRANSPARENT);
 		other.setScene(scene);
 		other.show();

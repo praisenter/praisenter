@@ -32,16 +32,17 @@ import javafx.util.Duration;
  * @author William Bittle
  * @version 3.0.0
  */
-public class Swap extends CustomTransition {
+public final class Swap extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 10;
 	
 	/**
 	 * Full constructor.
-	 * @param node the node
+	 * @param node the node to animate
+	 * @param type the transition type
 	 */
-	public Swap(Region node) {
-		super(node, TransitionType.IN, Duration.ZERO);
+	public Swap(Region node, TransitionType type) {
+		super(node, type, Duration.ONE);
 	}
 
 	/* (non-Javadoc)
@@ -54,5 +55,9 @@ public class Swap extends CustomTransition {
 	
 	//no interpolation required
 	@Override
-	protected void interpolate(double frac) {}
+	protected void interpolate(double frac) {
+		if (this.type != TransitionType.IN) {
+			this.node.setVisible(false);
+		}
+	}
 }

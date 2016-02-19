@@ -28,11 +28,11 @@ import javafx.scene.layout.Region;
 import javafx.util.Duration;
 
 /**
- * Transition for push down transition.
+ * Translates the node's y coordinate down.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class PushDown extends TransformTransition {
+public final class PushDown extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 63;
 	

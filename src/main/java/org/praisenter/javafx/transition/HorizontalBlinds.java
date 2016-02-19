@@ -72,7 +72,7 @@ public final class HorizontalBlinds extends AbstractBlindsTransition {
 		// for the OUT transition we will add areas
 		
 		// compute the number of blinds
-		final int blinds = (int)Math.ceil((double)h * BLIND_COUNT_FACTOR);
+		final int blinds = (int)Math.ceil(h * BLIND_COUNT_FACTOR);
 		double y = 0;
 		// compute the blind width
 		double bh = h / blinds;
