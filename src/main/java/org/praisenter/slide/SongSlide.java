@@ -48,7 +48,9 @@ public final class SongSlide extends TemplatedSlide implements Slide, SlideRegio
 		// set the template id
 		super(getRootTemplateId(slide));
 		// copy the slide to this slide
-		slide.copy((Slide)this);
+		if (slide != null) {
+			slide.copy((Slide)this);
+		}
 		// set the song fields
 		this.songId = songId;
 		this.verse = verse;

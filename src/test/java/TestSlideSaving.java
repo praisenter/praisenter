@@ -70,7 +70,7 @@ public class TestSlideSaving {
 		slide.setWidth(400);
 		slide.setX(0);
 		slide.setY(0);
-		slide.setTransition(Easings.getLinear().getId());
+		slide.setTransitionId(Easings.getLinear().getId());
 		slide.setPath(Paths.get("/test/man"));
 		
 		MediaComponent med = new MediaComponent();

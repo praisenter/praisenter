@@ -1,16 +1,39 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.slide;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -18,11 +41,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.praisenter.ReadonlyIterator;
 import org.praisenter.slide.text.BasicTextComponent;
-import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.slide.text.DateTimeComponent;
+import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.xml.adapters.PathXmlAdapter;
 
+/**
+ * Implementation of the {@link Slide} interface.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 @XmlRootElement(name = "slide")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({
@@ -30,56 +59,70 @@ import org.praisenter.xml.adapters.PathXmlAdapter;
 	BibleSlide.class
 })
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion {
+	/** The slide id */
 	@XmlAttribute(name = "id", required = false)
 	final UUID id;
 	
+	/** The slide format version */
 	@XmlAttribute(name = "version", required = false)
 	final String version = Slide.VERSION;
 	
+	/** The slide components */
 	@XmlElementRefs({
 		@XmlElementRef(type = MediaComponent.class),
 		@XmlElementRef(type = BasicTextComponent.class),
 		@XmlElementRef(type = DateTimeComponent.class),
 		@XmlElementRef(type = TextPlaceholderComponent.class)
 	})
-	//@XmlElement(name = "component", required = false)
 	@XmlElementWrapper(name = "components", required = false)
 	final List<SlideComponent> components;
 
 	// note: path wont be assigned until saved
 	
+	/** The slide path; can be null */
 	@XmlAttribute(name = "path", required = false)
 	@XmlJavaTypeAdapter(value = PathXmlAdapter.class)
 	Path path;
 	
 	// transition
 	
-	@XmlAttribute(name = "transition", required = false)
-	int transition;
+	/** The transition id */
+	@XmlAttribute(name = "transitionId", required = false)
+	int transitionId;
 	
-	@XmlAttribute(name = "easing", required = false)
-	int easing;
+	/** The easing id */
+	@XmlAttribute(name = "easingId", required = false)
+	int easingId;
 	
-	@XmlAttribute(name = "duration", required = false)
-	int duration;
+	/** The transition duration in milliseconds */
+	@XmlAttribute(name = "transitionDuration", required = false)
+	long transitionDuration;
 	
 	// other
 	
+	/** The time the slide will show in milliseconds */
 	@XmlAttribute(name = "time", required = false)
-	int time;
+	long time;
 	
+	/**
+	 * Default constructor.
+	 */
 	public BasicSlide() {
 		// JAXB should overwrite the id
 		this(UUID.randomUUID());
 	}
 	
+	/**
+	 * Internal constructor for setting an explicit id.
+	 * @param id the id
+	 */
 	BasicSlide(UUID id) {
 		this.id = id;
 		this.components = new ArrayList<SlideComponent>();
-		this.transition = -1;
-		this.easing = -1;
-		this.duration = -1;
-		this.time = -1;
+		this.transitionId = Slide.NOT_SET;
+		this.easingId = Slide.NOT_SET;
+		this.transitionDuration = Slide.DEFAULT_TRANSITION_DURATION;
+		this.time = Slide.TIME_FOREVER;
 	}
 	
 	/**
@@ -94,9 +137,9 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 			to.addComponent(this.components.get(i).copy());
 		}
 		// copy other props
-		to.setTransition(this.transition);
-		to.setEasing(this.easing);
-		to.setDuration(this.duration);
+		to.setTransitionId(this.transitionId);
+		to.setEasingId(this.easingId);
+		to.setTransitionDuration(this.transitionDuration);
 		to.setTime(this.time);
 		
 		// NOTE: path is NOT copied
@@ -116,66 +159,105 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		return slide;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getId()
+	 */
 	@Override
 	public UUID getId() {
 		return this.id;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getPath()
+	 */
 	@Override
 	public Path getPath() {
 		return this.path;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#setPath(java.nio.file.Path)
+	 */
 	@Override
 	public void setPath(Path path) {
 		this.path = path;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getVersion()
+	 */
 	@Override
 	public String getVersion() {
 		return this.version;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getTransitionId()
+	 */
 	@Override
-	public int getTransition() {
-		return transition;
+	public int getTransitionId() {
+		return transitionId;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#setTransitionId(int)
+	 */
 	@Override
-	public void setTransition(int transition) {
-		this.transition = transition;
+	public void setTransitionId(int transition) {
+		this.transitionId = transition;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getEasingId()
+	 */
 	@Override
-	public int getEasing() {
-		return easing;
+	public int getEasingId() {
+		return easingId;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#setEasingId(int)
+	 */
 	@Override
-	public void setEasing(int easing) {
-		this.easing = easing;
+	public void setEasingId(int easing) {
+		this.easingId = easing;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getTransitionDuration()
+	 */
 	@Override
-	public int getDuration() {
-		return duration;
+	public long getTransitionDuration() {
+		return transitionDuration;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#setTransitionDuration(long)
+	 */
 	@Override
-	public void setDuration(int duration) {
-		this.duration = duration;
+	public void setTransitionDuration(long duration) {
+		this.transitionDuration = duration;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getTime()
+	 */
 	@Override
-	public int getTime() {
+	public long getTime() {
 		return time;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#setTime(long)
+	 */
 	@Override
-	public void setTime(int time) {
+	public void setTime(long time) {
 		this.time = time;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#addComponent(org.praisenter.slide.SlideComponent)
+	 */
 	@Override
 	public void addComponent(SlideComponent component) {
 		int order = this.getNextIndex();
@@ -184,17 +266,26 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		this.sortComponentsByOrder(this.components);
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#removeComponent(org.praisenter.slide.SlideComponent)
+	 */
 	@Override
 	public boolean removeComponent(SlideComponent component) {
 		// no re-sort required here
 		return this.components.remove(component);
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getComponentIterator()
+	 */
 	@Override
-	public List<SlideComponent> getComponents() {
-		return this.components;
+	public Iterator<SlideComponent> getComponentIterator() {
+		return new ReadonlyIterator<SlideComponent>(this.components.iterator());
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getComponents(java.lang.Class)
+	 */
 	@Override
 	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz) {
 		List<E> components = new ArrayList<E>();
@@ -316,5 +407,22 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 			}
 		}
 		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#fit(int, int)
+	 */
+	@Override
+	public void fit(int width, int height) {
+		// compute the resize percentages
+		double pw = (double)width / (double)this.width;
+		double ph = (double)height / (double)this.height;
+		// set the slide size
+		this.width = width;
+		this.height = height;
+		// set the sizes for the components
+		for (SlideComponent component : this.components) {
+			component.adjust(pw, ph);
+		}
 	}
 }

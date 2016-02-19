@@ -47,6 +47,7 @@ import org.praisenter.slide.graphics.SlidePaint;
  * <li>A video paint is only compatible with backgrounds and the {@link MediaComponent} (i.e. not borders, text, etc.).
  * <li>An image paint is compatible with everything backgrounds, borders, etc.
  * </ol>
+ * In the case that {@link ScaleType#NONE} is chosen, the media will be positioned top-left.
  * @author William Bittle
  * @version 3.0.0
  */

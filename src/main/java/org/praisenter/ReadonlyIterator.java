@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2011-2013 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -22,32 +22,58 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide;
+package org.praisenter;
 
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-
-import org.praisenter.slide.graphics.AbstractSlidePaint;
-import org.praisenter.slide.graphics.SlidePaint;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
- * Xml adapter for the {@link SlidePaint} interface (JAXB doesn't work well with interfaces).
+ * A wrapper class to make an existing iterator a readonly iterator.
  * @author William Bittle
  * @version 3.0.0
+ * @param <E> the item type
  */
-public class SlidePaintXmlAdapter extends XmlAdapter<AbstractSlidePaint, SlidePaint> {
+public final class ReadonlyIterator<E> implements Iterator<E> {
+	/** The writable iterator */
+	private final Iterator<E> iterator;
+	
+	/**
+	 * Wraps the given iterator making it readonly.
+	 * @param iterator the iterator
+	 */
+	public ReadonlyIterator(Iterator<E> iterator) {
+		this.iterator = iterator;
+	}
+	
+	/**
+	 * Wraps the given collection's iterator making it readonly.
+	 * @param items the collection
+	 */
+	public ReadonlyIterator(Collection<E> items) {
+		this.iterator = items.iterator();
+	}
+	
 	/* (non-Javadoc)
-	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
+	 * @see java.util.Iterator#hasNext()
 	 */
 	@Override
-	public AbstractSlidePaint marshal(SlidePaint paint) throws Exception {
-		return (AbstractSlidePaint)paint;
+	public boolean hasNext() {
+		return this.iterator.hasNext();
 	}
 
 	/* (non-Javadoc)
-	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#unmarshal(java.lang.Object)
+	 * @see java.util.Iterator#next()
 	 */
 	@Override
-	public SlidePaint unmarshal(AbstractSlidePaint paint) throws Exception {
-		return paint;
+	public E next() {
+		return this.iterator.next();
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.util.Iterator#remove()
+	 */
+	@Override
+	public void remove() {
+		throw new UnsupportedOperationException();
 	}
 }

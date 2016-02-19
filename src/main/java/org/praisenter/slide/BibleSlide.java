@@ -50,7 +50,9 @@ public final class BibleSlide extends TemplatedSlide implements Slide, SlideRegi
 		// set the template id
 		super(getRootTemplateId(slide));
 		// copy the slide to this slide
-		slide.copy((Slide)this);
+		if (slide != null) {
+			slide.copy((Slide)this);
+		}
 		// set the bible fields
 		this.bookCode = bookCode;
 		this.chapter = chapter;
