@@ -39,13 +39,11 @@ import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.ReadonlyIterator;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
-import org.praisenter.xml.adapters.PathXmlAdapter;
 
 /**
  * Implementation of the {@link Slide} interface.
@@ -77,12 +75,13 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@XmlElementWrapper(name = "components", required = false)
 	final List<SlideComponent> components;
 
-	// note: path wont be assigned until saved
-	
+	// for internal use really
 	/** The slide path; can be null */
-	@XmlAttribute(name = "path", required = false)
-	@XmlJavaTypeAdapter(value = PathXmlAdapter.class)
 	Path path;
+	
+	/** The slide name */
+	@XmlAttribute(name = "name")
+	String name;
 	
 	// transition
 	
@@ -165,6 +164,22 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@Override
 	public UUID getId() {
 		return this.id;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getName()
+	 */
+	@Override
+	public String getName() {
+		return this.name;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#setName(java.lang.String)
+	 */
+	@Override
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	/* (non-Javadoc)

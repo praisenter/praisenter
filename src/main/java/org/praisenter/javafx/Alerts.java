@@ -62,7 +62,7 @@ public final class Alerts {
 			String title,
 			String header,
 			String content,
-			Exception... exceptions) {
+			Throwable... exceptions) {
 		
 		Alert alert = new Alert(AlertType.ERROR);
 		alert.setTitle(title == null ? Translations.getTranslation("error.alert.title") : title);
@@ -72,7 +72,7 @@ public final class Alerts {
 		// create expandable section with the exceptions in it
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
-		for (Exception ex : exceptions) {
+		for (Throwable ex : exceptions) {
 			ex.printStackTrace(pw);
 			pw.println();
 			pw.println();

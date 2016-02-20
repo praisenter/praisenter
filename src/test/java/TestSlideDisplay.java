@@ -115,7 +115,7 @@ public class TestSlideDisplay extends Application {
 				true);
 		txt.setBackground(mo);
 		
-		PraisenterContext context = new PraisenterContext(library, null, null);
+		PraisenterContext context = new PraisenterContext(library, null, null, null);
 		JavaFxSlideConverter converter = new JavaFxSlideConverter(context);
 		
 		// test speed of conversion and snapshots

@@ -46,6 +46,9 @@ public final class Constants {
 	
 	/** The new line character should be consistent to avoid issues cross-platform */
 	public static final String NEW_LINE = "\n";
+
+	/** The maximum number of codepoints (extended set of characters) in a file name */
+	public static final int MAX_FILE_NAME_CODEPOINTS = 34;
 	
 	/** The relative path to the root of all the Praisenter files */
 	public static final String ROOT_RELATIVE_PATH = "Praisenter3" + RuntimeProperties.PATH_SEPARATOR;
@@ -56,6 +59,12 @@ public final class Constants {
 			ROOT_RELATIVE_PATH :
 			// /user/home/dir/Praisenter3/
 			RuntimeProperties.USER_HOME + RuntimeProperties.PATH_SEPARATOR + ROOT_RELATIVE_PATH;
+	
+	public static final String LOGS_RELATIVE_PATH = "logs" + RuntimeProperties.PATH_SEPARATOR;
+	
+	public static final String LOGS_ABSOLUTE_PATH = Constants.ROOT_PATH + "logs";
+	
+	public static final String DATABASE_LOG_FILE_PATH = Constants.LOGS_ABSOLUTE_PATH + RuntimeProperties.PATH_SEPARATOR + "derby.log";
 	
 	///////////////////////////
 	// MEDIA
@@ -68,6 +77,9 @@ public final class Constants {
 	/** The absolute path to the media folder */
 	public static final String MEDIA_ABSOLUTE_PATH = Constants.ROOT_PATH + MEDIA_RELATIVE_PATH;
 	
+	/** The media thumbnail size */
+	public static final int MEDIA_THUMBNAIL_SIZE = 100;
+	
 	///////////////////////////
 	// SONGS
 	
@@ -76,7 +88,7 @@ public final class Constants {
 	public static final String SONGS_RELATIVE_PATH = "songs" + RuntimeProperties.PATH_SEPARATOR;
 	
 	// /user/home/dir/Praisenter3/songs
-	/** The absolute path to the media folder */
+	/** The absolute path to the songs folder */
 	public static final String SONGS_ABSOLUTE_PATH = Constants.ROOT_PATH + SONGS_RELATIVE_PATH;
 
 	///////////////////////////
@@ -87,6 +99,17 @@ public final class Constants {
 	public static final String SLIDES_RELATIVE_PATH = "slides" + RuntimeProperties.PATH_SEPARATOR;
 	
 	// /user/home/dir/Praisenter3/slides
-	/** The absolute path to the media folder */
+	/** The absolute path to the slides folder */
 	public static final String SLIDES_ABSOLUTE_PATH = Constants.ROOT_PATH + SLIDES_RELATIVE_PATH;
+	
+	///////////////////////////
+	// DATABASE
+	
+	// /slides
+	/** The relative path to the database */
+	public static final String DATABASE_RELATIVE_PATH = "data" + RuntimeProperties.PATH_SEPARATOR + "db" + RuntimeProperties.PATH_SEPARATOR;
+	
+	// /user/home/dir/Praisenter3/slides
+	/** The absolute path to the database */
+	public static final String DATABASE_ABSOLUTE_PATH = Constants.ROOT_PATH + DATABASE_RELATIVE_PATH;
 }

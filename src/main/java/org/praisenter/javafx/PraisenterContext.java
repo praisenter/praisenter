@@ -24,12 +24,9 @@
  */
 package org.praisenter.javafx;
 
-import java.util.Locale;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.media.MediaLibrary;
+import org.praisenter.slide.SlideLibrary;
 import org.praisenter.song.SongLibrary;
 
 /**
@@ -50,21 +47,24 @@ public final class PraisenterContext {
 	/** The bible library */
 	private final BibleLibrary bibleLibrary;
 	
-	// TODO slide library
+	/** The slide library */
+	private final SlideLibrary slideLibrary;
 	
 	/** The image cache */
 	private final ImageCache imageCache;
 	
 	/**
 	 * Full constructor.
-	 * @param ml the media library
-	 * @param sl the song library
-	 * @param bl the bible library
+	 * @param media the media library
+	 * @param songs the song library
+	 * @param bibles the bible library
+	 * @param slides the slide library
 	 */
-	public PraisenterContext(MediaLibrary ml, SongLibrary sl, BibleLibrary bl) {
-		this.mediaLibrary = ml;
-		this.songLibrary = sl;
-		this.bibleLibrary = bl;
+	public PraisenterContext(MediaLibrary media, SongLibrary songs, BibleLibrary bibles, SlideLibrary slides) {
+		this.mediaLibrary = media;
+		this.songLibrary = songs;
+		this.bibleLibrary = bibles;
+		this.slideLibrary = slides;
 		this.imageCache = new ImageCache();
 	}
 
@@ -90,6 +90,14 @@ public final class PraisenterContext {
 	 */
 	public BibleLibrary getBibleLibrary() {
 		return this.bibleLibrary;
+	}
+	
+	/**
+	 * Returns the slide library.
+	 * @return {@link SlideLibrary}
+	 */
+	public SlideLibrary getSlideLibrary() {
+		return this.slideLibrary;
 	}
 	
 	/**

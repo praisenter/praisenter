@@ -71,6 +71,7 @@ import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.Scorer;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.praisenter.Constants;
 import org.praisenter.SearchType;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
@@ -92,18 +93,12 @@ import org.praisenter.xml.XmlIO;
  * Opening a song library will initiate a process to update the index to ensure the latest
  * information is contained in the index. This process can take some time as it must read
  * each song file and update it in the index.
- * <p>  
- * While it is possible to place songs directly into the path and have the {@link SongLibrary}
- * add it to the index upon the next load, this is not recommended.
  * @author William Bittle
  * @version 3.0.0
  */
 public final class SongLibrary {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The maximum number of codepoints (extended set of characters) in a file name */
-	private static final int MAX_FILE_NAME_CODEPOINTS = 34;
 	
 	/** The extension to use for the song files */
 	private static final String EXTENSION = ".xml";
@@ -282,6 +277,7 @@ public final class SongLibrary {
 	 * @return {@link Song}
 	 */
 	public synchronized Song get(UUID id) {
+		if (id == null) return null;
 		return this.songs.get(id);
 	}
 	
@@ -299,7 +295,18 @@ public final class SongLibrary {
 	 * @return boolean
 	 */
 	public synchronized boolean contains(UUID id) {
+		if (id == null) return false;
 		return this.songs.containsKey(id);
+	}
+	
+	/**
+	 * Returns true if the given song is in the song library.
+	 * @param song the song
+	 * @return boolean
+	 */
+	public synchronized boolean contains(Song song) {
+		if (song == null || song.id == null) return false;
+		return this.songs.containsKey(song.id);
 	}
 	
 	/**
@@ -315,7 +322,7 @@ public final class SongLibrary {
 			// verify there doesn't exist a song with this name already
 			if (Files.exists(path)) {
 				// just use the guid
-				path = this.path.resolve(song.id.toString() + EXTENSION);
+				path = this.path.resolve(song.id.toString().replaceAll("-", "") + EXTENSION);
 			}
 			song.path = path;
 		}
@@ -344,6 +351,7 @@ public final class SongLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized void remove(UUID id) throws IOException {
+		if (id == null) return;
 		// remove from the lucene index so it can't be found
 		// in searches any more
 		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
@@ -369,6 +377,7 @@ public final class SongLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized void remove(Song song) throws IOException {
+		if (song == null || song.id == null) return;
 		remove(song.id);
 	}
 	
@@ -407,7 +416,7 @@ public final class SongLibrary {
 		String name = sb.toString();
 		
 		// truncate the name to certain length
-		int max = MAX_FILE_NAME_CODEPOINTS - EXTENSION.length();
+		int max = Constants.MAX_FILE_NAME_CODEPOINTS - EXTENSION.length();
 		if (name.length() > max) {
 			LOGGER.warn("File name too long '{}', truncating.", name);
 			name = name.substring(0, Math.min(name.length() - 1, max));

@@ -1,27 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="ERROR" name="example-config">
+<Configuration status="error" name="example-config">
+<!-- https://logging.apache.org/log4j/2.0/manual/configuration.html#PropertySubstitution -->
     <Properties>
-        <Property name="LOG_DIR">/logs</Property>
-        <Property name="ARCHIVE">${LOG_DIR}/archive</Property>
-        <Property name="PATTERN">%-5level %d [%t] %c:%M(%L): %m%n</Property>
+        <Property name="logs.archive">${sys:praisenter.logs.dir}/archive</Property>
+        <Property name="log.pattern">%-5level %d [%t] %c:%M(%L): %m%n</Property>
     </Properties>
     <Appenders>
-        <Console name="console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${PATTERN}"/>
-        </Console>
+<!--         <Console name="console" target="SYSTEM_OUT"> -->
+<!--             <PatternLayout pattern="${PATTERN}"/> -->
+<!--         </Console> -->
 
-		<!-- 
-        <RollingFile name="fileWriter"
-                     fileName="${LOG_DIR}/example1.log"
-                     filePattern="${ARCHIVE}/example1.log.%d{yyyy-MM-dd-hh-mm}.gz">
-            <PatternLayout pattern="${PATTERN}"/>
+        <RollingFile name="file"
+                     fileName="${sys:praisenter.logs.dir}/praisenter.log"
+                     filePattern="${logs.archive}/praisenter.log.%d{yyyy-MM-dd-hh-mm}.gz">
+            <PatternLayout pattern="${log.pattern}"/>
             <TimeBasedTriggeringPolicy/>
         </RollingFile>
-         -->
     </Appenders>
     <Loggers>
-        <Root level="INFO">
-            <AppenderRef ref="console"/>
+        <Root level="info">
+            <AppenderRef ref="file"/>
         </Root>
     </Loggers>
 </Configuration>

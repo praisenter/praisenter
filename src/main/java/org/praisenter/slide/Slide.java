@@ -71,6 +71,18 @@ public interface Slide extends SlideRegion {
 	public abstract UUID getId();
 	
 	/**
+	 * Returns the name of this slide.
+	 * @return String
+	 */
+	public abstract String getName();
+	
+	/**
+	 * Sets the name of this slide.
+	 * @param name the slide name
+	 */
+	public abstract void setName(String name);
+	
+	/**
 	 * Returns the path where this slide is saved.
 	 * <p>
 	 * Returns null if the slide has not been saved.
