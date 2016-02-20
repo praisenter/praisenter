@@ -3,7 +3,7 @@
 <!-- https://logging.apache.org/log4j/2.0/manual/configuration.html#PropertySubstitution -->
     <Properties>
         <Property name="logs.archive">${sys:praisenter.logs.dir}/archive</Property>
-        <Property name="log.pattern">%-5level %d [%t] %c:%M(%L): %m%n</Property>
+        <Property name="log.pattern">%-5level %d{ISO8601} [%t] %c.%M:%L %m%n</Property>
     </Properties>
     <Appenders>
 <!--         <Console name="console" target="SYSTEM_OUT"> -->
@@ -12,9 +12,13 @@
 
         <RollingFile name="file"
                      fileName="${sys:praisenter.logs.dir}/praisenter.log"
-                     filePattern="${logs.archive}/praisenter.log.%d{yyyy-MM-dd-hh-mm}.gz">
+                     filePattern="${logs.archive}/praisenter.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout pattern="${log.pattern}"/>
-            <TimeBasedTriggeringPolicy/>
+            <Policies>
+	            <TimeBasedTriggeringPolicy interval="1" />
+	            <SizeBasedTriggeringPolicy size="5MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
         </RollingFile>
     </Appenders>
     <Loggers>

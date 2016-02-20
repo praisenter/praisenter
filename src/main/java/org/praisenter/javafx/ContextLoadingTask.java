@@ -68,6 +68,8 @@ final class ContextLoadingTask extends Task<PraisenterContext> {
 		PraisenterContext context = new PraisenterContext(media, songs, bibles, slides);
 		LOGGER.info("Context created successfully");
 		
+		updateMessage("Loading complete");
+		
 		return context;
 	}
 }
