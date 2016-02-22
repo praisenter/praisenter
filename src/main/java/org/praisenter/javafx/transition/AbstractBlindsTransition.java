@@ -24,8 +24,6 @@
  */
 package org.praisenter.javafx.transition;
 
-import javafx.scene.layout.Region;
-import javafx.util.Duration;
 
 /**
  * A blinds transition.
@@ -35,14 +33,4 @@ import javafx.util.Duration;
 public abstract class AbstractBlindsTransition extends CustomTransition {
 	/** The vertical blind count factor: 12 bars for 1280 pixels */
 	protected static final double BLIND_COUNT_FACTOR = 12.0 / 1280.0;
-
-	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
-	 */
-	public AbstractBlindsTransition(Region node, TransitionType type, Duration duration) {
-		super(node, type, duration);
-	}
 }

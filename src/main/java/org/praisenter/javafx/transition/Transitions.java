@@ -30,13 +30,6 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javafx.animation.Interpolator;
-import javafx.animation.ParallelTransition;
-import javafx.animation.SequentialTransition;
-import javafx.animation.Transition;
-import javafx.scene.layout.Region;
-import javafx.util.Duration;
-
 /**
  * Helper class used to generate a transition for two nodes.
  * @author William Bittle
@@ -91,403 +84,416 @@ public final class Transitions {
 	/** Hidden default constructor */
 	private Transitions() {}
 	
-	/**
-	 * Returns a new instance of the given transition class.
-	 * <p>
-	 * Returns null if clazz is null.
-	 * @param clazz the transition class
-	 * @param node the node to transition
-	 * @param type the transition type
-	 * @param duration the transition duration
-	 * @param easing the transition easing
-	 * @return Transition
-	 */
-	private static final Transition getTransition(Class<?> clazz, Region node, TransitionType type, Duration duration, Interpolator easing) {
-		if (clazz != null) {
-			if (Swap.class.isAssignableFrom(clazz)) {
-				return new Swap(node, type);
-			} else {
-				try {
-					Transition tx = (Transition)clazz.getConstructor(Region.class, TransitionType.class, Duration.class).newInstance(node, type, duration);
-					tx.setInterpolator(easing);
-					return tx;
-				} catch (Exception e) {
-					LOGGER.warn("Failed to instantiate class " + clazz.getName() + ".", e);
-				}
-			}
-		}
-		return null;
-	}
-	
-	/**
-	 * Returns a transition to handle the incoming and outgoing nodes.
-	 * @param clazz the transition class
-	 * @param in the incoming node
-	 * @param out the outgoing node
-	 * @param duration the transition duration
-	 * @param easing the transition easing
-	 * @param parallel true if the transitions for the in and out nodes are performed in parllel or sequence
-	 * @return Transition
-	 */
-	private static final Transition getTransition(Class<?> clazz, Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
-		Transition cTx = getTransition(clazz, out, TransitionType.OUT, duration, easing);
-		Transition tTx = getTransition(clazz, in, TransitionType.IN, duration, easing);
-		if (cTx != null && tTx != null) {
-			if (parallel) {
-				return new ParallelTransition(cTx, tTx);
-			} else {
-				return new SequentialTransition(cTx, tTx);
-			}
-		} else if (cTx != null) {
-			return cTx;
-		} else {
-			return tTx;
-		}
-	}
-
-	/**
-	 * Returns a transition to handle the incoming and outgoing nodes by the transition id.
-	 * @param id the transition id
-	 * @param in the incoming node
-	 * @param out the outgoing node
-	 * @param duration the transition duration
-	 * @param easing the transition easing
-	 * @param parallel true if the transitions for the in and out nodes are performed in parllel or sequence
-	 * @return Transition
-	 */
-	public static final Transition getTransition(int id, Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
+	public static final CustomTransition getTransition(int id) {
 		Class<?> clazz = BY_ID.get(id);
-		Transition cTx = getTransition(clazz, out, TransitionType.OUT, duration, easing);
-		Transition tTx = getTransition(clazz, in, TransitionType.IN, duration, easing);
-		if (cTx != null && tTx != null) {
-			if (parallel) {
-				return new ParallelTransition(cTx, tTx);
-			} else {
-				return new SequentialTransition(cTx, tTx);
-			}
-		} else if (cTx != null) {
-			return cTx;
-		} else {
-			return tTx;
+		try {
+			return (CustomTransition)clazz.newInstance();
+		} catch (Exception e) {
+			return null;
 		}
 	}
 	
-	/**
-	 * Returns a {@link Swap} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @return Transition
-	 */
-	public static final Transition getSwap(Region in, Region out) {
-		return getTransition(Swap.class, in, out, Duration.ZERO, null, true);
-	}
 	
-	/**
-	 * Returns a {@link CircularCollapse} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getCircularCollapse(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
-		return getTransition(CircularCollapse.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link CircularExpand} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getCircularExpand(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(CircularExpand.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link HorizontalBlinds} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getHorizontalBlinds(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
-		return getTransition(HorizontalBlinds.class, in, out, duration, easing, parallel);
-	}
-
-	/**
-	 * Returns a {@link VerticalBlinds} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getVerticalBlinds(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(VerticalBlinds.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link HorizontalSplitCollapse} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getHorizontalSplitCollapse(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(HorizontalSplitCollapse.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link HorizontalSplitExpand} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getHorizontalSplitExpand(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(HorizontalSplitExpand.class, in, out, duration, easing, parallel);
-	}
-
-	/**
-	 * Returns a {@link VerticalSplitCollapse} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getVerticalSplitCollapse(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(VerticalSplitCollapse.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link VerticalSplitExpand} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getVerticalSplitExpand(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(VerticalSplitExpand.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link PushDown} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getPushDown(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(PushDown.class, in, out, duration, easing, parallel);
-	}
-
-	/**
-	 * Returns a {@link PushUp} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getPushUp(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(PushUp.class, in, out, duration, easing, parallel);
-	}
-
-	/**
-	 * Returns a {@link PushLeft} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getPushLeft(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(PushLeft.class, in, out, duration, easing, parallel);
-	}
-
-	/**
-	 * Returns a {@link PushRight} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getPushRight(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(PushRight.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link Fade} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getFade(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(Fade.class, in, out, duration, easing, parallel);
-	}
-
-	/**
-	 * Returns a {@link SwipeClockwise} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getSwipeClockwise(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(SwipeClockwise.class, in, out, duration, easing, parallel);
-	}
-
-	/**
-	 * Returns a {@link SwipeCounterClockwise} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getSwipeCounterClockwise(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(SwipeCounterClockwise.class, in, out, duration, easing, parallel);
-	}
-
-	/**
-	 * Returns a {@link SwipeDown} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getSwipeDown(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(SwipeDown.class, in, out, duration, easing, parallel);
-	}
-
-	/**
-	 * Returns a {@link SwipeUp} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getSwipeUp(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(SwipeUp.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link SwipeLeft} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getSwipeLeft(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(SwipeLeft.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link SwipeRight} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getSwipeRight(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(SwipeRight.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link SwipeWedgeDown} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getSwipeWedgeDown(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(SwipeWedgeDown.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link SwipeWedgeUp} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getSwipeWedgeUp(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
-		return getTransition(SwipeWedgeUp.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link ZoomIn} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getZoomIn(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
-		// if the incoming node is null
-		// then the user really wants to zoom out the out going node (otherwise it would just be a clip transition)
-		if (in == null) {
-			return getTransition(ZoomOut.class, in, out, duration, easing, parallel);
-		}
-		return getTransition(ZoomIn.class, in, out, duration, easing, parallel);
-	}
-	
-	/**
-	 * Returns a {@link ZoomOut} transition for the given nodes.
-	 * @param in the incoming node
-	 * @param out the out going node
-	 * @param duration the transition duration
-	 * @param easing the transition interpolator
-	 * @param parallel true if the in and out transitions should be in parallel
-	 * @return Transition
-	 */
-	public static final Transition getZoomOut(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
-		// if the out going node is null
-		// then the user really wants to zoom in the incoming node (otherwise it would just be a clip transition)
-		if (out == null) {
-			return getTransition(ZoomIn.class, in, out, duration, easing, parallel);
-		}
-		return getTransition(ZoomOut.class, in, out, duration, easing, parallel);
-	}
+	// TODO transfer the parallel/sequential code elsewhere
+	// TODO zoom in/out need to be examined too
+//	
+//	/**
+//	 * Returns a new instance of the given transition class.
+//	 * <p>
+//	 * Returns null if clazz is null.
+//	 * @param clazz the transition class
+//	 * @param node the node to transition
+//	 * @param type the transition type
+//	 * @param duration the transition duration
+//	 * @param easing the transition easing
+//	 * @return Transition
+//	 */
+//	private static final Transition getTransition(Class<?> clazz, Region node, TransitionType type, Duration duration, Interpolator easing) {
+//		if (clazz != null) {
+//			if (Swap.class.isAssignableFrom(clazz)) {
+//				return new Swap(node, type);
+//			} else {
+//				try {
+//					Transition tx = (Transition)clazz.getConstructor(Region.class, TransitionType.class, Duration.class).newInstance(node, type, duration);
+//					tx.setInterpolator(easing);
+//					return tx;
+//				} catch (Exception e) {
+//					LOGGER.warn("Failed to instantiate class " + clazz.getName() + ".", e);
+//				}
+//			}
+//		}
+//		return null;
+//	}
+//	
+//	/**
+//	 * Returns a transition to handle the incoming and outgoing nodes.
+//	 * @param clazz the transition class
+//	 * @param in the incoming node
+//	 * @param out the outgoing node
+//	 * @param duration the transition duration
+//	 * @param easing the transition easing
+//	 * @param parallel true if the transitions for the in and out nodes are performed in parllel or sequence
+//	 * @return Transition
+//	 */
+//	private static final Transition getTransition(Class<?> clazz, Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
+//		Transition cTx = getTransition(clazz, out, TransitionType.OUT, duration, easing);
+//		Transition tTx = getTransition(clazz, in, TransitionType.IN, duration, easing);
+//		if (cTx != null && tTx != null) {
+//			if (parallel) {
+//				return new ParallelTransition(cTx, tTx);
+//			} else {
+//				return new SequentialTransition(cTx, tTx);
+//			}
+//		} else if (cTx != null) {
+//			return cTx;
+//		} else {
+//			return tTx;
+//		}
+//	}
+//
+//	/**
+//	 * Returns a transition to handle the incoming and outgoing nodes by the transition id.
+//	 * @param id the transition id
+//	 * @param in the incoming node
+//	 * @param out the outgoing node
+//	 * @param duration the transition duration
+//	 * @param easing the transition easing
+//	 * @param parallel true if the transitions for the in and out nodes are performed in parllel or sequence
+//	 * @return Transition
+//	 */
+//	public static final Transition getTransition(int id, Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
+//		Class<?> clazz = BY_ID.get(id);
+//		Transition cTx = getTransition(clazz, out, TransitionType.OUT, duration, easing);
+//		Transition tTx = getTransition(clazz, in, TransitionType.IN, duration, easing);
+//		if (cTx != null && tTx != null) {
+//			if (parallel) {
+//				return new ParallelTransition(cTx, tTx);
+//			} else {
+//				return new SequentialTransition(cTx, tTx);
+//			}
+//		} else if (cTx != null) {
+//			return cTx;
+//		} else {
+//			return tTx;
+//		}
+//	}
+//	
+//	/**
+//	 * Returns a {@link Swap} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @return Transition
+//	 */
+//	public static final Transition getSwap(Region in, Region out) {
+//		return getTransition(Swap.class, in, out, Duration.ZERO, null, true);
+//	}
+//	
+//	/**
+//	 * Returns a {@link CircularCollapse} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getCircularCollapse(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
+//		return getTransition(CircularCollapse.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link CircularExpand} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getCircularExpand(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(CircularExpand.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link HorizontalBlinds} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getHorizontalBlinds(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
+//		return getTransition(HorizontalBlinds.class, in, out, duration, easing, parallel);
+//	}
+//
+//	/**
+//	 * Returns a {@link VerticalBlinds} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getVerticalBlinds(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(VerticalBlinds.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link HorizontalSplitCollapse} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getHorizontalSplitCollapse(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(HorizontalSplitCollapse.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link HorizontalSplitExpand} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getHorizontalSplitExpand(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(HorizontalSplitExpand.class, in, out, duration, easing, parallel);
+//	}
+//
+//	/**
+//	 * Returns a {@link VerticalSplitCollapse} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getVerticalSplitCollapse(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(VerticalSplitCollapse.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link VerticalSplitExpand} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getVerticalSplitExpand(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(VerticalSplitExpand.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link PushDown} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getPushDown(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(PushDown.class, in, out, duration, easing, parallel);
+//	}
+//
+//	/**
+//	 * Returns a {@link PushUp} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getPushUp(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(PushUp.class, in, out, duration, easing, parallel);
+//	}
+//
+//	/**
+//	 * Returns a {@link PushLeft} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getPushLeft(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(PushLeft.class, in, out, duration, easing, parallel);
+//	}
+//
+//	/**
+//	 * Returns a {@link PushRight} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getPushRight(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(PushRight.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link Fade} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getFade(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(Fade.class, in, out, duration, easing, parallel);
+//	}
+//
+//	/**
+//	 * Returns a {@link SwipeClockwise} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getSwipeClockwise(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(SwipeClockwise.class, in, out, duration, easing, parallel);
+//	}
+//
+//	/**
+//	 * Returns a {@link SwipeCounterClockwise} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getSwipeCounterClockwise(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(SwipeCounterClockwise.class, in, out, duration, easing, parallel);
+//	}
+//
+//	/**
+//	 * Returns a {@link SwipeDown} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getSwipeDown(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(SwipeDown.class, in, out, duration, easing, parallel);
+//	}
+//
+//	/**
+//	 * Returns a {@link SwipeUp} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getSwipeUp(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(SwipeUp.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link SwipeLeft} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getSwipeLeft(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(SwipeLeft.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link SwipeRight} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getSwipeRight(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(SwipeRight.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link SwipeWedgeDown} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getSwipeWedgeDown(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(SwipeWedgeDown.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link SwipeWedgeUp} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getSwipeWedgeUp(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) { 
+//		return getTransition(SwipeWedgeUp.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link ZoomIn} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getZoomIn(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
+//		// if the incoming node is null
+//		// then the user really wants to zoom out the out going node (otherwise it would just be a clip transition)
+//		if (in == null) {
+//			return getTransition(ZoomOut.class, in, out, duration, easing, parallel);
+//		}
+//		return getTransition(ZoomIn.class, in, out, duration, easing, parallel);
+//	}
+//	
+//	/**
+//	 * Returns a {@link ZoomOut} transition for the given nodes.
+//	 * @param in the incoming node
+//	 * @param out the out going node
+//	 * @param duration the transition duration
+//	 * @param easing the transition interpolator
+//	 * @param parallel true if the in and out transitions should be in parallel
+//	 * @return Transition
+//	 */
+//	public static final Transition getZoomOut(Region in, Region out, Duration duration, Interpolator easing, boolean parallel) {
+//		// if the out going node is null
+//		// then the user really wants to zoom in the incoming node (otherwise it would just be a clip transition)
+//		if (out == null) {
+//			return getTransition(ZoomIn.class, in, out, duration, easing, parallel);
+//		}
+//		return getTransition(ZoomOut.class, in, out, duration, easing, parallel);
+//	}
 }

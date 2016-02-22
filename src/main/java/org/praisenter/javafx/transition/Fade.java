@@ -25,8 +25,6 @@
 package org.praisenter.javafx.transition;
 
 import javafx.scene.Node;
-import javafx.scene.layout.Region;
-import javafx.util.Duration;
 
 /**
  * A fade transition.
@@ -37,16 +35,6 @@ public final class Fade extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 20;
 	
-	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
-	 */
-	public Fade(Region node, TransitionType type, Duration duration) {
-		super(node, type, duration);
-	}
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
 	 */

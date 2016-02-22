@@ -6,13 +6,18 @@ import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 
+import org.praisenter.javafx.easing.Back;
+import org.praisenter.javafx.easing.Bounce;
 import org.praisenter.javafx.easing.Easing;
 import org.praisenter.javafx.easing.Easings;
+import org.praisenter.javafx.transition.Fade;
+import org.praisenter.javafx.transition.PushLeft;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.BibleSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideShow;
+import org.praisenter.slide.SlideTransition;
 import org.praisenter.slide.SongSlide;
 import org.praisenter.slide.SongSlideLyrics;
 import org.praisenter.slide.graphics.ScaleType;
@@ -70,8 +75,15 @@ public class TestSlideSaving {
 		slide.setWidth(400);
 		slide.setX(0);
 		slide.setY(0);
-		slide.setTransitionId(Easings.getLinear().getId());
 		slide.setPath(Paths.get("/test/man"));
+		
+		SlideTransition st = new SlideTransition();
+		st.setId(slide.getId());
+		st.setDelay(0);
+		st.setDuration(400);
+		st.setEasingId(Back.ID);
+		st.setTransitionId(PushLeft.ID);
+		slide.getTransitions().add(st);
 		
 		MediaComponent med = new MediaComponent();
 		med.setBackground(radial);
@@ -93,6 +105,14 @@ public class TestSlideSaving {
 		txt.setPadding(5);
 		txt.setText("hello");
 		slide.addComponent(txt);
+		
+		st = new SlideTransition();
+		st.setId(txt.getId());
+		st.setDelay(500);
+		st.setDuration(300);
+		st.setEasingId(Bounce.ID);
+		st.setTransitionId(Fade.ID);
+		slide.getTransitions().add(st);
 		
 		DateTimeComponent dtc = new DateTimeComponent();
 		dtc.setFormat(new SimpleDateFormat("YYYY"));
@@ -116,22 +136,22 @@ public class TestSlideSaving {
 //		slide.setVerse(1);
 //		slide.getBibles().add("KJV");
 		
-//		XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), slide);
-//		Slide s = XmlIO.read(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), BasicSlide.class);
+		XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), slide);
+		Slide s = XmlIO.read(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), BasicSlide.class);
 		
-		XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), slide);
-		Slide s = XmlIO.read(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), BasicSlide.class);
+//		XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), slide);
+//		Slide s = XmlIO.read(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), BasicSlide.class);
 		
 		System.out.println(s.getId() + " " + s.getClass().getName());
 		
 		SlideShow show = new SlideShow();
 		show.getSlides().add(s);
 		
-//		XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\show.xml"), show);
-//		SlideShow ss = XmlIO.read(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\show.xml"), SlideShow.class);
+		XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\show.xml"), show);
+		SlideShow ss = XmlIO.read(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\show.xml"), SlideShow.class);
 		
-		XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\show.xml"), show);
-		SlideShow ss = XmlIO.read(Paths.get("D:\\Personal\\Praisenter\\slides\\show.xml"), SlideShow.class);
+//		XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\show.xml"), show);
+//		SlideShow ss = XmlIO.read(Paths.get("D:\\Personal\\Praisenter\\slides\\show.xml"), SlideShow.class);
 		
 		System.out.println(ss.getSlides().size());
 	}

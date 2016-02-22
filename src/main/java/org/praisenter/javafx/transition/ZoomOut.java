@@ -24,10 +24,8 @@
  */
 package org.praisenter.javafx.transition;
 
-import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
-import javafx.util.Duration;
 
 /**
  * Scales the node from it's size to zero.
@@ -37,16 +35,6 @@ import javafx.util.Duration;
 public final class ZoomOut extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 71;
-
-	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
-	 */
-	public ZoomOut(Region node, TransitionType type, Duration duration) {
-		super(node, type, duration);
-	}
 
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
@@ -61,6 +49,8 @@ public final class ZoomOut extends CustomTransition {
 	 */
 	@Override
 	protected void interpolate(double frac) {
+		if (this.node == null) return;
+		
 		if (this.type == TransitionType.IN) {
 			// for the out transition we'll just clip the center
 			double w = this.node.getPrefWidth();

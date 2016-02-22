@@ -24,12 +24,10 @@
  */
 package org.praisenter.javafx.transition;
 
-import javafx.scene.layout.Region;
 import javafx.scene.shape.Arc;
 import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
-import javafx.util.Duration;
 
 /**
  * Clips the node by a clockwise sweep.
@@ -39,16 +37,6 @@ import javafx.util.Duration;
 public final class SwipeClockwise extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 34;
-	
-	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
-	 */
-	public SwipeClockwise(Region node, TransitionType type, Duration duration) {
-		super(node, type, duration);
-	}
 
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
@@ -63,6 +51,8 @@ public final class SwipeClockwise extends CustomTransition {
 	 */
 	@Override
 	protected void interpolate(double frac) {
+		if (this.node == null) return;
+		
 		double w = this.node.getPrefWidth();
 		double h = this.node.getPrefHeight();
 		double hw = w * 0.5;

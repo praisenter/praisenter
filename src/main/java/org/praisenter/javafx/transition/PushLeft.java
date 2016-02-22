@@ -24,8 +24,6 @@
  */
 package org.praisenter.javafx.transition;
 
-import javafx.scene.layout.Region;
-import javafx.util.Duration;
 
 /**
  * Translates the node's x coordinate left.
@@ -35,16 +33,6 @@ import javafx.util.Duration;
 public final class PushLeft extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 61;
-
-	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
-	 */
-	public PushLeft(Region node, TransitionType type, Duration duration) {
-		super(node, type, duration);
-	}
 
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
@@ -59,6 +47,8 @@ public final class PushLeft extends CustomTransition {
 	 */
 	@Override
 	protected void interpolate(double frac) {
+		if (this.node == null) return;
+		
 		double x = 0;
 		if (this.type == TransitionType.IN) {
 			x = this.node.getPrefWidth() * (1.0 - frac);

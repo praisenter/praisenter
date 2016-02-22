@@ -24,11 +24,9 @@
  */
 package org.praisenter.javafx.transition;
 
-import javafx.scene.layout.Region;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
-import javafx.util.Duration;
 
 /**
  * An expanding circle transition.
@@ -39,16 +37,6 @@ public final class CircularExpand extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 50;
 	
-	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
-	 */
-	public CircularExpand(Region node, TransitionType type, Duration duration) {
-		super(node, type, duration);
-	} 
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
 	 */
@@ -62,9 +50,7 @@ public final class CircularExpand extends CustomTransition {
 	 */
 	@Override
 	protected void interpolate(double frac) {
-		if (frac >= 1.0) {
-			this.node.setClip(null);
-		}
+		if (this.node == null) return;
 		
 		// compute shape params
 		double w = this.node.getPrefWidth();

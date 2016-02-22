@@ -22,6 +22,7 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
@@ -440,6 +441,7 @@ public final class JavaFxSlideConverter {
 	// nodes
 	
 	// TODO will need parameters for song/bible or we force the placeholders to be replaced already
+	// TODO we'll need to return the specialized types
 	
 	public JavaFxSlide to(Slide slide, SlideMode mode, int placeHolders) {
 		// FIXME implement
@@ -471,7 +473,7 @@ public final class JavaFxSlideConverter {
 		return null;
 	}
 	
-	public Node to(TextComponent component) {
+	public Region to(TextComponent component) {
 		// compute the bounding text width and height so 
 		// we can compute an accurate font size
 		double padding = component.getPadding();
@@ -526,6 +528,12 @@ public final class JavaFxSlideConverter {
 		// vertical alignment
 		box.setAlignment(to(component.getVerticalTextAlignment()));
 		
+		// border
+		SlideStroke bdr = component.getBorder();
+		if (bdr != null) {
+			box.setBorder(new Border(to(bdr)));
+		}
+		
 		// background
 		SlidePaint bg = component.getBackground();
 		if (bg != null) {
@@ -554,14 +562,8 @@ public final class JavaFxSlideConverter {
 				}
 			} else {
 				// color or gradient
-				box.setBackground(new Background(new BackgroundFill(to(bg), ss != null ? new CornerRadii(ss.getRadius()) : null, null)));
+				box.setBackground(new Background(new BackgroundFill(to(bg), bdr != null ? new CornerRadii(bdr.getRadius()) : null, null)));
 			}
-		}
-		
-		// border
-		SlideStroke bdr = component.getBorder();
-		if (bdr != null) {
-			box.setBorder(new Border(to(bdr)));
 		}
 		
 		box.getChildren().add(text);

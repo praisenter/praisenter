@@ -35,26 +35,21 @@ import javafx.util.Duration;
  */
 public abstract class CustomTransition extends Transition {
 	/** The node being transitioned */
-	final Region node;
+	Region node;
 	
 	/** The transition type */
-	final TransitionType type;
+	TransitionType type;
 	
 	/** The transition duration */
-	final Duration duration;
+	Duration duration;
 	
 	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
+	 * Default constructor.
 	 */
-	public CustomTransition(Region node, TransitionType type, Duration duration) {
-		if (node == null) throw new NullPointerException();
-		this.type = type;
-		this.node = node;
-		this.duration = duration;
-		this.setCycleDuration(duration);
+	public CustomTransition() {
+		this.node = null;
+		this.type = TransitionType.IN;
+		this.duration = Duration.ZERO;
 	}
 	
 	/**
@@ -72,11 +67,28 @@ public abstract class CustomTransition extends Transition {
 	}
 
 	/**
+	 * Sets the transition type.
+	 * @param type the type
+	 */
+	public void setType(TransitionType type) {
+		this.type = type;
+	}
+	
+	/**
 	 * Returns the transition duration. 
 	 * @return Duration
 	 */
 	public Duration getDuration() {
 		return this.duration;
+	}
+	
+	/**
+	 * Sets the duration.
+	 * @param duration the duration
+	 */
+	public void setDuration(Duration duration) {
+		this.duration = duration;
+		super.setCycleDuration(duration);
 	}
 
 	/**
@@ -85,6 +97,14 @@ public abstract class CustomTransition extends Transition {
 	 */
 	public Region getNode() {
 		return this.node;
+	}
+	
+	/**
+	 * Sets the node to animate.
+	 * @param node the node
+	 */
+	public void setNode(Region node) {
+		this.node = node;
 	}
 	
 	/**

@@ -34,6 +34,7 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -57,10 +58,6 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
 	BibleSlide.class
 })
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion {
-	/** The slide id */
-	@XmlAttribute(name = "id", required = false)
-	final UUID id;
-	
 	/** The slide format version */
 	@XmlAttribute(name = "version", required = false)
 	final String version = Slide.VERSION;
@@ -75,6 +72,11 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@XmlElementWrapper(name = "components", required = false)
 	final List<SlideComponent> components;
 
+	/** The slide transitions */
+	@XmlElement(name = "transition", required = false)
+	@XmlElementWrapper(name = "transitions", required = false)
+	final List<SlideTransition> transitions;
+	
 	// for internal use really
 	/** The slide path; can be null */
 	Path path;
@@ -82,20 +84,6 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	/** The slide name */
 	@XmlAttribute(name = "name")
 	String name;
-	
-	// transition
-	
-	/** The transition id */
-	@XmlAttribute(name = "transitionId", required = false)
-	int transitionId;
-	
-	/** The easing id */
-	@XmlAttribute(name = "easingId", required = false)
-	int easingId;
-	
-	/** The transition duration in milliseconds */
-	@XmlAttribute(name = "transitionDuration", required = false)
-	long transitionDuration;
 	
 	// other
 	
@@ -116,11 +104,9 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	 * @param id the id
 	 */
 	BasicSlide(UUID id) {
-		this.id = id;
+		super(id);
 		this.components = new ArrayList<SlideComponent>();
-		this.transitionId = Slide.NOT_SET;
-		this.easingId = Slide.NOT_SET;
-		this.transitionDuration = Slide.DEFAULT_TRANSITION_DURATION;
+		this.transitions = new ArrayList<SlideTransition>();
 		this.time = Slide.TIME_FOREVER;
 	}
 	
@@ -133,12 +119,14 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		this.copy((SlideRegion)to);
 		// copy the components
 		for (int i = 0; i < this.components.size(); i++) {
-			to.addComponent(this.components.get(i).copy());
+			SlideComponent sc = this.components.get(i);
+			to.addComponent(sc.copy());
+			
+			SlideTransition st = this.getTransition(sc.getId());
+			to.getTransitions().add(st);
 		}
+		
 		// copy other props
-		to.setTransitionId(this.transitionId);
-		to.setEasingId(this.easingId);
-		to.setTransitionDuration(this.transitionDuration);
 		to.setTime(this.time);
 		
 		// NOTE: path is NOT copied
@@ -156,14 +144,6 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		// copy over the stuff
 		this.copy(slide);
 		return slide;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#getId()
-	 */
-	@Override
-	public UUID getId() {
-		return this.id;
 	}
 	
 	/* (non-Javadoc)
@@ -207,54 +187,6 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#getTransitionId()
-	 */
-	@Override
-	public int getTransitionId() {
-		return transitionId;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#setTransitionId(int)
-	 */
-	@Override
-	public void setTransitionId(int transition) {
-		this.transitionId = transition;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#getEasingId()
-	 */
-	@Override
-	public int getEasingId() {
-		return easingId;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#setEasingId(int)
-	 */
-	@Override
-	public void setEasingId(int easing) {
-		this.easingId = easing;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#getTransitionDuration()
-	 */
-	@Override
-	public long getTransitionDuration() {
-		return transitionDuration;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#setTransitionDuration(long)
-	 */
-	@Override
-	public void setTransitionDuration(long duration) {
-		this.transitionDuration = duration;
-	}
-
-	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#getTime()
 	 */
 	@Override
@@ -287,7 +219,11 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@Override
 	public boolean removeComponent(SlideComponent component) {
 		// no re-sort required here
-		return this.components.remove(component);
+		if (this.components.remove(component)) {
+			this.transitions.removeIf(st -> st.id.equals(component.getId()));
+			return true;
+		}
+		return false;
 	}
 	
 	/* (non-Javadoc)
@@ -439,5 +375,21 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		for (SlideComponent component : this.components) {
 			component.adjust(pw, ph);
 		}
+	}
+	
+	@Override
+	public List<SlideTransition> getTransitions() {
+		return this.transitions;
+	}
+	
+	@Override
+	public SlideTransition getTransition(UUID id) {
+		for (int i = 0; i < this.transitions.size(); i++) {
+			SlideTransition st = this.transitions.get(i);
+			if (st.id.equals(id)) {
+				return st;
+			}
+		}
+		return null;
 	}
 }

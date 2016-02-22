@@ -24,10 +24,8 @@
  */
 package org.praisenter.javafx.transition;
 
-import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
-import javafx.util.Duration;
 
 /**
  * Clips the node by two vertical rectangles (right and left) who's widths diverge from the center.
@@ -37,16 +35,6 @@ import javafx.util.Duration;
 public final class VerticalSplitExpand extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 41;
-
-	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
-	 */
-	public VerticalSplitExpand(Region node, TransitionType type, Duration duration) {
-		super(node, type, duration);
-	}
 
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
@@ -61,6 +49,8 @@ public final class VerticalSplitExpand extends CustomTransition {
 	 */
 	@Override
 	protected void interpolate(double frac) {
+		if (this.node == null) return;
+		
 		double w = this.node.getPrefWidth();
 		double h = this.node.getPrefHeight();
 		double hw = w * 0.5;

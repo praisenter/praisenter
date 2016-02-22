@@ -25,6 +25,7 @@
 package org.praisenter.slide;
 
 import java.util.Objects;
+import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -53,6 +54,10 @@ import org.praisenter.slide.graphics.SlideStroke;
 	SlideRadialGradient.class
 })
 public abstract class AbstractSlideRegion implements SlideRegion {
+	/** The id */
+	@XmlAttribute(name = "id", required = false)
+	final UUID id;
+	
 	/** The x coordinate */
 	@XmlAttribute(name = "x", required = false)
 	int x;
@@ -79,10 +84,26 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	SlidePaint background;
 	
 	/**
+	 * Default constructor.
+	 */
+	public AbstractSlideRegion() {
+		this.id = UUID.randomUUID();
+	}
+	
+	/**
+	 * Subclass constructor.
+	 * @param id the id
+	 */
+	AbstractSlideRegion(UUID id) {
+		this.id = id;
+	}
+	
+	/**
 	 * Copies over the values of this region to the given region.
 	 * @param to the region to copy to
 	 */
 	protected void copy(SlideRegion to) {
+		// id is not copied
 		// shouldn't need a deep copy of any of these
 		to.setX(this.x);
 		to.setY(this.y);
@@ -90,6 +111,14 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 		to.setHeight(this.height);
 		to.setBorder(this.border);
 		to.setBackground(this.background);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getId()
+	 */
+	@Override
+	public UUID getId() {
+		return this.id;
 	}
 	
 	/* (non-Javadoc)

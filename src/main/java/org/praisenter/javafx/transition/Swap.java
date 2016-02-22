@@ -24,8 +24,6 @@
  */
 package org.praisenter.javafx.transition;
 
-import javafx.scene.layout.Region;
-import javafx.util.Duration;
 
 /**
  * A swap transition.
@@ -36,15 +34,6 @@ public final class Swap extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 10;
 	
-	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 */
-	public Swap(Region node, TransitionType type) {
-		super(node, type, Duration.ONE);
-	}
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.transitions.Transition#getTransitionId()
 	 */
@@ -56,6 +45,8 @@ public final class Swap extends CustomTransition {
 	//no interpolation required
 	@Override
 	protected void interpolate(double frac) {
+		if (this.node == null) return;
+		
 		if (this.type != TransitionType.IN) {
 			this.node.setVisible(false);
 		}

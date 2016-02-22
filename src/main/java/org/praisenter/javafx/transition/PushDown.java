@@ -24,8 +24,6 @@
  */
 package org.praisenter.javafx.transition;
 
-import javafx.scene.layout.Region;
-import javafx.util.Duration;
 
 /**
  * Translates the node's y coordinate down.
@@ -36,16 +34,6 @@ public final class PushDown extends CustomTransition {
 	/** The transition id */
 	public static final int ID = 63;
 	
-	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
-	 */
-	public PushDown(Region node, TransitionType type, Duration duration) {
-		super(node, type, duration);
-	}
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
 	 */
@@ -59,6 +47,8 @@ public final class PushDown extends CustomTransition {
 	 */
 	@Override
 	protected void interpolate(double frac) {
+		if (this.node == null) return;
+		
 		double y = 0;
 		if (this.type == TransitionType.IN) {
 			y = -this.node.getPrefHeight() * (1.0 - frac);

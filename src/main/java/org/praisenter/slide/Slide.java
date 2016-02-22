@@ -60,15 +60,9 @@ public interface Slide extends SlideRegion {
 	public static final long DEFAULT_TRANSITION_DURATION = 400;
 	
 	/** Value indicating the transition or easing id is not assigned */
-	public static final int NOT_SET = -1;
+	public static final int ID_NOT_SET = -1;
 	
 	// properties
-	
-	/**
-	 * Returns the unique id for this slide.
-	 * @return UUID
-	 */
-	public abstract UUID getId();
 	
 	/**
 	 * Returns the name of this slide.
@@ -168,47 +162,8 @@ public interface Slide extends SlideRegion {
 	 */
 	public abstract void moveComponentDown(SlideComponent component);
 	
-	// transition
+	// sequencing
 	
-	/**
-	 * Returns the transition id for this slide.
-	 * @return int
-	 */
-	public abstract int getTransitionId();
-	
-	/**
-	 * Sets the transition id for this slide.
-	 * @param id the transition id
-	 */
-	public abstract void setTransitionId(int id);
-	
-	/**
-	 * Returns the easing id for this slide.
-	 * @return int
-	 */
-	public abstract int getEasingId();
-	
-	/**
-	 * Sets the easing id for this slide.
-	 * @param id the easing id
-	 */
-	public abstract void setEasingId(int id);
-	
-	/**
-	 * Returns the transition duration in milliseconds.
-	 * @return long
-	 */
-	public abstract long getTransitionDuration();
-	
-	/**
-	 * Sets the transition duration in milliseconds.
-	 * @param duration the duration in milliseconds; must be &ge; 0
-	 */
-	public abstract void setTransitionDuration(long duration);
-	
-	// other
-	
-	// this is the time the slide should stay visible in an automatic show; -1 indicates forever
 	/**
 	 * Returns the time that this slide should show after the transition is complete.
 	 * @return long
@@ -221,6 +176,21 @@ public interface Slide extends SlideRegion {
 	 * @param time the time in milliseconds
 	 */
 	public abstract void setTime(long time);
+	
+	// component animations
+	
+	/**
+	 * Returns the list of slide transitions for the attached components.
+	 * @return List&lt;{@link SlideTransition}&gt;
+	 */
+	public abstract List<SlideTransition> getTransitions();
+	
+	/**
+	 * Returns the {@link SlideTransition} for the given id or null if one doesn't exist.
+	 * @param id the id of the region
+	 * @return {@link SlideTransition}
+	 */
+	public abstract SlideTransition getTransition(UUID id);
 	
 	// size
 	

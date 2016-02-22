@@ -24,6 +24,8 @@
  */
 package org.praisenter.slide;
 
+import java.util.UUID;
+
 import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
@@ -36,6 +38,12 @@ import org.praisenter.slide.graphics.SlideStroke;
 public interface SlideRegion {
 	/** The minimum size of a region */
 	public static final int MIN_SIZE = 20;
+	
+	/**
+	 * Return's the unique id.
+	 * @return UUID
+	 */
+	public abstract UUID getId();
 	
 	/**
 	 * Returns the x coordinate of this region.

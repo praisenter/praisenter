@@ -24,10 +24,8 @@
  */
 package org.praisenter.javafx.transition;
 
-import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
-import javafx.util.Duration;
 
 /**
  * Horizontal blinds transition.
@@ -38,16 +36,6 @@ public final class HorizontalBlinds extends AbstractBlindsTransition {
 	/** The transition id */
 	public static final int ID = 91;
 	
-	/**
-	 * Full constructor.
-	 * @param node the node to animate
-	 * @param type the transition type
-	 * @param duration the transition duration
-	 */
-	public HorizontalBlinds(Region node, TransitionType type, Duration duration) {
-		super(node, type, duration);
-	}
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.transition.CustomTransition#getId()
 	 */
@@ -61,6 +49,8 @@ public final class HorizontalBlinds extends AbstractBlindsTransition {
 	 */
 	@Override
 	protected void interpolate(double frac) {
+		if (this.node == null) return;
+		
 		double w = this.node.getPrefWidth();
 		double h = this.node.getPrefHeight();
 		Rectangle rect = new Rectangle();
