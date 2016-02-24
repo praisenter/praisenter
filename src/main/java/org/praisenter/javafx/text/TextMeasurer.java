@@ -113,7 +113,7 @@ public final class TextMeasurer {
 		
 		Font nf = font;
 		int i = 0;
-		while (bounds.getHeight() > targetHeight || (int)Math.floor(max - min) > 1) {
+		while (bounds.getHeight() > targetHeight || Math.abs(max - min) > 0.1) {
 			// check the paragraph height against the maximum height
 			if (bounds.getHeight() < targetHeight) {
 				// we need to binary search up
@@ -121,13 +121,13 @@ public final class TextMeasurer {
 				// compute an estimated next size if the maximum begins with Float.MAX_VALUE
 				// this is to help convergence to a safe maximum
 				double rmax = (max == Double.MAX_VALUE ? targetHeight * (cur / bounds.getHeight()) : max);
-				cur = Math.ceil((cur + rmax) * 0.5f);
+				cur = (cur + rmax) * 0.5;
 				nf = new Font(font.getName(), cur);
 			} else {
 				// we need to binary search down
 				max = cur;
 				// get the next test font size
-				double temp = Math.floor((min + cur) * 0.5f);
+				double temp = (min + cur) * 0.5;
 				// do a check for minimum font size
 				if (temp <= 1.0f) break;
 				// its not the minimum so continue
@@ -185,7 +185,7 @@ public final class TextMeasurer {
 		
 		Font nf = font;
 		int i = 0;
-		while (bounds.getWidth() > targetWidth || (int)Math.floor(max - min) > 1) {
+		while (bounds.getWidth() > targetWidth || Math.abs(max - min) > 0.1) {
 			// check the paragraph height against the maximum height
 			if (bounds.getWidth() < targetWidth) {
 				// we need to binary search up
@@ -193,13 +193,13 @@ public final class TextMeasurer {
 				// compute an estimated next size if the maximum begins with Float.MAX_VALUE
 				// this is to help convergence to a safe maximum
 				double rmax = (max == Double.MAX_VALUE ? targetWidth * (cur / bounds.getWidth()) : max);
-				cur = Math.ceil((cur + rmax) * 0.5f);
+				cur = (cur + rmax) * 0.5;
 				nf = new Font(font.getName(), cur);
 			} else {
 				// we need to binary search down
 				max = cur;
 				// get the next test font size
-				double temp = Math.floor((min + cur) * 0.5f);
+				double temp = (min + cur) * 0.5;
 				// do a check for minimum font size
 				if (temp <= 1.0f) break;
 				// its not the minimum so continue

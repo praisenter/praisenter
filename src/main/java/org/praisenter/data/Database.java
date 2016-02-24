@@ -113,7 +113,7 @@ public final class Database {
 				LOGGER.debug("The database folder exists.");
 			} else {
 				LOGGER.error("The given path {} is not a directory.", this.path.toAbsolutePath().toString());
-				// TODO translate error message
+				// TODO translate
 				throw new IOException("The path to the database is not correct.");
 			}
 		} else {

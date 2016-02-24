@@ -30,6 +30,9 @@ import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 
+// FEATURE rotation
+// FEATURE drop shadow
+
 /**
  * Base interface for both {@link Slide}s and {@link SlideComponent}s.
  * @author William Bittle

@@ -7,7 +7,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
-// TODO the thought here is that you could transition individual components
+//FEATURE maybe have a setting to allow the animation to be played in reverse when the slide is transitioned out
+
 @XmlRootElement(name = "transition")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideTransition {
@@ -20,12 +21,13 @@ public final class SlideTransition {
 	@XmlAttribute(name = "easingId", required = false)
 	int easingId;
 	
-	// ignored for slides
-	@XmlAttribute(name = "delay", required = false)
-	long delay;
-	
 	@XmlAttribute(name = "duration", required = false)
 	long duration;
+
+	// ignored for slides
+	
+	@XmlAttribute(name = "delay", required = false)
+	long delay;
 	
 	public SlideTransition copy() {
 		SlideTransition st = new SlideTransition();

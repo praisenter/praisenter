@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.praisenter.song.SongLibrary;
 
-public class SongLibraryPane  extends Application {
+public class SongLibraryPane extends Application {
 	static {
 		System.setProperty(XmlConfigurationFactory.CONFIGURATION_FILE_PROPERTY, "./log4j2.xml");
 	}

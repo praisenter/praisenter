@@ -106,7 +106,7 @@ public final class Praisenter extends Application {
 		System.setProperty("derby.stream.error.file", Constants.DATABASE_LOG_FILE_PATH);
 	}
 	
-	private static final int WIDTH = 1000;
+	private static final int WIDTH = 1200;
 	private static final int HEIGHT = 700;
 	
 	private static final Logger LOGGER = LogManager.getLogger();

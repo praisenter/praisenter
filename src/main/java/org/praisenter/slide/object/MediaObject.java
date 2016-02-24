@@ -70,6 +70,9 @@ public final class MediaObject extends AbstractSlidePaint implements SlidePaint 
 	@XmlAttribute(name = "mute", required = false)
 	final boolean mute;
 
+	// FEATURE add a repeat property that will tile an image
+	// FEATURE JavaFX supports http live streaming, we should have an option for that
+	
 	/**
 	 * Constructor for JAXB.
 	 */

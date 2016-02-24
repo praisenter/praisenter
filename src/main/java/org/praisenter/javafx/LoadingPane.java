@@ -206,7 +206,7 @@ final class LoadingPane extends Pane {
 							
 							// when the fade out is complete
 							seq.statusProperty().addListener((fadeStatus, oldFadeStatus, newFadeStatus) -> {
-								// TODO remove the pane
+								// TODO set a status property so the caller can know when this happens so they can remove the node
 								System.out.println("done");
 							});
 							

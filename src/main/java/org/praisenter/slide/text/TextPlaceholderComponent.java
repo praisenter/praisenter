@@ -67,6 +67,21 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	/** Type to indicate only the senary text should go here */
 	public static final int TYPE_SENARY = 32;
 	
+	/**
+	 * Returns the type given an index.
+	 * <p>
+	 * 0 => 1 (TYPE_PRIMARY)<br>
+	 * 1 => 2 (TYPE_SECONDARY)<br>
+	 * 2 => 4 (TYPE_TERTIARY)<br>
+	 * 3 => 8 (TYPE_QUATERNARY)<br>
+	 * ...
+	 * @param index the index
+	 * @return the type
+	 */
+	public static final int getTypeByIndex(int index) {
+		return (int)Math.pow(2, index);
+	}
+	
 	// fields
 	
 	/** The placeholder type */
