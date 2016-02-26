@@ -26,9 +26,6 @@ package org.praisenter;
 
 import org.praisenter.utility.RuntimeProperties;
 
-// TODO verify logging configuration
-// TODO set derby log directory: setProperty("derby.stream.error.file", Constants.DATABASE_LOG_FILE_PATH);
-
 /**
  * Class containing Praisenter constants.
  * @author William Bittle

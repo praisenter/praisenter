@@ -31,7 +31,7 @@ import java.util.ResourceBundle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-// TODO desired locale will be set on command line or the default
+// TODO desired locale needs to be set first.  so we need to load a config file and be able to save settings to it.
 /**
  * Helper class to retrieve transations by key.
  * @author William Bittle

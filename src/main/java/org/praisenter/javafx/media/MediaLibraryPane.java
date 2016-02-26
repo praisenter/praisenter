@@ -21,9 +21,8 @@ import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
 import org.praisenter.javafx.Alerts;
-import org.praisenter.javafx.Option;
 import org.praisenter.javafx.FlowListView;
-import org.praisenter.javafx.Testing;
+import org.praisenter.javafx.Option;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
@@ -33,8 +32,6 @@ import org.praisenter.utility.ClasspathLoader;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -64,9 +61,6 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 public class MediaLibraryPane extends Application {
@@ -86,8 +80,8 @@ public class MediaLibraryPane extends Application {
     // TODO need a generic way of communicating between multiple instances
     // TODO flag to control flow (horizontal or vertical)
     // TODO add ability to rename
-    // FEATURE allow preview of audio/video
-    // TODO translations
+    // FEATURE allow preview of audio/video; this may not be that hard to be honest
+    // TODO translate
     @Override
     public void start(Stage primaryStage) {
     	primaryStage.setTitle("Media Library");

@@ -22,8 +22,9 @@ import javafx.stage.Stage;
 public class DragMoveInJavaFx {
 	private static final String TAB_DRAG_KEY = "titledpane";
 	private ObjectProperty<TitledPane> draggingTab;
-	@Override
+	
 	public void start(Stage primaryStage) throws Exception {
+		
 	    draggingTab = new SimpleObjectProperty<TitledPane>();
 	    VBox vbox=new VBox();
 	    for(int i=0;i<4;i++) {

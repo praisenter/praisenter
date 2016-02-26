@@ -22,8 +22,8 @@ import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.TextComponent;
 
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BackgroundImage;
@@ -31,7 +31,7 @@ import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
@@ -45,25 +45,38 @@ import javafx.scene.text.TextBoundsType;
 public final class SlideComponentWrapper extends SlideRegionWrapper<SlideRegion> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	
+	
+	// nodes
+	
 	final StackPane node;
 	
-	// players for audio/video
-	final List<MediaPlayer> players;
+	private Node backgroundNode;
+	private Node contentNode;
+	private final Region borderNode;
+	
 	
 	public SlideComponentWrapper(PraisenterContext context, SlideRegion component, SlideMode mode) {
 		super(context, component, mode);
 		
 		this.node = new StackPane();
-		
-		this.players = new ArrayList<MediaPlayer>();
+		this.borderNode = new Region();
 		
 		this.build();
 	}
 	
 	// StackPane
-	//		VBox/MediaView		background
+	//		VBox				background (color, gradient, or image)
+	//			While the background could technically be a video since the
+	//			the data structure allows for it, we won't allow it for components.
+	//			Instead, the user should just create a video object.
 	// 		Text/VBox/MediaView	content (text, image, video/audio respectively)
+	//			This represents the components content, so text, audio, video, etc.
+	//			This can be a number of different node types so we'll need to do
+	//			logic on the type using instanceof.
 	//		VBox				border
+	//			The border should be overlaid onto the background and contents
+	//			so we need to add another layer for just the border
 	void build() {
 		this.node.setUserData(this.component.getId());
 		
@@ -75,19 +88,22 @@ public final class SlideComponentWrapper extends SlideRegionWrapper<SlideRegion>
 		// x/y
 		this.node.setLayoutX(x);
 		this.node.setLayoutY(y);
+
+		// TODO may not be needed if sized properly
+//		StackPane.setAlignment(this.backgroundNode, Pos.TOP_LEFT);
+//		StackPane.setAlignment(this.borderNode, Pos.TOP_LEFT);
 		
 		// width/height
 		JavaFxNodeHelper.setSize(this.node, w, h);
-	
-		VBox contents = new VBox();
-		JavaFxNodeHelper.setSize(contents, w, h);
+		JavaFxNodeHelper.setSize(this.borderNode, w, h);
+		
 		
 		// border
 		// the border will go on the background node
 		SlideStroke bdr = this.component.getBorder();
 		double borderWidth = 0;
 		if (bdr != null) {
-			contents.setBorder(new Border(getBorderStroke(bdr)));
+			this.borderNode.setBorder(new Border(getBorderStroke(bdr)));
 			borderWidth = bdr.getWidth();
 		}
 		
@@ -109,10 +125,9 @@ public final class SlideComponentWrapper extends SlideRegionWrapper<SlideRegion>
 						if (this.mode == SlideMode.PRESENT) {
 							try {
 								// attempt to open the media
-								javafx.scene.media.Media media = new javafx.scene.media.Media(m.getMetadata().getPath().toAbsolutePath().toString());
+								javafx.scene.media.Media media = new javafx.scene.media.Media(m.getMetadata().getPath().toUri().toString());
 								// create a player
 								MediaPlayer player = new MediaPlayer(media);
-								this.players.add(player);
 								// set the player attributes
 								player.setMute(mo.isMute());
 								player.setCycleCount(mo.isLoop() ? MediaPlayer.INDEFINITE : 0);
@@ -128,9 +143,13 @@ public final class SlideComponentWrapper extends SlideRegionWrapper<SlideRegion>
 									} else {
 										view.setFitWidth(h);
 									}
+								} else {
+									// then center it
+									view.setLayoutX((w - m.getMetadata().getWidth()) * 0.5);
+									view.setLayoutY((h - m.getMetadata().getHeight()) * 0.5);
 								}
 								// add the player to the background node
-								this.node.getChildren().add(view);
+								this.backgroundNode = view;
 							} catch (Exception ex) {
 								// if it blows up, then just log the error
 								LOGGER.error("Failed to create media or media player.", ex);
@@ -148,7 +167,7 @@ public final class SlideComponentWrapper extends SlideRegionWrapper<SlideRegion>
 								}
 								img.setClip(r);
 								img.setBackground(new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, this.getBackgroundSize(mo.getScaling()))));
-								this.node.getChildren().add(img);
+								this.backgroundNode = img;
 							} catch (Exception ex) {
 								// just log the error
 								LOGGER.warn("Failed to load image " + m.getMetadata().getPath() + ".", ex);
@@ -167,7 +186,7 @@ public final class SlideComponentWrapper extends SlideRegionWrapper<SlideRegion>
 							}
 							img.setClip(r);
 							img.setBackground(new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, this.getBackgroundSize(mo.getScaling()))));
-							this.node.getChildren().add(img);
+							this.backgroundNode = img;
 						} catch (Exception ex) {
 							// just log the error
 							LOGGER.warn("Failed to load image " + m.getMetadata().getPath() + ".", ex);
@@ -185,14 +204,111 @@ public final class SlideComponentWrapper extends SlideRegionWrapper<SlideRegion>
 			}
 		} else {
 			Paint paint = getPaint(bg);
-			this.node.setBackground(new Background(new BackgroundFill(paint, bdr != null ? new CornerRadii(bdr.getRadius()) : null, null)));
+			VBox bgNode = new VBox();
+			JavaFxNodeHelper.setSize(bgNode, w, h);
+			bgNode.setBackground(new Background(new BackgroundFill(paint, bdr != null ? new CornerRadii(bdr.getRadius()) : null, null)));
+			this.backgroundNode = bgNode;
 		}
 		
 		// type dependent stuff
-		
+		Rectangle clip = new Rectangle(0, 0, w, h);
+		if (bdr != null) {
+			clip.setArcHeight(bdr.getRadius() * 2);
+			clip.setArcWidth(bdr.getRadius() * 2);
+		}
 		if (this.component instanceof MediaComponent) {
-			// TODO add relevant code
-			// for this case we need to just add another node since you could have a video overlaying a gradient or image for example
+			// get the media id
+			MediaObject mo = ((MediaComponent)this.component).getMedia();
+			if (mo != null) {
+				UUID id = mo.getId();
+				// make sure the id is present
+				if (id != null) {
+					// get the media
+					Media m = this.context.getMediaLibrary().get(id);
+					// check for missing media
+					if (m != null) {
+						// check the media type
+						if (m.getMetadata().getType() == MediaType.VIDEO) {
+							// check if we need to show a single frame (EDIT) or the video (PRESENT)
+							if (this.mode == SlideMode.PRESENT) {
+								try {
+									// attempt to open the media
+									javafx.scene.media.Media media = new javafx.scene.media.Media(m.getMetadata().getPath().toUri().toString());
+									// create a player
+									MediaPlayer player = new MediaPlayer(media);
+									// set the player attributes
+									player.setMute(mo.isMute());
+									player.setCycleCount(mo.isLoop() ? MediaPlayer.INDEFINITE : 0);
+									MediaView view = new MediaView(player);
+									// set the scaling
+									if (mo.getScaling() == ScaleType.NONUNIFORM) { 
+										view.setFitWidth(w);
+										view.setFitHeight(h);
+									} else if (mo.getScaling() == ScaleType.UNIFORM) {
+										// set the fit w/h based on the min
+										if (w < h) {
+											view.setFitWidth(w);
+										} else {
+											view.setFitWidth(h);
+										}
+									} else {
+										// then center it
+										view.setLayoutX((w - m.getMetadata().getWidth()) * 0.5);
+										view.setLayoutY((h - m.getMetadata().getHeight()) * 0.5);
+										// need to set a clip if its bigger than the component
+										clip.setX(-(w - m.getMetadata().getWidth()) * 0.5);
+										clip.setY(-(h - m.getMetadata().getHeight()) * 0.5);
+										view.setClip(clip);
+									}
+									
+									// add the player to the background node
+									this.contentNode = view;
+								} catch (Exception ex) {
+									// if it blows up, then just log the error
+									LOGGER.error("Failed to create media or media player.", ex);
+								}
+							} else {
+								// if not in present mode, then just show the single frame
+								try  {
+									Image image = this.context.getImageCache().get(this.context.getMediaLibrary().getFramePath(m));
+									VBox img = new VBox();
+									JavaFxNodeHelper.setSize(img, w, h);
+									img.setClip(clip);
+									img.setBackground(new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, this.getBackgroundSize(mo.getScaling()))));
+									this.contentNode = img;
+								} catch (Exception ex) {
+									// just log the error
+									LOGGER.warn("Failed to load image " + m.getMetadata().getPath() + ".", ex);
+								}
+							}
+						} else if (m.getMetadata().getType() == MediaType.IMAGE) {
+							// image
+							try  {
+								Image image = this.context.getImageCache().get(m.getMetadata().getPath());
+								VBox img = new VBox();
+								JavaFxNodeHelper.setSize(img, w, h);
+								Rectangle r = new Rectangle(0, 0, w, h);
+								img.setClip(clip);
+								img.setBackground(new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, this.getBackgroundSize(mo.getScaling()))));
+								this.contentNode = img;
+							} catch (Exception ex) {
+								// just log the error
+								LOGGER.warn("Failed to load image " + m.getMetadata().getPath() + ".", ex);
+							}
+						} else {
+							// log warning about type (audio)
+							LOGGER.warn("Invalid media type {} with path {}.", m.getMetadata().getType(), m.getMetadata().getPath());
+						}
+					} else {
+						// log warning about missing media
+						LOGGER.warn("The referenced media {} was not found in the media library.", id);
+					}
+				} else {
+					LOGGER.warn("The media id is null.");
+				}
+			} else {
+				LOGGER.warn("No media set on media component {}.", this.component.getId());
+			}
 		} else if (this.component instanceof DateTimeComponent) {
 			// TODO how do we do the animation of the time?
 		} else if (this.component instanceof TextComponent) {
@@ -241,14 +357,32 @@ public final class SlideComponentWrapper extends SlideRegionWrapper<SlideRegion>
 				text.getStrokeDashArray().addAll(ss.getStyle().getDashes());
 			}
 			
-			contents.setPadding(new Insets(padding));
+			VBox contentWrapper = new VBox();
+			contentWrapper.setPadding(new Insets(padding));
+			JavaFxNodeHelper.setSize(contentWrapper, w, h);
 			
 			// vertical alignment
-			contents.setAlignment(this.getPos(tc.getVerticalTextAlignment()));
+			contentWrapper.setAlignment(this.getPos(tc.getVerticalTextAlignment()));
 			
-			contents.getChildren().add(text);
+			contentWrapper.getChildren().add(text);
+			
+			this.contentNode = contentWrapper;
 		}
 		
-		this.node.getChildren().add(contents);
+		this.node.getChildren().addAll(this.backgroundNode, this.contentNode, this.borderNode);
+	}
+	
+	List<MediaPlayer> getMediaPlayers() {
+		List<MediaPlayer> players = new ArrayList<>();
+		
+		if (this.backgroundNode instanceof MediaView) {
+			players.add(((MediaView)this.backgroundNode).getMediaPlayer());
+		}
+		
+		if (this.contentNode instanceof MediaView) {
+			players.add(((MediaView)this.contentNode).getMediaPlayer());
+		}
+		
+		return players;
 	}
 }

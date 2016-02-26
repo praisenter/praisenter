@@ -7,7 +7,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
-//FEATURE maybe have a setting to allow the animation to be played in reverse when the slide is transitioned out
+// FEATURE maybe have a setting to allow the animation to be played in reverse when the slide is transitioned out
+// TODO might want to make this class immutable
 
 @XmlRootElement(name = "transition")
 @XmlAccessorType(XmlAccessType.NONE)

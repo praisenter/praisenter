@@ -27,6 +27,8 @@ public final class MainPane extends BorderPane {
 		
 		MenuItem mImport = new MenuItem();
 		MenuItem mManage = new MenuItem();
+		// maybe...
+		MenuItem mTranscode = new MenuItem();
 		
 		// add/edit
 		MenuItem soNew = new MenuItem();

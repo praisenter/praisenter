@@ -38,6 +38,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener.Change;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -47,11 +48,15 @@ import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Paint;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
+
+// TODO need to address editing and resizing.  The building of the JavaFX UI is highly dependent on a number of things so we may end up needing to update a bunch of stuff (width/height in particluar)
 
 public class SlideWrapper extends SlideRegionWrapper<Slide> {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -67,10 +72,10 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 	final ListProperty<SlideTransition> animations;
 	final ListProperty<SlideComponent> components;
 	
-	final VBox backgroundNode;
+	private Node backgroundNode;
 	final Pane foregroundNode;
+	private final Region borderNode;
 	
-	// TODO may not need this field
 	final List<SlideComponentWrapper> children;
 	
 	// players for audio/video
@@ -109,8 +114,8 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 			this.components = null;
 		}
 		
-		this.backgroundNode = new VBox();
 		this.foregroundNode = new Pane();
+		this.borderNode = new Region();
 		this.children = new ArrayList<>();
 		this.players = new ArrayList<MediaPlayer>();
 		
@@ -124,14 +129,14 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 		// width/height
 		int w = this.component.getWidth();
 		int h = this.component.getHeight();
-		JavaFxNodeHelper.setSize(this.backgroundNode, w, h);
+//		JavaFxNodeHelper.setSize(this.backgroundNode, w, h);
 		JavaFxNodeHelper.setSize(this.foregroundNode, w, h);
 		
 		// border
 		// the border will go on the background node
 		SlideStroke bdr = this.component.getBorder();
 		if (bdr != null) {
-			this.backgroundNode.setBorder(new Border(getBorderStroke(bdr)));
+			this.borderNode.setBorder(new Border(getBorderStroke(bdr)));
 		}
 
 		// background
@@ -152,10 +157,9 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 						if (this.mode == SlideMode.PRESENT) {
 							try {
 								// attempt to open the media
-								javafx.scene.media.Media media = new javafx.scene.media.Media(m.getMetadata().getPath().toAbsolutePath().toString());
+								javafx.scene.media.Media media = new javafx.scene.media.Media(m.getMetadata().getPath().toUri().toString());
 								// create a player
 								MediaPlayer player = new MediaPlayer(media);
-								this.players.add(player);
 								// set the player attributes
 								player.setMute(mo.isMute());
 								player.setCycleCount(mo.isLoop() ? MediaPlayer.INDEFINITE : 0);
@@ -171,9 +175,13 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 									} else {
 										view.setFitWidth(h);
 									}
+								} else {
+									// then center it
+									view.setLayoutX((w - m.getMetadata().getWidth()) * 0.5);
+									view.setLayoutY((h - m.getMetadata().getHeight()) * 0.5);
 								}
 								// add the player to the background node
-								this.backgroundNode.getChildren().add(view);
+								this.backgroundNode = view;
 							} catch (Exception ex) {
 								// if it blows up, then just log the error
 								LOGGER.error("Failed to create media or media player.", ex);
@@ -182,7 +190,16 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 							// if not in present mode, then just show the single frame
 							try  {
 								Image image = this.context.getImageCache().get(this.context.getMediaLibrary().getFramePath(m));
-								this.backgroundNode.setBackground(new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, this.getBackgroundSize(mo.getScaling()))));
+								VBox img = new VBox();
+								JavaFxNodeHelper.setSize(img, w, h);
+								Rectangle r = new Rectangle(0, 0, w, h);
+								if (bdr != null) {
+									r.setArcHeight(bdr.getRadius() * 2);
+									r.setArcWidth(bdr.getRadius() * 2);
+								}
+								img.setClip(r);
+								img.setBackground(new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, this.getBackgroundSize(mo.getScaling()))));
+								this.backgroundNode = img;
 							} catch (Exception ex) {
 								// just log the error
 								LOGGER.warn("Failed to load image " + m.getMetadata().getPath() + ".", ex);
@@ -192,7 +209,16 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 						// image
 						try  {
 							Image image = this.context.getImageCache().get(m.getMetadata().getPath());
-							this.backgroundNode.setBackground(new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, this.getBackgroundSize(mo.getScaling()))));
+							VBox img = new VBox();
+							JavaFxNodeHelper.setSize(img, w, h);
+							Rectangle r = new Rectangle(0, 0, w, h);
+							if (bdr != null) {
+								r.setArcHeight(bdr.getRadius() * 2);
+								r.setArcWidth(bdr.getRadius() * 2);
+							}
+							img.setClip(r);
+							img.setBackground(new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, this.getBackgroundSize(mo.getScaling()))));
+							this.backgroundNode = img;
 						} catch (Exception ex) {
 							// just log the error
 							LOGGER.warn("Failed to load image " + m.getMetadata().getPath() + ".", ex);
@@ -210,7 +236,10 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 			}
 		} else {
 			Paint paint = getPaint(bg);
-			this.backgroundNode.setBackground(new Background(new BackgroundFill(paint, bdr != null ? new CornerRadii(bdr.getRadius()) : null, null)));
+			VBox bgNode = new VBox();
+			JavaFxNodeHelper.setSize(bgNode, w, h);
+			bgNode.setBackground(new Background(new BackgroundFill(paint, bdr != null ? new CornerRadii(bdr.getRadius()) : null, null)));
+			this.backgroundNode = bgNode;
 		}
 		
 		// this assumes the components are in the correct order
@@ -266,14 +295,14 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 				int v = n.intValue();
 				int ch = height.get();
 				this.component.setWidth(v);
-				JavaFxNodeHelper.setSize(this.backgroundNode, v, ch);
+				//JavaFxNodeHelper.setSize(this.backgroundNode, v, ch);
 				JavaFxNodeHelper.setSize(this.foregroundNode, v, ch);
 			});
 			this.height.addListener((obs, o, n) -> {
 				int v = n.intValue();
 				int cw = width.get();
 				this.component.setHeight(v);
-				JavaFxNodeHelper.setSize(this.backgroundNode, cw, v);
+				//JavaFxNodeHelper.setSize(this.backgroundNode, cw, v);
 				JavaFxNodeHelper.setSize(this.foregroundNode, cw, v);
 			});
 
@@ -283,7 +312,7 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 			this.border.addListener((obs, o, n) -> {
 				this.component.setBorder(n);
 				Border border = new Border(getBorderStroke(n));
-				this.backgroundNode.setBorder(border);
+				this.borderNode.setBorder(border);
 			});
 
 			// background
@@ -292,7 +321,7 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 			this.background.addListener((obs, o, n) -> {
 				this.component.setBackground(n);
 				Background background = getBackground(n);
-				this.backgroundNode.setBackground(background);
+				//this.backgroundNode.setBackground(background);
 			});
 			
 			// name
@@ -354,11 +383,28 @@ public class SlideWrapper extends SlideRegionWrapper<Slide> {
 	}
 	
 
-	public VBox getBackgroundNode() {
+	public Node getBackgroundNode() {
 		return backgroundNode;
 	}
 
 	public Pane getForegroundNode() {
 		return foregroundNode;
+	}
+	
+	public Region getBorderNode() {
+		return borderNode;
+	}
+	
+	public List<MediaPlayer> getMediaPlayers() {
+		List<MediaPlayer> players = new ArrayList<>();
+		
+		if (this.backgroundNode instanceof MediaView) {
+			players.add(((MediaView)this.backgroundNode).getMediaPlayer());
+		}
+		for (SlideComponentWrapper wrapper : this.children) {
+			players.addAll(wrapper.getMediaPlayers());
+		}
+		
+		return players;
 	}
 }

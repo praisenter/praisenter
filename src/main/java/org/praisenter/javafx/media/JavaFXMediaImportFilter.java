@@ -40,7 +40,6 @@ import org.praisenter.media.FFmpegMediaImportFilter;
 import org.praisenter.media.MediaImportFilter;
 import org.praisenter.media.MediaType;
 import org.praisenter.media.TranscodeException;
-import org.praisenter.utility.RuntimeProperties;
 
 /**
  * {@link MediaImportFilter} used to transcode audio and video into the formats playable by JavaFX.

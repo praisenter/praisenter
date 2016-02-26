@@ -94,6 +94,8 @@ import org.praisenter.Constants;
 import org.praisenter.javafx.easing.EasingType;
 import org.praisenter.javafx.easing.Easings;
 
+// FEATURE use Apache POI to read powerpoint files
+
 public final class Praisenter extends Application {
 	static {
 		// set the log file path (used in the log4j2.xml file)

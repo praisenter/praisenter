@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
 
 import org.praisenter.javafx.PraisenterContext;
@@ -10,6 +11,7 @@ import org.praisenter.javafx.slide.SlideWrapper;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.slide.BasicSlide;
+import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
@@ -31,8 +33,11 @@ import org.praisenter.utility.ClasspathLoader;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 
 public class TestSlideDisplay extends Application {
@@ -60,6 +65,12 @@ public class TestSlideDisplay extends Application {
 				1, 
 				0);
 		
+		SlideStroke thick = new SlideStroke(
+				new SlideColor(0.5, 0, 0, 1), 
+				new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, 5.0, 10.0), 
+				5, 
+				5);
+		
 		SlideRadialGradient radial = new SlideRadialGradient(
 				0.5, 0.5, 1.5, 
 				SlideGradientCycleType.NONE, 
@@ -69,21 +80,17 @@ public class TestSlideDisplay extends Application {
 		BasicTextComponent txt = new BasicTextComponent();
 		txt.setFontName("Impact");
 		txt.setFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
-		txt.setFontSize(40);
+		txt.setFontSize(10);
 		txt.setWidth(400);
 		txt.setHeight(400);
 		txt.setX(20);
 		txt.setY(100);
-		txt.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT);
-		txt.setVerticalTextAlignment(VerticalTextAlignment.TOP);
+		txt.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
+		txt.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
 		txt.setOrder(0);
 		txt.setPadding(10);
 		txt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
-		txt.setBorder(new SlideStroke(
-				new SlideColor(0.5, 0, 0, 1), 
-				new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, 5.0, 10.0), 
-				5, 
-				5));
+		txt.setBorder(thick);
 		txt.setTextPaint(radial);
 		txt.setTextBorder(stroke);
 		txt.setText("Lorem ipsum dolor \n\nsit amet, consectetur adipiscing elit. Nam viverra tristique mauris. Suspendisse potenti. Etiam justo erat, mollis eget mi nec, euismod interdum magna. Aenean ac nulla fermentum, ullamcorper arcu sed, fermentum orci. Donec varius neque eget sapien cursus maximus. Fusce mauris lectus, pellentesque vel sem cursus, dapibus vehicula est. In tincidunt ultrices est nec finibus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eu nisi augue. Integer commodo enim sed rutrum rutrum. Quisque tristique id ipsum sed malesuada. Maecenas non diam eget felis pulvinar sodales.");
@@ -104,17 +111,44 @@ public class TestSlideDisplay extends Application {
 			e.printStackTrace();
 		}
 		
-//		MediaObject mo = new MediaObject(
-//				UUID.fromString("b179387f-ab1d-40ba-a246-40226f375e8b"),
-////				UUID.fromString("3a455fd7-c8f0-4c81-955b-0bcb3e4c47ef"),
-//				ScaleType.NONE,
-//				false,
-//				true);
-//		txt.setBackground(mo);
+		MediaObject img = new MediaObject(
+				UUID.fromString("b179387f-ab1d-40ba-a246-40226f375e8b"),
+//				UUID.fromString("3a455fd7-c8f0-4c81-955b-0bcb3e4c47ef"),
+				ScaleType.UNIFORM,
+				false,
+				true);
+		txt.setBackground(img);
+		
+		MediaObject vid = new MediaObject(
+				UUID.fromString("758e2ed0-88ba-4107-8462-a4ac44670875"),
+//				UUID.fromString("758e2ed0-88ba-4107-8462-a4ac44670875"),
+				ScaleType.NONE,
+				false,
+				true);
+		
+		MediaComponent mc = new MediaComponent();
+		mc.setBackground(img);
+		mc.setBorder(thick);
+		mc.setWidth(100);
+		mc.setHeight(100);
+		mc.setX(100);
+		mc.setY(200);
+		mc.setMedia(vid);
+		
+		slide.addComponent(mc);
+		
+
+		slide.setBackground(vid);
+		
 		
 		PraisenterContext context = new PraisenterContext(library, null, null, null);
 		
 		SlideWrapper wrapper = new SlideWrapper(context, slide, SlideMode.PRESENT);
+		List<MediaPlayer> players = wrapper.getMediaPlayers();
+		
+		for (MediaPlayer mp : players) {
+			mp.play();
+		}
 		
 		// test speed of conversion and snapshots
 		
@@ -153,8 +187,7 @@ public class TestSlideDisplay extends Application {
 //		System.out.println((t1 - t0) / 1e9 );
 		
 		Pane pane = new Pane();
-		pane.getChildren().addAll(wrapper.getBackgroundNode(), wrapper.getForegroundNode());
-		
+		pane.getChildren().addAll(wrapper.getBackgroundNode(), wrapper.getForegroundNode(), wrapper.getBorderNode());
 		Scene scene = new Scene(pane, Color.TRANSPARENT);
 		stage.setScene(scene);
 		stage.show();
