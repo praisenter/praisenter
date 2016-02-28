@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.slide.SlideMode;
-import org.praisenter.javafx.slide.SlideWrapper;
+import org.praisenter.javafx.slide.FxSlide;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.slide.BasicSlide;
@@ -97,8 +97,8 @@ public class TestSlideDisplay extends Application {
 		
 		slide.addComponent(txt);
 		
-		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -112,17 +112,17 @@ public class TestSlideDisplay extends Application {
 		}
 		
 		MediaObject img = new MediaObject(
-				UUID.fromString("b179387f-ab1d-40ba-a246-40226f375e8b"),
-//				UUID.fromString("3a455fd7-c8f0-4c81-955b-0bcb3e4c47ef"),
+//				UUID.fromString("b179387f-ab1d-40ba-a246-40226f375e8b"),
+				UUID.fromString("3a455fd7-c8f0-4c81-955b-0bcb3e4c47ef"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-				UUID.fromString("758e2ed0-88ba-4107-8462-a4ac44670875"),
 //				UUID.fromString("758e2ed0-88ba-4107-8462-a4ac44670875"),
-				ScaleType.NONE,
+				UUID.fromString("76fec243-0feb-4a1d-8a56-e57f9193a5cd"),
+				ScaleType.NONUNIFORM,
 				false,
 				true);
 		
@@ -139,11 +139,12 @@ public class TestSlideDisplay extends Application {
 		
 
 		slide.setBackground(vid);
+		slide.setBorder(thick);
 		
 		
 		PraisenterContext context = new PraisenterContext(library, null, null, null);
 		
-		SlideWrapper wrapper = new SlideWrapper(context, slide, SlideMode.PRESENT);
+		FxSlide wrapper = new FxSlide(context, slide, SlideMode.PRESENT);
 		List<MediaPlayer> players = wrapper.getMediaPlayers();
 		
 		for (MediaPlayer mp : players) {
@@ -187,7 +188,7 @@ public class TestSlideDisplay extends Application {
 //		System.out.println((t1 - t0) / 1e9 );
 		
 		Pane pane = new Pane();
-		pane.getChildren().addAll(wrapper.getBackgroundNode(), wrapper.getForegroundNode(), wrapper.getBorderNode());
+		pane.getChildren().addAll(wrapper.getBackgroundNode(), wrapper.getContentNode(), wrapper.getBorderNode());
 		Scene scene = new Scene(pane, Color.TRANSPARENT);
 		stage.setScene(scene);
 		stage.show();
