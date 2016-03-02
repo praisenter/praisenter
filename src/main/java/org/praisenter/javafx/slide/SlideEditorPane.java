@@ -1,17 +1,49 @@
 package org.praisenter.javafx.slide;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.praisenter.javafx.PraisenterContext;
+import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.StrokeType;
+import javafx.stage.Stage;
+
+import org.praisenter.javafx.GradientPicker;
 import org.praisenter.javafx.Resolution;
-import org.praisenter.javafx.media.JavaFXMediaImportFilter;
-import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
@@ -32,42 +64,6 @@ import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.utility.ClasspathLoader;
-
-import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.geometry.Insets;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.image.Image;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
-import javafx.stage.Stage;
 
 // TODO slide presentation:
 //		user selects slide
@@ -221,69 +217,16 @@ public final class SlideEditorPane extends Application {
 			
 			// gradient
 			
-			ChoiceBox<String> cbGradType = new ChoiceBox<String>(FXCollections.observableArrayList("Linear", "Radial"));
-			Label lblGradientType = new Label("Gradient type");
-			grid.add(lblGradientType, 0, 7);
-			grid.add(cbGradType, 1, 7);
-			
-			Label lblStop1 = new Label("Stop 1");
-			TextField txtOffset1 = new TextField();
-			txtOffset1.setPromptText("offset");
-			ColorPicker clrStop1 = new ColorPicker();
-			HBox stop1 = new HBox();
-			stop1.getChildren().addAll(txtOffset1, clrStop1);
-			grid.add(lblStop1, 0, 8);
-			grid.add(stop1, 1, 8);
-			
-			Label lblStop2 = new Label("Stop 2");
-			TextField txtOffset2 = new TextField();
-			txtOffset2.setPromptText("offset");
-			ColorPicker clrStop2 = new ColorPicker();
-			HBox stop2 = new HBox();
-			stop2.getChildren().addAll(txtOffset2, clrStop2);
-			grid.add(lblStop2, 0, 9);
-			grid.add(stop2, 1, 9);
-			
-			ChoiceBox<SlideGradientCycleType> cbCycleType = new ChoiceBox<SlideGradientCycleType>(FXCollections.observableArrayList(SlideGradientCycleType.values()));
-			Label lblCycleType = new Label("Cycle type");
-			grid.add(lblCycleType, 0, 10);
-			grid.add(cbCycleType, 1, 10);
-			
-			Label lblLinearGradientStart = new Label("Start");
-			TextField txtLinearGradientStartX = new TextField();
-			txtLinearGradientStartX.setPromptText("x");
-			TextField txtLinearGradientStartY = new TextField();
-			txtLinearGradientStartY.setPromptText("y");
-			grid.add(lblLinearGradientStart, 0, 11);
-			HBox lgsxy = new HBox();
-			lgsxy.getChildren().addAll(txtLinearGradientStartX, txtLinearGradientStartY);
-			grid.add(lgsxy, 1, 11);
-			
-			Label lblLinearGradientEnd = new Label("End");
-			TextField txtLinearGradientEndX = new TextField();
-			txtLinearGradientEndX.setPromptText("x");
-			TextField txtLinearGradientEndY = new TextField();
-			txtLinearGradientEndY.setPromptText("y");
-			grid.add(lblLinearGradientEnd, 0, 12);
-			HBox lgexy = new HBox();
-			lgexy.getChildren().addAll(txtLinearGradientEndX, txtLinearGradientEndY);
-			grid.add(lgexy, 1, 12);
-			
-			Label lblRadialGradientCenter = new Label("Center");
-			TextField txtRadialGradientCenterX = new TextField();
-			txtRadialGradientCenterX.setPromptText("x");
-			TextField txtRadialGradientCenterY = new TextField();
-			txtRadialGradientCenterY.setPromptText("y");
-			grid.add(lblRadialGradientCenter, 0, 13);
-			HBox rgcxy = new HBox();
-			rgcxy.getChildren().addAll(txtRadialGradientCenterX, txtRadialGradientCenterY);
-			grid.add(rgcxy, 1, 13);
-			
-			Label lblRadialGradientRadius = new Label("Radius");
-			TextField txtRadialGradientRadius = new TextField();
-			txtRadialGradientRadius.setPromptText("radius");
-			grid.add(lblRadialGradientRadius, 0, 14);
-			grid.add(txtRadialGradientRadius, 1, 14);
+			Label lblGradient = new Label("Gradient");
+			MenuButton btnGradient = new MenuButton("Choose...");
+			GradientPicker gp = new GradientPicker();
+			CustomMenuItem item = new CustomMenuItem(gp, false);
+			// NOTE: this removes the on hover highlight
+//			item.getStyleClass().remove("menu-item");
+			// NOTE: choosing a custom color causes an exception in JavaFX when this is in a menu item
+			btnGradient.getItems().add(item);
+			grid.add(lblGradient, 0, 7);
+			grid.add(btnGradient, 1, 7);
 			
 			// image
 			Label lblImage = new Label("Image");

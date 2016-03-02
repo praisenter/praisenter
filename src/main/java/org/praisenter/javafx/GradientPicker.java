@@ -19,7 +19,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.Slider;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
@@ -64,9 +66,18 @@ public final class GradientPicker extends VBox {
 	    		final double y2 = clamp(lg.getEndY(), 0, 1);
 	    		
 	    		type.set(0);
-	    		cbTypes.setValue(new Option<Integer>("", 0));
+	    		rdoLinear.setSelected(true);
 	    		cycle.set(lg.getCycleMethod());
-	    		cbCycleMethod.setValue(new Option<CycleMethod>("", lg.getCycleMethod()));
+	    		switch (lg.getCycleMethod()) {
+	    			case REFLECT:
+	    				rdoCycleReflect.setSelected(true);
+	    				break;
+	    			case REPEAT:
+	    				rdoCycleRepeat.setSelected(true);
+	    				break;
+					default:
+	    				rdoCycleNone.setSelected(true);	
+	    		}
 	    		handle1X.set(x1);
 	    		handle1Y.set(y1);
 	    		handle2X.set(x2);
@@ -103,9 +114,18 @@ public final class GradientPicker extends VBox {
 	    		final double y2 = clamp(y1 + sqrt2 * r, 0, 1);
 	    		
 	    		type.set(1);
-	    		cbTypes.setValue(new Option<Integer>("", 1));
+	    		rdoRadial.setSelected(true);
 	    		cycle.set(rg.getCycleMethod());
-	    		cbCycleMethod.setValue(new Option<CycleMethod>("", rg.getCycleMethod()));
+	    		switch (rg.getCycleMethod()) {
+	    			case REFLECT:
+	    				rdoCycleReflect.setSelected(true);
+	    				break;
+	    			case REPEAT:
+	    				rdoCycleRepeat.setSelected(true);
+	    				break;
+    				default:
+	    				rdoCycleNone.setSelected(true);	
+	    		}
 	    		handle1X.set(x1);
 	    		handle1Y.set(y1);
 	    		handle2X.set(x2);
@@ -169,8 +189,11 @@ public final class GradientPicker extends VBox {
 	
 	// nodes
 	
-	private final ChoiceBox<Option<Integer>> cbTypes;
-	private final ChoiceBox<Option<CycleMethod>> cbCycleMethod;
+	private final RadioButton rdoLinear;
+	private final RadioButton rdoRadial;
+	private final RadioButton rdoCycleNone;
+	private final RadioButton rdoCycleReflect;
+	private final RadioButton rdoCycleRepeat;
 	private final Slider sldStop1;
 	private final ColorPicker pkrStop1;
 	private final Slider sldStop2;
@@ -185,42 +208,46 @@ public final class GradientPicker extends VBox {
     public GradientPicker() {
         // set the padding
     	setPadding(new Insets(10));
+    	setSpacing(5);
 
     	// create the gradient type options
     	// TODO translate
-        Option<Integer> linearType = new Option<Integer>("Linear", 0);
-        Option<Integer> radialType = new Option<Integer>("Radial", 1);
+        ToggleGroup grpTypes = new ToggleGroup();
+        this.rdoLinear = new RadioButton("Linear");
+        this.rdoLinear.setToggleGroup(grpTypes);
+        this.rdoLinear.setUserData(0);
+        this.rdoLinear.setSelected(true);
+        this.rdoRadial = new RadioButton("Radial");
+        this.rdoRadial.setToggleGroup(grpTypes);
+        this.rdoRadial.setUserData(1);
+        grpTypes.selectedToggleProperty().addListener((obs, ov, nv) -> {
+        	type.set((Integer)nv.getUserData());
+        	this.paintProperty.set(null);
+        });
+        HBox typeRow = new HBox();
+        typeRow.setSpacing(5);
+        typeRow.getChildren().addAll(this.rdoLinear, this.rdoRadial);
         
-        List<Option<Integer>> typeOptions = new ArrayList<Option<Integer>>();
-        typeOptions.add(linearType);
-        typeOptions.add(radialType);
-
     	// create the cycle type options
     	// TODO translate
-        Option<CycleMethod> cycleNone = new Option<CycleMethod>("None", CycleMethod.NO_CYCLE);
-        Option<CycleMethod> cycleReflect = new Option<CycleMethod>("Reflect", CycleMethod.REFLECT);
-        Option<CycleMethod> cycleRepeat = new Option<CycleMethod>("Repeat", CycleMethod.REPEAT);
-        
-        List<Option<CycleMethod>> cycleOptions = new ArrayList<Option<CycleMethod>>();
-        cycleOptions.add(cycleNone);
-        cycleOptions.add(cycleReflect);
-        cycleOptions.add(cycleRepeat);
-        
-        // gradient type selector
-        this.cbTypes = new ChoiceBox<Option<Integer>>(FXCollections.observableArrayList(typeOptions));
-        this.cbTypes.setValue(linearType);
-        this.cbTypes.valueProperty().addListener((obs, ov, nv) -> {
-        	this.type.set(nv.value);
+        ToggleGroup grpCycleTypes = new ToggleGroup();
+        this.rdoCycleNone = new RadioButton("None");
+        this.rdoCycleNone.setToggleGroup(grpCycleTypes);
+        this.rdoCycleNone.setUserData(CycleMethod.NO_CYCLE);
+        this.rdoCycleNone.setSelected(true);
+        this.rdoCycleReflect = new RadioButton("Reflect");
+        this.rdoCycleReflect.setToggleGroup(grpCycleTypes);
+        this.rdoCycleReflect.setUserData(CycleMethod.REFLECT);
+        this.rdoCycleRepeat = new RadioButton("Repeat");
+        this.rdoCycleRepeat.setToggleGroup(grpCycleTypes);
+        this.rdoCycleRepeat.setUserData(CycleMethod.REPEAT);
+        grpCycleTypes.selectedToggleProperty().addListener((obs, ov, nv) -> {
+        	cycle.set((CycleMethod)nv.getUserData());
         	this.paintProperty.set(null);
         });
-        
-        // the cycle type
-        this.cbCycleMethod = new ChoiceBox<Option<CycleMethod>>(FXCollections.observableArrayList(cycleOptions));
-        this.cbCycleMethod.setValue(cycleNone);
-        this.cbCycleMethod.valueProperty().addListener((obs, ov, nv) -> {
-        	this.cycle.set(nv.value);
-        	this.paintProperty.set(null);
-        });
+        HBox cycleRow = new HBox();
+        cycleRow.setSpacing(5);
+        cycleRow.getChildren().addAll(this.rdoCycleNone, this.rdoCycleReflect, this.rdoCycleRepeat);
         
         // stop 1 offset slider
         this.sldStop1 = new Slider(0, 1, 0);
@@ -347,7 +374,7 @@ public final class GradientPicker extends VBox {
         this.handle2.setOnMouseDragged(handle2MouseHandler);
         
         // add all the controls to the VBox
-        getChildren().addAll(this.cbTypes, this.cbCycleMethod, this.sldStop1, this.pkrStop1, this.sldStop2, this.pkrStop2, previewRow);
+        getChildren().addAll(typeRow, cycleRow, this.sldStop1, this.pkrStop1, this.sldStop2, this.pkrStop2, previewRow);
         
         // set the default paint based on the default values
     	this.paintProperty.set(null);
