@@ -88,8 +88,8 @@ public class MediaLibraryPane extends Application {
     	
     	// TODO should be moved eventually
     	FileSystem system = FileSystems.getDefault();
-//		Path path = system.getPath("D:\\Personal\\Praisenter\\testmedialibrary");
-    	Path path = system.getPath("C:\\Users\\William\\Desktop\\test\\media");
+		Path path = system.getPath("D:\\Personal\\Praisenter\\testmedialibrary");
+//    	Path path = system.getPath("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),

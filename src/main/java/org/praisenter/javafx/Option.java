@@ -64,7 +64,7 @@ public final class Option<T> {
 	 */
 	@Override
 	public int hashCode() {
-		return name == null ? -1 : name.hashCode();
+		return value == null ? -1 : value.hashCode();
 	}
 	
 	/* (non-Javadoc)
@@ -76,7 +76,7 @@ public final class Option<T> {
 		if (obj == this) return true;
 		if (obj instanceof Option) {
 			Option<?> mtf = (Option<?>)obj;
-			if (Objects.equals(mtf.name, this.name)) {
+			if (Objects.equals(mtf.value, this.value)) {
 				return true;
 			}
 		}
