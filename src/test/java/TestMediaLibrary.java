@@ -6,6 +6,7 @@ import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
+import org.praisenter.media.MediaType;
 import org.praisenter.utility.ClasspathLoader;
 
 import javafx.application.Application;
@@ -19,8 +20,8 @@ public class TestMediaLibrary extends Application {
 	}
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -33,7 +34,7 @@ public class TestMediaLibrary extends Application {
 			e.printStackTrace();
 		}
 		
-		MediaLibraryPane root = new MediaLibraryPane(library, Orientation.HORIZONTAL);
+		MediaLibraryPane root = new MediaLibraryPane(library, Orientation.HORIZONTAL, MediaType.AUDIO);
 		
 		Scene scene = new Scene(root);
 		primaryStage.setTitle("Media Library");

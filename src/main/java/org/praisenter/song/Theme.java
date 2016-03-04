@@ -34,6 +34,7 @@ import javax.xml.bind.annotation.XmlValue;
 
 import org.praisenter.Localized;
 
+// FIXME replace with Tag class
 /**
  * Represents a theme of a song (similar to a tag).
  * @author William Bittle

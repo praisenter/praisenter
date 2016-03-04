@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
@@ -46,6 +47,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
+import org.praisenter.xml.adapters.InstantXmlAdapter;
 import org.praisenter.xml.adapters.PathXmlAdapter;
 
 /**
@@ -84,6 +86,11 @@ public final class MediaMetadata {
 	/** The file name */
 	@XmlAttribute(name = "name", required = false)
 	final String name;
+
+	/** The date the file was added to the library */
+	@XmlAttribute(name = "dateAdded", required = false)
+	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
+	final Instant dateAdded;
 	
 	/** The file's last modified timestamp */
 	@XmlAttribute(name = "lastModified", required = false)
@@ -128,7 +135,7 @@ public final class MediaMetadata {
 	 * @return {@link MediaMetadata}
 	 */
 	static final MediaMetadata forImage(Path path, MediaFormat format, int width, int height, Set<Tag> tags) {
-		return new MediaMetadata(null, path, format, width, height, UNKNOWN, false, tags);
+		return new MediaMetadata(null, path, format, width, height, UNKNOWN, false, null, tags);
 	}
 	
 	/**
@@ -140,7 +147,7 @@ public final class MediaMetadata {
 	 * @return {@link MediaMetadata}
 	 */
 	static final MediaMetadata forAudio(Path path, MediaFormat format, long length, Set<Tag> tags) {
-		return new MediaMetadata(null, path, format, UNKNOWN, UNKNOWN, length, true, tags);
+		return new MediaMetadata(null, path, format, UNKNOWN, UNKNOWN, length, true, null, tags);
 	}
 
 	/**
@@ -155,7 +162,7 @@ public final class MediaMetadata {
 	 * @return {@link MediaMetadata}
 	 */
 	static final MediaMetadata forVideo(Path path, MediaFormat format, int width, int height, long length, boolean audio, Set<Tag> tags) {
-		return new MediaMetadata(null, path, format, width, height, length, audio, tags);
+		return new MediaMetadata(null, path, format, width, height, length, audio, null, tags);
 	}
 	
 	/**
@@ -165,7 +172,18 @@ public final class MediaMetadata {
 	 * @return {@link MediaMetadata}
 	 */
 	final static MediaMetadata forRenamed(Path path, MediaMetadata media) {
-		return new MediaMetadata(media.id, path, media.format, media.width, media.height, media.length, media.audio, new TreeSet<Tag>(media.tags));
+		return new MediaMetadata(media.id, path, media.format, media.width, media.height, media.length, media.audio, media.dateAdded, new TreeSet<Tag>(media.tags));
+	}
+	
+	/**
+	 * Returns a new {@link MediaMetadata} for updated media.
+	 * @param dateAdded the original date added
+	 * @param tags the original tags
+	 * @param media the new media metadata
+	 * @return {@link MediaMetadata}
+	 */
+	final static MediaMetadata forUpdated(Instant dateAdded, Set<Tag> tags, MediaMetadata media) {
+		return new MediaMetadata(media.id, media.path, media.format, media.width, media.height, media.length, media.audio, dateAdded, tags);
 	}
 	
 	/**
@@ -180,6 +198,7 @@ public final class MediaMetadata {
 		this.path = null;
 		this.name = null;
 		this.size = UNKNOWN;
+		this.dateAdded = Instant.now();
 		this.lastModified = UNKNOWN;
 		this.format = null;
 		this.width = UNKNOWN;
@@ -198,9 +217,10 @@ public final class MediaMetadata {
 	 * @param height the height; {@link #UNKNOWN} if not applicable
 	 * @param length the length; {@link #UNKNOWN} if not applicable
 	 * @param audio if audio is present
+	 * @param dateAdded the date the media was added to the library
 	 * @param tags the tags; can be null
 	 */
-	private MediaMetadata(UUID id, Path path, MediaFormat format, int width, int height, long length, boolean audio, Set<Tag> tags) {
+	private MediaMetadata(UUID id, Path path, MediaFormat format, int width, int height, long length, boolean audio, Instant dateAdded, Set<Tag> tags) {
 		this.id = id == null ? UUID.randomUUID() : id;
 		
 		// get the media type
@@ -212,7 +232,10 @@ public final class MediaMetadata {
 		this.path = path;
 		this.name = path.getFileName().toString();
 		
-		// size
+		// date added
+		this.dateAdded = dateAdded != null ? dateAdded : Instant.now();
+		
+		// size & last modified
 		long size = UNKNOWN;
 		long lastModified = UNKNOWN;
 		try {
@@ -276,7 +299,15 @@ public final class MediaMetadata {
 	public String getName() {
 		return this.name;
 	}
-
+	
+	/**
+	 * Returns the date this file was added.
+	 * @return Date
+	 */
+	public Instant getDateAdded() {
+		return this.dateAdded;
+	}
+	
 	/**
 	 * Returns the last modified timestamp.
 	 * @return long

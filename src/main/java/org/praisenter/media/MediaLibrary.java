@@ -131,7 +131,7 @@ public final class MediaLibrary {
 	/** The media */
 	private final Map<UUID, Media> media;
 	
-	// FIXME this should be global so the tags can be used for slides and such
+	// FIXME this should be global so the tags can be used for slides and such; should probably be moved to Praisenter Context
 	/** The global set of media tags */
 	private final Set<Tag> tags;
 	
@@ -268,8 +268,9 @@ public final class MediaLibrary {
 							// attempt to play any media for exceptions
 							
 							// if the meta data was just out of date
-							// we want to keep the tags that were there
-							update(path, meta != null ? meta.tags : null);
+							// we want to keep certain metadata information like
+							// date added and the tags
+							update(path, meta);
 						} catch (Exception e) {
 							LOGGER.warn("Failed to load file '" + path.toAbsolutePath().toString() + "'.", e);
 						}
@@ -311,18 +312,20 @@ public final class MediaLibrary {
 	/**
 	 * Updates the given media's metadata (including tags) and thumbnail.
 	 * @param path the file
-	 * @param tags the tags to add
+	 * @param meta the existing metadata; can be null
 	 * @return {@link Media}
 	 * @throws MediaFormatException if the media format isn't something recognized or readable
 	 * @throws IOException if an IO error occurs
 	 */
-	private final Media update(Path path, Set<Tag> tags) throws MediaFormatException, IOException {
+	private final Media update(Path path, MediaMetadata meta) throws MediaFormatException, IOException {
 		LoadedMedia lm = load(path);
 		Media media = lm.media;
 		
-		// add tags
-		if (tags != null) {
-			media.metadata.tags.addAll(tags);
+		// check for existing metadata
+		if (meta != null) {
+			// update the new metadata with the old
+			// date added and tags
+			media = new Media(MediaMetadata.forUpdated(meta.dateAdded, meta.tags != null ? new TreeSet<Tag>(meta.tags) : null, media.metadata), media.thumbnail);
 		}
 		
 		// save the metadata
@@ -466,7 +469,7 @@ public final class MediaLibrary {
 	private final Path copy(Path source) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, UnknownMediaTypeException {
 		// make sure it exists and is a file
 		if (Files.exists(source) && Files.isRegularFile(source)) {
-			MediaType type = getMediaType(source.toString());
+			MediaType type = getMediaType(source);
 			return insert(source, type, source.getFileName().toString());
 		} else {
 			throw new FileNotFoundException(MessageFormat.format(Translations.getTranslation("error.file.missing"), source.toAbsolutePath().toString()));
@@ -489,7 +492,7 @@ public final class MediaLibrary {
 		Files.copy(source, temp, StandardCopyOption.REPLACE_EXISTING);
 		
 		// insert the media into the library
-		MediaType type = getMediaType(temp.toString());
+		MediaType type = getMediaType(temp);
 		Path target = insert(temp, type, name);
 		
 		// delete the temp file
@@ -519,13 +522,13 @@ public final class MediaLibrary {
 	}
 	
 	/**
-	 * Returns the media type for the given file name using the packaged mime.types file in META-INF.
-	 * @param name the file name
+	 * Returns the media type for the given path using the packaged mime.types file in META-INF.
+	 * @param path the file
 	 * @return {@link MediaType}
 	 */
-	private final MediaType getMediaType(String name) {
+	public static final MediaType getMediaType(Path path) {
 		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
-		String mimeType = map.getContentType(name);
+		String mimeType = map.getContentType(path.toString());
 		return MediaType.getMediaTypeFromMimeType(mimeType);
 	}
 	
@@ -637,6 +640,28 @@ public final class MediaLibrary {
 	 */
 	public synchronized List<Media> all() {
 		return new ArrayList<Media>(this.media.values());
+	}
+	
+	/**
+	 * Returns a list of all the media currently being maintained in the library of
+	 * the given types.
+	 * @param types the media types to return
+	 * @return Collection&lt;{@link Media}&gt;
+	 */
+	public synchronized List<Media> all(MediaType... types) {
+		if (types == null || types.length == 0) {
+			return all();
+		}
+		ArrayList<Media> all = new ArrayList<Media>();
+		for (Media media : this.media.values()) {
+			for (MediaType type : types) {
+				if (media.metadata.type == type) {
+					all.add(media);
+					break;
+				}
+			}
+		}
+		return all;
 	}
 	
 	/**

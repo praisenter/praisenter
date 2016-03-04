@@ -35,6 +35,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
+// TODO add tags
 /**
  * Represents a slide.
  * <p>

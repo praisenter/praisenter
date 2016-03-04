@@ -2,37 +2,34 @@ package org.praisenter.javafx.media;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.Collator;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.omg.CosNaming.Binding;
-import org.praisenter.FailedOperation;
-import org.praisenter.Tag;
-import org.praisenter.javafx.Alerts;
-import org.praisenter.javafx.FlowListView;
-import org.praisenter.javafx.Option;
-import org.praisenter.javafx.SortGraphic;
-import org.praisenter.media.Media;
-import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaType;
-import org.praisenter.resources.translations.Translations;
-
 import javafx.application.Platform;
-import javafx.beans.binding.DoubleBinding;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -58,35 +55,134 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.FailedOperation;
+import org.praisenter.Tag;
+import org.praisenter.javafx.Alerts;
+import org.praisenter.javafx.FlowListView;
+import org.praisenter.javafx.Option;
+import org.praisenter.javafx.SortGraphic;
+import org.praisenter.media.Media;
+import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaType;
+import org.praisenter.resources.translations.Translations;
+
 public class MediaLibraryPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger(MediaLibraryPane.class);
 	
-    private final MediaFilter filter;
+	/** The collator for locale dependent sorting */
+	private static final Collator COLLATOR = Collator.getInstance();
+	
+	// filters
+	
+	/** The media type filter */
+	private final ObjectProperty<Option<MediaType>> typeFilter;
+	
+	/** The tag filter */
+	private final ObjectProperty<Option<Tag>> tagFilter;
+	
+	/** The search */
+	private final StringProperty textFilter;
+	
+	// sorting
+	
+	/** The sort property */
+	private final ObjectProperty<Option<MediaSortField>> sortField;
+	
+	/** The sort direction */
+	private final BooleanProperty sortDescending;
+	
+	
+    //private final MediaFilter filter;
     
     // TODO need a generic way of communicating between multiple instances
     // TODO add ability to rename
     // FEATURE allow preview of audio/video; this may not be that hard to be honest; does the MediaView class come with controls?
     // TODO translate
-    public MediaLibraryPane(final MediaLibrary library, Orientation orientation) {
+    public MediaLibraryPane(final MediaLibrary library, Orientation orientation, MediaType... types) {
+		this.typeFilter = new SimpleObjectProperty<>(new Option<MediaType>());
+		this.tagFilter = new SimpleObjectProperty<>(new Option<Tag>());
+		this.textFilter = new SimpleStringProperty();
+		this.sortField = new SimpleObjectProperty<Option<MediaSortField>>(new Option<MediaSortField>(MediaSortField.NAME.getName(), MediaSortField.NAME));
+		this.sortDescending = new SimpleBooleanProperty(false);
+    	
         Set<Tag> tags = new TreeSet<Tag>(library.getTags());
         
         List<MediaListItem> master = new ArrayList<MediaListItem>();
-        for (Media media : library.all()) {
+        for (Media media : library.all(types)) {
         	master.add(new MediaListItem(media));
         }
         // by default sort by name asc
         Collections.sort(master);
         
-        ObservableList<MediaListItem> display = FXCollections.observableArrayList();
-        display.addAll(master);
+        ObservableList<MediaListItem> thelist = FXCollections.observableArrayList();
+        thelist.addAll(master);
+        
+        // add sorting and filtering capabilities
+        FilteredList<MediaListItem> filtered = new FilteredList<MediaListItem>(thelist, p -> true);
+        SortedList<MediaListItem> sorted = new SortedList<MediaListItem>(filtered);
+        
+        // define a general listener for all the filters and sorting
+        InvalidationListener fs = new InvalidationListener() {
+			@Override
+			public void invalidated(Observable arg0) {
+				MediaType type = typeFilter.get().getValue();
+				Tag tag = tagFilter.get().getValue();
+				String text = textFilter.get();
+				MediaSortField field = sortField.get().getValue();
+				boolean desc = sortDescending.get();
+				filtered.setPredicate(m -> {
+					if (!m.loaded || 
+						((type == null || m.media.getMetadata().getType() == type) &&
+						 (tag == null || m.media.getMetadata().getTags().contains(tag)) &&
+						 (text == null || text.length() == 0 || m.media.getMetadata().getName().toLowerCase().contains(text.toLowerCase())))) {
+						return true;
+					}
+					return false;
+				});
+				sorted.setComparator(new Comparator<MediaListItem>() {
+					@Override
+					public int compare(MediaListItem o1, MediaListItem o2) {
+						int value = 0;
+						if (field == MediaSortField.NAME) {
+							value = COLLATOR.compare(o1.name, o2.name);
+						} else {
+							// check for loaded vs. not loaded media
+							// sort non-loaded media to the end
+							if (o1.media == null && o2.media == null) return 0;
+							if (o1.media == null && o2.media != null) return 1;
+							if (o1.media != null && o2.media == null) return -1;
+							
+							if (field == MediaSortField.TYPE) {
+								value = o1.media.getMetadata().getType().compareTo(o2.media.getMetadata().getType());
+							} else {
+								value = -1 * (o1.media.getMetadata().getDateAdded().compareTo(o2.media.getMetadata().getDateAdded()));
+							}
+						}
+						return (desc ? 1 : -1) * value;
+					}
+				});
+			}
+		};
+		textFilter.addListener(fs);
+		typeFilter.addListener(fs);
+		tagFilter.addListener(fs);
+		sortField.addListener(fs);
+		sortDescending.addListener(fs);
         
         ObservableSet<Tag> allTags = FXCollections.observableSet(tags);
 
+        final MediaType[] mediaTypes = types != null ? types : MediaType.values();
         ObservableList<Option<MediaType>> opTypes = FXCollections.observableArrayList();
         // add the all option
         opTypes.add(new Option<>());
         // add the current options
-        opTypes.addAll(Arrays.asList(MediaType.values()).stream().map(t -> new Option<MediaType>(t.getName(), t)).collect(Collectors.toList()));
+        opTypes.addAll(Arrays.asList(mediaTypes).stream().map(t -> new Option<MediaType>(t.getName(), t)).collect(Collectors.toList()));
+
+        // sorting options
+        ObservableList<Option<MediaSortField>> sortFields = FXCollections.observableArrayList();
+        sortFields.addAll(Arrays.asList(MediaSortField.values()).stream().map(t -> new Option<MediaSortField>(t.getName(), t)).collect(Collectors.toList()));
         
         ObservableList<Option<Tag>> opTags = FXCollections.observableArrayList();
         // add the all option
@@ -109,7 +205,7 @@ public class MediaLibraryPane extends BorderPane {
         
         // the right side of the split pane
         FlowListView<MediaListItem> left = new FlowListView<MediaListItem>(new MediaListViewCellFactory());
-        left.itemsProperty().bindContent(display);
+        left.itemsProperty().bindContent(sorted);
         
         EventHandler<KeyEvent> handler = new EventHandler<KeyEvent>() {
 			@Override
@@ -145,7 +241,7 @@ public class MediaLibraryPane extends BorderPane {
 									Platform.runLater(new Runnable() {
 										@Override
 										public void run() {
-											display.removeAll(succeeded);
+											thelist.removeAll(succeeded);
 											master.removeAll(succeeded);
 											
 											if (failed.size() > 0) {
@@ -193,14 +289,13 @@ public class MediaLibraryPane extends BorderPane {
 				}
 			}
         });
-        display.addListener(new ListChangeListener<MediaListItem>() {
+        thelist.addListener(new ListChangeListener<MediaListItem>() {
         	@Override
         	public void onChanged(javafx.collections.ListChangeListener.Change<? extends MediaListItem> c) {
         		boolean added = false;
-//        		while (c.next()) {
-//        			added |= c.wasAdded();
-//        		}
-        		
+        		while (c.next()) {
+        			added |= c.wasAdded();
+        		}
         		if (added) {
         			leftScroller.setVvalue(leftScroller.getVmax());
         		}
@@ -220,7 +315,7 @@ public class MediaLibraryPane extends BorderPane {
 						for (File file : files) {
 							loadings.add(new MediaListItem(file.toPath().getFileName().toString()));
 						}
-						display.addAll(loadings);
+						thelist.addAll(loadings);
 						master.addAll(loadings);
 					}
 					
@@ -233,21 +328,33 @@ public class MediaLibraryPane extends BorderPane {
 								final List<FailedOperation<File>> failed = new ArrayList<FailedOperation<File>>();
 								
 								for (File file : files) {
-									try {
-										final Media media = library.add(file.toPath());
-										succeeded.add(new MediaListItem(media));
-									} catch (Exception e) {
-										LOGGER.error("Failed to add media '" + file.toPath().toAbsolutePath().toString() + "' to the media library.", e);
-										failed.add(new FailedOperation<File>(file, e));
+									MediaType mType = MediaLibrary.getMediaType(file.toPath());
+									boolean allowed = false;
+									for (MediaType allowedType : mediaTypes) {
+										if (mType == allowedType) {
+											allowed = true;
+											break;
+										}
+									}
+									if (allowed || mType == null) {
+										try {
+											final Media media = library.add(file.toPath());
+											succeeded.add(new MediaListItem(media));
+										} catch (Exception e) {
+											LOGGER.error("Failed to add media '" + file.toPath().toAbsolutePath().toString() + "' to the media library.", e);
+											failed.add(new FailedOperation<File>(file, e));
+										}
+									} else {
+										failed.add(new FailedOperation<File>(file, new Exception("The given media type cannot be added in this context.")));
 									}
 								}
 								
 								Platform.runLater(new Runnable() {
 									@Override
 									public void run() {
-										display.removeAll(loadings);
+										thelist.removeAll(loadings);
 										master.removeAll(loadings);
-										display.addAll(succeeded);
+										thelist.addAll(succeeded);
 										master.addAll(succeeded);
 										
 										if (failed.size() > 0) {
@@ -292,33 +399,28 @@ public class MediaLibraryPane extends BorderPane {
         
         // FILTERING & SORTING
         
-        this.filter = new MediaFilter(master, display);
+        //this.filter = new MediaFilter(master, filtered);
         
         Label lblFilter = new Label("filter by:");
         ComboBox<Option<MediaType>> cbTypes = new ComboBox<Option<MediaType>>(opTypes);
         cbTypes.setValue(new Option<>());
-        cbTypes.valueProperty().bindBidirectional(this.filter.typeFilterOptionProperty());
+        cbTypes.valueProperty().bindBidirectional(this.typeFilter);
         
         ComboBox<Option<Tag>> cbTags = new ComboBox<Option<Tag>>(opTags);
-        cbTags.valueProperty().bindBidirectional(this.filter.tagFilterOptionProperty());
+        cbTags.valueProperty().bindBidirectional(this.tagFilter);
         cbTags.setValue(new Option<>());
         
-        // TODO translate
- 		Option<Integer> nameOption = new Option<Integer>("Name", 0);
- 		Option<Integer> typeOption = new Option<Integer>("Type", 1);
- 		Option<Integer> dateOption = new Option<Integer>("Last Modified", 2);
- 		
         Label lblSort = new Label("sort by:");
-        ChoiceBox<Option<Integer>> cbSort = new ChoiceBox<Option<Integer>>(FXCollections.observableArrayList(nameOption, typeOption, dateOption));
-        cbSort.valueProperty().bindBidirectional(this.filter.sortProperty());
+        ChoiceBox<Option<MediaSortField>> cbSort = new ChoiceBox<Option<MediaSortField>>(sortFields);
+        cbSort.valueProperty().bindBidirectional(this.sortField);
         SortGraphic sortGraphic = new SortGraphic(17, 0, 4, 2, 4, Color.GRAY);
         ToggleButton tgl = new ToggleButton(null, sortGraphic);
-        tgl.selectedProperty().bindBidirectional(this.filter.sortDescendingProperty());
-        sortGraphic.flipProperty().bind(this.filter.sortDescendingProperty());
+        tgl.selectedProperty().bindBidirectional(this.sortDescending);
+        sortGraphic.flipProperty().bind(this.sortDescending);
         
         TextField txtSearch = new TextField();
         txtSearch.setPromptText("search");
-        txtSearch.textProperty().bindBidirectional(this.filter.searchProperty());
+        txtSearch.textProperty().bindBidirectional(this.textFilter);
         
         HBox pFilter = new HBox(); 
         pFilter.setAlignment(Pos.BASELINE_LEFT);
