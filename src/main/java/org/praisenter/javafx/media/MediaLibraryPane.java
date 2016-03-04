@@ -59,6 +59,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
+import org.praisenter.WarningOperation;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
@@ -173,7 +174,7 @@ public class MediaLibraryPane extends BorderPane {
         
         ObservableSet<Tag> allTags = FXCollections.observableSet(tags);
 
-        final MediaType[] mediaTypes = types != null ? types : MediaType.values();
+        final MediaType[] mediaTypes = types != null && types.length > 0 ? types : MediaType.values();
         ObservableList<Option<MediaType>> opTypes = FXCollections.observableArrayList();
         // add the all option
         opTypes.add(new Option<>());
@@ -324,28 +325,36 @@ public class MediaLibraryPane extends BorderPane {
 						@Override
 						protected Void call() throws Exception {
 							if (files != null && files.size() > 0) {
-								final List<MediaListItem> succeeded = new ArrayList<MediaListItem>();
+								final List<WarningOperation<Media>> warnings = new ArrayList<WarningOperation<Media>>();
 								final List<FailedOperation<File>> failed = new ArrayList<FailedOperation<File>>();
 								
 								for (File file : files) {
-									MediaType mType = MediaLibrary.getMediaType(file.toPath());
-									boolean allowed = false;
-									for (MediaType allowedType : mediaTypes) {
-										if (mType == allowedType) {
-											allowed = true;
-											break;
+									try {
+										final MediaListItem loading = new MediaListItem(file.toPath().getFileName().toString());
+										final Media media = library.add(file.toPath());
+										boolean allowed = false;
+										for (MediaType allowedType : mediaTypes) {
+											if (media.getMetadata().getType() == allowedType) {
+												allowed = true;
+												break;
+											}
 										}
-									}
-									if (allowed || mType == null) {
-										try {
-											final Media media = library.add(file.toPath());
-											succeeded.add(new MediaListItem(media));
-										} catch (Exception e) {
-											LOGGER.error("Failed to add media '" + file.toPath().toAbsolutePath().toString() + "' to the media library.", e);
-											failed.add(new FailedOperation<File>(file, e));
+										if (allowed) {
+											MediaListItem success = new MediaListItem(media);
+											Platform.runLater(() -> {
+												// remove the loading
+												thelist.remove(loading);
+												master.remove(loading);
+												thelist.add(success);
+												master.add(success);
+											});
+										} else {
+											LOGGER.info("Media {} was added at a time where its type was not selectable.", file.toPath().toAbsolutePath().toString());
+											warnings.add(new WarningOperation<Media>(media, file.toPath().getFileName().toString()));
 										}
-									} else {
-										failed.add(new FailedOperation<File>(file, new Exception("The given media type cannot be added in this context.")));
+									} catch (Exception e) {
+										LOGGER.error("Failed to add media '" + file.toPath().toAbsolutePath().toString() + "' to the media library.", e);
+										failed.add(new FailedOperation<File>(file, e));
 									}
 								}
 								
@@ -354,8 +363,18 @@ public class MediaLibraryPane extends BorderPane {
 									public void run() {
 										thelist.removeAll(loadings);
 										master.removeAll(loadings);
-										thelist.addAll(succeeded);
-										master.addAll(succeeded);
+										
+										if (warnings.size() > 0) {
+											// get the warning files
+											String[] wFileNames = warnings.stream().map(f -> f.getMessage()).collect(Collectors.toList()).toArray(new String[0]);
+											// get the failed media
+											String list = String.join(", ", wFileNames);
+											Alert alert = new Alert(AlertType.WARNING);
+											alert.setTitle("Media");
+											alert.setHeaderText("The following files were added to the media library but are not selectable from this area.");
+											alert.setContentText(list);
+											alert.show();
+										}
 										
 										if (failed.size() > 0) {
 											// get the exceptions

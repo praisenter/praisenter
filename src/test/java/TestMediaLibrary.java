@@ -34,7 +34,7 @@ public class TestMediaLibrary extends Application {
 			e.printStackTrace();
 		}
 		
-		MediaLibraryPane root = new MediaLibraryPane(library, Orientation.HORIZONTAL, MediaType.AUDIO);
+		MediaLibraryPane root = new MediaLibraryPane(library, Orientation.HORIZONTAL);
 		
 		Scene scene = new Scene(root);
 		primaryStage.setTitle("Media Library");

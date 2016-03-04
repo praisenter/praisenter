@@ -15,6 +15,8 @@ import javafx.geometry.Insets;
 import javafx.scene.layout.TilePane;
 import javafx.util.Callback;
 
+// FEATURE mouse click area selection
+// FEATURE shift-click selection
 public final class FlowListView<T> extends TilePane {
 	final Callback<T, FlowListItemView<T>> cellFactory;
 	
