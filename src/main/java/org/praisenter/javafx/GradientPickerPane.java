@@ -1,6 +1,5 @@
 package org.praisenter.javafx;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.praisenter.javafx.utility.JavaFxNodeHelper;
@@ -13,11 +12,10 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.ChoiceBox;
+import javafx.scene.Cursor;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Slider;
@@ -49,12 +47,14 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
-public final class GradientPicker extends VBox {
+public final class GradientPickerPane extends VBox {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/javafx/resources/transparent.png");
 	
 	final static double WIDTH = 200;
     final static double HEIGHT = 200;
 	
+    // the current gradient
+    
 	private final ObjectProperty<Paint> paintProperty = new SimpleObjectProperty<Paint>() {
 		public void set(Paint paint) {
 			if (paint instanceof LinearGradient) {
@@ -169,22 +169,16 @@ public final class GradientPicker extends VBox {
 		}
 	};
 	
+	// properties that build the gradient
+	
 	private final IntegerProperty type = new SimpleIntegerProperty(0);
 	private final ObjectProperty<CycleMethod> cycle = new SimpleObjectProperty<CycleMethod>(CycleMethod.NO_CYCLE);
-	
-	// Stop 1
 	private final ObjectProperty<Stop> stop1 = new SimpleObjectProperty<Stop>(new Stop(0, Color.WHITE));
-	
-	// Stop 2
 	private final ObjectProperty<Stop> stop2 = new SimpleObjectProperty<Stop>(new Stop(1, Color.rgb(0, 0, 0, 0.5)));
-	
-	// handle positions
 	private final DoubleProperty handle1X = new SimpleDoubleProperty(0);
 	private final DoubleProperty handle1Y = new SimpleDoubleProperty(0);
 	private final DoubleProperty handle2X = new SimpleDoubleProperty(1);
 	private final DoubleProperty handle2Y = new SimpleDoubleProperty(1);
-	
-	// radial specific
 	private final DoubleProperty radius = new SimpleDoubleProperty(1);
 	
 	// nodes
@@ -203,12 +197,14 @@ public final class GradientPicker extends VBox {
 	private final Shape handle1;
 	private final Shape handle2;
 	
-	// TODO add code so that this operates similar to the color picker 
-	// see http://stackoverflow.com/questions/27171885/display-custom-color-dialog-directly-javafx-colorpicker
-    public GradientPicker() {
+	public GradientPickerPane() {
+		this(null);
+	}
+	
+    public GradientPickerPane(Paint paint) {
         // set the padding
     	setPadding(new Insets(10));
-    	setSpacing(5);
+    	setSpacing(7);
 
     	// create the gradient type options
     	// TODO translate
@@ -251,6 +247,7 @@ public final class GradientPicker extends VBox {
         
         // stop 1 offset slider
         this.sldStop1 = new Slider(0, 1, 0);
+        this.sldStop1.setPrefWidth(50);
         this.sldStop1.valueProperty().addListener((obs, ov, nv) -> {
         	this.stop1.set(new Stop(nv.doubleValue(), this.stop1.get().getColor()));
         	this.paintProperty.set(null);
@@ -262,9 +259,12 @@ public final class GradientPicker extends VBox {
         	this.stop1.set(new Stop(0, nv));
         	this.paintProperty.set(null);
         });
+        HBox stop1Row = new HBox(5, this.pkrStop1, this.sldStop1);
+        stop1Row.setAlignment(Pos.CENTER_LEFT);
         
         // stop 2 offset slider
         this.sldStop2 = new Slider(0, 1, 0);
+        this.sldStop2.setPrefWidth(50);
         this.sldStop2.valueProperty().addListener((obs, ov, nv) -> {
         	this.stop2.set(new Stop(nv.doubleValue(), this.stop2.get().getColor()));
         	this.paintProperty.set(null);
@@ -276,6 +276,8 @@ public final class GradientPicker extends VBox {
         	this.stop2.set(new Stop(1, nv));
         	this.paintProperty.set(null);
         });
+        HBox stop2Row = new HBox(5, this.pkrStop2, this.sldStop2);
+        stop2Row.setAlignment(Pos.CENTER_LEFT);
         
         // create the preview/configure view
         StackPane previewStack = new StackPane();
@@ -291,12 +293,10 @@ public final class GradientPicker extends VBox {
         this.preview.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(1))));
         this.preview.setBackground(new Background(new BackgroundFill(this.paintProperty.get(), null, null)));
         this.preview.backgroundProperty().bind(new ObjectBinding<Background>() {
-
             {
-            	// when these change, update the paint
+            	// when the paint changes, update the background
                 bind(paintProperty);
             }
-
             @Override protected Background computeValue() {
                 return new Background(new BackgroundFill(paintProperty.get(), CornerRadii.EMPTY, Insets.EMPTY));
             }
@@ -369,15 +369,27 @@ public final class GradientPicker extends VBox {
         	this.paintProperty.set(null);
         };
         
+        EventHandler<MouseEvent> handleEnter = event -> {
+        	getScene().setCursor(Cursor.HAND);
+        };
+    	EventHandler<MouseEvent> handleExit = event -> {
+    		getScene().setCursor(Cursor.DEFAULT);
+        };
+        
         // set the handlers
         this.handle1.setOnMouseDragged(handle1MouseHandler);
         this.handle2.setOnMouseDragged(handle2MouseHandler);
+        // change the cursor based on hover over the handles
+        this.handle1.setOnMouseEntered(handleEnter);
+        this.handle1.setOnMouseExited(handleExit);
+        this.handle2.setOnMouseEntered(handleEnter);
+        this.handle2.setOnMouseExited(handleExit);
         
         // add all the controls to the VBox
-        getChildren().addAll(typeRow, cycleRow, this.sldStop1, this.pkrStop1, this.sldStop2, this.pkrStop2, previewRow);
+        getChildren().addAll(typeRow, stop1Row, stop2Row, cycleRow, previewRow);
         
         // set the default paint based on the default values
-    	this.paintProperty.set(null);
+    	this.paintProperty.set(paint);
     }
 
     private Paint createPaint() {

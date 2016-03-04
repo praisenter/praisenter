@@ -1,4 +1,4 @@
-import org.praisenter.javafx.GradientPicker;
+import org.praisenter.javafx.GradientPickerPane;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -18,7 +18,7 @@ public class GradientPickerTest extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
-		GradientPicker gp = new GradientPicker();
+		GradientPickerPane gp = new GradientPickerPane();
 		Scene scene = new Scene(gp);
 		primaryStage.setScene(scene);
 		primaryStage.show();

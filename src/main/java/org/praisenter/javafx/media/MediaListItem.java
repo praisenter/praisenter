@@ -14,7 +14,7 @@ final class MediaListItem implements Comparable<MediaListItem> {
 	}
 	
 	public MediaListItem(Media media) {
-		this.name = null;
+		this.name = media.getMetadata().getName();
 		this.media = media;
 		this.loaded = true;
 	}

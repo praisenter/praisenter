@@ -2,9 +2,6 @@ package org.praisenter.javafx.media;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,21 +14,20 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
+import org.omg.CosNaming.Binding;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
+import org.praisenter.javafx.SortGraphic;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
-import org.praisenter.utility.ClasspathLoader;
 
-import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.DoubleBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -42,7 +38,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -61,48 +56,18 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
+import javafx.scene.paint.Color;
 
-public class MediaLibraryPane extends Application {
-	static {
-		System.setProperty(XmlConfigurationFactory.CONFIGURATION_FILE_PROPERTY, "./log4j2.xml");
-	}
-	
+public class MediaLibraryPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger(MediaLibraryPane.class);
 	
-    public static void main(String[] args) {
-        launch(args);
-    }
+    private final MediaFilter filter;
     
-    private MediaFilter filter;
-    
-    // TODO sorting by 1) name or 2) type-then-name
     // TODO need a generic way of communicating between multiple instances
-    // TODO flag to control flow (horizontal or vertical)
     // TODO add ability to rename
-    // FEATURE allow preview of audio/video; this may not be that hard to be honest
+    // FEATURE allow preview of audio/video; this may not be that hard to be honest; does the MediaView class come with controls?
     // TODO translate
-    @Override
-    public void start(Stage primaryStage) {
-    	primaryStage.setTitle("Media Library");
-    	
-    	// TODO should be moved eventually
-    	FileSystem system = FileSystems.getDefault();
-		Path path = system.getPath("D:\\Personal\\Praisenter\\testmedialibrary");
-//    	Path path = system.getPath("C:\\Users\\William\\Desktop\\test\\media");
-		MediaThumbnailSettings settings = new MediaThumbnailSettings(
-				100, 100,
-				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
-				ClasspathLoader.getBufferedImage("/org/praisenter/resources/music-default-thumbnail.png"),
-				ClasspathLoader.getBufferedImage("/org/praisenter/resources/video-default-thumbnail.png"));
-    	MediaLibrary library = null;
-		try {
-			library = MediaLibrary.open(path, new JavaFXMediaImportFilter(path), settings);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    	
-		final MediaLibrary lbr = library;
+    public MediaLibraryPane(final MediaLibrary library, Orientation orientation) {
         Set<Tag> tags = new TreeSet<Tag>(library.getTags());
         
         List<MediaListItem> master = new ArrayList<MediaListItem>();
@@ -168,7 +133,7 @@ public class MediaLibraryPane extends Application {
 										if (mli.loaded) {
 											Media media = mli.media;
 											try {
-												lbr.remove(media);
+												library.remove(media);
 												succeeded.add(mli);
 											} catch (IOException e) {
 												LOGGER.error("Failed to remove media '" + media.getMetadata().getPath().toAbsolutePath().toString() + "' from media library.", e);
@@ -207,7 +172,12 @@ public class MediaLibraryPane extends Application {
         ScrollPane leftScroller = new ScrollPane();
         leftScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         leftScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        leftScroller.setFitToWidth(true);
+        left.setOrientation(orientation);
+        if (orientation == Orientation.HORIZONTAL) {
+        	leftScroller.setFitToWidth(true);
+        } else {
+        	leftScroller.setFitToHeight(true);
+        }
 		leftScroller.addEventHandler(KeyEvent.KEY_PRESSED, handler);
 		leftScroller.setFocusTraversable(true);
         leftScroller.setContent(left);
@@ -223,24 +193,20 @@ public class MediaLibraryPane extends Application {
 				}
 			}
         });
-        left.itemsProperty().addListener(new ListChangeListener<MediaListItem>() {
+        display.addListener(new ListChangeListener<MediaListItem>() {
         	@Override
         	public void onChanged(javafx.collections.ListChangeListener.Change<? extends MediaListItem> c) {
         		boolean added = false;
-        		while (c.next()) {
-        			added |= c.wasAdded();
-        		}
+//        		while (c.next()) {
+//        			added |= c.wasAdded();
+//        		}
+        		
         		if (added) {
         			leftScroller.setVvalue(leftScroller.getVmax());
         		}
         	}
         });
-//        .addListener(new ChangeListener<Number>() {
-//        	@Override
-//        	public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-//        		leftScroller.setVvalue(leftScroller.getVmax());
-//        	}
-//        });
+
         leftScroller.setOnDragDropped(new EventHandler<DragEvent>() {
 			@Override
 			public void handle(DragEvent event) {
@@ -268,7 +234,7 @@ public class MediaLibraryPane extends Application {
 								
 								for (File file : files) {
 									try {
-										final Media media = lbr.add(file.toPath());
+										final Media media = library.add(file.toPath());
 										succeeded.add(new MediaListItem(media));
 									} catch (Exception e) {
 										LOGGER.error("Failed to add media '" + file.toPath().toAbsolutePath().toString() + "' to the media library.", e);
@@ -324,7 +290,7 @@ public class MediaLibraryPane extends Application {
         split.setDividerPositions(0.75);
         SplitPane.setResizableWithParent(rightScroller, Boolean.FALSE);
         
-        // FILTERING
+        // FILTERING & SORTING
         
         this.filter = new MediaFilter(master, display);
         
@@ -337,9 +303,18 @@ public class MediaLibraryPane extends Application {
         cbTags.valueProperty().bindBidirectional(this.filter.tagFilterOptionProperty());
         cbTags.setValue(new Option<>());
         
+        // TODO translate
+ 		Option<Integer> nameOption = new Option<Integer>("Name", 0);
+ 		Option<Integer> typeOption = new Option<Integer>("Type", 1);
+ 		Option<Integer> dateOption = new Option<Integer>("Last Modified", 2);
+ 		
         Label lblSort = new Label("sort by:");
-        ChoiceBox<String> cbSort = new ChoiceBox<String>(FXCollections.observableArrayList("Name", "Type", "Date Added"));
-        ToggleButton tgl = new ToggleButton("asc");
+        ChoiceBox<Option<Integer>> cbSort = new ChoiceBox<Option<Integer>>(FXCollections.observableArrayList(nameOption, typeOption, dateOption));
+        cbSort.valueProperty().bindBidirectional(this.filter.sortProperty());
+        SortGraphic sortGraphic = new SortGraphic(17, 0, 4, 2, 4, Color.GRAY);
+        ToggleButton tgl = new ToggleButton(null, sortGraphic);
+        tgl.selectedProperty().bindBidirectional(this.filter.sortDescendingProperty());
+        sortGraphic.flipProperty().bind(this.filter.sortDescendingProperty());
         
         TextField txtSearch = new TextField();
         txtSearch.setPromptText("search");
@@ -352,7 +327,7 @@ public class MediaLibraryPane extends Application {
 //        pFilter.setBorder(Testing.border(Color.GREEN));
         
         HBox pSort = new HBox();
-        pSort.setAlignment(Pos.BASELINE_LEFT);
+        pSort.setAlignment(Pos.CENTER_LEFT);
         pSort.setSpacing(5);
         pSort.getChildren().addAll(lblSort, cbSort, tgl);
 //        pSort.setBorder(Testing.border(Color.RED));
@@ -367,11 +342,7 @@ public class MediaLibraryPane extends Application {
         
         top.getChildren().addAll(pFilter, pSort);
         
-        BorderPane root = new BorderPane();
-        root.setTop(top);
-        root.setCenter(split);
-        
-        primaryStage.setScene(new Scene(root, 500, 500));
-        primaryStage.show();
+        this.setTop(top);
+        this.setCenter(split);
     }
 }

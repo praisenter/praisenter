@@ -42,7 +42,7 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import javafx.stage.Stage;
 
-import org.praisenter.javafx.GradientPicker;
+import org.praisenter.javafx.GradientPickerPane;
 import org.praisenter.javafx.Resolution;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
@@ -219,7 +219,7 @@ public final class SlideEditorPane extends Application {
 			
 			Label lblGradient = new Label("Gradient");
 			MenuButton btnGradient = new MenuButton("Choose...");
-			GradientPicker gp = new GradientPicker();
+			GradientPickerPane gp = new GradientPickerPane();
 			CustomMenuItem item = new CustomMenuItem(gp, false);
 			// NOTE: this removes the on hover highlight
 //			item.getStyleClass().remove("menu-item");

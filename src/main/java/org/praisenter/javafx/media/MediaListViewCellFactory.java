@@ -23,7 +23,7 @@ final class MediaListViewCellFactory implements Callback<MediaListItem, FlowList
 		String name = null;
 		
 		if (item.loaded) {
-			name = item.media.getMetadata().getName();
+			name = item.name;
 	    	// setup the thumbnail image
 	    	final ImageView thumb = new ImageView(SwingFXUtils.toFXImage(item.media.getThumbnail(), null));
 	    	// only show a drop shadow effect on images that aren't using the default thumbnail
