@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import javax.xml.bind.JAXBException;
 
 import org.praisenter.Constants;
+import org.praisenter.Tag;
 import org.praisenter.song.Author;
 import org.praisenter.song.Br;
 import org.praisenter.song.Chord;
@@ -23,7 +24,6 @@ import org.praisenter.song.SongImportException;
 import org.praisenter.song.SongImporter;
 import org.praisenter.song.Songbook;
 import org.praisenter.song.TextFragment;
-import org.praisenter.song.Theme;
 import org.praisenter.song.Title;
 import org.praisenter.song.Verse;
 import org.praisenter.xml.XmlIO;
@@ -80,11 +80,8 @@ public final class OpenLyricsSongImporter implements SongImporter {
 			
 			// copy over themes
 			for (OpenLyricsTheme theme : olsong.properties.themes) {
-				Theme t = new Theme();
-				t.setLanguage(theme.language);
-				t.setTransliteration(theme.transliteration);
-				t.setText(theme.text);
-				song.getThemes().add(t);
+				Tag t = new Tag(theme.text);
+				song.getTags().add(t);
 			}
 			
 			// copy songbooks over

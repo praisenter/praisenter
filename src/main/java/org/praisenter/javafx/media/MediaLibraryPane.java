@@ -398,6 +398,9 @@ public class MediaLibraryPane extends BorderPane {
         });
 
         MediaMetadataView right = new MediaMetadataView(library, allTags);
+        right.addEventHandler(MediaMetadataEvent.RENAMED, (e) -> {
+        	// FIXME we need to update the item in the lists (remove/add) then reselect it
+        });
         
         // wire up the selected media to the media metadata view with a unidirectional binding
         right.mediaProperty().bind(left.singleSelectionProperty());

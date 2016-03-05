@@ -32,6 +32,7 @@ import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 
+import org.praisenter.Tag;
 import org.praisenter.song.Author;
 import org.praisenter.song.Br;
 import org.praisenter.song.Chord;
@@ -42,7 +43,6 @@ import org.praisenter.song.SongExportException;
 import org.praisenter.song.SongExporter;
 import org.praisenter.song.Songbook;
 import org.praisenter.song.TextFragment;
-import org.praisenter.song.Theme;
 import org.praisenter.song.Title;
 import org.praisenter.song.Verse;
 import org.praisenter.song.VerseFragment;
@@ -103,11 +103,9 @@ public final class OpenLyricsSongExporter implements SongExporter {
 			}
 			
 			// themes
-			for (Theme theme : song.getThemes()) {
+			for (Tag tag : song.getTags()) {
 				OpenLyricsTheme t = new OpenLyricsTheme();
-				t.language = theme.getLanguage();
-				t.text = theme.getText();
-				t.transliteration = theme.getTransliteration();
+				t.text = tag.getName();
 				olsong.properties.themes.add(t);
 			}
 			

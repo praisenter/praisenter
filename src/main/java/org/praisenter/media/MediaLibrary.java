@@ -556,13 +556,14 @@ public final class MediaLibrary {
 	}
 	
 	/**
-	 * Renames the given media.
+	 * Renames the given media and returns a new media object
+	 * representing the renamed media.
 	 * @param path the path
-	 * @return boolean if the deletion succeeds
+	 * @return {@link Media}
 	 * @throws FileAlreadyExistsException if the target file name already exists
 	 * @throws IOException if an IO error occurs
 	 */
-	private final boolean move(Media media, String name) throws FileAlreadyExistsException, IOException {
+	private final Media move(Media media, String name) throws FileAlreadyExistsException, IOException {
 		// FIXME test what happens when file is in use during presentation
 		Path source = media.metadata.path;
 		String name0 = source.getFileName().toString();
@@ -605,7 +606,7 @@ public final class MediaLibrary {
 		// just overwrite the media item with the new one
 		this.media.put(media.metadata.id, media1);
 		
-		return true;
+		return media1;
 	}
 	
 	// public interface
@@ -720,14 +721,16 @@ public final class MediaLibrary {
 	}
 
 	/**
-	 * Renames the media to the given name.
+	 * Renames the media to the given name and returns a new media
+	 * object with the new name.
 	 * @param media the media
 	 * @param name the new name
+	 * @return {@link Media}
 	 * @throws FileAlreadyExistsException if a file already exists with the given name
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized void rename(Media media, String name) throws FileAlreadyExistsException, IOException {
-		move(media, name);
+	public synchronized Media rename(Media media, String name) throws FileAlreadyExistsException, IOException {
+		return move(media, name);
 	}
 	
 	/**

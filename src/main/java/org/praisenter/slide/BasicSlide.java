@@ -42,6 +42,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.ReadonlyIterator;
+import org.praisenter.Tag;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
@@ -91,6 +92,11 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@XmlAttribute(name = "time", required = false)
 	long time;
 	
+	/** The tags */
+	@XmlElement(name = "tag", required = false)
+	@XmlElementWrapper(name = "tags", required = false)
+	List<Tag> tags;
+	
 	/**
 	 * Default constructor.
 	 */
@@ -108,6 +114,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		this.components = new ArrayList<SlideComponent>();
 		this.transitions = new ArrayList<SlideTransition>();
 		this.time = Slide.TIME_FOREVER;
+		this.tags = new ArrayList<Tag>();
 	}
 	
 	/**
@@ -377,11 +384,17 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getTransitions()
+	 */
 	@Override
 	public List<SlideTransition> getTransitions() {
 		return this.transitions;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getTransition(java.util.UUID)
+	 */
 	@Override
 	public SlideTransition getTransition(UUID id) {
 		for (int i = 0; i < this.transitions.size(); i++) {
@@ -391,5 +404,21 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 			}
 		}
 		return null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getTags()
+	 */
+	@Override
+	public List<Tag> getTags() {
+		return this.tags;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#setTags(java.util.List)
+	 */
+	@Override
+	public void setTags(List<Tag> tags) {
+		this.tags = tags;
 	}
 }

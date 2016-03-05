@@ -14,6 +14,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener.Change;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Border;
 
@@ -39,7 +40,7 @@ public final class EditableFxSlide {
 	final ListProperty<SlideTransition> animations;
 	final ListProperty<SlideComponent> components;
 	
-	final List<EditableFxSlideComponent> editables;
+//	final List<EditableFxSlideComponent> editables;
 	
 	public EditableFxSlide(FxSlide slide) {
 		this.slide = slide;
@@ -78,13 +79,13 @@ public final class EditableFxSlide {
 			int v = n.intValue();
 			int ch = height.get();
 			sld.setWidth(v);
-			JavaFxNodeHelper.setSize(this.foregroundNode, v, ch);
+//			JavaFxNodeHelper.setSize(this.foregroundNode, v, ch);
 		});
 		this.height.addListener((obs, o, n) -> {
 			int v = n.intValue();
 			int cw = width.get();
 			sld.setHeight(v);
-			JavaFxNodeHelper.setSize(this.foregroundNode, cw, v);
+//			JavaFxNodeHelper.setSize(this.foregroundNode, cw, v);
 		});
 
 		// border
@@ -102,7 +103,7 @@ public final class EditableFxSlide {
 		this.background.addListener((obs, o, n) -> {
 			sld.setBackground(n);
 			Background background = this.slide.getBackground(n);
-			this.backgroundNode.setBackground(background);
+//			this.backgroundNode.setBackground(background);
 		});
 		
 		// name
@@ -130,8 +131,8 @@ public final class EditableFxSlide {
 					// forward and the list is re-sorted
 					// reorder the components in the foreground
 					for (int i = c.getFrom(); i < c.getTo(); ++i) {
-						Collections.swap(this.contentNode.getChildren(), i, c.getPermutation(i));
-						Collections.swap(this.children, i, c.getPermutation(i));
+//						Collections.swap(this.contentNode.getChildren(), i, c.getPermutation(i));
+//						Collections.swap(this.children, i, c.getPermutation(i));
 					}
 				} else if (c.wasUpdated()) {
 					// elements between from and to were updated
@@ -140,21 +141,21 @@ public final class EditableFxSlide {
 				} else {
 					// items were either removed or added
 					for (SlideComponent remitem : c.getRemoved()) {
-						// remove from the children and from the foreground
-						component.removeComponent(remitem);
-						// remove based on id from the scene graph
-						contentNode.getChildren().removeIf(n -> n.getUserData().equals(remitem.getId()));
-						// remove it from the children list too
-						children.removeIf(n -> n.component.getId().equals(remitem.getId()));
+//						// remove from the children and from the foreground
+//						component.removeComponent(remitem);
+//						// remove based on id from the scene graph
+//						contentNode.getChildren().removeIf(n -> n.getUserData().equals(remitem.getId()));
+//						// remove it from the children list too
+//						children.removeIf(n -> n.component.getId().equals(remitem.getId()));
 					}
 					for (SlideComponent additem : c.getAddedSubList()) {
-						// add to the children and foreground
-						component.addComponent(additem);
-						// convert it
-						EditableFxSlideComponent component = new EditableFxSlideComponent(this.context, additem, this.mode);
-						// add it to the foreground and the children list
-						contentNode.getChildren().add(component.node);
-						children.add(component);
+//						// add to the children and foreground
+//						component.addComponent(additem);
+//						// convert it
+//						EditableFxSlideComponent component = new EditableFxSlideComponent(this.context, additem, this.mode);
+//						// add it to the foreground and the children list
+//						contentNode.getChildren().add(component.node);
+//						children.add(component);
 					}
 				}
 			 }

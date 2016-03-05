@@ -1,6 +1,32 @@
 package org.praisenter.javafx.media;
 
 import java.text.MessageFormat;
+import java.util.Optional;
+
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableSet;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.ConstraintsBase;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,29 +41,6 @@ import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.Formatter;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.ObservableSet;
-import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.ConstraintsBase;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-
 final class MediaMetadataView extends VBox {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -47,6 +50,7 @@ final class MediaMetadataView extends VBox {
 	
 	private final ObjectProperty<MediaListItem> media = new SimpleObjectProperty<MediaListItem>();
 	
+	private final StringProperty name = new SimpleStringProperty();
 	private final StringProperty width = new SimpleStringProperty();
 	private final StringProperty height = new SimpleStringProperty();
 	private final StringProperty length = new SimpleStringProperty();
@@ -72,14 +76,49 @@ final class MediaMetadataView extends VBox {
         // for debugging
         //this.setGridLinesVisible(true);
         
+        Label lblName = new Label(Translations.getTranslation("media.metadata.name"));
+        Label lblNameValue = new Label();
+        lblNameValue.textProperty().bind(name);
+        lblNameValue.setTooltip(new Tooltip());
+        lblNameValue.getTooltip().textProperty().bind(name);
+        lblNameValue.setBorder(VALUE_BORDER);
+        Button btnRename = new Button(Translations.getTranslation("media.metadata.rename"));
+        btnRename.setTooltip(new Tooltip(Translations.getTranslation("media.metadata.rename")));
+        grid.add(lblName, 0, 0, 1, 1);
+        grid.add(lblNameValue, 1, 0, 1, 1);
+        grid.add(btnRename, 2, 0, 1, 1);
+        
+        btnRename.setOnAction((e) -> {
+	    	TextInputDialog prompt = new TextInputDialog(name.get());
+	    	// TODO translate
+	    	prompt.setTitle("Rename Media");
+	    	prompt.setHeaderText("Enter the new name for the media");
+	    	prompt.setContentText("Name");
+	    	Optional<String> result = prompt.showAndWait();
+	    	// check for the "OK" button
+	    	if (result.isPresent()) {
+	    		// update the media's name
+	    		try {
+					Media nm = library.rename(media.get().media, result.get());
+					fireEvent(new MediaRenamedEvent(btnRename, MediaMetadataView.this, media.get().media, nm));
+				} catch (Exception ex) {
+					// log the error
+					LOGGER.error("Failed to rename media from '{}' to '{}': {}", name.get(), result.get(), ex.getMessage());
+					// show an error to the user
+					Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.getTranslation("rename.error"), result.get()), ex);
+					alert.show();
+				}
+	    	}
+	    });
+        
         Label lblWidth = new Label(Translations.getTranslation("media.metadata.width"));
         Label lblWidthValue = new Label();
         lblWidthValue.textProperty().bind(width);
         lblWidthValue.setTooltip(new Tooltip());
         lblWidthValue.getTooltip().textProperty().bind(width);
         lblWidthValue.setBorder(VALUE_BORDER);
-        grid.add(lblWidth, 0, 0, 1, 1);
-        grid.add(lblWidthValue, 1, 0, 1, 1);
+        grid.add(lblWidth, 0, 1, 2, 1);
+        grid.add(lblWidthValue, 1, 1, 2, 1);
         
         Label lblHeight = new Label(Translations.getTranslation("media.metadata.height"));
         Label lblHeightValue = new Label();
@@ -87,8 +126,8 @@ final class MediaMetadataView extends VBox {
         lblHeightValue.setTooltip(new Tooltip());
         lblHeightValue.getTooltip().textProperty().bind(height);
         lblHeightValue.setBorder(VALUE_BORDER);
-        grid.add(lblHeight, 0, 1, 1, 1);
-        grid.add(lblHeightValue, 1, 1, 1, 1);
+        grid.add(lblHeight, 0, 2, 2, 1);
+        grid.add(lblHeightValue, 1, 2, 2, 1);
         
         Label lblLength = new Label(Translations.getTranslation("media.metadata.length"));
         Label lblLengthValue = new Label();
@@ -96,8 +135,8 @@ final class MediaMetadataView extends VBox {
         lblLengthValue.setTooltip(new Tooltip());
         lblLengthValue.getTooltip().textProperty().bind(length);
         lblLengthValue.setBorder(VALUE_BORDER);
-        grid.add(lblLength, 0, 2, 1, 1);
-        grid.add(lblLengthValue, 1, 2, 1, 1);
+        grid.add(lblLength, 0, 3, 2, 1);
+        grid.add(lblLengthValue, 1, 3, 2, 1);
         
         Label lblSound = new Label(Translations.getTranslation("media.metadata.sound"));
         Label lblSoundValue = new Label();
@@ -105,8 +144,8 @@ final class MediaMetadataView extends VBox {
         lblSoundValue.setTooltip(new Tooltip());
         lblSoundValue.getTooltip().textProperty().bind(audio);
         lblSoundValue.setBorder(VALUE_BORDER);
-        grid.add(lblSound, 0, 3, 1, 1);
-        grid.add(lblSoundValue, 1, 3, 1, 1);
+        grid.add(lblSound, 0, 4, 2, 1);
+        grid.add(lblSoundValue, 1, 4, 2, 1);
         
         Label lblFormat = new Label(Translations.getTranslation("media.metadata.format"));
         Label lblFormatValue = new Label();
@@ -114,8 +153,8 @@ final class MediaMetadataView extends VBox {
         lblFormatValue.setTooltip(new Tooltip());
         lblFormatValue.getTooltip().textProperty().bind(format);
         lblFormatValue.setBorder(VALUE_BORDER);
-        grid.add(lblFormat, 0, 4, 1, 1);
-        grid.add(lblFormatValue, 1, 4, 1, 1);
+        grid.add(lblFormat, 0, 5, 2, 1);
+        grid.add(lblFormatValue, 1, 5, 2, 1);
         
         this.tagView = new TagView(allTags);
         // handle when an action is perfomed on the tag view
@@ -163,6 +202,8 @@ final class MediaMetadataView extends VBox {
         		tagView.setText(null);
         		
         		if (item == null || !item.loaded) {
+        			name.set("");
+        			btnRename.setVisible(false);
         			width.set("");
         	        height.set("");
         	        length.set("");
@@ -172,9 +213,12 @@ final class MediaMetadataView extends VBox {
         			setDisable(true);
         		} else {
         			setDisable(false);
+        			btnRename.setVisible(true);
         			Media media = item.media;
         			MediaType type = media.getMetadata().getType();
         			String unknown = Translations.getTranslation("media.metadata.unknown");
+        			
+        			name.set(media.getMetadata().getName());
         			
         			// width/height
         			if (type == MediaType.IMAGE || type == MediaType.VIDEO) {

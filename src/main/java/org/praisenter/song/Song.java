@@ -43,6 +43,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.commons.lang3.StringUtils;
 import org.praisenter.Constants;
+import org.praisenter.Tag;
 
 /**
  * Represents a song.
@@ -88,7 +89,7 @@ import org.praisenter.Constants;
  * <li>The first author in the list</li>
  * </ol>
  * Apart from these, the song will contain a number of metadata that can assist with searching
- * and cataloging, {@link #getKeywords()} and {@link #getThemes()} in particular.
+ * and cataloging, {@link #getKeywords()} and {@link #getTags()} in particular.
  * <p>
  * Creating a new song defaults the created and modified properties to be created in Praisenter
  * and today.
@@ -192,10 +193,10 @@ public final class Song implements SongOutput, Comparable<Song> {
 	@XmlElementWrapper(name = "authors", required = false)
 	List<Author> authors;
 
-	/** The themes; useful for searching or grouping */
-	@XmlElement(name = "theme", required = false)
-	@XmlElementWrapper(name = "themes", required = false)
-	List<Theme> themes;
+	/** The tags; useful for searching or grouping */
+	@XmlElement(name = "tag", required = false)
+	@XmlElementWrapper(name = "tags", required = false)
+	List<Tag> tags;
 	
 	/** The song books that this song is in */
 	@XmlElement(name = "songbook", required = false)
@@ -221,7 +222,7 @@ public final class Song implements SongOutput, Comparable<Song> {
 		this.transposition = 0;
 		this.titles = new ArrayList<>();
 		this.authors = new ArrayList<>();
-		this.themes = new ArrayList<>();
+		this.tags = new ArrayList<>();
 		this.songbooks = new ArrayList<>();
 		this.lyrics = new ArrayList<>();
 	}
@@ -811,19 +812,19 @@ public final class Song implements SongOutput, Comparable<Song> {
 	}
 
 	/**
-	 * Returns the themes.
-	 * @return List&lt;{@link Theme}&gt;
+	 * Returns the tags.
+	 * @return List&lt;{@link Tag}&gt;
 	 */
-	public List<Theme> getThemes() {
-		return this.themes;
+	public List<Tag> getTags() {
+		return this.tags;
 	}
 
 	/**
-	 * Sets the themes.
-	 * @param themes the themes
+	 * Sets the tags.
+	 * @param tags the tags
 	 */
-	public void setThemes(List<Theme> themes) {
-		this.themes = themes;
+	public void setTags(List<Tag> tags) {
+		this.tags = tags;
 	}
 
 	/**

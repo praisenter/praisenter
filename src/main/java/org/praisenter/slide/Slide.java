@@ -33,9 +33,9 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import org.praisenter.Tag;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
-// TODO add tags
 /**
  * Represents a slide.
  * <p>
@@ -208,4 +208,16 @@ public interface Slide extends SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#copy()
 	 */
 	public abstract Slide copy();
+	
+	/**
+	 * Returns the tags for this slide.
+	 * @return List&lt;{@link Tag}&gt;
+	 */
+	public abstract List<Tag> getTags();
+	
+	/**
+	 * Sets the tags for this slide.
+	 * @param tags the tags
+	 */
+	public abstract void setTags(List<Tag> tags);
 }

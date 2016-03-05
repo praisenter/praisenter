@@ -44,25 +44,25 @@ public final class EditableFxSlideComponent {
 	// flatten all component properties
 	
 	// media
-	final ObjectProperty<MediaObject> media;
-	
-	// text
-	final ObjectProperty<SlidePaint> textBackground;
-	final ObjectProperty<SlideStroke> textBorder;
-	final StringProperty fontName;
-	final IntegerProperty fontSize;
-	final ObjectProperty<FontScaleType> fontScaling;
-	final ObjectProperty<VerticalTextAlignment> verticalTextAlignment;
-	final ObjectProperty<HorizontalTextAlignment> horizontalTextAlignment;
-	final DoubleProperty padding;
-	final DoubleProperty lineSpacing;
-	final StringProperty text;
-	
-	// text placeholder
-	final IntegerProperty placeholders;
-	
-	// date/time
-	final ObjectProperty<SimpleDateFormat> dateFormat;
+//	final ObjectProperty<MediaObject> media;
+//	
+//	// text
+//	final ObjectProperty<SlidePaint> textBackground;
+//	final ObjectProperty<SlideStroke> textBorder;
+//	final StringProperty fontName;
+//	final IntegerProperty fontSize;
+//	final ObjectProperty<FontScaleType> fontScaling;
+//	final ObjectProperty<VerticalTextAlignment> verticalTextAlignment;
+//	final ObjectProperty<HorizontalTextAlignment> horizontalTextAlignment;
+//	final DoubleProperty padding;
+//	final DoubleProperty lineSpacing;
+//	final StringProperty text;
+//	
+//	// text placeholder
+//	final IntegerProperty placeholders;
+//	
+//	// date/time
+//	final ObjectProperty<SimpleDateFormat> dateFormat;
 	
 	public EditableFxSlideComponent(FxSlideComponent<?> component) {
 		this.editable = component;
@@ -97,13 +97,13 @@ public final class EditableFxSlideComponent {
 			int v = n.intValue();
 			int ch = height.get();
 			sc.setWidth(v);
-			JavaFxNodeHelper.setSize(this.node, v, ch);
+//			JavaFxNodeHelper.setSize(this.node, v, ch);
 		});
 		this.height.addListener((obs, o, n) -> {
 			int v = n.intValue();
 			int cw = width.get();
 			sc.setHeight(v);
-			JavaFxNodeHelper.setSize(this.foregroundNode, cw, v);
+//			JavaFxNodeHelper.setSize(this.foregroundNode, cw, v);
 		});
 
 		// border
@@ -121,7 +121,7 @@ public final class EditableFxSlideComponent {
 		this.background.addListener((obs, o, n) -> {
 			sc.setBackground(n);
 			Background background = this.editable.getBackground(n);
-			this.editable.backgroundNode.setBackground(background);
+//			this.editable.backgroundNode.setBackground(background);
 		});
 	}
 	

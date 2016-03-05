@@ -230,7 +230,9 @@ public final class MediaMetadata {
 		
 		// paths and names
 		this.path = path;
-		this.name = path.getFileName().toString();
+		String name = path.getFileName().toString();
+		name = name.substring(0, name.lastIndexOf('.'));
+		this.name = name;
 		
 		// date added
 		this.dateAdded = dateAdded != null ? dateAdded : Instant.now();
