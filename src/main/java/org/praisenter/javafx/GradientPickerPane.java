@@ -1,8 +1,33 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx;
 
 import java.util.List;
 
 import org.praisenter.javafx.utility.JavaFxNodeHelper;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.ClasspathLoader;
 
 import javafx.beans.binding.ObjectBinding;
@@ -47,7 +72,13 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
+/**
+ * Pane for configuring a gradient pattern.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class GradientPickerPane extends VBox {
+	/** An image pattern to represent transparency */
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/javafx/resources/transparent.png");
 	
 	final static double WIDTH = 200;
@@ -55,6 +86,7 @@ public final class GradientPickerPane extends VBox {
 	
     // the current gradient
     
+    /** The configured gradient paint */
 	private final ObjectProperty<Paint> paintProperty = new SimpleObjectProperty<Paint>() {
 		public void set(Paint paint) {
 			if (paint instanceof LinearGradient) {
@@ -197,6 +229,9 @@ public final class GradientPickerPane extends VBox {
 	private final Shape handle1;
 	private final Shape handle2;
 	
+	/**
+	 * Default constructor.
+	 */
 	public GradientPickerPane() {
 		this(null);
 	}
@@ -207,13 +242,12 @@ public final class GradientPickerPane extends VBox {
     	setSpacing(7);
 
     	// create the gradient type options
-    	// TODO translate
         ToggleGroup grpTypes = new ToggleGroup();
-        this.rdoLinear = new RadioButton("Linear");
+        this.rdoLinear = new RadioButton(Translations.getTranslation("gradient.type.linear"));
         this.rdoLinear.setToggleGroup(grpTypes);
         this.rdoLinear.setUserData(0);
         this.rdoLinear.setSelected(true);
-        this.rdoRadial = new RadioButton("Radial");
+        this.rdoRadial = new RadioButton(Translations.getTranslation("gradient.type.radial"));
         this.rdoRadial.setToggleGroup(grpTypes);
         this.rdoRadial.setUserData(1);
         grpTypes.selectedToggleProperty().addListener((obs, ov, nv) -> {
@@ -225,16 +259,15 @@ public final class GradientPickerPane extends VBox {
         typeRow.getChildren().addAll(this.rdoLinear, this.rdoRadial);
         
     	// create the cycle type options
-    	// TODO translate
         ToggleGroup grpCycleTypes = new ToggleGroup();
-        this.rdoCycleNone = new RadioButton("None");
+        this.rdoCycleNone = new RadioButton(Translations.getTranslation("gradient.cycle.none"));
         this.rdoCycleNone.setToggleGroup(grpCycleTypes);
         this.rdoCycleNone.setUserData(CycleMethod.NO_CYCLE);
         this.rdoCycleNone.setSelected(true);
-        this.rdoCycleReflect = new RadioButton("Reflect");
+        this.rdoCycleReflect = new RadioButton(Translations.getTranslation("gradient.cycle.reflect"));
         this.rdoCycleReflect.setToggleGroup(grpCycleTypes);
         this.rdoCycleReflect.setUserData(CycleMethod.REFLECT);
-        this.rdoCycleRepeat = new RadioButton("Repeat");
+        this.rdoCycleRepeat = new RadioButton(Translations.getTranslation("gradient.cycle.repeat"));
         this.rdoCycleRepeat.setToggleGroup(grpCycleTypes);
         this.rdoCycleRepeat.setUserData(CycleMethod.REPEAT);
         grpCycleTypes.selectedToggleProperty().addListener((obs, ov, nv) -> {
@@ -392,6 +425,10 @@ public final class GradientPickerPane extends VBox {
     	this.paintProperty.set(paint);
     }
 
+    /**
+     * Returns a new paint given the current properties.
+     * @return Paint (LinearGradient or RadialGradient)
+     */
     private Paint createPaint() {
     	if (this.type.get() == 0) {
     		return new LinearGradient(
@@ -417,6 +454,13 @@ public final class GradientPickerPane extends VBox {
     	}
     }
     
+    /**
+     * Clamps the given value between min and max.
+     * @param value the value
+     * @param min the min value
+     * @param max the max value
+     * @return double
+     */
     private static double clamp(double value, double min, double max) {
         return value < min 
         		? min 
@@ -425,14 +469,26 @@ public final class GradientPickerPane extends VBox {
         			: value;
     }
 
+    /**
+     * Returns the paint property.
+     * @return ObjectProperty&lt;Paint&gt;
+     */
     public ObjectProperty<Paint> paintProperty() {
     	return this.paintProperty;
     }
     
+    /**
+     * Returns the current paint.
+     * @return Paint
+     */
     public Paint getPaint() {
     	return this.paintProperty.get();
     }
     
+    /**
+     * Sets the current paint.
+     * @param paint the paint
+     */
     public void setPaint(Paint paint) {
     	this.paintProperty.set(paint);
     }

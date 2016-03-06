@@ -40,7 +40,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
@@ -131,10 +130,6 @@ public final class MediaLibrary {
 	/** The media */
 	private final Map<UUID, Media> media;
 	
-	// FIXME this should be global so the tags can be used for slides and such; should probably be moved to Praisenter Context
-	/** The global set of media tags */
-	private final Set<Tag> tags;
-	
 	/**
 	 * Sets up a new {@link MediaLibrary} at the given path using the {@link DefaultMediaImportFilter}
 	 * with the given {@link MediaThumbnailSettings}.
@@ -185,7 +180,6 @@ public final class MediaLibrary {
 		};
 		
 		this.media = new HashMap<UUID, Media>();
-		this.tags = new TreeSet<Tag>();
 	}
 
 	/**
@@ -284,13 +278,6 @@ public final class MediaLibrary {
 						this.media.put(media.metadata.id, media);
 					}
 				}
-			}
-		}
-		
-		// collect all tags
-		for (Media media : this.media.values()) {
-			if (media.metadata.tags.size() > 0) {
-				tags.addAll(media.metadata.tags);
 			}
 		}
 	}
@@ -746,7 +733,6 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized boolean addTag(Media media, Tag tag) throws JAXBException, IOException {
-		this.tags.add(tag);
 		boolean added = media.metadata.tags.add(tag);
 		if (added) {
 			saveMetadata(media);
@@ -763,7 +749,6 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */	
 	public synchronized boolean addTags(Media media, Collection<Tag> tags) throws JAXBException, IOException {
-		this.tags.addAll(tags);
 		boolean added = media.metadata.tags.addAll(tags);
 		if (added) {
 			saveMetadata(media);
@@ -780,7 +765,6 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */	
 	public synchronized boolean setTags(Media media, Collection<Tag> tags) throws JAXBException, IOException {
-		this.tags.addAll(tags);
 		boolean changed = media.metadata.tags.addAll(tags);
 		changed |= media.metadata.tags.retainAll(tags);
 		if (changed) {
@@ -819,14 +803,6 @@ public final class MediaLibrary {
 			saveMetadata(media);
 		}
 		return removed;
-	}
-
-	/**
-	 * Returns a snapshot of all the tags on the media.	
-	 * @return Set&lt;{@link Tag}&gt;
-	 */
-	public synchronized Set<Tag> getTags() {
-		return new TreeSet<Tag>(this.tags);
 	}
 
 	/**

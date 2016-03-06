@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.media;
 
 import java.io.File;
@@ -10,8 +34,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javafx.application.Platform;
@@ -69,11 +91,25 @@ import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 
-public class MediaLibraryPane extends BorderPane {
-	private static final Logger LOGGER = LogManager.getLogger(MediaLibraryPane.class);
+// TODO we may need a generic way of communicating between multiple instances
+// FEATURE allow preview of audio/video; this may not be that hard to be honest; does the MediaView class come with controls?
+
+/**
+ * Pane specifically for showing the media in a media library.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+public final class MediaLibraryPane extends BorderPane {
+	/** The class-level loader */
+	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The collator for locale dependent sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
+	
+	// selection
+	
+	/** The selected media */
+	private final ObjectProperty<Media> selected;
 	
 	// filters
 	
@@ -94,21 +130,26 @@ public class MediaLibraryPane extends BorderPane {
 	/** The sort direction */
 	private final BooleanProperty sortDescending;
 	
-	
-    //private final MediaFilter filter;
-    
-    // TODO need a generic way of communicating between multiple instances
-    // FEATURE allow preview of audio/video; this may not be that hard to be honest; does the MediaView class come with controls?
-    // TODO translate
-    public MediaLibraryPane(final MediaLibrary library, Orientation orientation, MediaType... types) {
+    /**
+     * Full constructor.
+     * @param library the {@link MediaLibrary} to present
+     * @param orientation the orientation of the flow of items
+     * @param tags the master list of all tags
+     * @param types the desired {@link MediaType}s to show; null or empty to show all
+     */
+    public MediaLibraryPane(
+    		final MediaLibrary library, 
+    		Orientation orientation, 
+    		ObservableSet<Tag> tags,
+    		MediaType... types) {
 		this.typeFilter = new SimpleObjectProperty<>(new Option<MediaType>());
 		this.tagFilter = new SimpleObjectProperty<>(new Option<Tag>());
 		this.textFilter = new SimpleStringProperty();
 		this.sortField = new SimpleObjectProperty<Option<MediaSortField>>(new Option<MediaSortField>(MediaSortField.NAME.getName(), MediaSortField.NAME));
 		this.sortDescending = new SimpleBooleanProperty(true);
     	
-        Set<Tag> tags = new TreeSet<Tag>(library.getTags());
-        
+		this.selected = new SimpleObjectProperty<Media>();
+		
         List<MediaListItem> master = new ArrayList<MediaListItem>();
         for (Media media : library.all(types)) {
         	master.add(new MediaListItem(media));
@@ -171,8 +212,6 @@ public class MediaLibraryPane extends BorderPane {
 		sortField.addListener(fs);
 		sortDescending.addListener(fs);
         
-        ObservableSet<Tag> allTags = FXCollections.observableSet(tags);
-
         final MediaType[] mediaTypes = types != null && types.length > 0 ? types : MediaType.values();
         ObservableList<Option<MediaType>> opTypes = FXCollections.observableArrayList();
         // add the all option
@@ -188,9 +227,9 @@ public class MediaLibraryPane extends BorderPane {
         // add the all option
         opTags.add(new Option<>());
         // add the current options
-        opTags.addAll(allTags.stream().map(t -> new Option<Tag>(t.getName(), t)).collect(Collectors.toList()));
+        opTags.addAll(tags.stream().map(t -> new Option<Tag>(t.getName(), t)).collect(Collectors.toList()));
         // add a listener for more tags being added
-        allTags.addListener(new SetChangeListener<Tag>() {
+        tags.addListener(new SetChangeListener<Tag>() {
         	@Override
         	public void onChanged(SetChangeListener.Change<? extends Tag> change) {
         		if (change.wasRemoved()) {
@@ -215,8 +254,8 @@ public class MediaLibraryPane extends BorderPane {
 					if (items.size() > 0) {
 						// attempt to delete the selected media
 						Alert alert = new Alert(AlertType.CONFIRMATION);
-						alert.setTitle("Delete these files");
-						alert.setContentText("Are you sure you want to delete these media files?");
+						alert.setTitle(Translations.getTranslation("media.remove.title"));
+						alert.setContentText(Translations.getTranslation("media.remove.content"));
 						alert.setHeaderText(null);
 						Optional<ButtonType> result = alert.showAndWait();
 						if (result.get() == ButtonType.OK) {
@@ -289,12 +328,21 @@ public class MediaLibraryPane extends BorderPane {
 				}
 			}
         });
+        
+        // only scroll down when media is being added
+        // we know this when there's medialistitems added
+        // that have the loaded flag = false
         thelist.addListener(new ListChangeListener<MediaListItem>() {
         	@Override
         	public void onChanged(javafx.collections.ListChangeListener.Change<? extends MediaListItem> c) {
         		boolean added = false;
         		while (c.next()) {
-        			added |= c.wasAdded();
+        			if (c.wasAdded()) {
+        				for (int i = 0; i < c.getAddedSize(); i++) {
+        					MediaListItem item = c.getAddedSubList().get(i);
+        					added |= item != null && item.loaded == false;
+        				}
+        			}
         		}
         		if (added) {
         			leftScroller.setVvalue(leftScroller.getVmax());
@@ -368,9 +416,9 @@ public class MediaLibraryPane extends BorderPane {
 											String[] wFileNames = warnings.stream().map(f -> f.getMessage()).collect(Collectors.toList()).toArray(new String[0]);
 											// get the failed media
 											String list = String.join(", ", wFileNames);
-											Alert alert = new Alert(AlertType.WARNING);
-											alert.setTitle("Media");
-											alert.setHeaderText("The following files were added to the media library but are not selectable from this area.");
+											Alert alert = new Alert(AlertType.INFORMATION);
+											alert.setTitle(Translations.getTranslation("media.import.info.title"));
+											alert.setHeaderText(Translations.getTranslation("media.import.info.header"));
 											alert.setContentText(list);
 											alert.show();
 										}
@@ -396,7 +444,22 @@ public class MediaLibraryPane extends BorderPane {
 			}
         });
 
-        MediaMetadataView right = new MediaMetadataView(library, allTags);
+        left.singleSelectionProperty().addListener((obs, ov, nv) -> {
+        	if (nv == null) {
+        		this.selected.set(null);
+        	} else {
+        		this.selected.set(nv.media);
+        	}
+        });
+        this.selected.addListener((obs, ov, nv) -> {
+        	if (nv == null) {
+        		left.singleSelectionProperty().set(null);
+        	} else {
+        		left.singleSelectionProperty().set(new MediaListItem(nv));
+        	}
+        });
+        
+        MediaMetadataPane right = new MediaMetadataPane(library, tags);
         right.addEventHandler(MediaMetadataEvent.RENAMED, (e) -> {
         	Media m0 = e.getOldValue();
         	Media m1 = e.getNewValue();
@@ -424,21 +487,19 @@ public class MediaLibraryPane extends BorderPane {
         rightScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         rightScroller.setFitToWidth(true);
         rightScroller.setContent(right);
-        rightScroller.setMinWidth(150);
+        rightScroller.setMinWidth(170);
         
         SplitPane split = new SplitPane();
         split.setOrientation(Orientation.HORIZONTAL);
         
         split.getItems().add(leftScroller);
         split.getItems().add(rightScroller);
-        split.setDividerPositions(0.75);
+        split.setDividerPositions(0.9);
         SplitPane.setResizableWithParent(rightScroller, Boolean.FALSE);
         
         // FILTERING & SORTING
         
-        //this.filter = new MediaFilter(master, filtered);
-        
-        Label lblFilter = new Label("filter by:");
+        Label lblFilter = new Label(Translations.getTranslation("field.filter"));
         ComboBox<Option<MediaType>> cbTypes = new ComboBox<Option<MediaType>>(opTypes);
         cbTypes.setValue(new Option<>());
         cbTypes.valueProperty().bindBidirectional(this.typeFilter);
@@ -447,7 +508,7 @@ public class MediaLibraryPane extends BorderPane {
         cbTags.valueProperty().bindBidirectional(this.tagFilter);
         cbTags.setValue(new Option<>());
         
-        Label lblSort = new Label("sort by:");
+        Label lblSort = new Label(Translations.getTranslation("field.sort"));
         ChoiceBox<Option<MediaSortField>> cbSort = new ChoiceBox<Option<MediaSortField>>(sortFields);
         cbSort.valueProperty().bindBidirectional(this.sortField);
         SortGraphic sortGraphic = new SortGraphic(17, 0, 4, 2, 4, Color.GRAY);
@@ -456,7 +517,7 @@ public class MediaLibraryPane extends BorderPane {
         sortGraphic.flipProperty().bind(this.sortDescending);
         
         TextField txtSearch = new TextField();
-        txtSearch.setPromptText("search");
+        txtSearch.setPromptText(Translations.getTranslation("field.search.placeholder"));
         txtSearch.textProperty().bindBidirectional(this.textFilter);
         
         HBox pFilter = new HBox(); 
@@ -483,5 +544,29 @@ public class MediaLibraryPane extends BorderPane {
         
         this.setTop(top);
         this.setCenter(split);
+    }
+    
+    /**
+     * Returns the selected property.
+     * @return ObjectProperty&lt;{@link Media}&gt;
+     */
+    public ObjectProperty<Media> selectedProperty() {
+    	return this.selected;
+    }
+    
+    /**
+     * Returns the selected media.
+     * @return {@link Media} or null
+     */
+    public Media getSelected() {
+    	return this.selected.get();
+    }
+    
+    /**
+     * Sets the selected media.
+     * @param media the media
+     */
+    public void setSelected(Media media) {
+    	this.selected.set(media);
     }
 }
