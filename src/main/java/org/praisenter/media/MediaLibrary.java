@@ -561,9 +561,10 @@ public final class MediaLibrary {
 	 * @param path the path
 	 * @return {@link Media}
 	 * @throws FileAlreadyExistsException if the target file name already exists
+	 * @throws JAXBException if the metadata fails to save
 	 * @throws IOException if an IO error occurs
 	 */
-	private final Media move(Media media, String name) throws FileAlreadyExistsException, IOException {
+	private final Media move(Media media, String name) throws FileAlreadyExistsException, IOException, JAXBException {
 		// FIXME test what happens when file is in use during presentation
 		Path source = media.metadata.path;
 		String name0 = source.getFileName().toString();
@@ -577,15 +578,10 @@ public final class MediaLibrary {
 		}
 		
 		// create paths to copy the file and metadata
-		Path target = source.getParent().resolve(name);
-		Path smPath = this.metadataPath.resolve(name0 + METADATA_EXT);
-		Path tmPath = this.metadataPath.resolve(name1 + METADATA_EXT);
+		Path target = source.getParent().resolve(name1);
 		
 		// move (rename) the media
 		Files.move(source, target);
-		
-		// metadata
-		Files.move(smPath, tmPath);
 		
 		// thumbnail (audio doesn't have thumbnails)
 		if (media.metadata.getType() != MediaType.AUDIO) {
@@ -603,6 +599,13 @@ public final class MediaLibrary {
 		
 		Media media1 = new Media(MediaMetadata.forRenamed(target, media.metadata), media.thumbnail);
 		
+		// metadata
+		// remove old metadata
+		Path smPath = this.metadataPath.resolve(name0 + METADATA_EXT);
+		Files.delete(smPath);
+		// save new metadata
+		this.saveMetadata(media1);
+
 		// just overwrite the media item with the new one
 		this.media.put(media.metadata.id, media1);
 		
@@ -727,9 +730,10 @@ public final class MediaLibrary {
 	 * @param name the new name
 	 * @return {@link Media}
 	 * @throws FileAlreadyExistsException if a file already exists with the given name
+	 * @throws JAXBException if the metadata fails to save
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized Media rename(Media media, String name) throws FileAlreadyExistsException, IOException {
+	public synchronized Media rename(Media media, String name) throws FileAlreadyExistsException, IOException, JAXBException {
 		return move(media, name);
 	}
 	

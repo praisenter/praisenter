@@ -98,7 +98,6 @@ public class MediaLibraryPane extends BorderPane {
     //private final MediaFilter filter;
     
     // TODO need a generic way of communicating between multiple instances
-    // TODO add ability to rename
     // FEATURE allow preview of audio/video; this may not be that hard to be honest; does the MediaView class come with controls?
     // TODO translate
     public MediaLibraryPane(final MediaLibrary library, Orientation orientation, MediaType... types) {
@@ -106,7 +105,7 @@ public class MediaLibraryPane extends BorderPane {
 		this.tagFilter = new SimpleObjectProperty<>(new Option<Tag>());
 		this.textFilter = new SimpleStringProperty();
 		this.sortField = new SimpleObjectProperty<Option<MediaSortField>>(new Option<MediaSortField>(MediaSortField.NAME.getName(), MediaSortField.NAME));
-		this.sortDescending = new SimpleBooleanProperty(false);
+		this.sortDescending = new SimpleBooleanProperty(true);
     	
         Set<Tag> tags = new TreeSet<Tag>(library.getTags());
         
@@ -399,7 +398,23 @@ public class MediaLibraryPane extends BorderPane {
 
         MediaMetadataView right = new MediaMetadataView(library, allTags);
         right.addEventHandler(MediaMetadataEvent.RENAMED, (e) -> {
-        	// FIXME we need to update the item in the lists (remove/add) then reselect it
+        	Media m0 = e.getOldValue();
+        	Media m1 = e.getNewValue();
+        	int index = -1;
+        	for (int i = 0; i < thelist.size(); i++) {
+        		MediaListItem item = thelist.get(i);
+        		if (item.media.getMetadata().getId() == m0.getMetadata().getId()) {
+        			index = i;
+        			break;
+        		}
+        	}
+        	if (index >= 0) {
+        		thelist.set(index, new MediaListItem(m1));
+        	} else {
+        		thelist.add(new MediaListItem(m1));
+        	}
+        	// resort/filter
+        	fs.invalidated(null);
         });
         
         // wire up the selected media to the media metadata view with a unidirectional binding

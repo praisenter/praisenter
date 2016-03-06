@@ -73,7 +73,7 @@ public class TransitionTest extends Application {
 		// TODO need listen for completion so we can remove the outgoing node
 		// if (Swap.ID == slide.transition)
 		// TODO based on slide position and size, determine if we need to do a parallel or sequential transition
-		Transition tx = Transitions.getZoomOut(s2, s1, Duration.millis(1000), Easings.getQuadratic(EasingType.IN), true);
+		Transition tx = null; //Transitions.getZoomOut(s2, s1, Duration.millis(1000), Easings.getQuadratic(EasingType.IN), true);
 //		Transition tx = Transitions.getSwap(s2, s1);
 		Scene scene = new Scene(stack, Color.TRANSPARENT);
 		other.setScene(scene);

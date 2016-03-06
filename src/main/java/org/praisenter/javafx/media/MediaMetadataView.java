@@ -14,6 +14,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
@@ -82,8 +83,11 @@ final class MediaMetadataView extends VBox {
         lblNameValue.setTooltip(new Tooltip());
         lblNameValue.getTooltip().textProperty().bind(name);
         lblNameValue.setBorder(VALUE_BORDER);
-        Button btnRename = new Button(Translations.getTranslation("media.metadata.rename"));
+        Hyperlink btnRename = new Hyperlink(Translations.getTranslation("media.metadata.rename"));
         btnRename.setTooltip(new Tooltip(Translations.getTranslation("media.metadata.rename")));
+        btnRename.setVisible(false);
+        // TODO can we move this to the main pane and it still apply?
+        btnRename.getStylesheets().add(getClass().getResource("/org/praisenter/javafx/styles/styles.css").toExternalForm());
         grid.add(lblName, 0, 0, 1, 1);
         grid.add(lblNameValue, 1, 0, 1, 1);
         grid.add(btnRename, 2, 0, 1, 1);

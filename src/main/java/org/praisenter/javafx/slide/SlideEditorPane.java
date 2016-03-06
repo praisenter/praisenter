@@ -222,7 +222,7 @@ public final class SlideEditorPane extends Application {
 			GradientPickerPane gp = new GradientPickerPane();
 			CustomMenuItem item = new CustomMenuItem(gp, false);
 			// NOTE: this removes the on hover highlight
-//			item.getStyleClass().remove("menu-item");
+			item.getStyleClass().remove("menu-item");
 			// NOTE: choosing a custom color causes an exception in JavaFX when this is in a menu item
 			btnGradient.getItems().add(item);
 			grid.add(lblGradient, 0, 7);
