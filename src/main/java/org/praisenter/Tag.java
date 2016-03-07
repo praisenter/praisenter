@@ -43,7 +43,7 @@ public final class Tag implements Comparable<Tag> {
 	private static final Collator COLLATOR = Collator.getInstance();
 	
 	/** The tag name */
-	@XmlAttribute
+	@XmlAttribute(name = "name", required = false)
 	private final String name;
 
 	/**

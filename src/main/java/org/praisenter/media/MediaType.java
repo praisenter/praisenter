@@ -36,13 +36,13 @@ import org.praisenter.resources.translations.Translations;
 @XmlEnum
 public enum MediaType {
 	/** Images */
-	IMAGE(Translations.getTranslation("media.type.image")),
+	IMAGE(Translations.get("media.type.image")),
 	
 	/** Videos */
-	VIDEO(Translations.getTranslation("media.type.video")),
+	VIDEO(Translations.get("media.type.video")),
 	
 	/** Audio */
-	AUDIO(Translations.getTranslation("media.type.audio"));
+	AUDIO(Translations.get("media.type.audio"));
 	
 	/** The readable name */
 	private final String name;

@@ -113,7 +113,7 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 				
 				LOGGER.warn("No audio stream present on file: '{}'", path.toAbsolutePath().toString());
 				// no audio stream present
-				throw new MediaFormatException(MessageFormat.format(Translations.getTranslation("media.load.error.audio.missing"), path.toAbsolutePath().toString()));
+				throw new MediaFormatException(MessageFormat.format(Translations.get("media.load.error.audio.missing"), path.toAbsolutePath().toString()));
 			} catch (InterruptedException ex) {
 				throw new IOException(ex.getMessage(), ex);
 			} finally {
@@ -127,7 +127,7 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 				}
 			}
 		} else {
-			throw new FileNotFoundException(MessageFormat.format(Translations.getTranslation("error.file.missing"), path.toAbsolutePath().toString()));
+			throw new FileNotFoundException(MessageFormat.format(Translations.get("error.file.missing"), path.toAbsolutePath().toString()));
 		}
 	}
 }

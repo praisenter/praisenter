@@ -393,7 +393,7 @@ public final class MediaLibrary {
 		// any supporting media loaders?
 		if (loaders.size() == 0) {
 			LOGGER.warn("No supporting media loaders for file '" + path.toAbsolutePath().toString() + "'.");
-			throw new MediaFormatException(MessageFormat.format(Translations.getTranslation("media.import.error.loader.none"), path.toAbsolutePath().toString()));
+			throw new MediaFormatException(MessageFormat.format(Translations.get("media.import.error.loader.none"), path.toAbsolutePath().toString()));
 		}
 		
 		LoadedMedia media = null;
@@ -415,7 +415,7 @@ public final class MediaLibrary {
 		
 		if (media == null) {
 			LOGGER.warn("The supporting media loaders couldn't load '" + path.toAbsolutePath().toString() + "'.");
-			throw new MediaFormatException(MessageFormat.format(Translations.getTranslation("media.import.error.loaders.failed"), path.toAbsolutePath().toString()));
+			throw new MediaFormatException(MessageFormat.format(Translations.get("media.import.error.loaders.failed"), path.toAbsolutePath().toString()));
 		}
 		
 		return media;
@@ -459,7 +459,7 @@ public final class MediaLibrary {
 			MediaType type = getMediaType(source);
 			return insert(source, type, source.getFileName().toString());
 		} else {
-			throw new FileNotFoundException(MessageFormat.format(Translations.getTranslation("error.file.missing"), source.toAbsolutePath().toString()));
+			throw new FileNotFoundException(MessageFormat.format(Translations.get("error.file.missing"), source.toAbsolutePath().toString()));
 		}
 	}
 
@@ -500,7 +500,7 @@ public final class MediaLibrary {
 	 */
 	private final Path insert(Path source, MediaType type, String name) throws FileAlreadyExistsException, IOException, TranscodeException, UnknownMediaTypeException {
 		if (type == null) {
-			throw new UnknownMediaTypeException(MessageFormat.format(Translations.getTranslation("media.import.error.type.unknown"), source.toAbsolutePath().toString()));
+			throw new UnknownMediaTypeException(MessageFormat.format(Translations.get("media.import.error.type.unknown"), source.toAbsolutePath().toString()));
 		}
 		
 		Path target = this.importFilter.getTarget(this.path, name, type);

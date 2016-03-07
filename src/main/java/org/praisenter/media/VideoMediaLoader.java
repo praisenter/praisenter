@@ -133,7 +133,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 				// we must have a video, audio is optional
 				if (video == null) {
 					LOGGER.error("No video stream present on file: '{}'", path.toAbsolutePath().toString());
-					throw new MediaFormatException(MessageFormat.format(Translations.getTranslation("media.import.error.video.missing"), path.toAbsolutePath().toString()));
+					throw new MediaFormatException(MessageFormat.format(Translations.get("media.import.error.video.missing"), path.toAbsolutePath().toString()));
 				}
 				
 				final MediaCodec[] codecs;
@@ -160,7 +160,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 				}
 			}
 		} else {
-			throw new FileNotFoundException(MessageFormat.format(Translations.getTranslation("error.file.missing"), path.toAbsolutePath().toString()));
+			throw new FileNotFoundException(MessageFormat.format(Translations.get("error.file.missing"), path.toAbsolutePath().toString()));
 		}
 	}
 	

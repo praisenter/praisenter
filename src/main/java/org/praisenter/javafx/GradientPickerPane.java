@@ -243,11 +243,11 @@ public final class GradientPickerPane extends VBox {
 
     	// create the gradient type options
         ToggleGroup grpTypes = new ToggleGroup();
-        this.rdoLinear = new RadioButton(Translations.getTranslation("gradient.type.linear"));
+        this.rdoLinear = new RadioButton(Translations.get("gradient.type.linear"));
         this.rdoLinear.setToggleGroup(grpTypes);
         this.rdoLinear.setUserData(0);
         this.rdoLinear.setSelected(true);
-        this.rdoRadial = new RadioButton(Translations.getTranslation("gradient.type.radial"));
+        this.rdoRadial = new RadioButton(Translations.get("gradient.type.radial"));
         this.rdoRadial.setToggleGroup(grpTypes);
         this.rdoRadial.setUserData(1);
         grpTypes.selectedToggleProperty().addListener((obs, ov, nv) -> {
@@ -260,14 +260,14 @@ public final class GradientPickerPane extends VBox {
         
     	// create the cycle type options
         ToggleGroup grpCycleTypes = new ToggleGroup();
-        this.rdoCycleNone = new RadioButton(Translations.getTranslation("gradient.cycle.none"));
+        this.rdoCycleNone = new RadioButton(Translations.get("gradient.cycle.none"));
         this.rdoCycleNone.setToggleGroup(grpCycleTypes);
         this.rdoCycleNone.setUserData(CycleMethod.NO_CYCLE);
         this.rdoCycleNone.setSelected(true);
-        this.rdoCycleReflect = new RadioButton(Translations.getTranslation("gradient.cycle.reflect"));
+        this.rdoCycleReflect = new RadioButton(Translations.get("gradient.cycle.reflect"));
         this.rdoCycleReflect.setToggleGroup(grpCycleTypes);
         this.rdoCycleReflect.setUserData(CycleMethod.REFLECT);
-        this.rdoCycleRepeat = new RadioButton(Translations.getTranslation("gradient.cycle.repeat"));
+        this.rdoCycleRepeat = new RadioButton(Translations.get("gradient.cycle.repeat"));
         this.rdoCycleRepeat.setToggleGroup(grpCycleTypes);
         this.rdoCycleRepeat.setUserData(CycleMethod.REPEAT);
         grpCycleTypes.selectedToggleProperty().addListener((obs, ov, nv) -> {

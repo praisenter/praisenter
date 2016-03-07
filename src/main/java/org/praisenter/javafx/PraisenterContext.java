@@ -24,6 +24,13 @@
  */
 package org.praisenter.javafx;
 
+import java.util.Set;
+import java.util.TreeSet;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
+
+import org.praisenter.Tag;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.slide.SlideLibrary;
@@ -53,6 +60,9 @@ public final class PraisenterContext {
 	/** The image cache */
 	private final ImageCache imageCache;
 	
+	/** The global tag list */
+	private final ObservableSet<Tag> tags;
+	
 	/**
 	 * Full constructor.
 	 * @param media the media library
@@ -66,6 +76,10 @@ public final class PraisenterContext {
 		this.bibleLibrary = bibles;
 		this.slideLibrary = slides;
 		this.imageCache = new ImageCache();
+		
+		Set<Tag> tags = new TreeSet<Tag>();
+		// FIXME add all tags from the songs, slides, and media to the set
+		this.tags = FXCollections.observableSet(tags);
 	}
 
 	/**
@@ -106,5 +120,13 @@ public final class PraisenterContext {
 	 */
 	public ImageCache getImageCache() {
 		return this.imageCache;
+	}
+	
+	/**
+	 * Returns the global set of tags.
+	 * @return ObservableSet&lt;{@link Tag}&gt;
+	 */
+	public ObservableSet<Tag> getTags() {
+		return this.tags;
 	}
 }

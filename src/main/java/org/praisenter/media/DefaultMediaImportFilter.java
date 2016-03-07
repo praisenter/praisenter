@@ -57,7 +57,7 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 		
 		// see if we can use the same name in the destination file
 		if (Files.exists(target)) {
-			throw new FileAlreadyExistsException(MessageFormat.format(Translations.getTranslation("error.file.exists"), target.toAbsolutePath().toString()));
+			throw new FileAlreadyExistsException(MessageFormat.format(Translations.get("error.file.exists"), target.toAbsolutePath().toString()));
 		}
 		
 		Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);

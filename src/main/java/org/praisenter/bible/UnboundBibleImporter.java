@@ -119,7 +119,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 			// check for missing files
 			if (books.size() == 0 && verses.size() == 0) {
 				LOGGER.error("The file did not contain any books or verses. Import failed.");
-				throw new BibleFormatException(Translations.getTranslation("bible.import.error.unbound.empty"));
+				throw new BibleFormatException(Translations.get("bible.import.error.unbound.empty"));
 			}
 			
 			// import into the database
@@ -146,7 +146,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 				// split the line by tabs
 				String[] data = line.split("\\t");
 				if (data.length != 2) {
-					throw new BibleFormatException(MessageFormat.format(Translations.getTranslation("bible.import.error.unbound.book.format.unknown"), i));
+					throw new BibleFormatException(MessageFormat.format(Translations.get("bible.import.error.unbound.book.format.unknown"), i));
 				} else {
 					Book book = new Book(
 							this.bible,
@@ -211,7 +211,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 				String[] data = line.split("\\t");
 				// we need at least 4 columns to continue (book,chapter,verse,text)
 				if (data.length < 4) {
-					throw new BibleFormatException(Translations.getTranslation("bible.import.error.unbound.verse.format.unknown"));
+					throw new BibleFormatException(Translations.get("bible.import.error.unbound.verse.format.unknown"));
 				} else {
 					try {
 						Verse verse = new Verse();
@@ -266,7 +266,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 						}
 						this.verses.add(verse);
 					} catch (NumberFormatException e) {
-						throw new BibleFormatException(MessageFormat.format(Translations.getTranslation("bible.import.error.unbound.verse.parse.number"), i));
+						throw new BibleFormatException(MessageFormat.format(Translations.get("bible.import.error.unbound.verse.parse.number"), i));
 					}
 				}
 			}

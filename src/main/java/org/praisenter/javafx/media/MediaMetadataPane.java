@@ -136,14 +136,14 @@ final class MediaMetadataPane extends VBox {
         // for debugging
         //this.setGridLinesVisible(true);
         
-        Label lblName = new Label(Translations.getTranslation("media.metadata.name"));
+        Label lblName = new Label(Translations.get("media.metadata.name"));
         Label lblNameValue = new Label();
         lblNameValue.textProperty().bind(name);
         lblNameValue.setTooltip(new Tooltip());
         lblNameValue.getTooltip().textProperty().bind(name);
         lblNameValue.setBorder(VALUE_BORDER);
-        Hyperlink btnRename = new Hyperlink(Translations.getTranslation("media.metadata.rename"));
-        btnRename.setTooltip(new Tooltip(Translations.getTranslation("media.metadata.rename")));
+        Hyperlink btnRename = new Hyperlink(Translations.get("media.metadata.rename"));
+        btnRename.setTooltip(new Tooltip(Translations.get("media.metadata.rename")));
         btnRename.setVisible(false);
         btnRename.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         // FIXME can we move this to the main pane and it still apply?
@@ -156,9 +156,9 @@ final class MediaMetadataPane extends VBox {
         
         btnRename.setOnAction((e) -> {
 	    	TextInputDialog prompt = new TextInputDialog(name.get());
-	    	prompt.setTitle(Translations.getTranslation("media.metadata.rename.title"));
-	    	prompt.setHeaderText(Translations.getTranslation("media.metadata.rename.header"));
-	    	prompt.setContentText(Translations.getTranslation("media.metadata.rename.content"));
+	    	prompt.setTitle(Translations.get("media.metadata.rename.title"));
+	    	prompt.setHeaderText(Translations.get("media.metadata.rename.header"));
+	    	prompt.setContentText(Translations.get("media.metadata.rename.content"));
 	    	Optional<String> result = prompt.showAndWait();
 	    	// check for the "OK" button
 	    	if (result.isPresent()) {
@@ -170,13 +170,13 @@ final class MediaMetadataPane extends VBox {
 					// log the error
 					LOGGER.error("Failed to rename media from '{}' to '{}': {}", name.get(), result.get(), ex.getMessage());
 					// show an error to the user
-					Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.getTranslation("media.metadata.rename.error"), name.get(), result.get()), ex);
+					Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.get("media.metadata.rename.error"), name.get(), result.get()), ex);
 					alert.show();
 				}
 	    	}
 	    });
         
-        Label lblWidth = new Label(Translations.getTranslation("media.metadata.width"));
+        Label lblWidth = new Label(Translations.get("media.metadata.width"));
         Label lblWidthValue = new Label();
         lblWidthValue.textProperty().bind(width);
         lblWidthValue.setTooltip(new Tooltip());
@@ -185,7 +185,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblWidth, 0, 1, 1, 1);
         grid.add(lblWidthValue, 1, 1, 1, 1);
         
-        Label lblHeight = new Label(Translations.getTranslation("media.metadata.height"));
+        Label lblHeight = new Label(Translations.get("media.metadata.height"));
         Label lblHeightValue = new Label();
         lblHeightValue.textProperty().bind(height);
         lblHeightValue.setTooltip(new Tooltip());
@@ -194,7 +194,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblHeight, 0, 2, 1, 1);
         grid.add(lblHeightValue, 1, 2, 1, 1);
         
-        Label lblLength = new Label(Translations.getTranslation("media.metadata.length"));
+        Label lblLength = new Label(Translations.get("media.metadata.length"));
         Label lblLengthValue = new Label();
         lblLengthValue.textProperty().bind(length);
         lblLengthValue.setTooltip(new Tooltip());
@@ -203,7 +203,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblLength, 0, 3, 1, 1);
         grid.add(lblLengthValue, 1, 3, 1, 1);
         
-        Label lblSound = new Label(Translations.getTranslation("media.metadata.sound"));
+        Label lblSound = new Label(Translations.get("media.metadata.sound"));
         Label lblSoundValue = new Label();
         lblSoundValue.textProperty().bind(audio);
         lblSoundValue.setTooltip(new Tooltip());
@@ -212,7 +212,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblSound, 0, 4, 1, 1);
         grid.add(lblSoundValue, 1, 4, 1, 1);
         
-        Label lblFormat = new Label(Translations.getTranslation("media.metadata.format"));
+        Label lblFormat = new Label(Translations.get("media.metadata.format"));
         Label lblFormatValue = new Label();
         lblFormatValue.textProperty().bind(format);
         lblFormatValue.setTooltip(new Tooltip());
@@ -238,7 +238,7 @@ final class MediaMetadataPane extends VBox {
 						// log the error
 						LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
 						// show an error to the user
-						Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.getTranslation("tags.add.error"), tag.getName()), e);
+						Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.get("tags.add.error"), tag.getName()), e);
 						alert.show();
 					}
 				} else if (event.getEventType() == TagEvent.REMOVED) {
@@ -250,7 +250,7 @@ final class MediaMetadataPane extends VBox {
 						// log the error
 						LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
 						// show an error to the user
-						Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.getTranslation("tags.remove.error"), tag.getName()), e);
+						Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.get("tags.remove.error"), tag.getName()), e);
 						alert.show();
 					}
 				}
@@ -281,7 +281,7 @@ final class MediaMetadataPane extends VBox {
         			btnRename.setVisible(true);
         			Media media = item.media;
         			MediaType type = media.getMetadata().getType();
-        			String unknown = Translations.getTranslation("media.metadata.unknown");
+        			String unknown = Translations.get("media.metadata.unknown");
         			
         			name.set(media.getMetadata().getName());
         			
@@ -306,7 +306,7 @@ final class MediaMetadataPane extends VBox {
         			
         			// has sound?
         			if (media.getMetadata().getType() == MediaType.VIDEO) {
-        				audio.set(media.getMetadata().hasAudio() ? Translations.getTranslation("yes") : Translations.getTranslation("no"));
+        				audio.set(media.getMetadata().hasAudio() ? Translations.get("yes") : Translations.get("no"));
         			} else {
         				audio.set(NOT_APPLICABLE);
         			}

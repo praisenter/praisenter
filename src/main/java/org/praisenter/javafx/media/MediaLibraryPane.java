@@ -254,8 +254,8 @@ public final class MediaLibraryPane extends BorderPane {
 					if (items.size() > 0) {
 						// attempt to delete the selected media
 						Alert alert = new Alert(AlertType.CONFIRMATION);
-						alert.setTitle(Translations.getTranslation("media.remove.title"));
-						alert.setContentText(Translations.getTranslation("media.remove.content"));
+						alert.setTitle(Translations.get("media.remove.title"));
+						alert.setContentText(Translations.get("media.remove.content"));
 						alert.setHeaderText(null);
 						Optional<ButtonType> result = alert.showAndWait();
 						if (result.get() == ButtonType.OK) {
@@ -288,7 +288,7 @@ public final class MediaLibraryPane extends BorderPane {
 												Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
 												// get the failed media
 												String list = String.join(", ", failed.stream().map(f -> f.getData().getMetadata().getName()).collect(Collectors.toList()));
-												Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.getTranslation("media.remove.error"), list), exceptions);
+												Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.get("media.remove.error"), list), exceptions);
 												alert.show();
 											}
 										}
@@ -417,8 +417,8 @@ public final class MediaLibraryPane extends BorderPane {
 											// get the failed media
 											String list = String.join(", ", wFileNames);
 											Alert alert = new Alert(AlertType.INFORMATION);
-											alert.setTitle(Translations.getTranslation("media.import.info.title"));
-											alert.setHeaderText(Translations.getTranslation("media.import.info.header"));
+											alert.setTitle(Translations.get("media.import.info.title"));
+											alert.setHeaderText(Translations.get("media.import.info.header"));
 											alert.setContentText(list);
 											alert.show();
 										}
@@ -428,7 +428,7 @@ public final class MediaLibraryPane extends BorderPane {
 											Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
 											// get the failed media
 											String list = String.join(", ", failed.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
-											Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.getTranslation("media.import.error"), list), exceptions);
+											Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.get("media.import.error"), list), exceptions);
 											alert.show();
 										}
 									}
@@ -499,7 +499,7 @@ public final class MediaLibraryPane extends BorderPane {
         
         // FILTERING & SORTING
         
-        Label lblFilter = new Label(Translations.getTranslation("field.filter"));
+        Label lblFilter = new Label(Translations.get("field.filter"));
         ComboBox<Option<MediaType>> cbTypes = new ComboBox<Option<MediaType>>(opTypes);
         cbTypes.setValue(new Option<>());
         cbTypes.valueProperty().bindBidirectional(this.typeFilter);
@@ -508,7 +508,7 @@ public final class MediaLibraryPane extends BorderPane {
         cbTags.valueProperty().bindBidirectional(this.tagFilter);
         cbTags.setValue(new Option<>());
         
-        Label lblSort = new Label(Translations.getTranslation("field.sort"));
+        Label lblSort = new Label(Translations.get("field.sort"));
         ChoiceBox<Option<MediaSortField>> cbSort = new ChoiceBox<Option<MediaSortField>>(sortFields);
         cbSort.valueProperty().bindBidirectional(this.sortField);
         SortGraphic sortGraphic = new SortGraphic(17, 0, 4, 2, 4, Color.GRAY);
@@ -517,7 +517,7 @@ public final class MediaLibraryPane extends BorderPane {
         sortGraphic.flipProperty().bind(this.sortDescending);
         
         TextField txtSearch = new TextField();
-        txtSearch.setPromptText(Translations.getTranslation("field.search.placeholder"));
+        txtSearch.setPromptText(Translations.get("field.search.placeholder"));
         txtSearch.textProperty().bindBidirectional(this.textFilter);
         
         HBox pFilter = new HBox(); 

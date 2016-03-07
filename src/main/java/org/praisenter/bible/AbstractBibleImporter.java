@@ -111,7 +111,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 				if (bqResult.next() && bqResult.getInt(1) > 0) {
 					connection.rollback();
 					LOGGER.error("The bible already exists in the .");
-					throw new BibleAlreadyExistsException(MessageFormat.format(Translations.getTranslation("bible.import.error.duplicate"), bible.name));
+					throw new BibleAlreadyExistsException(MessageFormat.format(Translations.get("bible.import.error.duplicate"), bible.name));
 				}
 			} catch (SQLException e) {
 				connection.rollback();
@@ -141,7 +141,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 					// throw an error
 					connection.rollback();
 					LOGGER.error("The insert of the bible failed (0 records updated).");
-					throw new BibleImportException(MessageFormat.format(Translations.getTranslation("bible.import.error.bible"), bible.name));
+					throw new BibleImportException(MessageFormat.format(Translations.get("bible.import.error.bible"), bible.name));
 				}
 			} catch (SQLException e) {
 				connection.rollback();
@@ -166,7 +166,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 							// roll back anything we've done
 							connection.rollback();
 							// throw an error
-							throw new BibleImportException(MessageFormat.format(Translations.getTranslation("bible.import.error.book"), book.name, bible.name));
+							throw new BibleImportException(MessageFormat.format(Translations.get("bible.import.error.book"), book.name, bible.name));
 						}
 					}
 				} catch (SQLException e) {
@@ -195,7 +195,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 								// roll back anything we've done
 								connection.rollback();
 								// throw an error
-								throw new BibleImportException(MessageFormat.format(Translations.getTranslation("bible.import.error.book"), verse.book.name, verse.chapter, verse.verse, bible.name));
+								throw new BibleImportException(MessageFormat.format(Translations.get("bible.import.error.book"), verse.book.name, verse.chapter, verse.verse, bible.name));
 							}
 						} catch (SQLIntegrityConstraintViolationException e) {
 							// its possible that the dumps have duplicate keys (book, chapter, verse, subverse)

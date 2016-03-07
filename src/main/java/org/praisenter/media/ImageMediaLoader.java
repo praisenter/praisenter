@@ -120,10 +120,10 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 				}
 				
 				// no readers
-				throw new MediaFormatException(MessageFormat.format(Translations.getTranslation("media.import.error.image.reader.missing"), path.toAbsolutePath().toString()));
+				throw new MediaFormatException(MessageFormat.format(Translations.get("media.import.error.image.reader.missing"), path.toAbsolutePath().toString()));
 			}
 		} else {
-			throw new FileNotFoundException(MessageFormat.format(Translations.getTranslation("error.file.missing"), path.toAbsolutePath().toString()));
+			throw new FileNotFoundException(MessageFormat.format(Translations.get("error.file.missing"), path.toAbsolutePath().toString()));
 		}
 	}
 	

@@ -65,9 +65,9 @@ public final class Alerts {
 			Throwable... exceptions) {
 		
 		Alert alert = new Alert(AlertType.ERROR);
-		alert.setTitle(title == null ? Translations.getTranslation("error.alert.title") : title);
-		alert.setHeaderText(header == null ? Translations.getTranslation("error.alert.message") : header);
-		alert.setContentText(content == null ? Translations.getTranslation("error.alert.message") : content);
+		alert.setTitle(title == null ? Translations.get("error.alert.title") : title);
+		alert.setHeaderText(header == null ? Translations.get("error.alert.message") : header);
+		alert.setContentText(content == null ? Translations.get("error.alert.message") : content);
 
 		// create expandable section with the exceptions in it
 		StringWriter sw = new StringWriter();
@@ -79,7 +79,7 @@ public final class Alerts {
 		}
 		String exceptionText = sw.toString();
 
-		Label label = new Label(Translations.getTranslation("error.alert.stacktrace"));
+		Label label = new Label(Translations.get("error.alert.stacktrace"));
 
 		TextArea textArea = new TextArea(exceptionText);
 		textArea.setEditable(false);

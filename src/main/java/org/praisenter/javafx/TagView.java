@@ -67,7 +67,7 @@ public class TagView extends BorderPane {
 		
 		// create an autocomplete field
 		this.textField = new TextField();
-		this.textField.setPromptText(Translations.getTranslation("tags.add.placeholder"));
+		this.textField.setPromptText(Translations.get("tags.add.placeholder"));
 		
 		// apply the auto completion binding
 		TextFields.bindAutoCompletion(

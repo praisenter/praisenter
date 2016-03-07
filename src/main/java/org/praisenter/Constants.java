@@ -57,10 +57,16 @@ public final class Constants {
 			// /user/home/dir/Praisenter3/
 			RuntimeProperties.USER_HOME + RuntimeProperties.PATH_SEPARATOR + ROOT_RELATIVE_PATH;
 	
+	///////////////////////////
+	// LOGGING
+	
+	/** The relative path to the logs directory */
 	public static final String LOGS_RELATIVE_PATH = "logs" + RuntimeProperties.PATH_SEPARATOR;
 	
+	/** The absolute path to the logs directory */
 	public static final String LOGS_ABSOLUTE_PATH = Constants.ROOT_PATH + "logs";
 	
+	/** The absolute path to the database log file */
 	public static final String DATABASE_LOG_FILE_PATH = Constants.LOGS_ABSOLUTE_PATH + RuntimeProperties.PATH_SEPARATOR + "derby.log";
 	
 	///////////////////////////

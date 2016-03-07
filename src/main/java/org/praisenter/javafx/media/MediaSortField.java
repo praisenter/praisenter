@@ -33,13 +33,13 @@ import org.praisenter.resources.translations.Translations;
  */
 public enum MediaSortField {
 	/** The name field */
-	NAME(Translations.getTranslation("media.sort.field.name")),
+	NAME(Translations.get("media.sort.field.name")),
 	
 	/** The type field */
-	TYPE(Translations.getTranslation("media.sort.field.type")),
+	TYPE(Translations.get("media.sort.field.type")),
 	
 	/** The date added field */
-	ADDED_DATE(Translations.getTranslation("media.sort.field.date"));
+	ADDED_DATE(Translations.get("media.sort.field.date"));
 	
 	/** The display name of the field */
 	private final String name;

@@ -45,7 +45,7 @@ public final class Option<T> {
 	 * Creates an "all" option.
 	 */
 	public Option() {
-		this.name = Translations.getTranslation("options.all");
+		this.name = Translations.get("options.all");
 		this.value = null;
 	}
 	

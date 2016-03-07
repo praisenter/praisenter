@@ -80,7 +80,7 @@ public final class Translations {
 	 * @param key the key
 	 * @return String
 	 */
-	public static final String getTranslation(String key) {
+	public static final String get(String key) {
 		// find the key in the current locale
 		Locale locale = Locale.getDefault();
 		try {
