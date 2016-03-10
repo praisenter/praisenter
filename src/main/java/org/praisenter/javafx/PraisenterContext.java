@@ -32,8 +32,11 @@ import javafx.collections.ObservableSet;
 
 import org.praisenter.Tag;
 import org.praisenter.bible.BibleLibrary;
+import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
+import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
+import org.praisenter.song.Song;
 import org.praisenter.song.SongLibrary;
 
 /**
@@ -78,7 +81,18 @@ public final class PraisenterContext {
 		this.imageCache = new ImageCache();
 		
 		Set<Tag> tags = new TreeSet<Tag>();
-		// FIXME add all tags from the songs, slides, and media to the set
+		
+		// add all the tags to the main tag set
+		for (Song song : songLibrary.all()) {
+			tags.addAll(song.getTags());
+		}
+		for (Slide slide : slideLibrary.all()) {
+			tags.addAll(slide.getTags());
+		}
+		for (Media m : mediaLibrary.all()) {
+			tags.addAll(m.getMetadata().getTags());
+		}
+		
 		this.tags = FXCollections.observableSet(tags);
 	}
 

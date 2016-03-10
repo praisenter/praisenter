@@ -158,6 +158,14 @@ public final class SlideLibrary {
 	}
 	
 	/**
+	 * Returns the number of slides in the library.
+	 * @return int
+	 */
+	public synchronized int size() {
+		return this.slides.size();
+	}
+	
+	/**
 	 * Returns the slide for the given id.
 	 * <p>
 	 * Returns null if not found or id is null.

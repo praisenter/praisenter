@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -95,7 +97,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	/** The tags */
 	@XmlElement(name = "tag", required = false)
 	@XmlElementWrapper(name = "tags", required = false)
-	List<Tag> tags;
+	Set<Tag> tags;
 	
 	/**
 	 * Default constructor.
@@ -114,7 +116,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		this.components = new ArrayList<SlideComponent>();
 		this.transitions = new ArrayList<SlideTransition>();
 		this.time = Slide.TIME_FOREVER;
-		this.tags = new ArrayList<Tag>();
+		this.tags = new TreeSet<Tag>();
 	}
 	
 	/**
@@ -410,15 +412,15 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	 * @see org.praisenter.slide.Slide#getTags()
 	 */
 	@Override
-	public List<Tag> getTags() {
+	public Set<Tag> getTags() {
 		return this.tags;
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#setTags(java.util.List)
+	 * @see org.praisenter.slide.Slide#setTags(java.util.Set)
 	 */
 	@Override
-	public void setTags(List<Tag> tags) {
+	public void setTags(Set<Tag> tags) {
 		this.tags = tags;
 	}
 }

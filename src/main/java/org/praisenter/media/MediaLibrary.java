@@ -656,6 +656,14 @@ public final class MediaLibrary {
 	}
 	
 	/**
+	 * Returns the number of media items in the library.
+	 * @return int
+	 */
+	public synchronized int size() {
+		return this.media.size();
+	}
+	
+	/**
 	 * Adds the media at the given path to the library.
 	 * @param path the path
 	 * @return {@link Media}

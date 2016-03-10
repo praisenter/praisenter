@@ -9,19 +9,21 @@ import javafx.scene.layout.BorderPane;
 public final class MainPane extends BorderPane {
 	
 	public MainPane() {
-		
+		this.setTop(createMenus());
 	}
 	
 	// TODO menu options
 	private MenuBar createMenus() {
 		MenuBar menu = new MenuBar();
 		
-		Menu file = new Menu();
-		Menu media = new Menu();
-		Menu songs = new Menu();
-		Menu bibles = new Menu();
-		Menu slides = new Menu();
-		Menu help = new Menu();
+		Menu file = new Menu("File");
+		Menu media = new Menu("Media");
+		Menu songs = new Menu("Songs");
+		Menu bibles = new Menu("Bibles");
+		Menu slides = new Menu("Slides");
+		Menu help = new Menu("Help");
+		
+		menu.getMenus().addAll(file, media, songs, bibles, slides, help);
 		
 		MenuItem fSetup = new MenuItem();
 		

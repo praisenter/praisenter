@@ -72,22 +72,29 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
+// FEATURE add ability to configure any number of stops
+
 /**
  * Pane for configuring a gradient pattern.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class GradientPickerPane extends VBox {
+public final class GradientPickerPane extends HBox {
 	/** An image pattern to represent transparency */
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/javafx/resources/transparent.png");
 	
-	final static double WIDTH = 200;
-    final static double HEIGHT = 200;
+	/** The preview pane width */
+	private static final double WIDTH = 200;
+	
+	/** The preview pane height */
+	private static final double HEIGHT = 200;
 	
     // the current gradient
     
     /** The configured gradient paint */
 	private final ObjectProperty<Paint> paintProperty = new SimpleObjectProperty<Paint>() {
+		// performs some cleansing of the gradient to fit the picker's
+		// available controls
 		public void set(Paint paint) {
 			if (paint instanceof LinearGradient) {
 	    		LinearGradient lg = (LinearGradient)paint;
@@ -203,30 +210,69 @@ public final class GradientPickerPane extends VBox {
 	
 	// properties that build the gradient
 	
+	/** The gradient type (linear/radial) */
 	private final IntegerProperty type = new SimpleIntegerProperty(0);
+	
+	/** The cycle type (reflect/repeat/none) */
 	private final ObjectProperty<CycleMethod> cycle = new SimpleObjectProperty<CycleMethod>(CycleMethod.NO_CYCLE);
+	
+	/** The first stop */
 	private final ObjectProperty<Stop> stop1 = new SimpleObjectProperty<Stop>(new Stop(0, Color.WHITE));
+	
+	/** The second stop */
 	private final ObjectProperty<Stop> stop2 = new SimpleObjectProperty<Stop>(new Stop(1, Color.rgb(0, 0, 0, 0.5)));
+	
+	/** The first point's x coordinate (start/center x) */
 	private final DoubleProperty handle1X = new SimpleDoubleProperty(0);
+	
+	/** The first point's y coordinate (start/center y) */
 	private final DoubleProperty handle1Y = new SimpleDoubleProperty(0);
+	
+	/** The second point's x coordinate (end x) */
 	private final DoubleProperty handle2X = new SimpleDoubleProperty(1);
+	
+	/** The second point's x coordinate (end y) */
 	private final DoubleProperty handle2Y = new SimpleDoubleProperty(1);
+	
+	/** The radius */
 	private final DoubleProperty radius = new SimpleDoubleProperty(1);
 	
 	// nodes
 	
+	/** The linear gradient type radio button */
 	private final RadioButton rdoLinear;
+	
+	/** The radial gradient type radio button */
 	private final RadioButton rdoRadial;
+	
+	/** The cycle none type radio button */
 	private final RadioButton rdoCycleNone;
+	
+	/** The cycle reflect type radio button */
 	private final RadioButton rdoCycleReflect;
+	
+	/** The cycle repeat type radio button */
 	private final RadioButton rdoCycleRepeat;
+	
+	/** The slider for the first stop's offset */
 	private final Slider sldStop1;
+	
+	/** The color picker for the first stop */
 	private final ColorPicker pkrStop1;
+	
+	/** The slider for the second stop's offset */
 	private final Slider sldStop2;
+	
+	/** The color picker for the second stop */
 	private final ColorPicker pkrStop2;
 	
+	/** The preview pane */
 	private final Pane preview;
+	
+	/** The first point's handle shape */
 	private final Shape handle1;
+	
+	/** The second point's handle shape */
 	private final Shape handle2;
 	
 	/**
@@ -236,6 +282,10 @@ public final class GradientPickerPane extends VBox {
 		this(null);
 	}
 	
+	/**
+	 * Creates a new gradient picker pane using the given paint as the initial paint.
+	 * @param paint the paint; a LinearGradient or RadialGradient
+	 */
     public GradientPickerPane(Paint paint) {
         // set the padding
     	setPadding(new Insets(10));
@@ -292,8 +342,6 @@ public final class GradientPickerPane extends VBox {
         	this.stop1.set(new Stop(0, nv));
         	this.paintProperty.set(null);
         });
-        HBox stop1Row = new HBox(5, this.pkrStop1, this.sldStop1);
-        stop1Row.setAlignment(Pos.CENTER_LEFT);
         
         // stop 2 offset slider
         this.sldStop2 = new Slider(0, 1, 0);
@@ -309,8 +357,6 @@ public final class GradientPickerPane extends VBox {
         	this.stop2.set(new Stop(1, nv));
         	this.paintProperty.set(null);
         });
-        HBox stop2Row = new HBox(5, this.pkrStop2, this.sldStop2);
-        stop2Row.setAlignment(Pos.CENTER_LEFT);
         
         // create the preview/configure view
         StackPane previewStack = new StackPane();
@@ -418,8 +464,11 @@ public final class GradientPickerPane extends VBox {
         this.handle2.setOnMouseEntered(handleEnter);
         this.handle2.setOnMouseExited(handleExit);
         
-        // add all the controls to the VBox
-        getChildren().addAll(typeRow, stop1Row, stop2Row, cycleRow, previewRow);
+        // add all the controls
+        VBox left = new VBox();
+        left.setSpacing(7);
+        left.getChildren().addAll(typeRow, pkrStop1, sldStop1, pkrStop2, sldStop2, cycleRow);
+        getChildren().addAll(left, previewRow);
         
         // set the default paint based on the default values
     	this.paintProperty.set(paint);

@@ -1,20 +1,43 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.resources.translations.Translations;
+import org.praisenter.utility.RuntimeProperties;
 
 import javafx.animation.Animation;
-import javafx.animation.FadeTransition;
+import javafx.animation.Animation.Status;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
-import javafx.animation.PauseTransition;
 import javafx.animation.RotateTransition;
-import javafx.animation.SequentialTransition;
 import javafx.animation.Timeline;
-import javafx.animation.Animation.Status;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
+import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
@@ -32,22 +55,46 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
+/**
+ * Pane for showing a loading indicator and other animations while building
+ * a {@link PraisenterContext}
+ * @author William Bittle
+ * @version 3.0.0
+ */
 final class LoadingPane extends Pane {
+	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	// constants
+	
+	/** The offset from the left side of the window */
 	private static final double BAR_X_OFFSET = 75.0;
+	
+	/** The offset from the bottom of the window */
 	private static final double BAR_Y_OFFSET = 50.0;
+	
+	/** The radius of the circle */
 	private static final double CIRCLE_RADIUS = 50.0;
+	
+	/** The line width of the shapes */
 	private static final double LINE_WIDTH = 4.0;
+	
+	// members
 	
 	/** The loading task */
 	private final ContextLoadingTask loading;
+	
+	/** The loading thread */
+	private final Thread loadingThread;
 	
 	/** The circle animation */
 	private final RotateTransition circleAnimation;
 	
 	/** The current bar animation */
 	private Timeline barAnimation;
+	
+	/** The on complete handler */
+	private EventHandler<CompleteEvent<PraisenterContext>> onComplete;
 	
 	/**
 	 * Full constructor
@@ -60,6 +107,7 @@ final class LoadingPane extends Pane {
 		
 		// create the loading task
 		this.loading = new ContextLoadingTask();
+		this.loadingThread = new Thread(this.loading);
 		
 		// TODO need better splash screen image
 		// set the background image
@@ -86,9 +134,14 @@ final class LoadingPane extends Pane {
     	barfg.setEndY(height - BAR_Y_OFFSET);
     	
     	// loading... text
-    	// TODO choose font based on OS
-    	final Text loadingText = new Text("Loading...");
-    	loadingText.setFont(Font.font("Segoe UI Light", 80));
+    	// TODO test fonts on various platforms
+    	final Text loadingText = new Text(Translations.get("loading"));
+    	loadingText.setFont(Font.font(
+    			RuntimeProperties.IS_WINDOWS_OS 
+    			? "Segoe UI Light" //"Sans Serif" //"Lucida Grande" //"Segoe UI Light" 
+    			: RuntimeProperties.IS_MAC_OS 
+    				? "Lucida Grande"
+    				: "Sans Serif", 80));
     	loadingText.setFill(Color.WHITE);
     	loadingText.setX(BAR_X_OFFSET - 5);
     	loadingText.setY(height - BAR_Y_OFFSET - CIRCLE_RADIUS * 0.75);
@@ -190,28 +243,18 @@ final class LoadingPane extends Pane {
 						// stop the circle animation
 						circleAnimation.stop();
 						
-						// TODO do this from Praisenter class so we can remove the pane and make sure the main application is ready
-						// we only want to fade out the loading screen if the loading
-						// was successful
-						if (loading.getException() == null) {
-							// fade out the loader
-							FadeTransition fade = new FadeTransition(Duration.millis(600), LoadingPane.this);
-							fade.setFromValue(1.0);
-							fade.setToValue(0.0);
-							
-							// we'll pause for a moment to let the user see it completed
-							SequentialTransition seq = new SequentialTransition(new PauseTransition(Duration.millis(1500)), fade);
-							seq.setAutoReverse(false);
-							seq.setCycleCount(1);
-							
-							// when the fade out is complete
-							seq.statusProperty().addListener((fadeStatus, oldFadeStatus, newFadeStatus) -> {
-								// TODO set a status property so the caller can know when this happens so they can remove the node
-								System.out.println("done");
-							});
-							
-							// play the fade out
-							seq.play();
+						// notify that loading is complete
+						if (this.onComplete != null) {
+							PraisenterContext context = null;
+							try {
+								context = loading.get();
+								this.onComplete.handle(new CompleteEvent<PraisenterContext>(LoadingPane.this, LoadingPane.this, context));
+							} catch (Exception ex) {
+								LOGGER.error("Failed to get PraisenterContext due to the following.", ex);
+								showExecptionAlertThenExit(ex);
+							}
+						} else {
+							LOGGER.warn("Loading has completed, but there's no event handler set to call.");
 						}
 					}
 				});
@@ -223,22 +266,17 @@ final class LoadingPane extends Pane {
     	
     	// watch for errors
     	this.loading.exceptionProperty().addListener((exception, oldException, newException) -> {
-    		LOGGER.fatal("Failed to initialize Praisenter context.", newException);
-    		
-    		// if an error occurs just stop the animations
-    		if (barAnimation != null) {
-				barAnimation.stop();
-			}
-    		circleAnimation.stop();
-    		
-    		// and show the error
-    		Alert a = Alerts.exception("test", "test2", "test3", newException);
-    		a.showAndWait();
-    		
-    		LOGGER.info("User closed exception dialog. Exiting application.");
-    		
-    		// then exit the app
-    		Platform.exit();
+    		if (newException != null) {
+	    		LOGGER.fatal("Failed to initialize Praisenter context.", newException);
+	    		
+	    		// if an error occurs just stop the animations
+	    		if (barAnimation != null) {
+					barAnimation.stop();
+				}
+	    		circleAnimation.stop();
+	    		
+	    		showExecptionAlertThenExit(newException);
+    		}
     	});
     	
     	// finally add all the nodes to this pane
@@ -246,10 +284,41 @@ final class LoadingPane extends Pane {
 	}
 	
 	/**
-	 * Returns the loading task to be used in a thread.
-	 * @return Task&lt;{@link PraisenterContext}&gt;
+	 * Shows an exception alert and then exist the application after the user closes it.
+	 * @param ex the exception
 	 */
-	public Task<PraisenterContext> getLoadingTask() {
-		return this.loading;
+	private static void showExecptionAlertThenExit(Throwable ex) {
+		// and show the error
+		Alert a = Alerts.exception(Translations.get("init.failed.title"), Translations.get("init.failed.header"), ex.getMessage(), ex);
+		a.showAndWait();
+		
+		LOGGER.info("User closed exception dialog. Exiting application.");
+		
+		// then exit the app
+		Platform.exit();
+	}
+	
+	/**
+	 * Starts the loading process on another thread.
+	 * @throws IllegalStateException if start has already been called
+	 */
+	public void start() {
+		this.loadingThread.start();
+	}
+	
+	/**
+	 * Sets the handler called when the loading is completed.
+	 * @param handler the handler
+	 */
+	public void setOnComplete(EventHandler<CompleteEvent<PraisenterContext>> handler) {
+		this.onComplete = handler;
+	}
+	
+	/**
+	 * Returns the on complete handler.
+	 * @return EventHandler&lt;CompleteEvent&lt;PraisenterContext&gt;&gt;
+	 */
+	public EventHandler<CompleteEvent<PraisenterContext>> getOnComplete() {
+		return this.onComplete;
 	}
 }

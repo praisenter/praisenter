@@ -31,7 +31,6 @@ import java.util.ResourceBundle;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-// TODO desired locale needs to be set first.  so we need to load a config file and be able to save settings to it.
 /**
  * Helper class to retrieve transations by key.
  * @author William Bittle
@@ -84,16 +83,10 @@ public final class Translations {
 		// find the key in the current locale
 		Locale locale = Locale.getDefault();
 		try {
+			// this bundle will fallback to the default bundle when the key is not found
 			return LOCALE_BUNDLE.getString(key);
 		} catch (MissingResourceException ex) {
-			LOGGER.warn("Failed to find key '" + key + "' for locale '" + locale.toString() + "'.");
-		}
-		
-		// find the key in the default locale
-		try {
-			return DEFAULT_BUNDLE.getString(key);
-		} catch (MissingResourceException ex) {
-			LOGGER.warn("Failed to find key '" + key + "' in the default bundle.");
+			LOGGER.warn("Failed to find key '" + key + "' for locale '" + locale.toString() + "' and in the default translation.");
 		}
 		
 		// last resort just return a default string

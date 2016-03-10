@@ -32,6 +32,7 @@ import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.util.Enumeration;
 import java.util.zip.ZipException;
 
@@ -47,6 +48,7 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.derby.jdbc.EmbeddedDriver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Zip;
 
@@ -113,8 +115,7 @@ public final class Database {
 				LOGGER.debug("The database folder exists.");
 			} else {
 				LOGGER.error("The given path {} is not a directory.", this.path.toAbsolutePath().toString());
-				// TODO translate
-				throw new IOException("The path to the database is not correct.");
+				throw new IOException(MessageFormat.format(Translations.get("database.path.incorrect"), this.path.toAbsolutePath().toString()));
 			}
 		} else {
 			LOGGER.debug("Database does not exist. Installing blank database.");
@@ -130,8 +131,8 @@ public final class Database {
 			Connection connection = dataSource.getConnection();
 			connection.isValid(5000);
 		} catch (Exception ex) {
-			// TODO translate
-			throw new SQLException("Failed to connect to database.", ex);
+			LOGGER.error("Failed to connect to database.", ex);
+			throw new SQLException(Translations.get("database.connection.failed"), ex);
 		}
 		
         this.dataSource = dataSource;

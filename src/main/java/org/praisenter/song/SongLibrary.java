@@ -290,6 +290,14 @@ public final class SongLibrary {
 	}
 	
 	/**
+	 * Returns the number of songs in the library.
+	 * @return int
+	 */
+	public synchronized int size() {
+		return this.songs.size();
+	}
+	
+	/**
 	 * Returns true if the given id is in the song library.
 	 * @param id the song id
 	 * @return boolean

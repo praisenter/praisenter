@@ -1,9 +1,3 @@
-When adding videos to media library transcode to mp4 with FFmpeg.exe command line
-When adding audio to media library transcode to mp3 with FFmpeg.exe command line
-After being transcoded, we'll use humble to extract images from the videos
-JavaFX MediaPlayer to play videos and overlay text and all the other goodness
-Build JavaFX scenes from stored xml (as before)
-Editor will need to be updated/converted
 Build the app as a self contained .exe/dmg/etc. - not sure, might have its own problems
  -Dprism.maxvram=90M
  -Dprism.verbose=true 

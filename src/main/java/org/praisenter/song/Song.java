@@ -196,7 +196,7 @@ public final class Song implements SongOutput, Comparable<Song> {
 	/** The tags; useful for searching or grouping */
 	@XmlElement(name = "tag", required = false)
 	@XmlElementWrapper(name = "tags", required = false)
-	List<Tag> tags;
+	Set<Tag> tags;
 	
 	/** The song books that this song is in */
 	@XmlElement(name = "songbook", required = false)
@@ -222,7 +222,7 @@ public final class Song implements SongOutput, Comparable<Song> {
 		this.transposition = 0;
 		this.titles = new ArrayList<>();
 		this.authors = new ArrayList<>();
-		this.tags = new ArrayList<>();
+		this.tags = new TreeSet<>();
 		this.songbooks = new ArrayList<>();
 		this.lyrics = new ArrayList<>();
 	}
@@ -813,9 +813,9 @@ public final class Song implements SongOutput, Comparable<Song> {
 
 	/**
 	 * Returns the tags.
-	 * @return List&lt;{@link Tag}&gt;
+	 * @return Set&lt;{@link Tag}&gt;
 	 */
-	public List<Tag> getTags() {
+	public Set<Tag> getTags() {
 		return this.tags;
 	}
 
@@ -823,7 +823,7 @@ public final class Song implements SongOutput, Comparable<Song> {
 	 * Sets the tags.
 	 * @param tags the tags
 	 */
-	public void setTags(List<Tag> tags) {
+	public void setTags(Set<Tag> tags) {
 		this.tags = tags;
 	}
 
