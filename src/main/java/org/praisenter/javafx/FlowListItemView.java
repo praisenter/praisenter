@@ -20,6 +20,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
+// FIXME these should use CSS classes so we can style them differently per theme (the dark theme for example)
 public final class FlowListItemView<T> extends VBox implements EventTarget {
 	private static final Paint BACKGROUND_COLOR_NORMAL = Color.TRANSPARENT;
     private static final Paint BACKGROUND_COLOR_HOVER = Color.rgb(153, 209, 255, 0.5);

@@ -5,8 +5,10 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.praisenter.Tag;
+import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaLibraryPane;
+import org.praisenter.javafx.media.MediaPicker;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
@@ -17,6 +19,8 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public class TestMediaLibrary extends Application {
@@ -25,8 +29,8 @@ public class TestMediaLibrary extends Application {
 	}
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -44,12 +48,27 @@ public class TestMediaLibrary extends Application {
 			tags.addAll(media.getMetadata().getTags());
 		}
 		
-		MediaLibraryPane root = new MediaLibraryPane(
-				library, 
-				Orientation.HORIZONTAL,
-				FXCollections.observableSet(tags));
+		BorderPane root = new BorderPane();
+		MediaPicker pkrMedia = new MediaPicker(null, library, FXCollections.observableSet(tags));
+		root.setTop(pkrMedia);
+		
+		pkrMedia.valueProperty().addListener((obs, ov, nv) -> {
+			System.out.println(nv != null ? nv.getMetadata().getName() : "null");
+		});
+		
+		ColorPicker pkrColor = new ColorPicker();
+		root.setBottom(pkrColor);
+		
+//		MediaLibraryPane mlp = new MediaLibraryPane(
+//				library, 
+//				Orientation.HORIZONTAL,
+//				FXCollections.observableSet(tags));
+		
+//		root.setCenter(mlp);
+		
 		
 		Scene scene = new Scene(root);
+		scene.getStylesheets().add(Praisenter.THEME_CSS);
 		primaryStage.setTitle("Media Library");
 		primaryStage.setScene(scene);
 		primaryStage.setWidth(650);

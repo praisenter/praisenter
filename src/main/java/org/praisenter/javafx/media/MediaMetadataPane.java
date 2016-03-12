@@ -146,8 +146,6 @@ final class MediaMetadataPane extends VBox {
         btnRename.setTooltip(new Tooltip(Translations.get("media.metadata.rename")));
         btnRename.setVisible(false);
         btnRename.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        // FIXME can we move this to the main pane and it still apply?
-        btnRename.getStylesheets().add(getClass().getResource("/org/praisenter/javafx/styles/styles.css").toExternalForm());
         HBox nameRow = new HBox();
         nameRow.setAlignment(Pos.BASELINE_LEFT);
         nameRow.getChildren().addAll(lblNameValue, btnRename);

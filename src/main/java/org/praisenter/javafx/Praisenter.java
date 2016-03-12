@@ -58,6 +58,11 @@ public final class Praisenter extends Application {
 	/** The class-level logger */
 	private static final Logger LOGGER;
 	
+	/** The application configuration properties */
+	private static final Properties CONFIG;
+	
+	/** The URI to the theme to apply to any new scene */
+	public static final String THEME_CSS;
 	
 	static {
 		// set the log file path (used in the log4j2.xml file)
@@ -73,12 +78,12 @@ public final class Praisenter extends Application {
 		LOGGER = LogManager.getLogger();
 		
 		// load configuration properties
-		Properties conf = new Properties();
+		CONFIG = new Properties();
 		try {
 			Path config = Paths.get(Constants.ROOT_PATH + "conf.properties");
 			if (Files.exists(config)) {
 				try (InputStream stream = Files.newInputStream(config)) {
-					conf.load(stream);
+					CONFIG.load(stream);
 				} catch (Exception ex) {
 					LOGGER.error("Failed to read conf.properties file.", ex);
 				}
@@ -88,11 +93,23 @@ public final class Praisenter extends Application {
 		}
 		
 		// set the language if in the config
-		if (conf.containsKey("ui.language")) {
-			String lang = conf.getProperty("ui.language");
+		if (CONFIG.containsKey("ui.language")) {
+			String lang = CONFIG.getProperty("ui.language");
 			Locale locale = Locale.forLanguageTag(lang);
 			Locale.setDefault(locale);
 		}
+		
+		String url = Praisenter.class.getResource("/org/praisenter/javafx/styles/dark.css").toExternalForm();
+		if (CONFIG.containsKey("ui.theme")) {
+			String theme = CONFIG.getProperty("ui.theme");
+			if (theme != null && theme.length() > 0) {
+				String tUrl = Praisenter.class.getResource("/org/praisenter/javafx/styles/" + theme + ".css").toExternalForm();
+				if (tUrl != null) {
+					url = tUrl;
+				}
+			}
+		}
+		THEME_CSS = url;
 	}
 
 	/** The default width */
@@ -128,12 +145,14 @@ public final class Praisenter extends Application {
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon512x512.png"));
     	
     	StackPane stack = new StackPane();
-    	// TODO we may want to defer this until the loading is complete so that we can pass it the PraisenterContext object.
-    	MainPane main = new MainPane();
     	
     	// create the loading scene
     	LoadingPane loading = new LoadingPane(WIDTH, HEIGHT);
     	loading.setOnComplete((e) -> {
+    		// create the main pane and add it to the stack
+    		MainPane main = new MainPane(e.data, CONFIG);
+    		stack.getChildren().add(0, main);
+    		
 			// fade out the loader
 			FadeTransition fade = new FadeTransition(Duration.millis(600), loading);
 			fade.setFromValue(1.0);
@@ -155,11 +174,14 @@ public final class Praisenter extends Application {
 			seq.play();
     	});
     	
-    	stack.getChildren().addAll(main, loading);
+    	stack.getChildren().add(loading);
     	
     	// show the stage
     	stage.setScene(new Scene(stack));
     	stage.show();
+    	
+    	// TODO allow swapping to a dark theme (see code below)
+    	// stage.getScene().getStylesheets().add(Praisenter.class.getResource("/org/praisenter/javafx/styles/dark.css").toExternalForm());
     	
     	// start the loading
     	loading.start();

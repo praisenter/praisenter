@@ -86,6 +86,7 @@ import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.SortGraphic;
+import org.praisenter.javafx.Testing;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;

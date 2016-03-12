@@ -1,18 +1,26 @@
 package org.praisenter.javafx;
 
-import java.awt.MenuItem;
+import java.util.Properties;
 
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 
 public final class MainPane extends BorderPane {
 	
-	public MainPane() {
+	final PraisenterContext context;
+	final Properties config;
+	
+	public MainPane(PraisenterContext context, Properties config) {
+		this.context = context;
+		this.config = config;
+		
 		this.setTop(createMenus());
 	}
 	
 	// TODO menu options
+	// TODO translate
 	private MenuBar createMenus() {
 		MenuBar menu = new MenuBar();
 		
@@ -25,20 +33,26 @@ public final class MainPane extends BorderPane {
 		
 		menu.getMenus().addAll(file, media, songs, bibles, slides, help);
 		
-		MenuItem fSetup = new MenuItem();
+		MenuItem fSetup = new MenuItem("Setup");
+		file.getItems().add(fSetup);
 		
-		MenuItem mImport = new MenuItem();
-		MenuItem mManage = new MenuItem();
+		MenuItem mImport = new MenuItem("Import");
+		MenuItem mManage = new MenuItem("Manage");
 		// maybe...
-		MenuItem mTranscode = new MenuItem();
+		MenuItem mTranscode = new MenuItem("Transcode");
+		media.getItems().addAll(mManage, mImport);
 		
 		// add/edit
-		MenuItem soNew = new MenuItem();
-		MenuItem soImport = new MenuItem();
+		MenuItem soNew = new MenuItem("New song");
+		MenuItem soImport = new MenuItem("Import songs");
+		// manage
+		songs.getItems().addAll(soNew, soImport);
 
-		MenuItem slNew = new MenuItem();
+		MenuItem slNew = new MenuItem("New slide");
+		slides.getItems().addAll(slNew);
 		
-		MenuItem hAbout = new MenuItem();
+		MenuItem hAbout = new MenuItem("About");
+		help.getItems().addAll(hAbout);
 		
 		return menu;
 	}

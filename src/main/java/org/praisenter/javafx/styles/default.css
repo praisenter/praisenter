@@ -1,5 +1,8 @@
+/* General styles that apply to all themes */
 .hyperlink:visited,
 .hyperlink:focused,
 .hyperlink:hover { 
 	-fx-text-fill: #0096C9; 
 }
+
+/* Theme styles */
