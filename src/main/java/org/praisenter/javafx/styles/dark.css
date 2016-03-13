@@ -2,12 +2,48 @@
 .hyperlink:visited,
 .hyperlink:focused,
 .hyperlink:hover { 
-	-fx-text-fill: #0096C9; 
+	-fx-text-fill: -fx-accent; 
 }
 
-/* Theme styles */
 .root {
     -fx-base: rgb(50, 50, 50);
     -fx-background: rgb(50, 50, 50);
     -fx-control-inner-background:  rgb(50, 50, 50);
+}
+
+/* FlowListView */
+.flow-list-view-item {
+	-fx-background-color: transparent;
+	-fx-border-color: transparent;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+}
+
+.flow-list-view-item:hover {
+	-fx-background-color: #3e3e3e;
+}
+
+.flow-list-view-item:selected {
+	-fx-background-color: #3e3e3e;
+	-fx-border-color: #2a2a2a;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+}
+
+/* TagListView */
+.tag-list-view {
+	-fx-vgap: 2;
+	-fx-hgap: 2;
+	-fx-padding: 5 0 0 0;
+}
+
+.tag-list-view-x {
+	-fx-stroke: -fx-text-background-color;
+	-fx-smooth: true;
+	-fx-stroke-width: 1.2;
+}
+
+/* SortGraphic */
+.sort-graphic-line {
+	-fx-stroke: -fx-text-background-color;
 }

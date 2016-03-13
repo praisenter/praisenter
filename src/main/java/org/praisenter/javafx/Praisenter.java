@@ -31,21 +31,21 @@ import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Properties;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
-import org.praisenter.Constants;
-
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
 import javafx.application.Application;
-import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
+import org.praisenter.Constants;
+import org.praisenter.javafx.utility.FxFactory;
 
 // FEATURE use Apache POI to read powerpoint files
 
@@ -99,7 +99,8 @@ public final class Praisenter extends Application {
 			Locale.setDefault(locale);
 		}
 		
-		String url = Praisenter.class.getResource("/org/praisenter/javafx/styles/dark.css").toExternalForm();
+		// set the theme
+		String url = Praisenter.class.getResource("/org/praisenter/javafx/styles/default.css").toExternalForm();
 		if (CONFIG.containsKey("ui.theme")) {
 			String theme = CONFIG.getProperty("ui.theme");
 			if (theme != null && theme.length() > 0) {
@@ -144,13 +145,22 @@ public final class Praisenter extends Application {
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon256x256.png"));
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon512x512.png"));
     	
+    	// we'll have a stack of the main pane and the loading pane
     	StackPane stack = new StackPane();
     	
     	// create the loading scene
     	LoadingPane loading = new LoadingPane(WIDTH, HEIGHT);
     	loading.setOnComplete((e) -> {
+    		long t0 = 0;
+    		long t1 = 0;
+    		
+    		LOGGER.info("Creating the UI.");
+    		t0 = System.nanoTime();
     		// create the main pane and add it to the stack
     		MainPane main = new MainPane(e.data, CONFIG);
+    		t1 = System.nanoTime();
+    		LOGGER.info("UI created in {} seconds.", (t1 - t0) / 1e9);
+    		
     		stack.getChildren().add(0, main);
     		
 			// fade out the loader
@@ -166,7 +176,9 @@ public final class Praisenter extends Application {
 			// when the fade out is complete
 			seq.statusProperty().addListener((fadeStatus, oldFadeStatus, newFadeStatus) -> {
 				if (newFadeStatus == Animation.Status.STOPPED) {
+					LOGGER.info("Fade out of loading screen complete.");
 					stack.getChildren().remove(loading);
+					LOGGER.info("Loading scene removed from the scene graph. {} node(s) remaining.", stack.getChildren().size());
 				}
 			});
 			
@@ -174,14 +186,12 @@ public final class Praisenter extends Application {
 			seq.play();
     	});
     	
+    	// add the loading scene to the stack
     	stack.getChildren().add(loading);
     	
     	// show the stage
-    	stage.setScene(new Scene(stack));
+    	stage.setScene(FxFactory.newScene(stack));
     	stage.show();
-    	
-    	// TODO allow swapping to a dark theme (see code below)
-    	// stage.getScene().getStylesheets().add(Praisenter.class.getResource("/org/praisenter/javafx/styles/dark.css").toExternalForm());
     	
     	// start the loading
     	loading.start();

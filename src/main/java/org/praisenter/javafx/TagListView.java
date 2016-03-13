@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx;
 
 import java.util.Collection;
@@ -5,21 +29,21 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleSetProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
@@ -31,21 +55,42 @@ import org.controlsfx.control.textfield.TextFields;
 import org.praisenter.Tag;
 import org.praisenter.resources.translations.Translations;
 
-public class TagView extends BorderPane {
+/**
+ * Represents a list of tags that can be added and removed.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+public final class TagListView extends BorderPane {
+	/** The CSS class name for styling */
+	private static final String CLASS_NAME = "tag-list-view";
+	
+	/** The CSS class name for styling the "x" on the tag node */
+	private static final String X_CLASS_NAME = "tag-list-view-x";
+	
+	/** The set of tags */
 	private final SimpleSetProperty<Tag> tags;
 	
+	// nodes
+	
+	/** The text field */
 	private final TextField textField;
+	
+	/** The list of tag nodes */
 	private final ObservableList<Node> tagNodes;
 	
-	public TagView(ObservableSet<Tag> all) {
+	/**
+	 * Full constructor.
+	 * @param all the set of all tags
+	 */
+	public TagListView(ObservableSet<Tag> all) {
 		this.tags = new SimpleSetProperty<Tag>(FXCollections.observableSet());
-		
 		this.tagNodes = FXCollections.observableArrayList();
 		
 		FlowPane btns = new FlowPane();
-		btns.setHgap(2);
-		btns.setVgap(2);
-		btns.setPadding(new Insets(5, 0, 0, 0));
+		btns.getStyleClass().add(CLASS_NAME);
+//		btns.setHgap(2);
+//		btns.setVgap(2);
+//		btns.setPadding(new Insets(5, 0, 0, 0));
 		
 		// bind the children of this view to the tagNode list
 		Bindings.bindContent(btns.getChildren(), this.tagNodes);
@@ -105,7 +150,8 @@ public class TagView extends BorderPane {
 				tags.add(tag);
 				textField.clear();
 				
-				fireEvent(new TagEvent(textField, TagView.this, TagEvent.ADDED, tag));
+				// fire an event notifying that a tag has been added
+				fireEvent(new TagEvent(textField, TagListView.this, TagEvent.ADDED, tag));
 			}
 		});
 		
@@ -113,12 +159,18 @@ public class TagView extends BorderPane {
 		this.setCenter(btns);
 	}
 	
-	private final Node generateTagNode(Tag tag) {
+	/**
+	 * Helper method to generate a node for a tag.
+	 * @param tag the tag
+	 * @return Button
+	 */
+	private final Button generateTagNode(Tag tag) {
 		Button btn = new Button(tag.getName(), generateX());
 		btn.setTooltip(new Tooltip(tag.getName()));
 		btn.setMinWidth(0);
 		btn.setUserData(tag);
 		
+		// set the click action
 		btn.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
@@ -126,39 +178,58 @@ public class TagView extends BorderPane {
 				Tag tag = new Tag(btn.getText());
 				tags.remove(tag);
 				
-				fireEvent(new TagEvent(btn, TagView.this, TagEvent.REMOVED, tag));
+				// fire an event notifying that a tag has been removed
+				fireEvent(new TagEvent(btn, TagListView.this, TagEvent.REMOVED, tag));
 			}
 		});
 		
 		return btn;
 	}
 
-	private static final Node generateX() {
+	/**
+	 * Generates an X like icon.
+	 * @return Path
+	 */
+	private static final Path generateX() {
 		Path x = new Path();
     	MoveTo m1 = new MoveTo(0, 0);
     	LineTo l1 = new LineTo(10, 10);
     	MoveTo m2 = new MoveTo(10, 0);
     	LineTo l2 = new LineTo(0, 10);
-    	x.setStroke(Color.GREY);
-    	x.setStrokeWidth(1.2);
-    	x.setSmooth(true);
     	x.getElements().addAll(m1, l1, m2, l2);
+    	x.getStyleClass().add(X_CLASS_NAME);
     	return x;
 	}
 	
+	/**
+	 * Sets the text of the text field.
+	 * @param text the text
+	 */
 	public void setText(String text) {
 		this.textField.setText(text);
 	}
 	
+	/**
+	 * Returns the text in the text field.
+	 * @return String
+	 */
 	public String getText() {
 		return this.textField.getText();
 	}
 	
-	public void setTags(ObservableSet<Tag> tags) {
-		this.tags.set(tags);
+	/**
+	 * Returns the text property.
+	 * @return StringProperty
+	 */
+	public StringProperty textProperty() {
+		return this.textField.textProperty();
 	}
 	
-	public ObservableSet<Tag> getTags() {
-		return this.tags.get();
+	/**
+	 * Returns the tags property.
+	 * @return SetProperty&lt;{@link Tag}&gt;
+	 */
+	public SetProperty<Tag> tagsProperty() {
+		return this.tags;
 	}
 }

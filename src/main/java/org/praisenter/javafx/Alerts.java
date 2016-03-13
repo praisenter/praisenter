@@ -35,6 +35,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.stage.Window;
 
 /**
  * Helper class for generating alerts.
@@ -52,6 +53,7 @@ public final class Alerts {
 	 * <p>
 	 * Ideally the header and content are descriptive enough for a user to make a decision on
 	 * what to do, with the exception stacktraces there for sending to support.
+	 * @param owner the owner of this alert
 	 * @param title the alert window title; if null, a generic message will be used
 	 * @param header the alert's header section; if null, a generic message will be used
 	 * @param content the alert's content section; if null, a generic message will be used
@@ -59,12 +61,16 @@ public final class Alerts {
 	 * @return Alert
 	 */
 	public static final Alert exception(
+			Window owner,
 			String title,
 			String header,
 			String content,
 			Throwable... exceptions) {
 		
 		Alert alert = new Alert(AlertType.ERROR);
+		if (owner != null) {
+			alert.initOwner(owner);
+		}
 		alert.setTitle(title == null ? Translations.get("error.alert.title") : title);
 		alert.setHeaderText(header == null ? Translations.get("error.alert.message") : header);
 		alert.setContentText(content == null ? Translations.get("error.alert.message") : content);

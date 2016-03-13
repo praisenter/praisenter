@@ -60,7 +60,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.TagEvent;
-import org.praisenter.javafx.TagView;
+import org.praisenter.javafx.TagListView;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaMetadata;
@@ -111,7 +111,7 @@ final class MediaMetadataPane extends VBox {
 	// nodes
 	
 	/** The tag view for editing tags */
-	private final TagView tagView;
+	private final TagListView tagView;
 	
 	/**
 	 * Creates a new metadata pane.
@@ -168,7 +168,12 @@ final class MediaMetadataPane extends VBox {
 					// log the error
 					LOGGER.error("Failed to rename media from '{}' to '{}': {}", name.get(), result.get(), ex.getMessage());
 					// show an error to the user
-					Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.get("media.metadata.rename.error"), name.get(), result.get()), ex);
+					Alert alert = Alerts.exception(
+							getScene().getWindow(),
+							null, 
+							null, 
+							MessageFormat.format(Translations.get("media.metadata.rename.error"), name.get(), result.get()), 
+							ex);
 					alert.show();
 				}
 	    	}
@@ -219,7 +224,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblFormat, 0, 5, 1, 1);
         grid.add(lblFormatValue, 1, 5, 1, 1);
         
-        this.tagView = new TagView(allTags);
+        this.tagView = new TagListView(allTags);
         // handle when an action is perfomed on the tag view
         this.tagView.addEventHandler(TagEvent.ALL, new EventHandler<TagEvent>() {
 			@Override
@@ -232,11 +237,16 @@ final class MediaMetadataPane extends VBox {
 						allTags.add(tag);
 					} catch (Exception e) {
 						// remove it from the tags
-						tagView.getTags().remove(tag);
+						tagView.tagsProperty().remove(tag);
 						// log the error
 						LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
 						// show an error to the user
-						Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.get("tags.add.error"), tag.getName()), e);
+						Alert alert = Alerts.exception(
+								getScene().getWindow(),
+								null, 
+								null, 
+								MessageFormat.format(Translations.get("tags.add.error"), tag.getName()), 
+								e);
 						alert.show();
 					}
 				} else if (event.getEventType() == TagEvent.REMOVED) {
@@ -244,11 +254,16 @@ final class MediaMetadataPane extends VBox {
 						library.removeTag(media, tag);
 					} catch (Exception e) {
 						// add it back
-						tagView.getTags().add(tag);
+						tagView.tagsProperty().add(tag);
 						// log the error
 						LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
 						// show an error to the user
-						Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.get("tags.remove.error"), tag.getName()), e);
+						Alert alert = Alerts.exception(
+								getScene().getWindow(),
+								null, 
+								null, 
+								MessageFormat.format(Translations.get("tags.remove.error"), tag.getName()), 
+								e);
 						alert.show();
 					}
 				}
@@ -272,7 +287,7 @@ final class MediaMetadataPane extends VBox {
         	        length.set("");
         	        audio.set("");
         	        format.set("");
-        	        tagView.getTags().clear();
+        	        tagView.tagsProperty().clear();
         			setDisable(true);
         		} else {
         			setDisable(false);
@@ -311,8 +326,8 @@ final class MediaMetadataPane extends VBox {
         			
         			format.set(media.getMetadata().getFormat().toString());
         			
-        			tagView.getTags().addAll(media.getMetadata().getTags());
-        	        tagView.getTags().retainAll(media.getMetadata().getTags());
+        			tagView.tagsProperty().addAll(media.getMetadata().getTags());
+        	        tagView.tagsProperty().retainAll(media.getMetadata().getTags());
         		}
         	}
 		});

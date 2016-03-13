@@ -75,7 +75,6 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,7 +85,6 @@ import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.SortGraphic;
-import org.praisenter.javafx.Testing;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
@@ -135,7 +133,7 @@ public final class MediaLibraryPane extends BorderPane {
      * Full constructor.
      * @param library the {@link MediaLibrary} to present
      * @param orientation the orientation of the flow of items
-     * @param tags the master list of all tags
+     * @param tags the set of all tags
      * @param types the desired {@link MediaType}s to show; null or empty to show all
      */
     public MediaLibraryPane(
@@ -251,10 +249,11 @@ public final class MediaLibraryPane extends BorderPane {
 			@Override
 			public void handle(KeyEvent event) {
 				if (event.getCode() == KeyCode.DELETE) {
-					List<MediaListItem> items = left.selectionProperty().get();
+					List<MediaListItem> items = left.selectionsProperty().get();
 					if (items.size() > 0) {
 						// attempt to delete the selected media
 						Alert alert = new Alert(AlertType.CONFIRMATION);
+						alert.initOwner(getScene().getWindow());
 						alert.setTitle(Translations.get("media.remove.title"));
 						alert.setContentText(Translations.get("media.remove.content"));
 						alert.setHeaderText(null);
@@ -289,7 +288,12 @@ public final class MediaLibraryPane extends BorderPane {
 												Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
 												// get the failed media
 												String list = String.join(", ", failed.stream().map(f -> f.getData().getMetadata().getName()).collect(Collectors.toList()));
-												Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.get("media.remove.error"), list), exceptions);
+												Alert alert = Alerts.exception(
+														getScene().getWindow(),
+														null, 
+														null, 
+														MessageFormat.format(Translations.get("media.remove.error"), list), 
+														exceptions);
 												alert.show();
 											}
 										}
@@ -418,6 +422,7 @@ public final class MediaLibraryPane extends BorderPane {
 											// get the failed media
 											String list = String.join(", ", wFileNames);
 											Alert alert = new Alert(AlertType.INFORMATION);
+											alert.initOwner(getScene().getWindow());
 											alert.setTitle(Translations.get("media.import.info.title"));
 											alert.setHeaderText(Translations.get("media.import.info.header"));
 											alert.setContentText(list);
@@ -429,7 +434,12 @@ public final class MediaLibraryPane extends BorderPane {
 											Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
 											// get the failed media
 											String list = String.join(", ", failed.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
-											Alert alert = Alerts.exception(null, null, MessageFormat.format(Translations.get("media.import.error"), list), exceptions);
+											Alert alert = Alerts.exception(
+													getScene().getWindow(),
+													null, 
+													null, 
+													MessageFormat.format(Translations.get("media.import.error"), list), 
+													exceptions);
 											alert.show();
 										}
 									}
@@ -445,7 +455,7 @@ public final class MediaLibraryPane extends BorderPane {
 			}
         });
 
-        left.singleSelectionProperty().addListener((obs, ov, nv) -> {
+        left.selectionProperty().addListener((obs, ov, nv) -> {
         	if (nv == null) {
         		this.selected.set(null);
         	} else {
@@ -454,9 +464,9 @@ public final class MediaLibraryPane extends BorderPane {
         });
         this.selected.addListener((obs, ov, nv) -> {
         	if (nv == null) {
-        		left.singleSelectionProperty().set(null);
+        		left.selectionProperty().set(null);
         	} else {
-        		left.singleSelectionProperty().set(new MediaListItem(nv));
+        		left.selectionProperty().set(new MediaListItem(nv));
         	}
         });
         
@@ -482,7 +492,7 @@ public final class MediaLibraryPane extends BorderPane {
         });
         
         // wire up the selected media to the media metadata view with a unidirectional binding
-        right.mediaProperty().bind(left.singleSelectionProperty());
+        right.mediaProperty().bind(left.selectionProperty());
         
         ScrollPane rightScroller = new ScrollPane();
         rightScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -512,7 +522,7 @@ public final class MediaLibraryPane extends BorderPane {
         Label lblSort = new Label(Translations.get("field.sort"));
         ChoiceBox<Option<MediaSortField>> cbSort = new ChoiceBox<Option<MediaSortField>>(sortFields);
         cbSort.valueProperty().bindBidirectional(this.sortField);
-        SortGraphic sortGraphic = new SortGraphic(17, 0, 4, 2, 4, Color.GRAY);
+        SortGraphic sortGraphic = new SortGraphic(17, 0, 4, 2, 4);
         ToggleButton tgl = new ToggleButton(null, sortGraphic);
         tgl.selectedProperty().bindBidirectional(this.sortDescending);
         sortGraphic.flipProperty().bind(this.sortDescending);
@@ -525,13 +535,11 @@ public final class MediaLibraryPane extends BorderPane {
         pFilter.setAlignment(Pos.BASELINE_LEFT);
         pFilter.setSpacing(5);
         pFilter.getChildren().addAll(lblFilter, cbTypes, cbTags, txtSearch);
-//        pFilter.setBorder(Testing.border(Color.GREEN));
         
         HBox pSort = new HBox();
         pSort.setAlignment(Pos.CENTER_LEFT);
         pSort.setSpacing(5);
         pSort.getChildren().addAll(lblSort, cbSort, tgl);
-//        pSort.setBorder(Testing.border(Color.RED));
         
         FlowPane top = new FlowPane();
         top.setHgap(5);
@@ -539,7 +547,6 @@ public final class MediaLibraryPane extends BorderPane {
         top.setAlignment(Pos.BASELINE_LEFT);
         top.setPadding(new Insets(5));
         top.setPrefWrapLength(0);
-//        top.setBorder(Testing.border(Color.YELLOW));
         
         top.getChildren().addAll(pFilter, pSort);
         

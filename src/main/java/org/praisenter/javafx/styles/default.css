@@ -2,7 +2,42 @@
 .hyperlink:visited,
 .hyperlink:focused,
 .hyperlink:hover { 
-	-fx-text-fill: #0096C9; 
+	-fx-text-fill: -fx-accent; 
 }
 
-/* Theme styles */
+/* FlowListView */
+.flow-list-view-item {
+	-fx-background-color: transparent;
+	-fx-border-color: transparent;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+}
+
+.flow-list-view-item:hover {
+	-fx-background-color: rgba(153, 209, 255, 0.5);
+}
+
+.flow-list-view-item:selected {
+	-fx-background-color: rgba(204, 232, 255);
+	-fx-border-color: rgb(153, 209, 255);
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+}
+
+/* TagListView */
+.tag-list-view {
+	-fx-vgap: 2;
+	-fx-hgap: 2;
+	-fx-padding: 5 0 0 0;
+}
+
+.tag-list-view-x {
+	-fx-stroke: -fx-text-background-color;
+	-fx-smooth: true;
+	-fx-stroke-width: 1.2;
+}
+
+/* SortGraphic */
+.sort-graphic-line {
+	-fx-stroke: -fx-text-background-color;
+}

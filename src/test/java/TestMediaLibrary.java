@@ -20,6 +20,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
@@ -29,8 +30,8 @@ public class TestMediaLibrary extends Application {
 	}
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -49,7 +50,8 @@ public class TestMediaLibrary extends Application {
 		}
 		
 		BorderPane root = new BorderPane();
-		MediaPicker pkrMedia = new MediaPicker(null, library, FXCollections.observableSet(tags));
+		MediaPicker pkrMedia = new MediaPicker(library, FXCollections.observableSet(tags));
+		pkrMedia.setValue(library.all().get(0));
 		root.setTop(pkrMedia);
 		
 		pkrMedia.valueProperty().addListener((obs, ov, nv) -> {
@@ -63,10 +65,18 @@ public class TestMediaLibrary extends Application {
 //				library, 
 //				Orientation.HORIZONTAL,
 //				FXCollections.observableSet(tags));
-		
+//		
 //		root.setCenter(mlp);
 		
-		
+		primaryStage.getIcons().add(new Image("org/praisenter/resources/logo/icon16x16.png"));
+		primaryStage.getIcons().add(new Image("org/praisenter/resources/logo/icon32x32.png"));
+		primaryStage.getIcons().add(new Image("org/praisenter/resources/logo/icon48x48.png"));
+		primaryStage.getIcons().add(new Image("org/praisenter/resources/logo/icon64x64.png"));
+		primaryStage.getIcons().add(new Image("org/praisenter/resources/logo/icon96x96.png"));
+		primaryStage.getIcons().add(new Image("org/praisenter/resources/logo/icon128x128.png"));
+    	primaryStage.getIcons().add(new Image("org/praisenter/resources/logo/icon256x256.png"));
+    	primaryStage.getIcons().add(new Image("org/praisenter/resources/logo/icon512x512.png"));
+    	
 		Scene scene = new Scene(root);
 		scene.getStylesheets().add(Praisenter.THEME_CSS);
 		primaryStage.setTitle("Media Library");

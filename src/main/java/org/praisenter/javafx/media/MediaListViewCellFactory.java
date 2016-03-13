@@ -24,7 +24,7 @@
  */
 package org.praisenter.javafx.media;
 
-import org.praisenter.javafx.FlowListItemView;
+import org.praisenter.javafx.FlowListItem;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.media.MediaType;
 
@@ -43,13 +43,13 @@ import javafx.util.Callback;
  * @author William Bittle
  * @version 3.0.0
  */
-final class MediaListViewCellFactory implements Callback<MediaListItem, FlowListItemView<MediaListItem>> {
+final class MediaListViewCellFactory implements Callback<MediaListItem, FlowListItem<MediaListItem>> {
 	/* (non-Javadoc)
 	 * @see javafx.util.Callback#call(java.lang.Object)
 	 */
 	@Override
-	public FlowListItemView<MediaListItem> call(MediaListItem item) {
-		FlowListItemView<MediaListItem> cell = new FlowListItemView<MediaListItem>(item);
+	public FlowListItem<MediaListItem> call(MediaListItem item) {
+		FlowListItem<MediaListItem> cell = new FlowListItem<MediaListItem>(item);
 		
 		cell.setPrefSize(130, 130);
 		

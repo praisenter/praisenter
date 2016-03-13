@@ -31,7 +31,7 @@ import org.praisenter.resources.translations.Translations;
  * @author William Bittle
  * @version 3.0.0
  */
-public enum MediaSortField {
+enum MediaSortField {
 	/** The name field */
 	NAME(Translations.get("media.sort.field.name")),
 	

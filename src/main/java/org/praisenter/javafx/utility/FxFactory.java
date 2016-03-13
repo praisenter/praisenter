@@ -22,47 +22,46 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx;
+package org.praisenter.javafx.utility;
 
-import java.io.Serializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.paint.Color;
 
-import javafx.event.Event;
-import javafx.event.EventTarget;
-import javafx.event.EventType;
+import org.praisenter.javafx.Praisenter;
 
 /**
- * Event fired for selection and deselection.
+ * Helper class to assit in creating Java FX objects.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SelectionEvent extends Event implements Serializable {
-	/** The serialization id */
-	private static final long serialVersionUID = -7638832493983231255L;
-	
-	// types
-	
-	/** The base selection event type */
-	public static final EventType<SelectionEvent> ALL = new EventType<SelectionEvent>("SELECTION_ALL");
-	
-	/** The selection event type for single selection */
-	public static final EventType<SelectionEvent> SELECT = new EventType<SelectionEvent>(ALL, "SELECT");
-	
-	/** The selection event type for multi-selection */
-	public static final EventType<SelectionEvent> SELECT_MULTIPLE = new EventType<SelectionEvent>(ALL, "SELECT_MULTIPLE");
-	
-	/** The selection event type for single deselection */
-	public static final EventType<SelectionEvent> DESELECT = new EventType<SelectionEvent>(ALL, "DESELECT");
-	
-	/** The selection event type for multi-deselection */
-	public static final EventType<SelectionEvent> DESELECT_MULTIPLE = new EventType<SelectionEvent>(ALL, "DESELECT_MULTIPLE");
+public final class FxFactory {
+	/** Hidden default constructor */
+	private FxFactory() {}
 	
 	/**
-	 * Full constructor.
-	 * @param source the event source
-	 * @param target the event target
-	 * @param type the event type
+	 * Returns a new scene for the given root node.
+	 * <p>
+	 * This method adds the current {@link Praisenter#THEME_CSS}.
+	 * @param root the root
+	 * @return Scene
 	 */
-	public SelectionEvent(Object source, EventTarget target, EventType<SelectionEvent> type) {
-		super(source, target, type);
+	public static final Scene newScene(Parent root) {
+		Scene scene = new Scene(root);
+		scene.getStylesheets().add(Praisenter.THEME_CSS);
+		return scene;
+	}
+	
+	/**
+	 * Returns a new border for the given color.
+	 * @param color the color
+	 * @return Border
+	 */
+	public static final Border newBorder(Color color) {
+		return new Border(new BorderStroke(color, BorderStrokeStyle.SOLID, null, new BorderWidths(1)));
 	}
 }

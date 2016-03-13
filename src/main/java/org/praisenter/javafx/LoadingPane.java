@@ -287,9 +287,14 @@ final class LoadingPane extends Pane {
 	 * Shows an exception alert and then exist the application after the user closes it.
 	 * @param ex the exception
 	 */
-	private static void showExecptionAlertThenExit(Throwable ex) {
+	private void showExecptionAlertThenExit(Throwable ex) {
 		// and show the error
-		Alert a = Alerts.exception(Translations.get("init.failed.title"), Translations.get("init.failed.header"), ex.getMessage(), ex);
+		Alert a = Alerts.exception(
+				getScene().getWindow(),
+				Translations.get("init.failed.title"), 
+				Translations.get("init.failed.header"), 
+				ex.getMessage(), 
+				ex);
 		a.showAndWait();
 		
 		LOGGER.info("User closed exception dialog. Exiting application.");
