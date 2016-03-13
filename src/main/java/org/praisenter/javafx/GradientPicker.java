@@ -22,52 +22,41 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.media;
+package org.praisenter.javafx;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ObservableSet;
 import javafx.scene.control.Button;
+import javafx.scene.paint.Paint;
 
-import org.praisenter.Tag;
-import org.praisenter.media.Media;
-import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 
 /**
- * A custom button to allow selection of a {@link Media} item from 
- * the media library.
+ * A custom button to allow selection of a gradient.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class MediaPicker extends Button {
-	/** The media dialog */
-	private MediaLibraryDialog dialog;
+public final class GradientPicker extends Button {
+	/** The gradient dialog */
+	private GradientPickerDialog dialog;
 	
 	/** The selected value */
-	private final ObjectProperty<Media> value = new SimpleObjectProperty<Media>();
+	private final ObjectProperty<Paint> value = new SimpleObjectProperty<Paint>();
 	
 	/**
 	 * Full constructor.
-	 * @param library the media library
-	 * @param tags the set of all tags
-	 * @param types the allows types to select from
+	 * @param gradient the initial value
 	 */
-	public MediaPicker(MediaLibrary library, ObservableSet<Tag> tags, MediaType... types) {
-		this.setText(Translations.get("browse"));
+	public GradientPicker(Paint gradient) {
+		this.setText(Translations.get("choose"));
 		this.setOnAction((e) -> {
 			if (dialog == null) {
-				// create the media dialog
+				// create the dialog
 				// passing the owner (we don't create
 				// it until the user request for it since
 				// 	1. we don't know the owner at creation time
 				//  2. we don't know if the user will request it at all
-				dialog = new MediaLibraryDialog(
-						getScene().getWindow(), 
-						library, 
-						tags, 
-						types);
+				dialog = new GradientPickerDialog(getScene().getWindow(), gradient);
 				// set the value
 				dialog.valueProperty().set(value.get());
 				// bind the values
@@ -80,25 +69,25 @@ public final class MediaPicker extends Button {
 	
 	/**
 	 * Returns the value property.
-	 * @return ObjectProperty&lt;{@link Media}&gt;
+	 * @return ObjectProperty&lt;Paint&gt;
 	 */
-	public ObjectProperty<Media> valueProperty() {
+	public ObjectProperty<Paint> valueProperty() {
 		return this.value;
 	}
 	
 	/**
 	 * Returns the current value of this picker.
-	 * @return {@link Media}
+	 * @return Paint
 	 */
-	public Media getValue() {
+	public Paint getValue() {
 		return this.value.get();
 	}
 	
 	/**
 	 * Sets the current value of this picker.
-	 * @param media the desired value
+	 * @param gradient the desired value
 	 */
-	public void setValue(Media media) {
-		this.value.set(media);
+	public void setValue(Paint gradient) {
+		this.value.set(gradient);
 	}
 }

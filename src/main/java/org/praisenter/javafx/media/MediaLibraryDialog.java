@@ -25,80 +25,93 @@
 package org.praisenter.javafx.media;
 
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableSet;
-import javafx.scene.control.Button;
+import javafx.geometry.Orientation;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.Window;
 
 import org.praisenter.Tag;
+import org.praisenter.javafx.utility.FxFactory;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 
 /**
- * A custom button to allow selection of a {@link Media} item from 
- * the media library.
+ * A dialog for selecting media.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class MediaPicker extends Button {
-	/** The media dialog */
-	private MediaLibraryDialog dialog;
+final class MediaLibraryDialog extends BorderPane {
+	/** The dialog */
+	private final Stage dialog;
 	
-	/** The selected value */
-	private final ObjectProperty<Media> value = new SimpleObjectProperty<Media>();
-	
+	/** The media library pane */
+	private final MediaLibraryPane mediaLibraryPane;
+
 	/**
 	 * Full constructor.
+	 * @param owner the owner of this dialog
 	 * @param library the media library
 	 * @param tags the set of all tags
-	 * @param types the allows types to select from
+	 * @param types the allowed types to select from
 	 */
-	public MediaPicker(MediaLibrary library, ObservableSet<Tag> tags, MediaType... types) {
-		this.setText(Translations.get("browse"));
-		this.setOnAction((e) -> {
-			if (dialog == null) {
-				// create the media dialog
-				// passing the owner (we don't create
-				// it until the user request for it since
-				// 	1. we don't know the owner at creation time
-				//  2. we don't know if the user will request it at all
-				dialog = new MediaLibraryDialog(
-						getScene().getWindow(), 
-						library, 
-						tags, 
-						types);
-				// set the value
-				dialog.valueProperty().set(value.get());
-				// bind the values
-				value.bindBidirectional(this.dialog.valueProperty());
-			}
-			// show the dialog
-			dialog.show();
-		});
+	public MediaLibraryDialog(
+			Window owner,
+			final MediaLibrary library, 
+    		ObservableSet<Tag> tags,
+    		MediaType... types) {
+		// build the dialog
+		this.dialog = new Stage();
+		if (owner != null) {
+			this.dialog.initOwner(owner);
+		}
+		this.dialog.setTitle(Translations.get("media.library.title"));
+		this.dialog.initModality(Modality.APPLICATION_MODAL);
+		this.dialog.initStyle(StageStyle.UTILITY);
+		this.dialog.setWidth(650);
+		this.dialog.setHeight(350);
+		// NOTE: this makes the title portion of the modal shorter
+		this.dialog.setResizable(false);
+		
+		// build the media library pane
+		this.mediaLibraryPane = new MediaLibraryPane(library, Orientation.HORIZONTAL, tags, types);
+
+		this.setCenter(this.mediaLibraryPane);
+		this.dialog.setScene(FxFactory.newScene(this));
 	}
 	
 	/**
-	 * Returns the value property.
+	 * Shows this dialog.
+	 */
+	public void show() {
+		this.dialog.show();
+	}
+	
+	/**
+	 * Returns the selected value property.
 	 * @return ObjectProperty&lt;{@link Media}&gt;
 	 */
 	public ObjectProperty<Media> valueProperty() {
-		return this.value;
+		return this.mediaLibraryPane.selectedProperty();
 	}
 	
 	/**
-	 * Returns the current value of this picker.
+	 * Returns the selected value.
 	 * @return {@link Media}
 	 */
 	public Media getValue() {
-		return this.value.get();
+		return this.mediaLibraryPane.getSelected();
 	}
 	
 	/**
-	 * Sets the current value of this picker.
-	 * @param media the desired value
+	 * Sets the selected value.
+	 * @param media the media
 	 */
 	public void setValue(Media media) {
-		this.value.set(media);
+		this.mediaLibraryPane.setSelected(media);
 	}
 }

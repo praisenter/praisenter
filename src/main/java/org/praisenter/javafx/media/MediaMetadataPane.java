@@ -154,6 +154,7 @@ final class MediaMetadataPane extends VBox {
         
         btnRename.setOnAction((e) -> {
 	    	TextInputDialog prompt = new TextInputDialog(name.get());
+	    	prompt.initOwner(getScene().getWindow());
 	    	prompt.setTitle(Translations.get("media.metadata.rename.title"));
 	    	prompt.setHeaderText(Translations.get("media.metadata.rename.header"));
 	    	prompt.setContentText(Translations.get("media.metadata.rename.content"));

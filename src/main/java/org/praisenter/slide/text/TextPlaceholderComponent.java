@@ -24,9 +24,14 @@
  */
 package org.praisenter.slide.text;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.slide.SlideComponent;
@@ -43,57 +48,22 @@ import org.praisenter.slide.SlideRegion;
 @XmlRootElement(name = "textPlaceholderComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 public class TextPlaceholderComponent extends BasicTextComponent implements SlideRegion, SlideComponent, TextComponent {
-	
-	// types
-	
-	/** Type to indicate all text should go here */
-	public static final int TYPE_ALL = Integer.MAX_VALUE;
-	
-	/** Type to indicate only the primary text should go here */
-	public static final int TYPE_PRIMARY = 1;
-	
-	/** Type to indicate only the secondary text should go here */
-	public static final int TYPE_SECONDARY = 2;
-	
-	/** Type to indicate only the tertiary text should go here */
-	public static final int TYPE_TERTIARY = 4;
-	
-	/** Type to indicate only the quaternary text should go here */
-	public static final int TYPE_QUATERNARY = 8;
-	
-	/** Type to indicate only the quinary text should go here */
-	public static final int TYPE_QUINARY = 16;
-	
-	/** Type to indicate only the senary text should go here */
-	public static final int TYPE_SENARY = 32;
-	
-	/**
-	 * Returns the type given an index.
-	 * <p>
-	 * 0 => 1 (TYPE_PRIMARY)<br>
-	 * 1 => 2 (TYPE_SECONDARY)<br>
-	 * 2 => 4 (TYPE_TERTIARY)<br>
-	 * 3 => 8 (TYPE_QUATERNARY)<br>
-	 * ...
-	 * @param index the index
-	 * @return the type
-	 */
-	public static final int getTypeByIndex(int index) {
-		return (int)Math.pow(2, index);
-	}
-	
-	// fields
-	
 	/** The placeholder type */
 	@XmlAttribute(name = "type", required = false)
-	int type;
+	PlaceholderType type;
+	
+	/** The placeholder variants */
+	@XmlElement(name = "variant", required = false)
+	@XmlElementWrapper(name = "variants", required = false)
+	List<PlaceholderVariant> variants;
 
 	/**
 	 * Creates a new placeholder for all text.
 	 */
 	public TextPlaceholderComponent() {
-		// by default, all
-		this.type = TYPE_ALL;
+		this.type = PlaceholderType.TEXT;
+		this.variants = new ArrayList<PlaceholderVariant>();
+		this.variants.add(PlaceholderVariant.PRIMARY);
 	}
 	
 	/* (non-Javadoc)
@@ -103,43 +73,40 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	public TextPlaceholderComponent copy() {
 		TextPlaceholderComponent comp = new TextPlaceholderComponent();
 		this.copy(comp);
-		comp.setType(this.type);
+		comp.type = this.type;
+		comp.variants = new ArrayList<PlaceholderVariant>(this.variants);
 		return comp;
-	}
-	
-	/**
-	 * Returns true if this placeholder should show the given type.
-	 * <p>
-	 * For example: 
-	 * <code>isType(TextPlaceholderComponent.TYPE_TERTIARY)</code>
-	 * @param type the type
-	 * @return boolean
-	 */
-	public boolean isType(int type) {
-		return (this.type & type) == type;
-	}
-	
-	/**
-	 * Adds the given type to this placeholder's current types.
-	 * @param type the new type
-	 */
-	public void addType(int type) {
-		this.type = this.type | type;
-	}
-	
-	/**
-	 * Returns the condensed types.
-	 * @return int
-	 */
-	public int getType() {
-		return type;
 	}
 
 	/**
-	 * Explicitly sets the type to the given type.
+	 * Returns the placeholder type.
+	 * @return {@link PlaceholderType}
+	 */
+	public PlaceholderType getType() {
+		return this.type;
+	}
+
+	/**
+	 * Sets the type of this placeholder.
 	 * @param type the type
 	 */
-	public void setType(int type) {
+	public void setType(PlaceholderType type) {
 		this.type = type;
+	}
+
+	/**
+	 * Returns this placeholder's variants.
+	 * @return List&lt;{@link PlaceholderVariant}&gt;
+	 */
+	public List<PlaceholderVariant> getVariants() {
+		return this.variants;
+	}
+
+	/**
+	 * Sets this placeholder's variants.
+	 * @param variants the variants
+	 */
+	public void setVariants(List<PlaceholderVariant> variants) {
+		this.variants = variants;
 	}
 }

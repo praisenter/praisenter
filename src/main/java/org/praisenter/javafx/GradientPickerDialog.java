@@ -22,64 +22,53 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.media;
+package org.praisenter.javafx;
 
 import javafx.beans.property.ObjectProperty;
-import javafx.collections.ObservableSet;
-import javafx.geometry.Orientation;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Paint;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
-import org.praisenter.Tag;
 import org.praisenter.javafx.utility.FxFactory;
-import org.praisenter.media.Media;
-import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaType;
 
 /**
- * A dialog for selecting media.
+ * A dialog for selecting a gradient.
  * @author William Bittle
  * @version 3.0.0
  */
-final class MediaDialog extends BorderPane {
+final class GradientPickerDialog extends BorderPane {
 	/** The dialog */
 	private final Stage dialog;
 	
 	/** The media library pane */
-	private final MediaLibraryPane mediaLibraryPane;
+	private final GradientPickerPane gradientPane;
 
 	/**
 	 * Full constructor.
 	 * @param owner the owner of this dialog
-	 * @param library the media library
-	 * @param tags the set of all tags
-	 * @param types the allowed types to select from
+	 * @param paint the initial value
 	 */
-	public MediaDialog(
+	public GradientPickerDialog(
 			Window owner,
-			final MediaLibrary library, 
-    		ObservableSet<Tag> tags,
-    		MediaType... types) {
+			Paint paint) {
 		// build the dialog
 		this.dialog = new Stage();
 		if (owner != null) {
 			this.dialog.initOwner(owner);
 		}
-		this.dialog.setTitle("Media Library");
+		this.dialog.setTitle("Gradient");
 		this.dialog.initModality(Modality.APPLICATION_MODAL);
 		this.dialog.initStyle(StageStyle.UTILITY);
-		this.dialog.setWidth(650);
-		this.dialog.setHeight(350);
 		// NOTE: this makes the title portion of the modal shorter
 		this.dialog.setResizable(false);
 		
 		// build the media library pane
-		this.mediaLibraryPane = new MediaLibraryPane(library, Orientation.HORIZONTAL, tags, types);
+		this.gradientPane = new GradientPickerPane(paint);
 
-		this.setCenter(this.mediaLibraryPane);
+		this.setCenter(this.gradientPane);
 		this.dialog.setScene(FxFactory.newScene(this));
 	}
 	
@@ -91,26 +80,26 @@ final class MediaDialog extends BorderPane {
 	}
 	
 	/**
-	 * Returns the selected value property.
-	 * @return ObjectProperty&lt;{@link Media}&gt;
+	 * Returns the selected gradient property.
+	 * @return ObjectProperty&lt;Paint&gt;
 	 */
-	public ObjectProperty<Media> valueProperty() {
-		return this.mediaLibraryPane.selectedProperty();
+	public ObjectProperty<Paint> valueProperty() {
+		return this.gradientPane.paintProperty();
 	}
 	
 	/**
-	 * Returns the selected value.
-	 * @return {@link Media}
+	 * Returns the selected gradient.
+	 * @return Paint
 	 */
-	public Media getValue() {
-		return this.mediaLibraryPane.getSelected();
+	public Paint getValue() {
+		return this.gradientPane.getPaint();
 	}
 	
 	/**
-	 * Sets the selected value.
-	 * @param media the media
+	 * Sets the selected gradient.
+	 * @param gradient the gradient
 	 */
-	public void setValue(Media media) {
-		this.mediaLibraryPane.setSelected(media);
+	public void setValue(Paint gradient) {
+		this.gradientPane.setPaint(gradient);
 	}
 }

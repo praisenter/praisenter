@@ -42,6 +42,7 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import javafx.stage.Stage;
 
+import org.praisenter.javafx.GradientPicker;
 import org.praisenter.javafx.GradientPickerPane;
 import org.praisenter.javafx.Resolution;
 import org.praisenter.slide.BasicSlide;
@@ -218,15 +219,16 @@ public final class SlideEditorPane extends Application {
 			// gradient
 			
 			Label lblGradient = new Label("Gradient");
-			MenuButton btnGradient = new MenuButton("Choose...");
-			GradientPickerPane gp = new GradientPickerPane();
-			CustomMenuItem item = new CustomMenuItem(gp, false);
-			// NOTE: this removes the on hover highlight
-			item.getStyleClass().remove("menu-item");
-			// NOTE: choosing a custom color causes an exception in JavaFX when this is in a menu item
-			btnGradient.getItems().add(item);
+			GradientPicker pkrGradient = new GradientPicker(null);
+//			MenuButton btnGradient = new MenuButton("Choose...");
+//			GradientPickerPane gp = new GradientPickerPane();
+//			CustomMenuItem item = new CustomMenuItem(gp, false);
+//			// NOTE: this removes the on hover highlight
+//			item.getStyleClass().remove("menu-item");
+//			// NOTE: choosing a custom color causes an exception in JavaFX when this is in a menu item
+//			btnGradient.getItems().add(item);
 			grid.add(lblGradient, 0, 7);
-			grid.add(btnGradient, 1, 7);
+			grid.add(pkrGradient, 1, 7);
 			
 			// image
 			Label lblImage = new Label("Image");

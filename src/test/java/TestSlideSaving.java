@@ -36,6 +36,8 @@ import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
+import org.praisenter.slide.text.PlaceholderType;
+import org.praisenter.slide.text.PlaceholderVariant;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.xml.XmlIO;
@@ -122,7 +124,8 @@ public class TestSlideSaving {
 		slide.addComponent(dtc);
 		
 		TextPlaceholderComponent tpc = new TextPlaceholderComponent();
-		tpc.setType(TextPlaceholderComponent.TYPE_PRIMARY | TextPlaceholderComponent.TYPE_SECONDARY);
+		tpc.setType(PlaceholderType.TEXT);
+		tpc.getVariants().add(PlaceholderVariant.QUINARY);
 		tpc.setText("hello\nHola");
 		slide.addComponent(tpc);
 		
