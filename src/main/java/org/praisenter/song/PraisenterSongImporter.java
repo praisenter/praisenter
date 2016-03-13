@@ -25,47 +25,50 @@
 package org.praisenter.song;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
+import javax.activation.FileTypeMap;
+import javax.activation.MimetypesFileTypeMap;
 import javax.xml.bind.JAXBException;
 
 import org.praisenter.xml.XmlIO;
 
-// FEATURE allow writing of a zip file with multiple songs in it
+// FEATURE allow reading of a zip file with multiple songs in it
 
 /**
- * Class used to export a listing of songs in the current praisenter format.
+ * Importer for the Praisenter 3.0.0 song format.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class PraisenterSongExporter implements SongExporter {
+public final class PraisenterSongImporter implements SongImporter {
 	/* (non-Javadoc)
-	 * @see org.praisenter.song.SongExporter#write(java.nio.file.Path, java.util.List)
+	 * @see org.praisenter.song.SongImporter#read(java.nio.file.Path)
 	 */
 	@Override
-	public void write(Path path, List<Song> songs) throws IOException, SongExportException {
-		for (Song song : songs) {
-			Title title = song.getDefaultTitle();
-			String variant = song.variant;
-			
-			// replace any non-alpha-numeric characters that might not be valid for a file name
-			String name = title.text.replaceAll("\\W+", "") + "_" + variant.replaceAll("\\W+", "");
-			Path file = path.resolve(name + ".xml");
-			
-			// see if it exists
-			if (Files.exists(file)) {
-				// append a UUID to the name
-				file = path.resolve(name + "_" + UUID.randomUUID().toString().replaceAll("-", "") + ".xml");
-			}
-			
-			try {
-				XmlIO.save(file, song);
-			} catch (JAXBException e) {
-				throw new SongExportException(e);
+	public List<Song> read(Path path) throws IOException, SongImportException {
+		List<Song> songs = new ArrayList<Song>();
+		// only open files
+		if (Files.isRegularFile(path)) {
+			// only open xml files
+			FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
+			String mimeType = map.getContentType(path.toString());
+			if (mimeType.equals("application/xml")) {
+				try (InputStream is = Files.newInputStream(path)) {
+					// read in the xml
+					try {
+						Song song = XmlIO.read(is, Song.class);
+						song.path = path;
+						songs.add(song);
+					} catch (JAXBException e) {
+						throw new SongImportException(e);
+					}
+				}
 			}
 		}
+		return songs;
 	}
 }
