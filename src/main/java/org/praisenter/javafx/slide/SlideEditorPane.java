@@ -1,5 +1,8 @@
 package org.praisenter.javafx.slide;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -7,23 +10,19 @@ import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BorderPane;
@@ -36,15 +35,18 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import javafx.stage.Stage;
 
 import org.praisenter.javafx.GradientPicker;
-import org.praisenter.javafx.GradientPickerPane;
 import org.praisenter.javafx.Resolution;
+import org.praisenter.javafx.media.JavaFXMediaImportFilter;
+import org.praisenter.javafx.media.MediaPicker;
+import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaThumbnailSettings;
+import org.praisenter.media.MediaType;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
@@ -121,19 +123,19 @@ public final class SlideEditorPane extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		
-////		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
-//		MediaThumbnailSettings settings = new MediaThumbnailSettings(
-//				100, 100,
-//				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
-//				ClasspathLoader.getBufferedImage("/org/praisenter/resources/music-default-thumbnail.png"),
-//				ClasspathLoader.getBufferedImage("/org/praisenter/resources/video-default-thumbnail.png"));
-//    	MediaLibrary library = null;
-//		try {
-//			library = MediaLibrary.open(path, new JavaFXMediaImportFilter(path), settings);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
+//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		MediaThumbnailSettings settings = new MediaThumbnailSettings(
+				100, 100,
+				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
+				ClasspathLoader.getBufferedImage("/org/praisenter/resources/music-default-thumbnail.png"),
+				ClasspathLoader.getBufferedImage("/org/praisenter/resources/video-default-thumbnail.png"));
+    	MediaLibrary library = null;
+		try {
+			library = MediaLibrary.open(path, new JavaFXMediaImportFilter(path), settings);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 //		
 //		Slide slide = createTestSlide();
 //		PraisenterContext context = new PraisenterContext(library, null, null, null);
@@ -181,58 +183,51 @@ public final class SlideEditorPane extends Application {
 			Label lblResolution = new Label("Size");
 			ComboBox<Resolution> cmbResolutions = new ComboBox<Resolution>(FXCollections.observableArrayList(Resolution.DEFAULT_RESOLUTIONS));
 			TextField txtWidth = new TextField();
+			txtWidth.setPrefWidth(75);
 			txtWidth.setPromptText("width");
 			TextField txtHeight = new TextField();
 			txtHeight.setPromptText("height");
-			grid.add(lblResolution, 0, 2, 2, 1);
-			grid.add(cmbResolutions, 1, 2, 2, 1);
+			txtHeight.setPrefWidth(75);
+			Label lblOr = new Label("or");
+			lblOr.setPadding(new Insets(0, 5, 0, 5));
 			HBox wh = new HBox();
-			wh.getChildren().addAll(txtWidth, txtHeight);
-			grid.add(wh, 1, 3);
-			
+			wh.setSpacing(2);
+			wh.setAlignment(Pos.BASELINE_LEFT);
+			wh.getChildren().addAll(txtWidth, txtHeight, lblOr, cmbResolutions);
+			grid.add(lblResolution, 0, 2, 1, 1);
+			grid.add(wh, 1, 2, 1, 1);
+
 			// position
 			
 			Label lblPosition = new Label("Position");
 			TextField txtX = new TextField();
+			txtX.setPrefWidth(75);
 			txtX.setPromptText("x");
 			TextField txtY = new TextField();
+			txtY.setPrefWidth(75);
 			txtY.setPromptText("y");
-			grid.add(lblPosition, 0, 4);
+			grid.add(lblPosition, 0, 3);
 			HBox xy = new HBox();
 			xy.getChildren().addAll(txtX, txtY);
-			grid.add(xy, 1, 4);
+			xy.setSpacing(2);
+			grid.add(xy, 1, 3);
 			
 			// background
 			
 			Label lblBackground = new Label("Background");
 			ChoiceBox<PaintType> cbTypes = new ChoiceBox<PaintType>(FXCollections.observableArrayList(PaintType.values()));
-			grid.add(lblBackground, 0, 5);
-			grid.add(cbTypes, 1, 5);
-			
-			// color
-			
-			Label lblColor = new Label("Color");
 			ColorPicker clrPicker = new ColorPicker();
-			grid.add(lblColor, 0, 6);
-			grid.add(clrPicker, 1, 6);
-			
-			// gradient
-			
-			Label lblGradient = new Label("Gradient");
+			clrPicker.managedProperty().bind(clrPicker.visibleProperty());
 			GradientPicker pkrGradient = new GradientPicker(null);
-//			MenuButton btnGradient = new MenuButton("Choose...");
-//			GradientPickerPane gp = new GradientPickerPane();
-//			CustomMenuItem item = new CustomMenuItem(gp, false);
-//			// NOTE: this removes the on hover highlight
-//			item.getStyleClass().remove("menu-item");
-//			// NOTE: choosing a custom color causes an exception in JavaFX when this is in a menu item
-//			btnGradient.getItems().add(item);
-			grid.add(lblGradient, 0, 7);
-			grid.add(pkrGradient, 1, 7);
+			pkrGradient.managedProperty().bind(pkrGradient.visibleProperty());
+			MediaPicker pkrMedia = new MediaPicker(library, FXCollections.observableSet(), MediaType.IMAGE, MediaType.VIDEO);
+			pkrMedia.managedProperty().bind(pkrMedia.visibleProperty());
+			HBox bg = new HBox();
+			bg.setSpacing(2);
+			bg.getChildren().addAll(cbTypes, clrPicker, pkrGradient, pkrMedia);
+			grid.add(lblBackground, 0, 4);
+			grid.add(bg, 1, 4);
 			
-			// image
-			Label lblImage = new Label("Image");
-			Button btnMedia = new Button("browse...");
 			Label lblScaling = new Label("Scaling");
 			ChoiceBox<ScaleType> cbScaling = new ChoiceBox<ScaleType>(FXCollections.observableArrayList(ScaleType.values()));
 			Label lblLoop = new Label("Loop");
@@ -240,17 +235,59 @@ public final class SlideEditorPane extends Application {
 			Label lblMute = new Label("Mute");
 			CheckBox chkMute = new CheckBox();
 			
-			grid.add(lblImage, 0, 15);
-			grid.add(btnMedia, 1, 15);
-			grid.add(lblScaling, 0, 16);
-			grid.add(cbScaling, 1, 16);
-			grid.add(lblLoop, 0, 17);
-			grid.add(chkLoop, 1, 17);
-			grid.add(lblMute, 0, 18);
-			grid.add(chkMute, 1, 18);
+			grid.add(lblScaling, 0, 5);
+			grid.add(cbScaling, 1, 5);
+			grid.add(lblLoop, 0, 6);
+			grid.add(chkLoop, 1, 6);
+			grid.add(lblMute, 0, 7);
+			grid.add(chkMute, 1, 7);
+			
+			cbTypes.valueProperty().addListener((obs, ov, nv) -> {
+				switch (nv) {
+					case COLOR:
+						clrPicker.setVisible(true);
+						pkrGradient.setVisible(false);
+						pkrMedia.setVisible(false);
+						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
+						break;
+					case GRADIENT:
+						clrPicker.setVisible(false);
+						pkrGradient.setVisible(true);
+						pkrMedia.setVisible(false);
+						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
+						break;
+					case IMAGE:
+						clrPicker.setVisible(false);
+						pkrGradient.setVisible(false);
+						pkrMedia.setVisible(true);
+						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
+						grid.add(lblScaling, 0, 5);
+						grid.add(cbScaling, 1, 5);
+						break;
+					case VIDEO:
+						clrPicker.setVisible(false);
+						pkrGradient.setVisible(false);
+						pkrMedia.setVisible(true);
+						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
+						grid.add(lblScaling, 0, 5);
+						grid.add(cbScaling, 1, 5);
+						grid.add(lblLoop, 0, 6);
+						grid.add(chkLoop, 1, 6);
+						grid.add(lblMute, 0, 7);
+						grid.add(chkMute, 1, 7);
+						break;
+					case NONE:
+					default:
+						// hide all the controls
+						clrPicker.setVisible(false);
+						pkrGradient.setVisible(false);
+						pkrMedia.setVisible(false);
+						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
+						break;
+				}
+			});
 			
 			TitledPane ttlSlide = new TitledPane("Slide Properties", grid);
-			
 			propertiesPane.getChildren().add(ttlSlide);
 		}
 		

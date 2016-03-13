@@ -55,7 +55,7 @@ public final class MediaPicker extends Button {
 	 * @param types the allows types to select from
 	 */
 	public MediaPicker(MediaLibrary library, ObservableSet<Tag> tags, MediaType... types) {
-		this.setText(Translations.get("browse"));
+		this.setText(Translations.get("choose"));
 		this.setOnAction((e) -> {
 			if (dialog == null) {
 				// create the media dialog

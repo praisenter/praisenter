@@ -24,11 +24,14 @@
  */
 package org.praisenter.slide.text;
 
+import javax.xml.bind.annotation.XmlEnum;
+
 /**
  * The placeholder types.
  * @author William Bittle
  * @version 3.0.0
  */
+@XmlEnum
 public enum PlaceholderType {
 	/** Represents a title */
 	TITLE,
