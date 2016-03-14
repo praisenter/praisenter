@@ -220,11 +220,13 @@ public final class SlideEditorPane extends Application {
 			clrPicker.managedProperty().bind(clrPicker.visibleProperty());
 			GradientPicker pkrGradient = new GradientPicker(null);
 			pkrGradient.managedProperty().bind(pkrGradient.visibleProperty());
-			MediaPicker pkrMedia = new MediaPicker(library, FXCollections.observableSet(), MediaType.IMAGE, MediaType.VIDEO);
-			pkrMedia.managedProperty().bind(pkrMedia.visibleProperty());
+			MediaPicker pkrImage = new MediaPicker(library, FXCollections.observableSet(), MediaType.IMAGE);
+			pkrImage.managedProperty().bind(pkrImage.visibleProperty());
+			MediaPicker pkrVideo = new MediaPicker(library, FXCollections.observableSet(), MediaType.VIDEO);
+			pkrVideo.managedProperty().bind(pkrVideo.visibleProperty());
 			HBox bg = new HBox();
 			bg.setSpacing(2);
-			bg.getChildren().addAll(cbTypes, clrPicker, pkrGradient, pkrMedia);
+			bg.getChildren().addAll(cbTypes, clrPicker, pkrGradient, pkrImage, pkrVideo);
 			grid.add(lblBackground, 0, 4);
 			grid.add(bg, 1, 4);
 			
@@ -247,19 +249,22 @@ public final class SlideEditorPane extends Application {
 					case COLOR:
 						clrPicker.setVisible(true);
 						pkrGradient.setVisible(false);
-						pkrMedia.setVisible(false);
+						pkrImage.setVisible(false);
+						pkrVideo.setVisible(false);
 						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
 						break;
 					case GRADIENT:
 						clrPicker.setVisible(false);
 						pkrGradient.setVisible(true);
-						pkrMedia.setVisible(false);
+						pkrImage.setVisible(false);
+						pkrVideo.setVisible(false);
 						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
 						break;
 					case IMAGE:
 						clrPicker.setVisible(false);
 						pkrGradient.setVisible(false);
-						pkrMedia.setVisible(true);
+						pkrImage.setVisible(true);
+						pkrVideo.setVisible(false);
 						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
 						grid.add(lblScaling, 0, 5);
 						grid.add(cbScaling, 1, 5);
@@ -267,7 +272,8 @@ public final class SlideEditorPane extends Application {
 					case VIDEO:
 						clrPicker.setVisible(false);
 						pkrGradient.setVisible(false);
-						pkrMedia.setVisible(true);
+						pkrImage.setVisible(false);
+						pkrVideo.setVisible(true);
 						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
 						grid.add(lblScaling, 0, 5);
 						grid.add(cbScaling, 1, 5);
@@ -281,7 +287,8 @@ public final class SlideEditorPane extends Application {
 						// hide all the controls
 						clrPicker.setVisible(false);
 						pkrGradient.setVisible(false);
-						pkrMedia.setVisible(false);
+						pkrImage.setVisible(false);
+						pkrVideo.setVisible(false);
 						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
 						break;
 				}
