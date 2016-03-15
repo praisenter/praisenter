@@ -11,6 +11,7 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -40,8 +41,10 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import javafx.stage.Stage;
 
+import org.controlsfx.dialog.FontSelectorDialog;
 import org.praisenter.javafx.GradientPicker;
 import org.praisenter.javafx.Resolution;
+import org.praisenter.javafx.TagListView;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaPicker;
 import org.praisenter.media.MediaLibrary;
@@ -123,8 +126,8 @@ public final class SlideEditorPane extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		
-//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -178,6 +181,23 @@ public final class SlideEditorPane extends Application {
 			grid.add(lblTime, 0, 1);
 			grid.add(txtTime, 1, 1);
 			
+			Label lblTags = new Label("");
+			TagListView lstTags = new TagListView(FXCollections.observableSet());
+			grid.add(lblTags, 0, 2);
+			grid.add(lstTags, 1, 2);
+			
+			
+			
+			TitledPane ttlSlide = new TitledPane("Slide Properties", grid);
+			propertiesPane.getChildren().add(ttlSlide);
+		}
+		
+		{
+			GridPane grid = new GridPane();
+			grid.setHgap(5);
+			grid.setVgap(3);
+	//		grid.setGridLinesVisible(true);
+			
 			// size
 			
 			Label lblResolution = new Label("Size");
@@ -194,8 +214,8 @@ public final class SlideEditorPane extends Application {
 			wh.setSpacing(2);
 			wh.setAlignment(Pos.BASELINE_LEFT);
 			wh.getChildren().addAll(txtWidth, txtHeight, lblOr, cmbResolutions);
-			grid.add(lblResolution, 0, 2, 1, 1);
-			grid.add(wh, 1, 2, 1, 1);
+			grid.add(lblResolution, 0, 0);
+			grid.add(wh, 1, 0);
 
 			// position
 			
@@ -206,11 +226,21 @@ public final class SlideEditorPane extends Application {
 			TextField txtY = new TextField();
 			txtY.setPrefWidth(75);
 			txtY.setPromptText("y");
-			grid.add(lblPosition, 0, 3);
+			grid.add(lblPosition, 0, 1);
 			HBox xy = new HBox();
 			xy.getChildren().addAll(txtX, txtY);
 			xy.setSpacing(2);
-			grid.add(xy, 1, 3);
+			grid.add(xy, 1, 1);
+			
+			TitledPane ttlSlide = new TitledPane("Size & Position", grid);
+			propertiesPane.getChildren().add(ttlSlide);
+		}
+		
+		{
+			GridPane grid = new GridPane();
+			grid.setHgap(5);
+			grid.setVgap(3);
+	//		grid.setGridLinesVisible(true);
 			
 			// background
 			
@@ -227,8 +257,8 @@ public final class SlideEditorPane extends Application {
 			HBox bg = new HBox();
 			bg.setSpacing(2);
 			bg.getChildren().addAll(cbTypes, clrPicker, pkrGradient, pkrImage, pkrVideo);
-			grid.add(lblBackground, 0, 4);
-			grid.add(bg, 1, 4);
+			grid.add(lblBackground, 0, 0);
+			grid.add(bg, 1, 0);
 			
 			Label lblScaling = new Label("Scaling");
 			ChoiceBox<ScaleType> cbScaling = new ChoiceBox<ScaleType>(FXCollections.observableArrayList(ScaleType.values()));
@@ -237,13 +267,10 @@ public final class SlideEditorPane extends Application {
 			Label lblMute = new Label("Mute");
 			CheckBox chkMute = new CheckBox();
 			
-			grid.add(lblScaling, 0, 5);
-			grid.add(cbScaling, 1, 5);
-			grid.add(lblLoop, 0, 6);
-			grid.add(chkLoop, 1, 6);
-			grid.add(lblMute, 0, 7);
-			grid.add(chkMute, 1, 7);
-			
+			clrPicker.setVisible(false);
+			pkrGradient.setVisible(false);
+			pkrImage.setVisible(false);
+			pkrVideo.setVisible(false);
 			cbTypes.valueProperty().addListener((obs, ov, nv) -> {
 				switch (nv) {
 					case COLOR:
@@ -266,8 +293,8 @@ public final class SlideEditorPane extends Application {
 						pkrImage.setVisible(true);
 						pkrVideo.setVisible(false);
 						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
-						grid.add(lblScaling, 0, 5);
-						grid.add(cbScaling, 1, 5);
+						grid.add(lblScaling, 0, 1);
+						grid.add(cbScaling, 1, 1);
 						break;
 					case VIDEO:
 						clrPicker.setVisible(false);
@@ -275,12 +302,12 @@ public final class SlideEditorPane extends Application {
 						pkrImage.setVisible(false);
 						pkrVideo.setVisible(true);
 						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
-						grid.add(lblScaling, 0, 5);
-						grid.add(cbScaling, 1, 5);
-						grid.add(lblLoop, 0, 6);
-						grid.add(chkLoop, 1, 6);
-						grid.add(lblMute, 0, 7);
-						grid.add(chkMute, 1, 7);
+						grid.add(lblScaling, 0, 1);
+						grid.add(cbScaling, 1, 1);
+						grid.add(lblLoop, 0, 2);
+						grid.add(chkLoop, 1, 2);
+						grid.add(lblMute, 0, 3);
+						grid.add(chkMute, 1, 3);
 						break;
 					case NONE:
 					default:
@@ -294,158 +321,18 @@ public final class SlideEditorPane extends Application {
 				}
 			});
 			
-			TitledPane ttlSlide = new TitledPane("Slide Properties", grid);
+			TitledPane ttlSlide = new TitledPane("Slide Background", grid);
 			propertiesPane.getChildren().add(ttlSlide);
-		}
-		
-		// component properties
-		{
-			GridPane grid = new GridPane();
-			grid.setHgap(5);
-			grid.setVgap(3);
-	//		grid.setGridLinesVisible(true);
 			
-			// slide name
-			Label lblName = new Label("Name");
-			TextField txtName = new TextField();
-			txtName.setPromptText("Name");
-			grid.add(lblName, 0, 0);
-			grid.add(txtName, 1, 0);
-			
-			Label lblTime = new Label("Time");
-			TextField txtTime = new TextField();
-			txtTime.setPromptText("00:00");
-			grid.add(lblTime, 0, 1);
-			grid.add(txtTime, 1, 1);
-			
-			// size
-			
-			Label lblResolution = new Label("Size");
-			ComboBox<Resolution> cmbResolutions = new ComboBox<Resolution>(FXCollections.observableArrayList(Resolution.DEFAULT_RESOLUTIONS));
-			TextField txtWidth = new TextField();
-			txtWidth.setPromptText("width");
-			TextField txtHeight = new TextField();
-			txtHeight.setPromptText("height");
-			grid.add(lblResolution, 0, 2, 2, 1);
-			grid.add(cmbResolutions, 1, 2, 2, 1);
-			HBox wh = new HBox();
-			wh.getChildren().addAll(txtWidth, txtHeight);
-			grid.add(wh, 1, 3);
-			
-			// position
-			
-			Label lblPosition = new Label("Position");
-			TextField txtX = new TextField();
-			txtX.setPromptText("x");
-			TextField txtY = new TextField();
-			txtY.setPromptText("y");
-			grid.add(lblPosition, 0, 4);
-			HBox xy = new HBox();
-			xy.getChildren().addAll(txtX, txtY);
-			grid.add(xy, 1, 4);
-			
-			// background
-			
-			Label lblBackground = new Label("Background");
-			ChoiceBox<PaintType> cbTypes = new ChoiceBox<PaintType>(FXCollections.observableArrayList(PaintType.values()));
-			grid.add(lblBackground, 0, 5);
-			grid.add(cbTypes, 1, 5);
-			
-			// color
-			
-			Label lblColor = new Label("Color");
-			ColorPicker clrPicker = new ColorPicker();
-			grid.add(lblColor, 0, 6);
-			grid.add(clrPicker, 1, 6);
-			
-			// gradient
-			
-			ChoiceBox<String> cbGradType = new ChoiceBox<String>(FXCollections.observableArrayList("Linear", "Radial"));
-			Label lblGradientType = new Label("Gradient type");
-			grid.add(lblGradientType, 0, 7);
-			grid.add(cbGradType, 1, 7);
-			
-			Label lblStop1 = new Label("Stop 1");
-			TextField txtOffset1 = new TextField();
-			txtOffset1.setPromptText("offset");
-			ColorPicker clrStop1 = new ColorPicker();
-			HBox stop1 = new HBox();
-			stop1.getChildren().addAll(txtOffset1, clrStop1);
-			grid.add(lblStop1, 0, 8);
-			grid.add(stop1, 1, 8);
-			
-			Label lblStop2 = new Label("Stop 2");
-			TextField txtOffset2 = new TextField();
-			txtOffset2.setPromptText("offset");
-			ColorPicker clrStop2 = new ColorPicker();
-			HBox stop2 = new HBox();
-			stop2.getChildren().addAll(txtOffset2, clrStop2);
-			grid.add(lblStop2, 0, 9);
-			grid.add(stop2, 1, 9);
-			
-			ChoiceBox<SlideGradientCycleType> cbCycleType = new ChoiceBox<SlideGradientCycleType>(FXCollections.observableArrayList(SlideGradientCycleType.values()));
-			Label lblCycleType = new Label("Cycle type");
-			grid.add(lblCycleType, 0, 10);
-			grid.add(cbCycleType, 1, 10);
-			
-			Label lblLinearGradientStart = new Label("Start");
-			TextField txtLinearGradientStartX = new TextField();
-			txtLinearGradientStartX.setPromptText("x");
-			TextField txtLinearGradientStartY = new TextField();
-			txtLinearGradientStartY.setPromptText("y");
-			grid.add(lblLinearGradientStart, 0, 11);
-			HBox lgsxy = new HBox();
-			lgsxy.getChildren().addAll(txtLinearGradientStartX, txtLinearGradientStartY);
-			grid.add(lgsxy, 1, 11);
-			
-			Label lblLinearGradientEnd = new Label("End");
-			TextField txtLinearGradientEndX = new TextField();
-			txtLinearGradientEndX.setPromptText("x");
-			TextField txtLinearGradientEndY = new TextField();
-			txtLinearGradientEndY.setPromptText("y");
-			grid.add(lblLinearGradientEnd, 0, 12);
-			HBox lgexy = new HBox();
-			lgexy.getChildren().addAll(txtLinearGradientEndX, txtLinearGradientEndY);
-			grid.add(lgexy, 1, 12);
-			
-			Label lblRadialGradientCenter = new Label("Center");
-			TextField txtRadialGradientCenterX = new TextField();
-			txtRadialGradientCenterX.setPromptText("x");
-			TextField txtRadialGradientCenterY = new TextField();
-			txtRadialGradientCenterY.setPromptText("y");
-			grid.add(lblRadialGradientCenter, 0, 13);
-			HBox rgcxy = new HBox();
-			rgcxy.getChildren().addAll(txtRadialGradientCenterX, txtRadialGradientCenterY);
-			grid.add(rgcxy, 1, 13);
-			
-			Label lblRadialGradientRadius = new Label("Radius");
-			TextField txtRadialGradientRadius = new TextField();
-			txtRadialGradientRadius.setPromptText("radius");
-			grid.add(lblRadialGradientRadius, 0, 14);
-			grid.add(txtRadialGradientRadius, 1, 14);
-			
-			// image
-			Label lblImage = new Label("Image");
-			Button btnMedia = new Button("browse...");
-			Label lblScaling = new Label("Scaling");
-			ChoiceBox<ScaleType> cbScaling = new ChoiceBox<ScaleType>(FXCollections.observableArrayList(ScaleType.values()));
-			Label lblLoop = new Label("Loop");
-			CheckBox chkLoop = new CheckBox();
-			Label lblMute = new Label("Mute");
-			CheckBox chkMute = new CheckBox();
-			
-			grid.add(lblImage, 0, 15);
-			grid.add(btnMedia, 1, 15);
-			grid.add(lblScaling, 0, 16);
-			grid.add(cbScaling, 1, 16);
-			grid.add(lblLoop, 0, 17);
-			grid.add(chkLoop, 1, 17);
-			grid.add(lblMute, 0, 18);
-			grid.add(chkMute, 1, 18);
-			
-			TitledPane ttlSlide = new TitledPane("Component Properties", grid);
-			
-			propertiesPane.getChildren().add(ttlSlide);
+			Button btnFont = new Button("Font...");
+			btnFont.setOnAction((e) -> {
+				// FIXME this won't work, we need to be able to select an arbitrary font size
+				// reference source code here
+				// https://bitbucket.org/controlsfx/controlsfx/src/13e52b38df16842b71a4c9df1cadbeba6087742a/controlsfx/src/main/java/org/controlsfx/dialog/FontSelectorDialog.java?at=default&fileviewer=file-view-default
+				FontSelectorDialog dialog = new FontSelectorDialog(null);
+				dialog.show();
+			});
+			propertiesPane.getChildren().add(btnFont);
 		}
 		
 		// the canvas will go in the center
