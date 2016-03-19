@@ -75,10 +75,10 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@XmlElementWrapper(name = "components", required = false)
 	final List<SlideComponent> components;
 
-	/** The slide transitions */
-	@XmlElement(name = "transition", required = false)
-	@XmlElementWrapper(name = "transitions", required = false)
-	final List<SlideTransition> transitions;
+	/** The slide animations */
+	@XmlElement(name = "animation", required = false)
+	@XmlElementWrapper(name = "animations", required = false)
+	final List<SlideAnimation> animations;
 	
 	// for internal use really
 	/** The slide path; can be null */
@@ -114,7 +114,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	BasicSlide(UUID id) {
 		super(id);
 		this.components = new ArrayList<SlideComponent>();
-		this.transitions = new ArrayList<SlideTransition>();
+		this.animations = new ArrayList<SlideAnimation>();
 		this.time = Slide.TIME_FOREVER;
 		this.tags = new TreeSet<Tag>();
 	}
@@ -129,14 +129,26 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		// copy the components
 		for (int i = 0; i < this.components.size(); i++) {
 			SlideComponent sc = this.components.get(i);
-			to.addComponent(sc.copy());
+			SlideComponent copy = sc.copy();
+			to.addComponent(copy);
 			
-			SlideTransition st = this.getTransition(sc.getId());
-			to.getTransitions().add(st);
+			// component animations
+			List<SlideAnimation> animations = this.getAnimations(sc.getId());
+			for(SlideAnimation animation : animations) {
+				to.getAnimations().add(animation.copy(copy.getId()));
+			}
+		}
+		
+		// slide animations
+		List<SlideAnimation> animations = this.getAnimations(this.getId());
+		for(SlideAnimation animation : animations) {
+			to.getAnimations().add(animation.copy(to.getId()));
 		}
 		
 		// copy other props
 		to.setTime(this.time);
+		to.setName(this.name);
+		to.setTags(new TreeSet<Tag>(this.tags));
 		
 		// NOTE: path is NOT copied
 		// NOTE: this method should copy everything since it
@@ -229,7 +241,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	public boolean removeComponent(SlideComponent component) {
 		// no re-sort required here
 		if (this.components.remove(component)) {
-			this.transitions.removeIf(st -> st.id.equals(component.getId()));
+			this.animations.removeIf(st -> st.id.equals(component.getId()));
 			return true;
 		}
 		return false;
@@ -387,25 +399,26 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#getTransitions()
+	 * @see org.praisenter.slide.Slide#getAnimations()
 	 */
 	@Override
-	public List<SlideTransition> getTransitions() {
-		return this.transitions;
+	public List<SlideAnimation> getAnimations() {
+		return this.animations;
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#getTransition(java.util.UUID)
+	 * @see org.praisenter.slide.Slide#getAnimations(java.util.UUID)
 	 */
 	@Override
-	public SlideTransition getTransition(UUID id) {
-		for (int i = 0; i < this.transitions.size(); i++) {
-			SlideTransition st = this.transitions.get(i);
+	public List<SlideAnimation> getAnimations(UUID id) {
+		List<SlideAnimation> animations = new ArrayList<SlideAnimation>();
+		for (int i = 0; i < this.animations.size(); i++) {
+			SlideAnimation st = this.animations.get(i);
 			if (st.id.equals(id)) {
-				return st;
+				animations.add(st);
 			}
 		}
-		return null;
+		return animations;
 	}
 	
 	/* (non-Javadoc)

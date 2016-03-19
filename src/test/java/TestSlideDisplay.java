@@ -27,6 +27,9 @@ import org.praisenter.slide.object.MediaObject;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
+import org.praisenter.slide.text.SlideFont;
+import org.praisenter.slide.text.SlideFontPosture;
+import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.utility.ClasspathLoader;
 
@@ -78,9 +81,8 @@ public class TestSlideDisplay extends Application {
 				new SlideGradientStop(1, new SlideColor(0, 1, 1, 0.8)));
 		
 		BasicTextComponent txt = new BasicTextComponent();
-		txt.setFontName("Impact");
+		txt.setFont(new SlideFont("Impact", SlideFontWeight.LIGHT, SlideFontPosture.ITALIC, 20));
 		txt.setFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
-		txt.setFontSize(10);
 		txt.setWidth(400);
 		txt.setHeight(400);
 		txt.setX(20);
@@ -97,8 +99,8 @@ public class TestSlideDisplay extends Application {
 		
 		slide.addComponent(txt);
 		
-//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -112,16 +114,16 @@ public class TestSlideDisplay extends Application {
 		}
 		
 		MediaObject img = new MediaObject(
-//				UUID.fromString("b179387f-ab1d-40ba-a246-40226f375e8b"),
-				UUID.fromString("3a455fd7-c8f0-4c81-955b-0bcb3e4c47ef"),
+				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
+//				UUID.fromString("3a455fd7-c8f0-4c81-955b-0bcb3e4c47ef"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-//				UUID.fromString("758e2ed0-88ba-4107-8462-a4ac44670875"),
-				UUID.fromString("76fec243-0feb-4a1d-8a56-e57f9193a5cd"),
+				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
+//				UUID.fromString("76fec243-0feb-4a1d-8a56-e57f9193a5cd"),
 				ScaleType.NONUNIFORM,
 				false,
 				true);

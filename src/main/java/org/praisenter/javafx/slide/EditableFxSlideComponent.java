@@ -22,7 +22,7 @@ import org.praisenter.javafx.utility.JavaFxNodeHelper;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
-import org.praisenter.slide.SlideTransition;
+import org.praisenter.slide.SlideAnimation;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.object.MediaObject;
@@ -111,7 +111,7 @@ public final class EditableFxSlideComponent {
 		this.border.set(sc.getBorder());
 		this.border.addListener((obs, o, n) -> {
 			sc.setBorder(n);
-			Border border = new Border(this.editable.getBorderStroke(n));
+			Border border = new Border(this.editable.getBorderStroke(n, component.component instanceof Slide));
 			this.editable.borderNode.setBorder(border);
 		});
 

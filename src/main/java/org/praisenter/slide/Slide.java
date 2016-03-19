@@ -182,17 +182,17 @@ public interface Slide extends SlideRegion {
 	// component animations
 	
 	/**
-	 * Returns the list of slide transitions for the attached components.
-	 * @return List&lt;{@link SlideTransition}&gt;
+	 * Returns the list of animations for the attached components.
+	 * @return List&lt;{@link SlideAnimation}&gt;
 	 */
-	public abstract List<SlideTransition> getTransitions();
+	public abstract List<SlideAnimation> getAnimations();
 	
 	/**
-	 * Returns the {@link SlideTransition} for the given id or null if one doesn't exist.
+	 * Returns the list of animations for the given id or null if one doesn't exist.
 	 * @param id the id of the region
-	 * @return {@link SlideTransition}
+	 * @return {@link SlideAnimation}
 	 */
-	public abstract SlideTransition getTransition(UUID id);
+	public abstract List<SlideAnimation> getAnimations(UUID id);
 	
 	// size
 	

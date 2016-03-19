@@ -34,6 +34,9 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
 import org.apache.logging.log4j.LogManager;
@@ -43,6 +46,7 @@ import org.praisenter.javafx.utility.JavaFxNodeHelper;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
+import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
@@ -58,6 +62,9 @@ import org.praisenter.slide.graphics.SlideStrokeStyle;
 import org.praisenter.slide.graphics.SlideStrokeType;
 import org.praisenter.slide.object.MediaObject;
 import org.praisenter.slide.text.HorizontalTextAlignment;
+import org.praisenter.slide.text.SlideFont;
+import org.praisenter.slide.text.SlideFontPosture;
+import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.VerticalTextAlignment;
 
 public abstract class FxSlideRegion<T extends SlideRegion> {
@@ -91,7 +98,7 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 		SlideStroke bdr = this.component.getBorder();
 		double br = 0;
 		if (bdr != null) {
-			borderNode.setBorder(new Border(getBorderStroke(bdr)));
+			borderNode.setBorder(new Border(getBorderStroke(bdr, component instanceof Slide)));
 			br = bdr.getRadius();
 		}
 		
@@ -154,7 +161,10 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 		}
 	}
 	
-	StrokeType getStrokeType(SlideStrokeType type) {
+	StrokeType getStrokeType(SlideStrokeType type, boolean isSlide) {
+		if (isSlide) {
+			return StrokeType.INSIDE;
+		}
 		switch (type) {
 			case INSIDE:
 				return StrokeType.INSIDE;
@@ -205,13 +215,13 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 		return stps;
 	}
 	
-	BorderStrokeStyle getBorderStrokeStyle(SlideStrokeStyle style) {
+	BorderStrokeStyle getBorderStrokeStyle(SlideStrokeStyle style, boolean isSlide) {
 		if (style == null) {
 			return null;
 		}
 		
 		return new BorderStrokeStyle(
-				getStrokeType(style.getType()), 
+				getStrokeType(style.getType(), isSlide), 
 				getStrokeLineJoin(style.getJoin()), 
 				getStrokeLineCap(style.getCap()), 
 				Double.MAX_VALUE, 
@@ -290,10 +300,10 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 	}
 	
 	// NOTE: this method will return null for Video or Audio media paints
-	BorderStroke getBorderStroke(SlideStroke stroke) {
+	BorderStroke getBorderStroke(SlideStroke stroke, boolean isSlide) {
 		return new BorderStroke(
 				getPaint(stroke.getPaint()),
-				getBorderStrokeStyle(stroke.getStyle()),
+				getBorderStrokeStyle(stroke.getStyle(), isSlide),
 				new CornerRadii(stroke.getRadius()),
 				new BorderWidths(stroke.getWidth()));
 	}
@@ -308,6 +318,14 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 		return size;
 	}
 
+	/**
+	 * Returns either a MediaView (audio, video) or a VBox (image).
+	 * @param mo the media object
+	 * @param w the width of the region
+	 * @param h the height of the region
+	 * @param br the border radius of the region
+	 * @return Node
+	 */
 	Node getMediaNode(MediaObject mo, double w, double h, double br) {
 		UUID id = mo.getId();
 		// make sure the id is present
@@ -405,7 +423,7 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 		} else {
 			LOGGER.warn("The media id is null.");
 		}
-		return new Region();
+		return new VBox();
 	}
 	
 	// NOTE: this method is only valid for EDIT mode
@@ -455,6 +473,51 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 			Paint pnt = getPaint(paint);
 			return new Background(new BackgroundFill(pnt, new CornerRadii(this.component.getBorder().getRadius()), null));
 		}
+	}
+	
+	FontWeight getFontWeight(SlideFontWeight weight) {
+		switch (weight) {
+			case BLACK:
+				return FontWeight.BLACK;
+			case BOLD:
+				return FontWeight.BOLD;
+			case EXTRA_BOLD:
+				return FontWeight.EXTRA_BOLD;
+			case EXTRA_LIGHT:
+				return FontWeight.EXTRA_LIGHT;
+			case LIGHT:
+				return FontWeight.LIGHT;
+			case MEDIUM:
+				return FontWeight.MEDIUM;
+			case SEMI_BOLD:
+				return FontWeight.SEMI_BOLD;
+			case THIN:
+				return FontWeight.THIN;
+			case NORMAL:
+			default:
+				return FontWeight.NORMAL;
+		}
+	}
+	
+	FontPosture getFontPosture(SlideFontPosture posture) {
+		switch (posture) {
+			case ITALIC:
+				return FontPosture.ITALIC;
+			case REGULAR:
+			default:
+				return FontPosture.REGULAR;
+		}
+	}
+	
+	Font getFont(SlideFont font) {
+		if (font == null) {
+			return Font.getDefault();
+		}
+		return Font.font(
+				font.getFamily(), 
+				getFontWeight(font.getWeight()),
+				getFontPosture(font.getPosture()),
+				font.getSize());
 	}
 	
 	public List<MediaPlayer> getMediaPlayers() {

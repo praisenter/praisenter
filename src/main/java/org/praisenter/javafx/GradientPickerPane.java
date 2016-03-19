@@ -203,7 +203,7 @@ public final class GradientPickerPane extends HBox {
 			// since it will just use the current observables to generate a new paint
 			
 			// this has the added effect of allowing us to update the paint property without having
-			// it go through the conversion process above
+			// it go through the conversion process above by calling: set(null);
 			super.set(createPaint());
 		}
 	};

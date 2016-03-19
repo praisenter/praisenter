@@ -45,7 +45,7 @@ public class Resolution implements Comparable<Resolution> {
 	@XmlAttribute(name = "height", required = false)
 	final int height;
 
-	/** The list of default resolutions */
+	/** The list of common screen resolutions */
 	// TODO may want to move this
 	public static final Resolution[] DEFAULT_RESOLUTIONS = new Resolution[] {
 		new Resolution(800, 600),

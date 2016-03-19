@@ -13,6 +13,7 @@ import org.praisenter.javafx.text.TextMeasurer;
 import org.praisenter.javafx.utility.JavaFxNodeHelper;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.text.FontScaleType;
+import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.TextComponent;
 
 public class FxSlideTextComponent extends FxSlideComponent<TextComponent> {
@@ -45,10 +46,10 @@ public class FxSlideTextComponent extends FxSlideComponent<TextComponent> {
 		String str = tc.getText();
 		
 		// compute a fitting font, if necessary
-		Font base = Font.font(tc.getFontName(), tc.getFontSize());
+		Font base = getFont(tc.getFont());
 		Font font = base;
 		if (tc.getFontScaleType() == FontScaleType.REDUCE_SIZE_ONLY) {
-			font = TextMeasurer.getFittingFontForParagraph(str, base, tc.getFontSize(), pw, ph, tc.getLineSpacing(), TextBoundsType.VISUAL);
+			font = TextMeasurer.getFittingFontForParagraph(str, base, base.getSize(), pw, ph, tc.getLineSpacing(), TextBoundsType.VISUAL);
 		} else if (tc.getFontScaleType() == FontScaleType.BEST_FIT) {
 			font = TextMeasurer.getFittingFontForParagraph(str, base, Double.MAX_VALUE, pw, ph, tc.getLineSpacing(), TextBoundsType.VISUAL);
 		}
@@ -67,7 +68,7 @@ public class FxSlideTextComponent extends FxSlideComponent<TextComponent> {
 			text.setStroke(this.getPaint(ss.getPaint()));
 			text.setStrokeLineCap(this.getStrokeLineCap(ss.getStyle().getCap()));
 			text.setStrokeLineJoin(this.getStrokeLineJoin(ss.getStyle().getJoin()));
-			text.setStrokeType(this.getStrokeType(ss.getStyle().getType()));
+			text.setStrokeType(this.getStrokeType(ss.getStyle().getType(), false));
 			text.setStrokeWidth(ss.getWidth());
 			text.getStrokeDashArray().addAll(ss.getStyle().getDashes());
 		}

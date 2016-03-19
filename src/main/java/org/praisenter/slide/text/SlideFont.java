@@ -22,70 +22,91 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide;
-
-import java.util.UUID;
+package org.praisenter.slide.text;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
-
-import org.praisenter.slide.text.TextPlaceholderComponent;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Represents a slide, typically with {@link TextPlaceholderComponent}s, that was copied from
- * a {@link BasicSlide} for use in a specific setting.
- * <p>
- * A templated slide keeps track of the original {@link BasicSlide} it was generated from.
+ * Represents a font.
  * @author William Bittle
  * @version 3.0.0
  */
+@XmlRootElement(name = "font")
 @XmlAccessorType(XmlAccessType.NONE)
-public abstract class TemplatedSlide extends BasicSlide implements Slide, SlideRegion  {
-	/** The id of the slide this slide was based on */
-	@XmlAttribute(name = "templateId", required = false)
-	final UUID templateId;
-
+public final class SlideFont {
+	/** The font family */
+	@XmlAttribute(name = "family", required = false)
+	final String family;
+	
+	/** The font weight (bold, extra bold, etc) */
+	@XmlAttribute(name = "weight", required = false)
+	final SlideFontWeight weight;
+	
+	/** The font posture (italic, regular) */
+	@XmlAttribute(name = "posture", required = false)
+	final SlideFontPosture posture;
+	
+	/** The font size */
+	@XmlAttribute(name = "size", required = false)
+	final double size;
+	
 	/**
-	 * Minimal constructor.
-	 * @param templateId the id of the slide being templated
+	 * Default constructor for JAXB.
 	 */
-	public TemplatedSlide(UUID templateId) {
-		this.templateId = templateId;
+	@SuppressWarnings("unused")
+	private SlideFont() {
+		this.family = null;
+		this.weight = SlideFontWeight.NORMAL;
+		this.posture = SlideFontPosture.REGULAR;
+		this.size = 10;
 	}
 	
 	/**
-	 * Optional constructor.
-	 * @param id this slide's id
-	 * @param templateId the id of the slide being templated
+	 * Full constructor.
+	 * @param family the font family
+	 * @param weight the font weight (bold, extra bold, etc)
+	 * @param posture the font posture (italic, regular)
+	 * @param size the font size
 	 */
-	TemplatedSlide(UUID id, UUID templateId) {
-		super(id);
-		this.templateId = templateId;
-	}
-	
-	/**
-	 * Return the root slide id for the given slide.
-	 * <p>
-	 * A {@link TemplatedSlide} only retains the original slide id.  For example, if slide A
-	 * was used to create slide B and then slide B was used to create slide C, slide C will have
-	 * slide A's id as the template id.  Slide B's id is not retained.
-	 * @param slide the slide
-	 * @return UUID
-	 */
-	protected static final UUID getRootTemplateId(Slide slide) {
-		if (slide == null) return null;
-		if (slide instanceof TemplatedSlide) { 
-			return ((TemplatedSlide)slide).getTemplateId();
-		}
-		return slide.getId();
+	public SlideFont(String family, SlideFontWeight weight, SlideFontPosture posture, double size) {
+		this.family = family;
+		this.weight = weight;
+		this.posture = posture;
+		this.size = size;
 	}
 
 	/**
-	 * Returns the template id for this slide.
-	 * @return UUID or null
+	 * Returns the font family.
+	 * @return String
 	 */
-	public UUID getTemplateId() {
-		return this.templateId;
+	public String getFamily() {
+		return this.family;
+	}
+
+	/**
+	 * Returns the font weight;
+	 * @return {@link SlideFontWeight}
+	 */
+	public SlideFontWeight getWeight() {
+		return this.weight;
+	}
+
+	/**
+	 * Returns the font posture.
+	 * @return {@link SlideFontPosture}
+	 */
+	public SlideFontPosture getPosture() {
+		return this.posture;
+	}
+
+	/**
+	 * Returns the font size.
+	 * @return double
+	 */
+	public double getSize() {
+		return this.size;
 	}
 }

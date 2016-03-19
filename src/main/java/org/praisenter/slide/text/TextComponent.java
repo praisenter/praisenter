@@ -67,35 +67,16 @@ public interface TextComponent extends SlideRegion, SlideComponent {
 	public abstract void setTextBorder(SlideStroke border);
 	
 	/**
-	 * Sets the font name.
-	 * <p>
-	 * A default font will be used in the case the font is not present
-	 * at the time of presentation.
-	 * @param name the font name
+	 * Sets the font.
+	 * @param font the font
 	 */
-	public abstract void setFontName(String name);
-	// FEATURE have the default font configurable
+	public abstract void setFont(SlideFont font);
 	
 	/**
-	 * Returns the font name.
-	 * @return String
+	 * Returns the font.
+	 * @return {@link SlideFont}
 	 */
-	public abstract String getFontName();
-	
-	/**
-	 * Sets the font size.
-	 * <p>
-	 * Depending on the value of {@link #getFontScaleType()} this font size
-	 * may be either the exact or min and/or max size.
-	 * @param size the size
-	 */
-	public abstract void setFontSize(int size);
-	
-	/**
-	 * Returns the desired font size.
-	 * @return int
-	 */
-	public abstract int getFontSize();
+	public abstract SlideFont getFont();
 	
 	/**
 	 * Sets the vertical alignment of the text relative to the containing shape.

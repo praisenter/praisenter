@@ -93,6 +93,7 @@ import org.praisenter.resources.translations.Translations;
 // TODO if only one type of media is allowed, sorting and filtering by type isn't useful, hide it?
 // TODO we may need a generic way of communicating between multiple instances
 // FEATURE allow preview of audio/video; this may not be that hard to be honest; does the MediaView class come with controls?
+// http://docs.oracle.com/javase/8/javafx/media-tutorial/playercontrol.htm#sthref18
 
 /**
  * Pane specifically for showing the media in a media library.

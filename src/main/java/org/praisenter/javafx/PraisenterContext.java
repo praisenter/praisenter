@@ -83,16 +83,21 @@ public final class PraisenterContext {
 		Set<Tag> tags = new TreeSet<Tag>();
 		
 		// add all the tags to the main tag set
-		for (Song song : songLibrary.all()) {
-			tags.addAll(song.getTags());
+		if (this.songLibrary != null) {
+			for (Song song : this.songLibrary.all()) {
+				tags.addAll(song.getTags());
+			}
 		}
-		for (Slide slide : slideLibrary.all()) {
-			tags.addAll(slide.getTags());
+		if (this.slideLibrary != null) {
+			for (Slide slide : this.slideLibrary.all()) {
+				tags.addAll(slide.getTags());
+			}
 		}
-		for (Media m : mediaLibrary.all()) {
-			tags.addAll(m.getMetadata().getTags());
+		if (this.mediaLibrary != null) {
+			for (Media m : this.mediaLibrary.all()) {
+				tags.addAll(m.getMetadata().getTags());
+			}
 		}
-		
 		this.tags = FXCollections.observableSet(tags);
 	}
 

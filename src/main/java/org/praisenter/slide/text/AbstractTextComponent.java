@@ -53,13 +53,9 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	@XmlElement(name = "textBorder", required = false)
 	SlideStroke textBorder;
 	
-	/** The font name */
-	@XmlAttribute(name = "fontName", required = false)
-	String fontName;
-	
-	/** The font size */
-	@XmlAttribute(name = "fontSize", required = false)
-	int fontSize;
+	/** The font */
+	@XmlElement(name = "font", required = false)
+	SlideFont font;
 	
 	/** The font scaling type */
 	@XmlAttribute(name = "fontScaleType", required = false)
@@ -86,7 +82,7 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	 */
 	public AbstractTextComponent() {
 		this.fontScaleType = FontScaleType.NONE;
-		this.fontSize = 30;
+		this.font = null;
 		this.verticalTextAlignment = VerticalTextAlignment.TOP;
 		this.horizontalTextAlignment = HorizontalTextAlignment.LEFT;
 		this.padding = 0;
@@ -103,8 +99,7 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 		// copy the text component stuff
 		to.setTextPaint(this.textPaint);
 		to.setTextBorder(this.textBorder);
-		to.setFontName(this.fontName);
-		to.setFontSize(this.fontSize);
+		to.setFont(this.font);
 		to.setFontScaleType(this.fontScaleType);
 		to.setVerticalTextAlignment(this.verticalTextAlignment);
 		to.setHorizontalTextAlignment(this.horizontalTextAlignment);
@@ -145,35 +140,19 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.text.TextComponent#setFontName(java.lang.String)
+	 * @see org.praisenter.slide.text.TextComponent#setFont(org.praisenter.slide.text.SlideFont)
 	 */
 	@Override
-	public void setFontName(String name) {
-		this.fontName = name;
+	public void setFont(SlideFont font) {
+		this.font = font;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.text.TextComponent#getFontName()
+	 * @see org.praisenter.slide.text.TextComponent#getFont()
 	 */
 	@Override
-	public String getFontName() {
-		return this.fontName;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.text.TextComponent#setFontSize(int)
-	 */
-	@Override
-	public void setFontSize(int size) {
-		this.fontSize = size;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.text.TextComponent#getFontSize()
-	 */
-	@Override
-	public int getFontSize() {
-		return this.fontSize;
+	public SlideFont getFont() {
+		return this.font;
 	}
 
 	/* (non-Javadoc)

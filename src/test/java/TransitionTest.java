@@ -13,10 +13,10 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+import org.praisenter.javafx.animation.Swap;
+import org.praisenter.javafx.animation.Transitions;
 import org.praisenter.javafx.easing.EasingType;
 import org.praisenter.javafx.easing.Easings;
-import org.praisenter.javafx.transition.Swap;
-import org.praisenter.javafx.transition.Transitions;
 import org.praisenter.javafx.utility.JavaFxNodeHelper;
 
 

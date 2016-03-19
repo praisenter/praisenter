@@ -21,7 +21,7 @@ import javafx.scene.layout.Border;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideTransition;
+import org.praisenter.slide.SlideAnimation;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 
@@ -37,7 +37,7 @@ public final class EditableFxSlide {
 	final LongProperty time;
 	final ObjectProperty<SlidePaint> background;
 	final ObjectProperty<SlideStroke> border;
-	final ListProperty<SlideTransition> animations;
+	final ListProperty<SlideAnimation> animations;
 	final ListProperty<SlideComponent> components;
 	
 //	final List<EditableFxSlideComponent> editables;
@@ -53,7 +53,7 @@ public final class EditableFxSlide {
 		this.time = new SimpleLongProperty();
 		this.background = new SimpleObjectProperty<SlidePaint>();
 		this.border = new SimpleObjectProperty<SlideStroke>();
-		this.animations = new SimpleListProperty<SlideTransition>();
+		this.animations = new SimpleListProperty<SlideAnimation>();
 		this.components = new SimpleListProperty<SlideComponent>();
 		
 		final Slide sld = slide.component;
@@ -93,7 +93,7 @@ public final class EditableFxSlide {
 		this.border.set(sld.getBorder());
 		this.border.addListener((obs, o, n) -> {
 			sld.setBorder(n);
-			Border border = new Border(this.slide.getBorderStroke(n));
+			Border border = new Border(this.slide.getBorderStroke(n, true));
 			this.slide.borderNode.setBorder(border);
 		});
 

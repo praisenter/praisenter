@@ -1,5 +1,6 @@
 package org.praisenter.slide;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,11 +20,18 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @XmlRootElement(name = "slideShow")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideShow {
+	
+	Path path;
+	
+	String name;
+	
 	@XmlElementWrapper(name = "slides")
 	@XmlElement(name = "slide")
 	@XmlJavaTypeAdapter(value = SlideXmlAdapter.class)
 	List<Slide> slides;
 
+	boolean loop;
+	
 	public SlideShow() {
 		this.slides = new ArrayList<Slide>();
 	}
