@@ -23,6 +23,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
@@ -55,9 +56,11 @@ import javafx.util.Callback;
 import org.controlsfx.dialog.FontSelectorDialog;
 import org.praisenter.javafx.FontPicker;
 import org.praisenter.javafx.GradientPicker;
+import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.Resolution;
 import org.praisenter.javafx.TagListView;
+import org.praisenter.javafx.animation.AnimationPane;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaPicker;
 import org.praisenter.javafx.utility.FxFactory;
@@ -104,7 +107,7 @@ import org.praisenter.utility.ClasspathLoader;
 //		the new slide is added to the scene graph
 //		the transition is played
 public final class SlideEditorPane extends Application {
-	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/javafx/resources/transparent.png");
+	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
 //	/** The component hover line width */
 //	private static final double LINE_WIDTH = 1.0;
@@ -150,8 +153,8 @@ public final class SlideEditorPane extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		
-		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -180,13 +183,13 @@ public final class SlideEditorPane extends Application {
 		
 		
 		Pane slidePreview = new Pane();
-		slidePreview.setBorder(FxFactory.newBorder(Color.ORANGE));
+//		slidePreview.setBorder(FxFactory.newBorder(Color.ORANGE));
 		
 		// TODO see http://fxexperience.com/2014/05/resizable-grid-using-canvas/ for a grid example
 		StackPane slideBounds = new StackPane();
-		slideBounds.setBorder(FxFactory.newBorder(Color.RED));
+//		slideBounds.setBorder(FxFactory.newBorder(Color.RED));
 		slideBounds.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
-		slideBounds.setEffect(new DropShadow(10, Color.BLACK));
+//		slideBounds.setEffect(new DropShadow(10, Color.BLACK));
 		
 		// we resize and position canvasBack based on the target width/height 
 		// and the available width height using a uniform scale factor
@@ -253,7 +256,7 @@ public final class SlideEditorPane extends Application {
 		
 		StackPane slideCanvas = new StackPane();
 		slideCanvas.setMinSize(0, 0);
-		slideCanvas.setBorder(FxFactory.newBorder(Color.BLUE));
+//		slideCanvas.setBorder(FxFactory.newBorder(Color.BLUE));
 		slideCanvas.getChildren().addAll(fxSlide.getBackgroundNode(), fxSlide.getContentNode(), fxSlide.getBorderNode());
 		slideCanvas.setPrefSize(500, 500);
 		
@@ -465,52 +468,61 @@ public final class SlideEditorPane extends Application {
 			TitledPane ttlSlide = new TitledPane("Slide Background", grid);
 			propertiesPane.getChildren().add(ttlSlide);
 			
-			FontPicker pkrFont = new FontPicker(Font.font("Segoe UI Black", 30), FXCollections.observableArrayList(Font.getFamilies()));
-			propertiesPane.getChildren().add(pkrFont);
+//			FontPicker pkrFont = new FontPicker(Font.font("Segoe UI Black", 30), FXCollections.observableArrayList(Font.getFamilies()));
+//			propertiesPane.getChildren().add(pkrFont);
 		}
 		
-		// the canvas will go in the center
-//		VBox wrapper = new VBox();
-//		wrapper.getChildren().add(canvasBack);
-//		VBox.setVgrow(canvasBack, Priority.ALWAYS);
-//		root.setCenter(wrapper);
-//		root.setRight(propertiesPane);
+		{
+			GridPane grid = new GridPane();
+			grid.setHgap(5);
+			grid.setVgap(3);
+	//		grid.setGridLinesVisible(true);
+			
+			
+			
+			TitledPane aniPane = new TitledPane("Transition & Animations", grid);
+			propertiesPane.getChildren().add(aniPane);
+		}
 		
 		BorderPane bdr = new BorderPane();
-		bdr.setBorder(FxFactory.newBorder(Color.BLACK));
+//		bdr.setBorder(FxFactory.newBorder(Color.BLACK));
 		bdr.setPadding(new Insets(20));
 		bdr.setCenter(slidePreview);
 		
+		ScrollPane propertyScroller = new ScrollPane(propertiesPane);
+		propertyScroller.setFitToWidth(true);
+		
 		SplitPane split = new SplitPane();
-		split.getItems().addAll(bdr, propertiesPane);
-		split.setDividerPositions(0.75);
+		split.getItems().addAll(bdr, propertyScroller);
+		split.setDividerPositions(0.55);
+		SplitPane.setResizableWithParent(propertyScroller, false);
 		
 		Scene scene = new Scene(split);
+		scene.getStylesheets().add(Praisenter.THEME_CSS);
 		stage.setScene(scene);
 		stage.show();
 	}
 	
 	private static final Rectangle2D getUniformlyScaledBounds(double w, double h, double tw, double th) {
+		// compute the scale factors
+		double sw = tw / w;
+		double sh = th / h;
 
-			// if so, lets get the scale factors
-			double sw = tw / w;
-			double sh = th / h;
+		// to scale uniformly we need to 
+		// scale by the smallest factor
+		if (sw < sh) {
+			w = tw;
+			h = (int)Math.ceil(sw * h);
+		} else {
+			w = (int)Math.ceil(sh * w);
+			h = th;
+		}
 
-				// if we want to scale uniformly we need to choose
-				// the smallest scale factor
-				if (sw < sh) {
-					w = tw;
-					h = (int)Math.ceil(sw * h);
-				} else {
-					w = (int)Math.ceil(sh * w);
-					h = th;
-				}
-
-			// center the image
-			double x = (tw - w) / 2.0;
-			double y = (th - h) / 2.0;
-			
-			return new Rectangle2D(x, y, w, h);
+		// center the image
+		double x = (tw - w) / 2.0;
+		double y = (th - h) / 2.0;
+		
+		return new Rectangle2D(x, y, w, h);
 	}
 	
 	private static final Slide createTestSlide() {
@@ -564,17 +576,17 @@ public final class SlideEditorPane extends Application {
 		slide.addComponent(txt);
 		
 		MediaObject img = new MediaObject(
-				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
-//				UUID.fromString("3a455fd7-c8f0-4c81-955b-0bcb3e4c47ef"),
+//				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
+				UUID.fromString("3df0f8ef-faa5-4d2c-820d-2d8dc55216b9"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
-//				UUID.fromString("76fec243-0feb-4a1d-8a56-e57f9193a5cd"),
-				ScaleType.NONE,
+//				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
+				UUID.fromString("00c9ac93-6923-4f4c-a3c2-6bcd9572b170"),
+				ScaleType.NONUNIFORM,
 				false,
 				true);
 		

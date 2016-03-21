@@ -118,6 +118,8 @@ public final class FlowListItem<T> extends VBox implements EventTarget {
 	    			
 	    			// fire the event
 	    			fireEvent(selectEvent);
+	    			
+	    			event.consume();
     			}
     		}
     	});

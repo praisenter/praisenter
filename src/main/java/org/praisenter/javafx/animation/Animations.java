@@ -24,8 +24,10 @@
  */
 package org.praisenter.javafx.animation;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +37,7 @@ import org.apache.logging.log4j.Logger;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class Transitions {
+public final class Animations {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -43,7 +45,7 @@ public final class Transitions {
 	private static final Map<Integer, Class<?>> BY_ID = new HashMap<Integer, Class<?>>();
 	
 	static {
-		BY_ID.put(Swap.ID, null);
+		BY_ID.put(Swap.ID, Swap.class);
 		BY_ID.put(Fade.ID, Fade.class);
 		
 		// swipes
@@ -82,7 +84,11 @@ public final class Transitions {
 	}
 	
 	/** Hidden default constructor */
-	private Transitions() {}
+	private Animations() {}
+	
+	public static final Set<Integer> getAnimationIds() {
+		return Collections.unmodifiableSet(BY_ID.keySet());
+	}
 	
 	public static final CustomAnimation getTransition(int id) {
 		Class<?> clazz = BY_ID.get(id);

@@ -61,7 +61,7 @@ public interface Slide extends SlideRegion {
 	/** A default transition duration value */
 	public static final long DEFAULT_TRANSITION_DURATION = 400;
 	
-	/** Value indicating the transition or easing id is not assigned */
+	/** Value indicating the animation or easing id is not assigned */
 	public static final int ID_NOT_SET = -1;
 	
 	// properties

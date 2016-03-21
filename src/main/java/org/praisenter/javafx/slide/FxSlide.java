@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.animation.CustomAnimation;
 import org.praisenter.javafx.animation.AnimationType;
-import org.praisenter.javafx.animation.Transitions;
+import org.praisenter.javafx.animation.Animations;
 import org.praisenter.javafx.easing.EasingType;
 import org.praisenter.javafx.easing.Easings;
 import org.praisenter.javafx.utility.JavaFxNodeHelper;

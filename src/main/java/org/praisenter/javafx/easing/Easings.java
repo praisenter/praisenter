@@ -24,8 +24,10 @@
  */
 package org.praisenter.javafx.easing;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,6 +61,10 @@ public final class Easings {
 	
 	/** Hidden constructor */
 	private Easings() {}
+	
+	public static final Set<Integer> getEasingIds() {
+		return Collections.unmodifiableSet(BY_ID.keySet());
+	}
 	
 	/**
 	 * Returns a new instance of the given easing class.
