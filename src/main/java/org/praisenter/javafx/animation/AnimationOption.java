@@ -19,7 +19,8 @@ public final class AnimationOption implements Comparable<AnimationOption> {
 
 	@Override
 	public int compareTo(AnimationOption o) {
-		return COLLATOR.compare(this.name, o.name);
+		return this.id - o.id;
+		//return COLLATOR.compare(this.name, o.name);
 	}
 	
 	@Override

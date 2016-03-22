@@ -59,7 +59,9 @@ public final class AnimationPane extends BorderPane {
 		List<AnimationOption> easingOptions = new ArrayList<AnimationOption>();
 		
 		for (Integer id : easingIds) {
-			AnimationOption option = new AnimationOption(id, Translations.get("easing." + id + ".name"), def);
+			Image img = def;
+			try { img = new Image("/org/praisenter/resources/easing." + id + ".png"); } catch (Exception ex) {  }
+			AnimationOption option = new AnimationOption(id, Translations.get("easing." + id + ".name"), img);
 			easingOptions.add(option);
 		}
 		Collections.sort(easingOptions);
