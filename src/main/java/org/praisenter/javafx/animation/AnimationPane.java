@@ -40,8 +40,12 @@ public final class AnimationPane extends BorderPane {
 		Set<Integer> animationIds = Animations.getAnimationIds();
 		List<AnimationOption> options = new ArrayList<AnimationOption>();
 		
+		Image def = new Image("/org/praisenter/resources/animation.10.png");
+		
 		for (Integer id : animationIds) {
-			AnimationOption option = new AnimationOption(id, Translations.get("animation." + id + ".name"), new Image("/org/praisenter/resources/animation.10.png"));
+			Image img = def;
+			try { img = new Image("/org/praisenter/resources/animation." + id + ".png"); } catch (Exception ex) {  }
+			AnimationOption option = new AnimationOption(id, Translations.get("animation." + id + ".name"), img);
 			options.add(option);
 		}
 		Collections.sort(options);
@@ -55,7 +59,7 @@ public final class AnimationPane extends BorderPane {
 		List<AnimationOption> easingOptions = new ArrayList<AnimationOption>();
 		
 		for (Integer id : easingIds) {
-			AnimationOption option = new AnimationOption(id, Translations.get("easing." + id + ".name"), new Image("/org/praisenter/resources/animation.10.png"));
+			AnimationOption option = new AnimationOption(id, Translations.get("easing." + id + ".name"), def);
 			easingOptions.add(option);
 		}
 		Collections.sort(easingOptions);
