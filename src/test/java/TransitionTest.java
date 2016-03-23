@@ -13,11 +13,11 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
-import org.praisenter.javafx.animation.Swap;
 import org.praisenter.javafx.animation.Animations;
-import org.praisenter.javafx.easing.EasingType;
 import org.praisenter.javafx.easing.Easings;
 import org.praisenter.javafx.utility.JavaFxNodeHelper;
+import org.praisenter.slide.animation.Swap;
+import org.praisenter.slide.easing.EasingType;
 
 
 public class TransitionTest extends Application {

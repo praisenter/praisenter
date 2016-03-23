@@ -31,6 +31,9 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.slide.animation.SlideAnimation;
+import org.praisenter.slide.animation.Fade;
+import org.praisenter.slide.animation.Swap;
 
 /**
  * Helper class used to generate a transition for two nodes.
@@ -41,63 +44,63 @@ public final class Animations {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	/** All the transitions by id */
-	private static final Map<Integer, Class<?>> BY_ID = new HashMap<Integer, Class<?>>();
-	
-	static {
-		BY_ID.put(Swap.ID, Swap.class);
-		BY_ID.put(Fade.ID, Fade.class);
-		
-		// swipes
-		BY_ID.put(SwipeLeft.ID, SwipeLeft.class);
-		BY_ID.put(SwipeRight.ID, SwipeRight.class);
-		BY_ID.put(SwipeUp.ID, SwipeUp.class);
-		BY_ID.put(SwipeDown.ID, SwipeDown.class);
-		BY_ID.put(SwipeClockwise.ID, SwipeClockwise.class);
-		BY_ID.put(SwipeCounterClockwise.ID, SwipeCounterClockwise.class);
-		BY_ID.put(SwipeWedgeDown.ID, SwipeWedgeDown.class);
-		BY_ID.put(SwipeWedgeUp.ID, SwipeWedgeUp.class);
-		
-		// circle
-		BY_ID.put(CircularCollapse.ID, CircularCollapse.class);
-		BY_ID.put(CircularExpand.ID, CircularExpand.class);
-		
-		// push
-		BY_ID.put(PushLeft.ID, PushLeft.class);
-		BY_ID.put(PushRight.ID, PushRight.class);
-		BY_ID.put(PushUp.ID, PushUp.class);
-		BY_ID.put(PushDown.ID, PushDown.class);
-		
-		// split
-		BY_ID.put(HorizontalSplitCollapse.ID, HorizontalSplitCollapse.class);
-		BY_ID.put(HorizontalSplitExpand.ID, HorizontalSplitExpand.class);
-		BY_ID.put(VerticalSplitCollapse.ID, VerticalSplitCollapse.class);
-		BY_ID.put(VerticalSplitExpand.ID, VerticalSplitExpand.class);
-		
-		// blinds
-		BY_ID.put(HorizontalBlinds.ID, HorizontalBlinds.class);
-		BY_ID.put(VerticalBlinds.ID, VerticalBlinds.class);
-		
-		// zoom
-		BY_ID.put(ZoomIn.ID, ZoomIn.class);
-		BY_ID.put(ZoomOut.ID, ZoomOut.class);
-	}
+//	/** All the transitions by id */
+//	private static final Map<Integer, Class<?>> BY_ID = new HashMap<Integer, Class<?>>();
+//	
+//	static {
+//		BY_ID.put(Swap.ID, Swap.class);
+//		BY_ID.put(Fade.ID, Fade.class);
+//		
+//		// swipes
+//		BY_ID.put(SwipeLeft.ID, SwipeLeft.class);
+//		BY_ID.put(SwipeRight.ID, SwipeRight.class);
+//		BY_ID.put(SwipeUp.ID, SwipeUp.class);
+//		BY_ID.put(SwipeDown.ID, SwipeDown.class);
+//		BY_ID.put(SwipeClockwise.ID, SwipeClockwise.class);
+//		BY_ID.put(SwipeCounterClockwise.ID, SwipeCounterClockwise.class);
+//		BY_ID.put(SwipeWedgeDown.ID, SwipeWedgeDown.class);
+//		BY_ID.put(SwipeWedgeUp.ID, SwipeWedgeUp.class);
+//		
+//		// circle
+//		BY_ID.put(CircularCollapse.ID, CircularCollapse.class);
+//		BY_ID.put(CircularExpand.ID, CircularExpand.class);
+//		
+//		// push
+//		BY_ID.put(PushLeft.ID, PushLeft.class);
+//		BY_ID.put(PushRight.ID, PushRight.class);
+//		BY_ID.put(PushUp.ID, PushUp.class);
+//		BY_ID.put(PushDown.ID, PushDown.class);
+//		
+//		// split
+//		BY_ID.put(HorizontalSplitCollapse.ID, HorizontalSplitCollapse.class);
+//		BY_ID.put(HorizontalSplitExpand.ID, HorizontalSplitExpand.class);
+//		BY_ID.put(VerticalSplitCollapse.ID, VerticalSplitCollapse.class);
+//		BY_ID.put(VerticalSplitExpand.ID, VerticalSplitExpand.class);
+//		
+//		// blinds
+//		BY_ID.put(HorizontalBlinds.ID, HorizontalBlinds.class);
+//		BY_ID.put(VerticalBlinds.ID, VerticalBlinds.class);
+//		
+//		// zoom
+//		BY_ID.put(ZoomIn.ID, ZoomIn.class);
+//		BY_ID.put(ZoomOut.ID, ZoomOut.class);
+//	}
 	
 	/** Hidden default constructor */
 	private Animations() {}
 	
-	public static final Set<Integer> getAnimationIds() {
-		return Collections.unmodifiableSet(BY_ID.keySet());
-	}
-	
-	public static final CustomAnimation getTransition(int id) {
-		Class<?> clazz = BY_ID.get(id);
-		try {
-			return (CustomAnimation)clazz.newInstance();
-		} catch (Exception e) {
-			return null;
-		}
-	}
+//	public static final Set<Integer> getAnimationIds() {
+//		return Collections.unmodifiableSet(BY_ID.keySet());
+//	}
+//	
+//	public static final SlideAnimation getTransition(int id) {
+//		Class<?> clazz = BY_ID.get(id);
+//		try {
+//			return (SlideAnimation)clazz.newInstance();
+//		} catch (Exception e) {
+//			return null;
+//		}
+//	}
 	
 	
 	// TODO transfer the parallel/sequential code elsewhere

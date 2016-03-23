@@ -45,6 +45,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.ReadonlyIterator;
 import org.praisenter.Tag;
+import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
@@ -241,7 +242,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	public boolean removeComponent(SlideComponent component) {
 		// no re-sort required here
 		if (this.components.remove(component)) {
-			this.animations.removeIf(st -> st.id.equals(component.getId()));
+			this.animations.removeIf(st -> st.getId().equals(component.getId()));
 			return true;
 		}
 		return false;
@@ -414,7 +415,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		List<SlideAnimation> animations = new ArrayList<SlideAnimation>();
 		for (int i = 0; i < this.animations.size(); i++) {
 			SlideAnimation st = this.animations.get(i);
-			if (st.id.equals(id)) {
+			if (st.getId().equals(id)) {
 				animations.add(st);
 			}
 		}

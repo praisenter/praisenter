@@ -4,27 +4,20 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.utility.JavaFxNodeHelper;
+import org.praisenter.slide.MediaComponent;
+import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.text.TextComponent;
+
 import javafx.animation.ParallelTransition;
 import javafx.animation.Transition;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.media.MediaPlayer;
-import javafx.util.Duration;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.animation.CustomAnimation;
-import org.praisenter.javafx.animation.AnimationType;
-import org.praisenter.javafx.animation.Animations;
-import org.praisenter.javafx.easing.EasingType;
-import org.praisenter.javafx.easing.Easings;
-import org.praisenter.javafx.utility.JavaFxNodeHelper;
-import org.praisenter.slide.MediaComponent;
-import org.praisenter.slide.Slide;
-import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideAnimation;
-import org.praisenter.slide.text.TextComponent;
 
 // TODO need to address editing and resizing.  The building of the JavaFX UI is highly dependent on a number of things so we may end up needing to update a bunch of stuff (width/height in particluar)
 

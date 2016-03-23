@@ -1,32 +1,28 @@
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.Locale;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 
-import org.praisenter.javafx.animation.Fade;
-import org.praisenter.javafx.animation.PushLeft;
-import org.praisenter.javafx.easing.Back;
-import org.praisenter.javafx.easing.Bounce;
-import org.praisenter.javafx.easing.Easing;
-import org.praisenter.javafx.easing.Easings;
 import org.praisenter.slide.BasicSlide;
-import org.praisenter.slide.BibleSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideShow;
-import org.praisenter.slide.SlideAnimation;
 import org.praisenter.slide.SongSlide;
 import org.praisenter.slide.SongSlideLyrics;
+import org.praisenter.slide.animation.Direction;
+import org.praisenter.slide.animation.Fade;
+import org.praisenter.slide.animation.Push;
+import org.praisenter.slide.easing.Back;
+import org.praisenter.slide.easing.Bounce;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
 import org.praisenter.slide.graphics.SlideGradientStop;
 import org.praisenter.slide.graphics.SlideLinearGradient;
-import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.graphics.SlideRadialGradient;
+import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.graphics.SlideStrokeCap;
 import org.praisenter.slide.graphics.SlideStrokeJoin;
 import org.praisenter.slide.graphics.SlideStrokeStyle;
@@ -44,8 +40,6 @@ import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.xml.XmlIO;
-
-import com.sun.prism.paint.Stop;
 
 
 public class TestSlideSaving {
@@ -82,12 +76,12 @@ public class TestSlideSaving {
 		slide.setY(0);
 		slide.setPath(Paths.get("/test/man"));
 		
-		SlideAnimation st = new SlideAnimation();
+		Push st = new Push();
+		st.setDirection(Direction.LEFT);
 		st.setId(slide.getId());
 		st.setDelay(0);
 		st.setDuration(400);
-		st.setEasingId(Back.ID);
-		st.setAnimationId(PushLeft.ID);
+		st.setEasing(new Back());
 		slide.getAnimations().add(st);
 		
 		MediaComponent med = new MediaComponent();
@@ -110,13 +104,12 @@ public class TestSlideSaving {
 		txt.setText("hello");
 		slide.addComponent(txt);
 		
-		st = new SlideAnimation();
-		st.setId(txt.getId());
-		st.setDelay(500);
-		st.setDuration(300);
-		st.setEasingId(Bounce.ID);
-		st.setAnimationId(Fade.ID);
-		slide.getAnimations().add(st);
+		Fade st2 = new Fade();
+		st2.setId(txt.getId());
+		st2.setDelay(500);
+		st2.setDuration(300);
+		st2.setEasing(new Bounce());
+		slide.getAnimations().add(st2);
 		
 		DateTimeComponent dtc = new DateTimeComponent();
 		dtc.setFormat(new SimpleDateFormat("YYYY"));
