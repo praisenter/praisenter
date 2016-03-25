@@ -1,26 +1,39 @@
 package org.praisenter.javafx.animation;
 
-import java.text.Collator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.resources.translations.Translations;
+import org.praisenter.slide.easing.Easing;
 
 import javafx.scene.image.Image;
 
 public final class AnimationOption implements Comparable<AnimationOption> {
-	private static final Collator COLLATOR = Collator.getInstance();
+	private static final Logger LOGGER = LogManager.getLogger();
+	private static final Image DEFAULT_IMAGE = new Image("/org/praisenter/resources/animation.Swap.png");
 	
-	final int id;
+	final Class<?> type;
+	final int order;
 	final String name;
 	final Image image;
 	
-	public AnimationOption(int id, String name, Image image) {
-		this.id = id;
-		this.name = name;
+	public AnimationOption(Class<?> type, int order) {
+		this.type = type;
+		this.order = order;
+		String prefix = (Easing.class.isAssignableFrom(type) ? "easing." : "animation.");
+		this.name = Translations.get(prefix + type.getSimpleName() + ".name");
+		Image image = DEFAULT_IMAGE;
+		try {
+			image = new Image("/org/praisenter/resources/" + prefix + type.getSimpleName() + ".png");
+		} catch (Exception e) {
+			// TODO fix
+			LOGGER.error(e);
+		}
 		this.image = image;
 	}
 
 	@Override
 	public int compareTo(AnimationOption o) {
-		return this.id - o.id;
-		//return COLLATOR.compare(this.name, o.name);
+		return this.order - o.order;
 	}
 	
 	@Override
@@ -29,7 +42,7 @@ public final class AnimationOption implements Comparable<AnimationOption> {
 		if (obj == this) return true;
 		if (obj instanceof AnimationOption) {
 			AnimationOption o = (AnimationOption)obj;
-			return o.id == this.id;
+			return o.type == this.type;
 		}
 		return false;
 	}
@@ -39,15 +52,19 @@ public final class AnimationOption implements Comparable<AnimationOption> {
 		return this.name;
 	}
 	
-	public int getId() {
-		return id;
+	public Class<?> getType() {
+		return this.type;
+	}
+	
+	public int getOrder() {
+		return this.order;
 	}
 	
 	public String getName() {
-		return name;
+		return this.name;
 	}
 	
 	public Image getImage() {
-		return image;
+		return this.image;
 	}
 }
