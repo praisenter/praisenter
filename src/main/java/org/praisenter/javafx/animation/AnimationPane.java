@@ -2,14 +2,21 @@ package org.praisenter.javafx.animation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.slide.animation.AnimationType;
+import org.praisenter.slide.animation.Blinds;
 import org.praisenter.slide.animation.Direction;
 import org.praisenter.slide.animation.Operation;
 import org.praisenter.slide.animation.Orientation;
+import org.praisenter.slide.animation.Push;
 import org.praisenter.slide.animation.ShapeType;
+import org.praisenter.slide.animation.Shaped;
 import org.praisenter.slide.animation.SlideAnimation;
+import org.praisenter.slide.animation.Split;
+import org.praisenter.slide.animation.Swipe;
+import org.praisenter.slide.easing.Easing;
 import org.praisenter.slide.easing.EasingType;
 
 import javafx.beans.property.LongProperty;
@@ -17,131 +24,32 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 import javafx.geometry.Insets;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.RadialGradient;
-import javafx.scene.paint.Stop;
+import javafx.util.Pair;
 
 public final class AnimationPane extends BorderPane {
 	/** The configured animation */
 	private final ObjectProperty<SlideAnimation> animation = new SimpleObjectProperty<SlideAnimation>() {
 		public void set(SlideAnimation animation) {
-			if (paint instanceof LinearGradient) {
-	    		LinearGradient lg = (LinearGradient)paint;
-	    		
-	    		final double x1 = clamp(lg.getStartX(), 0, 1);
-	    		final double y1 = clamp(lg.getStartY(), 0, 1);
-	    		final double x2 = clamp(lg.getEndX(), 0, 1);
-	    		final double y2 = clamp(lg.getEndY(), 0, 1);
-	    		
-	    		type.set(0);
-	    		rdoLinear.setSelected(true);
-	    		cycle.set(lg.getCycleMethod());
-	    		switch (lg.getCycleMethod()) {
-	    			case REFLECT:
-	    				rdoCycleReflect.setSelected(true);
-	    				break;
-	    			case REPEAT:
-	    				rdoCycleRepeat.setSelected(true);
-	    				break;
-					default:
-	    				rdoCycleNone.setSelected(true);	
-	    		}
-	    		handle1X.set(x1);
-	    		handle1Y.set(y1);
-	    		handle2X.set(x2);
-	    		handle2Y.set(y2);
-	    		
-	    		// stops
-	    		List<Stop> stops = lg.getStops();
-	    		if (stops != null && stops.size() > 0) {
-	    			Stop s1 = stops.get(0);
-	    			stop1.set(s1);
-	    			sldStop1.setValue(s1.getOffset());
-	    			pkrStop1.setValue(s1.getColor());
-	    			if (stops.size() > 1) {
-	    				Stop s2 = stops.get(1);
-	    				stop2.set(s2);
-	    				sldStop2.setValue(s2.getOffset());
-	    				pkrStop2.setValue(s2.getColor());
-	    			}
-	    		}
-	    		
-	    		// set the handle locations
-	    		handle1.setLayoutX(x1 * preview.getWidth());
-	    		handle1.setLayoutY(y1 * preview.getHeight());
-	    		handle2.setLayoutX(x2 * preview.getWidth());
-	    		handle2.setLayoutY(y2 * preview.getHeight());
-	    	} else if (paint instanceof RadialGradient) {
-	    		RadialGradient rg = (RadialGradient)paint;
-	    		
-	    		final double sqrt2 = Math.sqrt(2.0);
-	    		final double r = clamp(rg.getRadius(), 0, 1);
-	    		final double x1 = clamp(rg.getCenterX(), 0, 1);
-	    		final double y1 = clamp(rg.getCenterY(), 0, 1);
-	    		final double x2 = clamp(x1 + sqrt2 * r, 0, 1);
-	    		final double y2 = clamp(y1 + sqrt2 * r, 0, 1);
-	    		
-	    		type.set(1);
-	    		rdoRadial.setSelected(true);
-	    		cycle.set(rg.getCycleMethod());
-	    		switch (rg.getCycleMethod()) {
-	    			case REFLECT:
-	    				rdoCycleReflect.setSelected(true);
-	    				break;
-	    			case REPEAT:
-	    				rdoCycleRepeat.setSelected(true);
-	    				break;
-    				default:
-	    				rdoCycleNone.setSelected(true);	
-	    		}
-	    		handle1X.set(x1);
-	    		handle1Y.set(y1);
-	    		handle2X.set(x2);
-	    		handle2Y.set(y2);
-	    		
-	    		// we have to recompute the radius since the radius could
-	    		// be bigger than what we allow (for example if the center
-	    		// is at (0.5, 0.5) the max radius is sqrt(0.5) instead of 1
-	    		final double d1 = x2 - x1;
-	    		final double d2 = y2 - y1;
-	    		radius.set(Math.sqrt(d1 * d1 + d2 * d2));
-	    		
-	    		// stops
-	    		List<Stop> stops = rg.getStops();
-	    		if (stops != null && stops.size() > 0) {
-	    			Stop s1 = stops.get(0);
-	    			stop1.set(s1);
-	    			sldStop1.setValue(s1.getOffset());
-	    			pkrStop1.setValue(s1.getColor());
-	    			if (stops.size() > 1) {
-	    				Stop s2 = stops.get(1);
-	    				stop2.set(s2);
-	    				sldStop2.setValue(s2.getOffset());
-	    				pkrStop2.setValue(s2.getColor());
-	    			}
-	    		}
-	    		
-	    		// set the handle locations
-	    		handle1.setLayoutX(x1 * preview.getWidth());
-	    		handle1.setLayoutY(y1 * preview.getHeight());
-	    		handle2.setLayoutX(x2 * preview.getWidth());
-	    		handle2.setLayoutY(y2 * preview.getHeight());
+			if (animation != null) {
+	    		// assign all the controls their values
 	    	}
 			
-			// doing this will mean that setting it to null or any other type of paint will do nothing
-			// since it will just use the current observables to generate a new paint
-			
-			// this has the added effect of allowing us to update the paint property without having
-			// it go through the conversion process above by calling: set(null);
-			super.set(createPaint());
+			// when set to null, build it from the control values
+			SlideAnimation ani = createAnimation();
+			// check for null (we don't have enough info to build one)
+			if (ani == null) return;
+			// set it
+			super.set(ani);
 		}
 	};
 	
@@ -163,6 +71,9 @@ public final class AnimationPane extends BorderPane {
 	
 	// nodes
 	
+	ComboBox<AnimatableObject> cmbObjects;
+	FlowListView<AnimationOption> aniListPane;
+	FlowListView<AnimationOption> easingListPane;
 	TextField txtDuration;
 	TextField txtDelay;
 	ChoiceBox<AnimationType> cbAnimationType;
@@ -172,33 +83,63 @@ public final class AnimationPane extends BorderPane {
 	ChoiceBox<ShapeType> cbShapeType;
 	ChoiceBox<Operation> cbOperation;
 	
-	public AnimationPane() {
+	public AnimationPane(ObservableSet<AnimatableObject> objects) {
+		// TODO may not want to show this if sent only one to choose from
+		cmbObjects = new ComboBox<>(FXCollections.observableArrayList(objects));
+		
 		// setup the animation selection
 		List<AnimationOption> animationOptions = new ArrayList<AnimationOption>(Transitions.getAnimationOptions());
 		List<AnimationOption> easingOptions = new ArrayList<AnimationOption>(Transitions.getEasingOptions());
 		
-		FlowListView<AnimationOption> aniListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
+		aniListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
 		aniListPane.itemsProperty().set(FXCollections.observableArrayList(animationOptions));
 		aniListPane.setOrientation(javafx.geometry.Orientation.HORIZONTAL);
 		
-		FlowListView<AnimationOption> easingListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
+		aniListPane.selectionProperty().addListener((obs, ov, nv) -> {
+			// hide controls
+			cbOrientation.setVisible(false);
+			cbDirection.setVisible(false);
+			cbShapeType.setVisible(false);
+			cbOperation.setVisible(false);
+			// hide show based on animation type
+			if (nv != null) {
+				Class<?> type = nv.getType();
+				if (Blinds.class.isAssignableFrom(type)) {
+					cbOrientation.setVisible(true);
+				} else if (Push.class.isAssignableFrom(type)) {
+					cbDirection.setVisible(true);
+				} else if (Shaped.class.isAssignableFrom(type)) {
+					cbOperation.setVisible(true);
+					cbShapeType.setVisible(true);
+				} else if (Split.class.isAssignableFrom(type)) {
+					cbOperation.setVisible(true);
+					cbOrientation.setVisible(true);
+				} else if (Swipe.class.isAssignableFrom(type)) {
+					cbDirection.setVisible(true);
+				}
+				// otherwise all the options remain hidden
+			}
+		});
+		
+		easingListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
 		easingListPane.itemsProperty().set(FXCollections.observableArrayList(easingOptions));
 		easingListPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
 		
 		// setup the animation config
 		
-		TextField txtDuration = new TextField();
+		txtDuration = new TextField();
 		txtDuration.setPromptText("in milliseconds");
-		TextField txtDelay = new TextField();
+		
+		txtDelay = new TextField();
 		txtDelay.setPromptText("in milliseconds");
 		// TODO limit options based on what object we are configuring it for (slide or component); for a slide we only want animation type in
 		// TODO limit options based on what animation we are configuring (fade/swap/etc)
-		ChoiceBox<AnimationType> cbAnimationType = new ChoiceBox<>(FXCollections.observableArrayList(AnimationType.values()));
-		ChoiceBox<EasingType> cbEasingType = new ChoiceBox<>(FXCollections.observableArrayList(EasingType.values()));
-		ChoiceBox<Orientation> cbOrientation = new ChoiceBox<>(FXCollections.observableArrayList(Orientation.values()));
-		ChoiceBox<Direction> cbDirection = new ChoiceBox<>(FXCollections.observableArrayList(Direction.values()));
-		ChoiceBox<ShapeType> cbShapeType = new ChoiceBox<>(FXCollections.observableArrayList(ShapeType.values()));
-		ChoiceBox<Operation> cbOperation = new ChoiceBox<>(FXCollections.observableArrayList(Operation.values()));
+		cbAnimationType = new ChoiceBox<>(FXCollections.observableArrayList(AnimationType.values()));
+		cbEasingType = new ChoiceBox<>(FXCollections.observableArrayList(EasingType.values()));
+		cbOrientation = new ChoiceBox<>(FXCollections.observableArrayList(Orientation.values()));
+		cbDirection = new ChoiceBox<>(FXCollections.observableArrayList(Direction.values()));
+		cbShapeType = new ChoiceBox<>(FXCollections.observableArrayList(ShapeType.values()));
+		cbOperation = new ChoiceBox<>(FXCollections.observableArrayList(Operation.values()));
 		
 		GridPane grid = new GridPane();
 		grid.setPadding(new Insets(5));
@@ -247,5 +188,63 @@ public final class AnimationPane extends BorderPane {
 		this.setCenter(scrAnimations);
 		this.setRight(ttlProperties);
 		this.setBottom(scrEasings);
+	}
+	
+	private SlideAnimation createAnimation() {
+		AnimationOption animationOption = this.aniListPane.selectionProperty().get();
+		if (animationOption == null) {
+			// TODO what do we do if the user hasn't selected an animation?
+			return null;
+		}
+		
+		AnimationOption easingOption = this.easingListPane.selectionProperty().get();
+		if (easingOption == null) {
+			// TODO what do we do if the user hasn't selected an easing?
+			return null;
+		}
+		
+		Class<?> animationClass = animationOption.getType();
+		Class<?> easingClass = easingOption.getType();
+		try {
+			// animation
+			SlideAnimation animation = (SlideAnimation)animationClass.newInstance();
+			animation.setDelay(this.txtDelay.getText());
+			animation.setDuration(this.txtDuration.getText());
+			animation.setId(this.cmbObjects.getValue().getObjectId());
+			animation.setType(this.cbAnimationType.getValue());
+			
+			// custom animation options
+			if (animation instanceof Blinds) {
+				Blinds a = (Blinds)animation;
+				a.setOrientation(this.orientation.get());
+			} else if (animation instanceof Push) {
+				Push a = (Push)animation;
+				a.setDirection(this.direction.get());
+			} else if (animation instanceof Shaped) {
+				Shaped a = (Shaped)animation;
+				a.setOperation(this.operation.get());
+				a.setShapeType(this.shapeType.get());
+			} else if (animation instanceof Split) {
+				Split a = (Split)animation;
+				a.setOrientation(this.orientation.get());
+				a.setOperation(this.operation.get());
+			} else if (animation instanceof Swipe) {
+				Swipe a = (Swipe)animation;
+				a.setDirection(this.direction.get());
+			} else {
+				// Swap/Fade/Zoom don't have extra options at this time
+			}
+			
+			// easing
+			Easing easing = (Easing)easingClass.newInstance();
+			easing.setType(this.cbEasingType.getValue());
+			animation.setEasing(easing);
+			
+			return animation;
+		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 }
