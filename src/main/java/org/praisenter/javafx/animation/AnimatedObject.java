@@ -3,19 +3,21 @@ package org.praisenter.javafx.animation;
 import java.text.Collator;
 import java.util.UUID;
 
-public final class AnimatableObject implements Comparable<AnimatableObject> {
+public final class AnimatedObject implements Comparable<AnimatedObject> {
 	private static final Collator COLLATOR = Collator.getInstance();
 	
 	private final UUID objectId;
+	private final AnimatedObjectType type;
 	private final String name;
 	
-	public AnimatableObject(UUID objectId, String name) {
+	public AnimatedObject(UUID objectId, AnimatedObjectType type, String name) {
 		this.objectId = objectId;
+		this.type = type;
 		this.name = name;
 	}
 	
 	@Override
-	public int compareTo(AnimatableObject o) {
+	public int compareTo(AnimatedObject o) {
 		return COLLATOR.compare(this.name, o.name);
 	}
 	
@@ -33,8 +35,8 @@ public final class AnimatableObject implements Comparable<AnimatableObject> {
 	public boolean equals(Object obj) {
 		if (obj == null) return false;
 		if (obj == this) return true;
-		if (obj instanceof AnimatableObject) {
-			AnimatableObject o = (AnimatableObject)obj;
+		if (obj instanceof AnimatedObject) {
+			AnimatedObject o = (AnimatedObject)obj;
 			if (this.objectId.equals(o.objectId)) {
 				return true;
 			}
@@ -44,6 +46,10 @@ public final class AnimatableObject implements Comparable<AnimatableObject> {
 
 	public UUID getObjectId() {
 		return objectId;
+	}
+
+	public AnimatedObjectType getType() {
+		return type;
 	}
 
 	public String getName() {

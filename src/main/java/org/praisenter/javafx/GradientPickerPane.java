@@ -206,6 +206,9 @@ public final class GradientPickerPane extends HBox {
 			// it go through the conversion process above by calling: set(null);
 			super.set(createPaint());
 		}
+		public void setValue(Paint paint) {
+			set(paint);
+		}
 	};
 	
 	// properties that build the gradient

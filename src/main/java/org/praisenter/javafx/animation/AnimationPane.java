@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.omg.CosNaming.Binding;
 import org.praisenter.javafx.FlowListView;
+import org.praisenter.javafx.LongTextFormatter;
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Blinds;
 import org.praisenter.slide.animation.Direction;
+import org.praisenter.slide.animation.Fade;
 import org.praisenter.slide.animation.Operation;
 import org.praisenter.slide.animation.Orientation;
 import org.praisenter.slide.animation.Push;
@@ -15,7 +18,9 @@ import org.praisenter.slide.animation.ShapeType;
 import org.praisenter.slide.animation.Shaped;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.animation.Split;
+import org.praisenter.slide.animation.Swap;
 import org.praisenter.slide.animation.Swipe;
+import org.praisenter.slide.animation.Zoom;
 import org.praisenter.slide.easing.Easing;
 import org.praisenter.slide.easing.EasingType;
 
@@ -24,7 +29,9 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
+import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
@@ -51,6 +58,9 @@ public final class AnimationPane extends BorderPane {
 			// set it
 			super.set(ani);
 		}
+		public void setValue(SlideAnimation animation) {
+			set(animation);
+		}
 	};
 	
 	// sub properties of the animation
@@ -71,7 +81,17 @@ public final class AnimationPane extends BorderPane {
 	
 	// nodes
 	
-	ComboBox<AnimatableObject> cmbObjects;
+	Label lblObjects;
+	Label lblDuration;
+	Label lblDelay;
+	Label lblAnimationType;
+	Label lblEasingType;
+	Label lblOrientation;
+	Label lblDirection;
+	Label lblShapeType;
+	Label lblOperation;
+	
+	ComboBox<AnimatedObject> cmbObjects;
 	FlowListView<AnimationOption> aniListPane;
 	FlowListView<AnimationOption> easingListPane;
 	TextField txtDuration;
@@ -83,9 +103,30 @@ public final class AnimationPane extends BorderPane {
 	ChoiceBox<ShapeType> cbShapeType;
 	ChoiceBox<Operation> cbOperation;
 	
-	public AnimationPane(ObservableSet<AnimatableObject> objects) {
-		// TODO may not want to show this if sent only one to choose from
-		cmbObjects = new ComboBox<>(FXCollections.observableArrayList(objects));
+	public AnimationPane(ObservableSet<AnimatedObject> objects) {
+		FilteredList<Direction> directions = new FilteredList<Direction>(FXCollections.observableArrayList(Direction.values()));
+		
+		GridPane grid = new GridPane();
+		grid.setPadding(new Insets(5));
+		grid.setHgap(3);
+		grid.setVgap(3);
+		
+		ObservableList<AnimatedObject> objs = FXCollections.observableArrayList(objects);
+		
+		lblObjects = new Label("Object");
+		cmbObjects = new ComboBox<>(objs);
+		
+		if (objects.size() == 0) {
+			// TODO throw error, we should always at least have the slide
+		}
+		if (objects.size() == 1) {
+			cmbObjects.setValue(objs.get(0));
+			cmbObjects.setDisable(true);
+		}
+		
+		cmbObjects.valueProperty().addListener((obs, ov, nv) -> {
+			animation.set(null);
+		});
 		
 		// setup the animation selection
 		List<AnimationOption> animationOptions = new ArrayList<AnimationOption>(Transitions.getAnimationOptions());
@@ -96,83 +137,127 @@ public final class AnimationPane extends BorderPane {
 		aniListPane.setOrientation(javafx.geometry.Orientation.HORIZONTAL);
 		
 		aniListPane.selectionProperty().addListener((obs, ov, nv) -> {
-			// hide controls
-			cbOrientation.setVisible(false);
-			cbDirection.setVisible(false);
-			cbShapeType.setVisible(false);
-			cbOperation.setVisible(false);
+			// remove controls
+			grid.getChildren().removeAll(
+					lblDirection, cbDirection,
+					lblOrientation, cbOrientation,
+					lblOperation, cbOperation,
+					lblShapeType, cbShapeType);
 			// hide show based on animation type
 			if (nv != null) {
 				Class<?> type = nv.getType();
 				if (Blinds.class.isAssignableFrom(type)) {
-					cbOrientation.setVisible(true);
+					grid.add(lblOrientation, 0, 5);
+					grid.add(cbOrientation, 1, 5);
 				} else if (Push.class.isAssignableFrom(type)) {
-					cbDirection.setVisible(true);
+					grid.add(lblDirection, 0, 5);
+					grid.add(cbDirection, 1, 5);
+					directions.setPredicate((f) -> {
+						return f == Direction.UP || f == Direction.RIGHT || f == Direction.LEFT || f == Direction.DOWN;
+					});
 				} else if (Shaped.class.isAssignableFrom(type)) {
-					cbOperation.setVisible(true);
-					cbShapeType.setVisible(true);
+					grid.add(lblShapeType, 0, 5);
+					grid.add(cbShapeType, 1, 5);
+					grid.add(lblOperation, 0, 6);
+					grid.add(cbOperation, 1, 6);
 				} else if (Split.class.isAssignableFrom(type)) {
-					cbOperation.setVisible(true);
-					cbOrientation.setVisible(true);
+					grid.add(lblOrientation, 0, 5);
+					grid.add(cbOrientation, 1, 5);
+					grid.add(lblOperation, 0, 6);
+					grid.add(cbOperation, 1, 6);
 				} else if (Swipe.class.isAssignableFrom(type)) {
-					cbDirection.setVisible(true);
+					grid.add(lblDirection, 0, 5);
+					grid.add(cbDirection, 1, 5);
+					directions.setPredicate((f) -> { return true; });
 				}
 				// otherwise all the options remain hidden
 			}
+			
+			animation.set(null);
 		});
 		
 		easingListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
 		easingListPane.itemsProperty().set(FXCollections.observableArrayList(easingOptions));
 		easingListPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
+		easingListPane.selectionProperty().addListener((obs, ov, nv) -> {
+			animation.set(null);
+		});
 		
 		// setup the animation config
 		
+		lblDuration = new Label("Duration");
 		txtDuration = new TextField();
 		txtDuration.setPromptText("in milliseconds");
+		txtDuration.setTextFormatter(new LongTextFormatter());
+		txtDuration.textProperty().addListener((obs, ov, nv) -> {
+			animation.set(null);
+		});
 		
+		lblDelay = new Label("Delay");
 		txtDelay = new TextField();
 		txtDelay.setPromptText("in milliseconds");
-		// TODO limit options based on what object we are configuring it for (slide or component); for a slide we only want animation type in
-		// TODO limit options based on what animation we are configuring (fade/swap/etc)
+		txtDelay.setTextFormatter(new LongTextFormatter());
+		txtDelay.textProperty().addListener((obs, ov, nv) -> {
+			animation.set(null);
+		});
+		
+		lblAnimationType = new Label("Animation Type");
+		lblAnimationType.managedProperty().bind(lblAnimationType.visibleProperty());
 		cbAnimationType = new ChoiceBox<>(FXCollections.observableArrayList(AnimationType.values()));
+		cbAnimationType.managedProperty().bind(cbAnimationType.visibleProperty());
+		cbAnimationType.valueProperty().addListener((obs, ov, nv) -> {
+			animation.set(null);
+		});
+		
+		lblEasingType = new Label("Easing Type");
 		cbEasingType = new ChoiceBox<>(FXCollections.observableArrayList(EasingType.values()));
+		cbEasingType.valueProperty().addListener((obs, ov, nv) -> {
+			animation.set(null);
+		});
+				
+		lblOrientation = new Label("Orientation");
+		lblOrientation.managedProperty().bind(lblOrientation.visibleProperty());
 		cbOrientation = new ChoiceBox<>(FXCollections.observableArrayList(Orientation.values()));
-		cbDirection = new ChoiceBox<>(FXCollections.observableArrayList(Direction.values()));
+		cbOrientation.managedProperty().bind(cbOrientation.visibleProperty());
+		cbOrientation.valueProperty().addListener((obs, ov, nv) -> {
+			animation.set(null);
+		});
+		
+		lblDirection = new Label("Direction");
+		cbDirection = new ChoiceBox<>(directions);
+		cbDirection.managedProperty().bind(cbDirection.visibleProperty());
+		cbDirection.valueProperty().addListener((obs, ov, nv) -> {
+			animation.set(null);
+		});
+		
+		lblShapeType = new Label("Shape Type");
 		cbShapeType = new ChoiceBox<>(FXCollections.observableArrayList(ShapeType.values()));
+		cbShapeType.managedProperty().bind(cbShapeType.visibleProperty());
+		cbShapeType.valueProperty().addListener((obs, ov, nv) -> {
+			animation.set(null);
+		});
+		
+		lblOperation = new Label("Operation");
 		cbOperation = new ChoiceBox<>(FXCollections.observableArrayList(Operation.values()));
+		cbOperation.managedProperty().bind(cbOperation.visibleProperty());
+		cbOperation.valueProperty().addListener((obs, ov, nv) -> {
+			animation.set(null);
+		});
 		
-		GridPane grid = new GridPane();
-		grid.setPadding(new Insets(5));
-		grid.setHgap(3);
-		grid.setVgap(3);
+		grid.add(lblObjects, 0, 0);
+		grid.add(cmbObjects, 1, 0);
 		
-		// animation options
+		grid.add(lblDuration, 0, 1);
+		grid.add(txtDuration, 1, 1);
 		
-		grid.add(new Label("Duration"), 0, 0);
-		grid.add(txtDuration, 1, 0);
+		grid.add(lblDelay, 0, 2);
+		grid.add(txtDelay, 1, 2);
 		
-		grid.add(new Label("Delay"), 0, 1);
-		grid.add(txtDelay, 1, 1);
+		grid.add(lblAnimationType, 0, 3);
+		grid.add(cbAnimationType, 1, 3);
 		
-		grid.add(new Label("Animation Type"), 0, 2);
-		grid.add(cbAnimationType, 1, 2);
-		
-		grid.add(new Label("Orientation"), 0, 3);
-		grid.add(cbOrientation, 1, 3);
-		
-		grid.add(new Label("Direction"), 0, 4);
-		grid.add(cbDirection, 1, 4);
-		
-		grid.add(new Label("Shape Type"), 0, 5);
-		grid.add(cbShapeType, 1, 5);
-		
-		grid.add(new Label("Operation"), 0, 6);
-		grid.add(cbOperation, 1, 6);
-		
-		// easing options
-		
-		grid.add(new Label("Easing Type"), 0, 7);
-		grid.add(cbEasingType, 1, 7);
+		grid.add(lblEasingType, 0, 4);
+		grid.add(cbEasingType, 1, 4);
 		
 		ScrollPane scrAnimations = new ScrollPane(aniListPane);
 		scrAnimations.setFitToWidth(true);
@@ -208,8 +293,8 @@ public final class AnimationPane extends BorderPane {
 		try {
 			// animation
 			SlideAnimation animation = (SlideAnimation)animationClass.newInstance();
-			animation.setDelay(this.txtDelay.getText());
-			animation.setDuration(this.txtDuration.getText());
+			animation.setDelay((long)this.txtDelay.getTextFormatter().getValue());
+			animation.setDuration((long)this.txtDuration.getTextFormatter().getValue());
 			animation.setId(this.cmbObjects.getValue().getObjectId());
 			animation.setType(this.cbAnimationType.getValue());
 			
@@ -231,8 +316,12 @@ public final class AnimationPane extends BorderPane {
 			} else if (animation instanceof Swipe) {
 				Swipe a = (Swipe)animation;
 				a.setDirection(this.direction.get());
-			} else {
+			} else if (animation instanceof Swap ||
+					   animation instanceof Fade ||
+					   animation instanceof Zoom) {
 				// Swap/Fade/Zoom don't have extra options at this time
+			} else {
+				// TODO log warning
 			}
 			
 			// easing

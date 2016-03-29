@@ -3,7 +3,8 @@
 import java.util.UUID;
 
 import org.praisenter.javafx.Praisenter;
-import org.praisenter.javafx.animation.AnimatableObject;
+import org.praisenter.javafx.animation.AnimatedObject;
+import org.praisenter.javafx.animation.AnimatedObjectType;
 import org.praisenter.javafx.animation.AnimationPane;
 
 import javafx.application.Application;
@@ -26,7 +27,7 @@ public class TestAnimationPicker extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Animation Picker");
         
-        ObservableSet<AnimatableObject> objects = FXCollections.observableSet(new AnimatableObject(UUID.randomUUID(), "test"));
+        ObservableSet<AnimatedObject> objects = FXCollections.observableSet(new AnimatedObject(UUID.randomUUID(), AnimatedObjectType.COMPONENT, "test"));
         
         AnimationPane root = new AnimationPane(objects);
         

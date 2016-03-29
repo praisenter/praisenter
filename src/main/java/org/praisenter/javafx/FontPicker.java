@@ -101,6 +101,9 @@ public final class FontPicker extends HBox {
 			
 			super.set(createFont());
 		}
+		public void setValue(Font font) {
+			set(font);
+		}
 	};
 	
 	// nodes
