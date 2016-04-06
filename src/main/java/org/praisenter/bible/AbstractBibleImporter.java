@@ -31,13 +31,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
-import java.text.MessageFormat;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.Database;
-import org.praisenter.resources.translations.Translations;
 
 /**
  * Abstract class for importing bibles into the bible library.
@@ -95,9 +93,8 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 	 * @param verses the verses of the bible
 	 * @throws SQLException if an error occurs while saving the data to the database
 	 * @throws BibleAlreadyExistsException if the bible already exists in the library
-	 * @throws BibleImportException if an insert fails silently
 	 */
-	protected final void insert(Bible bible, List<Book> books, List<Verse> verses) throws SQLException, BibleAlreadyExistsException, BibleImportException {
+	protected final void insert(Bible bible, List<Book> books, List<Verse> verses) throws SQLException, BibleAlreadyExistsException {
 		LOGGER.debug("Importing new bible: " + bible.name);
 		// insert all the data into the tables
 		try (Connection connection = this.database.getConnection()) {
@@ -111,7 +108,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 				if (bqResult.next() && bqResult.getInt(1) > 0) {
 					connection.rollback();
 					LOGGER.error("The bible already exists in the .");
-					throw new BibleAlreadyExistsException(MessageFormat.format(Translations.get("bible.import.error.duplicate"), bible.name));
+					throw new BibleAlreadyExistsException(bible.name);
 				}
 			} catch (SQLException e) {
 				connection.rollback();
@@ -128,20 +125,13 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 				bibleInsert.setString(2, bible.name);
 				bibleInsert.setString(3, bible.language);
 				// insert the bible
-				int n = bibleInsert.executeUpdate();
+				bibleInsert.executeUpdate();
 				// get the generated id
-				if (n > 0) {
-					ResultSet result = bibleInsert.getGeneratedKeys();
-					if (result.next()) {
-						// get the bible id
-						int id = result.getInt(1);
-						bibleId = id;
-					}
-				} else {
-					// throw an error
-					connection.rollback();
-					LOGGER.error("The insert of the bible failed (0 records updated).");
-					throw new BibleImportException(MessageFormat.format(Translations.get("bible.import.error.bible"), bible.name));
+				ResultSet result = bibleInsert.getGeneratedKeys();
+				if (result.next()) {
+					// get the bible id
+					int id = result.getInt(1);
+					bibleId = id;
 				}
 			} catch (SQLException e) {
 				connection.rollback();
@@ -160,14 +150,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 						bookInsert.setString(2, book.code);
 						bookInsert.setString(3, book.name);
 						// execute the insert
-						int n = bookInsert.executeUpdate();
-						// make sure it worked
-						if (n <= 0) {
-							// roll back anything we've done
-							connection.rollback();
-							// throw an error
-							throw new BibleImportException(MessageFormat.format(Translations.get("bible.import.error.book"), book.name, bible.name));
-						}
+						bookInsert.executeUpdate();
 					}
 				} catch (SQLException e) {
 					connection.rollback();
@@ -189,14 +172,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 						verseInsert.setClob(7, new StringReader(verse.text));
 						// execute the insert
 						try {
-							int n = verseInsert.executeUpdate();
-							// make sure it worked
-							if (n <= 0) {
-								// roll back anything we've done
-								connection.rollback();
-								// throw an error
-								throw new BibleImportException(MessageFormat.format(Translations.get("bible.import.error.book"), verse.book.name, verse.chapter, verse.verse, bible.name));
-							}
+							verseInsert.executeUpdate();
 						} catch (SQLIntegrityConstraintViolationException e) {
 							// its possible that the dumps have duplicate keys (book, chapter, verse, subverse)
 							// in this case we will ignore these and continue but log them as warnings

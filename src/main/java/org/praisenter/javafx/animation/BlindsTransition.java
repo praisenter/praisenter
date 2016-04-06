@@ -4,6 +4,7 @@ import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Blinds;
 
 import javafx.geometry.Bounds;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 
@@ -19,7 +20,7 @@ public class BlindsTransition extends CustomTransition<Blinds> {
 	protected void interpolate(double frac) {
 		if (this.node == null) return;
 		
-		Bounds bounds = this.node.getBoundsInParent();
+		Rectangle2D bounds = this.getBounds();
 		
 		Shape clip = null;
 		switch(this.animation.getOrientation()) {
@@ -36,7 +37,7 @@ public class BlindsTransition extends CustomTransition<Blinds> {
 		this.node.setClip(clip);
 	}
 
-	private Shape getHorizontalBlinds(Bounds bounds, double frac) {
+	private Shape getHorizontalBlinds(Rectangle2D bounds, double frac) {
 //		double w = this.node.getPrefWidth();
 //		double h = this.node.getPrefHeight();
 		
@@ -72,7 +73,7 @@ public class BlindsTransition extends CustomTransition<Blinds> {
 		return clip;
 	}
 	
-	private Shape getVerticalBlinds(Bounds bounds, double frac) {
+	private Shape getVerticalBlinds(Rectangle2D bounds, double frac) {
 //		double w = this.node.getPrefWidth();
 //		double h = this.node.getPrefHeight();
 		

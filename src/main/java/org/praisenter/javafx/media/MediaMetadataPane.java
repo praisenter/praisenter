@@ -313,7 +313,7 @@ final class MediaMetadataPane extends VBox {
         			// length
         			if (type == MediaType.AUDIO || type == MediaType.VIDEO) {
         				long l = media.getMetadata().getLength();
-        				length.set(l == MediaMetadata.UNKNOWN ? unknown : Formatter.getLengthFormattedString(l));
+        				length.set(l == MediaMetadata.UNKNOWN ? unknown : Formatter.getSecondsFormattedString(l));
         			} else {
         				length.set(NOT_APPLICABLE);
         			}

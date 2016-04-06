@@ -30,8 +30,8 @@ public class TestMediaLibrary extends Application {
 	}
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),

@@ -22,46 +22,48 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.bible;
+package org.praisenter.media;
+
+import org.praisenter.InvalidFormatException;
 
 /**
- * Exception thrown when a bible import fails.
+ * Exception thrown when a video file doesn't contain any video streams.
  * @author William Bittle
  * @version 3.0.0
  */
-public class BibleImportException extends Exception {
-	/** The version id */
-	private static final long serialVersionUID = -4541129135637594279L;
+public final class NoVideoInMediaException extends InvalidFormatException {
+	/** The serialization id */
+	private static final long serialVersionUID = 6542289891632594203L;
 
 	/**
 	 * Default constructor.
 	 */
-	public BibleImportException() {
+	public NoVideoInMediaException() {
 		super();
 	}
-	
+
 	/**
 	 * Full constructor.
 	 * @param message the message
-	 * @param cause the root exception
+	 * @param cause the cause
 	 */
-	public BibleImportException(String message, Throwable cause) {
+	public NoVideoInMediaException(String message, Throwable cause) {
 		super(message, cause);
 	}
-	
+
 	/**
 	 * Optional constructor.
 	 * @param message the message
 	 */
-	public BibleImportException(String message) {
+	public NoVideoInMediaException(String message) {
 		super(message);
 	}
 
 	/**
 	 * Optional constructor.
-	 * @param cause the root exception
+	 * @param cause the cause
 	 */
-	public BibleImportException(Throwable cause) {
+	public NoVideoInMediaException(Throwable cause) {
 		super(cause);
 	}
 }

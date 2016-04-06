@@ -27,12 +27,12 @@ package org.praisenter.data;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.util.Enumeration;
 import java.util.zip.ZipException;
 
@@ -48,7 +48,6 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.derby.jdbc.EmbeddedDriver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Zip;
 
@@ -110,12 +109,13 @@ public final class Database {
 		
 		// verify the database exists
 		if (Files.exists(this.path)) {
+			LOGGER.debug("The database path exists.");
 			// make sure the path is a directory
 			if (Files.isDirectory(this.path)) {
-				LOGGER.debug("The database folder exists.");
+				LOGGER.debug("The database path is a directory.");
 			} else {
 				LOGGER.error("The given path {} is not a directory.", this.path.toAbsolutePath().toString());
-				throw new IOException(MessageFormat.format(Translations.get("database.path.incorrect"), this.path.toAbsolutePath().toString()));
+				throw new NotDirectoryException(this.path.toAbsolutePath().toString());
 			}
 		} else {
 			LOGGER.debug("Database does not exist. Installing blank database.");
@@ -132,7 +132,7 @@ public final class Database {
 			connection.isValid(5000);
 		} catch (Exception ex) {
 			LOGGER.error("Failed to connect to database.", ex);
-			throw new SQLException(Translations.get("database.connection.failed"), ex);
+			throw new ConnectException(ex);
 		}
 		
         this.dataSource = dataSource;

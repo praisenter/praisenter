@@ -34,7 +34,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,8 +42,9 @@ import java.util.zip.ZipInputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.InvalidFormatException;
+import org.praisenter.NoContentException;
 import org.praisenter.data.Database;
-import org.praisenter.resources.translations.Translations;
 
 /**
  * A bible importer for the bible data files hosted on The Unbound Bible at www.unboundbible.org.
@@ -78,7 +78,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public void execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, BibleFormatException, BibleImportException {
+	public void execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException {
 		// get the file name
 		String fileName = path.getFileName().toString();
 		int d = fileName.lastIndexOf(".");
@@ -106,11 +106,11 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 				while ((entry = zis.getNextEntry()) != null) {
 					if (entry.getName().equalsIgnoreCase(bookFileName)) {
 						LOGGER.debug("Reading UnboundBible .zip file contents: " + bookFileName);
-						readBooks(zis);
+						readBooks(bookFileName, zis);
 						LOGGER.debug("UnboundBible .zip file contents read successfully: " + bookFileName);
 					} else if (entry.getName().equalsIgnoreCase(verseFileName)) {
 						LOGGER.debug("Reading UnboundBible .zip file contents: " + verseFileName);
-						readVerses(zis);
+						readVerses(verseFileName, zis);
 						LOGGER.debug("UnboundBible .zip file contents read successfully: " + verseFileName);
 					}
 				}
@@ -119,7 +119,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 			// check for missing files
 			if (books.size() == 0 && verses.size() == 0) {
 				LOGGER.error("The file did not contain any books or verses. Import failed.");
-				throw new BibleFormatException(Translations.get("bible.import.error.unbound.empty"));
+				throw new NoContentException();
 			}
 			
 			// import into the database
@@ -129,11 +129,12 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 	
 	/**
 	 * Reads the books file.
+	 * @param fileName the file name
 	 * @param zis the ZipInputStream
-	 * @throws BibleFormatException if the data is in an unexpected format
+	 * @throws InvalidFormatException if the data is in an unexpected format
 	 * @throws IOException if an IO error occurs
 	 */
-	private void readBooks(ZipInputStream zis) throws BibleFormatException, IOException {
+	private void readBooks(String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
 		// load up the book names
 		BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
 		// read them line by line
@@ -146,7 +147,8 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 				// split the line by tabs
 				String[] data = line.split("\\t");
 				if (data.length != 2) {
-					throw new BibleFormatException(MessageFormat.format(Translations.get("bible.import.error.unbound.book.format.unknown"), i));
+					LOGGER.error("Expected 2 columns of tab delimited data, but found " + data.length + " columns at line " + i + " of " + fileName);
+					throw new InvalidFormatException(fileName + ":" + i);
 				} else {
 					Book book = new Book(
 							this.bible,
@@ -161,11 +163,12 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 	
 	/**
 	 * Reads the verses and assigns some bible fields.
+	 * @param fileName the file name
 	 * @param zis the ZipInputStream
-	 * @throws BibleFormatException if the data is in an unexpected format
+	 * @throws InvalidFormatException if the data is in an unexpected format
 	 * @throws IOException if an IO error occurs
 	 */
-	private void readVerses(ZipInputStream zis) throws BibleFormatException, IOException {
+	private void readVerses(String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
 		// load up the verses
 		BufferedReader reader = new BufferedReader(new InputStreamReader(zis, StandardCharsets.UTF_8));
 		// read them line by line
@@ -211,7 +214,8 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 				String[] data = line.split("\\t");
 				// we need at least 4 columns to continue (book,chapter,verse,text)
 				if (data.length < 4) {
-					throw new BibleFormatException(Translations.get("bible.import.error.unbound.verse.format.unknown"));
+					LOGGER.error("Expected at least 4 columns of tab delimited data, but found " + data.length + " columns at line " + i + " of " + fileName);
+					throw new InvalidFormatException(fileName + ":" + i);
 				} else {
 					try {
 						Verse verse = new Verse();
@@ -266,7 +270,8 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 						}
 						this.verses.add(verse);
 					} catch (NumberFormatException e) {
-						throw new BibleFormatException(MessageFormat.format(Translations.get("bible.import.error.unbound.verse.parse.number"), i));
+						LOGGER.error("Failed to parse chapter, verse or order as integers at line " + i + " of " + fileName);
+						throw new InvalidFormatException(fileName + ":" + i);
 					}
 				}
 			}

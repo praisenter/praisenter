@@ -22,21 +22,21 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.bible;
+package org.praisenter;
 
 /**
- * Exception thrown when a bible file doesn't match the expected format.
+ * Exception thrown when a file or stream has no useful content.
  * @author William Bittle
  * @version 3.0.0
  */
-public class BibleFormatException extends Exception {
+public class NoContentException extends InvalidFormatException {
 	/** The version id */
-	private static final long serialVersionUID = -52154769039743628L;
+	private static final long serialVersionUID = 8420463368288027495L;
 
 	/**
 	 * Default constructor.
 	 */
-	public BibleFormatException() {
+	public NoContentException() {
 		super();
 	}
 	
@@ -45,7 +45,7 @@ public class BibleFormatException extends Exception {
 	 * @param message the message
 	 * @param cause the root exception
 	 */
-	public BibleFormatException(String message, Throwable cause) {
+	public NoContentException(String message, Throwable cause) {
 		super(message, cause);
 	}
 	
@@ -53,7 +53,7 @@ public class BibleFormatException extends Exception {
 	 * Optional constructor.
 	 * @param message the message
 	 */
-	public BibleFormatException(String message) {
+	public NoContentException(String message) {
 		super(message);
 	}
 
@@ -61,7 +61,7 @@ public class BibleFormatException extends Exception {
 	 * Optional constructor.
 	 * @param cause the root exception
 	 */
-	public BibleFormatException(Throwable cause) {
+	public NoContentException(Throwable cause) {
 		super(cause);
 	}
 }

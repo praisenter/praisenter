@@ -9,7 +9,7 @@ import javafx.scene.image.Image;
 
 public final class AnimationOption implements Comparable<AnimationOption> {
 	private static final Logger LOGGER = LogManager.getLogger();
-	private static final Image DEFAULT_IMAGE = new Image("/org/praisenter/resources/animation.Swap.png");
+	private static final Image DEFAULT_IMAGE = new Image("/org/praisenter/resources/org.praisenter.slide.animation.Swap.png");
 	
 	final Class<?> type;
 	final int order;
@@ -19,11 +19,10 @@ public final class AnimationOption implements Comparable<AnimationOption> {
 	public AnimationOption(Class<?> type, int order) {
 		this.type = type;
 		this.order = order;
-		String prefix = (Easing.class.isAssignableFrom(type) ? "easing." : "animation.");
-		this.name = Translations.get(prefix + type.getSimpleName() + ".name");
+		this.name = Translations.get(type.getName());
 		Image image = DEFAULT_IMAGE;
 		try {
-			image = new Image("/org/praisenter/resources/" + prefix + type.getSimpleName() + ".png");
+			image = new Image("/org/praisenter/resources/" + type.getName() + ".png");
 		} catch (Exception e) {
 			// TODO fix
 			LOGGER.error(e);

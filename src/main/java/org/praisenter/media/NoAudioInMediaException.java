@@ -22,29 +22,48 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.bible;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.sql.SQLException;
+package org.praisenter.media;
 
 import org.praisenter.InvalidFormatException;
 
 /**
- * Represents a class that reads a given path for Bible information.
+ * Exception thrown when an audio file doesn't contain any audio streams.
  * @author William Bittle
  * @version 3.0.0
  */
-public interface BibleImporter {
+public final class NoAudioInMediaException extends InvalidFormatException {
+	/** The serialization id */
+	private static final long serialVersionUID = 7220613974139511072L;
+
 	/**
-	 * Imports the Bible information located at the given path.
-	 * @param path the path
-	 * @throws IOException if an IO error occurs
-	 * @throws SQLException if an error occurs connection or inserting data into the database
-	 * @throws FileNotFoundException if the given path doesn't exist
-	 * @throws BibleAlreadyExistsException if the Bible already exists in the database
-	 * @throws InvalidFormatException if the file or files are not in the expected format
+	 * Default constructor.
 	 */
-	public abstract void execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException;
+	public NoAudioInMediaException() {
+		super();
+	}
+
+	/**
+	 * Full constructor.
+	 * @param message the message
+	 * @param cause the cause
+	 */
+	public NoAudioInMediaException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	/**
+	 * Optional constructor.
+	 * @param message the message
+	 */
+	public NoAudioInMediaException(String message) {
+		super(message);
+	}
+
+	/**
+	 * Optional constructor.
+	 * @param cause the cause
+	 */
+	public NoAudioInMediaException(Throwable cause) {
+		super(cause);
+	}
 }

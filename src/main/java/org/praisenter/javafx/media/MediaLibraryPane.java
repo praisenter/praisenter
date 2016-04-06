@@ -218,7 +218,7 @@ public final class MediaLibraryPane extends BorderPane {
         // add the all option
         opTypes.add(new Option<>());
         // add the current options
-        opTypes.addAll(Arrays.asList(mediaTypes).stream().map(t -> new Option<MediaType>(t.getName(), t)).collect(Collectors.toList()));
+        opTypes.addAll(Arrays.asList(mediaTypes).stream().map(t -> new Option<MediaType>(Translations.get(t.getClass().getName() + "." + t.name()), t)).collect(Collectors.toList()));
 
         // sorting options
         ObservableList<Option<MediaSortField>> sortFields = FXCollections.observableArrayList();

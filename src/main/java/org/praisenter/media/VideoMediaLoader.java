@@ -24,6 +24,19 @@
  */
 package org.praisenter.media;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.InvalidFormatException;
+import org.praisenter.utility.ImageManipulator;
+
 import io.humble.video.Codec;
 import io.humble.video.Decoder;
 import io.humble.video.Demuxer;
@@ -34,20 +47,6 @@ import io.humble.video.MediaPacket;
 import io.humble.video.MediaPicture;
 import io.humble.video.awt.MediaPictureConverter;
 import io.humble.video.awt.MediaPictureConverterFactory;
-
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.text.MessageFormat;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.resources.translations.Translations;
-import org.praisenter.utility.ImageManipulator;
 
 /**
  * {@link MediaLoader} that loads video media.
@@ -82,7 +81,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
 	 */
 	@Override
-	public LoadedMedia load(Path path) throws IOException, FileNotFoundException, MediaFormatException {
+	public LoadedMedia load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			Demuxer demuxer = null;
 			try {
@@ -133,7 +132,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 				// we must have a video, audio is optional
 				if (video == null) {
 					LOGGER.error("No video stream present on file: '{}'", path.toAbsolutePath().toString());
-					throw new MediaFormatException(MessageFormat.format(Translations.get("media.import.error.video.missing"), path.toAbsolutePath().toString()));
+					throw new NoVideoInMediaException(path.toAbsolutePath().toString());
 				}
 				
 				final MediaCodec[] codecs;
@@ -160,7 +159,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 				}
 			}
 		} else {
-			throw new FileNotFoundException(MessageFormat.format(Translations.get("error.file.missing"), path.toAbsolutePath().toString()));
+			throw new FileNotFoundException(path.toAbsolutePath().toString());
 		}
 	}
 	

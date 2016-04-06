@@ -4,6 +4,13 @@ import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Swipe;
 
 import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
+import javafx.geometry.Point3D;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Region;
+import javafx.scene.media.MediaView;
 import javafx.scene.shape.Arc;
 import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Rectangle;
@@ -18,7 +25,7 @@ public class SwipeTransition extends CustomTransition<Swipe> {
 	protected void interpolate(double frac) {
 		if (this.node == null) return;
 		
-		Bounds bounds = node.getBoundsInParent();
+		Rectangle2D bounds = this.getBounds();
 		
 		Shape clip = null;
 		switch(this.animation.getDirection()) {
@@ -53,10 +60,7 @@ public class SwipeTransition extends CustomTransition<Swipe> {
 		node.setClip(clip);
 	}
 
-	private Shape getUpClip(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getUpClip(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double p = Math.ceil(h * (1.0 - frac));
@@ -67,10 +71,7 @@ public class SwipeTransition extends CustomTransition<Swipe> {
 		}
 	}
 	
-	private Shape getRightClip(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getRightClip(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double p = Math.ceil(w * frac);
@@ -81,10 +82,7 @@ public class SwipeTransition extends CustomTransition<Swipe> {
 		}
 	}
 	
-	private Shape getDownClip(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getDownClip(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double p = Math.ceil(h * frac);
@@ -95,10 +93,7 @@ public class SwipeTransition extends CustomTransition<Swipe> {
 		}
 	}
 	
-	private Shape getLeftClip(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getLeftClip(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double p = Math.ceil(w * (1.0 - frac));
@@ -109,10 +104,7 @@ public class SwipeTransition extends CustomTransition<Swipe> {
 		}
 	}
 	
-	private Shape getClockwiseClip(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getClockwiseClip(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double hw = w * 0.5;
@@ -130,10 +122,7 @@ public class SwipeTransition extends CustomTransition<Swipe> {
 		}
 	}
 	
-	private Shape getCounterClockwiseClip(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getCounterClockwiseClip(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double hw = w * 0.5;
@@ -151,10 +140,7 @@ public class SwipeTransition extends CustomTransition<Swipe> {
 		}
 	}
 	
-	private Shape getWedgeDownClip(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getWedgeDownClip(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double hw = w * 0.5;
@@ -172,10 +158,7 @@ public class SwipeTransition extends CustomTransition<Swipe> {
 		}
 	}
 	
-	private Shape getWedgeUpClip(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getWedgeUpClip(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double hw = w * 0.5;

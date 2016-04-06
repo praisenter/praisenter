@@ -29,9 +29,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.text.MessageFormat;
-
-import org.praisenter.resources.translations.Translations;
 
 /**
  * The default media import filter which simply copies the source to the target.
@@ -57,7 +54,7 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 		
 		// see if we can use the same name in the destination file
 		if (Files.exists(target)) {
-			throw new FileAlreadyExistsException(MessageFormat.format(Translations.get("error.file.exists"), target.toAbsolutePath().toString()));
+			throw new FileAlreadyExistsException(target.toAbsolutePath().toString());
 		}
 		
 		Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);

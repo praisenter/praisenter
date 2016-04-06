@@ -10,6 +10,7 @@ import java.util.TreeSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.animation.Blinds;
 import org.praisenter.slide.animation.Fade;
 import org.praisenter.slide.animation.Push;
@@ -30,6 +31,7 @@ import org.praisenter.slide.easing.Quadratic;
 import org.praisenter.slide.easing.Quartic;
 import org.praisenter.slide.easing.Quintic;
 import org.praisenter.slide.easing.Sinusoidal;
+import org.praisenter.utility.Formatter;
 
 public final class Transitions {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -82,6 +84,23 @@ public final class Transitions {
 	
 	public static final Set<AnimationOption> getEasingOptions() {
 		return Collections.unmodifiableSet(EASING_OPTIONS);
+	}
+	
+	public static final String getName(SlideAnimation animation) {
+		StringBuilder sb = new StringBuilder();
+		
+		// name
+		sb.append(Translations.get(animation.getClass().getName())).append(" ");
+		
+		// TODO add class specific properties (CIRCLE/Collapse)
+		
+		// start-end
+		long s = animation.getDelay();
+		long d = animation.getDuration();
+		sb.append(Formatter.getMillisecondsFormattedString(s))
+		  .append("-")
+		  .append(Formatter.getMillisecondsFormattedString(s + d));
+		return sb.toString();
 	}
 	
 	public static final CustomTransition<?> createCustomTransition(SlideAnimation animation) {

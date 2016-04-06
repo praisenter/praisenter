@@ -22,29 +22,46 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.bible;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.sql.SQLException;
-
-import org.praisenter.InvalidFormatException;
+package org.praisenter;
 
 /**
- * Represents a class that reads a given path for Bible information.
+ * Exception thrown when a file is not in the expected format.
  * @author William Bittle
  * @version 3.0.0
  */
-public interface BibleImporter {
+public class InvalidFormatException extends Exception {
+	/** The version id */
+	private static final long serialVersionUID = 8420463368288027495L;
+
 	/**
-	 * Imports the Bible information located at the given path.
-	 * @param path the path
-	 * @throws IOException if an IO error occurs
-	 * @throws SQLException if an error occurs connection or inserting data into the database
-	 * @throws FileNotFoundException if the given path doesn't exist
-	 * @throws BibleAlreadyExistsException if the Bible already exists in the database
-	 * @throws InvalidFormatException if the file or files are not in the expected format
+	 * Default constructor.
 	 */
-	public abstract void execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException;
+	public InvalidFormatException() {
+		super();
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param message the message
+	 * @param cause the root exception
+	 */
+	public InvalidFormatException(String message, Throwable cause) {
+		super(message, cause);
+	}
+	
+	/**
+	 * Optional constructor.
+	 * @param message the message
+	 */
+	public InvalidFormatException(String message) {
+		super(message);
+	}
+
+	/**
+	 * Optional constructor.
+	 * @param cause the root exception
+	 */
+	public InvalidFormatException(Throwable cause) {
+		super(cause);
+	}
 }

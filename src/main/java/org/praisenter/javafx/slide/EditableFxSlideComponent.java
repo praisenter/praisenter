@@ -1,34 +1,16 @@
 package org.praisenter.javafx.slide;
 
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.Border;
-
-import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.utility.JavaFxNodeHelper;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideRegion;
-import org.praisenter.slide.SlideAnimation;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
-import org.praisenter.slide.object.MediaObject;
-import org.praisenter.slide.text.FontScaleType;
-import org.praisenter.slide.text.HorizontalTextAlignment;
-import org.praisenter.slide.text.VerticalTextAlignment;
+
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.Border;
 
 public final class EditableFxSlideComponent {
 

@@ -36,6 +36,9 @@ import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
 import javafx.application.Application;
+import javafx.application.ConditionalFeature;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -46,6 +49,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.praisenter.Constants;
 import org.praisenter.javafx.utility.FxFactory;
+import org.praisenter.resources.translations.Translations;
 
 // FEATURE use Apache POI to read powerpoint files
 
@@ -113,6 +117,16 @@ public final class Praisenter extends Application {
 		THEME_CSS = url;
 	}
 
+	// FEATURE we should look at making some of these "optional" instead of required
+	/** The array of Java FX features that Praisenter uses */
+	private static final ConditionalFeature[] REQUIRED_JAVAFX_FEATURES = new ConditionalFeature[] {
+		ConditionalFeature.TRANSPARENT_WINDOW,
+		ConditionalFeature.GRAPHICS,
+		ConditionalFeature.SHAPE_CLIP,
+		ConditionalFeature.CONTROLS,
+		ConditionalFeature.MEDIA
+	};
+	
 	/** The default width */
 	private static final int WIDTH = 1200;
 	
@@ -132,6 +146,27 @@ public final class Praisenter extends Application {
      */
     @Override
     public void start(Stage stage) throws Exception {
+    	// log supported features
+    	LOGGER.info("Supported Java FX Features:");
+    	for (ConditionalFeature feature : ConditionalFeature.values()) {
+    		LOGGER.info(feature.name() + "=" + Platform.isSupported(feature));
+    	}
+    	
+    	// verify features
+    	for (ConditionalFeature feature : REQUIRED_JAVAFX_FEATURES) {
+    		if (!Platform.isSupported(feature)) {
+    			// not supported, attempt to show the user an error message
+    			Alert a = Alerts.exception(
+    					stage.getOwner(),
+    					Translations.get("init.feature.missing.title"), 
+    					Translations.get("init.feature.missing.header"), 
+    					feature.name());
+    			a.showAndWait();
+    			LOGGER.info("User closed exception dialog. Exiting application.");
+    			Platform.exit();
+    		}
+    	}
+    	
     	// title
     	stage.setTitle(Constants.NAME + " " + Constants.VERSION);
     	
@@ -194,6 +229,7 @@ public final class Praisenter extends Application {
     	stage.show();
     	
     	// start the loading
+    	LOGGER.info("Starting load");
     	loading.start();
     }
 }

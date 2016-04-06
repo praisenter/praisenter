@@ -32,6 +32,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.slide.animation.SlideAnimation;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.animation.Fade;
 import org.praisenter.slide.animation.Swap;
 

@@ -28,6 +28,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.praisenter.InvalidFormatException;
+
 /**
  * Interface for loading media.
  * @author William Bittle
@@ -51,9 +53,9 @@ public interface MediaLoader {
 	 * @return {@link LoadedMedia}
 	 * @throws IOException if an IO error occurs
 	 * @throws FileNotFoundException if the given file is not found
-	 * @throws MediaFormatException if the media could not be read
+	 * @throws InvalidFormatException if the media could not be read
 	 */
-	public abstract LoadedMedia load(Path path) throws IOException, FileNotFoundException, MediaFormatException;
+	public abstract LoadedMedia load(Path path) throws IOException, FileNotFoundException, InvalidFormatException;
 	
 	/**
 	 * Returns the thumbnail settings this loader is configured with.

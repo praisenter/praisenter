@@ -34,8 +34,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.slide.easing.Easing;
-
-// FIXME move transition code to another place to remove Java FX dependency
+import org.praisenter.slide.easing.Linear;
 
 /**
  * Represents an animation that can be applied to slides and components.
@@ -81,11 +80,16 @@ public abstract class SlideAnimation {
 	protected SlideAnimation() {
 		this.id = null;
 		this.type = AnimationType.IN;
-		this.duration = 0;
+		this.duration = 300;
 		this.delay = 0;
-		this.easing = null;
+		this.easing = new Linear();
 	}
 	
+	/**
+	 * Copies over the default animation properties to the given other animation.
+	 * @param other the new animation to copy to
+	 * @param id the id that the new animation applies to
+	 */
 	void copy(SlideAnimation other, UUID id) {
 		other.delay = this.delay;
 		other.duration = this.duration;
@@ -94,12 +98,25 @@ public abstract class SlideAnimation {
 		other.type = this.type;
 	}
 	
+	/**
+	 * Returns a copy of this animation.
+	 * @param id the new id for the animation; can be null
+	 * @return {@link SlideAnimation}
+	 */
 	public abstract SlideAnimation copy(UUID id);
 	
+	/**
+	 * Returns the id of the object to that this animation applies to.
+	 * @return UUID
+	 */
 	public UUID getId() {
-		return id;
+		return this.id;
 	}
 	
+	/**
+	 * Sets the id of the object to that this animation applies to.
+	 * @param id the id
+	 */
 	public void setId(UUID id) {
 		this.id = id;
 	}

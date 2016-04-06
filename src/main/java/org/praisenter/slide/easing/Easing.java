@@ -55,15 +55,25 @@ public abstract class Easing {
 	@XmlAttribute(name = "type")
 	EasingType type;
 
-	
+	/**
+	 * Default constructor.
+	 */
     public Easing() {
         this.type = EasingType.IN;
     }
 
+    /**
+     * Copies the easing properties to the given easing.
+     * @param other the new easing
+     */
     void copy(Easing other) {
     	other.type = this.type;
     }
     
+    /**
+     * Makes a copy of this easing.
+     * @return Easing
+     */
     public abstract Easing copy();
     
     /**
@@ -97,13 +107,17 @@ public abstract class Easing {
     }
 
     /**
-     * Returns the easing type: in, out, or both.
+     * Returns the easing type.
      * @return {@link EasingType}
      */
     public EasingType getType() {
         return this.type;
     }
 
+    /**
+     * Sets the easing type.
+     * @param type the type
+     */
     public void setType(EasingType type) {
 		this.type = type;
 	}

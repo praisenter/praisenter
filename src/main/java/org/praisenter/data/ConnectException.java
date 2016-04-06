@@ -22,29 +22,48 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.bible;
+package org.praisenter.data;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.sql.SQLException;
 
-import org.praisenter.InvalidFormatException;
-
 /**
- * Represents a class that reads a given path for Bible information.
+ * Exception thrown when a database connection could not be made.
  * @author William Bittle
  * @version 3.0.0
  */
-public interface BibleImporter {
+public class ConnectException extends SQLException {
+	/** The version id */
+	private static final long serialVersionUID = -4541129135637594279L;
+
 	/**
-	 * Imports the Bible information located at the given path.
-	 * @param path the path
-	 * @throws IOException if an IO error occurs
-	 * @throws SQLException if an error occurs connection or inserting data into the database
-	 * @throws FileNotFoundException if the given path doesn't exist
-	 * @throws BibleAlreadyExistsException if the Bible already exists in the database
-	 * @throws InvalidFormatException if the file or files are not in the expected format
+	 * Default constructor.
 	 */
-	public abstract void execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException;
+	public ConnectException() {
+		super();
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param message the message
+	 * @param cause the root exception
+	 */
+	public ConnectException(String message, Throwable cause) {
+		super(message, cause);
+	}
+	
+	/**
+	 * Optional constructor.
+	 * @param message the message
+	 */
+	public ConnectException(String message) {
+		super(message);
+	}
+
+	/**
+	 * Optional constructor.
+	 * @param cause the root exception
+	 */
+	public ConnectException(Throwable cause) {
+		super(cause);
+	}
 }

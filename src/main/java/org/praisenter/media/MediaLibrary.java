@@ -34,7 +34,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -50,8 +49,8 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.InvalidFormatException;
 import org.praisenter.Tag;
-import org.praisenter.resources.translations.Translations;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -301,10 +300,10 @@ public final class MediaLibrary {
 	 * @param path the file
 	 * @param meta the existing metadata; can be null
 	 * @return {@link Media}
-	 * @throws MediaFormatException if the media format isn't something recognized or readable
+	 * @throws InvalidFormatException if the media format isn't something recognized or readable
 	 * @throws IOException if an IO error occurs
 	 */
-	private final Media update(Path path, MediaMetadata meta) throws MediaFormatException, IOException {
+	private final Media update(Path path, MediaMetadata meta) throws InvalidFormatException, IOException {
 		LoadedMedia lm = load(path);
 		Media media = lm.media;
 		
@@ -384,38 +383,40 @@ public final class MediaLibrary {
 	 * Loads the given file and returns a {@link Media} object describing the file.
 	 * @param path the file
 	 * @return {@link Media}
-	 * @throws MediaFormatException if the media format isn't something recognized or readable
+	 * @throws InvalidFormatException if the media format isn't something recognized or readable
 	 * @throws IOException if an IO error occurs
 	 */
-	private final LoadedMedia load(Path path) throws MediaFormatException, IOException {
+	private final LoadedMedia load(Path path) throws InvalidFormatException, IOException {
 		List<MediaLoader> loaders = getLoadersForPath(path);
 		
 		// any supporting media loaders?
 		if (loaders.size() == 0) {
 			LOGGER.warn("No supporting media loaders for file '" + path.toAbsolutePath().toString() + "'.");
-			throw new MediaFormatException(MessageFormat.format(Translations.get("media.import.error.loader.none"), path.toAbsolutePath().toString()));
+			throw new UnsupportedMediaException(new UnknownMediaTypeException(path.toAbsolutePath().toString()));
 		}
 		
 		LoadedMedia media = null;
 		
 		// iterate through the loaders
 		int n = loaders.size();
+		LOGGER.debug("Found " + n + " loaders for '" + path.toAbsolutePath().toString() + "'");
 		for (int i = 0; i < n; i++) {
 			MediaLoader loader = loaders.get(i);
 			try {
+				LOGGER.debug("Attempting to use " + loader.getClass().getName() + " to load '" + path.toAbsolutePath().toString() + "'");
 				// the first successful loader wins
 				media = loader.load(path);
 				break;
 			} catch (IOException e) {
 				LOGGER.warn("Failed to load file '" + path.toAbsolutePath().toString() + "': ", e);
-			} catch (MediaFormatException e) {
+			} catch (InvalidFormatException e) {
 				LOGGER.warn("Unsupported media format for '" + path.toAbsolutePath().toString() + "' using media loader '" + loader.getClass().getName() + "'.", e);
 			}
 		}
 		
 		if (media == null) {
 			LOGGER.warn("The supporting media loaders couldn't load '" + path.toAbsolutePath().toString() + "'.");
-			throw new MediaFormatException(MessageFormat.format(Translations.get("media.import.error.loaders.failed"), path.toAbsolutePath().toString()));
+			throw new UnsupportedMediaException(path.toAbsolutePath().toString());
 		}
 		
 		return media;
@@ -459,7 +460,7 @@ public final class MediaLibrary {
 			MediaType type = getMediaType(source);
 			return insert(source, type, source.getFileName().toString());
 		} else {
-			throw new FileNotFoundException(MessageFormat.format(Translations.get("error.file.missing"), source.toAbsolutePath().toString()));
+			throw new FileNotFoundException(source.toAbsolutePath().toString());
 		}
 	}
 
@@ -500,7 +501,7 @@ public final class MediaLibrary {
 	 */
 	private final Path insert(Path source, MediaType type, String name) throws FileAlreadyExistsException, IOException, TranscodeException, UnknownMediaTypeException {
 		if (type == null) {
-			throw new UnknownMediaTypeException(MessageFormat.format(Translations.get("media.import.error.type.unknown"), source.toAbsolutePath().toString()));
+			throw new UnknownMediaTypeException(source.toAbsolutePath().toString());
 		}
 		
 		Path target = this.importFilter.getTarget(this.path, name, type);
@@ -670,11 +671,11 @@ public final class MediaLibrary {
 	 * @throws FileNotFoundException if the given source file isn't found
 	 * @throws FileAlreadyExistsException if a file with the same name already exists
 	 * @throws UnknownMediaTypeException if the media's mime type was not discernible
-	 * @throws MediaFormatException if the media format isn't something recognized or readable
+	 * @throws InvalidFormatException if the media format isn't something recognized or readable
 	 * @throws TranscodeException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized Media add(Path path) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, UnknownMediaTypeException, MediaFormatException {
+	public synchronized Media add(Path path) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, UnknownMediaTypeException, InvalidFormatException {
 		// copy it to the library
 		Path libraryPath = copy(path);
 		// attempt to load it
@@ -690,11 +691,11 @@ public final class MediaLibrary {
 	 * @return {@link Media}
 	 * @throws FileAlreadyExistsException if a file with the same name already exists
 	 * @throws UnknownMediaTypeException if the media's mime type was not discernible
-	 * @throws MediaFormatException if the media format isn't something recognized or readable
+	 * @throws InvalidFormatException if the media format isn't something recognized or readable
 	 * @throws TranscodeException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized Media add(InputStream stream, String name) throws FileAlreadyExistsException, IOException, TranscodeException, UnknownMediaTypeException, MediaFormatException {
+	public synchronized Media add(InputStream stream, String name) throws FileAlreadyExistsException, IOException, TranscodeException, UnknownMediaTypeException, InvalidFormatException {
 		// copy it to the library
 		Path libraryPath = copy(stream, name);
 		// attempt to load it

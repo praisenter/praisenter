@@ -26,8 +26,6 @@ package org.praisenter.media;
 
 import javax.xml.bind.annotation.XmlEnum;
 
-import org.praisenter.resources.translations.Translations;
-
 /**
  * Media type enumeration.
  * @author William Bittle
@@ -36,33 +34,14 @@ import org.praisenter.resources.translations.Translations;
 @XmlEnum
 public enum MediaType {
 	/** Images */
-	IMAGE(Translations.get("media.type.image")),
+	IMAGE,
 	
 	/** Videos */
-	VIDEO(Translations.get("media.type.video")),
+	VIDEO,
 	
 	/** Audio */
-	AUDIO(Translations.get("media.type.audio"));
-	
-	/** The readable name */
-	private final String name;
-	
-	/**
-	 * Minimal constructor.
-	 * @param name the readable name
-	 */
-	private MediaType(String name) {
-		this.name = name;
-	}
-	
-	/**
-	 * Returns the readable name.
-	 * @return String
-	 */
-	public String getName() {
-		return this.name;
-	}
-	
+	AUDIO;
+
 	/**
 	 * Returns the {@link MediaType} for the given mime type or null if
 	 * it's not one of the supported types.

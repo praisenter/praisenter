@@ -24,23 +24,22 @@
  */
 package org.praisenter.media;
 
+import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.InvalidFormatException;
+
 import io.humble.video.Codec;
 import io.humble.video.Decoder;
 import io.humble.video.Demuxer;
 import io.humble.video.DemuxerFormat;
 import io.humble.video.DemuxerStream;
 import io.humble.video.MediaDescriptor;
-
-import java.awt.image.BufferedImage;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.text.MessageFormat;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.resources.translations.Translations;
 
 /**
  * {@link MediaLoader} that loads audio media.
@@ -79,7 +78,7 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
 	 */
 	@Override
-	public LoadedMedia load(Path path) throws IOException, FileNotFoundException, MediaFormatException {
+	public LoadedMedia load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			Demuxer demuxer = null;
 			try {
@@ -113,7 +112,7 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 				
 				LOGGER.warn("No audio stream present on file: '{}'", path.toAbsolutePath().toString());
 				// no audio stream present
-				throw new MediaFormatException(MessageFormat.format(Translations.get("media.load.error.audio.missing"), path.toAbsolutePath().toString()));
+				throw new NoAudioInMediaException(path.toAbsolutePath().toString());
 			} catch (InterruptedException ex) {
 				throw new IOException(ex.getMessage(), ex);
 			} finally {
@@ -127,7 +126,7 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 				}
 			}
 		} else {
-			throw new FileNotFoundException(MessageFormat.format(Translations.get("error.file.missing"), path.toAbsolutePath().toString()));
+			throw new FileNotFoundException(path.toAbsolutePath().toString());
 		}
 	}
 }

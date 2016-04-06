@@ -54,11 +54,23 @@ public final class Formatter {
 	 * @param length the length in seconds
 	 * @return String
 	 */
-	public static final String getLengthFormattedString(long length) {
+	public static final String getSecondsFormattedString(long length) {
 		long hours = length / 3600;
 		long minutes = (length % 3600) / 60;
 		long seconds = (length % 3600) % 60;
 		return TIME_FORMAT.format(hours) + ":" + TIME_FORMAT.format(minutes) + ":" + TIME_FORMAT.format(seconds);
+	}
+	
+	/**
+	 * Returns a formatted time string for the given length.
+	 * @param length the length in milliseconds
+	 * @return String
+	 */
+	public static final String getMillisecondsFormattedString(long length) {
+		long minutes = length / 60000;
+		long seconds = (length % 60000) / 60;
+		long milliseconds = (length % 60000) % 1000;
+		return TIME_FORMAT.format(minutes) + ":" + TIME_FORMAT.format(seconds) + ":" + TIME_FORMAT.format(milliseconds);
 	}
 	
 	/**

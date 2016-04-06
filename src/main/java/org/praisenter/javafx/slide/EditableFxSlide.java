@@ -1,7 +1,10 @@
 package org.praisenter.javafx.slide;
 
-import java.util.Collections;
-import java.util.List;
+import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.animation.SlideAnimation;
+import org.praisenter.slide.graphics.SlidePaint;
+import org.praisenter.slide.graphics.SlideStroke;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ListProperty;
@@ -17,13 +20,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Border;
-
-import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.slide.Slide;
-import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideAnimation;
-import org.praisenter.slide.graphics.SlidePaint;
-import org.praisenter.slide.graphics.SlideStroke;
 
 public final class EditableFxSlide {
 	

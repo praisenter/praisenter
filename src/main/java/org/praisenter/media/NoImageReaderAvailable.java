@@ -24,19 +24,21 @@
  */
 package org.praisenter.media;
 
+import org.praisenter.InvalidFormatException;
+
 /**
- * Exception thrown when a file's format cannot be read.
+ * Exception thrown when Java's ImageIO class doesn't have an ImageReader for a given file.
  * @author William Bittle
  * @version 3.0.0
  */
-public class MediaFormatException extends Exception {
+public final class NoImageReaderAvailable extends InvalidFormatException {
 	/** The serialization id */
-	private static final long serialVersionUID = 6330495060583102082L;
+	private static final long serialVersionUID = 2131450942350185901L;
 
 	/**
 	 * Default constructor.
 	 */
-	public MediaFormatException() {
+	public NoImageReaderAvailable() {
 		super();
 	}
 
@@ -45,7 +47,7 @@ public class MediaFormatException extends Exception {
 	 * @param message the message
 	 * @param cause the cause
 	 */
-	public MediaFormatException(String message, Throwable cause) {
+	public NoImageReaderAvailable(String message, Throwable cause) {
 		super(message, cause);
 	}
 
@@ -53,7 +55,7 @@ public class MediaFormatException extends Exception {
 	 * Optional constructor.
 	 * @param message the message
 	 */
-	public MediaFormatException(String message) {
+	public NoImageReaderAvailable(String message) {
 		super(message);
 	}
 
@@ -61,7 +63,7 @@ public class MediaFormatException extends Exception {
 	 * Optional constructor.
 	 * @param cause the cause
 	 */
-	public MediaFormatException(Throwable cause) {
+	public NoImageReaderAvailable(Throwable cause) {
 		super(cause);
 	}
 }
