@@ -1,13 +1,10 @@
 package org.praisenter.javafx.animation;
 
-import org.praisenter.slide.animation.AnimationType;
-import org.praisenter.slide.animation.Blinds;
-import org.praisenter.slide.animation.Push;
-
-import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
+import javafx.geometry.Rectangle2D;
+
+import org.praisenter.slide.animation.AnimationType;
+import org.praisenter.slide.animation.Push;
 
 public class PushTransition extends CustomTransition<Push> {
 	public PushTransition(Push animation) {
@@ -18,7 +15,7 @@ public class PushTransition extends CustomTransition<Push> {
 	protected void interpolate(double frac) {
 		if (this.node == null) return;
 		
-		Bounds bounds = node.getBoundsInParent();
+		Rectangle2D bounds = this.getBounds();
 		
 		Point2D dp = new Point2D(0, 0);
 		switch(this.animation.getDirection()) {
@@ -38,11 +35,13 @@ public class PushTransition extends CustomTransition<Push> {
 				break;
 		}
 		
+		System.out.println(dp.getX() + " " + dp.getY());
+		
 		node.setLayoutX(dp.getX());
 		node.setLayoutY(dp.getY());
 	}
-	private Point2D getUpPosition(Bounds bounds, double frac) {
-//		double h = this.node.getPrefHeight();
+	
+	private Point2D getUpPosition(Rectangle2D bounds, double frac) {
 		double h = bounds.getHeight();
 		if (this.animation.getType() == AnimationType.IN) {
 			return new Point2D(0, h * (1.0 - frac));
@@ -51,8 +50,7 @@ public class PushTransition extends CustomTransition<Push> {
 		}
 	}
 	
-	private Point2D getRightPosition(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
+	private Point2D getRightPosition(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		if (this.animation.getType() == AnimationType.IN) {
 			return new Point2D(-w * (1.0 - frac), 0);
@@ -61,8 +59,7 @@ public class PushTransition extends CustomTransition<Push> {
 		}
 	}
 	
-	private Point2D getDownPosition(Bounds bounds, double frac) {
-//		double h = this.node.getPrefHeight();
+	private Point2D getDownPosition(Rectangle2D bounds, double frac) {
 		double h = bounds.getHeight();
 		if (this.animation.getType() == AnimationType.IN) {
 			return new Point2D(0, -h * (1.0 - frac));
@@ -71,8 +68,7 @@ public class PushTransition extends CustomTransition<Push> {
 		}
 	}
 	
-	private Point2D getLeftPosition(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
+	private Point2D getLeftPosition(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		if (this.animation.getType() == AnimationType.IN) {
 			return new Point2D(w * (1.0 - frac), 0);

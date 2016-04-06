@@ -1,9 +1,5 @@
 package org.praisenter.javafx.animation;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.slide.animation.SlideAnimation;
-
 import javafx.animation.Transition;
 import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
@@ -13,6 +9,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
 import javafx.scene.media.MediaView;
 import javafx.util.Duration;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.slide.animation.SlideAnimation;
 
 // FIXME convert other transitions to use the getBounds method on this class
 

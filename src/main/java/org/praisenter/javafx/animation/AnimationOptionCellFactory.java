@@ -2,7 +2,6 @@ package org.praisenter.javafx.animation;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.text.TextAlignment;

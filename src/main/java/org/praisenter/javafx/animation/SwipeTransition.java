@@ -1,20 +1,13 @@
 package org.praisenter.javafx.animation;
 
-import org.praisenter.slide.animation.AnimationType;
-import org.praisenter.slide.animation.Swipe;
-
-import javafx.geometry.Bounds;
-import javafx.geometry.Point2D;
-import javafx.geometry.Point3D;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.Region;
-import javafx.scene.media.MediaView;
 import javafx.scene.shape.Arc;
 import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+
+import org.praisenter.slide.animation.AnimationType;
+import org.praisenter.slide.animation.Swipe;
 
 public class SwipeTransition extends CustomTransition<Swipe> {
 	public SwipeTransition(Swipe animation) {

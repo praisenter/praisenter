@@ -1,12 +1,11 @@
 package org.praisenter.javafx.animation;
 
-import org.praisenter.slide.animation.AnimationType;
-import org.praisenter.slide.animation.Blinds;
-import org.praisenter.slide.animation.Split;
-
-import javafx.geometry.Bounds;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+
+import org.praisenter.slide.animation.AnimationType;
+import org.praisenter.slide.animation.Split;
 
 public class SplitTransition extends CustomTransition<Split> {
 	public SplitTransition(Split animation) {
@@ -17,7 +16,7 @@ public class SplitTransition extends CustomTransition<Split> {
 	protected void interpolate(double frac) {
 		if (this.node == null) return;
 		
-		Bounds bounds = node.getBoundsInParent();
+		Rectangle2D bounds = this.getBounds();
 		
 		Shape clip = null;
 		switch(this.animation.getOrientation()) {
@@ -52,10 +51,7 @@ public class SplitTransition extends CustomTransition<Split> {
 		node.setClip(clip);
 	}
 
-	private Shape getHorizontalCollapse(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getHorizontalCollapse(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double hh = h * 0.5;
@@ -70,10 +66,7 @@ public class SplitTransition extends CustomTransition<Split> {
 		}
 	}
 	
-	private Shape getHorizontalExpand(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getHorizontalExpand(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double hh = h * 0.5;
@@ -88,10 +81,7 @@ public class SplitTransition extends CustomTransition<Split> {
 		}
 	}
 	
-	private Shape getVerticalCollapse(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getVerticalCollapse(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double hw = w * 0.5;
@@ -106,10 +96,7 @@ public class SplitTransition extends CustomTransition<Split> {
 		}
 	}
 	
-	private Shape getVerticalExpand(Bounds bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
+	private Shape getVerticalExpand(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		double hw = w * 0.5;

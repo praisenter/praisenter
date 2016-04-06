@@ -1,11 +1,10 @@
 package org.praisenter.javafx.animation;
 
+import javafx.scene.image.Image;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.resources.translations.Translations;
-import org.praisenter.slide.easing.Easing;
-
-import javafx.scene.image.Image;
 
 public final class AnimationOption implements Comparable<AnimationOption> {
 	private static final Logger LOGGER = LogManager.getLogger();

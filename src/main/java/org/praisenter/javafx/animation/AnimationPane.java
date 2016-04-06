@@ -3,6 +3,31 @@ package org.praisenter.javafx.animation;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.animation.Transition;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
+import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Insets;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.FlowListView;
@@ -25,33 +50,7 @@ import org.praisenter.slide.animation.Swipe;
 import org.praisenter.slide.animation.Zoom;
 import org.praisenter.slide.easing.Easing;
 import org.praisenter.slide.easing.EasingType;
-
-import javafx.animation.Transition;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
-import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
+import org.praisenter.slide.easing.Linear;
 
 public final class AnimationPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -152,7 +151,7 @@ public final class AnimationPane extends BorderPane {
 	
 	// preview
 	
-	StackPane panePreview;
+	Pane panePreview;
 	Pane pane1;
 	Pane pane2;
 	Transition transition;
@@ -189,6 +188,7 @@ public final class AnimationPane extends BorderPane {
 		animationListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
 		animationListPane.itemsProperty().set(FXCollections.observableArrayList(animationOptions));
 		animationListPane.setOrientation(javafx.geometry.Orientation.HORIZONTAL);
+		animationListPane.selectionProperty().set(new AnimationOption(Swap.class, 0));
 		animationOption.bind(animationListPane.selectionProperty());
 		animationListPane.selectionProperty().addListener((obs, ov, nv) -> {
 			// remove controls
@@ -209,6 +209,7 @@ public final class AnimationPane extends BorderPane {
 					directions.setPredicate((f) -> {
 						return f == Direction.UP || f == Direction.RIGHT || f == Direction.LEFT || f == Direction.DOWN;
 					});
+					cbDirection.setValue(Direction.UP);
 				} else if (Shaped.class.isAssignableFrom(type)) {
 					grid.add(lblShapeType, 0, 5);
 					grid.add(cbShapeType, 1, 5);
@@ -223,6 +224,7 @@ public final class AnimationPane extends BorderPane {
 					grid.add(lblDirection, 0, 5);
 					grid.add(cbDirection, 1, 5);
 					directions.setPredicate((f) -> { return true; });
+					cbDirection.setValue(Direction.UP);
 				}
 				// otherwise all the options remain hidden
 			}
@@ -233,6 +235,7 @@ public final class AnimationPane extends BorderPane {
 		easingListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
 		easingListPane.itemsProperty().set(FXCollections.observableArrayList(easingOptions));
 		easingListPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
+		easingListPane.selectionProperty().set(new AnimationOption(Linear.class, 0));
 		easingOption.bind(easingListPane.selectionProperty());
 		easingListPane.selectionProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
@@ -246,6 +249,7 @@ public final class AnimationPane extends BorderPane {
 		LongTextFormatter durationFormatter = new LongTextFormatter();
 		duration.bind(durationFormatter.valueProperty());
 		txtDuration.setTextFormatter(durationFormatter);
+		durationFormatter.setValue(500l);
 		txtDuration.textProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
@@ -256,12 +260,14 @@ public final class AnimationPane extends BorderPane {
 		LongTextFormatter delayFormatter = new LongTextFormatter();
 		delay.bind(delayFormatter.valueProperty());
 		txtDelay.setTextFormatter(new LongTextFormatter());
+		delayFormatter.setValue(0l);
 		txtDelay.textProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
 		
 		lblAnimationType = new Label("Animation Type");
 		cbAnimationType = new ChoiceBox<>(FXCollections.observableArrayList(AnimationType.values()));
+		cbAnimationType.setValue(AnimationType.IN);
 		animationType.bind(cbAnimationType.valueProperty());
 		cbAnimationType.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
@@ -269,6 +275,7 @@ public final class AnimationPane extends BorderPane {
 		
 		lblEasingType = new Label("Easing Type");
 		cbEasingType = new ChoiceBox<>(FXCollections.observableArrayList(EasingType.values()));
+		cbEasingType.setValue(EasingType.IN);
 		easingType.bind(cbEasingType.valueProperty());
 		cbEasingType.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
@@ -276,6 +283,7 @@ public final class AnimationPane extends BorderPane {
 				
 		lblOrientation = new Label("Orientation");
 		cbOrientation = new ChoiceBox<>(FXCollections.observableArrayList(Orientation.values()));
+		cbOrientation.setValue(Orientation.HORIZONTAL);
 		orientation.bind(cbOrientation.valueProperty());
 		cbOrientation.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
@@ -283,6 +291,7 @@ public final class AnimationPane extends BorderPane {
 		
 		lblDirection = new Label("Direction");
 		cbDirection = new ChoiceBox<>(directions);
+		cbDirection.setValue(Direction.UP);
 		cbDirection.setPrefWidth(100);
 		direction.bind(cbDirection.valueProperty());
 		cbDirection.valueProperty().addListener((obs, ov, nv) -> {
@@ -291,6 +300,7 @@ public final class AnimationPane extends BorderPane {
 		
 		lblShapeType = new Label("Shape Type");
 		cbShapeType = new ChoiceBox<>(FXCollections.observableArrayList(ShapeType.values()));
+		cbShapeType.setValue(ShapeType.CIRCLE);
 		shapeType.bind(cbShapeType.valueProperty());
 		cbShapeType.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
@@ -298,6 +308,7 @@ public final class AnimationPane extends BorderPane {
 		
 		lblOperation = new Label("Operation");
 		cbOperation = new ChoiceBox<>(FXCollections.observableArrayList(Operation.values()));
+		cbOperation.setValue(Operation.COLLAPSE);
 		operation.bind(cbOperation.valueProperty());
 		cbOperation.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
@@ -318,9 +329,10 @@ public final class AnimationPane extends BorderPane {
 		grid.add(lblEasingType, 0, 4);
 		grid.add(cbEasingType, 1, 4);
 		
-		panePreview = new StackPane();
+		panePreview = new Pane();
 		JavaFxNodeHelper.setSize(panePreview, 150, 150);
 		panePreview.setBorder(FxFactory.newBorder(Color.BLACK));
+		panePreview.setPadding(new Insets(1));
 		
 		pane1 = new Pane();
 		pane1.setBackground(new Background(new BackgroundFill(Color.rgb(0, 0, 255, 0.5), null, null)));
@@ -356,7 +368,7 @@ public final class AnimationPane extends BorderPane {
 			transition = ct;
 			ct.onFinishedProperty().addListener((ev) -> {
 //				pane1.setClip(null);
-				pane2.setClip(null);
+//				pane2.setClip(null);
 			});
 			ct.play();
 		});

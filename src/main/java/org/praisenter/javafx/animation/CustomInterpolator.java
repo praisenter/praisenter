@@ -1,9 +1,9 @@
 package org.praisenter.javafx.animation;
 
+import javafx.animation.Interpolator;
+
 import org.praisenter.slide.easing.Easing;
 import org.praisenter.slide.easing.Linear;
-
-import javafx.animation.Interpolator;
 
 public class CustomInterpolator extends Interpolator {
 	final Easing easing;

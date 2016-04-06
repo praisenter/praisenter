@@ -1,12 +1,11 @@
 package org.praisenter.javafx.animation;
 
-import org.praisenter.slide.animation.AnimationType;
-import org.praisenter.slide.animation.Blinds;
-
-import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+
+import org.praisenter.slide.animation.AnimationType;
+import org.praisenter.slide.animation.Blinds;
 
 public class BlindsTransition extends CustomTransition<Blinds> {
 	/** The vertical blind count factor: 12 bars for 1280 pixels */

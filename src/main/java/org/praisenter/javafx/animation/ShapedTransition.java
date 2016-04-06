@@ -1,15 +1,14 @@
 package org.praisenter.javafx.animation;
 
+import javafx.geometry.Rectangle2D;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
+
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Operation;
 import org.praisenter.slide.animation.ShapeType;
 import org.praisenter.slide.animation.Shaped;
-
-import javafx.geometry.Bounds;
-import javafx.scene.Node;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 
 public class ShapedTransition extends CustomTransition<Shaped> {
 	/** The vertical blind count factor: 12 bars for 1280 pixels */
@@ -25,24 +24,20 @@ public class ShapedTransition extends CustomTransition<Shaped> {
 		
 		Shape clip = null;
 		
+		Rectangle2D bounds = this.getBounds();
+		
 		// circle collapse/expand
 		if (this.animation.getShapeType() == ShapeType.CIRCLE) {
-			clip = this.getCircleClip(node, frac);
+			clip = this.getCircleClip(bounds, frac);
 		}
 		
 		node.setClip(clip);
 	}
 	
-	private Shape getCircleClip(Node node, double frac) {
-		// get the bounds
-		Bounds bounds = node.getBoundsInParent();
+	private Shape getCircleClip(Rectangle2D bounds, double frac) {
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 
-		// compute shape params
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
 		if (this.animation.getOperation() == Operation.COLLAPSE) {
 			double hw = w * 0.5;
 			double hh = h * 0.5;
