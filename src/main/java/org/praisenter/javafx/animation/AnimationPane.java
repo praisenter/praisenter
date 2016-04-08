@@ -3,34 +3,10 @@ package org.praisenter.javafx.animation;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.animation.Transition;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
-import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.FlowListView;
+import org.praisenter.javafx.IntegerTextFormatter;
 import org.praisenter.javafx.LongTextFormatter;
 import org.praisenter.javafx.utility.FxFactory;
 import org.praisenter.javafx.utility.JavaFxNodeHelper;
@@ -52,8 +28,40 @@ import org.praisenter.slide.easing.Easing;
 import org.praisenter.slide.easing.EasingType;
 import org.praisenter.slide.easing.Linear;
 
+import javafx.animation.Transition;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
+import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Insets;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
+
 public final class AnimationPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
+	
+	private static final double PREVIEW_WIDTH = 214;
+	private static final double PREVIEW_HEIGHT = 120;
 	
 	/** The configured animation */
 	private final ObjectProperty<SlideAnimation> animation = new SimpleObjectProperty<SlideAnimation>() {
@@ -73,6 +81,7 @@ public final class AnimationPane extends BorderPane {
 				if (animation instanceof Blinds) {
 					Blinds a = (Blinds)animation;
 					cbOrientation.setValue(a.getOrientation());
+					txtBlindCount.setText(String.valueOf(a.getBlindCount()));
 				} else if (animation instanceof Push) {
 					Push a = (Push)animation;
 					cbDirection.setValue(a.getDirection());
@@ -125,6 +134,8 @@ public final class AnimationPane extends BorderPane {
 	private final ObjectProperty<ShapeType> shapeType = new SimpleObjectProperty<ShapeType>();
 	private final ObjectProperty<Operation> operation = new SimpleObjectProperty<Operation>();
 	
+	private final IntegerProperty blindCount = new SimpleIntegerProperty();
+	
 	// nodes
 	
 	Label lblObjects;
@@ -136,6 +147,7 @@ public final class AnimationPane extends BorderPane {
 	Label lblDirection;
 	Label lblShapeType;
 	Label lblOperation;
+	Label lblBlindCount;
 	
 	ComboBox<AnimatedObject> cmbObjects;
 	FlowListView<AnimationOption> animationListPane;
@@ -148,6 +160,7 @@ public final class AnimationPane extends BorderPane {
 	ChoiceBox<Direction> cbDirection;
 	ChoiceBox<ShapeType> cbShapeType;
 	ChoiceBox<Operation> cbOperation;
+	TextField txtBlindCount;
 	
 	// preview
 	
@@ -196,13 +209,16 @@ public final class AnimationPane extends BorderPane {
 					lblDirection, cbDirection,
 					lblOrientation, cbOrientation,
 					lblOperation, cbOperation,
-					lblShapeType, cbShapeType);
+					lblShapeType, cbShapeType,
+					lblBlindCount, txtBlindCount);
 			// hide show based on animation type
 			if (nv != null) {
 				Class<?> type = nv.getType();
 				if (Blinds.class.isAssignableFrom(type)) {
 					grid.add(lblOrientation, 0, 5);
 					grid.add(cbOrientation, 1, 5);
+					grid.add(lblBlindCount, 0, 6);
+					grid.add(txtBlindCount, 1, 6);
 				} else if (Push.class.isAssignableFrom(type)) {
 					grid.add(lblDirection, 0, 5);
 					grid.add(cbDirection, 1, 5);
@@ -250,7 +266,7 @@ public final class AnimationPane extends BorderPane {
 		duration.bind(durationFormatter.valueProperty());
 		txtDuration.setTextFormatter(durationFormatter);
 		durationFormatter.setValue(500l);
-		txtDuration.textProperty().addListener((obs, ov, nv) -> {
+		durationFormatter.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
 		
@@ -259,9 +275,9 @@ public final class AnimationPane extends BorderPane {
 		txtDelay.setPromptText("in milliseconds");
 		LongTextFormatter delayFormatter = new LongTextFormatter();
 		delay.bind(delayFormatter.valueProperty());
-		txtDelay.setTextFormatter(new LongTextFormatter());
+		txtDelay.setTextFormatter(delayFormatter);
 		delayFormatter.setValue(0l);
-		txtDelay.textProperty().addListener((obs, ov, nv) -> {
+		delayFormatter.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
 		
@@ -314,6 +330,17 @@ public final class AnimationPane extends BorderPane {
 			animation.set(null);
 		});
 		
+		lblBlindCount = new Label("Blind Count");
+		txtBlindCount = new TextField();
+		txtBlindCount.setPromptText("number of blinds");
+		IntegerTextFormatter blindCountFormatter = new IntegerTextFormatter();
+		blindCount.bind(blindCountFormatter.valueProperty());
+		txtBlindCount.setTextFormatter(blindCountFormatter);
+		blindCountFormatter.setValue(12);
+		blindCountFormatter.valueProperty().addListener((obs, ov, nv) -> {
+			animation.set(null);
+		});
+		
 		grid.add(lblObjects, 0, 0);
 		grid.add(cmbObjects, 1, 0);
 		
@@ -330,17 +357,21 @@ public final class AnimationPane extends BorderPane {
 		grid.add(cbEasingType, 1, 4);
 		
 		panePreview = new Pane();
-		JavaFxNodeHelper.setSize(panePreview, 150, 150);
+		JavaFxNodeHelper.setSize(panePreview, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 		panePreview.setBorder(FxFactory.newBorder(Color.BLACK));
-		panePreview.setPadding(new Insets(1));
 		
 		pane1 = new Pane();
+		pane1.setBorder(FxFactory.newBorder(Color.BLACK));
 		pane1.setBackground(new Background(new BackgroundFill(Color.rgb(0, 0, 255, 0.5), null, null)));
-		JavaFxNodeHelper.setSize(pane1, 150, 150);
+		JavaFxNodeHelper.setSize(pane1, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 		
-		pane2 = new Pane();
+		pane2 = new StackPane();
+		pane2.setBorder(FxFactory.newBorder(Color.BLACK));
 		pane2.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0, 0.5), null, null)));
-		JavaFxNodeHelper.setSize(pane2, 150, 150);
+		Text content = new Text("Content");
+		content.setFill(Color.WHITE);
+		pane2.getChildren().add(content);
+		JavaFxNodeHelper.setSize(pane2, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 		
 		panePreview.getChildren().addAll(pane1, pane2);
 		
@@ -366,10 +397,6 @@ public final class AnimationPane extends BorderPane {
 				transition.stop();
 			}
 			transition = ct;
-			ct.onFinishedProperty().addListener((ev) -> {
-//				pane1.setClip(null);
-//				pane2.setClip(null);
-			});
 			ct.play();
 		});
 		boxPreview.getChildren().addAll(btnPreview, panePreview);
@@ -401,8 +428,8 @@ public final class AnimationPane extends BorderPane {
 		try {
 			// animation
 			SlideAnimation animation = (SlideAnimation)animationClass.newInstance();
-			animation.setDelay((long)this.txtDelay.getTextFormatter().getValue());
-			animation.setDuration((long)this.txtDuration.getTextFormatter().getValue());
+			animation.setDelay(this.delay.get());
+			animation.setDuration(this.duration.get());
 			animation.setId(this.cmbObjects.getValue().getObjectId());
 			animation.setType(this.cbAnimationType.getValue());
 			
@@ -410,6 +437,7 @@ public final class AnimationPane extends BorderPane {
 			if (animation instanceof Blinds) {
 				Blinds a = (Blinds)animation;
 				a.setOrientation(this.orientation.get());
+				a.setBlindCount(this.blindCount.get());
 			} else if (animation instanceof Push) {
 				Push a = (Push)animation;
 				a.setDirection(this.direction.get());

@@ -5,10 +5,12 @@ import javafx.scene.image.Image;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.resources.translations.Translations;
+import org.praisenter.slide.animation.Swap;
 
 public final class AnimationOption implements Comparable<AnimationOption> {
 	private static final Logger LOGGER = LogManager.getLogger();
-	private static final Image DEFAULT_IMAGE = new Image("/org/praisenter/resources/org.praisenter.slide.animation.Swap.png");
+	
+	private static final Image DEFAULT_IMAGE = new Image("/org/praisenter/resources/" + Swap.class.getName() + ".png");
 	
 	final Class<?> type;
 	final int order;
@@ -23,8 +25,7 @@ public final class AnimationOption implements Comparable<AnimationOption> {
 		try {
 			image = new Image("/org/praisenter/resources/" + type.getName() + ".png");
 		} catch (Exception e) {
-			// TODO fix
-			LOGGER.error(e);
+			LOGGER.warn("Image for class was not found: '/org/praisenter/resources/" + type.getName() + ".png' was not found");
 		}
 		this.image = image;
 	}

@@ -13,6 +13,10 @@ public final class Swipe extends SlideAnimation {
 	@XmlAttribute(name = "direction", required = false)
 	Direction direction;
 	
+	public Swipe() {
+		this.direction = Direction.UP;
+	}
+	
 	@Override
 	public Swipe copy(UUID id) {
 		Swipe animation = new Swipe();

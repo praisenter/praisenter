@@ -7,6 +7,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.sun.scenario.effect.light.SpotLight;
+
 @XmlRootElement(name = "split")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Split extends SlideAnimation {
@@ -15,6 +17,11 @@ public final class Split extends SlideAnimation {
 	
 	@XmlAttribute(name = "operation", required = false)
 	Operation operation;
+	
+	public Split() {
+		this.orientation = Orientation.HORIZONTAL;
+		this.operation = Operation.COLLAPSE;
+	}
 	
 	@Override
 	public Split copy(UUID id) {

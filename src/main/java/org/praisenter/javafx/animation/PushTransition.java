@@ -35,8 +35,6 @@ public class PushTransition extends CustomTransition<Push> {
 				break;
 		}
 		
-		System.out.println(dp.getX() + " " + dp.getY());
-		
 		node.setLayoutX(dp.getX());
 		node.setLayoutY(dp.getY());
 	}

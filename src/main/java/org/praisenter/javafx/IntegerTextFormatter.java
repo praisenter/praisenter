@@ -22,60 +22,35 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.animation;
+package org.praisenter.javafx;
 
-import java.util.UUID;
+import java.util.function.UnaryOperator;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-
-//FEATURE add more shape types (Star, Rect, etc)
+import javafx.scene.control.TextFormatter;
+import javafx.util.converter.IntegerStringConverter;
 
 /**
- * An animation where a shape is used to reveal or hide.
+ * A text formatter for Integer values.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "shaped")
-@XmlAccessorType(XmlAccessType.NONE)
-public final class Shaped extends SlideAnimation {
-	/** The shape */
-	@XmlAttribute(name = "shapeType", required = false)
-	ShapeType shapeType;
-	
-	/** The operation */
-	@XmlAttribute(name = "operation", required = false)
-	Operation operation;
-	
-	public Shaped() {
-		this.shapeType = ShapeType.CIRCLE;
-		this.operation = Operation.COLLAPSE;
-	}
-	
-	@Override
-	public Shaped copy(UUID id) {
-		Shaped animation = new Shaped();
-		copy(animation, id);
-		animation.shapeType = this.shapeType;
-		animation.operation = this.operation;
-		return animation;
-	}
-	
-	public ShapeType getShapeType() {
-		return this.shapeType;
-	}
-	
-	public void setShapeType(ShapeType shapeType) {
-		this.shapeType = shapeType;
-	}
-	
-	public Operation getOperation() {
-		return this.operation;
-	}
-	
-	public void setOperation(Operation operation) {
-		this.operation = operation;
+public final class IntegerTextFormatter extends TextFormatter<Integer> {
+	/**
+	 * Default constructor.
+	 */
+	public IntegerTextFormatter() {
+		super(new IntegerStringConverter(), 0, new UnaryOperator<Change>() {
+			@Override
+			public Change apply(Change change) {
+				// filter all characters except digits
+				String text = change.getText();
+				for (int i = 0; i < text.length(); i++) {
+                	if (!Character.isDigit(text.charAt(i))) {
+                		return null;
+                	}
+                }
+                return change;
+			}
+		});
 	}
 }

@@ -8,9 +8,6 @@ import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Blinds;
 
 public class BlindsTransition extends CustomTransition<Blinds> {
-	/** The vertical blind count factor: 12 bars for 1280 pixels */
-	private static final double BLIND_COUNT_FACTOR = 12.0 / 1280.0;
-	
 	public BlindsTransition(Blinds animation) {
 		super(animation);
 	}
@@ -37,9 +34,6 @@ public class BlindsTransition extends CustomTransition<Blinds> {
 	}
 
 	private Shape getHorizontalBlinds(Rectangle2D bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		
@@ -52,7 +46,7 @@ public class BlindsTransition extends CustomTransition<Blinds> {
 		// for the OUT transition we will add areas
 		
 		// compute the number of blinds
-		final int blinds = (int)Math.ceil(h * BLIND_COUNT_FACTOR);
+		final int blinds = this.animation.getBlindCount();
 		double y = 0;
 		// compute the blind width
 		double bh = h / blinds;
@@ -73,9 +67,6 @@ public class BlindsTransition extends CustomTransition<Blinds> {
 	}
 	
 	private Shape getVerticalBlinds(Rectangle2D bounds, double frac) {
-//		double w = this.node.getPrefWidth();
-//		double h = this.node.getPrefHeight();
-		
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		
@@ -87,7 +78,7 @@ public class BlindsTransition extends CustomTransition<Blinds> {
 		}
 		
 		// compute the number of blinds
-		final int blinds = (int)Math.ceil(w * BLIND_COUNT_FACTOR);
+		final int blinds = this.animation.getBlindCount();
 		double x = 0;
 		// compute the blind width
 		double bw = w / blinds;

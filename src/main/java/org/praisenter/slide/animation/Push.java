@@ -13,6 +13,10 @@ public final class Push extends SlideAnimation {
 	@XmlAttribute(name = "direction", required = false)
 	Direction direction;
 	
+	public Push() {
+		this.direction = Direction.UP;
+	}
+	
 	@Override
 	public Push copy(UUID id) {
 		Push animation = new Push();

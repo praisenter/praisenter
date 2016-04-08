@@ -69,9 +69,9 @@ public class SwipeTransition extends CustomTransition<Swipe> {
 		double h = bounds.getHeight();
 		double p = Math.ceil(w * frac);
 		if (this.animation.getType() == AnimationType.IN) {
-			return new Rectangle(p, 0, w, h);
-		} else {
 			return new Rectangle(0, 0, p, h);
+		} else {
+			return new Rectangle(p, 0, w, h);
 		}
 	}
 	
