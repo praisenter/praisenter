@@ -10,11 +10,21 @@ public class SwapTransition extends CustomTransition<Swap> {
 	}
 
 	@Override
+	public void stop() {
+		super.stop();
+		if (this.node != null) {
+			this.node.setVisible(true);
+		}
+	}
+	
+	@Override
 	protected void interpolate(double frac) {
 		if (this.node == null) return;
 		
 		if (this.animation.getType() != AnimationType.IN) {
 			this.node.setVisible(false);
+		} else {
+			this.node.setVisible(true);
 		}
 	}
 }

@@ -10,68 +10,78 @@ public class PushTransition extends CustomTransition<Push> {
 	public PushTransition(Push animation) {
 		super(animation);
 	}
-
+	
+	@Override
+	public void stop() {
+		super.stop();
+		if (this.node != null) {
+			this.node.setTranslateX(0);
+			this.node.setTranslateY(0);
+		}
+	}
+	
 	@Override
 	protected void interpolate(double frac) {
 		if (this.node == null) return;
 		
-		Rectangle2D bounds = this.getBounds();
+		Rectangle2D nb = this.getBounds();
+		Rectangle2D pb = this.getParentBounds();
 		
 		Point2D dp = new Point2D(0, 0);
 		switch(this.animation.getDirection()) {
 			case UP:
-				dp = getUpPosition(bounds, frac);
+				dp = getUpPosition(nb, pb, frac);
 				break;
 			case RIGHT:
-				dp = getRightPosition(bounds, frac);
+				dp = getRightPosition(nb, pb, frac);
 				break;
 			case DOWN:
-				dp = getDownPosition(bounds, frac);
+				dp = getDownPosition(nb, pb, frac);
 				break;
 			case LEFT:
-				dp = getLeftPosition(bounds, frac);
+				dp = getLeftPosition(nb, pb, frac);
 				break;
 			default:
 				break;
 		}
 		
-		node.setLayoutX(dp.getX());
-		node.setLayoutY(dp.getY());
+		node.setTranslateX(dp.getX());
+		node.setTranslateY(dp.getY());
 	}
 	
-	private Point2D getUpPosition(Rectangle2D bounds, double frac) {
-		double h = bounds.getHeight();
+	private Point2D getUpPosition(Rectangle2D nb, Rectangle2D pb, double frac) {
+		double y = (pb.getHeight() - nb.getMinY());
 		if (this.animation.getType() == AnimationType.IN) {
-			return new Point2D(0, h * (1.0 - frac));
+			return new Point2D(0, y * (1.0 - frac));
 		} else {
-			return new Point2D(0, -h * (frac));
+			return new Point2D(0, -y * (frac));
 		}
 	}
 	
-	private Point2D getRightPosition(Rectangle2D bounds, double frac) {
-		double w = bounds.getWidth();
+	private Point2D getRightPosition(Rectangle2D nb, Rectangle2D pb, double frac) {
+		double x = (pb.getWidth() - nb.getMinX());
 		if (this.animation.getType() == AnimationType.IN) {
-			return new Point2D(-w * (1.0 - frac), 0);
+			return new Point2D(-x * (1.0 - frac), 0);
 		} else {
-			return new Point2D(w * frac, 0);
+			return new Point2D(x * frac, 0);
 		}
 	}
 	
-	private Point2D getDownPosition(Rectangle2D bounds, double frac) {
-		double h = bounds.getHeight();
+	private Point2D getDownPosition(Rectangle2D nb, Rectangle2D pb, double frac) {
+		double y = (pb.getHeight() - nb.getMinY());
 		if (this.animation.getType() == AnimationType.IN) {
-			return new Point2D(0, -h * (1.0 - frac));
+			return new Point2D(0, -y * (1.0 - frac));
 		} else {
-			return new Point2D(0, h * (frac));
+			return new Point2D(0, y * (frac));
 		}
 	}
 	
-	private Point2D getLeftPosition(Rectangle2D bounds, double frac) {
-		double w = bounds.getWidth();
+	private Point2D getLeftPosition(Rectangle2D nb, Rectangle2D pb, double frac) {
+		double x = (pb.getWidth() - nb.getMinX());
 		if (this.animation.getType() == AnimationType.IN) {
-			return new Point2D(w * (1.0 - frac), 0);
+			return new Point2D(x * (1.0 - frac), 0);
 		} else {
-			return new Point2D(-w * frac, 0);
+			return new Point2D(-x * frac, 0);
 		}
 	}
 }

@@ -8,7 +8,15 @@ public class FadeTransition extends CustomTransition<Fade> {
 	public FadeTransition(Fade animation) {
 		super(animation);
 	}
-
+	
+	@Override
+	public void stop() {
+		super.stop();
+		if (this.node != null) {
+			this.node.setOpacity(1);
+		}
+	}
+	
 	@Override
 	protected void interpolate(double frac) {
 		if (this.node == null) return;

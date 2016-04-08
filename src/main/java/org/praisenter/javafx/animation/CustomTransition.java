@@ -42,17 +42,46 @@ public abstract class CustomTransition<T extends SlideAnimation> extends Transit
 			return bounds;
 		}
 		
-		if (this.node instanceof Region) {
-			bounds = new Rectangle2D(0, 0, ((Region)this.node).getPrefWidth(), ((Region)this.node).getPrefHeight());
-		} else if (this.node instanceof MediaView) {
-			bounds = new Rectangle2D(0, 0, ((MediaView)this.node).getFitWidth(), ((MediaView)this.node).getFitHeight());
-		} else if (this.node instanceof ImageView) {
-			bounds = new Rectangle2D(0, 0, ((ImageView)this.node).getFitWidth(), ((ImageView)this.node).getFitHeight());
-		} else if (this.node instanceof Canvas) {
-			bounds = new Rectangle2D(0, 0, ((Canvas)this.node).getWidth(), ((Canvas)this.node).getHeight());
+		bounds = getBounds(this.node);
+		
+		return bounds;
+	}
+	
+	protected Rectangle2D getParentBounds() {
+		Rectangle2D bounds = EMPTY_BOUNDS;
+		if (this.node == null) {
+			LOGGER.warn("Node to animate is null for animation: " + this.animation.getId());
+			return bounds;
+		}
+		
+		if (this.node.getParent() == null) {
+			LOGGER.warn("Node to animate's parent is null for animation: " + this.animation.getId());
+			return bounds;
+		}
+		
+		bounds = getBounds(this.node.getParent());
+		
+		return bounds;
+	}
+	
+	private static Rectangle2D getBounds(Node node) {
+		Rectangle2D bounds = EMPTY_BOUNDS;
+		
+		if (node instanceof Region) {
+			Region r = (Region)node;
+			bounds = new Rectangle2D(r.getLayoutX(), r.getLayoutY(), r.getPrefWidth(), r.getPrefHeight());
+		} else if (node instanceof MediaView) {
+			MediaView m = (MediaView)node;
+			bounds = new Rectangle2D(m.getX(), m.getY(), m.getFitWidth(), m.getFitHeight());
+		} else if (node instanceof ImageView) {
+			ImageView i = (ImageView)node;
+			bounds = new Rectangle2D(i.getX(), i.getY(), i.getFitWidth(), i.getFitHeight());
+		} else if (node instanceof Canvas) {
+			Canvas c = (Canvas)node;
+			bounds = new Rectangle2D(c.getLayoutX(), c.getLayoutY(), c.getWidth(), c.getHeight());
 		} else {
-			Bounds bds = this.node.getBoundsInParent();
-			bounds = new Rectangle2D(0, 0, bds.getWidth(), bds.getHeight());
+			Bounds bds = node.getBoundsInParent();
+			bounds = new Rectangle2D(bds.getMinX(), bds.getMinY(), bds.getWidth(), bds.getHeight());
 			LOGGER.warn("Unable to determine the node's bounds based on its type.  Using the getBoundsInParent method instead which can give incorrect results.");
 		}
 		

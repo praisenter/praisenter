@@ -10,6 +10,15 @@ public class ZoomTransition extends CustomTransition<Zoom> {
 	}
 
 	@Override
+	public void stop() {
+		super.stop();
+		if (this.node != null) {
+			this.node.setScaleX(1);
+			this.node.setScaleY(1);
+		}
+	}
+	
+	@Override
 	protected void interpolate(double frac) {
 		if (this.node == null) return;
 		
@@ -18,8 +27,8 @@ public class ZoomTransition extends CustomTransition<Zoom> {
 //		double h = bounds.getHeight();
 		
 		if (this.animation.getType() == AnimationType.IN) {
-			node.setScaleX(frac);
-			node.setScaleY(frac);
+			node.setScaleX(Math.max(frac, 0));
+			node.setScaleY(Math.max(frac, 0));
 		} 
 //		else {
 //			// for the out transition we'll just clip the center
@@ -43,8 +52,8 @@ public class ZoomTransition extends CustomTransition<Zoom> {
 //			node.setClip(Shape.subtract(clip, center));
 //		} 
 		else {
-			node.setScaleX(1.0 - frac);
-			node.setScaleY(1.0 - frac);
+			node.setScaleX(Math.max(0.0, 1.0 - frac));
+			node.setScaleY(Math.max(0.0, 1.0 - frac));
 		}
 	}
 }

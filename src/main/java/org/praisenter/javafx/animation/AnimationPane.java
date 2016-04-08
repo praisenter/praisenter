@@ -3,13 +3,46 @@ package org.praisenter.javafx.animation;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.animation.Transition;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
+import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Insets;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.IntegerTextFormatter;
 import org.praisenter.javafx.LongTextFormatter;
+import org.praisenter.javafx.Option;
 import org.praisenter.javafx.utility.FxFactory;
 import org.praisenter.javafx.utility.JavaFxNodeHelper;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Blinds;
 import org.praisenter.slide.animation.Direction;
@@ -28,44 +61,44 @@ import org.praisenter.slide.easing.Easing;
 import org.praisenter.slide.easing.EasingType;
 import org.praisenter.slide.easing.Linear;
 
-import javafx.animation.Transition;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
-import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
-
 public final class AnimationPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private static final double PREVIEW_WIDTH = 214;
 	private static final double PREVIEW_HEIGHT = 120;
 	
+	private final FilteredList<Option<AnimationType>> ANIMATION_TYPE_OPTIONS = getOptions(AnimationType.class);
+	private final FilteredList<Option<EasingType>> EASING_TYPE_OPTIONS = getOptions(EasingType.class);
+	private final FilteredList<Option<Orientation>> ORIENTATION_OPTIONS = getOptions(Orientation.class);
+	private final FilteredList<Option<Operation>> OPERATION_OPTIONS = getOptions(Operation.class);
+	private final FilteredList<Option<ShapeType>> SHAPE_TYPE_OPTIONS = getOptions(ShapeType.class);
+	private final FilteredList<Option<Direction>> DIRECTION_OPTIONS = getOptions(Direction.class);
+	
+	private static <T extends Enum<T>> FilteredList<Option<T>> getOptions(Class<T> clazz) {
+		List<Option<T>> options = new ArrayList<Option<T>>();
+		T[] values = clazz.getEnumConstants();
+		for (T value : values) {
+			options.add(new Option<T>(Translations.get(clazz.getName() + "." + value.name()), value));
+		}
+		return new FilteredList<Option<T>>(FXCollections.observableArrayList(options));
+	}
+	
+	private static <T> Option<T> getOption(FilteredList<Option<T>> options, T value) {
+		for (Option<T> option : options) {
+			if (option.getValue() == value) {
+				return option;
+			}
+		}
+		return options.get(0);
+	}
+	
+	private boolean setting = false;
+	
 	/** The configured animation */
 	private final ObjectProperty<SlideAnimation> animation = new SimpleObjectProperty<SlideAnimation>() {
 		public void set(SlideAnimation animation) {
+			if (setting) return;
+			setting = true;
 			if (animation != null) {
 	    		// assign all the controls their values
 				// FIXME we don't know the animated object type at this time
@@ -74,28 +107,28 @@ public final class AnimationPane extends BorderPane {
 				easingListPane.selectionProperty().set(new AnimationOption(animation.getEasing().getClass(), 0));
 				txtDuration.setText(String.valueOf(animation.getDuration()));
 				txtDelay.setText(String.valueOf(animation.getDelay()));
-				cbAnimationType.setValue(animation.getType());
-				cbEasingType.setValue(animation.getEasing().getType());
+				cbAnimationType.setValue(getOption(ANIMATION_TYPE_OPTIONS, animation.getType()));
+				cbEasingType.setValue(getOption(EASING_TYPE_OPTIONS, animation.getEasing().getType()));
 				// specific animation settings
 				// custom animation options
 				if (animation instanceof Blinds) {
 					Blinds a = (Blinds)animation;
-					cbOrientation.setValue(a.getOrientation());
+					cbOrientation.setValue(getOption(ORIENTATION_OPTIONS, a.getOrientation()));
 					txtBlindCount.setText(String.valueOf(a.getBlindCount()));
 				} else if (animation instanceof Push) {
 					Push a = (Push)animation;
-					cbDirection.setValue(a.getDirection());
+					cbDirection.setValue(getOption(DIRECTION_OPTIONS, a.getDirection()));
 				} else if (animation instanceof Shaped) {
 					Shaped a = (Shaped)animation;
-					cbOperation.setValue(a.getOperation());
-					cbShapeType.setValue(a.getShapeType());
+					cbOperation.setValue(getOption(OPERATION_OPTIONS, a.getOperation()));
+					cbShapeType.setValue(getOption(SHAPE_TYPE_OPTIONS, a.getShapeType()));
 				} else if (animation instanceof Split) {
 					Split a = (Split)animation;
-					cbOrientation.setValue(a.getOrientation());
-					cbOperation.setValue(a.getOperation());
+					cbOrientation.setValue(getOption(ORIENTATION_OPTIONS, a.getOrientation()));
+					cbOperation.setValue(getOption(OPERATION_OPTIONS, a.getOperation()));
 				} else if (animation instanceof Swipe) {
 					Swipe a = (Swipe)animation;
-					cbDirection.setValue(a.getDirection());
+					cbDirection.setValue(getOption(DIRECTION_OPTIONS, a.getDirection()));
 				} else if (animation instanceof Swap ||
 						   animation instanceof Fade ||
 						   animation instanceof Zoom) {
@@ -112,6 +145,7 @@ public final class AnimationPane extends BorderPane {
 			if (ani == null) return;
 			// set it
 			super.set(ani);
+			setting = false;
 		}
 		public void setValue(SlideAnimation animation) {
 			set(animation);
@@ -123,16 +157,16 @@ public final class AnimationPane extends BorderPane {
 	private final ObjectProperty<AnimationOption> animationOption = new SimpleObjectProperty<AnimationOption>();
 	private final ObjectProperty<AnimationOption> easingOption = new SimpleObjectProperty<AnimationOption>();
 	
-	private final ObjectProperty<AnimationType> animationType = new SimpleObjectProperty<AnimationType>();
-	private final ObjectProperty<EasingType> easingType = new SimpleObjectProperty<EasingType>();
+	private final ObjectProperty<Option<AnimationType>> animationType = new SimpleObjectProperty<Option<AnimationType>>();
+	private final ObjectProperty<Option<EasingType>> easingType = new SimpleObjectProperty<Option<EasingType>>();
 	
 	private final LongProperty duration = new SimpleLongProperty();
 	private final LongProperty delay = new SimpleLongProperty();
 	
-	private final ObjectProperty<Orientation> orientation = new SimpleObjectProperty<Orientation>();
-	private final ObjectProperty<Direction> direction = new SimpleObjectProperty<Direction>();
-	private final ObjectProperty<ShapeType> shapeType = new SimpleObjectProperty<ShapeType>();
-	private final ObjectProperty<Operation> operation = new SimpleObjectProperty<Operation>();
+	private final ObjectProperty<Option<Orientation>> orientation = new SimpleObjectProperty<Option<Orientation>>();
+	private final ObjectProperty<Option<Direction>> direction = new SimpleObjectProperty<Option<Direction>>();
+	private final ObjectProperty<Option<ShapeType>> shapeType = new SimpleObjectProperty<Option<ShapeType>>();
+	private final ObjectProperty<Option<Operation>> operation = new SimpleObjectProperty<Option<Operation>>();
 	
 	private final IntegerProperty blindCount = new SimpleIntegerProperty();
 	
@@ -154,12 +188,12 @@ public final class AnimationPane extends BorderPane {
 	FlowListView<AnimationOption> easingListPane;
 	TextField txtDuration;
 	TextField txtDelay;
-	ChoiceBox<AnimationType> cbAnimationType;
-	ChoiceBox<EasingType> cbEasingType;
-	ChoiceBox<Orientation> cbOrientation;
-	ChoiceBox<Direction> cbDirection;
-	ChoiceBox<ShapeType> cbShapeType;
-	ChoiceBox<Operation> cbOperation;
+	ChoiceBox<Option<AnimationType>> cbAnimationType;
+	ChoiceBox<Option<EasingType>> cbEasingType;
+	ChoiceBox<Option<Orientation>> cbOrientation;
+	ChoiceBox<Option<Direction>> cbDirection;
+	ChoiceBox<Option<ShapeType>> cbShapeType;
+	ChoiceBox<Option<Operation>> cbOperation;
 	TextField txtBlindCount;
 	
 	// preview
@@ -170,8 +204,6 @@ public final class AnimationPane extends BorderPane {
 	Transition transition;
 	
 	public AnimationPane(ObservableSet<AnimatedObject> objects) {
-		FilteredList<Direction> directions = new FilteredList<Direction>(FXCollections.observableArrayList(Direction.values()));
-		
 		GridPane grid = new GridPane();
 		grid.setPadding(new Insets(5));
 		grid.setHgap(3);
@@ -202,8 +234,65 @@ public final class AnimationPane extends BorderPane {
 		animationListPane.itemsProperty().set(FXCollections.observableArrayList(animationOptions));
 		animationListPane.setOrientation(javafx.geometry.Orientation.HORIZONTAL);
 		animationListPane.selectionProperty().set(new AnimationOption(Swap.class, 0));
+				
+		easingListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
+		easingListPane.itemsProperty().set(FXCollections.observableArrayList(easingOptions));
+		easingListPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
+		easingListPane.selectionProperty().set(new AnimationOption(Linear.class, 0));
+		
+		// setup the animation config
+		
+		lblDuration = new Label("Duration");
+		txtDuration = new TextField();
+		txtDuration.setPromptText("in milliseconds");
+		LongTextFormatter durationFormatter = new LongTextFormatter();
+		txtDuration.setTextFormatter(durationFormatter);
+		durationFormatter.setValue(500l);
+		
+		lblDelay = new Label("Delay");
+		txtDelay = new TextField();
+		txtDelay.setPromptText("in milliseconds");
+		LongTextFormatter delayFormatter = new LongTextFormatter();
+		txtDelay.setTextFormatter(delayFormatter);
+		delayFormatter.setValue(0l);
+		
+		lblAnimationType = new Label("Animation Type");
+		cbAnimationType = new ChoiceBox<>(ANIMATION_TYPE_OPTIONS);
+		cbAnimationType.setValue(ANIMATION_TYPE_OPTIONS.get(0));
+		
+		lblEasingType = new Label("Easing Type");
+		cbEasingType = new ChoiceBox<>(EASING_TYPE_OPTIONS);
+		cbEasingType.setValue(EASING_TYPE_OPTIONS.get(0));
+						
+		lblOrientation = new Label("Orientation");
+		cbOrientation = new ChoiceBox<>(ORIENTATION_OPTIONS);
+		cbOrientation.setValue(ORIENTATION_OPTIONS.get(0));
+		
+		lblDirection = new Label("Direction");
+		cbDirection = new ChoiceBox<>(DIRECTION_OPTIONS);
+		cbDirection.setValue(DIRECTION_OPTIONS.get(0));
+		cbDirection.setPrefWidth(100);
+		
+		lblShapeType = new Label("Shape Type");
+		cbShapeType = new ChoiceBox<>(SHAPE_TYPE_OPTIONS);
+		cbShapeType.setValue(SHAPE_TYPE_OPTIONS.get(0));
+				
+		lblOperation = new Label("Operation");
+		cbOperation = new ChoiceBox<>(OPERATION_OPTIONS);
+		cbOperation.setValue(OPERATION_OPTIONS.get(0));
+		
+		lblBlindCount = new Label("Blind Count");
+		txtBlindCount = new TextField();
+		txtBlindCount.setPromptText("number of blinds");
+		IntegerTextFormatter blindCountFormatter = new IntegerTextFormatter();
+		txtBlindCount.setTextFormatter(blindCountFormatter);
+		blindCountFormatter.setValue(12);
+		
+		// Bindings
+		
 		animationOption.bind(animationListPane.selectionProperty());
 		animationListPane.selectionProperty().addListener((obs, ov, nv) -> {
+			setting = true;
 			// remove controls
 			grid.getChildren().removeAll(
 					lblDirection, cbDirection,
@@ -222,10 +311,13 @@ public final class AnimationPane extends BorderPane {
 				} else if (Push.class.isAssignableFrom(type)) {
 					grid.add(lblDirection, 0, 5);
 					grid.add(cbDirection, 1, 5);
-					directions.setPredicate((f) -> {
-						return f == Direction.UP || f == Direction.RIGHT || f == Direction.LEFT || f == Direction.DOWN;
+					DIRECTION_OPTIONS.setPredicate((f) -> {
+						return f.getValue() == Direction.UP || 
+							   f.getValue() == Direction.RIGHT || 
+							   f.getValue() == Direction.LEFT || 
+							   f.getValue() == Direction.DOWN;
 					});
-					cbDirection.setValue(Direction.UP);
+					cbDirection.setValue(DIRECTION_OPTIONS.get(0));
 				} else if (Shaped.class.isAssignableFrom(type)) {
 					grid.add(lblShapeType, 0, 5);
 					grid.add(cbShapeType, 1, 5);
@@ -239,107 +331,72 @@ public final class AnimationPane extends BorderPane {
 				} else if (Swipe.class.isAssignableFrom(type)) {
 					grid.add(lblDirection, 0, 5);
 					grid.add(cbDirection, 1, 5);
-					directions.setPredicate((f) -> { return true; });
-					cbDirection.setValue(Direction.UP);
+					DIRECTION_OPTIONS.setPredicate((f) -> { return true; });
+					cbDirection.setValue(DIRECTION_OPTIONS.get(0));
+				} else {
+					// otherwise all the options remain hidden
+					LOGGER.warn("Unhandled animation type " + type.getName() + " in " + getClass().getName());
 				}
-				// otherwise all the options remain hidden
 			}
-			
+			setting = false;
 			animation.set(null);
 		});
 		
-		easingListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
-		easingListPane.itemsProperty().set(FXCollections.observableArrayList(easingOptions));
-		easingListPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
-		easingListPane.selectionProperty().set(new AnimationOption(Linear.class, 0));
 		easingOption.bind(easingListPane.selectionProperty());
 		easingListPane.selectionProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
 		
-		// setup the animation config
-		
-		lblDuration = new Label("Duration");
-		txtDuration = new TextField();
-		txtDuration.setPromptText("in milliseconds");
-		LongTextFormatter durationFormatter = new LongTextFormatter();
 		duration.bind(durationFormatter.valueProperty());
-		txtDuration.setTextFormatter(durationFormatter);
-		durationFormatter.setValue(500l);
 		durationFormatter.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
 		
-		lblDelay = new Label("Delay");
-		txtDelay = new TextField();
-		txtDelay.setPromptText("in milliseconds");
-		LongTextFormatter delayFormatter = new LongTextFormatter();
 		delay.bind(delayFormatter.valueProperty());
-		txtDelay.setTextFormatter(delayFormatter);
-		delayFormatter.setValue(0l);
 		delayFormatter.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
 		
-		lblAnimationType = new Label("Animation Type");
-		cbAnimationType = new ChoiceBox<>(FXCollections.observableArrayList(AnimationType.values()));
-		cbAnimationType.setValue(AnimationType.IN);
 		animationType.bind(cbAnimationType.valueProperty());
 		cbAnimationType.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
 		
-		lblEasingType = new Label("Easing Type");
-		cbEasingType = new ChoiceBox<>(FXCollections.observableArrayList(EasingType.values()));
-		cbEasingType.setValue(EasingType.IN);
 		easingType.bind(cbEasingType.valueProperty());
 		cbEasingType.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
-				
-		lblOrientation = new Label("Orientation");
-		cbOrientation = new ChoiceBox<>(FXCollections.observableArrayList(Orientation.values()));
-		cbOrientation.setValue(Orientation.HORIZONTAL);
+		
 		orientation.bind(cbOrientation.valueProperty());
 		cbOrientation.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
 		
-		lblDirection = new Label("Direction");
-		cbDirection = new ChoiceBox<>(directions);
-		cbDirection.setValue(Direction.UP);
-		cbDirection.setPrefWidth(100);
 		direction.bind(cbDirection.valueProperty());
 		cbDirection.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
 		
-		lblShapeType = new Label("Shape Type");
-		cbShapeType = new ChoiceBox<>(FXCollections.observableArrayList(ShapeType.values()));
-		cbShapeType.setValue(ShapeType.CIRCLE);
 		shapeType.bind(cbShapeType.valueProperty());
 		cbShapeType.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
 		
-		lblOperation = new Label("Operation");
-		cbOperation = new ChoiceBox<>(FXCollections.observableArrayList(Operation.values()));
-		cbOperation.setValue(Operation.COLLAPSE);
 		operation.bind(cbOperation.valueProperty());
 		cbOperation.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
 		
-		lblBlindCount = new Label("Blind Count");
-		txtBlindCount = new TextField();
-		txtBlindCount.setPromptText("number of blinds");
-		IntegerTextFormatter blindCountFormatter = new IntegerTextFormatter();
 		blindCount.bind(blindCountFormatter.valueProperty());
-		txtBlindCount.setTextFormatter(blindCountFormatter);
-		blindCountFormatter.setValue(12);
 		blindCountFormatter.valueProperty().addListener((obs, ov, nv) -> {
 			animation.set(null);
 		});
+		
+		// Set the default value
+		
+		this.animation.set(null);
+		
+		// UI
 		
 		grid.add(lblObjects, 0, 0);
 		grid.add(cmbObjects, 1, 0);
@@ -359,6 +416,7 @@ public final class AnimationPane extends BorderPane {
 		panePreview = new Pane();
 		JavaFxNodeHelper.setSize(panePreview, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 		panePreview.setBorder(FxFactory.newBorder(Color.BLACK));
+		panePreview.setClip(new Rectangle(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT));
 		
 		pane1 = new Pane();
 		pane1.setBorder(FxFactory.newBorder(Color.BLACK));
@@ -431,27 +489,27 @@ public final class AnimationPane extends BorderPane {
 			animation.setDelay(this.delay.get());
 			animation.setDuration(this.duration.get());
 			animation.setId(this.cmbObjects.getValue().getObjectId());
-			animation.setType(this.cbAnimationType.getValue());
+			animation.setType(this.cbAnimationType.getValue().getValue());
 			
 			// custom animation options
 			if (animation instanceof Blinds) {
 				Blinds a = (Blinds)animation;
-				a.setOrientation(this.orientation.get());
+				a.setOrientation(this.orientation.get().getValue());
 				a.setBlindCount(this.blindCount.get());
 			} else if (animation instanceof Push) {
 				Push a = (Push)animation;
-				a.setDirection(this.direction.get());
+				a.setDirection(this.direction.get().getValue());
 			} else if (animation instanceof Shaped) {
 				Shaped a = (Shaped)animation;
-				a.setOperation(this.operation.get());
-				a.setShapeType(this.shapeType.get());
+				a.setOperation(this.operation.get().getValue());
+				a.setShapeType(this.shapeType.get().getValue());
 			} else if (animation instanceof Split) {
 				Split a = (Split)animation;
-				a.setOrientation(this.orientation.get());
-				a.setOperation(this.operation.get());
+				a.setOrientation(this.orientation.get().getValue());
+				a.setOperation(this.operation.get().getValue());
 			} else if (animation instanceof Swipe) {
 				Swipe a = (Swipe)animation;
-				a.setDirection(this.direction.get());
+				a.setDirection(this.direction.get().getValue());
 			} else if (animation instanceof Swap ||
 					   animation instanceof Fade ||
 					   animation instanceof Zoom) {
@@ -462,7 +520,7 @@ public final class AnimationPane extends BorderPane {
 			
 			// easing
 			Easing easing = (Easing)easingClass.newInstance();
-			easing.setType(this.cbEasingType.getValue());
+			easing.setType(this.cbEasingType.getValue().getValue());
 			animation.setEasing(easing);
 			
 			return animation;

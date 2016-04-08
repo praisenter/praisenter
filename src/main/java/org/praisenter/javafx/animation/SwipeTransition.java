@@ -15,6 +15,14 @@ public class SwipeTransition extends CustomTransition<Swipe> {
 	}
 
 	@Override
+	public void stop() {
+		super.stop();
+		if (this.node != null) {
+			this.node.setClip(null);
+		}
+	}
+	
+	@Override
 	protected void interpolate(double frac) {
 		if (this.node == null) return;
 		
