@@ -29,7 +29,6 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -55,23 +54,23 @@ import org.praisenter.slide.graphics.SlideStroke;
 })
 public abstract class AbstractSlideRegion implements SlideRegion {
 	/** The id */
-	@XmlAttribute(name = "id", required = false)
+	@XmlElement(name = "id", required = false)
 	final UUID id;
 	
 	/** The x coordinate */
-	@XmlAttribute(name = "x", required = false)
+	@XmlElement(name = "x", required = false)
 	int x;
 	
 	/** The y coordinate */
-	@XmlAttribute(name = "y", required = false)
+	@XmlElement(name = "y", required = false)
 	int y;
 	
 	/** The width */
-	@XmlAttribute(name = "width", required = false)
+	@XmlElement(name = "width", required = false)
 	int width;
 	
 	/** The height */
-	@XmlAttribute(name = "height", required = false)
+	@XmlElement(name = "height", required = false)
 	int height;
 	
 	/** The border */

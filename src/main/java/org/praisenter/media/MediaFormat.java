@@ -31,7 +31,6 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -45,16 +44,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class MediaFormat {
 	/** The format short name */
-	@XmlAttribute
+	@XmlElement(name = "name", required = false)
 	final String name;
 	
 	/** The format long name */
-	@XmlAttribute
+	@XmlElement(name = "description", required = false)
 	final String description;
 	
 	/** The media's contained codecs */
-	@XmlElementWrapper
-	@XmlElement(name = "codec")
+	@XmlElementWrapper(name = "codecs", required = false)
+	@XmlElement(name = "codec", required = false)
 	final List<MediaCodec> codecs;
 	
 	/**

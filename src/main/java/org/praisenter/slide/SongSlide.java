@@ -19,11 +19,11 @@ public final class SongSlide extends TemplatedSlide implements Slide, SlideRegio
 	// the properties describing the verse selected
 	
 	/** The song id */
-	@XmlAttribute(name = "songId", required = false)
+	@XmlElement(name = "songId", required = false)
 	UUID songId;
 	
 	/** The verse name */
-	@XmlAttribute(name = "verse", required = false)
+	@XmlElement(name = "verse", required = false)
 	String verse;
 	
 	// Note: the order should be preserved so we shouldn't have to know

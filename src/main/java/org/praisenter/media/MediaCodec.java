@@ -26,7 +26,7 @@ package org.praisenter.media;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -38,15 +38,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class MediaCodec {
 	/** The codec short name */
-	@XmlAttribute
+	@XmlElement(name = "name", required = false)
 	final String name;
 	
 	/** The codec long name */
-	@XmlAttribute
+	@XmlElement(name = "description", required = false)
 	final String description;
 	
 	/** The codec type */
-	@XmlAttribute
+	@XmlElement(name = "type", required = false)
 	final CodecType type;
 	
 	/**

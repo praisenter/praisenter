@@ -38,7 +38,6 @@ import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -67,37 +66,37 @@ public final class MediaMetadata {
 	public static final int UNKNOWN = -1;
 	
 	/** The media's unique id */
-	@XmlAttribute(name = "id", required = false)
+	@XmlElement(name = "id", required = false)
 	final UUID id;
 	
 	/** The path to the media file */
-	@XmlAttribute(name = "path", required = false)
+	@XmlElement(name = "path", required = false)
 	@XmlJavaTypeAdapter(value = PathXmlAdapter.class)
 	final Path path;
 	
 	/** The media type */
-	@XmlAttribute(name = "type", required = false)
+	@XmlElement(name = "type", required = false)
 	final MediaType type;
 	
 	/** The mime type */
-	@XmlAttribute(name = "mimeType", required = false)
+	@XmlElement(name = "mimeType", required = false)
 	final String mimeType;
 	
 	/** The file name */
-	@XmlAttribute(name = "name", required = false)
+	@XmlElement(name = "name", required = false)
 	final String name;
 
 	/** The date the file was added to the library */
-	@XmlAttribute(name = "dateAdded", required = false)
+	@XmlElement(name = "dateAdded", required = false)
 	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
 	final Instant dateAdded;
 	
 	/** The file's last modified timestamp */
-	@XmlAttribute(name = "lastModified", required = false)
+	@XmlElement(name = "lastModified", required = false)
 	final long lastModified;
 	
 	/** The file's size in bytes */
-	@XmlAttribute(name = "size", required = false)
+	@XmlElement(name = "size", required = false)
 	final long size;
 	
 	/** The file's format */
@@ -105,19 +104,19 @@ public final class MediaMetadata {
 	final MediaFormat format;
 	
 	/** The file's width in pixels (if applicable) */
-	@XmlAttribute(name = "width", required = false)
+	@XmlElement(name = "width", required = false)
 	final int width;
 	
 	/** The file's height in pixels (if applicable) */
-	@XmlAttribute(name = "height", required = false)
+	@XmlElement(name = "height", required = false)
 	final int height;
 	
 	/** The file's length in seconds (if applicable) */
-	@XmlAttribute(name = "length", required = false)
+	@XmlElement(name = "length", required = false)
 	final long length;
 	
 	/** True if the media contains audio */
-	@XmlAttribute(name = "audio", required = false)
+	@XmlElement(name = "audio", required = false)
 	final boolean audio;
 	
 	/** The media's tags for searching/sorting */

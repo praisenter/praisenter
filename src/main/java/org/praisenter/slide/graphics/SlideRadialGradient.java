@@ -28,7 +28,7 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -40,19 +40,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideRadialGradient extends SlideGradient implements SlidePaint {
 	/** The center x between 0 and 1 */
-	@XmlAttribute(name = "cx", required = false)
+	@XmlElement(name = "cx", required = false)
 	final double centerX;
 	
 	/** The center y between 0 and 1 */
-	@XmlAttribute(name = "cy", required = false)
+	@XmlElement(name = "cy", required = false)
 	final double centerY;
 	
 	/** The radius between 0 and 1 */
-	@XmlAttribute(name = "r", required = false)
+	@XmlElement(name = "r", required = false)
 	final double radius;
 	
 	/** The cycle type */
-	@XmlAttribute(name = "cycle", required = false)
+	@XmlElement(name = "cycle", required = false)
 	final SlideGradientCycleType cycleType;
 	
 	/**

@@ -2,16 +2,16 @@ package org.praisenter.javafx.configuration;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "screen")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class ScreenMapping {
-	@XmlAttribute(name = "id", required = false)
+	@XmlElement(name = "id", required = false)
 	private final String id;
 	
-	@XmlAttribute(name = "role", required = false)
+	@XmlElement(name = "role", required = false)
 	private final ScreenRole role;
 	
 	private ScreenMapping() {

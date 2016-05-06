@@ -26,7 +26,6 @@ package org.praisenter.slide.text;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -58,23 +57,23 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	SlideFont font;
 	
 	/** The font scaling type */
-	@XmlAttribute(name = "fontScaleType", required = false)
+	@XmlElement(name = "fontScaleType", required = false)
 	FontScaleType fontScaleType;
 	
 	/** The text vertical alignment */
-	@XmlAttribute(name = "verticalAlignment", required = false)
+	@XmlElement(name = "verticalAlignment", required = false)
 	VerticalTextAlignment verticalTextAlignment;
 	
 	/** The text horizontal alignment */
-	@XmlAttribute(name = "horizontalAlignment", required = false)
+	@XmlElement(name = "horizontalAlignment", required = false)
 	HorizontalTextAlignment horizontalTextAlignment;
 	
 	/** The bounds padding */
-	@XmlAttribute(name = "padding", required = false)
+	@XmlElement(name = "padding", required = false)
 	double padding;
 	
 	/** The line spacing */
-	@XmlAttribute(name = "lineSpacing", required = false)
+	@XmlElement(name = "lineSpacing", required = false)
 	double lineSpacing;
 	
 	/**

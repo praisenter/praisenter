@@ -28,7 +28,6 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
@@ -55,19 +54,19 @@ import org.praisenter.slide.easing.Linear;
 })
 public abstract class SlideAnimation {
 	/** The id of the object being animated */
-	@XmlAttribute(name = "id", required = false)
+	@XmlElement(name = "id", required = false)
 	UUID id;
 	
 	/** The animation type */
-	@XmlAttribute(name = "type", required = false)
+	@XmlElement(name = "type", required = false)
 	AnimationType type;
 	
 	/** The animation duration */
-	@XmlAttribute(name = "duration", required = false)
+	@XmlElement(name = "duration", required = false)
 	long duration;
 	
 	/** The animation delay */
-	@XmlAttribute(name = "delay", required = false)
+	@XmlElement(name = "delay", required = false)
 	long delay;
 	
 	/** The easing function */

@@ -4,13 +4,13 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "push")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Push extends SlideAnimation {
-	@XmlAttribute(name = "direction", required = false)
+	@XmlElement(name = "direction", required = false)
 	Direction direction;
 	
 	public Push() {

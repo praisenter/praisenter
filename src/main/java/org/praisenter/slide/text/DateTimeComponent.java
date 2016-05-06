@@ -29,7 +29,7 @@ import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -46,7 +46,7 @@ import org.praisenter.xml.adapters.SimpleDateFormatTypeAdapter;
 @XmlAccessorType(XmlAccessType.NONE)
 public class DateTimeComponent extends AbstractTextComponent implements SlideRegion, SlideComponent, TextComponent {
 	/** The date/time format */
-	@XmlAttribute(name = "format", required = false)
+	@XmlElement(name = "format", required = false)
 	@XmlJavaTypeAdapter(value = SimpleDateFormatTypeAdapter.class)
 	SimpleDateFormat format;
 

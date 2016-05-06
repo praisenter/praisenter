@@ -4,16 +4,16 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "blinds")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Blinds extends SlideAnimation {
-	@XmlAttribute(name = "orientation", required = false)
+	@XmlElement(name = "orientation", required = false)
 	Orientation orientation;
 	
-	@XmlAttribute(name = "blindCount", required = false)
+	@XmlElement(name = "blindCount", required = false)
 	int blindCount;
 	
 	public Blinds() {

@@ -28,7 +28,6 @@ import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -53,11 +52,11 @@ public final class SlideStroke {
 	final SlideStrokeStyle style;
 	
 	/** The stroke width */
-	@XmlAttribute(name = "width", required = false)
+	@XmlElement(name = "width", required = false)
 	final double width;
 	
 	/** The stroke radius */
-	@XmlAttribute(name = "radius", required = false)
+	@XmlElement(name = "radius", required = false)
 	final double radius;
 	
 	/**

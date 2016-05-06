@@ -114,59 +114,59 @@ public final class Song implements SongOutput, Comparable<Song> {
 	final String format = Constants.VERSION;
 	
 	/** The song unique id */
-	@XmlAttribute(name = "id", required = false)
+	@XmlElement(name = "id", required = false)
 	final UUID id;
 	
 	/** The created on date */
-	@XmlAttribute(name = "createdDate", required = false)
+	@XmlElement(name = "createdDate", required = false)
 	Date createdDate;
 	
 	/** The created in application */
-	@XmlAttribute(name = "createdIn", required = false)
+	@XmlElement(name = "createdIn", required = false)
 	String createdIn;
 	
 	/** The last modified in application */
-	@XmlAttribute(name = "lastModifiedIn", required = false)
+	@XmlElement(name = "lastModifiedIn", required = false)
 	String lastModifiedIn;
 
 	/** The last modified date */
-	@XmlAttribute(name = "lastModifiedDate", required = false)
+	@XmlElement(name = "lastModifiedDate", required = false)
 	Date lastModifiedDate;
 
 	/** The song's copyright information */
-	@XmlAttribute(name = "copyright", required = false)
+	@XmlElement(name = "copyright", required = false)
 	String copyright;
 	
 	/** The song's CCLI number */
-	@XmlAttribute(name = "ccli", required = false)
+	@XmlElement(name = "ccli", required = false)
 	int ccli;
 	
 	/** The song's release date */
-	@XmlAttribute(name = "released", required = false)
+	@XmlElement(name = "released", required = false)
 	String released;
 	
 	/** The song's transposition */
-	@XmlAttribute(name = "transposition", required = false)
+	@XmlElement(name = "transposition", required = false)
 	int transposition;
 	
 	/** The song's tempo; typically in bpm */
-	@XmlAttribute(name = "tempo", required = false)
+	@XmlElement(name = "tempo", required = false)
 	String tempo;
 	
 	/** The song's key */
-	@XmlAttribute(name = "key", required = false)
+	@XmlElement(name = "key", required = false)
 	String key;
 	
 	/** The variant name for this song */
-	@XmlAttribute(name = "variant", required = false)
+	@XmlElement(name = "variant", required = false)
 	String variant;
 	
 	/** The publisher */
-	@XmlAttribute(name = "publisher", required = false)
+	@XmlElement(name = "publisher", required = false)
 	String publisher;
 	
 	/** The version of this song */
-	@XmlAttribute(name = "version", required = false)
+	@XmlElement(name = "version", required = false)
 	String version;
 	
 	/** A space separated list of keywords for searching */

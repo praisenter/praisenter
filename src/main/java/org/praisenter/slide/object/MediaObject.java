@@ -29,7 +29,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.media.MediaLibrary;
@@ -55,19 +55,19 @@ import org.praisenter.slide.graphics.SlidePaint;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class MediaObject extends AbstractSlidePaint implements SlidePaint {
 	/** The media id */
-	@XmlAttribute(name = "id", required = false)
+	@XmlElement(name = "id", required = false)
 	final UUID id;
 
 	/** The media scaling type */
-	@XmlAttribute(name = "scaling", required = false)
+	@XmlElement(name = "scaling", required = false)
 	final ScaleType scaling;
 	
 	/** True if the media should loop */
-	@XmlAttribute(name = "loop", required = false)
+	@XmlElement(name = "loop", required = false)
 	final boolean loop;
 	
 	/** True if the media should be muted */
-	@XmlAttribute(name = "mute", required = false)
+	@XmlElement(name = "mute", required = false)
 	final boolean mute;
 
 	// FEATURE add a repeat property that will tile an image

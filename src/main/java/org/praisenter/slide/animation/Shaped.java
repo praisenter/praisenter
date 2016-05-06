@@ -28,7 +28,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 //FEATURE add more shape types (Star, Rect, etc)
@@ -42,11 +42,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Shaped extends SlideAnimation {
 	/** The shape */
-	@XmlAttribute(name = "shapeType", required = false)
+	@XmlElement(name = "shapeType", required = false)
 	ShapeType shapeType;
 	
 	/** The operation */
-	@XmlAttribute(name = "operation", required = false)
+	@XmlElement(name = "operation", required = false)
 	Operation operation;
 	
 	public Shaped() {

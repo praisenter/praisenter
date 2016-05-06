@@ -86,13 +86,13 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	Path path;
 	
 	/** The slide name */
-	@XmlAttribute(name = "name")
+	@XmlElement(name = "name")
 	String name;
 	
 	// other
 	
 	/** The time the slide will show in milliseconds */
-	@XmlAttribute(name = "time", required = false)
+	@XmlElement(name = "time", required = false)
 	long time;
 	
 	/** The tags */

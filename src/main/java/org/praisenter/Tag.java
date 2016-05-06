@@ -28,8 +28,8 @@ import java.text.Collator;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlValue;
 
 /**
  * Represents a tag for grouping like objects.
@@ -43,7 +43,7 @@ public final class Tag implements Comparable<Tag> {
 	private static final Collator COLLATOR = Collator.getInstance();
 	
 	/** The tag name */
-	@XmlAttribute(name = "name", required = false)
+	@XmlValue
 	private final String name;
 
 	/**

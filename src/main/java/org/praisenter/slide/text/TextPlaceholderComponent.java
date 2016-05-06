@@ -29,7 +29,6 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -49,7 +48,7 @@ import org.praisenter.slide.SlideRegion;
 @XmlAccessorType(XmlAccessType.NONE)
 public class TextPlaceholderComponent extends BasicTextComponent implements SlideRegion, SlideComponent, TextComponent {
 	/** The placeholder type */
-	@XmlAttribute(name = "type", required = false)
+	@XmlElement(name = "type", required = false)
 	PlaceholderType type;
 	
 	/** The placeholder variants */

@@ -26,7 +26,7 @@ package org.praisenter.slide.text;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -38,19 +38,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideFont {
 	/** The font family */
-	@XmlAttribute(name = "family", required = false)
+	@XmlElement(name = "family", required = false)
 	final String family;
 	
 	/** The font weight (bold, extra bold, etc) */
-	@XmlAttribute(name = "weight", required = false)
+	@XmlElement(name = "weight", required = false)
 	final SlideFontWeight weight;
 	
 	/** The font posture (italic, regular) */
-	@XmlAttribute(name = "posture", required = false)
+	@XmlElement(name = "posture", required = false)
 	final SlideFontPosture posture;
 	
 	/** The font size */
-	@XmlAttribute(name = "size", required = false)
+	@XmlElement(name = "size", required = false)
 	final double size;
 	
 	/**

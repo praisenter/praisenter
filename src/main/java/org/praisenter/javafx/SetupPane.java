@@ -20,12 +20,17 @@ import org.praisenter.resources.translations.Translations;
 import javafx.collections.FXCollections;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -33,6 +38,7 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
@@ -68,6 +74,10 @@ public final class SetupPane extends GridPane {
 		if (this.savedConfig == null) {
 			this.savedConfig = Configuration.createDefaultConfiguration();
 		}
+		
+		this.setHgap(5);
+		this.setVgap(5);
+//		this.setGridLinesVisible(true);
 		
 		int row = 0;
 		
@@ -128,7 +138,8 @@ public final class SetupPane extends GridPane {
 				img.setLayoutX(bw);
 				img.setLayoutY(bw);
 				
-				Pane stack = new Pane(img);
+				StackPane stack = new StackPane(img);
+				stack.setBackground(new Background(new BackgroundFill(Color.BLACK, null, new Insets(bw * 0.5))));
 				Fx.setSize(stack, w + bw * 2, h + bw * 2);
 				stack.setBorder(new Border(new BorderStroke(SCREEN_BORDER_PAINT, new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.ROUND, StrokeLineCap.ROUND, bw, 0, new ArrayList<Double>()), new CornerRadii(bw / 5), new BorderWidths(bw))));
 				
@@ -136,23 +147,15 @@ public final class SetupPane extends GridPane {
 				cmbDisplayType.setUserData(device);
 				screenCombos.add(cmbDisplayType);
 				
-				// TODO assign the saved values
-				if (i == 0) {
-					// the first is by default the controller screen
-					cmbDisplayType.setValue(new Option<ScreenRole>(null, ScreenRole.NONE));
-				} else if (i == 1) {
-					// the second is by default the primary screen
-					cmbDisplayType.setValue(new Option<ScreenRole>(null, ScreenRole.PRESENTATION));
-				} else if (i == 2) {
-					// the third is by default the musician screen
-					cmbDisplayType.setValue(new Option<ScreenRole>(null, ScreenRole.MUSICIAN));
-				} else {
-					// all others are by default nothing
-					cmbDisplayType.setValue(new Option<ScreenRole>(null, ScreenRole.NONE));
+				for (ScreenMapping map : savedConfig.getScreens()) {
+					if (map.getId().equals(device.getIDstring())) {
+						cmbDisplayType.setValue(new Option<ScreenRole>(null, map.getRole()));
+						break;
+					}
 				}
 				
-				screenPane.add(stack, i, row);
-				screenPane.add(cmbDisplayType, i, row + 1);
+				screenPane.add(stack, i, 0);
+				screenPane.add(cmbDisplayType, i, 1);
 				GridPane.setHalignment(cmbDisplayType, HPos.CENTER);
 				
 				// TODO use the AWT deviceID for storage :(
@@ -161,32 +164,10 @@ public final class SetupPane extends GridPane {
 				e1.printStackTrace();
 			}
 		}
-		this.add(screenPane, 0, row);
-		row++;
 		
-//		Label lblPrimaryDisplay = new Label("Primary Display");
-//		ComboBox<Option<Screen>> cmbPrimaryDisplay = new ComboBox<Option<Screen>>(FXCollections.observableArrayList(screens));
-//		if (defScreenConf.length > 1) {
-//			cmbPrimaryDisplay.setValue(new Option<Screen>(null, defScreenConf[1]));
-//		} else {
-//			cmbPrimaryDisplay.setValue(new Option<Screen>(null, null));
-//		}
-//		this.add(lblPrimaryDisplay, 0, row);
-//		this.add(cmbPrimaryDisplay, 1, row++);
-//		
-//		Label lblSecondaryDisplay = new Label("Secondary Display");
-//		ComboBox<Option<Screen>> cmbSecondaryDisplay = new ComboBox<Option<Screen>>(FXCollections.observableArrayList(screens));
-//		if (defScreenConf.length > 2) {
-//			cmbSecondaryDisplay.setValue(new Option<Screen>(null, defScreenConf[2]));
-//		} else {
-//			cmbSecondaryDisplay.setValue(new Option<Screen>(null, null));
-//		}
-//		this.add(lblSecondaryDisplay, 0, row);
-//		this.add(cmbSecondaryDisplay, 1, row++);
-		
-		// screen.primary
-		// screen.secondary
-		// screen.tertiary
+		TitledPane tp1 = new TitledPane("Display Setup", screenPane);
+		tp1.setCollapsible(false);
+		this.add(tp1, 0, row++, 2, 1);
 		
 		Button btnSave = new Button("Save changes");
 		this.add(btnSave, 0, row++);

@@ -41,6 +41,12 @@ public final class Configuration {
 	@XmlElement(name = "screen", required = false)
 	private final List<ScreenMapping> screens;
 	
+	@XmlElement(name = "smartImageTransitions", required = false)
+	private boolean smartImageTransitions;
+	
+	@XmlElement(name = "smartVideoTransitions", required = false)
+	private boolean smartVideoTransitions;
+	
 	public Configuration() {
 		this.screens = new ArrayList<ScreenMapping>();
 	}

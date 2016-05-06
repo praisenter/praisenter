@@ -28,7 +28,6 @@ import java.util.Objects;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -41,7 +40,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideGradientStop {
 	/** The stop location from 0.0 - 1.0 inclusive */
-	@XmlAttribute(name = "offset", required = false)
+	@XmlElement(name = "offset", required = false)
 	final double offset;
 	
 	/** The stop color */

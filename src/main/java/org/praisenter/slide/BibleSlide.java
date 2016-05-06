@@ -16,15 +16,15 @@ public final class BibleSlide extends TemplatedSlide implements Slide, SlideRegi
 	// the properties describing the verse selected
 	
 	/** The book code */
-	@XmlAttribute(name = "bookCode", required = false)
+	@XmlElement(name = "bookCode", required = false)
 	String bookCode;
 	
 	/** The chapter */
-	@XmlAttribute(name = "chapter", required = false)
+	@XmlElement(name = "chapter", required = false)
 	int chapter;
 	
 	/** The verse */
-	@XmlAttribute(name = "verse", required = false)
+	@XmlElement(name = "verse", required = false)
 	int verse;
 	
 	// Note: the order should be preserved so we shouldn't have to know

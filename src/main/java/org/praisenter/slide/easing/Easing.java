@@ -26,7 +26,7 @@ package org.praisenter.slide.easing;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
@@ -52,7 +52,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 })
 public abstract class Easing {
 	/** The easing type */
-	@XmlAttribute(name = "type")
+	@XmlElement(name = "type")
 	EasingType type;
 
 	/**

@@ -26,7 +26,7 @@ package org.praisenter.slide.graphics;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -38,19 +38,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideColor extends AbstractSlidePaint implements SlidePaint {
 	/** The red component */
-	@XmlAttribute(name = "r", required = false)
+	@XmlElement(name = "r", required = false)
 	final double red;
 	
 	/** The green component */
-	@XmlAttribute(name = "g", required = false)
+	@XmlElement(name = "g", required = false)
 	final double green;
 	
 	/** The blue component */
-	@XmlAttribute(name = "b", required = false)
+	@XmlElement(name = "b", required = false)
 	final double blue;
 	
 	/** The alpha component */
-	@XmlAttribute(name = "a", required = false)
+	@XmlElement(name = "a", required = false)
 	final double alpha;
 	
 	/**

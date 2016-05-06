@@ -28,7 +28,7 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
@@ -43,7 +43,7 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class TemplatedSlide extends BasicSlide implements Slide, SlideRegion  {
 	/** The id of the slide this slide was based on */
-	@XmlAttribute(name = "templateId", required = false)
+	@XmlElement(name = "templateId", required = false)
 	final UUID templateId;
 
 	/**

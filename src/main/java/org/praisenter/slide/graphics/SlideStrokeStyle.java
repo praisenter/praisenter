@@ -26,7 +26,6 @@ package org.praisenter.slide.graphics;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -40,15 +39,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideStrokeStyle {
 	/** The stroke type */
-	@XmlAttribute(name = "type", required = false)
+	@XmlElement(name = "type", required = false)
 	final SlideStrokeType type;
 	
 	/** The stroke join */
-	@XmlAttribute(name = "join", required = false)
+	@XmlElement(name = "join", required = false)
 	final SlideStrokeJoin join;
 	
 	/** The stroke cap */
-	@XmlAttribute(name = "cap", required = false)
+	@XmlElement(name = "cap", required = false)
 	final SlideStrokeCap cap;
 	
 	/** The dash array */

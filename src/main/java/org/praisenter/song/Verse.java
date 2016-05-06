@@ -29,7 +29,7 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
@@ -44,7 +44,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Verse implements SongOutput {
 	/** The verse name */
-	@XmlAttribute(name = "name", required = false)
+	@XmlElement(name = "name", required = false)
 	String name;
 	
 	/** The verse lines */
@@ -58,7 +58,7 @@ public final class Verse implements SongOutput {
 	List<VerseFragment> fragments;
 	
 	/** The verse font size */
-	@XmlAttribute(name = "fontSize", required = false)
+	@XmlElement(name = "fontSize", required = false)
 	int fontSize;
 	
 	/**

@@ -26,7 +26,7 @@ package org.praisenter.song;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -38,11 +38,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Songbook {
 	/** The book name */
-	@XmlAttribute(name = "name", required = false)
+	@XmlElement(name = "name", required = false)
 	String name;
 	
 	/** The entry */
-	@XmlAttribute(name = "entry", required = false)
+	@XmlElement(name = "entry", required = false)
 	String entry;
 	
 	/**

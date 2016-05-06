@@ -26,7 +26,7 @@ package org.praisenter.slide;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Abstract implementation of the {@link SlideComponent} interface.
@@ -36,7 +36,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractSlideComponent extends AbstractSlideRegion implements SlideRegion, SlideComponent {
 	/** The z-order */
-	@XmlAttribute(name = "order", required = false)
+	@XmlElement(name = "order", required = false)
 	int order;
 	
 	/* (non-Javadoc)
