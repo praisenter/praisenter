@@ -40,8 +40,7 @@ import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.IntegerTextFormatter;
 import org.praisenter.javafx.LongTextFormatter;
 import org.praisenter.javafx.Option;
-import org.praisenter.javafx.utility.FxFactory;
-import org.praisenter.javafx.utility.JavaFxNodeHelper;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Blinds;
@@ -414,22 +413,22 @@ public final class AnimationPane extends BorderPane {
 		grid.add(cbEasingType, 1, 4);
 		
 		panePreview = new Pane();
-		JavaFxNodeHelper.setSize(panePreview, PREVIEW_WIDTH, PREVIEW_HEIGHT);
-		panePreview.setBorder(FxFactory.newBorder(Color.BLACK));
+		Fx.setSize(panePreview, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+		panePreview.setBorder(Fx.newBorder(Color.BLACK));
 		panePreview.setClip(new Rectangle(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT));
 		
 		pane1 = new Pane();
-		pane1.setBorder(FxFactory.newBorder(Color.BLACK));
+		pane1.setBorder(Fx.newBorder(Color.BLACK));
 		pane1.setBackground(new Background(new BackgroundFill(Color.rgb(0, 0, 255, 0.5), null, null)));
-		JavaFxNodeHelper.setSize(pane1, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+		Fx.setSize(pane1, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 		
 		pane2 = new StackPane();
-		pane2.setBorder(FxFactory.newBorder(Color.BLACK));
+		pane2.setBorder(Fx.newBorder(Color.BLACK));
 		pane2.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0, 0.5), null, null)));
 		Text content = new Text("Content");
 		content.setFill(Color.WHITE);
 		pane2.getChildren().add(content);
-		JavaFxNodeHelper.setSize(pane2, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+		Fx.setSize(pane2, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 		
 		panePreview.getChildren().addAll(pane1, pane2);
 		

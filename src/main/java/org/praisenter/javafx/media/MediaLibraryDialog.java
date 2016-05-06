@@ -34,7 +34,7 @@ import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
 import org.praisenter.Tag;
-import org.praisenter.javafx.utility.FxFactory;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
@@ -81,7 +81,7 @@ final class MediaLibraryDialog extends BorderPane {
 		this.mediaLibraryPane = new MediaLibraryPane(library, Orientation.HORIZONTAL, tags, types);
 
 		this.setCenter(this.mediaLibraryPane);
-		this.dialog.setScene(FxFactory.newScene(this));
+		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));
 	}
 	
 	/**

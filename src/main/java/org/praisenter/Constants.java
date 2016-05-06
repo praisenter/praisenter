@@ -70,6 +70,17 @@ public final class Constants {
 	public static final String DATABASE_LOG_FILE_PATH = Constants.LOGS_ABSOLUTE_PATH + RuntimeProperties.PATH_SEPARATOR + "derby.log";
 	
 	///////////////////////////
+	// CONFIGURATION
+	
+	// /configuration.xml
+	/** The relative path to the configuration folder */
+	public static final String CONFIG_RELATIVE_FILE_PATH = "configuration.xml";
+	
+	// /user/home/dir/Praisenter3/configuration.xml
+	/** The absolute path to the configuration folder */
+	public static final String CONFIG_ABSOLUTE_FILE_PATH = Constants.ROOT_PATH + CONFIG_RELATIVE_FILE_PATH;
+	
+	///////////////////////////
 	// MEDIA
 
 	// /media

@@ -43,7 +43,8 @@ public final class Translations {
 	/** The supported locales */
 	public static final Locale[] SUPPORTED_LOCALES = new Locale[] {
 		// add more here as you add more messages_x.properties
-		Locale.US
+		Locale.ENGLISH,
+		new Locale("es")
 	};
 	
 	/** The base bundle name */

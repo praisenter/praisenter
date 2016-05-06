@@ -32,7 +32,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
-import org.praisenter.javafx.utility.FxFactory;
+import org.praisenter.javafx.utility.Fx;
 
 /**
  * A dialog for selecting a gradient.
@@ -69,7 +69,7 @@ final class GradientPickerDialog extends BorderPane {
 		this.gradientPane = new GradientPickerPane(paint);
 
 		this.setCenter(this.gradientPane);
-		this.dialog.setScene(FxFactory.newScene(this));
+		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));
 	}
 	
 	/**

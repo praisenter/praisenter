@@ -30,29 +30,31 @@ import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
-
-import org.praisenter.javafx.Praisenter;
+import javafx.stage.Window;
 
 /**
- * Helper class to assit in creating Java FX objects.
+ * Helper class to assist in creating and manipulating Java FX objects.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class FxFactory {
+public final class Fx {
 	/** Hidden default constructor */
-	private FxFactory() {}
+	private Fx() {}
 	
 	/**
-	 * Returns a new scene for the given root node.
-	 * <p>
-	 * This method adds the current {@link Praisenter#THEME_CSS}.
+	 * Returns a new scene for the given root node inheriting the stylesheets
+	 * from the given window owner.
 	 * @param root the root
+	 * @param owner the window owner
 	 * @return Scene
 	 */
-	public static final Scene newScene(Parent root) {
+	public static final Scene newSceneInheritCss(Parent root, Window owner) {
 		Scene scene = new Scene(root);
-		scene.getStylesheets().add(Praisenter.THEME_CSS);
+		if (owner != null) {
+			scene.getStylesheets().addAll(owner.getScene().getStylesheets());
+		}
 		return scene;
 	}
 	
@@ -63,5 +65,20 @@ public final class FxFactory {
 	 */
 	public static final Border newBorder(Color color) {
 		return new Border(new BorderStroke(color, BorderStrokeStyle.SOLID, null, new BorderWidths(1)));
+	}
+
+	/**
+	 * Sets the size of the node to the given width and height.
+	 * <p>
+	 * This method attempts to force the node to stay the given size by setting
+	 * the min, max, and preferred sizes.
+	 * @param region the node
+	 * @param width the desired width
+	 * @param height the desired height
+	 */
+	public static final void setSize(Region region, double width, double height) {
+		region.setPrefSize(width, height);
+		region.setMinSize(width, height);
+		region.setMaxSize(width, height);
 	}
 }

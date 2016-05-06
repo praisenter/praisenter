@@ -26,6 +26,7 @@ package org.praisenter.javafx;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.RuntimeProperties;
 
@@ -100,13 +101,14 @@ final class LoadingPane extends Pane {
 	 * Full constructor
 	 * @param width the initial width
 	 * @param height the initial height
+	 * @param configuration the application configuration
 	 */
-	public LoadingPane(final double width, final double height) {
+	public LoadingPane(final double width, final double height, final Configuration configuration) {
 		this.setPrefWidth(width);
 		this.setPrefHeight(height);
 		
 		// create the loading task
-		this.loading = new ContextLoadingTask();
+		this.loading = new ContextLoadingTask(configuration);
 		this.loadingThread = new Thread(this.loading);
 		
 		// TODO need better splash screen image

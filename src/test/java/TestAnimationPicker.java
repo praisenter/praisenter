@@ -45,7 +45,7 @@ public class TestAnimationPicker extends Application {
         root.setAnimation(animation);
         
         Scene scene = new Scene(root);
-        scene.getStylesheets().add(Praisenter.THEME_CSS);
+//        scene.getStylesheets().add(Praisenter.THEME_CSS);
         
         primaryStage.setScene(scene);
         primaryStage.show();

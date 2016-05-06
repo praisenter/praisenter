@@ -1,3 +1,5 @@
+import org.praisenter.javafx.utility.Fx;
+
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;

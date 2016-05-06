@@ -63,7 +63,7 @@ import org.praisenter.javafx.TagListView;
 import org.praisenter.javafx.animation.AnimationPane;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaPicker;
-import org.praisenter.javafx.utility.FxFactory;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.media.MediaType;
@@ -168,7 +168,7 @@ public final class SlideEditorPane extends Application {
 		}
 		
 		Slide slide = createTestSlide();
-		PraisenterContext context = new PraisenterContext(library, null, null, null);
+		PraisenterContext context = new PraisenterContext(null, library, null, null, null);
 		FxSlide fxSlide = new FxSlide(context, slide, SlideMode.EDIT);
 		
 		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));
@@ -498,7 +498,7 @@ public final class SlideEditorPane extends Application {
 		SplitPane.setResizableWithParent(propertyScroller, false);
 		
 		Scene scene = new Scene(split);
-		scene.getStylesheets().add(Praisenter.THEME_CSS);
+//		scene.getStylesheets().add();
 		stage.setScene(scene);
 		stage.show();
 	}

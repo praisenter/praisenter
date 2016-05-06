@@ -24,12 +24,14 @@
  */
 package org.praisenter.javafx;
 
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Locale;
-import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
+import org.praisenter.Constants;
+import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.resources.translations.Translations;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
@@ -38,20 +40,15 @@ import javafx.animation.SequentialTransition;
 import javafx.application.Application;
 import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
-import org.praisenter.Constants;
-import org.praisenter.javafx.utility.FxFactory;
-import org.praisenter.resources.translations.Translations;
-
 // FEATURE use Apache POI to read powerpoint files
+// FIXME evalutate JSON as an alternative format to XML for saved data
 
 /**
  * This is the entry point for the application.
@@ -63,10 +60,7 @@ public final class Praisenter extends Application {
 	private static final Logger LOGGER;
 	
 	/** The application configuration properties */
-	private static final Properties CONFIG;
-	
-	/** The URI to the theme to apply to any new scene */
-	public static final String THEME_CSS;
+	private static final Configuration CONFIG;
 	
 	static {
 		// set the log file path (used in the log4j2.xml file)
@@ -82,39 +76,20 @@ public final class Praisenter extends Application {
 		LOGGER = LogManager.getLogger();
 		
 		// load configuration properties
-		CONFIG = new Properties();
-		try {
-			Path config = Paths.get(Constants.ROOT_PATH + "conf.properties");
-			if (Files.exists(config)) {
-				try (InputStream stream = Files.newInputStream(config)) {
-					CONFIG.load(stream);
-				} catch (Exception ex) {
-					LOGGER.error("Failed to read conf.properties file.", ex);
-				}
-			}
-		} catch (Exception ex) {
-			LOGGER.error(ex);
-		}
-		
-		// set the language if in the config
-		if (CONFIG.containsKey("ui.language")) {
-			String lang = CONFIG.getProperty("ui.language");
-			Locale locale = Locale.forLanguageTag(lang);
-			Locale.setDefault(locale);
-		}
-		
-		// set the theme
-		String url = Praisenter.class.getResource("/org/praisenter/javafx/styles/default.css").toExternalForm();
-		if (CONFIG.containsKey("ui.theme")) {
-			String theme = CONFIG.getProperty("ui.theme");
-			if (theme != null && theme.length() > 0) {
-				String tUrl = Praisenter.class.getResource("/org/praisenter/javafx/styles/" + theme + ".css").toExternalForm();
-				if (tUrl != null) {
-					url = tUrl;
-				}
+		Configuration config = Configuration.load();
+		if (config == null) {
+			// either an exception occurred loading the configuration
+			// or the configuration hasn't been saved, in either case
+			// we need to create a default configuration
+			config = Configuration.createDefaultConfiguration();
+		} else {
+			// set the language if in the config
+			if (config.getLanguage() != null) {
+				Locale.setDefault(config.getLanguage());
 			}
 		}
-		THEME_CSS = url;
+		
+		CONFIG = config;
 	}
 
 	// FEATURE we should look at making some of these "optional" instead of required
@@ -184,7 +159,7 @@ public final class Praisenter extends Application {
     	StackPane stack = new StackPane();
     	
     	// create the loading scene
-    	LoadingPane loading = new LoadingPane(WIDTH, HEIGHT);
+    	LoadingPane loading = new LoadingPane(WIDTH, HEIGHT, CONFIG);
     	loading.setOnComplete((e) -> {
     		long t0 = 0;
     		long t1 = 0;
@@ -192,7 +167,7 @@ public final class Praisenter extends Application {
     		LOGGER.info("Creating the UI.");
     		t0 = System.nanoTime();
     		// create the main pane and add it to the stack
-    		MainPane main = new MainPane(e.data, CONFIG);
+    		MainPane main = new MainPane(e.data);
     		t1 = System.nanoTime();
     		LOGGER.info("UI created in {} seconds.", (t1 - t0) / 1e9);
     		
@@ -225,7 +200,11 @@ public final class Praisenter extends Application {
     	stack.getChildren().add(loading);
     	
     	// show the stage
-    	stage.setScene(FxFactory.newScene(stack));
+    	Scene scene = new Scene(stack);
+    	// set the application look and feel
+    	// NOTE: this should be the only place where this is done, every other window needs to inherit the css from the parent
+    	scene.getStylesheets().add(CONFIG.getThemeCss());
+    	stage.setScene(scene);
     	stage.show();
     	
     	// start the loading

@@ -10,7 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.text.TextMeasurer;
-import org.praisenter.javafx.utility.JavaFxNodeHelper;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.SlideFont;
@@ -75,7 +75,7 @@ public class FxSlideTextComponent extends FxSlideComponent<TextComponent> {
 		
 		VBox contentWrapper = new VBox();
 		contentWrapper.setPadding(new Insets(padding));
-		JavaFxNodeHelper.setSize(contentWrapper, w, h);
+		Fx.setSize(contentWrapper, w, h);
 		
 		// vertical alignment
 		contentWrapper.setAlignment(this.getPos(tc.getVerticalTextAlignment()));

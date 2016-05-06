@@ -34,6 +34,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.data.Database;
+import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
@@ -51,6 +52,17 @@ import org.praisenter.utility.ClasspathLoader;
 final class ContextLoadingTask extends Task<PraisenterContext> {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
+	
+	/** The application configuration */
+	private final Configuration configuration;
+	
+	/**
+	 * Minimal constructor.
+	 * @param configuration the application configuration
+	 */
+	ContextLoadingTask(Configuration configuration) {
+		this.configuration = configuration;
+	}
 	
 	/* (non-Javadoc)
 	 * @see javafx.concurrent.Task#call()
@@ -106,7 +118,7 @@ final class ContextLoadingTask extends Task<PraisenterContext> {
 		updateProgress(4, 4);
 		LOGGER.info("Slide library loaded in {} seconds with {} slides", (t1 - t0) / 1e9, slides.size());
     	
-		PraisenterContext context = new PraisenterContext(media, songs, bibles, slides);
+		PraisenterContext context = new PraisenterContext(configuration, media, songs, bibles, slides);
 		LOGGER.info("Context created successfully");
 		
 		updateMessage(Translations.get("loading.complete"));

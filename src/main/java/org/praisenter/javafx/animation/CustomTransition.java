@@ -14,8 +14,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.slide.animation.SlideAnimation;
 
-// FIXME convert other transitions to use the getBounds method on this class
-
 public abstract class CustomTransition<T extends SlideAnimation> extends Transition {
 	private static final Logger LOGGER = LogManager.getLogger();
 	

@@ -15,7 +15,7 @@
                      filePattern="${logs.archive}/praisenter.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout pattern="${log.pattern}"/>
             <Policies>
-	            <TimeBasedTriggeringPolicy interval="1" />
+	            <!-- <TimeBasedTriggeringPolicy interval="1" /> -->
 	            <SizeBasedTriggeringPolicy size="5MB" />
             </Policies>
             <DefaultRolloverStrategy max="10"/>

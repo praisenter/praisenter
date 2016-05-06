@@ -32,6 +32,7 @@ import javafx.collections.ObservableSet;
 
 import org.praisenter.Tag;
 import org.praisenter.bible.BibleLibrary;
+import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.slide.Slide;
@@ -48,6 +49,9 @@ import org.praisenter.song.SongLibrary;
  * @version 3.0.0
  */
 public final class PraisenterContext {
+	/** The application configuration */
+	private final Configuration configuration;
+	
 	/** The media library */
 	private final MediaLibrary mediaLibrary;
 	
@@ -68,12 +72,14 @@ public final class PraisenterContext {
 	
 	/**
 	 * Full constructor.
+	 * @param configuration the application configuration
 	 * @param media the media library
 	 * @param songs the song library
 	 * @param bibles the bible library
 	 * @param slides the slide library
 	 */
-	public PraisenterContext(MediaLibrary media, SongLibrary songs, BibleLibrary bibles, SlideLibrary slides) {
+	public PraisenterContext(Configuration configuration, MediaLibrary media, SongLibrary songs, BibleLibrary bibles, SlideLibrary slides) {
+		this.configuration = configuration;
 		this.mediaLibrary = media;
 		this.songLibrary = songs;
 		this.bibleLibrary = bibles;
@@ -101,6 +107,14 @@ public final class PraisenterContext {
 		this.tags = FXCollections.observableSet(tags);
 	}
 
+	/**
+	 * Returns the application configuration.
+	 * @return {@link Configuration}
+	 */
+	public Configuration getConfiguration() {
+		return this.configuration;
+	}
+	
 	/**
 	 * Returns the media library.
 	 * @return {@link MediaLibrary}

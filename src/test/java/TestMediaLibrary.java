@@ -78,7 +78,7 @@ public class TestMediaLibrary extends Application {
     	primaryStage.getIcons().add(new Image("org/praisenter/resources/logo/icon512x512.png"));
     	
 		Scene scene = new Scene(root);
-		scene.getStylesheets().add(Praisenter.THEME_CSS);
+//		scene.getStylesheets().add(Praisenter.THEME_CSS);
 		primaryStage.setTitle("Media Library");
 		primaryStage.setScene(scene);
 		primaryStage.setWidth(650);

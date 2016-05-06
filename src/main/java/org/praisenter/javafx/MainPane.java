@@ -2,6 +2,9 @@ package org.praisenter.javafx;
 
 import java.util.Properties;
 
+import org.praisenter.javafx.media.MediaLibraryPane;
+
+import javafx.geometry.Orientation;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -10,11 +13,9 @@ import javafx.scene.layout.BorderPane;
 public final class MainPane extends BorderPane {
 	
 	final PraisenterContext context;
-	final Properties config;
 	
-	public MainPane(PraisenterContext context, Properties config) {
+	public MainPane(PraisenterContext context) {
 		this.context = context;
-		this.config = config;
 		
 		this.setTop(createMenus());
 	}
@@ -36,23 +37,38 @@ public final class MainPane extends BorderPane {
 		MenuItem fSetup = new MenuItem("Setup");
 		file.getItems().add(fSetup);
 		
-		MenuItem mImport = new MenuItem("Import");
-		MenuItem mManage = new MenuItem("Manage");
+		MenuItem mManage = new MenuItem("Manage media");
+		MenuItem mImport = new MenuItem("Import media");
+		
 		// maybe...
 		MenuItem mTranscode = new MenuItem("Transcode");
 		media.getItems().addAll(mManage, mImport);
 		
 		// add/edit
-		MenuItem soNew = new MenuItem("New song");
+		MenuItem soManage = new MenuItem("Manage songs");
 		MenuItem soImport = new MenuItem("Import songs");
+		MenuItem soNew = new MenuItem("Create a new song");
 		// manage
-		songs.getItems().addAll(soNew, soImport);
+		songs.getItems().addAll(soManage, soImport, soNew);
 
-		MenuItem slNew = new MenuItem("New slide");
-		slides.getItems().addAll(slNew);
+		MenuItem slManage = new MenuItem("Manage slides");
+		MenuItem slNew = new MenuItem("Create a new slide");
+		slides.getItems().addAll(slManage, slNew);
 		
 		MenuItem hAbout = new MenuItem("About");
 		help.getItems().addAll(hAbout);
+		
+		// menu actions
+
+		fSetup.setOnAction((e) -> {
+			SetupPane sp = new SetupPane(context.getConfiguration());
+			setCenter(sp);
+		});
+		
+		mManage.setOnAction((e) -> {
+			MediaLibraryPane mlp = new MediaLibraryPane(context.getMediaLibrary(), Orientation.HORIZONTAL, context.getTags());
+			setCenter(mlp);
+		});
 		
 		return menu;
 	}

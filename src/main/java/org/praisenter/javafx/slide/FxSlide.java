@@ -7,7 +7,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.utility.JavaFxNodeHelper;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
@@ -47,7 +47,7 @@ public class FxSlide extends FxSlideRegion<Slide> {
 		// width/height
 		int w = this.component.getWidth();
 		int h = this.component.getHeight();
-		JavaFxNodeHelper.setSize(this.contentNode, w, h);
+		Fx.setSize(this.contentNode, w, h);
 		
 		// this assumes the components are in the correct order
 		Iterator<SlideComponent> it = this.component.getComponentIterator();

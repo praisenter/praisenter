@@ -1,4 +1,4 @@
-import org.praisenter.javafx.utility.JavaFxNodeHelper;
+import org.praisenter.javafx.utility.Fx;
 
 import javafx.animation.Transition;
 import javafx.application.Application;
@@ -53,7 +53,7 @@ public class TransitionTest extends Application {
 
 		VBox s1 = new VBox();
 		s1.setBackground(new Background(new BackgroundFill(Color.rgb(0, 0, 255, 0.5), null, null)));
-		JavaFxNodeHelper.setSize(s1, bounds.getWidth(), bounds.getHeight());
+		Fx.setSize(s1, bounds.getWidth(), bounds.getHeight());
 		
 		stack.getChildren().add(s1);
 		
@@ -61,7 +61,7 @@ public class TransitionTest extends Application {
 		// TODO scaling to fit window bounds
 		VBox s2 = new VBox();
 		s2.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0, 0.5), null, null)));
-		JavaFxNodeHelper.setSize(s2, bounds.getWidth(), bounds.getHeight());
+		Fx.setSize(s2, bounds.getWidth(), bounds.getHeight());
 		
 		stack.getChildren().add(s2);
 		

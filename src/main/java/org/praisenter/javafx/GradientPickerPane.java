@@ -26,7 +26,7 @@ package org.praisenter.javafx;
 
 import java.util.List;
 
-import org.praisenter.javafx.utility.JavaFxNodeHelper;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.ClasspathLoader;
 
@@ -81,7 +81,7 @@ import javafx.scene.shape.StrokeType;
  */
 public final class GradientPickerPane extends HBox {
 	/** An image pattern to represent transparency */
-	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/javafx/resources/transparent.png");
+	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
 	/** The preview pane width */
 	private static final double WIDTH = 200;
@@ -367,11 +367,11 @@ public final class GradientPickerPane extends HBox {
         // the transparent (tiled) background
         Pane bg = new Pane();
         bg.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
-    	JavaFxNodeHelper.setSize(bg, WIDTH, HEIGHT);
+    	Fx.setSize(bg, WIDTH, HEIGHT);
         
         // the preview pane itself
         this.preview = new Pane();
-        JavaFxNodeHelper.setSize(this.preview, WIDTH, HEIGHT);
+        Fx.setSize(this.preview, WIDTH, HEIGHT);
         this.preview.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(1))));
         this.preview.setBackground(new Background(new BackgroundFill(this.paintProperty.get(), null, null)));
         this.preview.backgroundProperty().bind(new ObjectBinding<Background>() {

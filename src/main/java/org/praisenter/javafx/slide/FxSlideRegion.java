@@ -42,7 +42,7 @@ import javafx.scene.text.TextAlignment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.utility.JavaFxNodeHelper;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
@@ -91,7 +91,7 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 		int w = this.component.getWidth();
 		int h = this.component.getHeight();
 		
-		JavaFxNodeHelper.setSize(borderNode, w, h);
+		Fx.setSize(borderNode, w, h);
 		
 		// border
 		// the border will go on the background node
@@ -116,7 +116,7 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 		} else {
 			Paint paint = getPaint(bg);
 			VBox bgNode = new VBox();
-			JavaFxNodeHelper.setSize(bgNode, w, h);
+			Fx.setSize(bgNode, w, h);
 			bgNode.setBackground(new Background(new BackgroundFill(paint, br > 0 ? new CornerRadii(br) : null, null)));
 			this.backgroundPaint = bgNode;
 		}
@@ -378,7 +378,7 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 						try  {
 							Image image = this.context.getImageCache().get(this.context.getMediaLibrary().getFramePath(m));
 							VBox img = new VBox();
-							JavaFxNodeHelper.setSize(img, w, h);
+							Fx.setSize(img, w, h);
 							Rectangle r = new Rectangle(0, 0, w, h);
 //							if (bdr != null) {
 								r.setArcHeight(br * 2);
@@ -397,7 +397,7 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 					try  {
 						Image image = this.context.getImageCache().get(m.getMetadata().getPath());
 						VBox img = new VBox();
-						JavaFxNodeHelper.setSize(img, w, h);
+						Fx.setSize(img, w, h);
 						Rectangle r = new Rectangle(0, 0, w, h);
 //						if (bdr != null) {
 							r.setArcHeight(br * 2);
