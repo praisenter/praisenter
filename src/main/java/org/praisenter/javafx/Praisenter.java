@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.praisenter.Constants;
 import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.screen.ScreenManager;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.animation.Animation;
@@ -48,7 +49,6 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 // FEATURE use Apache POI to read powerpoint files
-// FIXME evalutate JSON as an alternative format to XML for saved data
 
 /**
  * This is the entry point for the application.
@@ -164,6 +164,12 @@ public final class Praisenter extends Application {
     		long t0 = 0;
     		long t1 = 0;
     		
+    		LOGGER.info("Initializing the screen manager.");
+    		// initialize screen manager
+    		ScreenManager sm = e.data.getScreenManager();
+    		// we have to do this on the FX thread
+    		sm.setup(CONFIG.getScreenMappings());
+    		
     		LOGGER.info("Creating the UI.");
     		t0 = System.nanoTime();
     		// create the main pane and add it to the stack
@@ -205,6 +211,11 @@ public final class Praisenter extends Application {
     	// NOTE: this should be the only place where this is done, every other window needs to inherit the css from the parent
     	scene.getStylesheets().add(CONFIG.getThemeCss());
     	stage.setScene(scene);
+    	stage.setOnHidden((e) -> {
+    		// this makes sure that all the screens managed elsewhere
+    		// are closed as well
+    		Platform.exit();
+    	});
     	stage.show();
     	
     	// start the loading

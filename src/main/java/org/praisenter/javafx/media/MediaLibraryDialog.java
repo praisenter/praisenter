@@ -70,7 +70,7 @@ final class MediaLibraryDialog extends BorderPane {
 			this.dialog.initOwner(owner);
 		}
 		this.dialog.setTitle(Translations.get("media.library.title"));
-		this.dialog.initModality(Modality.APPLICATION_MODAL);
+		this.dialog.initModality(Modality.WINDOW_MODAL);
 		this.dialog.initStyle(StageStyle.UTILITY);
 		this.dialog.setWidth(650);
 		this.dialog.setHeight(350);

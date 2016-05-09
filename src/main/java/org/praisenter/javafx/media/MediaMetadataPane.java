@@ -54,6 +54,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -155,6 +156,7 @@ final class MediaMetadataPane extends VBox {
         btnRename.setOnAction((e) -> {
 	    	TextInputDialog prompt = new TextInputDialog(name.get());
 	    	prompt.initOwner(getScene().getWindow());
+	    	prompt.initModality(Modality.WINDOW_MODAL);
 	    	prompt.setTitle(Translations.get("media.metadata.rename.title"));
 	    	prompt.setHeaderText(Translations.get("media.metadata.rename.header"));
 	    	prompt.setContentText(Translations.get("media.metadata.rename.content"));

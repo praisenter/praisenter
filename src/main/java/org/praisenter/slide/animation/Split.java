@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.slide.animation;
 
 import java.util.UUID;
@@ -7,20 +31,33 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Represents a split animation.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 @XmlRootElement(name = "split")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Split extends SlideAnimation {
+	/** The orientation */
 	@XmlElement(name = "orientation", required = false)
 	Orientation orientation;
 	
+	/** The operation */
 	@XmlElement(name = "operation", required = false)
 	Operation operation;
 	
+	/**
+	 * Default constructor.
+	 */
 	public Split() {
 		this.orientation = Orientation.HORIZONTAL;
 		this.operation = Operation.COLLAPSE;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.animation.SlideAnimation#copy(java.util.UUID)
+	 */
 	@Override
 	public Split copy(UUID id) {
 		Split animation = new Split();
@@ -30,18 +67,34 @@ public final class Split extends SlideAnimation {
 		return animation;
 	}
 	
+	/**
+	 * Returns the orientation.
+	 * @return {@link Orientation}
+	 */
 	public Orientation getOrientation() {
 		return this.orientation;
 	}
 
+	/**
+	 * Sets the orientation.
+	 * @param orientation the orientation
+	 */
 	public void setOrientation(Orientation orientation) {
 		this.orientation = orientation;
 	}
 
+	/**
+	 * Returns the operation.
+	 * @return {@link Operation}
+	 */
 	public Operation getOperation() {
 		return this.operation;
 	}
 
+	/**
+	 * Sets the operation.
+	 * @param operation the operation
+	 */
 	public void setOperation(Operation operation) {
 		this.operation = operation;
 	}

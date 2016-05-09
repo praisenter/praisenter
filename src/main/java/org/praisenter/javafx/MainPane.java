@@ -1,14 +1,12 @@
 package org.praisenter.javafx;
 
-import java.util.Properties;
-
-import org.praisenter.javafx.media.MediaLibraryPane;
-
 import javafx.geometry.Orientation;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
+
+import org.praisenter.javafx.media.MediaLibraryPane;
 
 public final class MainPane extends BorderPane {
 	
@@ -54,6 +52,9 @@ public final class MainPane extends BorderPane {
 		MenuItem slManage = new MenuItem("Manage slides");
 		MenuItem slNew = new MenuItem("Create a new slide");
 		slides.getItems().addAll(slManage, slNew);
+		
+		MenuItem blManage = new MenuItem("Manage Bibles");
+		bibles.getItems().addAll(blManage);
 		
 		MenuItem hAbout = new MenuItem("About");
 		help.getItems().addAll(hAbout);

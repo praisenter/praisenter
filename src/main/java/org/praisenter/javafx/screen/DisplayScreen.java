@@ -1,21 +1,37 @@
 package org.praisenter.javafx.screen;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
-
-import org.praisenter.javafx.configuration.ScreenMapping;
-import org.praisenter.javafx.slide.FxSlide;
 
 import javafx.animation.Animation.Status;
 import javafx.animation.ParallelTransition;
 import javafx.animation.Transition;
+import javafx.event.EventHandler;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Pane;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.StrokeType;
+import javafx.stage.Modality;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
+
+import org.praisenter.javafx.configuration.ScreenRole;
+import org.praisenter.javafx.slide.FxSlide;
 
 public final class DisplayScreen {
-	private final ScreenMapping mapping;
-	
+	private final String id;
+	private final ScreenRole role;
+	private final Screen screen;
 	private final Stage stage;
 	private final Pane surface;
 	
@@ -24,31 +40,74 @@ public final class DisplayScreen {
 	
 	private Transition transition;
 	
-	private FxSlide slide0;
-	private FxSlide slide1;
+	private FxSlide slide;
 	
-	public synchronized void send(FxSlide slide) {
-		this.slide1 = slide;
+	public DisplayScreen(String id, ScreenRole role, Screen screen) {
+		this.id = id;
+		this.role = role;
+		this.screen = screen;
+		this.stage = new Stage(StageStyle.TRANSPARENT);
 		
+		Rectangle2D bounds = screen.getBounds();
+		this.stage.initModality(Modality.NONE);
+		this.stage.setX(bounds.getMinX());
+		this.stage.setY(bounds.getMinY());
+		this.stage.setWidth(bounds.getWidth());
+		this.stage.setHeight(bounds.getHeight());
+		this.stage.setMinWidth(bounds.getWidth());
+		this.stage.setMinHeight(bounds.getHeight());
+		this.stage.setMaxWidth(bounds.getWidth());
+		this.stage.setMaxHeight(bounds.getHeight());
+		this.stage.setResizable(false);
+		
+		// prevent the user from closing or hiding the window
+		// FEATURE at some point we need to come up with a way for the sub windows to not be seen
+		// for now we have to create these with no owner because once another window/stage owns these
+		// focusing the owner also brings these windows to the foreground...
+		EventHandler<WindowEvent> block = (WindowEvent e) -> {
+			e.consume();
+		};
+		this.stage.setOnCloseRequest(block);
+		this.stage.setOnHiding(block);
+		
+		this.surface = new Pane();
+		this.surface.setBackground(null);
+		// TODO remove after debug or place under a setting
+		this.surface.setBorder(new Border(new BorderStroke(
+				Color.RED, 
+				new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 10, 0, new ArrayList<Double>()), 
+				null, 
+				new BorderWidths(10))));
+		this.stage.setScene(new Scene(this.surface, Color.TRANSPARENT));
+		this.stage.setTitle(id + " (" + role + ")");
+		this.stage.show();
+		
+		this.slideSurface0 = new Pane();
+		this.slideSurface1 = new Pane();
+		
+		this.slideSurface0.setBackground(null);
+		this.slideSurface1.setBackground(null);
+	}
+	
+	public synchronized void send(final FxSlide slide) {
 		// an item was placed on the queue
 		// whats the status of the current transition?
 		if (transition != null) {
 			if (transition.getStatus() == Status.RUNNING) {
 				transition.setOnFinished((e) -> {
-					this.display();
+					this.display(slide);
 				});
 			} else {
 				// otherwise display it immediately
-				this.display();
+				this.display(slide);
 			}
 		} else {
 			// no transition is playing so just display immediately
-			this.display();
+			this.display(slide);
 		}
 	}
 	
-	private synchronized void display() {
-		FxSlide slide = this.slide1;
+	private synchronized void display(final FxSlide slide) {
 		// when it's time to display, we need to determine the transitions that
 		// need to play.  
 		
@@ -64,9 +123,10 @@ public final class DisplayScreen {
 		master.setOnFinished((e) -> {
 			// when this transition is done we need to:
 			// 1. stop all of slide0's media players
-			List<MediaPlayer> players = this.slide0.getMediaPlayers();
+			List<MediaPlayer> players = this.slide.getMediaPlayers();
 			for (MediaPlayer mp : players) {
 				mp.stop();
+				mp.dispose();
 			}
 			// 2. remove slide0 from the surface
 			this.surface.getChildren().remove(this.slideSurface0);
@@ -77,7 +137,7 @@ public final class DisplayScreen {
 			this.slideSurface0 = this.slideSurface1;
 			this.slideSurface1 = temp;
 			// 5. set the current slide
-			this.slide0 = slide;
+			this.slide = slide;
 		});
 		
 		// add the new slide to the surface
@@ -86,6 +146,8 @@ public final class DisplayScreen {
 		
 		this.transition = master;
 
+		this.stage.toFront();
+		
 		// start the media players for this slide (if any)
 		List<MediaPlayer> players = slide.getMediaPlayers();
 		for (MediaPlayer mp : players) {
@@ -93,5 +155,21 @@ public final class DisplayScreen {
 		}
 		
 		this.transition.play();
+	}
+
+	public synchronized void release() {
+		if (this.transition != null) {
+			this.transition.stop();
+		}
+		
+		if (this.slide != null) {
+			List<MediaPlayer> players = this.slide.getMediaPlayers();
+			for (MediaPlayer mp : players) {
+				mp.stop();
+				mp.dispose();
+			}
+		}
+		
+		this.stage.close();
 	}
 }

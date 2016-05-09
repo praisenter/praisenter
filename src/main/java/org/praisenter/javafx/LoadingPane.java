@@ -24,12 +24,6 @@
  */
 package org.praisenter.javafx;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.configuration.Configuration;
-import org.praisenter.resources.translations.Translations;
-import org.praisenter.utility.RuntimeProperties;
-
 import javafx.animation.Animation;
 import javafx.animation.Animation.Status;
 import javafx.animation.Interpolator;
@@ -55,6 +49,12 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.resources.translations.Translations;
+import org.praisenter.utility.RuntimeProperties;
 
 /**
  * Pane for showing a loading indicator and other animations while building

@@ -49,11 +49,17 @@ public final class Shaped extends SlideAnimation {
 	@XmlElement(name = "operation", required = false)
 	Operation operation;
 	
+	/**
+	 * Default constructor.
+	 */
 	public Shaped() {
 		this.shapeType = ShapeType.CIRCLE;
 		this.operation = Operation.COLLAPSE;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.animation.SlideAnimation#copy(java.util.UUID)
+	 */
 	@Override
 	public Shaped copy(UUID id) {
 		Shaped animation = new Shaped();
@@ -63,18 +69,34 @@ public final class Shaped extends SlideAnimation {
 		return animation;
 	}
 	
+	/**
+	 * Returns the shape type.
+	 * @return {@link ShapeType}
+	 */
 	public ShapeType getShapeType() {
 		return this.shapeType;
 	}
 	
+	/**
+	 * Sets the shape type.
+	 * @param shapeType the shape type
+	 */
 	public void setShapeType(ShapeType shapeType) {
 		this.shapeType = shapeType;
 	}
 	
+	/**
+	 * Returns the operation.
+	 * @return {@link Operation}
+	 */
 	public Operation getOperation() {
 		return this.operation;
 	}
 	
+	/**
+	 * Sets the operation.
+	 * @param operation the operation
+	 */
 	public void setOperation(Operation operation) {
 		this.operation = operation;
 	}

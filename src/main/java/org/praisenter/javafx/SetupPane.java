@@ -147,7 +147,7 @@ public final class SetupPane extends GridPane {
 				cmbDisplayType.setUserData(device);
 				screenCombos.add(cmbDisplayType);
 				
-				for (ScreenMapping map : savedConfig.getScreens()) {
+				for (ScreenMapping map : savedConfig.getScreenMappings()) {
 					if (map.getId().equals(device.getIDstring())) {
 						cmbDisplayType.setValue(new Option<ScreenRole>(null, map.getRole()));
 						break;
@@ -178,10 +178,10 @@ public final class SetupPane extends GridPane {
 			conf.setLanguage(cmbLocale.getValue().value);
 			conf.setTheme(cmbTheme.getValue().value);
 			
-			conf.getScreens().clear();
+			conf.getScreenMappings().clear();
 			for (ComboBox<Option<ScreenRole>> cmb : screenCombos) {
 				GraphicsDevice device = (GraphicsDevice)cmb.getUserData();
-				conf.getScreens().add(new ScreenMapping(device.getIDstring(), cmb.getValue().value));
+				conf.getScreenMappings().add(new ScreenMapping(device.getIDstring(), cmb.getValue().value));
 			}
 			
 			try {

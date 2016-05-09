@@ -37,18 +37,12 @@ public final class Configuration {
 	@XmlElement(name = "theme", required = false)
 	private String theme;
 	
-	@XmlElementWrapper(name = "screens", required = false)
-	@XmlElement(name = "screen", required = false)
-	private final List<ScreenMapping> screens;
-	
-	@XmlElement(name = "smartImageTransitions", required = false)
-	private boolean smartImageTransitions;
-	
-	@XmlElement(name = "smartVideoTransitions", required = false)
-	private boolean smartVideoTransitions;
+	@XmlElementWrapper(name = "screenMappings", required = false)
+	@XmlElement(name = "screenMapping", required = false)
+	private final List<ScreenMapping> screenMappings;
 	
 	public Configuration() {
-		this.screens = new ArrayList<ScreenMapping>();
+		this.screenMappings = new ArrayList<ScreenMapping>();
 	}
 	
 	public static final Configuration load() {
@@ -80,16 +74,16 @@ public final class Configuration {
 			GraphicsDevice device = devices[i];
 			if (i == 0) {
 				// the first is by default the controller screen (no presentation)
-				conf.screens.add(new ScreenMapping(device.getIDstring(), ScreenRole.NONE));
+				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.NONE));
 			} else if (i == 1) {
 				// the second is by default the primary presentation screen
-				conf.screens.add(new ScreenMapping(device.getIDstring(), ScreenRole.PRESENTATION));
+				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.PRESENTATION));
 			} else if (i == 2) {
 				// the third is by default the musician screen
-				conf.screens.add(new ScreenMapping(device.getIDstring(), ScreenRole.MUSICIAN));
+				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.MUSICIAN));
 			} else {
 				// all others are by default nothing
-				conf.screens.add(new ScreenMapping(device.getIDstring(), ScreenRole.NONE));
+				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.NONE));
 			}
 		}
 		
@@ -112,8 +106,8 @@ public final class Configuration {
 		this.theme = theme;
 	}
 	
-	public List<ScreenMapping> getScreens() {
-		return this.screens;
+	public List<ScreenMapping> getScreenMappings() {
+		return this.screenMappings;
 	}
 
 	public String getThemeCss() {

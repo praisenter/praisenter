@@ -75,6 +75,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -256,6 +257,7 @@ public final class MediaLibraryPane extends BorderPane {
 						// attempt to delete the selected media
 						Alert alert = new Alert(AlertType.CONFIRMATION);
 						alert.initOwner(getScene().getWindow());
+						alert.initModality(Modality.WINDOW_MODAL);
 						alert.setTitle(Translations.get("media.remove.title"));
 						alert.setContentText(Translations.get("media.remove.content"));
 						alert.setHeaderText(null);
@@ -425,6 +427,7 @@ public final class MediaLibraryPane extends BorderPane {
 											String list = String.join(", ", wFileNames);
 											Alert alert = new Alert(AlertType.INFORMATION);
 											alert.initOwner(getScene().getWindow());
+											alert.initModality(Modality.WINDOW_MODAL);
 											alert.setTitle(Translations.get("media.import.info.title"));
 											alert.setHeaderText(Translations.get("media.import.info.header"));
 											alert.setContentText(list);

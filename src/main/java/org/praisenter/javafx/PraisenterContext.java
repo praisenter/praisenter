@@ -33,6 +33,7 @@ import javafx.collections.ObservableSet;
 import org.praisenter.Tag;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.screen.ScreenManager;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.slide.Slide;
@@ -51,6 +52,9 @@ import org.praisenter.song.SongLibrary;
 public final class PraisenterContext {
 	/** The application configuration */
 	private final Configuration configuration;
+
+	/** The screen manager */
+	private final ScreenManager screenManager;
 	
 	/** The media library */
 	private final MediaLibrary mediaLibrary;
@@ -78,14 +82,19 @@ public final class PraisenterContext {
 	 * @param bibles the bible library
 	 * @param slides the slide library
 	 */
-	public PraisenterContext(Configuration configuration, MediaLibrary media, SongLibrary songs, BibleLibrary bibles, SlideLibrary slides) {
+	public PraisenterContext(
+			Configuration configuration,
+			MediaLibrary media, 
+			SongLibrary songs, 
+			BibleLibrary bibles, 
+			SlideLibrary slides) {
 		this.configuration = configuration;
+		this.screenManager = new ScreenManager();
 		this.mediaLibrary = media;
 		this.songLibrary = songs;
 		this.bibleLibrary = bibles;
 		this.slideLibrary = slides;
 		this.imageCache = new ImageCache();
-		
 		Set<Tag> tags = new TreeSet<Tag>();
 		
 		// add all the tags to the main tag set
@@ -113,6 +122,14 @@ public final class PraisenterContext {
 	 */
 	public Configuration getConfiguration() {
 		return this.configuration;
+	}
+
+	/**
+	 * Returns the screen manager.
+	 * @return {@link ScreenManager}
+	 */
+	public ScreenManager getScreenManager() {
+		return this.screenManager;
 	}
 	
 	/**
