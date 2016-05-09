@@ -6,6 +6,7 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 
+import org.praisenter.javafx.bible.BibleLibraryPane;
 import org.praisenter.javafx.media.MediaLibraryPane;
 
 public final class MainPane extends BorderPane {
@@ -64,6 +65,11 @@ public final class MainPane extends BorderPane {
 		fSetup.setOnAction((e) -> {
 			SetupPane sp = new SetupPane(context.getConfiguration());
 			setCenter(sp);
+		});
+		
+		blManage.setOnAction((e) -> {
+			BibleLibraryPane blp = new BibleLibraryPane(context.getBibleLibrary());
+			setCenter(blp);
 		});
 		
 		mManage.setOnAction((e) -> {
