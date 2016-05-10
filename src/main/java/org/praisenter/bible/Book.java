@@ -31,17 +31,14 @@ package org.praisenter.bible;
  */
 public final class Book implements Comparable<Book> {
 	/** The {@link Bible} this {@link Book} came from */
-	Bible bible;
+	final Bible bible;
 	
 	/** The book code */
-	String code;
+	final String code;
 	
 	/** The book name */
-	String name;
+	final String name;
 
-	/** Hidden default constructor */
-	Book() {}
-	
 	/**
 	 * Full constructor.
 	 * @param bible the bible this book came from

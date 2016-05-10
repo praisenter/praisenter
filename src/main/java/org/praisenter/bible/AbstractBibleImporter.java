@@ -80,10 +80,10 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 	
 	/**
 	 * Minimal constructor.
-	 * @param database the database
+	 * @param library the bible library to import into
 	 */
-	public AbstractBibleImporter(Database database) {
-		this.database = database;
+	public AbstractBibleImporter(BibleLibrary library) {
+		this.database = library.database;
 	}
 	
 	/**
@@ -91,10 +91,11 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 	 * @param bible the bible
 	 * @param books the books of the bible
 	 * @param verses the verses of the bible
+	 * @return {@link Bible} the newly inserted bible
 	 * @throws SQLException if an error occurs while saving the data to the database
 	 * @throws BibleAlreadyExistsException if the bible already exists in the library
 	 */
-	protected final void insert(Bible bible, List<Book> books, List<Verse> verses) throws SQLException, BibleAlreadyExistsException {
+	protected final Bible insert(Bible bible, List<Book> books, List<Verse> verses) throws SQLException, BibleAlreadyExistsException {
 		LOGGER.debug("Importing new bible: " + bible.name);
 		// insert all the data into the tables
 		try (Connection connection = this.database.getConnection()) {
@@ -196,6 +197,9 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 			// rebuild the indexes after a bible has been imported
 			LOGGER.debug("Rebuilding bible indexes.");
 			rebuildIndexes();
+			
+			// return a new bible with the unique id
+			return new Bible(bibleId, bible.name, bible.language, bible.source);
 		}
 	}
 

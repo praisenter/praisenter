@@ -40,11 +40,12 @@ public interface BibleImporter {
 	/**
 	 * Imports the Bible information located at the given path.
 	 * @param path the path
+	 * @return {@link Bible} the bible that was inserted
 	 * @throws IOException if an IO error occurs
 	 * @throws SQLException if an error occurs connection or inserting data into the database
 	 * @throws FileNotFoundException if the given path doesn't exist
 	 * @throws BibleAlreadyExistsException if the Bible already exists in the database
 	 * @throws InvalidFormatException if the file or files are not in the expected format
 	 */
-	public abstract void execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException;
+	public abstract Bible execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException;
 }

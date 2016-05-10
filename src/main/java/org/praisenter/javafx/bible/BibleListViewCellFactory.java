@@ -22,35 +22,38 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.media;
+package org.praisenter.javafx.bible;
 
 import org.praisenter.javafx.FlowListItem;
 import org.praisenter.javafx.FlowListView;
-import org.praisenter.media.MediaType;
 
-import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Callback;
 
 /**
- * Cell factory for the {@link FlowListView} specifically for showing media items.
+ * Cell factory for the {@link FlowListView} specifically for showing bible items.
  * @author William Bittle
  * @version 3.0.0
  */
-final class MediaListViewCellFactory implements Callback<MediaListItem, FlowListItem<MediaListItem>> {
+final class BibleListViewCellFactory implements Callback<BibleListItem, FlowListItem<BibleListItem>> {
+	private static final Image ICON = new Image("/org/praisenter/resources/bible-icon.png");
+	
 	/* (non-Javadoc)
 	 * @see javafx.util.Callback#call(java.lang.Object)
 	 */
 	@Override
-	public FlowListItem<MediaListItem> call(MediaListItem item) {
-		FlowListItem<MediaListItem> cell = new FlowListItem<MediaListItem>(item);
-
+	public FlowListItem<BibleListItem> call(BibleListItem item) {
+		FlowListItem<BibleListItem> cell = new FlowListItem<BibleListItem>(item);
+		
+		cell.setAlignment(Pos.TOP_CENTER);
 		cell.setPrefSize(130, 130);
 		
 		String name = null;
@@ -58,11 +61,10 @@ final class MediaListViewCellFactory implements Callback<MediaListItem, FlowList
 		if (item.loaded) {
 			name = item.name;
 	    	// setup the thumbnail image
-	    	final ImageView thumb = new ImageView(SwingFXUtils.toFXImage(item.media.getThumbnail(), null));
-	    	// only show a drop shadow effect on images that aren't using the default thumbnail
-	    	if (item.media.getMetadata().getType() == MediaType.IMAGE) {
-	    		thumb.setEffect(new DropShadow(2, 2, 2, Color.rgb(0, 0, 0, 0.25)));
-	    	}
+	    	final ImageView thumb = new ImageView(ICON);
+	    	thumb.setFitWidth(100);
+	    	thumb.setPreserveRatio(true);
+    		thumb.setEffect(new DropShadow(2, 2, 2, Color.rgb(0, 0, 0, 0.25)));
 	    	cell.getChildren().add(thumb);
 		} else {
 			name = item.name;

@@ -41,7 +41,8 @@ import org.praisenter.data.Database;
  * @version 3.0.0
  */
 public final class BibleLibrary {
-	private final Database database;
+	/** The database */
+	final Database database;
 	
 	/**
 	 * Minimal constructor.

@@ -31,19 +31,16 @@ package org.praisenter.bible;
  */
 public final class Bible implements Comparable<Bible> {
 	/** The bible id */
-	int id;
+	final int id;
 	
 	/** The name of the bible */
-	String name;
+	final String name;
 	
 	/** The language the bible is in (using ISO 639-2 and ISO 639-3 codes along with micro variants (but all three code it seems)) */
-	String language;
+	final String language;
 
 	/** The source for the bible's contents */
-	String source;
-	
-	/** Hidden default constructor */
-	Bible() {}
+	final String source;
 	
 	/**
 	 * Full constructor.

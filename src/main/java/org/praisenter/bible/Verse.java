@@ -31,32 +31,29 @@ package org.praisenter.bible;
  */
 public final class Verse implements Comparable<Verse> {
 	/** The {@link Bible} the verse is in */
-	Bible bible;
+	final Bible bible;
 
 	/** The {@link Book} the verse is in */
-	Book book;
+	final Book book;
 	
 	/** The verse id */
-	int id;
+	final int id;
 	
 	/** The chapter number */
-	int chapter;
+	final int chapter;
 	
 	/** The verse number */
-	int verse;
+	final int verse;
 	
 	/** The sub verse number */
-	int subVerse;
+	final int subVerse;
 	
 	/** The verse order */
-	int order;
+	final int order;
 	
 	/** The verse text */
-	String text;
+	final String text;
 
-	/** Hidden default constructor */
-	Verse() {}
-	
 	/**
 	 * Full constructor.
 	 * @param bible the bible containing the verse
