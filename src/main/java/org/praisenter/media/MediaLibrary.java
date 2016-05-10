@@ -119,7 +119,7 @@ public final class MediaLibrary {
 	private final MediaImportFilter importFilter;
 	
 	/** The thumbnail settings */
-	private final MediaThumbnailSettings settings;
+	private final MediaThumbnailSettings thumbnailSettings;
 	
 	// loaded
 	
@@ -170,7 +170,7 @@ public final class MediaLibrary {
 		
 		this.importFilter = importFilter == null ? new DefaultMediaImportFilter() : importFilter;
 		
-		this.settings = settings;
+		this.thumbnailSettings = settings;
 		
 		this.loaders = new MediaLoader[] {
 			new ImageMediaLoader(settings),
@@ -272,7 +272,7 @@ public final class MediaLibrary {
 						if (meta.type != MediaType.AUDIO) {
 							media = new Media(meta, loadThumbnail(tPath));
 						} else {
-							media = new Media(meta, settings.audioDefaultThumbnail);
+							media = new Media(meta, thumbnailSettings.audioDefaultThumbnail);
 						}
 						this.media.put(media.metadata.id, media);
 					}
@@ -826,5 +826,21 @@ public final class MediaLibrary {
 			return this.framesPath.resolve(media.metadata.path.getFileName().toString() + FRAME_EXT);
 		}
 		return null;
+	}
+	
+	/**
+	 * Returns the import filter for this media library.
+	 * @return {@link MediaImportFilter}
+	 */
+	public MediaImportFilter getImportFilter() {
+		return this.importFilter;
+	}
+	
+	/**
+	 * Returns the thumbnail settings for this media library.
+	 * @return {@link MediaThumbnailSettings}
+	 */
+	public MediaThumbnailSettings getThumbnailSettings() {
+		return this.thumbnailSettings;
 	}
 }

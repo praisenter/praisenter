@@ -164,16 +164,30 @@ public final class Praisenter extends Application {
     		long t0 = 0;
     		long t1 = 0;
     		
+    		// get the loading result
+    		LoadingTaskResult result = e.data;
+    		
+    		// setup the screen manager
     		LOGGER.info("Initializing the screen manager.");
-    		// initialize screen manager
-    		ScreenManager sm = e.data.getScreenManager();
-    		// we have to do this on the FX thread
-    		sm.setup(CONFIG.getScreenMappings());
+    		ScreenManager screenManager = new ScreenManager();
+    		screenManager.setup(CONFIG.getScreenMappings());
+    		
+    		LOGGER.info("Building the application context.");
+    		// build the context
+    		PraisenterContext context = new PraisenterContext(
+    				this,
+    				stage,
+    				CONFIG,
+    				screenManager,
+    				result.getMediaLibrary(),
+    				result.getSongLibrary(),
+    				result.getBibleLibrary(),
+    				result.getSlideLibrary());
     		
     		LOGGER.info("Creating the UI.");
     		t0 = System.nanoTime();
     		// create the main pane and add it to the stack
-    		MainPane main = new MainPane(e.data);
+    		MainPane main = new MainPane(context);
     		t1 = System.nanoTime();
     		LOGGER.info("UI created in {} seconds.", (t1 - t0) / 1e9);
     		

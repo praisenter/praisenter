@@ -27,14 +27,11 @@ package org.praisenter.javafx;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import javafx.concurrent.Task;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.data.Database;
-import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
@@ -43,32 +40,23 @@ import org.praisenter.slide.SlideLibrary;
 import org.praisenter.song.SongLibrary;
 import org.praisenter.utility.ClasspathLoader;
 
+import javafx.concurrent.Task;
+
 /**
  * Task to perform the loading of resources for Praisenter including media,
  * slides, songs, bibles, etc.
  * @author William Bittle
  * @version 3.0.0
  */
-final class ContextLoadingTask extends Task<PraisenterContext> {
+final class LoadingTask extends Task<LoadingTaskResult> {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The application configuration */
-	private final Configuration configuration;
-	
-	/**
-	 * Minimal constructor.
-	 * @param configuration the application configuration
-	 */
-	ContextLoadingTask(Configuration configuration) {
-		this.configuration = configuration;
-	}
 	
 	/* (non-Javadoc)
 	 * @see javafx.concurrent.Task#call()
 	 */
 	@Override
-	protected PraisenterContext call() throws Exception {
+	protected LoadingTaskResult call() throws Exception {
 		long t0 = 0;
 		long t1 = 0;
 		
@@ -118,11 +106,10 @@ final class ContextLoadingTask extends Task<PraisenterContext> {
 		updateProgress(4, 4);
 		LOGGER.info("Slide library loaded in {} seconds with {} slides", (t1 - t0) / 1e9, slides.size());
     	
-		PraisenterContext context = new PraisenterContext(configuration, media, songs, bibles, slides);
-		LOGGER.info("Context created successfully");
+		LoadingTaskResult result = new LoadingTaskResult(media, songs, bibles, slides);
 		
 		updateMessage(Translations.get("loading.complete"));
 		
-		return context;
+		return result;
 	}
 }

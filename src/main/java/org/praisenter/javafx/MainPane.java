@@ -69,7 +69,7 @@ public final class MainPane extends BorderPane {
 		});
 		
 		blManage.setOnAction((e) -> {
-			BibleLibraryPane blp = new BibleLibraryPane(context.getBibleLibrary());
+			BibleLibraryPane blp = new BibleLibraryPane(context);
 			setCenter(blp);
 		});
 		

@@ -7,26 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
-import javafx.event.EventHandler;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
-import javafx.scene.text.TextFlow;
-import javafx.stage.Modality;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
@@ -36,14 +16,40 @@ import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.UnboundBibleImporter;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.FlowListView;
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
+
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.concurrent.Task;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+import javafx.stage.Modality;
+import sun.launcher.resources.launcher;
 
 public final class BibleLibraryPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	public BibleLibraryPane(BibleLibrary bibleLibrary) {
+	public BibleLibraryPane(PraisenterContext context) {
 		
+		BibleLibrary bibleLibrary = context.getBibleLibrary();
 		List<Bible> bibles = null;
 		try {
 			bibles = bibleLibrary.getBibles();
@@ -56,6 +62,11 @@ public final class BibleLibraryPane extends BorderPane {
 		for (Bible bible : bibles) {
 			items.add(new BibleListItem(bible));
 		}
+		
+		FilteredList<BibleListItem> loadedItems = new FilteredList<>(items);
+		loadedItems.setPredicate((i) -> {
+			return i.loaded == true;
+		});
 		
 		FlowListView<BibleListItem> lstBibles = new FlowListView<BibleListItem>(new BibleListViewCellFactory());
 		lstBibles.itemsProperty().bindContent(items);
@@ -160,6 +171,42 @@ public final class BibleLibraryPane extends BorderPane {
 			}
         });
 		
-		this.setCenter(lstBibles);
+		GridPane left = new GridPane();
+		left.setVgap(5);
+		left.setHgap(5);
+		left.setMinWidth(250);
+		left.setPadding(new Insets(5));
+		
+		// TODO wire up settings controls
+		
+		Text txt1 = new Text("You can get more bibles from");
+		Hyperlink lnk1 = new Hyperlink("The Unbound Bible");
+		lnk1.setOnAction((e) -> {
+			context.getApplication().getHostServices().showDocument("http://unbound.biola.edu/index.cfm?method=downloads.showDownloadMain");
+		});
+		Text txt2 = new Text("Select the bible from the dropdown, then click download.");
+		TextFlow txtFlow = new TextFlow(txt1, lnk1, txt2);
+		left.add(txtFlow, 0, 0, 2, 1);
+		
+		Label lblPrimary = new Label("Primary");
+		ComboBox<BibleListItem> cmbPrimary = new ComboBox<BibleListItem>(loadedItems);
+		left.add(lblPrimary, 0, 1);
+		left.add(cmbPrimary, 1, 1);
+		
+		Label lblSecondary = new Label("Secondary");
+		ComboBox<BibleListItem> cmbSecondary = new ComboBox<BibleListItem>(loadedItems);
+		left.add(lblSecondary, 0, 2);
+		left.add(cmbSecondary, 1, 2);
+		
+		Label lblIncludeApocrypha = new Label("Apocrypha");
+		CheckBox chkIncludeApocrypha = new CheckBox();
+		left.add(lblIncludeApocrypha, 0, 3);
+		left.add(chkIncludeApocrypha, 1, 3);
+		
+		SplitPane split = new SplitPane(lstBibles, left);
+		split.setDividerPositions(0.75);
+		SplitPane.setResizableWithParent(left, false);
+		
+		this.setCenter(split);
 	}
 }

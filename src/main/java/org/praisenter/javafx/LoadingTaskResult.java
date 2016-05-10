@@ -24,46 +24,17 @@
  */
 package org.praisenter.javafx;
 
-import java.util.Set;
-import java.util.TreeSet;
-
-import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
-import javafx.stage.Stage;
-
-import org.praisenter.Tag;
 import org.praisenter.bible.BibleLibrary;
-import org.praisenter.javafx.configuration.Configuration;
-import org.praisenter.javafx.screen.ScreenManager;
-import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
-import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
-import org.praisenter.song.Song;
 import org.praisenter.song.SongLibrary;
 
 /**
- * Represents the working state of Praisenter.
- * <p>
- * This class contains references to the Bible, Song, and Media libraries
- * and contains a caching mechanism for images.
+ * Represents the result from the loading task.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class PraisenterContext {
-	/** The Java FX application instance */
-	private final Application application;
-	
-	/** The Java FX main stage */
-	private final Stage stage;
-	
-	/** The application configuration */
-	private final Configuration configuration;
-
-	/** The screen manager */
-	private final ScreenManager screenManager;
-	
+final class LoadingTaskResult {
 	/** The media library */
 	private final MediaLibrary mediaLibrary;
 	
@@ -75,95 +46,25 @@ public final class PraisenterContext {
 	
 	/** The slide library */
 	private final SlideLibrary slideLibrary;
-	
-	/** The image cache */
-	private final ImageCache imageCache;
-	
-	/** The global tag list */
-	private final ObservableSet<Tag> tags;
-	
+
 	/**
 	 * Full constructor.
-	 * @param application the Java FX application instance
-	 * @param stage the Java FX main stage
-	 * @param configuration the application configuration
-	 * @param screenManager the display screen manager
 	 * @param media the media library
 	 * @param songs the song library
 	 * @param bibles the bible library
 	 * @param slides the slide library
 	 */
-	public PraisenterContext(
-			Application application,
-			Stage stage,
-			Configuration configuration,
-			ScreenManager screenManager,
+	public LoadingTaskResult(
 			MediaLibrary media, 
 			SongLibrary songs, 
 			BibleLibrary bibles, 
 			SlideLibrary slides) {
-		this.application = application;
-		this.stage = stage;
-		this.configuration = configuration;
-		this.screenManager = screenManager;
 		this.mediaLibrary = media;
 		this.songLibrary = songs;
 		this.bibleLibrary = bibles;
 		this.slideLibrary = slides;
-		this.imageCache = new ImageCache();
-		Set<Tag> tags = new TreeSet<Tag>();
-		
-		// add all the tags to the main tag set
-		if (this.songLibrary != null) {
-			for (Song song : this.songLibrary.all()) {
-				tags.addAll(song.getTags());
-			}
-		}
-		if (this.slideLibrary != null) {
-			for (Slide slide : this.slideLibrary.all()) {
-				tags.addAll(slide.getTags());
-			}
-		}
-		if (this.mediaLibrary != null) {
-			for (Media m : this.mediaLibrary.all()) {
-				tags.addAll(m.getMetadata().getTags());
-			}
-		}
-		this.tags = FXCollections.observableSet(tags);
 	}
 
-	/**
-	 * Returns the application instance.
-	 * @return Application
-	 */
-	public Application getApplication() {
-		return this.application;
-	}
-	
-	/**
-	 * Returns the main stage for the application.
-	 * @return Stage
-	 */
-	public Stage getStage() {
-		return this.stage;
-	}
-	
-	/**
-	 * Returns the application configuration.
-	 * @return {@link Configuration}
-	 */
-	public Configuration getConfiguration() {
-		return this.configuration;
-	}
-
-	/**
-	 * Returns the screen manager.
-	 * @return {@link ScreenManager}
-	 */
-	public ScreenManager getScreenManager() {
-		return this.screenManager;
-	}
-	
 	/**
 	 * Returns the media library.
 	 * @return {@link MediaLibrary}
@@ -194,21 +95,5 @@ public final class PraisenterContext {
 	 */
 	public SlideLibrary getSlideLibrary() {
 		return this.slideLibrary;
-	}
-	
-	/**
-	 * Returns the image cache.
-	 * @return {@link ImageCache}
-	 */
-	public ImageCache getImageCache() {
-		return this.imageCache;
-	}
-	
-	/**
-	 * Returns the global set of tags.
-	 * @return ObservableSet&lt;{@link Tag}&gt;
-	 */
-	public ObservableSet<Tag> getTags() {
-		return this.tags;
 	}
 }

@@ -144,7 +144,7 @@ public class TestSlideDisplay extends Application {
 		slide.setBorder(thick);
 		
 		
-		PraisenterContext context = new PraisenterContext(null, library, null, null, null);
+		PraisenterContext context = new PraisenterContext(null, null, null, null, library, null, null, null);
 		
 		FxSlide wrapper = new FxSlide(context, slide, SlideMode.PRESENT);
 		List<MediaPlayer> players = wrapper.getMediaPlayers();

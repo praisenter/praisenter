@@ -65,6 +65,11 @@ final class BibleListItem implements Comparable<BibleListItem> {
 		this.loaded = true;
 	}
 	
+	@Override
+	public String toString() {
+		return this.name;
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */

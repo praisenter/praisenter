@@ -168,7 +168,7 @@ public final class SlideEditorPane extends Application {
 		}
 		
 		Slide slide = createTestSlide();
-		PraisenterContext context = new PraisenterContext(null, library, null, null, null);
+		PraisenterContext context = new PraisenterContext(null, null, null, null, library, null, null, null);
 		FxSlide fxSlide = new FxSlide(context, slide, SlideMode.EDIT);
 		
 		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));

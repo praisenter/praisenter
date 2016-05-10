@@ -245,7 +245,7 @@ public final class MediaLibraryPane extends BorderPane {
 		});
         
         // the right side of the split pane
-        FlowListView<MediaListItem> left = new FlowListView<MediaListItem>(new MediaListViewCellFactory());
+        FlowListView<MediaListItem> left = new FlowListView<MediaListItem>(new MediaListViewCellFactory(library.getThumbnailSettings().getHeight()));
         left.itemsProperty().bindContent(sorted);
         
         EventHandler<KeyEvent> handler = new EventHandler<KeyEvent>() {
@@ -510,7 +510,7 @@ public final class MediaLibraryPane extends BorderPane {
         
         split.getItems().add(leftScroller);
         split.getItems().add(rightScroller);
-        split.setDividerPositions(0.9);
+        split.setDividerPositions(0.75);
         SplitPane.setResizableWithParent(rightScroller, Boolean.FALSE);
         
         // FILTERING & SORTING

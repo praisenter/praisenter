@@ -34,6 +34,7 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Callback;
@@ -53,8 +54,8 @@ final class BibleListViewCellFactory implements Callback<BibleListItem, FlowList
 	public FlowListItem<BibleListItem> call(BibleListItem item) {
 		FlowListItem<BibleListItem> cell = new FlowListItem<BibleListItem>(item);
 		
+		cell.setPrefWidth(110);
 		cell.setAlignment(Pos.TOP_CENTER);
-		cell.setPrefSize(130, 130);
 		
 		String name = null;
 		
@@ -62,10 +63,19 @@ final class BibleListViewCellFactory implements Callback<BibleListItem, FlowList
 			name = item.name;
 	    	// setup the thumbnail image
 	    	final ImageView thumb = new ImageView(ICON);
-	    	thumb.setFitWidth(100);
+	    	
+	    	thumb.setFitHeight(100);
 	    	thumb.setPreserveRatio(true);
     		thumb.setEffect(new DropShadow(2, 2, 2, Color.rgb(0, 0, 0, 0.25)));
-	    	cell.getChildren().add(thumb);
+    		
+    		// place it in a VBox for good positioning
+	    	final VBox wrapper = new VBox(thumb);
+	    	wrapper.setAlignment(Pos.BOTTOM_CENTER);
+	    	wrapper.setPrefHeight(100);
+	    	wrapper.setMaxHeight(100);
+	    	wrapper.setMinHeight(100);
+	    	
+	    	cell.getChildren().add(wrapper);
 		} else {
 			name = item.name;
 			// setup an indeterminant progress bar

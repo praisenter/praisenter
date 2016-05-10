@@ -83,7 +83,7 @@ final class LoadingPane extends Pane {
 	// members
 	
 	/** The loading task */
-	private final ContextLoadingTask loading;
+	private final LoadingTask loading;
 	
 	/** The loading thread */
 	private final Thread loadingThread;
@@ -95,7 +95,7 @@ final class LoadingPane extends Pane {
 	private Timeline barAnimation;
 	
 	/** The on complete handler */
-	private EventHandler<CompleteEvent<PraisenterContext>> onComplete;
+	private EventHandler<CompleteEvent<LoadingTaskResult>> onComplete;
 	
 	/**
 	 * Full constructor
@@ -108,7 +108,7 @@ final class LoadingPane extends Pane {
 		this.setPrefHeight(height);
 		
 		// create the loading task
-		this.loading = new ContextLoadingTask(configuration);
+		this.loading = new LoadingTask();
 		this.loadingThread = new Thread(this.loading);
 		
 		// TODO need better splash screen image
@@ -168,7 +168,7 @@ final class LoadingPane extends Pane {
     	path.setFill(null);
     	path.setStroke(Color.WHITE);
     	path.setStrokeWidth(LINE_WIDTH);
-    	path.setStrokeLineCap(StrokeLineCap.ROUND);
+    	path.setStrokeLineCap(StrokeLineCap.BUTT);
     	
     	// the circle animation
     	this.circleAnimation = new RotateTransition(Duration.millis(2000), path);
@@ -247,10 +247,9 @@ final class LoadingPane extends Pane {
 						
 						// notify that loading is complete
 						if (this.onComplete != null) {
-							PraisenterContext context = null;
 							try {
-								context = loading.get();
-								this.onComplete.handle(new CompleteEvent<PraisenterContext>(LoadingPane.this, LoadingPane.this, context));
+								LoadingTaskResult result = loading.get();
+								this.onComplete.handle(new CompleteEvent<LoadingTaskResult>(LoadingPane.this, LoadingPane.this, result));
 							} catch (Exception ex) {
 								LOGGER.error("Failed to get PraisenterContext due to the following.", ex);
 								showExecptionAlertThenExit(ex);
@@ -317,15 +316,15 @@ final class LoadingPane extends Pane {
 	 * Sets the handler called when the loading is completed.
 	 * @param handler the handler
 	 */
-	public void setOnComplete(EventHandler<CompleteEvent<PraisenterContext>> handler) {
+	public void setOnComplete(EventHandler<CompleteEvent<LoadingTaskResult>> handler) {
 		this.onComplete = handler;
 	}
 	
 	/**
 	 * Returns the on complete handler.
-	 * @return EventHandler&lt;CompleteEvent&lt;PraisenterContext&gt;&gt;
+	 * @return EventHandler&lt;CompleteEvent&lt;LoadingResult&gt;&gt;
 	 */
-	public EventHandler<CompleteEvent<PraisenterContext>> getOnComplete() {
+	public EventHandler<CompleteEvent<LoadingTaskResult>> getOnComplete() {
 		return this.onComplete;
 	}
 }
