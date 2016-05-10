@@ -54,8 +54,9 @@ public final class MainPane extends BorderPane {
 		MenuItem slNew = new MenuItem("Create a new slide");
 		slides.getItems().addAll(slManage, slNew);
 		
-		MenuItem blManage = new MenuItem("Manage Bibles");
-		bibles.getItems().addAll(blManage);
+		MenuItem blManage = new MenuItem("Manage bibles");
+		MenuItem blImport = new MenuItem("Import bibles");
+		bibles.getItems().addAll(blManage, blImport);
 		
 		MenuItem hAbout = new MenuItem("About");
 		help.getItems().addAll(hAbout);
