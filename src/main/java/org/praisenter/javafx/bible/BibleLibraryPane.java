@@ -17,6 +17,7 @@ import org.praisenter.bible.UnboundBibleImporter;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
 
@@ -190,11 +191,33 @@ public final class BibleLibraryPane extends BorderPane {
 		
 		Label lblPrimary = new Label("Primary");
 		ComboBox<BibleListItem> cmbPrimary = new ComboBox<BibleListItem>(loadedItems);
+		cmbPrimary.valueProperty().addListener((obs, oldValue, newValue) -> {
+			int id = newValue.bible.getId();
+			Configuration config = context.getConfiguration();
+			config.setPrimaryBibleId(id);
+			try {
+				Configuration.save(config);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		});
 		left.add(lblPrimary, 0, 1);
 		left.add(cmbPrimary, 1, 1);
 		
 		Label lblSecondary = new Label("Secondary");
 		ComboBox<BibleListItem> cmbSecondary = new ComboBox<BibleListItem>(loadedItems);
+		cmbSecondary.valueProperty().addListener((obs, oldValue, newValue) -> {
+			int id = newValue.bible.getId();
+			Configuration config = context.getConfiguration();
+			config.setSecondaryBibleId(id);
+			try {
+				Configuration.save(config);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		});
 		left.add(lblSecondary, 0, 2);
 		left.add(cmbSecondary, 1, 2);
 		
