@@ -82,6 +82,7 @@ public final class Configuration {
 				Configuration conf = XmlIO.read(path, Configuration.class);
 				conf.language = conf.savedLanguage.get();
 				conf.theme = conf.savedTheme.get();
+				return conf;
 			}
 		} catch (Exception ex) {
 			LOGGER.error(ex);
@@ -137,17 +138,25 @@ public final class Configuration {
 	private Locale getSavedLanguage() {
 		return this.savedLanguage.get();
 	}
+	
+	private void setSavedLanguage(Locale locale) {
+		this.savedLanguage.set(locale);
+	}
 
 	public String getTheme() {
 		return this.theme;
 	}
 	
+	public void setTheme(String theme) {
+		this.savedTheme.set(theme);
+	}
+
 	@XmlElement(name = "theme", required = false)
 	private String getSavedTheme() {
 		return this.savedTheme.get();
 	}
 	
-	public void setTheme(String theme) {
+	private void setSavedTheme(String theme) {
 		this.savedTheme.set(theme);
 	}
 	

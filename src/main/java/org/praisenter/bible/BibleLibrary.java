@@ -35,6 +35,9 @@ import java.util.List;
 
 import org.praisenter.data.Database;
 
+// FIXME we should change the id for bibles to UUIDs
+// FIXME add more metatdata info to the bible table (import date)
+
 /**
  * Access class for Bible verses.
  * @author William Bittle

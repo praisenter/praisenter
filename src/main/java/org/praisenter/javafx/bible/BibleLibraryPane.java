@@ -2,6 +2,7 @@ package org.praisenter.javafx.bible;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.text.Format;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,8 @@ import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.ObjectBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -112,6 +115,7 @@ public final class BibleLibraryPane extends BorderPane {
 									try {
 										final BibleListItem loading = new BibleListItem(file.toPath().getFileName().toString());
 										// import the bible
+										// FEATURE change this to detect the format and then use the appropriate importer for it; prompt the user for format if not recognized
 										final Bible bible = new UnboundBibleImporter(bibleLibrary).execute(file.toPath());
 										BibleListItem success = new BibleListItem(bible);
 										Platform.runLater(() -> {
@@ -179,6 +183,7 @@ public final class BibleLibraryPane extends BorderPane {
 		left.setPadding(new Insets(5));
 		
 		// TODO wire up settings controls
+		// TODO primary and secondary bible (with secondary toggle will be saved based on the main UI's last value)
 		
 		Text txt1 = new Text("You can get more bibles from");
 		Hyperlink lnk1 = new Hyperlink("The Unbound Bible");
@@ -189,42 +194,11 @@ public final class BibleLibraryPane extends BorderPane {
 		TextFlow txtFlow = new TextFlow(txt1, lnk1, txt2);
 		left.add(txtFlow, 0, 0, 2, 1);
 		
-		Label lblPrimary = new Label("Primary");
-		ComboBox<BibleListItem> cmbPrimary = new ComboBox<BibleListItem>(loadedItems);
-		cmbPrimary.valueProperty().addListener((obs, oldValue, newValue) -> {
-			int id = newValue.bible.getId();
-			Configuration config = context.getConfiguration();
-			config.setPrimaryBibleId(id);
-			try {
-				Configuration.save(config);
-			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		});
-		left.add(lblPrimary, 0, 1);
-		left.add(cmbPrimary, 1, 1);
-		
-		Label lblSecondary = new Label("Secondary");
-		ComboBox<BibleListItem> cmbSecondary = new ComboBox<BibleListItem>(loadedItems);
-		cmbSecondary.valueProperty().addListener((obs, oldValue, newValue) -> {
-			int id = newValue.bible.getId();
-			Configuration config = context.getConfiguration();
-			config.setSecondaryBibleId(id);
-			try {
-				Configuration.save(config);
-			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		});
-		left.add(lblSecondary, 0, 2);
-		left.add(cmbSecondary, 1, 2);
-		
 		Label lblIncludeApocrypha = new Label("Apocrypha");
 		CheckBox chkIncludeApocrypha = new CheckBox();
-		left.add(lblIncludeApocrypha, 0, 3);
-		left.add(chkIncludeApocrypha, 1, 3);
+		chkIncludeApocrypha.selectedProperty().bindBidirectional(context.getConfiguration().apocryphaIncludedProperty());
+		left.add(lblIncludeApocrypha, 0, 2);
+		left.add(chkIncludeApocrypha, 1, 2);
 		
 		SplitPane split = new SplitPane(lstBibles, left);
 		split.setDividerPositions(0.75);
