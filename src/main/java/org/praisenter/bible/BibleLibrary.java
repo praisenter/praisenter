@@ -35,8 +35,7 @@ import java.util.List;
 
 import org.praisenter.data.Database;
 
-// FIXME we should change the id for bibles to UUIDs
-// FIXME add more metatdata info to the bible table (import date)
+// TODO more bible metadata (verse count, has any apocryphal books, copyright (kjv on has a value, others are on the html...), has import warnings)
 
 /**
  * Access class for Bible verses.
@@ -66,7 +65,7 @@ public final class BibleLibrary {
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
 	public Bible getBible(int id) throws SQLException {
-		return getBibleBySql("SELECT id, data_source, name, language FROM bible WHERE id = " + id);
+		return getBibleBySql("SELECT id, data_source, name, language, import_date FROM bible WHERE id = " + id);
 	}
 	
 	/**
@@ -75,7 +74,7 @@ public final class BibleLibrary {
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
 	public List<Bible> getBibles() throws SQLException {
-		return getBiblesBySql("SELECT id, data_source, name, language FROM bible ORDER BY name");
+		return getBiblesBySql("SELECT id, data_source, name, language, import_date FROM bible ORDER BY name");
 	}
 	
 	/**
@@ -1225,7 +1224,8 @@ public final class BibleLibrary {
 					result.getInt("id"),
 					result.getString("name"),
 					result.getString("language"),
-					result.getString("data_source"));
+					result.getString("data_source"),
+					result.getTimestamp("import_date"));
 		} catch (SQLException e) {
 			throw new SQLException("An error occurred when interpreting the bible result.", e);
 		}

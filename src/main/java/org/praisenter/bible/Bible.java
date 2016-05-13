@@ -24,6 +24,8 @@
  */
 package org.praisenter.bible;
 
+import java.util.Date;
+
 /**
  * Represents a Bible translation.
  * @author William Bittle
@@ -42,18 +44,23 @@ public final class Bible implements Comparable<Bible> {
 	/** The source for the bible's contents */
 	final String source;
 	
+	/** The date the bible was imported */
+	final Date importDate;
+	
 	/**
 	 * Full constructor.
 	 * @param id the bible id
 	 * @param name the bible name
 	 * @param language the bible language
 	 * @param source the bible source
+	 * @param importDate the import date
 	 */
-	Bible(int id, String name, String language, String source) {
+	Bible(int id, String name, String language, String source, Date importDate) {
 		this.id = id;
 		this.name = name;
 		this.language = language;
 		this.source = source;
+		this.importDate = importDate;
 	}
 	
 	/* (non-Javadoc)

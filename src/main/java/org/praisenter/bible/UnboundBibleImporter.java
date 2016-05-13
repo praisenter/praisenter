@@ -297,6 +297,6 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 			}
 		}
 		
-		return new Bible(-1, name, language, source);
+		return new Bible(-1, name, language, source, null);
 	}
 }

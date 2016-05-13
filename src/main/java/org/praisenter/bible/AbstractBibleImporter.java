@@ -31,6 +31,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -47,7 +49,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The prepared statement SQL for inserting a bible */
-	private static final String INSERT_BIBLE = "INSERT INTO BIBLE (DATA_SOURCE,NAME,LANGUAGE) VALUES(?, ?, ?)";
+	private static final String INSERT_BIBLE = "INSERT INTO BIBLE (DATA_SOURCE,NAME,LANGUAGE,IMPORT_DATE) VALUES(?, ?, ?, ?)";
 	
 	/** The prepared statement SQL for inserting a book */
 	private static final String INSERT_BOOK = "INSERT INTO BIBLE_BOOK (BIBLE_ID,CODE,NAME) VALUES(?, ?, ?)";
@@ -118,6 +120,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 			}
 			
 			int bibleId = -1;
+			Date date = new Date();
 			
 			// insert the bible
 			try (PreparedStatement bibleInsert = connection.prepareStatement(INSERT_BIBLE, Statement.RETURN_GENERATED_KEYS)) {
@@ -125,6 +128,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 				bibleInsert.setString(1, bible.source);
 				bibleInsert.setString(2, bible.name);
 				bibleInsert.setString(3, bible.language);
+				bibleInsert.setTimestamp(4, new Timestamp(date.getTime()));
 				// insert the bible
 				bibleInsert.executeUpdate();
 				// get the generated id
@@ -199,7 +203,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 			rebuildIndexes();
 			
 			// return a new bible with the unique id
-			return new Bible(bibleId, bible.name, bible.language, bible.source);
+			return new Bible(bibleId, bible.name, bible.language, bible.source, date);
 		}
 	}
 

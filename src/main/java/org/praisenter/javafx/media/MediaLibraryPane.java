@@ -36,6 +36,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.FailedOperation;
+import org.praisenter.Tag;
+import org.praisenter.WarningOperation;
+import org.praisenter.javafx.Alerts;
+import org.praisenter.javafx.FlowListView;
+import org.praisenter.javafx.Option;
+import org.praisenter.javafx.SortGraphic;
+import org.praisenter.media.Media;
+import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaType;
+import org.praisenter.resources.translations.Translations;
+
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -66,6 +80,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -75,21 +90,9 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.media.MediaPlayer;
 import javafx.stage.Modality;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.FailedOperation;
-import org.praisenter.Tag;
-import org.praisenter.WarningOperation;
-import org.praisenter.javafx.Alerts;
-import org.praisenter.javafx.FlowListView;
-import org.praisenter.javafx.Option;
-import org.praisenter.javafx.SortGraphic;
-import org.praisenter.media.Media;
-import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaType;
-import org.praisenter.resources.translations.Translations;
 
 // TODO if only one type of media is allowed, sorting and filtering by type isn't useful, hide it?
 // TODO we may need a generic way of communicating between multiple instances
@@ -499,10 +502,28 @@ public final class MediaLibraryPane extends BorderPane {
         // wire up the selected media to the media metadata view with a unidirectional binding
         right.mediaProperty().bind(left.selectionProperty());
         
+        // TODO translate
+        TitledPane ttlMetadata = new TitledPane("Media Properties", right);
+
+        // setup preview pane for video/audio
+        MediaPlayerPane mediaPlayerPane = new MediaPlayerPane();
+        left.selectionProperty().addListener((obs, oldValue, newValue) -> {
+        	MediaPlayer player = null;
+        	if (newValue != null && newValue.media != null) {
+        		MediaType type = newValue.media.getMetadata().getType();
+        		if (type == MediaType.AUDIO || type == MediaType.VIDEO) {
+        			player = new MediaPlayer(new javafx.scene.media.Media(newValue.media.getMetadata().getPath().toUri().toString()));
+        		}
+        	}
+        	mediaPlayerPane.setMediaPlayer(player);
+        });
+        TitledPane ttlPreview = new TitledPane("Preview", mediaPlayerPane);
+        
+        VBox rightGroup = new VBox(ttlMetadata, ttlPreview);
         ScrollPane rightScroller = new ScrollPane();
         rightScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         rightScroller.setFitToWidth(true);
-        rightScroller.setContent(right);
+        rightScroller.setContent(rightGroup);
         rightScroller.setMinWidth(170);
         
         SplitPane split = new SplitPane();
@@ -512,6 +533,9 @@ public final class MediaLibraryPane extends BorderPane {
         split.getItems().add(rightScroller);
         split.setDividerPositions(0.75);
         SplitPane.setResizableWithParent(rightScroller, Boolean.FALSE);
+        
+        // scale the media player pane's fit property to the scroller's width property minus some for padding
+        mediaPlayerPane.mediaPlayerFitWidthProperty().bind(rightScroller.widthProperty().subtract(20));
         
         // FILTERING & SORTING
         
