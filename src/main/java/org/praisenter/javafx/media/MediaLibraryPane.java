@@ -536,6 +536,7 @@ public final class MediaLibraryPane extends BorderPane {
         
         // scale the media player pane's fit property to the scroller's width property minus some for padding
         mediaPlayerPane.mediaPlayerFitWidthProperty().bind(rightScroller.widthProperty().subtract(20));
+        mediaPlayerPane.setPadding(new Insets(8, 0, 0, 0));
         
         // FILTERING & SORTING
         
