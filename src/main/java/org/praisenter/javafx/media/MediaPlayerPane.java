@@ -1,5 +1,9 @@
 package org.praisenter.javafx.media;
 
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.GlyphFont;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
+
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -13,17 +17,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 
 public final class MediaPlayerPane extends BorderPane {
-
+	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
+	
     private MediaPlayer mp;
     private MediaView mediaView;
     private final boolean repeat = false;
@@ -49,10 +52,10 @@ public final class MediaPlayerPane extends BorderPane {
         mediaBar = new HBox();
         mediaBar.setAlignment(Pos.CENTER);
         mediaBar.setPadding(new Insets(5, 10, 5, 10));
+        mediaBar.setSpacing(5);
         BorderPane.setAlignment(mediaBar, Pos.CENTER);
 
-        btnPlay = new Button(">");
-
+        btnPlay = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
         btnPlay.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
             	if (mp == null) return;
@@ -69,7 +72,7 @@ public final class MediaPlayerPane extends BorderPane {
                  || status == Status.STOPPED) {
                     // rewind the movie if we're sitting at the end
                     if (atEndOfMedia) {
-                        mp.seek(mp.getStartTime());
+                        mp.stop();
                         atEndOfMedia = false;
                     }
                     mp.play();
@@ -78,20 +81,13 @@ public final class MediaPlayerPane extends BorderPane {
                 }
             }
         });
-        
-
         mediaBar.getChildren().add(btnPlay);
-        // Add spacer
-//        Label spacer = new Label("   ");
-//        mediaBar.getChildren().add(spacer);
-
-        // Add Time label
-        Label timeLabel = new Label("Time: ");
-        mediaBar.getChildren().add(timeLabel);
 
         // Add time slider
         timeSlider = new Slider();
-        HBox.setHgrow(timeSlider, Priority.ALWAYS);
+        timeSlider.setMin(0);
+        timeSlider.setMax(100);
+        timeSlider.setValue(0);
         timeSlider.setMinWidth(50);
         timeSlider.setMaxWidth(Double.MAX_VALUE);
         timeSlider.valueProperty().addListener(new InvalidationListener() {
@@ -103,19 +99,23 @@ public final class MediaPlayerPane extends BorderPane {
             }
         });
         mediaBar.getChildren().add(timeSlider);
+        HBox.setHgrow(timeSlider, Priority.ALWAYS);
 
         // Add Play label
         playTime = new Label();
-        playTime.setPrefWidth(130);
+//        playTime.setPrefWidth(130);
         playTime.setMinWidth(50);
         mediaBar.getChildren().add(playTime);
 
         // Add the volume label
-        Label volumeLabel = new Label("Vol: ");
+        Label volumeLabel = new Label("", FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_UP));
         mediaBar.getChildren().add(volumeLabel);
 
         // Add Volume slider
         volumeSlider = new Slider();
+        volumeSlider.setMin(0);
+        volumeSlider.setMax(100);
+        volumeSlider.setValue(100);
         volumeSlider.setPrefWidth(70);
         volumeSlider.setMaxWidth(Region.USE_PREF_SIZE);
         volumeSlider.setMinWidth(30);
@@ -146,12 +146,13 @@ public final class MediaPlayerPane extends BorderPane {
     	if (player != null) {
     		this.setupMediaPlayer();
     	}
+    	this.btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
+		this.timeSlider.setValue(0);
     }
     
     private void setupMediaPlayer() {
     	mediaView.setMediaPlayer(mp);
-    	//mediaView.autosize();
-    	
+
     	mp.currentTimeProperty().addListener(new InvalidationListener() {
             public void invalidated(Observable ov) {
                 updateValues();
@@ -164,15 +165,14 @@ public final class MediaPlayerPane extends BorderPane {
                     mp.pause();
                     stopRequested = false;
                 } else {
-                	btnPlay.setText("||");
+                	btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PAUSE));
                 }
             }
         });
 
         mp.setOnPaused(new Runnable() {
             public void run() {
-                System.out.println("onPaused");
-                btnPlay.setText(">");
+                btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
             }
         });
 
@@ -187,7 +187,7 @@ public final class MediaPlayerPane extends BorderPane {
         mp.setOnEndOfMedia(new Runnable() {
             public void run() {
                 if (!repeat) {
-                	btnPlay.setText(">");
+                	btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
                     stopRequested = true;
                     atEndOfMedia = true;
                 }

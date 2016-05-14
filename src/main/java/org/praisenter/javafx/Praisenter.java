@@ -29,6 +29,8 @@ import java.util.Locale;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.screen.ScreenManager;
@@ -74,6 +76,9 @@ public final class Praisenter extends Application {
 		
 		// create a logger for this class after the log4j has been initialized
 		LOGGER = LogManager.getLogger();
+		
+		// load fonts
+		GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
 		
 		// load configuration properties
 		Configuration config = Configuration.load();
