@@ -163,22 +163,8 @@ final class MediaMetadataPane extends VBox {
 	    	Optional<String> result = prompt.showAndWait();
 	    	// check for the "OK" button
 	    	if (result.isPresent()) {
-	    		// update the media's name
-	    		try {
-					Media nm = library.rename(media.get().media, result.get());
-					fireEvent(new MediaRenamedEvent(btnRename, MediaMetadataPane.this, media.get().media, nm));
-				} catch (Exception ex) {
-					// log the error
-					LOGGER.error("Failed to rename media from '{}' to '{}': {}", name.get(), result.get(), ex.getMessage());
-					// show an error to the user
-					Alert alert = Alerts.exception(
-							getScene().getWindow(),
-							null, 
-							null, 
-							MessageFormat.format(Translations.get("media.metadata.rename.error"), name.get(), result.get()), 
-							ex);
-					alert.show();
-				}
+	    		// fire the rename event
+	    		fireEvent(new MediaRenameEvent(btnRename, MediaMetadataPane.this, media.get().media, result.get()));
 	    	}
 	    });
         
@@ -279,7 +265,6 @@ final class MediaMetadataPane extends VBox {
         	public void changed(ObservableValue<? extends MediaListItem> ob, MediaListItem oldValue, MediaListItem newValue) {
         		MediaListItem item = newValue;
         		
-//        		tagView.setValue(null);
         		tagView.setText(null);
         		
         		if (item == null || !item.loaded) {

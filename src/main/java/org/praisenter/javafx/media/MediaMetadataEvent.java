@@ -43,7 +43,7 @@ class MediaMetadataEvent extends Event implements Serializable {
 	public static final EventType<MediaMetadataEvent> ANY = new EventType<MediaMetadataEvent>("MEDIA_METADATA");
 	
 	/** Event type to catch only rename events */
-	public static final EventType<MediaRenamedEvent> RENAMED = new EventType<MediaRenamedEvent>("MEDIA_METADATA_RENAMED");
+	public static final EventType<MediaRenameEvent> RENAME = new EventType<MediaRenameEvent>("MEDIA_METADATA_RENAME");
 	
 	/**
 	 * Full constructor.

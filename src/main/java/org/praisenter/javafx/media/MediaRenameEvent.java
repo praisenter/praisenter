@@ -35,43 +35,42 @@ import org.praisenter.media.Media;
  * @author William Bittle
  * @version 3.0.0
  */
-final class MediaRenamedEvent extends MediaMetadataEvent implements Serializable {
+final class MediaRenameEvent extends MediaMetadataEvent implements Serializable {
 	/** The serialization id */
 	private static final long serialVersionUID = 7525223765039656381L;
 	
-	/** The old media */
-	final Media oldValue;
+	/** The media */
+	final Media media;
 	
-	/** The new media */
-	final Media newValue;
+	/** The new name */
+	final String name;
 	
 	/**
 	 * Full constructor.
 	 * @param source the event source
 	 * @param target the event target
-	 * @param oldValue the old media
-	 * @param newValue the new media
+	 * @param media the media
+	 * @param name the new name
 	 */
-	public MediaRenamedEvent(Object source, EventTarget target, Media oldValue, Media newValue) {
-		super(source, target, RENAMED);
-		this.oldValue = oldValue;
-		this.newValue = newValue;
+	public MediaRenameEvent(Object source, EventTarget target, Media media, String name) {
+		super(source, target, RENAME);
+		this.media = media;
+		this.name = name;
 	}
 
 	/**
-	 * Returns the old media value.
+	 * Returns the media value.
 	 * @return {@link Media}
 	 */
-	public Media getOldValue() {
-		return this.oldValue;
+	public Media getMedia() {
+		return this.media;
 	}
 
 	/**
-	 * Returns the new media value updated based on
-	 * the rename action.
-	 * @return {@link Media}
+	 * Returns the new name.
+	 * @return String
 	 */
-	public Media getNewValue() {
-		return this.newValue;
+	public String getName() {
+		return this.name;
 	}
 }

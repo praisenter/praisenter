@@ -1,8 +1,28 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.media;
-
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -24,192 +44,254 @@ import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.GlyphFont;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
+
+/**
+ * Represents a media player with play/pause and volume controls.
+ * @author William Bittle
+ * @version 3.0.0
+ * @see <a href="http://docs.oracle.com/javase/8/javafx/media-tutorial/playercontrol.htm#sthref18">Controlling Media Playback</a>
+ */
 public final class MediaPlayerPane extends BorderPane {
+	/** The class-level logger */
+	private static final Logger LOGGER = LogManager.getLogger();
+	
+	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
-    private MediaPlayer mp;
-    private MediaView mediaView;
-    private final boolean repeat = false;
-    private boolean stopRequested = false;
-    private boolean atEndOfMedia = false;
+	// data
+	
+	/** The current media player; can be null */
+    private MediaPlayer player;
+    
+    /** The current media duration */
     private Duration duration;
-    private Slider timeSlider;
-    private Label playTime;
-    private Slider volumeSlider;
-    private HBox mediaBar;
-
+    
+    // controls
+    
+    /** The view to send playing media */
+    private final MediaView mediaView;
+    
+    /** The button for playing or pausing playback */
     private final Button btnPlay;
     
-    // TODO clean up
-    // FIXME when you seek to the end or let it play to the end, sometimes it doesn't let you restart (may need another button like stop)
+    /** The slider for the current position in the media */
+    private final Slider sldTime;
     
+    /** The label for showing the current position in the media */
+    private final Label lblTime;
+    
+    /** The button for muting audio */
+    private final Button btnMute;
+    
+    /** The slider for the current volume */
+    private final Slider sldVolume;
+    
+    /** The container for all the media playback controls */
+    private final HBox controlsBar;
+
+    /**
+     * Default constructor.
+     */
     public MediaPlayerPane() {
         this.mediaView = new MediaView();
         this.mediaView.setPreserveRatio(true);
         
-        setCenter(this.mediaView);
+        this.setCenter(this.mediaView);
 
-        mediaBar = new HBox();
-        mediaBar.setAlignment(Pos.CENTER);
-        mediaBar.setPadding(new Insets(5, 10, 5, 10));
-        mediaBar.setSpacing(5);
-        BorderPane.setAlignment(mediaBar, Pos.CENTER);
+        this.controlsBar = new HBox();
+        this.controlsBar.setAlignment(Pos.CENTER);
+        this.controlsBar.setPadding(new Insets(5, 10, 5, 10));
+        this.controlsBar.setSpacing(5);
+        BorderPane.setAlignment(this.controlsBar, Pos.CENTER);
 
-        btnPlay = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
-        btnPlay.setOnAction(new EventHandler<ActionEvent>() {
+        // play/pause button
+        this.btnPlay = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
+        this.btnPlay.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
-            	if (mp == null) return;
+            	if (player == null) return;
             	
-                Status status = mp.getStatus();
+                Status status = player.getStatus();
 
-                if (status == Status.UNKNOWN || status == Status.HALTED) {
+                if (status == Status.UNKNOWN || 
+            		status == Status.DISPOSED) {
                     // don't do anything in these states
                     return;
+                }
+                
+                if (status == Status.HALTED) {
+                	// just log the error
+                	LOGGER.error("Media " + player.getMedia().getSource() + " halted.", player.getError());
+                	return;
                 }
 
                 if (status == Status.PAUSED
                  || status == Status.READY
                  || status == Status.STOPPED) {
                     // rewind the movie if we're sitting at the end
-                    if (atEndOfMedia) {
-                        mp.stop();
-                        atEndOfMedia = false;
-                    }
-                    mp.play();
+                    player.play();
                 } else {
-                    mp.pause();
+                    player.pause();
                 }
             }
         });
-        mediaBar.getChildren().add(btnPlay);
 
-        // Add time slider
-        timeSlider = new Slider();
-        timeSlider.setMin(0);
-        timeSlider.setMax(100);
-        timeSlider.setValue(0);
-        timeSlider.setMinWidth(50);
-        timeSlider.setMaxWidth(Double.MAX_VALUE);
-        timeSlider.valueProperty().addListener(new InvalidationListener() {
+        // time slider
+        this.sldTime = new Slider();
+        this.sldTime.setMin(0);
+        this.sldTime.setMax(100);
+        this.sldTime.setValue(0);
+        this.sldTime.setMinWidth(20);
+        this.sldTime.valueProperty().addListener(new InvalidationListener() {
             public void invalidated(Observable ov) {
-                if (mp != null && timeSlider.isValueChanging()) {
+                if (player != null && sldTime.isValueChanging()) {
                     // multiply duration by percentage calculated by slider position
-                    mp.seek(duration.multiply(timeSlider.getValue() / 100.0));
+                    player.seek(duration.multiply(sldTime.getValue() / 100.0));
                 }
             }
         });
-        mediaBar.getChildren().add(timeSlider);
-        HBox.setHgrow(timeSlider, Priority.ALWAYS);
+        HBox.setHgrow(this.sldTime, Priority.ALWAYS);
 
-        // Add Play label
-        playTime = new Label();
-//        playTime.setPrefWidth(130);
-        playTime.setMinWidth(50);
-        mediaBar.getChildren().add(playTime);
+        // time label
+        this.lblTime = new Label();
+        this.lblTime.setMinWidth(Label.USE_PREF_SIZE);
 
-        // Add the volume label
-        Label volumeLabel = new Label("", FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_UP));
-        mediaBar.getChildren().add(volumeLabel);
-
-        // Add Volume slider
-        volumeSlider = new Slider();
-        volumeSlider.setMin(0);
-        volumeSlider.setMax(100);
-        volumeSlider.setValue(100);
-        volumeSlider.setPrefWidth(70);
-        volumeSlider.setMaxWidth(Region.USE_PREF_SIZE);
-        volumeSlider.setMinWidth(30);
-        volumeSlider.valueProperty().addListener(new InvalidationListener() {
+        // mute button
+        this.btnMute = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_UP));
+        this.btnMute.setOnAction((e) -> {
+        	if (player == null) return;
+        	// toggle mute state
+        	if (player.isMute()) {
+        		player.setMute(false);
+        		btnMute.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_UP));
+        	} else {
+        		player.setMute(true);
+        		btnMute.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_OFF));
+        	}
+        });
+        
+        // volume slider
+        this.sldVolume = new Slider();
+        this.sldVolume.setMin(0);
+        this.sldVolume.setMax(100);
+        this.sldVolume.setValue(100);
+        this.sldVolume.setPrefWidth(70);
+        this.sldVolume.setMaxWidth(Region.USE_PREF_SIZE);
+        this.sldVolume.setMinWidth(50);
+        this.sldVolume.valueProperty().addListener(new InvalidationListener() {
             public void invalidated(Observable ov) {
-                if (mp != null && volumeSlider.isValueChanging()) {
-                    mp.setVolume(volumeSlider.getValue() / 100.0);
+                if (player != null && sldVolume.isValueChanging()) {
+                    player.setVolume(sldVolume.getValue() / 100.0);
                 }
             }
         });
-        mediaBar.getChildren().add(volumeSlider);
-
-        setBottom(mediaBar);
+        
+        this.controlsBar.getChildren().addAll(this.btnPlay, this.sldTime, this.lblTime, this.btnMute, this.sldVolume);
+        this.controlsBar.setDisable(true);
+		
+        this.setBottom(this.controlsBar);
     }
     
-    public DoubleProperty mediaPlayerFitWidthProperty() {
+    /**
+     * The fitWidth property for the media.
+     * @return DoubleProperty
+     */
+    public DoubleProperty mediaFitWidthProperty() {
     	return this.mediaView.fitWidthProperty();
     }
     
+    /**
+     * Sets the current media player.
+     * @param player the new player
+     */
     public void setMediaPlayer(MediaPlayer player) {
-    	if (this.mp != null) {
-    		MediaPlayer op = this.mp;
-    		this.mp = null;
+    	// if the current player isn't null
+    	// then make sure we clean up the
+    	// current one right away
+    	if (this.player != null) {
+    		MediaPlayer op = this.player;
+    		this.player = null;
     		op.stop();
     		op.dispose();
     	}
-    	this.mp = player;
-    	if (player != null) {
-    		this.setupMediaPlayer();
-    	}
+    	
+    	// reset the controls bar
     	this.btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
-		this.timeSlider.setValue(0);
-    }
-    
-    private void setupMediaPlayer() {
-    	mediaView.setMediaPlayer(mp);
-
-    	mp.currentTimeProperty().addListener(new InvalidationListener() {
-            public void invalidated(Observable ov) {
-                updateValues();
-            }
-        });
-
-        mp.setOnPlaying(new Runnable() {
-            public void run() {
-                if (stopRequested) {
-                    mp.pause();
-                    stopRequested = false;
-                } else {
+		this.sldTime.setValue(0);
+		
+		// set the new player
+    	this.player = player;
+    	
+    	// perform more setup
+    	if (player != null) {
+    		// enable the controls
+    		this.controlsBar.setDisable(false);
+    		
+    		// set the mediaview's player
+    		mediaView.setMediaPlayer(player);
+    		
+    		// wire up events
+    		player.setCycleCount(1);
+        	player.currentTimeProperty().addListener(new InvalidationListener() {
+                public void invalidated(Observable ov) {
+                    updateValues();
+                }
+            });
+            player.setOnPlaying(new Runnable() {
+                public void run() {
                 	btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PAUSE));
                 }
-            }
-        });
-
-        mp.setOnPaused(new Runnable() {
-            public void run() {
-                btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
-            }
-        });
-
-        mp.setOnReady(new Runnable() {
-            public void run() {
-                duration = mp.getMedia().getDuration();
-                updateValues();
-            }
-        });
-
-        mp.setCycleCount(repeat ? MediaPlayer.INDEFINITE : 1);
-        mp.setOnEndOfMedia(new Runnable() {
-            public void run() {
-                if (!repeat) {
-                	btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
-                    stopRequested = true;
-                    atEndOfMedia = true;
+            });
+            player.setOnPaused(new Runnable() {
+                public void run() {
+                    btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
                 }
-            }
-        });
+            });
+            player.setOnReady(new Runnable() {
+                public void run() {
+                    duration = player.getMedia().getDuration();
+                    updateValues();
+                }
+            });
+            player.setOnEndOfMedia(new Runnable() {
+                public void run() {
+                	Platform.runLater(() -> {
+                		// for some reason, this was the only consistent way to 
+                		// get the controls and everything to stay linked
+                		setMediaPlayer(new MediaPlayer(player.getMedia()));
+                	});
+                }
+            });
+    	} else {
+    		// disable the controls
+    		this.lblTime.setText(formatTime(Duration.ZERO, Duration.ZERO));
+    		this.controlsBar.setDisable(true);
+    		mediaView.setMediaPlayer(null);
+    	}
     }
-
-    protected void updateValues() {
-        if (mp != null && playTime != null && timeSlider != null && volumeSlider != null) {
+    
+    /**
+     * Updates the controls based on the media player's current status.
+     */
+    private void updateValues() {
+        if (this.player != null) {
             Platform.runLater(new Runnable() {
                 public void run() {
-                    Duration currentTime = mp.getCurrentTime();
-                    playTime.setText(formatTime(currentTime, duration));
-                    timeSlider.setDisable(duration.isUnknown());
-                    if (!timeSlider.isDisabled()
+                    Duration currentTime = player.getCurrentTime();
+                    lblTime.setText(formatTime(currentTime, duration));
+                    sldTime.setDisable(duration.isUnknown());
+                    if (!sldTime.isDisabled()
                             && duration.greaterThan(Duration.ZERO)
-                            && !timeSlider.isValueChanging()) {
-                        timeSlider.setValue(currentTime.divide(duration.toMillis()).toMillis()
+                            && !sldTime.isValueChanging()) {
+                        sldTime.setValue(currentTime.divide(duration.toMillis()).toMillis()
                                 * 100.0);
                     }
-                    if (!volumeSlider.isValueChanging()) {
-                        volumeSlider.setValue((int) Math.round(mp.getVolume()
+                    if (!sldVolume.isValueChanging()) {
+                        sldVolume.setValue((int) Math.round(player.getVolume()
                                 * 100));
                     }
                 }
@@ -217,6 +299,12 @@ public final class MediaPlayerPane extends BorderPane {
         }
     }
 
+    /**
+     * Formats a time/duration string.
+     * @param elapsed the elapsed time
+     * @param duration the total time
+     * @return String
+     */
     private static String formatTime(Duration elapsed, Duration duration) {
         int intElapsed = (int) Math.floor(elapsed.toSeconds());
         int elapsedHours = intElapsed / (60 * 60);

@@ -96,8 +96,6 @@ import javafx.stage.Modality;
 
 // TODO if only one type of media is allowed, sorting and filtering by type isn't useful, hide it?
 // TODO we may need a generic way of communicating between multiple instances
-// FEATURE allow preview of audio/video; this may not be that hard to be honest; does the MediaView class come with controls?
-// http://docs.oracle.com/javase/8/javafx/media-tutorial/playercontrol.htm#sthref18
 
 /**
  * Pane specifically for showing the media in a media library.
@@ -479,25 +477,6 @@ public final class MediaLibraryPane extends BorderPane {
         });
         
         MediaMetadataPane right = new MediaMetadataPane(library, tags);
-        right.addEventHandler(MediaMetadataEvent.RENAMED, (e) -> {
-        	Media m0 = e.getOldValue();
-        	Media m1 = e.getNewValue();
-        	int index = -1;
-        	for (int i = 0; i < thelist.size(); i++) {
-        		MediaListItem item = thelist.get(i);
-        		if (item.media.getMetadata().getId() == m0.getMetadata().getId()) {
-        			index = i;
-        			break;
-        		}
-        	}
-        	if (index >= 0) {
-        		thelist.set(index, new MediaListItem(m1));
-        	} else {
-        		thelist.add(new MediaListItem(m1));
-        	}
-        	// resort/filter
-        	fs.invalidated(null);
-        });
         
         // wire up the selected media to the media metadata view with a unidirectional binding
         right.mediaProperty().bind(left.selectionProperty());
@@ -512,12 +491,62 @@ public final class MediaLibraryPane extends BorderPane {
         	if (newValue != null && newValue.media != null) {
         		MediaType type = newValue.media.getMetadata().getType();
         		if (type == MediaType.AUDIO || type == MediaType.VIDEO) {
-        			player = new MediaPlayer(new javafx.scene.media.Media(newValue.media.getMetadata().getPath().toUri().toString()));
+        			javafx.scene.media.Media m = new javafx.scene.media.Media(newValue.media.getMetadata().getPath().toUri().toString());
+        			Exception ex = m.getError();
+        			if (ex != null) {
+        				LOGGER.error("Error loading media " + newValue.media.getMetadata().getName(), ex);
+        			} else {
+        				player = new MediaPlayer(m);
+        				ex = player.getError();
+        				if (ex != null) {
+        					player = null;
+        					LOGGER.error("Error creating media player for " + newValue.media.getMetadata().getName(), ex);
+        				}
+        			}
         		}
         	}
         	mediaPlayerPane.setMediaPlayer(player);
         });
         TitledPane ttlPreview = new TitledPane("Preview", mediaPlayerPane);
+        
+        right.addEventHandler(MediaMetadataEvent.RENAME, (e) -> {
+        	// make sure the file isn't being previewed
+        	mediaPlayerPane.setMediaPlayer(null);
+        	// update the media's name
+    		try {
+    			// attempt to rename
+    			String name = e.getName();
+    			Media m0 = e.getMedia();
+				Media m1 = library.rename(m0, name);
+				// update the list item
+				int index = -1;
+	        	for (int i = 0; i < thelist.size(); i++) {
+	        		MediaListItem item = thelist.get(i);
+	        		if (item.media.getMetadata().getId() == m0.getMetadata().getId()) {
+	        			index = i;
+	        			break;
+	        		}
+	        	}
+	        	if (index >= 0) {
+	        		thelist.set(index, new MediaListItem(m1));
+	        	} else {
+	        		thelist.add(new MediaListItem(m1));
+	        	}
+	        	// resort/filter
+	        	fs.invalidated(null);
+			} catch (Exception ex) {
+				// log the error
+				LOGGER.error("Failed to rename media from '{}' to '{}': {}", e.getMedia().getMetadata().getName(), e.getName(), ex.getMessage());
+				// show an error to the user
+				Alert alert = Alerts.exception(
+						getScene().getWindow(),
+						null, 
+						null, 
+						MessageFormat.format(Translations.get("media.metadata.rename.error"), e.getMedia().getMetadata().getName(), e.getName()), 
+						ex);
+				alert.show();
+			}
+        });
         
         VBox rightGroup = new VBox(ttlMetadata, ttlPreview);
         ScrollPane rightScroller = new ScrollPane();
@@ -535,7 +564,7 @@ public final class MediaLibraryPane extends BorderPane {
         SplitPane.setResizableWithParent(rightScroller, Boolean.FALSE);
         
         // scale the media player pane's fit property to the scroller's width property minus some for padding
-        mediaPlayerPane.mediaPlayerFitWidthProperty().bind(rightScroller.widthProperty().subtract(20));
+        mediaPlayerPane.mediaFitWidthProperty().bind(rightScroller.widthProperty().subtract(20));
         mediaPlayerPane.setPadding(new Insets(8, 0, 0, 0));
         
         // FILTERING & SORTING
