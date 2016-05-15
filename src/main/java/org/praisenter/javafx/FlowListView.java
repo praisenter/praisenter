@@ -120,6 +120,7 @@ public final class FlowListView<T> extends TilePane {
 	                 } else if (changes.wasUpdated()) {
 	                	 // not sure what to do here
 	                 } else {
+	                	 selecting = true;
 	                     for (T remitem : changes.getRemoved()) {
 	                         nodes.removeIf(v -> v.getData().equals(remitem));
 	                         // clear it from selections
@@ -129,6 +130,7 @@ public final class FlowListView<T> extends TilePane {
 	                         }
 	                         selections.remove(remitem);
 	                     }
+	                     selecting = false;
 	                     for (T additem : changes.getAddedSubList()) {
 	                         nodes.add(cellFactory.call(additem));
 	                     }

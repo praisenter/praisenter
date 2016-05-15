@@ -35,8 +35,6 @@ import java.util.List;
 
 import org.praisenter.data.Database;
 
-// TODO more bible metadata (verse count, has any apocryphal books, copyright (kjv on has a value, others are on the html...), has import warnings)
-
 /**
  * Access class for Bible verses.
  * @author William Bittle
@@ -65,7 +63,7 @@ public final class BibleLibrary {
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
 	public Bible getBible(int id) throws SQLException {
-		return getBibleBySql("SELECT id, data_source, name, language, import_date FROM bible WHERE id = " + id);
+		return getBibleBySql("SELECT * FROM bible WHERE id = " + id);
 	}
 	
 	/**
@@ -74,7 +72,7 @@ public final class BibleLibrary {
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
 	public List<Bible> getBibles() throws SQLException {
-		return getBiblesBySql("SELECT id, data_source, name, language, import_date FROM bible ORDER BY name");
+		return getBiblesBySql("SELECT * FROM bible ORDER BY name");
 	}
 	
 	/**
@@ -1225,7 +1223,11 @@ public final class BibleLibrary {
 					result.getString("name"),
 					result.getString("language"),
 					result.getString("data_source"),
-					result.getTimestamp("import_date"));
+					result.getTimestamp("import_date"),
+					result.getString("copyright"),
+					result.getInt("verse_count"),
+					result.getBoolean("has_apocrypha"),
+					result.getBoolean("had_import_warning"));
 		} catch (SQLException e) {
 			throw new SQLException("An error occurred when interpreting the bible result.", e);
 		}

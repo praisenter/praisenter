@@ -25,7 +25,6 @@
 package org.praisenter.javafx.media;
 
 import javafx.beans.property.ObjectProperty;
-import javafx.collections.ObservableSet;
 import javafx.geometry.Orientation;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
@@ -33,10 +32,9 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
-import org.praisenter.Tag;
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 
@@ -55,14 +53,12 @@ final class MediaLibraryDialog extends BorderPane {
 	/**
 	 * Full constructor.
 	 * @param owner the owner of this dialog
-	 * @param library the media library
-	 * @param tags the set of all tags
+	 * @param context the {@link PraisenterContext}
 	 * @param types the allowed types to select from
 	 */
 	public MediaLibraryDialog(
 			Window owner,
-			final MediaLibrary library, 
-    		ObservableSet<Tag> tags,
+			PraisenterContext context, 
     		MediaType... types) {
 		// build the dialog
 		this.dialog = new Stage();
@@ -78,7 +74,7 @@ final class MediaLibraryDialog extends BorderPane {
 		this.dialog.setResizable(false);
 		
 		// build the media library pane
-		this.mediaLibraryPane = new MediaLibraryPane(library, Orientation.HORIZONTAL, tags, types);
+		this.mediaLibraryPane = new MediaLibraryPane(context, Orientation.HORIZONTAL, types);
 
 		this.setCenter(this.mediaLibraryPane);
 		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));

@@ -74,7 +74,7 @@ public final class MainPane extends BorderPane {
 		});
 		
 		mManage.setOnAction((e) -> {
-			MediaLibraryPane mlp = new MediaLibraryPane(context.getMediaLibrary(), Orientation.HORIZONTAL, context.getTags());
+			MediaLibraryPane mlp = new MediaLibraryPane(context, Orientation.HORIZONTAL);
 			setCenter(mlp);
 		});
 		

@@ -47,6 +47,18 @@ public final class Bible implements Comparable<Bible> {
 	/** The date the bible was imported */
 	final Date importDate;
 	
+	/** The copyright */
+	final String copyright;
+	
+	/** The number of verses */
+	final int verseCount;
+	
+	/** True if an apocryphal verse was included */
+	final boolean hasApocrypha;
+	
+	/** True if a warning was found during import */
+	final boolean hadImportWarning;
+	
 	/**
 	 * Full constructor.
 	 * @param id the bible id
@@ -54,13 +66,29 @@ public final class Bible implements Comparable<Bible> {
 	 * @param language the bible language
 	 * @param source the bible source
 	 * @param importDate the import date
+	 * @param copyright the copyright (if any)
+	 * @param verseCount the total number of verses
+	 * @param hasApocrypha true if at least one verse from an apocryphal book is included
+	 * @param hadImportWarning true if a warning occurred during import
 	 */
-	Bible(int id, String name, String language, String source, Date importDate) {
+	Bible(int id, 
+		  String name, 
+		  String language, 
+		  String source, 
+		  Date importDate,
+		  String copyright,
+		  int verseCount,
+		  boolean hasApocrypha,
+		  boolean hadImportWarning) {
 		this.id = id;
 		this.name = name;
 		this.language = language;
 		this.source = source;
 		this.importDate = importDate;
+		this.copyright = copyright;
+		this.verseCount = verseCount;
+		this.hasApocrypha = hasApocrypha;
+		this.hadImportWarning = hadImportWarning;
 	}
 	
 	/* (non-Javadoc)
@@ -143,5 +171,47 @@ public final class Bible implements Comparable<Bible> {
 	 */
 	public String getSource() {
 		return this.source;
+	}
+
+	/**
+	 * Returns the import date.
+	 * @return Date
+	 */
+	public Date getImportDate() {
+		return this.importDate;
+	}
+
+	/**
+	 * Returns the copyright information (if any).
+	 * @return String
+	 */
+	public String getCopyright() {
+		return this.copyright;
+	}
+
+	/**
+	 * Returns the total verse count.
+	 * @return int
+	 */
+	public int getVerseCount() {
+		return this.verseCount;
+	}
+
+	/**
+	 * Returns true if this bible included a verse for an
+	 * apocryphal book.
+	 * @return boolean
+	 */
+	public boolean hasApocrypha() {
+		return this.hasApocrypha;
+	}
+
+	/**
+	 * Returns true if a warning occurred during import of
+	 * this bible.
+	 * @return boolean
+	 */
+	public boolean hadImportWarning() {
+		return this.hadImportWarning;
 	}
 }

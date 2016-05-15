@@ -26,12 +26,10 @@ package org.praisenter.javafx.media;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ObservableSet;
 import javafx.scene.control.Button;
 
-import org.praisenter.Tag;
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 
@@ -50,11 +48,10 @@ public final class MediaPicker extends Button {
 	
 	/**
 	 * Full constructor.
-	 * @param library the media library
-	 * @param tags the set of all tags
+	 * @param context the praisenter context
 	 * @param types the allows types to select from
 	 */
-	public MediaPicker(MediaLibrary library, ObservableSet<Tag> tags, MediaType... types) {
+	public MediaPicker(PraisenterContext context, MediaType... types) {
 		this.setText(Translations.get("choose"));
 		this.setOnAction((e) -> {
 			if (dialog == null) {
@@ -65,8 +62,7 @@ public final class MediaPicker extends Button {
 				//  2. we don't know if the user will request it at all
 				dialog = new MediaLibraryDialog(
 						getScene().getWindow(), 
-						library, 
-						tags, 
+						context,
 						types);
 				// set the value
 				dialog.valueProperty().set(value.get());

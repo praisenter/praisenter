@@ -182,7 +182,9 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 		String source = "THE UNBOUND BIBLE (www.unboundbible.org)";
 		String name = null;
 		String language = null;
-		
+		String copyright = null;
+		boolean hadImportWarning = false;
+		boolean hasApocrypha = false;
 		
 		while ((line = reader.readLine()) != null) {
 			i++;
@@ -192,6 +194,8 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 					name = line.replaceFirst("#name\\s+", "");
 				} else if (line.startsWith("#language")) {
 					language = line.replaceFirst("#language\\s+", "");
+				} else if (line.startsWith("#copyright")) {
+					copyright = line.replaceFirst("#copyright\\s+", "");
 				} else if (line.startsWith("#columns")) {
 					// not all bibles support the same fields so we need to setup a 
 					// column mapping for the columns
@@ -225,6 +229,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 					try {
 						// dont bother checking the mapping on these since they are necessary
 						String bookCode = data[columnMapping[0]].trim();
+						hasApocrypha = bookCode.endsWith("A");
 						int chapter = Integer.parseInt(data[columnMapping[1]].trim());
 						int verse = Integer.parseInt(data[columnMapping[2]].trim());
 						
@@ -243,7 +248,8 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 									// we will reverse order them
 									subVerse = -Integer.parseInt(subVerseText);
 								} catch (NumberFormatException e) {
-									LOGGER.warn("Unknown sub-verse format [{}|{}|{}|{}] on line {}. Dropping verse.", bookCode, chapter, verse, data[columnMapping[3]].trim(), i);
+									hadImportWarning = true;
+									LOGGER.warn("Unknown sub-verse format [{}|{}|{}|{}] on line {} in {}. Dropping verse.", bookCode, chapter, verse, data[columnMapping[3]].trim(), i, name);
 									continue;
 								}
 							} else {
@@ -275,8 +281,9 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 							text = data[columnMapping[5]].trim();
 						} else {
 							text = "";
+							hadImportWarning = true;
 							// continue, but log a warning
-							LOGGER.warn("Verse [{}|{}|{}|{}] is missing text on line {}.", bookCode, chapter, verse, subVerse, i);
+							LOGGER.warn("Verse [{}|{}|{}|{}] is missing text on line {} in {}.", bookCode, chapter, verse, subVerse, i, name);
 						}
 						
 						// add the verse
@@ -297,6 +304,6 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 			}
 		}
 		
-		return new Bible(-1, name, language, source, null);
+		return new Bible(-1, name, language, source, null, copyright, this.verses.size(), hasApocrypha, hadImportWarning);
 	}
 }

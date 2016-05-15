@@ -44,6 +44,7 @@ import org.praisenter.WarningOperation;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SortGraphic;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
@@ -135,15 +136,13 @@ public final class MediaLibraryPane extends BorderPane {
 	
     /**
      * Full constructor.
-     * @param library the {@link MediaLibrary} to present
+     * @param context the {@link PraisenterContext}
      * @param orientation the orientation of the flow of items
-     * @param tags the set of all tags
      * @param types the desired {@link MediaType}s to show; null or empty to show all
      */
     public MediaLibraryPane(
-    		final MediaLibrary library, 
+    		PraisenterContext context, 
     		Orientation orientation, 
-    		ObservableSet<Tag> tags,
     		MediaType... types) {
 		this.typeFilter = new SimpleObjectProperty<>(new Option<MediaType>());
 		this.tagFilter = new SimpleObjectProperty<>(new Option<Tag>());
@@ -152,6 +151,9 @@ public final class MediaLibraryPane extends BorderPane {
 		this.sortDescending = new SimpleBooleanProperty(true);
     	
 		this.selected = new SimpleObjectProperty<Media>();
+		
+		final MediaLibrary library = context.getMediaLibrary();
+		final ObservableSet<Tag> tags = context.getTags();
 		
         List<MediaListItem> master = new ArrayList<MediaListItem>();
         for (Media media : library.all(types)) {
@@ -482,14 +484,15 @@ public final class MediaLibraryPane extends BorderPane {
         right.mediaProperty().bind(left.selectionProperty());
         
         // TODO translate
-        TitledPane ttlMetadata = new TitledPane("Media Properties", right);
+        TitledPane ttlMetadata = new TitledPane("Properties", right);
 
         // setup preview pane for video/audio
         MediaPlayerPane mediaPlayerPane = new MediaPlayerPane();
         left.selectionProperty().addListener((obs, oldValue, newValue) -> {
         	MediaPlayer player = null;
+        	MediaType type = null;
         	if (newValue != null && newValue.media != null) {
-        		MediaType type = newValue.media.getMetadata().getType();
+        		type = newValue.media.getMetadata().getType();
         		if (type == MediaType.AUDIO || type == MediaType.VIDEO) {
         			javafx.scene.media.Media m = new javafx.scene.media.Media(newValue.media.getMetadata().getPath().toUri().toString());
         			Exception ex = m.getError();
@@ -505,13 +508,13 @@ public final class MediaLibraryPane extends BorderPane {
         			}
         		}
         	}
-        	mediaPlayerPane.setMediaPlayer(player);
+        	mediaPlayerPane.setMediaPlayer(player, type);
         });
         TitledPane ttlPreview = new TitledPane("Preview", mediaPlayerPane);
         
         right.addEventHandler(MediaMetadataEvent.RENAME, (e) -> {
         	// make sure the file isn't being previewed
-        	mediaPlayerPane.setMediaPlayer(null);
+        	mediaPlayerPane.setMediaPlayer(null, null);
         	// update the media's name
     		try {
     			// attempt to rename

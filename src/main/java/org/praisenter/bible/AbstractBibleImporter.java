@@ -49,13 +49,16 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The prepared statement SQL for inserting a bible */
-	private static final String INSERT_BIBLE = "INSERT INTO BIBLE (DATA_SOURCE,NAME,LANGUAGE,IMPORT_DATE) VALUES(?, ?, ?, ?)";
+	private static final String INSERT_BIBLE = "INSERT INTO BIBLE (DATA_SOURCE,NAME,LANGUAGE,IMPORT_DATE,COPYRIGHT,VERSE_COUNT,HAS_APOCRYPHA,HAD_IMPORT_WARNING) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
 	
 	/** The prepared statement SQL for inserting a book */
 	private static final String INSERT_BOOK = "INSERT INTO BIBLE_BOOK (BIBLE_ID,CODE,NAME) VALUES(?, ?, ?)";
 
 	/** The prepared statement SQL for inserting a verse */
 	private static final String INSERT_VERSE = "INSERT INTO BIBLE_VERSE (BIBLE_ID,BOOK_CODE,CHAPTER,VERSE,SUB_VERSE,ORDER_BY,TEXT) VALUES(?, ?, ?, ?, ?, ?, ?)";
+	
+	/** The prepared statement SQL for setting the import warning for a bible */
+	private static final String UPDATE_IMPORT_WARNING = "UPDATE BIBLE SET HAD_IMPORT_WARNING = ? WHERE ID = ?";
 	
 	// index rebuilding
 	
@@ -110,7 +113,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 				// make sure we didn't get anything
 				if (bqResult.next() && bqResult.getInt(1) > 0) {
 					connection.rollback();
-					LOGGER.error("The bible already exists in the .");
+					LOGGER.error("The bible already exists in the database.");
 					throw new BibleAlreadyExistsException(bible.name);
 				}
 			} catch (SQLException e) {
@@ -121,6 +124,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 			
 			int bibleId = -1;
 			Date date = new Date();
+			boolean insertWarnings = false;
 			
 			// insert the bible
 			try (PreparedStatement bibleInsert = connection.prepareStatement(INSERT_BIBLE, Statement.RETURN_GENERATED_KEYS)) {
@@ -129,6 +133,10 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 				bibleInsert.setString(2, bible.name);
 				bibleInsert.setString(3, bible.language);
 				bibleInsert.setTimestamp(4, new Timestamp(date.getTime()));
+				bibleInsert.setString(5, bible.copyright);
+				bibleInsert.setInt(6, bible.verseCount);
+				bibleInsert.setBoolean(7, bible.hasApocrypha);
+				bibleInsert.setBoolean(8, bible.hadImportWarning);
 				// insert the bible
 				bibleInsert.executeUpdate();
 				// get the generated id
@@ -179,9 +187,10 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 						try {
 							verseInsert.executeUpdate();
 						} catch (SQLIntegrityConstraintViolationException e) {
+							insertWarnings |= true;
 							// its possible that the dumps have duplicate keys (book, chapter, verse, subverse)
 							// in this case we will ignore these and continue but log them as warnings
-							LOGGER.warn("Duplicate verse in file [" + verse.book.code + "|" + verse.chapter + "|" + verse.verse + "|" + verse.subVerse + "]. Dropping verse.");
+							LOGGER.warn("Duplicate verse in file [" + verse.book.code + "|" + verse.chapter + "|" + verse.verse + "|" + verse.subVerse + "] in " + bible.name + ". Dropping verse.");
 						}
 						// let the outer try/catch handle other exceptions
 					}
@@ -195,6 +204,19 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 			
 			// commit all the changes
 			connection.commit();
+
+			if (insertWarnings) {
+				// update the import warning field on the bible
+				try (PreparedStatement bibleUpdate = connection.prepareStatement(UPDATE_IMPORT_WARNING)) {
+					bibleUpdate.setBoolean(0, true);
+					bibleUpdate.setInt(1, bibleId);
+					bibleUpdate.executeUpdate();
+					connection.commit();
+				} catch (SQLException e) {
+					// just log this
+					LOGGER.error("Failed to update the import warnings field for the bible " + bible.name);
+				}
+			}
 			
 			LOGGER.debug("Bible imported successfully: " + bible.name);
 			
@@ -203,7 +225,15 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 			rebuildIndexes();
 			
 			// return a new bible with the unique id
-			return new Bible(bibleId, bible.name, bible.language, bible.source, date);
+			return new Bible(bibleId, 
+					bible.name, 
+					bible.language, 
+					bible.source, 
+					date,
+					bible.copyright,
+					bible.verseCount,
+					bible.hasApocrypha,
+					bible.hadImportWarning || insertWarnings);
 		}
 	}
 

@@ -394,9 +394,9 @@ public final class SlideEditorPane extends Application {
 			clrPicker.managedProperty().bind(clrPicker.visibleProperty());
 			GradientPicker pkrGradient = new GradientPicker(null);
 			pkrGradient.managedProperty().bind(pkrGradient.visibleProperty());
-			MediaPicker pkrImage = new MediaPicker(library, FXCollections.observableSet(), MediaType.IMAGE);
+			MediaPicker pkrImage = new MediaPicker(context, MediaType.IMAGE);
 			pkrImage.managedProperty().bind(pkrImage.visibleProperty());
-			MediaPicker pkrVideo = new MediaPicker(library, FXCollections.observableSet(), MediaType.VIDEO);
+			MediaPicker pkrVideo = new MediaPicker(context, MediaType.VIDEO);
 			pkrVideo.managedProperty().bind(pkrVideo.visibleProperty());
 			HBox bg = new HBox();
 			bg.setSpacing(2);

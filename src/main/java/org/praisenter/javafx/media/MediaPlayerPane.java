@@ -49,6 +49,9 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.media.MediaType;
+
+// FIXME when switching to another pane, the media keeps playing
 
 /**
  * Represents a media player with play/pause and volume controls.
@@ -62,6 +65,11 @@ public final class MediaPlayerPane extends BorderPane {
 	
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
+	
+//	private static final double SPECTRUM_BAR_MAX_HEIGHT = 150;
+//	private static final double SPECTRUM_BAR_WIDTH = 5;
+//	private static final int SPECTRUM_BANDS = 50;
+//	private static final int SPECTRUM_THRESHOLD = -128;
 	
 	// data
 	
@@ -94,6 +102,8 @@ public final class MediaPlayerPane extends BorderPane {
     /** The container for all the media playback controls */
     private final HBox controlsBar;
 
+//    private final GridPane spectrum;
+    
     /**
      * Default constructor.
      */
@@ -193,6 +203,12 @@ public final class MediaPlayerPane extends BorderPane {
         this.controlsBar.getChildren().addAll(this.btnPlay, this.sldTime, this.lblTime, this.btnMute, this.sldVolume);
         this.controlsBar.setDisable(true);
 		
+//        this.spectrum = new GridPane();
+//        this.spectrum.setHgap(1);
+//        this.spectrum.setMaxHeight(SPECTRUM_BAR_MAX_HEIGHT);
+//        this.spectrum.setMinHeight(SPECTRUM_BAR_MAX_HEIGHT);
+//        this.spectrum.setAlignment(Pos.BOTTOM_CENTER);
+        
         this.setBottom(this.controlsBar);
     }
     
@@ -207,14 +223,16 @@ public final class MediaPlayerPane extends BorderPane {
     /**
      * Sets the current media player.
      * @param player the new player
+     * @param type the media type
      */
-    public void setMediaPlayer(MediaPlayer player) {
+    public void setMediaPlayer(MediaPlayer player, MediaType type) {
     	// if the current player isn't null
     	// then make sure we clean up the
     	// current one right away
     	if (this.player != null) {
     		MediaPlayer op = this.player;
     		this.player = null;
+    		op.setAudioSpectrumListener(null);
     		op.stop();
     		op.dispose();
     	}
@@ -262,10 +280,27 @@ public final class MediaPlayerPane extends BorderPane {
                 	Platform.runLater(() -> {
                 		// for some reason, this was the only consistent way to 
                 		// get the controls and everything to stay linked
-                		setMediaPlayer(new MediaPlayer(player.getMedia()));
+                		setMediaPlayer(new MediaPlayer(player.getMedia()), type);
                 	});
                 }
             });
+            
+            // setup spectrum ui
+//            if (type == MediaType.AUDIO) {
+//            	player.setAudioSpectrumNumBands(SPECTRUM_BANDS);
+//            	player.setAudioSpectrumThreshold(SPECTRUM_THRESHOLD);
+//            	player.setAudioSpectrumInterval(0.02);
+//            	spectrum.getChildren().clear();
+//            	for (int i = 0; i < SPECTRUM_BANDS; i++) {
+//            		Region r = this.buildSpectrumBar();
+//            		spectrum.add(r, i, 0);
+//            		GridPane.setValignment(r, VPos.BOTTOM);
+//            	}
+//            	this.setCenter(spectrum);
+//            	player.setAudioSpectrumListener(this);
+//            } else {
+            	this.setCenter(mediaView);
+//            }
     	} else {
     		// disable the controls
     		this.lblTime.setText(formatTime(Duration.ZERO, Duration.ZERO));
@@ -343,4 +378,32 @@ public final class MediaPlayerPane extends BorderPane {
             }
         }
     }
+    
+//    private Region buildSpectrumBar() {
+//    	Region r = new Region();
+//    	r.setMaxWidth(SPECTRUM_BAR_WIDTH);
+//    	r.setPrefWidth(SPECTRUM_BAR_WIDTH);
+//    	r.setMinHeight(SPECTRUM_BAR_MAX_HEIGHT);
+//    	r.setBackground(new Background(new BackgroundFill(new LinearGradient(
+//    			0.0, 
+//    			0.0, 
+//    			SPECTRUM_BAR_WIDTH, 
+//    			SPECTRUM_BAR_MAX_HEIGHT, 
+//    			false, 
+//    			CycleMethod.NO_CYCLE, 
+//    			new Stop(SPECTRUM_BAR_MAX_HEIGHT, Color.BLUE),
+//    			new Stop(0.0, Color.RED)), null, null)));
+//    	return r;
+//    }
+//    
+//    @Override
+//    public void spectrumDataUpdate(double timestamp, double duration, float[] magnitudes, float[] phases) {
+//    	for (int i = 0; i < magnitudes.length; i++) {
+//    		float mag = magnitudes[i];
+//    		Region r = (Region)spectrum.getChildren().get(i);
+//    		double h = SPECTRUM_BAR_MAX_HEIGHT * (mag - SPECTRUM_THRESHOLD) / -SPECTRUM_THRESHOLD;
+//    		r.setMinHeight(h);
+//    		r.setMaxHeight(h);
+//    	}
+//    }
 }

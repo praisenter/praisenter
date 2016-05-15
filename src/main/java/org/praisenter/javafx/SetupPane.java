@@ -9,14 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.configuration.Configuration;
-import org.praisenter.javafx.configuration.ScreenMapping;
-import org.praisenter.javafx.configuration.ScreenRole;
-import org.praisenter.javafx.utility.Fx;
-import org.praisenter.resources.translations.Translations;
-
 import javafx.collections.FXCollections;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.HPos;
@@ -25,7 +17,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -37,7 +28,6 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
@@ -47,6 +37,14 @@ import javafx.scene.paint.Stop;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.configuration.ScreenMapping;
+import org.praisenter.javafx.configuration.ScreenRole;
+import org.praisenter.javafx.utility.Fx;
+import org.praisenter.resources.translations.Translations;
 
 // TODO translate
 // TODO clean up UI
@@ -59,21 +57,12 @@ public final class SetupPane extends GridPane {
 			new Stop(0.0, new Color(0.1, 0.1, 0.1, 1.0)), 
 			new Stop(1.0, new Color(0.2, 0.2, 0.2, 1.0)));
 	
-	private Configuration inUseConfig;
-	private Configuration savedConfig;
-	
 	public SetupPane(Configuration configuration) {
 		// the in use config and the saved config can be different if the user
 		// hasn't restarted the app after changing a setting that requires it
 		
 		// inUseConfig = the current configuration being used by the application
 		// savedConfig = the configuration that is currently saved to disk
-		
-		this.inUseConfig = configuration;
-		this.savedConfig = Configuration.load();
-		if (this.savedConfig == null) {
-			this.savedConfig = Configuration.createDefaultConfiguration();
-		}
 		
 		this.setHgap(5);
 		this.setVgap(5);
@@ -91,7 +80,7 @@ public final class SetupPane extends GridPane {
 		// ui.language (requires restart)
 		Label lblLocale = new Label("Language");
 		ComboBox<Option<Locale>> cmbLocale = new ComboBox<Option<Locale>>(FXCollections.observableArrayList(locales));
-		cmbLocale.setValue(new Option<Locale>(null, this.savedConfig.getLanguage()));
+		cmbLocale.setValue(new Option<Locale>(null, configuration.getLanguage()));
 		this.add(lblLocale, 0, row);
 		this.add(cmbLocale, 1, row++);
 		
@@ -102,7 +91,7 @@ public final class SetupPane extends GridPane {
 		// ui.theme (requires restart)
 		Label lblTheme = new Label("Theme");
 		ComboBox<Option<String>> cmbTheme = new ComboBox<Option<String>>(FXCollections.observableArrayList(themes));
-		cmbTheme.setValue(new Option<String>(null, this.savedConfig.getTheme()));
+		cmbTheme.setValue(new Option<String>(null, configuration.getTheme()));
 		this.add(lblTheme, 0, row);
 		this.add(cmbTheme, 1, row++);
 		
@@ -147,7 +136,7 @@ public final class SetupPane extends GridPane {
 				cmbDisplayType.setUserData(device);
 				screenCombos.add(cmbDisplayType);
 				
-				for (ScreenMapping map : savedConfig.getScreenMappings()) {
+				for (ScreenMapping map : configuration.getScreenMappings()) {
 					if (map.getId().equals(device.getIDstring())) {
 						cmbDisplayType.setValue(new Option<ScreenRole>(null, map.getRole()));
 						break;
@@ -174,24 +163,18 @@ public final class SetupPane extends GridPane {
 		
 		btnSave.setOnAction((e) -> {
 			// build a configuration object based on the controls
-			Configuration conf = new Configuration();
-			conf.setLanguage(cmbLocale.getValue().value);
-			conf.setTheme(cmbTheme.getValue().value);
+			configuration.setLanguage(cmbLocale.getValue().value);
+			configuration.setTheme(cmbTheme.getValue().value);
 			
-			conf.getScreenMappings().clear();
+			configuration.getScreenMappings().clear();
 			for (ComboBox<Option<ScreenRole>> cmb : screenCombos) {
 				GraphicsDevice device = (GraphicsDevice)cmb.getUserData();
-				conf.getScreenMappings().add(new ScreenMapping(device.getIDstring(), cmb.getValue().value));
+				configuration.getScreenMappings().add(new ScreenMapping(device.getIDstring(), cmb.getValue().value));
 			}
 			
 			try {
 				// save the configuration
-				Configuration.save(conf);
-
-				// TODO assign the new configuration values to the inUseConfig (sans restart required fields)
-					
-				// reassign the savedConfig
-				savedConfig = conf;
+				Configuration.save(configuration);
 			} catch (Exception ex) {
 				LOGGER.error("An error occurred saving the configuration: ", ex);
 				Alert alert = Alerts.exception(this.getScene().getWindow(), "Error Saving Configuration", "", "An error occurred when saving the configuration:", ex);

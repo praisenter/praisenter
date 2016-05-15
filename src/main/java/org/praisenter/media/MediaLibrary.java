@@ -528,7 +528,6 @@ public final class MediaLibrary {
 	 */
 	private final boolean delete(Path path) throws IOException {
 		// delete the metadata, thumbnail, and file
-		// FIXME test what happens when file is in use during presentation
 		Files.deleteIfExists(path);
 
 		Path mPath = this.metadataPath.resolve(path.getFileName().toString() + METADATA_EXT);
@@ -553,7 +552,6 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	private final Media move(Media media, String name) throws FileAlreadyExistsException, IOException, JAXBException {
-		// FIXME test what happens when file is in use during presentation
 		Path source = media.metadata.path;
 		String name0 = source.getFileName().toString();
 		String name1 = name;

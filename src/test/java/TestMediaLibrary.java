@@ -4,8 +4,11 @@ import java.nio.file.Paths;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.swing.text.html.HTMLDocument.HTMLReader.PreAction;
+
 import org.praisenter.Tag;
 import org.praisenter.javafx.Praisenter;
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.media.MediaPicker;
@@ -44,13 +47,10 @@ public class TestMediaLibrary extends Application {
 			e.printStackTrace();
 		}
 		
-		Set<Tag> tags = new TreeSet<Tag>();
-		for (Media media : library.all()) {
-			tags.addAll(media.getMetadata().getTags());
-		}
+		PraisenterContext context = new PraisenterContext(this, primaryStage, null, null, library, null, null, null);
 		
 		BorderPane root = new BorderPane();
-		MediaPicker pkrMedia = new MediaPicker(library, FXCollections.observableSet(tags));
+		MediaPicker pkrMedia = new MediaPicker(context);
 		pkrMedia.setValue(library.all().get(0));
 		root.setTop(pkrMedia);
 		
