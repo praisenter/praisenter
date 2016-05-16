@@ -255,7 +255,13 @@ public final class MediaLibraryPane extends BorderPane {
 			@Override
 			public void handle(KeyEvent event) {
 				if (event.getCode() == KeyCode.DELETE) {
-					List<MediaListItem> items = left.selectionsProperty().get();
+					List<MediaListItem> items = new ArrayList<MediaListItem>();
+					for (MediaListItem item : left.selectionsProperty().get()) {
+						// only include those that are imported
+						if (item.loaded) {
+							items.add(item);
+						}
+					}
 					if (items.size() > 0) {
 						// attempt to delete the selected media
 						Alert alert = new Alert(AlertType.CONFIRMATION);

@@ -26,6 +26,12 @@ package org.praisenter.javafx;
 
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -42,6 +48,8 @@ import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.song.Song;
 import org.praisenter.song.SongLibrary;
+
+// TODO add an executor service so that at shutdown we can wait for any pending tasks
 
 /**
  * Represents the working state of Praisenter.
@@ -82,6 +90,9 @@ public final class PraisenterContext {
 	/** The global tag list */
 	private final ObservableSet<Tag> tags;
 	
+	/** The worker thread pool */
+	private final ThreadPoolExecutor workers;
+	
 	/**
 	 * Full constructor.
 	 * @param application the Java FX application instance
@@ -111,6 +122,18 @@ public final class PraisenterContext {
 		this.bibleLibrary = bibles;
 		this.slideLibrary = slides;
 		this.imageCache = new ImageCache();
+		this.workers = new ThreadPoolExecutor(
+				2, 
+				10, 
+				1, 
+				TimeUnit.MINUTES, 
+				new LinkedBlockingQueue<Runnable>(), 
+				new ThreadFactory() {
+					@Override
+					public Thread newThread(Runnable r) {
+						return new PraisenterThread(r);
+					}
+				});
 		Set<Tag> tags = new TreeSet<Tag>();
 		
 		// add all the tags to the main tag set
@@ -210,5 +233,13 @@ public final class PraisenterContext {
 	 */
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
+	}
+	
+	/**
+	 * Returns the worker thread pool.
+	 * @return ThreadPoolExecutor
+	 */
+	public ThreadPoolExecutor getWorkers() {
+		return this.workers;
 	}
 }

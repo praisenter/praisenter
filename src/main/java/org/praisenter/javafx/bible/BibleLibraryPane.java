@@ -302,8 +302,11 @@ public final class BibleLibraryPane extends BorderPane {
 	private void onBibleDelete(KeyEvent event) {
 		if (event.getCode() == KeyCode.DELETE) {
 			List<BibleListItem> items = new ArrayList<BibleListItem>();
-			for (BibleListItem item : lstBibles.selectionsProperty().get()) { 
-				items.add(item);
+			for (BibleListItem item : lstBibles.selectionsProperty().get()) {
+				// can't delete items that are still being imported
+				if (item.loaded) {
+					items.add(item);
+				}
 			}
 			if (items.size() > 0) {
 				// attempt to delete the selected media

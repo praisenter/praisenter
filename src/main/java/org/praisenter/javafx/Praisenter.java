@@ -25,6 +25,9 @@
 package org.praisenter.javafx;
 
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
+
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,6 +39,8 @@ import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.screen.ScreenManager;
 import org.praisenter.resources.translations.Translations;
 
+
+
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
@@ -45,6 +50,8 @@ import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -121,6 +128,9 @@ public final class Praisenter extends Application {
         launch(args);
     }
     
+    /** The praisenter context */
+    private PraisenterContext context;
+    
     /* (non-Javadoc)
      * @see javafx.application.Application#start(javafx.stage.Stage)
      */
@@ -179,7 +189,7 @@ public final class Praisenter extends Application {
     		
     		LOGGER.info("Building the application context.");
     		// build the context
-    		PraisenterContext context = new PraisenterContext(
+    		context = new PraisenterContext(
     				this,
     				stage,
     				CONFIG,
@@ -231,6 +241,30 @@ public final class Praisenter extends Application {
     	scene.getStylesheets().add(CONFIG.getThemeCss());
     	stage.setScene(scene);
     	stage.setOnHidden((e) -> {
+    		if (context.getWorkers().getActiveCount() > 0) {
+    			// FIXME setup dialog to show a loading
+    			// FIXME add import/delete tasks to the executor service
+    			// FIXME add weak listeners to the libraries so panes can update when stuff is added/removed
+    			Alert s = new Alert(AlertType.INFORMATION);
+    			s.setContentText("");
+    			s.setHeaderText("");
+    			s.setTitle("");
+    			s.show();
+    			// wait until the executor shuts down
+    			while (true) {
+	    			try {
+	    				boolean finished = context.getWorkers().awaitTermination(1, TimeUnit.MINUTES);
+	    				if (finished) {
+	    					// all tasks finished so, shutdown
+	    					break;
+	    				}
+					} catch (Exception ex) {
+						Alert alert = Alerts.exception(stage, null, null, "", ex);
+						alert.showAndWait();
+					}
+    			}
+    			s.hide();
+    		}
     		// this makes sure that all the screens managed elsewhere
     		// are closed as well
     		Platform.exit();
