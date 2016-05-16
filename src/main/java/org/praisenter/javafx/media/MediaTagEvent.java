@@ -26,38 +26,54 @@ package org.praisenter.javafx.media;
 
 import java.io.Serializable;
 
-import javafx.event.Event;
+import org.praisenter.Tag;
+import org.praisenter.media.Media;
+
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 
 /**
- * Represents a generic event when metadata for media is changed.
+ * Event fired when media has a tag added or removed.
  * @author William Bittle
  * @version 3.0.0
  */
-class MediaMetadataEvent extends Event implements Serializable {
+final class MediaTagEvent extends MediaMetadataEvent implements Serializable {
 	/** The serialization id */
-	private static final long serialVersionUID = 7525223765039656381L;
+	private static final long serialVersionUID = -6875123457221924279L;
+
+	/** The media */
+	final MediaListItem media;
 	
-	/** Event type to catch any event */
-	public static final EventType<MediaMetadataEvent> ANY = new EventType<MediaMetadataEvent>("MEDIA_METADATA");
-	
-	/** Event type to catch only rename events */
-	public static final EventType<MediaRenameEvent> RENAME = new EventType<MediaRenameEvent>("MEDIA_METADATA_RENAME");
-	
-	/** Event type to catch only tag add events */
-	public static final EventType<MediaTagEvent> ADD_TAG = new EventType<MediaTagEvent>("MEDIA_METADATA_ADD_TAG");
-	
-	/** Event type to catch only tag remove events */
-	public static final EventType<MediaTagEvent> REMOVE_TAG = new EventType<MediaTagEvent>("MEDIA_METADATA_REMOVE_TAG");
+	/** The new name */
+	final Tag tag;
 	
 	/**
 	 * Full constructor.
 	 * @param source the event source
 	 * @param target the event target
 	 * @param type the event type
+	 * @param media the media
+	 * @param tag the tag added or removed
 	 */
-	public MediaMetadataEvent(Object source, EventTarget target, EventType<? extends MediaMetadataEvent> type) {
+	public MediaTagEvent(Object source, EventTarget target, EventType<? extends MediaMetadataEvent> type, MediaListItem media, Tag tag) {
 		super(source, target, type);
+		this.media = media;
+		this.tag = tag;
+	}
+
+	/**
+	 * Returns the media value.
+	 * @return {@link Media}
+	 */
+	public MediaListItem getMedia() {
+		return this.media;
+	}
+
+	/**
+	 * Returns the tag.
+	 * @return {@link Tag}
+	 */
+	public Tag getTag() {
+		return this.tag;
 	}
 }

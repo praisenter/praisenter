@@ -25,12 +25,11 @@
 package org.praisenter.javafx.media;
 
 import java.io.File;
-import java.io.IOException;
+import java.nio.file.Path;
 import java.text.Collator;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -40,18 +39,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
-import org.praisenter.WarningOperation;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SortGraphic;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -67,7 +63,6 @@ import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -110,6 +105,10 @@ public final class MediaLibraryPane extends BorderPane {
 	/** The collator for locale dependent sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
 	
+	// data
+	
+	private final PraisenterContext context;
+	
 	// selection
 	
 	/** The selected media */
@@ -134,6 +133,16 @@ public final class MediaLibraryPane extends BorderPane {
 	/** The sort direction */
 	private final BooleanProperty sortDescending;
 	
+	// nodes
+	
+	private final InvalidationListener filterListener;
+	
+	private final FlowListView<MediaListItem> lstMedia;
+	
+	private final MediaMetadataPane pneMetadata;
+	
+	private final MediaPlayerPane pnePlayer;
+	
     /**
      * Full constructor.
      * @param context the {@link PraisenterContext}
@@ -144,6 +153,7 @@ public final class MediaLibraryPane extends BorderPane {
     		PraisenterContext context, 
     		Orientation orientation, 
     		MediaType... types) {
+    	this.context = context;
 		this.typeFilter = new SimpleObjectProperty<>(new Option<MediaType>());
 		this.tagFilter = new SimpleObjectProperty<>(new Option<Tag>());
 		this.textFilter = new SimpleStringProperty();
@@ -152,25 +162,26 @@ public final class MediaLibraryPane extends BorderPane {
     	
 		this.selected = new SimpleObjectProperty<Media>();
 		
-		final MediaLibrary library = context.getMediaLibrary();
+		final ObservableMediaLibrary library = context.getMediaLibrary();
 		final ObservableSet<Tag> tags = context.getTags();
 		
-        List<MediaListItem> master = new ArrayList<MediaListItem>();
-        for (Media media : library.all(types)) {
-        	master.add(new MediaListItem(media));
-        }
-        // by default sort by name asc
-        Collections.sort(master);
-        
-        ObservableList<MediaListItem> thelist = FXCollections.observableArrayList();
-        thelist.addAll(master);
-        
+//        List<MediaListItem> master = new ArrayList<MediaListItem>();
+//        for (Media media : library.all(types)) {
+//        	master.add(new MediaListItem(media));
+//        }
+//        // by default sort by name asc
+//        Collections.sort(master);
+//        
+//        ObservableList<MediaListItem> thelist = FXCollections.observableArrayList();
+//        thelist.addAll(master);
+//        
         // add sorting and filtering capabilities
-        FilteredList<MediaListItem> filtered = new FilteredList<MediaListItem>(thelist, p -> true);
+		ObservableList<MediaListItem> theList = library.getItems();
+        FilteredList<MediaListItem> filtered = new FilteredList<MediaListItem>(theList, p -> true);
         SortedList<MediaListItem> sorted = new SortedList<MediaListItem>(filtered);
         
         // define a general listener for all the filters and sorting
-        InvalidationListener fs = new InvalidationListener() {
+        this.filterListener = new InvalidationListener() {
 			@Override
 			public void invalidated(Observable arg0) {
 				MediaType type = typeFilter.get().getValue();
@@ -211,11 +222,11 @@ public final class MediaLibraryPane extends BorderPane {
 				});
 			}
 		};
-		textFilter.addListener(fs);
-		typeFilter.addListener(fs);
-		tagFilter.addListener(fs);
-		sortField.addListener(fs);
-		sortDescending.addListener(fs);
+		this.textFilter.addListener(this.filterListener);
+		this.typeFilter.addListener(this.filterListener);
+		this.tagFilter.addListener(this.filterListener);
+		this.sortField.addListener(this.filterListener);
+		this.sortDescending.addListener(this.filterListener);
         
         final MediaType[] mediaTypes = types != null && types.length > 0 ? types : MediaType.values();
         ObservableList<Option<MediaType>> opTypes = FXCollections.observableArrayList();
@@ -248,93 +259,22 @@ public final class MediaLibraryPane extends BorderPane {
 		});
         
         // the right side of the split pane
-        FlowListView<MediaListItem> left = new FlowListView<MediaListItem>(new MediaListViewCellFactory(library.getThumbnailSettings().getHeight()));
-        left.itemsProperty().bindContent(sorted);
+        this.lstMedia = new FlowListView<MediaListItem>(new MediaListViewCellFactory(library.getThumbnailSettings().getHeight()));
+        this.lstMedia.itemsProperty().bindContent(sorted);
+        this.lstMedia.setOrientation(orientation);
         
-        EventHandler<KeyEvent> handler = new EventHandler<KeyEvent>() {
-			@Override
-			public void handle(KeyEvent event) {
-				if (event.getCode() == KeyCode.DELETE) {
-					List<MediaListItem> items = new ArrayList<MediaListItem>();
-					for (MediaListItem item : left.selectionsProperty().get()) {
-						// only include those that are imported
-						if (item.loaded) {
-							items.add(item);
-						}
-					}
-					if (items.size() > 0) {
-						// attempt to delete the selected media
-						Alert alert = new Alert(AlertType.CONFIRMATION);
-						alert.initOwner(getScene().getWindow());
-						alert.initModality(Modality.WINDOW_MODAL);
-						alert.setTitle(Translations.get("media.remove.title"));
-						alert.setContentText(Translations.get("media.remove.content"));
-						alert.setHeaderText(null);
-						Optional<ButtonType> result = alert.showAndWait();
-						if (result.get() == ButtonType.OK) {
-							Task<Void> task = new Task<Void>() {
-								@Override
-								protected Void call() throws Exception {
-									final List<MediaListItem> succeeded = new ArrayList<MediaListItem>();
-									final List<FailedOperation<Media>> failed = new ArrayList<FailedOperation<Media>>();
-									for (MediaListItem mli : items) {
-										if (mli.loaded) {
-											Media media = mli.media;
-											try {
-												library.remove(media);
-												succeeded.add(mli);
-											} catch (IOException e) {
-												LOGGER.error("Failed to remove media '" + media.getMetadata().getPath().toAbsolutePath().toString() + "' from media library.", e);
-												failed.add(new FailedOperation<Media>(media, e));
-											}
-										}
-									}
-									
-									Platform.runLater(new Runnable() {
-										@Override
-										public void run() {
-											thelist.removeAll(succeeded);
-											master.removeAll(succeeded);
-											
-											if (failed.size() > 0) {
-												// get the exceptions
-												Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-												// get the failed media
-												String list = String.join(", ", failed.stream().map(f -> f.getData().getMetadata().getName()).collect(Collectors.toList()));
-												Alert alert = Alerts.exception(
-														getScene().getWindow(),
-														null, 
-														null, 
-														MessageFormat.format(Translations.get("media.remove.error"), list), 
-														exceptions);
-												alert.show();
-											}
-										}
-									});
-									
-									return null;
-								}
-							};
-							new Thread(task).start();
-						}
-					}
-				}
-			}
-		};
-
         ScrollPane leftScroller = new ScrollPane();
         leftScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         leftScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        left.setOrientation(orientation);
         if (orientation == Orientation.HORIZONTAL) {
         	leftScroller.setFitToWidth(true);
         } else {
         	leftScroller.setFitToHeight(true);
         }
-		leftScroller.addEventHandler(KeyEvent.KEY_PRESSED, handler);
+		leftScroller.addEventHandler(KeyEvent.KEY_PRESSED, this::onMediaDelete);
 		leftScroller.setFocusTraversable(true);
-        leftScroller.setContent(left);
-        
+        leftScroller.setContent(this.lstMedia);
+        leftScroller.setOnDragDropped(this::onMediaDropped);
         leftScroller.setOnDragOver(new EventHandler<DragEvent>() {
 			@Override
 			public void handle(DragEvent event) {
@@ -350,7 +290,7 @@ public final class MediaLibraryPane extends BorderPane {
         // only scroll down when media is being added
         // we know this when there's medialistitems added
         // that have the loaded flag = false
-        thelist.addListener(new ListChangeListener<MediaListItem>() {
+        theList.addListener(new ListChangeListener<MediaListItem>() {
         	@Override
         	public void onChanged(javafx.collections.ListChangeListener.Change<? extends MediaListItem> c) {
         		boolean added = false;
@@ -368,108 +308,7 @@ public final class MediaLibraryPane extends BorderPane {
         	}
         });
 
-        leftScroller.setOnDragDropped(new EventHandler<DragEvent>() {
-			@Override
-			public void handle(DragEvent event) {
-				Dragboard db = event.getDragboard();
-				if (db.hasFiles()) {
-					final List<File> files = db.getFiles();
-					
-					// add some loading items
-					List<MediaListItem> loadings = new ArrayList<MediaListItem>();
-					if (files != null && files.size() > 0) {
-						for (File file : files) {
-							loadings.add(new MediaListItem(file.toPath().getFileName().toString()));
-						}
-						thelist.addAll(loadings);
-						master.addAll(loadings);
-					}
-					
-					// import the media
-					Task<Void> task = new Task<Void>() {
-						@Override
-						protected Void call() throws Exception {
-							if (files != null && files.size() > 0) {
-								final List<WarningOperation<Media>> warnings = new ArrayList<WarningOperation<Media>>();
-								final List<FailedOperation<File>> failed = new ArrayList<FailedOperation<File>>();
-								
-								for (File file : files) {
-									try {
-										final MediaListItem loading = new MediaListItem(file.toPath().getFileName().toString());
-										final Media media = library.add(file.toPath());
-										boolean allowed = false;
-										for (MediaType allowedType : mediaTypes) {
-											if (media.getMetadata().getType() == allowedType) {
-												allowed = true;
-												break;
-											}
-										}
-										if (allowed) {
-											MediaListItem success = new MediaListItem(media);
-											Platform.runLater(() -> {
-												// remove the loading
-												thelist.remove(loading);
-												master.remove(loading);
-												thelist.add(success);
-												master.add(success);
-											});
-										} else {
-											LOGGER.info("Media {} was added at a time where its type was not selectable.", file.toPath().toAbsolutePath().toString());
-											warnings.add(new WarningOperation<Media>(media, file.toPath().getFileName().toString()));
-										}
-									} catch (Exception e) {
-										LOGGER.error("Failed to add media '" + file.toPath().toAbsolutePath().toString() + "' to the media library.", e);
-										failed.add(new FailedOperation<File>(file, e));
-									}
-								}
-								
-								Platform.runLater(new Runnable() {
-									@Override
-									public void run() {
-										thelist.removeAll(loadings);
-										master.removeAll(loadings);
-										
-										if (warnings.size() > 0) {
-											// get the warning files
-											String[] wFileNames = warnings.stream().map(f -> f.getMessage()).collect(Collectors.toList()).toArray(new String[0]);
-											// get the failed media
-											String list = String.join(", ", wFileNames);
-											Alert alert = new Alert(AlertType.INFORMATION);
-											alert.initOwner(getScene().getWindow());
-											alert.initModality(Modality.WINDOW_MODAL);
-											alert.setTitle(Translations.get("media.import.info.title"));
-											alert.setHeaderText(Translations.get("media.import.info.header"));
-											alert.setContentText(list);
-											alert.show();
-										}
-										
-										if (failed.size() > 0) {
-											// get the exceptions
-											Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-											// get the failed media
-											String list = String.join(", ", failed.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
-											Alert alert = Alerts.exception(
-													getScene().getWindow(),
-													null, 
-													null, 
-													MessageFormat.format(Translations.get("media.import.error"), list), 
-													exceptions);
-											alert.show();
-										}
-									}
-								});
-							}
-							return null;
-						}
-					};
-					new Thread(task).start();
-				}
-				event.setDropCompleted(true);
-				event.consume();
-			}
-        });
-
-        left.selectionProperty().addListener((obs, ov, nv) -> {
+        this.lstMedia.selectionProperty().addListener((obs, ov, nv) -> {
         	if (nv == null) {
         		this.selected.set(null);
         	} else {
@@ -478,23 +317,25 @@ public final class MediaLibraryPane extends BorderPane {
         });
         this.selected.addListener((obs, ov, nv) -> {
         	if (nv == null) {
-        		left.selectionProperty().set(null);
+        		lstMedia.selectionProperty().set(null);
         	} else {
-        		left.selectionProperty().set(new MediaListItem(nv));
+        		lstMedia.selectionProperty().set(new MediaListItem(nv));
         	}
         });
         
-        MediaMetadataPane right = new MediaMetadataPane(library, tags);
-        
+        this.pneMetadata = new MediaMetadataPane(tags);
         // wire up the selected media to the media metadata view with a unidirectional binding
-        right.mediaProperty().bind(left.selectionProperty());
+        this.pneMetadata.mediaProperty().bind(this.lstMedia.selectionProperty());
+        this.pneMetadata.addEventHandler(MediaMetadataEvent.RENAME, this::onMediaRename);
+        this.pneMetadata.addEventHandler(MediaMetadataEvent.ADD_TAG, this::onMediaTagAdded);
+        this.pneMetadata.addEventHandler(MediaMetadataEvent.REMOVE_TAG, this::onMediaTagRemoved);
         
         // TODO translate
-        TitledPane ttlMetadata = new TitledPane("Properties", right);
+        TitledPane ttlMetadata = new TitledPane("Properties", this.pneMetadata);
 
         // setup preview pane for video/audio
-        MediaPlayerPane mediaPlayerPane = new MediaPlayerPane();
-        left.selectionProperty().addListener((obs, oldValue, newValue) -> {
+        this.pnePlayer = new MediaPlayerPane();
+        lstMedia.selectionProperty().addListener((obs, oldValue, newValue) -> {
         	MediaPlayer player = null;
         	MediaType type = null;
         	if (newValue != null && newValue.media != null) {
@@ -514,48 +355,9 @@ public final class MediaLibraryPane extends BorderPane {
         			}
         		}
         	}
-        	mediaPlayerPane.setMediaPlayer(player, type);
+        	pnePlayer.setMediaPlayer(player, type);
         });
-        TitledPane ttlPreview = new TitledPane("Preview", mediaPlayerPane);
-        
-        right.addEventHandler(MediaMetadataEvent.RENAME, (e) -> {
-        	// make sure the file isn't being previewed
-        	mediaPlayerPane.setMediaPlayer(null, null);
-        	// update the media's name
-    		try {
-    			// attempt to rename
-    			String name = e.getName();
-    			Media m0 = e.getMedia();
-				Media m1 = library.rename(m0, name);
-				// update the list item
-				int index = -1;
-	        	for (int i = 0; i < thelist.size(); i++) {
-	        		MediaListItem item = thelist.get(i);
-	        		if (item.media.getMetadata().getId() == m0.getMetadata().getId()) {
-	        			index = i;
-	        			break;
-	        		}
-	        	}
-	        	if (index >= 0) {
-	        		thelist.set(index, new MediaListItem(m1));
-	        	} else {
-	        		thelist.add(new MediaListItem(m1));
-	        	}
-	        	// resort/filter
-	        	fs.invalidated(null);
-			} catch (Exception ex) {
-				// log the error
-				LOGGER.error("Failed to rename media from '{}' to '{}': {}", e.getMedia().getMetadata().getName(), e.getName(), ex.getMessage());
-				// show an error to the user
-				Alert alert = Alerts.exception(
-						getScene().getWindow(),
-						null, 
-						null, 
-						MessageFormat.format(Translations.get("media.metadata.rename.error"), e.getMedia().getMetadata().getName(), e.getName()), 
-						ex);
-				alert.show();
-			}
-        });
+        TitledPane ttlPreview = new TitledPane("Preview", this.pnePlayer);
         
         VBox rightGroup = new VBox(ttlMetadata, ttlPreview);
         ScrollPane rightScroller = new ScrollPane();
@@ -573,8 +375,8 @@ public final class MediaLibraryPane extends BorderPane {
         SplitPane.setResizableWithParent(rightScroller, Boolean.FALSE);
         
         // scale the media player pane's fit property to the scroller's width property minus some for padding
-        mediaPlayerPane.mediaFitWidthProperty().bind(rightScroller.widthProperty().subtract(20));
-        mediaPlayerPane.setPadding(new Insets(8, 0, 0, 0));
+        this.pnePlayer.mediaFitWidthProperty().bind(rightScroller.widthProperty().subtract(20));
+        this.pnePlayer.setPadding(new Insets(8, 0, 0, 0));
         
         // FILTERING & SORTING
         
@@ -620,6 +422,290 @@ public final class MediaLibraryPane extends BorderPane {
         
         this.setTop(top);
         this.setCenter(split);
+    }
+    
+    private final void onMediaDropped(DragEvent event) {
+		Dragboard db = event.getDragboard();
+		if (db.hasFiles()) {
+			final List<File> files = db.getFiles();
+			
+			// convert to list of paths
+			final List<Path> paths = new ArrayList<Path>();
+			for (File file : files) {
+				paths.add(file.toPath());
+			}
+			
+			this.context.getMediaLibrary().addAll(
+					paths, 
+					(List<Media> media) -> {
+						// nothing to do on success
+					}, 
+					(List<FailedOperation<Path>> failures) -> {
+						// get the exceptions
+						Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
+						// get the failed media
+						String list = String.join(", ", failures.stream().map(f -> f.getData().getFileName().toString()).collect(Collectors.toList()));
+						Alert alert = Alerts.exception(
+								getScene().getWindow(),
+								null, 
+								null, 
+								MessageFormat.format(Translations.get("media.import.error"), list), 
+								exceptions);
+						alert.show();
+					});
+//			
+//			// add some loading items
+//			List<MediaListItem> loadings = new ArrayList<MediaListItem>();
+//			if (files != null && files.size() > 0) {
+//				for (File file : files) {
+//					loadings.add(new MediaListItem(file.toPath().getFileName().toString()));
+//				}
+//				thelist.addAll(loadings);
+//				master.addAll(loadings);
+//			}
+//			
+//			// import the media
+//			Task<Void> task = new Task<Void>() {
+//				@Override
+//				protected Void call() throws Exception {
+//					if (files != null && files.size() > 0) {
+//						final List<WarningOperation<Media>> warnings = new ArrayList<WarningOperation<Media>>();
+//						final List<FailedOperation<File>> failed = new ArrayList<FailedOperation<File>>();
+//						
+//						for (File file : files) {
+//							try {
+//								final MediaListItem loading = new MediaListItem(file.toPath().getFileName().toString());
+//								final Media media = library.add(file.toPath());
+//								boolean allowed = false;
+//								for (MediaType allowedType : mediaTypes) {
+//									if (media.getMetadata().getType() == allowedType) {
+//										allowed = true;
+//										break;
+//									}
+//								}
+//								if (allowed) {
+//									MediaListItem success = new MediaListItem(media);
+//									Platform.runLater(() -> {
+//										// remove the loading
+//										thelist.remove(loading);
+//										master.remove(loading);
+//										thelist.add(success);
+//										master.add(success);
+//									});
+//								} else {
+//									LOGGER.info("Media {} was added at a time where its type was not selectable.", file.toPath().toAbsolutePath().toString());
+//									warnings.add(new WarningOperation<Media>(media, file.toPath().getFileName().toString()));
+//								}
+//							} catch (Exception e) {
+//								LOGGER.error("Failed to add media '" + file.toPath().toAbsolutePath().toString() + "' to the media library.", e);
+//								failed.add(new FailedOperation<File>(file, e));
+//							}
+//						}
+//						
+//						Platform.runLater(new Runnable() {
+//							@Override
+//							public void run() {
+//								thelist.removeAll(loadings);
+//								master.removeAll(loadings);
+//								
+//								if (warnings.size() > 0) {
+//									// get the warning files
+//									String[] wFileNames = warnings.stream().map(f -> f.getMessage()).collect(Collectors.toList()).toArray(new String[0]);
+//									// get the failed media
+//									String list = String.join(", ", wFileNames);
+//									Alert alert = new Alert(AlertType.INFORMATION);
+//									alert.initOwner(getScene().getWindow());
+//									alert.initModality(Modality.WINDOW_MODAL);
+//									alert.setTitle(Translations.get("media.import.info.title"));
+//									alert.setHeaderText(Translations.get("media.import.info.header"));
+//									alert.setContentText(list);
+//									alert.show();
+//								}
+//								
+//								if (failed.size() > 0) {
+//									// get the exceptions
+//									Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
+//									// get the failed media
+//									String list = String.join(", ", failed.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
+//									Alert alert = Alerts.exception(
+//											getScene().getWindow(),
+//											null, 
+//											null, 
+//											MessageFormat.format(Translations.get("media.import.error"), list), 
+//											exceptions);
+//									alert.show();
+//								}
+//							}
+//						});
+//					}
+//					return null;
+//				}
+//			};
+//			new Thread(task).start();
+		}
+		event.setDropCompleted(true);
+		event.consume();
+	}
+    
+    private final void onMediaDelete(KeyEvent event) {
+    	// make sure the file isn't being previewed
+    	this.pnePlayer.setMediaPlayer(null, null);
+    	// check the key code
+		if (event.getCode() == KeyCode.DELETE) {
+			// collect the items that are selected
+			List<Media> items = new ArrayList<Media>();
+			for (MediaListItem item : this.lstMedia.selectionsProperty().get()) {
+				// only include those that are imported
+				if (item.loaded && item.media != null) {
+					items.add(item.media);
+				}
+			}
+
+			// are there any items selected?
+			if (items.size() > 0) {
+				// make sure the user really wants to do this
+				Alert alert = new Alert(AlertType.CONFIRMATION);
+				alert.initOwner(getScene().getWindow());
+				alert.initModality(Modality.WINDOW_MODAL);
+				alert.setTitle(Translations.get("media.remove.title"));
+				alert.setContentText(Translations.get("media.remove.content"));
+				alert.setHeaderText(null);
+				Optional<ButtonType> result = alert.showAndWait();
+				
+				if (result.get() == ButtonType.OK) {
+					// attempt to delete the selected media
+					this.context.getMediaLibrary().removeAll(items, () -> {
+						// shouldn't have to do anything on success
+					}, (List<FailedOperation<Media>> failures) -> {
+						// on failure we should notify the user
+						// get the exceptions
+						Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
+						// get the failed media
+						String list = String.join(", ", failures.stream().map(f -> f.getData().getMetadata().getName()).collect(Collectors.toList()));
+						Alert fAlert = Alerts.exception(
+								getScene().getWindow(),
+								null, 
+								null, 
+								MessageFormat.format(Translations.get("media.remove.error"), list), 
+								exceptions);
+						fAlert.show();
+					});
+					/*Task<Void> task = new Task<Void>() {
+						@Override
+						protected Void call() throws Exception {
+							final List<MediaListItem> succeeded = new ArrayList<MediaListItem>();
+							final List<FailedOperation<Media>> failed = new ArrayList<FailedOperation<Media>>();
+							for (MediaListItem mli : items) {
+								if (mli.loaded) {
+									Media media = mli.media;
+									try {
+										library.remove(media);
+										succeeded.add(mli);
+									} catch (IOException e) {
+										LOGGER.error("Failed to remove media '" + media.getMetadata().getPath().toAbsolutePath().toString() + "' from media library.", e);
+										failed.add(new FailedOperation<Media>(media, e));
+									}
+								}
+							}
+							
+							Platform.runLater(new Runnable() {
+								@Override
+								public void run() {
+									thelist.removeAll(succeeded);
+									master.removeAll(succeeded);
+									
+									if (failed.size() > 0) {
+										// get the exceptions
+										Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
+										// get the failed media
+										String list = String.join(", ", failed.stream().map(f -> f.getData().getMetadata().getName()).collect(Collectors.toList()));
+										Alert alert = Alerts.exception(
+												getScene().getWindow(),
+												null, 
+												null, 
+												MessageFormat.format(Translations.get("media.remove.error"), list), 
+												exceptions);
+										alert.show();
+									}
+								}
+							});
+							
+							return null;
+						}
+					};
+					new Thread(task).start();*/
+				}
+			}
+		}
+    }
+    
+    private final void onMediaRename(MediaRenameEvent event) {
+    	// make sure the file isn't being previewed
+    	this.pnePlayer.setMediaPlayer(null, null);
+    	// update the media's name
+    	this.context.getMediaLibrary().rename(
+    			event.media,
+    			event.name, 
+    			(Media media) -> {
+    				// nothing to do on success
+    			}, 
+    			(Media media, Throwable ex) -> {
+    				// log the error
+    				LOGGER.error("Failed to rename media from '{}' to '{}': {}", event.getMedia().getMetadata().getName(), event.getName(), ex.getMessage());
+    				// show an error to the user
+    				Alert alert = Alerts.exception(
+    						getScene().getWindow(),
+    						null, 
+    						null, 
+    						MessageFormat.format(Translations.get("media.metadata.rename.error"), event.getMedia().getMetadata().getName(), event.getName()), 
+    						ex);
+    				alert.show();
+    			});
+    }
+    
+    private final void onMediaTagAdded(MediaTagEvent event) {
+    	MediaListItem item = event.media;
+    	Media media = item.media;
+    	Tag tag = event.tag;
+    	try {
+			this.context.getMediaLibrary().addTag(media, tag);
+			this.context.getTags().add(tag);
+		} catch (Exception e) {
+			// remove it from the tags
+			item.tags.remove(tag);
+			// log the error
+			LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
+			// show an error to the user
+			Alert alert = Alerts.exception(
+					getScene().getWindow(),
+					null, 
+					null, 
+					MessageFormat.format(Translations.get("tags.add.error"), tag.getName()), 
+					e);
+			alert.show();
+		}
+    }
+    
+    private final void onMediaTagRemoved(MediaTagEvent event) {
+    	MediaListItem item = event.media;
+    	Media media = item.media;
+    	Tag tag = event.tag;
+    	try {
+			this.context.getMediaLibrary().removeTag(media, tag);
+		} catch (Exception e) {
+			// add it back
+			item.tags.add(tag);
+			// log the error
+			LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
+			// show an error to the user
+			Alert alert = Alerts.exception(
+					getScene().getWindow(),
+					null, 
+					null, 
+					MessageFormat.format(Translations.get("tags.remove.error"), tag.getName()), 
+					e);
+			alert.show();
+		}
     }
     
     /**

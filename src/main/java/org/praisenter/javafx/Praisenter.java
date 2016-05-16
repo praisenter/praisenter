@@ -244,7 +244,7 @@ public final class Praisenter extends Application {
     		if (context.getWorkers().getActiveCount() > 0) {
     			// FIXME setup dialog to show a loading
     			// FIXME add import/delete tasks to the executor service
-    			// FIXME add weak listeners to the libraries so panes can update when stuff is added/removed
+    			// FIXME add observable wrappers to library classes (like the media library)
     			Alert s = new Alert(AlertType.INFORMATION);
     			s.setContentText("");
     			s.setHeaderText("");

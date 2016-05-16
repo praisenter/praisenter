@@ -24,6 +24,12 @@
  */
 package org.praisenter.javafx.media;
 
+import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.utility.Fx;
+import org.praisenter.media.Media;
+import org.praisenter.media.MediaType;
+import org.praisenter.resources.translations.Translations;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.layout.BorderPane;
@@ -31,12 +37,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-
-import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.utility.Fx;
-import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
-import org.praisenter.resources.translations.Translations;
 
 /**
  * A dialog for selecting media.

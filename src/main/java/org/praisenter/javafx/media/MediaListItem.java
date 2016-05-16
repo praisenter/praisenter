@@ -24,7 +24,11 @@
  */
 package org.praisenter.javafx.media;
 
+import org.praisenter.Tag;
 import org.praisenter.media.Media;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 
 /**
  * A media item in the {@link MediaLibraryPane} which could be in the process of being
@@ -45,6 +49,9 @@ final class MediaListItem implements Comparable<MediaListItem> {
 	/** True if the media is present (or loaded) */
 	final boolean loaded;
 	
+	/** An observable list of tags to maintain */
+	final ObservableSet<Tag> tags;
+	
 	/**
 	 * Optional constructor for pending items.
 	 * @param name the name
@@ -53,6 +60,7 @@ final class MediaListItem implements Comparable<MediaListItem> {
 		this.name = name;
 		this.media = null;
 		this.loaded = false;
+		this.tags = null;
 	}
 	
 	/**
@@ -63,6 +71,8 @@ final class MediaListItem implements Comparable<MediaListItem> {
 		this.name = media.getMetadata().getName();
 		this.media = media;
 		this.loaded = true;
+		this.tags = FXCollections.observableSet();
+		this.tags.addAll(media.getMetadata().getTags());
 	}
 	
 	/* (non-Javadoc)

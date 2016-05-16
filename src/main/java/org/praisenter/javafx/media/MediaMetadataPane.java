@@ -24,8 +24,16 @@
  */
 package org.praisenter.javafx.media;
 
-import java.text.MessageFormat;
 import java.util.Optional;
+
+import org.praisenter.Tag;
+import org.praisenter.javafx.TagEvent;
+import org.praisenter.javafx.TagListView;
+import org.praisenter.media.Media;
+import org.praisenter.media.MediaMetadata;
+import org.praisenter.media.MediaType;
+import org.praisenter.resources.translations.Translations;
+import org.praisenter.utility.Formatter;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -37,7 +45,6 @@ import javafx.collections.ObservableSet;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
@@ -56,28 +63,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.Tag;
-import org.praisenter.javafx.Alerts;
-import org.praisenter.javafx.TagEvent;
-import org.praisenter.javafx.TagListView;
-import org.praisenter.media.Media;
-import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaMetadata;
-import org.praisenter.media.MediaType;
-import org.praisenter.resources.translations.Translations;
-import org.praisenter.utility.Formatter;
-
 /**
  * Pane specifically for display and edit of {@link Media}.
  * @author William Bittle
  * @version 3.0.0
  */
 final class MediaMetadataPane extends VBox {
-	/** The class-level logger */
-	private static final Logger LOGGER = LogManager.getLogger();
-	
 	/** The value used for non-applicable fields (like the length for an image) */
 	private static final String NOT_APPLICABLE = "";
 	
@@ -115,11 +106,10 @@ final class MediaMetadataPane extends VBox {
 	private final TagListView tagView;
 	
 	/**
-	 * Creates a new metadata pane.
-	 * @param library the media library
+	 * Creates a new media metadata pane.
 	 * @param allTags the set of all tags
 	 */
-	public MediaMetadataPane(MediaLibrary library, ObservableSet<Tag> allTags) {
+	public MediaMetadataPane(ObservableSet<Tag> allTags) {
 		this.setPadding(new Insets(0, 5, 10, 5));
 		this.setDisable(true);
 		
@@ -218,43 +208,13 @@ final class MediaMetadataPane extends VBox {
         this.tagView.addEventHandler(TagEvent.ALL, new EventHandler<TagEvent>() {
 			@Override
 			public void handle(TagEvent event) {
-				Media media = MediaMetadataPane.this.media.get().media;
+				MediaListItem media = MediaMetadataPane.this.media.get();
 				Tag tag = event.getTag();
+				// bubble up the event
 				if (event.getEventType() == TagEvent.ADDED) {
-					try {
-						library.addTag(media, tag);
-						allTags.add(tag);
-					} catch (Exception e) {
-						// remove it from the tags
-						tagView.tagsProperty().remove(tag);
-						// log the error
-						LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
-						// show an error to the user
-						Alert alert = Alerts.exception(
-								getScene().getWindow(),
-								null, 
-								null, 
-								MessageFormat.format(Translations.get("tags.add.error"), tag.getName()), 
-								e);
-						alert.show();
-					}
+					fireEvent(new MediaTagEvent(tagView, MediaMetadataPane.this, MediaMetadataEvent.ADD_TAG, media, tag));
 				} else if (event.getEventType() == TagEvent.REMOVED) {
-					try {
-						library.removeTag(media, tag);
-					} catch (Exception e) {
-						// add it back
-						tagView.tagsProperty().add(tag);
-						// log the error
-						LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
-						// show an error to the user
-						Alert alert = Alerts.exception(
-								getScene().getWindow(),
-								null, 
-								null, 
-								MessageFormat.format(Translations.get("tags.remove.error"), tag.getName()), 
-								e);
-						alert.show();
-					}
+					fireEvent(new MediaTagEvent(tagView, MediaMetadataPane.this, MediaMetadataEvent.REMOVE_TAG, media, tag));
 				}
 			}
         });
@@ -275,7 +235,7 @@ final class MediaMetadataPane extends VBox {
         	        length.set("");
         	        audio.set("");
         	        format.set("");
-        	        tagView.tagsProperty().clear();
+        	        tagView.tagsProperty().set(null);
         			setDisable(true);
         		} else {
         			setDisable(false);
@@ -314,8 +274,7 @@ final class MediaMetadataPane extends VBox {
         			
         			format.set(media.getMetadata().getFormat().toString());
         			
-        			tagView.tagsProperty().addAll(media.getMetadata().getTags());
-        	        tagView.tagsProperty().retainAll(media.getMetadata().getTags());
+        			tagView.tagsProperty().set(newValue.tags);
         		}
         	}
 		});

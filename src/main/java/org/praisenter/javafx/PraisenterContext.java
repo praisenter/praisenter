@@ -26,21 +26,15 @@ package org.praisenter.javafx;
 
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
-import javafx.stage.Stage;
-
 import org.praisenter.Tag;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.javafx.screen.ScreenManager;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
@@ -48,6 +42,11 @@ import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.song.Song;
 import org.praisenter.song.SongLibrary;
+
+import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
+import javafx.stage.Stage;
 
 // TODO add an executor service so that at shutdown we can wait for any pending tasks
 
@@ -73,7 +72,7 @@ public final class PraisenterContext {
 	private final ScreenManager screenManager;
 	
 	/** The media library */
-	private final MediaLibrary mediaLibrary;
+	private final ObservableMediaLibrary mediaLibrary;
 	
 	/** The song library */
 	private final SongLibrary songLibrary;
@@ -117,11 +116,8 @@ public final class PraisenterContext {
 		this.stage = stage;
 		this.configuration = configuration;
 		this.screenManager = screenManager;
-		this.mediaLibrary = media;
-		this.songLibrary = songs;
-		this.bibleLibrary = bibles;
-		this.slideLibrary = slides;
 		this.imageCache = new ImageCache();
+		
 		this.workers = new ThreadPoolExecutor(
 				2, 
 				10, 
@@ -134,6 +130,12 @@ public final class PraisenterContext {
 						return new PraisenterThread(r);
 					}
 				});
+		
+		this.mediaLibrary = new ObservableMediaLibrary(media, workers);
+		this.songLibrary = songs;
+		this.bibleLibrary = bibles;
+		this.slideLibrary = slides;
+		
 		Set<Tag> tags = new TreeSet<Tag>();
 		
 		// add all the tags to the main tag set
@@ -148,10 +150,10 @@ public final class PraisenterContext {
 			}
 		}
 		if (this.mediaLibrary != null) {
-			for (Media m : this.mediaLibrary.all()) {
-				tags.addAll(m.getMetadata().getTags());
-			}
+			tags.addAll(this.mediaLibrary.getTags());
 		}
+		
+		
 		this.tags = FXCollections.observableSet(tags);
 	}
 
@@ -189,9 +191,9 @@ public final class PraisenterContext {
 	
 	/**
 	 * Returns the media library.
-	 * @return {@link MediaLibrary}
+	 * @return {@link ObservableMediaLibrary}
 	 */
-	public MediaLibrary getMediaLibrary() {
+	public ObservableMediaLibrary getMediaLibrary() {
 		return this.mediaLibrary;
 	}
 

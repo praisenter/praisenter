@@ -24,14 +24,14 @@
  */
 package org.praisenter.javafx.media;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.Button;
-
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
+
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.control.Button;
 
 /**
  * A custom button to allow selection of a {@link Media} item from 

@@ -26,9 +26,9 @@ package org.praisenter.javafx.media;
 
 import java.io.Serializable;
 
-import javafx.event.EventTarget;
-
 import org.praisenter.media.Media;
+
+import javafx.event.EventTarget;
 
 /**
  * Event fired when media has been renamed.

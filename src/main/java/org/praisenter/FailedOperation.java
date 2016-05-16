@@ -35,14 +35,14 @@ public final class FailedOperation<T> {
 	private final T data;
 	
 	/** The exception */
-	private final Exception exception;
+	private final Throwable exception;
 	
 	/**
 	 * Full constructor.
 	 * @param data the data
 	 * @param exception the exception
 	 */
-	public FailedOperation(T data, Exception exception) {
+	public FailedOperation(T data, Throwable exception) {
 		this.data = data;
 		this.exception = exception;
 	}
@@ -59,7 +59,7 @@ public final class FailedOperation<T> {
 	 * Returns the exception for this operation.
 	 * @return Exception
 	 */
-	public Exception getException() {
+	public Throwable getException() {
 		return this.exception;
 	}
 	
