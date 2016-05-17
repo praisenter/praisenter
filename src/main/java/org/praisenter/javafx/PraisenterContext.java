@@ -31,22 +31,22 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
+import javafx.stage.Stage;
+
 import org.praisenter.Tag;
 import org.praisenter.bible.BibleLibrary;
+import org.praisenter.javafx.bible.ObservableBibleLibrary;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.javafx.screen.ScreenManager;
-import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.song.Song;
 import org.praisenter.song.SongLibrary;
-
-import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
-import javafx.stage.Stage;
 
 // TODO add an executor service so that at shutdown we can wait for any pending tasks
 
@@ -73,12 +73,12 @@ public final class PraisenterContext {
 	
 	/** The media library */
 	private final ObservableMediaLibrary mediaLibrary;
+
+	/** The bible library */
+	private final ObservableBibleLibrary bibleLibrary;
 	
 	/** The song library */
 	private final SongLibrary songLibrary;
-	
-	/** The bible library */
-	private final BibleLibrary bibleLibrary;
 	
 	/** The slide library */
 	private final SlideLibrary slideLibrary;
@@ -99,8 +99,8 @@ public final class PraisenterContext {
 	 * @param configuration the application configuration
 	 * @param screenManager the display screen manager
 	 * @param media the media library
-	 * @param songs the song library
 	 * @param bibles the bible library
+	 * @param songs the song library
 	 * @param slides the slide library
 	 */
 	public PraisenterContext(
@@ -108,9 +108,9 @@ public final class PraisenterContext {
 			Stage stage,
 			Configuration configuration,
 			ScreenManager screenManager,
-			MediaLibrary media, 
+			MediaLibrary media,
+			BibleLibrary bibles,
 			SongLibrary songs, 
-			BibleLibrary bibles, 
 			SlideLibrary slides) {
 		this.application = application;
 		this.stage = stage;
@@ -132,8 +132,8 @@ public final class PraisenterContext {
 				});
 		
 		this.mediaLibrary = new ObservableMediaLibrary(media, workers);
+		this.bibleLibrary = new ObservableBibleLibrary(bibles, workers);
 		this.songLibrary = songs;
-		this.bibleLibrary = bibles;
 		this.slideLibrary = slides;
 		
 		Set<Tag> tags = new TreeSet<Tag>();
@@ -207,9 +207,9 @@ public final class PraisenterContext {
 
 	/**
 	 * Returns the bible library.
-	 * @return {@link BibleLibrary}
+	 * @return {@link ObservableBibleLibrary}
 	 */
-	public BibleLibrary getBibleLibrary() {
+	public ObservableBibleLibrary getBibleLibrary() {
 		return this.bibleLibrary;
 	}
 	

@@ -24,6 +24,7 @@
  */
 package org.praisenter.javafx.utility;
 
+import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.Border;
@@ -80,5 +81,17 @@ public final class Fx {
 		region.setPrefSize(width, height);
 		region.setMinSize(width, height);
 		region.setMaxSize(width, height);
+	}
+	
+	/**
+	 * Ensures the given runnable runs on the Java FX UI thread.
+	 * @param runnable the runnable to run
+	 */
+	public static final void runOnFxThead(Runnable runnable) {
+		if (Platform.isFxApplicationThread()) {
+			runnable.run();
+		} else {
+			Platform.runLater(runnable);
+		}
 	}
 }

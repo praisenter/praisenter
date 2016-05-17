@@ -27,7 +27,20 @@ package org.praisenter.javafx;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.SequentialTransition;
+import javafx.application.Application;
+import javafx.application.ConditionalFeature;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.image.Image;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,24 +51,6 @@ import org.praisenter.Constants;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.screen.ScreenManager;
 import org.praisenter.resources.translations.Translations;
-
-
-
-import javafx.animation.Animation;
-import javafx.animation.FadeTransition;
-import javafx.animation.PauseTransition;
-import javafx.animation.SequentialTransition;
-import javafx.application.Application;
-import javafx.application.ConditionalFeature;
-import javafx.application.Platform;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.image.Image;
-import javafx.scene.layout.StackPane;
-import javafx.stage.Stage;
-import javafx.util.Duration;
 
 // FEATURE use Apache POI to read powerpoint files
 
@@ -195,8 +190,8 @@ public final class Praisenter extends Application {
     				CONFIG,
     				screenManager,
     				result.getMediaLibrary(),
-    				result.getSongLibrary(),
     				result.getBibleLibrary(),
+    				result.getSongLibrary(),
     				result.getSlideLibrary());
     		
     		LOGGER.info("Creating the UI.");
@@ -241,10 +236,12 @@ public final class Praisenter extends Application {
     	scene.getStylesheets().add(CONFIG.getThemeCss());
     	stage.setScene(scene);
     	stage.setOnHidden((e) -> {
+    		context.getWorkers().shutdown();
     		if (context.getWorkers().getActiveCount() > 0) {
     			// FIXME setup dialog to show a loading
     			// FIXME add import/delete tasks to the executor service
     			// FIXME add observable wrappers to library classes (like the media library)
+    			// FIXME UI is blocked while shutdown occcurs
     			Alert s = new Alert(AlertType.INFORMATION);
     			s.setContentText("");
     			s.setHeaderText("");
@@ -253,7 +250,7 @@ public final class Praisenter extends Application {
     			// wait until the executor shuts down
     			while (true) {
 	    			try {
-	    				boolean finished = context.getWorkers().awaitTermination(1, TimeUnit.MINUTES);
+	    				boolean finished = context.getWorkers().awaitTermination(5, TimeUnit.SECONDS);
 	    				if (finished) {
 	    					// all tasks finished so, shutdown
 	    					break;

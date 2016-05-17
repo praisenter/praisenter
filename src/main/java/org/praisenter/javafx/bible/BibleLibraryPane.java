@@ -65,9 +65,6 @@ public final class BibleLibraryPane extends BorderPane {
 	/** The context */
 	private final PraisenterContext context;
 	
-	/** The master list of bibles */
-	private final ObservableList<BibleListItem> master;
-	
 	// nodes
 	
 	/** The bible listing */
@@ -76,28 +73,7 @@ public final class BibleLibraryPane extends BorderPane {
 	public BibleLibraryPane(PraisenterContext context) {
 		this.context = context;
 		
-		BibleLibrary bibleLibrary = context.getBibleLibrary();
-		List<Bible> bibles = null;
-		try {
-			bibles = bibleLibrary.getBibles();
-		} catch (SQLException e) {
-			// log it and show an error
-			LOGGER.error("Failed to get the list of bibles from the database", e);
-			Alert alert = Alerts.exception(
-					this.getScene().getWindow(), 
-					null, 
-					null, 
-					Translations.get("bible.load.error"),
-					e);
-			alert.show();
-			// just set it to empty
-			bibles = new ArrayList<Bible>();
-		}
-		
-		this.master = FXCollections.observableArrayList();
-		for (Bible bible : bibles) {
-			this.master.add(new BibleListItem(bible));
-		}
+		ObservableBibleLibrary bibleLibrary = context.getBibleLibrary();
 		
 		VBox right = new VBox();
 		VBox importSteps = new VBox();
@@ -146,7 +122,7 @@ public final class BibleLibraryPane extends BorderPane {
 		right.getChildren().addAll(ttlImport, ttlMetadata, ttlSettings);
 		
 		this.lstBibles = new FlowListView<BibleListItem>(new BibleListViewCellFactory());
-		this.lstBibles.itemsProperty().bindContent(this.master);
+		this.lstBibles.itemsProperty().bindContent(context.getBibleLibrary().getItems());
 		this.lstBibles.setOrientation(Orientation.HORIZONTAL);
 		
 		ScrollPane leftScroller = new ScrollPane();
