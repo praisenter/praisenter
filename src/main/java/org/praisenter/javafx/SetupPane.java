@@ -53,6 +53,7 @@ import org.praisenter.resources.translations.Translations;
 public final class SetupPane extends GridPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	// FIXME move this to CSS
 	private static final Paint SCREEN_BORDER_PAINT = new LinearGradient(0, 0, 0.25, 0.25, true, CycleMethod.REFLECT, 
 			new Stop(0.0, new Color(0.1, 0.1, 0.1, 1.0)), 
 			new Stop(1.0, new Color(0.2, 0.2, 0.2, 1.0)));
@@ -146,8 +147,6 @@ public final class SetupPane extends GridPane {
 				screenPane.add(stack, i, 0);
 				screenPane.add(cmbDisplayType, i, 1);
 				GridPane.setHalignment(cmbDisplayType, HPos.CENTER);
-				
-				// TODO use the AWT deviceID for storage :(
 			} catch (AWTException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();

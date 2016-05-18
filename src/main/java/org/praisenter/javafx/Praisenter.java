@@ -53,6 +53,8 @@ import org.praisenter.javafx.screen.ScreenManager;
 import org.praisenter.resources.translations.Translations;
 
 // FEATURE use Apache POI to read powerpoint files
+// FIXME fix the manifest
+// TODO explore deployment options
 
 /**
  * This is the entry point for the application.
@@ -238,9 +240,7 @@ public final class Praisenter extends Application {
     	stage.setOnHidden((e) -> {
     		context.getWorkers().shutdown();
     		if (context.getWorkers().getActiveCount() > 0) {
-    			// FIXME setup dialog to show a loading
-    			// FIXME add import/delete tasks to the executor service
-    			// FIXME add observable wrappers to library classes (like the media library)
+    			// FIXME show dialog with loading
     			// FIXME UI is blocked while shutdown occcurs
     			Alert s = new Alert(AlertType.INFORMATION);
     			s.setContentText("");

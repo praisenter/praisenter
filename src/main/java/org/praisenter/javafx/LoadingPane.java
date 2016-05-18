@@ -111,7 +111,7 @@ final class LoadingPane extends Pane {
 		this.loading = new LoadingTask();
 		this.loadingThread = new Thread(this.loading);
 		
-		// TODO need better splash screen image
+		// FEATURE need better splash screen image
 		// set the background image
     	setBackground(new Background(
     			new BackgroundImage(

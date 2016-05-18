@@ -24,6 +24,9 @@
  */
 package org.praisenter.javafx.media;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Optional;
 
 import org.praisenter.Tag;
@@ -73,7 +76,11 @@ final class MediaMetadataPane extends VBox {
 	private static final String NOT_APPLICABLE = "";
 	
 	/** A simple bottom border for displaying on labels */
+	// FIXME convert to CSS
 	private static final Border VALUE_BORDER = new Border(new BorderStroke(Color.color(0.7, 0.7, 0.7), BorderStrokeStyle.DASHED, null, new BorderWidths(0, 0, 1, 0)));
+	
+	/** A formatter for instance fields */
+	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault());
 	
 	// properties
 	
@@ -99,6 +106,9 @@ final class MediaMetadataPane extends VBox {
 	
 	/** The format */
 	private final StringProperty format = new SimpleStringProperty();
+	
+	/** The date added */
+	private final StringProperty dateAdded = new SimpleStringProperty();
 	
 	// nodes
 	
@@ -203,6 +213,15 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblFormat, 0, 5, 1, 1);
         grid.add(lblFormatValue, 1, 5, 1, 1);
         
+        Label lblDateAdded = new Label(Translations.get("media.metadata.dateAdded"));
+        Label lblDateAddedValue = new Label();
+        lblDateAddedValue.textProperty().bind(dateAdded);
+        lblDateAddedValue.setTooltip(new Tooltip());
+        lblDateAddedValue.getTooltip().textProperty().bind(dateAdded);
+        lblDateAddedValue.setBorder(VALUE_BORDER);
+        grid.add(lblDateAdded, 0, 6, 1, 1);
+        grid.add(lblDateAddedValue, 1, 6, 1, 1);
+        
         this.tagView = new TagListView(allTags);
         // handle when an action is perfomed on the tag view
         this.tagView.addEventHandler(TagEvent.ALL, new EventHandler<TagEvent>() {
@@ -235,6 +254,7 @@ final class MediaMetadataPane extends VBox {
         	        length.set("");
         	        audio.set("");
         	        format.set("");
+        	        dateAdded.set("");
         	        tagView.tagsProperty().set(null);
         			setDisable(true);
         		} else {
@@ -242,7 +262,7 @@ final class MediaMetadataPane extends VBox {
         			btnRename.setVisible(true);
         			Media media = item.media;
         			MediaType type = media.getMetadata().getType();
-        			String unknown = Translations.get("media.metadata.unknown");
+        			String unknown = Translations.get("unknown");
         			
         			name.set(media.getMetadata().getName());
         			
@@ -273,6 +293,7 @@ final class MediaMetadataPane extends VBox {
         			}
         			
         			format.set(media.getMetadata().getFormat().toString());
+        			dateAdded.set(DATETIME_FORMATTER.format(media.getMetadata().getDateAdded()));
         			
         			tagView.tagsProperty().set(newValue.tags);
         		}

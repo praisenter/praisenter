@@ -82,7 +82,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 		final String verseFileName = name + "_utf8.txt";
 		
 		Bible bible = null;
-		List<Book> books = null;
+		List<Book> books = new ArrayList<Book>();
 		
 		this.verses = new ArrayList<Verse>();
 		

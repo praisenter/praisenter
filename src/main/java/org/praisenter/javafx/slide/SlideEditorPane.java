@@ -153,8 +153,8 @@ public final class SlideEditorPane extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		
-//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -168,7 +168,7 @@ public final class SlideEditorPane extends Application {
 		}
 		
 		Slide slide = createTestSlide();
-		PraisenterContext context = new PraisenterContext(null, null, null, null, library, null, null, null);
+		PraisenterContext context = new PraisenterContext(this, stage, null, null, library, null, null, null);
 		FxSlide fxSlide = new FxSlide(context, slide, SlideMode.EDIT);
 		
 		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));
@@ -576,16 +576,16 @@ public final class SlideEditorPane extends Application {
 		slide.addComponent(txt);
 		
 		MediaObject img = new MediaObject(
-//				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
-				UUID.fromString("3df0f8ef-faa5-4d2c-820d-2d8dc55216b9"),
+				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
+//				UUID.fromString("3df0f8ef-faa5-4d2c-820d-2d8dc55216b9"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-//				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
-				UUID.fromString("00c9ac93-6923-4f4c-a3c2-6bcd9572b170"),
+				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
+//				UUID.fromString("00c9ac93-6923-4f4c-a3c2-6bcd9572b170"),
 				ScaleType.NONUNIFORM,
 				false,
 				true);

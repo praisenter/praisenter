@@ -3,7 +3,7 @@
 <!-- https://logging.apache.org/log4j/2.0/manual/configuration.html#PropertySubstitution -->
     <Properties>
         <Property name="logs.archive">${sys:praisenter.logs.dir}/archive</Property>
-        <Property name="log.pattern">%-5level %d{ISO8601} [%t] %c.%M:%L %m%n</Property>
+        <Property name="log.pattern">%-5level %d{ISO8601} [%t] %c.%M:%L %m%n%ex</Property>
     </Properties>
     <Appenders>
 <!--         <Console name="console" target="SYSTEM_OUT"> -->

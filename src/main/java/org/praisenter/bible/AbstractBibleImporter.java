@@ -109,7 +109,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 			
 			// verify the bible doesn't exist already
 			try (Statement bibleQuery = connection.createStatement();
-				 ResultSet bqResult = bibleQuery.executeQuery("SELECT COUNT(*) FROM bible WHERE deleted = false AND name = '" + bible.name + "'");) {
+				 ResultSet bqResult = bibleQuery.executeQuery("SELECT COUNT(*) FROM bible WHERE name = '" + bible.name + "'");) {
 				// make sure we didn't get anything
 				if (bqResult.next() && bqResult.getInt(1) > 0) {
 					connection.rollback();

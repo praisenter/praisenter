@@ -277,7 +277,7 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 		} else if (paint instanceof MediaObject) {
 			// NOTE: this is for PATTERN painting specifically
 			MediaObject mo = (MediaObject)paint;
-			MediaLibrary ml = this.context.getMediaLibrary();
+			MediaLibrary ml = this.context.getObservableMediaLibrary().getMediaLibrary();
 			Media media = ml.get(mo.getId());
 			if (media != null) {
 				if (media.getMetadata().getType() == MediaType.IMAGE) {
@@ -331,7 +331,7 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 		// make sure the id is present
 		if (id != null) {
 			// get the media
-			Media m = this.context.getMediaLibrary().get(id);
+			Media m = this.context.getObservableMediaLibrary().getMediaLibrary().get(id);
 			// check for missing media
 			if (m != null) {
 				// check the media type
@@ -376,7 +376,7 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 					} else {
 						// if not in present mode, then just show the single frame
 						try  {
-							Image image = this.context.getImageCache().get(this.context.getMediaLibrary().getFramePath(m));
+							Image image = this.context.getImageCache().get(this.context.getObservableMediaLibrary().getMediaLibrary().getFramePath(m));
 							VBox img = new VBox();
 							Fx.setSize(img, w, h);
 							Rectangle r = new Rectangle(0, 0, w, h);
@@ -435,14 +435,14 @@ public abstract class FxSlideRegion<T extends SlideRegion> {
 			// make sure the id is present
 			if (id != null) {
 				// get the media
-				Media m = this.context.getMediaLibrary().get(id);
+				Media m = this.context.getObservableMediaLibrary().getMediaLibrary().get(id);
 				// check for missing media
 				if (m != null) {
 					// check the media type
 					if (m.getMetadata().getType() == MediaType.VIDEO) {
 						// if not in present mode, then just show the single frame
 						try  {
-							Image image = this.context.getImageCache().get(this.context.getMediaLibrary().getFramePath(m));
+							Image image = this.context.getImageCache().get(this.context.getObservableMediaLibrary().getMediaLibrary().getFramePath(m));
 							return new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, this.getBackgroundSize(mo.getScaling())));
 						} catch (Exception ex) {
 							// just log the error

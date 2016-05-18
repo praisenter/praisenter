@@ -48,6 +48,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import org.praisenter.bible.Bible;
+import org.praisenter.resources.translations.Translations;
 
 /**
  * Pane specifically for display of {@link Bible}s.
@@ -113,8 +114,7 @@ final class BibleMetadataPane extends VBox {
         // for debugging
         //this.setGridLinesVisible(true);
         
-        // TODO translate
-        Label lblName = new Label("Name");
+        Label lblName = new Label(Translations.get("bible.properties.name"));
         Label lblNameValue = new Label();
         lblNameValue.textProperty().bind(name);
         lblNameValue.setTooltip(new Tooltip());
@@ -123,7 +123,7 @@ final class BibleMetadataPane extends VBox {
         grid.add(lblName, 0, 0, 1, 1);
         grid.add(lblNameValue, 1, 0, 1, 1);
         
-        Label lblLanguage = new Label("Language");
+        Label lblLanguage = new Label(Translations.get("bible.properties.language"));
         Label lblLanguageValue = new Label();
         lblLanguageValue.textProperty().bind(language);
         lblLanguageValue.setTooltip(new Tooltip());
@@ -132,7 +132,7 @@ final class BibleMetadataPane extends VBox {
         grid.add(lblLanguage, 0, 1, 1, 1);
         grid.add(lblLanguageValue, 1, 1, 1, 1);
         
-        Label lblSource = new Label("Source");
+        Label lblSource = new Label(Translations.get("bible.properties.source"));
         Label lblSourceValue = new Label();
         lblSourceValue.textProperty().bind(source);
         lblSourceValue.setTooltip(new Tooltip());
@@ -141,7 +141,7 @@ final class BibleMetadataPane extends VBox {
         grid.add(lblSource, 0, 2, 1, 1);
         grid.add(lblSourceValue, 1, 2, 1, 1);
         
-        Label lblImportDate = new Label("Import Date");
+        Label lblImportDate = new Label(Translations.get("bible.properties.importDate"));
         Label lblImportDateValue = new Label();
         lblImportDateValue.textProperty().bind(importDate);
         lblImportDateValue.setTooltip(new Tooltip());
@@ -150,7 +150,7 @@ final class BibleMetadataPane extends VBox {
         grid.add(lblImportDate, 0, 3, 1, 1);
         grid.add(lblImportDateValue, 1, 3, 1, 1);
         
-        Label lblCopyright = new Label("Copyright");
+        Label lblCopyright = new Label(Translations.get("bible.properties.copyright"));
         Label lblCopyrightValue = new Label();
         lblCopyrightValue.textProperty().bind(copyright);
         lblCopyrightValue.setTooltip(new Tooltip());
@@ -159,7 +159,7 @@ final class BibleMetadataPane extends VBox {
         grid.add(lblCopyright, 0, 4, 1, 1);
         grid.add(lblCopyrightValue, 1, 4, 1, 1);
         
-        Label lblVerseCount = new Label("Verse Count");
+        Label lblVerseCount = new Label(Translations.get("bible.properties.verseCount"));
         Label lblVerseCountValue = new Label();
         lblVerseCountValue.textProperty().bind(verseCount);
         lblVerseCountValue.setTooltip(new Tooltip());
@@ -168,20 +168,20 @@ final class BibleMetadataPane extends VBox {
         grid.add(lblVerseCount, 0, 5, 1, 1);
         grid.add(lblVerseCountValue, 1, 5, 1, 1);
         
-        Label lblHasApocrypha = new Label("Apocrypha");
+        Label lblHasApocrypha = new Label(Translations.get("bible.properties.apocrypha"));
         Label lblHasApocryphaValue = new Label();
         lblHasApocryphaValue.textProperty().bind(hasApocrypha);
         lblHasApocryphaValue.setTooltip(new Tooltip());
-        lblHasApocryphaValue.getTooltip().textProperty().bind(hasApocrypha);
+        lblHasApocryphaValue.getTooltip().setText(Translations.get("bible.properties.apocrypha.tooltip"));
         lblHasApocryphaValue.setBorder(VALUE_BORDER);
         grid.add(lblHasApocrypha, 0, 6, 1, 1);
         grid.add(lblHasApocryphaValue, 1, 6, 1, 1);
         
-        Label lblImportErrors = new Label("Import Warnings");
+        Label lblImportErrors = new Label(Translations.get("bible.properties.importWarnings"));
         Label lblImportErrorsValue = new Label();
         lblImportErrorsValue.textProperty().bind(hadImportErrors);
         lblImportErrorsValue.setTooltip(new Tooltip());
-        lblImportErrorsValue.getTooltip().textProperty().bind(hadImportErrors);
+        lblImportErrorsValue.getTooltip().setText(Translations.get("bible.properties.importWarnings.tooltip"));
         lblImportErrorsValue.setBorder(VALUE_BORDER);
         grid.add(lblImportErrors, 0, 7, 1, 1);
         grid.add(lblImportErrorsValue, 1, 7, 1, 1);
@@ -204,15 +204,19 @@ final class BibleMetadataPane extends VBox {
         			setDisable(true);
         		} else {
         			setDisable(false);
+        			String yes = Translations.get("yes");
+        			String no = Translations.get("no");
+        			String unknown = Translations.get("unknown");
+        			
         			name.set(item.bible.getName());
         			language.set(item.bible.getLanguage());
         			source.set(item.bible.getSource());
         	        importDate.set(DATE_FORMATTER.format(item.bible.getImportDate()));
         			String copy = item.bible.getCopyright();
-        	        copyright.set(copy != null && copy.length() > 0 ? copy : "Unknown");
+        	        copyright.set(copy != null && copy.length() > 0 ? copy : unknown);
         	        verseCount.set(String.valueOf(item.bible.getVerseCount()));
-        	        hasApocrypha.set(item.bible.hasApocrypha() ? "Yes" : "No");
-        	        hadImportErrors.set(item.bible.hadImportWarning() ? "Yes" : "No");
+        	        hasApocrypha.set(item.bible.hasApocrypha() ? yes : no);
+        	        hadImportErrors.set(item.bible.hadImportWarning() ? yes : no);
         		}
         	}
 		});

@@ -12,6 +12,7 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.media.MediaPicker;
+import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
@@ -33,8 +34,8 @@ public class TestMediaLibrary extends Application {
 	}
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -50,7 +51,7 @@ public class TestMediaLibrary extends Application {
 		PraisenterContext context = new PraisenterContext(this, primaryStage, null, null, library, null, null, null);
 		
 		BorderPane root = new BorderPane();
-		MediaPicker pkrMedia = new MediaPicker(context);
+		MediaPicker pkrMedia = new MediaPicker(context, MediaType.IMAGE, MediaType.AUDIO);
 		pkrMedia.setValue(library.all().get(0));
 		root.setTop(pkrMedia);
 		
@@ -61,12 +62,11 @@ public class TestMediaLibrary extends Application {
 		ColorPicker pkrColor = new ColorPicker();
 		root.setBottom(pkrColor);
 		
-//		MediaLibraryPane mlp = new MediaLibraryPane(
-//				library, 
-//				Orientation.HORIZONTAL,
-//				FXCollections.observableSet(tags));
-//		
-//		root.setCenter(mlp);
+		MediaLibraryPane mlp = new MediaLibraryPane(
+				context, 
+				Orientation.HORIZONTAL);
+		
+		root.setCenter(mlp);
 		
 		primaryStage.getIcons().add(new Image("org/praisenter/resources/logo/icon16x16.png"));
 		primaryStage.getIcons().add(new Image("org/praisenter/resources/logo/icon32x32.png"));

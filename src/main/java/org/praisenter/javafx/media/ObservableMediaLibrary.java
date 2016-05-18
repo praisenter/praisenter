@@ -83,11 +83,14 @@ public final class ObservableMediaLibrary {
 		this.library = library;
 		this.service = service;
 		this.tags = new TreeSet<Tag>();
+		
 		// add all the current media to the observable list
-		for (Media media : library.all()) {
-			this.items.add(new MediaListItem(media));
-			this.tags.addAll(media.getMetadata().getTags());
-        }
+		if (library != null) {
+			for (Media media : library.all()) {
+				this.items.add(new MediaListItem(media));
+				this.tags.addAll(media.getMetadata().getTags());
+	        }
+		}
 	}
 	
 	/**

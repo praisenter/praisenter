@@ -26,7 +26,6 @@ package org.praisenter.slide.graphics;
 
 import javax.xml.bind.annotation.XmlEnum;
 
-// TODO translate
 /**
  * Specifies a scaling method.
  * @author William Bittle
@@ -35,32 +34,13 @@ import javax.xml.bind.annotation.XmlEnum;
 @XmlEnum
 public enum ScaleType {
 	/** No scaling performed */
-	NONE("None"),
+	NONE,
 	
 	/** Uniform scaling will scale to fit the bounds using the largest dimension */
-	UNIFORM("Keep Aspect Ratio"),
+	UNIFORM,
 	
 	/** Non-uniform scaling will scale to fit the bounds in both dimensions */
-	NONUNIFORM("Stretch");
-	
-	/** The name */
-	private String name;
-	
-	/**
-	 * Full constructor.
-	 * @param name the readable name
-	 */
-	private ScaleType(String name) {
-		this.name = name;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Enum#toString()
-	 */
-	@Override
-	public String toString() {
-		return this.name;
-	}
+	NONUNIFORM;
 	
 	/**
 	 * Returns a rectangle with the position and size based on the target width/height

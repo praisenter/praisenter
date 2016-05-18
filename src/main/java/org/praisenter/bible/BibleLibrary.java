@@ -63,7 +63,7 @@ public final class BibleLibrary {
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
 	public Bible getBible(int id) throws SQLException {
-		return getBibleBySql("SELECT * FROM bible WHERE deleted = false AND id = " + id);
+		return getBibleBySql("SELECT * FROM bible WHERE id = " + id);
 	}
 	
 	/**
@@ -72,7 +72,7 @@ public final class BibleLibrary {
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
 	public List<Bible> getBibles() throws SQLException {
-		return getBiblesBySql("SELECT * FROM bible WHERE deleted = false ORDER BY name");
+		return getBiblesBySql("SELECT * FROM bible ORDER BY name");
 	}
 	
 	/**
@@ -81,7 +81,7 @@ public final class BibleLibrary {
 	 * @throws SQLException if an exception occurs while retrieving the data
 	 */
 	public int getBibleCount() throws SQLException {
-		return getCountBySql("SELECT COUNT(*) FROM bible WHERE deleted = false");
+		return getCountBySql("SELECT COUNT(*) FROM bible");
 	}
 	
 	/**
@@ -102,8 +102,6 @@ public final class BibleLibrary {
 		// execute the query
 		try (Connection connection = this.database.getConnection();
 			 Statement statement = connection.createStatement()) {
-			// set the bible as deleted 
-			statement.addBatch("UPDATE bible SET deleted = true WHERE bible_id = " + id);
 			// delete from the bottom up
 			statement.addBatch("DELETE FROM bible_verse WHERE bible_id = " + id);
 			statement.addBatch("DELETE FROM bible_book WHERE bible_id = " + id);

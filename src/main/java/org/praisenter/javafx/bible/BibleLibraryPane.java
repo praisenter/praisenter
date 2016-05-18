@@ -1,19 +1,46 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.bible;
 
 import java.io.File;
-import java.sql.SQLException;
+import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javafx.application.Platform;
+import org.praisenter.FailedOperation;
+import org.praisenter.bible.Bible;
+import org.praisenter.javafx.Alerts;
+import org.praisenter.javafx.FlowListView;
+import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.resources.translations.Translations;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Alert;
@@ -38,23 +65,12 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Modality;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.Constants;
-import org.praisenter.FailedOperation;
-import org.praisenter.WarningOperation;
-import org.praisenter.bible.Bible;
-import org.praisenter.bible.BibleLibrary;
-import org.praisenter.bible.UnboundBibleImporter;
-import org.praisenter.javafx.Alerts;
-import org.praisenter.javafx.FlowListView;
-import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.resources.translations.Translations;
-
+/**
+ * Pane specifically for showing the bibles in a bible library.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class BibleLibraryPane extends BorderPane {
-	/** The class-level logger */
-	private static final Logger LOGGER = LogManager.getLogger();
-
 	// selection
 	
 	/** The selected bible */
@@ -70,15 +86,15 @@ public final class BibleLibraryPane extends BorderPane {
 	/** The bible listing */
 	private final FlowListView<BibleListItem> lstBibles;
 	
+	/**
+	 * Minimal constructor.
+	 * @param context the praisenter context
+	 */
 	public BibleLibraryPane(PraisenterContext context) {
 		this.context = context;
 		
-		ObservableBibleLibrary bibleLibrary = context.getBibleLibrary();
-		
 		VBox right = new VBox();
 		VBox importSteps = new VBox();
-		
-		// TODO wire up settings controls
 		
 		Hyperlink lnkUnboundBible = new Hyperlink(Translations.get("bible.unbound"));
 		lnkUnboundBible.setOnAction((e) -> {
@@ -122,7 +138,7 @@ public final class BibleLibraryPane extends BorderPane {
 		right.getChildren().addAll(ttlImport, ttlMetadata, ttlSettings);
 		
 		this.lstBibles = new FlowListView<BibleListItem>(new BibleListViewCellFactory());
-		this.lstBibles.itemsProperty().bindContent(context.getBibleLibrary().getItems());
+		this.lstBibles.itemsProperty().bindContent(context.getObservableBibleLibrary().getItems());
 		this.lstBibles.setOrientation(Orientation.HORIZONTAL);
 		
 		ScrollPane leftScroller = new ScrollPane();
@@ -185,87 +201,50 @@ public final class BibleLibraryPane extends BorderPane {
 	 * @param event the drag event
 	 */
 	private void onBibleDragDropped(DragEvent event) {
+		// get the dragboard
 		Dragboard db = event.getDragboard();
+		// make sure it contains files
 		if (db.hasFiles()) {
+			// get the files
 			final List<File> files = db.getFiles();
 			
-			// add some loading items
-			List<BibleListItem> loadings = new ArrayList<BibleListItem>();
-			if (files != null && files.size() > 0) {
-				for (File file : files) {
-					loadings.add(new BibleListItem(file.toPath().getFileName().toString()));
-				}
-				master.addAll(loadings);
+			// convert to paths
+			final List<Path> paths = new ArrayList<Path>();
+			for (File file : files) {
+				paths.add(file.toPath());
 			}
 			
-			// import the media
-			Task<Void> task = new Task<Void>() {
-				@Override
-				protected Void call() throws Exception {
-					if (files != null && files.size() > 0) {
-						final List<WarningOperation<Bible>> warnings = new ArrayList<WarningOperation<Bible>>();
-						final List<FailedOperation<File>> failed = new ArrayList<FailedOperation<File>>();
-						
-						for (File file : files) {
-							try {
-								final BibleListItem loading = new BibleListItem(file.toPath().getFileName().toString());
-								// import the bible
-								final Bible bible = new UnboundBibleImporter(context.getBibleLibrary()).execute(file.toPath());
-								// check for import warnings
-								if (bible.hadImportWarning()) {
-									warnings.add(new WarningOperation<Bible>(bible, null));
-								}
-								BibleListItem success = new BibleListItem(bible);
-								Platform.runLater(() -> {
-									// remove the loading
-									master.remove(loading);
-									master.add(success);
-								});
-							} catch (Exception e) {
-								LOGGER.error("Failed to add bible '" + file.toPath().toAbsolutePath().toString() + "' to the bible library.", e);
-								failed.add(new FailedOperation<File>(file, e));
-							}
+			// attempt to add to the library
+			this.context.getObservableBibleLibrary().add(
+					paths, 
+					(List<Bible> bibles) -> {
+						// get the warning files
+						String[] wFileNames = bibles.stream().filter(b -> b.hadImportWarning()).map(f -> f.getName()).collect(Collectors.toList()).toArray(new String[0]);
+						if (wFileNames.length > 0) {
+							// show a dialog of the files that had warnings
+							String list = String.join(", ", wFileNames);
+							Alert alert = new Alert(AlertType.INFORMATION);
+							alert.initOwner(getScene().getWindow());
+							alert.initModality(Modality.WINDOW_MODAL);
+							alert.setTitle(Translations.get("bible.import.info.title"));
+							alert.setHeaderText(Translations.get("bible.import.info.header"));
+							alert.setContentText(list);
+							alert.show();
 						}
-						
-						Platform.runLater(new Runnable() {
-							@Override
-							public void run() {
-								master.removeAll(loadings);
-								
-								if (warnings.size() > 0) {
-									// get the warning files
-									String[] wFileNames = warnings.stream().map(f -> f.getData().getName()).collect(Collectors.toList()).toArray(new String[0]);
-									// get the failed media
-									String list = String.join(", ", wFileNames);
-									Alert alert = new Alert(AlertType.INFORMATION);
-									alert.initOwner(getScene().getWindow());
-									alert.initModality(Modality.WINDOW_MODAL);
-									alert.setTitle(Translations.get("bible.import.info.title"));
-									alert.setHeaderText(Translations.get("bible.import.info.header"));
-									alert.setContentText(list);
-									alert.show();
-								}
-								
-								if (failed.size() > 0) {
-									// get the exceptions
-									Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-									// get the failed media
-									String list = String.join(", ", failed.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
-									Alert alert = Alerts.exception(
-											getScene().getWindow(),
-											null, 
-											null,
-											MessageFormat.format(Translations.get("bible.import.error"), list), 
-											exceptions);
-									alert.show();
-								}
-							}
-						});
-					}
-					return null;
-				}
-			};
-			new Thread(task).start();
+					},
+					(List<FailedOperation<Path>> failures) -> {
+						// get the exceptions
+						Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
+						// get the failed media
+						String list = String.join(", ", failures.stream().map(f -> f.getData().toAbsolutePath().toString()).collect(Collectors.toList()));
+						Alert alert = Alerts.exception(
+								getScene().getWindow(),
+								null, 
+								null,
+								MessageFormat.format(Translations.get("bible.import.error"), list), 
+								exceptions);
+						alert.show();
+					});
 		}
 		event.setDropCompleted(true);
 		event.consume();
@@ -277,14 +256,14 @@ public final class BibleLibraryPane extends BorderPane {
 	 */
 	private void onBibleDelete(KeyEvent event) {
 		if (event.getCode() == KeyCode.DELETE) {
-			List<BibleListItem> items = new ArrayList<BibleListItem>();
+			List<Bible> bibles = new ArrayList<Bible>();
 			for (BibleListItem item : lstBibles.selectionsProperty().get()) {
 				// can't delete items that are still being imported
 				if (item.loaded) {
-					items.add(item);
+					bibles.add(item.bible);
 				}
 			}
-			if (items.size() > 0) {
+			if (bibles.size() > 0) {
 				// attempt to delete the selected media
 				Alert alert = new Alert(AlertType.CONFIRMATION);
 				alert.initOwner(getScene().getWindow());
@@ -294,59 +273,25 @@ public final class BibleLibraryPane extends BorderPane {
 				alert.setHeaderText(null);
 				Optional<ButtonType> result = alert.showAndWait();
 				if (result.get() == ButtonType.OK) {
-					// remove the real items
-					master.removeAll(items);
-					// add some loading ones
-					List<BibleListItem> removings = new ArrayList<BibleListItem>();
-					for (BibleListItem item : items) {
-						BibleListItem removing = new BibleListItem(item.name + Constants.NEW_LINE + Translations.get("bible.removing"));
-						master.add(removing);
-						removings.add(removing);
-					}
-					
-					Task<Void> task = new Task<Void>() {
-						@Override
-						protected Void call() throws Exception {
-							final List<BibleListItem> succeeded = new ArrayList<BibleListItem>();
-							final List<FailedOperation<Bible>> failed = new ArrayList<FailedOperation<Bible>>();
-							for (BibleListItem bli : items) {
-								if (bli.loaded) {
-									Bible bible = bli.bible;
-									try {
-										context.getBibleLibrary().deleteBible(bible);
-										succeeded.add(bli);
-									} catch (SQLException e) {
-										LOGGER.error("Failed to remove bible '" + bible.getName() + "' from bible library.", e);
-										failed.add(new FailedOperation<Bible>(bible, e));
-									}
-								}
-							}
-							
-							Platform.runLater(new Runnable() {
-								@Override
-								public void run() {
-									master.removeAll(removings);
-									
-									if (failed.size() > 0) {
-										// get the exceptions
-										Exception[] exceptions = failed.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-										// get the failed media
-										String list = String.join(", ", failed.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
-										Alert alert = Alerts.exception(
-												getScene().getWindow(),
-												null, 
-												null, 
-												MessageFormat.format(Translations.get("bible.remove.error"), list), 
-												exceptions);
-										alert.show();
-									}
-								}
+					// attempt to remove
+					this.context.getObservableBibleLibrary().remove(
+							bibles, 
+							() -> {
+								// nothing to do on success
+							}, 
+							(List<FailedOperation<Bible>> failures) -> {
+								// get the exceptions
+								Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
+								// get the failed media
+								String list = String.join(", ", failures.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
+								Alert fAlert = Alerts.exception(
+										getScene().getWindow(),
+										null, 
+										null, 
+										MessageFormat.format(Translations.get("bible.remove.error"), list), 
+										exceptions);
+								fAlert.show();
 							});
-							
-							return null;
-						}
-					};
-					new Thread(task).start();
 				}
 			}
 		}

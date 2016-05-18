@@ -56,7 +56,7 @@ public final class Configuration {
 	
 	// general
 	
-	// TODO changes to the values of the screen mappings wont work
+	// TODO changes to the values of the screen mappings wont work (might need to be a list property)
 	/** The screen to role mapping */
 	private final ObservableList<ScreenMapping> screenMappings = FXCollections.observableArrayList();
 	
@@ -72,7 +72,14 @@ public final class Configuration {
 	private final BooleanProperty apocryphaIncluded = new SimpleBooleanProperty(false);
 	
 	public Configuration() {
-		// TODO setup binding to listen for any changes and save when a change happens
+		apocryphaIncluded.addListener((e) -> {
+			try {
+				Configuration.save(this);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		});
 	}
 	
 	public static final Configuration load() {

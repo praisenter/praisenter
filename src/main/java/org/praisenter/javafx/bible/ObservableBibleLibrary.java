@@ -77,10 +77,12 @@ public final class ObservableBibleLibrary {
 		this.service = service;
 		
 		List<Bible> bibles = null;
-		try {
-			bibles = library.getBibles();
-		} catch (Exception ex) {
-			LOGGER.error("Failed to load bibles.", ex);
+		if (library != null) {
+			try {
+				bibles = library.getBibles();
+			} catch (Exception ex) {
+				LOGGER.error("Failed to load bibles.", ex);
+			}
 		}
 		
 		if (bibles != null) {

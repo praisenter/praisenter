@@ -90,8 +90,6 @@ import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 
-// TODO if only one type of media is allowed, sorting and filtering by type isn't useful, hide it?
-
 /**
  * Pane specifically for showing the media in a media library.
  * @author William Bittle
@@ -163,7 +161,7 @@ public final class MediaLibraryPane extends BorderPane {
     	
 		this.selected = new SimpleObjectProperty<Media>();
 		
-		final ObservableMediaLibrary library = context.getMediaLibrary();
+		final ObservableMediaLibrary library = context.getObservableMediaLibrary();
 		final ObservableSet<Tag> tags = context.getTags();
 		
         // add sorting and filtering capabilities
@@ -174,7 +172,7 @@ public final class MediaLibraryPane extends BorderPane {
         // define a general listener for all the filters and sorting
         InvalidationListener filterListener = new InvalidationListener() {
 			@Override
-			public void invalidated(Observable arg0) {
+			public void invalidated(Observable obs) {
 				MediaType type = typeFilter.get().getValue();
 				Tag tag = tagFilter.get().getValue();
 				String text = textFilter.get();
@@ -185,6 +183,15 @@ public final class MediaLibraryPane extends BorderPane {
 						((type == null || m.media.getMetadata().getType() == type) &&
 						 (tag == null || m.media.getMetadata().getTags().contains(tag)) &&
 						 (text == null || text.length() == 0 || m.media.getMetadata().getName().toLowerCase().contains(text.toLowerCase())))) {
+						// make sure its in the available types
+						if (types != null && types.length > 0 && m.loaded) {
+							for (MediaType t : types) {
+								if (t == m.media.getMetadata().getType()) {
+									return true;
+								}
+							}
+							return false;
+						}
 						return true;
 					}
 					return false;
@@ -218,6 +225,7 @@ public final class MediaLibraryPane extends BorderPane {
 		this.tagFilter.addListener(filterListener);
 		this.sortField.addListener(filterListener);
 		this.sortDescending.addListener(filterListener);
+		filterListener.invalidated(null);
         
         final MediaType[] mediaTypes = types != null && types.length > 0 ? types : MediaType.values();
         ObservableList<Option<MediaType>> opTypes = FXCollections.observableArrayList();
@@ -228,7 +236,12 @@ public final class MediaLibraryPane extends BorderPane {
 
         // sorting options
         ObservableList<Option<MediaSortField>> sortFields = FXCollections.observableArrayList();
-        sortFields.addAll(Arrays.asList(MediaSortField.values()).stream().map(t -> new Option<MediaSortField>(t.getName(), t)).collect(Collectors.toList()));
+        sortFields.addAll(Arrays.asList(MediaSortField.values())
+        		.stream()
+        		// don't include the type sort if theres only one
+        		.filter(t -> t != MediaSortField.TYPE || (t == MediaSortField.TYPE && (types == null || types.length != 1)))
+        		.map(t -> new Option<MediaSortField>(t.getName(), t))
+        		.collect(Collectors.toList()));
         
         ObservableList<Option<Tag>> opTags = FXCollections.observableArrayList();
         // add the all option
@@ -348,6 +361,7 @@ public final class MediaLibraryPane extends BorderPane {
         
         Label lblImport = new Label(Translations.get("media.import.step1"));
         lblImport.setPadding(new Insets(7));
+        lblImport.setWrapText(true);
         
         TitledPane ttlImport = new TitledPane(Translations.get("media.import.title"), lblImport);
         TitledPane ttlMetadata = new TitledPane(Translations.get("media.metadata.title"), this.pneMetadata);
@@ -358,14 +372,14 @@ public final class MediaLibraryPane extends BorderPane {
         rightScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         rightScroller.setFitToWidth(true);
         rightScroller.setContent(rightGroup);
-        rightScroller.setMinWidth(170);
+        rightScroller.setMinWidth(250);
         
         SplitPane split = new SplitPane();
         split.setOrientation(Orientation.HORIZONTAL);
         
         split.getItems().add(leftScroller);
         split.getItems().add(rightScroller);
-        split.setDividerPositions(0.75);
+        split.setDividerPositions(0.9);
         SplitPane.setResizableWithParent(rightScroller, Boolean.FALSE);
         
         // scale the media player pane's fit property to the scroller's width property minus some for padding
@@ -398,7 +412,13 @@ public final class MediaLibraryPane extends BorderPane {
         HBox pFilter = new HBox(); 
         pFilter.setAlignment(Pos.BASELINE_LEFT);
         pFilter.setSpacing(5);
-        pFilter.getChildren().addAll(lblFilter, cbTypes, cbTags, txtSearch);
+        
+        pFilter.getChildren().add(lblFilter);
+        // don't include the type filter if theres only one type
+        if (types == null || types.length != 1) {
+        	pFilter.getChildren().add(cbTypes);
+        }
+        pFilter.getChildren().addAll(cbTags, txtSearch);
         
         HBox pSort = new HBox();
         pSort.setAlignment(Pos.CENTER_LEFT);
@@ -436,7 +456,7 @@ public final class MediaLibraryPane extends BorderPane {
 			}
 			
 			// attempt to import them
-			this.context.getMediaLibrary().add(
+			this.context.getObservableMediaLibrary().add(
 					paths, 
 					(List<Media> media) -> {
 						// nothing to do on success
@@ -490,7 +510,7 @@ public final class MediaLibraryPane extends BorderPane {
 				
 				if (result.get() == ButtonType.OK) {
 					// attempt to delete the selected media
-					this.context.getMediaLibrary().remove(items, () -> {
+					this.context.getObservableMediaLibrary().remove(items, () -> {
 						// shouldn't have to do anything on success
 					}, (List<FailedOperation<Media>> failures) -> {
 						// on failure we should notify the user
@@ -519,7 +539,7 @@ public final class MediaLibraryPane extends BorderPane {
     	// make sure the file isn't being previewed
     	this.pnePlayer.setMediaPlayer(null, null);
     	// update the media's name
-    	this.context.getMediaLibrary().rename(
+    	this.context.getObservableMediaLibrary().rename(
     			event.media,
     			event.name, 
     			(Media media) -> {
@@ -548,7 +568,7 @@ public final class MediaLibraryPane extends BorderPane {
     	Media media = item.media;
     	Tag tag = event.tag;
     	try {
-			this.context.getMediaLibrary().getMediaLibrary().addTag(media, tag);
+			this.context.getObservableMediaLibrary().getMediaLibrary().addTag(media, tag);
 			this.context.getTags().add(tag);
 		} catch (Exception e) {
 			// remove it from the tags
@@ -575,7 +595,7 @@ public final class MediaLibraryPane extends BorderPane {
     	Media media = item.media;
     	Tag tag = event.tag;
     	try {
-			this.context.getMediaLibrary().getMediaLibrary().removeTag(media, tag);
+			this.context.getObservableMediaLibrary().getMediaLibrary().removeTag(media, tag);
 		} catch (Exception e) {
 			// add it back
 			item.tags.add(tag);

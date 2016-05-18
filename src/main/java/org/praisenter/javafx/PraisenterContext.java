@@ -48,8 +48,6 @@ import org.praisenter.slide.SlideLibrary;
 import org.praisenter.song.Song;
 import org.praisenter.song.SongLibrary;
 
-// TODO add an executor service so that at shutdown we can wait for any pending tasks
-
 /**
  * Represents the working state of Praisenter.
  * <p>
@@ -118,6 +116,7 @@ public final class PraisenterContext {
 		this.screenManager = screenManager;
 		this.imageCache = new ImageCache();
 		
+		// create a thread pool that we can reuse all over the app
 		this.workers = new ThreadPoolExecutor(
 				2, 
 				10, 
@@ -127,7 +126,10 @@ public final class PraisenterContext {
 				new ThreadFactory() {
 					@Override
 					public Thread newThread(Runnable r) {
-						return new PraisenterThread(r);
+						Thread thread = new Thread(r);
+						thread.setName("PraisenterWorkerThread");
+						thread.setDaemon(true);
+						return thread;
 					}
 				});
 		
@@ -193,10 +195,18 @@ public final class PraisenterContext {
 	 * Returns the media library.
 	 * @return {@link ObservableMediaLibrary}
 	 */
-	public ObservableMediaLibrary getMediaLibrary() {
+	public ObservableMediaLibrary getObservableMediaLibrary() {
 		return this.mediaLibrary;
 	}
 
+	/**
+	 * Returns the bible library.
+	 * @return {@link ObservableBibleLibrary}
+	 */
+	public ObservableBibleLibrary getObservableBibleLibrary() {
+		return this.bibleLibrary;
+	}
+	
 	/**
 	 * Returns the song library.
 	 * @return {@link SongLibrary}
@@ -205,14 +215,6 @@ public final class PraisenterContext {
 		return this.songLibrary;
 	}
 
-	/**
-	 * Returns the bible library.
-	 * @return {@link ObservableBibleLibrary}
-	 */
-	public ObservableBibleLibrary getBibleLibrary() {
-		return this.bibleLibrary;
-	}
-	
 	/**
 	 * Returns the slide library.
 	 * @return {@link SlideLibrary}
