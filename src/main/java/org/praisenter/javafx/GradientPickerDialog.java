@@ -59,6 +59,7 @@ final class GradientPickerDialog extends BorderPane {
 		if (owner != null) {
 			this.dialog.initOwner(owner);
 		}
+		// TODO translate
 		this.dialog.setTitle("Gradient");
 		this.dialog.initModality(Modality.WINDOW_MODAL);
 		this.dialog.initStyle(StageStyle.UTILITY);

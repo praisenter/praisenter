@@ -81,9 +81,6 @@ public final class Praisenter extends Application {
 		// create a logger for this class after the log4j has been initialized
 		LOGGER = LogManager.getLogger();
 		
-		// load fonts
-		GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
-		
 		// load configuration properties
 		Configuration config = Configuration.load();
 		if (config == null) {
@@ -167,6 +164,9 @@ public final class Praisenter extends Application {
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon256x256.png"));
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon512x512.png"));
     	
+		// load fonts
+		GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
+		
     	// we'll have a stack of the main pane and the loading pane
     	StackPane stack = new StackPane();
     	
@@ -237,9 +237,10 @@ public final class Praisenter extends Application {
     	// NOTE: this should be the only place where this is done, every other window needs to inherit the css from the parent
     	scene.getStylesheets().add(CONFIG.getThemeCss());
     	stage.setScene(scene);
-    	stage.setOnHidden((e) -> {
+    	stage.setOnHiding((e) -> {
     		context.getWorkers().shutdown();
     		if (context.getWorkers().getActiveCount() > 0) {
+    			e.consume();
     			// FIXME show dialog with loading
     			// FIXME UI is blocked while shutdown occcurs
     			Alert s = new Alert(AlertType.INFORMATION);
