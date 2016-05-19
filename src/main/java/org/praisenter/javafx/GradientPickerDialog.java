@@ -60,6 +60,7 @@ final class GradientPickerDialog extends BorderPane {
 			this.dialog.initOwner(owner);
 		}
 		// TODO translate
+		// FIXME add ok/cancel buttons
 		this.dialog.setTitle("Gradient");
 		this.dialog.initModality(Modality.WINDOW_MODAL);
 		this.dialog.initStyle(StageStyle.UTILITY);

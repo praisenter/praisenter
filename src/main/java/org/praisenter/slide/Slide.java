@@ -216,10 +216,4 @@ public interface Slide extends SlideRegion {
 	 * @return Set&lt;{@link Tag}&gt;
 	 */
 	public abstract Set<Tag> getTags();
-	
-	/**
-	 * Sets the tags for this slide.
-	 * @param tags the tags
-	 */
-	public abstract void setTags(Set<Tag> tags);
 }

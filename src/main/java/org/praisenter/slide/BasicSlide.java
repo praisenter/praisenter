@@ -98,7 +98,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	/** The tags */
 	@XmlElement(name = "tag", required = false)
 	@XmlElementWrapper(name = "tags", required = false)
-	Set<Tag> tags;
+	final Set<Tag> tags;
 	
 	/**
 	 * Default constructor.
@@ -149,7 +149,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		// copy other props
 		to.setTime(this.time);
 		to.setName(this.name);
-		to.setTags(new TreeSet<Tag>(this.tags));
+		to.getTags().addAll(this.tags);
 		
 		// NOTE: path is NOT copied
 		// NOTE: this method should copy everything since it
@@ -428,13 +428,5 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@Override
 	public Set<Tag> getTags() {
 		return this.tags;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#setTags(java.util.Set)
-	 */
-	@Override
-	public void setTags(Set<Tag> tags) {
-		this.tags = tags;
 	}
 }
