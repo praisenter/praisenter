@@ -10,6 +10,7 @@ import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
+import org.praisenter.slide.graphics.SlideGradient;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
 import org.praisenter.slide.graphics.SlideGradientStop;
 import org.praisenter.slide.graphics.SlideLinearGradient;
@@ -52,6 +53,40 @@ public final class SlidePaintPicker extends VBox {
 		public void set(SlidePaint paint) {
 			if (paint != null) {
 				// FIXME set all the node values
+				if (paint instanceof MediaObject) {
+					MediaObject mo = ((MediaObject)paint);
+					Media media = context.getObservableMediaLibrary().getMediaLibrary().get(mo.getId());
+					if (media.getMetadata().getType() == MediaType.IMAGE) {
+						pkrImage.setValue(media);
+						cbTypes.setValue(PaintType.IMAGE);
+					} else if (media.getMetadata().getType() == MediaType.VIDEO) {
+						pkrVideo.setValue(media);
+						cbTypes.setValue(PaintType.VIDEO);
+					}
+					chkLoop.setSelected(mo.isLoop());
+					chkMute.setSelected(mo.isMute());
+					cmbScaling.setValue(mo.getScaling());
+				} else if (paint instanceof SlideColor) {
+					SlideColor sc = (SlideColor)paint;
+					pkrColor.setValue(new Color(sc.getRed(), sc.getGreen(), sc.getBlue(), sc.getAlpha()));
+					cbTypes.setValue(PaintType.COLOR);
+				} else if (paint instanceof SlideLinearGradient) {
+					SlideLinearGradient lg = (SlideLinearGradient)paint;
+					cbTypes.setValue(PaintType.GRADIENT);
+					pkrGradient.setValue(new LinearGradient(
+							lg.getStartX(), lg.getStartY(),
+							lg.getEndX(), lg.getEndY(), 
+							true, getCycleType(lg.getCycleType()), 
+							getStops(lg.getStops())));
+				} else if (paint instanceof SlideRadialGradient) {
+					SlideRadialGradient lg = (SlideRadialGradient)paint;
+					cbTypes.setValue(PaintType.GRADIENT);
+					pkrGradient.setValue(new RadialGradient(
+							0, 0, lg.getCenterX(), lg.getCenterY(),
+							lg.getRadius(), 
+							true, getCycleType(lg.getCycleType()), 
+							getStops(lg.getStops())));
+				}
 			}
 			
 			// doing this will mean that setting it to null or any other type of paint will do nothing
@@ -66,6 +101,8 @@ public final class SlidePaintPicker extends VBox {
 		}
 	};
 	
+	final PraisenterContext context;
+	
 	// nodes
 	
 	final ChoiceBox<PaintType> cbTypes;
@@ -78,6 +115,8 @@ public final class SlidePaintPicker extends VBox {
 	final CheckBox chkMute;
 	
 	public SlidePaintPicker(PraisenterContext context) {
+		this.context = context;
+		
 		InvalidationListener listener = new InvalidationListener() {
 			@Override
 			public void invalidated(Observable observable) {
@@ -106,8 +145,8 @@ public final class SlidePaintPicker extends VBox {
 		HBox bg = new HBox();
 		bg.setSpacing(2);
 		bg.getChildren().addAll(cbTypes, pkrColor, pkrGradient, pkrImage, pkrVideo);
-		grid.add(lblBackground, 0, 0);
-		grid.add(bg, 1, 0);
+//		grid.add(lblBackground, 0, 0);
+//		grid.add(bg, 1, 0);
 		
 		Label lblScaling = new Label("Scaling");
 		// TODO maybe convert to icons/buttons for the type
@@ -133,36 +172,36 @@ public final class SlidePaintPicker extends VBox {
 					pkrGradient.setVisible(false);
 					pkrImage.setVisible(false);
 					pkrVideo.setVisible(false);
-					grid.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
+//					grid.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
 					break;
 				case GRADIENT:
 					pkrColor.setVisible(false);
 					pkrGradient.setVisible(true);
 					pkrImage.setVisible(false);
 					pkrVideo.setVisible(false);
-					grid.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
+//					grid.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
 					break;
 				case IMAGE:
 					pkrColor.setVisible(false);
 					pkrGradient.setVisible(false);
 					pkrImage.setVisible(true);
 					pkrVideo.setVisible(false);
-					grid.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
-					grid.add(lblScaling, 0, 1);
-					grid.add(cmbScaling, 1, 1);
+//					grid.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
+//					grid.add(lblScaling, 0, 1);
+//					grid.add(cmbScaling, 1, 1);
 					break;
 				case VIDEO:
 					pkrColor.setVisible(false);
 					pkrGradient.setVisible(false);
 					pkrImage.setVisible(false);
 					pkrVideo.setVisible(true);
-					grid.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
-					grid.add(lblScaling, 0, 1);
-					grid.add(cmbScaling, 1, 1);
-					grid.add(lblLoop, 0, 2);
-					grid.add(chkLoop, 1, 2);
-					grid.add(lblMute, 0, 3);
-					grid.add(chkMute, 1, 3);
+//					grid.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
+//					grid.add(lblScaling, 0, 1);
+//					grid.add(cmbScaling, 1, 1);
+//					grid.add(lblLoop, 0, 2);
+//					grid.add(chkLoop, 1, 2);
+//					grid.add(lblMute, 0, 3);
+//					grid.add(chkMute, 1, 3);
 					break;
 				case NONE:
 				default:
@@ -171,7 +210,7 @@ public final class SlidePaintPicker extends VBox {
 					pkrGradient.setVisible(false);
 					pkrImage.setVisible(false);
 					pkrVideo.setVisible(false);
-					grid.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
+//					grid.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
 					break;
 			}
 		});
@@ -187,10 +226,10 @@ public final class SlidePaintPicker extends VBox {
 				Paint paint = this.pkrGradient.getValue();
 				if (paint instanceof LinearGradient) {
 					LinearGradient lg = (LinearGradient)paint;
-					return new SlideLinearGradient(lg.getStartX(), lg.getStartY(), lg.getEndX(), lg.getEndY(), getCycleType(lg.getCycleMethod()), getStops(lg.getStops()));
+					return new SlideLinearGradient(lg.getStartX(), lg.getStartY(), lg.getEndX(), lg.getEndY(), getCycleType(lg.getCycleMethod()), getSlideGradientStop(lg.getStops()));
 				} else if (paint instanceof RadialGradient) {
 					RadialGradient rg = (RadialGradient)paint;
-					return new SlideRadialGradient(rg.getCenterX(), rg.getCenterY(), rg.getRadius(), getCycleType(rg.getCycleMethod()), getStops(rg.getStops()));
+					return new SlideRadialGradient(rg.getCenterX(), rg.getCenterY(), rg.getRadius(), getCycleType(rg.getCycleMethod()), getSlideGradientStop(rg.getStops()));
 				} else {
 					return null;
 				}
@@ -214,11 +253,31 @@ public final class SlidePaintPicker extends VBox {
 		}
 	}
 	
-	private static final List<SlideGradientStop> getStops(List<Stop> stops) {
+	private static final CycleMethod getCycleType(SlideGradientCycleType method) {
+		switch (method) {
+			case REPEAT:
+				return CycleMethod.REPEAT;
+			case REFLECT:
+				return CycleMethod.REFLECT;
+			default:
+				return CycleMethod.NO_CYCLE;
+		}
+	}
+	
+	private static final List<SlideGradientStop> getSlideGradientStop(List<Stop> stops) {
 		List<SlideGradientStop> sps = new ArrayList<SlideGradientStop>();
 		for (Stop stop : stops) {
 			Color color = stop.getColor();
 			sps.add(new SlideGradientStop(stop.getOffset(), new SlideColor(color.getRed(), color.getGreen(), color.getBlue(), color.getOpacity())));
+		}
+		return sps;
+	}
+	
+	private static final List<Stop> getStops(List<SlideGradientStop> stops) {
+		List<Stop> sps = new ArrayList<Stop>();
+		for (SlideGradientStop stop : stops) {
+			SlideColor color = stop.getColor();
+			sps.add(new Stop(stop.getOffset(), new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())));
 		}
 		return sps;
 	}
