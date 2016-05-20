@@ -1,19 +1,14 @@
 package org.praisenter.javafx.slide;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.object.MediaObject;
-
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.Node;
-import javafx.scene.layout.VBox;
-import javafx.scene.media.MediaView;
 
 public final class ObservableMediaComponent extends ObservableSlideComponent<MediaComponent> implements SlideRegion, SlideComponent {
 
@@ -21,51 +16,63 @@ public final class ObservableMediaComponent extends ObservableSlideComponent<Med
 	
 	// nodes
 	
-	// audio/video (present)
-	private MediaView mediaNode;
-	
-	// image (present) or audio/video (preview)
-	private VBox imageNode;
+	final FillPane mediaNode;
 	
 	public ObservableMediaComponent(MediaComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values
 		this.media.set(component.getMedia());
+
+		// setup nodes
+		this.mediaNode = new FillPane(context, mode);
 		
 		// listen for changes
 		this.media.addListener((obs, ov, nv) -> { 
 			this.region.setMedia(nv); 
+			updateMedia();
 		});
+		
+		this.build(this.mediaNode);
 	}
 	
-	private void setup() {
-		SlideStroke bdr = this.region.getBorder();
-		double br = bdr != null ? bdr.getRadius() : 0;
+	protected void updateSize() {
+		super.updateSize();
 		
-		int w = this.region.getWidth();
-		int h = this.region.getHeight();
+		int w = this.width.get();
+		int h = this.height.get();
+		this.mediaNode.setSize(w, h);
+	}
+	
+	@Override
+	protected void updateBorder() {
+		super.updateBorder();
 		
-		// get the media id
-		MediaObject mo = this.region.getMedia();
-		Media media = this.context.getMediaLibrary().get(mo.getId());
-		if (mo != null) {
-			if (this.mode == SlideMode.EDIT) {
-				this.imageNode = JavaFXTypeConverter.toJavaFXAsImage(context, mo, w, h, br);
-			} else if (media.getMetadata().getType() == MediaType.IMAGE) {
-				this.imageNode = JavaFXTypeConverter.toJavaFXAsImage(context, mo, w, h, br);
-			} else {
-				this.mediaNode = JavaFXTypeConverter.toJavaFXForPlayableAudioVideo(context, mo, w, h, br);
-			}
-		} else {
-			// FIXME logging
-//			LOGGER.warn("No media set on media component {}.", this.component.getId());
-		}
-		
-		this.root.getChildren().addAll(
-				this.backgroundMedia != null ? this.backgroundMedia : this.backgroundPaint,
-				this.mediaNode != null ? this.mediaNode : this.imageNode,
-				this.borderNode);
+		SlideStroke ss = this.border.get();
+		double r = ss != null ? ss.getRadius() : 0.0;
+		this.mediaNode.setBorderRadius(r);
+	}
+	
+	protected void updateMedia() {
+		MediaObject mo = this.media.get();
+		this.mediaNode.setPaint(mo);
+	}
+
+	// playable stuff
+	
+	public void play() {
+		super.play();
+		this.mediaNode.play();
+	}
+	
+	public void stop() {
+		super.stop();
+		this.mediaNode.stop();
+	}
+	
+	public void dispose() {
+		super.dispose();
+		this.mediaNode.dispose();
 	}
 	
 	// media

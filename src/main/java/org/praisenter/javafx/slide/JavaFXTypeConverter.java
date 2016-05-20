@@ -61,7 +61,7 @@ import javafx.scene.text.TextAlignment;
 final class JavaFXTypeConverter {
 	private JavaFXTypeConverter() {}
 	
-	// color
+	// paint
 	
 	static Color toJavaFX(SlideColor color) {
 		return new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
@@ -69,6 +69,18 @@ final class JavaFXTypeConverter {
 	
 	static SlideColor fromJavaFX(Color color) {
 		return new SlideColor(color.getRed(), color.getGreen(), color.getBlue(), color.getOpacity());
+	}
+	
+	static Paint toJavaFX(SlidePaint paint) {
+		Paint bgPaint = null;
+		if (paint instanceof SlideColor) {
+			bgPaint = JavaFXTypeConverter.toJavaFX((SlideColor)paint);
+		} else if (paint instanceof SlideLinearGradient) {
+			bgPaint = JavaFXTypeConverter.toJavaFX((SlideLinearGradient)paint);
+		} else if (paint instanceof SlideRadialGradient) {
+			bgPaint = JavaFXTypeConverter.toJavaFX((SlideRadialGradient)paint);
+		}
+		return bgPaint;
 	}
 	
 	// text alignment
@@ -461,80 +473,6 @@ final class JavaFXTypeConverter {
 				toJavaFX(font.getWeight()),
 				toJavaFX(font.getPosture()),
 				font.getSize());
-	}
-	
-	// containers
-	
-	static void setup(MediaView view, MediaPlayer player, ScaleType scaling, double w, double h, double br) {
-		if (view == null) {
-			return;
-		}
-		
-		// clean up
-		if (view.getMediaPlayer() != null) {
-			view.getMediaPlayer().stop();
-			view.getMediaPlayer().dispose();
-		}
-		
-		double mw = 0.0;
-		double mh = 0.0;
-		view.setMediaPlayer(player);
-		if (player != null) {
-			mw = player.getMedia().getWidth();
-			mh = player.getMedia().getHeight();
-		}
-		if (scaling == ScaleType.NONUNIFORM) { 
-			view.setFitWidth(w);
-			view.setFitHeight(h);
-			if (br > 0) {
-				Rectangle clip = new Rectangle(0, 0, w, h);
-				clip.setArcHeight(br * 2);
-				clip.setArcWidth(br * 2);
-				view.setClip(clip);
-			}
-		} else if (scaling == ScaleType.UNIFORM) {
-			// set the fit w/h based on the min
-			if (w < h) {
-				view.setFitWidth(w);
-			} else {
-				view.setFitWidth(h);
-			}
-			if (br > 0) {
-				Rectangle clip = new Rectangle(0, 0, w, h);
-				clip.setArcHeight(br * 2);
-				clip.setArcWidth(br * 2);
-				view.setClip(clip);
-			}
-		} else {
-			// then center it
-			view.setLayoutX((w - mw) * 0.5);
-			view.setLayoutY((h - mh) * 0.5);
-			// need to set a clip if its bigger than the component
-			Rectangle clip = new Rectangle(0, 0, w, h);
-			if (br > 0) {
-				clip.setArcHeight(br * 2);
-				clip.setArcWidth(br * 2);
-			}
-			clip.setX(-(w - mw) * 0.5);
-			clip.setY(-(h - mh) * 0.5);
-			view.setClip(clip);
-		}
-	}
-	
-	static void setup(VBox view, Image image, ScaleType scaling, double w, double h, double br) {
-		if (view == null) {
-			return;
-		}
-		Fx.setSize(view, w, h);
-		Rectangle r = new Rectangle(0, 0, w, h);
-		if (br > 0) {
-			r.setArcHeight(br * 2);
-			r.setArcWidth(br * 2);
-		}
-		view.setClip(r);
-		if (image != null) {
-			view.setBackground(new Background(new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.CENTER, toJavaFX(scaling))));
-		}
 	}
 	
 	// media

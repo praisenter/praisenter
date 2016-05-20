@@ -1,6 +1,8 @@
 package org.praisenter.javafx.slide;
 
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.text.TextMeasurer;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.SlidePaint;
@@ -11,13 +13,22 @@ import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 
+
+
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextBoundsType;
 
 public abstract class ObservableTextComponent<T extends TextComponent> extends ObservableSlideComponent<T> implements SlideRegion, SlideComponent, TextComponent {
 
+	// editable
+	
 	final ObjectProperty<SlidePaint> textPaint = new SimpleObjectProperty<SlidePaint>();
 	final ObjectProperty<SlideStroke> textBorder = new SimpleObjectProperty<SlideStroke>();
 	final ObjectProperty<SlideFont> font = new SimpleObjectProperty<SlideFont>();
@@ -26,6 +37,11 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	final ObjectProperty<FontScaleType> fontScaleType = new SimpleObjectProperty<FontScaleType>();
 	final DoubleProperty padding = new SimpleDoubleProperty();
 	final DoubleProperty lineSpacing = new SimpleDoubleProperty();
+
+	// nodes
+	
+	final VBox textWrapper;
+	final Text text;
 	
 	public ObservableTextComponent(T component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
@@ -40,15 +56,106 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		this.padding.set(component.getPadding());
 		this.lineSpacing.set(component.getLineSpacing());
 		
+		this.textWrapper = new VBox();
+		this.text = new Text();
+		this.text.setBoundsType(TextBoundsType.VISUAL);
+		this.textWrapper.getChildren().add(this.text);
+		
 		// listen for changes
-		this.textPaint.addListener((obs, ov, nv) -> { this.region.setTextPaint(nv); });
-		this.textBorder.addListener((obs, ov, nv) -> { this.region.setTextBorder(nv); });
-		this.font.addListener((obs, ov, nv) -> { this.region.setFont(nv); });
-		this.horizontalTextAlignment.addListener((obs, ov, nv) -> { this.region.setHorizontalTextAlignment(nv); });
-		this.verticalTextAlignment.addListener((obs, ov, nv) -> { this.region.setVerticalTextAlignment(nv); });
-		this.fontScaleType.addListener((obs, ov, nv) -> { this.region.setFontScaleType(nv); });
-		this.padding.addListener((obs, ov, nv) -> { this.region.setPadding(nv.doubleValue()); });
-		this.lineSpacing.addListener((obs, ov, nv) -> { this.region.setLineSpacing(nv.doubleValue()); });
+		this.textPaint.addListener((obs, ov, nv) -> { 
+			this.region.setTextPaint(nv);
+			this.text.setFill(JavaFXTypeConverter.toJavaFX(nv));
+		});
+		this.textBorder.addListener((obs, ov, nv) -> { 
+			this.region.setTextBorder(nv);
+			if (nv != null) {
+				this.text.setStroke(JavaFXTypeConverter.toJavaFX(nv.getPaint()));
+				this.text.setStrokeLineCap(JavaFXTypeConverter.toJavaFX(nv.getStyle().getCap()));
+				this.text.setStrokeLineJoin(JavaFXTypeConverter.toJavaFX(nv.getStyle().getJoin()));
+				this.text.setStrokeType(JavaFXTypeConverter.toJavaFX(nv.getStyle().getType()));
+				this.text.setStrokeWidth(nv.getWidth());
+				this.text.getStrokeDashArray().removeAll();
+				this.text.getStrokeDashArray().addAll(nv.getStyle().getDashes());
+			} else {
+				this.text.setStroke(null);
+				this.text.setStrokeDashOffset(0);
+				this.text.setStrokeWidth(0);
+			}
+		});
+		this.font.addListener((obs, ov, nv) -> { 
+			this.region.setFont(nv);
+			this.text.setFont(JavaFXTypeConverter.toJavaFX(nv));
+			this.updateFont();
+		});
+		this.horizontalTextAlignment.addListener((obs, ov, nv) -> { 
+			this.region.setHorizontalTextAlignment(nv);
+			this.text.setTextAlignment(JavaFXTypeConverter.toJavaFX(nv));
+		});
+		this.verticalTextAlignment.addListener((obs, ov, nv) -> { 
+			this.region.setVerticalTextAlignment(nv);
+			this.textWrapper.setAlignment(JavaFXTypeConverter.toJavaFX(nv));
+		});
+		this.fontScaleType.addListener((obs, ov, nv) -> { 
+			this.region.setFontScaleType(nv);
+			this.updateFont();
+		});
+		this.padding.addListener((obs, ov, nv) -> { 
+			this.region.setPadding(nv.doubleValue());
+			this.textWrapper.setPadding(new Insets(nv.doubleValue()));
+			updateSize();
+		});
+		this.lineSpacing.addListener((obs, ov, nv) -> { 
+			this.region.setLineSpacing(nv.doubleValue());
+			this.text.setLineSpacing(nv.doubleValue());
+			this.updateFont();
+		});
+	}
+	
+	@Override
+	protected void updateSize() {
+		super.updateSize();
+		
+		int w = this.width.get();
+		int h = this.height.get();
+		
+		Fx.setSize(this.textWrapper, w, h);
+		
+		// compute the bounding text width and height so 
+		// we can compute an accurate font size
+		double padding = this.padding.get();
+		double pw = w - padding * 2;
+		
+		// set the wrapping width and the bounds type
+		this.text.setWrappingWidth(pw);
+		
+		this.updateFont();
+	}
+	
+	protected void updateFont() {
+		int w = this.width.get();
+		int h = this.height.get();
+		
+		// compute the bounding text width and height so 
+		// we can compute an accurate font size
+		double padding = this.padding.get();
+		double pw = w - padding * 2;
+		double ph = h - padding * 2;
+		FontScaleType scaleType = this.fontScaleType.get();
+		double lineSpacing = this.lineSpacing.get();
+		
+		// component.getText()
+		String str = getText();
+		
+		// compute a fitting font, if necessary
+		Font base = JavaFXTypeConverter.toJavaFX(this.font.get());
+		Font font = base;
+		if (scaleType == FontScaleType.REDUCE_SIZE_ONLY) {
+			font = TextMeasurer.getFittingFontForParagraph(str, base, base.getSize(), pw, ph, lineSpacing, TextBoundsType.VISUAL);
+		} else if (scaleType == FontScaleType.BEST_FIT) {
+			font = TextMeasurer.getFittingFontForParagraph(str, base, Double.MAX_VALUE, pw, ph, lineSpacing, TextBoundsType.VISUAL);
+		}
+		
+		this.text.setFont(font);
 	}
 	
 	// text paint

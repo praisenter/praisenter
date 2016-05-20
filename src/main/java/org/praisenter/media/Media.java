@@ -80,7 +80,7 @@ public final class Media implements Comparable<Media> {
 		if (obj instanceof Media) {
 			Media media = (Media)obj;
 			// their type and path must be equal
-			if (media.getMetadata().id.equals(this.metadata.id)) {
+			if (media.metadata.id.equals(this.metadata.id)) {
 				return true;
 			}
 		}
