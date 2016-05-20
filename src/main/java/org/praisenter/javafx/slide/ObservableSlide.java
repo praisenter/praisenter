@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.praisenter.Tag;
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
@@ -38,8 +39,8 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	final ObservableList<SlideAnimation> animations = FXCollections.observableArrayList();
 	final ObservableSet<Tag> tags = FXCollections.observableSet();
 	
-	public ObservableSlide(T slide) {
-		super(slide);
+	public ObservableSlide(T slide, PraisenterContext context, SlideMode mode) {
+		super(slide, context, mode);
 		
 		// set initial values
 		this.name.set(slide.getName());
@@ -74,14 +75,14 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	private ObservableSlideComponent<?> createObservableFor(SlideComponent component) {
 		// now create its respective observable one
 		if (component instanceof MediaComponent) {
-			return new ObservableMediaComponent((MediaComponent)component);
+			return new ObservableMediaComponent((MediaComponent)component, this.context, this.mode);
 		} else if (component instanceof DateTimeComponent) {
-			return new ObservableDateTimeComponent((DateTimeComponent)component);
+			return new ObservableDateTimeComponent((DateTimeComponent)component, this.context, this.mode);
 		} else if (component instanceof TextPlaceholderComponent) {
 			// FIXME implement
 			throw new ClassCastException("Component type not implemented yet");
 		} else if (component instanceof BasicTextComponent) {
-			return new ObservableBasicTextComponent((BasicTextComponent)component);
+			return new ObservableBasicTextComponent((BasicTextComponent)component, this.context, this.mode);
 		} else {
 			// TODO fix
 			throw new ClassCastException("Component type not handled");

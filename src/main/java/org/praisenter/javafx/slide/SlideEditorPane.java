@@ -387,85 +387,9 @@ public final class SlideEditorPane extends Application {
 	//		grid.setGridLinesVisible(true);
 			
 			// background
+			SlidePaintPicker pkrBackground = new SlidePaintPicker(context, PaintType.COLOR, PaintType.GRADIENT);
 			
-			Label lblBackground = new Label("Background");
-			ChoiceBox<PaintType> cbTypes = new ChoiceBox<PaintType>(FXCollections.observableArrayList(PaintType.values()));
-			ColorPicker clrPicker = new ColorPicker();
-			clrPicker.managedProperty().bind(clrPicker.visibleProperty());
-			GradientPicker pkrGradient = new GradientPicker(null);
-			pkrGradient.managedProperty().bind(pkrGradient.visibleProperty());
-			MediaPicker pkrImage = new MediaPicker(context, MediaType.IMAGE);
-			pkrImage.managedProperty().bind(pkrImage.visibleProperty());
-			MediaPicker pkrVideo = new MediaPicker(context, MediaType.VIDEO);
-			pkrVideo.managedProperty().bind(pkrVideo.visibleProperty());
-			HBox bg = new HBox();
-			bg.setSpacing(2);
-			bg.getChildren().addAll(cbTypes, clrPicker, pkrGradient, pkrImage, pkrVideo);
-			grid.add(lblBackground, 0, 0);
-			grid.add(bg, 1, 0);
-			
-			Label lblScaling = new Label("Scaling");
-			ChoiceBox<ScaleType> cbScaling = new ChoiceBox<ScaleType>(FXCollections.observableArrayList(ScaleType.values()));
-			Label lblLoop = new Label("Loop");
-			CheckBox chkLoop = new CheckBox();
-			Label lblMute = new Label("Mute");
-			CheckBox chkMute = new CheckBox();
-			
-			clrPicker.setVisible(false);
-			pkrGradient.setVisible(false);
-			pkrImage.setVisible(false);
-			pkrVideo.setVisible(false);
-			cbTypes.valueProperty().addListener((obs, ov, nv) -> {
-				switch (nv) {
-					case COLOR:
-						clrPicker.setVisible(true);
-						pkrGradient.setVisible(false);
-						pkrImage.setVisible(false);
-						pkrVideo.setVisible(false);
-						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
-						break;
-					case GRADIENT:
-						clrPicker.setVisible(false);
-						pkrGradient.setVisible(true);
-						pkrImage.setVisible(false);
-						pkrVideo.setVisible(false);
-						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
-						break;
-					case IMAGE:
-						clrPicker.setVisible(false);
-						pkrGradient.setVisible(false);
-						pkrImage.setVisible(true);
-						pkrVideo.setVisible(false);
-						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
-						grid.add(lblScaling, 0, 1);
-						grid.add(cbScaling, 1, 1);
-						break;
-					case VIDEO:
-						clrPicker.setVisible(false);
-						pkrGradient.setVisible(false);
-						pkrImage.setVisible(false);
-						pkrVideo.setVisible(true);
-						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
-						grid.add(lblScaling, 0, 1);
-						grid.add(cbScaling, 1, 1);
-						grid.add(lblLoop, 0, 2);
-						grid.add(chkLoop, 1, 2);
-						grid.add(lblMute, 0, 3);
-						grid.add(chkMute, 1, 3);
-						break;
-					case NONE:
-					default:
-						// hide all the controls
-						clrPicker.setVisible(false);
-						pkrGradient.setVisible(false);
-						pkrImage.setVisible(false);
-						pkrVideo.setVisible(false);
-						grid.getChildren().removeAll(lblScaling, cbScaling, lblLoop, chkLoop, lblMute, chkMute);
-						break;
-				}
-			});
-			
-			TitledPane ttlSlide = new TitledPane("Slide Background", grid);
+			TitledPane ttlSlide = new TitledPane("Slide Background", pkrBackground);
 			propertiesPane.getChildren().add(ttlSlide);
 			
 //			FontPicker pkrFont = new FontPicker(Font.font("Segoe UI Black", 30), FXCollections.observableArrayList(Font.getFamilies()));

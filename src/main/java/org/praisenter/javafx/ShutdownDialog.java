@@ -23,7 +23,7 @@ public final class ShutdownDialog extends BorderPane {
 	/**
 	 * Full constructor.
 	 * @param owner the owner of this dialog
-	 * @param paint the initial value
+	 * @param value the initial value
 	 */
 	public ShutdownDialog(
 			Window owner,

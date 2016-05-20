@@ -263,7 +263,7 @@ public final class MediaLibraryPane extends BorderPane {
 		});
         
         // the right side of the split pane
-        this.lstMedia = new FlowListView<MediaListItem>(new MediaListViewCellFactory(library.getMediaLibrary().getThumbnailSettings().getHeight()));
+        this.lstMedia = new FlowListView<MediaListItem>(new MediaListViewCellFactory(context.getMediaLibrary().getThumbnailSettings().getHeight()));
         this.lstMedia.itemsProperty().bindContent(sorted);
         this.lstMedia.setOrientation(orientation);
         
@@ -568,7 +568,7 @@ public final class MediaLibraryPane extends BorderPane {
     	Media media = item.media;
     	Tag tag = event.tag;
     	try {
-			this.context.getObservableMediaLibrary().getMediaLibrary().addTag(media, tag);
+			this.context.getMediaLibrary().addTag(media, tag);
 			this.context.getTags().add(tag);
 		} catch (Exception e) {
 			// remove it from the tags
@@ -595,7 +595,7 @@ public final class MediaLibraryPane extends BorderPane {
     	Media media = item.media;
     	Tag tag = event.tag;
     	try {
-			this.context.getObservableMediaLibrary().getMediaLibrary().removeTag(media, tag);
+			this.context.getMediaLibrary().removeTag(media, tag);
 		} catch (Exception e) {
 			// add it back
 			item.tags.add(tag);

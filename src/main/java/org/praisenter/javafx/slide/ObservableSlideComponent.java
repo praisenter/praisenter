@@ -1,5 +1,6 @@
 package org.praisenter.javafx.slide;
 
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.text.PlaceholderType;
@@ -21,8 +22,8 @@ public abstract class ObservableSlideComponent<T extends SlideComponent> extends
 	final ObjectProperty<PlaceholderType> textPlaceholderType = new SimpleObjectProperty<PlaceholderType>();
 	final ObservableList<PlaceholderVariant> textPlaceholderVariants = FXCollections.observableArrayList();
 
-	public ObservableSlideComponent(T component) {
-		super(component);
+	public ObservableSlideComponent(T component, PraisenterContext context, SlideMode mode) {
+		super(component, context, mode);
 		
 		// set initial values
 		this.order.set(component.getOrder());

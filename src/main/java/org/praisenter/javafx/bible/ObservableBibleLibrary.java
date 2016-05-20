@@ -372,12 +372,4 @@ public final class ObservableBibleLibrary {
 	public ObservableList<BibleListItem> getItems() {
 		return this.items;
 	}
-	
-	/**
-	 * Returns the bible library.
-	 * @return {@link BibleLibrary}
-	 */
-	public BibleLibrary getBibleLibrary() {
-		return this.library;
-	}
 }

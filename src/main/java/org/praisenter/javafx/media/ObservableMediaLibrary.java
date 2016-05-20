@@ -433,12 +433,4 @@ public final class ObservableMediaLibrary {
 	public ObservableList<MediaListItem> getItems() {
 		return this.items;
 	}
-	
-	/**
-	 * Returns the wrapped media library.
-	 * @return {@link MediaLibrary}
-	 */
-	public MediaLibrary getMediaLibrary() {
-		return this.library;
-	}
 }

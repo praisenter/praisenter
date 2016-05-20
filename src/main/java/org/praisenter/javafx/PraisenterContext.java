@@ -70,10 +70,16 @@ public final class PraisenterContext {
 	private final ScreenManager screenManager;
 	
 	/** The media library */
-	private final ObservableMediaLibrary mediaLibrary;
+	private final MediaLibrary mediaLibrary;
+	
+	/** The observable media library */
+	private final ObservableMediaLibrary observableMediaLibrary;
 
 	/** The bible library */
-	private final ObservableBibleLibrary bibleLibrary;
+	private final BibleLibrary bibleLibrary;
+	
+	/** The observable bible library */
+	private final ObservableBibleLibrary observableBibleLibrary;
 	
 	/** The song library */
 	private final SongLibrary songLibrary;
@@ -133,10 +139,13 @@ public final class PraisenterContext {
 					}
 				});
 		
-		this.mediaLibrary = new ObservableMediaLibrary(media, workers);
-		this.bibleLibrary = new ObservableBibleLibrary(bibles, workers);
+		this.mediaLibrary = media;
+		this.bibleLibrary = bibles;
 		this.songLibrary = songs;
 		this.slideLibrary = slides;
+		
+		this.observableMediaLibrary = new ObservableMediaLibrary(media, workers);
+		this.observableBibleLibrary = new ObservableBibleLibrary(bibles, workers);
 		
 		Set<Tag> tags = new TreeSet<Tag>();
 		
@@ -151,8 +160,8 @@ public final class PraisenterContext {
 				tags.addAll(slide.getTags());
 			}
 		}
-		if (this.mediaLibrary != null) {
-			tags.addAll(this.mediaLibrary.getTags());
+		if (media != null) {
+			tags.addAll(this.observableMediaLibrary.getTags());
 		}
 		
 		
@@ -193,18 +202,34 @@ public final class PraisenterContext {
 	
 	/**
 	 * Returns the media library.
+	 * @return {@link MediaLibrary}
+	 */
+	public MediaLibrary getMediaLibrary() {
+		return this.mediaLibrary;
+	}
+	
+	/**
+	 * Returns an observable media library.
 	 * @return {@link ObservableMediaLibrary}
 	 */
 	public ObservableMediaLibrary getObservableMediaLibrary() {
-		return this.mediaLibrary;
+		return this.observableMediaLibrary;
 	}
 
+	/**
+	 * Returns the bible library.
+	 * @return {@link BibleLibrary}
+	 */
+	public BibleLibrary getBibleLibrary() {
+		return this.bibleLibrary;
+	}
+	
 	/**
 	 * Returns the bible library.
 	 * @return {@link ObservableBibleLibrary}
 	 */
 	public ObservableBibleLibrary getObservableBibleLibrary() {
-		return this.bibleLibrary;
+		return this.observableBibleLibrary;
 	}
 	
 	/**

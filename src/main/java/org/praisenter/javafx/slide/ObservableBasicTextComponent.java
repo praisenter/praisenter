@@ -1,5 +1,6 @@
 package org.praisenter.javafx.slide;
 
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.text.BasicTextComponent;
@@ -12,8 +13,8 @@ public final class ObservableBasicTextComponent extends ObservableTextComponent<
 	
 	final StringProperty text = new SimpleStringProperty();
 	
-	public ObservableBasicTextComponent(BasicTextComponent component) {
-		super(component);
+	public ObservableBasicTextComponent(BasicTextComponent component, PraisenterContext context, SlideMode mode) {
+		super(component, context, mode);
 		
 		// set initial values
 		this.text.set(component.getText());

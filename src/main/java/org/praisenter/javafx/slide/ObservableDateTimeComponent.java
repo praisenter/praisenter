@@ -2,6 +2,7 @@ package org.praisenter.javafx.slide;
 
 import java.text.SimpleDateFormat;
 
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.text.DateTimeComponent;
@@ -14,8 +15,8 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 
 	final ObjectProperty<SimpleDateFormat> format = new SimpleObjectProperty<SimpleDateFormat>();
 	
-	public ObservableDateTimeComponent(DateTimeComponent component) {
-		super(component);
+	public ObservableDateTimeComponent(DateTimeComponent component, PraisenterContext context, SlideMode mode) {
+		super(component, context, mode);
 		
 		// set initial values
 		this.format.set(component.getFormat());

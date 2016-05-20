@@ -1,5 +1,6 @@
 package org.praisenter.javafx.slide;
 
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.SlidePaint;
@@ -26,8 +27,8 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	final DoubleProperty padding = new SimpleDoubleProperty();
 	final DoubleProperty lineSpacing = new SimpleDoubleProperty();
 	
-	public ObservableTextComponent(T component) {
-		super(component);
+	public ObservableTextComponent(T component, PraisenterContext context, SlideMode mode) {
+		super(component, context, mode);
 		
 		// set initial values
 		this.textPaint.set(component.getTextPaint());
