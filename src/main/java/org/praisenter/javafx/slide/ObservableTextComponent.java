@@ -41,7 +41,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	// nodes
 	
 	final VBox textWrapper;
-	final Text text;
+	final Text textNode;
 	
 	public ObservableTextComponent(T component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
@@ -57,39 +57,39 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		this.lineSpacing.set(component.getLineSpacing());
 		
 		this.textWrapper = new VBox();
-		this.text = new Text();
-		this.text.setBoundsType(TextBoundsType.VISUAL);
-		this.textWrapper.getChildren().add(this.text);
+		this.textNode = new Text();
+		this.textNode.setBoundsType(TextBoundsType.VISUAL);
+		this.textWrapper.getChildren().add(this.textNode);
 		
 		// listen for changes
 		this.textPaint.addListener((obs, ov, nv) -> { 
 			this.region.setTextPaint(nv);
-			this.text.setFill(JavaFXTypeConverter.toJavaFX(nv));
+			this.textNode.setFill(JavaFXTypeConverter.toJavaFX(nv));
 		});
 		this.textBorder.addListener((obs, ov, nv) -> { 
 			this.region.setTextBorder(nv);
 			if (nv != null) {
-				this.text.setStroke(JavaFXTypeConverter.toJavaFX(nv.getPaint()));
-				this.text.setStrokeLineCap(JavaFXTypeConverter.toJavaFX(nv.getStyle().getCap()));
-				this.text.setStrokeLineJoin(JavaFXTypeConverter.toJavaFX(nv.getStyle().getJoin()));
-				this.text.setStrokeType(JavaFXTypeConverter.toJavaFX(nv.getStyle().getType()));
-				this.text.setStrokeWidth(nv.getWidth());
-				this.text.getStrokeDashArray().removeAll();
-				this.text.getStrokeDashArray().addAll(nv.getStyle().getDashes());
+				this.textNode.setStroke(JavaFXTypeConverter.toJavaFX(nv.getPaint()));
+				this.textNode.setStrokeLineCap(JavaFXTypeConverter.toJavaFX(nv.getStyle().getCap()));
+				this.textNode.setStrokeLineJoin(JavaFXTypeConverter.toJavaFX(nv.getStyle().getJoin()));
+				this.textNode.setStrokeType(JavaFXTypeConverter.toJavaFX(nv.getStyle().getType()));
+				this.textNode.setStrokeWidth(nv.getWidth());
+				this.textNode.getStrokeDashArray().removeAll();
+				this.textNode.getStrokeDashArray().addAll(nv.getStyle().getDashes());
 			} else {
-				this.text.setStroke(null);
-				this.text.setStrokeDashOffset(0);
-				this.text.setStrokeWidth(0);
+				this.textNode.setStroke(null);
+				this.textNode.setStrokeDashOffset(0);
+				this.textNode.setStrokeWidth(0);
 			}
 		});
 		this.font.addListener((obs, ov, nv) -> { 
 			this.region.setFont(nv);
-			this.text.setFont(JavaFXTypeConverter.toJavaFX(nv));
+			this.textNode.setFont(JavaFXTypeConverter.toJavaFX(nv));
 			this.updateFont();
 		});
 		this.horizontalTextAlignment.addListener((obs, ov, nv) -> { 
 			this.region.setHorizontalTextAlignment(nv);
-			this.text.setTextAlignment(JavaFXTypeConverter.toJavaFX(nv));
+			this.textNode.setTextAlignment(JavaFXTypeConverter.toJavaFX(nv));
 		});
 		this.verticalTextAlignment.addListener((obs, ov, nv) -> { 
 			this.region.setVerticalTextAlignment(nv);
@@ -106,7 +106,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		});
 		this.lineSpacing.addListener((obs, ov, nv) -> { 
 			this.region.setLineSpacing(nv.doubleValue());
-			this.text.setLineSpacing(nv.doubleValue());
+			this.textNode.setLineSpacing(nv.doubleValue());
 			this.updateFont();
 		});
 	}
@@ -126,7 +126,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		double pw = w - padding * 2;
 		
 		// set the wrapping width and the bounds type
-		this.text.setWrappingWidth(pw);
+		this.textNode.setWrappingWidth(pw);
 		
 		this.updateFont();
 	}
@@ -155,7 +155,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 			font = TextMeasurer.getFittingFontForParagraph(str, base, Double.MAX_VALUE, pw, ph, lineSpacing, TextBoundsType.VISUAL);
 		}
 		
-		this.text.setFont(font);
+		this.textNode.setFont(font);
 	}
 	
 	// text paint

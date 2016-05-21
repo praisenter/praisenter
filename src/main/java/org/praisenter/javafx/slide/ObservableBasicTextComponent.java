@@ -20,7 +20,10 @@ public final class ObservableBasicTextComponent extends ObservableTextComponent<
 		this.text.set(component.getText());
 		
 		// listen for changes
-		this.text.addListener((obs, ov, nv) -> { this.region.setText(nv); });
+		this.text.addListener((obs, ov, nv) -> { 
+			this.region.setText(nv); 
+			this.textNode.setText(nv);
+		});
 	}
 	
 	@Override

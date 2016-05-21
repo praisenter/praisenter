@@ -21,9 +21,9 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 			// TODO update text node
 			SimpleDateFormat f = format.get();
 			if (f == null) {
-				text.setText(new Date().toString());
+				textNode.setText(new Date().toString());
 			} else {
-				text.setText(f.format(new Date()));
+				textNode.setText(f.format(new Date()));
 			}
 		}
 	};
