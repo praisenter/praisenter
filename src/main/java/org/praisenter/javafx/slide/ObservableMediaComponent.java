@@ -33,10 +33,17 @@ public final class ObservableMediaComponent extends ObservableSlideComponent<Med
 			updateMedia();
 		});
 		
-		this.build(this.mediaNode);
+		this.build();
 	}
 	
-	protected void updateSize() {
+	protected void build() {
+		super.build(this.mediaNode);
+		
+		updateMedia();
+	}
+	
+	@Override
+	void updateSize() {
 		super.updateSize();
 		
 		int w = this.width.get();
@@ -45,7 +52,7 @@ public final class ObservableMediaComponent extends ObservableSlideComponent<Med
 	}
 	
 	@Override
-	protected void updateBorder() {
+	void updateBorder() {
 		super.updateBorder();
 		
 		SlideStroke ss = this.border.get();
@@ -53,7 +60,7 @@ public final class ObservableMediaComponent extends ObservableSlideComponent<Med
 		this.mediaNode.setBorderRadius(r);
 	}
 	
-	protected void updateMedia() {
+	private void updateMedia() {
 		MediaObject mo = this.media.get();
 		this.mediaNode.setPaint(mo);
 	}

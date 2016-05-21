@@ -1,13 +1,18 @@
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.UUID;
+
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
+import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.SlideMode;
-import org.praisenter.javafx.slide.FxSlide;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.slide.BasicSlide;
@@ -32,15 +37,6 @@ import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.utility.ClasspathLoader;
-
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.paint.Color;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 
 public class TestSlideDisplay extends Application {
@@ -99,8 +95,8 @@ public class TestSlideDisplay extends Application {
 		
 		slide.addComponent(txt);
 		
-		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -114,16 +110,16 @@ public class TestSlideDisplay extends Application {
 		}
 		
 		MediaObject img = new MediaObject(
-				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
-//				UUID.fromString("3a455fd7-c8f0-4c81-955b-0bcb3e4c47ef"),
+//				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
+				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
-//				UUID.fromString("76fec243-0feb-4a1d-8a56-e57f9193a5cd"),
+//				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
+				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
 				ScaleType.NONUNIFORM,
 				false,
 				true);
@@ -145,13 +141,17 @@ public class TestSlideDisplay extends Application {
 		
 		
 		PraisenterContext context = new PraisenterContext(null, null, null, null, library, null, null, null);
+//		
+//		FxSlide wrapper = new FxSlide(context, slide, SlideMode.PRESENT);
+//		List<MediaPlayer> players = wrapper.getMediaPlayers();
+//		
+//		for (MediaPlayer mp : players) {
+//			mp.play();
+//		}
+//		
+		ObservableSlide<BasicSlide> wrapper2 = new ObservableSlide<BasicSlide>(slide, context, SlideMode.EDIT);
 		
-		FxSlide wrapper = new FxSlide(context, slide, SlideMode.PRESENT);
-		List<MediaPlayer> players = wrapper.getMediaPlayers();
-		
-		for (MediaPlayer mp : players) {
-			mp.play();
-		}
+		wrapper2.play();
 		
 		// test speed of conversion and snapshots
 		
@@ -190,7 +190,8 @@ public class TestSlideDisplay extends Application {
 //		System.out.println((t1 - t0) / 1e9 );
 		
 		Pane pane = new Pane();
-		pane.getChildren().addAll(wrapper.getBackgroundNode(), wrapper.getContentNode(), wrapper.getBorderNode());
+//		pane.getChildren().addAll(wrapper.getBackgroundNode(), wrapper.getContentNode(), wrapper.getBorderNode());
+		pane.getChildren().add(wrapper2.getSlideNode());
 		Scene scene = new Scene(pane, Color.TRANSPARENT);
 		stage.setScene(scene);
 		stage.show();

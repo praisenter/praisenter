@@ -9,11 +9,11 @@ import org.praisenter.slide.text.TextComponent;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public final class ObservableBasicTextComponent extends ObservableTextComponent<BasicTextComponent> implements SlideRegion, SlideComponent, TextComponent {
+public class ObservableBasicTextComponent<T extends BasicTextComponent> extends ObservableTextComponent<T> implements SlideRegion, SlideComponent, TextComponent {
 	
 	final StringProperty text = new SimpleStringProperty();
 	
-	public ObservableBasicTextComponent(BasicTextComponent component, PraisenterContext context, SlideMode mode) {
+	public ObservableBasicTextComponent(T component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values
@@ -22,8 +22,20 @@ public final class ObservableBasicTextComponent extends ObservableTextComponent<
 		// listen for changes
 		this.text.addListener((obs, ov, nv) -> { 
 			this.region.setText(nv); 
-			this.textNode.setText(nv);
+			updateText();
 		});
+		
+		this.build();
+	}
+	
+	void build() {
+		super.build();
+		
+		updateText();
+	}
+	
+	private void updateText() {
+		this.textNode.setText(this.text.get());
 	}
 	
 	@Override

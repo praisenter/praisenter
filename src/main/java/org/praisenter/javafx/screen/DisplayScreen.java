@@ -1,7 +1,6 @@
 package org.praisenter.javafx.screen;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import javafx.animation.Animation.Status;
 import javafx.animation.ParallelTransition;
@@ -14,7 +13,6 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Pane;
-import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
@@ -26,7 +24,7 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
 import org.praisenter.javafx.configuration.ScreenRole;
-import org.praisenter.javafx.slide.FxSlide;
+import org.praisenter.javafx.slide.ObservableSlide;
 
 public final class DisplayScreen {
 	private final String id;
@@ -40,7 +38,7 @@ public final class DisplayScreen {
 	
 	private Transition transition;
 	
-	private FxSlide slide;
+	private ObservableSlide<?> slide;
 	
 	public DisplayScreen(String id, ScreenRole role, Screen screen) {
 		this.id = id;
@@ -89,7 +87,7 @@ public final class DisplayScreen {
 		this.slideSurface1.setBackground(null);
 	}
 	
-	public synchronized void send(final FxSlide slide) {
+	public synchronized void send(final ObservableSlide<?> slide) {
 		// an item was placed on the queue
 		// whats the status of the current transition?
 		if (transition != null) {
@@ -107,7 +105,7 @@ public final class DisplayScreen {
 		}
 	}
 	
-	private synchronized void display(final FxSlide slide) {
+	private synchronized void display(final ObservableSlide<?> slide) {
 		// when it's time to display, we need to determine the transitions that
 		// need to play.  
 		
@@ -123,11 +121,8 @@ public final class DisplayScreen {
 		master.setOnFinished((e) -> {
 			// when this transition is done we need to:
 			// 1. stop all of slide0's media players
-			List<MediaPlayer> players = this.slide.getMediaPlayers();
-			for (MediaPlayer mp : players) {
-				mp.stop();
-				mp.dispose();
-			}
+			this.slide.stop();
+			this.slide.dispose();
 			// 2. remove slide0 from the surface
 			this.surface.getChildren().remove(this.slideSurface0);
 			// 3. remove all of slide0's children
@@ -141,7 +136,7 @@ public final class DisplayScreen {
 		});
 		
 		// add the new slide to the surface
-		this.slideSurface1.getChildren().addAll(slide.getBackgroundNode(), slide.getContentNode(), slide.getBorderNode());
+		this.slideSurface1.getChildren().add(slide.getSlideNode());
 		this.surface.getChildren().add(slideSurface1);
 		
 		this.transition = master;
@@ -149,10 +144,7 @@ public final class DisplayScreen {
 		this.stage.toFront();
 		
 		// start the media players for this slide (if any)
-		List<MediaPlayer> players = slide.getMediaPlayers();
-		for (MediaPlayer mp : players) {
-			mp.play();
-		}
+		this.slide.play();
 		
 		this.transition.play();
 	}
@@ -163,11 +155,8 @@ public final class DisplayScreen {
 		}
 		
 		if (this.slide != null) {
-			List<MediaPlayer> players = this.slide.getMediaPlayers();
-			for (MediaPlayer mp : players) {
-				mp.stop();
-				mp.dispose();
-			}
+			this.slide.stop();
+			this.slide.dispose();
 		}
 		
 		this.stage.close();

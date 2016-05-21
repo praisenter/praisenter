@@ -140,7 +140,7 @@ public final class SlideEditorPane extends Application {
 	
 	
 	Slide slide;
-	FxSlide fxSlide;
+//	FxSlide fxSlide;
 	
 	ObjectProperty<Resolution> targetResolution = new SimpleObjectProperty<>();
 	
@@ -153,8 +153,8 @@ public final class SlideEditorPane extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		
-		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -169,7 +169,8 @@ public final class SlideEditorPane extends Application {
 		
 		Slide slide = createTestSlide();
 		PraisenterContext context = new PraisenterContext(this, stage, null, null, library, null, null, null);
-		FxSlide fxSlide = new FxSlide(context, slide, SlideMode.EDIT);
+//		FxSlide fxSlide = new FxSlide(context, slide, SlideMode.EDIT);
+		ObservableSlide<Slide> oSlide = new ObservableSlide<Slide>(slide, context, SlideMode.EDIT);
 		
 		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));
 		
@@ -257,7 +258,8 @@ public final class SlideEditorPane extends Application {
 		StackPane slideCanvas = new StackPane();
 		slideCanvas.setMinSize(0, 0);
 //		slideCanvas.setBorder(FxFactory.newBorder(Color.BLUE));
-		slideCanvas.getChildren().addAll(fxSlide.getBackgroundNode(), fxSlide.getContentNode(), fxSlide.getBorderNode());
+//		slideCanvas.getChildren().addAll(fxSlide.getBackgroundNode(), fxSlide.getContentNode(), fxSlide.getBorderNode());
+		slideCanvas.getChildren().add(oSlide.getSlideNode());
 		slideCanvas.setPrefSize(500, 500);
 		
 		DoubleBinding scaleFactor = new DoubleBinding() {

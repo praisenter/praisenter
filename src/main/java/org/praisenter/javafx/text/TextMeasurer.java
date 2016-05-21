@@ -24,6 +24,9 @@
  */
 package org.praisenter.javafx.text;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javafx.geometry.Bounds;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -37,6 +40,9 @@ import javafx.scene.text.TextBoundsType;
 public final class TextMeasurer {
 	/** Hidden constructor */
 	private TextMeasurer() {}
+	
+	/** The class-level logger */
+	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** A reusable node for measuring */
     private static final Text JAVAFX_TEXT_NODE = new Text();
@@ -139,7 +145,7 @@ public final class TextMeasurer {
 			i++;
 		}
 		if (i > 0) {
-			System.out.println("Font fitting iterations: " + i);
+			LOGGER.debug("Font fitting iterations: " + i);
 		}
 		return nf;
     }
@@ -211,7 +217,7 @@ public final class TextMeasurer {
 			i++;
 		}
 		if (i > 0) {
-			System.out.println("Font fitting iterations: " + i);
+			LOGGER.debug("Font fitting iterations: " + i);
 		}
 		return nf;
     }

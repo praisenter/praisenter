@@ -64,36 +64,23 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		// listen for changes
 		this.textPaint.addListener((obs, ov, nv) -> { 
 			this.region.setTextPaint(nv);
-			this.textNode.setFill(JavaFXTypeConverter.toJavaFX(nv));
+			updateTextPaint();
 		});
 		this.textBorder.addListener((obs, ov, nv) -> { 
 			this.region.setTextBorder(nv);
-			if (nv != null) {
-				this.textNode.setStroke(JavaFXTypeConverter.toJavaFX(nv.getPaint()));
-				this.textNode.setStrokeLineCap(JavaFXTypeConverter.toJavaFX(nv.getStyle().getCap()));
-				this.textNode.setStrokeLineJoin(JavaFXTypeConverter.toJavaFX(nv.getStyle().getJoin()));
-				this.textNode.setStrokeType(JavaFXTypeConverter.toJavaFX(nv.getStyle().getType()));
-				this.textNode.setStrokeWidth(nv.getWidth());
-				this.textNode.getStrokeDashArray().removeAll();
-				this.textNode.getStrokeDashArray().addAll(nv.getStyle().getDashes());
-			} else {
-				this.textNode.setStroke(null);
-				this.textNode.setStrokeDashOffset(0);
-				this.textNode.setStrokeWidth(0);
-			}
+			updateTextBorder();
 		});
 		this.font.addListener((obs, ov, nv) -> { 
 			this.region.setFont(nv);
-			this.textNode.setFont(JavaFXTypeConverter.toJavaFX(nv));
-			this.updateFont();
+			updateFont();
 		});
 		this.horizontalTextAlignment.addListener((obs, ov, nv) -> { 
 			this.region.setHorizontalTextAlignment(nv);
-			this.textNode.setTextAlignment(JavaFXTypeConverter.toJavaFX(nv));
+			updateHorizontalTextAlignment();
 		});
 		this.verticalTextAlignment.addListener((obs, ov, nv) -> { 
 			this.region.setVerticalTextAlignment(nv);
-			this.textWrapper.setAlignment(JavaFXTypeConverter.toJavaFX(nv));
+			updateVerticalTextAlignment();
 		});
 		this.fontScaleType.addListener((obs, ov, nv) -> { 
 			this.region.setFontScaleType(nv);
@@ -101,24 +88,62 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		});
 		this.padding.addListener((obs, ov, nv) -> { 
 			this.region.setPadding(nv.doubleValue());
-			this.textWrapper.setPadding(new Insets(nv.doubleValue()));
 			updateSize();
 		});
 		this.lineSpacing.addListener((obs, ov, nv) -> { 
 			this.region.setLineSpacing(nv.doubleValue());
-			this.textNode.setLineSpacing(nv.doubleValue());
 			this.updateFont();
 		});
 	}
+
+	void build() {
+		updateTextPaint();
+		updateTextBorder();
+		updateHorizontalTextAlignment();
+		updateVerticalTextAlignment();
+		
+		super.build(this.textWrapper);
+	}
+	
+	void updateTextBorder() {
+		SlideStroke nv = this.textBorder.get();
+		if (nv != null) {
+			this.textNode.setStroke(JavaFXTypeConverter.toJavaFX(nv.getPaint()));
+			this.textNode.setStrokeLineCap(JavaFXTypeConverter.toJavaFX(nv.getStyle().getCap()));
+			this.textNode.setStrokeLineJoin(JavaFXTypeConverter.toJavaFX(nv.getStyle().getJoin()));
+			this.textNode.setStrokeType(JavaFXTypeConverter.toJavaFX(nv.getStyle().getType()));
+			this.textNode.setStrokeWidth(nv.getWidth());
+			this.textNode.getStrokeDashArray().removeAll();
+			this.textNode.getStrokeDashArray().addAll(nv.getStyle().getDashes());
+		} else {
+			this.textNode.setStroke(null);
+			this.textNode.setStrokeDashOffset(0);
+			this.textNode.setStrokeWidth(0);
+		}
+	}
+
+	void updateTextPaint() {
+		this.textNode.setFill(JavaFXTypeConverter.toJavaFX(this.textPaint.get()));
+	}
+	
+	void updateHorizontalTextAlignment() {
+		this.textNode.setTextAlignment(JavaFXTypeConverter.toJavaFX(this.horizontalTextAlignment.get()));
+	}
+	
+	void updateVerticalTextAlignment() {
+		this.textWrapper.setAlignment(JavaFXTypeConverter.toJavaFX(this.verticalTextAlignment.get()));
+	}
 	
 	@Override
-	protected void updateSize() {
+	void updateSize() {
 		super.updateSize();
 		
 		int w = this.width.get();
 		int h = this.height.get();
 		
 		Fx.setSize(this.textWrapper, w, h);
+		
+		this.textWrapper.setPadding(new Insets(this.padding.get()));
 		
 		// compute the bounding text width and height so 
 		// we can compute an accurate font size
@@ -131,7 +156,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		this.updateFont();
 	}
 	
-	protected void updateFont() {
+	void updateFont() {
 		int w = this.width.get();
 		int h = this.height.get();
 		
@@ -143,7 +168,6 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		FontScaleType scaleType = this.fontScaleType.get();
 		double lineSpacing = this.lineSpacing.get();
 		
-		// component.getText()
 		String str = getText();
 		
 		// compute a fitting font, if necessary
@@ -156,6 +180,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		}
 		
 		this.textNode.setFont(font);
+		this.textNode.setLineSpacing(lineSpacing);
 	}
 	
 	// text paint

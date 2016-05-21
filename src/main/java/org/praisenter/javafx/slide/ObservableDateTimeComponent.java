@@ -42,7 +42,7 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 			timer.handle(0);
 		});
 		
-		this.build(this.textWrapper);
+		this.build();
 	}
 
 	// playable stuff

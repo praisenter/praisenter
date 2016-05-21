@@ -28,6 +28,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
+import javafx.scene.layout.Pane;
 
 public final class ObservableSlide<T extends Slide> extends ObservableSlideRegion<T> implements Slide {
 	
@@ -39,15 +40,24 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	final ObservableList<SlideAnimation> animations = FXCollections.observableArrayList();
 	final ObservableSet<Tag> tags = FXCollections.observableSet();
 	
+	// nodes
+	
+	final Pane content;
+	
 	public ObservableSlide(T slide, PraisenterContext context, SlideMode mode) {
 		super(slide, context, mode);
+		
+		this.content = new Pane();
 		
 		// set initial values
 		this.name.set(slide.getName());
 		this.path.set(slide.getPath());
 		this.time.set(slide.getTime());
+		
 		for (SlideComponent component : slide.getComponents(SlideComponent.class)) {
-			this.components.add(this.createObservableFor(component));
+			ObservableSlideComponent<?> comp = this.createObservableFor(component);
+			this.components.add(comp);
+			this.content.getChildren().add(comp.root);
 		}
 		for (SlideAnimation animation : slide.getAnimations()) {
 			this.animations.add(animation);
@@ -57,10 +67,19 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		}
 		
 		// setup listeners
-		this.name.addListener((obs, ov, nv) -> { slide.setName(nv); });
-		this.path.addListener((obs, ov, nv) -> { slide.setPath(nv); });
-		this.time.addListener((obs, ov, nv) -> { slide.setTime(nv.longValue()); });
+		this.name.addListener((obs, ov, nv) -> { 
+			slide.setName(nv); 
+		});
+		this.path.addListener((obs, ov, nv) -> { 
+			slide.setPath(nv); 
+		});
+		this.time.addListener((obs, ov, nv) -> { 
+			slide.setTime(nv.longValue()); 
+		});
+		
 		// FIXME need listeners for list properties
+		
+		this.build(this.content);
 	}
 
 	@Override
@@ -82,11 +101,15 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 			// FIXME implement
 			throw new ClassCastException("Component type not implemented yet");
 		} else if (component instanceof BasicTextComponent) {
-			return new ObservableBasicTextComponent((BasicTextComponent)component, this.context, this.mode);
+			return new ObservableBasicTextComponent<BasicTextComponent>((BasicTextComponent)component, this.context, this.mode);
 		} else {
 			// TODO fix
 			throw new ClassCastException("Component type not handled");
 		}
+	}
+	
+	public Pane getSlideNode() {
+		return this.root;
 	}
 	
 	// animations

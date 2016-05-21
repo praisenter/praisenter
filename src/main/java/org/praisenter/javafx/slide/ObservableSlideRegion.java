@@ -89,7 +89,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		});
 	}
 	
-	protected void updatePosition() {
+	void updatePosition() {
 		// set position
 		int x = this.x.get();
 		int y = this.y.get();
@@ -97,7 +97,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.root.setLayoutY(y);
 	}
 	
-	protected void updateSize() {
+	void updateSize() {
 		int w = this.width.get();
 		int h = this.height.get();
 		
@@ -107,7 +107,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.backgroundNode.setSize(w, h);
 	}
 	
-	protected void updateBorder() {
+	void updateBorder() {
 		SlideStroke ss = this.border.get();
 		
 		// create new border
@@ -126,12 +126,12 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.backgroundNode.setBorderRadius(r);
 	}
 	
-	protected void updateFill() {
+	void updateFill() {
 		SlidePaint paint = this.background.get();
 		this.backgroundNode.setPaint(paint);
 	}
 	
-	protected final ObservableSlideRegion<T> build(Node content) {
+	void build(Node content) {
 		// set initial node properties
 		this.updatePosition();
 		this.updateBorder();
@@ -142,7 +142,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 				this.backgroundNode,
 				content,
 				this.borderNode);
-		return this;
 	}
 	
 	// playable stuff

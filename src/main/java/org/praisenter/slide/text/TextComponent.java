@@ -31,6 +31,8 @@ import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 
+// FEATURE add a countdown component (to a certain time or after a certain duration)
+
 /**
  * Represents a component of a slide that displays text.
  * @author William Bittle
