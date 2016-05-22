@@ -61,6 +61,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.root = new Pane();
 		this.borderNode = new Region();
 		this.backgroundNode = new FillPane(context, mode);
+		this.borderNode.setMouseTransparent(true);
 		
 		// listen for changes
 		this.x.addListener((obs, ov, nv) -> { 
@@ -142,6 +143,10 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 				this.backgroundNode,
 				content,
 				this.borderNode);
+	}
+	
+	public Pane getRootNode() {
+		return this.root;
 	}
 	
 	// playable stuff

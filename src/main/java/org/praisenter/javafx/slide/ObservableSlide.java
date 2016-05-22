@@ -89,6 +89,12 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.y.set(this.region.getY());
 		this.width.set(this.region.getWidth());
 		this.height.set(this.region.getHeight());
+		this.updatePosition();
+		this.updateSize();
+		for (ObservableSlideComponent<?> component : this.components) {
+			component.updatePosition();
+			component.updateSize();
+		}
 	}
 	
 	private ObservableSlideComponent<?> createObservableFor(SlideComponent component) {
@@ -98,8 +104,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		} else if (component instanceof DateTimeComponent) {
 			return new ObservableDateTimeComponent((DateTimeComponent)component, this.context, this.mode);
 		} else if (component instanceof TextPlaceholderComponent) {
-			// FIXME implement
-			throw new ClassCastException("Component type not implemented yet");
+			return new ObservableTextPlaceholderComponent((TextPlaceholderComponent)component, this.context, this.mode);
 		} else if (component instanceof BasicTextComponent) {
 			return new ObservableBasicTextComponent<BasicTextComponent>((BasicTextComponent)component, this.context, this.mode);
 		} else {

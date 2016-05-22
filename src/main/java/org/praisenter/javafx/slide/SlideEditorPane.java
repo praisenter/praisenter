@@ -3,19 +3,25 @@ package org.praisenter.javafx.slide;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Stack;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.VPos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -30,9 +36,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -41,6 +49,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -52,6 +61,8 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import javafx.util.converter.IntegerStringConverter;
+import javafx.util.converter.NumberStringConverter;
 
 import org.controlsfx.dialog.FontSelectorDialog;
 import org.praisenter.javafx.FontPicker;
@@ -109,38 +120,39 @@ import org.praisenter.utility.ClasspathLoader;
 public final class SlideEditorPane extends Application {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
-//	/** The component hover line width */
-//	private static final double LINE_WIDTH = 1.0;
-//	
-//	/** The component hover dash length */
-//	private static final double DASH_LENGTH = 1.0f;
-//	
-//	/** The space between the dashes */
-//	private static final double DASH_SPACE_LENGTH = DASH_LENGTH * 3.0f; 
-//	
-//	// we use two borders each with a different color to allow it to
-//	// be visible regardless of the color of the background of the component
-//	
-//	/** The component hover border color 1 */
-//	private static final Color BORDER_COLOR_1 = Color.BLACK;
-//	
-//	/** The component hover border color 2 */
-//	private static final Color BORDER_COLOR_2 = Color.WHITE;
-//	
-//	/** The size of the resize prongs (should be an odd number to center on corners and sides well) */
-//	static final int RESIZE_PRONG_SIZE = 9;
-//	
-//	// for selection and grid
-//	
-//	/** The border 1 stroke */
-//	static final BorderStroke BORDER_STROKE_1 = new BorderStroke(BORDER_COLOR_1, new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, 0.0, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
-//	
-//	/** The border 2 stroke */
-//	static final BorderStroke BORDER_STROKE_2 = new BorderStroke(BORDER_COLOR_2, new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, DASH_LENGTH * 2.0, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
+	/** The component hover line width */
+	private static final double LINE_WIDTH = 20.0;
+	
+	/** The component hover dash length */
+	private static final double DASH_LENGTH = 20.0f;
+	
+	/** The space between the dashes */
+	private static final double DASH_SPACE_LENGTH = DASH_LENGTH * 3.0f; 
+	
+	// we use two borders each with a different color to allow it to
+	// be visible regardless of the color of the background of the component
+	
+	/** The component hover border color 1 */
+	private static final Color BORDER_COLOR_1 = Color.BLACK;
+	
+	/** The component hover border color 2 */
+	private static final Color BORDER_COLOR_2 = Color.WHITE;
+	
+	/** The size of the resize prongs (should be an odd number to center on corners and sides well) */
+	static final int RESIZE_PRONG_SIZE = 9;
+	
+	// for selection and grid
+	
+	/** The border 1 stroke */
+	static final BorderStroke BORDER_STROKE_1 = new BorderStroke(BORDER_COLOR_1, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, 0.0, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
+	
+	/** The border 2 stroke */
+	static final BorderStroke BORDER_STROKE_2 = new BorderStroke(BORDER_COLOR_2, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, DASH_LENGTH * 2.0, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
 	
 	
 	Slide slide;
 //	FxSlide fxSlide;
+	ObservableSlide<?> oSlide;
 	
 	ObjectProperty<Resolution> targetResolution = new SimpleObjectProperty<>();
 	
@@ -148,6 +160,8 @@ public final class SlideEditorPane extends Application {
 	public static void main(String[] args) {
 		Application.launch(args);
 	}
+	
+	StackPane slidePreview;
 	
 	// TODO translate
 	@Override
@@ -170,11 +184,39 @@ public final class SlideEditorPane extends Application {
 		Slide slide = createTestSlide();
 		PraisenterContext context = new PraisenterContext(this, stage, null, null, library, null, null, null);
 //		FxSlide fxSlide = new FxSlide(context, slide, SlideMode.EDIT);
-		ObservableSlide<Slide> oSlide = new ObservableSlide<Slide>(slide, context, SlideMode.EDIT);
+		oSlide = new ObservableSlide<Slide>(slide, context, SlideMode.EDIT);
+		
+		EventHandler<MouseEvent> entered = new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent e) {
+				System.out.println("entered");
+				Border newBorder = new Border(BORDER_STROKE_1, BORDER_STROKE_2);
+				((Region)e.getSource()).setBorder(newBorder);
+			}
+		};
+		EventHandler<MouseEvent> exited = new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent e) {
+				System.out.println("exited");
+				((Region)e.getSource()).setBorder(null);
+			}
+		};
+		
+		oSlide.root.setOnMouseEntered(entered);
+		oSlide.root.setOnMouseExited(exited);
+//		oSlide.getRootNode().setOnMouseExited((e) -> {
+//			System.out.println("exited");
+//			oSlide.getRootNode().setBorder(null);
+//		});
+		for (ObservableSlideRegion<?> osr : oSlide.components) {
+			osr.root.setOnMouseEntered(entered);
+			osr.root.setOnMouseExited(exited);
+		}
 		
 		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));
 		
 		// Slide Preview Node hierarchy
+		// FIXME something is wrong with the scaling or something...
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// BorderPane							This node ensures the size of the wrapper node is resized.
 		//	- Pane (slidePreview)				This node is the wrapper for the slide area.
@@ -183,12 +225,12 @@ public final class SlideEditorPane extends Application {
 		//				- FxSlide nodes...
 		
 		
-		Pane slidePreview = new Pane();
-//		slidePreview.setBorder(FxFactory.newBorder(Color.ORANGE));
+		slidePreview = new StackPane();
+		slidePreview.setBorder(Fx.newBorder(Color.ORANGE));
 		
 		// TODO see http://fxexperience.com/2014/05/resizable-grid-using-canvas/ for a grid example
 		StackPane slideBounds = new StackPane();
-//		slideBounds.setBorder(FxFactory.newBorder(Color.RED));
+		slideBounds.setBorder(Fx.newBorder(Color.RED));
 		slideBounds.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
 //		slideBounds.setEffect(new DropShadow(10, Color.BLACK));
 		
@@ -222,6 +264,40 @@ public final class SlideEditorPane extends Application {
 				return getUniformlyScaledBounds(r.getWidth(), r.getHeight(), tw, th).getHeight();
 			}
 		};
+		slideBounds.maxWidthProperty().bind(widthSizing);
+		slideBounds.maxHeightProperty().bind(heightSizing);
+		
+		Pane slideCanvas = new Pane();
+		slideCanvas.setMinSize(0, 0);
+		slideCanvas.setBorder(Fx.newBorder(Color.GREEN));
+		slideCanvas.getChildren().add(oSlide.getSlideNode());
+		
+		DoubleBinding scaleFactor = new DoubleBinding() {
+			{
+				bind(slidePreview.widthProperty(), slidePreview.heightProperty());
+			}
+			@Override
+			protected double computeValue() {
+				double tw = slideBounds.getWidth();
+				double th = slideBounds.getHeight();
+				// if so, lets get the scale factors
+//				double sw = Math.min(1.0, (double)tw / (double)slide.getWidth());
+//				double sh = Math.min(1.0, (double)th / (double)slide.getHeight());
+				double sw = (double)tw / (double)slide.getWidth();
+				double sh = (double)th / (double)slide.getHeight();
+				// if we want to scale uniformly we need to choose
+				// the smallest scale factor
+				if (sw < sh) {
+					return sw;
+				} else {
+					return sh;
+				}
+			}
+		};
+		slideCanvas.scaleXProperty().bind(scaleFactor);
+		slideCanvas.scaleYProperty().bind(scaleFactor);
+		slideCanvas.setManaged(false);
+		
 		DoubleBinding xPositioning = new DoubleBinding() {
 			{
 				bind(slidePreview.widthProperty(), 
@@ -250,43 +326,21 @@ public final class SlideEditorPane extends Application {
 				return getUniformlyScaledBounds(r.getWidth(), r.getHeight(), tw, th).getMinY();
 			}
 		};
-		slideBounds.prefWidthProperty().bind(widthSizing);
-		slideBounds.prefHeightProperty().bind(heightSizing);
-		slideBounds.layoutXProperty().bind(xPositioning);
-		slideBounds.layoutYProperty().bind(yPositioning);
+		slideCanvas.layoutXProperty().bind(xPositioning);
+		slideCanvas.layoutYProperty().bind(yPositioning);
 		
-		StackPane slideCanvas = new StackPane();
-		slideCanvas.setMinSize(0, 0);
-//		slideCanvas.setBorder(FxFactory.newBorder(Color.BLUE));
-//		slideCanvas.getChildren().addAll(fxSlide.getBackgroundNode(), fxSlide.getContentNode(), fxSlide.getBorderNode());
-		slideCanvas.getChildren().add(oSlide.getSlideNode());
-		slideCanvas.setPrefSize(500, 500);
+//		slideCanvas.maxWidthProperty().bind(widthSizing);
+//		slideCanvas.maxHeightProperty().bind(heightSizing);
+//		slideCanvas.scaleXProperty().addListener((obs, ov, nv) -> {
+//			System.out.println(nv.doubleValue());
+//			System.out.println(slideCanvas.getWidth());
+////			slideCanvas.setTranslateX(0 - slideCanvas.getWidth() * nv.doubleValue() * 0.5);     
+////			slideCanvas.setTranslateY(0 - slideCanvas.getHeight() * nv.doubleValue() * 0.5);
+//		});
 		
-		DoubleBinding scaleFactor = new DoubleBinding() {
-			{
-				bind(slideBounds.widthProperty(), slideBounds.heightProperty());
-			}
-			@Override
-			protected double computeValue() {
-				double tw = slideBounds.getWidth();
-				double th = slideBounds.getHeight();
-				// if so, lets get the scale factors
-				double sw = Math.min(1.0, (double)tw / (double)slide.getWidth());
-				double sh = Math.min(1.0, (double)th / (double)slide.getHeight());
-				// if we want to scale uniformly we need to choose
-				// the smallest scale factor
-				if (sw < sh) {
-					return sw;
-				} else {
-					return sh;
-				}
-			}
-		};
-		slideCanvas.scaleXProperty().bind(scaleFactor);
-		slideCanvas.scaleYProperty().bind(scaleFactor);
-		
-		slideBounds.getChildren().add(slideCanvas);
-		slidePreview.getChildren().add(slideBounds);
+//		slideBounds.getChildren().addAll();
+		slidePreview.getChildren().addAll(slideBounds, slideCanvas);
+		StackPane.setAlignment(slideBounds, Pos.CENTER);
 		
 		// properties pane
 		// TODO Scrolling
@@ -336,9 +390,9 @@ public final class SlideEditorPane extends Application {
 			cmbResolutions.valueProperty().bindBidirectional(targetResolution);
 			cmbResolutions.valueProperty().addListener((obs, ov, nv) -> {
 				// when this changes we need to adjust all the sizes of the controls in the slide
-				slide.fit(nv.getWidth(), nv.getHeight());
+				oSlide.fit(nv.getWidth(), nv.getHeight());
 				// then we need to update all the Java FX nodes
-				
+				scaleFactor.invalidate();
 			});
 			Button btnNewResolution = new Button("Add");
 			HBox tRes = new HBox();
@@ -369,6 +423,7 @@ public final class SlideEditorPane extends Application {
 			TextField txtX = new TextField();
 			txtX.setPrefWidth(75);
 			txtX.setPromptText("x");
+			Bindings.bindBidirectional(txtX.textProperty(), oSlide.x, new NumberStringConverter());
 			TextField txtY = new TextField();
 			txtY.setPrefWidth(75);
 			txtY.setPromptText("y");
@@ -472,7 +527,7 @@ public final class SlideEditorPane extends Application {
 		
 		SlideStroke thick = new SlideStroke(
 				new SlideColor(0.5, 0, 0, 1), 
-				new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, 5.0, 10.0), 
+				new SlideStrokeStyle(SlideStrokeType.INSIDE, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, 5.0, 10.0), 
 				5, 
 				5);
 		
@@ -494,7 +549,7 @@ public final class SlideEditorPane extends Application {
 		txt.setOrder(0);
 		txt.setPadding(10);
 		txt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
-		txt.setBorder(thick);
+//		txt.setBorder(thick);
 		txt.setTextPaint(radial);
 		txt.setTextBorder(stroke);
 		txt.setText("Lorem ipsum dolor \n\nsit amet, consectetur adipiscing elit. Nam viverra tristique mauris. Suspendisse potenti. Etiam justo erat, mollis eget mi nec, euismod interdum magna. Aenean ac nulla fermentum, ullamcorper arcu sed, fermentum orci. Donec varius neque eget sapien cursus maximus. Fusce mauris lectus, pellentesque vel sem cursus, dapibus vehicula est. In tincidunt ultrices est nec finibus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eu nisi augue. Integer commodo enim sed rutrum rutrum. Quisque tristique id ipsum sed malesuada. Maecenas non diam eget felis pulvinar sodales.");
@@ -502,16 +557,16 @@ public final class SlideEditorPane extends Application {
 		slide.addComponent(txt);
 		
 		MediaObject img = new MediaObject(
-				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
-//				UUID.fromString("3df0f8ef-faa5-4d2c-820d-2d8dc55216b9"),
+//				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
+				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
-//				UUID.fromString("00c9ac93-6923-4f4c-a3c2-6bcd9572b170"),
+//				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
+				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
 				ScaleType.NONUNIFORM,
 				false,
 				true);
@@ -528,8 +583,9 @@ public final class SlideEditorPane extends Application {
 		slide.addComponent(mc);
 		
 
-		slide.setBackground(vid);
-		slide.setBorder(thick);
+//		slide.setBackground(vid);
+		slide.setBackground(new SlideColor(0, 0, 1.0, 0.5));
+		//slide.setBorder(thick);
 		
 		
 		return slide;
