@@ -37,9 +37,9 @@ public final class ObservableMediaComponent extends ObservableSlideComponent<Med
 	}
 	
 	protected void build() {
-		super.build(this.mediaNode);
-		
 		updateMedia();
+		
+		super.build(this.mediaNode);
 	}
 	
 	@Override

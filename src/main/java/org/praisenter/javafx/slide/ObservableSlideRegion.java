@@ -1,18 +1,32 @@
 package org.praisenter.javafx.slide;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.UUID;
 
+import javax.imageio.ImageIO;
+
+import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
 
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
@@ -38,11 +52,20 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 	final ObjectProperty<SlidePaint> background = new SimpleObjectProperty<SlidePaint>();
 	final ObjectProperty<SlideStroke> border = new SimpleObjectProperty<SlideStroke>();
 	
+	final ObjectProperty<Scaling> scale = new SimpleObjectProperty<Scaling>();
+	
 	// nodes
 	
-	final Pane root;
-	final FillPane backgroundNode;
-	final Region borderNode;
+	final Scene scene;
+	private final Pane root;
+	private final FillPane backgroundNode;
+	private final Region borderNode;
+	
+	// output
+	
+	WritableImage image;
+	final Pane wrap;
+	final ImageView imageView;
 	
 	public ObservableSlideRegion(T region, PraisenterContext context, SlideMode mode) {
 		this.region = region;
@@ -59,9 +82,14 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		
 		// setup nodes
 		this.root = new Pane();
+		this.root.setBackground(null);
 		this.borderNode = new Region();
 		this.backgroundNode = new FillPane(context, mode);
 		this.borderNode.setMouseTransparent(true);
+		this.scene = new Scene(root, Color.TRANSPARENT);
+		this.imageView = new ImageView();
+		this.wrap = new Pane(this.imageView);
+		this.wrap.setBackground(null);
 		
 		// listen for changes
 		this.x.addListener((obs, ov, nv) -> { 
@@ -75,18 +103,33 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.width.addListener((obs, ov, nv) -> { 
 			this.region.setWidth(nv.intValue());
 			updateSize();
+//			updateImage();
 		});
 		this.height.addListener((obs, ov, nv) -> { 
 			this.region.setHeight(nv.intValue());
 			updateSize();
+//			updateImage();
 		});
 		this.background.addListener((obs, ov, nv) -> { 
 			this.region.setBackground(nv);
 			updateFill();
+//			updateImage();
 		});
 		this.border.addListener((obs, ov, nv) -> { 
 			this.region.setBorder(nv);
 			updateBorder();
+//			updateImage();
+		});
+		
+		this.scale.addListener((obs, ov, nv) -> {
+			double w = this.region.getWidth();
+			double h = this.region.getHeight();
+			
+			wrap.setLayoutX(nv.sx + this.x.get() * nv.scale);
+			wrap.setLayoutY(nv.sy + this.y.get() * nv.scale);
+			imageView.setFitWidth(w * nv.scale);
+			imageView.setFitHeight(h * nv.scale);
+			imageView.setPreserveRatio(true);
 		});
 	}
 	
@@ -139,15 +182,51 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.updateFill();
 		this.updateSize();
 		
-		this.root.getChildren().addAll(
-				this.backgroundNode,
-				content,
-				this.borderNode);
+		if (content != null) {
+			this.root.getChildren().addAll(
+					this.backgroundNode,
+					content,
+					this.borderNode);
+		} else {
+			this.root.getChildren().addAll(
+					this.backgroundNode,
+					this.borderNode);
+		}
+		
+		this.updateImage();
 	}
 	
-	public Pane getRootNode() {
-		return this.root;
+	// FIXME this needs to be called when a bunch of stuff changes, but we really only want it to be called when all the stuff has been updated
+	void updateImage() {
+		SnapshotParameters params = new SnapshotParameters();
+		params.setDepthBuffer(false);
+		params.setFill(Color.TRANSPARENT);
+		if (this.image != null) {
+			if (this.width.get() != (int)this.image.getWidth() ||
+				this.height.get() != (int)this.image.getHeight()) {
+				this.image = null;
+			}
+		}
+//		Platform.runLater(() -> {
+			this.image = this.root.snapshot(params, this.image);
+			// TODO for debugging
+//			try {
+//				ImageIO.write(SwingFXUtils.fromFXImage(this.image, null), "png", new File("C:\\Users\\William\\Desktop\\" + UUID.randomUUID().toString() + ".png"));
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+			this.imageView.setImage(this.image);
+//		});
+		
+		
+		
+		
 	}
+	
+//	public Pane getRootNode() {
+//		return this.root;
+//	}
 	
 	// playable stuff
 	

@@ -40,14 +40,8 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	final ObservableList<SlideAnimation> animations = FXCollections.observableArrayList();
 	final ObservableSet<Tag> tags = FXCollections.observableSet();
 	
-	// nodes
-	
-	final Pane content;
-	
 	public ObservableSlide(T slide, PraisenterContext context, SlideMode mode) {
 		super(slide, context, mode);
-		
-		this.content = new Pane();
 		
 		// set initial values
 		this.name.set(slide.getName());
@@ -57,7 +51,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		for (SlideComponent component : slide.getComponents(SlideComponent.class)) {
 			ObservableSlideComponent<?> comp = this.createObservableFor(component);
 			this.components.add(comp);
-			this.content.getChildren().add(comp.root);
+//			this.content.getChildren().add(comp.root);
 		}
 		for (SlideAnimation animation : slide.getAnimations()) {
 			this.animations.add(animation);
@@ -79,7 +73,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		
 		// FIXME need listeners for list properties
 		
-		this.build(this.content);
+		this.build(null);
 	}
 
 	@Override
@@ -89,11 +83,17 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.y.set(this.region.getY());
 		this.width.set(this.region.getWidth());
 		this.height.set(this.region.getHeight());
-		this.updatePosition();
-		this.updateSize();
+		updatePosition();
+		updateSize();
+		updateImage();
 		for (ObservableSlideComponent<?> component : this.components) {
+			component.x.set(component.region.getX());
+			component.y.set(component.region.getY());
+			component.width.set(component.region.getWidth());
+			component.height.set(component.region.getHeight());
 			component.updatePosition();
 			component.updateSize();
+			component.updateImage();
 		}
 	}
 	
@@ -113,9 +113,9 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		}
 	}
 	
-	public Pane getSlideNode() {
-		return this.root;
-	}
+//	public Pane getSlideNode() {
+//		return this.root;
+//	}
 	
 	// animations
 	

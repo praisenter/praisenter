@@ -29,9 +29,9 @@ public class ObservableBasicTextComponent<T extends BasicTextComponent> extends 
 	}
 	
 	void build() {
-		super.build();
-		
 		updateText();
+		
+		super.build();
 	}
 	
 	private void updateText() {

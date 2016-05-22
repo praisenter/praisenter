@@ -27,6 +27,8 @@ public final class ObservableTextPlaceholderComponent extends ObservableBasicTex
 		// set initial values
 		this.placeholderType.set(component.getType());
 		this.variants.addAll(component.getVariants());
+		
+		this.build();
 	}
 	
 	@Override

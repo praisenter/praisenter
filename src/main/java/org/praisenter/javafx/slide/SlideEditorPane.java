@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -121,10 +122,10 @@ public final class SlideEditorPane extends Application {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
 	/** The component hover line width */
-	private static final double LINE_WIDTH = 20.0;
+	private static final double LINE_WIDTH = 1.0;
 	
 	/** The component hover dash length */
-	private static final double DASH_LENGTH = 20.0f;
+	private static final double DASH_LENGTH = 1.0f;
 	
 	/** The space between the dashes */
 	private static final double DASH_SPACE_LENGTH = DASH_LENGTH * 3.0f; 
@@ -202,16 +203,16 @@ public final class SlideEditorPane extends Application {
 			}
 		};
 		
-		oSlide.root.setOnMouseEntered(entered);
-		oSlide.root.setOnMouseExited(exited);
+//		oSlide.root.setOnMouseEntered(entered);
+//		oSlide.root.setOnMouseExited(exited);
 //		oSlide.getRootNode().setOnMouseExited((e) -> {
 //			System.out.println("exited");
 //			oSlide.getRootNode().setBorder(null);
 //		});
-		for (ObservableSlideRegion<?> osr : oSlide.components) {
-			osr.root.setOnMouseEntered(entered);
-			osr.root.setOnMouseExited(exited);
-		}
+//		for (ObservableSlideRegion<?> osr : oSlide.components) {
+//			osr.root.setOnMouseEntered(entered);
+//			osr.root.setOnMouseExited(exited);
+//		}
 		
 		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));
 		
@@ -270,64 +271,113 @@ public final class SlideEditorPane extends Application {
 		Pane slideCanvas = new Pane();
 		slideCanvas.setMinSize(0, 0);
 		slideCanvas.setBorder(Fx.newBorder(Color.GREEN));
-		slideCanvas.getChildren().add(oSlide.getSlideNode());
 		
-		DoubleBinding scaleFactor = new DoubleBinding() {
+		ObjectBinding<Scaling> scaleFactor = new ObjectBinding<Scaling>() {
 			{
 				bind(slidePreview.widthProperty(), slidePreview.heightProperty());
 			}
 			@Override
-			protected double computeValue() {
-				double tw = slideBounds.getWidth();
-				double th = slideBounds.getHeight();
+			protected Scaling computeValue() {
+				double tw = slidePreview.getWidth();
+				double th = slidePreview.getHeight();
+				double w = slide.getWidth();
+				double h = slide.getHeight();
 				// if so, lets get the scale factors
 //				double sw = Math.min(1.0, (double)tw / (double)slide.getWidth());
 //				double sh = Math.min(1.0, (double)th / (double)slide.getHeight());
-				double sw = (double)tw / (double)slide.getWidth();
-				double sh = (double)th / (double)slide.getHeight();
+				double sw = tw / w;
+				double sh = th / h;
 				// if we want to scale uniformly we need to choose
 				// the smallest scale factor
+				double scale = sw < sh ? sw : sh;
+				
+				// to scale uniformly we need to 
+				// scale by the smallest factor
 				if (sw < sh) {
-					return sw;
+					w = tw;
+					h = (int)Math.ceil(sw * h);
 				} else {
-					return sh;
+					w = (int)Math.ceil(sh * w);
+					h = th;
 				}
+
+				// center the image
+				double x = (tw - w) / 2.0;
+				double y = (th - h) / 2.0;
+				
+				return new Scaling(scale, x, y);
 			}
 		};
-		slideCanvas.scaleXProperty().bind(scaleFactor);
-		slideCanvas.scaleYProperty().bind(scaleFactor);
-		slideCanvas.setManaged(false);
 		
-		DoubleBinding xPositioning = new DoubleBinding() {
-			{
-				bind(slidePreview.widthProperty(), 
-					 slidePreview.heightProperty(),
-					 targetResolution);
-			}
-			@Override
-			protected double computeValue() {
-				Resolution r = targetResolution.get();
-				double tw = slidePreview.getWidth();
-				double th = slidePreview.getHeight();
-				return getUniformlyScaledBounds(r.getWidth(), r.getHeight(), tw, th).getMinX();
-			}
-		};
-		DoubleBinding yPositioning = new DoubleBinding() {
-			{
-				bind(slidePreview.widthProperty(), 
-					 slidePreview.heightProperty(),
-					 targetResolution);
-			}
-			@Override
-			protected double computeValue() {
-				Resolution r = targetResolution.get();
-				double tw = slidePreview.getWidth();
-				double th = slidePreview.getHeight();
-				return getUniformlyScaledBounds(r.getWidth(), r.getHeight(), tw, th).getMinY();
-			}
-		};
-		slideCanvas.layoutXProperty().bind(xPositioning);
-		slideCanvas.layoutYProperty().bind(yPositioning);
+//		DoubleBinding scaleFactor = new DoubleBinding() {
+//			{
+//				bind(slidePreview.widthProperty(), slidePreview.heightProperty());
+//			}
+//			@Override
+//			protected double computeValue() {
+//				double tw = slideBounds.getWidth();
+//				double th = slideBounds.getHeight();
+//				// if so, lets get the scale factors
+////				double sw = Math.min(1.0, (double)tw / (double)slide.getWidth());
+////				double sh = Math.min(1.0, (double)th / (double)slide.getHeight());
+//				double sw = (double)tw / (double)slide.getWidth();
+//				double sh = (double)th / (double)slide.getHeight();
+//				// if we want to scale uniformly we need to choose
+//				// the smallest scale factor
+//				if (sw < sh) {
+//					return sw;
+//				} else {
+//					return sh;
+//				}
+//			}
+//		};
+		
+		slideCanvas.getChildren().add(oSlide.wrap);
+		oSlide.scale.bind(scaleFactor);
+		oSlide.wrap.setOnMouseEntered(entered);
+		oSlide.wrap.setOnMouseExited(exited);
+		for (ObservableSlideRegion<?> osr : oSlide.components) {
+			slideCanvas.getChildren().add(osr.wrap);
+			osr.scale.bind(scaleFactor);
+			osr.wrap.setOnMouseEntered(entered);
+			osr.wrap.setOnMouseExited(exited);
+		}
+		
+		
+//		slideCanvas.scaleXProperty().bind(scaleFactor);
+//		slideCanvas.scaleYProperty().bind(scaleFactor);
+//		slideCanvas.setManaged(false);
+//		
+//		DoubleBinding xPositioning = new DoubleBinding() {
+//			{
+//				bind(slidePreview.widthProperty(), 
+//					 slidePreview.heightProperty(),
+//					 targetResolution);
+//			}
+//			@Override
+//			protected double computeValue() {
+//				Resolution r = targetResolution.get();
+//				double tw = slidePreview.getWidth();
+//				double th = slidePreview.getHeight();
+//				return getUniformlyScaledBounds(r.getWidth(), r.getHeight(), tw, th).getMinX();
+//			}
+//		};
+//		DoubleBinding yPositioning = new DoubleBinding() {
+//			{
+//				bind(slidePreview.widthProperty(), 
+//					 slidePreview.heightProperty(),
+//					 targetResolution);
+//			}
+//			@Override
+//			protected double computeValue() {
+//				Resolution r = targetResolution.get();
+//				double tw = slidePreview.getWidth();
+//				double th = slidePreview.getHeight();
+//				return getUniformlyScaledBounds(r.getWidth(), r.getHeight(), tw, th).getMinY();
+//			}
+//		};
+//		slideCanvas.layoutXProperty().bind(xPositioning);
+//		slideCanvas.layoutYProperty().bind(yPositioning);
 		
 //		slideCanvas.maxWidthProperty().bind(widthSizing);
 //		slideCanvas.maxHeightProperty().bind(heightSizing);
@@ -549,7 +599,7 @@ public final class SlideEditorPane extends Application {
 		txt.setOrder(0);
 		txt.setPadding(10);
 		txt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
-//		txt.setBorder(thick);
+		txt.setBorder(thick);
 		txt.setTextPaint(radial);
 		txt.setTextBorder(stroke);
 		txt.setText("Lorem ipsum dolor \n\nsit amet, consectetur adipiscing elit. Nam viverra tristique mauris. Suspendisse potenti. Etiam justo erat, mollis eget mi nec, euismod interdum magna. Aenean ac nulla fermentum, ullamcorper arcu sed, fermentum orci. Donec varius neque eget sapien cursus maximus. Fusce mauris lectus, pellentesque vel sem cursus, dapibus vehicula est. In tincidunt ultrices est nec finibus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eu nisi augue. Integer commodo enim sed rutrum rutrum. Quisque tristique id ipsum sed malesuada. Maecenas non diam eget felis pulvinar sodales.");
