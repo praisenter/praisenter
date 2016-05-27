@@ -3,15 +3,11 @@ package org.praisenter.javafx.slide.editor;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Stack;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javafx.application.Application;
-import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ObjectProperty;
@@ -21,22 +17,15 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
-import javafx.geometry.VPos;
 import javafx.scene.Cursor;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
@@ -50,41 +39,28 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import javafx.util.Callback;
-import javafx.util.converter.IntegerStringConverter;
-import javafx.util.converter.NumberStringConverter;
 
-import org.controlsfx.dialog.FontSelectorDialog;
 import org.praisenter.javafx.FontPicker;
-import org.praisenter.javafx.GradientPicker;
-import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.Resolution;
 import org.praisenter.javafx.TagListView;
-import org.praisenter.javafx.animation.AnimationPane;
+import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.configuration.Resolution;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
-import org.praisenter.javafx.media.MediaPicker;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.Scaling;
 import org.praisenter.javafx.slide.SlideMode;
-import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
-import org.praisenter.media.MediaType;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
@@ -127,13 +103,13 @@ public final class SlideEditorPane extends Application {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
 	/** The component hover line width */
-	private static final double LINE_WIDTH = 2.0;
+	private static final double LINE_WIDTH = 1.0;
 	
 	/** The component hover dash length */
-	private static final double DASH_LENGTH = 4.0f;
+	private static final double DASH_LENGTH = 2.0f;
 	
 	/** The space between the dashes */
-	private static final double DASH_SPACE_LENGTH = DASH_LENGTH; 
+	private static final double DASH_SPACE_LENGTH = DASH_LENGTH * 2; 
 	
 	// we use two borders each with a different color to allow it to
 	// be visible regardless of the color of the background of the component
@@ -172,8 +148,8 @@ public final class SlideEditorPane extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		
-		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -236,6 +212,7 @@ public final class SlideEditorPane extends Application {
 		
 		
 		slidePreview = new StackPane();
+		slidePreview.setPrefSize(500, 400);
 //		slidePreview.setBorder(Fx.newBorder(Color.ORANGE));
 		
 		StackPane slideBounds = new StackPane();
@@ -371,25 +348,11 @@ public final class SlideEditorPane extends Application {
 			grid.add(lblTime, 0, 1);
 			grid.add(txtTime, 1, 1);
 			
-			Label lblTags = new Label("");
-			TagListView lstTags = new TagListView(FXCollections.observableSet());
-			grid.add(lblTags, 0, 2);
-			grid.add(lstTags, 1, 2);
 			
-			TitledPane ttlSlide = new TitledPane("Slide Properties", grid);
-			propertiesPane.getChildren().add(ttlSlide);
-		}
-		
-		{
-			GridPane grid = new GridPane();
-			grid.setHgap(5);
-			grid.setVgap(3);
-	//		grid.setGridLinesVisible(true);
-			
-			// target (controls the screen size)
+			Configuration conf = Configuration.createDefaultConfiguration();
 			
 			Label lblResolution = new Label("Target");
-			ComboBox<Resolution> cmbResolutions = new ComboBox<Resolution>(FXCollections.observableArrayList(Resolution.DEFAULT_RESOLUTIONS));
+			ComboBox<Resolution> cmbResolutions = new ComboBox<Resolution>(conf.resolutionsProperty());
 			cmbResolutions.valueProperty().bindBidirectional(targetResolution);
 			cmbResolutions.valueProperty().addListener((obs, ov, nv) -> {
 				// when this changes we need to adjust all the sizes of the controls in the slide
@@ -401,42 +364,13 @@ public final class SlideEditorPane extends Application {
 			HBox tRes = new HBox();
 			tRes.setSpacing(2);
 			tRes.getChildren().addAll(cmbResolutions, btnNewResolution);
-			grid.add(lblResolution, 0, 0);
-			grid.add(tRes, 1, 0);
+			grid.add(lblResolution, 0, 2);
+			grid.add(tRes, 1, 2);
 			
-			// size (controls the slide size)
+			TagListView lstTags = new TagListView(FXCollections.observableSet());
+			grid.add(lstTags, 0, 3, 2, 1);
 			
-			Label lblSize = new Label("Size");
-			TextField txtWidth = new TextField();
-			txtWidth.setPrefWidth(75);
-			txtWidth.setPromptText("width");
-			TextField txtHeight = new TextField();
-			txtHeight.setPromptText("height");
-			txtHeight.setPrefWidth(75);
-			HBox wh = new HBox();
-			wh.setSpacing(2);
-			wh.setAlignment(Pos.BASELINE_LEFT);
-			wh.getChildren().addAll(txtWidth, txtHeight);
-			grid.add(lblSize, 0, 1);
-			grid.add(wh, 1, 1);
-
-			// position
-			
-			Label lblPosition = new Label("Position");
-			TextField txtX = new TextField();
-			txtX.setPrefWidth(75);
-			txtX.setPromptText("x");
-			//Bindings.bindBidirectional(txtX.textProperty(), oSlide.x, new NumberStringConverter());
-			TextField txtY = new TextField();
-			txtY.setPrefWidth(75);
-			txtY.setPromptText("y");
-			grid.add(lblPosition, 0, 2);
-			HBox xy = new HBox();
-			xy.getChildren().addAll(txtX, txtY);
-			xy.setSpacing(2);
-			grid.add(xy, 1, 2);
-			
-			TitledPane ttlSlide = new TitledPane("Size & Position", grid);
+			TitledPane ttlSlide = new TitledPane("Slide Properties", grid);
 			propertiesPane.getChildren().add(ttlSlide);
 		}
 		
@@ -444,7 +378,6 @@ public final class SlideEditorPane extends Application {
 			GridPane grid = new GridPane();
 			grid.setHgap(5);
 			grid.setVgap(3);
-	//		grid.setGridLinesVisible(true);
 			
 			// background
 			SlidePaintPicker pkrBackground = new SlidePaintPicker(context, PaintType.COLOR, PaintType.GRADIENT);
@@ -452,24 +385,11 @@ public final class SlideEditorPane extends Application {
 			TitledPane ttlSlide = new TitledPane("Slide Background", pkrBackground);
 			propertiesPane.getChildren().add(ttlSlide);
 			
-//			FontPicker pkrFont = new FontPicker(Font.font("Segoe UI Black", 30), FXCollections.observableArrayList(Font.getFamilies()));
-//			propertiesPane.getChildren().add(pkrFont);
-		}
-		
-		{
-			GridPane grid = new GridPane();
-			grid.setHgap(5);
-			grid.setVgap(3);
-	//		grid.setGridLinesVisible(true);
-			
-			
-			
-			TitledPane aniPane = new TitledPane("Transition & Animations", grid);
-			propertiesPane.getChildren().add(aniPane);
+			FontPicker pkrFont = new FontPicker(Font.font("Segoe UI Black", 30), FXCollections.observableArrayList(Font.getFamilies()));
+			propertiesPane.getChildren().add(pkrFont);
 		}
 		
 		BorderPane bdr = new BorderPane();
-//		bdr.setBorder(FxFactory.newBorder(Color.BLACK));
 		bdr.setPadding(new Insets(20));
 		bdr.setCenter(slidePreview);
 		
@@ -478,7 +398,7 @@ public final class SlideEditorPane extends Application {
 		
 		SplitPane split = new SplitPane();
 		split.getItems().addAll(bdr, propertyScroller);
-		split.setDividerPositions(0.55);
+		split.setDividerPositions(0.8);
 		SplitPane.setResizableWithParent(propertyScroller, false);
 		
 		Scene scene = new Scene(split);
@@ -560,16 +480,16 @@ public final class SlideEditorPane extends Application {
 		slide.addComponent(txt);
 		
 		MediaObject img = new MediaObject(
-				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
-//				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
+//				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
+				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
-//				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
+//				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
+				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
 				ScaleType.NONUNIFORM,
 				false,
 				true);

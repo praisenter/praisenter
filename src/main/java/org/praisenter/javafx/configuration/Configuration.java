@@ -1,5 +1,7 @@
 package org.praisenter.javafx.configuration;
 
+import java.awt.GraphicsConfigTemplate;
+import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
@@ -71,6 +73,12 @@ public final class Configuration {
 	/** True to include the Apocryphal books (if available) of the bible */
 	private final BooleanProperty apocryphaIncluded = new SimpleBooleanProperty(false);
 	
+	// slide
+	
+	private final ObservableList<Resolution> resolutions = FXCollections.observableArrayList();
+	
+	private final ObjectProperty<Resolution> resolution = new SimpleObjectProperty<Resolution>();
+	
 	public Configuration() {
 		apocryphaIncluded.addListener((e) -> {
 			try {
@@ -108,18 +116,25 @@ public final class Configuration {
 		conf.theme = "default";
 		conf.savedLanguage.set(conf.language);
 		conf.savedTheme.set(conf.theme);
+		conf.resolutions.addAll(Resolution.DEFAULT_RESOLUTIONS);
 		
+		Resolution resolution = null;
 		// default screens
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] devices = ge.getScreenDevices();
 		for (int i = 0; i < devices.length; i++) {
 			GraphicsDevice device = devices[i];
+			GraphicsConfiguration gc = device.getDefaultConfiguration();
 			if (i == 0) {
 				// the first is by default the controller screen (no presentation)
 				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.NONE));
+				// backup
+				resolution = new Resolution(gc.getBounds().width, gc.getBounds().height);
 			} else if (i == 1) {
 				// the second is by default the primary presentation screen
 				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.PRESENTATION));
+				// the default presentation resolution
+				resolution = new Resolution(gc.getBounds().width, gc.getBounds().height);
 			} else if (i == 2) {
 				// the third is by default the musician screen
 				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.MUSICIAN));
@@ -128,6 +143,9 @@ public final class Configuration {
 				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.NONE));
 			}
 		}
+		
+		conf.resolution.set(resolution);
+		conf.resolutions.add(resolution);
 		
 		return conf;
 	}
@@ -230,6 +248,29 @@ public final class Configuration {
 	
 	public BooleanProperty apocryphaIncludedProperty() {
 		return this.apocryphaIncluded;
+	}
+
+	@XmlElementWrapper(name = "resolutions", required = false)
+	@XmlElement(name = "resolution", required = false)
+	public List<Resolution> getResolutions() {
+		return this.resolutions;
+	}
+	
+	public ObservableList<Resolution> resolutionsProperty() {
+		return this.resolutions;
+	}
+
+	@XmlElement(name = "resolution", required = false)
+	public Resolution getResolution() {
+		return this.resolution.get();
+	}
+	
+	public void setResolution(Resolution resolution) {
+		this.resolution.set(resolution);
+	}
+	
+	public ObjectProperty<Resolution> resolutionProperty() {
+		return this.resolution;
 	}
 }
 
