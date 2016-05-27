@@ -1,4 +1,4 @@
-package org.praisenter.javafx.slide;
+package org.praisenter.javafx.slide.editor;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -22,6 +22,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.geometry.VPos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -54,6 +55,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
@@ -75,6 +77,10 @@ import org.praisenter.javafx.TagListView;
 import org.praisenter.javafx.animation.AnimationPane;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaPicker;
+import org.praisenter.javafx.slide.ObservableSlide;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
+import org.praisenter.javafx.slide.Scaling;
+import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
@@ -82,7 +88,6 @@ import org.praisenter.media.MediaType;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
-import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
@@ -122,13 +127,13 @@ public final class SlideEditorPane extends Application {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
 	/** The component hover line width */
-	private static final double LINE_WIDTH = 1.0;
+	private static final double LINE_WIDTH = 2.0;
 	
 	/** The component hover dash length */
-	private static final double DASH_LENGTH = 1.0f;
+	private static final double DASH_LENGTH = 4.0f;
 	
 	/** The space between the dashes */
-	private static final double DASH_SPACE_LENGTH = DASH_LENGTH * 3.0f; 
+	private static final double DASH_SPACE_LENGTH = DASH_LENGTH; 
 	
 	// we use two borders each with a different color to allow it to
 	// be visible regardless of the color of the background of the component
@@ -148,11 +153,10 @@ public final class SlideEditorPane extends Application {
 	static final BorderStroke BORDER_STROKE_1 = new BorderStroke(BORDER_COLOR_1, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, 0.0, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
 	
 	/** The border 2 stroke */
-	static final BorderStroke BORDER_STROKE_2 = new BorderStroke(BORDER_COLOR_2, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, DASH_LENGTH * 2.0, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
+	static final BorderStroke BORDER_STROKE_2 = new BorderStroke(BORDER_COLOR_2, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, DASH_LENGTH, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
 	
 	
 	Slide slide;
-//	FxSlide fxSlide;
 	ObservableSlide<?> oSlide;
 	
 	ObjectProperty<Resolution> targetResolution = new SimpleObjectProperty<>();
@@ -168,8 +172,8 @@ public final class SlideEditorPane extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		
-//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -182,56 +186,60 @@ public final class SlideEditorPane extends Application {
 			e.printStackTrace();
 		}
 		
-		Slide slide = createTestSlide();
 		PraisenterContext context = new PraisenterContext(this, stage, null, null, library, null, null, null);
-//		FxSlide fxSlide = new FxSlide(context, slide, SlideMode.EDIT);
+		
+		slide = createTestSlide();
 		oSlide = new ObservableSlide<Slide>(slide, context, SlideMode.EDIT);
 		
 		EventHandler<MouseEvent> entered = new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent e) {
-				System.out.println("entered");
 				Border newBorder = new Border(BORDER_STROKE_1, BORDER_STROKE_2);
-				((Region)e.getSource()).setBorder(newBorder);
+				Region region = (Region)e.getSource();
+				region.setBorder(newBorder);
 			}
 		};
 		EventHandler<MouseEvent> exited = new EventHandler<MouseEvent>() {
 			@Override
 			public void handle(MouseEvent e) {
-				System.out.println("exited");
-				((Region)e.getSource()).setBorder(null);
+				Region region = (Region)e.getSource();
+				region.setBorder(null);
+				stage.getScene().setCursor(Cursor.DEFAULT);
+			}
+		};
+		EventHandler<MouseEvent> hover = new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent e) {
+				Region region = (Region)e.getSource();
+				double x = e.getX();
+				double y = e.getY();
+				double w = region.getWidth();
+				double h = region.getHeight();
+				
+				Cursor cursor = CursorPosition.getCursorForPosition(x, y, w, h);
+				stage.getScene().setCursor(cursor);
 			}
 		};
 		
-//		oSlide.root.setOnMouseEntered(entered);
-//		oSlide.root.setOnMouseExited(exited);
-//		oSlide.getRootNode().setOnMouseExited((e) -> {
-//			System.out.println("exited");
-//			oSlide.getRootNode().setBorder(null);
-//		});
-//		for (ObservableSlideRegion<?> osr : oSlide.components) {
-//			osr.root.setOnMouseEntered(entered);
-//			osr.root.setOnMouseExited(exited);
-//		}
-		
 		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));
 		
-		// Slide Preview Node hierarchy
-		// FIXME something is wrong with the scaling or something...
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		// BorderPane							This node ensures the size of the wrapper node is resized.
-		//	- Pane (slidePreview)				This node is the wrapper for the slide area.
-		//		- StackPane (slideBounds)		This node is sized based on the available bounds and renders the transparency pattern.
-		//			- StackPane (slideCanvas)	This node has the scaling transformation applied to scale the slide to the available bounds.
-		//				- FxSlide nodes...
+		// Slide Preview Node hierarchy
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// BorderPane											This node ensures the size of the wrapper node is resized
+		//	- Pane (slidePreview)								This node is the wrapper for the transparency background and slide node
+		//		- StackPane (slideBounds)						This node shows the tiled transparency image.
+		//		- Pane (slideCanvas)							?
+		//			- StackPane Editable Node					This node is for mouse selection and editing capability.
+		//				- Pane Container						This node applies the scaling transformation
+		//					- Hierarchy of component nodes		All the nodes for the component
 		
 		
 		slidePreview = new StackPane();
-		slidePreview.setBorder(Fx.newBorder(Color.ORANGE));
+//		slidePreview.setBorder(Fx.newBorder(Color.ORANGE));
 		
-		// TODO see http://fxexperience.com/2014/05/resizable-grid-using-canvas/ for a grid example
 		StackPane slideBounds = new StackPane();
-		slideBounds.setBorder(Fx.newBorder(Color.RED));
+//		slideBounds.setBorder(Fx.newBorder(Color.RED));
 		slideBounds.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
 //		slideBounds.setEffect(new DropShadow(10, Color.BLACK));
 		
@@ -270,7 +278,13 @@ public final class SlideEditorPane extends Application {
 		
 		Pane slideCanvas = new Pane();
 		slideCanvas.setMinSize(0, 0);
-		slideCanvas.setBorder(Fx.newBorder(Color.GREEN));
+//		slideCanvas.setBorder(Fx.newBorder(Color.YELLOW));
+		
+//		// clip the slide canvas by its bounds
+//		Rectangle clipRect = new Rectangle(slideCanvas.getWidth(), slideCanvas.getHeight());
+//		clipRect.heightProperty().bind(slideCanvas.heightProperty());
+//		clipRect.widthProperty().bind(slideCanvas.widthProperty());
+//		slideCanvas.setClip(clipRect);
 		
 		ObjectBinding<Scaling> scaleFactor = new ObjectBinding<Scaling>() {
 			{
@@ -309,86 +323,25 @@ public final class SlideEditorPane extends Application {
 			}
 		};
 		
-//		DoubleBinding scaleFactor = new DoubleBinding() {
-//			{
-//				bind(slidePreview.widthProperty(), slidePreview.heightProperty());
-//			}
-//			@Override
-//			protected double computeValue() {
-//				double tw = slideBounds.getWidth();
-//				double th = slideBounds.getHeight();
-//				// if so, lets get the scale factors
-////				double sw = Math.min(1.0, (double)tw / (double)slide.getWidth());
-////				double sh = Math.min(1.0, (double)th / (double)slide.getHeight());
-//				double sw = (double)tw / (double)slide.getWidth();
-//				double sh = (double)th / (double)slide.getHeight();
-//				// if we want to scale uniformly we need to choose
-//				// the smallest scale factor
-//				if (sw < sh) {
-//					return sw;
-//				} else {
-//					return sh;
-//				}
-//			}
-//		};
-		
-		slideCanvas.getChildren().add(oSlide.wrap);
-		oSlide.scale.bind(scaleFactor);
-		oSlide.wrap.setOnMouseEntered(entered);
-		oSlide.wrap.setOnMouseExited(exited);
-		for (ObservableSlideRegion<?> osr : oSlide.components) {
-			slideCanvas.getChildren().add(osr.wrap);
-			osr.scale.bind(scaleFactor);
-			osr.wrap.setOnMouseEntered(entered);
-			osr.wrap.setOnMouseExited(exited);
+		Pane rootEditPane = oSlide.getEditPane();
+		slideCanvas.getChildren().add(rootEditPane);
+		oSlide.scalingProperty().bind(scaleFactor);
+		rootEditPane.setOnMouseEntered(entered);
+		rootEditPane.setOnMouseExited(exited);
+		// TODO dragging and resizing for the slide itself
+		for (ObservableSlideRegion<?> osr : oSlide.getObservableComponents()) {
+			SlideRegionDraggedEventHandler dragHandler = new SlideRegionDraggedEventHandler(osr);
+			Pane pane = osr.getEditPane();
+			slideCanvas.getChildren().add(pane);
+			osr.scalingProperty().bind(scaleFactor);
+			pane.setOnMouseEntered(entered);
+			pane.setOnMouseExited(exited);
+			pane.setOnMousePressed(dragHandler);
+			pane.setOnMouseReleased(dragHandler);
+			pane.setOnMouseDragged(dragHandler);
+			pane.setOnMouseMoved(hover);
 		}
 		
-		
-//		slideCanvas.scaleXProperty().bind(scaleFactor);
-//		slideCanvas.scaleYProperty().bind(scaleFactor);
-//		slideCanvas.setManaged(false);
-//		
-//		DoubleBinding xPositioning = new DoubleBinding() {
-//			{
-//				bind(slidePreview.widthProperty(), 
-//					 slidePreview.heightProperty(),
-//					 targetResolution);
-//			}
-//			@Override
-//			protected double computeValue() {
-//				Resolution r = targetResolution.get();
-//				double tw = slidePreview.getWidth();
-//				double th = slidePreview.getHeight();
-//				return getUniformlyScaledBounds(r.getWidth(), r.getHeight(), tw, th).getMinX();
-//			}
-//		};
-//		DoubleBinding yPositioning = new DoubleBinding() {
-//			{
-//				bind(slidePreview.widthProperty(), 
-//					 slidePreview.heightProperty(),
-//					 targetResolution);
-//			}
-//			@Override
-//			protected double computeValue() {
-//				Resolution r = targetResolution.get();
-//				double tw = slidePreview.getWidth();
-//				double th = slidePreview.getHeight();
-//				return getUniformlyScaledBounds(r.getWidth(), r.getHeight(), tw, th).getMinY();
-//			}
-//		};
-//		slideCanvas.layoutXProperty().bind(xPositioning);
-//		slideCanvas.layoutYProperty().bind(yPositioning);
-		
-//		slideCanvas.maxWidthProperty().bind(widthSizing);
-//		slideCanvas.maxHeightProperty().bind(heightSizing);
-//		slideCanvas.scaleXProperty().addListener((obs, ov, nv) -> {
-//			System.out.println(nv.doubleValue());
-//			System.out.println(slideCanvas.getWidth());
-////			slideCanvas.setTranslateX(0 - slideCanvas.getWidth() * nv.doubleValue() * 0.5);     
-////			slideCanvas.setTranslateY(0 - slideCanvas.getHeight() * nv.doubleValue() * 0.5);
-//		});
-		
-//		slideBounds.getChildren().addAll();
 		slidePreview.getChildren().addAll(slideBounds, slideCanvas);
 		StackPane.setAlignment(slideBounds, Pos.CENTER);
 		
@@ -473,7 +426,7 @@ public final class SlideEditorPane extends Application {
 			TextField txtX = new TextField();
 			txtX.setPrefWidth(75);
 			txtX.setPromptText("x");
-			Bindings.bindBidirectional(txtX.textProperty(), oSlide.x, new NumberStringConverter());
+			//Bindings.bindBidirectional(txtX.textProperty(), oSlide.x, new NumberStringConverter());
 			TextField txtY = new TextField();
 			txtY.setPrefWidth(75);
 			txtY.setPromptText("y");
@@ -607,16 +560,16 @@ public final class SlideEditorPane extends Application {
 		slide.addComponent(txt);
 		
 		MediaObject img = new MediaObject(
-//				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
-				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
+				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
+//				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-//				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
-				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
+				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
+//				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
 				ScaleType.NONUNIFORM,
 				false,
 				true);

@@ -1,8 +1,9 @@
-package org.praisenter.javafx.slide;
+package org.praisenter.javafx.slide.editor;
 
 import org.praisenter.javafx.GradientPicker;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.MediaPicker;
+import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
 import org.praisenter.slide.graphics.ScaleType;

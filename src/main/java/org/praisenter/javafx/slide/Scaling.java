@@ -1,9 +1,9 @@
 package org.praisenter.javafx.slide;
 
 public final class Scaling {
-	final double scale;
-	final double sx;
-	final double sy;
+	public final double scale;
+	public final double sx;
+	public final double sy;
 	
 	public Scaling(double scale, double sx, double sy) {
 		this.scale = scale;

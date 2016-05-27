@@ -3,11 +3,8 @@ package org.praisenter.javafx.slide;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
-import org.apache.logging.slf4j.SLF4JLoggingException;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
 import org.praisenter.slide.graphics.ScaleType;
@@ -22,7 +19,6 @@ import org.praisenter.slide.graphics.SlideStrokeCap;
 import org.praisenter.slide.graphics.SlideStrokeJoin;
 import org.praisenter.slide.graphics.SlideStrokeStyle;
 import org.praisenter.slide.graphics.SlideStrokeType;
-import org.praisenter.slide.object.MediaObject;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.SlideFontPosture;
@@ -31,25 +27,18 @@ import org.praisenter.slide.text.VerticalTextAlignment;
 
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Paint;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
@@ -58,20 +47,20 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
-final class JavaFXTypeConverter {
+public final class JavaFXTypeConverter {
 	private JavaFXTypeConverter() {}
 	
 	// paint
 	
-	static Color toJavaFX(SlideColor color) {
+	public static Color toJavaFX(SlideColor color) {
 		return new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
 	}
 	
-	static SlideColor fromJavaFX(Color color) {
+	public static SlideColor fromJavaFX(Color color) {
 		return new SlideColor(color.getRed(), color.getGreen(), color.getBlue(), color.getOpacity());
 	}
 	
-	static Paint toJavaFX(SlidePaint paint) {
+	public static Paint toJavaFX(SlidePaint paint) {
 		Paint bgPaint = null;
 		if (paint instanceof SlideColor) {
 			bgPaint = JavaFXTypeConverter.toJavaFX((SlideColor)paint);
@@ -85,7 +74,7 @@ final class JavaFXTypeConverter {
 	
 	// text alignment
 
-	static TextAlignment toJavaFX(HorizontalTextAlignment alignment) {
+	public static TextAlignment toJavaFX(HorizontalTextAlignment alignment) {
 		switch (alignment) {
 			case RIGHT:
 				return TextAlignment.RIGHT;
@@ -98,7 +87,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static HorizontalTextAlignment fromJavaFX(TextAlignment alignment) {
+	public static HorizontalTextAlignment fromJavaFX(TextAlignment alignment) {
 		switch (alignment) {
 			case RIGHT:
 				return HorizontalTextAlignment.RIGHT;
@@ -111,7 +100,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static Pos toJavaFX(VerticalTextAlignment alignment) {
+	public static Pos toJavaFX(VerticalTextAlignment alignment) {
 		switch (alignment) {
 			case CENTER:
 				return Pos.CENTER_LEFT;
@@ -122,7 +111,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static VerticalTextAlignment fromJavaFX(Pos alignment) {
+	public static VerticalTextAlignment fromJavaFX(Pos alignment) {
 		switch (alignment) {
 			case CENTER:
 			case CENTER_RIGHT:
@@ -139,7 +128,7 @@ final class JavaFXTypeConverter {
 	
 	// gradient
 	
-	static CycleMethod toJavaFX(SlideGradientCycleType cycle) {
+	public static CycleMethod toJavaFX(SlideGradientCycleType cycle) {
 		switch (cycle) {
 			case REPEAT:
 				return CycleMethod.REPEAT;
@@ -150,7 +139,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static SlideGradientCycleType fromJavaFX(CycleMethod cycle) {
+	public static SlideGradientCycleType fromJavaFX(CycleMethod cycle) {
 		switch (cycle) {
 			case REPEAT:
 				return SlideGradientCycleType.REPEAT;
@@ -161,15 +150,15 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static Stop toJavaFX(SlideGradientStop stop) {
+	public static Stop toJavaFX(SlideGradientStop stop) {
 		return new Stop(stop.getOffset(), toJavaFX(stop.getColor()));
 	}
 	
-	static SlideGradientStop fromJavaFX(Stop stop) {
+	public static SlideGradientStop fromJavaFX(Stop stop) {
 		return new SlideGradientStop(stop.getOffset(), fromJavaFX(stop.getColor()));
 	}
 	
-	static List<Stop> toJavaFX(List<SlideGradientStop> stops) {
+	public static List<Stop> toJavaFX(List<SlideGradientStop> stops) {
 		if (stops == null) {
 			return null;
 		}
@@ -181,7 +170,7 @@ final class JavaFXTypeConverter {
 		return stps;
 	}
 	
-	static List<SlideGradientStop> fromJavaFX(List<Stop> stops) {
+	public static List<SlideGradientStop> fromJavaFX(List<Stop> stops) {
 		if (stops == null) {
 			return null;
 		}
@@ -193,7 +182,7 @@ final class JavaFXTypeConverter {
 		return stps;
 	}
 
-	static LinearGradient toJavaFX(SlideLinearGradient gradient) {
+	public static LinearGradient toJavaFX(SlideLinearGradient gradient) {
 		if (gradient == null) {
 			return null;
 		}
@@ -208,7 +197,7 @@ final class JavaFXTypeConverter {
 				toJavaFX(gradient.getStops()));
 	}
 	
-	static SlideLinearGradient fromJavaFX(LinearGradient gradient) {
+	public static SlideLinearGradient fromJavaFX(LinearGradient gradient) {
 		if (gradient == null) {
 			return null;
 		}
@@ -222,7 +211,7 @@ final class JavaFXTypeConverter {
 				fromJavaFX(gradient.getStops()));
 	}
 
-	static RadialGradient toJavaFX(SlideRadialGradient gradient) {
+	public static RadialGradient toJavaFX(SlideRadialGradient gradient) {
 		if (gradient == null) {
 			return null;
 		}
@@ -238,7 +227,7 @@ final class JavaFXTypeConverter {
 				toJavaFX(gradient.getStops()));
 	}
 	
-	static SlideRadialGradient fromJavaFX(RadialGradient gradient) {
+	public static SlideRadialGradient fromJavaFX(RadialGradient gradient) {
 		if (gradient == null) {
 			return null;
 		}
@@ -253,7 +242,7 @@ final class JavaFXTypeConverter {
 	
 	// border
 
-	static StrokeLineCap toJavaFX(SlideStrokeCap cap) {
+	public static StrokeLineCap toJavaFX(SlideStrokeCap cap) {
 		switch (cap) {
 			case BUTT:
 				return StrokeLineCap.BUTT;
@@ -264,7 +253,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static SlideStrokeCap fromJavaFX(StrokeLineCap cap) {
+	public static SlideStrokeCap fromJavaFX(StrokeLineCap cap) {
 		switch (cap) {
 			case BUTT:
 				return SlideStrokeCap.BUTT;
@@ -275,7 +264,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static StrokeLineJoin toJavaFX(SlideStrokeJoin join) {
+	public static StrokeLineJoin toJavaFX(SlideStrokeJoin join) {
 		switch (join) {
 			case BEVEL:
 				return StrokeLineJoin.BEVEL;
@@ -286,7 +275,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static SlideStrokeJoin fromJavaFX(StrokeLineJoin join) {
+	public static SlideStrokeJoin fromJavaFX(StrokeLineJoin join) {
 		switch (join) {
 			case BEVEL:
 				return SlideStrokeJoin.BEVEL;
@@ -297,7 +286,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static StrokeType toJavaFX(SlideStrokeType type) {
+	public static StrokeType toJavaFX(SlideStrokeType type) {
 		switch (type) {
 			case INSIDE:
 				return StrokeType.INSIDE;
@@ -308,7 +297,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static SlideStrokeType fromJavaFX(StrokeType type) {
+	public static SlideStrokeType fromJavaFX(StrokeType type) {
 		switch (type) {
 			case INSIDE:
 				return SlideStrokeType.INSIDE;
@@ -319,7 +308,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static BorderStrokeStyle toJavaFX(SlideStrokeStyle style) {
+	public static BorderStrokeStyle toJavaFX(SlideStrokeStyle style) {
 		if (style == null) {
 			return null;
 		}
@@ -333,7 +322,7 @@ final class JavaFXTypeConverter {
 				Arrays.asList(style.getDashes()));
 	}
 	
-	static SlideStrokeStyle fromJavaFX(BorderStrokeStyle style) {
+	public static SlideStrokeStyle fromJavaFX(BorderStrokeStyle style) {
 		if (style == null) {
 			return null;
 		}
@@ -345,7 +334,7 @@ final class JavaFXTypeConverter {
 				style.getDashArray().toArray(new Double[0]));
 	}
 	
-	static BorderStroke toJavaFX(SlideStroke stroke) {
+	public static BorderStroke toJavaFX(SlideStroke stroke) {
 		if (stroke == null) {
 			return null;
 		}
@@ -373,7 +362,7 @@ final class JavaFXTypeConverter {
 	
 	// background/scaling
 	
-	static BackgroundSize toJavaFX(ScaleType scaling) {
+	public static BackgroundSize toJavaFX(ScaleType scaling) {
 		BackgroundSize size = BackgroundSize.DEFAULT;
 		if (scaling == ScaleType.NONUNIFORM) {
 			size = new BackgroundSize(1.0, 1.0, true, true, false, false);
@@ -383,7 +372,7 @@ final class JavaFXTypeConverter {
 		return size;
 	}
 	
-	static ScaleType fromJavaFX(BackgroundSize size) {
+	public static ScaleType fromJavaFX(BackgroundSize size) {
 		if (size == null || size == BackgroundSize.DEFAULT) {
 			return ScaleType.NONE;
 		} else if (!size.isContain() && !size.isCover() && size.isWidthAsPercentage() && size.isHeightAsPercentage()) {
@@ -396,7 +385,7 @@ final class JavaFXTypeConverter {
 
 	// fonts
 	
-	static FontWeight toJavaFX(SlideFontWeight weight) {
+	public static FontWeight toJavaFX(SlideFontWeight weight) {
 		switch (weight) {
 			case BLACK:
 				return FontWeight.BLACK;
@@ -420,7 +409,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static SlideFontWeight fromJavaFX(FontWeight weight) {
+	public static SlideFontWeight fromJavaFX(FontWeight weight) {
 		switch (weight) {
 			case BLACK:
 				return SlideFontWeight.BLACK;
@@ -444,7 +433,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static FontPosture toJavaFX(SlideFontPosture posture) {
+	public static FontPosture toJavaFX(SlideFontPosture posture) {
 		switch (posture) {
 			case ITALIC:
 				return FontPosture.ITALIC;
@@ -454,7 +443,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static SlideFontPosture fromJavaFX(FontPosture posture) {
+	public static SlideFontPosture fromJavaFX(FontPosture posture) {
 		switch (posture) {
 			case ITALIC:
 				return SlideFontPosture.ITALIC;
@@ -464,7 +453,7 @@ final class JavaFXTypeConverter {
 		}
 	}
 	
-	static Font toJavaFX(SlideFont font) {
+	public static Font toJavaFX(SlideFont font) {
 		if (font == null) {
 			return Font.getDefault();
 		}
@@ -478,7 +467,7 @@ final class JavaFXTypeConverter {
 	// media
 	
 	// only for video/audio
-	static MediaPlayer toJavaFXMediaPlayer(PraisenterContext context, Media media, boolean loop, boolean mute) {
+	public static MediaPlayer toJavaFXMediaPlayer(PraisenterContext context, Media media, boolean loop, boolean mute) {
 		// check for missing media
 		if (media == null) {
 			return null;
@@ -507,7 +496,7 @@ final class JavaFXTypeConverter {
 	}
 	
 	// will work for all media types
-	static Image toJavaFXImage(PraisenterContext context, Media media) {
+	public static Image toJavaFXImage(PraisenterContext context, Media media) {
 		// check for missing media
 		if (media == null) {
 			return null;

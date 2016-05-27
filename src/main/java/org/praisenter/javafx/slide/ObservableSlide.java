@@ -32,13 +32,13 @@ import javafx.scene.layout.Pane;
 
 public final class ObservableSlide<T extends Slide> extends ObservableSlideRegion<T> implements Slide {
 	
-	final StringProperty name = new SimpleStringProperty();
-	final ObjectProperty<Path> path = new SimpleObjectProperty<Path>();
-	final LongProperty time = new SimpleLongProperty();
+	private final StringProperty name = new SimpleStringProperty();
+	private final ObjectProperty<Path> path = new SimpleObjectProperty<Path>();
+	private final LongProperty time = new SimpleLongProperty();
 	
-	final ObservableList<ObservableSlideComponent<?>> components = FXCollections.observableArrayList();
-	final ObservableList<SlideAnimation> animations = FXCollections.observableArrayList();
-	final ObservableSet<Tag> tags = FXCollections.observableSet();
+	private final ObservableList<ObservableSlideComponent<?>> components = FXCollections.observableArrayList();
+	private final ObservableList<SlideAnimation> animations = FXCollections.observableArrayList();
+	private final ObservableSet<Tag> tags = FXCollections.observableSet();
 	
 	public ObservableSlide(T slide, PraisenterContext context, SlideMode mode) {
 		super(slide, context, mode);
@@ -85,7 +85,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.height.set(this.region.getHeight());
 		updatePosition();
 		updateSize();
-		updateImage();
 		for (ObservableSlideComponent<?> component : this.components) {
 			component.x.set(component.region.getX());
 			component.y.set(component.region.getY());
@@ -93,7 +92,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 			component.height.set(component.region.getHeight());
 			component.updatePosition();
 			component.updateSize();
-			component.updateImage();
 		}
 	}
 	
@@ -246,6 +244,12 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	@Override
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
+	}
+	
+	// components
+	
+	public ObservableList<ObservableSlideComponent<?>> getObservableComponents() {
+		return this.components;
 	}
 	
 	// others

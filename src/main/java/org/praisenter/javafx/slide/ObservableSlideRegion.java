@@ -1,32 +1,6 @@
 package org.praisenter.javafx.slide;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.UUID;
-
-import javax.imageio.ImageIO;
-
-import javafx.application.Platform;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.Node;
-import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
-import javafx.scene.paint.Color;
 
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
@@ -35,37 +9,50 @@ import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.CacheHint;
+import javafx.scene.Node;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+
 public abstract class ObservableSlideRegion<T extends SlideRegion> implements SlideRegion {
 	// the data
 	
-	final T region;
-	final PraisenterContext context;
-	final SlideMode mode;
+	protected final T region;
+	protected final PraisenterContext context;
+	protected final SlideMode mode;
 	
-	// editable
+	// editable properties
 	
-	final IntegerProperty x = new SimpleIntegerProperty();
-	final IntegerProperty y = new SimpleIntegerProperty();
-	final IntegerProperty width = new SimpleIntegerProperty();
-	final IntegerProperty height = new SimpleIntegerProperty();
+	protected final IntegerProperty x = new SimpleIntegerProperty();
+	protected final IntegerProperty y = new SimpleIntegerProperty();
+	protected final IntegerProperty width = new SimpleIntegerProperty();
+	protected final IntegerProperty height = new SimpleIntegerProperty();
 	
-	final ObjectProperty<SlidePaint> background = new SimpleObjectProperty<SlidePaint>();
-	final ObjectProperty<SlideStroke> border = new SimpleObjectProperty<SlideStroke>();
+	protected final ObjectProperty<SlidePaint> background = new SimpleObjectProperty<SlidePaint>();
+	protected final ObjectProperty<SlideStroke> border = new SimpleObjectProperty<SlideStroke>();
 	
-	final ObjectProperty<Scaling> scale = new SimpleObjectProperty<Scaling>();
+	protected final ObjectProperty<Scaling> scale = new SimpleObjectProperty<Scaling>(new Scaling(1.0, 0.0, 0.0));
 	
 	// nodes
 	
-	final Scene scene;
-	private final Pane root;
+	// edit
+	
+	private final StackPane editPane;
+	
+	// both edit and display
+	
+	private final Pane container;
 	private final FillPane backgroundNode;
 	private final Region borderNode;
-	
-	// output
-	
-	WritableImage image;
-	final Pane wrap;
-	final ImageView imageView;
 	
 	public ObservableSlideRegion(T region, PraisenterContext context, SlideMode mode) {
 		this.region = region;
@@ -81,74 +68,82 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.border.set(region.getBorder());
 		
 		// setup nodes
-		this.root = new Pane();
-		this.root.setBackground(null);
+		this.container = new Pane();
+		// this is the magic for it to be fast enough
+		this.container.setCache(true);
+		this.container.setCacheHint(CacheHint.SPEED);
+		this.container.setBackground(null);
+		this.container.setMouseTransparent(true);
+		
 		this.borderNode = new Region();
-		this.backgroundNode = new FillPane(context, mode);
 		this.borderNode.setMouseTransparent(true);
-		this.scene = new Scene(root, Color.TRANSPARENT);
-		this.imageView = new ImageView();
-		this.wrap = new Pane(this.imageView);
-		this.wrap.setBackground(null);
+		
+		this.backgroundNode = new FillPane(context, mode);
+		this.backgroundNode.setMouseTransparent(true);
+		
+		this.editPane = new StackPane(this.container);
 		
 		// listen for changes
 		this.x.addListener((obs, ov, nv) -> { 
-			this.region.setX(nv.intValue());
-			this.root.setLayoutX(nv.intValue());
+			this.region.setX((int)Math.floor(nv.doubleValue()));
+			this.updatePosition();
 		});
 		this.y.addListener((obs, ov, nv) -> { 
-			this.region.setY(nv.intValue());
-			this.root.setLayoutY(nv.intValue());
+			this.region.setY((int)Math.floor(nv.doubleValue()));
+			this.updatePosition();
 		});
 		this.width.addListener((obs, ov, nv) -> { 
-			this.region.setWidth(nv.intValue());
+			this.region.setWidth((int)Math.floor(nv.doubleValue()));
 			updateSize();
-//			updateImage();
 		});
 		this.height.addListener((obs, ov, nv) -> { 
-			this.region.setHeight(nv.intValue());
+			this.region.setHeight((int)Math.floor(nv.doubleValue()));
 			updateSize();
-//			updateImage();
 		});
 		this.background.addListener((obs, ov, nv) -> { 
 			this.region.setBackground(nv);
 			updateFill();
-//			updateImage();
 		});
 		this.border.addListener((obs, ov, nv) -> { 
 			this.region.setBorder(nv);
 			updateBorder();
-//			updateImage();
 		});
 		
 		this.scale.addListener((obs, ov, nv) -> {
-			double w = this.region.getWidth();
-			double h = this.region.getHeight();
+			this.container.setScaleX(nv.scale);
+			this.container.setScaleY(nv.scale);
 			
-			wrap.setLayoutX(nv.sx + this.x.get() * nv.scale);
-			wrap.setLayoutY(nv.sy + this.y.get() * nv.scale);
-			imageView.setFitWidth(w * nv.scale);
-			imageView.setFitHeight(h * nv.scale);
-			imageView.setPreserveRatio(true);
+			updatePosition();
+			updateSize();
 		});
 	}
 	
 	void updatePosition() {
 		// set position
+		
+		// get the coordinates in slide space
 		int x = this.x.get();
 		int y = this.y.get();
-		this.root.setLayoutX(x);
-		this.root.setLayoutY(y);
+		
+		// set the position of the edit pane (which has the border)
+		// to slide coordinates transformed into the parent node coordinates
+		Scaling s = this.scale.get();
+		
+		this.editPane.setLayoutX(Math.floor(s.sx + x * s.scale));
+		this.editPane.setLayoutY(Math.floor(s.sy + y * s.scale));
 	}
 	
 	void updateSize() {
 		int w = this.width.get();
 		int h = this.height.get();
 		
-		Fx.setSize(this.root, w, h);
+		Fx.setSize(this.container, w, h);
 		Fx.setSize(this.borderNode, w, h);
 		
 		this.backgroundNode.setSize(w, h);
+		
+		Scaling s = this.scale.get();
+		Fx.setSize(this.editPane, w * s.scale, h * s.scale);
 	}
 	
 	void updateBorder() {
@@ -183,50 +178,20 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.updateSize();
 		
 		if (content != null) {
-			this.root.getChildren().addAll(
+			this.container.getChildren().addAll(
 					this.backgroundNode,
 					content,
 					this.borderNode);
 		} else {
-			this.root.getChildren().addAll(
+			this.container.getChildren().addAll(
 					this.backgroundNode,
 					this.borderNode);
 		}
-		
-		this.updateImage();
 	}
 	
-	// FIXME this needs to be called when a bunch of stuff changes, but we really only want it to be called when all the stuff has been updated
-	void updateImage() {
-		SnapshotParameters params = new SnapshotParameters();
-		params.setDepthBuffer(false);
-		params.setFill(Color.TRANSPARENT);
-		if (this.image != null) {
-			if (this.width.get() != (int)this.image.getWidth() ||
-				this.height.get() != (int)this.image.getHeight()) {
-				this.image = null;
-			}
-		}
-//		Platform.runLater(() -> {
-			this.image = this.root.snapshot(params, this.image);
-			// TODO for debugging
-//			try {
-//				ImageIO.write(SwingFXUtils.fromFXImage(this.image, null), "png", new File("C:\\Users\\William\\Desktop\\" + UUID.randomUUID().toString() + ".png"));
-//			} catch (IOException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-			this.imageView.setImage(this.image);
-//		});
-		
-		
-		
-		
+	public StackPane getEditPane() {
+		return this.editPane;
 	}
-	
-//	public Pane getRootNode() {
-//		return this.root;
-//	}
 	
 	// playable stuff
 	
@@ -372,5 +337,19 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 	
 	public ObjectProperty<SlideStroke> borderProperty() {
 		return this.border;
+	}
+	
+	// scale
+	
+	public void setScaling(Scaling scaling) {
+		this.scale.set(scaling);
+	}
+	
+	public Scaling getScaling() {
+		return this.scale.get();
+	}
+	
+	public ObjectProperty<Scaling> scalingProperty() {
+		return this.scale;
 	}
 }
