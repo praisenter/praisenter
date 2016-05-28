@@ -49,13 +49,13 @@ import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import org.praisenter.javafx.FontPicker;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.TagListView;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.configuration.Resolution;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.slide.ObservableSlide;
+import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.Scaling;
 import org.praisenter.javafx.slide.SlideMode;
@@ -137,6 +137,8 @@ public final class SlideEditorPane extends Application {
 	
 	ObjectProperty<Resolution> targetResolution = new SimpleObjectProperty<>();
 	
+	ObjectProperty<ObservableSlideComponent<?>> selected = new SimpleObjectProperty<ObservableSlideComponent<?>>();
+	
 	// TODO move this out of its own javafx app
 	public static void main(String[] args) {
 		Application.launch(args);
@@ -179,7 +181,9 @@ public final class SlideEditorPane extends Application {
 			@Override
 			public void handle(MouseEvent e) {
 				Region region = (Region)e.getSource();
-				region.setBorder(null);
+				if (selected.get() == null || selected.get().getEditPane() != region) {
+					region.setBorder(null);
+				}
 				stage.getScene().setCursor(Cursor.DEFAULT);
 			}
 		};
@@ -306,17 +310,25 @@ public final class SlideEditorPane extends Application {
 		rootEditPane.setOnMouseEntered(entered);
 		rootEditPane.setOnMouseExited(exited);
 		// TODO dragging and resizing for the slide itself
-		for (ObservableSlideRegion<?> osr : oSlide.getObservableComponents()) {
+		for (ObservableSlideComponent<?> osr : oSlide.getObservableComponents()) {
 			SlideRegionDraggedEventHandler dragHandler = new SlideRegionDraggedEventHandler(osr);
 			Pane pane = osr.getEditPane();
 			slideCanvas.getChildren().add(pane);
 			osr.scalingProperty().bind(scaleFactor);
 			pane.setOnMouseEntered(entered);
 			pane.setOnMouseExited(exited);
-			pane.setOnMousePressed(dragHandler);
+//			pane.setOnMousePressed(dragHandler);
 			pane.setOnMouseReleased(dragHandler);
 			pane.setOnMouseDragged(dragHandler);
 			pane.setOnMouseMoved(hover);
+			pane.addEventHandler(MouseEvent.MOUSE_PRESSED, dragHandler);
+			pane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
+				ObservableSlideComponent<?> temp = selected.get();
+				if (temp != osr && temp != null) {
+					temp.getEditPane().setBorder(null);
+				}
+				selected.set(osr);
+			});
 		}
 		
 		slidePreview.getChildren().addAll(slideBounds, slideCanvas);
@@ -375,18 +387,23 @@ public final class SlideEditorPane extends Application {
 		}
 		
 		{
-			GridPane grid = new GridPane();
-			grid.setHgap(5);
-			grid.setVgap(3);
+			SlideComponentEditor se = new SlideComponentEditor(context);
+			se.component.bind(selected);
+			TitledPane ttlComponent = new TitledPane("Component Properties", se);
+			propertiesPane.getChildren().add(ttlComponent);
 			
-			// background
-			SlidePaintPicker pkrBackground = new SlidePaintPicker(context, PaintType.COLOR, PaintType.GRADIENT);
-			
-			TitledPane ttlSlide = new TitledPane("Slide Background", pkrBackground);
-			propertiesPane.getChildren().add(ttlSlide);
-			
-			FontPicker pkrFont = new FontPicker(Font.font("Segoe UI Black", 30), FXCollections.observableArrayList(Font.getFamilies()));
-			propertiesPane.getChildren().add(pkrFont);
+//			GridPane grid = new GridPane();
+//			grid.setHgap(5);
+//			grid.setVgap(3);
+//			
+//			// background
+//			SlidePaintPicker pkrBackground = new SlidePaintPicker(context, PaintType.COLOR, PaintType.GRADIENT);
+//			
+//			TitledPane ttlSlide = new TitledPane("Slide Background", pkrBackground);
+//			propertiesPane.getChildren().add(ttlSlide);
+//			
+//			FontPicker pkrFont = new FontPicker(Font.font("Segoe UI Black", 30), FXCollections.observableArrayList(Font.getFamilies()));
+//			propertiesPane.getChildren().add(pkrFont);
 		}
 		
 		BorderPane bdr = new BorderPane();

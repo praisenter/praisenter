@@ -9,7 +9,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
 
-public class SlideRegionDraggedEventHandler implements EventHandler<MouseEvent> {
+class SlideRegionDraggedEventHandler implements EventHandler<MouseEvent> {
 	private final ObservableSlideRegion<?> region;
 	
 	private Scene scene = null;
@@ -108,9 +108,7 @@ public class SlideRegionDraggedEventHandler implements EventHandler<MouseEvent> 
 		} else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
 			// when the mouse is released we need to go back to 
 			// the default cursor
-			if (scene != null) {
-				scene.setCursor(Cursor.DEFAULT);
-			}
+			
 		}
 	}
 }

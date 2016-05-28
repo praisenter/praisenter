@@ -22,86 +22,72 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx;
+package org.praisenter.javafx.slide.editor;
 
 import javafx.beans.property.ObjectProperty;
-import javafx.scene.layout.BorderPane;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.control.Button;
 import javafx.scene.paint.Paint;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.stage.Window;
 
-import org.praisenter.javafx.utility.Fx;
+import org.praisenter.resources.translations.Translations;
 
 /**
- * A dialog for selecting a gradient.
+ * A custom button to allow selection of a gradient.
  * @author William Bittle
  * @version 3.0.0
  */
-final class GradientPickerDialog extends BorderPane {
-	/** The dialog */
-	private final Stage dialog;
+public final class GradientPicker extends Button {
+	/** The gradient dialog */
+	private GradientPickerDialog dialog;
 	
-	/** The media library pane */
-	private final GradientPickerPane gradientPane;
-
+	/** The selected value */
+	private final ObjectProperty<Paint> value = new SimpleObjectProperty<Paint>();
+	
 	/**
 	 * Full constructor.
-	 * @param owner the owner of this dialog
-	 * @param paint the initial value
+	 * @param gradient the initial value
 	 */
-	public GradientPickerDialog(
-			Window owner,
-			Paint paint) {
-		// build the dialog
-		this.dialog = new Stage();
-		if (owner != null) {
-			this.dialog.initOwner(owner);
-		}
-		// TODO translate
-		// FIXME add ok/cancel buttons
-		this.dialog.setTitle("Gradient");
-		this.dialog.initModality(Modality.WINDOW_MODAL);
-		this.dialog.initStyle(StageStyle.UTILITY);
-		// NOTE: this makes the title portion of the modal shorter
-		this.dialog.setResizable(false);
-		
-		// build the media library pane
-		this.gradientPane = new GradientPickerPane(paint);
-
-		this.setCenter(this.gradientPane);
-		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));
+	public GradientPicker(Paint gradient) {
+		this.setText(Translations.get("choose"));
+		this.setOnAction((e) -> {
+			if (dialog == null) {
+				// create the dialog
+				// passing the owner (we don't create
+				// it until the user request for it since
+				// 	1. we don't know the owner at creation time
+				//  2. we don't know if the user will request it at all
+				dialog = new GradientPickerDialog(getScene().getWindow(), gradient);
+				// set the value
+				dialog.valueProperty().set(value.get());
+				// bind the values
+				value.bindBidirectional(this.dialog.valueProperty());
+			}
+			// show the dialog
+			dialog.show();
+		});
 	}
 	
 	/**
-	 * Shows this dialog.
-	 */
-	public void show() {
-		this.dialog.show();
-	}
-	
-	/**
-	 * Returns the selected gradient property.
+	 * Returns the value property.
 	 * @return ObjectProperty&lt;Paint&gt;
 	 */
 	public ObjectProperty<Paint> valueProperty() {
-		return this.gradientPane.paintProperty();
+		return this.value;
 	}
 	
 	/**
-	 * Returns the selected gradient.
+	 * Returns the current value of this picker.
 	 * @return Paint
 	 */
 	public Paint getValue() {
-		return this.gradientPane.getPaint();
+		return this.value.get();
 	}
 	
 	/**
-	 * Sets the selected gradient.
-	 * @param gradient the gradient
+	 * Sets the current value of this picker.
+	 * @param gradient the desired value
 	 */
 	public void setValue(Paint gradient) {
-		this.gradientPane.setPaint(gradient);
+		this.value.set(gradient);
 	}
 }

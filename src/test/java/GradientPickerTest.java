@@ -1,4 +1,4 @@
-import org.praisenter.javafx.GradientPickerPane;
+import org.praisenter.javafx.slide.editor.GradientPickerPane;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

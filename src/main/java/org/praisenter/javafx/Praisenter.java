@@ -39,6 +39,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -183,6 +184,10 @@ public final class Praisenter extends Application {
     		LOGGER.info("Initializing the screen manager.");
     		ScreenManager screenManager = new ScreenManager();
     		screenManager.setup(CONFIG.getScreenMappings());
+    		
+    		// load fonts
+    		Font.getFamilies();
+    		Font.getFontNames();
     		
     		LOGGER.info("Building the application context.");
     		// build the context

@@ -1,6 +1,25 @@
 package org.praisenter.javafx.slide.editor;
 
-import org.praisenter.javafx.GradientPicker;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Paint;
+import javafx.scene.paint.RadialGradient;
+
+import org.controlsfx.control.SegmentedButton;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.GlyphFont;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.MediaPicker;
 import org.praisenter.javafx.slide.JavaFXTypeConverter;
@@ -13,56 +32,43 @@ import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.slide.object.MediaObject;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Paint;
-import javafx.scene.paint.RadialGradient;
-
 // TODO translate
 
-public final class SlidePaintPicker extends GridPane {
-	
-//	final ObjectProperty<Color> color = new SimpleObjectProperty<Color>();
-//	final ObjectProperty<Paint> gradient = new SimpleObjectProperty<Paint>();
-//	final ObjectProperty<Media> image = new SimpleObjectProperty<Media>();
-//	final ObjectProperty<Media> video = new SimpleObjectProperty<Media>();
-//	final ObjectProperty<ScaleType> scaleType = new SimpleObjectProperty<ScaleType>();
-//	final BooleanProperty mute = new SimpleBooleanProperty();
-//	final BooleanProperty loop = new SimpleBooleanProperty();
+public final class SlidePaintPicker extends VBox {
+	/** The font-awesome glyph-font pack */
+	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
+
 	boolean settingValues = false;
+	
 	final ObjectProperty<SlidePaint> value = new SimpleObjectProperty<SlidePaint>() {
 		public void set(SlidePaint paint) {
 			if (paint != null && !settingValues) {
 				settingValues = true;
-				// FIXME set all the node values
 				if (paint instanceof MediaObject) {
 					MediaObject mo = ((MediaObject)paint);
 					Media media = context.getMediaLibrary().get(mo.getId());
 					if (media.getMetadata().getType() == MediaType.IMAGE) {
-						pkrImage.setValue(media);
 						cbTypes.setValue(PaintType.IMAGE);
+						pkrImage.setValue(media);
 					} else if (media.getMetadata().getType() == MediaType.VIDEO) {
-						pkrVideo.setValue(media);
 						cbTypes.setValue(PaintType.VIDEO);
+						pkrVideo.setValue(media);
+					} else if (media.getMetadata().getType() == MediaType.AUDIO) {
+						cbTypes.setValue(PaintType.AUDIO);
+						pkrAudio.setValue(media);
 					}
-					chkLoop.setSelected(mo.isLoop());
-					chkMute.setSelected(mo.isMute());
-					cmbScaling.setValue(mo.getScaling());
+					tglLoop.setSelected(mo.isLoop());
+					tglMute.setSelected(mo.isMute());
+					for (Toggle toggle : segScaling.getToggleGroup().getToggles()) {
+						if (toggle.getUserData() == mo.getScaling()) {
+							toggle.setSelected(true);
+							break;
+						}
+					}
 				} else if (paint instanceof SlideColor) {
 					SlideColor sc = (SlideColor)paint;
-					pkrColor.setValue(JavaFXTypeConverter.toJavaFX(sc));
 					cbTypes.setValue(PaintType.COLOR);
+					pkrColor.setValue(JavaFXTypeConverter.toJavaFX(sc));
 				} else if (paint instanceof SlideLinearGradient) {
 					SlideLinearGradient lg = (SlideLinearGradient)paint;
 					cbTypes.setValue(PaintType.GRADIENT);
@@ -96,9 +102,10 @@ public final class SlidePaintPicker extends GridPane {
 	final GradientPicker pkrGradient;
 	final MediaPicker pkrImage;
 	final MediaPicker pkrVideo;
-	final ChoiceBox<ScaleType> cmbScaling;
-	final CheckBox chkLoop;
-	final CheckBox chkMute;
+	final MediaPicker pkrAudio;
+	final SegmentedButton segScaling;
+	final ToggleButton tglLoop;
+	final ToggleButton tglMute;
 	
 	public SlidePaintPicker(PraisenterContext context, PaintType... types) {
 		this.context = context;
@@ -110,7 +117,6 @@ public final class SlidePaintPicker extends GridPane {
 			}
 		};
 		
-		Label lblBackground = new Label("Background");
 		cbTypes = new ChoiceBox<PaintType>(FXCollections.observableArrayList(types == null ? PaintType.values() : types));
 		pkrColor = new ColorPicker();
 		pkrColor.managedProperty().bind(pkrColor.visibleProperty());
@@ -128,26 +134,32 @@ public final class SlidePaintPicker extends GridPane {
 		pkrVideo.managedProperty().bind(pkrVideo.visibleProperty());
 		pkrVideo.valueProperty().addListener(listener);
 		
+		pkrAudio = new MediaPicker(context, MediaType.AUDIO);
+		pkrAudio.managedProperty().bind(pkrAudio.visibleProperty());
+		pkrAudio.valueProperty().addListener(listener);
+		
 		HBox bg = new HBox();
 		bg.setSpacing(2);
-		bg.getChildren().addAll(cbTypes, pkrColor, pkrGradient, pkrImage, pkrVideo);
-		this.add(lblBackground, 0, 0);
-		this.add(bg, 1, 0);
+		bg.getChildren().addAll(cbTypes, pkrColor, pkrGradient, pkrImage, pkrVideo, pkrAudio);
+		this.getChildren().add(bg);
 		
-		Label lblScaling = new Label("Scaling");
-		// TODO maybe convert to icons/buttons for the type
-		cmbScaling = new ChoiceBox<ScaleType>(FXCollections.observableArrayList(ScaleType.values()));
-		cmbScaling.valueProperty().addListener(listener);
+		ToggleButton tglImageScaleNone = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.IMAGE));
+		ToggleButton tglImageScaleNonUniform = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ARROWS_ALT));
+		ToggleButton tglImageScaleUniform = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ARROWS));
+		tglImageScaleNone.setUserData(ScaleType.NONE);
+		tglImageScaleNonUniform.setUserData(ScaleType.NONUNIFORM);
+		tglImageScaleUniform.setUserData(ScaleType.UNIFORM);
+		this.segScaling = new SegmentedButton(tglImageScaleNone, tglImageScaleNonUniform, tglImageScaleUniform);
 		
+		this.tglLoop = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.REPEAT));
+		this.tglLoop.selectedProperty().addListener(listener);
 		
-		// TODO convert to toggle buttons
-		Label lblLoop = new Label("Loop");
-		chkLoop = new CheckBox();
-		chkLoop.selectedProperty().addListener(listener);
+		this.tglMute = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_OFF));
+		this.tglMute.selectedProperty().addListener(listener);
 		
-		Label lblMute = new Label("Mute");
-		chkMute = new CheckBox();
-		chkMute.selectedProperty().addListener(listener);
+		HBox loopMute = new HBox();
+		loopMute.setSpacing(2);
+		loopMute.getChildren().addAll(this.tglLoop, this.tglMute);
 		
 		pkrColor.setVisible(false);
 		pkrGradient.setVisible(false);
@@ -160,36 +172,43 @@ public final class SlidePaintPicker extends GridPane {
 					pkrGradient.setVisible(false);
 					pkrImage.setVisible(false);
 					pkrVideo.setVisible(false);
-					this.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
+					pkrAudio.setVisible(false);
+					this.getChildren().removeAll(this.segScaling, loopMute);
 					break;
 				case GRADIENT:
 					pkrColor.setVisible(false);
 					pkrGradient.setVisible(true);
 					pkrImage.setVisible(false);
 					pkrVideo.setVisible(false);
-					this.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
+					pkrAudio.setVisible(false);
+					this.getChildren().removeAll(this.segScaling, loopMute);
 					break;
 				case IMAGE:
 					pkrColor.setVisible(false);
 					pkrGradient.setVisible(false);
 					pkrImage.setVisible(true);
 					pkrVideo.setVisible(false);
-					this.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
-					this.add(lblScaling, 0, 1);
-					this.add(cmbScaling, 1, 1);
+					pkrAudio.setVisible(false);
+					this.getChildren().removeAll(this.segScaling, loopMute);
+					this.getChildren().add(this.segScaling);
+					break;
+				case AUDIO:
+					pkrColor.setVisible(false);
+					pkrGradient.setVisible(false);
+					pkrImage.setVisible(false);
+					pkrVideo.setVisible(false);
+					pkrAudio.setVisible(true);
+					this.getChildren().removeAll(this.segScaling, loopMute);
+					this.getChildren().add(loopMute);
 					break;
 				case VIDEO:
 					pkrColor.setVisible(false);
 					pkrGradient.setVisible(false);
 					pkrImage.setVisible(false);
 					pkrVideo.setVisible(true);
-					this.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
-					this.add(lblScaling, 0, 1);
-					this.add(cmbScaling, 1, 1);
-					this.add(lblLoop, 0, 2);
-					this.add(chkLoop, 1, 2);
-					this.add(lblMute, 0, 3);
-					this.add(chkMute, 1, 3);
+					pkrAudio.setVisible(false);
+					this.getChildren().removeAll(this.segScaling, loopMute);
+					this.getChildren().addAll(this.segScaling, loopMute);
 					break;
 				case NONE:
 				default:
@@ -198,7 +217,8 @@ public final class SlidePaintPicker extends GridPane {
 					pkrGradient.setVisible(false);
 					pkrImage.setVisible(false);
 					pkrVideo.setVisible(false);
-					this.getChildren().removeAll(lblScaling, cmbScaling, lblLoop, chkLoop, lblMute, chkMute);
+					pkrAudio.setVisible(false);
+					this.getChildren().removeAll(this.segScaling, loopMute);
 					break;
 			}
 		});
@@ -206,6 +226,8 @@ public final class SlidePaintPicker extends GridPane {
 	}
 	
 	private SlidePaint createPaint() {
+		Toggle scaleToggle = segScaling.getToggleGroup().getSelectedToggle();
+		ScaleType scaleType = scaleToggle != null && scaleToggle.getUserData() != null ? (ScaleType)scaleToggle.getUserData() : ScaleType.NONE;
 		switch (this.cbTypes.getValue()) {
 			case COLOR:
 				Color color = this.pkrColor.getValue();
@@ -223,12 +245,17 @@ public final class SlidePaintPicker extends GridPane {
 				}
 			case IMAGE:
 				if (this.pkrImage.getValue() != null) {
-					return new MediaObject(this.pkrImage.getValue().getMetadata().getId(), cmbScaling.getValue(), chkLoop.isSelected(), chkMute.isSelected());
+					return new MediaObject(this.pkrImage.getValue().getMetadata().getId(), scaleType, false, false);
 				}
 				return null;
 			case VIDEO:
 				if (this.pkrVideo.getValue() != null) {
-					return new MediaObject(this.pkrVideo.getValue().getMetadata().getId(), cmbScaling.getValue(), chkLoop.isSelected(), chkMute.isSelected());
+					return new MediaObject(this.pkrVideo.getValue().getMetadata().getId(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
+				}
+				return null;
+			case AUDIO:
+				if (this.pkrAudio.getValue() != null) {
+					return new MediaObject(this.pkrAudio.getValue().getMetadata().getId(), ScaleType.NONE, tglLoop.isSelected(), tglMute.isSelected());
 				}
 				return null;
 			default:

@@ -5,5 +5,6 @@ enum PaintType {
 	COLOR,
 	GRADIENT,
 	IMAGE,
-	VIDEO;
+	VIDEO,
+	AUDIO;
 }

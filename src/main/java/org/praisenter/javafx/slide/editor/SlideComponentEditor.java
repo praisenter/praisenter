@@ -7,11 +7,12 @@ import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
-import org.praisenter.javafx.FontPicker;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.MediaPicker;
+import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
+import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.PlaceholderType;
@@ -22,11 +23,15 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 
 // TODO translate
@@ -40,6 +45,8 @@ public final class SlideComponentEditor extends GridPane {
 	
 	final ObjectProperty<ObservableSlideComponent<?>> component = new SimpleObjectProperty<ObservableSlideComponent<?>>();
 	
+	boolean updating = false;
+	
 	// controls
 	
 	// base component
@@ -47,7 +54,7 @@ public final class SlideComponentEditor extends GridPane {
 	// TODO need a border picker
 	
 	// media component
-	final MediaPicker pkrMedia;
+	final SlidePaintPicker pkrMedia;
 	
 	// text component
 	final SlidePaintPicker pkrTextPaint;
@@ -97,19 +104,35 @@ public final class SlideComponentEditor extends GridPane {
 		
 		// base component
 		// background
-		this.pkrBackground = new SlidePaintPicker(context);
+		Label lblBackground = new Label("Background");
+		this.pkrBackground = new SlidePaintPicker(context, 
+				PaintType.NONE, 
+				PaintType.COLOR, 
+				PaintType.GRADIENT, 
+				PaintType.IMAGE, 
+				PaintType.VIDEO);
 		// border
 		// re-ordering
 		
 		// media component
 		// media
-		this.pkrMedia = new MediaPicker(context);
+		Label lblMedia = new Label("Media");
+		this.pkrMedia = new SlidePaintPicker(context, 
+				PaintType.NONE, 
+				PaintType.IMAGE, 
+				PaintType.VIDEO, 
+				PaintType.AUDIO);
 		
 		// text component
 		// paint
-		this.pkrTextPaint = new SlidePaintPicker(context, PaintType.NONE, PaintType.COLOR, PaintType.GRADIENT);
+		Label lblTextFill = new Label("Text Fill");
+		this.pkrTextPaint = new SlidePaintPicker(context, 
+				PaintType.NONE, 
+				PaintType.COLOR, 
+				PaintType.GRADIENT);
 		// border
 		// font
+		Label lblFont = new Label("Font");
 		this.pkrFont = new FontPicker(Font.font("Arial", 30), FXCollections.observableArrayList(Font.getFamilies()));
 		// h-align
 		ToggleButton tglLeft = new ToggleButton("l");
@@ -138,29 +161,141 @@ public final class SlideComponentEditor extends GridPane {
 		tglBottom.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.LIST_OL));
 		this.segVerticalAlignment = new SegmentedButton(tglTop, tglMiddle, tglBottom);
 		// font scale
+		Label lblFontScaling = new Label("Sizing");
 		this.cmbFontScaling = new ChoiceBox<Option<FontScaleType>>(fontScaleTypes);
 		// padding
+		Label lblPadding = new Label("Padding");
 		this.spnPadding = new Spinner<Double>(0.0, Double.MAX_VALUE, 0.0, 1.0);
 		// line spacing
+		Label lblLineSpacing = new Label("Line Spacing");
 		this.spnLineSpacing = new Spinner<Double>(0.0, Double.MAX_VALUE, 0.0, 1.0);
 		
 		// basic text component
 		// text
+		Label lblText = new Label("Text");
 		this.txtText = new TextField();
 		
 		// date-time component
 		// format
+		Label lblFormat = new Label("Format");
 		this.cmbDateTimeFormat = new ChoiceBox<Option<SimpleDateFormat>>(dateTimeFormats);
 		
 		// text placeholder component
 		// type
+		Label lblPlaceholderType = new Label("Type");
 		this.cmbPlaceholderType = new ChoiceBox<Option<PlaceholderType>>(placeholderTypes);
 		// variants
+		Label lblPlaceholderVariants = new Label("Variants");
 		this.cmbPlaceholderVariants = new CheckComboBox<Option<PlaceholderVariant>>(placeholderVariants);
 		
+		// create a node array of all the nodes we need to
+		// remove from the layout when the type of the component changes
+		Node[] all = new Node[] {
+			// media
+			lblMedia,
+			pkrMedia,
+			// text
+			lblTextFill,
+			pkrTextPaint,
+			lblFont,
+			pkrFont,
+			segHorizontalAlignment,
+			segVerticalAlignment,
+			lblFontScaling,
+			cmbFontScaling,
+			lblPadding,
+			spnPadding,
+			lblLineSpacing,
+			spnLineSpacing,
+			// basic text
+			lblText,
+			txtText,
+			// date-time
+			lblFormat,
+			cmbDateTimeFormat,
+			// placeholder
+			lblPlaceholderType,
+			cmbPlaceholderType,
+			lblPlaceholderVariants,
+			cmbPlaceholderVariants
+		};
+		
+		// add controls
+		this.setVgap(5);
+		this.setHgap(5);
+		this.add(lblBackground, 0, 0);
+		this.add(pkrBackground, 1, 0);
+		
 		// TODO wire up
+		this.component.addListener((obs, ov, nv) -> {
+			updating = true;
+			this.getChildren().removeAll(all);
+			pkrBackground.setValue(nv.getBackground());
+			if (nv instanceof ObservableMediaComponent) {
+				ObservableMediaComponent omc = (ObservableMediaComponent)nv;
+				// add controls
+				this.add(lblMedia, 0, 1);
+				this.add(pkrMedia, 1, 1);
+				// set values
+				pkrMedia.setValue(omc.getMedia());
+			} else if (nv instanceof ObservableTextComponent<?>) {
+				ObservableTextComponent<?> otc = (ObservableTextComponent<?>)nv;
+				// add controls
+				this.add(lblTextFill, 0, 1);
+				this.add(pkrTextPaint, 1, 1);
+				this.add(lblFont, 0, 2);
+				this.add(pkrFont, 1, 2);
+				this.add(segHorizontalAlignment, 1, 3);
+				this.add(segVerticalAlignment, 1, 4);
+				this.add(lblFontScaling, 0, 5);
+				this.add(cmbFontScaling, 1, 5);
+				this.add(lblPadding, 0, 6);
+				this.add(spnPadding, 1, 6);
+				this.add(lblLineSpacing, 0, 7);
+				this.add(spnLineSpacing, 1, 7);
+				// set values
+				this.pkrTextPaint.setValue(otc.getTextPaint());
+				//this.pkrFont.setFont(font);
+				switch (otc.getHorizontalTextAlignment()) {
+					case LEFT:
+						this.segHorizontalAlignment.getToggleGroup().selectToggle(tglLeft);
+						break;
+					case CENTER:
+						this.segHorizontalAlignment.getToggleGroup().selectToggle(tglCenter);
+						break;
+					case RIGHT:
+						this.segHorizontalAlignment.getToggleGroup().selectToggle(tglRight);
+						break;
+					case JUSTIFY:
+						this.segHorizontalAlignment.getToggleGroup().selectToggle(tglJustify);
+						break;
+				}
+				switch (otc.getVerticalTextAlignment()) {
+					case TOP:
+						this.segVerticalAlignment.getToggleGroup().selectToggle(tglTop);
+						break;
+					case CENTER:
+						this.segVerticalAlignment.getToggleGroup().selectToggle(tglMiddle);
+						break;
+					case BOTTOM:
+						this.segVerticalAlignment.getToggleGroup().selectToggle(tglBottom);
+						break;
+				}
+				this.cmbFontScaling.setValue(new Option<FontScaleType>(null, otc.getFontScaleType()));
+				this.spnPadding.getValueFactory().setValue(otc.getPadding());
+				this.spnLineSpacing.getValueFactory().setValue(otc.getLineSpacing());
+			}
+			updating = false;
+		});
 		
-		
+		// wiring up
+		this.pkrBackground.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null) {
+				component.setBackground(nv);
+			}
+		});
 	}
 	
 	public ObservableSlideComponent<?> getComponent() {
