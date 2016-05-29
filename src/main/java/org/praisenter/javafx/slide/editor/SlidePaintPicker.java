@@ -150,6 +150,7 @@ public final class SlidePaintPicker extends VBox {
 		tglImageScaleNonUniform.setUserData(ScaleType.NONUNIFORM);
 		tglImageScaleUniform.setUserData(ScaleType.UNIFORM);
 		this.segScaling = new SegmentedButton(tglImageScaleNone, tglImageScaleNonUniform, tglImageScaleUniform);
+		this.segScaling.getToggleGroup().selectedToggleProperty().addListener(listener);
 		
 		this.tglLoop = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.REPEAT));
 		this.tglLoop.selectedProperty().addListener(listener);

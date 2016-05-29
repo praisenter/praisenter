@@ -464,6 +464,39 @@ public final class JavaFXTypeConverter {
 				font.getSize());
 	}
 	
+	public static SlideFont fromJavaFX(Font font) {
+		if (font == null) {
+			return null;
+		}
+		String style = font.getStyle();
+		String[] styles = (style == null ? "" : style.trim().toUpperCase()).split(" ");
+		return new SlideFont(
+				font.getFamily(), 
+				fromJavaFX(getWeight(styles)), 
+				fromJavaFX(getPosture(styles)), 
+				font.getSize());
+	}
+	
+	private static final FontWeight getWeight(String[] styles) {
+		for (String s : styles) {
+			FontWeight weight = FontWeight.findByName(s);
+			if (weight != null) {
+				return weight;
+			}
+		}
+		return FontWeight.NORMAL;
+	}
+	
+	private static final FontPosture getPosture(String[] styles) {
+		for (String s : styles) {
+			FontPosture posture = FontPosture.findByName(s);
+			if (posture != null) {
+				return posture;
+			}
+		}
+		return FontPosture.REGULAR;
+	}
+	
 	// media
 	
 	// only for video/audio
@@ -516,6 +549,7 @@ public final class JavaFXTypeConverter {
 			// image
 			try  {
 				image = context.getImageCache().get(media.getMetadata().getPath());
+				
 			} catch (Exception ex) {
 				// just log the error
 				// FIXME handle errors

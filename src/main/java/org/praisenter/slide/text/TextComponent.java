@@ -32,6 +32,7 @@ import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 
 // FEATURE add a countdown component (to a certain time or after a certain duration)
+// FEATURE add setting for per-line gradient for text filling
 
 /**
  * Represents a component of a slide that displays text.

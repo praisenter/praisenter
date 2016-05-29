@@ -28,6 +28,10 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.slide.JavaFXTypeConverter;
+import org.praisenter.slide.text.SlideFont;
+import org.praisenter.slide.text.SlideFontPosture;
+import org.praisenter.slide.text.SlideFontWeight;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -81,18 +85,18 @@ public final class FontPicker extends HBox {
 				
 				// get the font weight and posture from the style
 				updateAvailableFontStyles(family);
-				String style = font.getStyle();
-				String[] styles = (style == null ? "" : style.trim().toUpperCase()).split(" ");
-				for (String s : styles) {
-					FontWeight weight = FontWeight.findByName(s);
-					if (weight != null) {
-						tglBold.setSelected(weight == FontWeight.BOLD);
-					} else {
-						FontPosture posture = FontPosture.findByName(s);
-						if (posture != null) {
-							tglItalic.setSelected(posture == FontPosture.ITALIC);
-						}
-					}
+				SlideFont sf = JavaFXTypeConverter.fromJavaFX(font);
+				boolean isBold = sf.getWeight() == SlideFontWeight.BOLD;
+				boolean isItalic = sf.getPosture() == SlideFontPosture.ITALIC;
+				if (isBold) {
+					tglBold.setSelected(true);
+				} else {
+					tglBold.setSelected(false);
+				}
+				if (isItalic) {
+					tglItalic.setSelected(true);
+				} else {
+					tglItalic.setSelected(false);
 				}
 				
 				// set the size

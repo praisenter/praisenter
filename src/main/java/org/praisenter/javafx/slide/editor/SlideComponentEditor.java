@@ -10,13 +10,18 @@ import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.MediaPicker;
+import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableTextComponent;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.PlaceholderType;
 import org.praisenter.slide.text.PlaceholderVariant;
+import org.praisenter.slide.text.SlideFont;
+import org.praisenter.slide.text.SlideFontPosture;
+import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.VerticalTextAlignment;
 
 import javafx.beans.property.ObjectProperty;
@@ -33,6 +38,8 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 
 // TODO translate
 
@@ -135,30 +142,23 @@ public final class SlideComponentEditor extends GridPane {
 		Label lblFont = new Label("Font");
 		this.pkrFont = new FontPicker(Font.font("Arial", 30), FXCollections.observableArrayList(Font.getFamilies()));
 		// h-align
-		ToggleButton tglLeft = new ToggleButton("l");
-		ToggleButton tglRight = new ToggleButton("r");
-		ToggleButton tglCenter = new ToggleButton("c");
-		ToggleButton tglJustify = new ToggleButton("j");
+		ToggleButton tglLeft = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_LEFT));
+		ToggleButton tglRight = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_RIGHT));
+		ToggleButton tglCenter = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_CENTER));
+		ToggleButton tglJustify = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_JUSTIFY));
 		tglLeft.setUserData(HorizontalTextAlignment.LEFT);
 		tglRight.setUserData(HorizontalTextAlignment.RIGHT);
 		tglCenter.setUserData(HorizontalTextAlignment.CENTER);
 		tglJustify.setUserData(HorizontalTextAlignment.JUSTIFY);
-		tglLeft.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_LEFT));
-		tglRight.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_RIGHT));
-		tglCenter.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_CENTER));
-		tglJustify.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_JUSTIFY));
 		this.segHorizontalAlignment = new SegmentedButton(tglLeft, tglRight, tglCenter, tglJustify);
 		// v-align
-		ToggleButton tglTop = new ToggleButton("t");
-		ToggleButton tglMiddle = new ToggleButton("m");
-		ToggleButton tglBottom = new ToggleButton("b");
+		// FIXME vertical align icons
+		ToggleButton tglTop = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.LIST));
+		ToggleButton tglMiddle = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.LIST_ALT));
+		ToggleButton tglBottom = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.LIST_OL));
 		tglTop.setUserData(VerticalTextAlignment.TOP);
 		tglMiddle.setUserData(VerticalTextAlignment.CENTER);
 		tglBottom.setUserData(VerticalTextAlignment.BOTTOM);
-		// FIXME need vertical alignment options
-		tglTop.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.LIST));
-		tglMiddle.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.LIST_ALT));
-		tglBottom.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.LIST_OL));
 		this.segVerticalAlignment = new SegmentedButton(tglTop, tglMiddle, tglBottom);
 		// font scale
 		Label lblFontScaling = new Label("Sizing");
@@ -255,30 +255,30 @@ public final class SlideComponentEditor extends GridPane {
 				this.add(spnLineSpacing, 1, 7);
 				// set values
 				this.pkrTextPaint.setValue(otc.getTextPaint());
-				//this.pkrFont.setFont(font);
+				this.pkrFont.setFont(JavaFXTypeConverter.toJavaFX(otc.getFont()));
 				switch (otc.getHorizontalTextAlignment()) {
 					case LEFT:
-						this.segHorizontalAlignment.getToggleGroup().selectToggle(tglLeft);
+						tglLeft.setSelected(true);
 						break;
 					case CENTER:
-						this.segHorizontalAlignment.getToggleGroup().selectToggle(tglCenter);
+						tglCenter.setSelected(true);
 						break;
 					case RIGHT:
-						this.segHorizontalAlignment.getToggleGroup().selectToggle(tglRight);
+						tglRight.setSelected(true);
 						break;
 					case JUSTIFY:
-						this.segHorizontalAlignment.getToggleGroup().selectToggle(tglJustify);
+						tglJustify.setSelected(true);
 						break;
 				}
 				switch (otc.getVerticalTextAlignment()) {
 					case TOP:
-						this.segVerticalAlignment.getToggleGroup().selectToggle(tglTop);
+						tglTop.setSelected(true);
 						break;
 					case CENTER:
-						this.segVerticalAlignment.getToggleGroup().selectToggle(tglMiddle);
+						tglMiddle.setSelected(true);
 						break;
 					case BOTTOM:
-						this.segVerticalAlignment.getToggleGroup().selectToggle(tglBottom);
+						tglBottom.setSelected(true);
 						break;
 				}
 				this.cmbFontScaling.setValue(new Option<FontScaleType>(null, otc.getFontScaleType()));
@@ -289,11 +289,75 @@ public final class SlideComponentEditor extends GridPane {
 		});
 		
 		// wiring up
+		
 		this.pkrBackground.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
 			ObservableSlideComponent<?> component = this.component.get();
 			if (component != null) {
 				component.setBackground(nv);
+			}
+		});
+		
+		this.pkrTextPaint.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				tc.setTextPaint(nv);
+			}
+		});
+		
+		this.pkrFont.fontProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				tc.setFont(JavaFXTypeConverter.fromJavaFX(nv));
+			}
+		});
+		
+		this.segHorizontalAlignment.getToggleGroup().selectedToggleProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				tc.setHorizontalTextAlignment((HorizontalTextAlignment)nv.getUserData());
+			}
+		});
+		
+		this.segVerticalAlignment.getToggleGroup().selectedToggleProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				tc.setVerticalTextAlignment((VerticalTextAlignment)nv.getUserData());
+			}
+		});
+		
+		this.cmbFontScaling.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				tc.setFontScaleType(nv.getValue());
+			}
+		});
+		
+		this.spnPadding.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				tc.setPadding(nv);
+			}
+		});
+		
+		this.spnLineSpacing.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				tc.setLineSpacing(nv);
 			}
 		});
 	}
