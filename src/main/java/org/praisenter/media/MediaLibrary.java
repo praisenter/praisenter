@@ -49,6 +49,7 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Constants;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.Tag;
 import org.praisenter.xml.XmlIO;
@@ -393,6 +394,8 @@ public final class MediaLibrary {
 		
 		// any supporting media loaders?
 		if (loaders.size() == 0) {
+			// remove it from the library
+			Files.delete(path);
 			LOGGER.warn("No supporting media loaders for file '" + path.toAbsolutePath().toString() + "'.");
 			throw new UnsupportedMediaException(new UnknownMediaTypeException(path.toAbsolutePath().toString()));
 		}
@@ -402,6 +405,7 @@ public final class MediaLibrary {
 		// iterate through the loaders
 		int n = loaders.size();
 		LOGGER.debug("Found " + n + " loaders for '" + path.toAbsolutePath().toString() + "'");
+		List<String> errors = new ArrayList<String>();
 		for (int i = 0; i < n; i++) {
 			MediaLoader loader = loaders.get(i);
 			try {
@@ -411,14 +415,18 @@ public final class MediaLibrary {
 				break;
 			} catch (IOException e) {
 				LOGGER.warn("Failed to load file '" + path.toAbsolutePath().toString() + "': ", e);
+				errors.add(e.getMessage());
 			} catch (InvalidFormatException e) {
 				LOGGER.warn("Unsupported media format for '" + path.toAbsolutePath().toString() + "' using media loader '" + loader.getClass().getName() + "'.", e);
+				errors.add(e.getMessage());
 			}
 		}
 		
 		if (media == null) {
+			// remove it from the library
+			Files.delete(path);
 			LOGGER.warn("The supporting media loaders couldn't load '" + path.toAbsolutePath().toString() + "'.");
-			throw new UnsupportedMediaException(path.toAbsolutePath().toString());
+			throw new UnsupportedMediaException(path.toAbsolutePath().toString() + Constants.NEW_LINE + String.join(", ", errors));
 		}
 		
 		return media;

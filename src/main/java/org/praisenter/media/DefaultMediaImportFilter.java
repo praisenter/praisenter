@@ -24,11 +24,26 @@
  */
 package org.praisenter.media;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Iterator;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.utility.ImageManipulator;
+
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifIFD0Directory;
 
 /**
  * The default media import filter which simply copies the source to the target.
@@ -36,6 +51,8 @@ import java.nio.file.StandardCopyOption;
  * @version 3.0.0
  */
 public class DefaultMediaImportFilter implements MediaImportFilter {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaImportFilter#getTarget(java.nio.file.Path, java.lang.String, org.praisenter.media.MediaType)
 	 */
@@ -57,6 +74,78 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 			throw new FileAlreadyExistsException(target.toAbsolutePath().toString());
 		}
 		
+		// for image media we want to go ahead and fix any rotation stuff
+		if (type == MediaType.IMAGE) {
+			// attempt to get the orientation of the image
+			int orientation = getExifOrientation(source);
+			// if we did, fix it if necessary
+			if (orientation != -1 && orientation != 1) {
+				try {
+					copyAndCorrectOrientation(source, target, orientation);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return;
+			}
+		}
+		
 		Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
+	}
+	
+	/**
+	 * Copies the source image to the target path correcting the orientation
+	 * as part of the copy.
+	 * @param source the source
+	 * @param target the target
+	 * @param orientation the orientation
+	 * @throws IOException if an IO error occurs
+	 * @throws InterruptedException 
+	 */
+	private void copyAndCorrectOrientation(Path source, Path target, int orientation) throws IOException, InterruptedException {
+		// read the image
+		try (ImageInputStream in = ImageIO.createImageInputStream(source.toFile())) {
+			Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+			// loop through the readers until we find one that works
+			while (readers.hasNext()) {
+				ImageReader reader = readers.next();
+				reader.setInput(in);
+				// read and correct the image
+				BufferedImage image = ImageManipulator.correctExifOrientation(reader.read(0), orientation);
+				
+				if (image.getColorModel().hasAlpha() && ("JPG".equals(reader.getFormatName().toUpperCase()) || "JPEG".equals(reader.getFormatName().toUpperCase()))) {
+					BufferedImage bi = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+					Graphics2D g2d = bi.createGraphics();
+					g2d.drawImage(image, 0, 0, null);
+					g2d.dispose();
+					image = bi;
+				}
+				
+				ImageIO.write(image, reader.getFormatName(), target.toFile());
+				break;
+			}
+		}
+	}
+	
+	/**
+	 * Returns the orientation stored in a EXIF header or -1 if
+	 * it doesnt exist or cannot be read.
+	 * @param source the file
+	 * @return int
+	 */
+	private int getExifOrientation(Path source) {
+		// attempt to read the EXIF orientation
+		// and just log any exceptions
+		int orientation = -1;
+		try {
+			Metadata meta = ImageMetadataReader.readMetadata(source.toFile());
+			ExifIFD0Directory directory = meta.getFirstDirectoryOfType(ExifIFD0Directory.class);
+			if (directory != null) {
+				orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
+			}
+		} catch (Exception e) {
+			LOGGER.warn("Failed to read EXIF orientation for '{}': {}.", source.toAbsolutePath().toString(), e.getMessage());
+		}
+		return orientation;
 	}
 }

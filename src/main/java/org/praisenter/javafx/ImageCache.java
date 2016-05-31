@@ -24,12 +24,16 @@
  */
 package org.praisenter.javafx;
 
+import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
+
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
 /**
@@ -62,9 +66,16 @@ public final class ImageCache {
 				return image;
 			}
 		}
-		Image image = this.load(path);
-		this.images.put(path, new SoftReference<Image>(image));
-		return image;
+		try {
+			Image image = this.load(path);
+			this.images.put(path, new SoftReference<Image>(image));
+			return image;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		// TODO what should be returned here?
+		return null;
 	}
 	
 	/**
@@ -84,8 +95,10 @@ public final class ImageCache {
 	 * Loads an Image from the given path.
 	 * @param path the path
 	 * @return Image
+	 * @throws IOException 
 	 */
-	private Image load(Path path) {
-		return new Image(path.toUri().toString(), false);
+	private Image load(Path path) throws IOException {
+		// using ImageIO and twelvemonkeys lib allows for more supported formats
+		return SwingFXUtils.toFXImage(ImageIO.read(path.toFile()), null);
 	}
 }

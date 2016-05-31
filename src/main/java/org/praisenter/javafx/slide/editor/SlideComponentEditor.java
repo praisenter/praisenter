@@ -9,19 +9,17 @@ import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.media.MediaPicker;
 import org.praisenter.javafx.slide.JavaFXTypeConverter;
+import org.praisenter.javafx.slide.ObservableBasicTextComponent;
+import org.praisenter.javafx.slide.ObservableDateTimeComponent;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableTextComponent;
-import org.praisenter.javafx.utility.Fx;
+import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.PlaceholderType;
 import org.praisenter.slide.text.PlaceholderVariant;
-import org.praisenter.slide.text.SlideFont;
-import org.praisenter.slide.text.SlideFontPosture;
-import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.VerticalTextAlignment;
 
 import javafx.beans.property.ObjectProperty;
@@ -32,14 +30,10 @@ import javafx.scene.Node;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontPosture;
-import javafx.scene.text.FontWeight;
 
 // TODO translate
 
@@ -74,7 +68,7 @@ public final class SlideComponentEditor extends GridPane {
 	final Spinner<Double> spnLineSpacing;
 	
 	// basic text component
-	final TextField txtText;
+	final TextArea txtText;
 	
 	// date-time component
 	final ChoiceBox<Option<SimpleDateFormat>> cmbDateTimeFormat;
@@ -173,7 +167,7 @@ public final class SlideComponentEditor extends GridPane {
 		// basic text component
 		// text
 		Label lblText = new Label("Text");
-		this.txtText = new TextField();
+		this.txtText = new TextArea();
 		
 		// date-time component
 		// format
@@ -226,11 +220,11 @@ public final class SlideComponentEditor extends GridPane {
 		this.add(lblBackground, 0, 0);
 		this.add(pkrBackground, 1, 0);
 		
-		// TODO wire up
 		this.component.addListener((obs, ov, nv) -> {
 			updating = true;
 			this.getChildren().removeAll(all);
 			pkrBackground.setValue(nv.getBackground());
+			// TODO border
 			if (nv instanceof ObservableMediaComponent) {
 				ObservableMediaComponent omc = (ObservableMediaComponent)nv;
 				// add controls
@@ -243,6 +237,7 @@ public final class SlideComponentEditor extends GridPane {
 				// add controls
 				this.add(lblTextFill, 0, 1);
 				this.add(pkrTextPaint, 1, 1);
+				// TODO text border
 				this.add(lblFont, 0, 2);
 				this.add(pkrFont, 1, 2);
 				this.add(segHorizontalAlignment, 1, 3);
@@ -283,7 +278,36 @@ public final class SlideComponentEditor extends GridPane {
 				}
 				this.cmbFontScaling.setValue(new Option<FontScaleType>(null, otc.getFontScaleType()));
 				this.spnPadding.getValueFactory().setValue(otc.getPadding());
-				this.spnLineSpacing.getValueFactory().setValue(otc.getLineSpacing());
+				this.spnLineSpacing.getValueFactory().setValue(otc.getLineSpacing()); 
+				
+				if (nv instanceof ObservableDateTimeComponent) {
+					ObservableDateTimeComponent odtc = (ObservableDateTimeComponent)nv;
+					
+					this.add(lblFormat, 0, 8);
+					this.add(cmbDateTimeFormat, 1, 8);
+					
+					this.cmbDateTimeFormat.setValue(new Option<SimpleDateFormat>(null, odtc.getFormat()));
+				} else if (nv instanceof ObservableTextPlaceholderComponent) {
+					ObservableTextPlaceholderComponent otpc = (ObservableTextPlaceholderComponent)nv;
+					
+					this.add(lblPlaceholderType, 0, 8);
+					this.add(cmbPlaceholderType, 1, 8);
+					this.add(lblPlaceholderVariants, 0, 9);
+					this.add(cmbPlaceholderVariants, 1, 9);
+					
+					this.cmbPlaceholderType.setValue(new Option<PlaceholderType>(null, otpc.getPlaceholderType()));
+					this.cmbPlaceholderVariants.getCheckModel().clearChecks();
+					for (PlaceholderVariant variant : otpc.getVariants()) {
+						this.cmbPlaceholderVariants.getCheckModel().check(new Option<PlaceholderVariant>(null, variant));
+					}
+				} else if (nv instanceof ObservableBasicTextComponent) {
+					ObservableBasicTextComponent<?> obtc = (ObservableBasicTextComponent<?>)nv;
+					
+					this.add(lblText, 0, 8);
+					this.add(txtText, 1, 8);
+					
+					this.txtText.setText(obtc.getText());
+				}
 			}
 			updating = false;
 		});

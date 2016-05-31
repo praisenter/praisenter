@@ -1,9 +1,10 @@
 # image types
-image/png													png PNG
+image/png													png PNG x-png X-PNG
 image/gif													gif GIF
-image/bmp													bmp BMP
-image/jpeg													jpg JPG jpeg JPEG
+image/bmp													bmp BMP bm BM
+image/jpeg													jpg JPG jpeg JPEG jpe JPE jfif JFIF
 image/vnd.wap.wbmp											wbmp WBMP
+image/tiff													tif TIF tiff TIFF
 
 # video types
 video/ogg													ogv OGV

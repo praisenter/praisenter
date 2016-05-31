@@ -41,6 +41,8 @@ import org.praisenter.media.MediaImportFilter;
 import org.praisenter.media.MediaType;
 import org.praisenter.media.TranscodeException;
 
+// FIXME attempt to load into JavaFX Media and attempt to play and check for errors before transcoding
+
 /**
  * {@link MediaImportFilter} used to transcode audio and video into the formats playable by JavaFX.
  * @author William Bittle

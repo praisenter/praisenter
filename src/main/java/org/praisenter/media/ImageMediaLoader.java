@@ -38,11 +38,6 @@ import javax.imageio.stream.ImageInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.InvalidFormatException;
-import org.praisenter.utility.ImageManipulator;
-
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.exif.ExifIFD0Directory;
 
 /**
  * {@link MediaLoader} that loads image media.
@@ -81,20 +76,6 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 	@Override
 	public LoadedMedia load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
 		if (Files.exists(path) && Files.isRegularFile(path)) {
-			
-			// attempt to read the EXIF orientation
-			// and just log any exceptions
-			int orientation = -1;
-			try {
-				Metadata meta = ImageMetadataReader.readMetadata(path.toFile());
-				ExifIFD0Directory directory = meta.getFirstDirectoryOfType(ExifIFD0Directory.class);
-				if (directory != null) {
-					orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
-				}
-			} catch (Exception e) {
-				LOGGER.warn("Failed to read EXIF orientation for '{}': {}.", path.toAbsolutePath().toString(), e.getMessage());
-			}
-			
 			// read the image
 			try (ImageInputStream in = ImageIO.createImageInputStream(path.toFile())) {
 				Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
@@ -104,7 +85,8 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 					reader.setInput(in);
 					try {
 						// read and correct the image
-						BufferedImage image = ImageManipulator.correctExifOrientation(reader.read(0), orientation);
+//						BufferedImage image = ImageManipulator.correctExifOrientation(reader.read(0), orientation);
+						BufferedImage image = reader.read(0);
 						BufferedImage thumb = createThumbnail(image);
 						String fmt = reader.getFormatName().toLowerCase();
 						

@@ -59,7 +59,7 @@ public final class SlidePaintPicker extends VBox {
 					}
 					tglLoop.setSelected(mo.isLoop());
 					tglMute.setSelected(mo.isMute());
-					for (Toggle toggle : segScaling.getToggleGroup().getToggles()) {
+					for (Toggle toggle : segScaling.getButtons()) {
 						if (toggle.getUserData() == mo.getScaling()) {
 							toggle.setSelected(true);
 							break;
