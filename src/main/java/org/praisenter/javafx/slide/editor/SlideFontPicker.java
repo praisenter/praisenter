@@ -28,7 +28,6 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
@@ -59,7 +58,7 @@ import javafx.util.Callback;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class FontPicker extends HBox {
+public final class SlideFontPicker extends HBox {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -70,42 +69,14 @@ public final class FontPicker extends HBox {
 	private final ObservableList<String> families;
 	
 	/** The configured font */
-	private final ObjectProperty<Font> font = new SimpleObjectProperty<Font>() {
-		public void set(Font font) {
+	private final ObjectProperty<SlideFont> font = new SimpleObjectProperty<SlideFont>() {
+		public void set(SlideFont font) {
 			if (font != null) {
-				String family = font.getFamily();
-				// check if the family is available on this system
-				if (!families.contains(family)) {
-					LOGGER.warn("Font family '{}' not found.", family);
-					// set the default font
-					cmbFamily.setValue(base.getFamily());
-				} else {
-					cmbFamily.setValue(font.getFamily());
-				}
-				
-				// get the font weight and posture from the style
-				updateAvailableFontStyles(family);
-				SlideFont sf = JavaFXTypeConverter.fromJavaFX(font);
-				boolean isBold = sf.getWeight() == SlideFontWeight.BOLD;
-				boolean isItalic = sf.getPosture() == SlideFontPosture.ITALIC;
-				if (isBold) {
-					tglBold.setSelected(true);
-				} else {
-					tglBold.setSelected(false);
-				}
-				if (isItalic) {
-					tglItalic.setSelected(true);
-				} else {
-					tglItalic.setSelected(false);
-				}
-				
-				// set the size
-				spnSize.getValueFactory().setValue(font.getSize());
+				setControlValues(font);
 			}
-			
-			super.set(createFont());
+			super.set(getControlValues());
 		}
-		public void setValue(Font font) {
+		public void setValue(SlideFont font) {
 			set(font);
 		}
 	};
@@ -126,16 +97,16 @@ public final class FontPicker extends HBox {
 	
 	/**
 	 * Full constructor.
-	 * @param font the initial font; can be null
 	 * @param families the list of font families
 	 */
-	public FontPicker(Font font, ObservableList<String> families) {
+	public SlideFontPicker(ObservableList<String> families) {
 		this.families = families;
 		
 		// get the base UI font
 		this.base = (new Label()).getFont();
 		
 		this.cmbFamily = new ComboBox<>(this.families);
+		this.cmbFamily.setPrefWidth(100);
 		this.cmbFamily.setValue(base.getFamily());
 		
 		this.tglBold = new ToggleButton("b");
@@ -149,7 +120,7 @@ public final class FontPicker extends HBox {
 		this.tglItalic.managedProperty().bind(this.tglItalic.visibleProperty());
 		
 		this.spnSize = new Spinner<>(1, Double.MAX_VALUE, 20, 1);
-		this.spnSize.setPrefWidth(75);
+		this.spnSize.setPrefWidth(65);
 		// allow manual typing
 		this.spnSize.setEditable(true);
 		// commit the value as the user types
@@ -179,9 +150,10 @@ public final class FontPicker extends HBox {
 			@Override
 			public void invalidated(Observable observable) {
 				// update the font
-				FontPicker.this.font.set(null);
+				SlideFontPicker.this.font.set(null);
 			}
 		};
+		
 		this.cmbFamily.valueProperty().addListener(listener);
 		this.cmbFamily.valueProperty().addListener((obs, ov, nv) -> {
 			updateAvailableFontStyles(nv);
@@ -190,23 +162,54 @@ public final class FontPicker extends HBox {
 		this.tglItalic.selectedProperty().addListener(listener);
 		this.spnSize.valueProperty().addListener(listener);
 
-		// set the current value
-		this.font.set(font);
-		
 		this.setSpacing(2);
 		this.getChildren().addAll(this.cmbFamily, this.tglBold, this.tglItalic, this.spnSize);
 	}
 	
 	/**
 	 * Creates a new font using the current values of the controls.
-	 * @return Font
+	 * @return {@link SlideFont}
 	 */
-	private Font createFont() {
-		return Font.font(
+	private SlideFont getControlValues() {
+		return new SlideFont(
 				this.cmbFamily.getValue(), 
-				this.tglBold.isSelected() ? FontWeight.BOLD : FontWeight.NORMAL,
-				this.tglItalic.isSelected() ? FontPosture.ITALIC : FontPosture.REGULAR, 
+				this.tglBold.isSelected() ? SlideFontWeight.BOLD : SlideFontWeight.NORMAL, 
+				this.tglItalic.isSelected() ? SlideFontPosture.ITALIC : SlideFontPosture.REGULAR, 
 				this.spnSize.getValue());
+	}
+	
+	/**
+	 * Sets the values of the controls to the given font values.
+	 * @param font the font
+	 */
+	private void setControlValues(SlideFont font) {
+		String family = font.getFamily();
+		// check if the family is available on this system
+		if (!families.contains(family)) {
+			LOGGER.warn("Font family '{}' not found.", family);
+			// set the default font
+			this.cmbFamily.setValue(base.getFamily());
+		} else {
+			this.cmbFamily.setValue(font.getFamily());
+		}
+		
+		// get the font weight and posture from the style
+		updateAvailableFontStyles(family);
+		boolean isBold = font.getWeight() == SlideFontWeight.BOLD;
+		boolean isItalic = font.getPosture() == SlideFontPosture.ITALIC;
+		if (isBold) {
+			this.tglBold.setSelected(true);
+		} else {
+			this.tglBold.setSelected(false);
+		}
+		if (isItalic) {
+			this.tglItalic.setSelected(true);
+		} else {
+			this.tglItalic.setSelected(false);
+		}
+		
+		// set the size
+		this.spnSize.getValueFactory().setValue(font.getSize());
 	}
 	
 	/**
@@ -237,7 +240,7 @@ public final class FontPicker extends HBox {
 	 * Returns the font property.
 	 * @return ObjectProperty&lt;Font&gt;
 	 */
-	public ObjectProperty<Font> fontProperty() {
+	public ObjectProperty<SlideFont> fontProperty() {
 		return this.font;
 	}
 	
@@ -245,7 +248,7 @@ public final class FontPicker extends HBox {
 	 * Returns the current font.
 	 * @return Font
 	 */
-	public Font getFont() {
+	public SlideFont getFont() {
 		return this.font.get();
 	}
 	
@@ -253,7 +256,7 @@ public final class FontPicker extends HBox {
 	 * Sets the current font.
 	 * @param font the font
 	 */
-	public void setFont(Font font) {
+	public void setFont(SlideFont font) {
 		this.font.set(font);
 	}
 }

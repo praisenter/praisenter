@@ -47,6 +47,9 @@ import com.drew.metadata.exif.ExifIFD0Directory;
 
 /**
  * The default media import filter which simply copies the source to the target.
+ * <p>
+ * If the media type is {@link MediaType#IMAGE} then the file is checked for EXIF 
+ * metadata and potentially rotated to match the orientation.
  * @author William Bittle
  * @version 3.0.0
  */
@@ -80,12 +83,7 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 			int orientation = getExifOrientation(source);
 			// if we did, fix it if necessary
 			if (orientation != -1 && orientation != 1) {
-				try {
-					copyAndCorrectOrientation(source, target, orientation);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				copyAndCorrectOrientation(source, target, orientation);
 				return;
 			}
 		}
@@ -99,10 +97,9 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 	 * @param source the source
 	 * @param target the target
 	 * @param orientation the orientation
-	 * @throws IOException if an IO error occurs
-	 * @throws InterruptedException 
+	 * @throws IOException if an IO error occurs 
 	 */
-	private void copyAndCorrectOrientation(Path source, Path target, int orientation) throws IOException, InterruptedException {
+	private void copyAndCorrectOrientation(Path source, Path target, int orientation) throws IOException {
 		// read the image
 		try (ImageInputStream in = ImageIO.createImageInputStream(source.toFile())) {
 			Iterator<ImageReader> readers = ImageIO.getImageReaders(in);

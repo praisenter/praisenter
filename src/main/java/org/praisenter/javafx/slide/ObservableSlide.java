@@ -1,20 +1,19 @@
 package org.praisenter.javafx.slide;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.animation.SlideAnimation;
-import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
@@ -28,9 +27,10 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
-import javafx.scene.layout.Pane;
+import javafx.scene.Node;
 
 public final class ObservableSlide<T extends Slide> extends ObservableSlideRegion<T> implements Slide {
+	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final StringProperty name = new SimpleStringProperty();
 	private final ObjectProperty<Path> path = new SimpleObjectProperty<Path>();
@@ -50,8 +50,9 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		
 		for (SlideComponent component : slide.getComponents(SlideComponent.class)) {
 			ObservableSlideComponent<?> comp = this.createObservableFor(component);
-			this.components.add(comp);
-//			this.content.getChildren().add(comp.root);
+			if (comp != null) {
+				this.components.add(comp);
+			}
 		}
 		for (SlideAnimation animation : slide.getAnimations()) {
 			this.animations.add(animation);
@@ -106,9 +107,10 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		} else if (component instanceof BasicTextComponent) {
 			return new ObservableBasicTextComponent<BasicTextComponent>((BasicTextComponent)component, this.context, this.mode);
 		} else {
-			// TODO fix
-			throw new ClassCastException("Component type not handled");
+			// just log the error
+			LOGGER.warn("Component type not supported " + component.getClass().getName());
 		}
+		return null;
 	}
 	
 //	public Pane getSlideNode() {
@@ -159,8 +161,17 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	
 	@Override
 	public void moveComponentDown(SlideComponent component) {
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
+	public void moveComponentUp(SlideComponent component) {
+		throw new UnsupportedOperationException();
+	}
+	
+	public void moveComponentDown(ObservableSlideComponent<?> component) {
 		// this will set the order of the components and sort them
-		this.region.moveComponentDown(component);
+		this.region.moveComponentDown(component.region);
 		
 		// now we need to reflect those changes in the observable objects
 		
@@ -172,10 +183,9 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		FXCollections.sort(this.components);
 	}
 	
-	@Override
-	public void moveComponentUp(SlideComponent component) {
+	public void moveComponentUp(ObservableSlideComponent<?> component) {
 		// this will set the order of the components and sort them
-		this.region.moveComponentUp(component);
+		this.region.moveComponentUp(component.region);
 		
 		// now we need to reflect those changes in the observable objects
 		
@@ -250,6 +260,14 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	
 	public ObservableList<ObservableSlideComponent<?>> getObservableComponents() {
 		return this.components;
+	}
+	
+	public List<Node> getEditPanes() {
+		List<Node> panes = new ArrayList<Node>();
+		for (ObservableSlideComponent<?> component : this.components) {
+			panes.add(component.getEditPane());
+		}
+		return panes;
 	}
 	
 	// others

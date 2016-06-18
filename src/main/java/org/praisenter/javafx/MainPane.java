@@ -83,7 +83,6 @@ public final class MainPane extends BorderPane {
 	
 	// TODO slide show pane
 	// TODO song pane
-	// TODO bible pane
 	// TODO slide pane
 	
 }

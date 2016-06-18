@@ -13,17 +13,19 @@ import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 
-
-
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
+import javafx.geometry.NodeOrientation;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
+
+// FIXME right alignment is weird, looks like a JavaFX bug to me, may need to replace with a Label  https://bugs.openjdk.java.net/browse/JDK-8145496 -- http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8145496
 
 public abstract class ObservableTextComponent<T extends TextComponent> extends ObservableSlideComponent<T> implements SlideRegion, SlideComponent, TextComponent {
 
@@ -58,8 +60,9 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		
 		this.textWrapper = new VBox();
 		this.textNode = new Text();
-		this.textNode.setBoundsType(TextBoundsType.VISUAL);
+		this.textNode.setBoundsType(TextBoundsType.LOGICAL);
 		this.textWrapper.getChildren().add(this.textNode);
+		this.textWrapper.setBorder(Fx.newBorder(Color.YELLOW));
 		
 		// listen for changes
 		this.textPaint.addListener((obs, ov, nv) -> { 
@@ -76,11 +79,11 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		});
 		this.horizontalTextAlignment.addListener((obs, ov, nv) -> { 
 			this.region.setHorizontalTextAlignment(nv);
-			updateHorizontalTextAlignment();
+			updateAlignment();
 		});
 		this.verticalTextAlignment.addListener((obs, ov, nv) -> { 
 			this.region.setVerticalTextAlignment(nv);
-			updateVerticalTextAlignment();
+			updateAlignment();
 		});
 		this.fontScaleType.addListener((obs, ov, nv) -> { 
 			this.region.setFontScaleType(nv);
@@ -99,8 +102,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	void build() {
 		updateTextPaint();
 		updateTextBorder();
-		updateHorizontalTextAlignment();
-		updateVerticalTextAlignment();
+		updateAlignment();
 		
 		super.build(this.textWrapper);
 	}
@@ -126,12 +128,11 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		this.textNode.setFill(JavaFXTypeConverter.toJavaFX(this.textPaint.get()));
 	}
 	
-	void updateHorizontalTextAlignment() {
+	void updateAlignment() {
 		this.textNode.setTextAlignment(JavaFXTypeConverter.toJavaFX(this.horizontalTextAlignment.get()));
-	}
-	
-	void updateVerticalTextAlignment() {
-		this.textWrapper.setAlignment(JavaFXTypeConverter.toJavaFX(this.verticalTextAlignment.get()));
+		
+		// NOTE: this is required since single line text nodes horizontal alignment does nothing
+		this.textWrapper.setAlignment(JavaFXTypeConverter.toJavaFX(this.verticalTextAlignment.get(), this.horizontalTextAlignment.get()));
 	}
 	
 	@Override
@@ -174,9 +175,9 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		Font base = JavaFXTypeConverter.toJavaFX(this.font.get());
 		Font font = base;
 		if (scaleType == FontScaleType.REDUCE_SIZE_ONLY) {
-			font = TextMeasurer.getFittingFontForParagraph(str, base, base.getSize(), pw, ph, lineSpacing, TextBoundsType.VISUAL);
+			font = TextMeasurer.getFittingFontForParagraph(str, base, base.getSize(), pw, ph, lineSpacing, TextBoundsType.LOGICAL);
 		} else if (scaleType == FontScaleType.BEST_FIT) {
-			font = TextMeasurer.getFittingFontForParagraph(str, base, Double.MAX_VALUE, pw, ph, lineSpacing, TextBoundsType.VISUAL);
+			font = TextMeasurer.getFittingFontForParagraph(str, base, Double.MAX_VALUE, pw, ph, lineSpacing, TextBoundsType.LOGICAL);
 		}
 		
 		this.textNode.setFont(font);

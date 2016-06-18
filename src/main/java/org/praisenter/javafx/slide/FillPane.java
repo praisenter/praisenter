@@ -17,6 +17,8 @@ import javafx.scene.media.MediaView;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
@@ -29,6 +31,8 @@ import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.slide.object.MediaObject;
 
 public final class FillPane extends StackPane {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	final PraisenterContext context;
 	final SlideMode mode;
 	
@@ -83,7 +87,7 @@ public final class FillPane extends StackPane {
 				   paint instanceof SlideRadialGradient) {
 			setBackgroundPaint(paint);
 		} else {
-			// FIXME handle
+			LOGGER.warn("Unknown paint type " + paint.getClass().getName());
 		}
 	}
 
@@ -168,7 +172,8 @@ public final class FillPane extends StackPane {
 		}
 		
 		if (media == null) {
-			// TODO shouldn't happen but could i guess
+			// this could happen if the media is moved or deleted
+			this.removePaint();
 		} else {
 			MediaType type = media.getMetadata().getType();
 			

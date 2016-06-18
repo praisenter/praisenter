@@ -51,6 +51,7 @@ import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.screen.ScreenManager;
+import org.praisenter.resources.OpenIconic;
 import org.praisenter.resources.translations.Translations;
 
 // FEATURE use Apache POI to read powerpoint files
@@ -167,6 +168,7 @@ public final class Praisenter extends Application {
     	
 		// load fonts
 		GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
+		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
 		
     	// we'll have a stack of the main pane and the loading pane
     	StackPane stack = new StackPane();

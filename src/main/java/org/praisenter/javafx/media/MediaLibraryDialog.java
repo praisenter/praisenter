@@ -65,13 +65,12 @@ final class MediaLibraryDialog extends BorderPane {
 		if (owner != null) {
 			this.dialog.initOwner(owner);
 		}
-		// FIXME fix the default size for this window
 		// FIXME add OK/Cancel buttons
 		this.dialog.setTitle(Translations.get("media.library.title"));
 		this.dialog.initModality(Modality.WINDOW_MODAL);
 		this.dialog.initStyle(StageStyle.UTILITY);
-		this.dialog.setWidth(650);
-		this.dialog.setHeight(350);
+		this.dialog.setWidth(800);
+		this.dialog.setHeight(450);
 		// NOTE: this makes the title portion of the modal shorter
 		this.dialog.setResizable(false);
 		

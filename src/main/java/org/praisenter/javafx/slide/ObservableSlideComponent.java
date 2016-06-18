@@ -17,11 +17,6 @@ public abstract class ObservableSlideComponent<T extends SlideComponent> extends
 
 	final IntegerProperty order = new SimpleIntegerProperty();
 	
-	// text placeholder
-	// TODO move
-	final ObjectProperty<PlaceholderType> textPlaceholderType = new SimpleObjectProperty<PlaceholderType>();
-	final ObservableList<PlaceholderVariant> textPlaceholderVariants = FXCollections.observableArrayList();
-
 	public ObservableSlideComponent(T component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
 		

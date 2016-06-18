@@ -9,7 +9,7 @@ import org.praisenter.slide.text.TextComponent;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class ObservableBasicTextComponent<T extends BasicTextComponent> extends ObservableTextComponent<T> implements SlideRegion, SlideComponent, TextComponent {
+public final class ObservableBasicTextComponent<T extends BasicTextComponent> extends ObservableTextComponent<T> implements SlideRegion, SlideComponent, TextComponent {
 	
 	final StringProperty text = new SimpleStringProperty();
 	

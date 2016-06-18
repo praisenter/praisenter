@@ -54,8 +54,6 @@ import org.praisenter.InvalidFormatException;
 import org.praisenter.Tag;
 import org.praisenter.xml.XmlIO;
 
-// FIXME fix orientation (EXIF) of images before moving them to the Media Library; this will prevent having to rotate images on the fly
-
 /**
  * A collection of media that has been loaded into a specific location and converted
  * into supported formats with additional files generated for enhanced performance.

@@ -83,9 +83,9 @@ public final class Configuration {
 		apocryphaIncluded.addListener((e) -> {
 			try {
 				Configuration.save(this);
-			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			} catch (Exception ex) {
+				// just log the error
+				LOGGER.error("Failed to save configuration for apocrypha setting", ex);
 			}
 		});
 	}

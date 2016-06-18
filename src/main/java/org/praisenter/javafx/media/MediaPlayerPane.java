@@ -46,6 +46,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
@@ -129,6 +130,11 @@ public final class MediaPlayerPane extends BorderPane {
 
                 if (status == Status.UNKNOWN || 
             		status == Status.DISPOSED) {
+                	// check the error
+                	MediaException mex = player.getError();
+                	if (mex != null) {
+                		LOGGER.error("Failed to play " + player.getMedia().getSource() + " due to " + mex.getMessage(), mex);
+                	}
                     // don't do anything in these states
                     return;
                 }

@@ -47,22 +47,27 @@ public final class SlidePaintPicker extends VBox {
 				if (paint instanceof MediaObject) {
 					MediaObject mo = ((MediaObject)paint);
 					Media media = context.getMediaLibrary().get(mo.getId());
-					if (media.getMetadata().getType() == MediaType.IMAGE) {
-						cbTypes.setValue(PaintType.IMAGE);
-						pkrImage.setValue(media);
-					} else if (media.getMetadata().getType() == MediaType.VIDEO) {
-						cbTypes.setValue(PaintType.VIDEO);
-						pkrVideo.setValue(media);
-					} else if (media.getMetadata().getType() == MediaType.AUDIO) {
-						cbTypes.setValue(PaintType.AUDIO);
-						pkrAudio.setValue(media);
-					}
-					tglLoop.setSelected(mo.isLoop());
-					tglMute.setSelected(mo.isMute());
-					for (Toggle toggle : segScaling.getButtons()) {
-						if (toggle.getUserData() == mo.getScaling()) {
-							toggle.setSelected(true);
-							break;
+					// the media could have been removed, so check for null
+					if (media == null) {
+						cbTypes.setValue(PaintType.NONE);
+					} else {
+						if (media.getMetadata().getType() == MediaType.IMAGE) {
+							cbTypes.setValue(PaintType.IMAGE);
+							pkrImage.setValue(media);
+						} else if (media.getMetadata().getType() == MediaType.VIDEO) {
+							cbTypes.setValue(PaintType.VIDEO);
+							pkrVideo.setValue(media);
+						} else if (media.getMetadata().getType() == MediaType.AUDIO) {
+							cbTypes.setValue(PaintType.AUDIO);
+							pkrAudio.setValue(media);
+						}
+						tglLoop.setSelected(mo.isLoop());
+						tglMute.setSelected(mo.isMute());
+						for (Toggle toggle : segScaling.getButtons()) {
+							if (toggle.getUserData() == mo.getScaling()) {
+								toggle.setSelected(true);
+								break;
+							}
 						}
 					}
 				} else if (paint instanceof SlideColor) {
@@ -118,11 +123,13 @@ public final class SlidePaintPicker extends VBox {
 		};
 		
 		cbTypes = new ChoiceBox<PaintType>(FXCollections.observableArrayList(types == null ? PaintType.values() : types));
+		cbTypes.valueProperty().addListener(listener);
+		
 		pkrColor = new ColorPicker();
 		pkrColor.managedProperty().bind(pkrColor.visibleProperty());
 		pkrColor.valueProperty().addListener(listener);
 		
-		pkrGradient = new GradientPicker(null);
+		pkrGradient = new GradientPicker();
 		pkrGradient.managedProperty().bind(pkrGradient.visibleProperty());
 		pkrGradient.valueProperty().addListener(listener);
 		

@@ -50,6 +50,8 @@ import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
+// FIXME add toFront and toBack methods
+
 /**
  * Implementation of the {@link Slide} interface.
  * @author William Bittle

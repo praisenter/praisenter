@@ -31,8 +31,12 @@ import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 
+// FIXME add toggle for text wrapping
+// FIXME split up padding for each side
+
+// FEATURE text shadow
 // FEATURE add a countdown component (to a certain time or after a certain duration)
-// FEATURE add setting for per-line gradient for text filling
+// FEATURE add setting for per-line gradient for text filling (could be done by computing the height of the text and then setting the gradient start/stops appropriately)
 
 /**
  * Represents a component of a slide that displays text.

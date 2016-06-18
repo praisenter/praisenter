@@ -33,6 +33,9 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
@@ -43,6 +46,9 @@ import javafx.scene.image.Image;
  * @version 3.0.0
  */
 public final class ImageCache {
+	/** The class-level logger */
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	/** The cache */
 	private final Map<Path, SoftReference<Image>> images;
 	
@@ -55,6 +61,8 @@ public final class ImageCache {
 	
 	/**
 	 * Returns the image for the given path, loading it if necessary.
+	 * <p>
+	 * Returns null in the event that an error occurs.
 	 * @param path the path
 	 * @return Image
 	 */
@@ -70,11 +78,9 @@ public final class ImageCache {
 			Image image = this.load(path);
 			this.images.put(path, new SoftReference<Image>(image));
 			return image;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (IOException ex) {
+			LOGGER.error("Failed to load image " + path.toAbsolutePath().toString(), ex);
 		}
-		// TODO what should be returned here?
 		return null;
 	}
 	

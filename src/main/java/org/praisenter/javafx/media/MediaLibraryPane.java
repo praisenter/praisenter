@@ -367,7 +367,10 @@ public final class MediaLibraryPane extends BorderPane {
         TitledPane ttlMetadata = new TitledPane(Translations.get("media.metadata.title"), this.pneMetadata);
         TitledPane ttlPreview = new TitledPane(Translations.get("media.preview.title"), this.pnePlayer);
         
-        VBox rightGroup = new VBox(ttlImport, ttlMetadata, ttlPreview);
+        VBox rightGroup = new VBox(ttlImport, ttlMetadata);
+        if (!(mediaTypes.length == 1 && mediaTypes[0] == MediaType.IMAGE)) {
+        	rightGroup.getChildren().add(ttlPreview);
+        }
         ScrollPane rightScroller = new ScrollPane();
         rightScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         rightScroller.setFitToWidth(true);

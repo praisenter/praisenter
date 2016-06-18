@@ -24,69 +24,34 @@
  */
 package org.praisenter.javafx.slide.editor;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.Button;
-import javafx.scene.paint.Paint;
+import java.io.Serializable;
 
-import org.praisenter.resources.translations.Translations;
+import javafx.event.Event;
+import javafx.event.EventTarget;
+import javafx.event.EventType;
 
 /**
- * A custom button to allow selection of a gradient.
+ * Represents a generic event for a change to a slide component.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class GradientPicker extends Button {
-	/** The gradient dialog */
-	private GradientPickerDialog dialog;
+class SlideComponentEvent extends Event implements Serializable {
+	/** The serialization id */
+	private static final long serialVersionUID = 7525223765039656381L;
 	
-	/** The selected value */
-	private final ObjectProperty<Paint> value = new SimpleObjectProperty<Paint>();
+	/** Event type to catch any event */
+	public static final EventType<SlideComponentEvent> ANY = new EventType<SlideComponentEvent>("SLIDE_COMPONENT");
 	
-	/**
-	 * Default constructor.
-	 */
-	public GradientPicker() {
-		this.setText(Translations.get("choose"));
-		this.setOnAction((e) -> {
-			if (dialog == null) {
-				// create the dialog
-				// passing the owner (we don't create
-				// it until the user request for it since
-				// 	1. we don't know the owner at creation time
-				//  2. we don't know if the user will request it at all
-				dialog = new GradientPickerDialog(getScene().getWindow());
-				// set the value
-				dialog.valueProperty().set(value.get());
-				// bind the values
-				value.bindBidirectional(this.dialog.valueProperty());
-			}
-			// show the dialog
-			dialog.show();
-		});
-	}
+	/** Event type to catch only order events */
+	public static final EventType<SlideComponentOrderEvent> ORDER = new EventType<SlideComponentOrderEvent>("SLIDE_COMPONENT_ORDER");
 	
 	/**
-	 * Returns the value property.
-	 * @return ObjectProperty&lt;Paint&gt;
+	 * Full constructor.
+	 * @param source the event source
+	 * @param target the event target
+	 * @param type the event type
 	 */
-	public ObjectProperty<Paint> valueProperty() {
-		return this.value;
-	}
-	
-	/**
-	 * Returns the current value of this picker.
-	 * @return Paint
-	 */
-	public Paint getValue() {
-		return this.value.get();
-	}
-	
-	/**
-	 * Sets the current value of this picker.
-	 * @param gradient the desired value
-	 */
-	public void setValue(Paint gradient) {
-		this.value.set(gradient);
+	public SlideComponentEvent(Object source, EventTarget target, EventType<? extends SlideComponentEvent> type) {
+		super(source, target, type);
 	}
 }

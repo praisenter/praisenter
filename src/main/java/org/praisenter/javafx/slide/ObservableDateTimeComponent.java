@@ -18,13 +18,7 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 	final AnimationTimer timer = new AnimationTimer() {
 		@Override
 		public void handle(long now) {
-			// TODO update text node
-			SimpleDateFormat f = format.get();
-			if (f == null) {
-				textNode.setText(new Date().toString());
-			} else {
-				textNode.setText(f.format(new Date()));
-			}
+			updateText();
 		}
 	};
 	
@@ -39,12 +33,26 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 		// listen for changes
 		this.format.addListener((obs, ov, nv) -> { 
 			this.region.setFormat(nv); 
-			timer.handle(0);
+			updateText();
 		});
 		
 		this.build();
 	}
 
+	void build() {
+		updateText();
+		super.build();
+	}
+	
+	private void updateText() {
+		SimpleDateFormat f = format.get();
+		if (f == null) {
+			textNode.setText(new Date().toString());
+		} else {
+			textNode.setText(f.format(new Date()));
+		}
+	}
+	
 	// playable stuff
 	
 	public void play() {

@@ -3,6 +3,7 @@ package org.praisenter.javafx.slide.editor;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,6 +50,8 @@ import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.TagListView;
 import org.praisenter.javafx.configuration.Configuration;
@@ -61,6 +64,7 @@ import org.praisenter.javafx.slide.Scaling;
 import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
+import org.praisenter.resources.OpenIconic;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
@@ -77,13 +81,18 @@ import org.praisenter.slide.graphics.SlideStrokeStyle;
 import org.praisenter.slide.graphics.SlideStrokeType;
 import org.praisenter.slide.object.MediaObject;
 import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
+import org.praisenter.slide.text.PlaceholderType;
 import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
+import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.utility.ClasspathLoader;
+
+// FEATURE grouping of components
 
 // TODO slide presentation:
 //		user selects slide
@@ -124,7 +133,7 @@ public final class SlideEditorPane extends Application {
 	static final int RESIZE_PRONG_SIZE = 9;
 	
 	// for selection and grid
-	
+	// TODO convert to CSS
 	/** The border 1 stroke */
 	static final BorderStroke BORDER_STROKE_1 = new BorderStroke(BORDER_COLOR_1, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, 0.0, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
 	
@@ -138,20 +147,24 @@ public final class SlideEditorPane extends Application {
 	ObjectProperty<Resolution> targetResolution = new SimpleObjectProperty<>();
 	
 	ObjectProperty<ObservableSlideComponent<?>> selected = new SimpleObjectProperty<ObservableSlideComponent<?>>();
+
+	StackPane slidePreview;
 	
 	// TODO move this out of its own javafx app
 	public static void main(String[] args) {
 		Application.launch(args);
 	}
 	
-	StackPane slidePreview;
-	
 	// TODO translate
 	@Override
 	public void start(Stage stage) throws Exception {
+		Font.getFamilies();
+		Font.getFontNames();
 		
-//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
+		
+		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -168,6 +181,7 @@ public final class SlideEditorPane extends Application {
 		
 		slide = createTestSlide();
 		oSlide = new ObservableSlide<Slide>(slide, context, SlideMode.EDIT);
+		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));
 		
 		EventHandler<MouseEvent> entered = new EventHandler<MouseEvent>() {
 			@Override
@@ -201,8 +215,6 @@ public final class SlideEditorPane extends Application {
 			}
 		};
 		
-		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));
-		
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Slide Preview Node hierarchy
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,7 +234,6 @@ public final class SlideEditorPane extends Application {
 		StackPane slideBounds = new StackPane();
 //		slideBounds.setBorder(Fx.newBorder(Color.RED));
 		slideBounds.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
-//		slideBounds.setEffect(new DropShadow(10, Color.BLACK));
 		
 		// we resize and position canvasBack based on the target width/height 
 		// and the available width height using a uniform scale factor
@@ -261,12 +272,6 @@ public final class SlideEditorPane extends Application {
 		slideCanvas.setMinSize(0, 0);
 //		slideCanvas.setBorder(Fx.newBorder(Color.YELLOW));
 		
-//		// clip the slide canvas by its bounds
-//		Rectangle clipRect = new Rectangle(slideCanvas.getWidth(), slideCanvas.getHeight());
-//		clipRect.heightProperty().bind(slideCanvas.heightProperty());
-//		clipRect.widthProperty().bind(slideCanvas.widthProperty());
-//		slideCanvas.setClip(clipRect);
-		
 		ObjectBinding<Scaling> scaleFactor = new ObjectBinding<Scaling>() {
 			{
 				bind(slidePreview.widthProperty(), slidePreview.heightProperty());
@@ -278,8 +283,6 @@ public final class SlideEditorPane extends Application {
 				double w = slide.getWidth();
 				double h = slide.getHeight();
 				// if so, lets get the scale factors
-//				double sw = Math.min(1.0, (double)tw / (double)slide.getWidth());
-//				double sh = Math.min(1.0, (double)th / (double)slide.getHeight());
 				double sw = tw / w;
 				double sh = th / h;
 				// if we want to scale uniformly we need to choose
@@ -309,7 +312,8 @@ public final class SlideEditorPane extends Application {
 		oSlide.scalingProperty().bind(scaleFactor);
 		rootEditPane.setOnMouseEntered(entered);
 		rootEditPane.setOnMouseExited(exited);
-		// TODO dragging and resizing for the slide itself
+		// TODO dragging and resizing for the slide itself (when its a notification slide)
+		// FIXME note, this will need to be done when we add components
 		for (ObservableSlideComponent<?> osr : oSlide.getObservableComponents()) {
 			SlideRegionDraggedEventHandler dragHandler = new SlideRegionDraggedEventHandler(osr);
 			Pane pane = osr.getEditPane();
@@ -335,9 +339,6 @@ public final class SlideEditorPane extends Application {
 		StackPane.setAlignment(slideBounds, Pos.CENTER);
 		
 		// properties pane
-		// TODO Scrolling
-		// TODO hide/show based on other inputs
-		// TODO slide component contents controls
 		VBox propertiesPane = new VBox();
 		
 		// slide properties
@@ -345,7 +346,7 @@ public final class SlideEditorPane extends Application {
 			GridPane grid = new GridPane();
 			grid.setHgap(5);
 			grid.setVgap(3);
-	//		grid.setGridLinesVisible(true);
+//			grid.setGridLinesVisible(true);
 			
 			// slide name
 			Label lblName = new Label("Name");
@@ -360,9 +361,9 @@ public final class SlideEditorPane extends Application {
 			grid.add(lblTime, 0, 1);
 			grid.add(txtTime, 1, 1);
 			
-			
+			// target resolution
+			// TODO replace with PraisenterContext configuration
 			Configuration conf = Configuration.createDefaultConfiguration();
-			
 			Label lblResolution = new Label("Target");
 			ComboBox<Resolution> cmbResolutions = new ComboBox<Resolution>(conf.resolutionsProperty());
 			cmbResolutions.valueProperty().bindBidirectional(targetResolution);
@@ -386,24 +387,28 @@ public final class SlideEditorPane extends Application {
 			propertiesPane.getChildren().add(ttlSlide);
 		}
 		
+		// slide component editing
 		{
 			SlideComponentEditor se = new SlideComponentEditor(context);
 			se.component.bind(selected);
+			
+			se.addEventHandler(SlideComponentEvent.ORDER, (e) -> {
+				ObservableSlideComponent<?> component = e.component;
+				if (e.operation == SlideComponentOrderEvent.OPERATION_BACK) {
+					// FIXME handle
+				} else if (e.operation == SlideComponentOrderEvent.OPERATION_FRONT) {
+					// FIXME handle					
+				} else if (e.operation == SlideComponentOrderEvent.OPERATION_BACKWARD) {
+					oSlide.moveComponentDown(component);
+				} else if (e.operation == SlideComponentOrderEvent.OPERATION_FORWARD) {
+					oSlide.moveComponentUp(component);
+				}
+				slideCanvas.getChildren().removeAll(oSlide.getEditPanes());
+				slideCanvas.getChildren().addAll(oSlide.getEditPanes());
+			});
+			
 			TitledPane ttlComponent = new TitledPane("Component Properties", se);
 			propertiesPane.getChildren().add(ttlComponent);
-			
-//			GridPane grid = new GridPane();
-//			grid.setHgap(5);
-//			grid.setVgap(3);
-//			
-//			// background
-//			SlidePaintPicker pkrBackground = new SlidePaintPicker(context, PaintType.COLOR, PaintType.GRADIENT);
-//			
-//			TitledPane ttlSlide = new TitledPane("Slide Background", pkrBackground);
-//			propertiesPane.getChildren().add(ttlSlide);
-//			
-//			FontPicker pkrFont = new FontPicker(Font.font("Segoe UI Black", 30), FXCollections.observableArrayList(Font.getFamilies()));
-//			propertiesPane.getChildren().add(pkrFont);
 		}
 		
 		BorderPane bdr = new BorderPane();
@@ -419,7 +424,6 @@ public final class SlideEditorPane extends Application {
 		SplitPane.setResizableWithParent(propertyScroller, false);
 		
 		Scene scene = new Scene(split);
-//		scene.getStylesheets().add();
 		stage.setScene(scene);
 		stage.show();
 	}
@@ -486,27 +490,25 @@ public final class SlideEditorPane extends Application {
 		txt.setY(100);
 		txt.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
 		txt.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
-		txt.setOrder(0);
 		txt.setPadding(10);
 		txt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
 		txt.setBorder(thick);
 		txt.setTextPaint(radial);
 		txt.setTextBorder(stroke);
+		txt.setLineSpacing(10);
 		txt.setText("Lorem ipsum dolor \n\nsit amet, consectetur adipiscing elit. Nam viverra tristique mauris. Suspendisse potenti. Etiam justo erat, mollis eget mi nec, euismod interdum magna. Aenean ac nulla fermentum, ullamcorper arcu sed, fermentum orci. Donec varius neque eget sapien cursus maximus. Fusce mauris lectus, pellentesque vel sem cursus, dapibus vehicula est. In tincidunt ultrices est nec finibus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eu nisi augue. Integer commodo enim sed rutrum rutrum. Quisque tristique id ipsum sed malesuada. Maecenas non diam eget felis pulvinar sodales.");
 		
-		slide.addComponent(txt);
-		
 		MediaObject img = new MediaObject(
-//				UUID.fromString("912f0224-dfdd-4055-a471-32b7c371eb05"),
-				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
+				UUID.fromString("f6668fb0-3a40-4590-99a4-1ba474315dca"),
+//				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-//				UUID.fromString("e7e3b3c8-0c46-4507-b277-a18113078e75"),
-				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
+				UUID.fromString("a5d7dab1-8c59-4103-87cf-a13db23152f3"),
+//				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
 				ScaleType.NONUNIFORM,
 				false,
 				true);
@@ -520,8 +522,42 @@ public final class SlideEditorPane extends Application {
 		mc.setY(200);
 		mc.setMedia(vid);
 		
-		slide.addComponent(mc);
+		DateTimeComponent dt = new DateTimeComponent();
+		dt.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 20));
+		dt.setFontScaleType(FontScaleType.NONE);
+		dt.setWidth(600);
+		dt.setHeight(200);
+		dt.setX(0);
+		dt.setY(0);
+		dt.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT);
+		dt.setVerticalTextAlignment(VerticalTextAlignment.TOP);
+		dt.setPadding(20);
+		dt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
+		dt.setTextPaint(new SlideColor(1.0, 0, 0, 1));
+		dt.setFormat(new SimpleDateFormat("M/d/yyyy h:mm a z"));
 		
+		TextPlaceholderComponent tp = new TextPlaceholderComponent();
+		tp.setFont(new SlideFont("Verdana", SlideFontWeight.NORMAL, SlideFontPosture.ITALIC, 5));
+		tp.setFontScaleType(FontScaleType.BEST_FIT);
+		tp.setWidth(200);
+		tp.setHeight(400);
+		tp.setX(200);
+		tp.setY(0);
+		tp.setHorizontalTextAlignment(HorizontalTextAlignment.RIGHT);
+		tp.setVerticalTextAlignment(VerticalTextAlignment.BOTTOM);
+		tp.setPadding(10);
+		tp.setBackground(new SlideColor(0.5, 0, 0.5, 0.5));
+		tp.setTextPaint(gradient);
+		// FIXME text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option
+		tp.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE), 1, 0));
+		tp.setLineSpacing(2);
+		tp.setType(PlaceholderType.TITLE);
+		//tp.setVariants(variants);
+		
+		slide.addComponent(txt);
+		slide.addComponent(mc);
+		slide.addComponent(dt);
+		slide.addComponent(tp);
 
 //		slide.setBackground(vid);
 		slide.setBackground(new SlideColor(0, 0, 1.0, 0.5));

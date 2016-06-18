@@ -49,11 +49,8 @@ final class GradientPickerDialog extends BorderPane {
 	/**
 	 * Full constructor.
 	 * @param owner the owner of this dialog
-	 * @param paint the initial value
 	 */
-	public GradientPickerDialog(
-			Window owner,
-			Paint paint) {
+	public GradientPickerDialog(Window owner) {
 		// build the dialog
 		this.dialog = new Stage();
 		if (owner != null) {
@@ -68,7 +65,7 @@ final class GradientPickerDialog extends BorderPane {
 		this.dialog.setResizable(false);
 		
 		// build the media library pane
-		this.gradientPane = new GradientPickerPane(paint);
+		this.gradientPane = new GradientPickerPane();
 
 		this.setCenter(this.gradientPane);
 		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));

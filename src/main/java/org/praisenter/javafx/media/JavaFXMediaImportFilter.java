@@ -41,8 +41,6 @@ import org.praisenter.media.MediaImportFilter;
 import org.praisenter.media.MediaType;
 import org.praisenter.media.TranscodeException;
 
-// FIXME attempt to load into JavaFX Media and attempt to play and check for errors before transcoding
-
 /**
  * {@link MediaImportFilter} used to transcode audio and video into the formats playable by JavaFX.
  * @author William Bittle
@@ -91,6 +89,11 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 			if (Files.exists(target)) {
 				throw new FileAlreadyExistsException(target.toAbsolutePath().toString());
 			}
+			
+			// NOTE: attempting to read and play media here to verify whether it was playable by JavaFX failed.
+			// it would play here, but not when attached to a visible MediaView. So for now we'll just have to
+			// always transcode the video first
+			
 			// transcode to supported formats
 			this.transcode(source, target, type);
 			return;
@@ -124,9 +127,10 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 		command.add("-ignore_unknown");
 		
 		if (type == MediaType.VIDEO) {
+			// I needed this at one time, now I don't and I'm not sure when that changed...
 			// -fix_fmt yuv420p for old media players, javafx for example...
-			command.add("-pix_fmt");
-			command.add("yuv420p");
+//			command.add("-pix_fmt");
+//			command.add("yuv420p");
 		}
 		
 		command.add(target.toAbsolutePath().toString());

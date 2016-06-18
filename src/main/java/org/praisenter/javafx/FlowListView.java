@@ -40,7 +40,7 @@ import javafx.geometry.Insets;
 import javafx.scene.layout.TilePane;
 import javafx.util.Callback;
 
-// FEATURE mouse click area selection
+// FEATURE mouse click+drag area selection
 // FEATURE shift-click selection
 
 /**

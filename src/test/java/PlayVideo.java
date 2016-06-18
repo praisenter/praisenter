@@ -28,7 +28,7 @@ public class PlayVideo extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("It's a video!");
         
-        Media media = new Media(new File("D:\\Personal\\Praisenter\\testmedialibrary\\20051210-w50s.flv.mp4").toURI().toString());
+        Media media = new Media(new File("D:\\Personal\\Praisenter\\20051210-w50s.flv").toURI().toString());
 //        Media media = new Media(new File("C:\\Users\\William\\Desktop\\test\\033_JumpBack.avi.mp4").toURI().toString());
         MediaException ex = media.getError();
         if (ex != null) ex.printStackTrace();
@@ -36,6 +36,8 @@ public class PlayVideo extends Application {
         System.out.println(media.getHeight());
         System.out.println(media.getWidth());
         MediaPlayer mp = new MediaPlayer(media);
+        ex = mp.getError();
+        if (ex != null) ex.printStackTrace();
         MediaView mv = new MediaView(mp);
 //        mp.setCycleCount(Integer.MAX_VALUE);
         mv.setFitWidth(800);
@@ -59,6 +61,8 @@ public class PlayVideo extends Application {
         primaryStage.show();
         
         mp.play();
+        ex = mp.getError();
+        if (ex != null) ex.printStackTrace();
 //        mp2.play();
     }
 }

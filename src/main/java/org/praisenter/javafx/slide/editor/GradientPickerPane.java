@@ -89,6 +89,8 @@ public final class GradientPickerPane extends HBox {
 	/** The preview pane height */
 	private static final double HEIGHT = 200;
 	
+	private boolean mutating = false;
+	
     // the current gradient
     
     /** The configured gradient paint */
@@ -96,6 +98,7 @@ public final class GradientPickerPane extends HBox {
 		// performs some cleansing of the gradient to fit the picker's
 		// available controls
 		public void set(Paint paint) {
+			mutating = true;
 			if (paint instanceof LinearGradient) {
 	    		LinearGradient lg = (LinearGradient)paint;
 	    		
@@ -138,10 +141,10 @@ public final class GradientPickerPane extends HBox {
 	    		}
 	    		
 	    		// set the handle locations
-	    		handle1.setLayoutX(x1 * preview.getWidth());
-	    		handle1.setLayoutY(y1 * preview.getHeight());
-	    		handle2.setLayoutX(x2 * preview.getWidth());
-	    		handle2.setLayoutY(y2 * preview.getHeight());
+	    		handle1.setLayoutX(x1 * WIDTH);
+	    		handle1.setLayoutY(y1 * HEIGHT);
+	    		handle2.setLayoutX(x2 * WIDTH);
+	    		handle2.setLayoutY(y2 * HEIGHT);
 	    	} else if (paint instanceof RadialGradient) {
 	    		RadialGradient rg = (RadialGradient)paint;
 	    		
@@ -193,11 +196,12 @@ public final class GradientPickerPane extends HBox {
 	    		}
 	    		
 	    		// set the handle locations
-	    		handle1.setLayoutX(x1 * preview.getWidth());
-	    		handle1.setLayoutY(y1 * preview.getHeight());
-	    		handle2.setLayoutX(x2 * preview.getWidth());
-	    		handle2.setLayoutY(y2 * preview.getHeight());
+	    		handle1.setLayoutX(x1 * WIDTH);
+	    		handle1.setLayoutY(y1 * HEIGHT);
+	    		handle2.setLayoutX(x2 * WIDTH);
+	    		handle2.setLayoutY(y2 * HEIGHT);
 	    	}
+			mutating = false;
 			
 			// doing this will mean that setting it to null or any other type of paint will do nothing
 			// since it will just use the current observables to generate a new paint
@@ -281,15 +285,7 @@ public final class GradientPickerPane extends HBox {
 	/**
 	 * Default constructor.
 	 */
-	public GradientPickerPane() {
-		this(null);
-	}
-	
-	/**
-	 * Creates a new gradient picker pane using the given paint as the initial paint.
-	 * @param paint the paint; a LinearGradient or RadialGradient
-	 */
-    public GradientPickerPane(Paint paint) {
+    public GradientPickerPane() {
         // set the padding
     	setPadding(new Insets(10));
     	setSpacing(7);
@@ -304,6 +300,7 @@ public final class GradientPickerPane extends HBox {
         this.rdoRadial.setToggleGroup(grpTypes);
         this.rdoRadial.setUserData(1);
         grpTypes.selectedToggleProperty().addListener((obs, ov, nv) -> {
+        	if (mutating) return;
         	type.set((Integer)nv.getUserData());
         	this.paintProperty.set(null);
         });
@@ -324,6 +321,7 @@ public final class GradientPickerPane extends HBox {
         this.rdoCycleRepeat.setToggleGroup(grpCycleTypes);
         this.rdoCycleRepeat.setUserData(CycleMethod.REPEAT);
         grpCycleTypes.selectedToggleProperty().addListener((obs, ov, nv) -> {
+        	if (mutating) return;
         	cycle.set((CycleMethod)nv.getUserData());
         	this.paintProperty.set(null);
         });
@@ -335,6 +333,7 @@ public final class GradientPickerPane extends HBox {
         this.sldStop1 = new Slider(0, 1, 0);
         this.sldStop1.setPrefWidth(50);
         this.sldStop1.valueProperty().addListener((obs, ov, nv) -> {
+        	if (mutating) return;
         	this.stop1.set(new Stop(nv.doubleValue(), this.stop1.get().getColor()));
         	this.paintProperty.set(null);
         });
@@ -342,6 +341,7 @@ public final class GradientPickerPane extends HBox {
         // stop 1 color
         this.pkrStop1 = new ColorPicker(Color.WHITE);
         this.pkrStop1.valueProperty().addListener((obs, ov, nv) -> {
+        	if (mutating) return;
         	this.stop1.set(new Stop(0, nv));
         	this.paintProperty.set(null);
         });
@@ -350,6 +350,7 @@ public final class GradientPickerPane extends HBox {
         this.sldStop2 = new Slider(0, 1, 0);
         this.sldStop2.setPrefWidth(50);
         this.sldStop2.valueProperty().addListener((obs, ov, nv) -> {
+        	if (mutating) return;
         	this.stop2.set(new Stop(nv.doubleValue(), this.stop2.get().getColor()));
         	this.paintProperty.set(null);
         });
@@ -357,6 +358,7 @@ public final class GradientPickerPane extends HBox {
         // stop 2 color
         this.pkrStop2 = new ColorPicker(Color.BLACK);
         this.pkrStop2.valueProperty().addListener((obs, ov, nv) -> {
+        	if (mutating) return;
         	this.stop2.set(new Stop(1, nv));
         	this.paintProperty.set(null);
         });
@@ -408,6 +410,7 @@ public final class GradientPickerPane extends HBox {
         
         // wire up the mouse handlers for the handles
         EventHandler<MouseEvent> handle1MouseHandler = event -> {
+        	mutating = true;
         	// get the change in x and y
             final double x = event.getX();
             final double y = event.getY();
@@ -426,10 +429,12 @@ public final class GradientPickerPane extends HBox {
         	// move the handle
         	handle1.setLayoutX(clamp(handle1.getLayoutX() + x, 0, WIDTH));
         	handle1.setLayoutY(clamp(handle1.getLayoutY() + y, 0, HEIGHT));
+        	mutating = false;
         	this.paintProperty.set(null);
         };
 
         EventHandler<MouseEvent> handle2MouseHandler = event -> {
+        	mutating = true;
         	// get the change in x and y
             final double x = event.getX();
             final double y = event.getY();
@@ -448,6 +453,7 @@ public final class GradientPickerPane extends HBox {
             // move the handle
             handle2.setLayoutX(clamp(handle2.getLayoutX() + x, 0, WIDTH));
         	handle2.setLayoutY(clamp(handle2.getLayoutY() + y, 0, HEIGHT));
+        	mutating = false;
         	this.paintProperty.set(null);
         };
         
@@ -472,9 +478,6 @@ public final class GradientPickerPane extends HBox {
         left.setSpacing(7);
         left.getChildren().addAll(typeRow, pkrStop1, sldStop1, pkrStop2, sldStop2, cycleRow);
         getChildren().addAll(left, previewRow);
-        
-        // set the default paint based on the default values
-    	this.paintProperty.set(paint);
     }
 
     /**

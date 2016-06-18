@@ -65,6 +65,8 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Modality;
 
+// FEATURE might be nice to be able to edit bibles when they are incomplete or messed up
+
 /**
  * Pane specifically for showing the bibles in a bible library.
  * @author William Bittle

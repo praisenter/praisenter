@@ -1,9 +1,13 @@
 package org.praisenter.javafx.slide;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
@@ -48,6 +52,8 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
 public final class JavaFXTypeConverter {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private JavaFXTypeConverter() {}
 	
 	// paint
@@ -123,6 +129,42 @@ public final class JavaFXTypeConverter {
 				return VerticalTextAlignment.BOTTOM;
 			default:
 				return VerticalTextAlignment.TOP;
+		}
+	}
+	
+	public static Pos toJavaFX(VerticalTextAlignment valign, HorizontalTextAlignment halign) {
+		if (valign == VerticalTextAlignment.TOP) {
+			if (halign == HorizontalTextAlignment.RIGHT) {
+				return Pos.TOP_RIGHT;
+			} else if (halign == HorizontalTextAlignment.CENTER) {
+				return Pos.TOP_CENTER;
+			} else if (halign == HorizontalTextAlignment.JUSTIFY) {
+				return Pos.TOP_CENTER;
+			} else {
+				return Pos.TOP_LEFT;
+			}
+		} else if (valign == VerticalTextAlignment.CENTER) {
+			if (halign == HorizontalTextAlignment.RIGHT) {
+				return Pos.CENTER_RIGHT;
+			} else if (halign == HorizontalTextAlignment.CENTER) {
+				return Pos.CENTER;
+			} else if (halign == HorizontalTextAlignment.JUSTIFY) {
+				return Pos.CENTER;
+			} else {
+				return Pos.CENTER_LEFT;
+			}
+		} else if (valign == VerticalTextAlignment.BOTTOM) {
+			if (halign == HorizontalTextAlignment.RIGHT) {
+				return Pos.BOTTOM_RIGHT;
+			} else if (halign == HorizontalTextAlignment.CENTER) {
+				return Pos.BOTTOM_CENTER;
+			} else if (halign == HorizontalTextAlignment.JUSTIFY) {
+				return Pos.BOTTOM_CENTER;
+			} else {
+				return Pos.BOTTOM_LEFT;
+			}
+		} else {
+			return Pos.CENTER;
 		}
 	}
 	
@@ -348,7 +390,7 @@ public final class JavaFXTypeConverter {
 		} else if (sp instanceof SlideRadialGradient) {
 			paint = toJavaFX((SlideRadialGradient)sp);
 		} else {
-			// FIXME show warning for media paint
+			LOGGER.warn("Media paints are not supported with borders.");
 		}
 		if (paint == null) {
 			return null;
@@ -512,17 +554,19 @@ public final class JavaFXTypeConverter {
 		try {
 			// attempt to open the media
 			javafx.scene.media.Media m = new javafx.scene.media.Media(media.getMetadata().getPath().toUri().toString());
+			m.setOnError(() -> { LOGGER.error(m.getError()); });
+			
 			// create a player
 			MediaPlayer player = new MediaPlayer(m);
 			// set the player attributes
 			player.setMute(mute);
 			player.setCycleCount(loop ? MediaPlayer.INDEFINITE : 0);
+			player.setOnError(() -> { LOGGER.error(player.getError()); });
 			
 			return player;
 		} catch (Exception ex) {
 			// if it blows up, then just log the error
-			// FIXME handle errors
-//			LOGGER.error("Failed to create media or media player.", ex);
+			LOGGER.error("Failed to create media or media player.", ex);
 		}
 		
 		return null;
@@ -536,27 +580,28 @@ public final class JavaFXTypeConverter {
 		}
 		// check the media type
 		Image image = null;
+		Path path = null;
 		if (media.getMetadata().getType() == MediaType.VIDEO) {
 			// for video's we just need to show a single frame
-			try  {
-				image = context.getImageCache().get(context.getMediaLibrary().getFramePath(media));
-			} catch (Exception ex) {
-				// just log the error
-				// FIXME handle errors
-//				LOGGER.warn("Failed to load image " + m.getMetadata().getPath() + ".", ex);
-			}
+			path = context.getMediaLibrary().getFramePath(media);
 		} else if (media.getMetadata().getType() == MediaType.IMAGE) {
 			// image
-			try  {
-				image = context.getImageCache().get(media.getMetadata().getPath());
-				
-			} catch (Exception ex) {
-				// just log the error
-				// FIXME handle errors
-//				LOGGER.warn("Failed to load image " + m.getMetadata().getPath() + ".", ex);
-			}
+			path = media.getMetadata().getPath();
 		} else if (media.getMetadata().getType() == MediaType.AUDIO) {
-			// TODO show a default icon for audio
+			path = Paths.get("/org/praisenter/resources/music-default-thumbnail.png");
+		} else {
+			LOGGER.error("Unknown media type " + media.getMetadata().getType());
+		}
+		
+		if (path == null) {
+			return null;
+		}
+		
+		try  {
+			image = context.getImageCache().get(path);
+		} catch (Exception ex) {
+			// just log the error
+			LOGGER.warn("Failed to load image " + media.getMetadata().getPath() + ".", ex);
 		}
 		
 		if (image == null) {
