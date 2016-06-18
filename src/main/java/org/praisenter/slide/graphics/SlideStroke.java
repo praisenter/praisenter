@@ -60,14 +60,13 @@ public final class SlideStroke {
 	final double radius;
 	
 	/**
-	 * Constructor for JAXB.
+	 * Default constructor.
 	 */
-	@SuppressWarnings("unused")
-	private SlideStroke() {
+	public SlideStroke() {
 		// for jaxb
-		this.paint = null;
-		this.style = null;
-		this.width = 0;
+		this.paint = new SlideColor(0, 0, 0, 1);
+		this.style = new SlideStrokeStyle();
+		this.width = 1;
 		this.radius = 0;
 	}
 	

@@ -42,7 +42,7 @@ import javafx.scene.text.Font;
 // TODO translate
 // TODO tooltip help
 
-public final class SlideComponentEditor extends GridPane {
+final class SlideComponentEditor extends GridPane {
 
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_ICONIC	= GlyphFontRegistry.font("Icons");
@@ -57,7 +57,7 @@ public final class SlideComponentEditor extends GridPane {
 	
 	// base component
 	final SlidePaintPicker pkrBackground;
-	// TODO need a border picker
+	final SlideStrokePicker pkrBorder;
 	final Button btnMoveUp;
 	final Button btnMoveDown;
 	
@@ -66,7 +66,7 @@ public final class SlideComponentEditor extends GridPane {
 	
 	// text component
 	final SlidePaintPicker pkrTextPaint;
-	// TODO text border
+	final SlideStrokePicker pkrTextBorder;
 	final SlideFontPicker pkrFont;
 	final SegmentedButton segHorizontalAlignment;
 	final SegmentedButton segVerticalAlignment;
@@ -121,6 +121,8 @@ public final class SlideComponentEditor extends GridPane {
 				PaintType.IMAGE, 
 				PaintType.VIDEO);
 		// border
+		Label lblBorder = new Label("Border");
+		this.pkrBorder = new SlideStrokePicker(context, true);
 		// ordering
 		this.btnMoveUp = new Button("", FONT_ICONIC.create(OpenIconic.Glyph.COLLAPSE_UP));
 		this.btnMoveDown = new Button("", FONT_ICONIC.create(OpenIconic.Glyph.COLLAPSE_DOWN));
@@ -141,6 +143,8 @@ public final class SlideComponentEditor extends GridPane {
 				PaintType.COLOR, 
 				PaintType.GRADIENT);
 		// border
+		Label lblTextBorder = new Label("Text Border");
+		this.pkrTextBorder = new SlideStrokePicker(context, false);
 		// font
 		Label lblFont = new Label("Font");
 		this.pkrFont = new SlideFontPicker(FXCollections.observableArrayList(Font.getFamilies()));
@@ -217,6 +221,8 @@ public final class SlideComponentEditor extends GridPane {
 			// text
 			lblTextFill,
 			pkrTextPaint,
+			lblTextBorder,
+			pkrTextBorder,
 			lblFont,
 			pkrFont,
 			alignment,
@@ -245,17 +251,24 @@ public final class SlideComponentEditor extends GridPane {
 		
 		this.add(lblBackground, 0, 0);
 		this.add(pkrBackground, 1, 0);
-		// TODO border
-		// TODO fix layout of buttons (hbox with label)
-		this.add(btnMoveUp, 0, 1);
-		this.add(btnMoveDown, 1, 1);
 		
-		final int sy = 2;
+		this.add(lblBorder, 0, 1);
+		this.add(pkrBorder, 1, 1);
+
+		// TODO fix layout of buttons (hbox with label)
+		this.add(btnMoveUp, 0, 2);
+		this.add(btnMoveDown, 1, 2);
+		
+		final int sy = 3;
 		
 		this.component.addListener((obs, ov, nv) -> {
 			updating = true;
 			this.getChildren().removeAll(all);
 			pkrBackground.setValue(nv.getBackground());
+			pkrBorder.setValue(nv.getBorder());
+			if (nv.getBorder() == null) {
+				pkrBorder.setNoBorder();
+			}
 			// TODO border
 			if (nv instanceof ObservableMediaComponent) {
 				ObservableMediaComponent omc = (ObservableMediaComponent)nv;
@@ -269,10 +282,11 @@ public final class SlideComponentEditor extends GridPane {
 				// add controls
 				this.add(lblTextFill, 0, sy);
 				this.add(pkrTextPaint, 1, sy);
-				// TODO text border
-				this.add(lblFont, 0, sy + 1);
-				this.add(pkrFont, 1, sy + 1);
-				this.add(alignment, 1, sy + 2);
+				this.add(lblTextBorder, 0, sy + 1);
+				this.add(pkrTextBorder, 1, sy + 1);
+				this.add(lblFont, 0, sy + 2);
+				this.add(pkrFont, 1, sy + 2);
+				this.add(alignment, 1, sy + 3);
 				this.add(lblFontScaling, 0, sy + 4);
 				this.add(cmbFontScaling, 1, sy + 4);
 				this.add(lblPadding, 0, sy + 5);
@@ -281,6 +295,10 @@ public final class SlideComponentEditor extends GridPane {
 				this.add(spnLineSpacing, 1, sy + 6);
 				// set values
 				this.pkrTextPaint.setValue(otc.getTextPaint());
+				this.pkrTextBorder.setValue(otc.getTextBorder());
+				if (otc.getTextBorder() == null) {
+					this.pkrTextBorder.setNoBorder();
+				}
 				this.pkrFont.setFont(otc.getFont());
 				switch (otc.getHorizontalTextAlignment()) {
 					case LEFT:
@@ -353,7 +371,13 @@ public final class SlideComponentEditor extends GridPane {
 			}
 		});
 		
-		// TODO border
+		this.pkrBorder.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null) {
+				component.setBorder(nv);
+			}
+		});
 		
 		this.btnMoveUp.setOnAction((e) -> {
 			ObservableSlideComponent<?> component = this.component.get();
@@ -390,7 +414,14 @@ public final class SlideComponentEditor extends GridPane {
 			}
 		});
 		
-		// TODO text border
+		this.pkrTextBorder.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				tc.setTextBorder(nv);
+			}
+		});
 		
 		this.pkrFont.fontProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;

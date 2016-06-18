@@ -58,7 +58,7 @@ import javafx.util.Callback;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideFontPicker extends HBox {
+final class SlideFontPicker extends HBox {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -71,8 +71,11 @@ public final class SlideFontPicker extends HBox {
 	/** The configured font */
 	private final ObjectProperty<SlideFont> font = new SimpleObjectProperty<SlideFont>() {
 		public void set(SlideFont font) {
+			if (mutating) return;
 			if (font != null) {
+				mutating = true;
 				setControlValues(font);
+				mutating = false;
 			}
 			super.set(getControlValues());
 		}
@@ -80,6 +83,9 @@ public final class SlideFontPicker extends HBox {
 			set(font);
 		}
 	};
+
+	/** True if the control values are being set */
+	private boolean mutating = false;
 	
 	// nodes
 	

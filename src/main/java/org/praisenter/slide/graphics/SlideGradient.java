@@ -42,10 +42,9 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class SlideGradient extends AbstractSlidePaint implements SlidePaint {
 	/** The default stops */
-	private static final SlideGradientStop[] DEFAULT_STOPS = new SlideGradientStop[] {
+	static final SlideGradientStop[] DEFAULT_STOPS = new SlideGradientStop[] {
 		new SlideGradientStop(0, 0, 0, 0, 255), 
-		new SlideGradientStop(0.5f, 127, 127, 127, 255), 
-		new SlideGradientStop(1.0f, 255, 255, 255, 255)
+		new SlideGradientStop(1.0, 255, 255, 255, 255)
 	};
 	
 	/** The list of stops */

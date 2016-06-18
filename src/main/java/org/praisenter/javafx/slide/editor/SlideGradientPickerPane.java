@@ -26,8 +26,15 @@ package org.praisenter.javafx.slide.editor;
 
 import java.util.List;
 
+import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
+import org.praisenter.slide.graphics.SlideColor;
+import org.praisenter.slide.graphics.SlideGradient;
+import org.praisenter.slide.graphics.SlideGradientCycleType;
+import org.praisenter.slide.graphics.SlideGradientStop;
+import org.praisenter.slide.graphics.SlideLinearGradient;
+import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.utility.ClasspathLoader;
 
 import javafx.beans.binding.ObjectBinding;
@@ -61,11 +68,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Paint;
-import javafx.scene.paint.RadialGradient;
-import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
@@ -79,7 +81,7 @@ import javafx.scene.shape.StrokeType;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class GradientPickerPane extends HBox {
+final class SlideGradientPickerPane extends HBox {
 	/** An image pattern to represent transparency */
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
@@ -89,131 +91,35 @@ public final class GradientPickerPane extends HBox {
 	/** The preview pane height */
 	private static final double HEIGHT = 200;
 	
-	private boolean mutating = false;
-	
     // the current gradient
     
     /** The configured gradient paint */
-	private final ObjectProperty<Paint> paintProperty = new SimpleObjectProperty<Paint>() {
+	private final ObjectProperty<SlideGradient> gradientProperty = new SimpleObjectProperty<SlideGradient>() {
 		// performs some cleansing of the gradient to fit the picker's
 		// available controls
-		public void set(Paint paint) {
-			mutating = true;
-			if (paint instanceof LinearGradient) {
-	    		LinearGradient lg = (LinearGradient)paint;
-	    		
-	    		final double x1 = clamp(lg.getStartX(), 0, 1);
-	    		final double y1 = clamp(lg.getStartY(), 0, 1);
-	    		final double x2 = clamp(lg.getEndX(), 0, 1);
-	    		final double y2 = clamp(lg.getEndY(), 0, 1);
-	    		
-	    		type.set(0);
-	    		rdoLinear.setSelected(true);
-	    		cycle.set(lg.getCycleMethod());
-	    		switch (lg.getCycleMethod()) {
-	    			case REFLECT:
-	    				rdoCycleReflect.setSelected(true);
-	    				break;
-	    			case REPEAT:
-	    				rdoCycleRepeat.setSelected(true);
-	    				break;
-					default:
-	    				rdoCycleNone.setSelected(true);	
-	    		}
-	    		handle1X.set(x1);
-	    		handle1Y.set(y1);
-	    		handle2X.set(x2);
-	    		handle2Y.set(y2);
-	    		
-	    		// stops
-	    		List<Stop> stops = lg.getStops();
-	    		if (stops != null && stops.size() > 0) {
-	    			Stop s1 = stops.get(0);
-	    			stop1.set(s1);
-	    			sldStop1.setValue(s1.getOffset());
-	    			pkrStop1.setValue(s1.getColor());
-	    			if (stops.size() > 1) {
-	    				Stop s2 = stops.get(1);
-	    				stop2.set(s2);
-	    				sldStop2.setValue(s2.getOffset());
-	    				pkrStop2.setValue(s2.getColor());
-	    			}
-	    		}
-	    		
-	    		// set the handle locations
-	    		handle1.setLayoutX(x1 * WIDTH);
-	    		handle1.setLayoutY(y1 * HEIGHT);
-	    		handle2.setLayoutX(x2 * WIDTH);
-	    		handle2.setLayoutY(y2 * HEIGHT);
-	    	} else if (paint instanceof RadialGradient) {
-	    		RadialGradient rg = (RadialGradient)paint;
-	    		
-	    		final double sqrt2 = Math.sqrt(2.0);
-	    		final double r = clamp(rg.getRadius(), 0, 1);
-	    		final double x1 = clamp(rg.getCenterX(), 0, 1);
-	    		final double y1 = clamp(rg.getCenterY(), 0, 1);
-	    		final double x2 = clamp(x1 + sqrt2 * r, 0, 1);
-	    		final double y2 = clamp(y1 + sqrt2 * r, 0, 1);
-	    		
-	    		type.set(1);
-	    		rdoRadial.setSelected(true);
-	    		cycle.set(rg.getCycleMethod());
-	    		switch (rg.getCycleMethod()) {
-	    			case REFLECT:
-	    				rdoCycleReflect.setSelected(true);
-	    				break;
-	    			case REPEAT:
-	    				rdoCycleRepeat.setSelected(true);
-	    				break;
-    				default:
-	    				rdoCycleNone.setSelected(true);	
-	    		}
-	    		handle1X.set(x1);
-	    		handle1Y.set(y1);
-	    		handle2X.set(x2);
-	    		handle2Y.set(y2);
-	    		
-	    		// we have to recompute the radius since the radius could
-	    		// be bigger than what we allow (for example if the center
-	    		// is at (0.5, 0.5) the max radius is sqrt(0.5) instead of 1
-	    		final double d1 = x2 - x1;
-	    		final double d2 = y2 - y1;
-	    		radius.set(Math.sqrt(d1 * d1 + d2 * d2));
-	    		
-	    		// stops
-	    		List<Stop> stops = rg.getStops();
-	    		if (stops != null && stops.size() > 0) {
-	    			Stop s1 = stops.get(0);
-	    			stop1.set(s1);
-	    			sldStop1.setValue(s1.getOffset());
-	    			pkrStop1.setValue(s1.getColor());
-	    			if (stops.size() > 1) {
-	    				Stop s2 = stops.get(1);
-	    				stop2.set(s2);
-	    				sldStop2.setValue(s2.getOffset());
-	    				pkrStop2.setValue(s2.getColor());
-	    			}
-	    		}
-	    		
-	    		// set the handle locations
-	    		handle1.setLayoutX(x1 * WIDTH);
-	    		handle1.setLayoutY(y1 * HEIGHT);
-	    		handle2.setLayoutX(x2 * WIDTH);
-	    		handle2.setLayoutY(y2 * HEIGHT);
-	    	}
-			mutating = false;
+		public void set(SlideGradient gradient) {
+			if (mutating) return;
+			
+			if (gradient != null) {
+				mutating = true;
+				setControlValues(gradient);
+				mutating = false;
+			}
 			
 			// doing this will mean that setting it to null or any other type of paint will do nothing
 			// since it will just use the current observables to generate a new paint
 			
 			// this has the added effect of allowing us to update the paint property without having
 			// it go through the conversion process above by calling: set(null);
-			super.set(createPaint());
+			super.set(getControlValues());
 		}
-		public void setValue(Paint paint) {
-			set(paint);
+		public void setValue(SlideGradient gradient) {
+			set(gradient);
 		}
 	};
+
+	/** True if the controls are being set */
+	private boolean mutating = false;
 	
 	// properties that build the gradient
 	
@@ -221,13 +127,13 @@ public final class GradientPickerPane extends HBox {
 	private final IntegerProperty type = new SimpleIntegerProperty(0);
 	
 	/** The cycle type (reflect/repeat/none) */
-	private final ObjectProperty<CycleMethod> cycle = new SimpleObjectProperty<CycleMethod>(CycleMethod.NO_CYCLE);
+	private final ObjectProperty<SlideGradientCycleType> cycle = new SimpleObjectProperty<SlideGradientCycleType>(SlideGradientCycleType.NONE);
 	
 	/** The first stop */
-	private final ObjectProperty<Stop> stop1 = new SimpleObjectProperty<Stop>(new Stop(0, Color.WHITE));
+	private final ObjectProperty<SlideGradientStop> stop1 = new SimpleObjectProperty<SlideGradientStop>(new SlideGradientStop(0, new SlideColor(1, 1, 1, 1)));
 	
 	/** The second stop */
-	private final ObjectProperty<Stop> stop2 = new SimpleObjectProperty<Stop>(new Stop(1, Color.rgb(0, 0, 0, 0.5)));
+	private final ObjectProperty<SlideGradientStop> stop2 = new SimpleObjectProperty<SlideGradientStop>(new SlideGradientStop(1, new SlideColor(0, 0, 0, 0.5)));
 	
 	/** The first point's x coordinate (start/center x) */
 	private final DoubleProperty handle1X = new SimpleDoubleProperty(0);
@@ -285,7 +191,7 @@ public final class GradientPickerPane extends HBox {
 	/**
 	 * Default constructor.
 	 */
-    public GradientPickerPane() {
+    public SlideGradientPickerPane() {
         // set the padding
     	setPadding(new Insets(10));
     	setSpacing(7);
@@ -302,7 +208,7 @@ public final class GradientPickerPane extends HBox {
         grpTypes.selectedToggleProperty().addListener((obs, ov, nv) -> {
         	if (mutating) return;
         	type.set((Integer)nv.getUserData());
-        	this.paintProperty.set(null);
+        	this.gradientProperty.set(null);
         });
         HBox typeRow = new HBox();
         typeRow.setSpacing(5);
@@ -312,18 +218,18 @@ public final class GradientPickerPane extends HBox {
         ToggleGroup grpCycleTypes = new ToggleGroup();
         this.rdoCycleNone = new RadioButton(Translations.get("gradient.cycle.none"));
         this.rdoCycleNone.setToggleGroup(grpCycleTypes);
-        this.rdoCycleNone.setUserData(CycleMethod.NO_CYCLE);
+        this.rdoCycleNone.setUserData(SlideGradientCycleType.NONE);
         this.rdoCycleNone.setSelected(true);
         this.rdoCycleReflect = new RadioButton(Translations.get("gradient.cycle.reflect"));
         this.rdoCycleReflect.setToggleGroup(grpCycleTypes);
-        this.rdoCycleReflect.setUserData(CycleMethod.REFLECT);
+        this.rdoCycleReflect.setUserData(SlideGradientCycleType.REFLECT);
         this.rdoCycleRepeat = new RadioButton(Translations.get("gradient.cycle.repeat"));
         this.rdoCycleRepeat.setToggleGroup(grpCycleTypes);
-        this.rdoCycleRepeat.setUserData(CycleMethod.REPEAT);
+        this.rdoCycleRepeat.setUserData(SlideGradientCycleType.REPEAT);
         grpCycleTypes.selectedToggleProperty().addListener((obs, ov, nv) -> {
         	if (mutating) return;
-        	cycle.set((CycleMethod)nv.getUserData());
-        	this.paintProperty.set(null);
+        	cycle.set((SlideGradientCycleType)nv.getUserData());
+        	this.gradientProperty.set(null);
         });
         HBox cycleRow = new HBox();
         cycleRow.setSpacing(5);
@@ -334,16 +240,16 @@ public final class GradientPickerPane extends HBox {
         this.sldStop1.setPrefWidth(50);
         this.sldStop1.valueProperty().addListener((obs, ov, nv) -> {
         	if (mutating) return;
-        	this.stop1.set(new Stop(nv.doubleValue(), this.stop1.get().getColor()));
-        	this.paintProperty.set(null);
+        	this.stop1.set(new SlideGradientStop(nv.doubleValue(), this.stop1.get().getColor()));
+        	this.gradientProperty.set(null);
         });
         
         // stop 1 color
         this.pkrStop1 = new ColorPicker(Color.WHITE);
         this.pkrStop1.valueProperty().addListener((obs, ov, nv) -> {
         	if (mutating) return;
-        	this.stop1.set(new Stop(0, nv));
-        	this.paintProperty.set(null);
+        	this.stop1.set(new SlideGradientStop(0, JavaFXTypeConverter.fromJavaFX(nv)));
+        	this.gradientProperty.set(null);
         });
         
         // stop 2 offset slider
@@ -351,16 +257,16 @@ public final class GradientPickerPane extends HBox {
         this.sldStop2.setPrefWidth(50);
         this.sldStop2.valueProperty().addListener((obs, ov, nv) -> {
         	if (mutating) return;
-        	this.stop2.set(new Stop(nv.doubleValue(), this.stop2.get().getColor()));
-        	this.paintProperty.set(null);
+        	this.stop2.set(new SlideGradientStop(nv.doubleValue(), this.stop2.get().getColor()));
+        	this.gradientProperty.set(null);
         });
         
         // stop 2 color
         this.pkrStop2 = new ColorPicker(Color.BLACK);
         this.pkrStop2.valueProperty().addListener((obs, ov, nv) -> {
         	if (mutating) return;
-        	this.stop2.set(new Stop(1, nv));
-        	this.paintProperty.set(null);
+        	this.stop2.set(new SlideGradientStop(1, JavaFXTypeConverter.fromJavaFX(nv)));
+        	this.gradientProperty.set(null);
         });
         
         // create the preview/configure view
@@ -375,14 +281,14 @@ public final class GradientPickerPane extends HBox {
         this.preview = new Pane();
         Fx.setSize(this.preview, WIDTH, HEIGHT);
         this.preview.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(1))));
-        this.preview.setBackground(new Background(new BackgroundFill(this.paintProperty.get(), null, null)));
+        this.preview.setBackground(new Background(new BackgroundFill(JavaFXTypeConverter.toJavaFX(this.gradientProperty.get()), null, null)));
         this.preview.backgroundProperty().bind(new ObjectBinding<Background>() {
             {
             	// when the paint changes, update the background
-                bind(paintProperty);
+                bind(gradientProperty);
             }
             @Override protected Background computeValue() {
-                return new Background(new BackgroundFill(paintProperty.get(), CornerRadii.EMPTY, Insets.EMPTY));
+                return new Background(new BackgroundFill(JavaFXTypeConverter.toJavaFX(gradientProperty.get()), CornerRadii.EMPTY, Insets.EMPTY));
             }
         }); 
         
@@ -430,7 +336,7 @@ public final class GradientPickerPane extends HBox {
         	handle1.setLayoutX(clamp(handle1.getLayoutX() + x, 0, WIDTH));
         	handle1.setLayoutY(clamp(handle1.getLayoutY() + y, 0, HEIGHT));
         	mutating = false;
-        	this.paintProperty.set(null);
+        	this.gradientProperty.set(null);
         };
 
         EventHandler<MouseEvent> handle2MouseHandler = event -> {
@@ -454,7 +360,7 @@ public final class GradientPickerPane extends HBox {
             handle2.setLayoutX(clamp(handle2.getLayoutX() + x, 0, WIDTH));
         	handle2.setLayoutY(clamp(handle2.getLayoutY() + y, 0, HEIGHT));
         	mutating = false;
-        	this.paintProperty.set(null);
+        	this.gradientProperty.set(null);
         };
         
         EventHandler<MouseEvent> handleEnter = event -> {
@@ -481,31 +387,136 @@ public final class GradientPickerPane extends HBox {
     }
 
     /**
-     * Returns a new paint given the current properties.
-     * @return Paint (LinearGradient or RadialGradient)
+     * Returns a new gradient given the current input.
+     * @return SlideGradient
      */
-    private Paint createPaint() {
+    private SlideGradient getControlValues() {
     	if (this.type.get() == 0) {
-    		return new LinearGradient(
+    		return new SlideLinearGradient(
     				this.handle1X.get(), 
     				this.handle1Y.get(), 
     				this.handle2X.get(), 
     				this.handle2Y.get(), 
-    				true, 
     				this.cycle.get(), 
     				this.stop1.get(), 
     				this.stop2.get());
     	} else {
-    		return new RadialGradient(
-    				0.0, 
-    				0.0, 
+    		return new SlideRadialGradient(
     				this.handle1X.get(), 
     				this.handle1Y.get(), 
     				this.radius.get(), 
-    				true, 
     				this.cycle.get(), 
     				this.stop1.get(), 
     				this.stop2.get());
+    	}
+    }
+    
+    /**
+	 * Sets the values of the controls to the given gradient values.
+	 * @param gradient the gradient
+	 */
+    private void setControlValues(SlideGradient gradient) {
+    	if (gradient instanceof SlideLinearGradient) {
+    		SlideLinearGradient lg = (SlideLinearGradient)gradient;
+    		
+    		final double x1 = clamp(lg.getStartX(), 0, 1);
+    		final double y1 = clamp(lg.getStartY(), 0, 1);
+    		final double x2 = clamp(lg.getEndX(), 0, 1);
+    		final double y2 = clamp(lg.getEndY(), 0, 1);
+    		
+    		type.set(0);
+    		rdoLinear.setSelected(true);
+    		cycle.set(lg.getCycleType());
+    		switch (lg.getCycleType()) {
+    			case REFLECT:
+    				rdoCycleReflect.setSelected(true);
+    				break;
+    			case REPEAT:
+    				rdoCycleRepeat.setSelected(true);
+    				break;
+				default:
+    				rdoCycleNone.setSelected(true);	
+    		}
+    		handle1X.set(x1);
+    		handle1Y.set(y1);
+    		handle2X.set(x2);
+    		handle2Y.set(y2);
+    		
+    		// stops
+    		List<SlideGradientStop> stops = lg.getStops();
+    		if (stops != null && stops.size() > 0) {
+    			SlideGradientStop s1 = stops.get(0);
+    			stop1.set(s1);
+    			sldStop1.setValue(s1.getOffset());
+    			pkrStop1.setValue(JavaFXTypeConverter.toJavaFX(s1.getColor()));
+    			if (stops.size() > 1) {
+    				SlideGradientStop s2 = stops.get(1);
+    				stop2.set(s2);
+    				sldStop2.setValue(s2.getOffset());
+    				pkrStop2.setValue(JavaFXTypeConverter.toJavaFX(s2.getColor()));
+    			}
+    		}
+    		
+    		// set the handle locations
+    		handle1.setLayoutX(x1 * WIDTH);
+    		handle1.setLayoutY(y1 * HEIGHT);
+    		handle2.setLayoutX(x2 * WIDTH);
+    		handle2.setLayoutY(y2 * HEIGHT);
+    	} else if (gradient instanceof SlideRadialGradient) {
+    		SlideRadialGradient rg = (SlideRadialGradient)gradient;
+    		
+    		final double sqrt2 = Math.sqrt(2.0);
+    		final double r = clamp(rg.getRadius(), 0, 1);
+    		final double x1 = clamp(rg.getCenterX(), 0, 1);
+    		final double y1 = clamp(rg.getCenterY(), 0, 1);
+    		final double x2 = clamp(x1 + sqrt2 * r, 0, 1);
+    		final double y2 = clamp(y1 + sqrt2 * r, 0, 1);
+    		
+    		type.set(1);
+    		rdoRadial.setSelected(true);
+    		cycle.set(rg.getCycleType());
+    		switch (rg.getCycleType()) {
+    			case REFLECT:
+    				rdoCycleReflect.setSelected(true);
+    				break;
+    			case REPEAT:
+    				rdoCycleRepeat.setSelected(true);
+    				break;
+				default:
+    				rdoCycleNone.setSelected(true);	
+    		}
+    		handle1X.set(x1);
+    		handle1Y.set(y1);
+    		handle2X.set(x2);
+    		handle2Y.set(y2);
+    		
+    		// we have to recompute the radius since the radius could
+    		// be bigger than what we allow (for example if the center
+    		// is at (0.5, 0.5) the max radius is sqrt(0.5) instead of 1
+    		final double d1 = x2 - x1;
+    		final double d2 = y2 - y1;
+    		radius.set(Math.sqrt(d1 * d1 + d2 * d2));
+    		
+    		// stops
+    		List<SlideGradientStop> stops = rg.getStops();
+    		if (stops != null && stops.size() > 0) {
+    			SlideGradientStop s1 = stops.get(0);
+    			stop1.set(s1);
+    			sldStop1.setValue(s1.getOffset());
+    			pkrStop1.setValue(JavaFXTypeConverter.toJavaFX(s1.getColor()));
+    			if (stops.size() > 1) {
+    				SlideGradientStop s2 = stops.get(1);
+    				stop2.set(s2);
+    				sldStop2.setValue(s2.getOffset());
+    				pkrStop2.setValue(JavaFXTypeConverter.toJavaFX(s2.getColor()));
+    			}
+    		}
+    		
+    		// set the handle locations
+    		handle1.setLayoutX(x1 * WIDTH);
+    		handle1.setLayoutY(y1 * HEIGHT);
+    		handle2.setLayoutX(x2 * WIDTH);
+    		handle2.setLayoutY(y2 * HEIGHT);
     	}
     }
     
@@ -525,26 +536,26 @@ public final class GradientPickerPane extends HBox {
     }
 
     /**
-     * Returns the paint property.
-     * @return ObjectProperty&lt;Paint&gt;
+     * Returns the gradient property.
+     * @return ObjectProperty&lt;{@link SlideGradient}&gt;
      */
-    public ObjectProperty<Paint> paintProperty() {
-    	return this.paintProperty;
+    public ObjectProperty<SlideGradient> gradientProperty() {
+    	return this.gradientProperty;
     }
     
     /**
-     * Returns the current paint.
-     * @return Paint
+     * Returns the current gradient.
+     * @return {@link SlideGradient}
      */
-    public Paint getPaint() {
-    	return this.paintProperty.get();
+    public SlideGradient getGradient() {
+    	return this.gradientProperty.get();
     }
     
     /**
-     * Sets the current paint.
-     * @param paint the paint
+     * Sets the current gradient.
+     * @param gradient the gradient
      */
-    public void setPaint(Paint paint) {
-    	this.paintProperty.set(paint);
+    public void setGradient(SlideGradient gradient) {
+    	this.gradientProperty.set(gradient);
     }
 }

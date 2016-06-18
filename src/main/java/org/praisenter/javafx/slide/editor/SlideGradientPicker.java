@@ -24,29 +24,29 @@
  */
 package org.praisenter.javafx.slide.editor;
 
+import org.praisenter.resources.translations.Translations;
+import org.praisenter.slide.graphics.SlideGradient;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Button;
-import javafx.scene.paint.Paint;
-
-import org.praisenter.resources.translations.Translations;
 
 /**
  * A custom button to allow selection of a gradient.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class GradientPicker extends Button {
+public final class SlideGradientPicker extends Button {
 	/** The gradient dialog */
-	private GradientPickerDialog dialog;
+	private SlideGradientPickerDialog dialog;
 	
 	/** The selected value */
-	private final ObjectProperty<Paint> value = new SimpleObjectProperty<Paint>();
+	private final ObjectProperty<SlideGradient> value = new SimpleObjectProperty<SlideGradient>();
 	
 	/**
 	 * Default constructor.
 	 */
-	public GradientPicker() {
+	public SlideGradientPicker() {
 		this.setText(Translations.get("choose"));
 		this.setOnAction((e) -> {
 			if (dialog == null) {
@@ -55,7 +55,7 @@ public final class GradientPicker extends Button {
 				// it until the user request for it since
 				// 	1. we don't know the owner at creation time
 				//  2. we don't know if the user will request it at all
-				dialog = new GradientPickerDialog(getScene().getWindow());
+				dialog = new SlideGradientPickerDialog(getScene().getWindow());
 				// set the value
 				dialog.valueProperty().set(value.get());
 				// bind the values
@@ -68,17 +68,17 @@ public final class GradientPicker extends Button {
 	
 	/**
 	 * Returns the value property.
-	 * @return ObjectProperty&lt;Paint&gt;
+	 * @return ObjectProperty&lt;{@link SlideGradient}&gt;
 	 */
-	public ObjectProperty<Paint> valueProperty() {
+	public ObjectProperty<SlideGradient> valueProperty() {
 		return this.value;
 	}
 	
 	/**
 	 * Returns the current value of this picker.
-	 * @return Paint
+	 * @return {@link SlideGradient}
 	 */
-	public Paint getValue() {
+	public SlideGradient getValue() {
 		return this.value.get();
 	}
 	
@@ -86,7 +86,7 @@ public final class GradientPicker extends Button {
 	 * Sets the current value of this picker.
 	 * @param gradient the desired value
 	 */
-	public void setValue(Paint gradient) {
+	public void setValue(SlideGradient gradient) {
 		this.value.set(gradient);
 	}
 }

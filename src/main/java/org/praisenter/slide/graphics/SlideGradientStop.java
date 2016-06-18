@@ -48,10 +48,9 @@ public final class SlideGradientStop {
 	final SlideColor color;
 	
 	/**
-	 * Constructor for JAXB.
+	 * Default constructor.
 	 */
-	@SuppressWarnings("unused")
-	private SlideGradientStop() {
+	public SlideGradientStop() {
 		// for jaxb
 		this(0.0f, 0, 0, 0, 1.0);
 	}

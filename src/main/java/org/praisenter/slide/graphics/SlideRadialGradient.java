@@ -56,11 +56,10 @@ public final class SlideRadialGradient extends SlideGradient implements SlidePai
 	final SlideGradientCycleType cycleType;
 	
 	/**
-	 * Constructor for JAXB.
+	 * Default constructor.
 	 */
-	@SuppressWarnings("unused")
-	private SlideRadialGradient() {
-		this(0, 0, 0, SlideGradientCycleType.NONE, (SlideGradientStop[])null);
+	public SlideRadialGradient() {
+		this(0, 0, 1, SlideGradientCycleType.NONE, DEFAULT_STOPS);
 	}
 	
 	/**

@@ -24,33 +24,33 @@
  */
 package org.praisenter.javafx.slide.editor;
 
+import org.praisenter.javafx.utility.Fx;
+import org.praisenter.slide.graphics.SlideGradient;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.paint.Paint;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-
-import org.praisenter.javafx.utility.Fx;
 
 /**
  * A dialog for selecting a gradient.
  * @author William Bittle
  * @version 3.0.0
  */
-final class GradientPickerDialog extends BorderPane {
+final class SlideGradientPickerDialog extends BorderPane {
 	/** The dialog */
 	private final Stage dialog;
 	
 	/** The media library pane */
-	private final GradientPickerPane gradientPane;
+	private final SlideGradientPickerPane gradientPane;
 
 	/**
 	 * Full constructor.
 	 * @param owner the owner of this dialog
 	 */
-	public GradientPickerDialog(Window owner) {
+	public SlideGradientPickerDialog(Window owner) {
 		// build the dialog
 		this.dialog = new Stage();
 		if (owner != null) {
@@ -65,7 +65,7 @@ final class GradientPickerDialog extends BorderPane {
 		this.dialog.setResizable(false);
 		
 		// build the media library pane
-		this.gradientPane = new GradientPickerPane();
+		this.gradientPane = new SlideGradientPickerPane();
 
 		this.setCenter(this.gradientPane);
 		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));
@@ -80,25 +80,25 @@ final class GradientPickerDialog extends BorderPane {
 	
 	/**
 	 * Returns the selected gradient property.
-	 * @return ObjectProperty&lt;Paint&gt;
+	 * @return ObjectProperty&lt;{@link SlideGradient}&gt;
 	 */
-	public ObjectProperty<Paint> valueProperty() {
-		return this.gradientPane.paintProperty();
+	public ObjectProperty<SlideGradient> valueProperty() {
+		return this.gradientPane.gradientProperty();
 	}
 	
 	/**
 	 * Returns the selected gradient.
-	 * @return Paint
+	 * @return {@link SlideGradient}
 	 */
-	public Paint getValue() {
-		return this.gradientPane.getPaint();
+	public SlideGradient getValue() {
+		return this.gradientPane.getGradient();
 	}
 	
 	/**
 	 * Sets the selected gradient.
 	 * @param gradient the gradient
 	 */
-	public void setValue(Paint gradient) {
-		this.gradientPane.setPaint(gradient);
+	public void setValue(SlideGradient gradient) {
+		this.gradientPane.setGradient(gradient);
 	}
 }

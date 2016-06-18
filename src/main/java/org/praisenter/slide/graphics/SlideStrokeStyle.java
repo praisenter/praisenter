@@ -56,10 +56,9 @@ public final class SlideStrokeStyle {
 	final Double[] dashes;
 	
 	/**
-	 * Constructor for JAXB.
+	 * Default constructor.
 	 */
-	@SuppressWarnings("unused")
-	private SlideStrokeStyle() {
+	public SlideStrokeStyle() {
 		// for jaxb
 		this.type = SlideStrokeType.CENTERED;
 		this.join = SlideStrokeJoin.MITER;

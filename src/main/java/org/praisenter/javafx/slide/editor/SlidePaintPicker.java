@@ -1,21 +1,5 @@
 package org.praisenter.javafx.slide.editor;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Paint;
-import javafx.scene.paint.RadialGradient;
-
 import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
@@ -32,9 +16,22 @@ import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.slide.object.MediaObject;
 
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+
 // TODO translate
 
-public final class SlidePaintPicker extends VBox {
+final class SlidePaintPicker extends VBox {
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 
@@ -77,11 +74,11 @@ public final class SlidePaintPicker extends VBox {
 				} else if (paint instanceof SlideLinearGradient) {
 					SlideLinearGradient lg = (SlideLinearGradient)paint;
 					cbTypes.setValue(PaintType.GRADIENT);
-					pkrGradient.setValue(JavaFXTypeConverter.toJavaFX(lg));
+					pkrGradient.setValue(lg);
 				} else if (paint instanceof SlideRadialGradient) {
 					SlideRadialGradient rg = (SlideRadialGradient)paint;
 					cbTypes.setValue(PaintType.GRADIENT);
-					pkrGradient.setValue(JavaFXTypeConverter.toJavaFX(rg));
+					pkrGradient.setValue(rg);
 				}
 				settingValues = false;
 			}
@@ -104,7 +101,7 @@ public final class SlidePaintPicker extends VBox {
 	
 	final ChoiceBox<PaintType> cbTypes;
 	final ColorPicker pkrColor;
-	final GradientPicker pkrGradient;
+	final SlideGradientPicker pkrGradient;
 	final MediaPicker pkrImage;
 	final MediaPicker pkrVideo;
 	final MediaPicker pkrAudio;
@@ -129,7 +126,7 @@ public final class SlidePaintPicker extends VBox {
 		pkrColor.managedProperty().bind(pkrColor.visibleProperty());
 		pkrColor.valueProperty().addListener(listener);
 		
-		pkrGradient = new GradientPicker();
+		pkrGradient = new SlideGradientPicker();
 		pkrGradient.managedProperty().bind(pkrGradient.visibleProperty());
 		pkrGradient.valueProperty().addListener(listener);
 		
@@ -236,21 +233,15 @@ public final class SlidePaintPicker extends VBox {
 	private SlidePaint createPaint() {
 		Toggle scaleToggle = segScaling.getToggleGroup().getSelectedToggle();
 		ScaleType scaleType = scaleToggle != null && scaleToggle.getUserData() != null ? (ScaleType)scaleToggle.getUserData() : ScaleType.NONE;
+		if (this.cbTypes.getValue() == null) {
+			return null;
+		}
 		switch (this.cbTypes.getValue()) {
 			case COLOR:
 				Color color = this.pkrColor.getValue();
 				return JavaFXTypeConverter.fromJavaFX(color);
 			case GRADIENT:
-				Paint paint = this.pkrGradient.getValue();
-				if (paint instanceof LinearGradient) {
-					LinearGradient lg = (LinearGradient)paint;
-					return JavaFXTypeConverter.fromJavaFX(lg);
-				} else if (paint instanceof RadialGradient) {
-					RadialGradient rg = (RadialGradient)paint;
-					return JavaFXTypeConverter.fromJavaFX(rg);
-				} else {
-					return null;
-				}
+				return this.pkrGradient.getValue();
 			case IMAGE:
 				if (this.pkrImage.getValue() != null) {
 					return new MediaObject(this.pkrImage.getValue().getMetadata().getId(), scaleType, false, false);
@@ -269,6 +260,10 @@ public final class SlidePaintPicker extends VBox {
 			default:
 				return null;
 		}
+	}
+	
+	public void setNone() {
+		this.cbTypes.setValue(PaintType.NONE);
 	}
 	
 	public SlidePaint getValue() {

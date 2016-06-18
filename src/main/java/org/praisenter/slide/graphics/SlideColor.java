@@ -54,15 +54,14 @@ public final class SlideColor extends AbstractSlidePaint implements SlidePaint {
 	final double alpha;
 	
 	/**
-	 * Default constructor for JAXB.
+	 * Default constructor.
 	 */
-	@SuppressWarnings("unused")
-	private SlideColor() {
+	public SlideColor() {
 		// for jaxb
 		this.red = 0;
 		this.green = 0;
 		this.blue = 0;
-		this.alpha = 0;
+		this.alpha = 1;
 	}
 
 	/**
