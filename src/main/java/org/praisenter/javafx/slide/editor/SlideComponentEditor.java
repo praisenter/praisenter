@@ -16,6 +16,8 @@ import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 import org.praisenter.resources.OpenIconic;
+import org.praisenter.slide.graphics.SlideColor;
+import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.object.MediaObject;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
@@ -120,9 +122,11 @@ final class SlideComponentEditor extends GridPane {
 				PaintType.GRADIENT, 
 				PaintType.IMAGE, 
 				PaintType.VIDEO);
+		this.pkrBackground.setValue(null);
 		// border
 		Label lblBorder = new Label("Border");
 		this.pkrBorder = new SlideStrokePicker(context, true);
+		this.pkrBorder.setValue(null);
 		// ordering
 		this.btnMoveUp = new Button("", FONT_ICONIC.create(OpenIconic.Glyph.COLLAPSE_UP));
 		this.btnMoveDown = new Button("", FONT_ICONIC.create(OpenIconic.Glyph.COLLAPSE_DOWN));
@@ -135,6 +139,7 @@ final class SlideComponentEditor extends GridPane {
 				PaintType.IMAGE, 
 				PaintType.VIDEO, 
 				PaintType.AUDIO);
+		this.pkrMedia.setValue(null);
 		
 		// text component
 		// paint
@@ -142,9 +147,11 @@ final class SlideComponentEditor extends GridPane {
 		this.pkrTextPaint = new SlidePaintPicker(context, 
 				PaintType.COLOR, 
 				PaintType.GRADIENT);
+		this.pkrTextPaint.setValue(new SlideColor(0, 0, 0, 0.5));
 		// border
 		Label lblTextBorder = new Label("Text Border");
 		this.pkrTextBorder = new SlideStrokePicker(context, false);
+		this.pkrTextBorder.setValue(null);
 		// font
 		Label lblFont = new Label("Font");
 		this.pkrFont = new SlideFontPicker(FXCollections.observableArrayList(Font.getFamilies()));
@@ -153,6 +160,7 @@ final class SlideComponentEditor extends GridPane {
 		ToggleButton tglRight = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.ALIGN_RIGHT));
 		ToggleButton tglCenter = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.ALIGN_CENTER));
 		ToggleButton tglJustify = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.JUSTIFY_LEFT));
+		tglLeft.setSelected(true);
 		tglLeft.setUserData(HorizontalTextAlignment.LEFT);
 		tglRight.setUserData(HorizontalTextAlignment.RIGHT);
 		tglCenter.setUserData(HorizontalTextAlignment.CENTER);
@@ -162,6 +170,7 @@ final class SlideComponentEditor extends GridPane {
 		ToggleButton tglTop = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_TOP));
 		ToggleButton tglMiddle = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_CENTER));
 		ToggleButton tglBottom = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_BOTTOM));
+		tglTop.setSelected(true);
 		tglTop.setUserData(VerticalTextAlignment.TOP);
 		tglMiddle.setUserData(VerticalTextAlignment.CENTER);
 		tglBottom.setUserData(VerticalTextAlignment.BOTTOM);
@@ -172,6 +181,7 @@ final class SlideComponentEditor extends GridPane {
 		// font scale
 		Label lblFontScaling = new Label("Sizing");
 		this.cmbFontScaling = new ChoiceBox<Option<FontScaleType>>(fontScaleTypes);
+		this.cmbFontScaling.setValue(fontScaleTypes.get(0));
 		// padding
 		Label lblPadding = new Label("Padding");
 		this.spnPadding = new Spinner<Double>(0.0, Double.MAX_VALUE, 0.0, 1.0);
@@ -198,16 +208,19 @@ final class SlideComponentEditor extends GridPane {
 		this.txtText.setMinWidth(0);
 		this.txtText.setPrefWidth(100);
 		this.txtText.setWrapText(true);
+		this.txtText.setText("");
 		
 		// date-time component
 		// format
 		Label lblFormat = new Label("Format");
 		this.cmbDateTimeFormat = new ChoiceBox<Option<SimpleDateFormat>>(dateTimeFormats);
+		this.cmbDateTimeFormat.setValue(dateTimeFormats.get(0));
 		
 		// text placeholder component
 		// type
 		Label lblPlaceholderType = new Label("Type");
 		this.cmbPlaceholderType = new ChoiceBox<Option<PlaceholderType>>(placeholderTypes);
+		this.cmbPlaceholderType.setValue(placeholderTypes.get(0));
 		// variants
 		Label lblPlaceholderVariants = new Label("Variants");
 		this.cmbPlaceholderVariants = new CheckComboBox<Option<PlaceholderVariant>>(placeholderVariants);
@@ -266,9 +279,6 @@ final class SlideComponentEditor extends GridPane {
 			this.getChildren().removeAll(all);
 			pkrBackground.setValue(nv.getBackground());
 			pkrBorder.setValue(nv.getBorder());
-			if (nv.getBorder() == null) {
-				pkrBorder.setNoBorder();
-			}
 			// TODO border
 			if (nv instanceof ObservableMediaComponent) {
 				ObservableMediaComponent omc = (ObservableMediaComponent)nv;
@@ -296,9 +306,6 @@ final class SlideComponentEditor extends GridPane {
 				// set values
 				this.pkrTextPaint.setValue(otc.getTextPaint());
 				this.pkrTextBorder.setValue(otc.getTextBorder());
-				if (otc.getTextBorder() == null) {
-					this.pkrTextBorder.setNoBorder();
-				}
 				this.pkrFont.setFont(otc.getFont());
 				switch (otc.getHorizontalTextAlignment()) {
 					case LEFT:

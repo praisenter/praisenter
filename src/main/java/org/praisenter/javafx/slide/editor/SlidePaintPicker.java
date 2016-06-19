@@ -5,7 +5,6 @@ import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.media.MediaPicker;
 import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
@@ -35,87 +34,41 @@ final class SlidePaintPicker extends VBox {
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 
-	boolean settingValues = false;
+	private final ObjectProperty<SlidePaint> value = new SimpleObjectProperty<SlidePaint>();
 	
-	final ObjectProperty<SlidePaint> value = new SimpleObjectProperty<SlidePaint>() {
-		public void set(SlidePaint paint) {
-			if (paint != null && !settingValues) {
-				settingValues = true;
-				if (paint instanceof MediaObject) {
-					MediaObject mo = ((MediaObject)paint);
-					Media media = context.getMediaLibrary().get(mo.getId());
-					// the media could have been removed, so check for null
-					if (media == null) {
-						cbTypes.setValue(PaintType.NONE);
-					} else {
-						if (media.getMetadata().getType() == MediaType.IMAGE) {
-							cbTypes.setValue(PaintType.IMAGE);
-							pkrImage.setValue(media);
-						} else if (media.getMetadata().getType() == MediaType.VIDEO) {
-							cbTypes.setValue(PaintType.VIDEO);
-							pkrVideo.setValue(media);
-						} else if (media.getMetadata().getType() == MediaType.AUDIO) {
-							cbTypes.setValue(PaintType.AUDIO);
-							pkrAudio.setValue(media);
-						}
-						tglLoop.setSelected(mo.isLoop());
-						tglMute.setSelected(mo.isMute());
-						for (Toggle toggle : segScaling.getButtons()) {
-							if (toggle.getUserData() == mo.getScaling()) {
-								toggle.setSelected(true);
-								break;
-							}
-						}
-					}
-				} else if (paint instanceof SlideColor) {
-					SlideColor sc = (SlideColor)paint;
-					cbTypes.setValue(PaintType.COLOR);
-					pkrColor.setValue(JavaFXTypeConverter.toJavaFX(sc));
-				} else if (paint instanceof SlideLinearGradient) {
-					SlideLinearGradient lg = (SlideLinearGradient)paint;
-					cbTypes.setValue(PaintType.GRADIENT);
-					pkrGradient.setValue(lg);
-				} else if (paint instanceof SlideRadialGradient) {
-					SlideRadialGradient rg = (SlideRadialGradient)paint;
-					cbTypes.setValue(PaintType.GRADIENT);
-					pkrGradient.setValue(rg);
-				}
-				settingValues = false;
-			}
-			
-			// doing this will mean that setting it to null or any other type of paint will do nothing
-			// since it will just use the current observables to generate a new paint
-			
-			// this has the added effect of allowing us to update the paint property without having
-			// it go through the conversion process above by calling: set(null);
-			super.set(createPaint());
-		}
-		public void setValue(SlidePaint paint) {
-			set(paint);
-		}
-	};
+	private boolean mutating = false;
 	
-	final PraisenterContext context;
+	private final PraisenterContext context;
 	
 	// nodes
 	
-	final ChoiceBox<PaintType> cbTypes;
-	final ColorPicker pkrColor;
-	final SlideGradientPicker pkrGradient;
-	final MediaPicker pkrImage;
-	final MediaPicker pkrVideo;
-	final MediaPicker pkrAudio;
-	final SegmentedButton segScaling;
-	final ToggleButton tglLoop;
-	final ToggleButton tglMute;
+	private final ChoiceBox<PaintType> cbTypes;
+	private final ColorPicker pkrColor;
+	private final SlideGradientPicker pkrGradient;
+	private final MediaPicker pkrImage;
+	private final MediaPicker pkrVideo;
+	private final MediaPicker pkrAudio;
+	private final SegmentedButton segScaling;
+	private final ToggleButton tglLoop;
+	private final ToggleButton tglMute;
 	
 	public SlidePaintPicker(PraisenterContext context, PaintType... types) {
 		this.context = context;
 		
+		this.value.addListener((obs, ov, nv) -> {
+			if (mutating) return;
+			mutating = true;
+			setControlValues(nv);
+			mutating = false;
+		});
+		
 		InvalidationListener listener = new InvalidationListener() {
 			@Override
 			public void invalidated(Observable observable) {
-				value.set(null);
+				if (mutating) return;
+				mutating = true;
+				value.set(getControlValues());
+				mutating = false;
 			}
 		};
 		
@@ -123,22 +76,27 @@ final class SlidePaintPicker extends VBox {
 		cbTypes.valueProperty().addListener(listener);
 		
 		pkrColor = new ColorPicker();
+		pkrColor.setValue(Color.WHITE);
 		pkrColor.managedProperty().bind(pkrColor.visibleProperty());
 		pkrColor.valueProperty().addListener(listener);
 		
 		pkrGradient = new SlideGradientPicker();
+		pkrGradient.setValue(new SlideLinearGradient());
 		pkrGradient.managedProperty().bind(pkrGradient.visibleProperty());
 		pkrGradient.valueProperty().addListener(listener);
 		
 		pkrImage = new MediaPicker(context, MediaType.IMAGE);
+		pkrImage.setValue(null);
 		pkrImage.managedProperty().bind(pkrImage.visibleProperty());
 		pkrImage.valueProperty().addListener(listener);
 		
 		pkrVideo = new MediaPicker(context, MediaType.VIDEO);
+		pkrVideo.setValue(null);
 		pkrVideo.managedProperty().bind(pkrVideo.visibleProperty());
 		pkrVideo.valueProperty().addListener(listener);
 		
 		pkrAudio = new MediaPicker(context, MediaType.AUDIO);
+		pkrAudio.setValue(null);
 		pkrAudio.managedProperty().bind(pkrAudio.visibleProperty());
 		pkrAudio.valueProperty().addListener(listener);
 		
@@ -150,6 +108,7 @@ final class SlidePaintPicker extends VBox {
 		ToggleButton tglImageScaleNone = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.IMAGE));
 		ToggleButton tglImageScaleNonUniform = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ARROWS_ALT));
 		ToggleButton tglImageScaleUniform = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ARROWS));
+		tglImageScaleNone.setSelected(true);
 		tglImageScaleNone.setUserData(ScaleType.NONE);
 		tglImageScaleNonUniform.setUserData(ScaleType.NONUNIFORM);
 		tglImageScaleUniform.setUserData(ScaleType.UNIFORM);
@@ -157,9 +116,11 @@ final class SlidePaintPicker extends VBox {
 		this.segScaling.getToggleGroup().selectedToggleProperty().addListener(listener);
 		
 		this.tglLoop = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.REPEAT));
+		this.tglLoop.setSelected(false);
 		this.tglLoop.selectedProperty().addListener(listener);
 		
 		this.tglMute = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_OFF));
+		this.tglMute.setSelected(false);
 		this.tglMute.selectedProperty().addListener(listener);
 		
 		HBox loopMute = new HBox();
@@ -228,14 +189,17 @@ final class SlidePaintPicker extends VBox {
 			}
 		});
 		
+		cbTypes.setValue(PaintType.NONE);
 	}
 	
-	private SlidePaint createPaint() {
+	private SlidePaint getControlValues() {
 		Toggle scaleToggle = segScaling.getToggleGroup().getSelectedToggle();
 		ScaleType scaleType = scaleToggle != null && scaleToggle.getUserData() != null ? (ScaleType)scaleToggle.getUserData() : ScaleType.NONE;
+		
 		if (this.cbTypes.getValue() == null) {
 			return null;
 		}
+		
 		switch (this.cbTypes.getValue()) {
 			case COLOR:
 				Color color = this.pkrColor.getValue();
@@ -259,6 +223,52 @@ final class SlidePaintPicker extends VBox {
 				return null;
 			default:
 				return null;
+		}
+	}
+	
+	private void setControlValues(SlidePaint paint) {
+		if (paint == null) {
+			cbTypes.setValue(PaintType.NONE);
+		} else {
+			if (paint instanceof MediaObject) {
+				MediaObject mo = ((MediaObject)paint);
+				Media media = context.getMediaLibrary().get(mo.getId());
+				// the media could have been removed, so check for null
+				if (media == null) {
+					cbTypes.setValue(PaintType.NONE);
+				} else {
+					if (media.getMetadata().getType() == MediaType.IMAGE) {
+						cbTypes.setValue(PaintType.IMAGE);
+						pkrImage.setValue(media);
+					} else if (media.getMetadata().getType() == MediaType.VIDEO) {
+						cbTypes.setValue(PaintType.VIDEO);
+						pkrVideo.setValue(media);
+					} else if (media.getMetadata().getType() == MediaType.AUDIO) {
+						cbTypes.setValue(PaintType.AUDIO);
+						pkrAudio.setValue(media);
+					}
+					tglLoop.setSelected(mo.isLoop());
+					tglMute.setSelected(mo.isMute());
+					for (Toggle toggle : segScaling.getButtons()) {
+						if (toggle.getUserData() == mo.getScaling()) {
+							toggle.setSelected(true);
+							break;
+						}
+					}
+				}
+			} else if (paint instanceof SlideColor) {
+				SlideColor sc = (SlideColor)paint;
+				cbTypes.setValue(PaintType.COLOR);
+				pkrColor.setValue(JavaFXTypeConverter.toJavaFX(sc));
+			} else if (paint instanceof SlideLinearGradient) {
+				SlideLinearGradient lg = (SlideLinearGradient)paint;
+				cbTypes.setValue(PaintType.GRADIENT);
+				pkrGradient.setValue(lg);
+			} else if (paint instanceof SlideRadialGradient) {
+				SlideRadialGradient rg = (SlideRadialGradient)paint;
+				cbTypes.setValue(PaintType.GRADIENT);
+				pkrGradient.setValue(rg);
+			}
 		}
 	}
 	

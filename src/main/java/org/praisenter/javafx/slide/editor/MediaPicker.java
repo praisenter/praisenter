@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.media;
+package org.praisenter.javafx.slide.editor;
 
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.media.Media;
@@ -39,7 +39,7 @@ import javafx.scene.control.Button;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class MediaPicker extends Button {
+final class MediaPicker extends Button {
 	/** The media dialog */
 	private MediaLibraryDialog dialog;
 	

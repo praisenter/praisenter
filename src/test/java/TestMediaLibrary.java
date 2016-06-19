@@ -1,29 +1,17 @@
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Set;
-import java.util.TreeSet;
 
-import javax.swing.text.html.HTMLDocument.HTMLReader.PreAction;
-
-import org.praisenter.Tag;
-import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaLibraryPane;
-import org.praisenter.javafx.media.MediaPicker;
-import org.praisenter.javafx.media.ObservableMediaLibrary;
-import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
-import org.praisenter.media.MediaType;
 import org.praisenter.utility.ClasspathLoader;
 
 import javafx.application.Application;
-import javafx.collections.FXCollections;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
@@ -51,16 +39,16 @@ public class TestMediaLibrary extends Application {
 		PraisenterContext context = new PraisenterContext(this, primaryStage, null, null, library, null, null, null);
 		
 		BorderPane root = new BorderPane();
-		MediaPicker pkrMedia = new MediaPicker(context, MediaType.IMAGE, MediaType.AUDIO);
-		pkrMedia.setValue(library.all().get(0));
-		root.setTop(pkrMedia);
+//		MediaPicker pkrMedia = new MediaPicker(context, MediaType.IMAGE, MediaType.AUDIO);
+//		pkrMedia.setValue(library.all().get(0));
+//		root.setTop(pkrMedia);
 		
-		pkrMedia.valueProperty().addListener((obs, ov, nv) -> {
-			System.out.println(nv != null ? nv.getMetadata().getName() : "null");
-		});
+//		pkrMedia.valueProperty().addListener((obs, ov, nv) -> {
+//			System.out.println(nv != null ? nv.getMetadata().getName() : "null");
+//		});
 		
-		ColorPicker pkrColor = new ColorPicker();
-		root.setBottom(pkrColor);
+//		ColorPicker pkrColor = new ColorPicker();
+//		root.setBottom(pkrColor);
 		
 		MediaLibraryPane mlp = new MediaLibraryPane(
 				context, 

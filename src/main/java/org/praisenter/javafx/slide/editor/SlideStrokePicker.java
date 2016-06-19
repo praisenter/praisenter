@@ -10,6 +10,8 @@ import org.praisenter.slide.graphics.SlideStrokeJoin;
 import org.praisenter.slide.graphics.SlideStrokeStyle;
 import org.praisenter.slide.graphics.SlideStrokeType;
 
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -24,20 +26,7 @@ import javafx.scene.layout.VBox;
 
 class SlideStrokePicker extends VBox {
 
-	private final ObjectProperty<SlideStroke> value = new SimpleObjectProperty<SlideStroke>() {
-		public void set(SlideStroke stroke) {
-			if (mutating) return;
-			if (stroke != null) {
-				mutating = true;
-				setControlValues(stroke);
-				mutating = false;
-			}
-			super.set(getControlValues());
-		}
-		public void setValue(SlideStroke stroke) {
-			set(stroke);
-		}
-	};
+	private final ObjectProperty<SlideStroke> value = new SimpleObjectProperty<SlideStroke>();
 	
 	private boolean mutating = false;
 	
@@ -74,13 +63,19 @@ class SlideStrokePicker extends VBox {
 				PaintType.GRADIENT);
 		
 		this.cbJoin = new ChoiceBox<Option<SlideStrokeJoin>>(joins);
+		this.cbJoin.setValue(joins.get(0));
 		this.cbCap = new ChoiceBox<Option<SlideStrokeCap>>(caps);
+		this.cbCap.setValue(caps.get(0));
 		// FIXME add a set of dash patterns
 		this.cbDashes = new ChoiceBox<Option<Double[]>>();
 		this.spnWidth = new Spinner<Double>(1, Double.MAX_VALUE, 1);
 		this.spnWidth.setMaxWidth(75);
+		this.spnWidth.getValueFactory().setValue(1.0);
+		this.spnWidth.setEditable(true);
 		this.spnRadius = new Spinner<Double>(0, Double.MAX_VALUE, 0);
 		this.spnRadius.setMaxWidth(75);
+		this.spnRadius.getValueFactory().setValue(0.0);
+		this.spnRadius.setEditable(true);
 		
 		HBox h1 = new HBox(5, this.cbJoin, this.cbCap, this.spnWidth);
 		HBox h2 = new HBox(5, this.cbDashes, this.spnRadius);
@@ -88,7 +83,24 @@ class SlideStrokePicker extends VBox {
 		h1.managedProperty().bind(h1.visibleProperty());
 		h2.managedProperty().bind(h2.visibleProperty());
 		
-		this.pkrPaint.valueProperty().addListener((obs, ov, nv) -> {
+		InvalidationListener listener = new InvalidationListener() {
+			@Override
+			public void invalidated(Observable observable) {
+				if (mutating) return;
+				mutating = true;
+				value.set(getControlValues());
+				mutating = false;
+			}
+		};
+		
+		this.pkrPaint.valueProperty().addListener(listener);
+		this.cbJoin.valueProperty().addListener(listener);
+		this.cbCap.valueProperty().addListener(listener);
+		this.cbDashes.valueProperty().addListener(listener);
+		this.spnWidth.valueProperty().addListener(listener);
+		this.spnRadius.valueProperty().addListener(listener);
+		
+		this.value.addListener((obs, ov, nv) -> {
 			if (nv == null) {
 				h1.setVisible(false);
 				h2.setVisible(false);
@@ -96,42 +108,49 @@ class SlideStrokePicker extends VBox {
 				h1.setVisible(true);
 				h2.setVisible(true);
 			}
+			if (mutating) return;
+			mutating = true;
+			setControlValues(nv);
+			mutating = false;
 		});
+		
+		this.pkrPaint.setValue(null);
 		
 		this.getChildren().addAll(this.pkrPaint, h1, h2);
 	}
 	
 	private SlideStroke getControlValues() {
 		SlidePaint paint = this.pkrPaint.getValue();
-		if (paint != null) {
-			return new SlideStroke(
-					this.pkrPaint.getValue(), 
-					new SlideStrokeStyle(
-							SlideStrokeType.CENTERED, 
-							this.cbJoin.getValue().getValue(), 
-							this.cbCap.getValue().getValue(), 
-							this.cbDashes.getValue().getValue()), 
-					this.spnWidth.getValue(), 
-					this.spnRadius.getValue());
-		} else {
+		// if the slide paint is null then this means
+		// the user selected NONE
+		if (paint == null) {
 			return null;
 		}
+		return new SlideStroke(
+				paint, 
+				new SlideStrokeStyle(
+						SlideStrokeType.CENTERED, 
+						this.cbJoin.getValue().getValue(), 
+						this.cbCap.getValue().getValue(), 
+						this.cbDashes.getValue().getValue()), 
+				this.spnWidth.getValue(), 
+				this.spnRadius.getValue());
 	}
 	
 	private void setControlValues(SlideStroke stroke) {
-		this.pkrPaint.setValue(stroke.getPaint());
-		SlideStrokeStyle style = stroke.getStyle();
-		if (style != null) {
-			this.cbJoin.setValue(new Option<SlideStrokeJoin>(null, style.getJoin()));
-			this.cbCap.setValue(new Option<SlideStrokeCap>(null, style.getCap()));
-			this.cbDashes.setValue(new Option<Double[]>(null, style.getDashes()));
+		if (stroke == null) {
+			this.pkrPaint.setValue(null);
+		} else {		
+			this.pkrPaint.setValue(stroke.getPaint());
+			SlideStrokeStyle style = stroke.getStyle();
+			if (style != null) {
+				this.cbJoin.setValue(new Option<SlideStrokeJoin>(null, style.getJoin()));
+				this.cbCap.setValue(new Option<SlideStrokeCap>(null, style.getCap()));
+				this.cbDashes.setValue(new Option<Double[]>(null, style.getDashes()));
+			}
+			this.spnWidth.getValueFactory().setValue(stroke.getWidth());
+			this.spnRadius.getValueFactory().setValue(stroke.getRadius());
 		}
-		this.spnWidth.getValueFactory().setValue(stroke.getWidth());
-		this.spnRadius.getValueFactory().setValue(stroke.getRadius());
-	}
-	
-	public void setNoBorder() {
-		this.pkrPaint.setNone();
 	}
 	
 	public ObjectProperty<SlideStroke> valueProperty() {

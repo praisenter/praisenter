@@ -36,7 +36,7 @@ import javafx.scene.control.Button;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideGradientPicker extends Button {
+final class SlideGradientPicker extends Button {
 	/** The gradient dialog */
 	private SlideGradientPickerDialog dialog;
 	

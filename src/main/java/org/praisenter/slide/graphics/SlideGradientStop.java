@@ -73,9 +73,9 @@ public final class SlideGradientStop {
 	 * @param blue the color's blue component
 	 * @param alpha the color's alpha component
 	 */
-	public SlideGradientStop(double offset, int red, int green, int blue, double alpha) {
+	public SlideGradientStop(double offset, double red, double green, double blue, double alpha) {
 		this.offset = offset;
-		this.color = new SlideColor(red / 255.0, green / 255.0, blue / 255.0, alpha);
+		this.color = new SlideColor(red, green, blue, alpha);
 	}
 
 	/* (non-Javadoc)

@@ -43,8 +43,8 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 public abstract class SlideGradient extends AbstractSlidePaint implements SlidePaint {
 	/** The default stops */
 	static final SlideGradientStop[] DEFAULT_STOPS = new SlideGradientStop[] {
-		new SlideGradientStop(0, 0, 0, 0, 255), 
-		new SlideGradientStop(1.0, 255, 255, 255, 255)
+		new SlideGradientStop(0.0, 0.0, 0.0, 0.0, 1.0), 
+		new SlideGradientStop(1.0, 1.0, 1.0, 1.0, 1.0)
 	};
 	
 	/** The list of stops */
