@@ -39,6 +39,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.Database;
 
+// FEATURE add support for http://www.opensong.org/home/download bible formats
+// FEATURE add support for Zefania XML Bibles
+
 /**
  * Abstract class for importing bibles into the bible library.
  * @author William Bittle
