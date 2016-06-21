@@ -245,30 +245,33 @@ public final class Praisenter extends Application {
     	scene.getStylesheets().add(CONFIG.getThemeCss());
     	stage.setScene(scene);
     	stage.setOnHiding((e) -> {
-    		context.getWorkers().shutdown();
-    		if (context.getWorkers().getActiveCount() > 0) {
-    			e.consume();
-    			// FIXME show dialog with loading
-    			// FIXME UI is blocked while shutdown occcurs
-    			Alert s = new Alert(AlertType.INFORMATION);
-    			s.setContentText("");
-    			s.setHeaderText("");
-    			s.setTitle("");
-    			s.show();
-    			// wait until the executor shuts down
-    			while (true) {
-	    			try {
-	    				boolean finished = context.getWorkers().awaitTermination(5, TimeUnit.SECONDS);
-	    				if (finished) {
-	    					// all tasks finished so, shutdown
-	    					break;
-	    				}
-					} catch (Exception ex) {
-						Alert alert = Alerts.exception(stage, null, null, "", ex);
-						alert.showAndWait();
-					}
-    			}
-    			s.hide();
+    		// this stuff could be null if we blow up before its created
+    		if (context != null && context.getWorkers() != null) {
+	    		context.getWorkers().shutdown();
+	    		if (context.getWorkers().getActiveCount() > 0) {
+	    			e.consume();
+	    			// FIXME show dialog with loading
+	    			// FIXME UI is blocked while shutdown occcurs
+	    			Alert s = new Alert(AlertType.INFORMATION);
+	    			s.setContentText("");
+	    			s.setHeaderText("");
+	    			s.setTitle("");
+	    			s.show();
+	    			// wait until the executor shuts down
+	    			while (true) {
+		    			try {
+		    				boolean finished = context.getWorkers().awaitTermination(5, TimeUnit.SECONDS);
+		    				if (finished) {
+		    					// all tasks finished so, shutdown
+		    					break;
+		    				}
+						} catch (Exception ex) {
+							Alert alert = Alerts.exception(stage, null, null, "", ex);
+							alert.showAndWait();
+						}
+	    			}
+	    			s.hide();
+	    		}
     		}
     		// this makes sure that all the screens managed elsewhere
     		// are closed as well

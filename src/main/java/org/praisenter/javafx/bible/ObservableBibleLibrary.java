@@ -113,7 +113,7 @@ public final class ObservableBibleLibrary {
 	 * @param onSuccess called when the bible is imported successfully
 	 * @param onError called when the bible failed to be imported
 	 */
-	public void add(Path path, Consumer<Bible> onSuccess, BiConsumer<Path, Throwable> onError) {
+	public void add(Path path, Consumer<List<Bible>> onSuccess, BiConsumer<Path, Throwable> onError) {
 		// create a "loading" item
 		final BibleListItem loading = new BibleListItem(path.getFileName().toString());
 		
@@ -124,22 +124,23 @@ public final class ObservableBibleLibrary {
 		});
 		
 		// execute the add on a different thread
-		Task<Bible> task = new Task<Bible>() {
+		Task<List<Bible>> task = new Task<List<Bible>>() {
 			@Override
-			protected Bible call() throws Exception {
+			protected List<Bible> call() throws Exception {
 				UnboundBibleImporter importer = new UnboundBibleImporter(library);
 				return importer.execute(path);
 			}
 		};
 		task.setOnSucceeded((e) -> {
-			Bible bible = task.getValue();
-			BibleListItem success = new BibleListItem(bible);
+			List<Bible> bibles = task.getValue();
 			// changes to the list should be done on the FX UI Thread
 			Fx.runOnFxThead(() -> {
 				items.remove(loading);
-				items.add(success);
+				for (Bible bible : bibles) {
+					items.add(new BibleListItem(bible));
+				}
 				if (onSuccess != null) {
-					onSuccess.accept(bible);
+					onSuccess.accept(bibles);
 				}
 			});
 		});
@@ -201,16 +202,18 @@ public final class ObservableBibleLibrary {
 			protected Void call() throws Exception {
 				for (Path path : paths) {
 					try {
-						Bible bible = importer.execute(path);
-						successes.add(bible);
+						List<Bible> bbls = importer.execute(path);
+						successes.addAll(bbls);
 						Fx.runOnFxThead(() -> {
 							// remove the loading item
 							items.remove(new BibleListItem(path.getFileName().toString()));
 							// add the real item
-							items.add(new BibleListItem(bible));
+							for (Bible bible : bbls) {
+								items.add(new BibleListItem(bible));
+							}
 						});
 					} catch (Exception ex) {
-						LOGGER.error("Failed to import bible " + path.toAbsolutePath().toString(), ex);
+						LOGGER.error("Failed to import bible(s) " + path.toAbsolutePath().toString(), ex);
 						failures.add(new FailedOperation<Path>(path, ex));
 						Fx.runOnFxThead(() -> {
 							// remove the loading item

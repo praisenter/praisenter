@@ -24,6 +24,9 @@
  */
 package org.praisenter.bible;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -39,8 +42,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.Database;
 
-// FEATURE add support for http://www.opensong.org/home/download bible formats
-// FEATURE add support for Zefania XML Bibles
+// FEATURE replace 3 letter code language with text here https://www.w3.org/WAI/ER/IG/ert/iso639.htm
 
 /**
  * Abstract class for importing bibles into the bible library.
@@ -269,5 +271,32 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 			// just log this error
 			LOGGER.warn("An error occurred when rebuilding the indexes after a successful import of a bible:", e);
 		}
+	}
+
+	/**
+	 * Helper method to fully read a given input stream into a byte[].
+	 * <p>
+	 * This is primarily used with the ZipInputStream class to ensure that it's not
+	 * closed by whatever reader is used to parse the file.
+	 * @param stream the stream to read
+	 * @return byte[]
+	 * @throws IOException if an IO error occurs
+	 */
+	static final byte[] read(InputStream stream) throws IOException {
+		// read the whole file into memory since the SAX Parser will close the stream
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		int nRead;
+		byte[] data = new byte[4096];
+		while ((nRead = stream.read(data, 0, data.length)) != -1) {
+		  buffer.write(data, 0, nRead);
+		}
+		buffer.flush();
+		byte[] content = buffer.toByteArray();
+		try {
+			buffer.close();
+		} catch (Exception ex) {
+			// FIXME handle
+		}
+		return content;
 	}
 }

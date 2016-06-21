@@ -61,11 +61,11 @@ import org.xml.sax.helpers.DefaultHandler;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class OpenSongBibleImporter extends AbstractBibleImporter implements BibleImporter {
+public final class ZefaniaBibleImporter extends AbstractBibleImporter implements BibleImporter {
 	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private static final String SOURCE = "http://www.opensong.org/";
+	private static final String SOURCE = "https://sourceforge.net/projects/zefania-sharp/files/Bibles/";
 	
 	private static final int O_BOOK_COUNT = 39;
 	private static final int N_BOOK_COUNT = O_BOOK_COUNT + 27;
@@ -81,6 +81,8 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 	// temp
 	
 	private String name;
+	private String language;
+	private String copyright;
 	
 	private boolean hasApocrypha;
 	
@@ -90,22 +92,21 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 	private String bookCode;
 	
 	private int chapter;
-	
 	private int verse;
-	private int verseTo;
 	
 	private int order;
 	
 	/** Buffer for tag contents */
 	private StringBuilder dataBuilder;
 	
-	
+	private boolean verseContent;
+	private boolean ignoreContent;
 	
 	/**
 	 * Minimal constructor.
 	 * @param library the library to import into
 	 */
-	public OpenSongBibleImporter(BibleLibrary library) {
+	public ZefaniaBibleImporter(BibleLibrary library) {
 		super(library);
 	}
 	
@@ -114,7 +115,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 	 */
 	@Override
 	public List<Bible> execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException {
-		final String name = path.getFileName().toString();
+		final String name = path.getFileName().toString().toLowerCase();
 		
 		this.reset();
 		
@@ -134,12 +135,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 				while ((entry = zis.getNextEntry()) != null) {
 					read = true;
 					LOGGER.debug("Reading as zip file: " + path.toAbsolutePath().toString());
-					int i = entry.getName().lastIndexOf('.');
-					if (i >= 0) {
-						this.name = entry.getName().substring(0, i);
-					} else {
-						this.name = entry.getName();
-					}
+					this.name = entry.getName().substring(0, entry.getName().lastIndexOf('.'));
 					this.parse(zis);
 					Bible bbl = this.insert(entry.getName());
 					if (bbl != null) {
@@ -151,13 +147,11 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 				// if not, that may mean the file was not a zip so try it as a normal flat file
 				if (!read) {
 					LOGGER.debug("Reading as XML file: " + path.toAbsolutePath().toString());
-					// this indicates the file is not a zip or invalid
-					int i = name.lastIndexOf('.');
-					if (i >= 0) {
-						this.name = name.substring(0, i);
-					} else {
-						this.name = name;
+					if (!name.endsWith(".xml")) {
+						LOGGER.warn("File " + path.toAbsolutePath().toString() + " does not end with either .zip or .xml file extensions.  Attempting to read anyway.");
 					}
+					// this indicates the file is not a zip or invalid
+					this.name = name.substring(0, name.lastIndexOf('.'));
 					// hopefully its an .xmm
 					// just read it
 					this.parse(new FileInputStream(path.toFile()));
@@ -181,15 +175,18 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 		this.verses = new ArrayList<Verse>();
 		
 		this.name = null;
+		this.language = "N/A";
+		this.copyright = null;
 		this.hasApocrypha = false;
 		this.hadImportWarning = false;
 		this.bookNumber = 0;
 		this.bookCode = null;
 		this.chapter = 0;
 		this.verse = 0;
-		this.verseTo = -1;
 		this.order = 0;
 		this.dataBuilder = null;
+		this.verseContent = false;
+		this.ignoreContent = false;
 	}
 	
 	private void parse(InputStream stream) throws IOException, InvalidFormatException {
@@ -211,7 +208,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 			return null;
 		}
 		
-		this.bible = new Bible(-1, this.name, "N/A", SOURCE, null, null, this.verses.size(), this.hasApocrypha, this.hadImportWarning);
+		this.bible = new Bible(-1, this.name, this.language, SOURCE, null, this.copyright, this.verses.size(), this.hasApocrypha, this.hadImportWarning);
 		
 		// import into the database
 		return this.insert(bible, books, verses);
@@ -232,48 +229,55 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 		@Override
 		public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 			// inspect the tag name
-			if (qName.equalsIgnoreCase("bible")) {
+			if (qName.equalsIgnoreCase("xmlbible") ||
+				qName.equalsIgnoreCase("x")) {
 				// get the name if present
-				String name = attributes.getValue("n");
+				String name = attributes.getValue("biblename");
 				if (name != null) {
-					OpenSongBibleImporter.this.name = name.trim();
+					ZefaniaBibleImporter.this.name = name.trim();
 				}
-			} else if (qName.equalsIgnoreCase("b")) {
-				bookNumber++;
+			} else if (qName.equalsIgnoreCase("biblebook") ||
+					   qName.equalsIgnoreCase("b")) {
+				String bnumber = attributes.getValue("bnumber");
+				try {
+					bookNumber = Integer.parseInt(bnumber);
+				} catch (NumberFormatException ex) {
+					LOGGER.warn("Failed to parse book number '" + bnumber + "' for '" + name + "'. Using next book number in sequence instead.");
+					bookNumber++;
+				}
 				bookCode = getBookCode(bookNumber);
-				books.add(new Book(null, bookCode, attributes.getValue("n")));
+				books.add(new Book(null, bookCode, attributes.getValue("bname")));
 				chapter = 0;
-			} else if (qName.equalsIgnoreCase("c")) {
-				int chapter = -1; 
-				String number = attributes.getValue("n");
+			} else if (qName.equalsIgnoreCase("chapter") ||
+					   qName.equalsIgnoreCase("c")) {
+				String cnumber = attributes.getValue("cnumber");
 				try {
-					chapter = Integer.parseInt(number);
+					chapter = Integer.parseInt(cnumber);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse chapter number '" + number + "' for '" + name + "'. Using next chapter number in sequence instead.");
-					chapter = OpenSongBibleImporter.this.chapter++;
+					LOGGER.warn("Failed to parse chapter number '" + cnumber + "' for '" + name + "'. Using next chapter number in sequence instead.");
+					chapter++;
 				}
-				OpenSongBibleImporter.this.chapter = chapter;
 				verse = 0;
-			} else if (qName.equalsIgnoreCase("v")) {
-				int verse = -1;
-				verseTo = -1;
-				String number = attributes.getValue("n");
-				String to = attributes.getValue("t");
+			} else if (qName.equalsIgnoreCase("vers") ||
+					   qName.equalsIgnoreCase("v")) {
+				String v = attributes.getValue("v");
+				String vnumber = v == null || v.length() == 0 ? attributes.getValue("vnumber") : v;
 				try {
-					verse = Integer.parseInt(number);
+					verse = Integer.parseInt(vnumber);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse verse number '" + number + "' for '" + name + "'. Using next verse number in sequence instead.");
-					verse = OpenSongBibleImporter.this.verse++;
+					LOGGER.warn("Failed to parse verse number '" + vnumber + "' for '" + name + "'. Using next verse number in sequence instead.");
+					verse++;
 				}
-				if (to != null) {
-					try {
-						verseTo = Integer.parseInt(to);
-					} catch (NumberFormatException ex) {
-						LOGGER.warn("Failed to parse the to verse number '" + to + "' for '" + name + "'. Skipping.");
-					}
-				}
-				OpenSongBibleImporter.this.verse = verse;
 				order += 10;
+				verseContent = true;
+			} else if (qName.equalsIgnoreCase("note") ||
+					   qName.equalsIgnoreCase("n") ||
+					   qName.equalsIgnoreCase("gram") ||
+					   qName.equalsIgnoreCase("gr") ||
+					   qName.equalsIgnoreCase("g") ||
+					   qName.equalsIgnoreCase("xref") ||
+					   qName.equalsIgnoreCase("xr")) {
+				ignoreContent = true;
 			}
 		}
 
@@ -286,25 +290,41 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 			if (dataBuilder == null) {
 				dataBuilder = new StringBuilder();
 			}
-			dataBuilder.append(s);
+			if (!ignoreContent) {
+				dataBuilder.append(s);
+			}
 		}
 		
 		@Override
 		public void endElement(String uri, String localName, String qName) throws SAXException {
-			if ("v".equalsIgnoreCase(qName)) {
-				// check for embedded verses (n="1" t="4") ...why oh why...
-				if (verseTo > 0 && verseTo > verse) {
-					// just duplicate the verse content for each
-					for (int i = verse; i <= verseTo; i++) {
-						verses.add(new Verse(null, new Book(null, bookCode, null), -1, chapter, i, -1, order, dataBuilder.toString().trim()));
-					}
-				} else {
-					// add as normal
-					verses.add(new Verse(null, new Book(null, bookCode, null), -1, chapter, verse, -1, order, dataBuilder.toString().trim()));
+			if (qName.equalsIgnoreCase("vers") ||
+				qName.equalsIgnoreCase("v")) {
+				verses.add(new Verse(null, new Book(null, bookCode, null), -1, chapter, verse, -1, order, dataBuilder.toString().trim()));
+				verseContent = false;
+			} else if (qName.equalsIgnoreCase("title")) {
+				String name = dataBuilder.toString();
+				if (name != null) {
+					ZefaniaBibleImporter.this.name = name.trim();
 				}
-				
+			} else if (qName.equalsIgnoreCase("language")) {
+				String language = dataBuilder.toString();
+				if (language != null) {
+					ZefaniaBibleImporter.this.language = language.trim();
+				}
+			} else if (qName.equalsIgnoreCase("rights")) {
+				copyright = dataBuilder.toString().trim();
+			} else if (qName.equalsIgnoreCase("note") ||
+					   qName.equalsIgnoreCase("n") ||
+					   qName.equalsIgnoreCase("gram") ||
+					   qName.equalsIgnoreCase("gr") ||
+					   qName.equalsIgnoreCase("g") ||
+					   qName.equalsIgnoreCase("xref") ||
+					   qName.equalsIgnoreCase("xr")) {
+				ignoreContent = false;
 			}
-			dataBuilder = null;
+			if (!verseContent) {
+				dataBuilder = null;
+			}
 		}
 	}
 }

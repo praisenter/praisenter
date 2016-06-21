@@ -71,7 +71,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public Bible execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException {
+	public List<Bible> execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException {
 		// get the file name
 		String fileName = path.getFileName().toString();
 		int d = fileName.lastIndexOf(".");
@@ -115,7 +115,12 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 			}
 			
 			// import into the database
-			return this.insert(bible, books, verses);
+			Bible bbl = this.insert(bible, books, verses);
+			
+			// return
+			List<Bible> bibles = new ArrayList<Bible>();
+			bibles.add(bbl);
+			return bibles;
 		} else {
 			// throw an exception
 			throw new FileNotFoundException(path.toAbsolutePath().toString());
@@ -149,8 +154,8 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 				} else {
 					Book book = new Book(
 							null,
-							data[0],
-							data[1].equalsIgnoreCase("Acts of the Apostles") ? "Acts" : data[1]);
+							data[0].trim(),
+							data[1].trim().equalsIgnoreCase("Acts of the Apostles") ? "Acts" : data[1].trim());
 					books.add(book);
 				}
 			}
@@ -191,11 +196,11 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 			if (line.startsWith("#")) {
 				// it's a comment, but some comments will provide data
 				if (line.startsWith("#name")) {
-					name = line.replaceFirst("#name\\s+", "");
+					name = line.replaceFirst("#name\\s+", "").trim();
 				} else if (line.startsWith("#language")) {
-					language = line.replaceFirst("#language\\s+", "");
+					language = line.replaceFirst("#language\\s+", "").trim().toUpperCase();
 				} else if (line.startsWith("#copyright")) {
-					copyright = line.replaceFirst("#copyright\\s+", "");
+					copyright = line.replaceFirst("#copyright\\s+", "").trim();
 				} else if (line.startsWith("#columns")) {
 					// not all bibles support the same fields so we need to setup a 
 					// column mapping for the columns
