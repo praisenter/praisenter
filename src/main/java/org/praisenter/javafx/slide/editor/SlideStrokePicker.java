@@ -3,6 +3,7 @@ package org.praisenter.javafx.slide.editor;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.resources.translations.Translations;
+import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.graphics.SlideStrokeCap;
@@ -21,8 +22,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-// FIXME generally, we need to a method to reset the picker after assigning a value
-// FIXME we need to be able to set a null value for all pickers
+// FEATURE Allow more dash patterns
 
 class SlideStrokePicker extends VBox {
 
@@ -38,7 +38,7 @@ class SlideStrokePicker extends VBox {
 	
 	private final ChoiceBox<Option<SlideStrokeCap>> cbCap;
 	
-	private final ChoiceBox<Option<Double[]>> cbDashes;
+	private final ChoiceBox<Option<DashPattern>> cbDashes;
 	
 	private final Spinner<Double> spnWidth;
 	
@@ -57,6 +57,15 @@ class SlideStrokePicker extends VBox {
 		caps.add(new Option<SlideStrokeCap>(Translations.get("stroke.cap.butt"), SlideStrokeCap.BUTT));
 		caps.add(new Option<SlideStrokeCap>(Translations.get("stroke.cap.square"), SlideStrokeCap.SQUARE));
 		
+		ObservableList<Option<DashPattern>> dashes = FXCollections.observableArrayList();
+		dashes.add(new Option<DashPattern>(Translations.get("stroke.pattern.solid"), DashPattern.SOLID));
+		dashes.add(new Option<DashPattern>(Translations.get("stroke.pattern.dash"), DashPattern.DASH));
+		dashes.add(new Option<DashPattern>(Translations.get("stroke.pattern.dashdot"), DashPattern.DASH_DOT));
+		dashes.add(new Option<DashPattern>(Translations.get("stroke.pattern.dot"), DashPattern.DOT));
+		dashes.add(new Option<DashPattern>(Translations.get("stroke.pattern.longdash"), DashPattern.LONG_DASH));
+		dashes.add(new Option<DashPattern>(Translations.get("stroke.pattern.longdashdot"), DashPattern.LONG_DASH_DOT));
+		dashes.add(new Option<DashPattern>(Translations.get("stroke.pattern.longdashdotdot"), DashPattern.LONG_DASH_DOT_DOT));
+		
 		this.pkrPaint = new SlidePaintPicker(context,
 				PaintType.NONE,
 				PaintType.COLOR, 
@@ -66,8 +75,8 @@ class SlideStrokePicker extends VBox {
 		this.cbJoin.setValue(joins.get(0));
 		this.cbCap = new ChoiceBox<Option<SlideStrokeCap>>(caps);
 		this.cbCap.setValue(caps.get(0));
-		// FIXME add a set of dash patterns
-		this.cbDashes = new ChoiceBox<Option<Double[]>>();
+		this.cbDashes = new ChoiceBox<Option<DashPattern>>(dashes);
+		this.cbDashes.setValue(dashes.get(0));
 		this.spnWidth = new Spinner<Double>(1, Double.MAX_VALUE, 1);
 		this.spnWidth.setMaxWidth(75);
 		this.spnWidth.getValueFactory().setValue(1.0);
@@ -100,6 +109,9 @@ class SlideStrokePicker extends VBox {
 		this.spnWidth.valueProperty().addListener(listener);
 		this.spnRadius.valueProperty().addListener(listener);
 		
+		h1.setVisible(false);
+		h2.setVisible(false);
+		
 		this.value.addListener((obs, ov, nv) -> {
 			if (nv == null) {
 				h1.setVisible(false);
@@ -113,8 +125,6 @@ class SlideStrokePicker extends VBox {
 			setControlValues(nv);
 			mutating = false;
 		});
-		
-		this.pkrPaint.setValue(null);
 		
 		this.getChildren().addAll(this.pkrPaint, h1, h2);
 	}
@@ -132,7 +142,7 @@ class SlideStrokePicker extends VBox {
 						SlideStrokeType.CENTERED, 
 						this.cbJoin.getValue().getValue(), 
 						this.cbCap.getValue().getValue(), 
-						this.cbDashes.getValue().getValue()), 
+						this.cbDashes.getValue().getValue().getDashLengths(this.spnWidth.getValue())), 
 				this.spnWidth.getValue(), 
 				this.spnRadius.getValue());
 	}
@@ -146,7 +156,7 @@ class SlideStrokePicker extends VBox {
 			if (style != null) {
 				this.cbJoin.setValue(new Option<SlideStrokeJoin>(null, style.getJoin()));
 				this.cbCap.setValue(new Option<SlideStrokeCap>(null, style.getCap()));
-				this.cbDashes.setValue(new Option<Double[]>(null, style.getDashes()));
+				this.cbDashes.setValue(new Option<DashPattern>(null, DashPattern.getDashPattern(style.getDashes(), stroke.getWidth())));
 			}
 			this.spnWidth.getValueFactory().setValue(stroke.getWidth());
 			this.spnRadius.getValueFactory().setValue(stroke.getRadius());

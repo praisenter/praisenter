@@ -39,7 +39,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.bible.Bible;
+import org.praisenter.bible.BibleImporter;
 import org.praisenter.bible.BibleLibrary;
+import org.praisenter.bible.FormatIdentifingBibleImporter;
 import org.praisenter.bible.UnboundBibleImporter;
 import org.praisenter.javafx.utility.Fx;
 
@@ -191,7 +193,7 @@ public final class ObservableBibleLibrary {
 		List<Bible> successes = new ArrayList<Bible>();
 		List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
 		
-		UnboundBibleImporter importer = new UnboundBibleImporter(library);
+		BibleImporter importer = new FormatIdentifingBibleImporter(library);
 		
 		// execute the add on a different thread
 		Task<Void> task = new Task<Void>() {

@@ -22,32 +22,46 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.bible;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.sql.SQLException;
-
-import org.praisenter.InvalidFormatException;
-import org.praisenter.UnknownFormatException;
+package org.praisenter;
 
 /**
- * Represents a class that reads a given path for Bible information.
+ * Exception thrown when a file's format could not be determined.
  * @author William Bittle
  * @version 3.0.0
  */
-public interface BibleImporter {
+public class UnknownFormatException extends Exception {
+	/** The version id */
+	private static final long serialVersionUID = 1826767009503521615L;
+
 	/**
-	 * Imports the Bible information located at the given path.
-	 * @param path the path
-	 * @return {@link Bible} the bible that was inserted
-	 * @throws IOException if an IO error occurs
-	 * @throws SQLException if an error occurs connection or inserting data into the database
-	 * @throws FileNotFoundException if the given path doesn't exist
-	 * @throws BibleAlreadyExistsException if the Bible already exists in the database
-	 * @throws InvalidFormatException if the file or files are not in the expected format
-	 * @throws UnknownFormatException if the file formats could not be determined
+	 * Default constructor.
 	 */
-	public abstract Bible execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException, UnknownFormatException;
+	public UnknownFormatException() {
+		super();
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param message the message
+	 * @param cause the root exception
+	 */
+	public UnknownFormatException(String message, Throwable cause) {
+		super(message, cause);
+	}
+	
+	/**
+	 * Optional constructor.
+	 * @param message the message
+	 */
+	public UnknownFormatException(String message) {
+		super(message);
+	}
+
+	/**
+	 * Optional constructor.
+	 * @param cause the root exception
+	 */
+	public UnknownFormatException(Throwable cause) {
+		super(cause);
+	}
 }
