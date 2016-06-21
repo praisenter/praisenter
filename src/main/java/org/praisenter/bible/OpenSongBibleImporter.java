@@ -54,13 +54,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-/**
- * A bible importer for the bible data files hosted on The Unbound Bible at www.unboundbible.org.
- * <p>
- * This class will attempt to read the .zip file supplied according to the format as of 9/13/12.
- * @author William Bittle
- * @version 3.0.0
- */
 public final class OpenSongBibleImporter extends AbstractBibleImporter implements BibleImporter {
 	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
