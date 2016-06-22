@@ -44,7 +44,8 @@ import org.praisenter.slide.graphics.SlideStroke;
 @XmlSeeAlso({
 	BasicTextComponent.class,
 	DateTimeComponent.class,
-	TextPlaceholderComponent.class
+	TextPlaceholderComponent.class,
+	CountdownComponent.class
 })
 public interface TextComponent extends SlideRegion, SlideComponent {
 	/**

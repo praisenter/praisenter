@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -83,6 +84,7 @@ import org.praisenter.slide.graphics.SlideStrokeStyle;
 import org.praisenter.slide.graphics.SlideStrokeType;
 import org.praisenter.slide.object.MediaObject;
 import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
@@ -165,8 +167,8 @@ public final class SlideEditorPane extends Application {
 		
 		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
 		
-		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -501,16 +503,16 @@ public final class SlideEditorPane extends Application {
 		txt.setText("Lorem ipsum dolor \n\nsit amet, consectetur adipiscing elit. Nam viverra tristique mauris. Suspendisse potenti. Etiam justo erat, mollis eget mi nec, euismod interdum magna. Aenean ac nulla fermentum, ullamcorper arcu sed, fermentum orci. Donec varius neque eget sapien cursus maximus. Fusce mauris lectus, pellentesque vel sem cursus, dapibus vehicula est. In tincidunt ultrices est nec finibus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eu nisi augue. Integer commodo enim sed rutrum rutrum. Quisque tristique id ipsum sed malesuada. Maecenas non diam eget felis pulvinar sodales.");
 		
 		MediaObject img = new MediaObject(
-				UUID.fromString("f6668fb0-3a40-4590-99a4-1ba474315dca"),
-//				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
+//				UUID.fromString("f6668fb0-3a40-4590-99a4-1ba474315dca"),
+				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-				UUID.fromString("a5d7dab1-8c59-4103-87cf-a13db23152f3"),
-//				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
+//				UUID.fromString("a5d7dab1-8c59-4103-87cf-a13db23152f3"),
+				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
 				ScaleType.NONUNIFORM,
 				false,
 				true);
@@ -556,10 +558,29 @@ public final class SlideEditorPane extends Application {
 		tp.setType(PlaceholderType.TITLE);
 		//tp.setVariants(variants);
 		
+		CountdownComponent cd = new CountdownComponent();
+		cd.setFont(new SlideFont("Segoe UI Light", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 100));
+		cd.setFontScaleType(FontScaleType.BEST_FIT);
+		cd.setWidth(400);
+		cd.setHeight(100);
+		cd.setX(200);
+		cd.setY(0);
+		cd.setTextWrapping(false);
+		cd.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
+		cd.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
+		cd.setPadding(new SlidePadding(10));
+		//tp.setBackground(new SlideColor(0.5, 0, 0.5, 0.5));
+		cd.setTextPaint(gradient);
+//		cd.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE), 1, 0));
+//		cd.setLineSpacing(2);
+		cd.setTarget(LocalTime.now().plusHours(2));
+		//tp.setVariants(variants);
+		
 		slide.addComponent(txt);
 		slide.addComponent(mc);
 		slide.addComponent(dt);
 		slide.addComponent(tp);
+		slide.addComponent(cd);
 
 //		slide.setBackground(vid);
 		slide.setBackground(new SlideColor(0, 0, 1.0, 0.5));

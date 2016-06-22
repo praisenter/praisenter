@@ -57,6 +57,7 @@ import org.praisenter.resources.translations.Translations;
 // FEATURE use Apache POI to read powerpoint files
 // FIXME fix the manifest
 // TODO explore deployment options
+// FEATURE check out JavaFX styles here https://github.com/JFXtras/jfxtras-styles
 
 /**
  * This is the entry point for the application.

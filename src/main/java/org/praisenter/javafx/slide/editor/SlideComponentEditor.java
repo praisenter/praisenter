@@ -345,7 +345,7 @@ final class SlideComponentEditor extends GridPane {
 				this.cmbFontScaling.setValue(new Option<FontScaleType>(null, otc.getFontScaleType()));
 				this.spnPadding.getValueFactory().setValue(otc.getPadding().getTop());
 				this.spnLineSpacing.getValueFactory().setValue(otc.getLineSpacing()); 
-				this.tglTextWrapping.setSelected(otc.isTextWrapping());
+				this.tglTextWrapping.setSelected(!otc.isTextWrapping());
 				
 				if (nv instanceof ObservableDateTimeComponent) {
 					ObservableDateTimeComponent odtc = (ObservableDateTimeComponent)nv;

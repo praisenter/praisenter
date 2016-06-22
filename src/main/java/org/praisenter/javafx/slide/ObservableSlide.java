@@ -15,6 +15,7 @@ import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
@@ -104,6 +105,8 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 			return new ObservableDateTimeComponent((DateTimeComponent)component, this.context, this.mode);
 		} else if (component instanceof TextPlaceholderComponent) {
 			return new ObservableTextPlaceholderComponent((TextPlaceholderComponent)component, this.context, this.mode);
+		} else if (component instanceof CountdownComponent) {
+			return new ObservableCountdownComponent((CountdownComponent)component, this.context, this.mode);
 		} else if (component instanceof BasicTextComponent) {
 			return new ObservableBasicTextComponent<BasicTextComponent>((BasicTextComponent)component, this.context, this.mode);
 		} else {
