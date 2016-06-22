@@ -33,6 +33,8 @@ import org.praisenter.slide.AbstractSlideComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlidePaintXmlAdapter;
 import org.praisenter.slide.SlideRegion;
+import org.praisenter.slide.graphics.SlideColor;
+import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 
@@ -70,11 +72,15 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	
 	/** The bounds padding */
 	@XmlElement(name = "padding", required = false)
-	double padding;
+	SlidePadding padding;
 	
 	/** The line spacing */
 	@XmlElement(name = "lineSpacing", required = false)
 	double lineSpacing;
+	
+	/** True if text should be wrapped */
+	@XmlElement(name = "textWrapping", required = false)
+	boolean textWrapping;
 	
 	/**
 	 * Default constructor.
@@ -84,8 +90,9 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 		this.font = null;
 		this.verticalTextAlignment = VerticalTextAlignment.TOP;
 		this.horizontalTextAlignment = HorizontalTextAlignment.LEFT;
-		this.padding = 0;
+		this.padding = new SlidePadding();
 		this.lineSpacing = 0;
+		this.textWrapping = true;
 	}
 	
 	/**
@@ -104,6 +111,7 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 		to.setHorizontalTextAlignment(this.horizontalTextAlignment);
 		to.setPadding(this.padding);
 		to.setLineSpacing(this.lineSpacing);
+		to.setTextWrapping(this.textWrapping);
 	}
 	
 	/* (non-Javadoc)
@@ -119,6 +127,9 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	 */
 	@Override
 	public void setTextPaint(SlidePaint paint) {
+		if (paint == null) {
+			paint = new SlideColor();
+		}
 		this.textPaint = paint;
 	}
 
@@ -143,6 +154,9 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	 */
 	@Override
 	public void setFont(SlideFont font) {
+		if (font == null) {
+			font = new SlideFont();
+		}
 		this.font = font;
 	}
 
@@ -159,6 +173,9 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	 */
 	@Override
 	public void setFontScaleType(FontScaleType type) {
+		if (type == null) {
+			type = FontScaleType.NONE;
+		}
 		this.fontScaleType = type;
 	}
 
@@ -175,6 +192,9 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	 */
 	@Override
 	public void setVerticalTextAlignment(VerticalTextAlignment alignment) {
+		if (alignment == null) {
+			alignment = VerticalTextAlignment.TOP;
+		}
 		this.verticalTextAlignment = alignment;
 	}
 
@@ -191,6 +211,9 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	 */
 	@Override
 	public void setHorizontalTextAlignment(HorizontalTextAlignment alignment) {
+		if (alignment == null) {
+			alignment = HorizontalTextAlignment.LEFT;
+		}
 		this.horizontalTextAlignment = alignment;
 	}
 
@@ -203,10 +226,13 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	}
 
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.text.TextComponent#setPadding(double)
+	 * @see org.praisenter.slide.text.TextComponent#setPadding(org.praisenter.slide.graphics.SlidePadding)
 	 */
 	@Override
-	public void setPadding(double padding) {
+	public void setPadding(SlidePadding padding) {
+		if (padding == null) {
+			padding = new SlidePadding();
+		}
 		this.padding = padding;
 	}
 
@@ -214,7 +240,7 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	 * @see org.praisenter.slide.text.TextComponent#getPadding()
 	 */
 	@Override
-	public double getPadding() {
+	public SlidePadding getPadding() {
 		return this.padding;
 	}
 
@@ -232,5 +258,21 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	@Override
 	public void setLineSpacing(double lineSpacing) {
 		this.lineSpacing = lineSpacing;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.text.TextComponent#isTextWrapping()
+	 */
+	@Override
+	public boolean isTextWrapping() {
+		return this.textWrapping;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.text.TextComponent#setTextWrapping(boolean)
+	 */
+	@Override
+	public void setTextWrapping(boolean flag) {
+		this.textWrapping = flag;
 	}
 }

@@ -1,10 +1,11 @@
 package org.praisenter.javafx.slide;
 
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.text.TextMeasurer;
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.javafx.utility.TextMeasurer;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
+import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.text.FontScaleType;
@@ -13,19 +14,19 @@ import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.geometry.Insets;
-import javafx.geometry.NodeOrientation;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 
-// FIXME right alignment is weird, looks like a JavaFX bug to me, may need to replace with a Label  https://bugs.openjdk.java.net/browse/JDK-8145496 -- http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8145496
+// FIXME right/center/justify alignment bugs  https://bugs.openjdk.java.net/browse/JDK-8145496 -- http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8145496
 
 public abstract class ObservableTextComponent<T extends TextComponent> extends ObservableSlideComponent<T> implements SlideRegion, SlideComponent, TextComponent {
 
@@ -37,8 +38,9 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	final ObjectProperty<HorizontalTextAlignment> horizontalTextAlignment = new SimpleObjectProperty<HorizontalTextAlignment>();
 	final ObjectProperty<VerticalTextAlignment> verticalTextAlignment = new SimpleObjectProperty<VerticalTextAlignment>();
 	final ObjectProperty<FontScaleType> fontScaleType = new SimpleObjectProperty<FontScaleType>();
-	final DoubleProperty padding = new SimpleDoubleProperty();
+	final ObjectProperty<SlidePadding> padding = new SimpleObjectProperty<SlidePadding>();
 	final DoubleProperty lineSpacing = new SimpleDoubleProperty();
+	final BooleanProperty textWrapping = new SimpleBooleanProperty();
 
 	// nodes
 	
@@ -57,6 +59,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		this.fontScaleType.set(component.getFontScaleType());
 		this.padding.set(component.getPadding());
 		this.lineSpacing.set(component.getLineSpacing());
+		this.textWrapping.set(component.isTextWrapping());
 		
 		this.textWrapper = new VBox();
 		this.textNode = new Text();
@@ -90,11 +93,15 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 			this.updateFont();
 		});
 		this.padding.addListener((obs, ov, nv) -> { 
-			this.region.setPadding(nv.doubleValue());
+			this.region.setPadding(nv);
 			updateSize();
 		});
 		this.lineSpacing.addListener((obs, ov, nv) -> { 
 			this.region.setLineSpacing(nv.doubleValue());
+			this.updateFont();
+		});
+		this.textWrapping.addListener((obs, ov, nv) -> {
+			this.region.setTextWrapping(nv);
 			this.updateFont();
 		});
 	}
@@ -144,12 +151,11 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		
 		Fx.setSize(this.textWrapper, w, h);
 		
-		this.textWrapper.setPadding(new Insets(this.padding.get()));
+		this.textWrapper.setPadding(JavaFXTypeConverter.toJavaFX(this.padding.get()));
 		
 		// compute the bounding text width and height so 
 		// we can compute an accurate font size
-		double padding = this.padding.get();
-		double pw = w - padding * 2;
+		double pw = w - this.padding.get().getLeft() - this.padding.get().getRight();
 		
 		// set the wrapping width and the bounds type
 		this.textNode.setWrappingWidth(pw);
@@ -163,9 +169,9 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		
 		// compute the bounding text width and height so 
 		// we can compute an accurate font size
-		double padding = this.padding.get();
-		double pw = w - padding * 2;
-		double ph = h - padding * 2;
+		SlidePadding padding = this.padding.get();
+		double pw = w - padding.getLeft() - padding.getRight();
+		double ph = h - padding.getTop() - padding.getBottom();
 		FontScaleType scaleType = this.fontScaleType.get();
 		double lineSpacing = this.lineSpacing.get();
 		
@@ -175,9 +181,17 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		Font base = JavaFXTypeConverter.toJavaFX(this.font.get());
 		Font font = base;
 		if (scaleType == FontScaleType.REDUCE_SIZE_ONLY) {
-			font = TextMeasurer.getFittingFontForParagraph(str, base, base.getSize(), pw, ph, lineSpacing, TextBoundsType.LOGICAL);
+			if (this.textWrapping.get()) {
+				font = TextMeasurer.getFittingFontForParagraph(str, base, base.getSize(), pw, ph, lineSpacing, TextBoundsType.LOGICAL);
+			} else {
+				font = TextMeasurer.getFittingFontForLine(str, base, base.getSize(), pw, TextBoundsType.LOGICAL);
+			}
 		} else if (scaleType == FontScaleType.BEST_FIT) {
-			font = TextMeasurer.getFittingFontForParagraph(str, base, Double.MAX_VALUE, pw, ph, lineSpacing, TextBoundsType.LOGICAL);
+			if (this.textWrapping.get()) {
+				font = TextMeasurer.getFittingFontForParagraph(str, base, Double.MAX_VALUE, pw, ph, lineSpacing, TextBoundsType.LOGICAL);
+			} else {
+				font = TextMeasurer.getFittingFontForLine(str, base, Double.MAX_VALUE, pw, TextBoundsType.LOGICAL);
+			}
 		}
 		
 		this.textNode.setFont(font);
@@ -283,16 +297,16 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	// padding
 	
 	@Override
-	public double getPadding() {
+	public SlidePadding getPadding() {
 		return this.padding.get();
 	}
 	
 	@Override
-	public void setPadding(double padding) {
+	public void setPadding(SlidePadding padding) {
 		this.padding.set(padding);
 	}
 	
-	public DoubleProperty paddingProperty() {
+	public ObjectProperty<SlidePadding> paddingProperty() {
 		return this.padding;
 	}
 
@@ -310,5 +324,21 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	
 	public DoubleProperty lineSpacingProperty() {
 		return this.lineSpacing;
+	}
+	
+	// text wrapping
+	
+	@Override
+	public boolean isTextWrapping() {
+		return this.textWrapping.get();
+	}
+	
+	@Override
+	public void setTextWrapping(boolean flag) {
+		this.textWrapping.set(flag);
+	}
+	
+	public BooleanProperty textWrappingProperty() {
+		return this.textWrapping;
 	}
 }

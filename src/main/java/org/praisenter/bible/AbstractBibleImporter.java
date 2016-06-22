@@ -295,7 +295,7 @@ public abstract class AbstractBibleImporter implements BibleImporter {
 		try {
 			buffer.close();
 		} catch (Exception ex) {
-			// FIXME handle
+			LOGGER.warn("Failed to close output buffer.", ex);
 		}
 		return content;
 	}

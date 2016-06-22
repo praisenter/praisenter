@@ -56,9 +56,8 @@ public final class SlideFont {
 	/**
 	 * Default constructor for JAXB.
 	 */
-	@SuppressWarnings("unused")
-	private SlideFont() {
-		this.family = null;
+	public SlideFont() {
+		this.family = "SansSerif";
 		this.weight = SlideFontWeight.NORMAL;
 		this.posture = SlideFontPosture.REGULAR;
 		this.size = 10;

@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.text;
+package org.praisenter.javafx.utility;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -147,22 +147,23 @@ public final class TextMeasurer {
 		if (i > 0) {
 			LOGGER.debug("Font fitting iterations: " + i);
 		}
-		return nf;
+		return new Font(font.getName(), min);
     }
     
     /**
      * Returns the bounds of a line for the given text and font.
      * @param text the text to measure
      * @param font the font
+     * @param boundsType the bounds type
      * @return Bounds
      */
-    public static final Bounds getLineBounds(String text, Font font) {
+    public static final Bounds getLineBounds(String text, Font font, TextBoundsType boundsType) {
     	// setup the node
     	JAVAFX_TEXT_NODE.setText(text);
         JAVAFX_TEXT_NODE.setFont(font);
         JAVAFX_TEXT_NODE.setWrappingWidth(0);
         JAVAFX_TEXT_NODE.setLineSpacing(0);
-        JAVAFX_TEXT_NODE.setBoundsType(TextBoundsType.VISUAL);
+        JAVAFX_TEXT_NODE.setBoundsType(boundsType);
         // perform the measurement
         final Bounds bounds = JAVAFX_TEXT_NODE.getLayoutBounds();
         // reset the node
@@ -177,12 +178,13 @@ public final class TextMeasurer {
      * @param font the font
      * @param maxFontSize the maximum font size
      * @param targetWidth the target width
+     * @param boundsType the bounds type
      * @return Bounds
      */
-    public static final Font getFittingFontForLine(String text, Font font, double maxFontSize, double targetWidth) {
-    	Bounds bounds = TextMeasurer.getLineBounds(text, font);
+    public static final Font getFittingFontForLine(String text, Font font, double maxFontSize, double targetWidth, TextBoundsType boundsType) {
+    	Bounds bounds = TextMeasurer.getLineBounds(text, font, boundsType);
 		double max = maxFontSize;
-		double min = (bounds.getWidth() <= targetWidth && max != Double.MAX_VALUE) ? max : 1.0;
+		double min = (bounds.getWidth() < targetWidth && max != Double.MAX_VALUE) ? max : 1.0;
 		double cur = font.getSize();
 		
 		if (cur < 1.0) {
@@ -213,13 +215,13 @@ public final class TextMeasurer {
 				nf = new Font(font.getName(), cur);
 			}
 			// get the new paragraph height for the new font size
-			bounds = TextMeasurer.getLineBounds(text, nf);
+			bounds = TextMeasurer.getLineBounds(text, nf, boundsType);
 			i++;
 		}
 		if (i > 0) {
 			LOGGER.debug("Font fitting iterations: " + i);
 		}
-		return nf;
+		return new Font(font.getName(), min);
     }
 }
 

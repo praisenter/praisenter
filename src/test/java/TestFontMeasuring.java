@@ -1,4 +1,4 @@
-import org.praisenter.javafx.text.TextMeasurer;
+import org.praisenter.javafx.utility.TextMeasurer;
 import org.praisenter.slide.graphics.Rectangle;
 
 import javafx.application.Application;

@@ -74,6 +74,7 @@ import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
 import org.praisenter.slide.graphics.SlideGradientStop;
 import org.praisenter.slide.graphics.SlideLinearGradient;
+import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.graphics.SlideStrokeCap;
@@ -491,7 +492,7 @@ public final class SlideEditorPane extends Application {
 		txt.setY(100);
 		txt.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
 		txt.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
-		txt.setPadding(10);
+		txt.setPadding(new SlidePadding(10));
 		txt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
 		txt.setBorder(thick);
 		txt.setTextPaint(radial);
@@ -532,7 +533,7 @@ public final class SlideEditorPane extends Application {
 		dt.setY(0);
 		dt.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT);
 		dt.setVerticalTextAlignment(VerticalTextAlignment.TOP);
-		dt.setPadding(20);
+		dt.setPadding(new SlidePadding(20));
 		dt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
 		dt.setTextPaint(new SlideColor(1.0, 0, 0, 1));
 		dt.setFormat(new SimpleDateFormat("M/d/yyyy h:mm a z"));
@@ -546,7 +547,7 @@ public final class SlideEditorPane extends Application {
 		tp.setY(0);
 		tp.setHorizontalTextAlignment(HorizontalTextAlignment.RIGHT);
 		tp.setVerticalTextAlignment(VerticalTextAlignment.BOTTOM);
-		tp.setPadding(10);
+		tp.setPadding(new SlidePadding(10));
 		//tp.setBackground(new SlideColor(0.5, 0, 0.5, 0.5));
 		tp.setTextPaint(gradient);
 		// FIXME text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option

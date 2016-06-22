@@ -16,6 +16,7 @@ import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
 import org.praisenter.slide.graphics.SlideGradientStop;
 import org.praisenter.slide.graphics.SlideLinearGradient;
+import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.slide.graphics.SlideStroke;
@@ -29,6 +30,7 @@ import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.VerticalTextAlignment;
 
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BackgroundSize;
@@ -55,6 +57,16 @@ public final class JavaFXTypeConverter {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private JavaFXTypeConverter() {}
+	
+	// padding
+	
+	public static Insets toJavaFX(SlidePadding padding) {
+		return new Insets(padding.getTop(), padding.getRight(), padding.getBottom(), padding.getLeft());
+	}
+	
+	public static SlidePadding fromJavaFX(Insets insets) {
+		return new SlidePadding(insets.getTop(), insets.getRight(), insets.getBottom(), insets.getLeft());
+	}
 	
 	// paint
 	

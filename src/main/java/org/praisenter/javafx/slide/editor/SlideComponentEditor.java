@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SegmentedButton;
+import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.Option;
@@ -17,6 +18,7 @@ import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 import org.praisenter.resources.OpenIconic;
 import org.praisenter.slide.graphics.SlideColor;
+import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.object.MediaObject;
 import org.praisenter.slide.text.FontScaleType;
@@ -35,6 +37,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -46,8 +49,11 @@ import javafx.scene.text.Font;
 
 final class SlideComponentEditor extends GridPane {
 
-	/** The font-awesome glyph-font pack */
+	/** The openiconic glyph-font pack */
 	private static final GlyphFont FONT_ICONIC	= GlyphFontRegistry.font("Icons");
+	
+	/** The fontawesome glyph-font pack */
+	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	// data
 	
@@ -75,6 +81,7 @@ final class SlideComponentEditor extends GridPane {
 	final ChoiceBox<Option<FontScaleType>> cmbFontScaling;
 	final Spinner<Double> spnPadding;
 	final Spinner<Double> spnLineSpacing;
+	final ToggleButton tglTextWrapping;
 	
 	// basic text component
 	final TextArea txtText;
@@ -176,7 +183,11 @@ final class SlideComponentEditor extends GridPane {
 		tglBottom.setUserData(VerticalTextAlignment.BOTTOM);
 		this.segVerticalAlignment = new SegmentedButton(tglTop, tglMiddle, tglBottom);
 		
-		HBox alignment = new HBox(5, this.segHorizontalAlignment, this.segVerticalAlignment);
+		// text wrapping
+		this.tglTextWrapping = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.PARAGRAPH));
+		this.tglTextWrapping.setSelected(true);
+				
+		HBox alignment = new HBox(5, this.segHorizontalAlignment, this.segVerticalAlignment, this.tglTextWrapping);
 		
 		// font scale
 		Label lblFontScaling = new Label("Sizing");
@@ -279,7 +290,6 @@ final class SlideComponentEditor extends GridPane {
 			this.getChildren().removeAll(all);
 			pkrBackground.setValue(nv.getBackground());
 			pkrBorder.setValue(nv.getBorder());
-			// TODO border
 			if (nv instanceof ObservableMediaComponent) {
 				ObservableMediaComponent omc = (ObservableMediaComponent)nv;
 				// add controls
@@ -333,8 +343,9 @@ final class SlideComponentEditor extends GridPane {
 						break;
 				}
 				this.cmbFontScaling.setValue(new Option<FontScaleType>(null, otc.getFontScaleType()));
-				this.spnPadding.getValueFactory().setValue(otc.getPadding());
+				this.spnPadding.getValueFactory().setValue(otc.getPadding().getTop());
 				this.spnLineSpacing.getValueFactory().setValue(otc.getLineSpacing()); 
+				this.tglTextWrapping.setSelected(otc.isTextWrapping());
 				
 				if (nv instanceof ObservableDateTimeComponent) {
 					ObservableDateTimeComponent odtc = (ObservableDateTimeComponent)nv;
@@ -489,7 +500,7 @@ final class SlideComponentEditor extends GridPane {
 			ObservableSlideComponent<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-				tc.setPadding(nv);
+				tc.setPadding(new SlidePadding(nv.doubleValue()));
 			}
 		});
 		
@@ -499,6 +510,15 @@ final class SlideComponentEditor extends GridPane {
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setLineSpacing(nv);
+			}
+		});
+		
+		this.tglTextWrapping.selectedProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				tc.setTextWrapping(nv);
 			}
 		});
 		

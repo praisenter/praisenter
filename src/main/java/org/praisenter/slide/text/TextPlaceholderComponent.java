@@ -54,7 +54,7 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	/** The placeholder variants */
 	@XmlElement(name = "variant", required = false)
 	@XmlElementWrapper(name = "variants", required = false)
-	List<PlaceholderVariant> variants;
+	final List<PlaceholderVariant> variants;
 
 	/**
 	 * Creates a new placeholder for all text.
@@ -73,7 +73,7 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 		TextPlaceholderComponent comp = new TextPlaceholderComponent();
 		this.copy(comp);
 		comp.type = this.type;
-		comp.variants = new ArrayList<PlaceholderVariant>(this.variants);
+		comp.variants.addAll(this.variants);
 		return comp;
 	}
 
@@ -90,6 +90,9 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	 * @param type the type
 	 */
 	public void setType(PlaceholderType type) {
+		if (type == null) {
+			type = PlaceholderType.TEXT;
+		}
 		this.type = type;
 	}
 
@@ -99,13 +102,5 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	 */
 	public List<PlaceholderVariant> getVariants() {
 		return this.variants;
-	}
-
-	/**
-	 * Sets this placeholder's variants.
-	 * @param variants the variants
-	 */
-	public void setVariants(List<PlaceholderVariant> variants) {
-		this.variants = variants;
 	}
 }

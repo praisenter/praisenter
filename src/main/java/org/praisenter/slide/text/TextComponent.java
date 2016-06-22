@@ -28,11 +28,9 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
+import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
-
-// FIXME add toggle for text wrapping
-// FIXME split up padding for each side
 
 // FEATURE text shadow
 // FEATURE add a countdown component (to a certain time or after a certain duration)
@@ -129,13 +127,13 @@ public interface TextComponent extends SlideRegion, SlideComponent {
 	 * Sets the padding between the text and the shape's edge.
 	 * @param padding the padding
 	 */
-	public abstract void setPadding(double padding);
+	public abstract void setPadding(SlidePadding padding);
 	
 	/**
 	 * Returns the padding between the text and the shape's edge.
-	 * @return double
+	 * @return {@link SlidePadding}
 	 */
-	public abstract double getPadding();
+	public abstract SlidePadding getPadding();
 	
 	/**
 	 * Returns the spacing between lines of text.
@@ -148,6 +146,18 @@ public interface TextComponent extends SlideRegion, SlideComponent {
 	 * @param spacing the spacing
 	 */
 	public abstract void setLineSpacing(double spacing);
+	
+	/**
+	 * Returns true if text wrapping is enabled.
+	 * @return boolean
+	 */
+	public abstract boolean isTextWrapping();
+	
+	/**
+	 * Sets whether text wrapping is enabled.
+	 * @param flag true to enable text wrapping
+	 */
+	public abstract void setTextWrapping(boolean flag);
 	
 	/**
 	 * Returns the text.
