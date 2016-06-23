@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
+import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
@@ -362,9 +363,20 @@ public final class JavaFXTypeConverter {
 		}
 	}
 	
-	public static BorderStrokeStyle toJavaFX(SlideStrokeStyle style) {
+	public static BorderStrokeStyle toJavaFX(SlideStrokeStyle style, double lineWidth) {
 		if (style == null) {
 			return null;
+		}
+		
+		Double[] dashes = style.getDashes();
+		DashPattern pattern = DashPattern.getDashPattern(dashes);
+		// does the style match a dash pattern?
+		// we don't need to scale in the case of SOLID and if
+		// it doesn't match a dash pattern, then SOLID is returned
+		// so this should work for both cases
+		if (pattern != DashPattern.SOLID) {
+			// scale the dashes based on the line width
+			dashes = pattern.getScaledDashPattern(lineWidth);
 		}
 		
 		return new BorderStrokeStyle(
@@ -373,7 +385,7 @@ public final class JavaFXTypeConverter {
 				toJavaFX(style.getCap()), 
 				Double.MAX_VALUE, 
 				0.0, 
-				Arrays.asList(style.getDashes()));
+				Arrays.asList(dashes));
 	}
 	
 	public static SlideStrokeStyle fromJavaFX(BorderStrokeStyle style) {
@@ -409,7 +421,7 @@ public final class JavaFXTypeConverter {
 		}
 		return new BorderStroke(
 				paint,
-				toJavaFX(stroke.getStyle()),
+				toJavaFX(stroke.getStyle(), stroke.getWidth()),
 				new CornerRadii(stroke.getRadius()),
 				new BorderWidths(stroke.getWidth()));
 	}

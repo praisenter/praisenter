@@ -5,6 +5,7 @@ import org.praisenter.javafx.utility.Fx;
 import org.praisenter.javafx.utility.TextMeasurer;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
+import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideStroke;
@@ -122,8 +123,20 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 			this.textNode.setStrokeLineJoin(JavaFXTypeConverter.toJavaFX(nv.getStyle().getJoin()));
 			this.textNode.setStrokeType(JavaFXTypeConverter.toJavaFX(nv.getStyle().getType()));
 			this.textNode.setStrokeWidth(nv.getWidth());
-			this.textNode.getStrokeDashArray().removeAll();
-			this.textNode.getStrokeDashArray().addAll(nv.getStyle().getDashes());
+			this.textNode.getStrokeDashArray().clear();
+
+			Double[] dashes = nv.getStyle().getDashes();
+			DashPattern pattern = DashPattern.getDashPattern(dashes);
+			// does the style match a dash pattern?
+			// we don't need to scale in the case of SOLID and if
+			// it doesn't match a dash pattern, then SOLID is returned
+			// so this should work for both cases
+			if (pattern != DashPattern.SOLID) {
+				// scale the dashes based on the line width
+				dashes = pattern.getScaledDashPattern(nv.getWidth());
+			}
+			
+			this.textNode.getStrokeDashArray().addAll(dashes);
 		} else {
 			this.textNode.setStroke(null);
 			this.textNode.setStrokeDashOffset(0);
@@ -158,7 +171,11 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		double pw = w - this.padding.get().getLeft() - this.padding.get().getRight();
 		
 		// set the wrapping width and the bounds type
-		this.textNode.setWrappingWidth(pw);
+		if (this.textWrapping.get()) {
+			this.textNode.setWrappingWidth(pw);
+		} else {
+			this.textNode.setWrappingWidth(0);
+		}
 		
 		this.updateFont();
 	}
@@ -170,8 +187,8 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		// compute the bounding text width and height so 
 		// we can compute an accurate font size
 		SlidePadding padding = this.padding.get();
-		double pw = w - padding.getLeft() - padding.getRight();
-		double ph = h - padding.getTop() - padding.getBottom();
+		double pw = Math.max(1.0, Math.floor(w - padding.getLeft() - padding.getRight()));
+		double ph = Math.max(1.0, Math.floor(h - padding.getTop() - padding.getBottom()));
 		FontScaleType scaleType = this.fontScaleType.get();
 		double lineSpacing = this.lineSpacing.get();
 		

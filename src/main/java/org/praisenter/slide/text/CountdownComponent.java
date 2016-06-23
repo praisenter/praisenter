@@ -36,7 +36,7 @@ import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 
 /**
- * A component to show a count down.
+ * A component to show a count down to a specified local time.
  * @author William Bittle
  * @version 3.0.0
  */
@@ -45,6 +45,7 @@ import org.praisenter.slide.SlideRegion;
 public class CountdownComponent extends AbstractTextComponent implements SlideRegion, SlideComponent, TextComponent {
 	/** The target countdown time */
 	@XmlElement(name = "target", required = false)
+	// FIXME not sure if needed
 	//@XmlJavaTypeAdapter(value = LocalTimeXmlAdapter.class)
 	LocalTime target;
 
@@ -54,6 +55,7 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	
 	public CountdownComponent() {
 		this.target = null;
+		// FIXME specifying a format this way won't work fully, we need to know what value goes where
 		this.format = "%02d:%02d:%02d";
 	}
 	

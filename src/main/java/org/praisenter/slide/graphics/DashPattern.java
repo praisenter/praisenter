@@ -24,13 +24,15 @@
  */
 package org.praisenter.slide.graphics;
 
+import java.util.Arrays;
+
 /**
  * Enumeration of standard dash/line patterns.
  * <p>
  * This enumeration is for ease of use, offering to the user a list of preset patterns
  * rather than them setting each individual property of a pattern.
  * <p>
- * When creating a stroke from a dash pattern, use the {@link #getDashLengths(double)}
+ * When creating a stroke from a dash pattern, use the {@link #getScaledDashPattern(double)}
  * method to get a dash length array scaled by the line width.
  * @author William Bittle
  * @version 3.0.0
@@ -43,15 +45,15 @@ public enum DashPattern {
 		 * @see org.praisenter.slide.graphics.DashPattern#getDashLengths(double)
 		 */
 		@Override
-		public Double[] getDashLengths(double lineWidth) {
+		public Double[] getScaledDashPattern(double lineWidth) {
 			return lengths;
 		}
 		
 		/* (non-Javadoc)
-		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[], double)
+		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[])
 		 */
 		@Override
-		protected boolean isEqual(Double[] dashLengths, double lineWidth) {
+		protected boolean isEqual(Double[] dashLengths) {
 			if (dashLengths == null || dashLengths.length == 0) {
 				return true;
 			}
@@ -65,21 +67,21 @@ public enum DashPattern {
 		 * @see org.praisenter.slide.graphics.DashPattern#getDashLengths(double)
 		 */
 		@Override
-		public Double[] getDashLengths(double lineWidth) {
+		public Double[] getScaledDashPattern(double lineWidth) {
 			return new Double[] { this.lengths[0], this.lengths[1] * lineWidth };
 		}
 		
 		/* (non-Javadoc)
-		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[], double)
+		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[])
 		 */
 		@Override
-		protected boolean isEqual(Double[] dashLengths, double lineWidth) {
+		protected boolean isEqual(Double[] dashLengths) {
 			if (dashLengths == null || dashLengths.length != this.lengths.length) {
 				return false;
 			}
 			// we dont apply scaling to the dots
 			if (isEqual(this.lengths[0], dashLengths[0]) &&
-				isEqual(this.lengths[1], dashLengths[1] / lineWidth)) {
+				isEqual(this.lengths[1], dashLengths[1])) {
 				return true;
 			}
 			return false;
@@ -92,20 +94,20 @@ public enum DashPattern {
 		 * @see org.praisenter.slide.graphics.DashPattern#getDashLengths(double)
 		 */
 		@Override
-		public Double[] getDashLengths(double lineWidth) {
+		public Double[] getScaledDashPattern(double lineWidth) {
 			return new Double[] { this.lengths[0] * lineWidth, this.lengths[1] * lineWidth };
 		}
 		
 		/* (non-Javadoc)
-		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[], double)
+		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[])
 		 */
 		@Override
-		protected boolean isEqual(Double[] dashLengths, double lineWidth) {
+		protected boolean isEqual(Double[] dashLengths) {
 			if (dashLengths == null || dashLengths.length != this.lengths.length) {
 				return false;
 			}
-			if (isEqual(this.lengths[0], dashLengths[0] / lineWidth) &&
-				isEqual(this.lengths[1], dashLengths[1] / lineWidth)) {
+			if (isEqual(this.lengths[0], dashLengths[0]) &&
+				isEqual(this.lengths[1], dashLengths[1])) {
 				return true;
 			}
 			return false;
@@ -118,7 +120,7 @@ public enum DashPattern {
 		 * @see org.praisenter.slide.graphics.DashPattern#getDashLengths(double)
 		 */
 		@Override
-		public Double[] getDashLengths(double lineWidth) {
+		public Double[] getScaledDashPattern(double lineWidth) {
 			return new Double[] { 
 					this.lengths[0] * lineWidth, 
 					this.lengths[1] * lineWidth,
@@ -127,17 +129,17 @@ public enum DashPattern {
 		}
 		
 		/* (non-Javadoc)
-		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[], double)
+		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[])
 		 */
 		@Override
-		protected boolean isEqual(Double[] dashLengths, double lineWidth) {
+		protected boolean isEqual(Double[] dashLengths) {
 			if (dashLengths == null || dashLengths.length != this.lengths.length) {
 				return false;
 			}
-			if (isEqual(this.lengths[0], dashLengths[0] / lineWidth) &&
-				isEqual(this.lengths[1], dashLengths[1] / lineWidth) &&
+			if (isEqual(this.lengths[0], dashLengths[0]) &&
+				isEqual(this.lengths[1], dashLengths[1]) &&
 				isEqual(this.lengths[2], dashLengths[2]) &&
-				isEqual(this.lengths[3], dashLengths[3] / lineWidth)) {
+				isEqual(this.lengths[3], dashLengths[3])) {
 				return true;
 			}
 			return false;
@@ -150,22 +152,22 @@ public enum DashPattern {
 		 * @see org.praisenter.slide.graphics.DashPattern#getDashLengths(double)
 		 */
 		@Override
-		public Double[] getDashLengths(double lineWidth) {
+		public Double[] getScaledDashPattern(double lineWidth) {
 			return new Double[] { 
 					this.lengths[0] * lineWidth, 
 					this.lengths[1] * lineWidth };
 		}
 		
 		/* (non-Javadoc)
-		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[], double)
+		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[])
 		 */
 		@Override
-		protected boolean isEqual(Double[] dashLengths, double lineWidth) {
+		protected boolean isEqual(Double[] dashLengths) {
 			if (dashLengths == null || dashLengths.length != this.lengths.length) {
 				return false;
 			}
-			if (isEqual(this.lengths[0], dashLengths[0] / lineWidth) &&
-				isEqual(this.lengths[1], dashLengths[1] / lineWidth)) {
+			if (isEqual(this.lengths[0], dashLengths[0]) &&
+				isEqual(this.lengths[1], dashLengths[1])) {
 				return true;
 			}
 			return false;
@@ -178,7 +180,7 @@ public enum DashPattern {
 		 * @see org.praisenter.slide.graphics.DashPattern#getDashLengths(double)
 		 */
 		@Override
-		public Double[] getDashLengths(double lineWidth) {
+		public Double[] getScaledDashPattern(double lineWidth) {
 			return new Double[] { 
 					this.lengths[0] * lineWidth, 
 					this.lengths[1] * lineWidth,
@@ -187,17 +189,17 @@ public enum DashPattern {
 		}
 		
 		/* (non-Javadoc)
-		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[], double)
+		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[])
 		 */
 		@Override
-		protected boolean isEqual(Double[] dashLengths, double lineWidth) {
+		protected boolean isEqual(Double[] dashLengths) {
 			if (dashLengths == null || dashLengths.length != this.lengths.length) {
 				return false;
 			}
-			if (isEqual(this.lengths[0], dashLengths[0] / lineWidth) &&
-				isEqual(this.lengths[1], dashLengths[1] / lineWidth) &&
+			if (isEqual(this.lengths[0], dashLengths[0]) &&
+				isEqual(this.lengths[1], dashLengths[1]) &&
 				isEqual(this.lengths[2], dashLengths[2]) &&
-				isEqual(this.lengths[3], dashLengths[3] / lineWidth)) {
+				isEqual(this.lengths[3], dashLengths[3])) {
 				return true;
 			}
 			return false;
@@ -210,7 +212,7 @@ public enum DashPattern {
 		 * @see org.praisenter.slide.graphics.DashPattern#getDashLengths(double)
 		 */
 		@Override
-		public Double[] getDashLengths(double lineWidth) {
+		public Double[] getScaledDashPattern(double lineWidth) {
 			return new Double[] { 
 					this.lengths[0] * lineWidth, 
 					this.lengths[1] * lineWidth,
@@ -221,19 +223,19 @@ public enum DashPattern {
 		}
 		
 		/* (non-Javadoc)
-		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[], double)
+		 * @see org.praisenter.slide.graphics.DashPattern#isEqual(java.lang.Double[])
 		 */
 		@Override
-		protected boolean isEqual(Double[] dashLengths, double lineWidth) {
+		protected boolean isEqual(Double[] dashLengths) {
 			if (dashLengths == null || dashLengths.length != this.lengths.length) {
 				return false;
 			}
-			if (isEqual(this.lengths[0], dashLengths[0] / lineWidth) &&
-				isEqual(this.lengths[1], dashLengths[1] / lineWidth) &&
+			if (isEqual(this.lengths[0], dashLengths[0]) &&
+				isEqual(this.lengths[1], dashLengths[1]) &&
 				isEqual(this.lengths[2], dashLengths[2]) &&
-				isEqual(this.lengths[3], dashLengths[3] / lineWidth) &&
+				isEqual(this.lengths[3], dashLengths[3]) &&
 				isEqual(this.lengths[2], dashLengths[4]) &&
-				isEqual(this.lengths[3], dashLengths[5] / lineWidth)) {
+				isEqual(this.lengths[3], dashLengths[5])) {
 				return true;
 			}
 			return false;
@@ -241,7 +243,7 @@ public enum DashPattern {
 	};
 	
 	/** The dash lengths */
-	public final Double[] lengths;
+	protected final Double[] lengths;
 	
 	/**
 	 * Minimal constructor.
@@ -252,18 +254,13 @@ public enum DashPattern {
 	}
 	
 	/**
-	 * Returns the {@link DashPattern} for the given dash lengths and line width.
-	 * <p>
-	 * The line width must be supplied if the dash lengths are coming from a stored state
-	 * since the {@link #getDashLengths(double)} will scale the dash lengths by the
-	 * line width.
+	 * Returns the {@link DashPattern} for the given dash lengths.
 	 * @param dashLengths the dash lengths
-	 * @param lineWidth the line width
 	 * @return {@link DashPattern}
 	 */
-	public static DashPattern getDashPattern(Double[] dashLengths, double lineWidth) {
+	public static DashPattern getDashPattern(Double[] dashLengths) {
 		for (DashPattern pattern : DashPattern.values()) {
-			if (pattern.isEqual(dashLengths, lineWidth)) {
+			if (pattern.isEqual(dashLengths)) {
 				return pattern;
 			}
 		}
@@ -271,23 +268,27 @@ public enum DashPattern {
 	}
 	
 	/**
+	 * Returns the unscaled dash pattern.
+	 * @return Double[]
+	 * @see #getScaledDashPattern(double)
+	 */
+	public Double[] getDashes() {
+		return Arrays.copyOf(this.lengths, this.lengths.length);
+	}
+	
+	/**
 	 * Returns true if the given dash lengths are equal to this dash pattern.
-	 * <p>
-	 * The line width must be supplied if the dash lengths are coming from a BasicStroke
-	 * since the {@link #getDashLengths(double)} will scale the dash lengths by the
-	 * line width.
 	 * @param dashLengths the dash lengths
-	 * @param lineWidth the line width
 	 * @return boolean
 	 */
-	protected abstract boolean isEqual(Double[] dashLengths, double lineWidth);
+	protected abstract boolean isEqual(Double[] dashLengths);
 	
 	/**
 	 * Returns a new dash lengths array for the given line width.
 	 * @param lineWidth the line width
 	 * @return float[]
 	 */
-	public abstract Double[] getDashLengths(double lineWidth);
+	public abstract Double[] getScaledDashPattern(double lineWidth);
 	
 	/**
 	 * Returns true if the given value is between the lower and upper bounds inclusive.
@@ -304,13 +305,12 @@ public enum DashPattern {
 	}
 	
 	/**
-	 * Returns true if the given values are equal within the range
-	 * [test - 0.5, test + 0.5].
+	 * Returns true if the given values are equal.
 	 * @param value the value
 	 * @param test the test value
 	 * @return boolean
 	 */
 	private static final boolean isEqual(double value, double test) {
-		return isInRange(value, test - 0.5f, test + 0.5f);
+		return isInRange(value, test - 0.0001, test + 0.0001);
 	}
 }

@@ -142,7 +142,7 @@ class SlideStrokePicker extends VBox {
 						SlideStrokeType.CENTERED, 
 						this.cbJoin.getValue().getValue(), 
 						this.cbCap.getValue().getValue(), 
-						this.cbDashes.getValue().getValue().getDashLengths(this.spnWidth.getValue())), 
+						this.cbDashes.getValue().getValue().getDashes()), 
 				this.spnWidth.getValue(), 
 				this.spnRadius.getValue());
 	}
@@ -156,7 +156,7 @@ class SlideStrokePicker extends VBox {
 			if (style != null) {
 				this.cbJoin.setValue(new Option<SlideStrokeJoin>(null, style.getJoin()));
 				this.cbCap.setValue(new Option<SlideStrokeCap>(null, style.getCap()));
-				this.cbDashes.setValue(new Option<DashPattern>(null, DashPattern.getDashPattern(style.getDashes(), stroke.getWidth())));
+				this.cbDashes.setValue(new Option<DashPattern>(null, DashPattern.getDashPattern(style.getDashes())));
 			}
 			this.spnWidth.getValueFactory().setValue(stroke.getWidth());
 			this.spnRadius.getValueFactory().setValue(stroke.getRadius());

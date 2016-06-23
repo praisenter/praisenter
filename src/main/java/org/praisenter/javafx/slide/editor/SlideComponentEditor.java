@@ -2,11 +2,13 @@ package org.praisenter.javafx.slide.editor;
 
 import java.text.SimpleDateFormat;
 
+import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.Constants;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.slide.JavaFXTypeConverter;
@@ -95,6 +97,7 @@ final class SlideComponentEditor extends GridPane {
 	final CheckComboBox<Option<PlaceholderVariant>> cmbPlaceholderVariants;
 	
 	public SlideComponentEditor(PraisenterContext context) {
+		
 		ObservableList<Option<FontScaleType>> fontScaleTypes = FXCollections.observableArrayList();
 		fontScaleTypes.add(new Option<FontScaleType>("None", FontScaleType.NONE));
 		fontScaleTypes.add(new Option<FontScaleType>("Reduce Size Only", FontScaleType.REDUCE_SIZE_ONLY));

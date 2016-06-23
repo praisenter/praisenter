@@ -51,7 +51,9 @@ import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.Constants;
 import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.TagListView;
@@ -113,6 +115,15 @@ import org.praisenter.utility.ClasspathLoader;
 //		the new slide is added to the scene graph
 //		the transition is played
 public final class SlideEditorPane extends Application {
+	
+	static {
+		// set the log file path (used in the log4j2.xml file)
+		System.setProperty("praisenter.logs.dir", Constants.LOGS_ABSOLUTE_PATH);
+		
+		// set the log4j configuration file path
+		System.setProperty(XmlConfigurationFactory.CONFIGURATION_FILE_PROPERTY, "./log4j2.xml");
+	}
+	
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
 	/** The component hover line width */
@@ -167,8 +178,8 @@ public final class SlideEditorPane extends Application {
 		
 		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
 		
-//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -475,7 +486,7 @@ public final class SlideEditorPane extends Application {
 		
 		SlideStroke thick = new SlideStroke(
 				new SlideColor(0.5, 0, 0, 1), 
-				new SlideStrokeStyle(SlideStrokeType.INSIDE, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, DashPattern.DASH.getDashLengths(5)), 
+				new SlideStrokeStyle(SlideStrokeType.INSIDE, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, DashPattern.DASH.getDashes()), 
 				5, 
 				5);
 		
@@ -503,16 +514,16 @@ public final class SlideEditorPane extends Application {
 		txt.setText("Lorem ipsum dolor \n\nsit amet, consectetur adipiscing elit. Nam viverra tristique mauris. Suspendisse potenti. Etiam justo erat, mollis eget mi nec, euismod interdum magna. Aenean ac nulla fermentum, ullamcorper arcu sed, fermentum orci. Donec varius neque eget sapien cursus maximus. Fusce mauris lectus, pellentesque vel sem cursus, dapibus vehicula est. In tincidunt ultrices est nec finibus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eu nisi augue. Integer commodo enim sed rutrum rutrum. Quisque tristique id ipsum sed malesuada. Maecenas non diam eget felis pulvinar sodales.");
 		
 		MediaObject img = new MediaObject(
-//				UUID.fromString("f6668fb0-3a40-4590-99a4-1ba474315dca"),
-				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
+				UUID.fromString("f6668fb0-3a40-4590-99a4-1ba474315dca"),
+//				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-//				UUID.fromString("a5d7dab1-8c59-4103-87cf-a13db23152f3"),
-				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
+				UUID.fromString("a5d7dab1-8c59-4103-87cf-a13db23152f3"),
+//				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
 				ScaleType.NONUNIFORM,
 				false,
 				true);
@@ -571,7 +582,7 @@ public final class SlideEditorPane extends Application {
 		cd.setPadding(new SlidePadding(10));
 		//tp.setBackground(new SlideColor(0.5, 0, 0.5, 0.5));
 		cd.setTextPaint(gradient);
-//		cd.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE), 1, 0));
+		cd.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, new Double[] { 10.0, 10.0, 5.0 }), 1, 0));
 //		cd.setLineSpacing(2);
 		cd.setTarget(LocalTime.now().plusHours(2));
 		//tp.setVariants(variants);

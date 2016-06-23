@@ -151,12 +151,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		
 		// create new border
 		if (ss != null) {
-			this.borderNode.setBorder(new Border(new BorderStroke(
-					JavaFXTypeConverter.toJavaFX(ss.getPaint()), 
-					JavaFXTypeConverter.toJavaFX(ss.getStyle()), 
-					new CornerRadii(ss.getRadius()), 
-					new BorderWidths(ss.getWidth()), 
-					null)));
+			this.borderNode.setBorder(new Border(JavaFXTypeConverter.toJavaFX(ss)));
 		} else {
 			this.borderNode.setBorder(null);
 		}

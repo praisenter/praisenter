@@ -47,6 +47,9 @@ public final class TextMeasurer {
 	/** A reusable node for measuring */
     private static final Text JAVAFX_TEXT_NODE = new Text();
     
+    /** We should never hit this, but just in case. I've never seen above 25 or so */
+    private static final int MAXIMUM_ITERATIONS = 100;
+    
     // defaults 
     
     /** The default wrapping width */
@@ -142,12 +145,22 @@ public final class TextMeasurer {
 			}
 			// get the new paragraph height for the new font size
 			bounds = TextMeasurer.getParagraphBounds(text, nf, targetWidth, lineSpacing, boundsType);
+			// don't run forever
+			if (i >= MAXIMUM_ITERATIONS) {
+				LOGGER.warn("Hit maximum number of iterations before determining optimal font size. Current: {} Minimum: {} Maximum: {} Target Width: {} Target Height: {} Maximum Size: {} Text: {}",
+						cur, min, max, targetWidth, targetHeight, maxFontSize, text);
+				break;
+			}
 			i++;
 		}
 		if (i > 0) {
 			LOGGER.debug("Font fitting iterations: " + i);
 		}
-		return new Font(font.getName(), min);
+		// the Math.min(min, cur) ensures we choose the lower bound
+		// the - 1.0 is further insurance that its small enough
+		// the Math.min(1.0, x) ensures the minimum font we return is 1
+		double size = Math.max(1.0, Math.min(min, cur) - 1.0);
+		return new Font(font.getName(), size);
     }
     
     /**
@@ -216,12 +229,22 @@ public final class TextMeasurer {
 			}
 			// get the new paragraph height for the new font size
 			bounds = TextMeasurer.getLineBounds(text, nf, boundsType);
+			// don't run forever
+			if (i >= MAXIMUM_ITERATIONS) {
+				LOGGER.warn("Hit maximum number of iterations before determining optimal font size. Current: {} Minimum: {} Maximum: {} Target Width: {} Maximum Size: {} Text: {}",
+						cur, min, max, targetWidth, maxFontSize, text);
+				break;
+			}
 			i++;
 		}
 		if (i > 0) {
 			LOGGER.debug("Font fitting iterations: " + i);
 		}
-		return new Font(font.getName(), min);
+		// the Math.min(min, cur) ensures we choose the lower bound
+		// the - 1.0 is further insurance that its small enough
+		// the Math.min(1.0, x) ensures the minimum font we return is 1
+		double size = Math.max(1.0, Math.min(min, cur) - 1.0);
+		return new Font(font.getName(), size);
     }
 }
 
