@@ -87,7 +87,10 @@ class SlideStrokePicker extends VBox {
 		this.spnRadius.setEditable(true);
 		
 		HBox h1 = new HBox(5, this.cbJoin, this.cbCap, this.spnWidth);
-		HBox h2 = new HBox(5, this.cbDashes, this.spnRadius);
+		HBox h2 = new HBox(5, this.cbDashes);
+		if (showRadius) {
+			h2.getChildren().add(this.spnRadius);
+		}
 		
 		h1.managedProperty().bind(h1.visibleProperty());
 		h2.managedProperty().bind(h2.visibleProperty());

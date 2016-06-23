@@ -66,7 +66,6 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		this.textNode = new Text();
 		this.textNode.setBoundsType(TextBoundsType.LOGICAL);
 		this.textWrapper.getChildren().add(this.textNode);
-		this.textWrapper.setBorder(Fx.newBorder(Color.YELLOW));
 		
 		// listen for changes
 		this.textPaint.addListener((obs, ov, nv) -> { 

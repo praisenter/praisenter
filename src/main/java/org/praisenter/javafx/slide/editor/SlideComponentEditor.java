@@ -2,17 +2,15 @@ package org.praisenter.javafx.slide.editor;
 
 import java.text.SimpleDateFormat;
 
-import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
-import org.praisenter.Constants;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.javafx.slide.ObservableBasicTextComponent;
+import org.praisenter.javafx.slide.ObservableCountdownComponent;
 import org.praisenter.javafx.slide.ObservableDateTimeComponent;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
@@ -21,7 +19,6 @@ import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 import org.praisenter.resources.OpenIconic;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlidePadding;
-import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.object.MediaObject;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
@@ -39,11 +36,9 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
 // TODO translate
@@ -91,6 +86,9 @@ final class SlideComponentEditor extends GridPane {
 	// date-time component
 	// FEATURE allow custom formats
 	final ChoiceBox<Option<SimpleDateFormat>> cmbDateTimeFormat;
+	
+	// countdown component
+	final TimePicker pkrTime;
 	
 	// text placeholder component
 	final ChoiceBox<Option<PlaceholderType>> cmbPlaceholderType;
@@ -230,6 +228,9 @@ final class SlideComponentEditor extends GridPane {
 		this.cmbDateTimeFormat = new ChoiceBox<Option<SimpleDateFormat>>(dateTimeFormats);
 		this.cmbDateTimeFormat.setValue(dateTimeFormats.get(0));
 		
+		// countdown component
+		this.pkrTime = new TimePicker();
+		
 		// text placeholder component
 		// type
 		Label lblPlaceholderType = new Label("Type");
@@ -265,6 +266,8 @@ final class SlideComponentEditor extends GridPane {
 			// date-time
 			lblFormat,
 			cmbDateTimeFormat,
+			// countdown
+			pkrTime,
 			// placeholder
 			lblPlaceholderType,
 			cmbPlaceholderType,
@@ -357,6 +360,12 @@ final class SlideComponentEditor extends GridPane {
 					this.add(cmbDateTimeFormat, 1, sy + 7);
 					
 					this.cmbDateTimeFormat.setValue(new Option<SimpleDateFormat>(null, odtc.getFormat()));
+				} else if (nv instanceof ObservableCountdownComponent) {
+					ObservableCountdownComponent ocdc = (ObservableCountdownComponent)nv;
+					
+					//this.add(lblFormat, 0, sy + 7);
+					this.add(pkrTime, 1, sy + 7);
+					
 				} else if (nv instanceof ObservableTextPlaceholderComponent) {
 					ObservableTextPlaceholderComponent otpc = (ObservableTextPlaceholderComponent)nv;
 					
