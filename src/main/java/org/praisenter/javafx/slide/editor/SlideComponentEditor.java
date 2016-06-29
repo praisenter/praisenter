@@ -88,7 +88,8 @@ final class SlideComponentEditor extends GridPane {
 	final ChoiceBox<Option<SimpleDateFormat>> cmbDateTimeFormat;
 	
 	// countdown component
-	final TimePicker pkrTime;
+	final DateTimePicker pkrCountdownTime;
+	final ChoiceBox<Option<String>> cbCountdownFormat;
 	
 	// text placeholder component
 	final ChoiceBox<Option<PlaceholderType>> cmbPlaceholderType;
@@ -120,6 +121,14 @@ final class SlideComponentEditor extends GridPane {
 		ObservableList<Option<PlaceholderVariant>> placeholderVariants = FXCollections.observableArrayList();
 		placeholderVariants.add(new Option<PlaceholderVariant>("Primary", PlaceholderVariant.PRIMARY));
 		placeholderVariants.add(new Option<PlaceholderVariant>("Secondary", PlaceholderVariant.SECONDARY));
+		
+		ObservableList<Option<String>> countdownFormats = FXCollections.observableArrayList();
+		countdownFormats.add(new Option<String>("YY:MM:DD:HH:MM:SS", "%1$02d:%2$02d:%3$02d:%4$02d:%5$02d:%6$02d"));
+		countdownFormats.add(new Option<String>("MM:DD:HH:MM:SS", "%2$02d:%3$02d:%4$02d:%5$02d:%6$02d"));
+		countdownFormats.add(new Option<String>("DD:HH:MM:SS", "%3$02d:%4$02d:%5$02d:%6$02d"));
+		countdownFormats.add(new Option<String>("HH:MM:SS", "%4$02d:%5$02d:%6$02d"));
+		countdownFormats.add(new Option<String>("MM:SS", "%5$02d:%6$02d"));
+		countdownFormats.add(new Option<String>("SS", "%6$02d"));
 		
 		// base component
 		// background
@@ -229,7 +238,10 @@ final class SlideComponentEditor extends GridPane {
 		this.cmbDateTimeFormat.setValue(dateTimeFormats.get(0));
 		
 		// countdown component
-		this.pkrTime = new TimePicker();
+		Label lblCountdownTime = new Label("To");
+		this.pkrCountdownTime = new DateTimePicker();
+		Label lblCountdownFormat = new Label("Format");
+		this.cbCountdownFormat = new ChoiceBox<Option<String>>(countdownFormats);
 		
 		// text placeholder component
 		// type
@@ -267,7 +279,10 @@ final class SlideComponentEditor extends GridPane {
 			lblFormat,
 			cmbDateTimeFormat,
 			// countdown
-			pkrTime,
+			lblCountdownTime,
+			pkrCountdownTime,
+			lblCountdownFormat,
+			cbCountdownFormat,
 			// placeholder
 			lblPlaceholderType,
 			cmbPlaceholderType,
@@ -351,7 +366,7 @@ final class SlideComponentEditor extends GridPane {
 				this.cmbFontScaling.setValue(new Option<FontScaleType>(null, otc.getFontScaleType()));
 				this.spnPadding.getValueFactory().setValue(otc.getPadding().getTop());
 				this.spnLineSpacing.getValueFactory().setValue(otc.getLineSpacing()); 
-				this.tglTextWrapping.setSelected(!otc.isTextWrapping());
+				this.tglTextWrapping.setSelected(otc.isTextWrapping());
 				
 				if (nv instanceof ObservableDateTimeComponent) {
 					ObservableDateTimeComponent odtc = (ObservableDateTimeComponent)nv;
@@ -363,9 +378,13 @@ final class SlideComponentEditor extends GridPane {
 				} else if (nv instanceof ObservableCountdownComponent) {
 					ObservableCountdownComponent ocdc = (ObservableCountdownComponent)nv;
 					
-					//this.add(lblFormat, 0, sy + 7);
-					this.add(pkrTime, 1, sy + 7);
+					this.add(lblCountdownTime, 0, sy + 7);
+					this.add(pkrCountdownTime, 1, sy + 7);
+					this.add(lblCountdownFormat, 0, sy + 8);
+					this.add(cbCountdownFormat, 1, sy + 8);
 					
+					this.pkrCountdownTime.setValue(ocdc.getTarget());
+					this.cbCountdownFormat.setValue(new Option<String>(null, ocdc.getFormat()));
 				} else if (nv instanceof ObservableTextPlaceholderComponent) {
 					ObservableTextPlaceholderComponent otpc = (ObservableTextPlaceholderComponent)nv;
 					
@@ -549,6 +568,24 @@ final class SlideComponentEditor extends GridPane {
 			if (component != null && component instanceof ObservableDateTimeComponent) {
 				ObservableDateTimeComponent tc = (ObservableDateTimeComponent)component;
 				tc.setFormat(nv.getValue());
+			}
+		});
+		
+		this.pkrCountdownTime.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableCountdownComponent) {
+				ObservableCountdownComponent cdc =(ObservableCountdownComponent)component;
+				cdc.setTarget(nv);
+			}
+		});
+		
+		this.cbCountdownFormat.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableCountdownComponent) {
+				ObservableCountdownComponent cdc =(ObservableCountdownComponent)component;
+				cdc.setFormat(nv.getValue());
 			}
 		});
 		

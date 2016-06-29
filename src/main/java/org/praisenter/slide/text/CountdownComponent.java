@@ -24,8 +24,8 @@
  */
 package org.praisenter.slide.text;
 
-import java.time.Duration;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -43,11 +43,13 @@ import org.praisenter.slide.SlideRegion;
 @XmlRootElement(name = "countdownComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 public class CountdownComponent extends AbstractTextComponent implements SlideRegion, SlideComponent, TextComponent {
+	private static final String DEFAULT_FORMAT = "%1$02d:%2$02d:%3$02d:%4$02d:%5$02d:%6$02d";
+	
 	/** The target countdown time */
 	@XmlElement(name = "target", required = false)
 	// FIXME not sure if needed
 	//@XmlJavaTypeAdapter(value = LocalTimeXmlAdapter.class)
-	LocalTime target;
+	LocalDateTime target;
 
 	/** The duration format */
 	@XmlElement(name = "format", required = false)
@@ -58,8 +60,7 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	 */
 	public CountdownComponent() {
 		this.target = null;
-		// FIXME specifying a format this way won't work fully, we need to know what value goes where
-		this.format = "%2$02d:%3$02d:%4$02d";
+		this.format = DEFAULT_FORMAT;
 	}
 	
 	/* (non-Javadoc)
@@ -89,30 +90,29 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	@Override
 	public String getText() {
 		if (this.target != null) {
-			LocalTime now = LocalTime.now();
-			Duration duration = null;
-			if (now.isAfter(this.target)) {
-				Duration d1 = Duration.between(now, LocalTime.MAX);
-				Duration d2 = Duration.between(LocalTime.MIDNIGHT, this.target);
-				duration = d1.plus(d2);
-			} else {
-				duration = Duration.between(now, this.target);
-			}
-			if (duration.isNegative()) {
-				// shouldn't happen, but who knows
-				duration = Duration.ZERO;
-			}
-			long seconds = duration.getSeconds();
-		    long absSeconds = Math.abs(seconds);
-		    return String.format(
-		        this.format,
-		        absSeconds / 86400,
-		        absSeconds / 3600,
-		        (absSeconds % 3600) / 60,
-		        absSeconds % 60);
+			LocalDateTime temp = LocalDateTime.now();
+			
+			// get the individual durations and advance each time
+			long years = temp.until(this.target, ChronoUnit.YEARS); 	temp = temp.plusYears(years);
+			long months = temp.until(this.target, ChronoUnit.MONTHS); 	temp = temp.plusMonths(months);
+			long days = temp.until(this.target, ChronoUnit.DAYS); 		temp = temp.plusDays(days);
+			long hours = temp.until(this.target, ChronoUnit.HOURS); 	temp = temp.plusHours(hours);
+			long minutes = temp.until(this.target, ChronoUnit.MINUTES); temp = temp.plusMinutes(minutes);
+			long seconds = temp.until(this.target, ChronoUnit.SECONDS);
+			
+			return String.format(
+			        this.format, 
+			        years,
+			        months,
+			        days,
+			        hours,
+			        minutes,
+			        seconds);
 		}
 		return String.format(
-		        this.format,
+		        this.format, 
+		        0,
+		        0,
 		        0,
 		        0,
 		        0,
@@ -121,9 +121,9 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 
 	/**
 	 * Returns the target time to count down to.
-	 * @return LocalTime
+	 * @return LocalDateTime
 	 */
-	public LocalTime getTarget() {
+	public LocalDateTime getTarget() {
 		return this.target;
 	}
 	
@@ -131,7 +131,7 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	 * Sets the target time to count down to.
 	 * @param target the target time
 	 */
-	public void setTarget(LocalTime target) {
+	public void setTarget(LocalDateTime target) {
 		this.target = target;
 	}
 
@@ -149,7 +149,7 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	 */
 	public void setFormat(String format) {
 		if (format == null || format.length() <= 0) {
-			format = "%2$02d:%3$02d:%4$02d";
+			format = DEFAULT_FORMAT;
 		}
 		this.format = format;
 	}

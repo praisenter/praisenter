@@ -1,5 +1,6 @@
 package org.praisenter.javafx.slide;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import org.praisenter.javafx.PraisenterContext;
@@ -21,7 +22,7 @@ import javafx.collections.ObservableList;
 
 public final class ObservableCountdownComponent extends ObservableTextComponent<CountdownComponent> implements SlideRegion, SlideComponent, TextComponent {
 	
-	final ObjectProperty<LocalTime> target = new SimpleObjectProperty<LocalTime>();
+	final ObjectProperty<LocalDateTime> target = new SimpleObjectProperty<LocalDateTime>();
 	final StringProperty format = new SimpleStringProperty();
 	
 	public ObservableCountdownComponent(CountdownComponent component, PraisenterContext context, SlideMode mode) {
@@ -59,15 +60,15 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 	
 	// target
 	
-	public LocalTime getTarget() {
+	public LocalDateTime getTarget() {
 		return this.target.get();
 	}
 	
-	public void setTarget(LocalTime target) {
+	public void setTarget(LocalDateTime target) {
 		this.target.set(target);
 	}
 	
-	public ObjectProperty<LocalTime> targetProperty() {
+	public ObjectProperty<LocalDateTime> targetProperty() {
 		return this.target;
 	}
 	

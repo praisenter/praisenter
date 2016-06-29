@@ -77,13 +77,11 @@ class SlideStrokePicker extends VBox {
 		this.cbCap.setValue(caps.get(0));
 		this.cbDashes = new ChoiceBox<Option<DashPattern>>(dashes);
 		this.cbDashes.setValue(dashes.get(0));
-		this.spnWidth = new Spinner<Double>(1, Double.MAX_VALUE, 1);
+		this.spnWidth = new Spinner<Double>(0, Double.MAX_VALUE, 1, 0.25);
 		this.spnWidth.setMaxWidth(75);
-		this.spnWidth.getValueFactory().setValue(1.0);
 		this.spnWidth.setEditable(true);
-		this.spnRadius = new Spinner<Double>(0, Double.MAX_VALUE, 0);
+		this.spnRadius = new Spinner<Double>(0, Double.MAX_VALUE, 0, 0.25);
 		this.spnRadius.setMaxWidth(75);
-		this.spnRadius.getValueFactory().setValue(0.0);
 		this.spnRadius.setEditable(true);
 		
 		HBox h1 = new HBox(5, this.cbJoin, this.cbCap, this.spnWidth);
