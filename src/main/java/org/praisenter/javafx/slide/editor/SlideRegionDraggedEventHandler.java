@@ -52,13 +52,6 @@ class SlideRegionDraggedEventHandler implements EventHandler<MouseEvent> {
 			w = region.getWidth();
 			h = region.getHeight();
 		} else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED) {
-			// make sure the cursor stays the same regardless of where
-			// the mouse may move to
-			if (scene != null && cursor != null) {
-				// make sure the cursor stays the same
-				scene.setCursor(cursor);
-			}
-			
 			// compute the integer difference in position
 			// of the mouse from the start and scale it
 			// by the scale factor
@@ -104,6 +97,13 @@ class SlideRegionDraggedEventHandler implements EventHandler<MouseEvent> {
 				region.setWidth(w - dxi);
 				region.setY(y + dyi);
 				region.setHeight(h - dyi);
+			}
+			
+			// make sure the cursor stays the same regardless of where
+			// the mouse may move to
+			if (scene != null && cursor != null) {
+				// make sure the cursor stays the same
+				scene.setCursor(cursor);
 			}
 		} else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
 			// when the mouse is released we need to go back to 

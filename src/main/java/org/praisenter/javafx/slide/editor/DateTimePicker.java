@@ -77,6 +77,8 @@ class DateTimePicker extends VBox {
 	};
 
 	public DateTimePicker() {
+		setSpacing(2);
+		
 		StringConverter<Integer> converter = new Converter();
 		
 		this.pkrDate = new DatePicker(LocalDate.now());

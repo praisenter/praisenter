@@ -45,7 +45,7 @@ class SlideStrokePicker extends VBox {
 	private final Spinner<Double> spnRadius;
 	
 	public SlideStrokePicker(PraisenterContext context, boolean showRadius) {
-		this.setSpacing(5);
+		this.setSpacing(2);
 		
 		ObservableList<Option<SlideStrokeJoin>> joins = FXCollections.observableArrayList();
 		joins.add(new Option<SlideStrokeJoin>(Translations.get("stroke.join.round"), SlideStrokeJoin.ROUND));
@@ -84,8 +84,8 @@ class SlideStrokePicker extends VBox {
 		this.spnRadius.setMaxWidth(75);
 		this.spnRadius.setEditable(true);
 		
-		HBox h1 = new HBox(5, this.cbJoin, this.cbCap, this.spnWidth);
-		HBox h2 = new HBox(5, this.cbDashes);
+		HBox h1 = new HBox(2, this.cbJoin, this.cbCap, this.spnWidth);
+		HBox h2 = new HBox(2, this.cbDashes);
 		if (showRadius) {
 			h2.getChildren().add(this.spnRadius);
 		}
