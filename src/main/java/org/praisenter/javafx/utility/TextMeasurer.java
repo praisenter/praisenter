@@ -171,16 +171,14 @@ public final class TextMeasurer {
      * @return Bounds
      */
     public static final Bounds getLineBounds(String text, Font font, TextBoundsType boundsType) {
-    	Text node = new Text();
     	// setup the node
-    	node.setText(text);
-    	node.setFont(font);
-    	node.setWrappingWidth(0);
-    	node.setLineSpacing(0);
-    	node.setBoundsType(boundsType);
-    	node.applyCss();
+    	JAVAFX_TEXT_NODE.setText(text);
+        JAVAFX_TEXT_NODE.setFont(font);
+        JAVAFX_TEXT_NODE.setWrappingWidth(0);
+        JAVAFX_TEXT_NODE.setLineSpacing(0);
+        JAVAFX_TEXT_NODE.setBoundsType(boundsType);
         // perform the measurement
-        final Bounds bounds = node.getLayoutBounds();
+        final Bounds bounds = JAVAFX_TEXT_NODE.getLayoutBounds();
         // reset the node
         reset();
         return bounds;
@@ -229,7 +227,7 @@ public final class TextMeasurer {
 				cur = temp;
 				nf = new Font(font.getName(), cur);
 			}
-			System.out.println("\t" + cur + " " + bounds.getWidth());
+			System.out.println("\t" + cur + bounds.getWidth());
 			// get the new paragraph height for the new font size
 			bounds = TextMeasurer.getLineBounds(text, nf, boundsType);
 			// don't run forever
