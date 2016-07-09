@@ -68,7 +68,7 @@ public class BasicTextComponent extends AbstractTextComponent implements SlideRe
 	 */
 	@Override
 	public String getText() {
-		return text;
+		return this.text;
 	}
 
 	/* (non-Javadoc)

@@ -41,13 +41,11 @@ import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
@@ -61,8 +59,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 import javafx.stage.Modality;
 
 // FEATURE might be nice to be able to edit bibles when they are incomplete or messed up
@@ -98,28 +94,19 @@ public final class BibleLibraryPane extends BorderPane {
 		VBox right = new VBox();
 		VBox importSteps = new VBox();
 		
-		Hyperlink lnkUnboundBible = new Hyperlink(Translations.get("bible.unbound"));
-		lnkUnboundBible.setOnAction((e) -> {
-			context.getApplication().getHostServices().showDocument("http://unbound.biola.edu/index.cfm?method=downloads.showDownloadMain");
-		});
 		Label lblStep1 = new Label(Translations.get("bible.import.list1"));
 		Label lblStep2 = new Label(Translations.get("bible.import.list2"));
-		Label lblStep3 = new Label(Translations.get("bible.import.list3"));
-		TextFlow lblStep1Text = new TextFlow(new Text(Translations.get("bible.import.step1")), lnkUnboundBible);
+		Label lblStep1Text = new Label(Translations.get("bible.import.step1"));
 		Label lblStep2Text = new Label(Translations.get("bible.import.step2"));
-		Label lblStep3Text = new Label(Translations.get("bible.import.step3"));
+		
 		lblStep1.setMinWidth(20);
-		// try to align the text due to the weird height of hyperlinks
-		lblStep1.setPadding(new Insets(3, 0, 0, 0));
 		lblStep2.setMinWidth(20);
-		lblStep3.setMinWidth(20);
+		lblStep1Text.setWrapText(true);
 		lblStep2Text.setWrapText(true);
-		lblStep3Text.setWrapText(true);
 		
 		importSteps.getChildren().addAll(
 				new HBox(lblStep1, lblStep1Text),
-				new HBox(lblStep2, lblStep2Text),
-				new HBox(lblStep3, lblStep3Text));
+				new HBox(lblStep2, lblStep2Text));
 
 		BibleMetadataPane bmp = new BibleMetadataPane();
 

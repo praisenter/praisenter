@@ -2,7 +2,6 @@ package org.praisenter.javafx.slide;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,7 +29,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.scene.Node;
 
-public final class ObservableSlide<T extends Slide> extends ObservableSlideRegion<T> implements Slide {
+public final class ObservableSlide<T extends Slide> extends ObservableSlideRegion<T> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final StringProperty name = new SimpleStringProperty();
@@ -78,7 +77,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.build(null);
 	}
 
-	@Override
 	public void fit(int width, int height) {
 		this.region.fit(width, height);
 		this.x.set(this.region.getX());
@@ -122,7 +120,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	
 	// animations
 	
-	@Override
 	public List<SlideAnimation> getAnimations(UUID id) {
 		throw new UnsupportedOperationException();
 	}
@@ -133,14 +130,12 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	
 	// components
 	
-	@Override
 	public void addComponent(SlideComponent component) {
 		// this sets the order, so must be done first
 		this.region.addComponent(component);
 		this.components.add(createObservableFor(component));
 	}
 
-	@Override
 	public boolean removeComponent(SlideComponent component) {
 		// remove the component
 		if (this.region.removeComponent(component)) {
@@ -150,26 +145,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 			return true;
 		}
 		return false;
-	}
-	
-	@Override
-	public Iterator<SlideComponent> getComponentIterator() {
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
-	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz) {
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
-	public void moveComponentDown(SlideComponent component) {
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
-	public void moveComponentUp(SlideComponent component) {
-		throw new UnsupportedOperationException();
 	}
 	
 	public void moveComponentDown(ObservableSlideComponent<?> component) {
@@ -200,18 +175,12 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		FXCollections.sort(this.components);
 	}
 	
-	public ObservableList<ObservableSlideComponent<?>> getComponents() {
-		return this.components;
-	}
-
 	// name
 	
-	@Override
 	public String getName() {
 		return this.name.get();
 	}
 
-	@Override
 	public void setName(String name) {
 		this.name.set(name);
 	}
@@ -222,12 +191,10 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 
 	// path
 	
-	@Override
 	public Path getPath() {
 		return this.path.get();
 	}
 
-	@Override
 	public void setPath(Path path) {
 		this.path.set(path);
 	}
@@ -238,12 +205,10 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 
 	// time
 	
-	@Override
 	public long getTime() {
 		return this.time.get();
 	}
 
-	@Override
 	public void setTime(long time) {
 		this.time.set(time);
 	}
@@ -254,14 +219,13 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 
 	// tags
 	
-	@Override
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
 	}
 	
 	// components
 	
-	public ObservableList<ObservableSlideComponent<?>> getObservableComponents() {
+	public ObservableList<ObservableSlideComponent<?>> getComponents() {
 		return this.components;
 	}
 	
@@ -275,18 +239,11 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	
 	// others
 	
-	@Override
 	public String getVersion() {
 		return this.region.getVersion();
 	}
 
-	@Override
 	public boolean hasPlaceholders() {
 		return this.region.hasPlaceholders();
-	}
-
-	@Override
-	public Slide copy() {
-		throw new UnsupportedOperationException();
 	}
 }

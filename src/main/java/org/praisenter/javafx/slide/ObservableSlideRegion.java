@@ -7,23 +7,25 @@ import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlidePaint;
+import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
 
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.InnerShadow;
 import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
-public abstract class ObservableSlideRegion<T extends SlideRegion> implements SlideRegion {
+public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	// the data
 	
 	protected final T region;
@@ -39,6 +41,9 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 	
 	protected final ObjectProperty<SlidePaint> background = new SimpleObjectProperty<SlidePaint>();
 	protected final ObjectProperty<SlideStroke> border = new SimpleObjectProperty<SlideStroke>();
+	protected final DoubleProperty opacity = new SimpleDoubleProperty();
+	protected final ObjectProperty<SlideShadow> shadow = new SimpleObjectProperty<SlideShadow>();
+	protected final ObjectProperty<SlideShadow> glow = new SimpleObjectProperty<SlideShadow>();
 	
 	protected final ObjectProperty<Scaling> scale = new SimpleObjectProperty<Scaling>(new Scaling(1.0, 0.0, 0.0));
 	
@@ -66,12 +71,17 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.height.set(region.getHeight());
 		this.background.set(region.getBackground());
 		this.border.set(region.getBorder());
+		this.opacity.set(region.getOpacity());
+		this.shadow.set(region.getShadow());
+		this.glow.set(region.getGlow());
 		
 		// setup nodes
 		this.container = new Pane();
 		// this is the magic for it to be fast enough
 		this.container.setCache(true);
-		this.container.setCacheHint(CacheHint.SPEED);
+		if (this.mode == SlideMode.EDIT) {
+			this.container.setCacheHint(CacheHint.SPEED);
+		}
 		this.container.setBackground(null);
 		this.container.setMouseTransparent(true);
 		
@@ -107,6 +117,18 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.border.addListener((obs, ov, nv) -> { 
 			this.region.setBorder(nv);
 			updateBorder();
+		});
+		this.opacity.addListener((obs, ov, nv) -> {
+			this.region.setOpacity(nv.doubleValue());
+			updateOpacity();
+		});
+		this.shadow.addListener((obs, ov, nv) -> {
+			this.region.setShadow(nv);
+			updateEffects();
+		});
+		this.glow.addListener((obs, ov, nv) -> {
+			this.region.setGlow(nv);
+			updateEffects();
 		});
 		
 		this.scale.addListener((obs, ov, nv) -> {
@@ -165,12 +187,28 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.backgroundNode.setPaint(paint);
 	}
 	
+	void updateOpacity() {
+		this.container.setOpacity(this.opacity.get());
+	}
+	
+	void updateEffects() {
+		EffectBuilder builder = EffectBuilder.create();
+		Effect shadow = JavaFXTypeConverter.toJavaFX(this.shadow.get());
+		Effect glow = JavaFXTypeConverter.toJavaFX(this.glow.get());
+		builder.add(shadow, shadow != null && shadow instanceof InnerShadow ? 10 : 30);
+		builder.add(glow, glow != null && glow instanceof InnerShadow ? 20 : 40);
+		Effect effect = builder.build();
+		this.container.setEffect(effect);
+	}
+	
 	void build(Node content) {
 		// set initial node properties
 		this.updatePosition();
 		this.updateBorder();
 		this.updateFill();
 		this.updateSize();
+		this.updateOpacity();
+		this.updateEffects();
 		
 		if (content != null) {
 			this.container.getChildren().addAll(
@@ -202,17 +240,14 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.backgroundNode.dispose();
 	}
 	
-	@Override
 	public UUID getId() {
 		return this.region.getId();
 	}
 
-	@Override
 	public boolean isBackgroundTransitionRequired(SlideRegion region) {
 		return this.region.isBackgroundTransitionRequired(region);
 	}
 	
-	@Override
 	public void adjust(double pw, double ph) {
 		this.region.adjust(pw, ph);
 		this.x.set(this.region.getX());
@@ -221,7 +256,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		this.height.set(this.region.getHeight());
 	}
 	
-	@Override
 	public Rectangle resize(int dw, int dh) {
 		Rectangle r = this.region.resize(dw, dh);
 		this.x.set(this.region.getX());
@@ -231,7 +265,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 		return r;
 	}
 	
-	@Override
 	public void translate(int dx, int dy) {
 		this.region.translate(dx, dy);
 		this.x.set(this.region.getX());
@@ -240,12 +273,10 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 
 	// x
 	
-	@Override
 	public int getX() {
 		return this.x.get();
 	}
 	
-	@Override
 	public void setX(int x) {
 		this.x.set(x);
 	}
@@ -256,12 +287,10 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 	
 	// y
 	
-	@Override
 	public int getY() {
 		return this.y.get();
 	}
 	
-	@Override
 	public void setY(int y) {
 		this.y.set(y);
 	}
@@ -272,12 +301,10 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 	
 	// width
 
-	@Override
 	public int getWidth() {
 		return this.width.get();
 	}
 	
-	@Override
 	public void setWidth(int width) {
 		this.width.set(width);
 	}
@@ -288,12 +315,10 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 	
 	// height
 
-	@Override
 	public int getHeight() {
 		return this.height.get();
 	}
 	
-	@Override
 	public void setHeight(int height) {
 		this.height.set(height);
 	}
@@ -304,12 +329,10 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 	
 	// background
 	
-	@Override
 	public void setBackground(SlidePaint background) {
 		this.background.set(background);
 	}
 	
-	@Override
 	public SlidePaint getBackground() {
 		return this.background.get();
 	}
@@ -320,18 +343,58 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Sl
 	
 	// border
 	
-	@Override
 	public void setBorder(SlideStroke border) {
 		this.border.set(border);
 	}
 	
-	@Override
 	public SlideStroke getBorder() {
 		return this.border.get();
 	}
 	
 	public ObjectProperty<SlideStroke> borderProperty() {
 		return this.border;
+	}
+
+	// opacity
+	
+	public void setOpacity(double opacity) {
+		this.opacity.set(opacity);
+	}
+	
+	public double getOpacity() {
+		return this.opacity.get();
+	}
+	
+	public DoubleProperty opacityProperty() {
+		return this.opacity;
+	}
+
+	// shadow
+	
+	public void setShadow(SlideShadow shadow) {
+		this.shadow.set(shadow);
+	}
+	
+	public SlideShadow getShadow() {
+		return this.shadow.get();
+	}
+	
+	public ObjectProperty<SlideShadow> shadowProperty() {
+		return this.shadow;
+	}
+
+	// opacity
+
+	public void setGlow(SlideShadow glow) {
+		this.glow.set(glow);
+	}
+	
+	public SlideShadow getGlow() {
+		return this.glow.get();
+	}
+	
+	public ObjectProperty<SlideShadow> glowProperty() {
+		return this.glow;
 	}
 	
 	// scale

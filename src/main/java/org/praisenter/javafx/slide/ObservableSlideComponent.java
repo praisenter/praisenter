@@ -2,18 +2,11 @@ package org.praisenter.javafx.slide;
 
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideRegion;
-import org.praisenter.slide.text.PlaceholderType;
-import org.praisenter.slide.text.PlaceholderVariant;
 
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
-public abstract class ObservableSlideComponent<T extends SlideComponent> extends ObservableSlideRegion<T> implements SlideRegion, SlideComponent {
+public abstract class ObservableSlideComponent<T extends SlideComponent> extends ObservableSlideRegion<T> implements Comparable<ObservableSlideComponent<?>> {
 
 	final IntegerProperty order = new SimpleIntegerProperty();
 	
@@ -27,19 +20,16 @@ public abstract class ObservableSlideComponent<T extends SlideComponent> extends
 		this.order.addListener((obs, ov, nv) -> { this.region.setOrder(nv.intValue()); });
 	}
 	
-	@Override
-	public int compareTo(SlideComponent o) {
-		return this.region.compareTo(o);
+	public int compareTo(ObservableSlideComponent<?> o) {
+		return this.region.compareTo(o.region);
 	}
 
 	// order
 	
-	@Override
 	public int getOrder() {
 		return this.order.get();
 	}
 	
-	@Override
 	public void setOrder(int order) {
 		this.order.set(order);
 	}

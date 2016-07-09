@@ -30,9 +30,8 @@ import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
+import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
-
-// FEATURE text shadow
 
 /**
  * Represents a component of a slide that displays text.
@@ -69,6 +68,30 @@ public interface TextComponent extends SlideRegion, SlideComponent {
 	 * @param border the border
 	 */
 	public abstract void setTextBorder(SlideStroke border);
+
+	/**
+	 * Returns the text shadow.
+	 * @return {@link SlideShadow}
+	 */
+	public abstract SlideShadow getTextShadow();
+	
+	/**
+	 * Sets the text shadow.
+	 * @param shadow the shadow
+	 */
+	public abstract void setTextShadow(SlideShadow shadow);
+
+	/**
+	 * Returns the text glow.
+	 * @return {@link SlideShadow}
+	 */
+	public abstract SlideShadow getTextGlow();
+	
+	/**
+	 * Sets the text glow.
+	 * @param glow the glow
+	 */
+	public abstract void setTextGlow(SlideShadow glow);
 	
 	/**
 	 * Sets the font.

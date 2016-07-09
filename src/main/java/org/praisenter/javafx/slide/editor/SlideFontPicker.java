@@ -28,7 +28,6 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
@@ -45,14 +44,13 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 
-// FEATURE as of 3/15/2016 Java FX does not have a facility to derive fonts; If this is added in the future, update this class to always show the bold/italic buttons
-// FEATURE as of 3/15/2016 Java FX does not have a facility to derive fonts; If this is added in the future, consider changing the bold button to a drop down of values
+// JAVABUG 03/15/16 Java FX does not have a facility to derive fonts; If this is added in the future, update this class to always show the bold/italic buttons
+// JAVABUG 03/15/16 Java FX does not have a facility to derive fonts; If this is added in the future, consider changing the bold button to a drop down of values
 // see also https://bitbucket.org/controlsfx/controlsfx/src/13e52b38df16842b71a4c9df1cadbeba6087742a/controlsfx/src/main/java/org/controlsfx/dialog/FontSelectorDialog.java?at=default&fileviewer=file-view-default
 
 /**

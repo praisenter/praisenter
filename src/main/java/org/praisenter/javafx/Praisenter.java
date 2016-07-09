@@ -108,7 +108,8 @@ public final class Praisenter extends Application {
 		ConditionalFeature.GRAPHICS,
 		ConditionalFeature.SHAPE_CLIP,
 		ConditionalFeature.CONTROLS,
-		ConditionalFeature.MEDIA
+		ConditionalFeature.MEDIA,
+		ConditionalFeature.EFFECT
 	};
 	
 	/** The default width */
@@ -246,8 +247,18 @@ public final class Praisenter extends Application {
     	scene.getStylesheets().add(CONFIG.getThemeCss());
     	stage.setScene(scene);
     	stage.setOnHiding((e) -> {
+    		
     		// this stuff could be null if we blow up before its created
     		if (context != null && context.getWorkers() != null) {
+    			// FIXME remove, this is only for testing
+        		context.getWorkers().submit(() -> { 
+        			try {
+    					Thread.sleep(60 * 1000);
+    				} catch (Exception e1) {
+    					// TODO Auto-generated catch block
+    					e1.printStackTrace();
+    				} 
+        		});
 	    		context.getWorkers().shutdown();
 	    		if (context.getWorkers().getActiveCount() > 0) {
 	    			e.consume();

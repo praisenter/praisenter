@@ -2,7 +2,19 @@ package org.praisenter.javafx.slide;
 
 import java.util.UUID;
 
-import javafx.scene.Node;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.utility.Fx;
+import org.praisenter.media.Media;
+import org.praisenter.media.MediaType;
+import org.praisenter.slide.graphics.ScaleType;
+import org.praisenter.slide.graphics.SlideColor;
+import org.praisenter.slide.graphics.SlideLinearGradient;
+import org.praisenter.slide.graphics.SlidePaint;
+import org.praisenter.slide.graphics.SlideRadialGradient;
+import org.praisenter.slide.object.MediaObject;
+
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -16,19 +28,6 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.utility.Fx;
-import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
-import org.praisenter.slide.graphics.ScaleType;
-import org.praisenter.slide.graphics.SlideColor;
-import org.praisenter.slide.graphics.SlideLinearGradient;
-import org.praisenter.slide.graphics.SlidePaint;
-import org.praisenter.slide.graphics.SlideRadialGradient;
-import org.praisenter.slide.object.MediaObject;
 
 public final class FillPane extends StackPane {
 	private static final Logger LOGGER = LogManager.getLogger();

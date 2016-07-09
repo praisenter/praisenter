@@ -74,12 +74,14 @@ import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.ScaleType;
+import org.praisenter.slide.graphics.ShadowType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
 import org.praisenter.slide.graphics.SlideGradientStop;
 import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlideRadialGradient;
+import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.graphics.SlideStrokeCap;
 import org.praisenter.slide.graphics.SlideStrokeJoin;
@@ -100,6 +102,7 @@ import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.utility.ClasspathLoader;
 
 // FEATURE grouping of components
+// JAVABUG 06/30/16 text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option
 
 // TODO slide presentation:
 //		user selects slide
@@ -179,8 +182,8 @@ public final class SlideEditorPane extends Application {
 		
 		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
 		
-//		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
-    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
+		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
+//    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				100, 100,
 				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
@@ -330,7 +333,7 @@ public final class SlideEditorPane extends Application {
 		rootEditPane.setOnMouseExited(exited);
 		// TODO dragging and resizing for the slide itself (when its a notification slide)
 		// FIXME note, this will need to be done when we add components
-		for (ObservableSlideComponent<?> osr : oSlide.getObservableComponents()) {
+		for (ObservableSlideComponent<?> osr : oSlide.getComponents()) {
 			SlideRegionDraggedEventHandler dragHandler = new SlideRegionDraggedEventHandler(osr);
 			Pane pane = osr.getEditPane();
 			slideCanvas.getChildren().add(pane);
@@ -492,7 +495,7 @@ public final class SlideEditorPane extends Application {
 				5);
 		
 		SlideRadialGradient radial = new SlideRadialGradient(
-				0.5, 0.5, 1.5, 
+				0.5, 0.5, 0.707, 
 				SlideGradientCycleType.NONE, 
 				new SlideGradientStop(0, new SlideColor(0, 0, 0, 0.8)),
 				new SlideGradientStop(1, new SlideColor(0, 1, 1, 0.8)));
@@ -513,18 +516,19 @@ public final class SlideEditorPane extends Application {
 		txt.setTextBorder(stroke);
 		txt.setLineSpacing(10);
 		txt.setText("Lorem ipsum dolor \n\nsit amet, consectetur adipiscing elit. Nam viverra tristique mauris. Suspendisse potenti. Etiam justo erat, mollis eget mi nec, euismod interdum magna. Aenean ac nulla fermentum, ullamcorper arcu sed, fermentum orci. Donec varius neque eget sapien cursus maximus. Fusce mauris lectus, pellentesque vel sem cursus, dapibus vehicula est. In tincidunt ultrices est nec finibus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eu nisi augue. Integer commodo enim sed rutrum rutrum. Quisque tristique id ipsum sed malesuada. Maecenas non diam eget felis pulvinar sodales.");
+		txt.setShadow(new SlideShadow(ShadowType.OUTER, new SlideColor(0, 0, 0, 1), 0, 0, 10, 0.0));
 		
 		MediaObject img = new MediaObject(
-//				UUID.fromString("f6668fb0-3a40-4590-99a4-1ba474315dca"),
-				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
+				UUID.fromString("f6668fb0-3a40-4590-99a4-1ba474315dca"),
+//				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
 				ScaleType.UNIFORM,
 				false,
 				true);
 		txt.setBackground(img);
 		
 		MediaObject vid = new MediaObject(
-//				UUID.fromString("a5d7dab1-8c59-4103-87cf-a13db23152f3"),
-				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
+				UUID.fromString("a5d7dab1-8c59-4103-87cf-a13db23152f3"),
+//				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
 				ScaleType.NONUNIFORM,
 				false,
 				true);
@@ -564,7 +568,6 @@ public final class SlideEditorPane extends Application {
 		tp.setPadding(new SlidePadding(10));
 		//tp.setBackground(new SlideColor(0.5, 0, 0.5, 0.5));
 		tp.setTextPaint(gradient);
-		// FIXME text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option
 		tp.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE), 1, 0));
 		tp.setLineSpacing(2);
 		tp.setType(PlaceholderType.TITLE);

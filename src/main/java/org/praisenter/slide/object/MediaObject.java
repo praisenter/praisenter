@@ -38,6 +38,8 @@ import org.praisenter.slide.graphics.AbstractSlidePaint;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlidePaint;
 
+// FEATURE ColorAdjust for video/images
+
 /**
  * Represents a media object for audio, video, and images coming from the {@link MediaLibrary}.
  * <p>

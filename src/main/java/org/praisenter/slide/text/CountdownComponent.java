@@ -31,9 +31,11 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
+import org.praisenter.xml.adapters.LocalDateTimeXmlAdapter;
 
 /**
  * A component to show a count down to a specified local time.
@@ -47,8 +49,7 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	
 	/** The target countdown time */
 	@XmlElement(name = "target", required = false)
-	// FIXME not sure if needed
-	//@XmlJavaTypeAdapter(value = LocalTimeXmlAdapter.class)
+	@XmlJavaTypeAdapter(value = LocalDateTimeXmlAdapter.class)
 	LocalDateTime target;
 
 	/** The duration format */

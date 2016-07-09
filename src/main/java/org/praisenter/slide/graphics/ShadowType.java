@@ -22,46 +22,18 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide;
-
-import javax.xml.bind.annotation.XmlSeeAlso;
-
-import org.praisenter.slide.text.BasicTextComponent;
-import org.praisenter.slide.text.CountdownComponent;
-import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.TextPlaceholderComponent;
+package org.praisenter.slide.graphics;
 
 /**
- * Represents a component or section of a slide.
+ * Enumeration of shadow types.
  * @author William Bittle
  * @version 3.0.0
+ * @since 3.0.0
  */
-@XmlSeeAlso({
-	MediaComponent.class,
-	BasicTextComponent.class,
-	DateTimeComponent.class,
-	TextPlaceholderComponent.class,
-	CountdownComponent.class
-})
-public interface SlideComponent extends SlideRegion, Comparable<SlideComponent> {
-	// properties
+public enum ShadowType {
+	/** An inner shadow */
+	INNER,
 	
-	/**
-	 * Returns the z-order of the component.
-	 * @return int
-	 */
-	public abstract int getOrder();
-	
-	/**
-	 * Sets the z-order of the component.
-	 * @param order the z-order
-	 */
-	public abstract void setOrder(int order);
-	
-	// copy
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideRegion#copy()
-	 */
-	public abstract SlideComponent copy();
+	/** An outer shadow */
+	OUTER
 }

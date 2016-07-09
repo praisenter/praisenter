@@ -43,7 +43,7 @@ public class TestFontMeasuring extends Application {
 		System.out.println(nf.getSize());
 		System.out.println();
 		
-		nf = TextMeasurer.getFittingFontForLine(text, font, font.getSize(), tww);
+		nf = TextMeasurer.getFittingFontForLine(text, font, font.getSize(), tww, tbt);
 		
 		System.out.println(nf.getFamily());
 		System.out.println(nf.getStyle());

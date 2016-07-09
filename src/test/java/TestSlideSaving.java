@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
@@ -16,11 +17,13 @@ import org.praisenter.slide.animation.Fade;
 import org.praisenter.slide.animation.Push;
 import org.praisenter.slide.easing.Back;
 import org.praisenter.slide.easing.Bounce;
+import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
 import org.praisenter.slide.graphics.SlideGradientStop;
 import org.praisenter.slide.graphics.SlideLinearGradient;
+import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.graphics.SlideStrokeCap;
@@ -29,6 +32,7 @@ import org.praisenter.slide.graphics.SlideStrokeStyle;
 import org.praisenter.slide.graphics.SlideStrokeType;
 import org.praisenter.slide.object.MediaObject;
 import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
@@ -48,81 +52,134 @@ public class TestSlideSaving {
 		SongSlide slide = new SongSlide();
 //		BibleSlide slide = new BibleSlide();
 		
-		SlideColor color = new SlideColor(0.5, 0.5, 1, 0.5);
+		slide.setWidth(800);
+		slide.setHeight(600);
+		
+		SlideColor color = new SlideColor(0, 0, 0.8, 0.7);
 		
 		SlideLinearGradient gradient = new SlideLinearGradient(
 				0, 0, 1, 1, 
 				SlideGradientCycleType.NONE, 
-				new SlideGradientStop(0, new SlideColor(0, 1, 0, 0.5)),
-				new SlideGradientStop(1, new SlideColor(0, 0, 1, 0.5)));
+				new SlideGradientStop(0, new SlideColor(0, 1, 0, 1)),
+				new SlideGradientStop(1, new SlideColor(0, 0, 1, 1)));
 		
 		SlideStroke stroke = new SlideStroke(
 				gradient, 
-				new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, 20.0, 10.0), 
-				5, 
+				new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, 5.0, 10.0), 
+				1, 
 				0);
 		
+		SlideStroke thick = new SlideStroke(
+				new SlideColor(0.5, 0, 0, 1), 
+				new SlideStrokeStyle(SlideStrokeType.INSIDE, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, DashPattern.DASH.getDashes()), 
+				5, 
+				5);
+		
 		SlideRadialGradient radial = new SlideRadialGradient(
-				0.5, 0.5, 1, 
+				0.5, 0.5, 1.5, 
 				SlideGradientCycleType.NONE, 
-				new SlideGradientStop(0, new SlideColor(0, 1, 0, 0.5)),
-				new SlideGradientStop(1, new SlideColor(1, 0, 0, 0.5)));
-		
-		slide.setBackground(color);
-		slide.setBorder(stroke);
-		slide.setHeight(400);
-		slide.setWidth(400);
-		slide.setX(0);
-		slide.setY(0);
-		slide.setPath(Paths.get("/test/man"));
-		
-		Push st = new Push();
-		st.setDirection(Direction.LEFT);
-		st.setId(slide.getId());
-		st.setDelay(0);
-		st.setDuration(400);
-		st.setEasing(new Back());
-		slide.getAnimations().add(st);
-		
-		MediaComponent med = new MediaComponent();
-		med.setBackground(radial);
-		med.setHeight(300);
-		med.setWidth(300);
-		MediaObject mp = new MediaObject(UUID.randomUUID(), ScaleType.UNIFORM, true, true);
-		med.setMedia(mp);
-		med.setOrder(10);
-		med.setX(200);
-		med.setY(100);
-		slide.addComponent(med);
+				new SlideGradientStop(0, new SlideColor(0, 0, 0, 0.8)),
+				new SlideGradientStop(1, new SlideColor(0, 1, 1, 0.8)));
 		
 		BasicTextComponent txt = new BasicTextComponent();
-		txt.setFont(new SlideFont("Segoe UI", SlideFontWeight.BOLD, SlideFontPosture.REGULAR, 50));
-		txt.setFontScaleType(FontScaleType.BEST_FIT);
-		txt.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT);
-		txt.setOrder(5);
-		txt.setPadding(5);
-		txt.setText("hello");
+		txt.setFont(new SlideFont("Impact", SlideFontWeight.BOLD, SlideFontPosture.REGULAR, 20));
+		txt.setFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
+		txt.setWidth(400);
+		txt.setHeight(400);
+		txt.setX(20);
+		txt.setY(100);
+		txt.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
+		txt.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
+		txt.setPadding(new SlidePadding(10));
+		txt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
+		txt.setBorder(thick);
+		txt.setTextPaint(radial);
+		txt.setTextBorder(stroke);
+		txt.setLineSpacing(10);
+		txt.setText("Lorem ipsum dolor \n\nsit amet, consectetur adipiscing elit. Nam viverra tristique mauris. Suspendisse potenti. Etiam justo erat, mollis eget mi nec, euismod interdum magna. Aenean ac nulla fermentum, ullamcorper arcu sed, fermentum orci. Donec varius neque eget sapien cursus maximus. Fusce mauris lectus, pellentesque vel sem cursus, dapibus vehicula est. In tincidunt ultrices est nec finibus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eu nisi augue. Integer commodo enim sed rutrum rutrum. Quisque tristique id ipsum sed malesuada. Maecenas non diam eget felis pulvinar sodales.");
+		
+		MediaObject img = new MediaObject(
+				UUID.fromString("f6668fb0-3a40-4590-99a4-1ba474315dca"),
+//				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
+				ScaleType.UNIFORM,
+				false,
+				true);
+		txt.setBackground(img);
+		
+		MediaObject vid = new MediaObject(
+				UUID.fromString("a5d7dab1-8c59-4103-87cf-a13db23152f3"),
+//				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
+				ScaleType.NONUNIFORM,
+				false,
+				true);
+		
+		MediaComponent mc = new MediaComponent();
+		mc.setBackground(img);
+		mc.setBorder(thick);
+		mc.setWidth(100);
+		mc.setHeight(100);
+		mc.setX(100);
+		mc.setY(200);
+		mc.setMedia(vid);
+		
+		DateTimeComponent dt = new DateTimeComponent();
+		dt.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 20));
+		dt.setFontScaleType(FontScaleType.NONE);
+		dt.setWidth(600);
+		dt.setHeight(200);
+		dt.setX(0);
+		dt.setY(0);
+		dt.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT);
+		dt.setVerticalTextAlignment(VerticalTextAlignment.TOP);
+		dt.setPadding(new SlidePadding(20));
+		dt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
+		dt.setTextPaint(new SlideColor(1.0, 0, 0, 1));
+		dt.setFormat(new SimpleDateFormat("M/d/yyyy h:mm a z"));
+		
+		TextPlaceholderComponent tp = new TextPlaceholderComponent();
+		tp.setFont(new SlideFont("Verdana", SlideFontWeight.NORMAL, SlideFontPosture.ITALIC, 5));
+		tp.setFontScaleType(FontScaleType.BEST_FIT);
+		tp.setWidth(200);
+		tp.setHeight(400);
+		tp.setX(200);
+		tp.setY(0);
+		tp.setHorizontalTextAlignment(HorizontalTextAlignment.RIGHT);
+		tp.setVerticalTextAlignment(VerticalTextAlignment.BOTTOM);
+		tp.setPadding(new SlidePadding(10));
+		//tp.setBackground(new SlideColor(0.5, 0, 0.5, 0.5));
+		tp.setTextPaint(gradient);
+		tp.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE), 1, 0));
+		tp.setLineSpacing(2);
+		tp.setType(PlaceholderType.TITLE);
+		//tp.setVariants(variants);
+		
+		CountdownComponent cd = new CountdownComponent();
+		cd.setFont(new SlideFont("Segoe UI Light", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 100));
+		cd.setFontScaleType(FontScaleType.BEST_FIT);
+		cd.setWidth(400);
+		cd.setHeight(100);
+		cd.setX(200);
+		cd.setY(0);
+		cd.setTextWrapping(false);
+		cd.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
+		cd.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
+		cd.setPadding(new SlidePadding(10));
+		//tp.setBackground(new SlideColor(0.5, 0, 0.5, 0.5));
+		cd.setTextPaint(gradient);
+		cd.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, new Double[] { 10.0, 10.0, 5.0 }), 1, 0));
+//		cd.setLineSpacing(2);
+		cd.setTarget(LocalDateTime.now().plusYears(1).plusMonths(2).plusDays(3).plusHours(4).plusMinutes(5).plusSeconds(6));
+		//tp.setVariants(variants);
+		
 		slide.addComponent(txt);
-		
-		Fade st2 = new Fade();
-		st2.setId(txt.getId());
-		st2.setDelay(500);
-		st2.setDuration(300);
-		st2.setEasing(new Bounce());
-		slide.getAnimations().add(st2);
-		
-		DateTimeComponent dtc = new DateTimeComponent();
-		dtc.setFormat(new SimpleDateFormat("YYYY"));
-		dtc.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
-		dtc.setTextPaint(radial);
-		dtc.setTextBorder(stroke);
-		slide.addComponent(dtc);
-		
-		TextPlaceholderComponent tpc = new TextPlaceholderComponent();
-		tpc.setType(PlaceholderType.TEXT);
-		tpc.getVariants().add(PlaceholderVariant.QUINARY);
-		tpc.setText("hello\nHola");
-		slide.addComponent(tpc);
+		slide.addComponent(mc);
+		slide.addComponent(dt);
+		slide.addComponent(tp);
+		slide.addComponent(cd);
+
+//		slide.setBackground(vid);
+		slide.setBackground(new SlideColor(0, 0, 1.0, 0.5));
+		//slide.setBorder(thick);
 		
 		slide.setSongId(UUID.randomUUID());
 		slide.setVerse("v1");

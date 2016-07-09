@@ -1,24 +1,20 @@
 package org.praisenter.javafx.slide;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.TextComponent;
 
 import javafx.animation.AnimationTimer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
-public final class ObservableDateTimeComponent extends ObservableTextComponent<DateTimeComponent> implements SlideRegion, SlideComponent, TextComponent {
+public final class ObservableDateTimeComponent extends ObservableTextComponent<DateTimeComponent> {
 
 	final AnimationTimer timer = new AnimationTimer() {
 		@Override
 		public void handle(long now) {
-			updateText();
+			text.set(region.getText());
 		}
 	};
 	
@@ -33,24 +29,10 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 		// listen for changes
 		this.format.addListener((obs, ov, nv) -> { 
 			this.region.setFormat(nv); 
-			updateText();
+			this.text.set(this.region.getText());
 		});
 		
 		this.build();
-	}
-
-	void build() {
-		updateText();
-		super.build();
-	}
-	
-	private void updateText() {
-		SimpleDateFormat f = format.get();
-		if (f == null) {
-			textNode.setText(new Date().toString());
-		} else {
-			textNode.setText(f.format(new Date()));
-		}
 	}
 	
 	// playable stuff
@@ -63,21 +45,6 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 	public void stop() {
 		super.stop();
 		this.timer.stop();
-	}
-	
-	@Override
-	public TextComponent copy() {
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
-	public String getText() {
-		return this.region.getText();
-	}
-	
-	@Override
-	public void setText(String text) {
-		this.region.setText(text);
 	}
 	
 	// format

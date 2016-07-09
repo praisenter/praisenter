@@ -28,10 +28,10 @@ import java.util.UUID;
 
 import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlidePaint;
+import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
 
 // FEATURE rotation
-// FEATURE drop shadow
 
 /**
  * Base interface for both {@link Slide}s and {@link SlideComponent}s.
@@ -119,6 +119,42 @@ public interface SlideRegion {
 	 * @param border the border
 	 */
 	public abstract void setBorder(SlideStroke border);
+	
+	/**
+	 * Sets the transparency of the region.
+	 * @param opacity the transparency in the range [0, 1]
+	 */
+	public abstract void setOpacity(double opacity);
+	
+	/**
+	 * Returns the transparency of the region.
+	 * @return double
+	 */
+	public abstract double getOpacity();
+	
+	/**
+	 * Sets the shadow of the region.
+	 * @param shadow the shadow
+	 */
+	public abstract void setShadow(SlideShadow shadow);
+	
+	/**
+	 * Returns the shadow of the region.
+	 * @return {@link SlideShadow}
+	 */
+	public abstract SlideShadow getShadow();
+
+	/**
+	 * Sets the glow of the region.
+	 * @param glow the glow
+	 */
+	public abstract void setGlow(SlideShadow glow);
+	
+	/**
+	 * Returns the glow of the region.
+	 * @return {@link SlideShadow}
+	 */
+	public abstract SlideShadow getGlow();
 	
 	// other
 	

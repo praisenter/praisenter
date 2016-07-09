@@ -24,19 +24,21 @@
  */
 package org.praisenter.javafx.slide.editor;
 
-import org.praisenter.resources.translations.Translations;
+import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.slide.graphics.SlideGradient;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.Button;
+import javafx.scene.control.SplitMenuButton;
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Rectangle;
 
 /**
  * A custom button to allow selection of a gradient.
  * @author William Bittle
  * @version 3.0.0
  */
-final class SlideGradientPicker extends Button {
+final class SlideGradientPicker extends SplitMenuButton {
 	/** The gradient dialog */
 	private SlideGradientPickerDialog dialog;
 	
@@ -47,23 +49,46 @@ final class SlideGradientPicker extends Button {
 	 * Default constructor.
 	 */
 	public SlideGradientPicker() {
-		this.setText(Translations.get("choose"));
-		this.setOnAction((e) -> {
-			if (dialog == null) {
-				// create the dialog
-				// passing the owner (we don't create
-				// it until the user request for it since
-				// 	1. we don't know the owner at creation time
-				//  2. we don't know if the user will request it at all
-				dialog = new SlideGradientPickerDialog(getScene().getWindow());
-				// set the value
-				dialog.valueProperty().set(value.get());
-				// bind the values
-				value.bindBidirectional(this.dialog.valueProperty());
-			}
-			// show the dialog
-			dialog.show();
+		// attempt to mimic the color picker styling
+		StackPane gradBox = new StackPane();
+		gradBox.getStyleClass().add("picker-color");
+		Rectangle rect = new Rectangle(12, 12);
+		rect.getStyleClass().add("picker-color-rect");
+		rect.setStyle("-fx-stroke: -fx-box-border;");
+		gradBox.getChildren().add(rect);
+		this.setGraphic(gradBox);
+		
+		// actions
+		this.showingProperty().addListener((obs, ov, nv) -> {
+			onAction();
 		});
+		this.setOnAction((e) -> {
+			onAction();
+		});
+		
+		// update the rect background
+		this.value.addListener((obs, ov, nv) -> {
+			if (nv != null) {
+				rect.setFill(JavaFXTypeConverter.toJavaFX(nv));
+			}
+		});
+	}
+	
+	private void onAction() {
+		if (dialog == null) {
+			// create the dialog
+			// passing the owner (we don't create
+			// it until the user request for it since
+			// 	1. we don't know the owner at creation time
+			//  2. we don't know if the user will request it at all
+			dialog = new SlideGradientPickerDialog(getScene().getWindow());
+			// set the value
+			dialog.valueProperty().set(value.get());
+			// bind the values
+			value.bindBidirectional(this.dialog.valueProperty());
+		}
+		// show the dialog
+		dialog.show();
 	}
 	
 	/**

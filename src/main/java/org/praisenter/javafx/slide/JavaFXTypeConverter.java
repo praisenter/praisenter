@@ -13,6 +13,7 @@ import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.ScaleType;
+import org.praisenter.slide.graphics.ShadowType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
 import org.praisenter.slide.graphics.SlideGradientStop;
@@ -20,6 +21,7 @@ import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideRadialGradient;
+import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.graphics.SlideStrokeCap;
 import org.praisenter.slide.graphics.SlideStrokeJoin;
@@ -33,6 +35,9 @@ import org.praisenter.slide.text.VerticalTextAlignment;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.InnerShadow;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.BorderStroke;
@@ -89,6 +94,32 @@ public final class JavaFXTypeConverter {
 			bgPaint = JavaFXTypeConverter.toJavaFX((SlideRadialGradient)paint);
 		}
 		return bgPaint;
+	}
+	
+	// shadow/glow
+	
+	public static Effect toJavaFX(SlideShadow shadow) {
+		if (shadow == null) {
+			return null;
+		}
+		
+		if (shadow.getType() == ShadowType.INNER) {
+			InnerShadow s = new InnerShadow(
+					shadow.getRadius(),
+					shadow.getOffsetX(),
+					shadow.getOffsetY(),
+					JavaFXTypeConverter.toJavaFX(shadow.getColor()));
+			s.setChoke(shadow.getSpread());
+			return s;
+		} else {
+			DropShadow s = new DropShadow(
+					shadow.getRadius(),
+					shadow.getOffsetX(),
+					shadow.getOffsetY(),
+					JavaFXTypeConverter.toJavaFX(shadow.getColor()));
+			s.setSpread(shadow.getSpread());
+			return s;
+		}
 	}
 	
 	// text alignment

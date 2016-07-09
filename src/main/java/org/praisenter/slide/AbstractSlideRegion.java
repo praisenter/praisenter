@@ -38,7 +38,9 @@ import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideRadialGradient;
+import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
+import org.praisenter.slide.object.MediaObject;
 
 /**
  * Abstract implementation of the {@link SlideRegion} interface.
@@ -50,7 +52,8 @@ import org.praisenter.slide.graphics.SlideStroke;
 	SlideStroke.class,
 	SlideColor.class,
 	SlideLinearGradient.class,
-	SlideRadialGradient.class
+	SlideRadialGradient.class,
+	MediaObject.class
 })
 public abstract class AbstractSlideRegion implements SlideRegion {
 	/** The id */
@@ -82,11 +85,23 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	@XmlJavaTypeAdapter(value = SlidePaintXmlAdapter.class)
 	SlidePaint background;
 	
+	/** The component level opacity */
+	@XmlElement(name = "opacity", required = false)
+	double opacity;
+	
+	/** The overall shadow */
+	@XmlElement(name = "shadow", required = false)
+	SlideShadow shadow;
+
+	/** The overall glow */
+	@XmlElement(name = "glow", required = false)
+	SlideShadow glow;
+	
 	/**
 	 * Default constructor.
 	 */
 	public AbstractSlideRegion() {
-		this.id = UUID.randomUUID();
+		this(UUID.randomUUID());
 	}
 	
 	/**
@@ -95,6 +110,15 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 */
 	AbstractSlideRegion(UUID id) {
 		this.id = id;
+		this.opacity = 1.0;
+		this.x = 0;
+		this.y = 0;
+		this.width = 100;
+		this.height = 100;
+		this.border = null;
+		this.background = null;
+		this.shadow = null;
+		this.glow = null;
 	}
 	
 	/**
@@ -110,6 +134,9 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 		to.setHeight(this.height);
 		to.setBorder(this.border);
 		to.setBackground(this.background);
+		to.setOpacity(this.opacity);
+		to.setShadow(this.shadow);
+		to.setGlow(this.glow);
 	}
 	
 	/* (non-Javadoc)
@@ -217,6 +244,54 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#setOpacity(double)
+	 */
+	@Override
+	public void setOpacity(double opacity) {
+		this.opacity = opacity;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getOpacity()
+	 */
+	@Override
+	public double getOpacity() {
+		return this.opacity;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getShadow()
+	 */
+	@Override
+	public SlideShadow getShadow() {
+		return this.shadow;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#setShadow(org.praisenter.slide.graphics.SlideShadow)
+	 */
+	@Override
+	public void setShadow(SlideShadow shadow) {
+		this.shadow = shadow;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getGlow()
+	 */
+	@Override
+	public SlideShadow getGlow() {
+		return this.glow;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#setGlow(org.praisenter.slide.graphics.SlideShadow)
+	 */
+	@Override
+	public void setGlow(SlideShadow glow) {
+		this.glow = glow;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideRegion#adjust(double, double)
 	 */
 	@Override
@@ -274,7 +349,8 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 			this.width != region.getWidth() || 
 			this.height != region.getHeight() ||
 			!Objects.equals(this.background, region.getBackground()) ||
-			!Objects.equals(this.border, region.getBorder())) {
+			!Objects.equals(this.border, region.getBorder()) ||
+			this.opacity != region.getOpacity()) {
 			return true;
 		}
 		

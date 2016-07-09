@@ -1,13 +1,19 @@
 package org.praisenter.javafx.slide.editor;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
+import org.praisenter.resources.OpenIconic;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideLinearGradient;
@@ -20,17 +26,25 @@ import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.util.Callback;
 
 // TODO translate
 
 final class SlidePaintPicker extends VBox {
+	/** The font-awesome glyph-font pack */
+	private static final GlyphFont OPEN_ICONIC = GlyphFontRegistry.font("Icons");
+	
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 
@@ -42,7 +56,7 @@ final class SlidePaintPicker extends VBox {
 	
 	// nodes
 	
-	private final ChoiceBox<PaintType> cbTypes;
+	private final ComboBox<Option<PaintType>> cmbTypes;
 	private final ColorPicker pkrColor;
 	private final SlideGradientPicker pkrGradient;
 	private final MediaPicker pkrImage;
@@ -54,6 +68,8 @@ final class SlidePaintPicker extends VBox {
 	
 	public SlidePaintPicker(PraisenterContext context, PaintType... types) {
 		this.context = context;
+		
+		this.setSpacing(2);
 		
 		this.value.addListener((obs, ov, nv) -> {
 			if (mutating) return;
@@ -72,13 +88,25 @@ final class SlidePaintPicker extends VBox {
 			}
 		};
 		
-		cbTypes = new ChoiceBox<PaintType>(FXCollections.observableArrayList(types == null ? PaintType.values() : types));
-		cbTypes.valueProperty().addListener(listener);
+		List<PaintType> pts = Arrays.asList(types == null || types.length == 0 ? PaintType.values() : types);
+		ObservableList<Option<PaintType>> paintTypes = FXCollections.observableArrayList();
+		
+		if (pts.contains(PaintType.NONE)) paintTypes.add(new Option<PaintType>("None", PaintType.NONE));
+		if (pts.contains(PaintType.COLOR)) paintTypes.add(new Option<PaintType>("Color", PaintType.COLOR));
+		if (pts.contains(PaintType.GRADIENT)) paintTypes.add(new Option<PaintType>("Gradient", PaintType.GRADIENT));
+		if (pts.contains(PaintType.IMAGE)) paintTypes.add(new Option<PaintType>("Image", PaintType.IMAGE));
+		if (pts.contains(PaintType.VIDEO)) paintTypes.add(new Option<PaintType>("Video", PaintType.VIDEO));
+		if (pts.contains(PaintType.AUDIO)) paintTypes.add(new Option<PaintType>("Audio", PaintType.AUDIO));
+		
+		cmbTypes = new ComboBox<Option<PaintType>>(paintTypes);
+		cmbTypes.valueProperty().addListener(listener);
 		
 		pkrColor = new ColorPicker();
 		pkrColor.setValue(Color.WHITE);
+		pkrColor.getStyleClass().add(ColorPicker.STYLE_CLASS_SPLIT_BUTTON);
 		pkrColor.managedProperty().bind(pkrColor.visibleProperty());
 		pkrColor.valueProperty().addListener(listener);
+		pkrColor.setStyle("-fx-color-label-visible: false;");
 		
 		pkrGradient = new SlideGradientPicker();
 		pkrGradient.setValue(new SlideLinearGradient());
@@ -102,11 +130,11 @@ final class SlidePaintPicker extends VBox {
 		
 		HBox bg = new HBox();
 		bg.setSpacing(2);
-		bg.getChildren().addAll(cbTypes, pkrColor, pkrGradient, pkrImage, pkrVideo, pkrAudio);
+		bg.getChildren().addAll(cmbTypes, pkrColor, pkrGradient, pkrImage, pkrVideo, pkrAudio);
 		this.getChildren().add(bg);
 		
-		ToggleButton tglImageScaleNone = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.IMAGE));
-		ToggleButton tglImageScaleNonUniform = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ARROWS_ALT));
+		ToggleButton tglImageScaleNone = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.CROP));
+		ToggleButton tglImageScaleNonUniform = new ToggleButton("", OPEN_ICONIC.create(OpenIconic.Glyph.RESIZE_BOTH));
 		ToggleButton tglImageScaleUniform = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ARROWS));
 		tglImageScaleNone.setSelected(true);
 		tglImageScaleNone.setUserData(ScaleType.NONE);
@@ -131,8 +159,8 @@ final class SlidePaintPicker extends VBox {
 		pkrGradient.setVisible(false);
 		pkrImage.setVisible(false);
 		pkrVideo.setVisible(false);
-		cbTypes.valueProperty().addListener((obs, ov, nv) -> {
-			switch (nv) {
+		cmbTypes.valueProperty().addListener((obs, ov, nv) -> {
+			switch (nv.getValue()) {
 				case COLOR:
 					pkrColor.setVisible(true);
 					pkrGradient.setVisible(false);
@@ -189,18 +217,18 @@ final class SlidePaintPicker extends VBox {
 			}
 		});
 		
-		cbTypes.setValue(PaintType.NONE);
+		cmbTypes.setValue(new Option<PaintType>("", PaintType.NONE));
 	}
 	
 	private SlidePaint getControlValues() {
 		Toggle scaleToggle = segScaling.getToggleGroup().getSelectedToggle();
 		ScaleType scaleType = scaleToggle != null && scaleToggle.getUserData() != null ? (ScaleType)scaleToggle.getUserData() : ScaleType.NONE;
 		
-		if (this.cbTypes.getValue() == null) {
+		if (this.cmbTypes.getValue() == null) {
 			return null;
 		}
 		
-		switch (this.cbTypes.getValue()) {
+		switch (this.cmbTypes.getValue().getValue()) {
 			case COLOR:
 				Color color = this.pkrColor.getValue();
 				return JavaFXTypeConverter.fromJavaFX(color);
@@ -228,23 +256,23 @@ final class SlidePaintPicker extends VBox {
 	
 	private void setControlValues(SlidePaint paint) {
 		if (paint == null) {
-			cbTypes.setValue(PaintType.NONE);
+			cmbTypes.setValue(new Option<PaintType>("", PaintType.NONE));
 		} else {
 			if (paint instanceof MediaObject) {
 				MediaObject mo = ((MediaObject)paint);
 				Media media = context.getMediaLibrary().get(mo.getId());
 				// the media could have been removed, so check for null
 				if (media == null) {
-					cbTypes.setValue(PaintType.NONE);
+					cmbTypes.setValue(new Option<PaintType>("", PaintType.NONE));
 				} else {
 					if (media.getMetadata().getType() == MediaType.IMAGE) {
-						cbTypes.setValue(PaintType.IMAGE);
+						cmbTypes.setValue(new Option<PaintType>("", PaintType.IMAGE));
 						pkrImage.setValue(media);
 					} else if (media.getMetadata().getType() == MediaType.VIDEO) {
-						cbTypes.setValue(PaintType.VIDEO);
+						cmbTypes.setValue(new Option<PaintType>("", PaintType.VIDEO));
 						pkrVideo.setValue(media);
 					} else if (media.getMetadata().getType() == MediaType.AUDIO) {
-						cbTypes.setValue(PaintType.AUDIO);
+						cmbTypes.setValue(new Option<PaintType>("", PaintType.AUDIO));
 						pkrAudio.setValue(media);
 					}
 					tglLoop.setSelected(mo.isLoop());
@@ -258,22 +286,18 @@ final class SlidePaintPicker extends VBox {
 				}
 			} else if (paint instanceof SlideColor) {
 				SlideColor sc = (SlideColor)paint;
-				cbTypes.setValue(PaintType.COLOR);
+				cmbTypes.setValue(new Option<PaintType>("", PaintType.COLOR));
 				pkrColor.setValue(JavaFXTypeConverter.toJavaFX(sc));
 			} else if (paint instanceof SlideLinearGradient) {
 				SlideLinearGradient lg = (SlideLinearGradient)paint;
-				cbTypes.setValue(PaintType.GRADIENT);
+				cmbTypes.setValue(new Option<PaintType>("", PaintType.GRADIENT));
 				pkrGradient.setValue(lg);
 			} else if (paint instanceof SlideRadialGradient) {
 				SlideRadialGradient rg = (SlideRadialGradient)paint;
-				cbTypes.setValue(PaintType.GRADIENT);
+				cmbTypes.setValue(new Option<PaintType>("", PaintType.GRADIENT));
 				pkrGradient.setValue(rg);
 			}
 		}
-	}
-	
-	public void setNone() {
-		this.cbTypes.setValue(PaintType.NONE);
 	}
 	
 	public SlidePaint getValue() {

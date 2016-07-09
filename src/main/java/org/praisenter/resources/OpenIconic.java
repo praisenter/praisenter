@@ -8,7 +8,7 @@ import org.controlsfx.glyphfont.INamedCharacter;
 //https://useiconic.com/open/
 public final class OpenIconic extends GlyphFont {
 
-    private static String fontName = "Icons";
+    public static final String FONT_NAME = "Icons";
 
 	public static enum Glyph implements INamedCharacter {
 		ACCOUNT_LOGIN('\ue000'),
@@ -256,7 +256,7 @@ public final class OpenIconic extends GlyphFont {
      * @param url
      */
     public OpenIconic(String url){
-        super(fontName, 12, url, true);
+        super(FONT_NAME, 12, url, true);
         registerAll(Arrays.asList(Glyph.values()));
     }
 
@@ -265,7 +265,7 @@ public final class OpenIconic extends GlyphFont {
      * @param is
      */
     public OpenIconic(InputStream is){
-        super(fontName, 12, is, true);
+        super(FONT_NAME, 12, is, true);
         registerAll(Arrays.asList(Glyph.values()));
     }
 }

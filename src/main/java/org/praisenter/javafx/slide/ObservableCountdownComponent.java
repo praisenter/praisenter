@@ -1,26 +1,24 @@
 package org.praisenter.javafx.slide;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.text.CountdownComponent;
-import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.PlaceholderType;
-import org.praisenter.slide.text.PlaceholderVariant;
-import org.praisenter.slide.text.TextComponent;
-import org.praisenter.slide.text.TextPlaceholderComponent;
 
+import javafx.animation.AnimationTimer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 
-public final class ObservableCountdownComponent extends ObservableTextComponent<CountdownComponent> implements SlideRegion, SlideComponent, TextComponent {
+public final class ObservableCountdownComponent extends ObservableTextComponent<CountdownComponent> {
+	
+	final AnimationTimer timer = new AnimationTimer() {
+		@Override
+		public void handle(long now) {
+			text.set(region.getText());
+		}
+	};
 	
 	final ObjectProperty<LocalDateTime> target = new SimpleObjectProperty<LocalDateTime>();
 	final StringProperty format = new SimpleStringProperty();
@@ -34,28 +32,26 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 		
 		this.target.addListener((obs, ov, nv) -> { 
 			this.region.setTarget(nv); 
-			updateText();
+			this.text.set(this.region.getText());
 		});
 		this.format.addListener((obs, ov, nv) -> { 
 			this.region.setFormat(nv); 
-			updateText();
+			this.text.set(this.region.getText());
 		});
 				
 		this.build();
 	}
 	
-	void build() {
-		updateText();
-		super.build();
+	// playable stuff
+	
+	public void play() {
+		super.play();
+		this.timer.start();
 	}
 	
-	private void updateText() {
-		this.textNode.setText(this.getText());
-	}
-	
-	@Override
-	public ObservableCountdownComponent copy() {
-		throw new UnsupportedOperationException();
+	public void stop() {
+		super.stop();
+		this.timer.stop();
 	}
 	
 	// target
@@ -84,17 +80,5 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 	
 	public StringProperty formatProperty() {
 		return this.format;
-	}
-
-	// overrides
-	
-	@Override
-	public String getText() {
-		return this.region.getText();
-	}
-
-	@Override
-	public void setText(String text) {
-		throw new UnsupportedOperationException();
 	}
 }

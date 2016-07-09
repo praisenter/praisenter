@@ -24,7 +24,7 @@
  */
 package org.praisenter.xml.adapters;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
@@ -33,12 +33,12 @@ import javax.xml.bind.annotation.adapters.XmlAdapter;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class LocalTimeXmlAdapter extends XmlAdapter<String, LocalTime> {
+public final class LocalDateTimeXmlAdapter extends XmlAdapter<String, LocalDateTime> {
 	/* (non-Javadoc)
 	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
 	 */
 	@Override
-	public String marshal(LocalTime instant) throws Exception {
+	public String marshal(LocalDateTime instant) throws Exception {
 		return instant.toString();
 	}
 
@@ -46,7 +46,7 @@ public final class LocalTimeXmlAdapter extends XmlAdapter<String, LocalTime> {
 	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#unmarshal(java.lang.Object)
 	 */
 	@Override
-	public LocalTime unmarshal(String instant) throws Exception {
-		return LocalTime.parse(instant);
+	public LocalDateTime unmarshal(String instant) throws Exception {
+		return LocalDateTime.parse(instant);
 	}
 }

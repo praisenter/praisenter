@@ -25,14 +25,11 @@
 package org.praisenter.bible;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
@@ -48,51 +45,71 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.InvalidFormatException;
-import org.praisenter.NoContentException;
 import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+/**
+ * A bible importer for the OpenSong bible format.
+ * @author William Bittle
+ * @version 3.0.0
+ * @since 3.0.0
+ */
 public final class OpenSongBibleImporter extends AbstractBibleImporter implements BibleImporter {
 	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private static final String SOURCE = "http://www.opensong.org/";
+	/** The source */
+	private static final String SOURCE = "OpenSong (http://www.opensong.org/)";
 	
+	/** The number of old testament books */
 	private static final int O_BOOK_COUNT = 39;
-	private static final int N_BOOK_COUNT = O_BOOK_COUNT + 27;
-	private static final int A_BOOK_COUNT = N_BOOK_COUNT + 20;
 	
+	/** The starting number of new testament books */
+	private static final int N_BOOK_COUNT = O_BOOK_COUNT + 27;
+	
+	// imported data
+	
+	/** The bible */
 	private Bible bible;
 	
+	/** The books */
 	private List<Book> books;
 	
 	/** The list of verses */
 	private List<Verse> verses;
 
-	// temp
+	// temp data
 	
+	/** The bible name */
 	private String name;
-	
+
+	/** True if the bible has apocryphal books */
 	private boolean hasApocrypha;
 	
+	/** True if the bible had import warnings */
 	private boolean hadImportWarning;
-	
+
+	/** The book number */
 	private int bookNumber;
+	
+	/** The book code */
 	private String bookCode;
 	
+	/** The chapter number */
 	private int chapter;
 	
+	/** The verse number */
 	private int verse;
-	private int verseTo;
 	
+	/** The verse order */
 	private int order;
+	
+	/** The verse range */
+	private int verseTo;
 	
 	/** Buffer for tag contents */
 	private StringBuilder dataBuilder;
-	
-	
 	
 	/**
 	 * Minimal constructor.
@@ -168,6 +185,10 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 		}
 	}
 	
+	/**
+	 * Resets this imported to default values to prepare to import another
+	 * file.
+	 */
 	private void reset() {
 		this.bible = null;
 		this.books = new ArrayList<Book>();
@@ -185,6 +206,12 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 		this.dataBuilder = null;
 	}
 	
+	/**
+	 * Attempts to parse the given input stream into the internal bible format.
+	 * @param stream the input stream
+	 * @throws IOException if an IO error occurs
+	 * @throws InvalidFormatException if the stream was not in the expected format
+	 */
 	private void parse(InputStream stream) throws IOException, InvalidFormatException {
 		try {
 			byte[] content = read(stream);
@@ -197,6 +224,13 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 		}
 	}
 	
+	/**
+	 * Inserts the current bible information into the database.
+	 * @param name the file name
+	 * @return {@link Bible}
+	 * @throws SQLException if an error occurs during import
+	 * @throws BibleAlreadyExistsException if the bible already exists in the bible library
+	 */
 	private Bible insert(String name) throws SQLException, BibleAlreadyExistsException {
 		// check for missing files
 		if (books.size() == 0 && verses.size() == 0) {
@@ -210,6 +244,12 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 		return this.insert(bible, books, verses);
 	}
 	
+	/**
+	 * Returns a generated book code based on the book number and testament based on
+	 * the format that The Unbound Bible uses.
+	 * @param number the book number
+	 * @return String
+	 */
 	private String getBookCode(int number) {
 		if (number <= O_BOOK_COUNT) {
 			return (number < 10 ? "0" : "") + number + "O";
@@ -221,7 +261,16 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 		}
 	}
 	
-	private class SaxParser extends DefaultHandler {
+	/**
+	 * A SAX parser for the OpenSong Bible format.
+	 * @author William Bittle
+	 * @version 3.0.0
+	 * @since 3.0.0
+	 */
+	private final class SaxParser extends DefaultHandler {
+		/* (non-Javadoc)
+		 * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String, java.lang.String, java.lang.String, org.xml.sax.Attributes)
+		 */
 		@Override
 		public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 			// inspect the tag name
@@ -270,6 +319,9 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 			}
 		}
 
+		/* (non-Javadoc)
+		 * @see org.xml.sax.helpers.DefaultHandler#characters(char[], int, int)
+		 */
 		@Override
 		public void characters(char[] ch, int start, int length) throws SAXException {
 			// this method can be called a number of times for the contents of a tag
@@ -282,6 +334,9 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 			dataBuilder.append(s);
 		}
 		
+		/* (non-Javadoc)
+		 * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String, java.lang.String, java.lang.String)
+		 */
 		@Override
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			if ("v".equalsIgnoreCase(qName)) {

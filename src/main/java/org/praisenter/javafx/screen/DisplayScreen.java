@@ -59,7 +59,7 @@ public final class DisplayScreen {
 		this.stage.setResizable(false);
 		
 		// prevent the user from closing or hiding the window
-		// FEATURE at some point we need to come up with a way for the sub windows to not be seen
+		// JAVABUG 06/30/16 at some point we need to come up with a way for the sub windows to not be seen; JavaFX does not have a facility for this at this time
 		// for now we have to create these with no owner because once another window/stage owns these
 		// focusing the owner also brings these windows to the foreground...
 		EventHandler<WindowEvent> block = (WindowEvent e) -> {

@@ -36,6 +36,7 @@ import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
+import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
 
 /**
@@ -81,11 +82,20 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	/** True if text should be wrapped */
 	@XmlElement(name = "textWrapping", required = false)
 	boolean textWrapping;
+
+	/** The text shadow */
+	@XmlElement(name = "shadow", required = false)
+	SlideShadow textShadow;
+
+	/** The text glow */
+	@XmlElement(name = "glow", required = false)
+	SlideShadow textGlow;
 	
 	/**
 	 * Default constructor.
 	 */
 	public AbstractTextComponent() {
+		super();
 		this.fontScaleType = FontScaleType.NONE;
 		this.font = null;
 		this.verticalTextAlignment = VerticalTextAlignment.TOP;
@@ -93,6 +103,8 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 		this.padding = new SlidePadding();
 		this.lineSpacing = 0;
 		this.textWrapping = true;
+		this.textShadow = null;
+		this.textGlow = null;
 	}
 	
 	/**
@@ -112,6 +124,8 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 		to.setPadding(this.padding);
 		to.setLineSpacing(this.lineSpacing);
 		to.setTextWrapping(this.textWrapping);
+		to.setTextShadow(this.textShadow);
+		to.setTextGlow(this.textGlow);
 	}
 	
 	/* (non-Javadoc)
@@ -274,5 +288,37 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	@Override
 	public void setTextWrapping(boolean flag) {
 		this.textWrapping = flag;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.text.TextComponent#getTextShadow()
+	 */
+	@Override
+	public SlideShadow getTextShadow() {
+		return this.textShadow;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.text.TextComponent#setTextShadow(org.praisenter.slide.graphics.SlideShadow)
+	 */
+	@Override
+	public void setTextShadow(SlideShadow shadow) {
+		this.textShadow = shadow;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.text.TextComponent#getTextGlow()
+	 */
+	@Override
+	public SlideShadow getTextGlow() {
+		return this.textGlow;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.text.TextComponent#setTextGlow(org.praisenter.slide.graphics.SlideShadow)
+	 */
+	@Override
+	public void setTextGlow(SlideShadow glow) {
+		this.textGlow = glow;
 	}
 }

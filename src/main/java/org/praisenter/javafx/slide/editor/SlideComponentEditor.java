@@ -1,6 +1,7 @@
 package org.praisenter.javafx.slide.editor;
 
 import java.text.SimpleDateFormat;
+import java.util.stream.Collectors;
 
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.control.SegmentedButton;
@@ -16,6 +17,7 @@ import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.OpenIconic;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlidePadding;
@@ -29,11 +31,13 @@ import org.praisenter.slide.text.VerticalTextAlignment;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -56,6 +60,7 @@ final class SlideComponentEditor extends GridPane {
 	
 	// data
 	
+	// FIXME we probably want to reuse this class for the slide itself as well
 	final ObjectProperty<ObservableSlideComponent<?>> component = new SimpleObjectProperty<ObservableSlideComponent<?>>();
 	
 	boolean updating = false;
@@ -65,6 +70,9 @@ final class SlideComponentEditor extends GridPane {
 	// base component
 	final SlidePaintPicker pkrBackground;
 	final SlideStrokePicker pkrBorder;
+	final Slider sldOpacity;
+	final SlideShadowPicker pkrShadow;
+	final SlideShadowPicker pkrGlow;
 	final Button btnMoveUp;
 	final Button btnMoveDown;
 	
@@ -81,12 +89,13 @@ final class SlideComponentEditor extends GridPane {
 	final Spinner<Double> spnPadding;
 	final Spinner<Double> spnLineSpacing;
 	final ToggleButton tglTextWrapping;
+	final SlideShadowPicker pkrTextShadow;
+	final SlideShadowPicker pkrTextGlow;
 	
 	// basic text component
 	final TextArea txtText;
 	
 	// date-time component
-	// FEATURE allow custom formats
 	final TextField txtDateFormat;
 	final ChoiceBox<Option<SimpleDateFormat>> cmbDateTimeFormat;
 	
@@ -148,9 +157,18 @@ final class SlideComponentEditor extends GridPane {
 		Label lblBorder = new Label("Border");
 		this.pkrBorder = new SlideStrokePicker(context, true);
 		this.pkrBorder.setValue(null);
+		Label lblOpacity = new Label("Opacity");
+		this.sldOpacity = new Slider(0.0, 1.0, 1.0);
+		this.sldOpacity.setPrefWidth(75);
+		this.sldOpacity.setMaxWidth(75);
+		Label lblShadow = new Label("Shadow");
+		this.pkrShadow = new SlideShadowPicker();
+		Label lblGlow = new Label("Glow");
+		this.pkrGlow = new SlideShadowPicker();
+		
 		// ordering
-		this.btnMoveUp = new Button("", FONT_ICONIC.create(OpenIconic.Glyph.COLLAPSE_UP));
-		this.btnMoveDown = new Button("", FONT_ICONIC.create(OpenIconic.Glyph.COLLAPSE_DOWN));
+		this.btnMoveUp = new Button("", FONT_ICONIC.create(OpenIconic.Glyph.DATA_TRANSFER_UPLOAD));
+		this.btnMoveDown = new Button("", FONT_ICONIC.create(OpenIconic.Glyph.DATA_TRANSFER_DOWNLOAD));
 		
 		// media component
 		// media
@@ -177,10 +195,10 @@ final class SlideComponentEditor extends GridPane {
 		Label lblFont = new Label("Font");
 		this.pkrFont = new SlideFontPicker(FXCollections.observableArrayList(Font.getFamilies()));
 		// h-align
-		ToggleButton tglLeft = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.ALIGN_LEFT));
-		ToggleButton tglRight = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.ALIGN_RIGHT));
-		ToggleButton tglCenter = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.ALIGN_CENTER));
-		ToggleButton tglJustify = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.JUSTIFY_LEFT));
+		ToggleButton tglLeft = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_LEFT));
+		ToggleButton tglRight = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_RIGHT));
+		ToggleButton tglCenter = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_CENTER));
+		ToggleButton tglJustify = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_JUSTIFY));
 		tglLeft.setSelected(true);
 		tglLeft.setUserData(HorizontalTextAlignment.LEFT);
 		tglRight.setUserData(HorizontalTextAlignment.RIGHT);
@@ -225,6 +243,11 @@ final class SlideComponentEditor extends GridPane {
 		this.spnLineSpacing.editorProperty().get().textProperty().addListener((obs, ov, nv) -> {
 			spnLineSpacing.editorProperty().get().commitValue();
 		});
+		
+		Label lblTextShadow = new Label("Text Shadow");
+		this.pkrTextShadow = new SlideShadowPicker();
+		Label lblTextGlow = new Label("Text Glow");
+		this.pkrTextGlow = new SlideShadowPicker();
 		
 		// basic text component
 		// text
@@ -283,6 +306,10 @@ final class SlideComponentEditor extends GridPane {
 			spnPadding,
 			lblLineSpacing,
 			spnLineSpacing,
+			lblTextShadow,
+			pkrTextShadow,
+			lblTextGlow,
+			pkrTextGlow,
 			// basic text
 			lblText,
 			txtText,
@@ -315,14 +342,26 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.add(lblBorder, 0, 2);
 		this.add(pkrBorder, 1, 2);
+		
+		this.add(lblOpacity, 0, 3);
+		this.add(sldOpacity, 1, 3);
 
-		final int sy = 3;
+		this.add(lblShadow, 0, 4);
+		this.add(pkrShadow, 1, 4);
+		
+		this.add(lblGlow, 0, 5);
+		this.add(pkrGlow, 1, 5);
+		
+		final int sy = 6;
 		
 		this.component.addListener((obs, ov, nv) -> {
 			updating = true;
 			this.getChildren().removeAll(all);
 			pkrBackground.setValue(nv.getBackground());
 			pkrBorder.setValue(nv.getBorder());
+			sldOpacity.setValue(nv.getOpacity());
+			pkrShadow.setValue(nv.getShadow());
+			pkrGlow.setValue(nv.getGlow());
 			if (nv instanceof ObservableMediaComponent) {
 				ObservableMediaComponent omc = (ObservableMediaComponent)nv;
 				// add controls
@@ -346,6 +385,10 @@ final class SlideComponentEditor extends GridPane {
 				this.add(spnPadding, 1, sy + 5);
 				this.add(lblLineSpacing, 0, sy + 6);
 				this.add(spnLineSpacing, 1, sy + 6);
+				this.add(lblTextShadow, 0, sy + 7);
+				this.add(pkrTextShadow, 1, sy + 7);
+				this.add(lblTextGlow, 0, sy + 8);
+				this.add(pkrTextGlow, 1, sy + 8);
 				// set values
 				this.pkrTextPaint.setValue(otc.getTextPaint());
 				this.pkrTextBorder.setValue(otc.getTextBorder());
@@ -379,22 +422,24 @@ final class SlideComponentEditor extends GridPane {
 				this.spnPadding.getValueFactory().setValue(otc.getPadding().getTop());
 				this.spnLineSpacing.getValueFactory().setValue(otc.getLineSpacing()); 
 				this.tglTextWrapping.setSelected(otc.isTextWrapping());
+				this.pkrTextShadow.setValue(otc.getTextShadow());
+				this.pkrTextGlow.setValue(otc.getTextGlow());
 				
 				if (nv instanceof ObservableDateTimeComponent) {
 					ObservableDateTimeComponent odtc = (ObservableDateTimeComponent)nv;
 					
-					this.add(lblFormat, 0, sy + 7);
-					this.add(hbDateFormat, 1, sy + 7);
+					this.add(lblFormat, 0, sy + 9);
+					this.add(hbDateFormat, 1, sy + 9);
 					
 					this.cmbDateTimeFormat.setValue(new Option<SimpleDateFormat>(null, odtc.getFormat()));
 					this.txtDateFormat.setText(odtc.getFormat().toPattern());
 				} else if (nv instanceof ObservableCountdownComponent) {
 					ObservableCountdownComponent ocdc = (ObservableCountdownComponent)nv;
 					
-					this.add(lblCountdownTime, 0, sy + 7);
-					this.add(pkrCountdownTime, 1, sy + 7);
-					this.add(lblCountdownFormat, 0, sy + 8);
-					this.add(hbCountdownFormat, 1, sy + 8);
+					this.add(lblCountdownTime, 0, sy + 9);
+					this.add(pkrCountdownTime, 1, sy + 9);
+					this.add(lblCountdownFormat, 0, sy + 10);
+					this.add(hbCountdownFormat, 1, sy + 10);
 					
 					this.pkrCountdownTime.setValue(ocdc.getTarget());
 					this.cbCountdownFormat.setValue(new Option<String>(null, ocdc.getFormat()));
@@ -402,10 +447,10 @@ final class SlideComponentEditor extends GridPane {
 				} else if (nv instanceof ObservableTextPlaceholderComponent) {
 					ObservableTextPlaceholderComponent otpc = (ObservableTextPlaceholderComponent)nv;
 					
-					this.add(lblPlaceholderType, 0, sy + 7);
-					this.add(cmbPlaceholderType, 1, sy + 7);
-					this.add(lblPlaceholderVariants, 0, sy + 8);
-					this.add(cmbPlaceholderVariants, 1, sy + 8);
+					this.add(lblPlaceholderType, 0, sy + 9);
+					this.add(cmbPlaceholderType, 1, sy + 9);
+					this.add(lblPlaceholderVariants, 0, sy + 10);
+					this.add(cmbPlaceholderVariants, 1, sy + 10);
 					
 					this.cmbPlaceholderType.setValue(new Option<PlaceholderType>(null, otpc.getPlaceholderType()));
 					this.cmbPlaceholderVariants.getCheckModel().clearChecks();
@@ -415,8 +460,8 @@ final class SlideComponentEditor extends GridPane {
 				} else if (nv instanceof ObservableBasicTextComponent) {
 					ObservableBasicTextComponent<?> obtc = (ObservableBasicTextComponent<?>)nv;
 					
-					this.add(lblText, 0, sy + 7);
-					this.add(txtText, 1, sy + 7);
+					this.add(lblText, 0, sy + 9);
+					this.add(txtText, 1, sy + 9);
 					
 					this.txtText.setText(obtc.getText());
 				}
@@ -439,6 +484,30 @@ final class SlideComponentEditor extends GridPane {
 			ObservableSlideComponent<?> component = this.component.get();
 			if (component != null) {
 				component.setBorder(nv);
+			}
+		});
+		
+		this.sldOpacity.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null) {
+				component.setOpacity(nv.doubleValue());
+			}
+		});
+		
+		this.pkrShadow.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null) {
+				component.setShadow(nv);
+			}
+		});
+		
+		this.pkrGlow.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null) {
+				component.setGlow(nv);
 			}
 		});
 		
@@ -576,6 +645,24 @@ final class SlideComponentEditor extends GridPane {
 			}
 		});
 		
+		this.pkrTextShadow.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				tc.setTextShadow(nv);
+			}
+		});
+		
+		this.pkrTextGlow.valueProperty().addListener((obs, ov, nv) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				tc.setTextGlow(nv);
+			}
+		});
+		
 		this.cmbDateTimeFormat.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
 			ObservableSlideComponent<?> component = this.component.get();
@@ -646,7 +733,15 @@ final class SlideComponentEditor extends GridPane {
 			}
 		});
 		
-		// TODO placeholder variants
+		this.cmbPlaceholderVariants.checkModelProperty().get().getCheckedItems().addListener((javafx.collections.ListChangeListener.Change<? extends Option<PlaceholderVariant>> change) -> {
+			if (updating) return;
+			ObservableSlideComponent<?> component = this.component.get();
+			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
+				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
+				tc.getVariants().clear();
+				tc.getVariants().addAll(change.getList().stream().map((o) -> o.getValue()).collect(Collectors.toList()).toArray(new PlaceholderVariant[0]));
+			}
+		});
 	}
 	
 	public ObservableSlideComponent<?> getComponent() {

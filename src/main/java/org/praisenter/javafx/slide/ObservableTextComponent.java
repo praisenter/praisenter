@@ -3,11 +3,10 @@ package org.praisenter.javafx.slide;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.javafx.utility.TextMeasurer;
-import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
+import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
@@ -21,18 +20,22 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.InnerShadow;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 
-// FIXME right/center/justify alignment bugs  https://bugs.openjdk.java.net/browse/JDK-8145496 -- http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8145496
+// JAVABUG 06/30/16 right/center/justify alignment bugs  https://bugs.openjdk.java.net/browse/JDK-8145496 -- http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8145496
 
-public abstract class ObservableTextComponent<T extends TextComponent> extends ObservableSlideComponent<T> implements SlideRegion, SlideComponent, TextComponent {
+public abstract class ObservableTextComponent<T extends TextComponent> extends ObservableSlideComponent<T> {
 
 	// editable
 	
+	final StringProperty text = new SimpleStringProperty("");  // NOTE: this should be static text for the most part
 	final ObjectProperty<SlidePaint> textPaint = new SimpleObjectProperty<SlidePaint>();
 	final ObjectProperty<SlideStroke> textBorder = new SimpleObjectProperty<SlideStroke>();
 	final ObjectProperty<SlideFont> font = new SimpleObjectProperty<SlideFont>();
@@ -42,7 +45,9 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	final ObjectProperty<SlidePadding> padding = new SimpleObjectProperty<SlidePadding>();
 	final DoubleProperty lineSpacing = new SimpleDoubleProperty();
 	final BooleanProperty textWrapping = new SimpleBooleanProperty();
-
+	final ObjectProperty<SlideShadow> textShadow = new SimpleObjectProperty<SlideShadow>();
+	final ObjectProperty<SlideShadow> textGlow = new SimpleObjectProperty<SlideShadow>();
+	
 	// nodes
 	
 	final VBox textWrapper;
@@ -52,6 +57,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		super(component, context, mode);
 		
 		// set initial values
+		this.text.set(component.getText());
 		this.textPaint.set(component.getTextPaint());
 		this.textBorder.set(component.getTextBorder());
 		this.font.set(component.getFont());
@@ -61,6 +67,8 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		this.padding.set(component.getPadding());
 		this.lineSpacing.set(component.getLineSpacing());
 		this.textWrapping.set(component.isTextWrapping());
+		this.textShadow.set(component.getShadow());
+		this.textGlow.set(component.getGlow());
 		
 		this.textWrapper = new VBox();
 		this.textNode = new Text();
@@ -68,6 +76,10 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		this.textWrapper.getChildren().add(this.textNode);
 		
 		// listen for changes
+		this.text.addListener((obs, ov, nv) -> { 
+			this.region.setText(nv); 
+			updateText();
+		});
 		this.textPaint.addListener((obs, ov, nv) -> { 
 			this.region.setTextPaint(nv);
 			updateTextPaint();
@@ -104,6 +116,14 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 			this.region.setTextWrapping(nv);
 			this.updateFont();
 		});
+		this.textShadow.addListener((obs, ov, nv) -> {
+			this.region.setTextShadow(nv);
+			updateTextEffects();
+		});
+		this.textGlow.addListener((obs, ov, nv) -> {
+			this.region.setTextGlow(nv);
+			updateTextEffects();
+		});
 	}
 
 	void build() {
@@ -112,6 +132,8 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		updateAlignment();
 		
 		super.build(this.textWrapper);
+		
+		updateText();
 	}
 	
 	void updateTextBorder() {
@@ -191,7 +213,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		FontScaleType scaleType = this.fontScaleType.get();
 		double lineSpacing = this.lineSpacing.get();
 		
-		String str = getText();
+		String str = this.text.get();
 		
 		// compute a fitting font, if necessary
 		Font base = JavaFXTypeConverter.toJavaFX(this.font.get());
@@ -214,14 +236,44 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		this.textNode.setLineSpacing(lineSpacing);
 	}
 	
+	void updateText() {
+		this.textNode.setText(this.text.get());
+		// only update the font size 
+		if (this.fontScaleType.get() != FontScaleType.NONE) {
+			this.updateFont();
+		}
+	}
+	
+	void updateTextEffects() {
+		EffectBuilder builder = EffectBuilder.create();
+		Effect shadow = JavaFXTypeConverter.toJavaFX(this.textShadow.get());
+		Effect glow = JavaFXTypeConverter.toJavaFX(this.textGlow.get());
+		builder.add(shadow, shadow != null && shadow instanceof InnerShadow ? 10 : 30);
+		builder.add(glow, glow != null && glow instanceof InnerShadow ? 20 : 40);
+		Effect effect = builder.build();
+		this.textNode.setEffect(effect);
+	}
+	
+	// text
+	
+	public String getText() {
+		return this.text.get();
+	}
+	
+	public void setText(String text) {
+		this.text.set(text);
+	}
+	
+	public StringProperty textProperty() {
+		return this.text;
+	}
+	
 	// text paint
 	
-	@Override
 	public SlidePaint getTextPaint() {
 		return this.textPaint.get();
 	}
 	
-	@Override
 	public void setTextPaint(SlidePaint paint) {
 		this.textPaint.set(paint);
 	}
@@ -232,12 +284,10 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	
 	// text border
 	
-	@Override
 	public SlideStroke getTextBorder() {
 		return this.textBorder.get();
 	}
 	
-	@Override
 	public void setTextBorder(SlideStroke border) {
 		this.textBorder.set(border);
 	}
@@ -248,12 +298,10 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	
 	// font
 	
-	@Override
 	public SlideFont getFont() {
 		return this.font.get();
 	}
 	
-	@Override
 	public void setFont(SlideFont font) {
 		this.font.set(font);
 	}
@@ -264,12 +312,10 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	
 	// horizontal alignment
 	
-	@Override
 	public HorizontalTextAlignment getHorizontalTextAlignment() {
 		return this.horizontalTextAlignment.get();
 	}
 	
-	@Override
 	public void setHorizontalTextAlignment(HorizontalTextAlignment alignment) {
 		this.horizontalTextAlignment.set(alignment);
 	}
@@ -280,12 +326,10 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 
 	// vertical alignment
 	
-	@Override
 	public VerticalTextAlignment getVerticalTextAlignment() {
 		return this.verticalTextAlignment.get();
 	}
 	
-	@Override
 	public void setVerticalTextAlignment(VerticalTextAlignment alignment) {
 		this.verticalTextAlignment.set(alignment);
 	}
@@ -296,12 +340,10 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 
 	// font scale type
 	
-	@Override
 	public FontScaleType getFontScaleType() {
 		return this.fontScaleType.get();
 	}
 	
-	@Override
 	public void setFontScaleType(FontScaleType scaleType) {
 		this.fontScaleType.set(scaleType);
 	}
@@ -312,12 +354,10 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 
 	// padding
 	
-	@Override
 	public SlidePadding getPadding() {
 		return this.padding.get();
 	}
 	
-	@Override
 	public void setPadding(SlidePadding padding) {
 		this.padding.set(padding);
 	}
@@ -328,12 +368,10 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 
 	// line spacing
 	
-	@Override
 	public double getLineSpacing() {
 		return this.lineSpacing.get();
 	}
 	
-	@Override
 	public void setLineSpacing(double lineSpacing) {
 		this.lineSpacing.set(lineSpacing);
 	}
@@ -344,12 +382,10 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	
 	// text wrapping
 	
-	@Override
 	public boolean isTextWrapping() {
 		return this.textWrapping.get();
 	}
 	
-	@Override
 	public void setTextWrapping(boolean flag) {
 		this.textWrapping.set(flag);
 	}
@@ -357,4 +393,33 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	public BooleanProperty textWrappingProperty() {
 		return this.textWrapping;
 	}
+
+	// text shadow
+	
+	public SlideShadow getTextShadow() {
+		return this.textShadow.get();
+	}
+	
+	public void setTextShadow(SlideShadow shadow) {
+		this.textShadow.set(shadow);
+	}
+	
+	public ObjectProperty<SlideShadow> textShadowProperty() {
+		return this.textShadow;
+	}
+
+	// text glow
+	
+	public SlideShadow getTextGlow() {
+		return this.textGlow.get();
+	}
+	
+	public void setTextGlow(SlideShadow glow) {
+		this.textGlow.set(glow);
+	}
+	
+	public ObjectProperty<SlideShadow> textGlowProperty() {
+		return this.textGlow;
+	}
+
 }

@@ -1,16 +1,14 @@
 package org.praisenter.javafx.slide;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.MediaComponent;
-import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.object.MediaObject;
 
-public final class ObservableMediaComponent extends ObservableSlideComponent<MediaComponent> implements SlideRegion, SlideComponent {
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+
+public final class ObservableMediaComponent extends ObservableSlideComponent<MediaComponent> {
 
 	final ObjectProperty<MediaObject> media = new SimpleObjectProperty<MediaObject>();
 	
@@ -94,10 +92,5 @@ public final class ObservableMediaComponent extends ObservableSlideComponent<Med
 	
 	public ObjectProperty<MediaObject> mediaProperty() {
 		return this.media;
-	}
-
-	@Override
-	public ObservableMediaComponent copy() {
-		throw new UnsupportedOperationException();
 	}
 }

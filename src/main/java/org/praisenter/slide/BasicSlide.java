@@ -47,6 +47,7 @@ import org.praisenter.ReadonlyIterator;
 import org.praisenter.Tag;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
@@ -73,7 +74,8 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		@XmlElementRef(type = MediaComponent.class),
 		@XmlElementRef(type = BasicTextComponent.class),
 		@XmlElementRef(type = DateTimeComponent.class),
-		@XmlElementRef(type = TextPlaceholderComponent.class)
+		@XmlElementRef(type = TextPlaceholderComponent.class),
+		@XmlElementRef(type = CountdownComponent.class)
 	})
 	@XmlElementWrapper(name = "components", required = false)
 	final List<SlideComponent> components;
