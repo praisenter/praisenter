@@ -37,6 +37,9 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
@@ -253,7 +256,7 @@ public final class Praisenter extends Application {
     			// FIXME remove, this is only for testing
         		context.getWorkers().submit(() -> { 
         			try {
-    					Thread.sleep(60 * 1000);
+    					Thread.sleep(5 * 1000);
     				} catch (Exception e1) {
     					// TODO Auto-generated catch block
     					e1.printStackTrace();
@@ -262,32 +265,43 @@ public final class Praisenter extends Application {
 	    		context.getWorkers().shutdown();
 	    		if (context.getWorkers().getActiveCount() > 0) {
 	    			e.consume();
-	    			// FIXME show dialog with loading
-	    			// FIXME UI is blocked while shutdown occcurs
+	    			// FIXME translate and clean up
 	    			Alert s = new Alert(AlertType.INFORMATION);
-	    			s.setContentText("");
-	    			s.setHeaderText("");
-	    			s.setTitle("");
+	    			s.setHeaderText("Waiting for background processes to finish...");
+	    			s.setTitle("Shutting down...");
+	    			s.getDialogPane().setContent(new ProgressIndicator());
 	    			s.show();
+	    			
 	    			// wait until the executor shuts down
-	    			while (true) {
-		    			try {
-		    				boolean finished = context.getWorkers().awaitTermination(5, TimeUnit.SECONDS);
-		    				if (finished) {
-		    					// all tasks finished so, shutdown
-		    					break;
-		    				}
-						} catch (Exception ex) {
-							Alert alert = Alerts.exception(stage, null, null, "", ex);
-							alert.showAndWait();
-						}
-	    			}
-	    			s.hide();
+	    			Thread t = new Thread(new Runnable() {
+	    				public void run() {
+	    					while (true) {
+	    		    			try {
+	    		    				boolean finished = context.getWorkers().awaitTermination(100, TimeUnit.MILLISECONDS);
+	    		    				if (finished) {
+	    		    					// all tasks finished so, shutdown
+	    		    					break;
+	    		    				}
+	    						} catch (Exception ex) {
+	    							Platform.runLater(() -> {
+	    								Alert alert = Alerts.exception(stage, null, null, "", ex);
+		    							alert.showAndWait();
+	    							});
+	    						}
+	    	    			}
+	    					Platform.runLater(() -> {
+		    					s.hide();
+		    					Platform.exit();
+	    					});
+	    				}
+	    			});
+	    			t.start();
+	    		} else {
+		    		Platform.exit();
 	    		}
+    		} else {
+	    		Platform.exit();
     		}
-    		// this makes sure that all the screens managed elsewhere
-    		// are closed as well
-    		Platform.exit();
     	});
     	stage.show();
     	
