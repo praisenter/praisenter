@@ -25,26 +25,6 @@
 package org.praisenter.javafx;
 
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
-import javafx.animation.Animation;
-import javafx.animation.FadeTransition;
-import javafx.animation.PauseTransition;
-import javafx.animation.SequentialTransition;
-import javafx.application.Application;
-import javafx.application.ConditionalFeature;
-import javafx.application.Platform;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.image.Image;
-import javafx.scene.layout.StackPane;
-import javafx.scene.text.Font;
-import javafx.stage.Stage;
-import javafx.util.Duration;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,9 +37,25 @@ import org.praisenter.javafx.screen.ScreenManager;
 import org.praisenter.resources.OpenIconic;
 import org.praisenter.resources.translations.Translations;
 
+import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.SequentialTransition;
+import javafx.application.Application;
+import javafx.application.ConditionalFeature;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.image.Image;
+import javafx.scene.layout.StackPane;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+
+//FIXME fix the manifest
+//FIXME explore deployment options
+
 // FEATURE use Apache POI to read powerpoint files
-// FIXME fix the manifest
-// TODO explore deployment options
 // FEATURE check out JavaFX styles here https://github.com/JFXtras/jfxtras-styles
 
 /**
@@ -249,53 +245,32 @@ public final class Praisenter extends Application {
     	// NOTE: this should be the only place where this is done, every other window needs to inherit the css from the parent
     	scene.getStylesheets().add(CONFIG.getThemeCss());
     	stage.setScene(scene);
-    	stage.setOnHiding((e) -> {
+    	stage.setOnCloseRequest((e) -> {
     		
     		// this stuff could be null if we blow up before its created
     		if (context != null && context.getWorkers() != null) {
-    			// FIXME remove, this is only for testing
-        		context.getWorkers().submit(() -> { 
-        			try {
-    					Thread.sleep(5 * 1000);
-    				} catch (Exception e1) {
-    					// TODO Auto-generated catch block
-    					e1.printStackTrace();
-    				} 
-        		});
+    			// for testing shutdown waiting
+//        		context.getWorkers().submit(() -> { 
+//        			try {
+//    					Thread.sleep(5 * 1000);
+//    				} catch (Exception e1) {
+//    					e1.printStackTrace();
+//    				} 
+//        		});
 	    		context.getWorkers().shutdown();
-	    		if (context.getWorkers().getActiveCount() > 0) {
+	    		int activeThreads = context.getWorkers().getActiveCount();
+	    		if (activeThreads > 0) {
+	    			LOGGER.info("{} background threads awaiting completion.", activeThreads);
 	    			e.consume();
-	    			// FIXME translate and clean up
-	    			Alert s = new Alert(AlertType.INFORMATION);
-	    			s.setHeaderText("Waiting for background processes to finish...");
-	    			s.setTitle("Shutting down...");
-	    			s.getDialogPane().setContent(new ProgressIndicator());
-	    			s.show();
 	    			
-	    			// wait until the executor shuts down
-	    			Thread t = new Thread(new Runnable() {
-	    				public void run() {
-	    					while (true) {
-	    		    			try {
-	    		    				boolean finished = context.getWorkers().awaitTermination(100, TimeUnit.MILLISECONDS);
-	    		    				if (finished) {
-	    		    					// all tasks finished so, shutdown
-	    		    					break;
-	    		    				}
-	    						} catch (Exception ex) {
-	    							Platform.runLater(() -> {
-	    								Alert alert = Alerts.exception(stage, null, null, "", ex);
-		    							alert.showAndWait();
-	    							});
-	    						}
-	    	    			}
-	    					Platform.runLater(() -> {
-		    					s.hide();
-		    					Platform.exit();
-	    					});
+	    			ShutdownDialog shutdown = new ShutdownDialog(stage, context.getWorkers());
+	    			shutdown.completeProperty().addListener((obs, ov, nv) -> {
+	    				if (nv) {
+	    					LOGGER.info("Shutdown complete. Exiting the platform.");
+	    					Platform.exit();
 	    				}
 	    			});
-	    			t.start();
+	    			shutdown.show();
 	    		} else {
 		    		Platform.exit();
 	    		}

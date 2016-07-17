@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.animation;
 
 import javafx.animation.Transition;
@@ -14,14 +38,32 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.slide.animation.SlideAnimation;
 
+/**
+ * Represents a custom Java FX transition defined by a {@link SlideAnimation}.
+ * @author William Bittle
+ * @version 3.0.0
+ * @since 3.0.0
+ * @param <T> the {@link SlideAnimation} type
+ */
 public abstract class CustomTransition<T extends SlideAnimation> extends Transition {
+	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	/** An empty/degenerate rectangle */
 	private static final Rectangle2D EMPTY_BOUNDS = new Rectangle2D(0, 0, 0, 0);
 	
+	// data
+	
+	/** The animation */
 	final T animation;
+	
+	/** The node */
 	Node node;
 	
+	/**
+	 * Full constructor.
+	 * @param animation the animation configuration
+	 */
 	public CustomTransition(T animation) {
 		if (animation == null) {
 			throw new NullPointerException("The animation parameter is null.");
@@ -33,6 +75,10 @@ public abstract class CustomTransition<T extends SlideAnimation> extends Transit
 		this.setCycleDuration(Duration.millis(Math.max(0, animation.getDuration())));
 	}
 	
+	/**
+	 * Returns a new bounds based on the type of node this transition is attached to.
+	 * @return Rectangle2D
+	 */
 	protected Rectangle2D getBounds() {
 		Rectangle2D bounds = EMPTY_BOUNDS;
 		if (this.node == null) {
@@ -45,6 +91,10 @@ public abstract class CustomTransition<T extends SlideAnimation> extends Transit
 		return bounds;
 	}
 	
+	/**
+	 * Returns a new bounds based on the type of the parent of the node this transition is attached to.
+	 * @return Rectangle2D
+	 */
 	protected Rectangle2D getParentBounds() {
 		Rectangle2D bounds = EMPTY_BOUNDS;
 		if (this.node == null) {
@@ -62,7 +112,12 @@ public abstract class CustomTransition<T extends SlideAnimation> extends Transit
 		return bounds;
 	}
 	
-	private static Rectangle2D getBounds(Node node) {
+	/**
+	 * Returns a new bounds based on the type of node given.
+	 * @param node the node
+	 * @return Rectangle2D
+	 */
+	private final static Rectangle2D getBounds(Node node) {
 		Rectangle2D bounds = EMPTY_BOUNDS;
 		
 		if (node instanceof Region) {
@@ -97,10 +152,18 @@ public abstract class CustomTransition<T extends SlideAnimation> extends Transit
 		return Math.max(Math.min(value, max), min);
 	}
 	
+	/**
+	 * Returns the node being animated.
+	 * @return Node
+	 */
 	public Node getNode() {
 		return this.node;
 	}
 
+	/**
+	 * Sets the node to be animated.
+	 * @param node the node
+	 */
 	public void setNode(Node node) {
 		this.node = node;
 	}

@@ -24,7 +24,9 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 		this.placeholderType.set(component.getType());
 		this.variants.addAll(component.getVariants());
 		
-		if (this.mode == SlideMode.EDIT) {
+		if (this.mode == SlideMode.EDIT ||
+			this.mode == SlideMode.PREVIEW ||
+			this.mode == SlideMode.SNAPSHOT) {
 			this.text.set(this.getText());
 		}
 		

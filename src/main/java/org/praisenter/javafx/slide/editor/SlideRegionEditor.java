@@ -15,6 +15,7 @@ import org.praisenter.javafx.slide.ObservableCountdownComponent;
 import org.praisenter.javafx.slide.ObservableDateTimeComponent;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 import org.praisenter.javafx.utility.Fx;
@@ -50,7 +51,7 @@ import javafx.scene.text.Font;
 // TODO translate
 // TODO tooltip help
 
-final class SlideComponentEditor extends GridPane {
+final class SlideRegionEditor extends GridPane {
 
 	/** The openiconic glyph-font pack */
 	private static final GlyphFont FONT_ICONIC	= GlyphFontRegistry.font("Icons");
@@ -60,8 +61,7 @@ final class SlideComponentEditor extends GridPane {
 	
 	// data
 	
-	// FIXME we probably want to reuse this class for the slide itself as well
-	final ObjectProperty<ObservableSlideComponent<?>> component = new SimpleObjectProperty<ObservableSlideComponent<?>>();
+	final ObjectProperty<ObservableSlideRegion<?>> component = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 	
 	boolean updating = false;
 	
@@ -108,7 +108,7 @@ final class SlideComponentEditor extends GridPane {
 	final ChoiceBox<Option<PlaceholderType>> cmbPlaceholderType;
 	final CheckComboBox<Option<PlaceholderVariant>> cmbPlaceholderVariants;
 	
-	public SlideComponentEditor(PraisenterContext context) {
+	public SlideRegionEditor(PraisenterContext context) {
 		
 		ObservableList<Option<FontScaleType>> fontScaleTypes = FXCollections.observableArrayList();
 		fontScaleTypes.add(new Option<FontScaleType>("None", FontScaleType.NONE));
@@ -337,6 +337,8 @@ final class SlideComponentEditor extends GridPane {
 		this.add(lblDepth, 0, 0);
 		this.add(hbDepth, 1, 0);
 		
+		// FIXME for the slide itself, we need to hide the up/down buttons and probably limit glow and shadow to inner?
+		
 		this.add(lblBackground, 0, 1);
 		this.add(pkrBackground, 1, 1);
 		
@@ -473,7 +475,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.pkrBackground.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null) {
 				component.setBackground(nv);
 			}
@@ -481,7 +483,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.pkrBorder.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null) {
 				component.setBorder(nv);
 			}
@@ -489,7 +491,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.sldOpacity.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null) {
 				component.setOpacity(nv.doubleValue());
 			}
@@ -497,7 +499,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.pkrShadow.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null) {
 				component.setShadow(nv);
 			}
@@ -505,28 +507,30 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.pkrGlow.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null) {
 				component.setGlow(nv);
 			}
 		});
 		
 		this.btnMoveUp.setOnAction((e) -> {
-			ObservableSlideComponent<?> component = this.component.get();
-			if (component != null) {
-				fireEvent(new SlideComponentOrderEvent(this.btnMoveUp, SlideComponentEditor.this, component, SlideComponentOrderEvent.OPERATION_FORWARD));
+			ObservableSlideRegion<?> component = this.component.get();
+			if (component != null && component instanceof ObservableSlideComponent) {
+				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)component;
+				fireEvent(new SlideComponentOrderEvent(this.btnMoveUp, SlideRegionEditor.this, osc, SlideComponentOrderEvent.OPERATION_FORWARD));
 			}
 		});
 		this.btnMoveDown.setOnAction((e) -> {
-			ObservableSlideComponent<?> component = this.component.get();
-			if (component != null) {
-				fireEvent(new SlideComponentOrderEvent(this.btnMoveDown, SlideComponentEditor.this, component, SlideComponentOrderEvent.OPERATION_BACKWARD));
+			ObservableSlideRegion<?> component = this.component.get();
+			if (component != null && component instanceof ObservableSlideComponent) {
+				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)component;
+				fireEvent(new SlideComponentOrderEvent(this.btnMoveDown, SlideRegionEditor.this, osc, SlideComponentOrderEvent.OPERATION_BACKWARD));
 			}
 		});
 		
 		this.pkrMedia.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableMediaComponent) {
 				ObservableMediaComponent mc =(ObservableMediaComponent)component;
 				if (nv == null || nv instanceof MediaObject) {
@@ -539,7 +543,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.pkrTextPaint.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setTextPaint(nv);
@@ -548,7 +552,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.pkrTextBorder.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setTextBorder(nv);
@@ -557,7 +561,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.pkrFont.fontProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setFont(nv);
@@ -566,7 +570,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.segHorizontalAlignment.getToggleGroup().selectedToggleProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				Object value = nv != null ? nv.getUserData() : null;
@@ -584,7 +588,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.segVerticalAlignment.getToggleGroup().selectedToggleProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				Object value = nv != null ? nv.getUserData() : null;
@@ -602,7 +606,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.cmbFontScaling.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setFontScaleType(nv.getValue());
@@ -611,7 +615,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.spnPadding.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setPadding(new SlidePadding(nv.doubleValue()));
@@ -620,7 +624,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.spnLineSpacing.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setLineSpacing(nv);
@@ -629,7 +633,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.tglTextWrapping.selectedProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setTextWrapping(nv);
@@ -638,7 +642,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.txtText.setOnKeyReleased((e) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableBasicTextComponent) {
 				ObservableBasicTextComponent<?> tc = (ObservableBasicTextComponent<?>)component;
 				tc.setText(txtText.getText());
@@ -647,7 +651,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.pkrTextShadow.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setTextShadow(nv);
@@ -656,7 +660,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.pkrTextGlow.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setTextGlow(nv);
@@ -665,7 +669,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.cmbDateTimeFormat.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableDateTimeComponent) {
 				ObservableDateTimeComponent tc = (ObservableDateTimeComponent)component;
 				if (nv != null) {
@@ -679,7 +683,7 @@ final class SlideComponentEditor extends GridPane {
 
 		this.txtDateFormat.textProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableDateTimeComponent) {
 				ObservableDateTimeComponent tc = (ObservableDateTimeComponent)component;
 				try {
@@ -693,7 +697,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.pkrCountdownTime.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableCountdownComponent) {
 				ObservableCountdownComponent cdc =(ObservableCountdownComponent)component;
 				cdc.setTarget(nv);
@@ -702,7 +706,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.txtCountdownFormat.textProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableCountdownComponent) {
 				ObservableCountdownComponent cdc =(ObservableCountdownComponent)component;
 				cdc.setFormat(nv);
@@ -712,7 +716,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.cbCountdownFormat.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableCountdownComponent) {
 				ObservableCountdownComponent cdc =(ObservableCountdownComponent)component;
 				if (nv != null) {
@@ -726,7 +730,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.cmbPlaceholderType.valueProperty().addListener((obs, ov, nv) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
 				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
 				tc.setPlaceholderType(nv.getValue());
@@ -735,7 +739,7 @@ final class SlideComponentEditor extends GridPane {
 		
 		this.cmbPlaceholderVariants.checkModelProperty().get().getCheckedItems().addListener((javafx.collections.ListChangeListener.Change<? extends Option<PlaceholderVariant>> change) -> {
 			if (updating) return;
-			ObservableSlideComponent<?> component = this.component.get();
+			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
 				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
 				tc.getVariants().clear();
@@ -744,15 +748,15 @@ final class SlideComponentEditor extends GridPane {
 		});
 	}
 	
-	public ObservableSlideComponent<?> getComponent() {
+	public ObservableSlideRegion<?> getComponent() {
 		return this.component.get();
 	}
 	
-	public void setComponent(ObservableSlideComponent<?> component) {
+	public void setComponent(ObservableSlideRegion<?> component) {
 		this.component.set(component);
 	}
 	
-	public ObjectProperty<ObservableSlideComponent<?>> componentProperty() {
+	public ObjectProperty<ObservableSlideRegion<?>> componentProperty() {
 		return this.component;
 	}
 }

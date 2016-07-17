@@ -1,5 +1,6 @@
 package org.praisenter.javafx.slide.editor;
 
+import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.Scaling;
 
@@ -66,37 +67,43 @@ class SlideRegionDraggedEventHandler implements EventHandler<MouseEvent> {
 			int dxi = (int)Math.floor(dx * sf);
 			int dyi = (int)Math.floor(dy * sf);
 			
+			// FIXME only allow moving if the slide is a notification slide
 			// are we moving the node?
 			if (cursor == Cursor.MOVE) {				
 				// we SET the x/y for accuracy
 				region.setX(x + dxi);
 				region.setY(y + dyi);
-			} else if (cursor == Cursor.E_RESIZE) {
-				region.setWidth(w + dxi);
-			} else if (cursor == Cursor.S_RESIZE) {
-				region.setHeight(h + dyi);
-			} else if (cursor == Cursor.N_RESIZE) {
-				region.setY(y + dyi);
-				region.setHeight(h - dyi);
-			} else if (cursor == Cursor.W_RESIZE) {
-				region.setX(x + dxi);
-				region.setWidth(w - dxi);
-			} else if (cursor == Cursor.SE_RESIZE) {
-				region.setWidth(w + dxi);
-				region.setHeight(h + dyi);
-			} else if (cursor == Cursor.SW_RESIZE) {
-				region.setX(x + dxi);
-				region.setWidth(w - dxi);
-				region.setHeight(h + dyi);
-			} else if (cursor == Cursor.NE_RESIZE) {
-				region.setWidth(w + dxi);
-				region.setY(y + dyi);
-				region.setHeight(h - dyi);
-			} else if (cursor == Cursor.NW_RESIZE) {
-				region.setX(x + dxi);
-				region.setWidth(w - dxi);
-				region.setY(y + dyi);
-				region.setHeight(h - dyi);
+			}
+			
+			// FIXME allow resizing if the slide is a notification slide?
+			if (!(region instanceof ObservableSlide)) {
+				if (cursor == Cursor.E_RESIZE) {
+					region.setWidth(w + dxi);
+				} else if (cursor == Cursor.S_RESIZE) {
+					region.setHeight(h + dyi);
+				} else if (cursor == Cursor.N_RESIZE) {
+					region.setY(y + dyi);
+					region.setHeight(h - dyi);
+				} else if (cursor == Cursor.W_RESIZE) {
+					region.setX(x + dxi);
+					region.setWidth(w - dxi);
+				} else if (cursor == Cursor.SE_RESIZE) {
+					region.setWidth(w + dxi);
+					region.setHeight(h + dyi);
+				} else if (cursor == Cursor.SW_RESIZE) {
+					region.setX(x + dxi);
+					region.setWidth(w - dxi);
+					region.setHeight(h + dyi);
+				} else if (cursor == Cursor.NE_RESIZE) {
+					region.setWidth(w + dxi);
+					region.setY(y + dyi);
+					region.setHeight(h - dyi);
+				} else if (cursor == Cursor.NW_RESIZE) {
+					region.setX(x + dxi);
+					region.setWidth(w - dxi);
+					region.setY(y + dyi);
+					region.setHeight(h - dyi);
+				}
 			}
 			
 			// make sure the cursor stays the same regardless of where
@@ -110,5 +117,8 @@ class SlideRegionDraggedEventHandler implements EventHandler<MouseEvent> {
 			// the default cursor
 			
 		}
+		
+		// don't propagate the event any further
+		event.consume();
 	}
 }

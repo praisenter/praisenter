@@ -5,7 +5,7 @@ import java.util.UUID;
 import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.animation.AnimatedObject;
 import org.praisenter.javafx.animation.AnimatedObjectType;
-import org.praisenter.javafx.animation.AnimationPane;
+import org.praisenter.javafx.animation.AnimationPickerPane;
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Direction;
 import org.praisenter.slide.animation.Swipe;
@@ -29,7 +29,7 @@ public class TestAnimationPicker extends Application {
         
         ObservableSet<AnimatedObject> objects = FXCollections.observableSet(new AnimatedObject(id, AnimatedObjectType.COMPONENT, "test"));
         
-        AnimationPane root = new AnimationPane(objects);
+        AnimationPickerPane root = new AnimationPickerPane(objects);
         
 //        Blinds animation = new Blinds();
 //        Fade animation = new Fade();
@@ -42,7 +42,7 @@ public class TestAnimationPicker extends Application {
         animation.setDirection(Direction.UP);
 //        animation.setOrientation(Orientation.HORIZONTAL);
         animation.setType(AnimationType.IN);
-        root.setAnimation(animation);
+        root.setValue(animation);
         
         Scene scene = new Scene(root);
 //        scene.getStylesheets().add(Praisenter.THEME_CSS);

@@ -22,6 +22,7 @@ import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
 import org.praisenter.slide.graphics.SlideGradientStop;
 import org.praisenter.slide.graphics.SlideLinearGradient;
+import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.graphics.SlideStrokeCap;
@@ -86,7 +87,7 @@ public class TestSlideDisplay extends Application {
 		txt.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
 		txt.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
 		txt.setOrder(0);
-		txt.setPadding(10);
+		txt.setPadding(new SlidePadding(10));
 		txt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
 		txt.setBorder(thick);
 		txt.setTextPaint(radial);

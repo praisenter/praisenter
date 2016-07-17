@@ -1,62 +1,27 @@
 package org.praisenter.javafx.slide.editor;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Observer;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javafx.application.Application;
-import javafx.beans.binding.DoubleBinding;
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Cursor;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
-import javafx.scene.image.Image;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
-import javafx.scene.text.Font;
-import javafx.stage.Stage;
+import javax.imageio.ImageIO;
 
 import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
+import org.praisenter.Tag;
 import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.TagEvent;
 import org.praisenter.javafx.TagListView;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.configuration.Resolution;
@@ -100,6 +65,54 @@ import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.utility.ClasspathLoader;
+import org.praisenter.xml.XmlIO;
+
+import javafx.application.Application;
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.event.EventHandler;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.Cursor;
+import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
+import javafx.scene.image.Image;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.StrokeType;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 // FEATURE grouping of components
 // JAVABUG 06/30/16 text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option
@@ -165,7 +178,7 @@ public final class SlideEditorPane extends Application {
 	
 	ObjectProperty<Resolution> targetResolution = new SimpleObjectProperty<>();
 	
-	ObjectProperty<ObservableSlideComponent<?>> selected = new SimpleObjectProperty<ObservableSlideComponent<?>>();
+	ObjectProperty<ObservableSlideRegion<?>> selected = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 
 	StackPane slidePreview;
 	
@@ -214,7 +227,7 @@ public final class SlideEditorPane extends Application {
 			@Override
 			public void handle(MouseEvent e) {
 				Region region = (Region)e.getSource();
-				if (selected.get() == null || selected.get().getEditPane() != region) {
+				if (selected.get() == null || selected.get().getDisplayPane() != region) {
 					region.setBorder(null);
 				}
 				stage.getScene().setCursor(Cursor.DEFAULT);
@@ -237,13 +250,16 @@ public final class SlideEditorPane extends Application {
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Slide Preview Node hierarchy
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		// BorderPane											This node ensures the size of the wrapper node is resized
+		// BorderPane											This node ensures the size of slidePreview is maximized
 		//	- Pane (slidePreview)								This node is the wrapper for the transparency background and slide node
-		//		- StackPane (slideBounds)						This node shows the tiled transparency image.
-		//		- Pane (slideCanvas)							?
-		//			- StackPane Editable Node					This node is for mouse selection and editing capability.
-		//				- Pane Container						This node applies the scaling transformation
-		//					- Hierarchy of component nodes		All the nodes for the component
+		//		- StackPane (slideBounds)						This node shows the (non-scaled) tiled transparency image.
+		//		- Pane (slideCanvas)							Container for slide (allows scaling to work properly)
+		//			- StackPane (slide editable node)			This observable slide's node
+		//				- Pane (componentCanvas)				This node houses all the component nodes and is used to offset the x/y positions of the components by the slide's x/y position
+		//					- Component 1
+		//					- Component 2
+		//					- Component 3
+		//					...
 		
 		
 		slidePreview = new StackPane();
@@ -326,29 +342,42 @@ public final class SlideEditorPane extends Application {
 			}
 		};
 		
-		Pane rootEditPane = oSlide.getEditPane();
+		StackPane rootEditPane = oSlide.getDisplayPane();
 		slideCanvas.getChildren().add(rootEditPane);
 		oSlide.scalingProperty().bind(scaleFactor);
 		rootEditPane.setOnMouseEntered(entered);
 		rootEditPane.setOnMouseExited(exited);
+		rootEditPane.setOnMouseMoved(hover);
+		SlideRegionDraggedEventHandler slideDragHandler = new SlideRegionDraggedEventHandler(oSlide);
+		rootEditPane.setOnMouseReleased(slideDragHandler);
+		rootEditPane.setOnMouseDragged(slideDragHandler);
+		rootEditPane.addEventHandler(MouseEvent.MOUSE_PRESSED, slideDragHandler);
+		rootEditPane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
+			ObservableSlideRegion<?> temp = selected.get();
+			if (temp != oSlide && temp != null) {
+				temp.getDisplayPane().setBorder(null);
+			}
+			selected.set(oSlide);
+		});
+		
 		// TODO dragging and resizing for the slide itself (when its a notification slide)
 		// FIXME note, this will need to be done when we add components
-		for (ObservableSlideComponent<?> osr : oSlide.getComponents()) {
+		Iterator<ObservableSlideComponent<?>> components = oSlide.componentIterator();
+		while (components.hasNext()) {
+			ObservableSlideComponent<?> osr = components.next();
 			SlideRegionDraggedEventHandler dragHandler = new SlideRegionDraggedEventHandler(osr);
-			Pane pane = osr.getEditPane();
-			slideCanvas.getChildren().add(pane);
+			StackPane pane = osr.getDisplayPane();
 			osr.scalingProperty().bind(scaleFactor);
 			pane.setOnMouseEntered(entered);
 			pane.setOnMouseExited(exited);
-//			pane.setOnMousePressed(dragHandler);
 			pane.setOnMouseReleased(dragHandler);
 			pane.setOnMouseDragged(dragHandler);
 			pane.setOnMouseMoved(hover);
 			pane.addEventHandler(MouseEvent.MOUSE_PRESSED, dragHandler);
 			pane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
-				ObservableSlideComponent<?> temp = selected.get();
+				ObservableSlideRegion<?> temp = selected.get();
 				if (temp != osr && temp != null) {
-					temp.getEditPane().setBorder(null);
+					temp.getDisplayPane().setBorder(null);
 				}
 				selected.set(osr);
 			});
@@ -383,8 +412,14 @@ public final class SlideEditorPane extends Application {
 			// target resolution
 			// TODO replace with PraisenterContext configuration
 			Configuration conf = Configuration.createDefaultConfiguration();
+			ObservableList<Resolution> resolutions = FXCollections.observableArrayList(conf.resolutionsProperty());
 			Label lblResolution = new Label("Target");
-			ComboBox<Resolution> cmbResolutions = new ComboBox<Resolution>(conf.resolutionsProperty());
+			ComboBox<Resolution> cmbResolutions = new ComboBox<Resolution>(new SortedList<>(resolutions, new Comparator<Resolution>() {
+				@Override
+				public int compare(Resolution o1, Resolution o2) {
+					return o1.compareTo(o2);
+				}
+			}));
 			cmbResolutions.valueProperty().bindBidirectional(targetResolution);
 			cmbResolutions.valueProperty().addListener((obs, ov, nv) -> {
 				// when this changes we need to adjust all the sizes of the controls in the slide
@@ -393,6 +428,13 @@ public final class SlideEditorPane extends Application {
 				scaleFactor.invalidate();
 			});
 			Button btnNewResolution = new Button("Add");
+			btnNewResolution.setOnAction((e) -> {
+				Resolution res = new Resolution(2000, 4000);
+				if (conf.resolutionsProperty().add(res)) {
+					resolutions.add(res);
+				}
+				cmbResolutions.setValue(res);
+			});
 			HBox tRes = new HBox();
 			tRes.setSpacing(2);
 			tRes.getChildren().addAll(cmbResolutions, btnNewResolution);
@@ -400,7 +442,52 @@ public final class SlideEditorPane extends Application {
 			grid.add(tRes, 1, 2);
 			
 			TagListView lstTags = new TagListView(FXCollections.observableSet());
+			lstTags.tagsProperty().addAll(oSlide.getTags());
+			lstTags.addEventHandler(TagEvent.ALL, new EventHandler<TagEvent>() {
+				@Override
+				public void handle(TagEvent event) {
+					Tag tag = event.getTag();
+					if (event.getEventType() == TagEvent.ADDED) {
+						oSlide.addTag(tag);
+					} else if (event.getEventType() == TagEvent.REMOVED) {
+						oSlide.removeTag(tag);
+					}
+				}
+	        });
 			grid.add(lstTags, 0, 3, 2, 1);
+			
+			Button btnSave = new Button("save");
+			btnSave.setOnAction((e) -> {
+				// FIXME this should go through the slide library
+				
+				// attempt to take a screenshot of the slide
+				// this must be done on the UI thread
+				{
+					ObservableSlide<?> nSlide = new ObservableSlide<>(slide, context, SlideMode.SNAPSHOT);
+					
+					SnapshotParameters sp = new SnapshotParameters();
+					sp.setFill(Color.TRANSPARENT);
+					
+					Image image = nSlide.getDisplayPane().snapshot(sp, null);
+					
+					try {
+						// this should be done on a background thread
+						ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", new File("C:\\Users\\wbittle\\Desktop\\test.png"));
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+				
+				// this should be done on a background thread
+				try {
+					XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), slide);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			});
+			grid.add(btnSave, 0, 4, 2, 1);
 			
 			TitledPane ttlSlide = new TitledPane("Slide Properties", grid);
 			propertiesPane.getChildren().add(ttlSlide);
@@ -408,8 +495,8 @@ public final class SlideEditorPane extends Application {
 		
 		// slide component editing
 		{
-			SlideComponentEditor se = new SlideComponentEditor(context);
-			se.component.bind(selected);
+			SlideRegionEditor se = new SlideRegionEditor(context);
+			se.componentProperty().bind(selected);
 			
 			se.addEventHandler(SlideComponentEvent.ORDER, (e) -> {
 				ObservableSlideComponent<?> component = e.component;
@@ -422,11 +509,14 @@ public final class SlideEditorPane extends Application {
 				} else if (e.operation == SlideComponentOrderEvent.OPERATION_FORWARD) {
 					oSlide.moveComponentUp(component);
 				}
-				slideCanvas.getChildren().removeAll(oSlide.getEditPanes());
-				slideCanvas.getChildren().addAll(oSlide.getEditPanes());
 			});
 			
 			TitledPane ttlComponent = new TitledPane("Component Properties", se);
+			ttlComponent.managedProperty().bind(ttlComponent.visibleProperty());
+			ttlComponent.setVisible(false);
+			selected.addListener((obs, ov, nv) -> {
+				ttlComponent.setVisible(nv != null);
+			});
 			propertiesPane.getChildren().add(ttlComponent);
 		}
 		

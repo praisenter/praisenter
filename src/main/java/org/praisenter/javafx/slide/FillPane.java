@@ -187,7 +187,9 @@ public final class FillPane extends StackPane {
 				this.scaling = mo.getScaling();
 				
 				// create new image if we are in edit mode or if the media type is image
-				if (this.mode == SlideMode.EDIT || type == MediaType.IMAGE) {
+				if (this.mode == SlideMode.EDIT ||
+					this.mode == SlideMode.SNAPSHOT ||
+					type == MediaType.IMAGE) {
 					this.image = JavaFXTypeConverter.toJavaFXImage(this.context, media);
 					Background background = new Background(new BackgroundImage(
 							this.image, 

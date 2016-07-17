@@ -51,7 +51,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	
 	// edit
 	
-	private final StackPane editPane;
+	protected final StackPane rootPane;
 	
 	// both edit and display
 	
@@ -79,7 +79,9 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.container = new Pane();
 		// this is the magic for it to be fast enough
 		this.container.setCache(true);
-		if (this.mode == SlideMode.EDIT) {
+		if (this.mode == SlideMode.EDIT ||
+			this.mode == SlideMode.MUSICIAN ||
+			this.mode == SlideMode.PREVIEW) {
 			this.container.setCacheHint(CacheHint.SPEED);
 		}
 		this.container.setBackground(null);
@@ -91,7 +93,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.backgroundNode = new FillPane(context, mode);
 		this.backgroundNode.setMouseTransparent(true);
 		
-		this.editPane = new StackPane(this.container);
+		this.rootPane = new StackPane(this.container);
 		
 		// listen for changes
 		this.x.addListener((obs, ov, nv) -> { 
@@ -151,8 +153,8 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		// to slide coordinates transformed into the parent node coordinates
 		Scaling s = this.scale.get();
 		
-		this.editPane.setLayoutX(Math.floor(s.sx + x * s.scale));
-		this.editPane.setLayoutY(Math.floor(s.sy + y * s.scale));
+		this.rootPane.setLayoutX(Math.floor(x * s.scale));
+		this.rootPane.setLayoutY(Math.floor(y * s.scale));
 	}
 	
 	void updateSize() {
@@ -165,7 +167,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.backgroundNode.setSize(w, h);
 		
 		Scaling s = this.scale.get();
-		Fx.setSize(this.editPane, w * s.scale, h * s.scale);
+		Fx.setSize(this.rootPane, w * s.scale, h * s.scale);
 	}
 	
 	void updateBorder() {
@@ -222,8 +224,8 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		}
 	}
 	
-	public StackPane getEditPane() {
-		return this.editPane;
+	public StackPane getDisplayPane() {
+		return this.rootPane;
 	}
 	
 	// playable stuff

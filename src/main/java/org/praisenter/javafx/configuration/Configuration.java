@@ -1,6 +1,5 @@
 package org.praisenter.javafx.configuration;
 
-import java.awt.GraphicsConfigTemplate;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -9,19 +8,10 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -36,6 +26,19 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.xml.XmlIO;
 import org.praisenter.xml.adapters.LocaleXmlAdapter;
+
+import javafx.beans.InvalidationListener;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 
 @XmlRootElement(name = "configuration")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -75,19 +78,24 @@ public final class Configuration {
 	
 	// slide
 	
-	private final ObservableList<Resolution> resolutions = FXCollections.observableArrayList();
+	private final ObservableSet<Resolution> resolutions = FXCollections.observableSet();
 	
 	private final ObjectProperty<Resolution> resolution = new SimpleObjectProperty<Resolution>();
 	
 	public Configuration() {
-		apocryphaIncluded.addListener((e) -> {
+		
+		InvalidationListener listener = (e) -> {
 			try {
 				Configuration.save(this);
 			} catch (Exception ex) {
 				// just log the error
-				LOGGER.error("Failed to save configuration for apocrypha setting", ex);
+				LOGGER.error("Failed to save configuration", ex);
 			}
-		});
+		};
+		
+		apocryphaIncluded.addListener(listener);
+		resolutions.addListener(listener);
+		resolution.addListener(listener);
 	}
 	
 	public static final Configuration load() {
@@ -116,7 +124,7 @@ public final class Configuration {
 		conf.theme = "default";
 		conf.savedLanguage.set(conf.language);
 		conf.savedTheme.set(conf.theme);
-		conf.resolutions.addAll(Resolution.DEFAULT_RESOLUTIONS);
+		conf.resolutions.addAll(Arrays.asList(Resolution.DEFAULT_RESOLUTIONS));
 		
 		Resolution resolution = null;
 		// default screens
@@ -252,11 +260,11 @@ public final class Configuration {
 
 	@XmlElementWrapper(name = "resolutions", required = false)
 	@XmlElement(name = "resolution", required = false)
-	public List<Resolution> getResolutions() {
+	public Set<Resolution> getResolutions() {
 		return this.resolutions;
 	}
 	
-	public ObservableList<Resolution> resolutionsProperty() {
+	public ObservableSet<Resolution> resolutionsProperty() {
 		return this.resolutions;
 	}
 

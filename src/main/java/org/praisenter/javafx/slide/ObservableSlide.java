@@ -2,13 +2,17 @@ package org.praisenter.javafx.slide;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
@@ -26,8 +30,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import javafx.scene.Node;
+import javafx.scene.layout.Pane;
 
 public final class ObservableSlide<T extends Slide> extends ObservableSlideRegion<T> {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -37,11 +41,14 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	private final LongProperty time = new SimpleLongProperty();
 	
 	private final ObservableList<ObservableSlideComponent<?>> components = FXCollections.observableArrayList();
-	private final ObservableList<SlideAnimation> animations = FXCollections.observableArrayList();
-	private final ObservableSet<Tag> tags = FXCollections.observableSet();
+
+	private final Pane componentCanvas;
 	
 	public ObservableSlide(T slide, PraisenterContext context, SlideMode mode) {
 		super(slide, context, mode);
+		
+		this.componentCanvas = new Pane();
+		this.componentCanvas.setMinSize(0, 0);
 		
 		// set initial values
 		this.name.set(slide.getName());
@@ -49,16 +56,11 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.time.set(slide.getTime());
 		
 		for (SlideComponent component : slide.getComponents(SlideComponent.class)) {
-			ObservableSlideComponent<?> comp = this.createObservableFor(component);
+			ObservableSlideComponent<?> comp = this.observableSlideComponent(component);
 			if (comp != null) {
 				this.components.add(comp);
+				this.componentCanvas.getChildren().add(comp.getDisplayPane());
 			}
-		}
-		for (SlideAnimation animation : slide.getAnimations()) {
-			this.animations.add(animation);
-		}
-		for (Tag tag : slide.getTags()) {
-			this.tags.add(tag);
 		}
 		
 		// setup listeners
@@ -72,30 +74,41 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 			slide.setTime(nv.longValue()); 
 		});
 		
-		// FIXME need listeners for list properties
+		this.scale.addListener((obs, ov, nv) -> {
+			rootPane.setTranslateX(nv.sx);
+			rootPane.setTranslateY(nv.sy);
+		});
 		
-		this.build(null);
+		this.build();
 	}
 
-	public void fit(int width, int height) {
-		this.region.fit(width, height);
-		this.x.set(this.region.getX());
-		this.y.set(this.region.getY());
-		this.width.set(this.region.getWidth());
-		this.height.set(this.region.getHeight());
-		updatePosition();
-		updateSize();
-		for (ObservableSlideComponent<?> component : this.components) {
-			component.x.set(component.region.getX());
-			component.y.set(component.region.getY());
-			component.width.set(component.region.getWidth());
-			component.height.set(component.region.getHeight());
-			component.updatePosition();
-			component.updateSize();
-		}
+	void build() {
+		super.build(null);
+		this.rootPane.getChildren().add(this.componentCanvas);
 	}
 	
-	private ObservableSlideComponent<?> createObservableFor(SlideComponent component) {
+	@Override
+	void updateSize() {
+		super.updateSize();
+		
+		// also update the size and scaling for the component canvas
+		int w = this.width.get();
+		int h = this.height.get();
+		
+		Scaling s = this.scale.get();
+		Fx.setSize(this.componentCanvas, w * s.scale, h * s.scale);
+	}
+	
+	// FIXME for slide screenshotting and display I think we can use this node hierarchy as well
+	public List<Node> getComponentDisplayPanes() {
+		List<Node> panes = new ArrayList<Node>();
+		for (ObservableSlideComponent<?> component : this.components) {
+			panes.add(component.getDisplayPane());
+		}
+		return panes;
+	}
+
+	public ObservableSlideComponent<?> observableSlideComponent(SlideComponent component) {
 		// now create its respective observable one
 		if (component instanceof MediaComponent) {
 			return new ObservableMediaComponent((MediaComponent)component, this.context, this.mode);
@@ -114,34 +127,78 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		return null;
 	}
 	
-//	public Pane getSlideNode() {
-//		return this.root;
-//	}
+	public void fit(int width, int height) {
+		this.region.fit(width, height);
+		this.x.set(this.region.getX());
+		this.y.set(this.region.getY());
+		this.width.set(this.region.getWidth());
+		this.height.set(this.region.getHeight());
+		updatePosition();
+		updateSize();
+		for (ObservableSlideComponent<?> component : this.components) {
+			component.x.set(component.region.getX());
+			component.y.set(component.region.getY());
+			component.width.set(component.region.getWidth());
+			component.height.set(component.region.getHeight());
+			component.updatePosition();
+			component.updateSize();
+		}
+	}
+	
+	// tags
+	
+	public Set<Tag> getTags() {
+		return Collections.unmodifiableSet(this.region.getTags()); 
+	}
+	
+	public boolean addTag(Tag tag) {
+		return this.region.getTags().add(tag);
+	}
+	
+	public boolean removeTag(Tag tag) {
+		return this.region.getTags().remove(tag);
+	}
 	
 	// animations
 	
-	public List<SlideAnimation> getAnimations(UUID id) {
-		throw new UnsupportedOperationException();
+	public List<SlideAnimation> getAnimations() {
+		return Collections.unmodifiableList(this.region.getAnimations());
 	}
 	
-	public ObservableList<SlideAnimation> getAnimations() {
-		return this.animations;
+	public List<SlideAnimation> getAnimations(UUID id) {
+		return Collections.unmodifiableList(this.region.getAnimations(id));
+	}
+	
+	public boolean addAnimation(SlideAnimation animation) {
+		return this.region.getAnimations().add(animation);
+	}
+	
+	public boolean removeAnimation(SlideAnimation animation) {
+		return this.region.getAnimations().remove(animation);
 	}
 	
 	// components
+
+	public Iterator<ObservableSlideComponent<?>> componentIterator() {
+		return this.components.listIterator();
+	}
 	
-	public void addComponent(SlideComponent component) {
+	public void addComponent(ObservableSlideComponent<?> component) {
 		// this sets the order, so must be done first
-		this.region.addComponent(component);
-		this.components.add(createObservableFor(component));
+		this.region.addComponent(component.region);
+		// copy over the order to the observable
+		component.order.set(component.region.getOrder());
+		// add to the observable list
+		this.components.add(component);
+		
+		this.componentCanvas.getChildren().add(component.getDisplayPane());
 	}
 
-	public boolean removeComponent(SlideComponent component) {
+	public boolean removeComponent(ObservableSlideComponent<?> component) {
 		// remove the component
-		if (this.region.removeComponent(component)) {
+		if (this.region.removeComponent(component.region)) {
 			this.components.removeIf(c -> c.getId().equals(component.getId()));
-			// this operation may also remove animations
-			this.animations.removeIf(a -> a.getId().equals(component.getId()));
+			this.componentCanvas.getChildren().remove(component.getDisplayPane());
 			return true;
 		}
 		return false;
@@ -159,6 +216,9 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		}
 		// resort the components list
 		FXCollections.sort(this.components);
+		
+		componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
+		componentCanvas.getChildren().addAll(getComponentDisplayPanes());
 	}
 	
 	public void moveComponentUp(ObservableSlideComponent<?> component) {
@@ -173,6 +233,9 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		}
 		// resort the components list
 		FXCollections.sort(this.components);
+		
+		componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
+		componentCanvas.getChildren().addAll(getComponentDisplayPanes());
 	}
 	
 	// name
@@ -217,26 +280,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		return this.time;
 	}
 
-	// tags
-	
-	public ObservableSet<Tag> getTags() {
-		return this.tags;
-	}
-	
-	// components
-	
-	public ObservableList<ObservableSlideComponent<?>> getComponents() {
-		return this.components;
-	}
-	
-	public List<Node> getEditPanes() {
-		List<Node> panes = new ArrayList<Node>();
-		for (ObservableSlideComponent<?> component : this.components) {
-			panes.add(component.getEditPane());
-		}
-		return panes;
-	}
-	
 	// others
 	
 	public String getVersion() {

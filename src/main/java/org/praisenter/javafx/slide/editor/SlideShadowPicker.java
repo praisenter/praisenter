@@ -35,8 +35,8 @@ final class SlideShadowPicker extends VBox {
 		this.chkEnabled = new CheckBox();
 		this.tglInner = new ToggleButton("inner");
 		this.pkrColor = new ColorPicker();
-		this.spnX = new Spinner<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, 10.0, 1.0);
-		this.spnY = new Spinner<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, 10.0, 1.0);
+		this.spnX = new Spinner<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, 0.0, 1.0);
+		this.spnY = new Spinner<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, 0.0, 1.0);
 		this.spnRadius = new Spinner<Double>(0.0, 127.0, 10.0, 1.0);
 		this.spnSpread = new Spinner<Double>(0.0, 1.0, 0.0, 0.05);
 		
