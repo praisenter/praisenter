@@ -8,8 +8,9 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.ImageCache;
 import org.praisenter.media.Media;
+import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.ScaleType;
@@ -597,7 +598,7 @@ public final class JavaFXTypeConverter {
 	// media
 	
 	// only for video/audio
-	public static MediaPlayer toJavaFXMediaPlayer(PraisenterContext context, Media media, boolean loop, boolean mute) {
+	public static MediaPlayer toJavaFXMediaPlayer(Media media, boolean loop, boolean mute) {
 		// check for missing media
 		if (media == null) {
 			return null;
@@ -628,7 +629,7 @@ public final class JavaFXTypeConverter {
 	}
 	
 	// will work for all media types
-	public static Image toJavaFXImage(PraisenterContext context, Media media) {
+	public static Image toJavaFXImage(MediaLibrary mediaLibrary, ImageCache imageCache, Media media) {
 		// check for missing media
 		if (media == null) {
 			return null;
@@ -638,7 +639,7 @@ public final class JavaFXTypeConverter {
 		Path path = null;
 		if (media.getMetadata().getType() == MediaType.VIDEO) {
 			// for video's we just need to show a single frame
-			path = context.getMediaLibrary().getFramePath(media);
+			path = mediaLibrary.getFramePath(media);
 		} else if (media.getMetadata().getType() == MediaType.IMAGE) {
 			// image
 			path = media.getMetadata().getPath();
@@ -653,7 +654,7 @@ public final class JavaFXTypeConverter {
 		}
 		
 		try  {
-			image = context.getImageCache().get(path);
+			image = imageCache.get(path);
 		} catch (Exception ex) {
 			// just log the error
 			LOGGER.warn("Failed to load image " + media.getMetadata().getPath() + ".", ex);

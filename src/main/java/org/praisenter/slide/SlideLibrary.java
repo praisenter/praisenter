@@ -84,17 +84,21 @@ public final class SlideLibrary {
 	/** The full path to the thumbnails */
 	private final Path thumbsPath;
 	
+	/** The thumbnail generator */
+	private final SlideThumbnailGenerator thumbnailGenerator;
+	
 	/** The slides */
 	private final Map<UUID, Slide> slides;
 	
 	/**
 	 * Sets up a new {@link SlideLibrary} at the given path.
 	 * @param path the root path to the slide library
+	 * @param thumbnailGenerator the thumbnail generator
 	 * @return {@link SlideLibrary}
 	 * @throws IOException if an IO error occurs
 	 */
-	public static final SlideLibrary open(Path path) throws IOException {
-		SlideLibrary sl = new SlideLibrary(path);
+	public static final SlideLibrary open(Path path, SlideThumbnailGenerator thumbnailGenerator) throws IOException {
+		SlideLibrary sl = new SlideLibrary(path, thumbnailGenerator);
 		sl.initialize();
 		return sl;
 	}
@@ -102,11 +106,13 @@ public final class SlideLibrary {
 	/**
 	 * Full constructor.
 	 * @param path the path to maintain the slide library
+	 * @param thumbnailGenerator the class used to generate thumbnails for slides
 	 */
-	private SlideLibrary(Path path) {
+	private SlideLibrary(Path path, SlideThumbnailGenerator thumbnailGenerator) {
 		this.path = path;
 		
 		this.thumbsPath = this.path.resolve(THUMB_DIR);
+		this.thumbnailGenerator = thumbnailGenerator;
 		
 		this.slides = new HashMap<UUID, Slide>();
 	}
@@ -135,6 +141,26 @@ public final class SlideLibrary {
 								// read in the xml
 								Slide slide = XmlIO.read(is, BasicSlide.class);
 								slide.setPath(file);
+								
+								Path path = getThumbnailPath(slide);
+								if (path != null && Files.exists(path)) {
+									try {
+										BufferedImage thumb = ImageIO.read(path.toFile());
+										slide.setThumbnail(thumb);
+									} catch (Exception ex) {
+										LOGGER.warn("Failed to load thumbnail for slide '" + file.toAbsolutePath().toString() + "'", ex);
+									}
+								}
+								
+								// is the thumbnail null?
+								// FIXME evaluate not having thumbnails at all and just rendering the Java FX nodes scaled
+								if (slide.getThumbnail() == null) {
+									try {
+										this.saveThumbnail(slide);
+									} catch (Exception ex) {
+										LOGGER.warn("Failed to generate thumbnail for slide '" + file.toAbsolutePath().toString() + "'", ex);
+									}
+								}
 								
 								this.slides.put(slide.getId(), slide);
 							} catch (Exception e) {
@@ -204,11 +230,10 @@ public final class SlideLibrary {
 	/**
 	 * Saves the given slide to the slide library.
 	 * @param slide the slide to save
-	 * @param thumbnail the thumbnail for the slide
 	 * @throws JAXBException if an error occurs writing the XML
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized void save(Slide slide, BufferedImage thumbnail) throws JAXBException, IOException {
+	public synchronized void save(Slide slide) throws JAXBException, IOException {
 		if (slide.getPath() == null) {
 			String name = createFileName(slide);
 			Path path = this.path.resolve(name + EXTENSION);
@@ -224,10 +249,22 @@ public final class SlideLibrary {
 		XmlIO.save(slide.getPath(), slide);
 		
 		// next save the thumbnail
-		ImageIO.write(thumbnail, "png", getThumbnailPath(slide).toFile());
+		this.saveThumbnail(slide);
 		
 		// make sure the library is updated
 		this.slides.put(slide.getId(), slide);
+	}
+	
+	/**
+	 * Generates a thumbnail of the given slide and saves it.
+	 * @param slide the slide
+	 * @throws IOException if an IO error occurs
+	 */
+	private void saveThumbnail(Slide slide) throws IOException {
+		BufferedImage thumbnail = this.thumbnailGenerator.generate(slide);
+		if (thumbnail == null) return;
+		slide.setThumbnail(thumbnail);
+		ImageIO.write(thumbnail, "png", this.getThumbnailPath(slide).toFile());
 	}
 	
 	/**
@@ -255,7 +292,7 @@ public final class SlideLibrary {
 	 * @param slide the slide
 	 * @return Path
 	 */
-	public synchronized Path getThumbnailPath(Slide slide) {
+	private Path getThumbnailPath(Slide slide) {
 		if (slide == null) return null;
 		if (slide.getPath() == null) return null;
 		return this.thumbsPath.resolve(slide.getPath().getFileName().toString() + THUMB_EXT);

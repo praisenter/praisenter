@@ -44,7 +44,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 
 	private final Pane componentCanvas;
 	
-	public ObservableSlide(T slide, PraisenterContext context, SlideMode mode) {
+	public ObservableSlide(T slide, ObservableSlideContext context, SlideMode mode) {
 		super(slide, context, mode);
 		
 		this.componentCanvas = new Pane();
@@ -99,7 +99,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		Fx.setSize(this.componentCanvas, w * s.scale, h * s.scale);
 	}
 	
-	// FIXME for slide screenshotting and display I think we can use this node hierarchy as well
 	public List<Node> getComponentDisplayPanes() {
 		List<Node> panes = new ArrayList<Node>();
 		for (ObservableSlideComponent<?> component : this.components) {
@@ -142,6 +141,15 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 			component.height.set(component.region.getHeight());
 			component.updatePosition();
 			component.updateSize();
+		}
+	}
+	
+	// playable
+	
+	public void play() {
+		super.play();
+		for (ObservableSlideComponent<?> comp : this.components) {
+			comp.play();
 		}
 	}
 	

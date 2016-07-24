@@ -33,10 +33,13 @@ import org.praisenter.Constants;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.data.Database;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
+import org.praisenter.javafx.slide.JavaFXSlideThumbnailGenerator;
+import org.praisenter.javafx.slide.ObservableSlideContext;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.SlideLibrary;
+import org.praisenter.slide.SlideThumbnailGenerator;
 import org.praisenter.song.SongLibrary;
 import org.praisenter.utility.ClasspathLoader;
 
@@ -59,6 +62,9 @@ final class LoadingTask extends Task<LoadingTaskResult> {
 	protected LoadingTaskResult call() throws Exception {
 		long t0 = 0;
 		long t1 = 0;
+		
+		// create an image cache
+		ImageCache imageCache = new ImageCache();
 		
 		updateProgress(0, 4);
 		
@@ -97,16 +103,20 @@ final class LoadingTask extends Task<LoadingTaskResult> {
     	updateProgress(3, 4);
     	LOGGER.info("Media library loaded in {} seconds with {} media items", (t1 - t0) / 1e9, media.size());
 		
-    	// song loading
+    	// song loading (this is dependent on the media library and the image cache)
     	LOGGER.info("Loading slide library");
 		updateMessage(Translations.get("loading.library.slides"));
 		t0 = System.nanoTime();
-		SlideLibrary slides = SlideLibrary.open(Paths.get(Constants.SLIDES_ABSOLUTE_PATH));
+		SlideThumbnailGenerator stg = new JavaFXSlideThumbnailGenerator(
+				Constants.MEDIA_THUMBNAIL_SIZE,
+				Constants.MEDIA_THUMBNAIL_SIZE,
+				new ObservableSlideContext(media, imageCache));
+		SlideLibrary slides = SlideLibrary.open(Paths.get(Constants.SLIDES_ABSOLUTE_PATH), stg);
 		t1 = System.nanoTime();
 		updateProgress(4, 4);
 		LOGGER.info("Slide library loaded in {} seconds with {} slides", (t1 - t0) / 1e9, slides.size());
     	
-		LoadingTaskResult result = new LoadingTaskResult(media, songs, bibles, slides);
+		LoadingTaskResult result = new LoadingTaskResult(imageCache, media, songs, bibles, slides);
 		
 		updateMessage(Translations.get("loading.complete"));
 		

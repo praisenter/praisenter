@@ -143,7 +143,7 @@ public final class Transitions {
 		// name
 		sb.append(Translations.get(animation.getClass().getName())).append(" ");
 		
-		// TODO add class specific properties (CIRCLE/Collapse)
+		// FEATURE add class specific properties (CIRCLE/Collapse)
 		
 		// start-end
 		long s = animation.getDelay();

@@ -29,7 +29,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	// the data
 	
 	protected final T region;
-	protected final PraisenterContext context;
+	protected final ObservableSlideContext context;
 	protected final SlideMode mode;
 	
 	// editable properties
@@ -59,7 +59,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	private final FillPane backgroundNode;
 	private final Region borderNode;
 	
-	public ObservableSlideRegion(T region, PraisenterContext context, SlideMode mode) {
+	public ObservableSlideRegion(T region, ObservableSlideContext context, SlideMode mode) {
 		this.region = region;
 		this.context = context;
 		this.mode = mode;
@@ -224,6 +224,11 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		}
 	}
 	
+	/**
+	 * Returns the root node of this slide to be placed in an
+	 * scene using any {@link SlideMode}.
+	 * @return Pane
+	 */
 	public StackPane getDisplayPane() {
 		return this.rootPane;
 	}

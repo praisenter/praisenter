@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.praisenter.javafx.ImageCache;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaLibraryPane;
@@ -36,7 +37,7 @@ public class TestMediaLibrary extends Application {
 			e.printStackTrace();
 		}
 		
-		PraisenterContext context = new PraisenterContext(this, primaryStage, null, null, library, null, null, null);
+		PraisenterContext context = new PraisenterContext(this, primaryStage, null, null, new ImageCache(), library, null, null, null);
 		
 		BorderPane root = new BorderPane();
 //		MediaPicker pkrMedia = new MediaPicker(context, MediaType.IMAGE, MediaType.AUDIO);

@@ -52,8 +52,9 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-//FIXME fix the manifest
-//FIXME explore deployment options
+// FIXME fix the manifest
+// FIXME explore deployment options
+// FIXME what happens when two of the same movie is played with audio.... For example if displayed on multiple screens
 
 // FEATURE use Apache POI to read powerpoint files
 // FEATURE check out JavaFX styles here https://github.com/JFXtras/jfxtras-styles
@@ -199,6 +200,7 @@ public final class Praisenter extends Application {
     				stage,
     				CONFIG,
     				screenManager,
+    				result.getImageCache(),
     				result.getMediaLibrary(),
     				result.getBibleLibrary(),
     				result.getSongLibrary(),

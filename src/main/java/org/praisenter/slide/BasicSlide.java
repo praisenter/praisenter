@@ -24,6 +24,7 @@
  */
 package org.praisenter.slide;
 
+import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -103,6 +104,9 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@XmlElement(name = "tag", required = false)
 	@XmlElementWrapper(name = "tags", required = false)
 	final Set<Tag> tags;
+	
+	// this is stored separately
+	BufferedImage thumbnail;
 	
 	/**
 	 * Default constructor.
@@ -432,5 +436,15 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@Override
 	public Set<Tag> getTags() {
 		return this.tags;
+	}
+	
+	@Override
+	public BufferedImage getThumbnail() {
+		return this.thumbnail;
+	}
+	
+	@Override
+	public void setThumbnail(BufferedImage thumbnail) {
+		this.thumbnail = thumbnail;
 	}
 }

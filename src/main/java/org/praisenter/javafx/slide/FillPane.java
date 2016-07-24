@@ -4,9 +4,10 @@ import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.ImageCache;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
+import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
@@ -32,7 +33,7 @@ import javafx.scene.shape.Rectangle;
 public final class FillPane extends StackPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	final PraisenterContext context;
+	final ObservableSlideContext context;
 	final SlideMode mode;
 	
 	final MediaView mediaView;
@@ -47,7 +48,7 @@ public final class FillPane extends StackPane {
 	double height;
 	double borderRadius;
 	
-	public FillPane(PraisenterContext context, SlideMode mode) {
+	public FillPane(ObservableSlideContext context, SlideMode mode) {
 		this.context = context;
 		this.mode = mode;
 		this.mediaView = new MediaView();
@@ -167,7 +168,7 @@ public final class FillPane extends StackPane {
 		Media media = null;
 		UUID id = mo.getId();
 		if (id != null) {
-			media = context.getMediaLibrary().get(id);
+			media = this.context.mediaLibrary.get(id);
 		}
 		
 		if (media == null) {
@@ -190,7 +191,7 @@ public final class FillPane extends StackPane {
 				if (this.mode == SlideMode.EDIT ||
 					this.mode == SlideMode.SNAPSHOT ||
 					type == MediaType.IMAGE) {
-					this.image = JavaFXTypeConverter.toJavaFXImage(this.context, media);
+					this.image = JavaFXTypeConverter.toJavaFXImage(this.context.mediaLibrary, this.context.imageCache, media);
 					Background background = new Background(new BackgroundImage(
 							this.image, 
 							BackgroundRepeat.NO_REPEAT, 
@@ -200,7 +201,7 @@ public final class FillPane extends StackPane {
 					this.paintView.setBackground(background);
 				} else {
 					// otherwise create a media player
-					MediaPlayer player = JavaFXTypeConverter.toJavaFXMediaPlayer(this.context, media, mo.isLoop(), mo.isMute());
+					MediaPlayer player = JavaFXTypeConverter.toJavaFXMediaPlayer(media, mo.isLoop(), mo.isMute());
 					this.mediaView.setMediaPlayer(player);
 					setMediaViewSize();
 				}

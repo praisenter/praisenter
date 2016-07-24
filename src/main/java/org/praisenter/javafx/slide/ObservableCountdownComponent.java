@@ -23,7 +23,7 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 	final ObjectProperty<LocalDateTime> target = new SimpleObjectProperty<LocalDateTime>();
 	final StringProperty format = new SimpleStringProperty();
 	
-	public ObservableCountdownComponent(CountdownComponent component, PraisenterContext context, SlideMode mode) {
+	public ObservableCountdownComponent(CountdownComponent component, ObservableSlideContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values

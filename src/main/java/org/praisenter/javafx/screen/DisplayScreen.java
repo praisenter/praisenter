@@ -136,7 +136,7 @@ public final class DisplayScreen {
 		});
 		
 		// add the new slide to the surface
-		this.slideSurface1.getChildren().add(slide.getSlideNode());
+		this.slideSurface1.getChildren().add(slide.getDisplayPane());
 		this.surface.getChildren().add(slideSurface1);
 		
 		this.transition = master;

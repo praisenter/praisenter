@@ -19,6 +19,7 @@ import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.Tag;
+import org.praisenter.javafx.ImageCache;
 import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.TagEvent;
@@ -28,6 +29,7 @@ import org.praisenter.javafx.configuration.Resolution;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
+import org.praisenter.javafx.slide.ObservableSlideContext;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.Scaling;
 import org.praisenter.javafx.slide.SlideMode;
@@ -209,10 +211,11 @@ public final class SlideEditorPane extends Application {
 			e.printStackTrace();
 		}
 		
-		PraisenterContext context = new PraisenterContext(this, stage, null, null, library, null, null, null);
+		PraisenterContext context = new PraisenterContext(this, stage, null, null, new ImageCache(), library, null, null, null);
+		ObservableSlideContext sContext = new ObservableSlideContext(context.getMediaLibrary(), context.getImageCache());
 		
 		slide = createTestSlide();
-		oSlide = new ObservableSlide<Slide>(slide, context, SlideMode.EDIT);
+		oSlide = new ObservableSlide<Slide>(slide, sContext, SlideMode.EDIT);
 		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));
 		
 		EventHandler<MouseEvent> entered = new EventHandler<MouseEvent>() {
@@ -360,7 +363,6 @@ public final class SlideEditorPane extends Application {
 			selected.set(oSlide);
 		});
 		
-		// TODO dragging and resizing for the slide itself (when its a notification slide)
 		// FIXME note, this will need to be done when we add components
 		Iterator<ObservableSlideComponent<?>> components = oSlide.componentIterator();
 		while (components.hasNext()) {
@@ -463,7 +465,7 @@ public final class SlideEditorPane extends Application {
 				// attempt to take a screenshot of the slide
 				// this must be done on the UI thread
 				{
-					ObservableSlide<?> nSlide = new ObservableSlide<>(slide, context, SlideMode.SNAPSHOT);
+					ObservableSlide<?> nSlide = new ObservableSlide<>(slide, sContext, SlideMode.SNAPSHOT);
 					
 					SnapshotParameters sp = new SnapshotParameters();
 					sp.setFill(Color.TRANSPARENT);

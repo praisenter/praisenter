@@ -16,7 +16,7 @@ public final class ObservableMediaComponent extends ObservableSlideComponent<Med
 	
 	final FillPane mediaNode;
 	
-	public ObservableMediaComponent(MediaComponent component, PraisenterContext context, SlideMode mode) {
+	public ObservableMediaComponent(MediaComponent component, ObservableSlideContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values

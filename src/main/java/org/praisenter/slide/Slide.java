@@ -24,6 +24,7 @@
  */
 package org.praisenter.slide;
 
+import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
@@ -216,4 +217,10 @@ public interface Slide extends SlideRegion {
 	 * @return Set&lt;{@link Tag}&gt;
 	 */
 	public abstract Set<Tag> getTags();
+	
+	// thumbnails
+	
+	public abstract BufferedImage getThumbnail();
+	
+	public abstract void setThumbnail(BufferedImage thumbnail);
 }

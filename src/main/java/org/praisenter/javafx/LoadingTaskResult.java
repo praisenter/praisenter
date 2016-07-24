@@ -35,6 +35,9 @@ import org.praisenter.song.SongLibrary;
  * @version 3.0.0
  */
 final class LoadingTaskResult {
+	/** The image cache */
+	private final ImageCache imageCache;
+	
 	/** The media library */
 	private final MediaLibrary mediaLibrary;
 	
@@ -49,22 +52,33 @@ final class LoadingTaskResult {
 
 	/**
 	 * Full constructor.
+	 * @param imageCache the image cache
 	 * @param media the media library
 	 * @param songs the song library
 	 * @param bibles the bible library
 	 * @param slides the slide library
 	 */
 	public LoadingTaskResult(
+			ImageCache imageCache,
 			MediaLibrary media, 
 			SongLibrary songs, 
 			BibleLibrary bibles, 
 			SlideLibrary slides) {
+		this.imageCache = imageCache;
 		this.mediaLibrary = media;
 		this.songLibrary = songs;
 		this.bibleLibrary = bibles;
 		this.slideLibrary = slides;
 	}
 
+	/**
+	 * Returns the image cache.
+	 * @return {@link ImageCache}
+	 */
+	public ImageCache getImageCache() {
+		return this.imageCache;
+	}
+	
 	/**
 	 * Returns the media library.
 	 * @return {@link MediaLibrary}

@@ -102,6 +102,7 @@ public final class PraisenterContext {
 	 * @param stage the Java FX main stage
 	 * @param configuration the application configuration
 	 * @param screenManager the display screen manager
+	 * @param imageCache the image cache
 	 * @param media the media library
 	 * @param bibles the bible library
 	 * @param songs the song library
@@ -112,6 +113,7 @@ public final class PraisenterContext {
 			Stage stage,
 			Configuration configuration,
 			ScreenManager screenManager,
+			ImageCache imageCache,
 			MediaLibrary media,
 			BibleLibrary bibles,
 			SongLibrary songs, 
@@ -120,7 +122,6 @@ public final class PraisenterContext {
 		this.stage = stage;
 		this.configuration = configuration;
 		this.screenManager = screenManager;
-		this.imageCache = new ImageCache();
 		
 		// create a thread pool that we can reuse all over the app
 		this.workers = new ThreadPoolExecutor(
@@ -139,6 +140,7 @@ public final class PraisenterContext {
 					}
 				});
 		
+		this.imageCache = imageCache;
 		this.mediaLibrary = media;
 		this.bibleLibrary = bibles;
 		this.songLibrary = songs;

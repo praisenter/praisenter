@@ -4,7 +4,7 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.text.BasicTextComponent;
 
 public final class ObservableBasicTextComponent<T extends BasicTextComponent> extends ObservableTextComponent<T> {
-	public ObservableBasicTextComponent(T component, PraisenterContext context, SlideMode mode) {
+	public ObservableBasicTextComponent(T component, ObservableSlideContext context, SlideMode mode) {
 		super(component, context, mode);
 		this.build();
 	}
