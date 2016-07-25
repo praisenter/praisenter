@@ -6,7 +6,10 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 
+import java.sql.SQLException;
+
 import org.praisenter.javafx.bible.BibleLibraryPane;
+import org.praisenter.javafx.bible.BiblePane;
 import org.praisenter.javafx.media.MediaLibraryPane;
 
 public final class MainPane extends BorderPane {
@@ -17,6 +20,13 @@ public final class MainPane extends BorderPane {
 		this.context = context;
 		
 		this.setTop(createMenus());
+		
+		try {
+			this.setCenter(new BiblePane(context));
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	// TODO menu options

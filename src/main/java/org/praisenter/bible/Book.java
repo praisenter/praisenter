@@ -98,12 +98,7 @@ public final class Book implements Comparable<Book> {
 	 */
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Book[Bible=").append(this.bible.getName())
-		  .append("|Code=").append(this.code)
-		  .append("|Name=").append(this.name)
-		  .append("]");
-		return sb.toString();
+		return this.name;
 	}
 	
 	/* (non-Javadoc)

@@ -289,19 +289,21 @@ final class LoadingPane extends Pane {
 	 * @param ex the exception
 	 */
 	private void showExecptionAlertThenExit(Throwable ex) {
-		// and show the error
-		Alert a = Alerts.exception(
-				getScene().getWindow(),
-				Translations.get("init.failed.title"), 
-				Translations.get("init.failed.header"), 
-				ex.getMessage(), 
-				ex);
-		a.showAndWait();
-		
-		LOGGER.info("User closed exception dialog. Exiting application.");
-		
-		// then exit the app
-		Platform.exit();
+		Platform.runLater(() -> {
+			// and show the error
+			Alert a = Alerts.exception(
+					getScene().getWindow(),
+					Translations.get("init.failed.title"), 
+					Translations.get("init.failed.header"), 
+					ex.getMessage(), 
+					ex);
+			a.showAndWait();
+			
+			LOGGER.info("User closed exception dialog. Exiting application.");
+			
+			// then exit the app
+			Platform.exit();
+		});
 	}
 	
 	/**
