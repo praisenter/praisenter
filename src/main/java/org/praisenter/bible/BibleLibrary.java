@@ -329,7 +329,7 @@ public final class BibleLibrary {
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
 		  .append("AND verse = ? ")
-		  .append("AND sub_verse = 0");
+		  .append("AND sub_verse = -1");
 		
 		// execute the query
 		try (Connection connection = this.database.getConnection();
@@ -377,9 +377,9 @@ public final class BibleLibrary {
 		if (!includeApocrypha) {
 			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
-		sb.append("AND sub_verse = 0 ")
+		sb.append("AND sub_verse = -1 ")
 		  .append("AND order_by = ")
-		  .append("(SELECT MIN(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = 0 ")
+		  .append("(SELECT MIN(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = -1 ")
 		  .append("AND order_by > ?)");
 		
 		// execute the query
@@ -434,13 +434,13 @@ public final class BibleLibrary {
 			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
 		sb.append("AND order_by = ")
-		  .append("(SELECT MIN(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = 0 ")
+		  .append("(SELECT MIN(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = -1 ")
 		  .append("AND order_by > ")
 		  .append("(SELECT order_by FROM bible_verse WHERE bible_id = ? ")
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
 		  .append("AND verse = ? ")
-		  .append("AND sub_verse = 0))");
+		  .append("AND sub_verse = -1))");
 		
 		// execute the query
 		try (Connection connection = this.database.getConnection();
@@ -490,9 +490,9 @@ public final class BibleLibrary {
 		if (!includeApocrypha) {
 			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
-		sb.append("AND sub_verse = 0 ")
+		sb.append("AND sub_verse = -1 ")
 		  .append("AND order_by = ")
-		  .append("(SELECT MAX(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = 0 ")
+		  .append("(SELECT MAX(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = -1 ")
 		  .append("AND order_by < ?)");
 		
 		// execute the query
@@ -547,13 +547,13 @@ public final class BibleLibrary {
 			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
 		}
 		sb.append("AND order_by = ")
-		  .append("(SELECT MAX(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = 0 ")
+		  .append("(SELECT MAX(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = -1 ")
 		  .append("AND order_by < ")
 		  .append("(SELECT order_by FROM bible_verse WHERE bible_id = ? ")
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
 		  .append("AND verse = ? ")
-		  .append("AND sub_verse = 0))");
+		  .append("AND sub_verse = -1))");
 		
 		// execute the query
 		try (Connection connection = this.database.getConnection();
@@ -648,7 +648,7 @@ public final class BibleLibrary {
 				sb.append(" AND chapter = ").append(parts[2]);
 			}
 		}
-		sb.append(" AND sub_verse = 0 ");
+		sb.append(" AND sub_verse = -1 ");
 		sb.append("ORDER BY order_by");
 		
 		return getVersesBySql(bible, sb.toString());
@@ -757,7 +757,7 @@ public final class BibleLibrary {
 		if (!includeApocrypha) {
 			sb.append(" AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
-		sb.append(" AND sub_verse = 0")
+		sb.append(" AND sub_verse = -1")
 		  .append(" AND ").append(getSearchWhereCondition(search, type))
 		  .append(" ORDER BY order_by");
 		
@@ -807,7 +807,7 @@ public final class BibleLibrary {
 		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
 		  .append(" WHERE bible_verse.bible_id = ").append(bible.id)
 		  .append(" AND bible_book.code LIKE '%").append(division.getCode()).append("'")
-		  .append(" AND sub_verse = 0")
+		  .append(" AND sub_verse = -1")
 		  .append(" AND").append(getSearchWhereCondition(search, type))
 		  .append(" ORDER BY order_by");
 				
@@ -853,7 +853,7 @@ public final class BibleLibrary {
 		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
 		  .append(" WHERE bible_verse.bible_id = ").append(bible.id)
 		  .append(" AND bible_book.code = ").append(bookCode)
-		  .append(" AND sub_verse = 0")
+		  .append(" AND sub_verse = -1")
 		  .append(" AND").append(getSearchWhereCondition(search, type))
 		  .append(" ORDER BY order_by");
 				
@@ -902,7 +902,7 @@ public final class BibleLibrary {
 		  .append(" WHERE bible_verse.bible_id = ").append(bible.id)
 		  .append(" AND bible_book.code = ").append(bookCode)
 		  .append(" AND chapter = ").append(chapter)
-		  .append(" AND sub_verse = 0")
+		  .append(" AND sub_verse = -1")
 		  .append(" AND").append(getSearchWhereCondition(search, type))
 		  .append(" ORDER BY order_by");
 				
@@ -933,7 +933,7 @@ public final class BibleLibrary {
 		if (!includeApocrypha) {
 			sb.append("AND book_code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
 		}
-		sb.append(" AND sub_verse = 0");
+		sb.append(" AND sub_verse = -1");
 
 		// execute the query
 		try (Connection connection = this.database.getConnection();
@@ -962,7 +962,7 @@ public final class BibleLibrary {
 		// build the query
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT COUNT(id) FROM bible_verse WHERE bible_id = ? ")
-		  .append("AND book_code = ? AND sub_verse = 0");
+		  .append("AND book_code = ? AND sub_verse = -1");
 		
 		// execute the query
 		try (Connection connection = this.database.getConnection();
@@ -995,7 +995,7 @@ public final class BibleLibrary {
 		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ")
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
-		  .append("AND sub_verse = 0");
+		  .append("AND sub_verse = -1");
 		
 		// execute the query
 		try (Connection connection = this.database.getConnection();
@@ -1030,7 +1030,7 @@ public final class BibleLibrary {
 		sb.append("SELECT MAX(verse) FROM bible_verse WHERE bible_id = ? ")
 		  .append("AND book_code = ? ")
 		  .append("AND chapter = ? ")
-		  .append("AND sub_verse = 0");
+		  .append("AND sub_verse = -1");
 		
 		// execute the query
 		try (Connection connection = this.database.getConnection();
