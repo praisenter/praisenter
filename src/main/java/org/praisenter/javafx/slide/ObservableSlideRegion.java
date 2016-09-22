@@ -26,11 +26,12 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
 public abstract class ObservableSlideRegion<T extends SlideRegion> {
+	protected final PraisenterContext context;
+	protected final SlideMode mode;
+	
 	// the data
 	
 	protected final T region;
-	protected final ObservableSlideContext context;
-	protected final SlideMode mode;
 	
 	// editable properties
 	
@@ -59,7 +60,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	private final FillPane backgroundNode;
 	private final Region borderNode;
 	
-	public ObservableSlideRegion(T region, ObservableSlideContext context, SlideMode mode) {
+	public ObservableSlideRegion(T region, PraisenterContext context, SlideMode mode) {
 		this.region = region;
 		this.context = context;
 		this.mode = mode;

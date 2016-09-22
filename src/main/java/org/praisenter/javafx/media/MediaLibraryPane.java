@@ -161,7 +161,7 @@ public final class MediaLibraryPane extends BorderPane {
     	
 		this.selected = new SimpleObjectProperty<Media>();
 		
-		final ObservableMediaLibrary library = context.getObservableMediaLibrary();
+		final ObservableMediaLibrary library = context.getMediaLibrary();
 		final ObservableSet<Tag> tags = context.getTags();
 		
         // add sorting and filtering capabilities
@@ -459,7 +459,7 @@ public final class MediaLibraryPane extends BorderPane {
 			}
 			
 			// attempt to import them
-			this.context.getObservableMediaLibrary().add(
+			this.context.getMediaLibrary().add(
 					paths, 
 					(List<Media> media) -> {
 						// nothing to do on success
@@ -513,7 +513,7 @@ public final class MediaLibraryPane extends BorderPane {
 				
 				if (result.get() == ButtonType.OK) {
 					// attempt to delete the selected media
-					this.context.getObservableMediaLibrary().remove(items, () -> {
+					this.context.getMediaLibrary().remove(items, () -> {
 						// shouldn't have to do anything on success
 					}, (List<FailedOperation<Media>> failures) -> {
 						// on failure we should notify the user
@@ -542,7 +542,7 @@ public final class MediaLibraryPane extends BorderPane {
     	// make sure the file isn't being previewed
     	this.pnePlayer.setMediaPlayer(null, null);
     	// update the media's name
-    	this.context.getObservableMediaLibrary().rename(
+    	this.context.getMediaLibrary().rename(
     			event.media,
     			event.name, 
     			(Media media) -> {
@@ -570,23 +570,28 @@ public final class MediaLibraryPane extends BorderPane {
     	MediaListItem item = event.media;
     	Media media = item.media;
     	Tag tag = event.tag;
-    	try {
-			this.context.getMediaLibrary().addTag(media, tag);
-			this.context.getTags().add(tag);
-		} catch (Exception e) {
-			// remove it from the tags
-			item.tags.remove(tag);
-			// log the error
-			LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
-			// show an error to the user
-			Alert alert = Alerts.exception(
-					getScene().getWindow(),
-					null, 
-					null, 
-					MessageFormat.format(Translations.get("tags.add.error"), tag.getName()), 
-					e);
-			alert.show();
-		}
+    	
+    	this.context.getMediaLibrary().addTag(
+    			media, 
+    			tag, 
+    			(Tag addedTag) -> {
+    				// add the tag to the global list of tags
+    				this.context.getTags().add(addedTag);
+    			},
+    			(Tag failedTag, Throwable ex) -> {
+    				// remove it from the tags
+    				item.tags.remove(tag);
+    				// log the error
+    				LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), ex.getMessage());
+    				// show an error to the user
+    				Alert alert = Alerts.exception(
+    						getScene().getWindow(),
+    						null, 
+    						null, 
+    						MessageFormat.format(Translations.get("tags.add.error"), tag.getName()), 
+    						ex);
+    				alert.show();
+    			});
     }
     
     /**
@@ -597,22 +602,25 @@ public final class MediaLibraryPane extends BorderPane {
     	MediaListItem item = event.media;
     	Media media = item.media;
     	Tag tag = event.tag;
-    	try {
-			this.context.getMediaLibrary().removeTag(media, tag);
-		} catch (Exception e) {
-			// add it back
-			item.tags.add(tag);
-			// log the error
-			LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), e.getMessage());
-			// show an error to the user
-			Alert alert = Alerts.exception(
-					getScene().getWindow(),
-					null, 
-					null, 
-					MessageFormat.format(Translations.get("tags.remove.error"), tag.getName()), 
-					e);
-			alert.show();
-		}
+    	
+    	this.context.getMediaLibrary().removeTag(
+    			media, 
+    			tag, 
+    			null,  // nothing to do on success
+    			(Tag failedTag, Throwable ex) -> {
+    				// add it back
+    				item.tags.add(tag);
+    				// log the error
+    				LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), ex.getMessage());
+    				// show an error to the user
+    				Alert alert = Alerts.exception(
+    						getScene().getWindow(),
+    						null, 
+    						null, 
+    						MessageFormat.format(Translations.get("tags.remove.error"), tag.getName()), 
+    						ex);
+    				alert.show();
+    			});
     }
     
     /**

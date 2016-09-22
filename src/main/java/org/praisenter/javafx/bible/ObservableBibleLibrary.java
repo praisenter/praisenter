@@ -368,7 +368,9 @@ public final class ObservableBibleLibrary {
 		this.service.submit(task);
 	}
 	
-	// mutators
+	// other
+	
+	
 	
 	/**
 	 * Returns the observable list of bibles.

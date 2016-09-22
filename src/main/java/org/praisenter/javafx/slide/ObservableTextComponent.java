@@ -53,7 +53,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	final VBox textWrapper;
 	final Text textNode;
 	
-	public ObservableTextComponent(T component, ObservableSlideContext context, SlideMode mode) {
+	public ObservableTextComponent(T component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values

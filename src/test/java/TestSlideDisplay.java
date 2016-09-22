@@ -3,17 +3,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.stage.Stage;
-
 import org.praisenter.javafx.ImageCache;
+import org.praisenter.javafx.JavaFXContext;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
+import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.javafx.slide.ObservableSlide;
-import org.praisenter.javafx.slide.ObservableSlideContext;
 import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
@@ -40,6 +35,12 @@ import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.utility.ClasspathLoader;
+
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 
 
 public class TestSlideDisplay extends Application {
@@ -112,6 +113,8 @@ public class TestSlideDisplay extends Application {
 			e.printStackTrace();
 		}
 		
+		ObservableMediaLibrary oml = new ObservableMediaLibrary(library, null);
+		
 		MediaObject img = new MediaObject(
 				UUID.fromString("f6668fb0-3a40-4590-99a4-1ba474315dca"),
 //				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
@@ -143,7 +146,7 @@ public class TestSlideDisplay extends Application {
 		slide.setBorder(thick);
 		
 		
-		PraisenterContext context = new PraisenterContext(null, null, null, null, new ImageCache(), library, null, null, null);
+		PraisenterContext context = new PraisenterContext(new JavaFXContext(null, stage), null, null, new ImageCache(), library, null, null, null);
 //		
 //		FxSlide wrapper = new FxSlide(context, slide, SlideMode.PRESENT);
 //		List<MediaPlayer> players = wrapper.getMediaPlayers();
@@ -152,7 +155,7 @@ public class TestSlideDisplay extends Application {
 //			mp.play();
 //		}
 //		
-		ObservableSlide<BasicSlide> wrapper2 = new ObservableSlide<BasicSlide>(slide, new ObservableSlideContext(library, context.getImageCache()), SlideMode.PRESENT);
+		ObservableSlide<BasicSlide> wrapper2 = new ObservableSlide<BasicSlide>(slide, context, SlideMode.PRESENT);
 		
 		wrapper2.play();
 		

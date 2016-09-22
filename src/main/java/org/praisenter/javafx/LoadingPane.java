@@ -24,6 +24,13 @@
  */
 package org.praisenter.javafx;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.slide.JavaFXSlideThumbnailGenerator;
+import org.praisenter.resources.translations.Translations;
+import org.praisenter.utility.RuntimeProperties;
+
 import javafx.animation.Animation;
 import javafx.animation.Animation.Status;
 import javafx.animation.Interpolator;
@@ -49,12 +56,6 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.configuration.Configuration;
-import org.praisenter.resources.translations.Translations;
-import org.praisenter.utility.RuntimeProperties;
 
 /**
  * Pane for showing a loading indicator and other animations while building
@@ -95,20 +96,21 @@ final class LoadingPane extends Pane {
 	private Timeline barAnimation;
 	
 	/** The on complete handler */
-	private EventHandler<CompleteEvent<LoadingTaskResult>> onComplete;
+	private EventHandler<CompleteEvent<PraisenterContext>> onComplete;
 	
 	/**
 	 * Full constructor
 	 * @param width the initial width
 	 * @param height the initial height
+	 * @param javaFXContext the JavaFX context
 	 * @param configuration the application configuration
 	 */
-	public LoadingPane(final double width, final double height, final Configuration configuration) {
+	public LoadingPane(final double width, final double height, JavaFXContext javaFXContext, Configuration configuration) {
 		this.setPrefWidth(width);
 		this.setPrefHeight(height);
 		
 		// create the loading task
-		this.loading = new LoadingTask();
+		this.loading = new LoadingTask(javaFXContext, configuration);
 		this.loadingThread = new Thread(this.loading);
 		
 		// FEATURE need better splash screen image
@@ -248,8 +250,8 @@ final class LoadingPane extends Pane {
 						// notify that loading is complete
 						if (this.onComplete != null) {
 							try {
-								LoadingTaskResult result = loading.get();
-								this.onComplete.handle(new CompleteEvent<LoadingTaskResult>(LoadingPane.this, LoadingPane.this, result));
+								PraisenterContext context = loading.get();
+								onPraisenterContextCreated(context);
 							} catch (Exception ex) {
 								LOGGER.error("Failed to get PraisenterContext due to the following.", ex);
 								showExecptionAlertThenExit(ex);
@@ -282,6 +284,28 @@ final class LoadingPane extends Pane {
     	
     	// finally add all the nodes to this pane
     	this.getChildren().addAll(barbg, barfg, path, loadingText, currentAction);
+	}
+	
+	/**
+	 * Additional initialization.
+	 * @param context the context
+	 */
+	private void onPraisenterContextCreated(PraisenterContext context) {
+		// generate any missing slide thumbnails
+		LOGGER.info("Generating missing slide thumbnails.");
+		context.getSlideLibrary().generateMissingThumbnails(new JavaFXSlideThumbnailGenerator(100, 100, context));
+		
+		// setup the screen manager
+		LOGGER.info("Initializing the screen manager.");
+		context.getScreenManager().setup(context.getConfiguration().getScreenMappings());
+		
+		// load fonts
+		LOGGER.info("Loading fonts.");
+		Font.getFamilies();
+		Font.getFontNames();
+
+		// notify any listeners
+		this.onComplete.handle(new CompleteEvent<PraisenterContext>(LoadingPane.this, LoadingPane.this, context));
 	}
 	
 	/**
@@ -318,7 +342,7 @@ final class LoadingPane extends Pane {
 	 * Sets the handler called when the loading is completed.
 	 * @param handler the handler
 	 */
-	public void setOnComplete(EventHandler<CompleteEvent<LoadingTaskResult>> handler) {
+	public void setOnComplete(EventHandler<CompleteEvent<PraisenterContext>> handler) {
 		this.onComplete = handler;
 	}
 	
@@ -326,7 +350,7 @@ final class LoadingPane extends Pane {
 	 * Returns the on complete handler.
 	 * @return EventHandler&lt;CompleteEvent&lt;LoadingResult&gt;&gt;
 	 */
-	public EventHandler<CompleteEvent<LoadingTaskResult>> getOnComplete() {
+	public EventHandler<CompleteEvent<PraisenterContext>> getOnComplete() {
 		return this.onComplete;
 	}
 }

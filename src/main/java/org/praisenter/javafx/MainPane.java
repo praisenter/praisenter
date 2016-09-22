@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import org.praisenter.javafx.bible.BibleLibraryPane;
 import org.praisenter.javafx.bible.BiblePane;
 import org.praisenter.javafx.media.MediaLibraryPane;
+import org.praisenter.javafx.slide.SlideLibraryPane;
 
 public final class MainPane extends BorderPane {
 	
@@ -86,6 +87,11 @@ public final class MainPane extends BorderPane {
 		mManage.setOnAction((e) -> {
 			MediaLibraryPane mlp = new MediaLibraryPane(context, Orientation.HORIZONTAL);
 			setCenter(mlp);
+		});
+		
+		slManage.setOnAction((e) -> {
+			SlideLibraryPane slp = new SlideLibraryPane(context);
+			setCenter(slp);
 		});
 		
 		return menu;

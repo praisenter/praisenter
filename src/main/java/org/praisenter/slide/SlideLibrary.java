@@ -25,6 +25,7 @@
 package org.praisenter.slide;
 
 import java.awt.image.BufferedImage;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
@@ -84,21 +85,17 @@ public final class SlideLibrary {
 	/** The full path to the thumbnails */
 	private final Path thumbsPath;
 	
-	/** The thumbnail generator */
-	private final SlideThumbnailGenerator thumbnailGenerator;
-	
 	/** The slides */
 	private final Map<UUID, Slide> slides;
 	
 	/**
 	 * Sets up a new {@link SlideLibrary} at the given path.
 	 * @param path the root path to the slide library
-	 * @param thumbnailGenerator the thumbnail generator
 	 * @return {@link SlideLibrary}
 	 * @throws IOException if an IO error occurs
 	 */
-	public static final SlideLibrary open(Path path, SlideThumbnailGenerator thumbnailGenerator) throws IOException {
-		SlideLibrary sl = new SlideLibrary(path, thumbnailGenerator);
+	public static final SlideLibrary open(Path path) throws IOException {
+		SlideLibrary sl = new SlideLibrary(path);
 		sl.initialize();
 		return sl;
 	}
@@ -108,11 +105,9 @@ public final class SlideLibrary {
 	 * @param path the path to maintain the slide library
 	 * @param thumbnailGenerator the class used to generate thumbnails for slides
 	 */
-	private SlideLibrary(Path path, SlideThumbnailGenerator thumbnailGenerator) {
+	private SlideLibrary(Path path) {
 		this.path = path;
-		
 		this.thumbsPath = this.path.resolve(THUMB_DIR);
-		this.thumbnailGenerator = thumbnailGenerator;
 		
 		this.slides = new HashMap<UUID, Slide>();
 	}
@@ -152,15 +147,9 @@ public final class SlideLibrary {
 									}
 								}
 								
-								// is the thumbnail null?
-								// FIXME evaluate not having thumbnails at all and just rendering the Java FX nodes scaled
-								if (slide.getThumbnail() == null) {
-									try {
-										this.saveThumbnail(slide);
-									} catch (Exception ex) {
-										LOGGER.warn("Failed to generate thumbnail for slide '" + file.toAbsolutePath().toString() + "'", ex);
-									}
-								}
+								// we can't attempt generating thumbnails at this time
+								// since it would rely on the caller's systems to be in place already
+								// for example, JavaFX
 								
 								this.slides.put(slide.getId(), slide);
 							} catch (Exception e) {
@@ -228,6 +217,52 @@ public final class SlideLibrary {
 	}
 	
 	/**
+	 * Adds the given slide to the slide library.
+	 * @param stream the stream of the slide to add to the library
+	 * @throws FileNotFoundException if the given path was not found
+	 * @throws JAXBException if an error occurs writing the XML
+	 * @throws IOException if an IO error occurs
+	 * @return {@link Slide}
+	 */
+	public synchronized Slide add(InputStream stream) throws FileNotFoundException, JAXBException, IOException {
+		if (stream == null) {
+			return null;
+		}
+		
+		// attempt to read the file
+		Slide slide = XmlIO.read(stream, BasicSlide.class);
+		slide.setPath(null);
+		
+		// add it to the library
+		this.save(slide);
+		
+		return slide;
+	}
+	
+	/**
+	 * Adds the given slide to the slide library.
+	 * @param path the path to the slide to add to the library
+	 * @throws FileNotFoundException if the given path was not found
+	 * @throws JAXBException if an error occurs writing the XML
+	 * @throws IOException if an IO error occurs
+	 * @return {@link Slide}
+	 */
+	public synchronized Slide add(Path path) throws FileNotFoundException, JAXBException, IOException {
+		if (path == null) {
+			return null;
+		}
+		
+		// attempt to read the file
+		Slide slide = XmlIO.read(path, BasicSlide.class);
+		slide.setPath(null);
+		
+		// add it to the library
+		this.save(slide);
+		
+		return slide;
+	}
+	
+	/**
 	 * Saves the given slide to the slide library.
 	 * @param slide the slide to save
 	 * @throws JAXBException if an error occurs writing the XML
@@ -239,7 +274,7 @@ public final class SlideLibrary {
 			Path path = this.path.resolve(name + EXTENSION);
 			// verify there doesn't exist a song with this name already
 			if (Files.exists(path)) {
-				// just use the guid
+				// just use the UUID
 				path = this.path.resolve(slide.getId().toString().replaceAll("-", "") + EXTENSION);
 			}
 			slide.setPath(path);
@@ -249,40 +284,51 @@ public final class SlideLibrary {
 		XmlIO.save(slide.getPath(), slide);
 		
 		// next save the thumbnail
-		this.saveThumbnail(slide);
+		if (slide.getThumbnail() != null) {
+			ImageIO.write(slide.getThumbnail(), "png", this.getThumbnailPath(slide).toFile());
+		} else {
+			// remove the thumbnail (if it exists)
+			Path thumbPath = getThumbnailPath(slide);
+			if (thumbPath != null) {
+				Files.deleteIfExists(thumbPath);
+			}
+		}
 		
 		// make sure the library is updated
 		this.slides.put(slide.getId(), slide);
 	}
 	
 	/**
-	 * Generates a thumbnail of the given slide and saves it.
-	 * @param slide the slide
-	 * @throws IOException if an IO error occurs
-	 */
-	private void saveThumbnail(Slide slide) throws IOException {
-		BufferedImage thumbnail = this.thumbnailGenerator.generate(slide);
-		if (thumbnail == null) return;
-		slide.setThumbnail(thumbnail);
-		ImageIO.write(thumbnail, "png", this.getThumbnailPath(slide).toFile());
-	}
-	
-	/**
 	 * Removes the slide from the library.
 	 * @param slide the slide to remove
+	 * @throws IOException if and IO error occurs
 	 */
-	public synchronized void remove(Slide slide) {
+	public synchronized void remove(Slide slide) throws IOException {
 		if (slide == null) return;
+		
+		// delete the file
+		Path path = slide != null ? slide.getPath() : null;
+		if (path != null) {
+			Files.deleteIfExists(path);
+		}
+		
+		// delete the thumbnail
+		Path thumnail = slide != null ? getThumbnailPath(slide) : null;
+		if (thumnail != null) {
+			Files.deleteIfExists(path);
+		}
+		
 		this.slides.remove(slide.getId());
 	}
 	
 	/**
 	 * Removes the slide with the given id from the library.
 	 * @param id the slide id
+	 * @throws IOException if and IO error occurs
 	 */
-	public synchronized void remove(UUID id) {
+	public synchronized void remove(UUID id) throws IOException {
 		if (id == null) return;
-		this.slides.remove(id);
+		this.remove(this.get(id));
 	}
 	
 	/**

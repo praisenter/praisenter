@@ -31,22 +31,19 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
-import javafx.stage.Stage;
-
 import org.praisenter.Tag;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.javafx.bible.ObservableBibleLibrary;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.javafx.screen.ScreenManager;
+import org.praisenter.javafx.slide.ObservableSlideLibrary;
 import org.praisenter.media.MediaLibrary;
-import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
-import org.praisenter.song.Song;
 import org.praisenter.song.SongLibrary;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 
 /**
  * Represents the working state of Praisenter.
@@ -57,11 +54,8 @@ import org.praisenter.song.SongLibrary;
  * @version 3.0.0
  */
 public final class PraisenterContext {
-	/** The Java FX application instance */
-	private final Application application;
-	
-	/** The Java FX main stage */
-	private final Stage stage;
+	/** The Java FX context */
+	private final JavaFXContext javaFXContext;
 	
 	/** The application configuration */
 	private final Configuration configuration;
@@ -70,22 +64,13 @@ public final class PraisenterContext {
 	private final ScreenManager screenManager;
 	
 	/** The media library */
-	private final MediaLibrary mediaLibrary;
-	
-	/** The observable media library */
-	private final ObservableMediaLibrary observableMediaLibrary;
+	private final ObservableMediaLibrary mediaLibrary;
 
-	/** The bible library */
-	private final BibleLibrary bibleLibrary;
-	
 	/** The observable bible library */
-	private final ObservableBibleLibrary observableBibleLibrary;
-	
-	/** The song library */
-	private final SongLibrary songLibrary;
+	private final ObservableBibleLibrary bibleLibrary;
 	
 	/** The slide library */
-	private final SlideLibrary slideLibrary;
+	private final ObservableSlideLibrary slideLibrary;
 	
 	/** The image cache */
 	private final ImageCache imageCache;
@@ -98,8 +83,7 @@ public final class PraisenterContext {
 	
 	/**
 	 * Full constructor.
-	 * @param application the Java FX application instance
-	 * @param stage the Java FX main stage
+	 * @param javaFxContext the Java FX context
 	 * @param configuration the application configuration
 	 * @param screenManager the display screen manager
 	 * @param imageCache the image cache
@@ -109,8 +93,7 @@ public final class PraisenterContext {
 	 * @param slides the slide library
 	 */
 	public PraisenterContext(
-			Application application,
-			Stage stage,
+			JavaFXContext javaFxContext,
 			Configuration configuration,
 			ScreenManager screenManager,
 			ImageCache imageCache,
@@ -118,8 +101,7 @@ public final class PraisenterContext {
 			BibleLibrary bibles,
 			SongLibrary songs, 
 			SlideLibrary slides) {
-		this.application = application;
-		this.stage = stage;
+		this.javaFXContext = javaFxContext;
 		this.configuration = configuration;
 		this.screenManager = screenManager;
 		
@@ -141,31 +123,20 @@ public final class PraisenterContext {
 				});
 		
 		this.imageCache = imageCache;
-		this.mediaLibrary = media;
-		this.bibleLibrary = bibles;
-		this.songLibrary = songs;
-		this.slideLibrary = slides;
-		
-		this.observableMediaLibrary = new ObservableMediaLibrary(media, workers);
-		this.observableBibleLibrary = new ObservableBibleLibrary(bibles, workers);
+
+		this.mediaLibrary = new ObservableMediaLibrary(media, workers);
+		this.bibleLibrary = new ObservableBibleLibrary(bibles, workers);
+		this.slideLibrary = new ObservableSlideLibrary(slides, workers);
 		
 		Set<Tag> tags = new TreeSet<Tag>();
 		
 		// add all the tags to the main tag set
-		if (this.songLibrary != null) {
-			for (Song song : this.songLibrary.all()) {
-				tags.addAll(song.getTags());
-			}
-		}
-		if (this.slideLibrary != null) {
-			for (Slide slide : this.slideLibrary.all()) {
-				tags.addAll(slide.getTags());
-			}
+		if (slides != null) {
+			tags.addAll(this.slideLibrary.getTags());
 		}
 		if (media != null) {
-			tags.addAll(this.observableMediaLibrary.getTags());
+			tags.addAll(this.mediaLibrary.getTags());
 		}
-		
 		
 		this.tags = FXCollections.observableSet(tags);
 	}
@@ -174,16 +145,8 @@ public final class PraisenterContext {
 	 * Returns the application instance.
 	 * @return Application
 	 */
-	public Application getApplication() {
-		return this.application;
-	}
-	
-	/**
-	 * Returns the main stage for the application.
-	 * @return Stage
-	 */
-	public Stage getStage() {
-		return this.stage;
+	public JavaFXContext getJavaFXContext() {
+		return this.javaFXContext;
 	}
 	
 	/**
@@ -204,49 +167,25 @@ public final class PraisenterContext {
 	
 	/**
 	 * Returns the media library.
-	 * @return {@link MediaLibrary}
-	 */
-	public MediaLibrary getMediaLibrary() {
-		return this.mediaLibrary;
-	}
-	
-	/**
-	 * Returns an observable media library.
 	 * @return {@link ObservableMediaLibrary}
 	 */
-	public ObservableMediaLibrary getObservableMediaLibrary() {
-		return this.observableMediaLibrary;
+	public ObservableMediaLibrary getMediaLibrary() {
+		return this.mediaLibrary;
 	}
 
-	/**
-	 * Returns the bible library.
-	 * @return {@link BibleLibrary}
-	 */
-	public BibleLibrary getBibleLibrary() {
-		return this.bibleLibrary;
-	}
-	
 	/**
 	 * Returns the bible library.
 	 * @return {@link ObservableBibleLibrary}
 	 */
-	public ObservableBibleLibrary getObservableBibleLibrary() {
-		return this.observableBibleLibrary;
+	public ObservableBibleLibrary getBibleLibrary() {
+		return this.bibleLibrary;
 	}
 	
 	/**
-	 * Returns the song library.
-	 * @return {@link SongLibrary}
-	 */
-	public SongLibrary getSongLibrary() {
-		return this.songLibrary;
-	}
-
-	/**
 	 * Returns the slide library.
-	 * @return {@link SlideLibrary}
+	 * @return {@link ObservableSlideLibrary}
 	 */
-	public SlideLibrary getSlideLibrary() {
+	public ObservableSlideLibrary getSlideLibrary() {
 		return this.slideLibrary;
 	}
 	

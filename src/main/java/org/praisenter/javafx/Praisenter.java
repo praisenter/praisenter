@@ -33,7 +33,6 @@ import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.javafx.configuration.Configuration;
-import org.praisenter.javafx.screen.ScreenManager;
 import org.praisenter.resources.OpenIconic;
 import org.praisenter.resources.translations.Translations;
 
@@ -48,7 +47,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
-import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -85,15 +83,18 @@ public final class Praisenter extends Application {
 		LOGGER = LogManager.getLogger();
 		
 		// load configuration properties
+		LOGGER.info("Loading configuration.");
 		Configuration config = Configuration.load();
 		if (config == null) {
 			// either an exception occurred loading the configuration
 			// or the configuration hasn't been saved, in either case
 			// we need to create a default configuration
+			LOGGER.info("No configuration found or unable to load configuration. Using default configuration.");
 			config = Configuration.createDefaultConfiguration();
 		} else {
 			// set the language if in the config
 			if (config.getLanguage() != null) {
+				LOGGER.info("Setting the default language to '" + config.getLanguage() + "'.");
 				Locale.setDefault(config.getLanguage());
 			}
 		}
@@ -141,6 +142,7 @@ public final class Praisenter extends Application {
     	}
     	
     	// verify features
+    	LOGGER.info("Verifying required Java FX features.");
     	for (ConditionalFeature feature : REQUIRED_JAVAFX_FEATURES) {
     		if (!Platform.isSupported(feature)) {
     			// not supported, attempt to show the user an error message
@@ -154,6 +156,7 @@ public final class Praisenter extends Application {
     			Platform.exit();
     		}
     	}
+    	LOGGER.info("Required features present.");
     	
     	// title
     	stage.setTitle(Constants.NAME + " " + Constants.VERSION);
@@ -169,6 +172,7 @@ public final class Praisenter extends Application {
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon512x512.png"));
     	
 		// load fonts
+    	LOGGER.info("Loading glyph fonts.");
 		GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
 		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
 		
@@ -176,35 +180,13 @@ public final class Praisenter extends Application {
     	StackPane stack = new StackPane();
     	
     	// create the loading scene
-    	LoadingPane loading = new LoadingPane(WIDTH, HEIGHT, CONFIG);
+    	LoadingPane loading = new LoadingPane(WIDTH, HEIGHT, new JavaFXContext(this, stage), CONFIG);
     	loading.setOnComplete((e) -> {
     		long t0 = 0;
     		long t1 = 0;
     		
-    		// get the loading result
-    		LoadingTaskResult result = e.data;
-    		
-    		// setup the screen manager
-    		LOGGER.info("Initializing the screen manager.");
-    		ScreenManager screenManager = new ScreenManager();
-    		screenManager.setup(CONFIG.getScreenMappings());
-    		
-    		// load fonts
-    		Font.getFamilies();
-    		Font.getFontNames();
-    		
-    		LOGGER.info("Building the application context.");
-    		// build the context
-    		context = new PraisenterContext(
-    				this,
-    				stage,
-    				CONFIG,
-    				screenManager,
-    				result.getImageCache(),
-    				result.getMediaLibrary(),
-    				result.getBibleLibrary(),
-    				result.getSongLibrary(),
-    				result.getSlideLibrary());
+    		// get the context
+    		PraisenterContext context = e.data;
     		
     		LOGGER.info("Creating the UI.");
     		t0 = System.nanoTime();
@@ -248,7 +230,7 @@ public final class Praisenter extends Application {
     	scene.getStylesheets().add(CONFIG.getThemeCss());
     	stage.setScene(scene);
     	stage.setOnCloseRequest((e) -> {
-    		
+    		LOGGER.info("Checking for background threads that have not completed yet.");
     		// this stuff could be null if we blow up before its created
     		if (context != null && context.getWorkers() != null) {
     			// for testing shutdown waiting
@@ -274,9 +256,11 @@ public final class Praisenter extends Application {
 	    			});
 	    			shutdown.show();
 	    		} else {
+	    			LOGGER.info("No active background threads running. Exiting the platform.");
 		    		Platform.exit();
 	    		}
     		} else {
+    			LOGGER.info("No active background threads running. Exiting the platform.");
 	    		Platform.exit();
     		}
     	});

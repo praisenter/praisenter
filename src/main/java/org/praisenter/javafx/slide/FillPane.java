@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.ImageCache;
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
@@ -33,7 +34,7 @@ import javafx.scene.shape.Rectangle;
 public final class FillPane extends StackPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	final ObservableSlideContext context;
+	final PraisenterContext context;
 	final SlideMode mode;
 	
 	final MediaView mediaView;
@@ -48,7 +49,7 @@ public final class FillPane extends StackPane {
 	double height;
 	double borderRadius;
 	
-	public FillPane(ObservableSlideContext context, SlideMode mode) {
+	public FillPane(PraisenterContext context, SlideMode mode) {
 		this.context = context;
 		this.mode = mode;
 		this.mediaView = new MediaView();
@@ -168,7 +169,7 @@ public final class FillPane extends StackPane {
 		Media media = null;
 		UUID id = mo.getId();
 		if (id != null) {
-			media = this.context.mediaLibrary.get(id);
+			media = this.context.getMediaLibrary().get(id);
 		}
 		
 		if (media == null) {
@@ -191,7 +192,7 @@ public final class FillPane extends StackPane {
 				if (this.mode == SlideMode.EDIT ||
 					this.mode == SlideMode.SNAPSHOT ||
 					type == MediaType.IMAGE) {
-					this.image = JavaFXTypeConverter.toJavaFXImage(this.context.mediaLibrary, this.context.imageCache, media);
+					this.image = JavaFXTypeConverter.toJavaFXImage(this.context.getMediaLibrary(), this.context.getImageCache(), media);
 					Background background = new Background(new BackgroundImage(
 							this.image, 
 							BackgroundRepeat.NO_REPEAT, 

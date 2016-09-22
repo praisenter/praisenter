@@ -65,7 +65,7 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
 	SongSlide.class,
 	BibleSlide.class
 })
-public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion {
+public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion, Comparable<Slide> {
 	/** The slide format version */
 	@XmlAttribute(name = "version", required = false)
 	final String version = Slide.VERSION;
@@ -174,6 +174,36 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		// copy over the stuff
 		this.copy(slide);
 		return slide;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(Slide other) {
+		if (other == null) {
+			return -1;
+		} else if (other.getName() == null) {
+			return -1;
+		} else if (this.name == null) {
+			return 1;
+		} else {
+			return this.name.compareTo(other.getName());
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object other) {
+		if (other == null) return false;
+		if (other == this) return true;
+		if (other instanceof Slide) {
+			Slide s = (Slide)other;
+			return s.getId().equals(this.id);
+		}
+		return false;
 	}
 	
 	/* (non-Javadoc)

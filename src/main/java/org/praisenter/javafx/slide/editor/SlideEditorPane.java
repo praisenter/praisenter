@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Observer;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -20,6 +19,7 @@ import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.Tag;
 import org.praisenter.javafx.ImageCache;
+import org.praisenter.javafx.JavaFXContext;
 import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.TagEvent;
@@ -29,7 +29,6 @@ import org.praisenter.javafx.configuration.Resolution;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
-import org.praisenter.javafx.slide.ObservableSlideContext;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.Scaling;
 import org.praisenter.javafx.slide.SlideMode;
@@ -114,7 +113,6 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 
 // FEATURE grouping of components
 // JAVABUG 06/30/16 text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option
@@ -211,11 +209,10 @@ public final class SlideEditorPane extends Application {
 			e.printStackTrace();
 		}
 		
-		PraisenterContext context = new PraisenterContext(this, stage, null, null, new ImageCache(), library, null, null, null);
-		ObservableSlideContext sContext = new ObservableSlideContext(context.getMediaLibrary(), context.getImageCache());
+		PraisenterContext context = new PraisenterContext(new JavaFXContext(null, stage), null, null, new ImageCache(), library, null, null, null);
 		
 		slide = createTestSlide();
-		oSlide = new ObservableSlide<Slide>(slide, sContext, SlideMode.EDIT);
+		oSlide = new ObservableSlide<Slide>(slide, context, SlideMode.EDIT);
 		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));
 		
 		EventHandler<MouseEvent> entered = new EventHandler<MouseEvent>() {
@@ -247,6 +244,7 @@ public final class SlideEditorPane extends Application {
 				
 				Cursor cursor = CursorPosition.getCursorForPosition(x, y, w, h);
 				stage.getScene().setCursor(cursor);
+				e.consume();
 			}
 		};
 		
@@ -465,7 +463,7 @@ public final class SlideEditorPane extends Application {
 				// attempt to take a screenshot of the slide
 				// this must be done on the UI thread
 				{
-					ObservableSlide<?> nSlide = new ObservableSlide<>(slide, sContext, SlideMode.SNAPSHOT);
+					ObservableSlide<?> nSlide = new ObservableSlide<>(slide, context, SlideMode.SNAPSHOT);
 					
 					SnapshotParameters sp = new SnapshotParameters();
 					sp.setFill(Color.TRANSPARENT);
@@ -483,6 +481,7 @@ public final class SlideEditorPane extends Application {
 				
 				// this should be done on a background thread
 				try {
+					
 					XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), slide);
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block

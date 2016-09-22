@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import javafx.scene.effect.Effect;
 
-public final class EffectBuilder {
+final class EffectBuilder {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private List<OrderedEffect> effects;

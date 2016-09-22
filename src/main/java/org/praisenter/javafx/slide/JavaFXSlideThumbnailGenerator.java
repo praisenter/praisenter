@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Reference;
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideThumbnailGenerator;
 import org.praisenter.utility.ImageManipulator;
@@ -18,14 +19,14 @@ import javafx.scene.SnapshotParameters;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
-public final class JavaFXSlideThumbnailGenerator extends SlideThumbnailGenerator {
+public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenerator {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final int width;
 	private final int height;
-	private final ObservableSlideContext context;
+	private final PraisenterContext context;
 	
-	public JavaFXSlideThumbnailGenerator(int width, int height, ObservableSlideContext context) {
+	public JavaFXSlideThumbnailGenerator(int width, int height, PraisenterContext context) {
 		this.width = width;
 		this.height = height;
 		this.context = context;
@@ -53,7 +54,7 @@ public final class JavaFXSlideThumbnailGenerator extends SlideThumbnailGenerator
 		if (Platform.isFxApplicationThread()) {
 			try {
 				// if we are already on the Java FX thread then just generate the thumbnail
-				return SwingFXUtils.fromFXImage(r.call(), null);
+				return ImageManipulator.getUniformScaledImage(SwingFXUtils.fromFXImage(r.call(), null), width, height, AffineTransformOp.TYPE_BICUBIC);
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to generate image", ex);
 				return null;
@@ -82,7 +83,7 @@ public final class JavaFXSlideThumbnailGenerator extends SlideThumbnailGenerator
 			// then convert it to an BufferedImage and return
 			Image image = imageRef.get();
 			if (image != null) {
-				BufferedImage bi = SwingFXUtils.fromFXImage(image, null);
+				BufferedImage bi = ImageManipulator.getUniformScaledImage(SwingFXUtils.fromFXImage(image, null), width, height, AffineTransformOp.TYPE_BICUBIC);
 				// scale it down
 				return ImageManipulator.getUniformScaledImage(bi, this.width, this.height, AffineTransformOp.TYPE_BICUBIC);
 			}

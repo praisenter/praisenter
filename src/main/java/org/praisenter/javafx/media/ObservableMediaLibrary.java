@@ -26,18 +26,13 @@ package org.praisenter.javafx.media;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,6 +41,12 @@ import org.praisenter.Tag;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaThumbnailSettings;
+
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 
 /**
  * Represents an Observable wrapper to the media library.
@@ -68,11 +69,8 @@ public final class ObservableMediaLibrary {
 	/** The thread service */
 	private final ExecutorService service;
 	
-	/** The initial tags */
-	private final Set<Tag> tags;
-	
 	/** The observable list of media items */
-	private final ObservableList<MediaListItem> items = FXCollections.observableArrayList();
+	private final ObservableList<MediaListItem> items;
 	
 	/**
 	 * Minimal constructor.
@@ -82,15 +80,12 @@ public final class ObservableMediaLibrary {
 	public ObservableMediaLibrary(MediaLibrary library, ExecutorService service) {
 		this.library = library;
 		this.service = service;
-		this.tags = new TreeSet<Tag>();
+		this.items = FXCollections.observableArrayList();
 		
-		// add all the current media to the observable list
-		if (library != null) {
-			for (Media media : library.all()) {
-				this.items.add(new MediaListItem(media));
-				this.tags.addAll(media.getMetadata().getTags());
-	        }
-		}
+		// initialize the observable list
+		for (Media media : library.all()) {
+			this.items.add(new MediaListItem(media));
+        }
 	}
 	
 	/**
@@ -151,7 +146,7 @@ public final class ObservableMediaLibrary {
 				}
 			});
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
@@ -239,14 +234,14 @@ public final class ObservableMediaLibrary {
 				}
 			});
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
 	 * Attempts to remove the given media from the media library.
 	 * <p>
 	 * The onSuccess method will be called on success. The onError method will be 
-	 * called if an error occurs during removal (like it being in use).
+	 * called if an error occurs during removal.
 	 * <p>
 	 * Removing a media item is typically a fast operation so no loading items are
 	 * added.
@@ -286,14 +281,14 @@ public final class ObservableMediaLibrary {
 				}
 			});
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
 	 * Attempts to remove all the given media from the media library.
 	 * <p>
 	 * The onSuccess method will be called on success. The onError method will be 
-	 * called if an error occurs during removal (like it being in use).
+	 * called if an error occurs during removal.
 	 * <p>
 	 * Removing a media item is typically a fast operation so no loading items are
 	 * added.
@@ -348,7 +343,7 @@ public final class ObservableMediaLibrary {
 				}
 			});
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
@@ -370,12 +365,11 @@ public final class ObservableMediaLibrary {
 	 * @param onError called when the media failed to be renamed
 	 */
 	public void rename(Media media, String name, Consumer<Media> onSuccess, BiConsumer<Media, Throwable> onError) {
-		final Media m0 = media;
 		// execute the add on a different thread
 		Task<Media> task = new Task<Media>() {
 			@Override
 			protected Media call() throws Exception {
-				return library.rename(m0, name);
+				return library.rename(media, name);
 			}
 		};
 		task.setOnSucceeded((e) -> {
@@ -386,7 +380,7 @@ public final class ObservableMediaLibrary {
 				int index = -1;
 		    	for (int i = 0; i < items.size(); i++) {
 		    		MediaListItem item = items.get(i);
-		    		if (item.media.getMetadata().getId() == m0.getMetadata().getId()) {
+		    		if (item.media.getMetadata().getId() == media.getMetadata().getId()) {
 		    			index = i;
 		    			break;
 		    		}
@@ -408,22 +402,125 @@ public final class ObservableMediaLibrary {
 			// run everything on the FX UI Thread
 			Platform.runLater(() -> {
 				if (onError != null) {
-					onError.accept(m0, ex);
+					onError.accept(media, ex);
 				}
 			});
 		});
-		this.service.submit(task);
+		this.service.execute(task);
+	}
+
+	/**
+	 * Attempts to add the given tag to the given media.
+	 * <p>
+	 * The onSuccess method will be called on success. The onError method will be 
+	 * called if an error occurs.
+	 * @param media the media
+	 * @param tag the tag to add
+	 * @param onSuccess called when the tag is successfully added
+	 * @param onError called when the tag failed to be added
+	 */
+	public void addTag(Media media, Tag tag, Consumer<Tag> onSuccess, BiConsumer<Tag, Throwable> onError) {
+		// execute the add on a different thread
+		Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				library.addTag(media, tag);
+				return null;
+			}
+		};
+		task.setOnSucceeded((e) -> {
+			if (onSuccess != null) {
+				onSuccess.accept(tag);
+			}
+		});
+		task.setOnFailed((e) -> {
+			final Throwable ex = task.getException();
+			LOGGER.error("Failed to add tag " + tag.getName() + " to media " + media.getMetadata().getName(), ex);
+			// run everything on the FX UI Thread
+			Platform.runLater(() -> {
+				if (onError != null) {
+					onError.accept(tag, ex);
+				}
+			});
+		});
+		this.service.execute(task);
 	}
 	
-	// mutators
+	/**
+	 * Attempts to remove the given tag from the given media.
+	 * <p>
+	 * The onSuccess method will be called on success. The onError method will be 
+	 * called if an error occurs.
+	 * @param media the media
+	 * @param tag the tag to remove
+	 * @param onSuccess called when the tag is successfully removed
+	 * @param onError called when the tag failed to be removed
+	 */
+	public void removeTag(final Media media, final Tag tag, Consumer<Tag> onSuccess, BiConsumer<Tag, Throwable> onError) {
+		// execute the add on a different thread
+		Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				library.removeTag(media, tag);
+				return null;
+			}
+		};
+		task.setOnSucceeded((e) -> {
+			if (onSuccess != null) {
+				onSuccess.accept(tag);
+			}
+		});
+		task.setOnFailed((e) -> {
+			final Throwable ex = task.getException();
+			LOGGER.error("Failed to remove tag " + tag.getName() + " from media " + media.getMetadata().getName(), ex);
+			// run everything on the FX UI Thread
+			Platform.runLater(() -> {
+				if (onError != null) {
+					onError.accept(tag, ex);
+				}
+			});
+		});
+		this.service.execute(task);
+	}
+	
+	// other
 	
 	/**
-	 * Returns an unmodifiable set of the initial tags
-	 * at the time of loading the media library.
+	 * Returns the thumbnail settings.
+	 * @return {@link MediaThumbnailSettings}
+	 */
+	public MediaThumbnailSettings getThumbnailSettings() {
+		return this.library.getThumbnailSettings();
+	}
+	
+	/**
+	 * Returns the media for the given id.
+	 * @param id the id
+	 * @return {@link Media}
+	 */
+	public Media get(UUID id) {
+		return this.library.get(id);
+	}
+	
+	/**
+	 * Returns the path to the single frame for the given media.
+	 * @param media the media
+	 * @return Path
+	 */
+	public Path getFramePath(Media media) {
+		return this.library.getFramePath(media);
+	}
+	
+	/**
+	 * Returns a set of all the tags on all media items.
 	 * @return Set&lt;{@link Tag}&gt;
 	 */
 	public Set<Tag> getTags() {
-		return Collections.unmodifiableSet(this.tags);
+		Set<Tag> tags = new TreeSet<Tag>();
+		for (Media media : library.all()) {
+			tags.addAll(media.getMetadata().getTags());
+        }
+		return tags;
 	}
 	
 	/**

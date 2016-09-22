@@ -127,7 +127,7 @@ public final class BibleLibraryPane extends BorderPane {
 		right.getChildren().addAll(ttlImport, ttlMetadata, ttlSettings);
 		
 		this.lstBibles = new FlowListView<BibleListItem>(new BibleListViewCellFactory());
-		this.lstBibles.itemsProperty().bindContent(context.getObservableBibleLibrary().getItems());
+		this.lstBibles.itemsProperty().bindContent(context.getBibleLibrary().getItems());
 		this.lstBibles.setOrientation(Orientation.HORIZONTAL);
 		
 		ScrollPane leftScroller = new ScrollPane();
@@ -204,7 +204,7 @@ public final class BibleLibraryPane extends BorderPane {
 			}
 			
 			// attempt to add to the library
-			this.context.getObservableBibleLibrary().add(
+			this.context.getBibleLibrary().add(
 					paths, 
 					(List<Bible> bibles) -> {
 						// get the warning files
@@ -263,7 +263,7 @@ public final class BibleLibraryPane extends BorderPane {
 				Optional<ButtonType> result = alert.showAndWait();
 				if (result.get() == ButtonType.OK) {
 					// attempt to remove
-					this.context.getObservableBibleLibrary().remove(
+					this.context.getBibleLibrary().remove(
 							bibles, 
 							() -> {
 								// nothing to do on success

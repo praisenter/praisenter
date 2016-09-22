@@ -44,7 +44,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 
 	private final Pane componentCanvas;
 	
-	public ObservableSlide(T slide, ObservableSlideContext context, SlideMode mode) {
+	public ObservableSlide(T slide, PraisenterContext context, SlideMode mode) {
 		super(slide, context, mode);
 		
 		this.componentCanvas = new Pane();

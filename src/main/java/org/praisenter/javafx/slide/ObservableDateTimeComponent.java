@@ -20,7 +20,7 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 	
 	final ObjectProperty<SimpleDateFormat> format = new SimpleObjectProperty<SimpleDateFormat>();
 	
-	public ObservableDateTimeComponent(DateTimeComponent component, ObservableSlideContext context, SlideMode mode) {
+	public ObservableDateTimeComponent(DateTimeComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values

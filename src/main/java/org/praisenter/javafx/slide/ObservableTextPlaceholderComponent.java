@@ -17,7 +17,7 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 	final ObjectProperty<PlaceholderType> placeholderType = new SimpleObjectProperty<PlaceholderType>();
 	final ObservableList<PlaceholderVariant> variants = FXCollections.observableArrayList();
 	
-	public ObservableTextPlaceholderComponent(TextPlaceholderComponent component, ObservableSlideContext context, SlideMode mode) {
+	public ObservableTextPlaceholderComponent(TextPlaceholderComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values

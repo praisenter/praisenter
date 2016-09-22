@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.ImageCache;
+import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
@@ -629,7 +630,7 @@ public final class JavaFXTypeConverter {
 	}
 	
 	// will work for all media types
-	public static Image toJavaFXImage(MediaLibrary mediaLibrary, ImageCache imageCache, Media media) {
+	public static Image toJavaFXImage(ObservableMediaLibrary mediaLibrary, ImageCache imageCache, Media media) {
 		// check for missing media
 		if (media == null) {
 			return null;

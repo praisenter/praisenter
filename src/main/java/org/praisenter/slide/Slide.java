@@ -53,7 +53,7 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
 	BibleSlide.class
 })
 @XmlAccessorType(XmlAccessType.NONE)
-public interface Slide extends SlideRegion {
+public interface Slide extends SlideRegion, Comparable<Slide> {
 	/** The version of the slide format */
 	public static final String VERSION = "3.0.0";
 	

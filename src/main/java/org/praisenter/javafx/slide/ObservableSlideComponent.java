@@ -10,7 +10,7 @@ public abstract class ObservableSlideComponent<T extends SlideComponent> extends
 
 	final IntegerProperty order = new SimpleIntegerProperty();
 	
-	public ObservableSlideComponent(T component, ObservableSlideContext context, SlideMode mode) {
+	public ObservableSlideComponent(T component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values
