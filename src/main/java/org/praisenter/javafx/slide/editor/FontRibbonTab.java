@@ -53,10 +53,6 @@ public class FontRibbonTab extends EditorRibbonTab {
 	public FontRibbonTab() {
 		super("Font");
 		
-		ObservableList<Option<PaintType>> paintTypes = FXCollections.observableArrayList();
-		paintTypes.add(new Option<PaintType>("Color", PaintType.COLOR));
-		paintTypes.add(new Option<PaintType>("Gradient", PaintType.GRADIENT));
-		
 		ObservableList<Option<FontScaleType>> fontScaleTypes = FXCollections.observableArrayList();
 		fontScaleTypes.add(new Option<FontScaleType>("None", FontScaleType.NONE));
 		fontScaleTypes.add(new Option<FontScaleType>("Reduce Size Only", FontScaleType.REDUCE_SIZE_ONLY));

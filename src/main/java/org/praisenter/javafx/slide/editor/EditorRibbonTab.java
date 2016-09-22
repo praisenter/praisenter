@@ -34,7 +34,7 @@ public abstract class EditorRibbonTab extends HBox {
 		// right is the separator
 		this.getChildren().addAll(container, new Separator(Orientation.VERTICAL));
 		this.setPadding(new Insets(3));
-		this.setSpacing(3);
+		this.setSpacing(6);
 	}
 	
 	public ObservableSlideRegion<?> getComponent() {

@@ -1,5 +1,6 @@
 import java.util.List;
 
+import org.praisenter.javafx.slide.editor.FontBorderRibbonTab;
 import org.praisenter.javafx.slide.editor.FontRibbonTab;
 
 import javafx.application.Application;
@@ -26,7 +27,9 @@ public class RibbonTesting extends Application {
 		HBox ribbon = new HBox();
 		root.setTop(ribbon);
 		
-		ribbon.getChildren().add(new FontRibbonTab());
+		ribbon.getChildren().addAll(
+				new FontRibbonTab(),
+				new FontBorderRibbonTab());
 		
 		primaryStage.setScene(new Scene(root));
 		primaryStage.show();
