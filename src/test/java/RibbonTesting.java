@@ -1,7 +1,11 @@
 import java.util.List;
 
+import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.slide.editor.FontBorderRibbonTab;
 import org.praisenter.javafx.slide.editor.FontRibbonTab;
+import org.praisenter.javafx.slide.editor.ParagraphRibbonTab;
+import org.praisenter.resources.OpenIconic;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -22,6 +26,9 @@ public class RibbonTesting extends Application {
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+		
+		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
+		
 		BorderPane root = new BorderPane();
 		
 		HBox ribbon = new HBox();
@@ -29,9 +36,11 @@ public class RibbonTesting extends Application {
 		
 		ribbon.getChildren().addAll(
 				new FontRibbonTab(),
+				new ParagraphRibbonTab(),
 				new FontBorderRibbonTab());
 		
 		primaryStage.setScene(new Scene(root));
+		//primaryStage.getScene().getStylesheets().add(RibbonTesting.class.getResource("/org/praisenter/javafx/styles/default.css").toExternalForm());
 		primaryStage.show();
 	}
 }

@@ -13,6 +13,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 public abstract class EditorRibbonTab extends HBox {
 
@@ -30,11 +32,14 @@ public abstract class EditorRibbonTab extends HBox {
 		container.setBottom(lblName);
 		lblName.setMaxWidth(Double.MAX_VALUE);
 		lblName.setPadding(new Insets(3, 0, 0, 0));
+		lblName.setFont(Font.font("System", FontWeight.BOLD, 10));
 		
 		// right is the separator
 		this.getChildren().addAll(container, new Separator(Orientation.VERTICAL));
-		this.setPadding(new Insets(3));
-		this.setSpacing(6);
+		this.setPadding(new Insets(3, 0, 3, 0));
+		this.setSpacing(4);
+		
+		this.container.setMinWidth(USE_PREF_SIZE);
 	}
 	
 	public ObservableSlideRegion<?> getComponent() {

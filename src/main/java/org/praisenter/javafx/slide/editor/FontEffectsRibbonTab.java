@@ -47,7 +47,7 @@ import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class FontRibbonTab extends EditorRibbonTab {
+public class FontEffectsRibbonTab extends EditorRibbonTab {
 	private final SlideFontPicker pkrFont;
 	private final ChoiceBox<Option<FontScaleType>> cbFontScaling;
 	private final Spinner<Double> spnLineSpacing;
@@ -57,7 +57,7 @@ public class FontRibbonTab extends EditorRibbonTab {
 	private static final Color DEFAULT_PAINT = new Color(0, 0, 0, 1);
 	private static final SlideLinearGradient DEFAULT_GRADIENT = new SlideLinearGradient(0, 0, 0, 1, SlideGradientCycleType.NONE, new SlideGradientStop(0, 0, 0, 0, 1), new SlideGradientStop(1, 0, 0, 0, 0.5));
 	
-	public FontRibbonTab() {
+	public FontEffectsRibbonTab() {
 		super("Font");
 		
 		ObservableList<Option<FontScaleType>> fontScaleTypes = FXCollections.observableArrayList();
