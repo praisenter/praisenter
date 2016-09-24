@@ -28,7 +28,9 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
@@ -48,8 +50,12 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 public class FontRibbonTab extends EditorRibbonTab {
+
+	/** The fontawesome glyph-font pack */
+	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
+	
 	private final SlideFontPicker pkrFont;
-	private final ChoiceBox<Option<FontScaleType>> cbFontScaling;
+	private final ComboBox<Option<FontScaleType>> cbFontScaling;
 	private final Spinner<Double> spnLineSpacing;
 	private final ColorPicker pkrColor;
 	private final SlideGradientPicker pkrGradient;
@@ -71,8 +77,19 @@ public class FontRibbonTab extends EditorRibbonTab {
 		this.pkrFont.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50));
 		this.pkrFont.setMaxWidth(200);
 		
-		this.cbFontScaling = new ChoiceBox<>(fontScaleTypes);
+		this.cbFontScaling = new ComboBox<>(fontScaleTypes);
+		this.cbFontScaling.setMaxWidth(120);
 		this.cbFontScaling.setValue(new Option<FontScaleType>(null, FontScaleType.NONE));
+		this.cbFontScaling.setButtonCell(new ListCell<Option<FontScaleType>>(){
+			@Override
+			protected void updateItem(Option<FontScaleType> item, boolean empty) {
+				super.updateItem(item, empty);
+				setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.TEXT_HEIGHT).color((Color)getTextFill()));
+				if (item != null) {
+					setText(item.getName());
+				}
+			}
+		});
 		
 		this.spnLineSpacing = new Spinner<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, 0, 0.5);
 		this.spnLineSpacing.setEditable(true);

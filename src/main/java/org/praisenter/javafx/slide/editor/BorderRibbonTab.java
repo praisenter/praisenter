@@ -34,11 +34,12 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.util.Callback;
 
-public class FontBorderRibbonTab extends EditorRibbonTab {
+public class BorderRibbonTab extends EditorRibbonTab {
 
 	private static final Color DEFAULT_PAINT = new Color(0, 0, 0, 1);
 	private static final SlideLinearGradient DEFAULT_GRADIENT = new SlideLinearGradient(0, 0, 0, 1, SlideGradientCycleType.NONE, new SlideGradientStop(0, 0, 0, 0, 1), new SlideGradientStop(1, 0, 0, 0, 0.5));
@@ -51,30 +52,23 @@ public class FontBorderRibbonTab extends EditorRibbonTab {
 	private final Spinner<Double> spnWidth;
 	private final Spinner<Double> spnRadius;
 	
-	public FontBorderRibbonTab() {
-		super("Font Border");
+	public BorderRibbonTab() {
+		super("Border");
 
 		MenuItem itmNone = new MenuItem("None");
 		MenuItem itmColor = new MenuItem("Color");
 		MenuItem itmGradient = new MenuItem("Gradient");
 		
-		Path path = new Path();
-		path.getElements().addAll(
-				new MoveTo(7, 0),
-				new LineTo(0, 13),
-				new MoveTo(7, 0),
-				new LineTo(14, 13),
-				new MoveTo(5, 9),
-				new LineTo(11, 9));
-		path.setStroke(Color.BLACK);
-		path.setStrokeWidth(2.0);
-		path.getStrokeDashArray().addAll(2.0, 5.0);
-		path.setStrokeLineJoin(StrokeLineJoin.MITER);
-		path.setStrokeLineCap(StrokeLineCap.SQUARE);
-		path.setStrokeMiterLimit(100);
-		path.setFill(null);
+		Rectangle rect = new Rectangle(0, 0, 14, 13);
+		rect.setStroke(Color.BLACK);
+		rect.setStrokeWidth(1.0);
+		rect.getStrokeDashArray().addAll(1.0, 2.0);
+		rect.setStrokeLineJoin(StrokeLineJoin.MITER);
+		rect.setStrokeLineCap(StrokeLineCap.SQUARE);
+		rect.setStrokeMiterLimit(100);
+		rect.setFill(null);
 		
-		MenuButton mnuPaintType = new MenuButton("", path, itmNone, itmColor, itmGradient);
+		MenuButton mnuPaintType = new MenuButton("", rect, itmNone, itmColor, itmGradient);
 		this.pkrColor = new ColorPicker(DEFAULT_PAINT);
 		this.pkrGradient = new SlideGradientPicker();
 		this.pkrGradient.setValue(DEFAULT_GRADIENT);
@@ -147,7 +141,7 @@ public class FontBorderRibbonTab extends EditorRibbonTab {
 		this.component.addListener((obs, ov, nv) -> {
 			if (nv instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> otc = (ObservableTextComponent<?>)nv;
-				setControlValues(otc.getTextBorder());
+				setControlValues(otc.getBorder());
 			}
 		});
 		
@@ -159,7 +153,7 @@ public class FontBorderRibbonTab extends EditorRibbonTab {
 				ObservableSlideRegion<?> comp = component.get();
 				if (comp != null && comp instanceof ObservableTextComponent) {
 					ObservableTextComponent<?> tc =(ObservableTextComponent<?>)comp;
-					tc.setTextBorder(getControlValues());
+					tc.setBorder(getControlValues());
 				}
 				mutating = false;
 			}

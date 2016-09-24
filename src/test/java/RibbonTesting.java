@@ -2,17 +2,26 @@ import java.util.List;
 
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.Praisenter;
+import org.praisenter.javafx.slide.editor.BorderRibbonTab;
 import org.praisenter.javafx.slide.editor.FontBorderRibbonTab;
+import org.praisenter.javafx.slide.editor.FontGlowRibbonTab;
 import org.praisenter.javafx.slide.editor.FontRibbonTab;
+import org.praisenter.javafx.slide.editor.FontShadowRibbonTab;
+import org.praisenter.javafx.slide.editor.GlowRibbonTab;
 import org.praisenter.javafx.slide.editor.ParagraphRibbonTab;
+import org.praisenter.javafx.slide.editor.ShadowRibbonTab;
 import org.praisenter.resources.OpenIconic;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TitledPane;
+import javafx.scene.effect.Shadow;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -31,16 +40,22 @@ public class RibbonTesting extends Application {
 		
 		BorderPane root = new BorderPane();
 		
-		HBox ribbon = new HBox();
-		root.setTop(ribbon);
+		HBox ribBox = new HBox(new BorderRibbonTab(), new GlowRibbonTab(), new ShadowRibbonTab());
+		ribBox.setPadding(new Insets(0, 0, 0, 2));
+		Tab tabBox = new Tab(" Box ", ribBox);
+		tabBox.setClosable(false);
 		
-		ribbon.getChildren().addAll(
-				new FontRibbonTab(),
-				new ParagraphRibbonTab(),
-				new FontBorderRibbonTab());
+		HBox ribText = new HBox(new FontRibbonTab(), new ParagraphRibbonTab(), new FontBorderRibbonTab(), new FontShadowRibbonTab(), new FontGlowRibbonTab());
+		ribText.setPadding(new Insets(0, 0, 0, 2));
+		Tab tabText = new Tab(" Text ", ribText);
+		tabText.setClosable(false);
+		
+		TabPane tabs = new TabPane(tabBox, tabText);
+		
+		root.setTop(tabs);
 		
 		primaryStage.setScene(new Scene(root));
-		//primaryStage.getScene().getStylesheets().add(RibbonTesting.class.getResource("/org/praisenter/javafx/styles/default.css").toExternalForm());
+		primaryStage.getScene().getStylesheets().add(RibbonTesting.class.getResource("/org/praisenter/javafx/styles/default.css").toExternalForm());
 		primaryStage.show();
 	}
 }
