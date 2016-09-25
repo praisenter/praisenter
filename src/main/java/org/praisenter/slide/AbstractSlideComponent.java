@@ -35,41 +35,41 @@ import javax.xml.bind.annotation.XmlElement;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractSlideComponent extends AbstractSlideRegion implements SlideRegion, SlideComponent {
-	/** The z-order */
-	@XmlElement(name = "order", required = false)
-	int order;
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	@Override
-	public int compareTo(SlideComponent o) {
-		return this.order - o.getOrder();
-	}
-	
+//	/** The z-order */
+//	@XmlElement(name = "order", required = false)
+//	int order;
+//	
+//	/* (non-Javadoc)
+//	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+//	 */
+//	@Override
+//	public int compareTo(SlideComponent o) {
+//		return this.order - o.getOrder();
+//	}
+//	
 	/**
 	 * Copies over the values of this component to the given component.
 	 * @param to the component to copy to
 	 */
 	protected void copy(SlideComponent to) {
 		// shouldn't need a deep copy of any of these
-		to.setOrder(this.order);
+//		to.setOrder(this.order);
 		this.copy((SlideRegion)to);
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#getOrder()
-	 */
-	@Override
-	public int getOrder() {
-		return this.order;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideComponent#setOrder(int)
-	 */
-	@Override
-	public void setOrder(int order) {
-		this.order = order;
-	}
+//	
+//	/* (non-Javadoc)
+//	 * @see org.praisenter.slide.SlideComponent#getOrder()
+//	 */
+//	@Override
+//	public int getOrder() {
+//		return this.order;
+//	}
+//	
+//	/* (non-Javadoc)
+//	 * @see org.praisenter.slide.SlideComponent#setOrder(int)
+//	 */
+//	@Override
+//	public void setOrder(int order) {
+//		this.order = order;
+//	}
 }

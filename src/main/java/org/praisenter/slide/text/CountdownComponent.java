@@ -91,24 +91,7 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	@Override
 	public String getText() {
 		if (this.target != null) {
-			LocalDateTime temp = LocalDateTime.now();
-			
-			// get the individual durations and advance each time
-			long years = temp.until(this.target, ChronoUnit.YEARS); 	temp = temp.plusYears(years);
-			long months = temp.until(this.target, ChronoUnit.MONTHS); 	temp = temp.plusMonths(months);
-			long days = temp.until(this.target, ChronoUnit.DAYS); 		temp = temp.plusDays(days);
-			long hours = temp.until(this.target, ChronoUnit.HOURS); 	temp = temp.plusHours(hours);
-			long minutes = temp.until(this.target, ChronoUnit.MINUTES); temp = temp.plusMinutes(minutes);
-			long seconds = temp.until(this.target, ChronoUnit.SECONDS);
-			
-			return String.format(
-			        this.format, 
-			        years,
-			        months,
-			        days,
-			        hours,
-			        minutes,
-			        seconds);
+			return formatCountdown(this.format, this.target);
 		}
 		return String.format(
 		        this.format, 
@@ -118,6 +101,33 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 		        0,
 		        0,
 		        0);
+	}
+	
+	/**
+	 * Computes and formats the difference in target date and now.
+	 * @param format the format defined by String.format
+	 * @param target the target date/time
+	 * @return String
+	 */
+	public static final String formatCountdown(String format, LocalDateTime target) {
+		LocalDateTime temp = LocalDateTime.now();
+		
+		// get the individual durations and advance each time
+		long years = temp.until(target, ChronoUnit.YEARS); 	temp = temp.plusYears(years);
+		long months = temp.until(target, ChronoUnit.MONTHS); 	temp = temp.plusMonths(months);
+		long days = temp.until(target, ChronoUnit.DAYS); 		temp = temp.plusDays(days);
+		long hours = temp.until(target, ChronoUnit.HOURS); 	temp = temp.plusHours(hours);
+		long minutes = temp.until(target, ChronoUnit.MINUTES); temp = temp.plusMinutes(minutes);
+		long seconds = temp.until(target, ChronoUnit.SECONDS);
+		
+		return String.format(
+		        format, 
+		        years,
+		        months,
+		        days,
+		        hours,
+		        minutes,
+		        seconds);
 	}
 
 	/**

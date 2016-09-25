@@ -1,31 +1,27 @@
-import java.util.List;
-
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.Praisenter;
+import org.praisenter.javafx.slide.editor.BackgroundRibbonTab;
 import org.praisenter.javafx.slide.editor.BorderRibbonTab;
+import org.praisenter.javafx.slide.editor.CountdownRibbonTab;
+import org.praisenter.javafx.slide.editor.DateTimeRibbonTab;
 import org.praisenter.javafx.slide.editor.FontBorderRibbonTab;
 import org.praisenter.javafx.slide.editor.FontGlowRibbonTab;
 import org.praisenter.javafx.slide.editor.FontRibbonTab;
 import org.praisenter.javafx.slide.editor.FontShadowRibbonTab;
+import org.praisenter.javafx.slide.editor.GeneralRibbonTab;
 import org.praisenter.javafx.slide.editor.GlowRibbonTab;
 import org.praisenter.javafx.slide.editor.ParagraphRibbonTab;
+import org.praisenter.javafx.slide.editor.PlaceholderRibbonTab;
 import org.praisenter.javafx.slide.editor.ShadowRibbonTab;
 import org.praisenter.resources.OpenIconic;
 
 import javafx.application.Application;
-import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TitledPane;
-import javafx.scene.effect.Shadow;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class RibbonTesting extends Application {
@@ -40,9 +36,9 @@ public class RibbonTesting extends Application {
 		
 		BorderPane root = new BorderPane();
 		
-		HBox ribBox = new HBox(new BorderRibbonTab(), new GlowRibbonTab(), new ShadowRibbonTab());
+		HBox ribBox = new HBox(new BackgroundRibbonTab(null), new BorderRibbonTab(), new GeneralRibbonTab(), new GlowRibbonTab(), new ShadowRibbonTab());
 		ribBox.setPadding(new Insets(0, 0, 0, 2));
-		Tab tabBox = new Tab(" Box ", ribBox);
+		Tab tabBox = new Tab(" General ", ribBox);
 		tabBox.setClosable(false);
 		
 		HBox ribText = new HBox(new FontRibbonTab(), new ParagraphRibbonTab(), new FontBorderRibbonTab(), new FontShadowRibbonTab(), new FontGlowRibbonTab());
@@ -50,7 +46,15 @@ public class RibbonTesting extends Application {
 		Tab tabText = new Tab(" Text ", ribText);
 		tabText.setClosable(false);
 		
-		TabPane tabs = new TabPane(tabBox, tabText);
+		Tab tabInsert = new Tab(" Insert ");
+		tabInsert.setClosable(false);
+		
+		HBox ribFormat = new HBox(new DateTimeRibbonTab(), new CountdownRibbonTab(), new PlaceholderRibbonTab());
+		ribFormat.setPadding(new Insets(0, 0, 0, 2));
+		Tab tabFormat = new Tab(" Format ", ribFormat);
+		tabFormat.setClosable(false);
+		
+		TabPane tabs = new TabPane(tabInsert, tabBox, tabText, tabFormat);
 		
 		root.setTop(tabs);
 		

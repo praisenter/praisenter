@@ -43,21 +43,21 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
 	TextPlaceholderComponent.class,
 	CountdownComponent.class
 })
-public interface SlideComponent extends SlideRegion, Comparable<SlideComponent> {
+public interface SlideComponent extends SlideRegion {
 	// properties
 	
-	/**
-	 * Returns the z-order of the component.
-	 * @return int
-	 */
-	public abstract int getOrder();
-	
-	/**
-	 * Sets the z-order of the component.
-	 * @param order the z-order
-	 */
-	public abstract void setOrder(int order);
-	
+//	/**
+//	 * Returns the z-order of the component.
+//	 * @return int
+//	 */
+//	public abstract int getOrder();
+//	
+//	/**
+//	 * Sets the z-order of the component.
+//	 * @param order the z-order
+//	 */
+//	public abstract void setOrder(int order);
+//	
 	// copy
 	
 	/* (non-Javadoc)

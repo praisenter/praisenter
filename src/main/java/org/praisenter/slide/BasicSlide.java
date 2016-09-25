@@ -267,10 +267,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	 */
 	@Override
 	public void addComponent(SlideComponent component) {
-		int order = this.getNextIndex();
-		((SlideComponent)component).setOrder(order);
 		this.components.add(component);
-		this.sortComponentsByOrder(this.components);
 	}
 	
 	/* (non-Javadoc)
@@ -320,27 +317,13 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		// verify the component exists on this slide
 		if (components.contains(component) && components.size() > 0) {
 			int size = components.size();
+			int index = components.indexOf(component);
 			// see if the component is already in the last position
 			if (components.get(size - 1).equals(component)) {
-				// if it is, then just return its order
+				// if it is, then just return
 				return;
 			} else {
-				// if its not in the last position then we need to 
-				// move it up and change the subsequent component (move it back by one)
-				int order = component.getOrder();
-				for (SlideComponent cmp : components) {
-					// see if the current component order is greater
-					// than this component's order
-					if (cmp.getOrder() == order + 1) {
-						// we only need to move back the next component
-						cmp.setOrder(cmp.getOrder() - 1);
-						break;
-					}
-				}
-				// move the given component up
-				component.setOrder(order + 1);
-				// resort the components
-				this.sortComponentsByOrder(this.components);
+				Collections.swap(components, index, index + 1);
 			}
 		}
 	}
@@ -356,57 +339,56 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		List<SlideComponent> components = this.components;
 		// verify the component exists on this slide
 		if (components.contains(component) && components.size() > 0) {
+			int index = components.indexOf(component);
 			// see if the component is already in the first position
 			if (components.get(0).equals(component)) {
 				// if it is, then just return its order
 				return;
 			} else {
-				// if its not in the first position then we need to 
-				// move it down and change the previous component (move it up by one)
-				int order = component.getOrder();
-				for (SlideComponent cmp : components) {
-					// find the previous component
-					if (cmp.getOrder() == order - 1) {
-						// we only need to move up the previous component
-						cmp.setOrder(cmp.getOrder() + 1);
-						break;
-					}
-				}
-				// move the given component up
-				component.setOrder(order - 1);
-				// resort the components
-				this.sortComponentsByOrder(this.components);
+				Collections.swap(components, index, index - 1);
 			}
 		}
 	}
 	
-	/**
-	 * Sorts the given components using their z-ordering.
-	 * @param components the list of components to sort
-	 */
-	private <E extends SlideComponent> void sortComponentsByOrder(List<E> components) {
-		Collections.sort(components);
-	}
-	
-	/**
-	 * Returns the next order index in the list of components.
-	 * @return int
-	 */
-	private int getNextIndex() {
+	@Override
+	public void moveComponentFront(SlideComponent component) {
+		// move the given component up in the order
+		
+		// get all the components
 		List<SlideComponent> components = this.components;
-		if (components.size() > 0) {
-			int maximum = 1;
-			for (SlideComponent component : components) {
-				if (maximum < component.getOrder()) {
-					maximum = component.getOrder();
-				}
+		// verify the component exists on this slide
+		if (components.contains(component) && components.size() > 0) {
+			int size = components.size();
+			// see if the component is already in the last position
+			if (components.get(size - 1).equals(component)) {
+				// if it is, then just return its order
+				return;
+			} else {
+				components.remove(component);
+				components.add(component);
 			}
-			return maximum + 1;
-		} else {
-			return 1;
 		}
 	}
-	
+
+	@Override
+	public void moveComponentBack(SlideComponent component) {
+		// move the given component up in the order
+		
+		// get all the components
+		List<SlideComponent> components = this.components;
+		// verify the component exists on this slide
+		if (components.contains(component) && components.size() > 0) {
+			// see if the component is already in the last position
+			if (components.get(0).equals(component)) {
+				// if it is, then just return its order
+				return;
+			} else {
+				components.remove(component);
+				components.add(0, component);
+			}
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#hasPlaceholders()
 	 */

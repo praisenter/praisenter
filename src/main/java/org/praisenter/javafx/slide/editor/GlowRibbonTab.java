@@ -1,5 +1,6 @@
 package org.praisenter.javafx.slide.editor;
 
+import org.praisenter.javafx.Option;
 import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
@@ -11,8 +12,11 @@ import org.praisenter.slide.graphics.SlideShadow;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
@@ -23,22 +27,22 @@ public class GlowRibbonTab extends EditorRibbonTab {
 
 	boolean mutating = false;
 	
-	private final CheckBox chkEnabled;
-	private final ToggleButton tglInner;
+	private final ComboBox<Option<ShadowOption>> cmbType;
 	private final ColorPicker pkrColor;
 	private final Spinner<Double> spnX;
 	private final Spinner<Double> spnY;
 	private final Spinner<Double> spnRadius;
 	private final Spinner<Double> spnSpread;
 
-	private static final Color DEFAULT_PAINT = new Color(0, 0, 0, 1);
-	private static final SlideLinearGradient DEFAULT_GRADIENT = new SlideLinearGradient(0, 0, 0, 1, SlideGradientCycleType.NONE, new SlideGradientStop(0, 0, 0, 0, 1), new SlideGradientStop(1, 0, 0, 0, 0.5));
-	
 	public GlowRibbonTab() {
 		super("Glow");
 
-		this.chkEnabled = new CheckBox();
-		this.tglInner = new ToggleButton("inner");
+		ObservableList<Option<ShadowOption>> types = FXCollections.observableArrayList();
+		types.add(new Option<ShadowOption>("None", ShadowOption.NONE));
+		types.add(new Option<ShadowOption>("Outer", ShadowOption.OUTER));
+		types.add(new Option<ShadowOption>("Inner", ShadowOption.INNER));
+		
+		this.cmbType = new ComboBox<Option<ShadowOption>>(types);
 		this.pkrColor = new ColorPicker();
 		this.spnX = new Spinner<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, 0.0, 1.0);
 		this.spnY = new Spinner<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, 0.0, 1.0);
@@ -46,8 +50,8 @@ public class GlowRibbonTab extends EditorRibbonTab {
 		this.spnSpread = new Spinner<Double>(0.0, 1.0, 0.0, 0.05);
 		
 		// setup values
+		this.cmbType.setValue(types.get(0));
 		this.pkrColor.setValue(Color.BLACK);
-		this.tglInner.setSelected(false);
 
 		// setup look
 		this.pkrColor.getStyleClass().add(ColorPicker.STYLE_CLASS_SPLIT_BUTTON);
@@ -61,28 +65,24 @@ public class GlowRibbonTab extends EditorRibbonTab {
 		this.spnRadius.setEditable(true);
 		this.spnSpread.setEditable(true);
 		
-		this.chkEnabled.selectedProperty().addListener((obs, ov, nv) -> {
-			tglInner.setDisable(!nv);
-			pkrColor.setDisable(!nv);
-			spnX.setDisable(!nv);
-			spnY.setDisable(!nv);
-			spnRadius.setDisable(!nv);
-			spnSpread.setDisable(!nv);
+		this.cmbType.valueProperty().addListener((obs, ov, nv) -> {
+			boolean flag = nv.getValue() == ShadowOption.NONE;
+			pkrColor.setDisable(flag);
+			spnX.setDisable(flag);
+			spnY.setDisable(flag);
+			spnRadius.setDisable(flag);
+			spnSpread.setDisable(flag);
 		});
 		
-		this.tglInner.setDisable(true);
 		this.pkrColor.setDisable(true);
 		this.spnX.setDisable(true);
 		this.spnY.setDisable(true);
 		this.spnRadius.setDisable(true);
 		this.spnSpread.setDisable(true);
 		
-		// by default
-		this.chkEnabled.setSelected(false);
-		
 		// layout
 		
-		HBox row1 = new HBox(2, this.chkEnabled, this.tglInner, this.pkrColor);
+		HBox row1 = new HBox(2, this.cmbType, this.pkrColor);
 		HBox row2 = new HBox(2, this.spnX, this.spnY);
 		HBox row3 = new HBox(2, this.spnRadius, this.spnSpread);
 		VBox layout = new VBox(2, row1, row2, row3);
@@ -103,8 +103,7 @@ public class GlowRibbonTab extends EditorRibbonTab {
 			}
 		};
 		
-		this.chkEnabled.selectedProperty().addListener(listener);
-		this.tglInner.selectedProperty().addListener(listener);
+		this.cmbType.valueProperty().addListener(listener);
 		this.pkrColor.valueProperty().addListener(listener);
 		this.spnX.valueProperty().addListener(listener);
 		this.spnY.valueProperty().addListener(listener);
@@ -118,17 +117,14 @@ public class GlowRibbonTab extends EditorRibbonTab {
 			if (nv != null) {
 				SlideShadow shadow = nv.getGlow();
 				if (shadow != null) {
-					chkEnabled.setSelected(true);
-					tglInner.setSelected(shadow.getType() == ShadowType.INNER);
+					cmbType.setValue(new Option<ShadowOption>(null, shadow.getType() == ShadowType.INNER ? ShadowOption.INNER : ShadowOption.OUTER));
 					pkrColor.setValue(JavaFXTypeConverter.toJavaFX(shadow.getColor()));
 					spnX.getValueFactory().setValue(shadow.getOffsetX());
 					spnY.getValueFactory().setValue(shadow.getOffsetY());
 					spnRadius.getValueFactory().setValue(shadow.getRadius());
 					spnSpread.getValueFactory().setValue(shadow.getSpread());
 				} else {
-					chkEnabled.setSelected(false);
-					// just go back to defaults
-					tglInner.setSelected(false);
+					cmbType.setValue(new Option<ShadowOption>(null, ShadowOption.NONE));
 					pkrColor.setValue(Color.BLACK);
 					spnX.getValueFactory().setValue(0.0);
 					spnY.getValueFactory().setValue(0.0);
@@ -141,9 +137,10 @@ public class GlowRibbonTab extends EditorRibbonTab {
 	}
 
 	private SlideShadow getControlValues() {
-		if (this.chkEnabled.isSelected()) {
+		Option<ShadowOption> type = this.cmbType.getValue();
+		if (type != null && type.getValue() != ShadowOption.NONE) {
 			return new SlideShadow(
-					this.tglInner.isSelected() ? ShadowType.INNER : ShadowType.OUTER,
+					type.getValue() == ShadowOption.INNER ? ShadowType.INNER : ShadowType.OUTER,
 					JavaFXTypeConverter.fromJavaFX(this.pkrColor.getValue()), 
 					this.spnX.getValue(), 
 					this.spnY.getValue(), 

@@ -62,9 +62,6 @@ public class ParagraphRibbonTab extends EditorRibbonTab {
 	private final ToggleButton tglTextWrapping;
 	private final Spinner<Double> spnPadding;
 	
-	private static final Color DEFAULT_PAINT = new Color(0, 0, 0, 1);
-	private static final SlideLinearGradient DEFAULT_GRADIENT = new SlideLinearGradient(0, 0, 0, 1, SlideGradientCycleType.NONE, new SlideGradientStop(0, 0, 0, 0, 1), new SlideGradientStop(1, 0, 0, 0, 0.5));
-	
 	public ParagraphRibbonTab() {
 		super("Paragraph");
 
@@ -109,7 +106,8 @@ public class ParagraphRibbonTab extends EditorRibbonTab {
 
 		this.component.addListener((obs, ov, nv) -> {
 			mutating = true;
-			if (nv instanceof ObservableTextComponent) {
+			if (nv != null && nv instanceof ObservableTextComponent) {
+				this.setDisable(false);
 				ObservableTextComponent<?> otc = (ObservableTextComponent<?>)nv;
 				switch (otc.getHorizontalTextAlignment()) {
 					case LEFT:
@@ -138,6 +136,12 @@ public class ParagraphRibbonTab extends EditorRibbonTab {
 				}
 				this.spnPadding.getValueFactory().setValue(otc.getPadding().getTop());
 				this.tglTextWrapping.setSelected(otc.isTextWrapping()); 
+			} else {
+				this.setDisable(true);
+				tglLeft.setSelected(true);
+				tglTop.setSelected(true);
+				this.spnPadding.getValueFactory().setValue(0.0);
+				this.tglTextWrapping.setSelected(true); 
 			}
 			mutating = false;
 		});

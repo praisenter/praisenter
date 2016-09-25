@@ -168,7 +168,8 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.backgroundNode.setSize(w, h);
 		
 		Scaling s = this.scale.get();
-		Fx.setSize(this.rootPane, w * s.scale, h * s.scale);
+		double bw = this.getBorder() != null ? this.getBorder().getWidth() : 0;
+		Fx.setSize(this.rootPane, (w + bw) * s.scale, (h + bw) * s.scale);
 	}
 	
 	void updateBorder() {
@@ -183,6 +184,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		
 		double r = ss != null ? ss.getRadius() : 0.0;
 		this.backgroundNode.setBorderRadius(r);
+		updateSize();
 	}
 	
 	void updateFill() {

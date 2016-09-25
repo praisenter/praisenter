@@ -147,7 +147,8 @@ public class FontRibbonTab extends EditorRibbonTab {
 		
 		this.component.addListener((obs, ov, nv) -> {
 			mutating = true;
-			if (nv instanceof ObservableTextComponent) {
+			if (nv != null && nv instanceof ObservableTextComponent) {
+				this.setDisable(false);
 				ObservableTextComponent<?> otc = (ObservableTextComponent<?>)nv;
 				this.pkrFont.setFont(otc.getFont());
 				SlidePaint paint = otc.getTextPaint();
@@ -172,6 +173,14 @@ public class FontRibbonTab extends EditorRibbonTab {
 				}
 				this.cbFontScaling.setValue(new Option<FontScaleType>(null, otc.getFontScaleType()));
 				this.spnLineSpacing.getValueFactory().setValue(otc.getLineSpacing()); 
+			} else {
+				this.pkrFont.setFont(new SlideFont());
+				this.pkrColor.setValue(DEFAULT_PAINT);
+				this.pkrColor.setVisible(true);
+				this.pkrGradient.setVisible(false);
+				this.cbFontScaling.setValue(new Option<FontScaleType>(null, FontScaleType.NONE));
+				this.spnLineSpacing.getValueFactory().setValue(0.0); 
+				this.setDisable(true);
 			}
 			mutating = false;
 		});

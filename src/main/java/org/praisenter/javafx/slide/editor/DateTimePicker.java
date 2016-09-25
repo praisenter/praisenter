@@ -82,6 +82,7 @@ class DateTimePicker extends VBox {
 		StringConverter<Integer> converter = new Converter();
 		
 		this.pkrDate = new DatePicker(LocalDate.now());
+		this.pkrDate.setMaxWidth(110);
 		
 		this.spnHours = new Spinner<Integer>(0, 23, 0, 1);
 		this.spnHours.getEditor().setTextFormatter(new TextFormatter<Integer>(converter, 0, op));
@@ -104,9 +105,9 @@ class DateTimePicker extends VBox {
 		this.spnSeconds.setEditable(true);
 		this.spnSeconds.setPrefWidth(55);
 		
-		HBox time = new HBox(this.spnHours, this.spnMinutes, this.spnSeconds);
+		HBox time = new HBox(2, this.pkrDate, this.spnHours, this.spnMinutes, this.spnSeconds);
 		
-		this.getChildren().addAll(this.pkrDate, time);
+		this.getChildren().addAll(time);
 		
 		InvalidationListener listener = new InvalidationListener() {
 			@Override

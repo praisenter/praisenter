@@ -238,8 +238,8 @@ final class SlideFontPicker extends HBox {
 			hasBold |= styles.contains("BOLD");
 			hasItalic |= styles.contains("ITALIC");
 		}
-		this.tglBold.setVisible(hasBold);
-		this.tglItalic.setVisible(hasItalic);
+		this.tglBold.setDisable(!hasBold);
+		this.tglItalic.setDisable(!hasItalic);
 	}
 	
 	/**

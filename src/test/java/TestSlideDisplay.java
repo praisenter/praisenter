@@ -89,7 +89,7 @@ public class TestSlideDisplay extends Application {
 		txt.setY(100);
 		txt.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
 		txt.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
-		txt.setOrder(0);
+//		txt.setOrder(0);
 		txt.setPadding(new SlidePadding(10));
 		txt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
 		txt.setBorder(thick);

@@ -139,23 +139,25 @@ public class BorderRibbonTab extends EditorRibbonTab {
 		});
 		
 		this.component.addListener((obs, ov, nv) -> {
-			if (nv instanceof ObservableTextComponent) {
-				ObservableTextComponent<?> otc = (ObservableTextComponent<?>)nv;
-				setControlValues(otc.getBorder());
+			mutating = true;
+			if (nv != null) {
+				setControlValues(nv.getBorder());
+				setDisable(false);
+			} else {
+				setControlValues(null);
+				setDisable(true);
 			}
+			mutating = false;
 		});
 		
 		InvalidationListener listener = new InvalidationListener() {
 			@Override
 			public void invalidated(Observable observable) {
 				if (mutating) return;
-				mutating = true;
 				ObservableSlideRegion<?> comp = component.get();
-				if (comp != null && comp instanceof ObservableTextComponent) {
-					ObservableTextComponent<?> tc =(ObservableTextComponent<?>)comp;
-					tc.setBorder(getControlValues());
+				if (comp != null) {
+					comp.setBorder(getControlValues());
 				}
-				mutating = false;
 			}
 		};
 		
@@ -322,10 +324,10 @@ public class BorderRibbonTab extends EditorRibbonTab {
 		this.cbDashes.setDisable(off);
 		this.spnRadius.setDisable(off);
 		this.spnWidth.setDisable(off);
+		if (mutating) return;
 		ObservableSlideRegion<?> component = this.component.get();
-		if (component != null && component instanceof ObservableTextComponent) {
-			ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-			tc.setTextBorder(off ? null : getControlValues());
+		if (component != null) {
+			component.setBorder(off ? null : getControlValues());
 		}
 	}
 	
@@ -353,7 +355,6 @@ public class BorderRibbonTab extends EditorRibbonTab {
 	}
 	
 	private void setControlValues(SlideStroke stroke) {
-		mutating = true;
 		if (stroke != null) {
 			SlidePaint paint = stroke.getPaint();
 			if (paint == null) {
@@ -376,6 +377,5 @@ public class BorderRibbonTab extends EditorRibbonTab {
 		} else {
 			toggleMode(true, true);
 		}
-		mutating = false;
 	}
 }

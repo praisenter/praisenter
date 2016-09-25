@@ -12,6 +12,7 @@ import org.praisenter.javafx.bible.BibleLibraryPane;
 import org.praisenter.javafx.bible.BiblePane;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.slide.SlideLibraryPane;
+import org.praisenter.javafx.slide.editor.SlideEditorPane;
 
 public final class MainPane extends BorderPane {
 	
@@ -92,6 +93,11 @@ public final class MainPane extends BorderPane {
 		slManage.setOnAction((e) -> {
 			SlideLibraryPane slp = new SlideLibraryPane(context);
 			setCenter(slp);
+		});
+		
+		slNew.setOnAction((e) -> {
+			SlideEditorPane sep = new SlideEditorPane(context);
+			setCenter(sep);
 		});
 		
 		return menu;

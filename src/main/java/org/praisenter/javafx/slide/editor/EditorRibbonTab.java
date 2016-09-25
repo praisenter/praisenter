@@ -16,7 +16,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-public abstract class EditorRibbonTab extends HBox {
+abstract class EditorRibbonTab extends HBox {
 
 	final ObjectProperty<ObservableSlideRegion<?>> component = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 	final BorderPane container;

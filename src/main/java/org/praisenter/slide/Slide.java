@@ -166,6 +166,34 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	 */
 	public abstract void moveComponentDown(SlideComponent component);
 	
+	/**
+	 * Moves the given component to the top.
+	 * <p>
+	 * If the given component is not on this slide, this method does nothing.
+	 * <p>
+	 * If the given component is already the top component in this slide then
+	 * the component is not modified.
+	 * <p>
+	 * Otherwise the given component is moved to the top and other components
+	 * are moved down by one.
+	 * @param component the component to move to the top
+	 */
+	public abstract void moveComponentFront(SlideComponent component);
+	
+	/**
+	 * Moves the given component to the bottom.
+	 * <p>
+	 * If the given component is not on this slide, this method does nothing.
+	 * <p>
+	 * If the given component is already the bottom component in this slide then
+	 * the component is not modified.
+	 * <p>
+	 * Otherwise the given component is moved to the bottom and other components
+	 * are moved up by one.
+	 * @param component the component to move to the bottom
+	 */
+	public abstract void moveComponentBack(SlideComponent component);
+	
 	// sequencing
 	
 	/**

@@ -195,7 +195,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		// this sets the order, so must be done first
 		this.region.addComponent(component.region);
 		// copy over the order to the observable
-		component.order.set(component.region.getOrder());
+//		component.order.set(component.region.getOrder());
 		// add to the observable list
 		this.components.add(component);
 		
@@ -219,14 +219,19 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		// now we need to reflect those changes in the observable objects
 		
 		// reset the orders
-		for (ObservableSlideComponent<?> comp : this.components) {
-			comp.setOrder(comp.region.getOrder());
-		}
+//		for (ObservableSlideComponent<?> comp : this.components) {
+//			comp.setOrder(comp.region.getOrder());
+//		}
 		// resort the components list
-		FXCollections.sort(this.components);
+//		FXCollections.sort(this.components);
 		
-		componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
-		componentCanvas.getChildren().addAll(getComponentDisplayPanes());
+		int index = this.components.indexOf(component);
+		if (index > 0) {
+			Collections.swap(this.components, index, index - 1);
+			
+			componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
+			componentCanvas.getChildren().addAll(getComponentDisplayPanes());
+		}
 	}
 	
 	public void moveComponentUp(ObservableSlideComponent<?> component) {
@@ -236,11 +241,53 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		// now we need to reflect those changes in the observable objects
 		
 		// reset the orders
-		for (ObservableSlideComponent<?> comp : this.components) {
-			comp.setOrder(comp.region.getOrder());
-		}
+//		for (ObservableSlideComponent<?> comp : this.components) {
+//			comp.setOrder(comp.region.getOrder());
+//		}
 		// resort the components list
-		FXCollections.sort(this.components);
+//		FXCollections.sort(this.components);
+		int index = this.components.indexOf(component);
+		if (index >= 0 && index < this.components.size() - 1) {
+			Collections.swap(this.components, index, index + 1);
+			
+			componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
+			componentCanvas.getChildren().addAll(getComponentDisplayPanes());
+		}
+	}
+	
+	public void moveComponentFront(ObservableSlideComponent<?> component) {
+		// this will set the order of the components and sort them
+		this.region.moveComponentFront(component.region);
+		
+		// now we need to reflect those changes in the observable objects
+		
+		// reset the orders
+//		for (ObservableSlideComponent<?> comp : this.components) {
+//			comp.setOrder(comp.region.getOrder());
+//		}
+		// resort the components list
+//		FXCollections.sort(this.components);
+		this.components.remove(component);
+		this.components.add(component);
+		
+		componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
+		componentCanvas.getChildren().addAll(getComponentDisplayPanes());
+	}
+	
+	public void moveComponentBack(ObservableSlideComponent<?> component) {
+		// this will set the order of the components and sort them
+		this.region.moveComponentBack(component.region);
+		
+		// now we need to reflect those changes in the observable objects
+		
+		// reset the orders
+//		for (ObservableSlideComponent<?> comp : this.components) {
+//			comp.setOrder(comp.region.getOrder());
+//		}
+		// resort the components list
+//		FXCollections.sort(this.components);
+		this.components.remove(component);
+		this.components.add(0, component);
 		
 		componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
 		componentCanvas.getChildren().addAll(getComponentDisplayPanes());
