@@ -14,10 +14,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-public class DateTimeRibbonTab extends EditorRibbonTab {
-	
-	private boolean mutating = false;
-	
+class DateTimeRibbonTab extends ComponentEditorRibbonTab {
+
 	private final TextField txtDateFormat;
 	private final ComboBox<String> cmbDateTimeFormat;
 	

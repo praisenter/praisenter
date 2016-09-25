@@ -1,14 +1,10 @@
 package org.praisenter.javafx.slide.editor;
 
-import org.praisenter.javafx.slide.ObservableSlideRegion;
-import org.praisenter.slide.SlideRegion;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
@@ -16,9 +12,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-abstract class EditorRibbonTab extends HBox {
+abstract class EditorRibbonTab<T> extends HBox {
 
-	final ObjectProperty<ObservableSlideRegion<?>> component = new SimpleObjectProperty<ObservableSlideRegion<?>>();
+	final ObjectProperty<T> component = new SimpleObjectProperty<T>();
 	final BorderPane container;
 	
 	boolean mutating = false;
@@ -42,15 +38,15 @@ abstract class EditorRibbonTab extends HBox {
 		this.container.setMinWidth(USE_PREF_SIZE);
 	}
 	
-	public ObservableSlideRegion<?> getComponent() {
+	public T getComponent() {
 		return this.component.get();
 	}
 	
-	public void setComponent(ObservableSlideRegion<?> component) {
+	public void setComponent(T component) {
 		this.component.set(component);
 	}
 	
-	public ObjectProperty<ObservableSlideRegion<?>> componentProperty() {
+	public ObjectProperty<T> componentProperty() {
 		return this.component;
 	}
 }

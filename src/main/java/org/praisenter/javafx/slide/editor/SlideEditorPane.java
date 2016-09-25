@@ -1,22 +1,13 @@
 package org.praisenter.javafx.slide.editor;
 
-import java.io.File;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import javax.imageio.ImageIO;
-
-import org.praisenter.Tag;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.TagEvent;
-import org.praisenter.javafx.TagListView;
-import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.configuration.Resolution;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
@@ -54,31 +45,17 @@ import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.utility.ClasspathLoader;
-import org.praisenter.xml.XmlIO;
 
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.effect.InnerShadow;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
@@ -90,8 +67,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -152,21 +127,17 @@ public final class SlideEditorPane extends BorderPane {
 	static final BorderStroke BORDER_STROKE_2 = new BorderStroke(BORDER_COLOR_2, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, DASH_LENGTH, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
 	
 	
-	PraisenterContext context;
+	private final PraisenterContext context;
 	
-	Slide slide;
-	ObservableSlide<?> oSlide;
-	
-	ObjectProperty<Resolution> targetResolution = new SimpleObjectProperty<>();
-	
-	ObjectProperty<ObservableSlideRegion<?>> selected = new SimpleObjectProperty<ObservableSlideRegion<?>>();
+	private Resolution resolution = null;
+	private final ObjectProperty<ObservableSlide<?>> slide = new SimpleObjectProperty<ObservableSlide<?>>();
+	private final ObjectProperty<ObservableSlideRegion<?>> selected = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 
-	StackPane slidePreview;
+	private final StackPane slidePreview;
 	
 	public SlideEditorPane(PraisenterContext context) {
-		slide = createTestSlide();
-		oSlide = new ObservableSlide<Slide>(slide, context, SlideMode.EDIT);
-		targetResolution.set(new Resolution(slide.getWidth(), slide.getHeight()));
+		
+		this.context = context;
 		
 		EventHandler<MouseEvent> entered = new EventHandler<MouseEvent>() {
 			@Override
@@ -174,6 +145,7 @@ public final class SlideEditorPane extends BorderPane {
 				Border newBorder = new Border(BORDER_STROKE_1, BORDER_STROKE_2);
 				Region region = (Region)e.getSource();
 				region.setBorder(newBorder);
+				e.consume();
 			}
 		};
 		EventHandler<MouseEvent> exited = new EventHandler<MouseEvent>() {
@@ -248,29 +220,37 @@ public final class SlideEditorPane extends BorderPane {
 		DoubleBinding widthSizing = new DoubleBinding() {
 			{
 				bind(slidePreview.widthProperty(), 
-					 slidePreview.heightProperty(),
-					 targetResolution);
+					 slidePreview.heightProperty());
 			}
 			@Override
 			protected double computeValue() {
-				Resolution r = targetResolution.get();
-				double tw = slidePreview.getWidth() - padding * 2;
-				double th = slidePreview.getHeight() - padding * 2;
-				return getUniformlyScaledBounds(r.getWidth(), r.getHeight(), tw, th).getWidth();
+				ObservableSlide<?> s = slide.get();
+				if (s != null) {
+					double w = s.getWidth();
+					double h = s.getHeight();
+					double tw = slidePreview.getWidth() - padding * 2;
+					double th = slidePreview.getHeight() - padding * 2;
+					return getUniformlyScaledBounds(w, h, tw, th).getWidth();
+				}
+				return 0;
 			}
 		};
 		DoubleBinding heightSizing = new DoubleBinding() {
 			{
 				bind(slidePreview.widthProperty(), 
-					 slidePreview.heightProperty(),
-					 targetResolution);
+					 slidePreview.heightProperty());
 			}
 			@Override
 			protected double computeValue() {
-				Resolution r = targetResolution.get();
-				double tw = slidePreview.getWidth() - padding * 2;
-				double th = slidePreview.getHeight() - padding * 2;
-				return getUniformlyScaledBounds(r.getWidth(), r.getHeight(), tw, th).getHeight();
+				ObservableSlide<?> s = slide.get();
+				if (s != null) {
+					double w = s.getWidth();
+					double h = s.getHeight();
+					double tw = slidePreview.getWidth() - padding * 2;
+					double th = slidePreview.getHeight() - padding * 2;
+					return getUniformlyScaledBounds(w, h, tw, th).getHeight();
+				}
+				return 0;
 			}
 		};
 		slideBounds.maxWidthProperty().bind(widthSizing);
@@ -287,8 +267,14 @@ public final class SlideEditorPane extends BorderPane {
 			protected Scaling computeValue() {
 				double tw = slidePreview.getWidth() - padding * 2;
 				double th = slidePreview.getHeight() - padding * 2;
-				double w = slide.getWidth();
-				double h = slide.getHeight();
+				
+				ObservableSlide<?> s = slide.get();
+				if (s == null) {
+					return new Scaling(1, 0, 0);
+				}
+				
+				double w = s.getWidth();
+				double h = s.getHeight();
 				// if so, lets get the scale factors
 				double sw = tw / w;
 				double sh = th / h;
@@ -314,201 +300,92 @@ public final class SlideEditorPane extends BorderPane {
 			}
 		};
 		
-		StackPane rootEditPane = oSlide.getDisplayPane();
-		slideCanvas.getChildren().add(rootEditPane);
-		oSlide.scalingProperty().bind(scaleFactor);
-		rootEditPane.setOnMouseEntered(entered);
-		rootEditPane.setOnMouseExited(exited);
-		rootEditPane.setOnMouseMoved(hover);
-		SlideRegionDraggedEventHandler slideDragHandler = new SlideRegionDraggedEventHandler(oSlide);
-		rootEditPane.setOnMouseReleased(slideDragHandler);
-		rootEditPane.setOnMouseDragged(slideDragHandler);
-		rootEditPane.addEventHandler(MouseEvent.MOUSE_PRESSED, slideDragHandler);
-		rootEditPane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
-			ObservableSlideRegion<?> temp = selected.get();
-			if (temp != oSlide && temp != null) {
-				temp.getDisplayPane().setBorder(null);
-			}
-			selected.set(oSlide);
-		});
-		
-		// FIXME note, this will need to be done when we add components
-		Iterator<ObservableSlideComponent<?>> components = oSlide.componentIterator();
-		while (components.hasNext()) {
-			ObservableSlideComponent<?> osr = components.next();
-			SlideRegionDraggedEventHandler dragHandler = new SlideRegionDraggedEventHandler(osr);
-			StackPane pane = osr.getDisplayPane();
-			osr.scalingProperty().bind(scaleFactor);
-			pane.setOnMouseEntered(entered);
-			pane.setOnMouseExited(exited);
-			pane.setOnMouseReleased(dragHandler);
-			pane.setOnMouseDragged(dragHandler);
-			pane.setOnMouseMoved(hover);
-			pane.addEventHandler(MouseEvent.MOUSE_PRESSED, dragHandler);
-			pane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
-				ObservableSlideRegion<?> temp = selected.get();
-				if (temp != osr && temp != null) {
-					temp.getDisplayPane().setBorder(null);
-				}
-				selected.set(osr);
-			});
-		}
-		
 		slidePreview.getChildren().addAll(slideBounds, slideCanvas);
 		StackPane.setAlignment(slideBounds, Pos.CENTER);
+		
+		slide.addListener((obs, ov, nv) -> {
+			slideCanvas.getChildren().clear();
+			if (nv != null) {
+				resolution = new Resolution(nv.getWidth(), nv.getHeight());
+				StackPane rootEditPane = nv.getDisplayPane();
+				slideCanvas.getChildren().add(rootEditPane);
+				nv.scalingProperty().bind(scaleFactor);
+				rootEditPane.setOnMouseEntered(entered);
+				rootEditPane.setOnMouseExited(exited);
+				rootEditPane.setOnMouseMoved(hover);
+				SlideRegionDraggedEventHandler slideDragHandler = new SlideRegionDraggedEventHandler(nv);
+				rootEditPane.setOnMouseReleased(slideDragHandler);
+				rootEditPane.setOnMouseDragged(slideDragHandler);
+				rootEditPane.addEventHandler(MouseEvent.MOUSE_PRESSED, slideDragHandler);
+				rootEditPane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
+					ObservableSlideRegion<?> temp = selected.get();
+					if (temp != slide.get() && temp != null) {
+						temp.getDisplayPane().setBorder(null);
+					}
+					selected.set(nv);
+					e.consume();
+				});
+				
+				// FIXME note, this will need to be done when we add components
+				Iterator<ObservableSlideComponent<?>> components = nv.componentIterator();
+				while (components.hasNext()) {
+					ObservableSlideComponent<?> osr = components.next();
+					SlideRegionDraggedEventHandler dragHandler = new SlideRegionDraggedEventHandler(osr);
+					StackPane pane = osr.getDisplayPane();
+					osr.scalingProperty().bind(scaleFactor);
+					pane.setOnMouseEntered(entered);
+					pane.setOnMouseExited(exited);
+					pane.setOnMouseReleased(dragHandler);
+					pane.setOnMouseDragged(dragHandler);
+					pane.setOnMouseMoved(hover);
+					pane.addEventHandler(MouseEvent.MOUSE_PRESSED, dragHandler);
+					pane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
+						ObservableSlideRegion<?> temp = selected.get();
+						if (temp != osr && temp != null) {
+							temp.getDisplayPane().setBorder(null);
+						}
+						selected.set(osr);
+						e.consume();
+					});
+				}
+			}
+		});
 		
 		// for testing
 //		slidePreview.setBorder(Fx.newBorder(Color.ORANGE));
 //		slideBounds.setBorder(Fx.newBorder(Color.RED));
 //		slideCanvas.setBorder(Fx.newBorder(Color.YELLOW));
 		
-		// properties pane
-		VBox propertiesPane = new VBox();
+		// events
 		
-		// slide properties
-		{
-			GridPane grid = new GridPane();
-			grid.setHgap(5);
-			grid.setVgap(3);
-//			grid.setGridLinesVisible(true);
-			
-			// slide name
-			Label lblName = new Label("Name");
-			TextField txtName = new TextField();
-			txtName.setPromptText("Name");
-			grid.add(lblName, 0, 0);
-			grid.add(txtName, 1, 0);
-			
-			Label lblTime = new Label("Time");
-			TextField txtTime = new TextField();
-			txtTime.setPromptText("00:00");
-			grid.add(lblTime, 0, 1);
-			grid.add(txtTime, 1, 1);
-			
-			// target resolution
-			// TODO replace with PraisenterContext configuration
-			Configuration conf = Configuration.createDefaultConfiguration();
-			ObservableList<Resolution> resolutions = FXCollections.observableArrayList(conf.resolutionsProperty());
-			Label lblResolution = new Label("Target");
-			ComboBox<Resolution> cmbResolutions = new ComboBox<Resolution>(new SortedList<>(resolutions, new Comparator<Resolution>() {
-				@Override
-				public int compare(Resolution o1, Resolution o2) {
-					return o1.compareTo(o2);
-				}
-			}));
-			cmbResolutions.valueProperty().bindBidirectional(targetResolution);
-			cmbResolutions.valueProperty().addListener((obs, ov, nv) -> {
-				// when this changes we need to adjust all the sizes of the controls in the slide
-				oSlide.fit(nv.getWidth(), nv.getHeight());
-				// then we need to update all the Java FX nodes
-				scaleFactor.invalidate();
-			});
-			Button btnNewResolution = new Button("Add");
-			btnNewResolution.setOnAction((e) -> {
-				Resolution res = new Resolution(2000, 4000);
-				if (conf.resolutionsProperty().add(res)) {
-					resolutions.add(res);
-				}
-				cmbResolutions.setValue(res);
-			});
-			HBox tRes = new HBox();
-			tRes.setSpacing(2);
-			tRes.getChildren().addAll(cmbResolutions, btnNewResolution);
-			grid.add(lblResolution, 0, 2);
-			grid.add(tRes, 1, 2);
-			
-			TagListView lstTags = new TagListView(FXCollections.observableSet());
-			lstTags.tagsProperty().addAll(oSlide.getTags());
-			lstTags.addEventHandler(TagEvent.ALL, new EventHandler<TagEvent>() {
-				@Override
-				public void handle(TagEvent event) {
-					Tag tag = event.getTag();
-					if (event.getEventType() == TagEvent.ADDED) {
-						oSlide.addTag(tag);
-					} else if (event.getEventType() == TagEvent.REMOVED) {
-						oSlide.removeTag(tag);
-					}
-				}
-	        });
-			grid.add(lstTags, 0, 3, 2, 1);
-			
-			Button btnSave = new Button("save");
-			btnSave.setOnAction((e) -> {
-				// FIXME this should go through the slide library
-				
-				// attempt to take a screenshot of the slide
-				// this must be done on the UI thread
-				{
-					ObservableSlide<?> nSlide = new ObservableSlide<>(slide, context, SlideMode.SNAPSHOT);
-					
-					SnapshotParameters sp = new SnapshotParameters();
-					sp.setFill(Color.TRANSPARENT);
-					
-					Image image = nSlide.getDisplayPane().snapshot(sp, null);
-					
-					try {
-						// this should be done on a background thread
-						ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", new File("C:\\Users\\wbittle\\Desktop\\test.png"));
-					} catch (Exception e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				}
-				
-				// this should be done on a background thread
-				try {
-					
-					XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), slide);
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			});
-			grid.add(btnSave, 0, 4, 2, 1);
-			
-			TitledPane ttlSlide = new TitledPane("Slide Properties", grid);
-			propertiesPane.getChildren().add(ttlSlide);
-		}
-//		
-//		// slide component editing
-//		{
-//			SlideRegionEditor se = new SlideRegionEditor(context);
-			ribbon.componentProperty().bind(selected);
-//			
-			ribbon.addEventHandler(SlideComponentEvent.ORDER, (e) -> {
-				ObservableSlideComponent<?> component = e.component;
-				if (e.operation == SlideComponentOrderEvent.OPERATION_BACK) {
-					oSlide.moveComponentBack(component);
-				} else if (e.operation == SlideComponentOrderEvent.OPERATION_FRONT) {
-					oSlide.moveComponentFront(component);			
-				} else if (e.operation == SlideComponentOrderEvent.OPERATION_BACKWARD) {
-					oSlide.moveComponentDown(component);
-				} else if (e.operation == SlideComponentOrderEvent.OPERATION_FORWARD) {
-					oSlide.moveComponentUp(component);
-				}
-			});
-//			
-//			TitledPane ttlComponent = new TitledPane("Component Properties", se);
-//			ttlComponent.managedProperty().bind(ttlComponent.visibleProperty());
-//			ttlComponent.setVisible(false);
-//			selected.addListener((obs, ov, nv) -> {
-//				ttlComponent.setVisible(nv != null);
-//			});
-//			propertiesPane.getChildren().add(ttlComponent);
-//		}
-//		
-//		BorderPane bdr = new BorderPane();
-//		bdr.setPadding(new Insets(20));
-//		bdr.setCenter(slidePreview);
-//		
-//		ScrollPane propertyScroller = new ScrollPane(propertiesPane);
-//		propertyScroller.setFitToWidth(true);
-//		
-//		SplitPane split = new SplitPane();
-//		split.getItems().addAll(bdr, propertyScroller);
-//		split.setDividerPositions(0.8);
-//		SplitPane.setResizableWithParent(propertyScroller, false);
+		ribbon.slideProperty().bind(slide);
+		ribbon.componentProperty().bind(selected);
 		
+		ribbon.addEventHandler(SlideEditorEvent.ORDER, (e) -> {
+			ObservableSlideComponent<?> component = e.component;
+			if (e.operation == SlideComponentOrderEvent.OPERATION_BACK) {
+				slide.get().moveComponentBack(component);
+			} else if (e.operation == SlideComponentOrderEvent.OPERATION_FRONT) {
+				slide.get().moveComponentFront(component);			
+			} else if (e.operation == SlideComponentOrderEvent.OPERATION_BACKWARD) {
+				slide.get().moveComponentDown(component);
+			} else if (e.operation == SlideComponentOrderEvent.OPERATION_FORWARD) {
+				slide.get().moveComponentUp(component);
+			}
+		});
+		
+		ribbon.addEventHandler(SlideEditorEvent.TARGET_RESOLUTION, (e) -> {
+			resolution = e.resolution;
+			scaleFactor.invalidate();
+			widthSizing.invalidate();
+			heightSizing.invalidate();
+		});
+
+		// set values
+			
+		Slide s = createTestSlide();
+		slide.set(new ObservableSlide<Slide>(s, context, SlideMode.EDIT));
+			
 		this.setCenter(slidePreview);
 	}
 	
@@ -555,7 +432,7 @@ public final class SlideEditorPane extends BorderPane {
 		
 		SlideStroke thick = new SlideStroke(
 				new SlideColor(0.5, 0, 0, 1), 
-				new SlideStrokeStyle(SlideStrokeType.INSIDE, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, DashPattern.DASH.getDashes()), 
+				new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, DashPattern.DASH.getDashes()), 
 				5, 
 				5);
 		

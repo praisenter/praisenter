@@ -35,15 +35,17 @@ import javafx.event.EventType;
  * @author William Bittle
  * @version 3.0.0
  */
-class SlideComponentEvent extends Event implements Serializable {
+class SlideEditorEvent extends Event implements Serializable {
 	/** The serialization id */
 	private static final long serialVersionUID = 7525223765039656381L;
 	
 	/** Event type to catch any event */
-	public static final EventType<SlideComponentEvent> ANY = new EventType<SlideComponentEvent>("SLIDE_COMPONENT");
+	public static final EventType<SlideEditorEvent> ANY = new EventType<SlideEditorEvent>("SLIDE");
 	
 	/** Event type to catch only order events */
 	public static final EventType<SlideComponentOrderEvent> ORDER = new EventType<SlideComponentOrderEvent>("SLIDE_COMPONENT_ORDER");
+	
+	public static final EventType<SlideTargetResolutionEvent> TARGET_RESOLUTION = new EventType<SlideTargetResolutionEvent>("SLIDE_TARGET_RESOLUTION");
 	
 	/**
 	 * Full constructor.
@@ -51,7 +53,7 @@ class SlideComponentEvent extends Event implements Serializable {
 	 * @param target the event target
 	 * @param type the event type
 	 */
-	public SlideComponentEvent(Object source, EventTarget target, EventType<? extends SlideComponentEvent> type) {
+	public SlideEditorEvent(Object source, EventTarget target, EventType<? extends SlideEditorEvent> type) {
 		super(source, target, type);
 	}
 }

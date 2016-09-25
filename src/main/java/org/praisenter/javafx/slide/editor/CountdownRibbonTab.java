@@ -27,13 +27,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Pair;
 
-public class CountdownRibbonTab extends EditorRibbonTab {
+class CountdownRibbonTab extends ComponentEditorRibbonTab {
 
 	/** The fontawesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
-	private boolean mutating = false;
-	
+
 	private final DateTimePicker pkrCountdownTime;
 	private final TextField txtCountdownFormat;
 	private final ComboBox<String> cmbCountdownFormat;

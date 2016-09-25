@@ -52,8 +52,6 @@ import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
-// FIXME add toFront and toBack methods
-
 /**
  * Implementation of the {@link Slide} interface.
  * @author William Bittle
@@ -350,6 +348,9 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#moveComponentFront(org.praisenter.slide.SlideComponent)
+	 */
 	@Override
 	public void moveComponentFront(SlideComponent component) {
 		// move the given component up in the order
@@ -370,6 +371,9 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#moveComponentBack(org.praisenter.slide.SlideComponent)
+	 */
 	@Override
 	public void moveComponentBack(SlideComponent component) {
 		// move the given component up in the order
@@ -450,11 +454,17 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		return this.tags;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getThumbnail()
+	 */
 	@Override
 	public BufferedImage getThumbnail() {
 		return this.thumbnail;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#setThumbnail(java.awt.image.BufferedImage)
+	 */
 	@Override
 	public void setThumbnail(BufferedImage thumbnail) {
 		this.thumbnail = thumbnail;

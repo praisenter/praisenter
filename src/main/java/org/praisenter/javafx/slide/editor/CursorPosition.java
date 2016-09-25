@@ -2,7 +2,7 @@ package org.praisenter.javafx.slide.editor;
 
 import javafx.scene.Cursor;
 
-public final class CursorPosition {
+final class CursorPosition {
 	private CursorPosition() {}
 	
 	private static final double RESIZE_WIDTH = 10;

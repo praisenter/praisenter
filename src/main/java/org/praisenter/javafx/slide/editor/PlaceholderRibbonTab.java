@@ -16,10 +16,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-public class PlaceholderRibbonTab extends EditorRibbonTab {
+class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 
-	private boolean mutating = false;
-	
 	private final ComboBox<Option<PlaceholderType>> cmbPlaceholderType;
 	private final CheckComboBox<Option<PlaceholderVariant>> cmbPlaceholderVariants;
 	

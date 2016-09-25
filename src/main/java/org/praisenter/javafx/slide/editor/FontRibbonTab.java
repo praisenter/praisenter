@@ -49,7 +49,7 @@ import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-public class FontRibbonTab extends EditorRibbonTab {
+class FontRibbonTab extends ComponentEditorRibbonTab {
 
 	/** The fontawesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");

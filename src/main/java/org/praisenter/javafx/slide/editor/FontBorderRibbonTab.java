@@ -39,7 +39,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.util.Callback;
 
-public class FontBorderRibbonTab extends EditorRibbonTab {
+class FontBorderRibbonTab extends ComponentEditorRibbonTab {
 
 	private static final Color DEFAULT_PAINT = new Color(0, 0, 0, 1);
 	private static final SlideLinearGradient DEFAULT_GRADIENT = new SlideLinearGradient(0, 0, 0, 1, SlideGradientCycleType.NONE, new SlideGradientStop(0, 0, 0, 0, 1), new SlideGradientStop(1, 0, 0, 0, 0.5));

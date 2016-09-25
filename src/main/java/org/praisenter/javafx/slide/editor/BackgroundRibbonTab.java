@@ -32,7 +32,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public class BackgroundRibbonTab extends EditorRibbonTab {
+class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 	private static final GlyphFont OPEN_ICONIC = GlyphFontRegistry.font("Icons");
 	
 	/** The fontawesome glyph-font pack */

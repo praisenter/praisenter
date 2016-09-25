@@ -49,7 +49,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Popup;
 
-public class ParagraphRibbonTab extends EditorRibbonTab {
+class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 
 	/** The openiconic glyph-font pack */
 	private static final GlyphFont FONT_ICONIC	= GlyphFontRegistry.font("Icons");

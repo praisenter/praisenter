@@ -12,58 +12,108 @@ import javafx.scene.control.TabPane;
 import javafx.scene.layout.HBox;
 
 final class SlideEditorRibbon extends TabPane {
+	private final ObjectProperty<ObservableSlide<?>> slide = new SimpleObjectProperty<ObservableSlide<?>>();
 	private final ObjectProperty<ObservableSlideRegion<?>> component = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 	
 	public SlideEditorRibbon(PraisenterContext context) {
-		EditorRibbonTab background = new BackgroundRibbonTab(context);
-		EditorRibbonTab border = new BorderRibbonTab();
-		EditorRibbonTab general = new GeneralRibbonTab();
-		EditorRibbonTab shadow = new ShadowRibbonTab();
-		EditorRibbonTab glow = new GlowRibbonTab();
+		// slide
+		SlideRibbonTab slide = new SlideRibbonTab(context);
 		
-		EditorRibbonTab font = new FontRibbonTab();
-		EditorRibbonTab paragraph = new ParagraphRibbonTab();
-		EditorRibbonTab fontBorder = new FontBorderRibbonTab();
-		EditorRibbonTab fontShadow = new FontShadowRibbonTab();
-		EditorRibbonTab fontGlow = new FontGlowRibbonTab();
+		// container
+		ComponentEditorRibbonTab background = new BackgroundRibbonTab(context);
+		ComponentEditorRibbonTab border = new BorderRibbonTab();
+		ComponentEditorRibbonTab stacking = new StackingRibbonTab();
+		ComponentEditorRibbonTab shadow = new ShadowRibbonTab();
+		ComponentEditorRibbonTab glow = new GlowRibbonTab();
+		ComponentEditorRibbonTab container = new ContainerRibbonTab();
 		
-		EditorRibbonTab dateTimeFormat = new DateTimeRibbonTab();
-		EditorRibbonTab countdownFormat = new CountdownRibbonTab();
-		EditorRibbonTab placeholder = new PlaceholderRibbonTab();
+		// text format
+		ComponentEditorRibbonTab font = new FontRibbonTab();
+		ComponentEditorRibbonTab paragraph = new ParagraphRibbonTab();
+		ComponentEditorRibbonTab fontBorder = new FontBorderRibbonTab();
+		ComponentEditorRibbonTab fontShadow = new FontShadowRibbonTab();
+		ComponentEditorRibbonTab fontGlow = new FontGlowRibbonTab();
+		
+		// text content
+		ComponentEditorRibbonTab text = new TextRibbonTab();
+		ComponentEditorRibbonTab dateTimeFormat = new DateTimeRibbonTab();
+		ComponentEditorRibbonTab countdownFormat = new CountdownRibbonTab();
+		ComponentEditorRibbonTab placeholder = new PlaceholderRibbonTab();
+		
+		slide.componentProperty().bind(this.slide);
 		
 		background.componentProperty().bind(component);
 		border.componentProperty().bind(component);
-		general.componentProperty().bind(component);
+		stacking.componentProperty().bind(component);
 		shadow.componentProperty().bind(component);
 		glow.componentProperty().bind(component);
+		container.componentProperty().bind(component);
+		
 		font.componentProperty().bind(component);
 		paragraph.componentProperty().bind(component);
 		fontBorder.componentProperty().bind(component);
 		fontShadow.componentProperty().bind(component);
 		fontGlow.componentProperty().bind(component);
+		
+		text.componentProperty().bind(component);
 		dateTimeFormat.componentProperty().bind(component);
 		countdownFormat.componentProperty().bind(component);
 		placeholder.componentProperty().bind(component);
+
+		background.setDisable(true);
+		border.setDisable(true);
+		stacking.setDisable(true);
+		shadow.setDisable(true);
+		glow.setDisable(true);
+		container.setDisable(true);
 		
-		HBox ribBox = new HBox(background, border, general, shadow, glow);
-		ribBox.setPadding(new Insets(0, 0, 0, 2));
-		Tab tabBox = new Tab(" General ", ribBox);
-		tabBox.setClosable(false);
+		font.setDisable(true);
+		paragraph.setDisable(true);
+		fontBorder.setDisable(true);
+		fontShadow.setDisable(true);
+		fontGlow.setDisable(true);
 		
-		HBox ribText = new HBox(font, paragraph, fontBorder, fontShadow, fontGlow);
-		ribText.setPadding(new Insets(0, 0, 0, 2));
-		Tab tabText = new Tab(" Text ", ribText);
-		tabText.setClosable(false);
+		text.setDisable(true);
+		dateTimeFormat.setDisable(true);
+		countdownFormat.setDisable(true);
+		placeholder.setDisable(true);
+		
+		HBox ribSlide = new HBox(slide);
+		ribSlide.setPadding(new Insets(0, 0, 0, 2));
+		Tab tabSlide = new Tab(" Slide ", ribSlide);
+		tabSlide.setClosable(false);
 		
 		Tab tabInsert = new Tab(" Insert ");
 		tabInsert.setClosable(false);
 		
-		HBox ribFormat = new HBox(dateTimeFormat, countdownFormat, placeholder);
+		HBox ribBox = new HBox(background, border, stacking, shadow, glow, container);
+		ribBox.setPadding(new Insets(0, 0, 0, 2));
+		Tab tabBox = new Tab(" Container ", ribBox);
+		tabBox.setClosable(false);
+		
+		HBox ribText = new HBox(font, paragraph, fontBorder, fontShadow, fontGlow);
+		ribText.setPadding(new Insets(0, 0, 0, 2));
+		Tab tabText = new Tab(" Text Format ", ribText);
+		tabText.setClosable(false);
+		
+		HBox ribFormat = new HBox(text, dateTimeFormat, countdownFormat, placeholder);
 		ribFormat.setPadding(new Insets(0, 0, 0, 2));
-		Tab tabFormat = new Tab(" Format ", ribFormat);
+		Tab tabFormat = new Tab(" Text Content ", ribFormat);
 		tabFormat.setClosable(false);
 		
-		this.getTabs().addAll(tabInsert, tabBox, tabText, tabFormat);
+		this.getTabs().addAll(tabSlide, tabInsert, tabBox, tabText, tabFormat);
+	}
+	
+	public ObservableSlide<?> getSlide() {
+		return this.slide.get();
+	}
+	
+	public void setSlide(ObservableSlide<?> slide) {
+		this.slide.set(slide);
+	}
+	
+	public ObjectProperty<ObservableSlide<?>> slideProperty() {
+		return this.slide;
 	}
 	
 	public ObservableSlideRegion<?> getComponent() {

@@ -23,10 +23,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public class GlowRibbonTab extends EditorRibbonTab {
+class GlowRibbonTab extends ComponentEditorRibbonTab {
 
-	boolean mutating = false;
-	
 	private final ComboBox<Option<ShadowOption>> cmbType;
 	private final ColorPicker pkrColor;
 	private final Spinner<Double> spnX;
@@ -115,22 +113,11 @@ public class GlowRibbonTab extends EditorRibbonTab {
 			// update controls
 			mutating = true;
 			if (nv != null) {
-				SlideShadow shadow = nv.getGlow();
-				if (shadow != null) {
-					cmbType.setValue(new Option<ShadowOption>(null, shadow.getType() == ShadowType.INNER ? ShadowOption.INNER : ShadowOption.OUTER));
-					pkrColor.setValue(JavaFXTypeConverter.toJavaFX(shadow.getColor()));
-					spnX.getValueFactory().setValue(shadow.getOffsetX());
-					spnY.getValueFactory().setValue(shadow.getOffsetY());
-					spnRadius.getValueFactory().setValue(shadow.getRadius());
-					spnSpread.getValueFactory().setValue(shadow.getSpread());
-				} else {
-					cmbType.setValue(new Option<ShadowOption>(null, ShadowOption.NONE));
-					pkrColor.setValue(Color.BLACK);
-					spnX.getValueFactory().setValue(0.0);
-					spnY.getValueFactory().setValue(0.0);
-					spnRadius.getValueFactory().setValue(10.0);
-					spnSpread.getValueFactory().setValue(0.0);
-				}
+				this.setDisable(false);
+				setControlValues(nv.getGlow());
+			} else {
+				this.setDisable(true);
+				setControlValues(null);
 			}
 			mutating = false;
 		});
@@ -148,6 +135,24 @@ public class GlowRibbonTab extends EditorRibbonTab {
 					this.spnSpread.getValue());
 		} else {
 			return null;
+		}
+	}
+	
+	private void setControlValues(SlideShadow shadow) {
+		if (shadow != null) {
+			cmbType.setValue(new Option<ShadowOption>(null, shadow.getType() == ShadowType.INNER ? ShadowOption.INNER : ShadowOption.OUTER));
+			pkrColor.setValue(JavaFXTypeConverter.toJavaFX(shadow.getColor()));
+			spnX.getValueFactory().setValue(shadow.getOffsetX());
+			spnY.getValueFactory().setValue(shadow.getOffsetY());
+			spnRadius.getValueFactory().setValue(shadow.getRadius());
+			spnSpread.getValueFactory().setValue(shadow.getSpread());
+		} else {
+			cmbType.setValue(new Option<ShadowOption>(null, ShadowOption.NONE));
+			pkrColor.setValue(Color.BLACK);
+			spnX.getValueFactory().setValue(0.0);
+			spnY.getValueFactory().setValue(0.0);
+			spnRadius.getValueFactory().setValue(10.0);
+			spnSpread.getValueFactory().setValue(0.0);
 		}
 	}
 }

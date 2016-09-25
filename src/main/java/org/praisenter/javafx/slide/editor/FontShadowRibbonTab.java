@@ -18,10 +18,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public class FontShadowRibbonTab extends EditorRibbonTab {
+class FontShadowRibbonTab extends ComponentEditorRibbonTab {
 
-	boolean mutating = false;
-	
 	private final ComboBox<Option<ShadowOption>> cmbType;
 	private final ColorPicker pkrColor;
 	private final Spinner<Double> spnX;
