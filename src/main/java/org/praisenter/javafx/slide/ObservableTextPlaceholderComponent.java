@@ -11,11 +11,13 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 
 public final class ObservableTextPlaceholderComponent extends ObservableTextComponent<TextPlaceholderComponent> {
 	
 	final ObjectProperty<PlaceholderType> placeholderType = new SimpleObjectProperty<PlaceholderType>();
-	final ObservableList<PlaceholderVariant> variants = FXCollections.observableArrayList();
+	final ObservableSet<PlaceholderVariant> variants = FXCollections.observableSet();
 	
 	public ObservableTextPlaceholderComponent(TextPlaceholderComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
@@ -43,6 +45,18 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 			}
 		});
 		
+		this.variants.addListener(new SetChangeListener<PlaceholderVariant>() {
+			@Override
+			public void onChanged(javafx.collections.SetChangeListener.Change<? extends PlaceholderVariant> change) {
+				if (change.wasAdded()) {
+					region.getVariants().add(change.getElementAdded());
+				}
+				if (change.wasRemoved()) {
+					region.getVariants().remove(change.getElementRemoved());
+				}
+			}
+		});
+		
 		this.build();
 	}
 	
@@ -62,7 +76,7 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 	
 	// variants
 	
-	public ObservableList<PlaceholderVariant> getVariants() {
+	public ObservableSet<PlaceholderVariant> getVariants() {
 		return this.variants;
 	}
 

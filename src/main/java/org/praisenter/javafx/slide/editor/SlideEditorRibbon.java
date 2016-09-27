@@ -19,6 +19,10 @@ final class SlideEditorRibbon extends TabPane {
 		// slide
 		SlideRibbonTab slide = new SlideRibbonTab(context);
 		
+		// insert
+		InsertTextRibbonTab insertText = new InsertTextRibbonTab(context);
+		InsertMediaRibbonTab insertMedia = new InsertMediaRibbonTab(context);
+		
 		// container
 		ComponentEditorRibbonTab background = new BackgroundRibbonTab(context);
 		ComponentEditorRibbonTab border = new BorderRibbonTab();
@@ -83,7 +87,9 @@ final class SlideEditorRibbon extends TabPane {
 		Tab tabSlide = new Tab(" Slide ", ribSlide);
 		tabSlide.setClosable(false);
 		
-		Tab tabInsert = new Tab(" Insert ");
+		HBox ribInsert = new HBox(insertText, insertMedia);
+		ribInsert.setPadding(new Insets(0, 0, 0, 2));
+		Tab tabInsert = new Tab(" Insert ", ribInsert);
 		tabInsert.setClosable(false);
 		
 		HBox ribBox = new HBox(background, border, stacking, shadow, glow, container);

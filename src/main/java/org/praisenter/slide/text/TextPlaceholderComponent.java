@@ -24,8 +24,8 @@
  */
 package org.praisenter.slide.text;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -54,14 +54,14 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	/** The placeholder variants */
 	@XmlElement(name = "variant", required = false)
 	@XmlElementWrapper(name = "variants", required = false)
-	final List<PlaceholderVariant> variants;
+	final Set<PlaceholderVariant> variants;
 
 	/**
 	 * Creates a new placeholder for all text.
 	 */
 	public TextPlaceholderComponent() {
 		this.type = PlaceholderType.TEXT;
-		this.variants = new ArrayList<PlaceholderVariant>();
+		this.variants = new TreeSet<PlaceholderVariant>();
 		this.variants.add(PlaceholderVariant.PRIMARY);
 	}
 	
@@ -98,9 +98,9 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 
 	/**
 	 * Returns this placeholder's variants.
-	 * @return List&lt;{@link PlaceholderVariant}&gt;
+	 * @return Set&lt;{@link PlaceholderVariant}&gt;
 	 */
-	public List<PlaceholderVariant> getVariants() {
+	public Set<PlaceholderVariant> getVariants() {
 		return this.variants;
 	}
 }

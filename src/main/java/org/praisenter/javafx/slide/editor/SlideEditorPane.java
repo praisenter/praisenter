@@ -305,6 +305,15 @@ public final class SlideEditorPane extends BorderPane {
 		
 		slide.addListener((obs, ov, nv) -> {
 			slideCanvas.getChildren().clear();
+			if (ov != null) {
+				ov.scalingProperty().unbind();
+				Iterator<ObservableSlideComponent<?>> components = nv.componentIterator();
+				while (components.hasNext()) {
+					ObservableSlideComponent<?> osr = components.next();
+					osr.scalingProperty().unbind();
+				}
+			}
+			
 			if (nv != null) {
 				resolution = new Resolution(nv.getWidth(), nv.getHeight());
 				StackPane rootEditPane = nv.getDisplayPane();
@@ -381,6 +390,29 @@ public final class SlideEditorPane extends BorderPane {
 			heightSizing.invalidate();
 		});
 
+		ribbon.addEventHandler(SlideEditorEvent.ADD_COMPONENT, (e) -> {
+			ObservableSlideComponent<?> component = e.getComponent();
+			slide.get().addComponent(component);
+			
+			SlideRegionDraggedEventHandler dragHandler = new SlideRegionDraggedEventHandler(component);
+			StackPane pane = component.getDisplayPane();
+			component.scalingProperty().bind(scaleFactor);
+			pane.setOnMouseEntered(entered);
+			pane.setOnMouseExited(exited);
+			pane.setOnMouseReleased(dragHandler);
+			pane.setOnMouseDragged(dragHandler);
+			pane.setOnMouseMoved(hover);
+			pane.addEventHandler(MouseEvent.MOUSE_PRESSED, dragHandler);
+			pane.addEventHandler(MouseEvent.MOUSE_PRESSED, (me) -> {
+				ObservableSlideRegion<?> temp = selected.get();
+				if (temp != component && temp != null) {
+					temp.getDisplayPane().setBorder(null);
+				}
+				selected.set(component);
+				me.consume();
+			});
+		});
+		
 		// set values
 			
 		Slide s = createTestSlide();

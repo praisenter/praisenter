@@ -96,8 +96,9 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	 */
 	public AbstractTextComponent() {
 		super();
+		this.textPaint = new SlideColor();
+		this.textBorder = null;
 		this.fontScaleType = FontScaleType.NONE;
-		this.font = null;
 		this.verticalTextAlignment = VerticalTextAlignment.TOP;
 		this.horizontalTextAlignment = HorizontalTextAlignment.LEFT;
 		this.padding = new SlidePadding();

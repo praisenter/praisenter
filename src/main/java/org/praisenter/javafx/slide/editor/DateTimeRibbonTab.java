@@ -13,6 +13,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import sun.java2d.pipe.SpanShapeRenderer.Simple;
 
 class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 
@@ -69,7 +70,11 @@ class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 			if (nv instanceof ObservableDateTimeComponent) {
 				this.setDisable(false);
 				ObservableDateTimeComponent otc = (ObservableDateTimeComponent)nv;
-				String format = otc.getFormat().toPattern();
+				String format = "EEEE MMMM, d yyyy";
+				SimpleDateFormat fmt = otc.getFormat();
+				if (fmt != null) {
+					format = fmt.toPattern();
+				}
 				this.cmbDateTimeFormat.setValue(format);
 				updateExample(format);
 			} else {

@@ -68,7 +68,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
 				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
 				tc.getVariants().clear();
-				tc.getVariants().addAll(change.getList().stream().map((o) -> o.getValue()).collect(Collectors.toList()).toArray(new PlaceholderVariant[0]));
+				tc.getVariants().addAll(change.getList().stream().map((o) -> o.getValue()).collect(Collectors.toList()));
 			}
 		});
 		

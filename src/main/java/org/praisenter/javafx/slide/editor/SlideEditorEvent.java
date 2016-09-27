@@ -47,6 +47,8 @@ class SlideEditorEvent extends Event implements Serializable {
 	
 	public static final EventType<SlideTargetResolutionEvent> TARGET_RESOLUTION = new EventType<SlideTargetResolutionEvent>("SLIDE_TARGET_RESOLUTION");
 	
+	public static final EventType<SlideComponentAddEvent> ADD_COMPONENT = new EventType<SlideComponentAddEvent>("SLIDE_ADD_COMPONENT");
+	
 	/**
 	 * Full constructor.
 	 * @param source the event source
