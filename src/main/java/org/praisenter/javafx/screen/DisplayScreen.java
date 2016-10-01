@@ -2,6 +2,9 @@ package org.praisenter.javafx.screen;
 
 import java.util.ArrayList;
 
+import org.praisenter.javafx.configuration.ScreenRole;
+import org.praisenter.javafx.slide.ObservableSlide;
+
 import javafx.animation.Animation.Status;
 import javafx.animation.ParallelTransition;
 import javafx.animation.Transition;
@@ -22,9 +25,6 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
-
-import org.praisenter.javafx.configuration.ScreenRole;
-import org.praisenter.javafx.slide.ObservableSlide;
 
 public final class DisplayScreen {
 	private final String id;

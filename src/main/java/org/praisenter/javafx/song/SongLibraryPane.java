@@ -2,14 +2,14 @@ package org.praisenter.javafx.song;
 
 import java.nio.file.Paths;
 
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.stage.Stage;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.praisenter.song.SongLibrary;
+
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
 public class SongLibraryPane extends Application {
 	static {

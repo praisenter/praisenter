@@ -24,31 +24,79 @@
  */
 package org.praisenter.bible;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Represents a book in the Bible.
  * @author William Bittle
  * @version 3.0.0
  */
+@XmlRootElement(name = "book")
+@XmlAccessorType(XmlAccessType.NONE)
 public final class Book implements Comparable<Book> {
-	/** The {@link Bible} this {@link Book} came from */
-	final Bible bible;
+	/** The book id */
+	@XmlAttribute(name = "id", required = false)
+	final UUID id;
 	
 	/** The book code */
-	final String code;
+	@XmlElement(name = "code", required = false)
+	String code;
 	
 	/** The book name */
-	final String name;
+	@XmlElement(name = "name", required = false)
+	String name;
 
+	/** The book order */
+	@XmlAttribute(name = "order", required = false)
+	int order;
+	
+	/** The list of verses in the book */
+	@XmlElement(name = "verse", required = false)
+	@XmlElementWrapper(name = "verses", required = false)
+	final List<Verse> verses;
+	
+	Book() {
+		// for JAXB
+		this.id = null;
+		this.code = null;
+		this.name = null;
+		this.order = 0;
+		this.verses = new ArrayList<Verse>();
+	}
+	
 	/**
-	 * Full constructor.
-	 * @param bible the bible this book came from
+	 * Optional constructor.
 	 * @param code the book code (id)
 	 * @param name the book name
+	 * @param order the book order
 	 */
-	Book(Bible bible, String code, String name) {
-		this.bible = bible;
+	public Book(String code, String name, int order) {
+		this(null, code, name, order, null);
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param id the book id; or null
+	 * @param code the book code
+	 * @param name the book name
+	 * @param order the book order
+	 * @param verses the list of verses; or null
+	 */
+	public Book(UUID id, String code, String name, int order, List<Verse> verses) {
+		this.id = id != null ? id : UUID.randomUUID();
 		this.code = code;
 		this.name = name;
+		this.order = order;
+		this.verses = verses != null ? verses : new ArrayList<Verse>();
 	}
 	
 	/* (non-Javadoc)
@@ -60,27 +108,9 @@ public final class Book implements Comparable<Book> {
 		if (obj == this) return true;
 		if (obj instanceof Book) {
 			Book other = (Book)obj;
-			if (this.bible.equals(other.bible) && this.code.equals(other.code)) {
+			if (this.id.equals(other.id)) {
 				return true;
 			}
-		}
-		return false;
-	}
-	
-	/**
-	 * Returns true if the given book is the same as this book.
-	 * <p>
-	 * This does a reference comparison so that a book from another
-	 * Bible will be the same as this book as long as they are both
-	 * "Acts" for example.
-	 * @param book the book
-	 * @return boolean
-	 */
-	public boolean isSameBook(Book book) {
-		if (book == null) return false;
-		if (book == this) return true;
-		if (this.code.equals(book.code)) {
-			return true;
 		}
 		return false;
 	}
@@ -107,15 +137,7 @@ public final class Book implements Comparable<Book> {
 	@Override
 	public int compareTo(Book o) {
 		if (o == null) return 1;
-		return this.code.compareTo(o.code);
-	}
-	
-	/**
-	 * Returns the bible this {@link Book} is contained in.
-	 * @return {@link Bible}
-	 */
-	public Bible getBible() {
-		return this.bible;
+		return this.order - o.order;
 	}
 	
 	/**
@@ -127,10 +149,50 @@ public final class Book implements Comparable<Book> {
 	}
 	
 	/**
+	 * Sets the book code.
+	 * @param code the code
+	 */
+	public void setCode(String code) {
+		this.code = code;
+	}
+	
+	/**
 	 * Returns the book name.
 	 * @return String
 	 */
 	public String getName() {
 		return this.name;
+	}
+	
+	/**
+	 * Sets the book name.
+	 * @param name the name
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	/**
+	 * Returns the order.
+	 * @return int
+	 */
+	public int getOrder() {
+		return this.order;
+	}
+	
+	/**
+	 * Sets the order.
+	 * @param order the position
+	 */
+	public void setOrder(int order) {
+		this.order = order;
+	}
+	
+	/**
+	 * Returns the list of verses for this book.
+	 * @return List&lt;{@link Verse}&gt;
+	 */
+	public List<Verse> getVerses() {
+		return this.verses;
 	}
 }

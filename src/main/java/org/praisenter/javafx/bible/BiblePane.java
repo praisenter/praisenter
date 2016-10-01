@@ -1,27 +1,14 @@
 package org.praisenter.javafx.bible;
 
 import java.sql.SQLException;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.praisenter.bible.Bible;
-import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.Book;
-import org.praisenter.bible.Verse;
 import org.praisenter.javafx.AutoCompleteComboBox;
-import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.PraisenterContext;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 
 public final class BiblePane extends BorderPane {
 	private ComboBox<BibleListItem> cmbBible;

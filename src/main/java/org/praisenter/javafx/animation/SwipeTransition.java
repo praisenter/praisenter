@@ -24,14 +24,14 @@
  */
 package org.praisenter.javafx.animation;
 
+import org.praisenter.slide.animation.AnimationType;
+import org.praisenter.slide.animation.Swipe;
+
 import javafx.geometry.Rectangle2D;
 import javafx.scene.shape.Arc;
 import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
-
-import org.praisenter.slide.animation.AnimationType;
-import org.praisenter.slide.animation.Swipe;
 
 /**
  * Represents a swipe transition.

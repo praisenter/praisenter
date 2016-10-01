@@ -115,7 +115,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 	 * Minimal constructor.
 	 * @param library the library to import into
 	 */
-	public OpenSongBibleImporter(BibleLibrary library) {
+	public OpenSongBibleImporter(BibleLibraryV1 library) {
 		super(library);
 	}
 	

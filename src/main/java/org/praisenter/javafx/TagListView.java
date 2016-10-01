@@ -28,6 +28,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
+import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
+import org.controlsfx.control.textfield.TextFields;
+import org.praisenter.Tag;
+import org.praisenter.resources.translations.Translations;
+
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SetProperty;
 import javafx.beans.property.SimpleSetProperty;
@@ -49,11 +54,6 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
-
-import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
-import org.controlsfx.control.textfield.TextFields;
-import org.praisenter.Tag;
-import org.praisenter.resources.translations.Translations;
 
 /**
  * Represents a list of tags that can be added and removed.

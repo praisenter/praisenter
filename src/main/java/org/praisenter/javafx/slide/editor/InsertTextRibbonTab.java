@@ -1,22 +1,15 @@
 package org.praisenter.javafx.slide.editor;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
-import org.praisenter.Tag;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.TagEvent;
-import org.praisenter.javafx.TagListView;
-import org.praisenter.javafx.configuration.Resolution;
 import org.praisenter.javafx.slide.ObservableBasicTextComponent;
 import org.praisenter.javafx.slide.ObservableCountdownComponent;
 import org.praisenter.javafx.slide.ObservableDateTimeComponent;
 import org.praisenter.javafx.slide.ObservableSlide;
-import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.slide.graphics.SlideColor;
@@ -30,21 +23,13 @@ import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
-import javafx.event.EventHandler;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class InsertTextRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
-	private static final GlyphFont OPEN_ICONIC = GlyphFontRegistry.font("Icons");
-	
-	/** The fontawesome glyph-font pack */
+	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	private final PraisenterContext context;
@@ -87,7 +72,7 @@ public class InsertTextRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 			cdc.setWidth(200);
 			cdc.setHeight(100);
 			cdc.setTarget(LocalDateTime.now().plusHours(1));
-			cdc.setFormat("%4$01d:%5$01d:%6$01d");
+			cdc.setFormat("%4$02d:%5$02d:%6$02d");
 			cdc.setTextPaint(new SlideColor(0, 0, 0, 1));
 			cdc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 20));
 			fireEvent(new SlideComponentAddEvent(countdown, InsertTextRibbonTab.this, new ObservableCountdownComponent(cdc, context, SlideMode.EDIT)));

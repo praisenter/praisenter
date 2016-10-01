@@ -34,6 +34,16 @@ public final class StringManipulator {
 	private StringManipulator() {}
 	
 	/**
+	 * Returns true if the given string is null or if it only
+	 * contains whitespace.
+	 * @param str the string
+	 * @return boolean
+	 */
+	public static boolean isNullOrEmpty(String str) {
+		return str == null || str.trim().length() <= 0;
+	}
+	
+	/**
 	 * Strips invalid characters from the given string based on
 	 * a cross platform list of white-listed characters (basically
 	 * any letter or digit, including unicode codepoints).

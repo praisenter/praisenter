@@ -22,53 +22,57 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+package org.praisenter.bible;
 
 /**
- * Abstract implementation of the {@link SlideComponent} interface.
+ * A matched section of text for a given lucene field for a lucene search.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlAccessorType(XmlAccessType.NONE)
-public abstract class AbstractSlideComponent extends AbstractSlideRegion implements SlideRegion, SlideComponent {
-//	/** The z-order */
-//	@XmlElement(name = "order", required = false)
-//	int order;
-//	
-//	/* (non-Javadoc)
-//	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-//	 */
-//	@Override
-//	public int compareTo(SlideComponent o) {
-//		return this.order - o.getOrder();
-//	}
-//	
+public final class BibleSearchMatch {
+	/** The field */
+	final String field;
+	
+	/** The field value */
+	final String value;
+	
+	/** The matched part of the value with highlight indicators */
+	final String matchedText;
+	
 	/**
-	 * Copies over the values of this component to the given component.
-	 * @param to the component to copy to
+	 * Full constructor.
+	 * @param field the lucene field
+	 * @param value the value of the field
+	 * @param matchedText the matched text and surrounding text
 	 */
-	protected void copy(SlideComponent to) {
-		// shouldn't need a deep copy of any of these
-//		to.setOrder(this.order);
-		this.copy((SlideRegion)to);
+	public BibleSearchMatch(String field, String value, String matchedText) {
+		this.field = field;
+		this.value = value;
+		this.matchedText = matchedText;
 	}
-//	
-//	/* (non-Javadoc)
-//	 * @see org.praisenter.slide.SlideComponent#getOrder()
-//	 */
-//	@Override
-//	public int getOrder() {
-//		return this.order;
-//	}
-//	
-//	/* (non-Javadoc)
-//	 * @see org.praisenter.slide.SlideComponent#setOrder(int)
-//	 */
-//	@Override
-//	public void setOrder(int order) {
-//		this.order = order;
-//	}
+	
+	/**
+	 * The field that matched.
+	 * @return String
+	 */
+	public String getField() {
+		return field;
+	}
+
+	/**
+	 * The full value of the field that was matched.
+	 * @return String
+	 */
+	public String getValue() {
+		return value;
+	}
+	
+	/**
+	 * Returns the text around a match with the matched text
+	 * highlighted using &lt;b&gt; tags.
+	 * @return String
+	 */
+	public String getMatchedText() {
+		return matchedText;
+	}
 }

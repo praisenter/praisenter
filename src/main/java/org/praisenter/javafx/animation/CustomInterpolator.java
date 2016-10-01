@@ -24,10 +24,10 @@
  */
 package org.praisenter.javafx.animation;
 
-import javafx.animation.Interpolator;
-
 import org.praisenter.slide.easing.Easing;
 import org.praisenter.slide.easing.Linear;
+
+import javafx.animation.Interpolator;
 
 /**
  * Represents a custom interpolator defined by an {@link Easing}.

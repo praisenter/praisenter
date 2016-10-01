@@ -33,13 +33,13 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import javafx.scene.image.Image;
-
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import javafx.scene.image.Image;
 
 /**
  * Class for loading resources off of the classpath.

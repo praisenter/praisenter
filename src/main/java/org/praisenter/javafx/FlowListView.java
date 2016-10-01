@@ -144,6 +144,11 @@ public final class FlowListView<T> extends TilePane {
         	@SuppressWarnings("unchecked")
 			@Override
 			public void handle(SelectionEvent event) {
+        		// double click should propagate up
+				if (event.getEventType() == SelectionEvent.DOUBLE_CLICK) {
+					return;
+				}
+				
         		// get the data from the item node
 				FlowListItem<T> view = (FlowListItem<T>)event.getTarget();
 				T item = view.getData();

@@ -126,7 +126,7 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 	 * Minimal constructor.
 	 * @param library the library to import into
 	 */
-	public ZefaniaBibleImporter(BibleLibrary library) {
+	public ZefaniaBibleImporter(BibleLibraryV1 library) {
 		super(library);
 	}
 	

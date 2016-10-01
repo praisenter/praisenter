@@ -420,4 +420,10 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	public ObjectProperty<Scaling> scalingProperty() {
 		return this.scale;
 	}
+	
+	// the slide
+	
+	public T getRegion() {
+		return this.region;
+	}
 }

@@ -24,40 +24,65 @@
  */
 package org.praisenter.bible;
 
+import java.util.UUID;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * Represents a {@link Verse} of the {@link Bible}.
  * @author William Bittle
  * @version 3.0.0
  */
+@XmlRootElement(name = "verse")
+@XmlAccessorType(XmlAccessType.NONE)
 public final class Verse implements Comparable<Verse> {
-	/** The {@link Bible} the verse is in */
-	final Bible bible;
-
-	/** The {@link Book} the verse is in */
-	final Book book;
-	
 	/** The verse id */
-	final int id;
+	@XmlAttribute(name = "id", required = false)
+	final UUID id;
 	
 	/** The chapter number */
-	final int chapter;
+	@XmlAttribute(name = "chapter", required = false)
+	int chapter;
 	
 	/** The verse number */
-	final int verse;
+	@XmlAttribute(name = "verse", required = false)
+	int verse;
 	
 	/** The sub verse number */
-	final int subVerse;
+	@XmlAttribute(name = "subVerse", required = false)
+	int subVerse;
 	
 	/** The verse order */
-	final int order;
+	@XmlAttribute(name = "order", required = false)
+	int order;
 	
 	/** The verse text */
-	final String text;
-
+	@XmlElement(name = "text", required = false)
+	String text;
+	
+	Verse()  {
+		// for JAXB
+		this.id = null;
+	}
+	
 	/**
 	 * Full constructor.
-	 * @param bible the bible containing the verse
-	 * @param book the book containing the verse
+	 * @param chapter the chapter number
+	 * @param verse the verse number
+	 * @param subVerse the sub verse number
+	 * @param order the verse order
+	 * @param text the verse text
+	 */
+	public Verse(int chapter, int verse, int subVerse, int order, String text) {
+		this(null, chapter, verse, subVerse, order, text);
+	}
+	
+	/**
+	 * Full constructor.
 	 * @param id the verse id
 	 * @param chapter the chapter number
 	 * @param verse the verse number
@@ -65,17 +90,15 @@ public final class Verse implements Comparable<Verse> {
 	 * @param order the verse order
 	 * @param text the verse text
 	 */
-	Verse(Bible bible, Book book, int id, int chapter, int verse, int subVerse, int order, String text) {
-		this.bible = bible;
-		this.book = book;
-		this.id = id;
+	public Verse(UUID id, int chapter, int verse, int subVerse, int order, String text) {
+		this.id = id == null ? UUID.randomUUID() : id;
 		this.chapter = chapter;
 		this.verse = verse;
 		this.subVerse = subVerse;
 		this.order = order;
 		this.text = text;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
@@ -92,32 +115,12 @@ public final class Verse implements Comparable<Verse> {
 		return false;
 	}
 	
-	/**
-	 * Returns true if the given verse is the same
-	 * verse as this verse.
-	 * <p>
-	 * This does a reference comparison so that a verse
-	 * from one bible to another will return true.
-	 * @param verse the verse
-	 * @return boolean
-	 */
-	public boolean isSameVerse(Verse verse) {
-		if (verse == null) return false;
-		if (verse == this) return true;
-		if (verse.book.code.equals(this.book.code) &&
-			verse.chapter == this.chapter &&
-			verse.verse == this.verse) {
-			return true;
-		}
-		return false;
-	}
-	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
-		return this.id;
+		return this.id.hashCode();
 	}
 	
 	/* (non-Javadoc)
@@ -126,9 +129,7 @@ public final class Verse implements Comparable<Verse> {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("Verse[Bible=").append(this.bible.getName())
-		  .append("|Book=").append(this.book.getName())
-		  .append("|Id=").append(this.id)
+		sb.append("Verse[Id=").append(this.id)
 		  .append("|Chapter=").append(this.chapter)
 		  .append("|Verse=").append(this.verse)
 		  .append("|SubVerse=").append(this.subVerse)
@@ -144,31 +145,15 @@ public final class Verse implements Comparable<Verse> {
 	@Override
 	public int compareTo(Verse o) {
 		if (o == null) return 1;
-		return this.id - o.id;
-	}
-	
-	/**
-	 * Returns the {@link Bible} that contains this {@link Verse}.
-	 * @return {@link Bible}
-	 */
-	public Bible getBible() {
-		return this.bible;
+		return this.order - o.order;
 	}
 	
 	/**
 	 * Returns the verse id for this {@link Verse}.
 	 * @return int
 	 */
-	public int getId() {
+	public UUID getId() {
 		return this.id;
-	}
-	
-	/**
-	 * Returns the {@link Book} this {@link Verse} is contained in.
-	 * @return {@link Book}
-	 */
-	public Book getBook() {
-		return this.book;
 	}
 	
 	/**

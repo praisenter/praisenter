@@ -53,9 +53,12 @@ import javafx.util.Duration;
 // FIXME fix the manifest
 // FIXME explore deployment options
 // FIXME what happens when two of the same movie is played with audio.... For example if displayed on multiple screens
+// FIXME testing on High DPI screens
 
 // FEATURE use Apache POI to read powerpoint files
 // FEATURE check out JavaFX styles here https://github.com/JFXtras/jfxtras-styles
+
+// JAVABUG 09/28/16 High DPI - https://bugs.openjdk.java.net/browse/JDK-8090569
 
 /**
  * This is the entry point for the application.
@@ -173,7 +176,7 @@ public final class Praisenter extends Application {
     	
 		// load fonts
     	LOGGER.info("Loading glyph fonts.");
-		GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
+    	GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
 		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
 		
     	// we'll have a stack of the main pane and the loading pane

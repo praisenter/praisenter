@@ -26,6 +26,9 @@ package org.praisenter.javafx.bible;
 
 import java.text.DateFormat;
 
+import org.praisenter.bible.Bible;
+import org.praisenter.resources.translations.Translations;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -46,9 +49,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-
-import org.praisenter.bible.Bible;
-import org.praisenter.resources.translations.Translations;
 
 /**
  * Pane specifically for display of {@link Bible}s.

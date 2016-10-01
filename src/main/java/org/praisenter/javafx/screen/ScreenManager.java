@@ -7,13 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.praisenter.javafx.configuration.ScreenMapping;
+import org.praisenter.javafx.configuration.ScreenRole;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.stage.Screen;
-
-import org.praisenter.javafx.configuration.ScreenMapping;
-import org.praisenter.javafx.configuration.ScreenRole;
 
 public final class ScreenManager {
 	private final ObservableMap<String, DisplayScreen> displays;

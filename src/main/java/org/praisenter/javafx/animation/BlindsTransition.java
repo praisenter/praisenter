@@ -24,12 +24,12 @@
  */
 package org.praisenter.javafx.animation;
 
+import org.praisenter.slide.animation.AnimationType;
+import org.praisenter.slide.animation.Blinds;
+
 import javafx.geometry.Rectangle2D;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
-
-import org.praisenter.slide.animation.AnimationType;
-import org.praisenter.slide.animation.Blinds;
 
 /**
  * Represents a blinds transition for Java FX.

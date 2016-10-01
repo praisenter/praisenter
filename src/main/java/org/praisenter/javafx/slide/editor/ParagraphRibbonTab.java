@@ -4,57 +4,23 @@ import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
-import org.praisenter.javafx.Option;
-import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.resources.OpenIconic;
-import org.praisenter.slide.graphics.SlideColor;
-import org.praisenter.slide.graphics.SlideGradient;
-import org.praisenter.slide.graphics.SlideGradientCycleType;
-import org.praisenter.slide.graphics.SlideGradientStop;
-import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlidePadding;
-import org.praisenter.slide.graphics.SlidePaint;
-import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
-import org.praisenter.slide.text.SlideFont;
-import org.praisenter.slide.text.SlideFontPosture;
-import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.VerticalTextAlignment;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.CustomMenuItem;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
-import javafx.stage.Popup;
 
 class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 
-	/** The openiconic glyph-font pack */
-	private static final GlyphFont FONT_ICONIC	= GlyphFontRegistry.font("Icons");
+	private static final GlyphFont OPEN_ICONIC = GlyphFontRegistry.font("Icons");
 	
-	/** The fontawesome glyph-font pack */
+	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	private final SegmentedButton segHorizontalAlignment;
@@ -77,9 +43,9 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 		tglJustify.setUserData(HorizontalTextAlignment.JUSTIFY);
 		this.segHorizontalAlignment = new SegmentedButton(tglLeft, tglCenter, tglRight, tglJustify);
 		// v-align
-		ToggleButton tglTop = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_TOP));
-		ToggleButton tglMiddle = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_CENTER));
-		ToggleButton tglBottom = new ToggleButton("", FONT_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_BOTTOM));
+		ToggleButton tglTop = new ToggleButton("", OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_TOP));
+		ToggleButton tglMiddle = new ToggleButton("", OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_CENTER));
+		ToggleButton tglBottom = new ToggleButton("", OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_BOTTOM));
 		tglTop.setSelected(true);
 		tglTop.setUserData(VerticalTextAlignment.TOP);
 		tglMiddle.setUserData(VerticalTextAlignment.CENTER);

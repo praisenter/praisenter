@@ -1,23 +1,40 @@
 package org.praisenter.javafx.slide;
 
+import org.praisenter.javafx.FlowListItem;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.SelectionEvent;
+import org.praisenter.javafx.slide.editor.SlideEditorPane;
 
 import javafx.scene.layout.BorderPane;
 
 public class SlideLibraryPane extends BorderPane {
 	private final PraisenterContext context;
 	
+	private final SlideEditorPane editor;
+	private final FlowListView<SlideListItem> slides;
+	
 	public SlideLibraryPane(PraisenterContext context) {
 		this.context = context;
+		this.editor = new SlideEditorPane(context);
 		
-		FlowListView<SlideListItem> slidesView = new FlowListView<SlideListItem>(new SlideListViewCellFactory(100));
-		slidesView.itemsProperty().bindContent(this.context.getSlideLibrary().getItems());
+		this.slides = new FlowListView<SlideListItem>(new SlideListViewCellFactory(100));
+		this.slides.itemsProperty().bindContent(this.context.getSlideLibrary().getItems());
 		
-		// TODO double click to edit a slide
 		// TODO some nice animation or something to transition back and forth
 		// TODO maybe auto-saving?
 		
-		this.setCenter(slidesView);
+		this.slides.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
+			@SuppressWarnings("unchecked")
+			FlowListItem<SlideListItem> view = (FlowListItem<SlideListItem>)e.getTarget();
+			SlideListItem item = view.getData();
+			
+			editor.setSlide(null);
+			editor.setSlide(item.slide);
+			
+			this.setCenter(editor);
+		});
+		
+		this.setCenter(this.slides);
 	}
 }

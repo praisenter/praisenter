@@ -199,15 +199,15 @@ public class TestSlideSaving {
 		
 		System.out.println(s.getId() + " " + s.getClass().getName());
 		
-		SlideShow show = new SlideShow();
-		show.getSlides().add(s);
+//		SlideShow show = new SlideShow();
+//		show.getSlides().add(s);
 		
 //		XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\show.xml"), show);
 //		SlideShow ss = XmlIO.read(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\show.xml"), SlideShow.class);
 		
-		XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\show.xml"), show);
-		SlideShow ss = XmlIO.read(Paths.get("D:\\Personal\\Praisenter\\slides\\show.xml"), SlideShow.class);
+//		XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\show.xml"), show);
+//		SlideShow ss = XmlIO.read(Paths.get("D:\\Personal\\Praisenter\\slides\\show.xml"), SlideShow.class);
 		
-		System.out.println(ss.getSlides().size());
+//		System.out.println(ss.getSlides().size());
 	}
 }

@@ -94,7 +94,7 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 			return formatCountdown(this.format, this.target);
 		}
 		return String.format(
-		        this.format, 
+		        (this.format != null && this.format.trim().length() > 0 ? this.format : DEFAULT_FORMAT), 
 		        0,
 		        0,
 		        0,

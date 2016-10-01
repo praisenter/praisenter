@@ -24,1256 +24,596 @@
  */
 package org.praisenter.bible;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-import org.praisenter.data.Database;
+import javax.activation.FileTypeMap;
+import javax.activation.MimetypesFileTypeMap;
+import javax.xml.bind.JAXBException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.util.CharArraySet;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.PhraseQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.WildcardQuery;
+import org.apache.lucene.search.highlight.Highlighter;
+import org.apache.lucene.search.highlight.QueryScorer;
+import org.apache.lucene.search.highlight.Scorer;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
+import org.praisenter.Constants;
+import org.praisenter.SearchType;
+import org.praisenter.utility.StringManipulator;
+import org.praisenter.xml.XmlIO;
+
+// FIXME update to latest lucene 6.2?
 
 /**
- * Access class for Bible verses.
+ * A collection of bibles that has been loaded into a specific location and converted
+ * into the praisenter format.
+ * <p>
+ * Obtain a {@link BibleLibrary} instance by calling the {@link #open(Path)}
+ * static method. Only one instance should be created for each path. Multiple instances
+ * modifying the same path can have unexpected results and can show different sets of bibles.
+ * <p>
+ * This class is intended to be thread safe within this application but can still contend
+ * with other programs during disk operations.
+ * <p>
+ * The bibles contained in the specified folder will be added to a lucene index for searching.
+ * Opening a bible library will initiate a process to update the index to ensure the latest
+ * information is contained in the index. This process can take some time as it must read
+ * each bible file and update it in the index.
  * @author William Bittle
  * @version 3.0.0
  */
 public final class BibleLibrary {
-	/** The database */
-	final Database database;
+	/** The class-level logger */
+	private static final Logger LOGGER = LogManager.getLogger();
 	
-	/**
-	 * Minimal constructor.
-	 * @param database the database to connect to
-	 */
-	public BibleLibrary(Database database) {
-		this.database = database;
-	}
+	/** The extension to use for the bible files */
+	private static final String EXTENSION = ".xml";
 	
-	// public interface
-	
-	// bibles
-	
-	/**
-	 * Returns the bible with the given id.
-	 * @param id the bible id
-	 * @return Bible the bible
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public Bible getBible(int id) throws SQLException {
-		return getBibleBySql("SELECT * FROM bible WHERE id = " + id);
-	}
-	
-	/**
-	 * Returns all the bibles.
-	 * @return List&lt;{@link Bible}&gt;
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public List<Bible> getBibles() throws SQLException {
-		return getBiblesBySql("SELECT * FROM bible ORDER BY name");
-	}
-	
-	/**
-	 * Returns the number of bibles.
-	 * @return int
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public int getBibleCount() throws SQLException {
-		return getCountBySql("SELECT COUNT(*) FROM bible");
-	}
-	
-	/**
-	 * Deletes the given bible.
-	 * @param bible the bible to delete
-	 * @throws SQLException if an exception occurs while deleting the bible
-	 */
-	public void deleteBible(Bible bible) throws SQLException {
-		deleteBible(bible.id);
-	}
-	
-	/**
-	 * Deletes the bible with the given id.
-	 * @param id the id of the bible to delete
-	 * @throws SQLException if an exception occurs while deleting the bible
-	 */
-	public void deleteBible(int id) throws SQLException {
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 Statement statement = connection.createStatement()) {
-			// delete from the bottom up
-			statement.addBatch("DELETE FROM bible_verse WHERE bible_id = " + id);
-			statement.addBatch("DELETE FROM bible_book WHERE bible_id = " + id);
-			statement.addBatch("DELETE FROM bible WHERE id = " + id);
-			
-			// execute the batch
-			statement.executeBatch();
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	// books
-	
-	/**
-	 * Returns all the books for the given {@link Bible}.
-	 * <p>
-	 * Returns an empty list if the bible was not found.
-	 * @param bible the bible
-	 * @return List&lt;{@link Book}&gt;
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public List<Book> getBooks(Bible bible) throws SQLException {
-		return getBooks(bible, false);
-	}
-	
-	/**
-	 * Returns all the books for the given {@link Bible}.
-	 * <p>
-	 * Returns an empty list if the bible was not found.
-	 * @param bible the bible
-	 * @param includeApocrypha true if the apocrypha should be included
-	 * @return List&lt;{@link Book}&gt;
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public List<Book> getBooks(Bible bible, boolean includeApocrypha) throws SQLException {
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT code, name FROM bible_book WHERE bible_id = ").append(bible.id);
-		if (!includeApocrypha) {
-			sb.append(" AND code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
-		}
-		sb.append(" ORDER BY code");
-				
-		return getBooksBySql(bible, sb.toString());
-	}
-	
-	/**
-	 * Returns the book for the given {@link Bible} and book code.
-	 * <p>
-	 * Returns null if the book code is not found.
-	 * @param bible the bible
-	 * @param code the book code
-	 * @return {@link Book}
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public Book getBook(Bible bible, String code) throws SQLException {
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT code, name FROM bible_book WHERE bible_id = ").append(bible.getId())
-		  .append(" AND code = '").append(code.replace("'", "''").trim()).append("'");
-		
-		return getBookBySql(bible, sb.toString());
-	}
-	
-	/**
-	 * Returns the {@link Book}s from the given {@link Bible} that match the given search.
-	 * <p>
-	 * Returns an empty list if no match was found.
-	 * @param bible the bible to search
-	 * @param search the search; (by book name)
-	 * @return List&lt;{@link Book}&gt;
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public List<Book> searchBooks(Bible bible, String search) throws SQLException {
-		return searchBooks(bible, search, false);
-	}
-	
-	/**
-	 * Returns the {@link Book}s from the given {@link Bible} that match the given search.
-	 * <p>
-	 * Returns an empty list if no match was found.
-	 * @param bible the bible to search
-	 * @param includeApocrypha true if the apocrypha should be included
-	 * @param search the search; (by book name)
-	 * @return List&lt;{@link Book}&gt;
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public List<Book> searchBooks(Bible bible, String search, boolean includeApocrypha) throws SQLException {
-		String term = cleanSearchTerm(search);
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT code, name FROM bible_book WHERE bible_id = ").append(bible.id);
-		if (!includeApocrypha) {
-			sb.append(" AND code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
-		}
-		sb.append(" AND searchable_name LIKE '%").append(term.toUpperCase()).append("%'")
-		  .append(" ORDER BY code");
-				
-		return getBooksBySql(bible, sb.toString());
-	}
+	// lucene
 
+	/** The lucene field to store the bible's path */
+	private static final String FIELD_PATH = "path";
+	
+	/** The lucene field to store the bible's unique identifier */
+	private static final String FIELD_BIBLE_ID = "bibleid";
+	
+	/** The lucene field to store the bible's unique identifier */
+	private static final String FIELD_BOOK_ID = "bookid";
+	
+	/** The lucene field to store the bible's unique identifier */
+	private static final String FIELD_VERSE_ID = "verseid";
+	
+	/** The lucene field that contains all the bible searchable text */
+	private static final String FIELD_TEXT = "text";
+	
+	/** The relative path to the directory containing the lucene index */
+	private static final String INDEX_DIR = "_index";
+	
+	// location
+	
+	/** The path to the bible library */
+	private final Path path;
+	
+	/** The path to the bible library's index */
+	private final Path indexPath;
+	
+	// searching
+	
+	/** The file-system index */
+	private Directory directory;
+	
+	/** The analyzer for the index */
+	private Analyzer analyzer;
+	
+	// loaded
+	
+	/** The bibles */
+	private final Map<UUID, Bible> bibles;
+	
 	/**
-	 * Returns the number of {@link Book}s contained in the given {@link Bible}.
-	 * @param bible the bible
-	 * @return int
-	 * @throws SQLException if an exception occurs while retrieving the data
+	 * Sets up a new {@link BibleLibrary} at the given path.
+	 * @param path the root path to the bible library
+	 * @return {@link BibleLibrary}
+	 * @throws IOException if an IO error occurs
 	 */
-	public int getBookCount(Bible bible) throws SQLException {
-		return getBookCount(bible, false);
+	public static final BibleLibrary open(Path path) throws IOException {
+		BibleLibrary bl = new BibleLibrary(path);
+		bl.initialize();
+		return bl;
 	}
 	
+	/**
+	 * Full constructor.
+	 * @param path the path to maintain the bible library
+	 */
+	private BibleLibrary(Path path) {
+		this.path = path;
+		this.indexPath = this.path.resolve(INDEX_DIR);
+		this.bibles = new HashMap<UUID, Bible>();
+	}
+	
+	/**
+	 * Performs the initialization required by the bible library.
+	 * @throws IOException if an IO error occurs
+	 */
+	private void initialize() throws IOException {
+		// verify paths exist
+		Files.createDirectories(this.path);
+		Files.createDirectories(this.indexPath);
+		
+		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
+		
+		// load and update the index
+		this.directory = FSDirectory.open(this.indexPath);
+		
+		// don't exclude stop words!
+		this.analyzer = new StandardAnalyzer(new CharArraySet(1, false));
+		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
+		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+		
+		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+			// index existing documents
+			try (DirectoryStream<Path> stream = Files.newDirectoryStream(this.path)) {
+				for (Path file : stream) {
+					// only open files
+					if (Files.isRegularFile(file)) {
+						// only open xml files
+						String mimeType = map.getContentType(file.toString());
+						if (mimeType.equals("application/xml")) {
+							try (InputStream is = Files.newInputStream(file)) {
+								try {
+									// read in the xml
+									Bible bible = XmlIO.read(is, Bible.class);
+									bible.path = file;
+									
+									// add the data to the document
+									List<Document> documents = createDocuments(bible);
+									
+									try {
+										// update the document
+										writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.id.toString()), documents);
+									} catch (Exception e) {
+										// make sure its not in the index
+										LOGGER.warn("Failed to update the bible in the lucene index '" + file.toAbsolutePath().toString() + "'", e);
+										writer.deleteDocuments(new Term(FIELD_BIBLE_ID, bible.id.toString()));
+									}
 
-	/**
-	 * Returns the number of {@link Book}s contained in the given {@link Bible}.
-	 * @param bible the bible
-	 * @param includeApocrypha true if the apocrypha should be included
-	 * @return int
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public int getBookCount(Bible bible, boolean includeApocrypha) throws SQLException {
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(code) FROM bible_book WHERE bible_id = ? ");
-		if (!includeApocrypha) {
-			sb.append("AND code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
-		}
-		
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, bible.id);
-
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return result.getInt(1);
-			}
-			
-			return 0;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	// chapters
-	
-	/**
-	 * Returns the number of chapters contained in the given {@link Bible} and {@link Book}.
-	 * @param bible the bible
-	 * @param bookCode the book code
-	 * @return int
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public int getChapterCount(Bible bible, String bookCode) throws SQLException {
-		// create the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(DISTINCT chapter) FROM bible_verse WHERE bible_id = ? ")
-		  .append("AND book_code = ?");
-		
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, bible.id);
-			statement.setString(2, bookCode);
-
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return result.getInt(1);
-			}
-			
-			return 0;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	/**
-	 * Returns the last chapter number in the given {@link Bible} and {@link Book}.
-	 * @param bible the bible
-	 * @param bookCode the book code
-	 * @return int
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public int getLastChapter(Bible bible, String bookCode) throws SQLException {
-		// create the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT MAX(chapter) FROM bible_verse WHERE bible_id = ? ")
-		  .append("AND book_code = ?");
-		
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, bible.id);
-			statement.setString(2, bookCode);
-
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return result.getInt(1);
-			}
-			
-			return 0;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	// verses
-	
-	/**
-	 * Returns the verse for the given {@link Bible}, {@link Book}, chapter, and verse.
-	 * @param bible the bible
-	 * @param bookCode the book
-	 * @param chapter the chapter number
-	 * @param verse the verse number
-	 * @return {@link Verse}
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public Verse getVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
-		// create the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append("FROM bible_verse ")
-		  .append("INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id ")
-		  .append("WHERE bible_verse.bible_id = ? ")
-		  .append("AND book_code = ? ")
-		  .append("AND chapter = ? ")
-		  .append("AND verse = ? ")
-		  .append("AND sub_verse = -1");
-		
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, bible.id);
-			statement.setString(2, bookCode);
-			statement.setInt(3, chapter);
-			statement.setInt(4, verse);
-			
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return getVerse(bible, result);
-			}
-			
-			return null;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	/**
-	 * Returns the next verse for the given {@link Verse}.
-	 * @param verse the verse
-	 * @return {@link Verse}
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public Verse getNextVerse(Verse verse) throws SQLException {
-		return getNextVerse(verse, false);
-	}
-	
-	/**
-	 * Returns the next verse for the given {@link Verse}.
-	 * @param verse the verse
-	 * @param includeApocrypha true if the apocrypha should be included
-	 * @return {@link Verse}
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public Verse getNextVerse(Verse verse, boolean includeApocrypha) throws SQLException {
-		// create the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append("FROM bible_verse ")
-		  .append("INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id ")
-		  .append("WHERE bible_verse.bible_id = ? ");
-		if (!includeApocrypha) {
-			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
-		}
-		sb.append("AND sub_verse = -1 ")
-		  .append("AND order_by = ")
-		  .append("(SELECT MIN(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = -1 ")
-		  .append("AND order_by > ?)");
-		
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, verse.bible.id);
-			statement.setInt(2, verse.bible.id);
-			statement.setInt(3, verse.order);
-			
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return getVerse(verse.bible, result);
-			}
-			
-			return null;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	/**
-	 * Returns the next verse for the given verse.
-	 * @param bible the bible
-	 * @param bookCode the book
-	 * @param chapter the chapter number
-	 * @param verse the verse number
-	 * @return {@link Verse}
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public Verse getNextVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
-		return getNextVerse(bible, bookCode, chapter, verse, false);
-	}
-
-	/**
-	 * Returns the next verse for the given verse.
-	 * @param bible the bible
-	 * @param bookCode the book
-	 * @param chapter the chapter number
-	 * @param verse the verse number
-	 * @param includeApocrypha true if the apocrypha should be included
-	 * @return {@link Verse}
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public Verse getNextVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws SQLException {
-		// create the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append("FROM bible_verse ")
-		  .append("INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id ")
-		  .append("WHERE bible_verse.bible_id = ? ");
-		if (!includeApocrypha) {
-			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
-		}
-		sb.append("AND order_by = ")
-		  .append("(SELECT MIN(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = -1 ")
-		  .append("AND order_by > ")
-		  .append("(SELECT order_by FROM bible_verse WHERE bible_id = ? ")
-		  .append("AND book_code = ? ")
-		  .append("AND chapter = ? ")
-		  .append("AND verse = ? ")
-		  .append("AND sub_verse = -1))");
-		
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, bible.id);
-			statement.setInt(2, bible.id);
-			statement.setInt(3, bible.id);
-			statement.setString(4, bookCode);
-			statement.setInt(5, chapter);
-			statement.setInt(6, verse);
-			
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return getVerse(bible, result);
-			}
-			
-			return null;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	/**
-	 * Returns the previous verse for the given {@link Verse}.
-	 * @param verse the verse
-	 * @return {@link Verse}
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public Verse getPreviousVerse(Verse verse) throws SQLException {
-		return getPreviousVerse(verse, false);
-	}
-
-	/**
-	 * Returns the previous verse for the given {@link Verse}.
-	 * @param verse the verse
-	 * @param includeApocrypha true if the apocrypha should be included
-	 * @return {@link Verse}
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public Verse getPreviousVerse(Verse verse, boolean includeApocrypha) throws SQLException {
-		// create the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append("FROM bible_verse ")
-		  .append("INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id ")
-		  .append("WHERE bible_verse.bible_id = ? ");
-		if (!includeApocrypha) {
-			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
-		}
-		sb.append("AND sub_verse = -1 ")
-		  .append("AND order_by = ")
-		  .append("(SELECT MAX(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = -1 ")
-		  .append("AND order_by < ?)");
-		
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, verse.bible.id);
-			statement.setInt(2, verse.bible.id);
-			statement.setInt(3, verse.order);
-			
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return getVerse(verse.bible, result);
-			}
-			
-			return null;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	/**
-	 * Returns the previous verse for the given verse.
-	 * @param bible the bible
-	 * @param bookCode the book
-	 * @param chapter the chapter number
-	 * @param verse the verse number
-	 * @return {@link Verse}
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public Verse getPreviousVerse(Bible bible, String bookCode, int chapter, int verse) throws SQLException {
-		return getPreviousVerse(bible, bookCode, chapter, verse, false);
-	}
-
-	/**
-	 * Returns the previous verse for the given verse.
-	 * @param bible the bible
-	 * @param bookCode the book
-	 * @param chapter the chapter number
-	 * @param verse the verse number
-	 * @param includeApocrypha true if the apocrypha should be included
-	 * @return {@link Verse}
-	 * @throws SQLException if an exception occurs while retrieving the data
-	 */
-	public Verse getPreviousVerse(Bible bible, String bookCode, int chapter, int verse, boolean includeApocrypha) throws SQLException {
-		// create the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append("FROM bible_verse ")
-		  .append("INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id ")
-		  .append("WHERE bible_verse.bible_id = ? ");
-		if (!includeApocrypha) {
-			sb.append("AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("' ");
-		}
-		sb.append("AND order_by = ")
-		  .append("(SELECT MAX(order_by) FROM bible_verse WHERE bible_id = ? AND sub_verse = -1 ")
-		  .append("AND order_by < ")
-		  .append("(SELECT order_by FROM bible_verse WHERE bible_id = ? ")
-		  .append("AND book_code = ? ")
-		  .append("AND chapter = ? ")
-		  .append("AND verse = ? ")
-		  .append("AND sub_verse = -1))");
-		
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, bible.id);
-			statement.setInt(2, bible.id);
-			statement.setInt(3, bible.id);
-			statement.setString(4, bookCode);
-			statement.setInt(5, chapter);
-			statement.setInt(6, verse);
-			
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return getVerse(bible, result);
-			}
-			
-			return null;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	/**
-	 * Returns the matching verses for the given search.
-	 * <p>
-	 * This search is designed for input like: '1 cor 3: 6'.
-	 * @param bible the bible
-	 * @param search the search criteria
-	 * @param includeApocrypha true if the apocrypha should be included
-	 * @return List&lt;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	private List<Verse> searchVersesByLocation(Bible bible, String search, boolean includeApocrypha) throws SQLException {
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verse")
-		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
-		  .append(" WHERE bible_verse.bible_id = ").append(bible.id);
-		if (!includeApocrypha) {
-			sb.append(" AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
-		}
-		
-		// replace multiple whitespaces with single whitespace
-		// uppercase it, trim the ends, and escape out single quotes
-		search = cleanSearchTerm(search).toUpperCase().replaceAll("\\s+", " ");
-		// replace [(\\d+)\\s*:\\s*(\\d+)] with [\\1:\\2]
-		search = search.replaceAll("(\\d+)\\s*:\\s*(\\d+)", "$1:$2");
-		// handle the case where the search ends with chapter'space'verse instead of a :
-		search = search.replaceAll("(.*)(\\d+)\\s+(\\d+)", "$1 $2:$3");
-		// we should now have a string of the form [\\d_.*(_\\d)?(_\\d)?] where _ is a space
-		// split the search term by space
-		String[] parts = search.split("\\s+");
-		// there is a possibility of 3 parts (booknum)(bookname)(chapter:verse)
-		if (parts.length == 1) {
-			// assume that its the book name
-			sb.append(" AND bible_book.searchable_name LIKE '%").append(parts[0]).append("%'");
-		} else if (parts.length == 2) {
-			// what do we have (booknum)(bookname) or (bookname)(chapter:verse)?
-			// if part[1] contains : or ends with a number then its the second case
-			if (parts[1].matches("^\\d+(:)?(\\d+)?$")) {
-				// second case
-				sb.append(" AND bible_book.searchable_name LIKE '%").append(parts[0]).append("%'");
-				if (parts[1].contains(":")) {
-					// it has chapter and verse
-					String[] cv = parts[1].split(":");
-					sb.append(" AND chapter = ").append(cv[0]);
-					if (cv.length > 1) {
-						sb.append(" AND verse = ").append(cv[1]);
+									// once the bible has been loaded successfully
+									// and added to the lucene index successfully
+									// then we'll add it to the bible map
+									this.bibles.put(bible.id, bible);
+								} catch (Exception e) {
+									// make sure its not in the index
+									// we don't want to be able to find the bible
+									// if we failed to load it
+									LOGGER.warn("Failed to load bible '" + file.toAbsolutePath().toString() + "'", e);
+									writer.deleteDocuments(new Term(FIELD_PATH, file.toAbsolutePath().toString()));
+								}
+							} catch (IOException ex) {
+								// make sure its not in the index
+								// we don't want to be able to find the bible
+								// if we failed to load it
+								LOGGER.warn("Failed to load bible '" + file.toAbsolutePath().toString() + "'", ex);
+								writer.deleteDocuments(new Term(FIELD_PATH, file.toAbsolutePath().toString()));
+							}
+						}
 					}
-				} else {
-					// it doesn't contain : so assume its the chapter
-					sb.append(" AND chapter = ").append(parts[1]);
 				}
-			} else {
-				// first case
-				sb.append(" AND bible_book.searchable_name LIKE '%").append(parts[0]).append(" ").append(parts[1]).append("%'");
 			}
-		} else {
-			// we have all three pieces
-			sb.append(" AND bible_book.searchable_name LIKE '%").append(parts[0]).append(" ").append(parts[1]).append("%'");
-			// see what we have in the last piece
-			if (parts[2].contains(":")) {
-				// it has chapter and verse
-				String[] cv = parts[2].split(":");
-				sb.append(" AND chapter = ").append(cv[0]);
-				if (cv.length > 1) {
-					sb.append(" AND verse = ").append(cv[1]);
+		}
+	}
+	
+	/**
+	 * Returns a list of lucene documents that contains the fields for the given bible.
+	 * @param bible the bible
+	 */
+	private List<Document> createDocuments(Bible bible) {
+		List<Document> documents = new ArrayList<Document>();
+		// we store the path and id so we can lookup up bibles by either
+		
+//		// store the path so we know where to get the bible
+//		Field pathField = new StringField(FIELD_PATH, bible.path.toAbsolutePath().toString(), Field.Store.YES);
+//		document.add(pathField);
+//		// store the id so we can lookup the bible in the cache
+//		Field idField = new StringField(FIELD_ID, bible.id.toString(), Field.Store.YES);
+//		document.add(idField);
+//		
+		// books
+		if (bible.books != null) {
+			for (Book book : bible.books) {
+				if (book.verses != null) {
+					for (Verse verse : book.verses) {
+						Document document = new Document();
+						
+						Field pathField = new StringField(FIELD_PATH, bible.path.toAbsolutePath().toString(), Field.Store.YES);
+						document.add(pathField);
+						
+						Field bibleField = new StringField(FIELD_BIBLE_ID, bible.id.toString(), Field.Store.YES);
+						document.add(bibleField);
+						
+						Field bookField = new StringField(FIELD_BOOK_ID, book.id.toString(), Field.Store.YES);
+						document.add(bookField);
+						
+						Field verseField = new StringField(FIELD_VERSE_ID, verse.id.toString(), Field.Store.YES);
+						document.add(verseField);
+//						
+//						if (!StringManipulator.isNullOrEmpty(book.name)) {
+//							Field bookNameField = new TextField(FIELD_TEXT, book.name, Field.Store.YES);
+//							document.add(bookNameField);
+//						}
+//						
+						if (!StringManipulator.isNullOrEmpty(verse.text)) {
+							Field textField = new TextField(FIELD_TEXT, verse.text, Field.Store.YES);
+							document.add(textField);
+						}
+						
+						documents.add(document);
+					}
 				}
-			} else {
-				// it doesn't contain : so assume its the chapter
-				sb.append(" AND chapter = ").append(parts[2]);
 			}
 		}
-		sb.append(" AND sub_verse = -1 ");
-		sb.append("ORDER BY order_by");
 		
-		return getVersesBySql(bible, sb.toString());
+		return documents;
 	}
 	
 	/**
-	 * Returns a WHERE condition string for the given search term and search type.
-	 * @param search the search term
-	 * @param type the search type
-	 * @return String
+	 * Returns the bible for the given id or null if not found.
+	 * @param id the bible id
+	 * @return {@link Bible}
 	 */
-	private String getSearchWhereCondition(String search, BibleSearchType type) {
-		StringBuilder sb = new StringBuilder();
-		// clean the search term
-		search = cleanSearchTerm(search).toUpperCase().replaceAll("(\\s*,)?\\s+", " ");
-		// check the search type
-		if (type == BibleSearchType.ALL_WORDS || type == BibleSearchType.ANY_WORD) {
-			sb.append("( ");
-			// get the operation
-			String operation = (type == BibleSearchType.ALL_WORDS) ? " AND" : " OR";
-			// split the search term by whitespace
-			String[] words = search.split("\\s+");
-			// check the number of words
-			if (words.length > 1) {
-				// all words will be an AND operation
-				for (int i = 0; i < words.length; i++) {
-					if (i != 0) sb.append(operation);
-					sb.append(" searchable_text LIKE '%").append(words[i]).append("%'");
-				}
-			} else {
-				// one word search
-				sb.append(" searchable_text LIKE '%").append(search).append("%'");
-			}
-			sb.append(")");
-		} else {
-			// phrase search
-			sb.append(" searchable_text LIKE '%").append(search).append("%'");
-		}
-		
-		return sb.toString();
+	public synchronized Bible get(UUID id) {
+		if (id == null) return null;
+		return this.bibles.get(id);
 	}
 	
 	/**
-	 * Searches verses for the given search term.
-	 * <p>
-	 * This uses {@link BibleSearchType#PHRASE} by default.
-	 * @param bible the bible
-	 * @param search the search term
-	 * @return List&tl;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public List<Verse> searchVerses(Bible bible, String search) throws SQLException {
-		return searchVerses(bible, search, BibleSearchType.PHRASE, false);
-	}
-	
-	/**
-	 * Searches verses for the given search term.
-	 * <p>
-	 * This uses {@link BibleSearchType#PHRASE} by default.
-	 * @param bible the bible
-	 * @param search the search term
-	 * @param includeApocrypha true if the apocrypha should be included
-	 * @return List&tl;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public List<Verse> searchVerses(Bible bible, String search, boolean includeApocrypha) throws SQLException {
-		return searchVerses(bible, search, BibleSearchType.PHRASE, includeApocrypha);
-	}
-	
-	/**
-	 * Searches verses for the given search term.
-	 * @param bible the bible
-	 * @param search the search term
-	 * @param type the search type
-	 * @return List&tl;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public List<Verse> searchVerses(Bible bible, String search, BibleSearchType type) throws SQLException {
-		return searchVerses(bible, search, type, false);
-	}
-	
-	/**
-	 * Searches verses for the given search term.
-	 * @param bible the bible
-	 * @param search the search term
-	 * @param type the search type
-	 * @param includeApocrypha true if the apocrypha should be included
-	 * @return List&tl;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public List<Verse> searchVerses(Bible bible, String search, BibleSearchType type, boolean includeApocrypha) throws SQLException {
-		// check the search criteria
-		if (search == null || search.trim().isEmpty()) {
-			return Collections.emptyList();
-		}
-		// check for the location search type
-		if (type == BibleSearchType.LOCATION) {
-			return searchVersesByLocation(bible, search, includeApocrypha);
-		}
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verse")
-		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
-		  .append(" WHERE bible_verse.bible_id = ").append(bible.id);
-		if (!includeApocrypha) {
-			sb.append(" AND bible_book.code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
-		}
-		sb.append(" AND sub_verse = -1")
-		  .append(" AND ").append(getSearchWhereCondition(search, type))
-		  .append(" ORDER BY order_by");
-		
-		return getVersesBySql(bible, sb.toString());
-	}
-	
-	/**
-	 * Searches verses for the given search term.
-	 * <p>
-	 * This uses {@link BibleSearchType#PHRASE} by default.
-	 * @param bible the bible
-	 * @param division the bible division
-	 * @param search the search term
-	 * @return List&tl;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public List<Verse> searchVerses(Bible bible, Division division, String search) throws SQLException {
-		return searchVerses(bible, division, search, BibleSearchType.PHRASE);
-	}
-	
-	/**
-	 * Searches verses for the given search term.
-	 * @param bible the bible
-	 * @param division the division of the bible to search
-	 * @param search the search term
-	 * @param type the search type
-	 * @return List&tl;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public List<Verse> searchVerses(Bible bible, Division division, String search, BibleSearchType type) throws SQLException {
-		// check the search criteria
-		if (search == null || search.trim().isEmpty()) {
-			return Collections.emptyList();
-		}
-		// check the testament
-		if (division == null) {
-			return searchVerses(bible, search, type);
-		}
-		// check for the location search type
-		if (type == BibleSearchType.LOCATION) {
-			return searchVersesByLocation(bible, search, division == Division.APOCRYPHA);
-		}
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verse")
-		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
-		  .append(" WHERE bible_verse.bible_id = ").append(bible.id)
-		  .append(" AND bible_book.code LIKE '%").append(division.getCode()).append("'")
-		  .append(" AND sub_verse = -1")
-		  .append(" AND").append(getSearchWhereCondition(search, type))
-		  .append(" ORDER BY order_by");
-				
-		return getVersesBySql(bible, sb.toString());
-	}
-
-	/**
-	 * Searches verses for the given search term.
-	 * <p>
-	 * This uses {@link BibleSearchType#PHRASE} by default.
-	 * @param bible the bible
-	 * @param bookCode the book code of the book to search
-	 * @param search the search term
-	 * @return List&tl;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public List<Verse> searchVerses(Bible bible, String bookCode, String search) throws SQLException {
-		return searchVerses(bible, bookCode, search, BibleSearchType.PHRASE);
-	}
-
-	/**
-	 * Searches verses for the given search term.
-	 * @param bible the bible
-	 * @param bookCode the book code of the book to search
-	 * @param search the search term
-	 * @param type the search type
-	 * @return List&tl;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public List<Verse> searchVerses(Bible bible, String bookCode, String search, BibleSearchType type) throws SQLException {
-		// check the search criteria
-		if (search == null || search.trim().isEmpty()) {
-			return Collections.emptyList();
-		}
-		// check for the location search type
-		if (type == BibleSearchType.LOCATION) {
-			return searchVersesByLocation(bible, search, bookCode.endsWith(Division.APOCRYPHA.getCode()));
-		}
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verse")
-		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
-		  .append(" WHERE bible_verse.bible_id = ").append(bible.id)
-		  .append(" AND bible_book.code = ").append(bookCode)
-		  .append(" AND sub_verse = -1")
-		  .append(" AND").append(getSearchWhereCondition(search, type))
-		  .append(" ORDER BY order_by");
-				
-		return getVersesBySql(bible, sb.toString());
-	}
-	
-	/**
-	 * Searches verses for the given search term.
-	 * <p>
-	 * This uses {@link BibleSearchType#PHRASE} by default.
-	 * @param bible the bible
-	 * @param bookCode the book code of the book to search
-	 * @param chapter the chapter number
-	 * @param search the search term
-	 * @return List&tl;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public List<Verse> searchVerses(Bible bible, String bookCode, int chapter, String search) throws SQLException {
-		return searchVerses(bible, bookCode, chapter, search, BibleSearchType.PHRASE);
-	}
-	
-	/**
-	 * Searches verses for the given search term.
-	 * @param bible the bible
-	 * @param bookCode the book code of the book to search
-	 * @param chapter the chapter number
-	 * @param search the search term
-	 * @param type the search type
-	 * @return List&tl;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public List<Verse> searchVerses(Bible bible, String bookCode, int chapter, String search, BibleSearchType type) throws SQLException {
-		// check the search criteria
-		if (search == null || search.trim().isEmpty()) {
-			return Collections.emptyList();
-		}
-		// check for the location search type
-		if (type == BibleSearchType.LOCATION) {
-			return searchVersesByLocation(bible, search, bookCode.endsWith(Division.APOCRYPHA.getCode()));
-		}
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT id, book_code, name AS book_name, chapter, verse, sub_verse, order_by, text ")
-		  .append(" FROM bible_verse")
-		  .append(" INNER JOIN bible_book ON bible_verse.book_code = bible_book.code AND bible_verse.bible_id = bible_book.bible_id")
-		  .append(" WHERE bible_verse.bible_id = ").append(bible.id)
-		  .append(" AND bible_book.code = ").append(bookCode)
-		  .append(" AND chapter = ").append(chapter)
-		  .append(" AND sub_verse = -1")
-		  .append(" AND").append(getSearchWhereCondition(search, type))
-		  .append(" ORDER BY order_by");
-				
-		return getVersesBySql(bible, sb.toString());
-	}
-
-	/**
-	 * Returns the total number of verses in the given {@link Bible}.
-	 * @param bible the bible
-	 * @return int
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public int getVerseCount(Bible bible) throws SQLException {
-		return getVerseCount(bible, false);
-	}
-
-	/**
-	 * Returns the total number of verses in the given {@link Bible}.
-	 * @param bible the bible
-	 * @param includeApocrypha true if the apocrypha should be included
-	 * @return int
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public int getVerseCount(Bible bible, boolean includeApocrypha) throws SQLException {
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(id) FROM bible_verse WHERE bible_id = ? ");
-		if (!includeApocrypha) {
-			sb.append("AND book_code NOT LIKE '%").append(Division.APOCRYPHA.getCode()).append("'");
-		}
-		sb.append(" AND sub_verse = -1");
-
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, bible.id);
-
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return result.getInt(1);
-			}
-			
-			return 0;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	/**
-	 * Returns the total number of verses in the given {@link Book} of the {@link Bible}.
-	 * @param bible the bible
-	 * @param bookCode the book code
-	 * @return int
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public int getVerseCount(Bible bible, String bookCode) throws SQLException {
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(id) FROM bible_verse WHERE bible_id = ? ")
-		  .append("AND book_code = ? AND sub_verse = -1");
-		
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, bible.id);
-			statement.setString(2, bookCode);
-
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return result.getInt(1);
-			}
-			
-			return 0;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-
-	/**
-	 * Returns the total number of verses in the given chapter of the {@link Bible}.
-	 * @param bible the bible
-	 * @param bookCode the book code
-	 * @param chapter the chapter number
-	 * @return int
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 */
-	public int getVerseCount(Bible bible, String bookCode, int chapter) throws SQLException {
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT COUNT(id) FROM bible_verses WHERE bible_id = ? ")
-		  .append("AND book_code = ? ")
-		  .append("AND chapter = ? ")
-		  .append("AND sub_verse = -1");
-		
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, bible.id);
-			statement.setString(2, bookCode);
-			statement.setInt(3, chapter);
-
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return result.getInt(1);
-			}
-			
-			return 0;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	/**
-	 * Returns the last verse number in the given chapter of the {@link Bible}.
-	 * @param bible the bible
-	 * @param bookCode the book code
-	 * @param chapter the chapter number
-	 * @return int
-	 * @throws SQLException if any exception occurs while retrieving the data
-	 * @since 2.0.1
-	 */
-	public int getLastVerse(Bible bible, String bookCode, int chapter) throws SQLException {
-		// build the query
-		StringBuilder sb = new StringBuilder();
-		sb.append("SELECT MAX(verse) FROM bible_verse WHERE bible_id = ? ")
-		  .append("AND book_code = ? ")
-		  .append("AND chapter = ? ")
-		  .append("AND sub_verse = -1");
-		
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 PreparedStatement statement = connection.prepareStatement(sb.toString());) {
-			statement.setInt(1, bible.id);
-			statement.setString(2, bookCode);
-			statement.setInt(3, chapter);
-
-			ResultSet result = statement.executeQuery();
-			if (result.next()) {
-				return result.getInt(1);
-			}
-			
-			return 0;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	// internal methods
-
-	/**
-	 * Escapes any single qoutes and trims the given string.
-	 * @param search the search string
-	 * @return String
-	 */
-	private static final String cleanSearchTerm(String search) {
-		return search.replace("'", "''").trim();
-	}
-	
-	/**
-	 * Executes the given sql returning the count.
-	 * @param sql the sql query
-	 * @return int the count
-	 * @throws SQLException if any exception occurs during processing
-	 */
-	private int getCountBySql(String sql) throws SQLException {
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet result = statement.executeQuery(sql);)
-		{
-			if (result.next()) {
-				// interpret the result
-				return result.getInt(1);
-			} 
-			
-			return 0;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-	
-	/**
-	 * Executes the given sql returning a list of {@link Bible}s.
-	 * @param sql the sql query
+	 * Returns all the bibles in this bible library.
 	 * @return List&lt;{@link Bible}&gt;
-	 * @throws SQLException if any exception occurs during processing
 	 */
-	private List<Bible> getBiblesBySql(String sql) throws SQLException {
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet result = statement.executeQuery(sql);)
-		{
-			List<Bible> bibles = new ArrayList<Bible>();
-			while (result.next()) {
-				// interpret the result
-				Bible bible = getBible(result);
-				bibles.add(bible);
-			} 
-			
-			return bibles;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-
-	/**
-	 * Executes the given sql returning a {@link Bible}.
-	 * @param sql the sql query
-	 * @return {@link Bible}
-	 * @throws SQLException if any exception occurs during processing
-	 */
-	private Bible getBibleBySql(String sql) throws SQLException {
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet result = statement.executeQuery(sql);)
-		{
-			Bible bible = null;
-			if (result.next()) {
-				// interpret the result
-				bible = getBible(result);
-			} 
-			
-			return bible;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
-	}
-
-	/**
-	 * Executes the given sql returning a list of {@link Book}s.
-	 * @param bible the bible
-	 * @param sql the sql query
-	 * @return List&lt;{@link Book}&gt;
-	 * @throws SQLException if any exception occurs during processing
-	 */
-	private List<Book> getBooksBySql(Bible bible, String sql) throws SQLException {
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet result = statement.executeQuery(sql);)
-		{
-			List<Book> books = new ArrayList<Book>();
-			while (result.next()) {
-				// interpret the result
-				Book book = getBook(bible, result);
-				books.add(book);
-			} 
-			
-			return books;
-		} catch (Exception e) {
-			throw new SQLException(e);
-		}
+	public synchronized List<Bible> all() {
+		return new ArrayList<Bible>(this.bibles.values());
 	}
 	
 	/**
-	 * Executes the given sql returning a {@link Book}.
-	 * @param bible the bible
-	 * @param sql the sql query
-	 * @return {@link Book}
-	 * @throws SQLException if any exception occurs during processing
+	 * Returns the number of bibles in the library.
+	 * @return int
 	 */
-	private Book getBookBySql(Bible bible, String sql) throws SQLException {
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet result = statement.executeQuery(sql);)
-		{
-			if (result.next()) {
-				// interpret the result
-				Book book = getBook(bible, result);
-				return book;
-			} 
-		} catch (Exception e) {
-			throw new SQLException(e);
+	public synchronized int size() {
+		return this.bibles.size();
+	}
+	
+	/**
+	 * Returns true if the given id is in the bible library.
+	 * @param id the bible id
+	 * @return boolean
+	 */
+	public synchronized boolean contains(UUID id) {
+		if (id == null) return false;
+		return this.bibles.containsKey(id);
+	}
+	
+	/**
+	 * Returns true if the given bible is in the bible library.
+	 * @param bible the bible
+	 * @return boolean
+	 */
+	public synchronized boolean contains(Bible bible) {
+		if (bible == null || bible.id == null) return false;
+		return this.bibles.containsKey(bible.id);
+	}
+	
+	/**
+	 * Saves the given bible (either new or existing) to the bible library.
+	 * @param bible the bible to save
+	 * @throws JAXBException if an error occurs while writing the bible to XML
+	 * @throws IOException if an IO error occurs
+	 */
+	public synchronized void save(Bible bible) throws JAXBException, IOException {
+		if (bible.path == null) {
+			String name = createFileName(bible);
+			Path path = this.path.resolve(name + EXTENSION);
+			// verify there doesn't exist a bible with this name already
+			if (Files.exists(path)) {
+				// just use the guid
+				path = this.path.resolve(bible.id.toString().replaceAll("-", "") + EXTENSION);
+			}
+			bible.path = path;
 		}
 		
-		return null;
-	}
-	
-	/**
-	 * Executes the given sql returning the matching {@link Verse}s.
-	 * @param bible the bible
-	 * @param sql the sql query
-	 * @return List&lt;{@link Verse}&gt;
-	 * @throws SQLException if any exception occurs during processing
-	 */
-	private List<Verse> getVersesBySql(Bible bible, String sql) throws SQLException {
-		// execute the query
-		try (Connection connection = this.database.getConnection();
-			 Statement statement = connection.createStatement();
-			 ResultSet result = statement.executeQuery(sql);)
-		{
-			List<Verse> verses = new ArrayList<Verse>();
-			while (result.next()) {
-				// interpret the result
-				Verse verse = getVerse(bible, result);
-				verses.add(verse);
-			} 
+		// save the bible		
+		XmlIO.save(bible.path, bible);
+		
+		// add to/update the lucene index
+		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
+		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+			// update the fields
+			List<Document> documents = createDocuments(bible);
 			
-			return verses;
-		} catch (Exception e) {
-			throw new SQLException(e);
+			// update the document
+			writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.id.toString()), documents);
+		}
+		
+		this.bibles.put(bible.id, bible);
+	}
+	
+	/**
+	 * Removes the given bible id from the bible library and deletes the file on
+	 * the file system.
+	 * @param id the id of the bible
+	 * @throws IOException if an IO error occurs
+	 */
+	public synchronized void remove(UUID id) throws IOException {
+		if (id == null) return;
+		// remove from the lucene index so it can't be found
+		// in searches any more
+		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
+		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+			// update the document
+			writer.deleteDocuments(new Term(FIELD_BIBLE_ID, id.toString()));
+		}
+		
+		// remove it from the map
+		Bible bible = this.bibles.remove(id);
+		
+		// delete the file
+		if (bible != null) {
+			Files.deleteIfExists(bible.path);
 		}
 	}
 	
 	/**
-	 * Converts the given result to a {@link Bible}.
-	 * @param result the result
-	 * @return {@link Bible}
-	 * @throws SQLException if an exception occurs while processing the result
+	 * Removes the given bible from the bible library and deletes the file on
+	 * the file system.
+	 * @param bible the bible to remove
+	 * @throws IOException if an IO error occurs
 	 */
-	private static final Bible getBible(ResultSet result) throws SQLException {
-		try {
-			return new Bible(
-					result.getInt("id"),
-					result.getString("name"),
-					result.getString("language"),
-					result.getString("data_source"),
-					result.getTimestamp("import_date"),
-					result.getString("copyright"),
-					result.getInt("verse_count"),
-					result.getBoolean("has_apocrypha"),
-					result.getBoolean("had_import_warning"));
-		} catch (SQLException e) {
-			throw new SQLException("An error occurred when interpreting the bible result.", e);
+	public synchronized void remove(Bible bible) throws IOException {
+		if (bible == null || bible.id == null) return;
+		remove(bible.id);
+	}
+	
+	/**
+	 * Creates a file name for the given bible based off the name.
+	 * @param bible the bible
+	 * @return String
+	 */
+	private String createFileName(Bible bible) {
+		StringBuilder sb = new StringBuilder();
+		if (bible != null) {
+			String ttl = StringManipulator.toFileName(bible.name == null ? "" : bible.name);
+			if (ttl.length() == 0) {
+				ttl = "Untitled";
+			}
+			sb.append(ttl);
 		}
+		
+		String name = sb.toString();
+		
+		// truncate the name to certain length
+		int max = Constants.MAX_FILE_NAME_CODEPOINTS - EXTENSION.length();
+		if (name.length() > max) {
+			LOGGER.warn("File name too long '{}', truncating.", name);
+			name = name.substring(0, Math.min(name.length() - 1, max));
+		}
+		
+		return name;
+	}
+	
+	// searching
+	
+	/**
+	 * Searches this bible library for the given text using the given search type.
+	 * @param bibleId the id of the bible to search; or null to search all
+	 * @param text the search text
+	 * @param type the search type
+	 * @return List&lt;{@link BibleSearchResult}&gt;
+	 * @throws IOException if an IO error occurs
+	 */
+	public List<BibleSearchResult> search(UUID bibleId, String text, SearchType type) throws IOException {
+		// verify text
+		if (text == null || text.length() == 0) {
+			return Collections.emptyList();
+		}
+		
+		// check for wildcard characters for non-wildcard searches
+		if (type != SearchType.ALL_WILDCARD && type != SearchType.ANY_WILDCARD && !text.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
+			// take the wildcard characters out
+			text = text.replaceAll("\\" + WildcardQuery.WILDCARD_CHAR, "");
+		}
+		
+		// tokenize
+		List<String> tokens = this.getTokens(text, FIELD_TEXT);
+		
+		// search
+		return this.search(getQueryForTokens(bibleId, FIELD_TEXT, tokens, type));
 	}
 
 	/**
-	 * Converts the given result to a {@link Book}.
-	 * @param bible the bible
-	 * @param result the result
-	 * @return {@link Book}
-	 * @throws SQLException if an exception occurs while processing the result
+	 * Uses the lucene analyzer to tokenize the given text for the given lucene field.
+	 * @param text the text to tokenize
+	 * @param field the lucene field the tokens will be searching
+	 * @return List&lt;String&gt;
+	 * @throws IOException
 	 */
-	private static final Book getBook(Bible bible, ResultSet result) throws SQLException {
-		try {
-			return new Book(
-					bible,
-					result.getString("code"),
-					result.getString("name"));
-		} catch (SQLException e) {
-			throw new SQLException("An error occurred when interpreting the book result.", e);
+	private List<String> getTokens(String text, String field) throws IOException {
+		List<String> tokens = new ArrayList<String>();
+		
+		TokenStream stream = this.analyzer.tokenStream(field, text);
+		CharTermAttribute attr = stream.addAttribute(CharTermAttribute.class);
+		stream.reset();
+
+		while (stream.incrementToken()) {
+			tokens.add(attr.toString());
 		}
+		
+		stream.end();
+		stream.close();
+		
+		return tokens;
 	}
 	
 	/**
-	 * Converts the given result to a {@link Verse}.
-	 * @param bible the bible
-	 * @param result the result
-	 * @return {@link Verse}
-	 * @throws SQLException if an exception occurs while processing the result
+	 * Builds a lucene query for the given lucene field, tokens and search type.
+	 * @param bibleId the id of the bible to search; or null to search all
+	 * @param field the lucene field to search
+	 * @param tokens the tokens to search for
+	 * @param type the type of search
+	 * @return Query
 	 */
-	private static final Verse getVerse(Bible bible, ResultSet result) throws SQLException {
-		try {
-			return new Verse(
-					bible,
-					new Book(
-							bible, 
-							result.getString("book_code"), 
-							result.getString("book_name")),
-					result.getInt("id"),
-					result.getInt("chapter"),
-					result.getInt("verse"),
-					result.getInt("sub_verse"),
-					result.getInt("order_by"),
-					result.getString("text"));
-		} catch (SQLException e) {
-			throw new SQLException("An error occurred when interpreting the verse result.", e);
+	private Query getQueryForTokens(UUID bibleId, String field, List<String> tokens, SearchType type) {
+		Query query = null;
+		final String[] temp = new String[0];
+		if (tokens.size() == 0) return null;
+		if (tokens.size() == 1) {
+			String token = tokens.get(0);
+			if (type == SearchType.ALL_WILDCARD || type == SearchType.ANY_WILDCARD) {
+				// check for wildcard character
+				if (!token.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
+					token = WildcardQuery.WILDCARD_CHAR + token + WildcardQuery.WILDCARD_CHAR;
+				}
+				query = new WildcardQuery(new Term(field, token));
+			} else {
+				query = new TermQuery(new Term(field, token));
+			}
+		// PHRASE
+		} else if (type == SearchType.PHRASE) {
+			query = new PhraseQuery(2, field, tokens.toArray(temp));
+		// ALL_WILDCARD, ANY_WILDCARD
+		} else if (type == SearchType.ALL_WILDCARD || type == SearchType.ANY_WILDCARD) {
+			BooleanQuery.Builder builder = new BooleanQuery.Builder();
+			for (String token : tokens) {
+				if (!token.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
+					token = WildcardQuery.WILDCARD_CHAR + token + WildcardQuery.WILDCARD_CHAR;
+				}
+				builder.add(new WildcardQuery(new Term(field, token)), type == SearchType.ALL_WILDCARD ? Occur.MUST : Occur.SHOULD);
+			}
+			query = builder.build();
+		// ALL_WORDS, ANY_WORD, LOCATION
+		} else {
+			BooleanQuery.Builder builder = new BooleanQuery.Builder();
+			for (String token : tokens) {
+				builder.add(new TermQuery(new Term(field, token)), type == SearchType.ALL_WORDS ? Occur.MUST : Occur.SHOULD);
+			}
+			query = builder.build();
 		}
+		
+		if (bibleId != null) {
+			// TODO need to test this
+			BooleanQuery.Builder builder = new BooleanQuery.Builder();
+			builder.add(query, Occur.MUST);
+			builder.add(new TermQuery(new Term(FIELD_BIBLE_ID, bibleId.toString())), Occur.FILTER);
+			return builder.build();
+		}
+		
+		return query;
+	}
+	
+	/**
+	 * Runs the given lucene query and returns a list of bible search results.
+	 * @param query the lucene query to execute
+	 * @return List&lt;{@link BibleSearchResult}&gt;
+	 * @throws IOException if an IO error occurs
+	 * @see <a href="http://stackoverflow.com/questions/25814445/accessing-words-around-a-positional-match-in-lucene">Accessing words around a positional match in Lucene</a>
+	 * @see BibleSearchResult
+	 */
+	private List<BibleSearchResult> search(Query query) throws IOException {
+		List<BibleSearchResult> results = new ArrayList<BibleSearchResult>();
+		
+		try (IndexReader reader = DirectoryReader.open(this.directory)) {
+			IndexSearcher searcher = new IndexSearcher(reader);
+			
+			TopDocs result = searcher.search(query, 25);
+			ScoreDoc[] docs = result.scoreDocs;
+			
+			Scorer scorer = new QueryScorer(query);
+			Highlighter highlighter = new Highlighter(scorer);
+			
+			for (ScoreDoc doc : docs) {
+				Document document = searcher.doc(doc.doc);
+				
+				// get the bible
+				Bible bible = this.bibles.get(UUID.fromString(document.get(FIELD_BIBLE_ID)));
+				UUID bookId = UUID.fromString(document.get(FIELD_BOOK_ID));
+				UUID verseId = UUID.fromString(document.get(FIELD_VERSE_ID));
+				
+				Book book = null;
+				Verse verse = null;
+				if (bible != null) {
+					for (Book b : bible.books) {
+						if (b.id.equals(bookId)) {
+							book = b;
+						}
+					}
+					
+					if (book != null) {
+						for (Verse v : book.verses) {
+							if (v.id.equals(verseId)) {
+								verse = v;
+							}
+						}
+					}
+				}
+				
+				// just continue if its not found
+				if (bible == null) {
+					continue;
+				}
+				
+				// get the text around the match
+				List<BibleSearchMatch> matches = new ArrayList<BibleSearchMatch>();
+				String[] items = document.getValues(FIELD_TEXT);
+				for (String item : items) {
+					try {
+						String text = highlighter.getBestFragment(analyzer, FIELD_TEXT, item);
+						if (text != null) {
+							matches.add(new BibleSearchMatch(FIELD_TEXT, item, text));
+						}
+					} catch (Exception e) {
+						LOGGER.warn("Failed to find matching text for value " + item + " due to unexpected exception.", e);
+					}
+				}
+				
+				BibleSearchResult match = new BibleSearchResult(bible, book, verse, matches);
+				results.add(match);
+			}
+		}
+		
+		return results;
 	}
 }

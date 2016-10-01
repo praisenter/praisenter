@@ -6,10 +6,8 @@ import org.praisenter.Tag;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.TagEvent;
 import org.praisenter.javafx.TagListView;
-import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.configuration.Resolution;
 import org.praisenter.javafx.slide.ObservableSlide;
-import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 
 import javafx.collections.FXCollections;
@@ -18,7 +16,6 @@ import javafx.collections.transformation.SortedList;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;

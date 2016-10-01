@@ -92,29 +92,36 @@ public final class FlowListItem<T> extends VBox implements EventTarget {
     		@Override
     		public void handle(MouseEvent event) {
     			if (event.getButton() == MouseButton.PRIMARY) {
-	    			// are we being selected?
-					boolean select = !selected.get();
-					
-					// toggle the selected flag
-	    			selected.set(!selected.get());
-	    			
-	    			// build a select event to notify any node interested
+    				// build a select event to notify any node interested
 	    			SelectionEvent selectEvent = null;
-	    			if (event.isControlDown()) {
-	    				// then its a multi-(de)select
-	    				if (select) {
-	    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.SELECT_MULTIPLE);
-	    				} else {
-	    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DESELECT_MULTIPLE);
-	    				}
-	    			} else {
-	    				// then its a single select
-	    				if (select) {
-	    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.SELECT);
-	    				} else {
-	    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DESELECT);
-	    				}
-	    			}
+	    			
+    				if (event.getClickCount() == 2) {
+    					// double click
+    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DOUBLE_CLICK);
+    				} else {
+    					// single click
+		    			// are we being selected?
+						boolean select = !selected.get();
+						
+						// toggle the selected flag
+		    			selected.set(!selected.get());
+		    			
+		    			if (event.isControlDown()) {
+		    				// then its a multi-(de)select
+		    				if (select) {
+		    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.SELECT_MULTIPLE);
+		    				} else {
+		    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DESELECT_MULTIPLE);
+		    				}
+		    			} else {
+		    				// then its a single select
+		    				if (select) {
+		    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.SELECT);
+		    				} else {
+		    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DESELECT);
+		    				}
+		    			}
+    				}
 	    			
 	    			// fire the event
 	    			fireEvent(selectEvent);

@@ -24,7 +24,6 @@
  */
 package org.praisenter.slide;
 
-import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +38,6 @@ import java.util.UUID;
 
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
-import javax.imageio.ImageIO;
 import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
@@ -71,19 +69,10 @@ public final class SlideLibrary {
 	/** The extension to use for the song files */
 	private static final String EXTENSION = ".xml";
 	
-	/** The directory to store the thumbnail files */
-	private static final String THUMB_DIR = "_thumbs";
-	
-	/** The suffix added to a media file for thumbnails */
-	private static final String THUMB_EXT = "_thumb.png";
-	
 	// instance
 	
 	/** The root path to the slide library */
 	private final Path path;
-	
-	/** The full path to the thumbnails */
-	private final Path thumbsPath;
 	
 	/** The slides */
 	private final Map<UUID, Slide> slides;
@@ -107,8 +96,6 @@ public final class SlideLibrary {
 	 */
 	private SlideLibrary(Path path) {
 		this.path = path;
-		this.thumbsPath = this.path.resolve(THUMB_DIR);
-		
 		this.slides = new HashMap<UUID, Slide>();
 	}
 	
@@ -119,7 +106,6 @@ public final class SlideLibrary {
 	private void initialize() throws IOException {
 		// verify paths exist
 		Files.createDirectories(this.path);
-		Files.createDirectories(this.thumbsPath);
 		
 		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
 
@@ -136,16 +122,6 @@ public final class SlideLibrary {
 								// read in the xml
 								Slide slide = XmlIO.read(is, BasicSlide.class);
 								slide.setPath(file);
-								
-								Path path = getThumbnailPath(slide);
-								if (path != null && Files.exists(path)) {
-									try {
-										BufferedImage thumb = ImageIO.read(path.toFile());
-										slide.setThumbnail(thumb);
-									} catch (Exception ex) {
-										LOGGER.warn("Failed to load thumbnail for slide '" + file.toAbsolutePath().toString() + "'", ex);
-									}
-								}
 								
 								// we can't attempt generating thumbnails at this time
 								// since it would rely on the caller's systems to be in place already
@@ -280,19 +256,8 @@ public final class SlideLibrary {
 			slide.setPath(path);
 		}
 		
-		// save the song		
+		// save the song
 		XmlIO.save(slide.getPath(), slide);
-		
-		// next save the thumbnail
-		if (slide.getThumbnail() != null) {
-			ImageIO.write(slide.getThumbnail(), "png", this.getThumbnailPath(slide).toFile());
-		} else {
-			// remove the thumbnail (if it exists)
-			Path thumbPath = getThumbnailPath(slide);
-			if (thumbPath != null) {
-				Files.deleteIfExists(thumbPath);
-			}
-		}
 		
 		// make sure the library is updated
 		this.slides.put(slide.getId(), slide);
@@ -312,12 +277,6 @@ public final class SlideLibrary {
 			Files.deleteIfExists(path);
 		}
 		
-		// delete the thumbnail
-		Path thumnail = slide != null ? getThumbnailPath(slide) : null;
-		if (thumnail != null) {
-			Files.deleteIfExists(path);
-		}
-		
 		this.slides.remove(slide.getId());
 	}
 	
@@ -329,19 +288,6 @@ public final class SlideLibrary {
 	public synchronized void remove(UUID id) throws IOException {
 		if (id == null) return;
 		this.remove(this.get(id));
-	}
-	
-	/**
-	 * Returns a path to the thumbnail for the given slide.
-	 * <p>
-	 * If the slide has not been saved or the given slide is null, null is returned.
-	 * @param slide the slide
-	 * @return Path
-	 */
-	private Path getThumbnailPath(Slide slide) {
-		if (slide == null) return null;
-		if (slide.getPath() == null) return null;
-		return this.thumbsPath.resolve(slide.getPath().getFileName().toString() + THUMB_EXT);
 	}
 	
 	/**

@@ -28,8 +28,9 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 		
 		// listen for changes
 		this.format.addListener((obs, ov, nv) -> { 
-			this.region.setFormat(nv); 
-			this.text.set(this.region.getText());
+			this.region.setFormat(nv);
+			String text = this.region.getText();
+			this.text.set(text);
 		});
 		
 		this.build();

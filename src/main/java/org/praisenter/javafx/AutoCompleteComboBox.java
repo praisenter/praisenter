@@ -1,14 +1,11 @@
 package org.praisenter.javafx;
 
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.StringConverter;
-import javafx.event.EventHandler;
 
 public class AutoCompleteComboBox<T> extends ComboBox<T> {
 	private final AutoCompleteComparator comparator;

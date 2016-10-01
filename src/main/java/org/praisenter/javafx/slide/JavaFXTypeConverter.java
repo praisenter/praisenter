@@ -11,7 +11,6 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.ImageCache;
 import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaType;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.ScaleType;

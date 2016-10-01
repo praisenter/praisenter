@@ -237,7 +237,12 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	}
 	
 	void updateText() {
-		this.textNode.setText(this.text.get());
+		String text = this.text.get();
+		// set a default text so that there's something visible when the component is created
+		if (this.mode == SlideMode.EDIT && (text == null || text.trim().length() <= 0)) {
+			text = "Set the text using the ribbon";
+		}
+		this.textNode.setText(text);
 		// only update the font size 
 		if (this.fontScaleType.get() != FontScaleType.NONE) {
 			this.updateFont();

@@ -27,8 +27,9 @@ package org.praisenter.bible;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.util.List;
+
+import javax.xml.bind.JAXBException;
 
 import org.praisenter.InvalidFormatException;
 import org.praisenter.UnknownFormatException;
@@ -44,11 +45,10 @@ public interface BibleImporter {
 	 * @param path the path
 	 * @return List&lt;{@link Bible}&gt; the bibles that were imported
 	 * @throws IOException if an IO error occurs
-	 * @throws SQLException if an error occurs connection or inserting data into the database
+	 * @throws JAXBException if an error occurs saving the bible
 	 * @throws FileNotFoundException if the given path doesn't exist
-	 * @throws BibleAlreadyExistsException if the Bible already exists in the database
 	 * @throws InvalidFormatException if the file or files are not in the expected format
 	 * @throws UnknownFormatException if the file formats could not be determined
 	 */
-	public abstract List<Bible> execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException, UnknownFormatException;
+	public abstract List<Bible> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException, UnknownFormatException;
 }

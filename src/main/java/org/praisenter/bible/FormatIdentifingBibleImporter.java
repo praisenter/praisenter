@@ -57,14 +57,14 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	/** The {@link BibleLibrary} */
-	private final BibleLibrary library;
+	/** The {@link BibleLibraryV1} */
+	private final BibleLibraryV1 library;
 	
 	/**
 	 * Minimal constructor.
 	 * @param library the bible library to import into
 	 */
-	public FormatIdentifingBibleImporter(BibleLibrary library) {
+	public FormatIdentifingBibleImporter(BibleLibraryV1 library) {
 		this.library = library;
 	}
 	

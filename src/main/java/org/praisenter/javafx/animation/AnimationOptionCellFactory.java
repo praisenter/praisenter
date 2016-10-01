@@ -24,14 +24,14 @@
  */
 package org.praisenter.javafx.animation;
 
+import org.praisenter.javafx.FlowListItem;
+
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Callback;
-
-import org.praisenter.javafx.FlowListItem;
 
 /**
  * A custom cell factory for animation options.

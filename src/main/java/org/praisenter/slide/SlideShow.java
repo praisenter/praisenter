@@ -3,6 +3,7 @@ package org.praisenter.slide;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -29,19 +30,21 @@ public final class SlideShow {
 	@XmlElementWrapper(name = "slides")
 	@XmlElement(name = "slide")
 	@XmlJavaTypeAdapter(value = SlideXmlAdapter.class)
-	List<Slide> slides;
+	List<UUID> slides;
 
+	@XmlElement(name = "loop", required = false)
 	boolean loop;
 	
 	public SlideShow() {
-		this.slides = new ArrayList<Slide>();
+		this.slides = new ArrayList<UUID>();
+		this.loop = false;
 	}
 	
-	public List<Slide> getSlides() {
+	public List<UUID> getSlides() {
 		return slides;
 	}
 
-	public void setSlides(List<Slide> slides) {
+	public void setSlides(List<UUID> slides) {
 		this.slides = slides;
 	}
 }

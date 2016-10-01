@@ -2,7 +2,6 @@ package org.praisenter.javafx.slide.editor;
 
 import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
-import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradient;

@@ -24,44 +24,73 @@
  */
 package org.praisenter.bible;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
- * Exception thrown when a bible already exists in the data store.
+ * A lucene bible search result.
  * @author William Bittle
  * @version 3.0.0
  */
-public class BibleAlreadyExistsException extends Exception {
-	/** The version id */
-	private static final long serialVersionUID = -6530364082600471053L;
-
-	/**
-	 * Default constructor.
-	 */
-	public BibleAlreadyExistsException() {
-		super();
-	}
+public final class BibleSearchResult implements Comparable<BibleSearchResult> {
+	/** The matched bible */
+	final Bible bible;
+	
+	final Book book;
+	
+	final Verse verse;
+	
+	/** The matched text */
+	final List<BibleSearchMatch> matches;
 	
 	/**
 	 * Full constructor.
-	 * @param message the message
-	 * @param cause the root exception
+	 * @param bible the bible
+	 * @param matches the matched text
 	 */
-	public BibleAlreadyExistsException(String message, Throwable cause) {
-		super(message, cause);
+	public BibleSearchResult(Bible bible, Book book, Verse verse, List<BibleSearchMatch> matches) {
+		this.bible = bible;
+		this.book = book;
+		this.verse = verse;
+		this.matches = Collections.unmodifiableList(matches);
+	}
+
+	@Override
+	public int compareTo(BibleSearchResult o) {
+		int diff = bible.id.compareTo(o.bible.id);
+		if (diff == 0) {
+			diff = book.order - o.book.order;
+			if (diff == 0) {
+				diff = verse.chapter - o.verse.chapter;
+				if (diff == 0) {
+					return verse.verse - o.verse.verse;
+				}
+			}
+		}
+		return diff;
 	}
 	
 	/**
-	 * Optional constructor.
-	 * @param message the message
+	 * Returns the matched bible.
+	 * @return {@link Bible}
 	 */
-	public BibleAlreadyExistsException(String message) {
-		super(message);
+	public Bible getBible() {
+		return this.bible;
 	}
 
+	public Book getBook() {
+		return book;
+	}
+	
+	public Verse getVerse() {
+		return verse;
+	}
+	
 	/**
-	 * Optional constructor.
-	 * @param cause the root exception
+	 * Returns an unmodifiable list of the matches.
+	 * @return List&lt;{@link BibleSearchMatch}&gt;
 	 */
-	public BibleAlreadyExistsException(Throwable cause) {
-		super(cause);
+	public List<BibleSearchMatch> getMatches() {
+		return this.matches;
 	}
 }

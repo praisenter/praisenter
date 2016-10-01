@@ -35,7 +35,7 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 			this.text.set(this.region.getText());
 		});
 		this.format.addListener((obs, ov, nv) -> { 
-			this.region.setFormat(nv); 
+			this.region.setFormat(nv);
 			this.text.set(this.region.getText());
 		});
 				

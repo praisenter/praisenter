@@ -30,7 +30,7 @@ import java.nio.file.Paths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.bible.BibleLibrary;
+import org.praisenter.bible.BibleLibraryV1;
 import org.praisenter.data.Database;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
@@ -88,7 +88,7 @@ final class LoadingTask extends Task<PraisenterContext> {
 		t0 = System.nanoTime();
     	updateMessage(Translations.get("loading.library.bibles"));
 		Database db = Database.open(Paths.get(Constants.DATABASE_ABSOLUTE_PATH));
-		BibleLibrary bibles = new BibleLibrary(db);
+		BibleLibraryV1 bibles = new BibleLibraryV1(db);
 		t1 = System.nanoTime();
 		updateProgress(1, 4);
 		LOGGER.info("Bible library loaded in {} seconds with {} bibles", (t1 - t0) / 1e9, bibles.getBibleCount());

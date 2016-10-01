@@ -35,6 +35,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.FailedOperation;
+import org.praisenter.Tag;
+import org.praisenter.javafx.Alerts;
+import org.praisenter.javafx.FlowListView;
+import org.praisenter.javafx.Option;
+import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.SortGraphic;
+import org.praisenter.media.Media;
+import org.praisenter.media.MediaType;
+import org.praisenter.resources.translations.Translations;
+
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
@@ -76,19 +89,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
 import javafx.stage.Modality;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.FailedOperation;
-import org.praisenter.Tag;
-import org.praisenter.javafx.Alerts;
-import org.praisenter.javafx.FlowListView;
-import org.praisenter.javafx.Option;
-import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.SortGraphic;
-import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
-import org.praisenter.resources.translations.Translations;
 
 /**
  * Pane specifically for showing the media in a media library.

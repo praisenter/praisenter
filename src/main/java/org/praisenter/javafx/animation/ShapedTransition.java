@@ -24,15 +24,15 @@
  */
 package org.praisenter.javafx.animation;
 
-import javafx.geometry.Rectangle2D;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
-
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Operation;
 import org.praisenter.slide.animation.ShapeType;
 import org.praisenter.slide.animation.Shaped;
+
+import javafx.geometry.Rectangle2D;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 
 /**
  * Represents a transition where a clip shape is used.

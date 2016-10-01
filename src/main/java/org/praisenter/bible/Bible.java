@@ -24,40 +24,77 @@
  */
 package org.praisenter.bible;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Represents a Bible translation.
  * @author William Bittle
  * @version 3.0.0
  */
+@XmlRootElement(name = "bible")
+@XmlAccessorType(XmlAccessType.NONE)
 public final class Bible implements Comparable<Bible> {
 	/** The bible id */
-	final int id;
+	@XmlAttribute(name = "id", required = false)
+	final UUID id;
+	
+	/** The path to the XML document */
+	Path path;
 	
 	/** The name of the bible */
-	final String name;
+	@XmlElement(name = "name", required = false)
+	String name;
 	
 	/** The language the bible is in (using ISO 639-2 and ISO 639-3 codes along with micro variants (but all three code it seems)) */
-	final String language;
+	@XmlElement(name = "language", required = false)
+	String language;
 
 	/** The source for the bible's contents */
-	final String source;
+	@XmlElement(name = "source", required = false)
+	String source;
 	
 	/** The date the bible was imported */
-	final Date importDate;
+	@XmlAttribute(name = "importDate", required = false)
+	Date importDate;
 	
 	/** The copyright */
-	final String copyright;
+	@XmlElement(name = "copyright", required = false)
+	String copyright;
 	
 	/** The number of verses */
-	final int verseCount;
-	
-	/** True if an apocryphal verse was included */
-	final boolean hasApocrypha;
+	int verseCount;
 	
 	/** True if a warning was found during import */
-	final boolean hadImportWarning;
+	@XmlAttribute(name = "hadImportWarning", required = false)
+	boolean hadImportWarning;
+	
+	@XmlElement(name = "book", required = false)
+	@XmlElementWrapper(name = "books", required = false)
+	List<Book> books;
+	
+	Bible() {
+		// for JAXB
+		this.id = UUID.randomUUID();
+		this.name = null;
+		this.language = null;
+		this.source = null;
+		this.importDate = null;
+		this.copyright = null;
+		this.verseCount = 0;
+		this.hadImportWarning = false;
+		this.books = new ArrayList<Book>();
+	}
 	
 	/**
 	 * Full constructor.
@@ -68,18 +105,18 @@ public final class Bible implements Comparable<Bible> {
 	 * @param importDate the import date
 	 * @param copyright the copyright (if any)
 	 * @param verseCount the total number of verses
-	 * @param hasApocrypha true if at least one verse from an apocryphal book is included
 	 * @param hadImportWarning true if a warning occurred during import
+	 * @param books the books for this bible
 	 */
-	Bible(int id, 
+	public Bible(UUID id, 
 		  String name, 
 		  String language, 
 		  String source, 
 		  Date importDate,
 		  String copyright,
 		  int verseCount,
-		  boolean hasApocrypha,
-		  boolean hadImportWarning) {
+		  boolean hadImportWarning,
+		  List<Book> books) {
 		this.id = id;
 		this.name = name;
 		this.language = language;
@@ -87,8 +124,8 @@ public final class Bible implements Comparable<Bible> {
 		this.importDate = importDate;
 		this.copyright = copyright;
 		this.verseCount = verseCount;
-		this.hasApocrypha = hasApocrypha;
 		this.hadImportWarning = hadImportWarning;
+		this.books = books != null ? books : new ArrayList<Book>();
 	}
 	
 	/* (non-Javadoc)
@@ -112,7 +149,7 @@ public final class Bible implements Comparable<Bible> {
 	 */
 	@Override
 	public int hashCode() {
-		return this.id;
+		return this.id.hashCode();
 	}
 	
 	/* (non-Javadoc)
@@ -136,14 +173,14 @@ public final class Bible implements Comparable<Bible> {
 	public int compareTo(Bible o) {
 		if (o == null) return 1;
 		// sort by id
-		return o.id - this.id;
+		return this.name.compareTo(o.name);
 	}
 	
 	/**
 	 * Returns the id for this {@link Bible}.
 	 * @return int
 	 */
-	public int getId() {
+	public UUID getId() {
 		return this.id;
 	}
 	
@@ -154,7 +191,15 @@ public final class Bible implements Comparable<Bible> {
 	public String getName() {
 		return this.name;
 	}
-	
+
+	/**
+	 * Sets the name of this {@link Bible}.
+	 * @param name the name
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	/**
 	 * Returns the language of this {@link Bible}.
 	 * <p>
@@ -166,11 +211,27 @@ public final class Bible implements Comparable<Bible> {
 	}
 
 	/**
+	 * Sets the language for this bible.
+	 * @param language the language
+	 */
+	public void setLanguage(String language) {
+		this.language = language;
+	}
+
+	/**
 	 * Returns the source for this {@link Bible}'s contents.
 	 * @return String
 	 */
 	public String getSource() {
 		return this.source;
+	}
+
+	/**
+	 * Sets the source of this bible.
+	 * @param source the source
+	 */
+	public void setSource(String source) {
+		this.source = source;
 	}
 
 	/**
@@ -182,11 +243,27 @@ public final class Bible implements Comparable<Bible> {
 	}
 
 	/**
+	 * Sets the import date of this bible.
+	 * @param importDate the import date
+	 */
+	public void setImportDate(Date importDate) {
+		this.importDate = importDate;
+	}
+
+	/**
 	 * Returns the copyright information (if any).
 	 * @return String
 	 */
 	public String getCopyright() {
 		return this.copyright;
+	}
+
+	/**
+	 * Sets the copyright for this bible.
+	 * @param copyright the copyright
+	 */
+	public void setCopyright(String copyright) {
+		this.copyright = copyright;
 	}
 
 	/**
@@ -198,14 +275,13 @@ public final class Bible implements Comparable<Bible> {
 	}
 
 	/**
-	 * Returns true if this bible included a verse for an
-	 * apocryphal book.
-	 * @return boolean
+	 * Sets the verse count for this bible.
+	 * @param verseCount the verse count
 	 */
-	public boolean hasApocrypha() {
-		return this.hasApocrypha;
+	public void setVerseCount(int verseCount) {
+		this.verseCount = verseCount;
 	}
-
+	
 	/**
 	 * Returns true if a warning occurred during import of
 	 * this bible.
@@ -213,5 +289,13 @@ public final class Bible implements Comparable<Bible> {
 	 */
 	public boolean hadImportWarning() {
 		return this.hadImportWarning;
+	}
+
+	/**
+	 * Sets the import warning flag.
+	 * @param hadImportWarning true if there was an error during import
+	 */
+	public void setHadImportWarning(boolean hadImportWarning) {
+		this.hadImportWarning = hadImportWarning;
 	}
 }

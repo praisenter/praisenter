@@ -33,9 +33,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 class BackgroundRibbonTab extends ComponentEditorRibbonTab {
+
 	private static final GlyphFont OPEN_ICONIC = GlyphFontRegistry.font("Icons");
 	
-	/** The fontawesome glyph-font pack */
+	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	private final PraisenterContext context;

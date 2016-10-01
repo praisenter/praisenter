@@ -43,6 +43,7 @@ import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.ReadonlyIterator;
 import org.praisenter.Tag;
@@ -51,6 +52,7 @@ import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
+import org.praisenter.xml.adapters.BufferedImageTypeAdapter;
 
 /**
  * Implementation of the {@link Slide} interface.
@@ -103,7 +105,9 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@XmlElementWrapper(name = "tags", required = false)
 	final Set<Tag> tags;
 	
-	// this is stored separately
+	/** The thumbnail for this slide */
+	@XmlElement(name = "thumbnail", required = false)
+	@XmlJavaTypeAdapter(BufferedImageTypeAdapter.class)
 	BufferedImage thumbnail;
 	
 	/**

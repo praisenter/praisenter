@@ -24,11 +24,11 @@
  */
 package org.praisenter.javafx.animation;
 
-import javafx.geometry.Point2D;
-import javafx.geometry.Rectangle2D;
-
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Push;
+
+import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
 
 /**
  * Represents a push transition where one object pushes another out.

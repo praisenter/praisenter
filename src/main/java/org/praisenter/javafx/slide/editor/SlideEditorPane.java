@@ -57,6 +57,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -126,17 +127,15 @@ public final class SlideEditorPane extends BorderPane {
 	/** The border 2 stroke */
 	static final BorderStroke BORDER_STROKE_2 = new BorderStroke(BORDER_COLOR_2, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, DASH_LENGTH, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
 	
-	
 	private final PraisenterContext context;
 	
 	private Resolution resolution = null;
-	private final ObjectProperty<ObservableSlide<?>> slide = new SimpleObjectProperty<ObservableSlide<?>>();
+	private final ObjectProperty<ObservableSlide<Slide>> slide = new SimpleObjectProperty<ObservableSlide<Slide>>();
 	private final ObjectProperty<ObservableSlideRegion<?>> selected = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 
 	private final StackPane slidePreview;
 	
 	public SlideEditorPane(PraisenterContext context) {
-		
 		this.context = context;
 		
 		EventHandler<MouseEvent> entered = new EventHandler<MouseEvent>() {
@@ -303,11 +302,23 @@ public final class SlideEditorPane extends BorderPane {
 		slidePreview.getChildren().addAll(slideBounds, slideCanvas);
 		StackPane.setAlignment(slideBounds, Pos.CENTER);
 		
+		// for testing
+//		slidePreview.setBorder(Fx.newBorder(Color.ORANGE));
+//		slideBounds.setBorder(Fx.newBorder(Color.RED));
+//		slideCanvas.setBorder(Fx.newBorder(Color.YELLOW));
+
+		this.setCenter(slidePreview);
+		
+		// events
+
+		// setup of the editor when the slide being edited changes
 		slide.addListener((obs, ov, nv) -> {
 			slideCanvas.getChildren().clear();
+			selected.set(null);
+			
 			if (ov != null) {
 				ov.scalingProperty().unbind();
-				Iterator<ObservableSlideComponent<?>> components = nv.componentIterator();
+				Iterator<ObservableSlideComponent<?>> components = ov.componentIterator();
 				while (components.hasNext()) {
 					ObservableSlideComponent<?> osr = components.next();
 					osr.scalingProperty().unbind();
@@ -360,16 +371,7 @@ public final class SlideEditorPane extends BorderPane {
 			}
 		});
 		
-		// for testing
-//		slidePreview.setBorder(Fx.newBorder(Color.ORANGE));
-//		slideBounds.setBorder(Fx.newBorder(Color.RED));
-//		slideCanvas.setBorder(Fx.newBorder(Color.YELLOW));
-		
-		// events
-		
-		ribbon.slideProperty().bind(slide);
-		ribbon.componentProperty().bind(selected);
-		
+		// reordering components
 		ribbon.addEventHandler(SlideEditorEvent.ORDER, (e) -> {
 			ObservableSlideComponent<?> component = e.component;
 			if (e.operation == SlideComponentOrderEvent.OPERATION_BACK) {
@@ -383,6 +385,7 @@ public final class SlideEditorPane extends BorderPane {
 			}
 		});
 		
+		// setting the target resolution
 		ribbon.addEventHandler(SlideEditorEvent.TARGET_RESOLUTION, (e) -> {
 			resolution = e.resolution;
 			scaleFactor.invalidate();
@@ -390,6 +393,7 @@ public final class SlideEditorPane extends BorderPane {
 			heightSizing.invalidate();
 		});
 
+		// adding components
 		ribbon.addEventHandler(SlideEditorEvent.ADD_COMPONENT, (e) -> {
 			ObservableSlideComponent<?> component = e.getComponent();
 			slide.get().addComponent(component);
@@ -413,12 +417,26 @@ public final class SlideEditorPane extends BorderPane {
 			});
 		});
 		
-		// set values
-			
+		// removing components
+		this.setOnKeyReleased((e) -> {
+			if (e.getCode() == KeyCode.DELETE) {
+				// remove the currently selected component
+				ObservableSlideRegion<?> component = selected.get();
+				if (component != null && component instanceof ObservableSlideComponent) {
+					slide.get().removeComponent((ObservableSlideComponent<?>)component);
+				}
+			}
+		});
+		
+		// bindings
+
+		ribbon.slideProperty().bind(slide);
+		ribbon.componentProperty().bind(selected);
+		
+		// set values		
+		
 		Slide s = createTestSlide();
 		slide.set(new ObservableSlide<Slide>(s, context, SlideMode.EDIT));
-			
-		this.setCenter(slidePreview);
 	}
 	
 	private static final Rectangle2D getUniformlyScaledBounds(double w, double h, double tw, double th) {
@@ -577,5 +595,17 @@ public final class SlideEditorPane extends BorderPane {
 		
 		
 		return slide;
+	}
+	
+	public void setSlide(Slide slide) {
+		if (slide == null) {
+			this.slide.set(null);
+		} else {
+			this.slide.set(new ObservableSlide<Slide>(slide, context, SlideMode.EDIT));
+		}
+	}
+	
+	public Slide getSlide() {
+		return this.slide.get().getRegion();
 	}
 }

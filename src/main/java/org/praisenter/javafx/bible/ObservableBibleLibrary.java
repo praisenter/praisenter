@@ -31,19 +31,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleImporter;
-import org.praisenter.bible.BibleLibrary;
+import org.praisenter.bible.BibleLibraryV1;
 import org.praisenter.bible.FormatIdentifingBibleImporter;
 import org.praisenter.bible.UnboundBibleImporter;
 import org.praisenter.javafx.utility.Fx;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 
 /**
  * Represents an Observable wrapper to the bible library.
@@ -61,7 +61,7 @@ public final class ObservableBibleLibrary {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The bible library */
-	private final BibleLibrary library;
+	private final BibleLibraryV1 library;
 	
 	/** The thread service */
 	private final ExecutorService service;
@@ -74,7 +74,7 @@ public final class ObservableBibleLibrary {
 	 * @param library the bible library
 	 * @param service the thread service
 	 */
-	public ObservableBibleLibrary(BibleLibrary library, ExecutorService service) {
+	public ObservableBibleLibrary(BibleLibraryV1 library, ExecutorService service) {
 		this.library = library;
 		this.service = service;
 		

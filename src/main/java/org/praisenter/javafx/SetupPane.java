@@ -9,6 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.configuration.ScreenMapping;
+import org.praisenter.javafx.configuration.ScreenRole;
+import org.praisenter.javafx.utility.Fx;
+import org.praisenter.resources.translations.Translations;
+
 import javafx.collections.FXCollections;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.HPos;
@@ -37,14 +45,6 @@ import javafx.scene.paint.Stop;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.configuration.Configuration;
-import org.praisenter.javafx.configuration.ScreenMapping;
-import org.praisenter.javafx.configuration.ScreenRole;
-import org.praisenter.javafx.utility.Fx;
-import org.praisenter.resources.translations.Translations;
 
 // TODO translate
 // TODO clean up UI

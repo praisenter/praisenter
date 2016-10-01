@@ -2,36 +2,24 @@ package org.praisenter.javafx.slide.editor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.slide.ObservableCountdownComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.slide.text.CountdownComponent;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.util.Pair;
 
 class CountdownRibbonTab extends ComponentEditorRibbonTab {
-
-	/** The fontawesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-
 	private final DateTimePicker pkrCountdownTime;
 	private final TextField txtCountdownFormat;
 	private final ComboBox<String> cmbCountdownFormat;

@@ -33,12 +33,13 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,9 +57,6 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	/** The list of verses */
-	private List<Verse> verses;
-	
 	/**
 	 * Minimal constructor.
 	 * @param library the library to import into
@@ -71,7 +69,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public List<Bible> execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException {
+	public List<Bible> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException {
 		// get the file name
 		String fileName = path.getFileName().toString();
 		int d = fileName.lastIndexOf(".");
@@ -81,15 +79,14 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 		final String bookFileName = "book_names.txt";
 		final String verseFileName = name + "_utf8.txt";
 		
-		Bible bible = null;
-		List<Book> books = new ArrayList<Book>();
-		
-		this.verses = new ArrayList<Verse>();
-		
+		Bible bible = new Bible();
+		bible.source = "THE UNBOUND BIBLE (www.unboundbible.org)";
+
 		// make sure the file exists
 		if (Files.exists(path)) {
 			LOGGER.debug("Reading UnboundBible .zip file: " + path.toAbsolutePath().toString());
-			// read the zip file
+			
+			// read the zip file for Books
 			try (FileInputStream fis = new FileInputStream(path.toFile());
 				 BufferedInputStream bis = new BufferedInputStream(fis);
 				 ZipInputStream zis = new ZipInputStream(bis);) {
@@ -98,28 +95,39 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 				while ((entry = zis.getNextEntry()) != null) {
 					if (entry.getName().equalsIgnoreCase(bookFileName)) {
 						LOGGER.debug("Reading UnboundBible .zip file contents: " + bookFileName);
-						books = readBooks(bookFileName, zis);
+						readBooks(bible, bookFileName, zis);
 						LOGGER.debug("UnboundBible .zip file contents read successfully: " + bookFileName);
-					} else if (entry.getName().equalsIgnoreCase(verseFileName)) {
+					}
+				}
+			}
+			
+			// read the zip file for Verses
+			try (FileInputStream fis = new FileInputStream(path.toFile());
+				 BufferedInputStream bis = new BufferedInputStream(fis);
+				 ZipInputStream zis = new ZipInputStream(bis);) {
+				// read the entries
+				ZipEntry entry = null;
+				while ((entry = zis.getNextEntry()) != null) {
+					if (entry.getName().equalsIgnoreCase(verseFileName)) {
 						LOGGER.debug("Reading UnboundBible .zip file contents: " + verseFileName);
-						bible = readVerses(verseFileName, zis);
+						readVerses(bible, verseFileName, zis);
 						LOGGER.debug("UnboundBible .zip file contents read successfully: " + verseFileName);
 					}
 				}
 			}
 			
 			// check for missing files
-			if (books.size() == 0 && verses.size() == 0) {
+			if (bible.books.size() == 0) {
 				LOGGER.error("The file did not contain any books or verses. Import failed.");
 				throw new NoContentException();
 			}
 			
-			// import into the database
-			Bible bbl = this.insert(bible, books, verses);
+			// add to the library
+			this.library.save(bible);
 			
 			// return
 			List<Bible> bibles = new ArrayList<Bible>();
-			bibles.add(bbl);
+			bibles.add(bible);
 			return bibles;
 		} else {
 			// throw an exception
@@ -129,18 +137,18 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 	
 	/**
 	 * Reads the books file.
+	 * @param bible the bible to add to
 	 * @param fileName the file name
 	 * @param zis the ZipInputStream
-	 * @return List&lt;{@link Book}&gt;
 	 * @throws InvalidFormatException if the data is in an unexpected format
 	 * @throws IOException if an IO error occurs
 	 */
-	private List<Book> readBooks(String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
-		List<Book> books = new ArrayList<Book>();
+	private void readBooks(Bible bible, String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
 		// load up the book names
 		BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
 		// read them line by line
 		String line = null;
+		int order = 0;
 		int i = 1;
 		while ((line = reader.readLine()) != null) {
 			if (line.startsWith("#")) {
@@ -153,26 +161,28 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 					throw new InvalidFormatException(fileName + ":" + i);
 				} else {
 					Book book = new Book(
-							null,
+							// the code
 							data[0].trim(),
-							data[1].trim().equalsIgnoreCase("Acts of the Apostles") ? "Acts" : data[1].trim());
-					books.add(book);
+							// the name
+							data[1].trim().equalsIgnoreCase("Acts of the Apostles") ? "Acts" : data[1].trim(),
+							// the order
+							order++);
+					bible.books.add(book);
 				}
 			}
 			i++;
 		}
-		return books;
 	}
 	
 	/**
 	 * Reads the verses and assigns some bible fields.
+	 * @param bible the bible to add to
 	 * @param fileName the file name
 	 * @param zis the ZipInputStream
-	 * @return {@link Bible} the bible info
 	 * @throws InvalidFormatException if the data is in an unexpected format
 	 * @throws IOException if an IO error occurs
 	 */
-	private Bible readVerses(String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
+	private void readVerses(Bible bible, String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
 		// load up the verses
 		BufferedReader reader = new BufferedReader(new InputStreamReader(zis, StandardCharsets.UTF_8));
 		// read them line by line
@@ -184,23 +194,22 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 		int lastSubVerse = -1;
 		int i = 0;
 		
-		String source = "THE UNBOUND BIBLE (www.unboundbible.org)";
-		String name = null;
-		String language = null;
-		String copyright = null;
-		boolean hadImportWarning = false;
-		boolean hasApocrypha = false;
+//		String name = null;
+//		String language = null;
+//		String copyright = null;
+//		boolean hadImportWarning = false;
+//		boolean hasApocrypha = false;
 		
 		while ((line = reader.readLine()) != null) {
 			i++;
 			if (line.startsWith("#")) {
 				// it's a comment, but some comments will provide data
 				if (line.startsWith("#name")) {
-					name = line.replaceFirst("#name\\s+", "").trim();
+					bible.name = line.replaceFirst("#name\\s+", "").trim();
 				} else if (line.startsWith("#language")) {
-					language = line.replaceFirst("#language\\s+", "").trim().toUpperCase();
+					bible.language = line.replaceFirst("#language\\s+", "").trim().toUpperCase();
 				} else if (line.startsWith("#copyright")) {
-					copyright = line.replaceFirst("#copyright\\s+", "").trim();
+					bible.copyright = line.replaceFirst("#copyright\\s+", "").trim();
 				} else if (line.startsWith("#columns")) {
 					// not all bibles support the same fields so we need to setup a 
 					// column mapping for the columns
@@ -234,7 +243,6 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 					try {
 						// dont bother checking the mapping on these since they are necessary
 						String bookCode = data[columnMapping[0]].trim();
-						hasApocrypha = bookCode.endsWith("A");
 						int chapter = Integer.parseInt(data[columnMapping[1]].trim());
 						int verse = Integer.parseInt(data[columnMapping[2]].trim());
 						
@@ -253,8 +261,8 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 									// we will reverse order them
 									subVerse = -Integer.parseInt(subVerseText);
 								} catch (NumberFormatException e) {
-									hadImportWarning = true;
-									LOGGER.warn("Unknown sub-verse format [{}|{}|{}|{}] on line {} in {}. Dropping verse.", bookCode, chapter, verse, data[columnMapping[3]].trim(), i, name);
+									bible.hadImportWarning = true;
+									LOGGER.warn("Unknown sub-verse format [{}|{}|{}|{}] on line {} in {}. Dropping verse.", bookCode, chapter, verse, data[columnMapping[3]].trim(), i, fileName);
 									continue;
 								}
 							} else {
@@ -286,21 +294,17 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 							text = data[columnMapping[5]].trim();
 						} else {
 							text = "";
-							hadImportWarning = true;
+							bible.hadImportWarning = true;
 							// continue, but log a warning
-							LOGGER.warn("Verse [{}|{}|{}|{}] is missing text on line {} in {}.", bookCode, chapter, verse, subVerse, i, name);
+							LOGGER.warn("Verse [{}|{}|{}|{}] is missing text on line {} in {}.", bookCode, chapter, verse, subVerse, i, fileName);
 						}
 						
-						// add the verse
-						this.verses.add(new Verse(
-								null, 
-								new Book(null, bookCode, null), 
-								-1, 
-								chapter, 
-								verse, 
-								subVerse, 
-								verseOrder, 
-								text));
+						for (Book book : bible.books) {
+							if (book.code.equals(bookCode)) {
+								book.verses.add(new Verse(chapter, verse, subVerse, verseOrder, text));
+								break;
+							}
+						}
 					} catch (NumberFormatException e) {
 						LOGGER.error("Failed to parse chapter, verse or order as integers at line " + i + " of " + fileName);
 						throw new InvalidFormatException(fileName + ":" + i);
@@ -308,7 +312,5 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 				}
 			}
 		}
-		
-		return new Bible(-1, name, language, source, null, copyright, this.verses.size(), hasApocrypha, hadImportWarning);
 	}
 }

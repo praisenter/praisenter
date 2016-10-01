@@ -1,11 +1,5 @@
 package org.praisenter.javafx;
 
-import javafx.geometry.Orientation;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.layout.BorderPane;
-
 import java.sql.SQLException;
 
 import org.praisenter.javafx.bible.BibleLibraryPane;
@@ -13,6 +7,12 @@ import org.praisenter.javafx.bible.BiblePane;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.slide.SlideLibraryPane;
 import org.praisenter.javafx.slide.editor.SlideEditorPane;
+
+import javafx.geometry.Orientation;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.layout.BorderPane;
 
 public final class MainPane extends BorderPane {
 	
@@ -73,31 +73,29 @@ public final class MainPane extends BorderPane {
 		MenuItem hAbout = new MenuItem("About");
 		help.getItems().addAll(hAbout);
 		
+		// panes
+		
+		SetupPane sp = new SetupPane(context.getConfiguration());
+		BibleLibraryPane blp = new BibleLibraryPane(context);
+		MediaLibraryPane mlp = new MediaLibraryPane(context, Orientation.HORIZONTAL);
+		SlideLibraryPane slp = new SlideLibraryPane(context);
+		
 		// menu actions
 
 		fSetup.setOnAction((e) -> {
-			SetupPane sp = new SetupPane(context.getConfiguration());
 			setCenter(sp);
 		});
 		
 		blManage.setOnAction((e) -> {
-			BibleLibraryPane blp = new BibleLibraryPane(context);
 			setCenter(blp);
 		});
 		
 		mManage.setOnAction((e) -> {
-			MediaLibraryPane mlp = new MediaLibraryPane(context, Orientation.HORIZONTAL);
 			setCenter(mlp);
 		});
 		
 		slManage.setOnAction((e) -> {
-			SlideLibraryPane slp = new SlideLibraryPane(context);
 			setCenter(slp);
-		});
-		
-		slNew.setOnAction((e) -> {
-			SlideEditorPane sep = new SlideEditorPane(context);
-			setCenter(sep);
 		});
 		
 		return menu;
