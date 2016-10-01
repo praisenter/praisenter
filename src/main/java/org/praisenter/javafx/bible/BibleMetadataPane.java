@@ -87,9 +87,6 @@ final class BibleMetadataPane extends VBox {
 	/** The verse count */
 	private final StringProperty verseCount = new SimpleStringProperty();
 	
-	/** Has apocrypha */
-	private final StringProperty hasApocrypha = new SimpleStringProperty();
-	
 	/** Had import errors */
 	private final StringProperty hadImportErrors = new SimpleStringProperty();
 	
@@ -168,23 +165,14 @@ final class BibleMetadataPane extends VBox {
         grid.add(lblVerseCount, 0, 5, 1, 1);
         grid.add(lblVerseCountValue, 1, 5, 1, 1);
         
-        Label lblHasApocrypha = new Label(Translations.get("bible.properties.apocrypha"));
-        Label lblHasApocryphaValue = new Label();
-        lblHasApocryphaValue.textProperty().bind(hasApocrypha);
-        lblHasApocryphaValue.setTooltip(new Tooltip());
-        lblHasApocryphaValue.getTooltip().setText(Translations.get("bible.properties.apocrypha.tooltip"));
-        lblHasApocryphaValue.setBorder(VALUE_BORDER);
-        grid.add(lblHasApocrypha, 0, 6, 1, 1);
-        grid.add(lblHasApocryphaValue, 1, 6, 1, 1);
-        
         Label lblImportErrors = new Label(Translations.get("bible.properties.importWarnings"));
         Label lblImportErrorsValue = new Label();
         lblImportErrorsValue.textProperty().bind(hadImportErrors);
         lblImportErrorsValue.setTooltip(new Tooltip());
         lblImportErrorsValue.getTooltip().setText(Translations.get("bible.properties.importWarnings.tooltip"));
         lblImportErrorsValue.setBorder(VALUE_BORDER);
-        grid.add(lblImportErrors, 0, 7, 1, 1);
-        grid.add(lblImportErrorsValue, 1, 7, 1, 1);
+        grid.add(lblImportErrors, 0, 6, 1, 1);
+        grid.add(lblImportErrorsValue, 1, 6, 1, 1);
         
         // handle when the media is changed
         this.bible.addListener(new ChangeListener<BibleListItem>() {
@@ -199,7 +187,6 @@ final class BibleMetadataPane extends VBox {
         	        importDate.set("");
         	        copyright.set("");
         	        verseCount.set("");
-        	        hasApocrypha.set("");
         	        hadImportErrors.set("");
         			setDisable(true);
         		} else {
@@ -215,7 +202,6 @@ final class BibleMetadataPane extends VBox {
         			String copy = item.bible.getCopyright();
         	        copyright.set(copy != null && copy.length() > 0 ? copy : unknown);
         	        verseCount.set(String.valueOf(item.bible.getVerseCount()));
-        	        hasApocrypha.set(item.bible.hasApocrypha() ? yes : no);
         	        hadImportErrors.set(item.bible.hadImportWarning() ? yes : no);
         		}
         	}

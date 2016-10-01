@@ -72,26 +72,25 @@ public final class Bible implements Comparable<Bible> {
 	@XmlElement(name = "copyright", required = false)
 	String copyright;
 	
-	/** The number of verses */
-	int verseCount;
-	
 	/** True if a warning was found during import */
 	@XmlAttribute(name = "hadImportWarning", required = false)
 	boolean hadImportWarning;
 	
+	/** The books in this bible */
 	@XmlElement(name = "book", required = false)
 	@XmlElementWrapper(name = "books", required = false)
 	List<Book> books;
 	
-	Bible() {
-		// for JAXB
+	/**
+	 * Default constructor.
+	 */
+	public Bible() {
 		this.id = UUID.randomUUID();
 		this.name = null;
 		this.language = null;
 		this.source = null;
 		this.importDate = null;
 		this.copyright = null;
-		this.verseCount = 0;
 		this.hadImportWarning = false;
 		this.books = new ArrayList<Book>();
 	}
@@ -123,47 +122,8 @@ public final class Bible implements Comparable<Bible> {
 		this.source = source;
 		this.importDate = importDate;
 		this.copyright = copyright;
-		this.verseCount = verseCount;
 		this.hadImportWarning = hadImportWarning;
 		this.books = books != null ? books : new ArrayList<Book>();
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj == this) return true;
-		if (obj instanceof Bible) {
-			Bible other = (Bible)obj;
-			if (this.id == other.id) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return this.id.hashCode();
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Bible[Id=").append(this.id)
-		  .append("|Name=").append(this.name)
-		  .append("|Language=").append(this.language)
-		  .append("|Source=").append(this.source)
-		  .append("]");
-		return sb.toString();
 	}
 	
 	/* (non-Javadoc)
@@ -271,17 +231,17 @@ public final class Bible implements Comparable<Bible> {
 	 * @return int
 	 */
 	public int getVerseCount() {
-		return this.verseCount;
+		int n = 0;
+		if (this.books != null) {
+			for (Book book : this.books) {
+				if (book.verses != null) {
+					n += book.verses.size();
+				}
+			}
+		}
+		return n;
 	}
 
-	/**
-	 * Sets the verse count for this bible.
-	 * @param verseCount the verse count
-	 */
-	public void setVerseCount(int verseCount) {
-		this.verseCount = verseCount;
-	}
-	
 	/**
 	 * Returns true if a warning occurred during import of
 	 * this bible.

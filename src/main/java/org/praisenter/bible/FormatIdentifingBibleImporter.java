@@ -33,11 +33,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
@@ -57,14 +57,14 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	/** The {@link BibleLibraryV1} */
-	private final BibleLibraryV1 library;
+	/** The {@link BibleLibrary} */
+	private final BibleLibrary library;
 	
 	/**
 	 * Minimal constructor.
 	 * @param library the bible library to import into
 	 */
-	public FormatIdentifingBibleImporter(BibleLibraryV1 library) {
+	public FormatIdentifingBibleImporter(BibleLibrary library) {
 		this.library = library;
 	}
 	
@@ -72,7 +72,7 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public List<Bible> execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException, UnknownFormatException {
+	public List<Bible> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException, UnknownFormatException {
 		// make sure the file exists
 		if (Files.exists(path)) {
 			BibleImporter importer = this.getImporter(path);
@@ -117,7 +117,10 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 					// if we can determine the file type that way
 					} else {
 						byte[] content = AbstractBibleImporter.read(zis);
-						return this.getImporterForFile(new ByteArrayInputStream(content));
+						BibleImporter bi = this.getImporterForFile(new ByteArrayInputStream(content));
+						if (bi != null) {
+							return bi;
+						}
 					}
 				}
 			}

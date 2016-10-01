@@ -24,8 +24,6 @@
  */
 package org.praisenter.bible;
 
-import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -40,10 +38,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "verse")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Verse implements Comparable<Verse> {
-	/** The verse id */
-	@XmlAttribute(name = "id", required = false)
-	final UUID id;
-	
 	/** The chapter number */
 	@XmlAttribute(name = "chapter", required = false)
 	int chapter;
@@ -64,9 +58,15 @@ public final class Verse implements Comparable<Verse> {
 	@XmlElement(name = "text", required = false)
 	String text;
 	
-	Verse()  {
-		// for JAXB
-		this.id = null;
+	/**
+	 * Default constructor.
+	 */
+	public Verse()  {
+		this.chapter = 0;
+		this.verse = 0;
+		this.subVerse = -1;
+		this.order = 0;
+		this.text = null;
 	}
 	
 	/**
@@ -78,20 +78,6 @@ public final class Verse implements Comparable<Verse> {
 	 * @param text the verse text
 	 */
 	public Verse(int chapter, int verse, int subVerse, int order, String text) {
-		this(null, chapter, verse, subVerse, order, text);
-	}
-	
-	/**
-	 * Full constructor.
-	 * @param id the verse id
-	 * @param chapter the chapter number
-	 * @param verse the verse number
-	 * @param subVerse the sub verse number
-	 * @param order the verse order
-	 * @param text the verse text
-	 */
-	public Verse(UUID id, int chapter, int verse, int subVerse, int order, String text) {
-		this.id = id == null ? UUID.randomUUID() : id;
 		this.chapter = chapter;
 		this.verse = verse;
 		this.subVerse = subVerse;
@@ -100,60 +86,12 @@ public final class Verse implements Comparable<Verse> {
 	}
 
 	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj == this) return true;
-		if (obj instanceof Verse) {
-			Verse other = (Verse)obj;
-			if (other.id == this.id) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return this.id.hashCode();
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Verse[Id=").append(this.id)
-		  .append("|Chapter=").append(this.chapter)
-		  .append("|Verse=").append(this.verse)
-		  .append("|SubVerse=").append(this.subVerse)
-		  .append("|Order=").append(this.order)
-		  .append("|Text=").append(this.text)
-		  .append("]");
-		return sb.toString();
-	}
-	
-	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	@Override
 	public int compareTo(Verse o) {
 		if (o == null) return 1;
 		return this.order - o.order;
-	}
-	
-	/**
-	 * Returns the verse id for this {@link Verse}.
-	 * @return int
-	 */
-	public UUID getId() {
-		return this.id;
 	}
 	
 	/**

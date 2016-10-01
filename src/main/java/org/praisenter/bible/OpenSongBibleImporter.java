@@ -32,12 +32,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -62,60 +63,11 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 	/** The source */
 	private static final String SOURCE = "OpenSong (http://www.opensong.org/)";
 	
-	/** The number of old testament books */
-	private static final int O_BOOK_COUNT = 39;
-	
-	/** The starting number of new testament books */
-	private static final int N_BOOK_COUNT = O_BOOK_COUNT + 27;
-	
-	// imported data
-	
-	/** The bible */
-	private Bible bible;
-	
-	/** The books */
-	private List<Book> books;
-	
-	/** The list of verses */
-	private List<Verse> verses;
-
-	// temp data
-	
-	/** The bible name */
-	private String name;
-
-	/** True if the bible has apocryphal books */
-	private boolean hasApocrypha;
-	
-	/** True if the bible had import warnings */
-	private boolean hadImportWarning;
-
-	/** The book number */
-	private int bookNumber;
-	
-	/** The book code */
-	private String bookCode;
-	
-	/** The chapter number */
-	private int chapter;
-	
-	/** The verse number */
-	private int verse;
-	
-	/** The verse order */
-	private int order;
-	
-	/** The verse range */
-	private int verseTo;
-	
-	/** Buffer for tag contents */
-	private StringBuilder dataBuilder;
-	
 	/**
 	 * Minimal constructor.
 	 * @param library the library to import into
 	 */
-	public OpenSongBibleImporter(BibleLibraryV1 library) {
+	public OpenSongBibleImporter(BibleLibrary library) {
 		super(library);
 	}
 	
@@ -123,11 +75,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public List<Bible> execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException {
-		final String name = path.getFileName().toString();
-		
-		this.reset();
-		
+	public List<Bible> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException {
 		List<Bible> bibles = new ArrayList<Bible>();
 		
 		// make sure the file exists
@@ -145,36 +93,29 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 					read = true;
 					LOGGER.debug("Reading as zip file: " + path.toAbsolutePath().toString());
 					int i = entry.getName().lastIndexOf('.');
+					String name = entry.getName();
 					if (i >= 0) {
-						this.name = entry.getName().substring(0, i);
-					} else {
-						this.name = entry.getName();
+						name = entry.getName().substring(0, i);
 					}
-					this.parse(zis);
-					Bible bbl = this.insert(entry.getName());
-					if (bbl != null) {
-						bibles.add(bbl);
-					}
-					this.reset();
+					Bible bible = this.parse(zis, name);
+					library.save(bible);
+					bibles.add(bible);
 				}
 				// check if we read an entry
-				// if not, that may mean the file was not a zip so try it as a normal flat file
+				// if not, that may mean the file was not a zip so try it as a normal file
 				if (!read) {
 					LOGGER.debug("Reading as XML file: " + path.toAbsolutePath().toString());
 					// this indicates the file is not a zip or invalid
+					String name = path.getFileName().toString();
 					int i = name.lastIndexOf('.');
 					if (i >= 0) {
-						this.name = name.substring(0, i);
-					} else {
-						this.name = name;
+						name = name.substring(0, i);
 					}
 					// hopefully its an .xmm
 					// just read it
-					this.parse(new FileInputStream(path.toFile()));
-					Bible bbl = this.insert(path.toAbsolutePath().toString());
-					if (bbl != null) {
-						bibles.add(bbl);
-					}
+					Bible bible = this.parse(new FileInputStream(path.toFile()), name);
+					library.save(bible);
+					bibles.add(bible);
 				}
 			}
 
@@ -186,88 +127,83 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 	}
 	
 	/**
-	 * Resets this imported to default values to prepare to import another
-	 * file.
-	 */
-	private void reset() {
-		this.bible = null;
-		this.books = new ArrayList<Book>();
-		this.verses = new ArrayList<Verse>();
-		
-		this.name = null;
-		this.hasApocrypha = false;
-		this.hadImportWarning = false;
-		this.bookNumber = 0;
-		this.bookCode = null;
-		this.chapter = 0;
-		this.verse = 0;
-		this.verseTo = -1;
-		this.order = 0;
-		this.dataBuilder = null;
-	}
-	
-	/**
 	 * Attempts to parse the given input stream into the internal bible format.
 	 * @param stream the input stream
+	 * @param name the name
 	 * @throws IOException if an IO error occurs
 	 * @throws InvalidFormatException if the stream was not in the expected format
+	 * @return {@link Bible}
 	 */
-	private void parse(InputStream stream) throws IOException, InvalidFormatException {
+	private Bible parse(InputStream stream, String name) throws IOException, InvalidFormatException {
 		try {
 			byte[] content = read(stream);
 			// read the bytes
 			SAXParserFactory factory = SAXParserFactory.newInstance();
-			SAXParser parser = factory.newSAXParser();			
-			parser.parse(new ByteArrayInputStream(content), new SaxParser());
+			SAXParser parser = factory.newSAXParser();
+			OpenSongHandler handler = new OpenSongHandler(name);
+			parser.parse(new ByteArrayInputStream(content), handler);
+			return handler.getBible();
 		} catch (SAXException | ParserConfigurationException e) {
 			throw new InvalidFormatException(e);
 		}
 	}
 	
 	/**
-	 * Inserts the current bible information into the database.
-	 * @param name the file name
-	 * @return {@link Bible}
-	 * @throws SQLException if an error occurs during import
-	 * @throws BibleAlreadyExistsException if the bible already exists in the bible library
-	 */
-	private Bible insert(String name) throws SQLException, BibleAlreadyExistsException {
-		// check for missing files
-		if (books.size() == 0 && verses.size() == 0) {
-			LOGGER.error("The file '" + name + "' did not contain any books or verses. Import failed.");
-			return null;
-		}
-		
-		this.bible = new Bible(-1, this.name, "N/A", SOURCE, null, null, this.verses.size(), this.hasApocrypha, this.hadImportWarning);
-		
-		// import into the database
-		return this.insert(bible, books, verses);
-	}
-	
-	/**
-	 * Returns a generated book code based on the book number and testament based on
-	 * the format that The Unbound Bible uses.
-	 * @param number the book number
-	 * @return String
-	 */
-	private String getBookCode(int number) {
-		if (number <= O_BOOK_COUNT) {
-			return (number < 10 ? "0" : "") + number + "O";
-		} else if (number > O_BOOK_COUNT && number <= N_BOOK_COUNT) {
-			return number + "N";
-		} else {
-			this.hasApocrypha = true;
-			return number + "A";
-		}
-	}
-	
-	/**
-	 * A SAX parser for the OpenSong Bible format.
+	 * A SAX parser handler for the OpenSong Bible format.
 	 * @author William Bittle
 	 * @version 3.0.0
 	 * @since 3.0.0
 	 */
-	private final class SaxParser extends DefaultHandler {
+	private final class OpenSongHandler extends DefaultHandler {
+		// imported data
+		
+		/** The bible */
+		private Bible bible;
+		
+		// temp data
+		
+		/** The current book */
+		private Book book;
+		
+		/** The book number */
+		private int bookNumber;
+		
+		/** The chapter number */
+		private int chapter;
+		
+		/** The verse number */
+		private int number;
+		
+		/** The verse order */
+		private int order;
+		
+		/** The verse range */
+		private int verseTo;
+		
+		/** Buffer for tag contents */
+		private StringBuilder dataBuilder;
+		
+		/**
+		 * Full constructor.
+		 * @param name the bible name
+		 */
+		public OpenSongHandler(String name) {
+			this.bible = new Bible();
+			this.bible.name = name;
+			this.bible.copyright = "N/A";
+			this.bible.importDate = new Date();
+			this.bible.language = null;
+			this.bible.source = SOURCE;
+		}
+		
+		/**
+		 * Returns the bible.
+		 * @return {@link Bible}
+		 */
+		public Bible getBible() {
+			return this.bible;
+		}
+		
 		/* (non-Javadoc)
 		 * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String, java.lang.String, java.lang.String, org.xml.sax.Attributes)
 		 */
@@ -278,44 +214,43 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 				// get the name if present
 				String name = attributes.getValue("n");
 				if (name != null) {
-					OpenSongBibleImporter.this.name = name.trim();
+					this.bible.name = name.trim();
 				}
 			} else if (qName.equalsIgnoreCase("b")) {
+				book = new Book(String.valueOf(bookNumber), attributes.getValue("n"), bookNumber);
+				this.bible.books.add(book);
 				bookNumber++;
-				bookCode = getBookCode(bookNumber);
-				books.add(new Book(null, bookCode, attributes.getValue("n")));
 				chapter = 0;
 			} else if (qName.equalsIgnoreCase("c")) {
-				int chapter = -1; 
 				String number = attributes.getValue("n");
 				try {
-					chapter = Integer.parseInt(number);
+					this.chapter = Integer.parseInt(number);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse chapter number '" + number + "' for '" + name + "'. Using next chapter number in sequence instead.");
-					chapter = OpenSongBibleImporter.this.chapter++;
+					LOGGER.warn("Failed to parse chapter number '" + number + "' for '" + this.bible.name + "'. Using next chapter number in sequence instead.");
+					this.bible.hadImportWarning = true;
+					this.chapter++;
 				}
-				OpenSongBibleImporter.this.chapter = chapter;
-				verse = 0;
+				this.number = 0;
 			} else if (qName.equalsIgnoreCase("v")) {
-				int verse = -1;
-				verseTo = -1;
+				this.verseTo = -1;
 				String number = attributes.getValue("n");
 				String to = attributes.getValue("t");
 				try {
-					verse = Integer.parseInt(number);
+					this.number = Integer.parseInt(number);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse verse number '" + number + "' for '" + name + "'. Using next verse number in sequence instead.");
-					verse = OpenSongBibleImporter.this.verse++;
+					LOGGER.warn("Failed to parse verse number '" + number + "' for '" + this.bible.name + "'. Using next verse number in sequence instead.");
+					this.bible.hadImportWarning = true;
+					this.number++;
 				}
 				if (to != null) {
 					try {
-						verseTo = Integer.parseInt(to);
+						this.verseTo = Integer.parseInt(to);
 					} catch (NumberFormatException ex) {
-						LOGGER.warn("Failed to parse the to verse number '" + to + "' for '" + name + "'. Skipping.");
+						LOGGER.warn("Failed to parse the to verse number '" + to + "' for '" + this.bible.name + "'. Skipping.");
+						this.bible.hadImportWarning = true;
 					}
 				}
-				OpenSongBibleImporter.this.verse = verse;
-				order += 10;
+				this.order += 10;
 			}
 		}
 
@@ -328,10 +263,10 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 			// this is done to improve performance so we need to append the text before
 			// using it
 			String s = new String(ch, start, length);
-			if (dataBuilder == null) {
-				dataBuilder = new StringBuilder();
+			if (this.dataBuilder == null) {
+				this.dataBuilder = new StringBuilder();
 			}
-			dataBuilder.append(s);
+			this.dataBuilder.append(s);
 		}
 		
 		/* (non-Javadoc)
@@ -341,18 +276,18 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			if ("v".equalsIgnoreCase(qName)) {
 				// check for embedded verses (n="1" t="4") ...why oh why...
-				if (verseTo > 0 && verseTo > verse) {
+				if (this.verseTo > 0 && this.verseTo > this.number) {
 					// just duplicate the verse content for each
-					for (int i = verse; i <= verseTo; i++) {
-						verses.add(new Verse(null, new Book(null, bookCode, null), -1, chapter, i, -1, order, dataBuilder.toString().trim()));
+					for (int i = this.number; i <= this.verseTo; i++) {
+						this.book.verses.add(new Verse(this.chapter, i, -1, this.order, this.dataBuilder.toString().trim()));
 					}
 				} else {
 					// add as normal
-					verses.add(new Verse(null, new Book(null, bookCode, null), -1, chapter, verse, -1, order, dataBuilder.toString().trim()));
+					this.book.verses.add(new Verse(this.chapter, this.number, -1, this.order, this.dataBuilder.toString().trim()));
 				}
 				
 			}
-			dataBuilder = null;
+			this.dataBuilder = null;
 		}
 	}
 }

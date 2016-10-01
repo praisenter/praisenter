@@ -43,12 +43,13 @@ import javax.xml.bind.JAXBException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
@@ -75,8 +76,6 @@ import org.praisenter.Constants;
 import org.praisenter.SearchType;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
-
-// FIXME update to latest lucene 6.2?
 
 /**
  * A collection of bibles that has been loaded into a specific location and converted
@@ -115,7 +114,10 @@ public final class BibleLibrary {
 	private static final String FIELD_BOOK_ID = "bookid";
 	
 	/** The lucene field to store the bible's unique identifier */
-	private static final String FIELD_VERSE_ID = "verseid";
+	private static final String FIELD_VERSE_CHAPTER = "chapter";
+	
+	/** The lucene field to store the bible's unique identifier */
+	private static final String FIELD_VERSE_NUMBER = "verse";
 	
 	/** The lucene field that contains all the bible searchable text */
 	private static final String FIELD_TEXT = "text";
@@ -199,18 +201,6 @@ public final class BibleLibrary {
 									// read in the xml
 									Bible bible = XmlIO.read(is, Bible.class);
 									bible.path = file;
-									
-									// add the data to the document
-									List<Document> documents = createDocuments(bible);
-									
-									try {
-										// update the document
-										writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.id.toString()), documents);
-									} catch (Exception e) {
-										// make sure its not in the index
-										LOGGER.warn("Failed to update the bible in the lucene index '" + file.toAbsolutePath().toString() + "'", e);
-										writer.deleteDocuments(new Term(FIELD_BIBLE_ID, bible.id.toString()));
-									}
 
 									// once the bible has been loaded successfully
 									// and added to the lucene index successfully
@@ -243,15 +233,6 @@ public final class BibleLibrary {
 	 */
 	private List<Document> createDocuments(Bible bible) {
 		List<Document> documents = new ArrayList<Document>();
-		// we store the path and id so we can lookup up bibles by either
-		
-//		// store the path so we know where to get the bible
-//		Field pathField = new StringField(FIELD_PATH, bible.path.toAbsolutePath().toString(), Field.Store.YES);
-//		document.add(pathField);
-//		// store the id so we can lookup the bible in the cache
-//		Field idField = new StringField(FIELD_ID, bible.id.toString(), Field.Store.YES);
-//		document.add(idField);
-//		
 		// books
 		if (bible.books != null) {
 			for (Book book : bible.books) {
@@ -265,17 +246,20 @@ public final class BibleLibrary {
 						Field bibleField = new StringField(FIELD_BIBLE_ID, bible.id.toString(), Field.Store.YES);
 						document.add(bibleField);
 						
-						Field bookField = new StringField(FIELD_BOOK_ID, book.id.toString(), Field.Store.YES);
+						Field bookField = new StringField(FIELD_BOOK_ID, book.code, Field.Store.YES);
 						document.add(bookField);
 						
-						Field verseField = new StringField(FIELD_VERSE_ID, verse.id.toString(), Field.Store.YES);
-						document.add(verseField);
-//						
+						Field vChapterField = new StoredField(FIELD_VERSE_CHAPTER, verse.chapter);
+						document.add(vChapterField);
+						
+						Field vNumberField = new StoredField(FIELD_VERSE_NUMBER, verse.verse);
+						document.add(vNumberField);
+
 //						if (!StringManipulator.isNullOrEmpty(book.name)) {
 //							Field bookNameField = new TextField(FIELD_TEXT, book.name, Field.Store.YES);
 //							document.add(bookNameField);
 //						}
-//						
+
 						if (!StringManipulator.isNullOrEmpty(verse.text)) {
 							Field textField = new TextField(FIELD_TEXT, verse.text, Field.Store.YES);
 							document.add(textField);
@@ -288,6 +272,28 @@ public final class BibleLibrary {
 		}
 		
 		return documents;
+	}
+	
+	/**
+	 * Re-indexes all bibles.
+	 * @throws IOException if an IO error occurs
+	 */
+	public synchronized void reindex() throws IOException {
+		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
+		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+			for (Bible bible : this.bibles.values()) {
+				try {
+					// add the data to the document
+					List<Document> documents = createDocuments(bible);
+					// update the document
+					writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.id.toString()), documents);
+				} catch (Exception e) {
+					// make sure its not in the index
+					LOGGER.warn("Failed to update the bible in the lucene index '" + bible.path.toAbsolutePath().toString() + "'", e);
+				}
+			}
+		}
 	}
 	
 	/**
@@ -569,21 +575,23 @@ public final class BibleLibrary {
 				
 				// get the bible
 				Bible bible = this.bibles.get(UUID.fromString(document.get(FIELD_BIBLE_ID)));
-				UUID bookId = UUID.fromString(document.get(FIELD_BOOK_ID));
-				UUID verseId = UUID.fromString(document.get(FIELD_VERSE_ID));
+				String bookCode = document.get(FIELD_BOOK_ID);
+				int chapter = document.getField(FIELD_VERSE_CHAPTER).numericValue().intValue();
+				int number = document.getField(FIELD_VERSE_NUMBER).numericValue().intValue();
 				
 				Book book = null;
 				Verse verse = null;
 				if (bible != null) {
 					for (Book b : bible.books) {
-						if (b.id.equals(bookId)) {
+						if (b.code.equals(bookCode)) {
 							book = b;
 						}
 					}
 					
 					if (book != null) {
 						for (Verse v : book.verses) {
-							if (v.id.equals(verseId)) {
+							if (v.chapter == chapter &&
+								v.verse == number) {
 								verse = v;
 							}
 						}

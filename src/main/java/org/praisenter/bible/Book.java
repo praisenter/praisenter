@@ -26,7 +26,6 @@ package org.praisenter.bible;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -43,12 +42,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "book")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Book implements Comparable<Book> {
-	/** The book id */
-	@XmlAttribute(name = "id", required = false)
-	final UUID id;
-	
 	/** The book code */
-	@XmlElement(name = "code", required = false)
+	@XmlAttribute(name = "code", required = false)
 	String code;
 	
 	/** The book name */
@@ -59,14 +54,15 @@ public final class Book implements Comparable<Book> {
 	@XmlAttribute(name = "order", required = false)
 	int order;
 	
-	/** The list of verses in the book */
+	/** The verses in this book */
 	@XmlElement(name = "verse", required = false)
 	@XmlElementWrapper(name = "verses", required = false)
 	final List<Verse> verses;
 	
-	Book() {
-		// for JAXB
-		this.id = null;
+	/**
+	 * Default constructor.
+	 */
+	public Book() {
 		this.code = null;
 		this.name = null;
 		this.order = 0;
@@ -80,47 +76,21 @@ public final class Book implements Comparable<Book> {
 	 * @param order the book order
 	 */
 	public Book(String code, String name, int order) {
-		this(null, code, name, order, null);
+		this( code, name, order, null);
 	}
 	
 	/**
 	 * Full constructor.
-	 * @param id the book id; or null
-	 * @param code the book code
+	 * @param code the book code (id)
 	 * @param name the book name
 	 * @param order the book order
 	 * @param verses the list of verses; or null
 	 */
-	public Book(UUID id, String code, String name, int order, List<Verse> verses) {
-		this.id = id != null ? id : UUID.randomUUID();
+	public Book(String code, String name, int order, List<Verse> verses) {
 		this.code = code;
 		this.name = name;
 		this.order = order;
 		this.verses = verses != null ? verses : new ArrayList<Verse>();
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj == this) return true;
-		if (obj instanceof Book) {
-			Book other = (Book)obj;
-			if (this.id.equals(other.id)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return this.code.hashCode();
 	}
 	
 	/* (non-Javadoc)

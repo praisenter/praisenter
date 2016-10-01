@@ -46,7 +46,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.util.CharArraySet;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -195,18 +195,6 @@ public final class SongLibrary {
 									// read in the xml
 									Song song = XmlIO.read(is, Song.class);
 									song.path = file;
-									
-									// add the data to the document
-									Document document = createDocument(song);
-									
-									try {
-										// update the document
-										writer.updateDocument(new Term(FIELD_ID, song.id.toString()), document);
-									} catch (Exception e) {
-										// make sure its not in the index
-										LOGGER.warn("Failed to update the song in the lucene index '" + file.toAbsolutePath().toString() + "'", e);
-										writer.deleteDocuments(new Term(FIELD_ID, song.id.toString()));
-									}
 
 									// once the song has been loaded successfully
 									// and added to the lucene index successfully
@@ -269,6 +257,28 @@ public final class SongLibrary {
 		}
 		
 		return document;
+	}
+	
+	/**
+	 * Re-indexes all songs.
+	 * @throws IOException if an IO error occurs
+	 */
+	public synchronized void reindex() throws IOException {
+		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
+		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+			for (Song song : this.songs.values()) {
+				try {
+					// add the data to the document
+					Document document = createDocument(song);
+					// update the document
+					writer.updateDocument(new Term(FIELD_ID, song.id.toString()), document);
+				} catch (Exception e) {
+					// make sure its not in the index
+					LOGGER.warn("Failed to update the song in the lucene index '" + song.path.toAbsolutePath().toString() + "'", e);
+				}
+			}
+		}
 	}
 	
 	/**

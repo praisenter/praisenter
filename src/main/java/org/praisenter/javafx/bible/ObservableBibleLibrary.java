@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleImporter;
-import org.praisenter.bible.BibleLibraryV1;
+import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.FormatIdentifingBibleImporter;
 import org.praisenter.bible.UnboundBibleImporter;
 import org.praisenter.javafx.utility.Fx;
@@ -61,7 +61,7 @@ public final class ObservableBibleLibrary {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The bible library */
-	private final BibleLibraryV1 library;
+	private final BibleLibrary library;
 	
 	/** The thread service */
 	private final ExecutorService service;
@@ -74,14 +74,14 @@ public final class ObservableBibleLibrary {
 	 * @param library the bible library
 	 * @param service the thread service
 	 */
-	public ObservableBibleLibrary(BibleLibraryV1 library, ExecutorService service) {
+	public ObservableBibleLibrary(BibleLibrary library, ExecutorService service) {
 		this.library = library;
 		this.service = service;
 		
 		List<Bible> bibles = null;
 		if (library != null) {
 			try {
-				bibles = library.getBibles();
+				bibles = library.all();
 			} catch (Exception ex) {
 				LOGGER.error("Failed to load bibles.", ex);
 			}
@@ -276,7 +276,7 @@ public final class ObservableBibleLibrary {
 		Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				library.deleteBible(bible);
+				library.remove(bible);
 				return null;
 			}
 		};
@@ -334,7 +334,7 @@ public final class ObservableBibleLibrary {
 			protected Void call() throws Exception {
 				for (Bible bible : bibles) {
 					try {
-						library.deleteBible(bible);
+						library.remove(bible);
 					} catch (Exception ex) {
 						// add it back
 						items.add(new BibleListItem(bible));

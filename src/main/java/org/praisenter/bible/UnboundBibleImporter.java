@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -80,6 +81,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 		final String verseFileName = name + "_utf8.txt";
 		
 		Bible bible = new Bible();
+		bible.importDate = new Date();
 		bible.source = "THE UNBOUND BIBLE (www.unboundbible.org)";
 
 		// make sure the file exists
@@ -193,12 +195,6 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 		int order = increment;
 		int lastSubVerse = -1;
 		int i = 0;
-		
-//		String name = null;
-//		String language = null;
-//		String copyright = null;
-//		boolean hadImportWarning = false;
-//		boolean hasApocrypha = false;
 		
 		while ((line = reader.readLine()) != null) {
 			i++;

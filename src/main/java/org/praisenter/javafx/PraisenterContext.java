@@ -32,7 +32,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.praisenter.Tag;
-import org.praisenter.bible.BibleLibraryV1;
+import org.praisenter.bible.BibleLibrary;
 import org.praisenter.javafx.bible.ObservableBibleLibrary;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.media.ObservableMediaLibrary;
@@ -98,7 +98,7 @@ public final class PraisenterContext {
 			ScreenManager screenManager,
 			ImageCache imageCache,
 			MediaLibrary media,
-			BibleLibraryV1 bibles,
+			BibleLibrary bibles,
 			SongLibrary songs, 
 			SlideLibrary slides) {
 		this.javaFXContext = javaFxContext;

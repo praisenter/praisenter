@@ -32,12 +32,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -64,69 +65,11 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 	/** The source */
 	private static final String SOURCE = "Zefania XML Bible (https://sourceforge.net/projects/zefania-sharp/files/Bibles/)";
 	
-	/** The number of old testament books */
-	private static final int O_BOOK_COUNT = 39;
-	
-	/** The starting number of new testament books */
-	private static final int N_BOOK_COUNT = O_BOOK_COUNT + 27;
-	
-	// imported data
-	
-	/** The bible */
-	private Bible bible;
-	
-	/** The books */
-	private List<Book> books;
-	
-	/** The list of verses */
-	private List<Verse> verses;
-
-	// temp data
-	
-	/** The bible name */
-	private String name;
-	
-	/** The bible language */
-	private String language;
-	
-	/** The bible copyright */
-	private String copyright;
-	
-	/** True if the bible has apocryphal books */
-	private boolean hasApocrypha;
-	
-	/** True if the bible had import warnings */
-	private boolean hadImportWarning;
-	
-	/** The book number */
-	private int bookNumber;
-	
-	/** The book code */
-	private String bookCode;
-	
-	/** The chapter number */
-	private int chapter;
-	
-	/** The verse number */
-	private int verse;
-	
-	/** The verse order */
-	private int order;
-	
-	/** Buffer for tag contents */
-	private StringBuilder dataBuilder;
-	
-	/** True if we are reading the verse content */
-	private boolean verseContent;
-	
-	/** True if we need to ignore the current content */
-	private boolean ignoreContent;
-	
 	/**
 	 * Minimal constructor.
 	 * @param library the library to import into
 	 */
-	public ZefaniaBibleImporter(BibleLibraryV1 library) {
+	public ZefaniaBibleImporter(BibleLibrary library) {
 		super(library);
 	}
 	
@@ -134,11 +77,7 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public List<Bible> execute(Path path) throws IOException, SQLException, FileNotFoundException, BibleAlreadyExistsException, InvalidFormatException {
-		final String name = path.getFileName().toString().toLowerCase();
-		
-		this.reset();
-		
+	public List<Bible> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException {
 		List<Bible> bibles = new ArrayList<Bible>();
 		
 		// make sure the file exists
@@ -155,30 +94,34 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 				while ((entry = zis.getNextEntry()) != null) {
 					read = true;
 					LOGGER.debug("Reading as zip file: " + path.toAbsolutePath().toString());
-					this.name = entry.getName().substring(0, entry.getName().lastIndexOf('.'));
-					this.parse(zis);
-					Bible bbl = this.insert(entry.getName());
-					if (bbl != null) {
-						bibles.add(bbl);
+					int i = entry.getName().lastIndexOf('.');
+					String name = entry.getName();
+					if (i >= 0) {
+						name = entry.getName().substring(0, i);
 					}
-					this.reset();
+					Bible bible = this.parse(zis, name);
+					library.save(bible);
+					bibles.add(bible);
 				}
 				// check if we read an entry
 				// if not, that may mean the file was not a zip so try it as a normal flat file
 				if (!read) {
+					String name = path.getFileName().toString().toLowerCase();
 					LOGGER.debug("Reading as XML file: " + path.toAbsolutePath().toString());
 					if (!name.endsWith(".xml")) {
 						LOGGER.warn("File " + path.toAbsolutePath().toString() + " does not end with either .zip or .xml file extensions.  Attempting to read anyway.");
 					}
 					// this indicates the file is not a zip or invalid
-					this.name = name.substring(0, name.lastIndexOf('.'));
+					name = path.getFileName().toString();
+					int i = name.lastIndexOf('.');
+					if (i >= 0) {
+						name = name.substring(0, i);
+					}
 					// hopefully its an .xmm
 					// just read it
-					this.parse(new FileInputStream(path.toFile()));
-					Bible bbl = this.insert(path.toAbsolutePath().toString());
-					if (bbl != null) {
-						bibles.add(bbl);
-					}
+					Bible bible = this.parse(new FileInputStream(path.toFile()), name);
+					library.save(bible);
+					bibles.add(bible);
 				}
 			}
 
@@ -190,81 +133,24 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 	}
 	
 	/**
-	 * Resets this imported to default values to prepare to import another
-	 * file.
-	 */
-	private void reset() {
-		this.bible = null;
-		this.books = new ArrayList<Book>();
-		this.verses = new ArrayList<Verse>();
-		
-		this.name = null;
-		this.language = "N/A";
-		this.copyright = null;
-		this.hasApocrypha = false;
-		this.hadImportWarning = false;
-		this.bookNumber = 0;
-		this.bookCode = null;
-		this.chapter = 0;
-		this.verse = 0;
-		this.order = 0;
-		this.dataBuilder = null;
-		this.verseContent = false;
-		this.ignoreContent = false;
-	}
-	
-	/**
 	 * Attempts to parse the given input stream into the internal bible format.
 	 * @param stream the input stream
+	 * @param name the name
 	 * @throws IOException if an IO error occurs
 	 * @throws InvalidFormatException if the stream was not in the expected format
+	 * @return {@link Bible}
 	 */
-	private void parse(InputStream stream) throws IOException, InvalidFormatException {
+	private Bible parse(InputStream stream, String name) throws IOException, InvalidFormatException {
 		try {
 			byte[] content = read(stream);
 			// read the bytes
 			SAXParserFactory factory = SAXParserFactory.newInstance();
-			SAXParser parser = factory.newSAXParser();			
-			parser.parse(new ByteArrayInputStream(content), new SaxParser());
+			SAXParser parser = factory.newSAXParser();
+			ZefaniaHandler handler = new ZefaniaHandler(name);
+			parser.parse(new ByteArrayInputStream(content), handler);
+			return handler.getBible();
 		} catch (SAXException | ParserConfigurationException e) {
 			throw new InvalidFormatException(e);
-		}
-	}
-	
-	/**
-	 * Inserts the current bible information into the database.
-	 * @param name the file name
-	 * @return {@link Bible}
-	 * @throws SQLException if an error occurs during import
-	 * @throws BibleAlreadyExistsException if the bible already exists in the bible library
-	 */
-	private Bible insert(String name) throws SQLException, BibleAlreadyExistsException {
-		// check for missing files
-		if (books.size() == 0 && verses.size() == 0) {
-			LOGGER.error("The file '" + name + "' did not contain any books or verses. Import failed.");
-			return null;
-		}
-		
-		this.bible = new Bible(-1, this.name, this.language, SOURCE, null, this.copyright, this.verses.size(), this.hasApocrypha, this.hadImportWarning);
-		
-		// import into the database
-		return this.insert(bible, books, verses);
-	}
-	
-	/**
-	 * Returns a generated book code based on the book number and testament based on
-	 * the format that The Unbound Bible uses.
-	 * @param number the book number
-	 * @return String
-	 */
-	private String getBookCode(int number) {
-		if (number <= O_BOOK_COUNT) {
-			return (number < 10 ? "0" : "") + number + "O";
-		} else if (number > O_BOOK_COUNT && number <= N_BOOK_COUNT) {
-			return number + "N";
-		} else {
-			this.hasApocrypha = true;
-			return number + "A";
 		}
 	}
 	
@@ -274,7 +160,58 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 	 * @version 3.0.0
 	 * @since 3.0.0
 	 */
-	private final class SaxParser extends DefaultHandler {
+	private final class ZefaniaHandler extends DefaultHandler {
+
+		// imported data
+		
+		/** The bible */
+		private Bible bible;
+		
+		// temp data
+		
+		/** The current book */
+		private Book book;
+		
+		/** The book number */
+		private int bookNumber;
+		
+		/** The chapter number */
+		private int chapter;
+		
+		/** The verse number */
+		private int verse;
+		
+		/** The verse order */
+		private int order;
+		
+		/** Buffer for tag contents */
+		private StringBuilder dataBuilder;
+		
+		/** True if we are reading the verse content */
+		private boolean verseContent;
+		
+		/** True if we need to ignore the current content */
+		private boolean ignoreContent;
+		
+		/**
+		 * Minimal constructor.
+		 * @param name the bible name
+		 */
+		public ZefaniaHandler(String name) {
+			this.bible = new Bible();
+			this.bible.importDate = new Date();
+			this.bible.name = name;
+			this.bible.source = SOURCE;
+		}
+		
+		/**
+		 * Returns the parsed bible.
+		 * @return {@link Bible}
+		 */
+		public Bible getBible() {
+			return this.bible;
+		}
+		
 		/* (non-Javadoc)
 		 * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String, java.lang.String, java.lang.String, org.xml.sax.Attributes)
 		 */
@@ -286,42 +223,45 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 				// get the name if present
 				String name = attributes.getValue("biblename");
 				if (name != null) {
-					ZefaniaBibleImporter.this.name = name.trim();
+					this.bible.name = name.trim();
 				}
 			} else if (qName.equalsIgnoreCase("biblebook") ||
 					   qName.equalsIgnoreCase("b")) {
 				String bnumber = attributes.getValue("bnumber");
 				try {
-					bookNumber = Integer.parseInt(bnumber);
+					this.bookNumber = Integer.parseInt(bnumber);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse book number '" + bnumber + "' for '" + name + "'. Using next book number in sequence instead.");
-					bookNumber++;
+					LOGGER.warn("Failed to parse book number '" + bnumber + "' for '" + this.bible.name + "'. Using next book number in sequence instead.");
+					this.bible.hadImportWarning = true;
+					this.bookNumber++;
 				}
-				bookCode = getBookCode(bookNumber);
-				books.add(new Book(null, bookCode, attributes.getValue("bname")));
-				chapter = 0;
+				this.book = new Book(String.valueOf(bookNumber), attributes.getValue("bname"), bookNumber);
+				this.bible.books.add(book);
+				this.chapter = 0;
 			} else if (qName.equalsIgnoreCase("chapter") ||
 					   qName.equalsIgnoreCase("c")) {
 				String cnumber = attributes.getValue("cnumber");
 				try {
-					chapter = Integer.parseInt(cnumber);
+					this.chapter = Integer.parseInt(cnumber);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse chapter number '" + cnumber + "' for '" + name + "'. Using next chapter number in sequence instead.");
-					chapter++;
+					LOGGER.warn("Failed to parse chapter number '" + cnumber + "' for '" + this.bible.name + "'. Using next chapter number in sequence instead.");
+					this.bible.hadImportWarning = true;
+					this.chapter++;
 				}
-				verse = 0;
+				this.verse = 0;
 			} else if (qName.equalsIgnoreCase("vers") ||
 					   qName.equalsIgnoreCase("v")) {
 				String v = attributes.getValue("v");
 				String vnumber = v == null || v.length() == 0 ? attributes.getValue("vnumber") : v;
 				try {
-					verse = Integer.parseInt(vnumber);
+					this.verse = Integer.parseInt(vnumber);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse verse number '" + vnumber + "' for '" + name + "'. Using next verse number in sequence instead.");
-					verse++;
+					LOGGER.warn("Failed to parse verse number '" + vnumber + "' for '" + this.bible.name + "'. Using next verse number in sequence instead.");
+					this.bible.hadImportWarning = true;
+					this.verse++;
 				}
-				order += 10;
-				verseContent = true;
+				this.order += 10;
+				this.verseContent = true;
 			} else if (qName.equalsIgnoreCase("note") ||
 					   qName.equalsIgnoreCase("n") ||
 					   qName.equalsIgnoreCase("gram") ||
@@ -329,7 +269,7 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 					   qName.equalsIgnoreCase("g") ||
 					   qName.equalsIgnoreCase("xref") ||
 					   qName.equalsIgnoreCase("xr")) {
-				ignoreContent = true;
+				this.ignoreContent = true;
 			}
 		}
 
@@ -342,11 +282,11 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 			// this is done to improve performance so we need to append the text before
 			// using it
 			String s = new String(ch, start, length);
-			if (dataBuilder == null) {
-				dataBuilder = new StringBuilder();
+			if (this.dataBuilder == null) {
+				this.dataBuilder = new StringBuilder();
 			}
-			if (!ignoreContent) {
-				dataBuilder.append(s);
+			if (!this.ignoreContent) {
+				this.dataBuilder.append(s);
 			}
 		}
 		
@@ -357,20 +297,20 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			if (qName.equalsIgnoreCase("vers") ||
 				qName.equalsIgnoreCase("v")) {
-				verses.add(new Verse(null, new Book(null, bookCode, null), -1, chapter, verse, -1, order, dataBuilder.toString().trim()));
-				verseContent = false;
+				this.book.verses.add(new Verse(this.chapter, this.verse, -1, this.order, this.dataBuilder.toString().trim()));
+				this.verseContent = false;
 			} else if (qName.equalsIgnoreCase("title")) {
-				String name = dataBuilder.toString();
+				String name = this.dataBuilder.toString();
 				if (name != null) {
-					ZefaniaBibleImporter.this.name = name.trim();
+					this.bible.name = name.trim();
 				}
 			} else if (qName.equalsIgnoreCase("language")) {
-				String language = dataBuilder.toString();
+				String language = this.dataBuilder.toString();
 				if (language != null) {
-					ZefaniaBibleImporter.this.language = language.trim();
+					this.bible.language = language.trim();
 				}
 			} else if (qName.equalsIgnoreCase("rights")) {
-				copyright = dataBuilder.toString().trim();
+				this.bible.copyright = this.dataBuilder.toString().trim();
 			} else if (qName.equalsIgnoreCase("note") ||
 					   qName.equalsIgnoreCase("n") ||
 					   qName.equalsIgnoreCase("gram") ||
@@ -378,10 +318,10 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 					   qName.equalsIgnoreCase("g") ||
 					   qName.equalsIgnoreCase("xref") ||
 					   qName.equalsIgnoreCase("xr")) {
-				ignoreContent = false;
+				this.ignoreContent = false;
 			}
-			if (!verseContent) {
-				dataBuilder = null;
+			if (!this.verseContent) {
+				this.dataBuilder = null;
 			}
 		}
 	}

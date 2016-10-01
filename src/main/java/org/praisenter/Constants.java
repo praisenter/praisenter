@@ -117,13 +117,13 @@ public final class Constants {
 	public static final String SLIDES_ABSOLUTE_PATH = Constants.ROOT_PATH + SLIDES_RELATIVE_PATH;
 	
 	///////////////////////////
-	// DATABASE
+	// BIBLES
 	
-	// /slides
+	// /bibles
 	/** The relative path to the database */
-	public static final String DATABASE_RELATIVE_PATH = "data" + RuntimeProperties.PATH_SEPARATOR + "db" + RuntimeProperties.PATH_SEPARATOR;
+	public static final String BIBLES_RELATIVE_PATH = "bibles" + RuntimeProperties.PATH_SEPARATOR;
 	
-	// /user/home/dir/Praisenter3/slides
+	// /user/home/dir/Praisenter3/bibles
 	/** The absolute path to the database */
-	public static final String DATABASE_ABSOLUTE_PATH = Constants.ROOT_PATH + DATABASE_RELATIVE_PATH;
+	public static final String BIBLES_ABSOLUTE_PATH = Constants.ROOT_PATH + BIBLES_RELATIVE_PATH;
 }

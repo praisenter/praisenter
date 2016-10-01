@@ -33,11 +33,13 @@ import java.util.List;
  * @version 3.0.0
  */
 public final class BibleSearchResult implements Comparable<BibleSearchResult> {
-	/** The matched bible */
+	/** The bible */
 	final Bible bible;
 	
+	/** The book */
 	final Book book;
 	
+	/** The verse */
 	final Verse verse;
 	
 	/** The matched text */
@@ -46,6 +48,8 @@ public final class BibleSearchResult implements Comparable<BibleSearchResult> {
 	/**
 	 * Full constructor.
 	 * @param bible the bible
+	 * @param book the book
+	 * @param verse the verse
 	 * @param matches the matched text
 	 */
 	public BibleSearchResult(Bible bible, Book book, Verse verse, List<BibleSearchMatch> matches) {
@@ -55,6 +59,9 @@ public final class BibleSearchResult implements Comparable<BibleSearchResult> {
 		this.matches = Collections.unmodifiableList(matches);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
 	@Override
 	public int compareTo(BibleSearchResult o) {
 		int diff = bible.id.compareTo(o.bible.id);
@@ -71,19 +78,27 @@ public final class BibleSearchResult implements Comparable<BibleSearchResult> {
 	}
 	
 	/**
-	 * Returns the matched bible.
+	 * Returns the bible.
 	 * @return {@link Bible}
 	 */
 	public Bible getBible() {
 		return this.bible;
 	}
 
+	/**
+	 * Returns the book.
+	 * @return {@link Book}
+	 */
 	public Book getBook() {
-		return book;
+		return this.book;
 	}
 	
+	/**
+	 * Returns the verse.
+	 * @return {@link Verse}
+	 */
 	public Verse getVerse() {
-		return verse;
+		return this.verse;
 	}
 	
 	/**
