@@ -274,7 +274,7 @@ public final class ObservableMediaLibrary {
 		});
 		task.setOnFailed((e) -> {
 			Throwable ex = task.getException();
-			LOGGER.error("Failed to remove media " + media.getMetadata().getName(), ex);
+			LOGGER.error("Failed to remove media " + media.getName(), ex);
 			Fx.runOnFxThead(() -> {
 				if (onError != null) {
 					onError.accept(media, ex);
@@ -316,7 +316,7 @@ public final class ObservableMediaLibrary {
 							items.remove(new MediaListItem(m));
 						});
 					} catch (Exception ex) {
-						LOGGER.error("Failed to remove media " + m.getMetadata().getName(), ex);
+						LOGGER.error("Failed to remove media " + m.getName(), ex);
 						failures.add(new FailedOperation<Media>(m, ex));
 					}
 				}
@@ -380,7 +380,7 @@ public final class ObservableMediaLibrary {
 				int index = -1;
 		    	for (int i = 0; i < items.size(); i++) {
 		    		MediaListItem item = items.get(i);
-		    		if (item.media.getMetadata().getId() == media.getMetadata().getId()) {
+		    		if (item.media.getId() == media.getId()) {
 		    			index = i;
 		    			break;
 		    		}
@@ -398,7 +398,7 @@ public final class ObservableMediaLibrary {
 		});
 		task.setOnFailed((e) -> {
 			final Throwable ex = task.getException();
-			LOGGER.error("Failed to rename media " + media.getMetadata().getName(), ex);
+			LOGGER.error("Failed to rename media " + media.getName(), ex);
 			// run everything on the FX UI Thread
 			Platform.runLater(() -> {
 				if (onError != null) {
@@ -435,7 +435,7 @@ public final class ObservableMediaLibrary {
 		});
 		task.setOnFailed((e) -> {
 			final Throwable ex = task.getException();
-			LOGGER.error("Failed to add tag " + tag.getName() + " to media " + media.getMetadata().getName(), ex);
+			LOGGER.error("Failed to add tag " + tag.getName() + " to media " + media.getName(), ex);
 			// run everything on the FX UI Thread
 			Platform.runLater(() -> {
 				if (onError != null) {
@@ -472,7 +472,7 @@ public final class ObservableMediaLibrary {
 		});
 		task.setOnFailed((e) -> {
 			final Throwable ex = task.getException();
-			LOGGER.error("Failed to remove tag " + tag.getName() + " from media " + media.getMetadata().getName(), ex);
+			LOGGER.error("Failed to remove tag " + tag.getName() + " from media " + media.getName(), ex);
 			// run everything on the FX UI Thread
 			Platform.runLater(() -> {
 				if (onError != null) {
@@ -503,22 +503,13 @@ public final class ObservableMediaLibrary {
 	}
 	
 	/**
-	 * Returns the path to the single frame for the given media.
-	 * @param media the media
-	 * @return Path
-	 */
-	public Path getFramePath(Media media) {
-		return this.library.getFramePath(media);
-	}
-	
-	/**
 	 * Returns a set of all the tags on all media items.
 	 * @return Set&lt;{@link Tag}&gt;
 	 */
 	public Set<Tag> getTags() {
 		Set<Tag> tags = new TreeSet<Tag>();
 		for (Media media : library.all()) {
-			tags.addAll(media.getMetadata().getTags());
+			tags.addAll(media.getTags());
         }
 		return tags;
 	}

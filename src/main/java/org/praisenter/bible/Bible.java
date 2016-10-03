@@ -79,7 +79,11 @@ public final class Bible implements Comparable<Bible> {
 	/** The books in this bible */
 	@XmlElement(name = "book", required = false)
 	@XmlElementWrapper(name = "books", required = false)
-	List<Book> books;
+	final List<Book> books;
+	
+	/** Any notes */
+	@XmlElement(name = "notes", required = false)
+	String notes;
 	
 	/**
 	 * Default constructor.
@@ -93,6 +97,7 @@ public final class Bible implements Comparable<Bible> {
 		this.copyright = null;
 		this.hadImportWarning = false;
 		this.books = new ArrayList<Book>();
+		this.notes = null;
 	}
 	
 	/**
@@ -103,7 +108,6 @@ public final class Bible implements Comparable<Bible> {
 	 * @param source the bible source
 	 * @param importDate the import date
 	 * @param copyright the copyright (if any)
-	 * @param verseCount the total number of verses
 	 * @param hadImportWarning true if a warning occurred during import
 	 * @param books the books for this bible
 	 */
@@ -113,7 +117,6 @@ public final class Bible implements Comparable<Bible> {
 		  String source, 
 		  Date importDate,
 		  String copyright,
-		  int verseCount,
 		  boolean hadImportWarning,
 		  List<Book> books) {
 		this.id = id;
@@ -203,14 +206,6 @@ public final class Bible implements Comparable<Bible> {
 	}
 
 	/**
-	 * Sets the import date of this bible.
-	 * @param importDate the import date
-	 */
-	public void setImportDate(Date importDate) {
-		this.importDate = importDate;
-	}
-
-	/**
 	 * Returns the copyright information (if any).
 	 * @return String
 	 */
@@ -241,7 +236,42 @@ public final class Bible implements Comparable<Bible> {
 		}
 		return n;
 	}
+	
+	/**
+	 * Returns the number of books.
+	 * @return int
+	 */
+	public int getBookCount() {
+		if (this.books != null) {
+			return this.books.size();
+		}
+		return 0;
+	}
 
+	/**
+	 * Returns the number of books with verses.
+	 * @return int
+	 */
+	public int getBookWithVersesCount() {
+		int n = 0;
+		if (this.books != null) {
+			for (Book book : this.books) {
+				if (book.verses != null && book.verses.size() > 0) {
+					n++;
+				}
+			}
+		}
+		return n;
+	}
+	
+	/**
+	 * Returns the books of this bible.
+	 * @return List&lt;{@link Book}&gt;
+	 */
+	public List<Book> getBooks() {
+		return this.books;
+	}
+	
 	/**
 	 * Returns true if a warning occurred during import of
 	 * this bible.
@@ -249,13 +279,5 @@ public final class Bible implements Comparable<Bible> {
 	 */
 	public boolean hadImportWarning() {
 		return this.hadImportWarning;
-	}
-
-	/**
-	 * Sets the import warning flag.
-	 * @param hadImportWarning true if there was an error during import
-	 */
-	public void setHadImportWarning(boolean hadImportWarning) {
-		this.hadImportWarning = hadImportWarning;
 	}
 }

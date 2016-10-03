@@ -35,8 +35,10 @@ import java.util.stream.Collectors;
 import org.praisenter.FailedOperation;
 import org.praisenter.bible.Bible;
 import org.praisenter.javafx.Alerts;
+import org.praisenter.javafx.FlowListItem;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.SelectionEvent;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
@@ -83,6 +85,8 @@ public final class BibleLibraryPane extends BorderPane {
 	
 	/** The bible listing */
 	private final FlowListView<BibleListItem> lstBibles;
+	
+	private final BibleEditPane editor;
 	
 	/**
 	 * Minimal constructor.
@@ -166,6 +170,17 @@ public final class BibleLibraryPane extends BorderPane {
         	} else {
         		lstBibles.selectionProperty().set(new BibleListItem(nv));
         	}
+        });
+        
+        this.editor = new BibleEditPane(context);
+        this.lstBibles.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
+        	@SuppressWarnings("unchecked")
+			FlowListItem<BibleListItem> view = (FlowListItem<BibleListItem>)e.getTarget();
+        	BibleListItem item = view.getData();
+			
+			this.editor.setBible(item.bible);
+			
+			this.setCenter(this.editor);
         });
         
         // wire up the selected media to the media metadata view with a unidirectional binding

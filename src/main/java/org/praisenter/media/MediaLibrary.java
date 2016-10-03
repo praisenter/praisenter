@@ -24,7 +24,6 @@
  */
 package org.praisenter.media;
 
-import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +43,6 @@ import java.util.UUID;
 
 import javax.activation.FileTypeMap;
 import javax.activation.MimetypesFileTypeMap;
-import javax.imageio.ImageIO;
 import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
@@ -84,24 +82,12 @@ public final class MediaLibrary {
 	/** The directory to store the metadata files */
 	private static final String METADATA_DIR = "_metadata";
 	
-	/** The directory to store the thumbnail files */
-	private static final String THUMB_DIR = "_thumbs";
-	
-	/** The directory to store the video frame files */
-	private static final String FRAME_DIR = "_frames";
-	
 	/** The directory to store temporary files */
 	private static final String TEMP_DIR = "_temp";
 	
 	/** The suffix added to a media file for metadata */
 	private static final String METADATA_EXT = "_metadata.xml";
 	
-	/** The suffix added to a media file for thumbnails */
-	private static final String THUMB_EXT = "_thumb.png";
-	
-	/** The suffix added to a media file for frames */
-	private static final String FRAME_EXT = "_frame.jpg";
-
 	// instance variables
 	
 	/** The root path to the media library */
@@ -109,12 +95,6 @@ public final class MediaLibrary {
 	
 	/** The full path to the metatdata */
 	private final Path metadataPath;
-	
-	/** The full path to the thumbnails */
-	private final Path thumbsPath;
-	
-	/** The full path to the frames */
-	private final Path framesPath;
 	
 	/** The import filter */
 	private final MediaImportFilter importFilter;
@@ -166,8 +146,6 @@ public final class MediaLibrary {
 	private MediaLibrary(Path path, MediaImportFilter importFilter, MediaThumbnailSettings settings) {
 		this.path = path;
 		this.metadataPath = path.resolve(METADATA_DIR);
-		this.thumbsPath = path.resolve(THUMB_DIR);
-		this.framesPath = path.resolve(FRAME_DIR);
 		
 		this.importFilter = importFilter == null ? new DefaultMediaImportFilter() : importFilter;
 		
@@ -191,11 +169,9 @@ public final class MediaLibrary {
 		Files.createDirectories(this.path);
 		// for metadata and thumbnails
 		Files.createDirectories(this.metadataPath);
-		Files.createDirectories(this.thumbsPath);
-		Files.createDirectories(this.framesPath);
 		
 		// load existing meta data into a temporary map for verification
-		Map<Path, MediaMetadata> metadata = new HashMap<Path, MediaMetadata>();
+		Map<Path, Media> metadata = new HashMap<Path, Media>();
 		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
 		try (DirectoryStream<Path> dir = Files.newDirectoryStream(this.metadataPath)) {
 			for (Path path : dir) {
@@ -203,7 +179,7 @@ public final class MediaLibrary {
 					String mimeType = map.getContentType(path.toString());
 					if (mimeType.equals("application/xml")) {
 						try {
-							MediaMetadata meta = XmlIO.read(path, MediaMetadata.class);
+							Media meta = XmlIO.read(path, Media.class);
 							metadata.put(meta.path, meta);
 						} catch (Exception e) {
 							// just continue loading
@@ -223,13 +199,13 @@ public final class MediaLibrary {
 					boolean update = false;
 					
 					// get the metadata
-					MediaMetadata meta = metadata.get(path);
+					Media media = metadata.get(path);
 					
 					// are we cached at all
-					if (meta != null) {
+					if (media != null) {
 						// compare last modified values
 						BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
-						if (attributes.lastModifiedTime().toMillis() != meta.lastModified) {
+						if (attributes.lastModifiedTime().toMillis() != media.lastModified) {
 							// the file has been modified, so update
 							update = true;
 						}
@@ -239,17 +215,15 @@ public final class MediaLibrary {
 					}
 					
 					// verify existence of thumbnail (except for audio)
-					Path tPath = this.thumbsPath.resolve(path.getFileName().toString() + THUMB_EXT);
-					if (!Files.exists(tPath)) {
-						if (meta == null || (meta != null && meta.type != MediaType.AUDIO)) {
+					if (media != null && media.thumbnail == null) {
+						if (media.type != MediaType.AUDIO) {
 							update = true;
 						}
 					}
 					
 					// verify existence of frame for videos
-					Path fPath = this.framesPath.resolve(path.getFileName().toString() + FRAME_EXT);
-					if (!Files.exists(fPath)) {
-						if (meta == null || (meta != null && meta.type == MediaType.VIDEO)) {
+					if (media != null && media.frame == null) {
+						if (media.type == MediaType.VIDEO) {
 							update = true;
 						}
 					}
@@ -264,18 +238,12 @@ public final class MediaLibrary {
 							// if the meta data was just out of date
 							// we want to keep certain metadata information like
 							// date added and the tags
-							update(path, meta);
+							update(path, media);
 						} catch (Exception e) {
 							LOGGER.warn("Failed to load file '" + path.toAbsolutePath().toString() + "'.", e);
 						}
 					} else {
-						Media media = null;
-						if (meta.type != MediaType.AUDIO) {
-							media = new Media(meta, loadThumbnail(tPath));
-						} else {
-							media = new Media(meta, thumbnailSettings.audioDefaultThumbnail);
-						}
-						this.media.put(media.metadata.id, media);
+						this.media.put(media.id, media);
 					}
 				}
 			}
@@ -283,67 +251,35 @@ public final class MediaLibrary {
 	}
 	
 	/**
-	 * Loads the given thumbnail or null if not found or cannot be read.
-	 * @param path the path
-	 * @return BufferedImage
-	 */
-	private final BufferedImage loadThumbnail(Path path) {
-		try {
-			return ImageIO.read(path.toFile());
-		} catch (IOException e) {
-			LOGGER.warn("Failed to load thumbnail '" + path.toAbsolutePath().toString() + "'", e);
-		}
-		return null;
-	}
-	
-	/**
-	 * Updates the given media's metadata (including tags) and thumbnail.
+	 * Updates the given media (including tags) and thumbnail.
 	 * @param path the file
-	 * @param meta the existing metadata; can be null
+	 * @param media the existing media; can be null
 	 * @return {@link Media}
 	 * @throws InvalidFormatException if the media format isn't something recognized or readable
 	 * @throws IOException if an IO error occurs
 	 */
-	private final Media update(Path path, MediaMetadata meta) throws InvalidFormatException, IOException {
-		LoadedMedia lm = load(path);
-		Media media = lm.media;
+	private final Media update(Path path, Media media) throws InvalidFormatException, IOException {
+		// reload the media
+		Media newMedia = load(path);
 		
 		// check for existing metadata
-		if (meta != null) {
+		if (media != null) {
 			// update the new metadata with the old
 			// date added and tags
-			media = new Media(MediaMetadata.forUpdated(meta.dateAdded, meta.tags != null ? new TreeSet<Tag>(meta.tags) : null, media.metadata), media.thumbnail);
+			newMedia = Media.forUpdated(media.dateAdded, media.tags != null ? new TreeSet<Tag>(media.tags) : null, newMedia);
 		}
 		
 		// save the metadata
 		try {
-			saveMetadata(media);
+			saveMetadata(newMedia);
 		} catch (Exception e) {
 			LOGGER.warn("Failed to save metadata for '" + path.toAbsolutePath().toString() + "'", e);
 		}
 		
-		// save a thumbnail for video and images
-		if (media.metadata.type != MediaType.AUDIO) {
-			try {
-				saveThumbnail(media);
-			} catch (Exception e) {
-				LOGGER.warn("Failed to save thumbnail for '" + path.toAbsolutePath().toString() + "'", e);
-			}
-		}
-		
-		// save a single frame for videos
-		if (media.metadata.type == MediaType.VIDEO && lm.image != null) {
-			try {
-				saveFrame(lm);
-			} catch (Exception e) {
-				LOGGER.warn("Failed to save image for '" + path.toAbsolutePath().toString() + "'", e);
-			}
-		}
-		
 		// we loaded the media, so add it to the map
-		this.media.put(media.metadata.id, media);
+		this.media.put(newMedia.id, newMedia);
 		
-		return media;
+		return newMedia;
 	}
 	
 	/**
@@ -353,31 +289,9 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	private final void saveMetadata(Media media) throws JAXBException, IOException {
-		Path path = media.metadata.path;
+		Path path = media.path;
 		Path mPath = this.metadataPath.resolve(path.getFileName().toString() + METADATA_EXT);
-		XmlIO.save(mPath, media.metadata);
-	}
-	
-	/**
-	 * Saves the thumbnail of the given media.
-	 * @param media the media
-	 * @throws IOException if an IO error occurs
-	 */
-	private final void saveThumbnail(Media media) throws IOException {
-		Path path = media.metadata.path;
-		Path tPath = this.thumbsPath.resolve(path.getFileName().toString() + THUMB_EXT);
-		ImageIO.write(media.thumbnail, "png", tPath.toFile());
-	}
-	
-	/**
-	 * Saves the image of the given media.
-	 * @param media the media
-	 * @throws IOException if an IO error occurs
-	 */
-	private final void saveFrame(LoadedMedia media) throws IOException {
-		Path path = media.media.metadata.path;
-		Path tPath = this.framesPath.resolve(path.getFileName().toString() + FRAME_EXT);
-		ImageIO.write(media.image, "jpg", tPath.toFile());
+		XmlIO.save(mPath, media);
 	}
 	
 	/**
@@ -387,7 +301,7 @@ public final class MediaLibrary {
 	 * @throws InvalidFormatException if the media format isn't something recognized or readable
 	 * @throws IOException if an IO error occurs
 	 */
-	private final LoadedMedia load(Path path) throws InvalidFormatException, IOException {
+	private final Media load(Path path) throws InvalidFormatException, IOException {
 		List<MediaLoader> loaders = getLoadersForPath(path);
 		
 		// any supporting media loaders?
@@ -398,7 +312,7 @@ public final class MediaLibrary {
 			throw new UnsupportedMediaException(new UnknownMediaTypeException(path.toAbsolutePath().toString()));
 		}
 		
-		LoadedMedia media = null;
+		Media media = null;
 		
 		// iterate through the loaders
 		int n = loaders.size();
@@ -541,12 +455,6 @@ public final class MediaLibrary {
 		Path mPath = this.metadataPath.resolve(path.getFileName().toString() + METADATA_EXT);
 		Files.deleteIfExists(mPath);
 		
-		Path tPath = this.thumbsPath.resolve(path.getFileName().toString() + THUMB_EXT);
-		Files.deleteIfExists(tPath);
-
-		Path fPath = this.framesPath.resolve(path.getFileName().toString() + FRAME_EXT);
-		Files.deleteIfExists(fPath);
-		
 		return true;
 	}
 	
@@ -560,7 +468,7 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	private final Media move(Media media, String name) throws FileAlreadyExistsException, IOException, JAXBException {
-		Path source = media.metadata.path;
+		Path source = media.path;
 		String name0 = source.getFileName().toString();
 		String name1 = name;
 		
@@ -577,21 +485,7 @@ public final class MediaLibrary {
 		// move (rename) the media
 		Files.move(source, target);
 		
-		// thumbnail (audio doesn't have thumbnails)
-		if (media.metadata.getType() != MediaType.AUDIO) {
-			Path stPath = this.thumbsPath.resolve(name0 + THUMB_EXT);
-			Path ttPath = this.thumbsPath.resolve(name1 + THUMB_EXT);
-			Files.move(stPath, ttPath);
-		}
-		
-		// frame (only for video)
-		if (media.metadata.getType() == MediaType.VIDEO) {
-			Path sfPath = this.framesPath.resolve(name0 + FRAME_EXT);
-			Path tfPath = this.framesPath.resolve(name1 + FRAME_EXT);
-			Files.move(sfPath, tfPath);
-		}
-		
-		Media media1 = new Media(MediaMetadata.forRenamed(target, media.metadata), media.thumbnail);
+		Media media1 = Media.forRenamed(target, media);
 		
 		// metadata
 		// remove old metadata
@@ -601,7 +495,7 @@ public final class MediaLibrary {
 		this.saveMetadata(media1);
 
 		// just overwrite the media item with the new one
-		this.media.put(media.metadata.id, media1);
+		this.media.put(media.id, media1);
 		
 		return media1;
 	}
@@ -653,7 +547,7 @@ public final class MediaLibrary {
 		ArrayList<Media> all = new ArrayList<Media>();
 		for (Media media : this.media.values()) {
 			for (MediaType type : types) {
-				if (media.metadata.type == type) {
+				if (media.type == type) {
 					all.add(media);
 					break;
 				}
@@ -716,7 +610,7 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized void remove(Media media) throws IOException {
-		Path path = media.metadata.path;
+		Path path = media.path;
 		
 		// delete the files
 		delete(path);
@@ -748,7 +642,7 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized boolean addTag(Media media, Tag tag) throws JAXBException, IOException {
-		boolean added = media.metadata.tags.add(tag);
+		boolean added = media.tags.add(tag);
 		if (added) {
 			saveMetadata(media);
 		}
@@ -764,7 +658,7 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */	
 	public synchronized boolean addTags(Media media, Collection<Tag> tags) throws JAXBException, IOException {
-		boolean added = media.metadata.tags.addAll(tags);
+		boolean added = media.tags.addAll(tags);
 		if (added) {
 			saveMetadata(media);
 		}
@@ -780,8 +674,8 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */	
 	public synchronized boolean setTags(Media media, Collection<Tag> tags) throws JAXBException, IOException {
-		boolean changed = media.metadata.tags.addAll(tags);
-		changed |= media.metadata.tags.retainAll(tags);
+		boolean changed = media.tags.addAll(tags);
+		changed |= media.tags.retainAll(tags);
 		if (changed) {
 			saveMetadata(media);
 		}
@@ -797,7 +691,7 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */	
 	public synchronized boolean removeTag(Media media, Tag tag) throws JAXBException, IOException {
-		boolean removed = media.metadata.tags.remove(tag);
+		boolean removed = media.tags.remove(tag);
 		if (removed) {
 			saveMetadata(media);
 		}
@@ -813,27 +707,13 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */	
 	public synchronized boolean removeTags(Media media, Collection<Tag> tags) throws JAXBException, IOException {
-		boolean removed = media.metadata.tags.removeAll(tags);
+		boolean removed = media.tags.removeAll(tags);
 		if (removed) {
 			saveMetadata(media);
 		}
 		return removed;
 	}
 
-	/**
-	 * Returns the path to a frame extracted from a video.
-	 * <p>
-	 * Returns null if the media is not a video.
-	 * @param media a video media
-	 * @return Path
-	 */
-	public synchronized Path getFramePath(Media media) {
-		if (media.metadata.type == MediaType.VIDEO) {
-			return this.framesPath.resolve(media.metadata.path.getFileName().toString() + FRAME_EXT);
-		}
-		return null;
-	}
-	
 	/**
 	 * Returns the import filter for this media library.
 	 * @return {@link MediaImportFilter}

@@ -227,12 +227,12 @@ class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 				return this.pkrGradient.getValue();
 			case IMAGE:
 				if (this.pkrImage.getValue() != null) {
-					return new MediaObject(this.pkrImage.getValue().getMetadata().getId(), scaleType, false, false);
+					return new MediaObject(this.pkrImage.getValue().getId(), scaleType, false, false);
 				}
 				return null;
 			case VIDEO:
 				if (this.pkrVideo.getValue() != null) {
-					return new MediaObject(this.pkrVideo.getValue().getMetadata().getId(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
+					return new MediaObject(this.pkrVideo.getValue().getId(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
 				}
 				return null;
 			case AUDIO:
@@ -252,10 +252,10 @@ class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 				if (media == null) {
 					cmbTypes.setValue(new Option<PaintType>("", PaintType.NONE));
 				} else {
-					if (media.getMetadata().getType() == MediaType.IMAGE) {
+					if (media.getType() == MediaType.IMAGE) {
 						cmbTypes.setValue(new Option<PaintType>("", PaintType.IMAGE));
 						pkrImage.setValue(media);
-					} else if (media.getMetadata().getType() == MediaType.VIDEO) {
+					} else if (media.getType() == MediaType.VIDEO) {
 						cmbTypes.setValue(new Option<PaintType>("", PaintType.VIDEO));
 						pkrVideo.setValue(media);
 					}

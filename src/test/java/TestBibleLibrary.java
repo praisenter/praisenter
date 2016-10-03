@@ -41,30 +41,31 @@ public class TestBibleLibrary {
 		
 //		BibleLibrary bl = BibleLibrary.open(Paths.get("D:\\Personal\\Praisenter\\bibles"));
 		BibleLibrary bl = BibleLibrary.open(Paths.get("C:\\Users\\William\\Desktop\\test\\biblelibrary"));
-		BibleImporter bi = new FormatIdentifingBibleImporter(bl);
-		try {
-			// Unbound Bible
-			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\kjv_apocrypha.zip"));
-			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\asv.zip"));
-			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\thai_kjv.zip"));
-			// OpenSong
-			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\CEV.zip"));
-			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\TB.zip"));
-			// Zefania
-			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\SF_2009-01-20_ENG_YLT_(YLT).zip"));
-			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\SF_2009-01-20_SPA_RVA_(REINA VALERA 1989).zip"));
-		} catch (JAXBException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvalidFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (UnknownFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		BibleImporter bi = new FormatIdentifingBibleImporter(bl);
+//		try {
+//			// Unbound Bible
+//			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\kjv_apocrypha.zip"));
+//			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\asv.zip"));
+//			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\thai_kjv.zip"));
+//			// OpenSong
+//			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\CEV.zip"));
+//			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\TB.zip"));
+//			// Zefania
+//			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\SF_2009-01-20_ENG_YLT_(YLT).zip"));
+//			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\SF_2009-01-20_SPA_RVA_(REINA VALERA 1989).zip"));
+//		} catch (JAXBException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (InvalidFormatException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (UnknownFormatException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
-		List<BibleSearchResult> results = bl.search(null, "void", SearchType.ALL_WORDS);
+//		List<BibleSearchResult> results = bl.search(null, "void", SearchType.ALL_WORDS);
+		List<BibleSearchResult> results = bl.search(UUID.fromString("0d4c1aba-1bef-4cc9-9992-f21ee68ff774"), "void", SearchType.ALL_WORDS);
 		Collections.sort(results);
 		for (BibleSearchResult result : results) {
 			System.out.print(result.getBible().getName() + " " + result.getBook().getName() + " " + result.getVerse().getChapter() + ":" + result.getVerse().getVerse());

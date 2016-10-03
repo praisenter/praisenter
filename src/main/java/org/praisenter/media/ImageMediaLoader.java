@@ -74,7 +74,7 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
 	 */
 	@Override
-	public LoadedMedia load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
+	public Media load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			// read the image
 			try (ImageInputStream in = ImageIO.createImageInputStream(path.toFile())) {
@@ -84,17 +84,15 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 					ImageReader reader = readers.next();
 					reader.setInput(in);
 					try {
-						// read and correct the image
-//						BufferedImage image = ImageManipulator.correctExifOrientation(reader.read(0), orientation);
+						// NOTE: EXIF correction is performed in the DefaultMediaImportFilter
 						BufferedImage image = reader.read(0);
 						BufferedImage thumb = createThumbnail(image);
 						String fmt = reader.getFormatName().toLowerCase();
 						
 						MediaFormat format = new MediaFormat(fmt, getDescription(fmt));
-						MediaMetadata metadata = MediaMetadata.forImage(path, format, (int)image.getWidth(), (int)image.getHeight(), null);
-						Media media = new Media(metadata, thumb);
+						Media media = Media.forImage(path, format, (int)image.getWidth(), (int)image.getHeight(), null, thumb);
 						
-						return new LoadedMedia(media, image);
+						return media;
 					} finally {
 						reader.dispose();
 					}

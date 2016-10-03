@@ -122,18 +122,10 @@ public final class ObservableSlideLibrary {
 	}
 	
 	/**
-	 * Attempts to add the given path to the slide library.
+	 * Attempts to save the given slide to this slide library.
 	 * <p>
-	 * The onSuccess method will be called when the import is successful. The
-	 * onError method will be called if an error occurs during import.
-	 * <p>
-	 * An item is added to the observable list to represent that the slide is
-	 * being imported. This item will be removed when the import completes, whether
-	 * its successful or not.
-	 * <p>
-	 * The observable list of slides will be updated if the slide is successfully
-	 * added. Both the update of the observable list and the onSuccess and onError 
-	 * methods will be performed on the Java FX UI thread.
+	 * The onSuccess method will be called when the save is successful. The
+	 * onError method will be called if an error occurs during the save.
 	 * @param slide the slide
 	 * @param onSuccess called when the slide is imported successfully
 	 * @param onError called when the slide failed to be imported
@@ -261,6 +253,13 @@ public final class ObservableSlideLibrary {
 		this.service.execute(task);
 	}
 	
+	/**
+	 * Scans the entire library for slides without thumbnails and attempts
+	 * to generate a thumbnail for each and save the slide with the thumbnail.
+	 * <p>
+	 * This method must be called from the Java FX UI thread.
+	 * @param generator the thumbnail generator
+	 */
 	public void generateMissingThumbnails(SlideThumbnailGenerator generator) {
 		for (Slide slide : library.all()) {
 			if (slide.getThumbnail() == null) {

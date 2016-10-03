@@ -39,7 +39,6 @@ import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.song.SongLibrary;
-import org.praisenter.utility.ClasspathLoader;
 
 import javafx.concurrent.Task;
 
@@ -107,10 +106,7 @@ final class LoadingTask extends Task<PraisenterContext> {
 		Path mediaPath = Paths.get(Constants.MEDIA_ABSOLUTE_PATH);
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				Constants.MEDIA_THUMBNAIL_SIZE, 
-				Constants.MEDIA_THUMBNAIL_SIZE,
-				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
-				ClasspathLoader.getBufferedImage("/org/praisenter/resources/music-default-thumbnail.png"),
-				ClasspathLoader.getBufferedImage("/org/praisenter/resources/video-default-thumbnail.png"));
+				Constants.MEDIA_THUMBNAIL_SIZE);
     	MediaLibrary media = MediaLibrary.open(mediaPath, new JavaFXMediaImportFilter(mediaPath), settings);
     	t1 = System.nanoTime();
     	updateProgress(3, 4);

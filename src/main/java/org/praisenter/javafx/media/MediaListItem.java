@@ -68,11 +68,11 @@ final class MediaListItem implements Comparable<MediaListItem> {
 	 * @param media the media
 	 */
 	public MediaListItem(Media media) {
-		this.name = media.getMetadata().getName();
+		this.name = media.getName();
 		this.media = media;
 		this.loaded = true;
 		this.tags = FXCollections.observableSet();
-		this.tags.addAll(media.getMetadata().getTags());
+		this.tags.addAll(media.getTags());
 	}
 	
 	/* (non-Javadoc)

@@ -34,6 +34,7 @@ import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.VerticalTextAlignment;
 
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.effect.DropShadow;
@@ -604,12 +605,12 @@ public final class JavaFXTypeConverter {
 			return null;
 		}
 		// check the type
-		if (media.getMetadata().getType() != MediaType.AUDIO && media.getMetadata().getType() != MediaType.VIDEO) {
+		if (media.getType() != MediaType.AUDIO && media.getType() != MediaType.VIDEO) {
 			return null;
 		}
 		try {
 			// attempt to open the media
-			javafx.scene.media.Media m = new javafx.scene.media.Media(media.getMetadata().getPath().toUri().toString());
+			javafx.scene.media.Media m = new javafx.scene.media.Media(media.getPath().toUri().toString());
 			m.setOnError(() -> { LOGGER.error(m.getError()); });
 			
 			// create a player
@@ -637,16 +638,17 @@ public final class JavaFXTypeConverter {
 		// check the media type
 		Image image = null;
 		Path path = null;
-		if (media.getMetadata().getType() == MediaType.VIDEO) {
+		if (media.getType() == MediaType.VIDEO) {
 			// for video's we just need to show a single frame
-			path = mediaLibrary.getFramePath(media);
-		} else if (media.getMetadata().getType() == MediaType.IMAGE) {
-			// image
-			path = media.getMetadata().getPath();
-		} else if (media.getMetadata().getType() == MediaType.AUDIO) {
+			return SwingFXUtils.toFXImage(media.getFrame(), null);
+		} else if (media.getType() == MediaType.IMAGE) {
+			// image itself
+			path = media.getPath();
+		} else if (media.getType() == MediaType.AUDIO) {
+			// a default image of sorts
 			path = Paths.get("/org/praisenter/resources/music-default-thumbnail.png");
 		} else {
-			LOGGER.error("Unknown media type " + media.getMetadata().getType());
+			LOGGER.error("Unknown media type " + media.getType());
 		}
 		
 		if (path == null) {
@@ -657,7 +659,7 @@ public final class JavaFXTypeConverter {
 			image = imageCache.get(path);
 		} catch (Exception ex) {
 			// just log the error
-			LOGGER.warn("Failed to load image " + media.getMetadata().getPath() + ".", ex);
+			LOGGER.warn("Failed to load image " + media.getPath() + ".", ex);
 		}
 		
 		if (image == null) {

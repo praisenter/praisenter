@@ -24,7 +24,6 @@
  */
 package org.praisenter.media;
 
-import java.awt.image.BufferedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -78,7 +77,7 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
 	 */
 	@Override
-	public LoadedMedia load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
+	public Media load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			Demuxer demuxer = null;
 			try {
@@ -97,16 +96,11 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 						
 						final MediaCodec mc = new MediaCodec(CodecType.AUDIO, codec.getName(), codec.getLongName());
 						final MediaFormat mf = new MediaFormat(format.getName().toLowerCase(), format.getLongName(), mc);
-						final MediaMetadata metadata = MediaMetadata.forAudio(path, mf, length, null);
+						final Media media = Media.forAudio(path, mf, length, null);
 						
 						// FEATURE could add some code to call a service to go get the album art
 						
-						// use the default audio thumbnail
-						BufferedImage thumb = this.settings.audioDefaultThumbnail;
-						Media media = new Media(metadata, thumb);
-						
-						// pass null for the full-size image (we don't have one)
-						return new LoadedMedia(media, null);
+						return media;
 					}
 				}
 				

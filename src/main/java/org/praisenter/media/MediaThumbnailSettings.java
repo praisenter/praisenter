@@ -24,11 +24,6 @@
  */
 package org.praisenter.media;
 
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-
-import org.praisenter.utility.ImageManipulator;
-
 /**
  * Media library thumbnail settings.
  * <p>
@@ -44,15 +39,6 @@ public final class MediaThumbnailSettings {
 	/** The desired thumbnail height */
 	final int height;
 	
-	/** The scaled default image thumbnail */
-	final BufferedImage imageDefaultThumbnail;
-	
-	/** The scaled default audio thumbnail */
-	final BufferedImage audioDefaultThumbnail;
-	
-	/** The scaled default video thumbnail */
-	final BufferedImage videoDefaultThumbnail;
-	
 	/**
 	 * Full constructor.
 	 * <p>
@@ -62,24 +48,13 @@ public final class MediaThumbnailSettings {
 	 * The default thumbnails will be sized appropriately if they aren't already.
 	 * @param width the desired thumbnail width
 	 * @param height the desired thumbnail height
-	 * @param imageDefaultThumbnail the default image thumbnail
-	 * @param audioDefaultThumbnail the default audio thumbnail
-	 * @param videoDefaultThumbnail the default video thumbnail
 	 */
 	public MediaThumbnailSettings(
 			int width, 
-			int height,
-			BufferedImage imageDefaultThumbnail, 
-			BufferedImage audioDefaultThumbnail,
-			BufferedImage videoDefaultThumbnail) {
+			int height) {
 		super();
 		this.width = width;
 		this.height = height;
-		
-		// make sure they are the right size
-		this.imageDefaultThumbnail = ImageManipulator.getUniformScaledImage(imageDefaultThumbnail, width, height, AffineTransformOp.TYPE_BICUBIC);
-		this.audioDefaultThumbnail = ImageManipulator.getUniformScaledImage(audioDefaultThumbnail, width, height, AffineTransformOp.TYPE_BICUBIC);
-		this.videoDefaultThumbnail = ImageManipulator.getUniformScaledImage(videoDefaultThumbnail, width, height, AffineTransformOp.TYPE_BICUBIC);
 	}
 
 	/**
@@ -96,29 +71,5 @@ public final class MediaThumbnailSettings {
 	 */
 	public int getHeight() {
 		return this.height;
-	}
-
-	/**
-	 * Returns the scaled default image thumbnail.
-	 * @return int
-	 */
-	public BufferedImage getImageDefaultThumbnail() {
-		return this.imageDefaultThumbnail;
-	}
-
-	/**
-	 * Returns the scaled default audio thumbnail.
-	 * @return int
-	 */
-	public BufferedImage getAudioDefaultThumbnail() {
-		return this.audioDefaultThumbnail;
-	}
-
-	/**
-	 * Returns the scaled default video thumbnail.
-	 * @return int
-	 */
-	public BufferedImage getVideoDefaultThumbnail() {
-		return this.videoDefaultThumbnail;
 	}
 }

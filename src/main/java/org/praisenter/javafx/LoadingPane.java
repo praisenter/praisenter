@@ -287,7 +287,7 @@ final class LoadingPane extends Pane {
 	}
 	
 	/**
-	 * Additional initialization.
+	 * Additional initialization that must be done on the UI thread.
 	 * @param context the context
 	 */
 	private void onPraisenterContextCreated(PraisenterContext context) {

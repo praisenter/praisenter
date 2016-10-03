@@ -43,8 +43,5 @@ public enum SearchType {
 	ANY_WORD,
 	
 	/** The results must contain the phrase */
-	PHRASE,
-	
-	/** The results must be at a specified location (for example Luke 1:1) */
-	LOCATION
+	PHRASE
 }

@@ -69,7 +69,7 @@ public class BufferedImageTypeAdapter extends XmlAdapter<String, BufferedImage> 
 	 */
 	private static final String getBase64ImageString(RenderedImage image) throws IOException {
 		ByteArrayOutputStream bo = new ByteArrayOutputStream();
-		Base64OutputStream b64o = new Base64OutputStream(bo);
+		Base64OutputStream b64o = new Base64OutputStream(bo, true, 0, null);
 		ImageIO.write(image, "png", b64o);
 		return new String(bo.toByteArray());
 	}
@@ -83,7 +83,7 @@ public class BufferedImageTypeAdapter extends XmlAdapter<String, BufferedImage> 
 	private static final BufferedImage getBase64StringImage(String string) throws IOException {
 		ByteArrayInputStream bais = new ByteArrayInputStream(string.getBytes());
 		BufferedInputStream bis = new BufferedInputStream(bais);
-		Base64InputStream b64is = new Base64InputStream(bis);
+		Base64InputStream b64is = new Base64InputStream(bis, false, 0, null);
 		return ImageIO.read(b64is);
 	}
 	

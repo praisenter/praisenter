@@ -95,7 +95,7 @@ public final class Verse implements Comparable<Verse> {
 	}
 	
 	/**
-	 * Returns the chapter number this {@link Verse} is contained in.
+	 * Returns the chapter number.
 	 * @return int
 	 */
 	public int getChapter() {
@@ -103,11 +103,27 @@ public final class Verse implements Comparable<Verse> {
 	}
 	
 	/**
-	 * Returns the verse number of this {@link Verse}.
+	 * Sets the chapter number.
+	 * @param chapter the chapter
+	 */
+	public void setChapter(int chapter) {
+		this.chapter = chapter;
+	}
+	
+	/**
+	 * Returns the verse number.
 	 * @return int
 	 */
 	public int getVerse() {
 		return this.verse;
+	}
+	
+	/**
+	 * Sets the verse number.
+	 * @param verse the verse
+	 */
+	public void setVerse(int verse) {
+		this.verse = verse;
 	}
 	
 	/**
@@ -119,6 +135,14 @@ public final class Verse implements Comparable<Verse> {
 	}
 	
 	/**
+	 * Sets the sub-verse number.
+	 * @param subVerse the sub-verse
+	 */
+	public void setSubVerse(int subVerse) {
+		this.subVerse = subVerse;
+	}
+	
+	/**
 	 * Returns the verse order.
 	 * @return int
 	 */
@@ -127,10 +151,26 @@ public final class Verse implements Comparable<Verse> {
 	}
 	
 	/**
+	 * Sets the sort order.
+	 * @param order the order
+	 */
+	public void setOrder(int order) {
+		this.order = order;
+	}
+	
+	/**
 	 * Returns the text of this verse.
 	 * @return String
 	 */
 	public String getText() {
 		return this.text;
+	}
+	
+	/**
+	 * Sets the verse text.
+	 * @param text the text
+	 */
+	public void setText(String text) {
+		this.text = text;
 	}
 }

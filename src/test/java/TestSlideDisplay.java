@@ -102,10 +102,7 @@ public class TestSlideDisplay extends Application {
 		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
 //    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
-				100, 100,
-				ClasspathLoader.getBufferedImage("/org/praisenter/resources/image-default-thumbnail.png"),
-				ClasspathLoader.getBufferedImage("/org/praisenter/resources/music-default-thumbnail.png"),
-				ClasspathLoader.getBufferedImage("/org/praisenter/resources/video-default-thumbnail.png"));
+				100, 100);
     	MediaLibrary library = null;
 		try {
 			library = MediaLibrary.open(path, new JavaFXMediaImportFilter(path), settings);

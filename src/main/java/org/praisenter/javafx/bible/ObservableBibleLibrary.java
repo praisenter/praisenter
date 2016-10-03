@@ -40,6 +40,7 @@ import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.FormatIdentifingBibleImporter;
 import org.praisenter.bible.UnboundBibleImporter;
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.slide.Slide;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -249,6 +250,39 @@ public final class ObservableBibleLibrary {
 		});
 		this.service.submit(task);
 	}
+
+	/**
+	 * Attempts to save the given bible in this bible library.
+	 * <p>
+	 * The onSuccess method will be called when the save is successful. The
+	 * onError method will be called if an error occurs during the save.
+	 * @param bible the bible
+	 * @param onSuccess called when the bible is saved successfully
+	 * @param onError called when the bible failed to be saved
+	 */
+	public void save(Bible bible, Consumer<Bible> onSuccess, BiConsumer<Bible, Throwable> onError) {
+		// execute the add on a different thread
+		Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				library.save(bible);
+				return null;
+			}
+		};
+		task.setOnSucceeded((e) -> {
+			if (onSuccess != null) {
+				onSuccess.accept(bible);
+			}
+		});
+		task.setOnFailed((e) -> {
+			Throwable ex = task.getException();
+			LOGGER.error("Failed to save bible " + bible.getName(), ex);
+			if (onError != null) {
+				onError.accept(bible, ex);
+			}
+		});
+		this.service.execute(task);
+	}
 	
 	/**
 	 * Attempts to remove the given bible from the bible library.
@@ -369,8 +403,6 @@ public final class ObservableBibleLibrary {
 	}
 	
 	// other
-	
-	
 	
 	/**
 	 * Returns the observable list of bibles.

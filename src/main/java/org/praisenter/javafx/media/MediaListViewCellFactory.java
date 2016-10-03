@@ -24,10 +24,9 @@
  */
 package org.praisenter.javafx.media;
 
-import java.awt.image.BufferedImage;
-
 import org.praisenter.javafx.FlowListItem;
 import org.praisenter.javafx.FlowListView;
+import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.media.MediaType;
 
 import javafx.embed.swing.SwingFXUtils;
@@ -36,6 +35,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -48,15 +48,30 @@ import javafx.util.Callback;
  * @version 3.0.0
  */
 final class MediaListViewCellFactory implements Callback<MediaListItem, FlowListItem<MediaListItem>> {
-	/** The max height for the thumbnails */
-	private final int maxHeight;
+	/** The thumbnail settings */
+	private final MediaThumbnailSettings settings;
+	
+	/** The default image thumbnail */
+	private final Image defaultImageThumbnail;
+	
+	/** The default video thumbnail */
+	private final Image defaultVideoThumbnail;
+	
+	/** The default audio thumbnail */
+	private final Image defaultAudioThumbnail;
 	
 	/**
 	 * Creates a new cell factory for media items.
-	 * @param maxHeight the maximum height for the thumbnails
+	 * @param settings the thumbnail settings
 	 */
-	public MediaListViewCellFactory(int maxHeight) {
-		this.maxHeight = maxHeight;
+	public MediaListViewCellFactory(MediaThumbnailSettings settings) {
+		this.settings = settings;
+		
+		int w = settings.getWidth();
+		int h = settings.getHeight();
+		this.defaultImageThumbnail = new Image("/org/praisenter/resources/image-default-thumbnail.png", w, h, true, true, false);
+		this.defaultVideoThumbnail = new Image("/org/praisenter/resources/video-default-thumbnail.png", w, h, true, true, false);
+		this.defaultAudioThumbnail = new Image("/org/praisenter/resources/music-default-thumbnail.png", w, h, true, true, false);
 	}
 	
 	/* (non-Javadoc)
@@ -71,11 +86,24 @@ final class MediaListViewCellFactory implements Callback<MediaListItem, FlowList
 		
 		String name = null;
 		
+		int maxHeight = this.settings.getHeight();
+		
 		if (item.loaded) {
 			name = item.name;
 	    	// setup the thumbnail image
-			BufferedImage image = item.media.getThumbnail();
-	    	final ImageView thumb = new ImageView(SwingFXUtils.toFXImage(image, null));
+			Image image = null;
+			if (item.media.getThumbnail() == null) {
+				if (item.media.getType() == MediaType.IMAGE) {
+					image = this.defaultImageThumbnail;
+				} else if (item.media.getType() == MediaType.VIDEO) {
+					image = this.defaultVideoThumbnail;
+				} else if (item.media.getType() == MediaType.AUDIO) {
+					image = this.defaultAudioThumbnail;
+				}
+			} else {
+				image = SwingFXUtils.toFXImage(item.media.getThumbnail(), null);
+			}
+	    	final ImageView thumb = new ImageView(image);
 	    	// place it in a VBox for good positioning
 	    	final VBox wrapper = new VBox(thumb);
 	    	wrapper.setAlignment(Pos.BOTTOM_CENTER);
@@ -83,7 +111,7 @@ final class MediaListViewCellFactory implements Callback<MediaListItem, FlowList
 	    	wrapper.setMaxHeight(maxHeight);
 	    	wrapper.setMinHeight(maxHeight);
 	    	// only show a drop shadow effect on images that aren't using the default thumbnail
-	    	if (item.media.getMetadata().getType() == MediaType.IMAGE) {
+	    	if (item.media.getType() == MediaType.IMAGE) {
 	    		thumb.setEffect(new DropShadow(2, 2, 2, Color.rgb(0, 0, 0, 0.25)));
 	    	}
 	    	cell.getChildren().add(wrapper);

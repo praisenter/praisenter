@@ -174,7 +174,7 @@ public final class FillPane extends StackPane {
 			// this could happen if the media is moved or deleted
 			this.removePaint();
 		} else {
-			MediaType type = media.getMetadata().getType();
+			MediaType type = media.getType();
 			
 			// did the media change
 			if (!media.equals(this.media)) {

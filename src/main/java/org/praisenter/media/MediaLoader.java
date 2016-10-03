@@ -50,12 +50,12 @@ public interface MediaLoader {
 	/**
 	 * Loads the media from the media library.
 	 * @param path the path
-	 * @return {@link LoadedMedia}
+	 * @return {@link Media}
 	 * @throws IOException if an IO error occurs
 	 * @throws FileNotFoundException if the given file is not found
 	 * @throws InvalidFormatException if the media could not be read
 	 */
-	public abstract LoadedMedia load(Path path) throws IOException, FileNotFoundException, InvalidFormatException;
+	public abstract Media load(Path path) throws IOException, FileNotFoundException, InvalidFormatException;
 	
 	/**
 	 * Returns the thumbnail settings this loader is configured with.

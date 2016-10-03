@@ -180,13 +180,13 @@ public final class MediaLibraryPane extends BorderPane {
 				boolean desc = sortDescending.get();
 				filtered.setPredicate(m -> {
 					if (!m.loaded || 
-						((type == null || m.media.getMetadata().getType() == type) &&
-						 (tag == null || m.media.getMetadata().getTags().contains(tag)) &&
-						 (text == null || text.length() == 0 || m.media.getMetadata().getName().toLowerCase().contains(text.toLowerCase())))) {
+						((type == null || m.media.getType() == type) &&
+						 (tag == null || m.media.getTags().contains(tag)) &&
+						 (text == null || text.length() == 0 || m.media.getName().toLowerCase().contains(text.toLowerCase())))) {
 						// make sure its in the available types
 						if (types != null && types.length > 0 && m.loaded) {
 							for (MediaType t : types) {
-								if (t == m.media.getMetadata().getType()) {
+								if (t == m.media.getType()) {
 									return true;
 								}
 							}
@@ -210,9 +210,9 @@ public final class MediaLibraryPane extends BorderPane {
 							if (o1.media != null && o2.media == null) return -1;
 							
 							if (field == MediaSortField.TYPE) {
-								value = o1.media.getMetadata().getType().compareTo(o2.media.getMetadata().getType());
+								value = o1.media.getType().compareTo(o2.media.getType());
 							} else {
-								value = -1 * (o1.media.getMetadata().getDateAdded().compareTo(o2.media.getMetadata().getDateAdded()));
+								value = -1 * (o1.media.getDateAdded().compareTo(o2.media.getDateAdded()));
 							}
 						}
 						return (desc ? 1 : -1) * value;
@@ -263,7 +263,7 @@ public final class MediaLibraryPane extends BorderPane {
 		});
         
         // the right side of the split pane
-        this.lstMedia = new FlowListView<MediaListItem>(new MediaListViewCellFactory(context.getMediaLibrary().getThumbnailSettings().getHeight()));
+        this.lstMedia = new FlowListView<MediaListItem>(new MediaListViewCellFactory(context.getMediaLibrary().getThumbnailSettings()));
         this.lstMedia.itemsProperty().bindContent(sorted);
         this.lstMedia.setOrientation(orientation);
         
@@ -340,18 +340,18 @@ public final class MediaLibraryPane extends BorderPane {
         	MediaPlayer player = null;
         	MediaType type = null;
         	if (newValue != null && newValue.media != null) {
-        		type = newValue.media.getMetadata().getType();
+        		type = newValue.media.getType();
         		if (type == MediaType.AUDIO || type == MediaType.VIDEO) {
-        			javafx.scene.media.Media m = new javafx.scene.media.Media(newValue.media.getMetadata().getPath().toUri().toString());
+        			javafx.scene.media.Media m = new javafx.scene.media.Media(newValue.media.getPath().toUri().toString());
         			Exception ex = m.getError();
         			if (ex != null) {
-        				LOGGER.error("Error loading media " + newValue.media.getMetadata().getName(), ex);
+        				LOGGER.error("Error loading media " + newValue.media.getName(), ex);
         			} else {
         				player = new MediaPlayer(m);
         				ex = player.getError();
         				if (ex != null) {
         					player = null;
-        					LOGGER.error("Error creating media player for " + newValue.media.getMetadata().getName(), ex);
+        					LOGGER.error("Error creating media player for " + newValue.media.getName(), ex);
         				}
         			}
         		}
@@ -520,7 +520,7 @@ public final class MediaLibraryPane extends BorderPane {
 						// get the exceptions
 						Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
 						// get the failed media
-						String list = String.join(", ", failures.stream().map(f -> f.getData().getMetadata().getName()).collect(Collectors.toList()));
+						String list = String.join(", ", failures.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
 						Alert fAlert = Alerts.exception(
 								getScene().getWindow(),
 								null, 
@@ -550,13 +550,13 @@ public final class MediaLibraryPane extends BorderPane {
     			}, 
     			(Media media, Throwable ex) -> {
     				// log the error
-    				LOGGER.error("Failed to rename media from '{}' to '{}': {}", event.getMedia().getMetadata().getName(), event.getName(), ex.getMessage());
+    				LOGGER.error("Failed to rename media from '{}' to '{}': {}", event.getMedia().getName(), event.getName(), ex.getMessage());
     				// show an error to the user
     				Alert alert = Alerts.exception(
     						getScene().getWindow(),
     						null, 
     						null, 
-    						MessageFormat.format(Translations.get("media.metadata.rename.error"), event.getMedia().getMetadata().getName(), event.getName()), 
+    						MessageFormat.format(Translations.get("media.metadata.rename.error"), event.getMedia().getName(), event.getName()), 
     						ex);
     				alert.show();
     			});
@@ -582,7 +582,7 @@ public final class MediaLibraryPane extends BorderPane {
     				// remove it from the tags
     				item.tags.remove(tag);
     				// log the error
-    				LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), ex.getMessage());
+    				LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getPath().toAbsolutePath().toString(), ex.getMessage());
     				// show an error to the user
     				Alert alert = Alerts.exception(
     						getScene().getWindow(),
@@ -611,7 +611,7 @@ public final class MediaLibraryPane extends BorderPane {
     				// add it back
     				item.tags.add(tag);
     				// log the error
-    				LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getMetadata().getPath().toAbsolutePath().toString(), ex.getMessage());
+    				LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getPath().toAbsolutePath().toString(), ex.getMessage());
     				// show an error to the user
     				Alert alert = Alerts.exception(
     						getScene().getWindow(),

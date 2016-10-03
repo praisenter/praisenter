@@ -33,7 +33,6 @@ import org.praisenter.Tag;
 import org.praisenter.javafx.TagEvent;
 import org.praisenter.javafx.TagListView;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaMetadata;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.Formatter;
@@ -261,17 +260,17 @@ final class MediaMetadataPane extends VBox {
         			setDisable(false);
         			btnRename.setVisible(true);
         			Media media = item.media;
-        			MediaType type = media.getMetadata().getType();
+        			MediaType type = media.getType();
         			String unknown = Translations.get("unknown");
         			
-        			name.set(media.getMetadata().getName());
+        			name.set(media.getName());
         			
         			// width/height
         			if (type == MediaType.IMAGE || type == MediaType.VIDEO) {
-        				int w = media.getMetadata().getWidth();
-        				int h = media.getMetadata().getHeight();
-        				width.set(w == MediaMetadata.UNKNOWN ? unknown : String.valueOf(w));
-        				height.set(h == MediaMetadata.UNKNOWN ? unknown : String.valueOf(h));
+        				int w = media.getWidth();
+        				int h = media.getHeight();
+        				width.set(w == Media.UNKNOWN ? unknown : String.valueOf(w));
+        				height.set(h == Media.UNKNOWN ? unknown : String.valueOf(h));
         			} else {
         				width.set(NOT_APPLICABLE);
         				height.set(NOT_APPLICABLE);
@@ -279,21 +278,21 @@ final class MediaMetadataPane extends VBox {
         			
         			// length
         			if (type == MediaType.AUDIO || type == MediaType.VIDEO) {
-        				long l = media.getMetadata().getLength();
-        				length.set(l == MediaMetadata.UNKNOWN ? unknown : Formatter.getSecondsFormattedString(l));
+        				long l = media.getLength();
+        				length.set(l == Media.UNKNOWN ? unknown : Formatter.getSecondsFormattedString(l));
         			} else {
         				length.set(NOT_APPLICABLE);
         			}
         			
         			// has sound?
-        			if (media.getMetadata().getType() == MediaType.VIDEO) {
-        				audio.set(media.getMetadata().hasAudio() ? Translations.get("yes") : Translations.get("no"));
+        			if (media.getType() == MediaType.VIDEO) {
+        				audio.set(media.hasAudio() ? Translations.get("yes") : Translations.get("no"));
         			} else {
         				audio.set(NOT_APPLICABLE);
         			}
         			
-        			format.set(media.getMetadata().getFormat().toString());
-        			dateAdded.set(DATETIME_FORMATTER.format(media.getMetadata().getDateAdded()));
+        			format.set(media.getFormat().toString());
+        			dateAdded.set(DATETIME_FORMATTER.format(media.getDateAdded()));
         			
         			tagView.tagsProperty().set(newValue.tags);
         		}

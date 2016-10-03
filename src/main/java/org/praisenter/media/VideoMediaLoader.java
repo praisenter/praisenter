@@ -81,7 +81,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
 	 */
 	@Override
-	public LoadedMedia load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
+	public Media load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			Demuxer demuxer = null;
 			try {
@@ -120,7 +120,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 						} catch (Exception e) {
 							LOGGER.warn("Failed to read first frame of video '{}': {}", path.toAbsolutePath().toString(), e.getMessage());
 							image = null;
-							thumb = settings.videoDefaultThumbnail;
+							thumb = null;
 						}
 					}
 					if (audio == null && decoder.getCodecType() == MediaDescriptor.Type.MEDIA_AUDIO) {
@@ -143,9 +143,8 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 				}
 				
 				final MediaFormat mf = new MediaFormat(format.getName().toLowerCase(), format.getLongName(), codecs);
-				final MediaMetadata metadata = MediaMetadata.forVideo(path, mf, width, height, length, audio != null, null);
-				Media media = new Media(metadata, thumb);
-				return new LoadedMedia(media, image);
+				final Media media = Media.forVideo(path, mf, width, height, length, audio != null, null, thumb, image);
+				return media;
 			} catch (InterruptedException ex) {
 				throw new IOException(ex);
 			} finally {
