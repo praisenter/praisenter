@@ -42,55 +42,67 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "book")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Book implements Comparable<Book> {
-	/** The book code */
-	@XmlAttribute(name = "code", required = false)
-	String code;
-	
 	/** The book name */
 	@XmlElement(name = "name", required = false)
 	String name;
 
-	/** The book order */
-	@XmlAttribute(name = "order", required = false)
-	int order;
+	/** The book number */
+	@XmlAttribute(name = "number", required = false)
+	short number;
 	
-	/** The verses in this book */
-	@XmlElement(name = "verse", required = false)
-	@XmlElementWrapper(name = "verses", required = false)
-	final List<Verse> verses;
+	/** The chapters in this book */
+	@XmlElement(name = "chapter", required = false)
+	@XmlElementWrapper(name = "chapters", required = false)
+	final List<Chapter> chapters;
 	
 	/**
 	 * Default constructor.
 	 */
 	public Book() {
-		this.code = null;
 		this.name = null;
-		this.order = 0;
-		this.verses = new ArrayList<Verse>();
+		this.number = 0;
+		this.chapters = new ArrayList<Chapter>();
 	}
 	
 	/**
 	 * Optional constructor.
-	 * @param code the book code (id)
 	 * @param name the book name
-	 * @param order the book order
+	 * @param number the book number
 	 */
-	public Book(String code, String name, int order) {
-		this( code, name, order, null);
+	public Book(String name, short number) {
+		this(name, number, null);
 	}
 	
 	/**
 	 * Full constructor.
-	 * @param code the book code (id)
 	 * @param name the book name
-	 * @param order the book order
-	 * @param verses the list of verses; or null
+	 * @param number the book number
+	 * @param chapters the list of chapters; or null
 	 */
-	public Book(String code, String name, int order, List<Verse> verses) {
-		this.code = code;
+	public Book(String name, short number, List<Chapter> chapters) {
 		this.name = name;
-		this.order = order;
-		this.verses = verses != null ? verses : new ArrayList<Verse>();
+		this.number = number;
+		this.chapters = chapters != null ? chapters : new ArrayList<Chapter>();
+	}
+
+	public short getMaxChapterNumber() {
+		short max = 0;
+		for (Chapter chapter : this.chapters) {
+			max = max < chapter.number ? chapter.number : max;
+		}
+		return max;
+	}
+	
+	public Book copy() {
+		Book book = new Book();
+		book.name = this.name;
+		book.number = this.number;
+		
+		for (Chapter chapter : this.chapters) {
+			book.chapters.add(chapter.copy());
+		}
+		
+		return book;
 	}
 	
 	/* (non-Javadoc)
@@ -107,23 +119,7 @@ public final class Book implements Comparable<Book> {
 	@Override
 	public int compareTo(Book o) {
 		if (o == null) return 1;
-		return this.order - o.order;
-	}
-	
-	/**
-	 * Returns the book code.
-	 * @return String
-	 */
-	public String getCode() {
-		return this.code;
-	}
-	
-	/**
-	 * Sets the book code.
-	 * @param code the code
-	 */
-	public void setCode(String code) {
-		this.code = code;
+		return this.number - o.number;
 	}
 	
 	/**
@@ -143,26 +139,26 @@ public final class Book implements Comparable<Book> {
 	}
 	
 	/**
-	 * Returns the order.
-	 * @return int
+	 * Returns the number.
+	 * @return short
 	 */
-	public int getOrder() {
-		return this.order;
+	public short getNumber() {
+		return this.number;
 	}
 	
 	/**
-	 * Sets the order.
-	 * @param order the position
+	 * Sets the number.
+	 * @param number the position
 	 */
-	public void setOrder(int order) {
-		this.order = order;
+	public void setNumber(short number) {
+		this.number = number;
 	}
 	
 	/**
-	 * Returns the list of verses for this book.
-	 * @return List&lt;{@link Verse}&gt;
+	 * Returns the list of chapters for this book.
+	 * @return List&lt;{@link Chapter}&gt;
 	 */
-	public List<Verse> getVerses() {
-		return this.verses;
+	public List<Chapter> getChapters() {
+		return this.chapters;
 	}
 }

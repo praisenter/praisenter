@@ -111,7 +111,7 @@ public final class BibleLibrary {
 	private static final String FIELD_BIBLE_ID = "bibleid";
 	
 	/** The lucene field to store the bible's unique identifier */
-	private static final String FIELD_BOOK_ID = "bookid";
+	private static final String FIELD_BOOK_NUMBER = "bookid";
 	
 	/** The lucene field to store the bible's unique identifier */
 	private static final String FIELD_VERSE_CHAPTER = "chapter";
@@ -236,36 +236,33 @@ public final class BibleLibrary {
 		// books
 		if (bible.books != null) {
 			for (Book book : bible.books) {
-				if (book.verses != null) {
-					for (Verse verse : book.verses) {
-						Document document = new Document();
-						
-						Field pathField = new StringField(FIELD_PATH, bible.path.toAbsolutePath().toString(), Field.Store.YES);
-						document.add(pathField);
-						
-						Field bibleField = new StringField(FIELD_BIBLE_ID, bible.id.toString(), Field.Store.YES);
-						document.add(bibleField);
-						
-						Field bookField = new StringField(FIELD_BOOK_ID, book.code, Field.Store.YES);
-						document.add(bookField);
-						
-						Field vChapterField = new StoredField(FIELD_VERSE_CHAPTER, verse.chapter);
-						document.add(vChapterField);
-						
-						Field vNumberField = new StoredField(FIELD_VERSE_NUMBER, verse.verse);
-						document.add(vNumberField);
-
-//						if (!StringManipulator.isNullOrEmpty(book.name)) {
-//							Field bookNameField = new TextField(FIELD_TEXT, book.name, Field.Store.YES);
-//							document.add(bookNameField);
-//						}
-
-						if (!StringManipulator.isNullOrEmpty(verse.text)) {
-							Field textField = new TextField(FIELD_TEXT, verse.text, Field.Store.YES);
-							document.add(textField);
+				if (book.chapters != null) {
+					for (Chapter chapter : book.chapters) {
+						for (Verse verse : chapter.verses) {
+							Document document = new Document();
+							
+							Field pathField = new StringField(FIELD_PATH, bible.path.toAbsolutePath().toString(), Field.Store.YES);
+							document.add(pathField);
+							
+							Field bibleField = new StringField(FIELD_BIBLE_ID, bible.id.toString(), Field.Store.YES);
+							document.add(bibleField);
+							
+							Field bookField = new StoredField(FIELD_BOOK_NUMBER, book.number);
+							document.add(bookField);
+							
+							Field vChapterField = new StoredField(FIELD_VERSE_CHAPTER, chapter.number);
+							document.add(vChapterField);
+							
+							Field vNumberField = new StoredField(FIELD_VERSE_NUMBER, verse.number);
+							document.add(vNumberField);
+							
+							if (!StringManipulator.isNullOrEmpty(verse.text)) {
+								Field textField = new TextField(FIELD_TEXT, verse.text, Field.Store.YES);
+								document.add(textField);
+							}
+							
+							documents.add(document);
 						}
-						
-						documents.add(document);
 					}
 				}
 			}
@@ -349,6 +346,11 @@ public final class BibleLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized void save(Bible bible) throws JAXBException, IOException {
+		if (this.bibles.containsKey(bible.id)) {
+			// then its an update
+			bible.path = this.bibles.get(bible.id).path;
+		}
+		
 		if (bible.path == null) {
 			String name = createFileName(bible);
 			Path path = this.path.resolve(name + EXTENSION);
@@ -575,24 +577,35 @@ public final class BibleLibrary {
 				
 				// get the bible
 				Bible bible = this.bibles.get(UUID.fromString(document.get(FIELD_BIBLE_ID)));
-				String bookCode = document.get(FIELD_BOOK_ID);
-				int chapter = document.getField(FIELD_VERSE_CHAPTER).numericValue().intValue();
-				int number = document.getField(FIELD_VERSE_NUMBER).numericValue().intValue();
+				short bookNumber = document.getField(FIELD_BOOK_NUMBER).numericValue().shortValue();
+				short chapterNumber = document.getField(FIELD_VERSE_CHAPTER).numericValue().shortValue();
+				short number = document.getField(FIELD_VERSE_NUMBER).numericValue().shortValue();
 				
 				Book book = null;
+				Chapter chapter = null;
 				Verse verse = null;
 				if (bible != null) {
 					for (Book b : bible.books) {
-						if (b.code.equals(bookCode)) {
+						if (b.number == bookNumber) {
 							book = b;
+							break;
 						}
 					}
 					
 					if (book != null) {
-						for (Verse v : book.verses) {
-							if (v.chapter == chapter &&
-								v.verse == number) {
+						for (Chapter c : book.chapters) {
+							if (c.number == chapterNumber) {
+								chapter = c;
+								break;
+							}
+						}
+					}
+					
+					if (chapter != null) {
+						for (Verse v : chapter.verses) {
+							if (v.number == number) {
 								verse = v;
+								break;
 							}
 						}
 					}
@@ -617,7 +630,7 @@ public final class BibleLibrary {
 					}
 				}
 				
-				BibleSearchResult match = new BibleSearchResult(bible, book, verse, matches);
+				BibleSearchResult match = new BibleSearchResult(bible, book, chapter, verse, matches);
 				results.add(match);
 			}
 		}

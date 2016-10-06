@@ -63,14 +63,6 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 	/** The source */
 	private static final String SOURCE = "OpenSong (http://www.opensong.org/)";
 	
-	/**
-	 * Minimal constructor.
-	 * @param library the library to import into
-	 */
-	public OpenSongBibleImporter(BibleLibrary library) {
-		super(library);
-	}
-	
 	/* (non-Javadoc)
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
@@ -82,39 +74,40 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 		if (Files.exists(path)) {
 			LOGGER.debug("Reading OpenSong Bible file: " + path.toAbsolutePath().toString());
 
+			boolean read = false;
 			// first try to open it as a zip
 			try (FileInputStream fis = new FileInputStream(path.toFile());
-					 BufferedInputStream bis = new BufferedInputStream(fis);
-					 ZipInputStream zis = new ZipInputStream(bis);) {
+				 BufferedInputStream bis = new BufferedInputStream(fis);
+				 ZipInputStream zis = new ZipInputStream(bis);) {
+				LOGGER.debug("Reading as zip file: " + path.toAbsolutePath().toString());
 				// read the entries (each should be a .xmm file)
 				ZipEntry entry = null;
-				boolean read = false;
 				while ((entry = zis.getNextEntry()) != null) {
 					read = true;
-					LOGGER.debug("Reading as zip file: " + path.toAbsolutePath().toString());
 					int i = entry.getName().lastIndexOf('.');
 					String name = entry.getName();
 					if (i >= 0) {
 						name = entry.getName().substring(0, i);
 					}
 					Bible bible = this.parse(zis, name);
-					library.save(bible);
 					bibles.add(bible);
 				}
-				// check if we read an entry
-				// if not, that may mean the file was not a zip so try it as a normal file
-				if (!read) {
-					LOGGER.debug("Reading as XML file: " + path.toAbsolutePath().toString());
-					// this indicates the file is not a zip or invalid
-					String name = path.getFileName().toString();
-					int i = name.lastIndexOf('.');
-					if (i >= 0) {
-						name = name.substring(0, i);
-					}
-					// hopefully its an .xmm
-					// just read it
-					Bible bible = this.parse(new FileInputStream(path.toFile()), name);
-					library.save(bible);
+			}
+			
+			// check if we read an entry
+			// if not, that may mean the file was not a zip so try it as a normal file
+			if (!read) {
+				LOGGER.debug("Reading as XML file: " + path.toAbsolutePath().toString());
+				// this indicates the file is not a zip or invalid
+				String name = path.getFileName().toString();
+				int i = name.lastIndexOf('.');
+				if (i >= 0) {
+					name = name.substring(0, i);
+				}
+				// hopefully its an .xmm
+				// just read it
+				try (FileInputStream stream = new FileInputStream(path.toFile())) {
+					Bible bible = this.parse(stream, name);
 					bibles.add(bible);
 				}
 			}
@@ -166,19 +159,19 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 		private Book book;
 		
 		/** The book number */
-		private int bookNumber;
+		private short bookNumber;
+		
+		/** The current chapter */
+		private Chapter chapter;
 		
 		/** The chapter number */
-		private int chapter;
+		private short chapterNumber;
 		
 		/** The verse number */
-		private int number;
-		
-		/** The verse order */
-		private int order;
+		private short number;
 		
 		/** The verse range */
-		private int verseTo;
+		private short verseTo;
 		
 		/** Buffer for tag contents */
 		private StringBuilder dataBuilder;
@@ -217,26 +210,27 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 					this.bible.name = name.trim();
 				}
 			} else if (qName.equalsIgnoreCase("b")) {
-				book = new Book(String.valueOf(bookNumber), attributes.getValue("n"), bookNumber);
+				book = new Book(attributes.getValue("n"), bookNumber);
 				this.bible.books.add(book);
 				bookNumber++;
-				chapter = 0;
 			} else if (qName.equalsIgnoreCase("c")) {
 				String number = attributes.getValue("n");
 				try {
-					this.chapter = Integer.parseInt(number);
+					this.chapterNumber = Short.parseShort(number);
 				} catch (NumberFormatException ex) {
 					LOGGER.warn("Failed to parse chapter number '" + number + "' for '" + this.bible.name + "'. Using next chapter number in sequence instead.");
 					this.bible.hadImportWarning = true;
-					this.chapter++;
+					this.chapterNumber++;
 				}
+				this.chapter = new Chapter(this.chapterNumber);
+				this.book.chapters.add(this.chapter);
 				this.number = 0;
 			} else if (qName.equalsIgnoreCase("v")) {
 				this.verseTo = -1;
 				String number = attributes.getValue("n");
 				String to = attributes.getValue("t");
 				try {
-					this.number = Integer.parseInt(number);
+					this.number = Short.parseShort(number);
 				} catch (NumberFormatException ex) {
 					LOGGER.warn("Failed to parse verse number '" + number + "' for '" + this.bible.name + "'. Using next verse number in sequence instead.");
 					this.bible.hadImportWarning = true;
@@ -244,13 +238,12 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 				}
 				if (to != null) {
 					try {
-						this.verseTo = Integer.parseInt(to);
+						this.verseTo = Short.parseShort(to);
 					} catch (NumberFormatException ex) {
 						LOGGER.warn("Failed to parse the to verse number '" + to + "' for '" + this.bible.name + "'. Skipping.");
 						this.bible.hadImportWarning = true;
 					}
 				}
-				this.order += 10;
 			}
 		}
 
@@ -278,12 +271,12 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 				// check for embedded verses (n="1" t="4") ...why oh why...
 				if (this.verseTo > 0 && this.verseTo > this.number) {
 					// just duplicate the verse content for each
-					for (int i = this.number; i <= this.verseTo; i++) {
-						this.book.verses.add(new Verse(this.chapter, i, -1, this.order, this.dataBuilder.toString().trim()));
+					for (short i = this.number; i <= this.verseTo; i++) {
+						this.chapter.verses.add(new Verse(i, this.dataBuilder.toString().trim()));
 					}
 				} else {
 					// add as normal
-					this.book.verses.add(new Verse(this.chapter, this.number, -1, this.order, this.dataBuilder.toString().trim()));
+					this.chapter.verses.add(new Verse(this.number, this.dataBuilder.toString().trim()));
 				}
 				
 			}

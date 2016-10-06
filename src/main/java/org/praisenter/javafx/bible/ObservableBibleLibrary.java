@@ -128,8 +128,12 @@ public final class ObservableBibleLibrary {
 		Task<List<Bible>> task = new Task<List<Bible>>() {
 			@Override
 			protected List<Bible> call() throws Exception {
-				UnboundBibleImporter importer = new UnboundBibleImporter(library);
-				return importer.execute(path);
+				FormatIdentifingBibleImporter importer = new FormatIdentifingBibleImporter();
+				List<Bible> bibles = importer.execute(path);
+				for (Bible bible : bibles) {
+					library.save(bible);
+				}
+				return bibles;
 			}
 		};
 		task.setOnSucceeded((e) -> {
@@ -195,7 +199,7 @@ public final class ObservableBibleLibrary {
 		List<Bible> successes = new ArrayList<Bible>();
 		List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
 		
-		BibleImporter importer = new FormatIdentifingBibleImporter(library);
+		BibleImporter importer = new FormatIdentifingBibleImporter();
 		
 		// execute the add on a different thread
 		Task<Void> task = new Task<Void>() {
@@ -204,6 +208,9 @@ public final class ObservableBibleLibrary {
 				for (Path path : paths) {
 					try {
 						List<Bible> bbls = importer.execute(path);
+						for (Bible bible : bbls) {
+							library.save(bible);
+						}
 						successes.addAll(bbls);
 						Fx.runOnFxThead(() -> {
 							// remove the loading item

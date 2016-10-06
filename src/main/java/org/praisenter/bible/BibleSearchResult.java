@@ -39,6 +39,9 @@ public final class BibleSearchResult implements Comparable<BibleSearchResult> {
 	/** The book */
 	final Book book;
 	
+	/** The chapter */
+	final Chapter chapter;
+	
 	/** The verse */
 	final Verse verse;
 	
@@ -49,12 +52,14 @@ public final class BibleSearchResult implements Comparable<BibleSearchResult> {
 	 * Full constructor.
 	 * @param bible the bible
 	 * @param book the book
+	 * @param chapter the chapter
 	 * @param verse the verse
 	 * @param matches the matched text
 	 */
-	public BibleSearchResult(Bible bible, Book book, Verse verse, List<BibleSearchMatch> matches) {
+	public BibleSearchResult(Bible bible, Book book, Chapter chapter, Verse verse, List<BibleSearchMatch> matches) {
 		this.bible = bible;
 		this.book = book;
+		this.chapter = chapter;
 		this.verse = verse;
 		this.matches = Collections.unmodifiableList(matches);
 	}
@@ -66,11 +71,11 @@ public final class BibleSearchResult implements Comparable<BibleSearchResult> {
 	public int compareTo(BibleSearchResult o) {
 		int diff = bible.id.compareTo(o.bible.id);
 		if (diff == 0) {
-			diff = book.order - o.book.order;
+			diff = book.number - o.book.number;
 			if (diff == 0) {
-				diff = verse.chapter - o.verse.chapter;
+				diff = chapter.number - o.chapter.number;
 				if (diff == 0) {
-					return verse.verse - o.verse.verse;
+					return verse.number - o.verse.number;
 				}
 			}
 		}
@@ -91,6 +96,14 @@ public final class BibleSearchResult implements Comparable<BibleSearchResult> {
 	 */
 	public Book getBook() {
 		return this.book;
+	}
+	
+	/**
+	 * Returns the chapter.
+	 * @return {@link Chapter}
+	 */
+	public Chapter getChapter() {
+		return this.chapter;
 	}
 	
 	/**

@@ -57,17 +57,6 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	/** The {@link BibleLibrary} */
-	private final BibleLibrary library;
-	
-	/**
-	 * Minimal constructor.
-	 * @param library the bible library to import into
-	 */
-	public FormatIdentifingBibleImporter(BibleLibrary library) {
-		this.library = library;
-	}
-	
 	/* (non-Javadoc)
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
@@ -105,10 +94,10 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 				while ((entry = zis.getNextEntry()) != null) {
 					// check for unbound bible book file
 					if (entry.getName().equalsIgnoreCase("book_names.txt")) {
-						return new UnboundBibleImporter(this.library);
+						return new UnboundBibleImporter();
 					// check for .xmm extension (OpenSong)
 					} else if (entry.getName().toLowerCase().endsWith(".xmm")) {
-						return new OpenSongBibleImporter(this.library);
+						return new OpenSongBibleImporter();
 					// check for .xml extension, could be any kind of XML really (Zefania)
 					} else if (entry.getName().toLowerCase().endsWith(".xml")) {
 						byte[] content = AbstractBibleImporter.read(zis);
@@ -126,7 +115,7 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 			}
 		// check for .xmm extension (OpenSong)
 		} else if (fileName.endsWith(".xmm")) {
-			return new OpenSongBibleImporter(this.library);
+			return new OpenSongBibleImporter();
 		// check for .xml extension, could be any kind of XML really (Zefania)
 		} else if (fileName.endsWith(".xml")) {
 			byte[] content = AbstractBibleImporter.read(new FileInputStream(path.toFile()));
@@ -135,7 +124,13 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 		// if we can determine the file type that way
 		} else {
 			byte[] content = AbstractBibleImporter.read(new FileInputStream(path.toFile()));
-			return this.getImporterForFile(new ByteArrayInputStream(content));
+			BibleImporter importer = this.getImporterForFile(new ByteArrayInputStream(content));
+			if (importer instanceof UnboundBibleImporter) {
+				// we need two files for The Unbound Bible format, we can't just read one of them
+				LOGGER.warn("The Unbound Bible format detected, but two files are required: book_names.txt and the file containing the text. Please create a zip file with these two files and import that.");
+				importer = null;
+			}
+			return importer;
 		}
 		
 		return null;
@@ -157,9 +152,13 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 			    if (r.isStartElement()) {
 			    	if (r.getLocalName().equalsIgnoreCase("xmlbible") ||
 			    		r.getLocalName().equalsIgnoreCase("x")) {
-			    		return new ZefaniaBibleImporter(this.library);
+			    		return new ZefaniaBibleImporter();
 			    	} else if (r.getLocalName().equalsIgnoreCase("bible")) {
-			    		return new OpenSongBibleImporter(this.library);
+			    		String format = r.getAttributeValue(null, "format");
+			    		if (format != null && format.toLowerCase().equals(Bible.FORMAT_NAME)) {
+			    			return new PraisenterBibleImporter();
+			    		}
+			    		return new OpenSongBibleImporter();
 			    	}
 			    }
 			}
@@ -182,7 +181,7 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 			String line = reader.readLine();
 			if (line.toUpperCase().startsWith("#THE UNBOUND BIBLE")) {
-				return new UnboundBibleImporter(this.library);
+				return new UnboundBibleImporter();
 			} else if (line.toUpperCase().startsWith("<?XML")) {
 				// then its an xml document
 				stream.reset();

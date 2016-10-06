@@ -45,9 +45,16 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "bible")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Bible implements Comparable<Bible> {
+	/** The name used for praisenter's format */
+	public static final String FORMAT_NAME = "praisenter";
+	
 	/** The bible id */
 	@XmlAttribute(name = "id", required = false)
-	final UUID id;
+	UUID id;
+
+	/** The format (for format identification only) */
+	@XmlAttribute(name = "format", required = false)
+	final String format = FORMAT_NAME;
 	
 	/** The path to the XML document */
 	Path path;
@@ -117,6 +124,7 @@ public final class Bible implements Comparable<Bible> {
 		  String source, 
 		  Date importDate,
 		  String copyright,
+		  String notes,
 		  boolean hadImportWarning,
 		  List<Book> books) {
 		this.id = id;
@@ -125,6 +133,7 @@ public final class Bible implements Comparable<Bible> {
 		this.source = source;
 		this.importDate = importDate;
 		this.copyright = copyright;
+		this.notes = notes;
 		this.hadImportWarning = hadImportWarning;
 		this.books = books != null ? books : new ArrayList<Book>();
 	}
@@ -137,6 +146,33 @@ public final class Bible implements Comparable<Bible> {
 		if (o == null) return 1;
 		// sort by id
 		return this.name.compareTo(o.name);
+	}
+	
+	public short getMaxBookNumber() {
+		short max = 0;
+		for (Book book : this.books) {
+			max = max < book.number ? book.number : max;
+		}
+		return max;
+	}
+	
+	public Bible copy() {
+		Bible bible = new Bible();
+		bible.copyright = this.copyright;
+		bible.hadImportWarning = this.hadImportWarning;
+		bible.id = this.id;
+		bible.importDate = this.importDate;
+		bible.language = this.language;
+		bible.name = this.name;
+		bible.notes = this.notes;
+		bible.path = this.path;
+		bible.source = this.source;
+		
+		for (Book book : this.books) {
+			bible.books.add(book.copy());
+		}
+		
+		return bible;
 	}
 	
 	/**
@@ -221,6 +257,14 @@ public final class Bible implements Comparable<Bible> {
 		this.copyright = copyright;
 	}
 
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
+	}
+
 	/**
 	 * Returns the total verse count.
 	 * @return int
@@ -229,8 +273,10 @@ public final class Bible implements Comparable<Bible> {
 		int n = 0;
 		if (this.books != null) {
 			for (Book book : this.books) {
-				if (book.verses != null) {
-					n += book.verses.size();
+				if (book.chapters != null) {
+					for (Chapter chapter : book.chapters) {
+						n += chapter.verses.size();
+					}
 				}
 			}
 		}
@@ -248,22 +294,6 @@ public final class Bible implements Comparable<Bible> {
 		return 0;
 	}
 
-	/**
-	 * Returns the number of books with verses.
-	 * @return int
-	 */
-	public int getBookWithVersesCount() {
-		int n = 0;
-		if (this.books != null) {
-			for (Book book : this.books) {
-				if (book.verses != null && book.verses.size() > 0) {
-					n++;
-				}
-			}
-		}
-		return n;
-	}
-	
 	/**
 	 * Returns the books of this bible.
 	 * @return List&lt;{@link Book}&gt;

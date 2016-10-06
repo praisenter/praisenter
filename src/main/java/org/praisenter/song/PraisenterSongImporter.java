@@ -37,6 +37,7 @@ import javax.xml.bind.JAXBException;
 
 import org.praisenter.xml.XmlIO;
 
+// TODO create a formatidentifyingimporter
 // FEATURE allow reading of a zip file with multiple songs in it
 
 /**
@@ -61,7 +62,6 @@ public final class PraisenterSongImporter implements SongImporter {
 					// read in the xml
 					try {
 						Song song = XmlIO.read(is, Song.class);
-						song.path = path;
 						songs.add(song);
 					} catch (JAXBException e) {
 						throw new SongImportException(e);

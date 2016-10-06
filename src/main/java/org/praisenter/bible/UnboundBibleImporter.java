@@ -36,7 +36,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -57,14 +59,6 @@ import org.praisenter.NoContentException;
 public final class UnboundBibleImporter extends AbstractBibleImporter implements BibleImporter {
 	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/**
-	 * Minimal constructor.
-	 * @param library the library to import into
-	 */
-	public UnboundBibleImporter(BibleLibrary library) {
-		super(library);
-	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
@@ -89,6 +83,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 			LOGGER.debug("Reading UnboundBible .zip file: " + path.toAbsolutePath().toString());
 			
 			// read the zip file for Books
+			Map<String, Book> bookMap = null;
 			try (FileInputStream fis = new FileInputStream(path.toFile());
 				 BufferedInputStream bis = new BufferedInputStream(fis);
 				 ZipInputStream zis = new ZipInputStream(bis);) {
@@ -97,10 +92,16 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 				while ((entry = zis.getNextEntry()) != null) {
 					if (entry.getName().equalsIgnoreCase(bookFileName)) {
 						LOGGER.debug("Reading UnboundBible .zip file contents: " + bookFileName);
-						readBooks(bible, bookFileName, zis);
+						bookMap = readBooks(bible, bookFileName, zis);
 						LOGGER.debug("UnboundBible .zip file contents read successfully: " + bookFileName);
 					}
 				}
+			}
+
+			// check for books
+			if (bible.books.size() == 0 || bookMap == null) {
+				LOGGER.error("The file did not contain any books. Import failed.");
+				throw new NoContentException();
 			}
 			
 			// read the zip file for Verses
@@ -112,20 +113,11 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 				while ((entry = zis.getNextEntry()) != null) {
 					if (entry.getName().equalsIgnoreCase(verseFileName)) {
 						LOGGER.debug("Reading UnboundBible .zip file contents: " + verseFileName);
-						readVerses(bible, verseFileName, zis);
+						readVerses(bible, bookMap, verseFileName, zis);
 						LOGGER.debug("UnboundBible .zip file contents read successfully: " + verseFileName);
 					}
 				}
 			}
-			
-			// check for missing files
-			if (bible.books.size() == 0) {
-				LOGGER.error("The file did not contain any books or verses. Import failed.");
-				throw new NoContentException();
-			}
-			
-			// add to the library
-			this.library.save(bible);
 			
 			// return
 			List<Bible> bibles = new ArrayList<Bible>();
@@ -145,12 +137,13 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 	 * @throws InvalidFormatException if the data is in an unexpected format
 	 * @throws IOException if an IO error occurs
 	 */
-	private void readBooks(Bible bible, String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
+	private Map<String, Book> readBooks(Bible bible, String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
+		Map<String, Book> bookMap = new HashMap<String, Book>();
 		// load up the book names
 		BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
 		// read them line by line
 		String line = null;
-		int order = 0;
+		short order = 0;
 		int i = 1;
 		while ((line = reader.readLine()) != null) {
 			if (line.startsWith("#")) {
@@ -163,38 +156,39 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 					throw new InvalidFormatException(fileName + ":" + i);
 				} else {
 					Book book = new Book(
-							// the code
-							data[0].trim(),
 							// the name
 							data[1].trim().equalsIgnoreCase("Acts of the Apostles") ? "Acts" : data[1].trim(),
 							// the order
 							order++);
 					bible.books.add(book);
+					bookMap.put(data[0].trim(), book);
 				}
 			}
 			i++;
 		}
+		return bookMap;
 	}
 	
 	/**
 	 * Reads the verses and assigns some bible fields.
 	 * @param bible the bible to add to
+	 * @param bookMap the mapping of bookcode to book
 	 * @param fileName the file name
 	 * @param zis the ZipInputStream
 	 * @throws InvalidFormatException if the data is in an unexpected format
 	 * @throws IOException if an IO error occurs
 	 */
-	private void readVerses(Bible bible, String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
+	private void readVerses(Bible bible, Map<String, Book> bookMap, String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
 		// load up the verses
 		BufferedReader reader = new BufferedReader(new InputStreamReader(zis, StandardCharsets.UTF_8));
 		// read them line by line
 		String line = null;
 		int[] columnMapping = new int[6];
 		Arrays.fill(columnMapping, -1);
-		final int increment = 10;
-		int order = increment;
-		int lastSubVerse = -1;
 		int i = 0;
+		
+		Chapter chapter = null;
+		short chapterNumber = 0;
 		
 		while ((line = reader.readLine()) != null) {
 			i++;
@@ -239,51 +233,21 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 					try {
 						// dont bother checking the mapping on these since they are necessary
 						String bookCode = data[columnMapping[0]].trim();
-						int chapter = Integer.parseInt(data[columnMapping[1]].trim());
-						int verse = Integer.parseInt(data[columnMapping[2]].trim());
-						
-						int subVerse = -1;
-						int verseOrder = -1;
-						String text = null;
-						
-						// the sub verse is rarely populated (and sometimes not present)
-						if (columnMapping[3] != -1 && data[columnMapping[3]].trim().length() > 0) {
-							String subVerseText = data[columnMapping[3]].trim();
-							// some sub verses start with a . and have numbers (these are pre-verse sub verses)
-							if (subVerseText.startsWith(".")) {
-								subVerseText = subVerseText.replaceAll("\\.", "");
-								// convert the subverse to an int
-								try {
-									// we will reverse order them
-									subVerse = -Integer.parseInt(subVerseText);
-								} catch (NumberFormatException e) {
-									bible.hadImportWarning = true;
-									LOGGER.warn("Unknown sub-verse format [{}|{}|{}|{}] on line {} in {}. Dropping verse.", bookCode, chapter, verse, data[columnMapping[3]].trim(), i, fileName);
-									continue;
-								}
-							} else {
-								// apparently the sub-verse field is a character field rather than a number
-								if (lastSubVerse < 0) {
-									lastSubVerse = 1;
-								} else {
-									lastSubVerse++;
-								}
-								subVerse = lastSubVerse;
+						short cn = Short.parseShort(data[columnMapping[1]].trim());
+						if (cn != chapterNumber) {
+							chapter = new Chapter(cn);
+							Book book = bookMap.get(bookCode);
+							if (book != null) {
+								book.chapters.add(chapter);
 							}
-						} else {
-							lastSubVerse = -1;
+							chapterNumber = cn;
 						}
+						short verse = Short.parseShort(data[columnMapping[2]].trim());
 						
-						// order isn't always present
-						if (columnMapping[4] != -1) {
-							verseOrder = Integer.parseInt(data[columnMapping[4]].trim());
-						} else {
-							// if order isn't present then attempt to generate the ordering
-							// NOTE this assumes that the verses are in the correct order in the file
-							// and are read in the same order (which should be the case)
-							verseOrder = order;
-							order += increment;
-						}
+						String text = null;
+
+						// sometimes there's "subverses" we'll just import these as
+						// normal verses with duplicate verse numbers
 						
 						// make sure the text is there
 						if (data.length > columnMapping[5]) {
@@ -292,14 +256,11 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 							text = "";
 							bible.hadImportWarning = true;
 							// continue, but log a warning
-							LOGGER.warn("Verse [{}|{}|{}|{}] is missing text on line {} in {}.", bookCode, chapter, verse, subVerse, i, fileName);
+							LOGGER.warn("Verse [{}|{}|{}] is missing text on line {} in {}.", bookCode, chapter, verse, i, fileName);
 						}
 						
-						for (Book book : bible.books) {
-							if (book.code.equals(bookCode)) {
-								book.verses.add(new Verse(chapter, verse, subVerse, verseOrder, text));
-								break;
-							}
+						if (chapter != null) {
+							chapter.verses.add(new Verse(verse, text));
 						}
 					} catch (NumberFormatException e) {
 						LOGGER.error("Failed to parse chapter, verse or order as integers at line " + i + " of " + fileName);

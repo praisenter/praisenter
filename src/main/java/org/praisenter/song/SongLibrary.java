@@ -334,6 +334,11 @@ public final class SongLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized void save(Song song) throws JAXBException, IOException {
+		if (this.songs.containsKey(song.id)) {
+			// technically an update
+			song.path = this.songs.get(song.id).path;
+		}
+		
 		if (song.path == null) {
 			String name = createFileName(song);
 			Path path = this.path.resolve(name + EXTENSION);

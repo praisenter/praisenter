@@ -43,11 +43,13 @@ import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
@@ -86,7 +88,7 @@ public final class BibleLibraryPane extends BorderPane {
 	/** The bible listing */
 	private final FlowListView<BibleListItem> lstBibles;
 	
-	private final BibleEditPane editor;
+	private final BibleEditorPane editor;
 	
 	/**
 	 * Minimal constructor.
@@ -103,6 +105,23 @@ public final class BibleLibraryPane extends BorderPane {
 		Label lblStep1Text = new Label(Translations.get("bible.import.step1"));
 		Label lblStep2Text = new Label(Translations.get("bible.import.step2"));
 		
+		Hyperlink lblUnbound = new Hyperlink(Translations.get("bible.import.unbound"));
+		lblUnbound.setOnAction(e -> {
+			context.getJavaFXContext().getApplication().getHostServices().showDocument("https://unbound.biola.edu/index.cfm?method=downloads.showDownloadMain");
+		});
+		Hyperlink lblZefania = new Hyperlink(Translations.get("bible.import.zefania"));
+		lblZefania.setOnAction(e -> {
+			context.getJavaFXContext().getApplication().getHostServices().showDocument("https://sourceforge.net/projects/zefania-sharp/files/Bibles/");
+		});
+		Hyperlink lblOpenSong = new Hyperlink(Translations.get("bible.import.opensong"));
+		lblOpenSong.setOnAction(e -> {
+			context.getJavaFXContext().getApplication().getHostServices().showDocument("http://www.opensong.org/home/download");
+		});
+		
+		lblUnbound.setPadding(new Insets(0, 0, 0, 30));
+		lblZefania.setPadding(new Insets(0, 0, 0, 30));
+		lblOpenSong.setPadding(new Insets(0, 0, 0, 30));
+		
 		lblStep1.setMinWidth(20);
 		lblStep2.setMinWidth(20);
 		lblStep1Text.setWrapText(true);
@@ -110,25 +129,17 @@ public final class BibleLibraryPane extends BorderPane {
 		
 		importSteps.getChildren().addAll(
 				new HBox(lblStep1, lblStep1Text),
+				new HBox(lblUnbound),
+				new HBox(lblZefania),
+				new HBox(lblOpenSong),
 				new HBox(lblStep2, lblStep2Text));
 
 		BibleMetadataPane bmp = new BibleMetadataPane();
 
-		GridPane settingsPane = new GridPane();
-		settingsPane.setHgap(5);
-		settingsPane.setVgap(5);
-		
-		Label lblIncludeApocrypha = new Label(Translations.get("bible.apocrypha"));
-		CheckBox chkIncludeApocrypha = new CheckBox();
-		chkIncludeApocrypha.selectedProperty().bindBidirectional(context.getConfiguration().apocryphaIncludedProperty());
-		settingsPane.add(lblIncludeApocrypha, 0, 0);
-		settingsPane.add(chkIncludeApocrypha, 1, 0);
-		
 		TitledPane ttlImport = new TitledPane(Translations.get("bible.import.title"), importSteps);
 		TitledPane ttlMetadata = new TitledPane(Translations.get("bible.properties.title"), bmp);
-		TitledPane ttlSettings = new TitledPane(Translations.get("bible.settings.title"), settingsPane);
 		
-		right.getChildren().addAll(ttlImport, ttlMetadata, ttlSettings);
+		right.getChildren().addAll(ttlImport, ttlMetadata);
 		
 		this.lstBibles = new FlowListView<BibleListItem>(new BibleListViewCellFactory());
 		this.lstBibles.itemsProperty().bindContent(context.getBibleLibrary().getItems());
@@ -172,7 +183,7 @@ public final class BibleLibraryPane extends BorderPane {
         	}
         });
         
-        this.editor = new BibleEditPane(context);
+        this.editor = new BibleEditorPane(context);
         this.lstBibles.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
         	@SuppressWarnings("unchecked")
 			FlowListItem<BibleListItem> view = (FlowListItem<BibleListItem>)e.getTarget();

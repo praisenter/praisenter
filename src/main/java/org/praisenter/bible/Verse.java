@@ -38,21 +38,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "verse")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Verse implements Comparable<Verse> {
-	/** The chapter number */
-	@XmlAttribute(name = "chapter", required = false)
-	int chapter;
-	
 	/** The verse number */
-	@XmlAttribute(name = "verse", required = false)
-	int verse;
-	
-	/** The sub verse number */
-	@XmlAttribute(name = "subVerse", required = false)
-	int subVerse;
-	
-	/** The verse order */
-	@XmlAttribute(name = "order", required = false)
-	int order;
+	@XmlAttribute(name = "number", required = false)
+	short number;
 	
 	/** The verse text */
 	@XmlElement(name = "text", required = false)
@@ -62,26 +50,17 @@ public final class Verse implements Comparable<Verse> {
 	 * Default constructor.
 	 */
 	public Verse()  {
-		this.chapter = 0;
-		this.verse = 0;
-		this.subVerse = -1;
-		this.order = 0;
+		this.number = 0;
 		this.text = null;
 	}
 	
 	/**
 	 * Full constructor.
-	 * @param chapter the chapter number
-	 * @param verse the verse number
-	 * @param subVerse the sub verse number
-	 * @param order the verse order
+	 * @param number the verse number
 	 * @param text the verse text
 	 */
-	public Verse(int chapter, int verse, int subVerse, int order, String text) {
-		this.chapter = chapter;
-		this.verse = verse;
-		this.subVerse = subVerse;
-		this.order = order;
+	public Verse(short number, String text) {
+		this.number = number;
 		this.text = text;
 	}
 
@@ -91,71 +70,30 @@ public final class Verse implements Comparable<Verse> {
 	@Override
 	public int compareTo(Verse o) {
 		if (o == null) return 1;
-		return this.order - o.order;
+		return this.number - o.number;
 	}
 	
-	/**
-	 * Returns the chapter number.
-	 * @return int
-	 */
-	public int getChapter() {
-		return this.chapter;
-	}
-	
-	/**
-	 * Sets the chapter number.
-	 * @param chapter the chapter
-	 */
-	public void setChapter(int chapter) {
-		this.chapter = chapter;
+	public Verse copy() {
+		Verse verse = new Verse();
+		verse.number = this.number;
+		verse.text = this.text;
+		return verse;
 	}
 	
 	/**
 	 * Returns the verse number.
-	 * @return int
+	 * @return short
 	 */
-	public int getVerse() {
-		return this.verse;
+	public short getNumber() {
+		return this.number;
 	}
 	
 	/**
 	 * Sets the verse number.
-	 * @param verse the verse
+	 * @param number the verse number
 	 */
-	public void setVerse(int verse) {
-		this.verse = verse;
-	}
-	
-	/**
-	 * Returns the sub verse number of this {@link Verse}.
-	 * @return int
-	 */
-	public int getSubVerse() {
-		return this.subVerse;
-	}
-	
-	/**
-	 * Sets the sub-verse number.
-	 * @param subVerse the sub-verse
-	 */
-	public void setSubVerse(int subVerse) {
-		this.subVerse = subVerse;
-	}
-	
-	/**
-	 * Returns the verse order.
-	 * @return int
-	 */
-	public int getOrder() {
-		return this.order;
-	}
-	
-	/**
-	 * Sets the sort order.
-	 * @param order the order
-	 */
-	public void setOrder(int order) {
-		this.order = order;
+	public void setNumber(short number) {
+		this.number = number;
 	}
 	
 	/**

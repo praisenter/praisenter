@@ -31,7 +31,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
+import javax.imageio.stream.MemoryCacheImageOutputStream;
 import javax.xml.bind.annotation.adapters.XmlAdapter;
 
 import org.apache.commons.codec.binary.Base64InputStream;
@@ -68,10 +73,25 @@ public class BufferedImageTypeAdapter extends XmlAdapter<String, BufferedImage> 
 	 * @throws IOException if an exception occurs during write
 	 */
 	private static final String getBase64ImageString(RenderedImage image) throws IOException {
-		ByteArrayOutputStream bo = new ByteArrayOutputStream();
-		Base64OutputStream b64o = new Base64OutputStream(bo, true, 0, null);
-		ImageIO.write(image, "png", b64o);
-		return new String(bo.toByteArray());
+		String result = null;
+		try (ByteArrayOutputStream bo = new ByteArrayOutputStream();
+			 Base64OutputStream b64o = new Base64OutputStream(bo, true, 0, null)) {
+		
+			ImageWriter jpgWriter = ImageIO.getImageWritersByFormatName("jpg").next();
+			ImageWriteParam jpgWriteParam = jpgWriter.getDefaultWriteParam();
+			jpgWriteParam.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+			jpgWriteParam.setCompressionQuality(1.0f);
+	
+			ImageOutputStream outputStream = new MemoryCacheImageOutputStream(b64o); // For example implementations see below
+			jpgWriter.setOutput(outputStream);
+			IIOImage outputImage = new IIOImage(image, null, null);
+			jpgWriter.write(null, outputImage, jpgWriteParam);
+			jpgWriter.dispose();
+			
+			//ImageIO.write(image, "jpg", b64o);
+			result = new String(bo.toByteArray());
+		}
+		return result;
 	}
 	
 	/**
@@ -81,10 +101,11 @@ public class BufferedImageTypeAdapter extends XmlAdapter<String, BufferedImage> 
 	 * @throws IOException if an exception occurs reading the image data
 	 */
 	private static final BufferedImage getBase64StringImage(String string) throws IOException {
-		ByteArrayInputStream bais = new ByteArrayInputStream(string.getBytes());
-		BufferedInputStream bis = new BufferedInputStream(bais);
-		Base64InputStream b64is = new Base64InputStream(bis, false, 0, null);
-		return ImageIO.read(b64is);
+		try (ByteArrayInputStream bais = new ByteArrayInputStream(string.getBytes());
+			 BufferedInputStream bis = new BufferedInputStream(bais);
+			 Base64InputStream b64is = new Base64InputStream(bis, false, 0, null)) {
+			return ImageIO.read(b64is);
+		}
 	}
 	
 }
