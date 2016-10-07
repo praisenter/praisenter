@@ -13,24 +13,19 @@ final class VerseTreeData extends TreeData {
 	Chapter chapter;
 	final Verse verse;
 	
-	final Label num;
-	
 	public VerseTreeData(Bible bible, Book book, Chapter chapter, Verse verse) {
 		this.bible = bible;
 		this.book = book;
 		this.chapter = chapter;
 		this.verse = verse;
 		
-		this.num = new Label(String.valueOf(verse.getNumber()));
-		this.num.setStyle("-fx-font-weight: bold; -fx-font-size: 0.8em;");
-		
 		this.label.set(verse.getText());
-		this.graphic.set(num);
+		this.list.set(String.valueOf(verse.getNumber()));
 	}
 	
 	@Override
 	public void update() {
 		this.label.set(verse.getText());
-		this.num.setText(String.valueOf(verse.getNumber()));
+		this.list.set(String.valueOf(verse.getNumber()));
 	}
 }
