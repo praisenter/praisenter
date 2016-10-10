@@ -2,6 +2,7 @@ package org.praisenter.javafx;
 
 import java.sql.SQLException;
 
+import org.controlsfx.control.BreadCrumbBar;
 import org.praisenter.javafx.bible.BibleLibraryPane;
 import org.praisenter.javafx.bible.BiblePane;
 import org.praisenter.javafx.media.MediaLibraryPane;
@@ -12,6 +13,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.layout.BorderPane;
 
 public final class MainPane extends BorderPane {
@@ -44,9 +46,15 @@ public final class MainPane extends BorderPane {
 		Menu help = new Menu("Help");
 		
 		menu.getMenus().addAll(file, media, songs, bibles, slides, help);
+		menu.setUseSystemMenuBar(true);
 		
 		MenuItem fSetup = new MenuItem("Setup");
-		file.getItems().add(fSetup);
+		MenuItem fNew = new MenuItem("New");
+		MenuItem fSave = new MenuItem("Save");
+		MenuItem fSaveAs = new MenuItem("Save As...");
+		MenuItem fExit = new MenuItem("Exit");
+		
+		file.getItems().addAll(fSave, fSaveAs, new SeparatorMenuItem(), fSetup, new SeparatorMenuItem(), fExit);
 		
 		MenuItem mManage = new MenuItem("Manage media");
 		MenuItem mImport = new MenuItem("Import media");
@@ -72,6 +80,9 @@ public final class MainPane extends BorderPane {
 		
 		MenuItem hAbout = new MenuItem("About");
 		help.getItems().addAll(hAbout);
+		
+		BreadCrumbBar<Object> bar = new BreadCrumbBar<>();
+		
 		
 		// panes
 		

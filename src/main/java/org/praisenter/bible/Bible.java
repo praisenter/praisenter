@@ -74,6 +74,10 @@ public final class Bible implements Comparable<Bible> {
 	/** The date the bible was imported */
 	@XmlAttribute(name = "importDate", required = false)
 	Date importDate;
+
+	/** The date the bible was imported */
+	@XmlAttribute(name = "lastModifiedDate", required = false)
+	Date lastModifiedDate;
 	
 	/** The copyright */
 	@XmlElement(name = "copyright", required = false)
@@ -132,6 +136,7 @@ public final class Bible implements Comparable<Bible> {
 		this.language = language;
 		this.source = source;
 		this.importDate = importDate;
+		this.lastModifiedDate = importDate;
 		this.copyright = copyright;
 		this.notes = notes;
 		this.hadImportWarning = hadImportWarning;
@@ -162,6 +167,7 @@ public final class Bible implements Comparable<Bible> {
 		bible.hadImportWarning = this.hadImportWarning;
 		bible.id = this.id;
 		bible.importDate = this.importDate;
+		bible.lastModifiedDate = new Date();
 		bible.language = this.language;
 		bible.name = this.name;
 		bible.notes = this.notes;
@@ -241,6 +247,14 @@ public final class Bible implements Comparable<Bible> {
 		return this.importDate;
 	}
 
+	public Date getLastModifiedDate() {
+		return lastModifiedDate;
+	}
+	
+	public void setLastModifiedDate(Date lastModifiedDate) {
+		this.lastModifiedDate = lastModifiedDate;
+	}
+	
 	/**
 	 * Returns the copyright information (if any).
 	 * @return String

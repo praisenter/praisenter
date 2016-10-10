@@ -270,6 +270,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 			if ("v".equalsIgnoreCase(qName)) {
 				// check for embedded verses (n="1" t="4") ...why oh why...
 				if (this.verseTo > 0 && this.verseTo > this.number) {
+					this.bible.hadImportWarning = true;
 					// just duplicate the verse content for each
 					for (short i = this.number; i <= this.verseTo; i++) {
 						this.chapter.verses.add(new Verse(i, this.dataBuilder.toString().trim()));
