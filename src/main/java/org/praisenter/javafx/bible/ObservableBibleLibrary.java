@@ -276,6 +276,7 @@ public final class ObservableBibleLibrary {
 				return null;
 			}
 		};
+		// TODO need to update name if the name changed
 		task.setOnSucceeded((e) -> {
 			if (onSuccess != null) {
 				onSuccess.accept(bible);

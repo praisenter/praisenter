@@ -41,3 +41,8 @@
 .sort-graphic-line {
 	-fx-stroke: -fx-text-background-color;
 }
+
+/** Icons */
+.glyph-font {
+	-fx-text-fill: -fx-text-base-color;
+}

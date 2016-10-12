@@ -26,9 +26,11 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
@@ -44,6 +46,7 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
@@ -73,6 +76,7 @@ final class BibleEditorPane extends BorderPane {
 		TextField txtSource = new TextField();
 		TextField txtCopyright = new TextField();
 		TextArea txtNotes = new TextArea();
+		TextField txtBookName = new TextField();
 		
 		GridPane bibleDetail = new GridPane();
 		bibleDetail.setPadding(new Insets(10));
@@ -88,7 +92,21 @@ final class BibleEditorPane extends BorderPane {
 		bibleDetail.add(txtCopyright, 1, 3);
 		bibleDetail.add(new Label("Notes"), 0, 4);
 		bibleDetail.add(txtNotes, 0, 5, 2, 1);
-		this.setCenter(bibleDetail);
+		
+		GridPane bookDetail = new GridPane();
+		bookDetail.setPadding(new Insets(10));
+		bookDetail.setVgap(5);
+		bookDetail.setHgap(5);
+		bookDetail.add(new Label("Name"), 0, 0);
+		bookDetail.add(txtBookName, 1, 0);
+		
+		TitledPane ttlBible = new TitledPane("Bible Properties", bibleDetail);
+		ttlBible.setCollapsible(false);
+		TitledPane ttlBook = new TitledPane("Book Properties", bookDetail);
+		ttlBook.setCollapsible(false);
+		VBox properties = new VBox(ttlBible, ttlBook);
+		
+		this.setCenter(properties);
 		
 		BibleEditorEventManager manager = new BibleEditorEventManager();
 		
@@ -107,8 +125,12 @@ final class BibleEditorPane extends BorderPane {
 		MenuItem mnuPaste = new MenuItem("Paste", FONT_AWESOME.create(FontAwesome.Glyph.PASTE));
 		mnuPaste.setDisable(true);
 		
-		MenuItem mnuDelete = new MenuItem("Delete", FONT_AWESOME.create(FontAwesome.Glyph.REMOVE).color(Color.RED));
-		MenuItem mnuNew = new MenuItem("New", FONT_AWESOME.create(FontAwesome.Glyph.PLUS).color(Color.LIMEGREEN));
+		mnuCopy.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN));
+		mnuCut.setAccelerator(new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN));
+		mnuPaste.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN));
+		
+		MenuItem mnuDelete = new MenuItem("Delete", FONT_AWESOME.create(FontAwesome.Glyph.REMOVE));
+		MenuItem mnuNew = new MenuItem("New", FONT_AWESOME.create(FontAwesome.Glyph.PLUS));
 		
 		ContextMenu contextMenu = new ContextMenu(mnuNew, mnuDelete, new SeparatorMenuItem(), mnuCopy, mnuCut, mnuPaste);
 		bibleEditor.setContextMenu(contextMenu);
@@ -171,13 +193,10 @@ final class BibleEditorPane extends BorderPane {
 				mnuNew.setText("New Book");
 			} else if (type == 1) {
 				mnuNew.setText("New Chapter");
-				mnuDelete.setText("Delete Book");
 			} else if (type == 2) {
 				mnuNew.setText("New Verse");
-				mnuDelete.setText("Delete Chapter");
 			} else {
 				mnuNew.setText("New Verse");
-				mnuDelete.setText("Delete Verse");
 			}
 			
 			if (manager.canPaste(item)) {
@@ -200,7 +219,9 @@ final class BibleEditorPane extends BorderPane {
 		mnuPaste.setOnAction(e -> {
 			int index = bibleEditor.getSelectionModel().getSelectedIndex();
 			TreeItem<TreeData> item = bibleEditor.getTreeItem(index);
-			manager.paste(item);
+			if (manager.canPaste(item)) {
+				manager.paste(item);
+			}
 		});
 		
 		mnuDelete.setOnAction(e -> {
@@ -235,7 +256,9 @@ final class BibleEditorPane extends BorderPane {
 			} else if (cut.match(e)) {
 				manager.cut(item);
 			} else if (paste.match(e)) {
-				manager.paste(item);
+				if (manager.canPaste(item)) {
+					manager.paste(item);
+				}
 			}
 		});
 		

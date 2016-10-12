@@ -195,19 +195,20 @@ public final class BibleLibraryPane extends BorderPane {
 			
 			this.editor.setBible(item.bible);
 			
-			split.getItems().removeAll(rightScroller);
-			if (!split.getItems().contains(this.editor)) {
-				split.getItems().add(this.editor);
-			}
+//			split.getItems().removeAll(rightScroller);
+//			if (!split.getItems().contains(this.editor)) {
+//				split.getItems().add(this.editor);
+//			}
+//			
+//			Timeline animation = new Timeline();
+//			animation.setAutoReverse(false);
+//			animation.setCycleCount(1);
+//			//animation.setDelay(0);
+//			animation.setRate(3.0);
+//			animation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), new KeyValue(split.getDividers().get(0).positionProperty(), 0.25)));
+//			animation.play();
 			
-			Timeline animation = new Timeline();
-			animation.setAutoReverse(false);
-			animation.setCycleCount(1);
-			//animation.setDelay(0);
-			animation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), new KeyValue(split.getDividers().get(0).positionProperty(), 0.25)));
-			animation.play();
-			
-			//this.setCenter(this.editor);
+			this.setCenter(this.editor);
         });
         
         // wire up the selected media to the media metadata view with a unidirectional binding

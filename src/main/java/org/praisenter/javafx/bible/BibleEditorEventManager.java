@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
@@ -104,32 +105,45 @@ final class BibleEditorEventManager {
 	public void copy(TreeItem<TreeData> item) {
 		if (item == null) return;
 		
+		Clipboard clipboard = Clipboard.getSystemClipboard();
+		ClipboardContent content = new ClipboardContent();
+		content.put(DataFormat.PLAIN_TEXT, item.getValue().label.get());
+		clipboard.setContent(content);
+		
 		this.copyCutTarget = item;
 	}
 	
 	public void cut(TreeItem<TreeData> item) {
 		this.copyCutTarget = item;
+		
+		Clipboard clipboard = Clipboard.getSystemClipboard();
+		ClipboardContent content = new ClipboardContent();
+		content.put(DataFormat.PLAIN_TEXT, item.getValue().label.get());
+		clipboard.setContent(content);
+		
 		item.getParent().getChildren().remove(item);
 	}
 	
 	public void paste(TreeItem<TreeData> item) {
 		int type0 = getType(item.getValue());
-		int type1 = getType(copyCutTarget.getValue());
-		if (type0 == 0 && type1 == 1) {
-			// paste a copy of the book
-			Book book = ((BookTreeData)this.copyCutTarget.getValue()).book.copy();
-			BibleTreeData bible = (BibleTreeData)item.getValue();
-			item.getChildren().add(new TreeItem<TreeData>(new BookTreeData(bible.bible, book)));
-		} else if (type0 == 1 && type1 == 2) {
-			// paste a copy of the chapter
-			Chapter chapter = ((ChapterTreeData)this.copyCutTarget.getValue()).chapter.copy();
-			BookTreeData book = (BookTreeData)item.getValue();
-			item.getChildren().add(new TreeItem<TreeData>(new ChapterTreeData(book.bible, book.book, chapter)));
-		} else if (type0 == 2 && type1 == 3) {
-			// paste a copy of the verse
-			Verse verse = ((VerseTreeData)this.copyCutTarget.getValue()).verse.copy();
-			ChapterTreeData chapter = (ChapterTreeData)item.getValue();
-			item.getChildren().add(new TreeItem<TreeData>(new VerseTreeData(chapter.bible, chapter.book, chapter.chapter, verse)));
+		if (copyCutTarget != null) {
+			int type1 = getType(copyCutTarget.getValue());
+			if (type0 == 0 && type1 == 1) {
+				// paste a copy of the book
+				Book book = ((BookTreeData)this.copyCutTarget.getValue()).book.copy();
+				BibleTreeData bible = (BibleTreeData)item.getValue();
+				item.getChildren().add(new TreeItem<TreeData>(new BookTreeData(bible.bible, book)));
+			} else if (type0 == 1 && type1 == 2) {
+				// paste a copy of the chapter
+				Chapter chapter = ((ChapterTreeData)this.copyCutTarget.getValue()).chapter.copy();
+				BookTreeData book = (BookTreeData)item.getValue();
+				item.getChildren().add(new TreeItem<TreeData>(new ChapterTreeData(book.bible, book.book, chapter)));
+			} else if (type0 == 2 && type1 == 3) {
+				// paste a copy of the verse
+				Verse verse = ((VerseTreeData)this.copyCutTarget.getValue()).verse.copy();
+				ChapterTreeData chapter = (ChapterTreeData)item.getValue();
+				item.getChildren().add(new TreeItem<TreeData>(new VerseTreeData(chapter.bible, chapter.book, chapter.chapter, verse)));
+			}
 		}
 	}
 	
