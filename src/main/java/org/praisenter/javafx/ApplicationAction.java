@@ -1,0 +1,24 @@
+package org.praisenter.javafx;
+
+public enum ApplicationAction {
+	SAVE,
+	SAVE_AS,
+	RENAME,
+	PREFERENCES,
+	NEW_SLIDE,
+	NEW_SONG,
+	NEW_BIBLE,
+	NEW_SLIDE_SHOW,
+	IMPORT_SLIDES,
+	IMPORT_SONGS,
+	IMPORT_BIBLES,
+	COPY,
+	CUT,
+	PASTE,
+	MANAGE_MEDIA,
+	MANAGE_BIBLES,
+	MANAGE_SLIDES,
+	MANAGE_SONGS,
+	ABOUT,
+	EXIT
+}

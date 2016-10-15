@@ -40,6 +40,9 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
 import org.praisenter.javafx.Alerts;
+import org.praisenter.javafx.ApplicationAction;
+import org.praisenter.javafx.ApplicationPane;
+import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
@@ -95,7 +98,7 @@ import javafx.stage.Modality;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class MediaLibraryPane extends BorderPane {
+public final class MediaLibraryPane extends BorderPane implements ApplicationPane {
 	/** The class-level loader */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -357,6 +360,7 @@ public final class MediaLibraryPane extends BorderPane {
         		}
         	}
         	pnePlayer.setMediaPlayer(player, type);
+        	fireEvent(new ApplicationPaneEvent(this.lstMedia, MediaLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, MediaLibraryPane.this));
         });
         
         Label lblImport = new Label(Translations.get("media.import.step1"));
@@ -621,6 +625,23 @@ public final class MediaLibraryPane extends BorderPane {
     						ex);
     				alert.show();
     			});
+    }
+    
+    @Override
+    public boolean isApplicationActionEnabled(ApplicationAction action) {
+    	boolean isSingleSelected = this.selected.get() != null;
+    	switch (action) {
+			case RENAME:
+				return isSingleSelected;
+			default:
+				break;
+		}
+    	return false;
+    }
+    
+    @Override
+    public boolean isApplicationActionVisible(ApplicationAction action) {
+    	return true;
     }
     
     /**
