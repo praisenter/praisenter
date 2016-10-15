@@ -1,11 +1,7 @@
 package org.praisenter.javafx;
 
-import java.awt.event.ActionListener;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
@@ -25,13 +21,13 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 
 class MainMenu extends VBox implements EventHandler<ActionEvent> {
 
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
+	
+	private final ApplicationPane defaults = new DefaultApplicationPane();
 	
 	private final Node rootNode;
 	private final MenuBar menu;
@@ -42,35 +38,6 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 	
 	public MainMenu(Node rootNode) {
 		this.rootNode = rootNode;
-		
-		// auto bind when the scene changes
-		this.sceneProperty().addListener((obs, ov, nv) -> {
-			focusOwner.unbind();
-			if (nv != null) {
-				focusOwner.bind(nv.focusOwnerProperty());
-			}
-		});
-		
-		// call methods when focus owner changes
-		this.focusOwner.addListener((obs, ov, nv) -> {
-			Node appPane = getApplicationPane(nv);
-			this.appPane.set(appPane);
-		});
-		
-		this.appPane.addListener((obs, ov, nv) -> {
-			if (ov != null) {
-				ov.removeEventHandler(ApplicationPaneEvent.STATE_CHANGED, MainMenu.this::handleStateChanged);
-			}
-			
-			if (nv == null) {
-				// TODO set default state
-			} else {
-				ApplicationPane pane = (ApplicationPane)nv;
-				// recursively go through the menu updating disabled and visibility states
-				updateMenuState(pane);
-				nv.addEventHandler(ApplicationPaneEvent.STATE_CHANGED, MainMenu.this::handleStateChanged);
-			}
-		});
 		
 		// MENU
 		
@@ -104,16 +71,18 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		MenuItem fSave = createMenuItem("Save", FONT_AWESOME.create(FontAwesome.Glyph.SAVE), new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), ApplicationAction.SAVE);
 		MenuItem fSaveAs = createMenuItem("Save As...", FONT_AWESOME.create(FontAwesome.Glyph.SAVE), new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), ApplicationAction.SAVE_AS);
-		MenuItem fRename = createMenuItem("Rename", FONT_AWESOME.create(FontAwesome.Glyph.TERMINAL), new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), ApplicationAction.RENAME);
 		MenuItem fSetup = createMenuItem("Preferences", FONT_AWESOME.create(FontAwesome.Glyph.GEAR), null, ApplicationAction.PREFERENCES);
 		MenuItem fExit = createMenuItem("Exit", null, null, ApplicationAction.EXIT);
-		file.getItems().addAll(fNew, new SeparatorMenuItem(), fSave, fSaveAs, fRename, new SeparatorMenuItem(), fImport, new SeparatorMenuItem(), fSetup, new SeparatorMenuItem(), fExit);
+		file.getItems().addAll(fNew, new SeparatorMenuItem(), fSave, fSaveAs, new SeparatorMenuItem(), fImport, new SeparatorMenuItem(), fSetup, new SeparatorMenuItem(), fExit);
 		
 		// Edit
 		MenuItem fCopy = createMenuItem("Copy", FONT_AWESOME.create(FontAwesome.Glyph.COPY), new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN), ApplicationAction.COPY);
 		MenuItem fCut = createMenuItem("Cut", FONT_AWESOME.create(FontAwesome.Glyph.CUT), new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN), ApplicationAction.CUT);
 		MenuItem fPaste = createMenuItem("Paste", FONT_AWESOME.create(FontAwesome.Glyph.PASTE), new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN), ApplicationAction.PASTE);
-		edit.getItems().addAll(fCopy, fCut, fPaste);
+		MenuItem fRename = createMenuItem("Rename", FONT_AWESOME.create(FontAwesome.Glyph.TERMINAL), new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), ApplicationAction.RENAME);
+		MenuItem fDelete = createMenuItem("Delete", FONT_AWESOME.create(FontAwesome.Glyph.CLOSE), new KeyCodeCombination(KeyCode.DELETE), ApplicationAction.DELETE);
+		MenuItem fSelectAll = createMenuItem("Select All", null, new KeyCodeCombination(KeyCode.A, KeyCombination.SHORTCUT_DOWN), ApplicationAction.SELECT_ALL);
+		edit.getItems().addAll(fCopy, fCut, fPaste, new SeparatorMenuItem(), fRename, fDelete, fSelectAll);
 		
 		// Media
 		MenuItem mManage = createMenuItem("Manage media", null, null, ApplicationAction.MANAGE_MEDIA);
@@ -138,9 +107,44 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		this.toolbar = new HBox();
 		
+		// EVENTS
+		
+		// auto bind when the scene changes
+		this.sceneProperty().addListener((obs, ov, nv) -> {
+			focusOwner.unbind();
+			if (nv != null) {
+				focusOwner.bind(nv.focusOwnerProperty());
+			}
+		});
+		
+		// call methods when focus owner changes
+		this.focusOwner.addListener((obs, ov, nv) -> {
+			Node appPane = getApplicationPane(nv);
+			this.appPane.set(appPane);
+		});
+		
+		this.appPane.addListener((obs, ov, nv) -> {
+			if (ov != null) {
+				ov.removeEventHandler(ApplicationPaneEvent.STATE_CHANGED, MainMenu.this::handleStateChanged);
+			}
+			
+			if (nv == null) {
+				updateMenuState(defaults);
+			} else {
+				ApplicationPane pane = (ApplicationPane)nv;
+				// recursively go through the menu updating disabled and visibility states
+				updateMenuState(pane);
+				nv.addEventHandler(ApplicationPaneEvent.STATE_CHANGED, MainMenu.this::handleStateChanged);
+			}
+		});
+		
 		// LAYOUT
 		
 		this.getChildren().addAll(this.menu, this.toolbar);
+		
+		// INITIALIZATION
+		
+		updateMenuState(defaults);
 	}
 	
 	private MenuItem createMenuItem(String label, Node graphic, KeyCombination accelerator, ApplicationAction action) {
@@ -206,6 +210,32 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 				focused.fireEvent(new ApplicationEvent(event.getSource(), event.getTarget(), ApplicationEvent.ALL, action));
 			}
 		}
-		
+	}
+	
+	private class DefaultApplicationPane implements ApplicationPane {
+		public boolean isApplicationActionEnabled(ApplicationAction action) {
+	    	switch (action) {
+				case ABOUT:
+				case EXIT:
+				case IMPORT_BIBLES:
+				case IMPORT_SLIDES:
+				case IMPORT_SONGS:
+				case MANAGE_BIBLES:
+				case MANAGE_MEDIA:
+				case MANAGE_SLIDES:
+				case MANAGE_SONGS:
+				case NEW_BIBLE:
+				case NEW_SLIDE:
+				case NEW_SLIDE_SHOW:
+				case NEW_SONG:
+				case PREFERENCES:
+					return true;
+				default:
+					return false;
+			}
+		}
+		public boolean isApplicationActionVisible(ApplicationAction action) {
+			return true;
+		}
 	}
 }

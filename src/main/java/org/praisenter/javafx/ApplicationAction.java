@@ -4,6 +4,8 @@ public enum ApplicationAction {
 	SAVE,
 	SAVE_AS,
 	RENAME,
+	DELETE,
+	SELECT_ALL,
 	PREFERENCES,
 	NEW_SLIDE,
 	NEW_SONG,

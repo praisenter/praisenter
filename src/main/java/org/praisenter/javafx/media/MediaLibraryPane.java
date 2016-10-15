@@ -41,6 +41,7 @@ import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.ApplicationAction;
+import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.FlowListView;
@@ -79,6 +80,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.DragEvent;
@@ -113,26 +115,29 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 	// selection
 	
 	/** The selected media */
-	private final ObjectProperty<Media> selected;
+	private final ObjectProperty<Media> selected = new SimpleObjectProperty<Media>();
+	
+	/** True if the selection is being changed */
+	private boolean selecting = false;
 	
 	// filters
 	
 	/** The media type filter */
-	private final ObjectProperty<Option<MediaType>> typeFilter;
+	private final ObjectProperty<Option<MediaType>> typeFilter = new SimpleObjectProperty<>(new Option<MediaType>());
 	
 	/** The tag filter */
-	private final ObjectProperty<Option<Tag>> tagFilter;
+	private final ObjectProperty<Option<Tag>> tagFilter = new SimpleObjectProperty<>(new Option<Tag>());
 	
 	/** The search */
-	private final StringProperty textFilter;
+	private final StringProperty textFilter = new SimpleStringProperty();
 	
 	// sorting
 	
 	/** The sort property */
-	private final ObjectProperty<Option<MediaSortField>> sortField;
+	private final ObjectProperty<Option<MediaSortField>> sortField = new SimpleObjectProperty<Option<MediaSortField>>(new Option<MediaSortField>(MediaSortField.NAME.getName(), MediaSortField.NAME));
 	
 	/** The sort direction */
-	private final BooleanProperty sortDescending;
+	private final BooleanProperty sortDescending = new SimpleBooleanProperty(true);
 	
 	// nodes
 	
@@ -156,14 +161,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     		Orientation orientation, 
     		MediaType... types) {
     	this.context = context;
-		this.typeFilter = new SimpleObjectProperty<>(new Option<MediaType>());
-		this.tagFilter = new SimpleObjectProperty<>(new Option<Tag>());
-		this.textFilter = new SimpleStringProperty();
-		this.sortField = new SimpleObjectProperty<Option<MediaSortField>>(new Option<MediaSortField>(MediaSortField.NAME.getName(), MediaSortField.NAME));
-		this.sortDescending = new SimpleBooleanProperty(true);
     	
-		this.selected = new SimpleObjectProperty<Media>();
-		
 		final ObservableMediaLibrary library = context.getMediaLibrary();
 		final ObservableSet<Tag> tags = context.getTags();
 		
@@ -229,6 +227,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 		this.sortField.addListener(filterListener);
 		this.sortDescending.addListener(filterListener);
 		filterListener.invalidated(null);
+		this.addEventHandler(ApplicationEvent.ALL, this::onApplicationEvent);
         
         final MediaType[] mediaTypes = types != null && types.length > 0 ? types : MediaType.values();
         ObservableList<Option<MediaType>> opTypes = FXCollections.observableArrayList();
@@ -278,7 +277,11 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         } else {
         	leftScroller.setFitToHeight(true);
         }
-		leftScroller.addEventHandler(KeyEvent.KEY_PRESSED, this::onMediaDelete);
+		leftScroller.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
+			if (e.getCode() == KeyCode.DELETE) {
+				this.promptDelete();
+			}
+		});
 		leftScroller.setFocusTraversable(true);
         leftScroller.setContent(this.lstMedia);
         leftScroller.setOnDragDropped(this::onMediaDropped);
@@ -315,52 +318,63 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         	}
         });
 
-        this.lstMedia.selectionProperty().addListener((obs, ov, nv) -> {
-        	if (nv == null) {
+        this.lstMedia.selectionsProperty().addListener((obs, ov, nv) -> {
+        	if (selecting) return;
+        	this.selecting = true;
+        	if (nv == null || nv.size() != 1) {
         		this.selected.set(null);
         	} else {
-        		this.selected.set(nv.media);
+        		this.selected.set(nv.get(0).media);
         	}
+        	this.selecting = false;
         });
         this.selected.addListener((obs, ov, nv) -> {
+        	if (selecting) return;
+        	this.selecting = true;
         	if (nv == null) {
-        		lstMedia.selectionProperty().set(null);
+        		lstMedia.setSelection(null);
         	} else {
-        		lstMedia.selectionProperty().set(new MediaListItem(nv));
+        		lstMedia.setSelection(new MediaListItem(nv));
         	}
+        	this.selecting = false;
         });
         
         this.pneMetadata = new MediaMetadataPane(tags);
         // wire up the selected media to the media metadata view with a unidirectional binding
         this.pneMetadata.mediaProperty().bind(this.lstMedia.selectionProperty());
-        this.pneMetadata.addEventHandler(MediaMetadataEvent.RENAME, this::onMediaRename);
+        this.pneMetadata.addEventHandler(MediaMetadataEvent.RENAME, e -> {
+        	this.promptRename(e.getMedia());
+        });
         this.pneMetadata.addEventHandler(MediaMetadataEvent.ADD_TAG, this::onMediaTagAdded);
         this.pneMetadata.addEventHandler(MediaMetadataEvent.REMOVE_TAG, this::onMediaTagRemoved);
 
         // setup preview pane for video/audio
         this.pnePlayer = new MediaPlayerPane();
-        this.lstMedia.selectionProperty().addListener((obs, oldValue, newValue) -> {
+        this.lstMedia.selectionsProperty().addListener((obs, oldValue, newValue) -> {
         	MediaPlayer player = null;
         	MediaType type = null;
-        	if (newValue != null && newValue.media != null) {
-        		type = newValue.media.getType();
-        		if (type == MediaType.AUDIO || type == MediaType.VIDEO) {
-        			javafx.scene.media.Media m = new javafx.scene.media.Media(newValue.media.getPath().toUri().toString());
-        			Exception ex = m.getError();
-        			if (ex != null) {
-        				LOGGER.error("Error loading media " + newValue.media.getName(), ex);
-        			} else {
-        				player = new MediaPlayer(m);
-        				ex = player.getError();
-        				if (ex != null) {
-        					player = null;
-        					LOGGER.error("Error creating media player for " + newValue.media.getName(), ex);
-        				}
-        			}
-        		}
+        	if (newValue != null && newValue.size() == 1) {
+        		MediaListItem item = newValue.get(0);
+	        	if (item != null && item.media != null) {
+	        		type = item.media.getType();
+	        		if (type == MediaType.AUDIO || type == MediaType.VIDEO) {
+	        			javafx.scene.media.Media m = new javafx.scene.media.Media(item.media.getPath().toUri().toString());
+	        			Exception ex = m.getError();
+	        			if (ex != null) {
+	        				LOGGER.error("Error loading media " + item.media.getName(), ex);
+	        			} else {
+	        				player = new MediaPlayer(m);
+	        				ex = player.getError();
+	        				if (ex != null) {
+	        					player = null;
+	        					LOGGER.error("Error creating media player for " + item.media.getName(), ex);
+	        				}
+	        			}
+	        		}
+	        	}
         	}
         	pnePlayer.setMediaPlayer(player, type);
-        	fireEvent(new ApplicationPaneEvent(this.lstMedia, MediaLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, MediaLibraryPane.this));
+        	this.stateChanged();
         });
         
         Label lblImport = new Label(Translations.get("media.import.step1"));
@@ -443,6 +457,15 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         
         this.setTop(top);
         this.setCenter(split);
+        
+        // when this node is removed from the scene
+        // stop the media player if its playing
+        this.parentProperty().addListener((obs, ov, nv) -> {
+        	if (nv == null && ov != null) {
+        		// stop any playing media
+        		this.pnePlayer.stop();
+        	}
+        });
     }
     
     /**
@@ -490,50 +513,50 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
      * Event handler for the delete key for removing media.
      * @param event the event
      */
-    private final void onMediaDelete(KeyEvent event) {
+    private final void promptDelete() {
     	// make sure the file isn't being previewed
     	this.pnePlayer.setMediaPlayer(null, null);
-    	// check the key code
-		if (event.getCode() == KeyCode.DELETE) {
-			// collect the items that are selected
-			List<Media> items = new ArrayList<Media>();
-			for (MediaListItem item : this.lstMedia.selectionsProperty().get()) {
-				// only include those that are imported
-				if (item.loaded && item.media != null) {
-					items.add(item.media);
-				}
+		// collect the items that are selected
+		List<Media> items = new ArrayList<Media>();
+		for (MediaListItem item : this.lstMedia.selectionsProperty().get()) {
+			// only include those that are imported
+			if (item.loaded && item.media != null) {
+				items.add(item.media);
 			}
+		}
 
-			// are there any items selected?
-			if (items.size() > 0) {
-				// make sure the user really wants to do this
-				Alert alert = new Alert(AlertType.CONFIRMATION);
-				alert.initOwner(getScene().getWindow());
-				alert.initModality(Modality.WINDOW_MODAL);
-				alert.setTitle(Translations.get("media.remove.title"));
-				alert.setContentText(Translations.get("media.remove.content"));
-				alert.setHeaderText(null);
-				Optional<ButtonType> result = alert.showAndWait();
-				
-				if (result.get() == ButtonType.OK) {
-					// attempt to delete the selected media
-					this.context.getMediaLibrary().remove(items, () -> {
-						// shouldn't have to do anything on success
-					}, (List<FailedOperation<Media>> failures) -> {
-						// on failure we should notify the user
-						// get the exceptions
-						Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-						// get the failed media
-						String list = String.join(", ", failures.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
-						Alert fAlert = Alerts.exception(
-								getScene().getWindow(),
-								null, 
-								null, 
-								MessageFormat.format(Translations.get("media.remove.error"), list), 
-								exceptions);
-						fAlert.show();
-					});
-				}
+		// are there any items selected?
+		if (items.size() > 0) {
+			// make sure the user really wants to do this
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.initOwner(getScene().getWindow());
+			alert.initModality(Modality.WINDOW_MODAL);
+			alert.setTitle(Translations.get("media.remove.title"));
+			alert.setContentText(Translations.get("media.remove.content"));
+			alert.setHeaderText(null);
+			Optional<ButtonType> result = alert.showAndWait();
+			
+			if (result.get() == ButtonType.OK) {
+				// attempt to delete the selected media
+				this.context.getMediaLibrary().remove(items, () -> {
+					// notify that the selections may have changed
+					this.stateChanged();
+				}, (List<FailedOperation<Media>> failures) -> {
+					// on failure we should notify the user
+					// get the exceptions
+					Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
+					// get the failed media
+					String list = String.join(", ", failures.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
+					Alert fAlert = Alerts.exception(
+							getScene().getWindow(),
+							null, 
+							null, 
+							MessageFormat.format(Translations.get("media.remove.error"), list), 
+							exceptions);
+					fAlert.show();
+					// notify that the selections may have changed
+					this.stateChanged();
+				});
 			}
 		}
     }
@@ -542,28 +565,43 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
      * Event handler for renaming media.
      * @param event the event
      */
-    private final void onMediaRename(MediaRenameEvent event) {
-    	// make sure the file isn't being previewed
-    	this.pnePlayer.setMediaPlayer(null, null);
-    	// update the media's name
-    	this.context.getMediaLibrary().rename(
-    			event.media,
-    			event.name, 
-    			(Media media) -> {
-    				// nothing to do on success
-    			}, 
-    			(Media media, Throwable ex) -> {
-    				// log the error
-    				LOGGER.error("Failed to rename media from '{}' to '{}': {}", event.getMedia().getName(), event.getName(), ex.getMessage());
-    				// show an error to the user
-    				Alert alert = Alerts.exception(
-    						getScene().getWindow(),
-    						null, 
-    						null, 
-    						MessageFormat.format(Translations.get("media.metadata.rename.error"), event.getMedia().getName(), event.getName()), 
-    						ex);
-    				alert.show();
-    			});
+    private final void promptRename(Media media) {
+    	TextInputDialog prompt = new TextInputDialog(media.getName());
+    	prompt.initOwner(getScene().getWindow());
+    	prompt.initModality(Modality.WINDOW_MODAL);
+    	prompt.setTitle(Translations.get("media.metadata.rename.title"));
+    	prompt.setHeaderText(Translations.get("media.metadata.rename.header"));
+    	prompt.setContentText(Translations.get("media.metadata.rename.content"));
+    	Optional<String> result = prompt.showAndWait();
+    	// check for the "OK" button
+    	if (result.isPresent()) {
+    		// actually rename it?
+    		String name = result.get();
+    		// make sure the file isn't being previewed
+        	this.pnePlayer.setMediaPlayer(null, null);
+        	// update the media's name
+        	this.context.getMediaLibrary().rename(
+        			media,
+        			name, 
+        			(Media m) -> {
+        				// notify that the selections may have changed
+    					this.stateChanged();
+        			}, 
+        			(Media m, Throwable ex) -> {
+        				// log the error
+        				LOGGER.error("Failed to rename media from '{}' to '{}': {}", media.getName(), name, ex.getMessage());
+        				// show an error to the user
+        				Alert alert = Alerts.exception(
+        						getScene().getWindow(),
+        						null, 
+        						null, 
+        						MessageFormat.format(Translations.get("media.metadata.rename.error"), media.getName(), name), 
+        						ex);
+        				alert.show();
+        				// notify that the selections may have changed
+    					this.stateChanged();
+        			});
+    	}
     }
     
     /**
@@ -627,18 +665,75 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     			});
     }
     
+    /**
+     * Event handler for application events.
+     * @param event the event
+     */
+    private final void onApplicationEvent(ApplicationEvent event) {
+    	ApplicationAction action = event.getAction();
+    	switch (action) {
+    		case RENAME:
+    			Media selected = this.selected.get();
+    			if (selected != null) {
+    				this.promptRename(selected);
+    			}
+    			break;
+    		case DELETE:
+    			this.promptDelete();
+    			break;
+    		case SELECT_ALL:
+    			this.lstMedia.selectAll();
+    			this.stateChanged();
+    			break;
+    		default:
+    			break;
+    	}
+    }
+    
+    /**
+     * Called when the state of this pane changes.
+     */
+    private final void stateChanged() {
+    	fireEvent(new ApplicationPaneEvent(this.lstMedia, MediaLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, MediaLibraryPane.this));
+    }
+    
+    /* (non-Javadoc)
+     * @see org.praisenter.javafx.ApplicationPane#isApplicationActionEnabled(org.praisenter.javafx.ApplicationAction)
+     */
     @Override
     public boolean isApplicationActionEnabled(ApplicationAction action) {
     	boolean isSingleSelected = this.selected.get() != null;
+    	boolean isMultiSelected = this.lstMedia.selectionsProperty().size() > 0;
     	switch (action) {
 			case RENAME:
 				return isSingleSelected;
+			case DELETE:
+				return isSingleSelected || isMultiSelected;
+			case SELECT_ALL:
+			case ABOUT:
+			case EXIT:
+			case IMPORT_BIBLES:
+			case IMPORT_SLIDES:
+			case IMPORT_SONGS:
+			case MANAGE_BIBLES:
+			case MANAGE_MEDIA:
+			case MANAGE_SLIDES:
+			case MANAGE_SONGS:
+			case NEW_BIBLE:
+			case NEW_SLIDE:
+			case NEW_SLIDE_SHOW:
+			case NEW_SONG:
+			case PREFERENCES:
+				return true;
 			default:
 				break;
 		}
     	return false;
     }
-    
+
+    /* (non-Javadoc)
+     * @see org.praisenter.javafx.ApplicationPane#isApplicationActionVisible(org.praisenter.javafx.ApplicationAction)
+     */
     @Override
     public boolean isApplicationActionVisible(ApplicationAction action) {
     	return true;

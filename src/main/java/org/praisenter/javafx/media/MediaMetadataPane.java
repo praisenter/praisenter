@@ -27,7 +27,6 @@ package org.praisenter.javafx.media;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.Optional;
 
 import org.praisenter.Tag;
 import org.praisenter.javafx.TagEvent;
@@ -49,7 +48,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
@@ -63,7 +61,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.stage.Modality;
 
 /**
  * Pane specifically for display and edit of {@link Media}.
@@ -153,18 +150,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(nameRow, 1, 0, 1, 1);
         
         btnRename.setOnAction((e) -> {
-	    	TextInputDialog prompt = new TextInputDialog(name.get());
-	    	prompt.initOwner(getScene().getWindow());
-	    	prompt.initModality(Modality.WINDOW_MODAL);
-	    	prompt.setTitle(Translations.get("media.metadata.rename.title"));
-	    	prompt.setHeaderText(Translations.get("media.metadata.rename.header"));
-	    	prompt.setContentText(Translations.get("media.metadata.rename.content"));
-	    	Optional<String> result = prompt.showAndWait();
-	    	// check for the "OK" button
-	    	if (result.isPresent()) {
-	    		// fire the rename event
-	    		fireEvent(new MediaRenameEvent(btnRename, MediaMetadataPane.this, media.get().media, result.get()));
-	    	}
+    		fireEvent(new MediaRenameEvent(btnRename, MediaMetadataPane.this, media.get().media));
 	    });
         
         Label lblWidth = new Label(Translations.get("media.metadata.width"));

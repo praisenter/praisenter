@@ -242,12 +242,12 @@ public final class AnimationPickerPane extends BorderPane {
 		animationListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
 		animationListPane.itemsProperty().set(FXCollections.observableArrayList(animationOptions));
 		animationListPane.setOrientation(javafx.geometry.Orientation.HORIZONTAL);
-		animationListPane.selectionProperty().set(new AnimationOption(Swap.class, 0));
+		animationListPane.setSelection(new AnimationOption(Swap.class, 0));
 				
 		easingListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
 		easingListPane.itemsProperty().set(FXCollections.observableArrayList(easingOptions));
 		easingListPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
-		easingListPane.selectionProperty().set(new AnimationOption(Linear.class, 0));
+		easingListPane.setSelection(new AnimationOption(Linear.class, 0));
 		
 		// setup the animation config
 		
@@ -460,8 +460,8 @@ public final class AnimationPickerPane extends BorderPane {
     		// assign all the controls their values
 			// FIXME we don't know the animated object type at this time
 			cmbObjects.setValue(new AnimatedObject(animation.getId(), AnimatedObjectType.COMPONENT, "test"));
-			animationListPane.selectionProperty().set(new AnimationOption(animation.getClass(), 0));
-			easingListPane.selectionProperty().set(new AnimationOption(animation.getEasing().getClass(), 0));
+			animationListPane.setSelection(new AnimationOption(animation.getClass(), 0));
+			easingListPane.setSelection(new AnimationOption(animation.getEasing().getClass(), 0));
 			txtDuration.setText(String.valueOf(animation.getDuration()));
 			txtDelay.setText(String.valueOf(animation.getDelay()));
 			cbAnimationType.setValue(getOption(ANIMATION_TYPE_OPTIONS, animation.getType()));

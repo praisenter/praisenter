@@ -275,6 +275,11 @@ public final class MediaPlayerPane extends BorderPane {
                     btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
                 }
             });
+            player.setOnStopped(new Runnable() {
+                public void run() {
+                    btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
+                }
+            });
             player.setOnReady(new Runnable() {
                 public void run() {
                     duration = player.getMedia().getDuration();
@@ -383,6 +388,12 @@ public final class MediaPlayerPane extends BorderPane {
                         elapsedSeconds);
             }
         }
+    }
+    
+    public void stop() {
+    	if (this.player != null) {
+    		this.player.stop();
+    	}
     }
     
 //    private Region buildSpectrumBar() {

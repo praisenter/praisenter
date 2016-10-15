@@ -31,7 +31,7 @@ import org.praisenter.media.Media;
 import javafx.event.EventTarget;
 
 /**
- * Event fired when media has been renamed.
+ * Event fired when the user requests to rename the media.
  * @author William Bittle
  * @version 3.0.0
  */
@@ -42,20 +42,15 @@ final class MediaRenameEvent extends MediaMetadataEvent implements Serializable 
 	/** The media */
 	final Media media;
 	
-	/** The new name */
-	final String name;
-	
 	/**
 	 * Full constructor.
 	 * @param source the event source
 	 * @param target the event target
 	 * @param media the media
-	 * @param name the new name
 	 */
-	public MediaRenameEvent(Object source, EventTarget target, Media media, String name) {
+	public MediaRenameEvent(Object source, EventTarget target, Media media) {
 		super(source, target, RENAME);
 		this.media = media;
-		this.name = name;
 	}
 
 	/**
@@ -64,13 +59,5 @@ final class MediaRenameEvent extends MediaMetadataEvent implements Serializable 
 	 */
 	public Media getMedia() {
 		return this.media;
-	}
-
-	/**
-	 * Returns the new name.
-	 * @return String
-	 */
-	public String getName() {
-		return this.name;
 	}
 }

@@ -41,9 +41,6 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
 import org.praisenter.resources.translations.Translations;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
@@ -51,7 +48,6 @@ import javafx.geometry.Orientation;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -63,13 +59,9 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
-import javafx.util.Duration;
-
-// FEATURE might be nice to be able to edit bibles when they are incomplete or messed up
 
 /**
  * Pane specifically for showing the bibles in a bible library.
@@ -82,6 +74,9 @@ public final class BibleLibraryPane extends BorderPane {
 	/** The selected bible */
 	private final ObjectProperty<Bible> selected = new SimpleObjectProperty<Bible>();
 	
+	/** True if the selection is being changed */
+	private boolean selecting = false;
+	
 	// data
 	
 	/** The context */
@@ -92,6 +87,7 @@ public final class BibleLibraryPane extends BorderPane {
 	/** The bible listing */
 	private final FlowListView<BibleListItem> lstBibles;
 	
+	/** The bible editor node */
 	private final BibleEditorPane editor;
 	
 	/**
@@ -122,9 +118,9 @@ public final class BibleLibraryPane extends BorderPane {
 			context.getJavaFXContext().getApplication().getHostServices().showDocument("http://www.opensong.org/home/download");
 		});
 		
-		lblUnbound.setPadding(new Insets(0, 0, 0, 30));
-		lblZefania.setPadding(new Insets(0, 0, 0, 30));
-		lblOpenSong.setPadding(new Insets(0, 0, 0, 30));
+		lblUnbound.setPadding(new Insets(0, 0, 0, 20));
+		lblZefania.setPadding(new Insets(0, 0, 0, 20));
+		lblOpenSong.setPadding(new Insets(0, 0, 0, 20));
 		
 		lblStep1.setMinWidth(20);
 		lblStep2.setMinWidth(20);
@@ -172,19 +168,25 @@ public final class BibleLibraryPane extends BorderPane {
 		
 		this.setCenter(split);
 		
-		this.lstBibles.selectionProperty().addListener((obs, ov, nv) -> {
-        	if (nv == null) {
+		this.lstBibles.selectionsProperty().addListener((obs, ov, nv) -> {
+			if (selecting) return;
+			selecting = true;
+        	if (nv == null || nv.size() != 1) {
         		this.selected.set(null);
         	} else {
-        		this.selected.set(nv.bible);
+        		this.selected.set(nv.get(0).bible);
         	}
+        	selecting = false;
         });
         this.selected.addListener((obs, ov, nv) -> {
+        	if (selecting) return;
+        	selecting = true;
         	if (nv == null) {
-        		lstBibles.selectionProperty().set(null);
+        		lstBibles.setSelection(null);
         	} else {
-        		lstBibles.selectionProperty().set(new BibleListItem(nv));
+        		lstBibles.setSelection(new BibleListItem(nv));
         	}
+        	selecting = false;
         });
         
         this.editor = new BibleEditorPane(context);
