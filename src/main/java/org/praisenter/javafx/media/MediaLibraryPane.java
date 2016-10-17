@@ -85,8 +85,6 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -277,11 +275,6 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         } else {
         	leftScroller.setFitToHeight(true);
         }
-		leftScroller.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
-			if (e.getCode() == KeyCode.DELETE) {
-				this.promptDelete();
-			}
-		});
 		leftScroller.setFocusTraversable(true);
         leftScroller.setContent(this.lstMedia);
         leftScroller.setOnDragDropped(this::onMediaDropped);

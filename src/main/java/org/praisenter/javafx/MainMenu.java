@@ -119,7 +119,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		// call methods when focus owner changes
 		this.focusOwner.addListener((obs, ov, nv) -> {
-			Node appPane = getApplicationPane(nv);
+			Node appPane = getClosestApplicationPane(nv);
 			this.appPane.set(appPane);
 		});
 		
@@ -186,7 +186,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		}
 	}
 
-	private Node getApplicationPane(Node focused) {
+	private Node getClosestApplicationPane(Node focused) {
 		while (focused != null) {
 			if (focused instanceof ApplicationPane) {
 				return focused;
@@ -198,7 +198,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 	
 	@Override
 	public void handle(ActionEvent event) {
-		Node focused = this.focusOwner.get();
+		Node focused = this.appPane.get();
 		if (focused == null) {
 			focused = this.rootNode;
 		}

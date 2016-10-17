@@ -390,6 +390,9 @@ public final class MediaPlayerPane extends BorderPane {
         }
     }
     
+    /**
+     * Stops the player.
+     */
     public void stop() {
     	if (this.player != null) {
     		this.player.stop();
