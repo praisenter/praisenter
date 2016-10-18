@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -38,6 +37,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
+import org.praisenter.javafx.MonitoredTask;
+import org.praisenter.javafx.MonitoredThreadPoolExecutor;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
@@ -59,6 +60,7 @@ import javafx.concurrent.Task;
  * @author William Bittle
  * @version 3.0.0
  */
+// TODO translate
 public final class ObservableMediaLibrary {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -67,7 +69,7 @@ public final class ObservableMediaLibrary {
 	private final MediaLibrary library;
 	
 	/** The thread service */
-	private final ExecutorService service;
+	private final MonitoredThreadPoolExecutor service;
 	
 	/** The observable list of media items */
 	private final ObservableList<MediaListItem> items;
@@ -77,7 +79,7 @@ public final class ObservableMediaLibrary {
 	 * @param library the media library
 	 * @param service the thread service
 	 */
-	public ObservableMediaLibrary(MediaLibrary library, ExecutorService service) {
+	public ObservableMediaLibrary(MediaLibrary library, MonitoredThreadPoolExecutor service) {
 		this.library = library;
 		this.service = service;
 		this.items = FXCollections.observableArrayList();
@@ -117,7 +119,7 @@ public final class ObservableMediaLibrary {
 		});
 		
 		// execute the add on a different thread
-		Task<Media> task = new Task<Media>() {
+		MonitoredTask<Media> task = new MonitoredTask<Media>("Importing '" + path.toString() + "'", true) {
 			@Override
 			protected Media call() throws Exception {
 				return library.add(path);
@@ -146,7 +148,7 @@ public final class ObservableMediaLibrary {
 				}
 			});
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
 	
 	/**
@@ -186,7 +188,7 @@ public final class ObservableMediaLibrary {
 		List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
 		
 		// execute the add on a different thread
-		Task<Void> task = new Task<Void>() {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Importing " + paths.size() + " slides" : "Importing '" + paths.get(0).toString() + "'", true) {
 			@Override
 			protected Void call() throws Exception {
 				for (Path path : paths) {
@@ -234,7 +236,7 @@ public final class ObservableMediaLibrary {
 				}
 			});
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
 	
 	/**
@@ -256,7 +258,7 @@ public final class ObservableMediaLibrary {
 	 */
 	public void remove(Media media, Runnable onSuccess, BiConsumer<Media, Throwable> onError) {
 		// execute the add on a different thread
-		Task<Void> task = new Task<Void>() {
+		MonitoredTask<Void> task = new MonitoredTask<Void>("Removing '" + media.getName() + "'", true) {
 			@Override
 			protected Void call() throws Exception {
 				library.remove(media);
@@ -281,7 +283,7 @@ public final class ObservableMediaLibrary {
 				}
 			});
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
 	
 	/**
@@ -305,7 +307,7 @@ public final class ObservableMediaLibrary {
 		List<FailedOperation<Media>> failures = new ArrayList<FailedOperation<Media>>();
 		
 		// execute the add on a different thread
-		Task<Void> task = new Task<Void>() {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(media.size() > 1 ? "Removing " + media.size() + " media" : "Removing '" + media.get(0).getName() + "'", true) {
 			@Override
 			protected Void call() throws Exception {
 				for (Media m : media) {
@@ -343,7 +345,7 @@ public final class ObservableMediaLibrary {
 				}
 			});
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
 	
 	/**
@@ -366,7 +368,7 @@ public final class ObservableMediaLibrary {
 	 */
 	public void rename(Media media, String name, Consumer<Media> onSuccess, BiConsumer<Media, Throwable> onError) {
 		// execute the add on a different thread
-		Task<Media> task = new Task<Media>() {
+		MonitoredTask<Media> task = new MonitoredTask<Media>("Renaming '" + media.getName() + "' to '" + name + "'", true) {
 			@Override
 			protected Media call() throws Exception {
 				return library.rename(media, name);
@@ -406,7 +408,7 @@ public final class ObservableMediaLibrary {
 				}
 			});
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
 
 	/**
@@ -421,6 +423,7 @@ public final class ObservableMediaLibrary {
 	 */
 	public void addTag(Media media, Tag tag, Consumer<Tag> onSuccess, BiConsumer<Tag, Throwable> onError) {
 		// execute the add on a different thread
+		// NOTE: don't bother monitoring tag-add
 		Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -443,7 +446,7 @@ public final class ObservableMediaLibrary {
 				}
 			});
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
 	
 	/**
@@ -458,6 +461,7 @@ public final class ObservableMediaLibrary {
 	 */
 	public void removeTag(final Media media, final Tag tag, Consumer<Tag> onSuccess, BiConsumer<Tag, Throwable> onError) {
 		// execute the add on a different thread
+		// NOTE: don't bother monitoring tag-remove
 		Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -480,7 +484,7 @@ public final class ObservableMediaLibrary {
 				}
 			});
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
 	
 	// other

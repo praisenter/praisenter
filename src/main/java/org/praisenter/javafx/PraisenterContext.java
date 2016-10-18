@@ -26,10 +26,6 @@ package org.praisenter.javafx;
 
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.praisenter.Tag;
 import org.praisenter.bible.BibleLibrary;
@@ -79,7 +75,7 @@ public final class PraisenterContext {
 	private final ObservableSet<Tag> tags;
 	
 	/** The worker thread pool */
-	private final ThreadPoolExecutor workers;
+	private final MonitoredThreadPoolExecutor executor;
 	
 	/**
 	 * Full constructor.
@@ -104,32 +100,15 @@ public final class PraisenterContext {
 		this.javaFXContext = javaFxContext;
 		this.configuration = configuration;
 		this.screenManager = screenManager;
-		
-		// create a thread pool that we can reuse all over the app
-		this.workers = new ThreadPoolExecutor(
-				2, 
-				10, 
-				1, 
-				TimeUnit.MINUTES, 
-				new LinkedBlockingQueue<Runnable>(), 
-				new ThreadFactory() {
-					@Override
-					public Thread newThread(Runnable r) {
-						Thread thread = new Thread(r);
-						thread.setName("PraisenterWorkerThread");
-						thread.setDaemon(true);
-						return thread;
-					}
-				});
-		
 		this.imageCache = imageCache;
 
-		this.mediaLibrary = new ObservableMediaLibrary(media, workers);
-		this.bibleLibrary = new ObservableBibleLibrary(bibles, workers);
-		this.slideLibrary = new ObservableSlideLibrary(slides, workers);
+		// create a thread pool that we can reuse all over the app
+		this.executor = new MonitoredThreadPoolExecutor();
+		this.mediaLibrary = new ObservableMediaLibrary(media, this.executor);
+		this.bibleLibrary = new ObservableBibleLibrary(bibles, this.executor);
+		this.slideLibrary = new ObservableSlideLibrary(slides, this.executor);
 		
 		Set<Tag> tags = new TreeSet<Tag>();
-		
 		// add all the tags to the main tag set
 		if (slides != null) {
 			tags.addAll(this.slideLibrary.getTags());
@@ -209,7 +188,7 @@ public final class PraisenterContext {
 	 * Returns the worker thread pool.
 	 * @return ThreadPoolExecutor
 	 */
-	public ThreadPoolExecutor getWorkers() {
-		return this.workers;
+	public MonitoredThreadPoolExecutor getExecutorService() {
+		return this.executor;
 	}
 }

@@ -74,8 +74,10 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 		
 		// make sure the file exists
 		if (Files.exists(path)) {
-			LOGGER.debug("Reading OpenSong Bible file: " + path.toAbsolutePath().toString());
+			LOGGER.debug("Reading Zefania Bible file: " + path.toAbsolutePath().toString());
 
+			boolean read = false;
+			Throwable throwable = null;
 			// first try to open it as a zip
 			try (FileInputStream fis = new FileInputStream(path.toFile());
 				 BufferedInputStream bis = new BufferedInputStream(fis);
@@ -83,36 +85,50 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 				LOGGER.debug("Reading as zip file: " + path.toAbsolutePath().toString());
 				// read the entries (each should be a .xml file)
 				ZipEntry entry = null;
-				boolean read = false;
 				while ((entry = zis.getNextEntry()) != null) {
 					read = true;
-					int i = entry.getName().lastIndexOf('.');
-					String name = entry.getName();
-					if (i >= 0) {
-						name = entry.getName().substring(0, i);
+					if (!entry.isDirectory()) {
+						int i = entry.getName().lastIndexOf('.');
+						String name = entry.getName();
+						if (i >= 0) {
+							name = entry.getName().substring(0, i);
+						}
+						try {
+							Bible bible = this.parse(zis, name);
+							bibles.add(bible);
+						} catch (Exception ex) {
+							throwable = ex;
+							LOGGER.warn("Failed to parse zip entry: " + entry.getName());
+						}
 					}
-					Bible bible = this.parse(zis, name);
-					bibles.add(bible);
 				}
-				// check if we read an entry
-				// if not, that may mean the file was not a zip so try it as a normal flat file
-				if (!read) {
-					String name = path.getFileName().toString().toLowerCase();
-					LOGGER.debug("Reading as XML file: " + path.toAbsolutePath().toString());
-					if (!name.endsWith(".xml")) {
-						LOGGER.warn("File " + path.toAbsolutePath().toString() + " does not end with either .zip or .xml file extensions.  Attempting to read anyway.");
-					}
-					// this indicates the file is not a zip or invalid
-					name = path.getFileName().toString();
-					int i = name.lastIndexOf('.');
-					if (i >= 0) {
-						name = name.substring(0, i);
-					}
-					// hopefully its an .xml
-					// just read it
-					Bible bible = this.parse(new FileInputStream(path.toFile()), name);
-					bibles.add(bible);
+			}
+			
+			// check if we read an entry
+			// if not, that may mean the file was not a zip so try it as a normal flat file
+			if (!read) {
+				String name = path.getFileName().toString().toLowerCase();
+				LOGGER.debug("Reading as XML file: " + path.toAbsolutePath().toString());
+				if (!name.endsWith(".xml")) {
+					LOGGER.warn("File " + path.toAbsolutePath().toString() + " does not end with either .zip or .xml file extensions.  Attempting to read anyway.");
 				}
+				// this indicates the file is not a zip or invalid
+				name = path.getFileName().toString();
+				int i = name.lastIndexOf('.');
+				if (i >= 0) {
+					name = name.substring(0, i);
+				}
+				// hopefully its an .xml
+				// just read it
+				Bible bible = this.parse(new FileInputStream(path.toFile()), name);
+				bibles.add(bible);
+			}
+
+			// throw the exception stored during the unzip process
+			// only if we didn't find any bibles (if we successfully read in
+			// a bible from the zip then we don't want to throw)
+			if (bibles.size() == 0 && throwable != null) {
+				throw new InvalidFormatException(throwable.getMessage(), throwable);
 			}
 
 			return bibles;
@@ -218,14 +234,15 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 			} else if (qName.equalsIgnoreCase("biblebook") ||
 					   qName.equalsIgnoreCase("b")) {
 				String bnumber = attributes.getValue("bnumber");
+				String bname = attributes.getValue("bname");
 				try {
 					this.bookNumber = Short.parseShort(bnumber);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse book number '" + bnumber + "' for '" + this.bible.name + "'. Using next book number in sequence instead.");
+					LOGGER.warn("Failed to parse book number '" + bnumber + "' for '" + bname + "' in '" + this.bible.name + "'. Using next book number in sequence instead.");
 					this.bible.hadImportWarning = true;
 					this.bookNumber++;
 				}
-				this.book = new Book(attributes.getValue("bname"), bookNumber);
+				this.book = new Book(bname, bookNumber);
 				this.bible.books.add(book);
 				this.chapterNumber = 0;
 			} else if (qName.equalsIgnoreCase("chapter") ||
@@ -234,7 +251,7 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 				try {
 					this.chapterNumber = Short.parseShort(cnumber);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse chapter number '" + cnumber + "' for '" + this.bible.name + "'. Using next chapter number in sequence instead.");
+					LOGGER.warn("Failed to parse chapter number '" + cnumber + "' for '" + this.book.name + "' in '" + this.bible.name + "'. Using next chapter number in sequence instead.");
 					this.bible.hadImportWarning = true;
 					this.chapterNumber++;
 				}
@@ -248,7 +265,7 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 				try {
 					this.verse = Short.parseShort(vnumber);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse verse number '" + vnumber + "' for '" + this.bible.name + "'. Using next verse number in sequence instead.");
+					LOGGER.warn("Failed to parse verse number '" + vnumber + "' for '" + this.book.name + "' chapter '" + this.chapter.number + "' in '" + this.bible.name + "'. Using next verse number in sequence instead.");
 					this.bible.hadImportWarning = true;
 					this.verse++;
 				}

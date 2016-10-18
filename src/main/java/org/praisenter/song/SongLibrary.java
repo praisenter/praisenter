@@ -265,7 +265,7 @@ public final class SongLibrary {
 	 */
 	public synchronized void reindex() throws IOException {
 		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+		config.setOpenMode(OpenMode.CREATE);
 		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
 			for (Song song : this.songs.values()) {
 				try {

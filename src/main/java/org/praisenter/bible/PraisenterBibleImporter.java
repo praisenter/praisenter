@@ -34,6 +34,7 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 			LOGGER.debug("Reading Praisenter Bible file: " + path.toAbsolutePath().toString());
 
 			boolean read = false;
+			Throwable throwable = null;
 			// first try to open it as a zip
 			try (FileInputStream fis = new FileInputStream(path.toFile());
 				 BufferedInputStream bis = new BufferedInputStream(fis);
@@ -43,11 +44,18 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 				ZipEntry entry = null;
 				while ((entry = zis.getNextEntry()) != null) {
 					read = true;
-					byte[] data = read(zis);
-					Bible bible = XmlIO.read(new ByteArrayInputStream(data), Bible.class);
-					bible.id = UUID.randomUUID();
-					bible.importDate = new Date();
-					bibles.add(bible);
+					if (!entry.isDirectory()) {
+						byte[] data = read(zis);
+						try {
+							Bible bible = XmlIO.read(new ByteArrayInputStream(data), Bible.class);
+							bible.id = UUID.randomUUID();
+							bible.importDate = new Date();
+							bibles.add(bible);
+						} catch (Exception ex) {
+							throwable = ex;
+							LOGGER.warn("Failed to parse zip entry: " + entry.getName());
+						}
+					}
 				}
 			}
 			
@@ -63,6 +71,13 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 					bible.importDate = new Date();
 					bibles.add(bible);
 				}
+			}
+
+			// throw the exception stored during the unzip process
+			// only if we didn't find any bibles (if we successfully read in
+			// a bible from the zip then we don't want to throw)
+			if (bibles.size() == 0 && throwable != null) {
+				throw new InvalidFormatException(throwable.getMessage(), throwable);
 			}
 
 			return bibles;

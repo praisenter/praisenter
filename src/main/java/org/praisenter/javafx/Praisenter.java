@@ -235,7 +235,9 @@ public final class Praisenter extends Application {
     	stage.setOnCloseRequest((e) -> {
     		LOGGER.info("Checking for background threads that have not completed yet.");
     		// this stuff could be null if we blow up before its created
-    		if (context != null && context.getWorkers() != null) {
+    		MonitoredThreadPoolExecutor executor = context != null ? context.getExecutorService() : null;
+    		if (executor != null) {
+    			
     			// for testing shutdown waiting
 //        		context.getWorkers().submit(() -> { 
 //        			try {
@@ -244,13 +246,14 @@ public final class Praisenter extends Application {
 //    					e1.printStackTrace();
 //    				} 
 //        		});
-	    		context.getWorkers().shutdown();
-	    		int activeThreads = context.getWorkers().getActiveCount();
+    			
+    			executor.shutdown();
+	    		int activeThreads = executor.getActiveCount();
 	    		if (activeThreads > 0) {
 	    			LOGGER.info("{} background threads awaiting completion.", activeThreads);
 	    			e.consume();
 	    			
-	    			ShutdownDialog shutdown = new ShutdownDialog(stage, context.getWorkers());
+	    			ShutdownDialog shutdown = new ShutdownDialog(stage, executor);
 	    			shutdown.completeProperty().addListener((obs, ov, nv) -> {
 	    				if (nv) {
 	    					LOGGER.info("Shutdown complete. Exiting the platform.");

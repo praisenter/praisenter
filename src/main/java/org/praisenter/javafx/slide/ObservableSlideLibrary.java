@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -18,6 +17,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
+import org.praisenter.javafx.MonitoredTask;
+import org.praisenter.javafx.MonitoredThreadPoolExecutor;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
@@ -25,22 +26,22 @@ import org.praisenter.slide.SlideThumbnailGenerator;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 
+// TODO translate
 public final class ObservableSlideLibrary {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	/** The bible library */
+	/** The slide library */
 	private final SlideLibrary library;
 	
 	/** The thread service */
-	private final ExecutorService service;
+	private final MonitoredThreadPoolExecutor service;
 	
-	/** The observable list of bibles */
+	/** The observable list of slides */
 	private final ObservableList<SlideListItem> items = FXCollections.observableArrayList();
 
-	public ObservableSlideLibrary(SlideLibrary library, ExecutorService service) {
+	public ObservableSlideLibrary(SlideLibrary library, MonitoredThreadPoolExecutor service) {
 		this.library = library;
 		this.service = service;
 		
@@ -89,7 +90,7 @@ public final class ObservableSlideLibrary {
 		});
 		
 		// execute the add on a different thread
-		Task<Slide> task = new Task<Slide>() {
+		MonitoredTask<Slide> task = new MonitoredTask<Slide>("Importing '" + path.toString() + "'", true) {
 			@Override
 			protected Slide call() throws Exception {
 				return library.add(path);
@@ -118,9 +119,99 @@ public final class ObservableSlideLibrary {
 				}
 			});
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
-	
+
+	/**
+	 * Attempts to add the given paths to the slide library.
+	 * <p>
+	 * The onSuccess method will be called with all the successful imports. The
+	 * onError method will be called with all the failed imports. The onSuccess
+	 * and onError methods will only be called if there's at least one successful
+	 * or one failed import respectively.
+	 * <p>
+	 * Items are added to the observable list to represent that the slide is
+	 * being imported. These items will be removed when the import completes, whether
+	 * they are successful or not.
+	 * <p>
+	 * The observable list of slides will be updated if some slides are successfully
+	 * added to the SlideLibrary. Both the update of the observable list and
+	 * the onSuccess and onError methods will be performed on the Java FX UI
+	 * thread.
+	 * @param paths the paths to the slides
+	 * @param onSuccess called with the slides that were imported successfully
+	 * @param onError called with the slides that failed to be imported
+	 */
+	public void add(List<Path> paths, Consumer<List<Slide>> onSuccess, Consumer<List<FailedOperation<Path>>> onError) {
+		// create the "loading" items
+		List<SlideListItem> loadings = new ArrayList<SlideListItem>();
+		for (Path path : paths) {
+			loadings.add(new SlideListItem(path.getFileName().toString()));
+		}
+		
+		// changes to the list should be done on the FX UI Thread
+		Fx.runOnFxThead(() -> {
+			// add it to the items list
+			items.addAll(loadings);
+		});
+		
+		List<Slide> successes = new ArrayList<Slide>();
+		List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
+		
+		// execute the add on a different thread
+		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Importing " + paths.size() + " slides" : "Importing '" + paths.get(0).toString() + "'", false) {
+			@Override
+			protected Void call() throws Exception {
+				long i = 1;
+				for (Path path : paths) {
+					try {
+						Slide slide = library.add(path);
+						successes.add(slide);
+						Fx.runOnFxThead(() -> {
+							// remove the loading item
+							items.remove(new SlideListItem(path.getFileName().toString()));
+							// add the real item
+							items.add(new SlideListItem(slide));
+						});
+					} catch (Exception ex) {
+						LOGGER.error("Failed to import slide(s) " + path.toAbsolutePath().toString(), ex);
+						failures.add(new FailedOperation<Path>(path, ex));
+						Fx.runOnFxThead(() -> {
+							// remove the loading item
+							items.remove(new SlideListItem(path.getFileName().toString()));
+						});
+					}
+					this.updateProgress(i++, paths.size());
+				}
+				return null;
+			}
+		};
+		task.setOnSucceeded((e) -> {
+			Fx.runOnFxThead(() -> {
+				// notify successes and failures
+				if (onSuccess != null && successes.size() > 0) {
+					onSuccess.accept(successes);
+				}
+				if (onError != null && failures.size() > 0) {
+					onError.accept(failures);
+				}
+			});
+		});
+		task.setOnFailed((e) -> {
+			// this shouldn't happen because we should catch all exceptions
+			// inside the task, but lets put it here just in case
+			Throwable ex = task.getException();
+			LOGGER.error("Failed to complete slide import", ex);
+			failures.add(new FailedOperation<Path>(null, ex));
+			Fx.runOnFxThead(() -> {
+				if (onError != null) {
+					onError.accept(failures);
+				}
+			});
+		});
+		this.service.submit(task);
+	}
+
 	/**
 	 * Attempts to save the given slide to this slide library.
 	 * <p>
@@ -132,7 +223,7 @@ public final class ObservableSlideLibrary {
 	 */
 	public void save(Slide slide, Consumer<Slide> onSuccess, BiConsumer<Slide, Throwable> onError) {
 		// execute the add on a different thread
-		Task<Void> task = new Task<Void>() {
+		MonitoredTask<Void> task = new MonitoredTask<Void>("Saving '" + slide.getName() + "'", true) {
 			@Override
 			protected Void call() throws Exception {
 				library.save(slide);
@@ -151,7 +242,7 @@ public final class ObservableSlideLibrary {
 				onError.accept(slide, ex);
 			}
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
 
 	/**
@@ -172,7 +263,7 @@ public final class ObservableSlideLibrary {
 	 */
 	public void remove(Slide slide, Runnable onSuccess, BiConsumer<Slide, Throwable> onError) {
 		// execute the add on a different thread
-		Task<Void> task = new Task<Void>() {
+		MonitoredTask<Void> task = new MonitoredTask<Void>("Removing '" + slide.getName() + "'", true) {
 			@Override
 			protected Void call() throws Exception {
 				library.remove(slide);
@@ -193,7 +284,7 @@ public final class ObservableSlideLibrary {
 				onError.accept(slide, ex);
 			}
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
 	
 	/**
@@ -216,9 +307,10 @@ public final class ObservableSlideLibrary {
 		List<FailedOperation<Slide>> failures = new ArrayList<FailedOperation<Slide>>();
 		
 		// execute the add on a different thread
-		Task<Void> task = new Task<Void>() {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(slides.size() > 1 ? "Removing " + slides.size() + " slides" : "Removing '" + slides.get(0).getName() + "'", false) {
 			@Override
 			protected Void call() throws Exception {
+				long i = 1;
 				for (Slide slide : slides) {
 					try {
 						library.remove(slide);
@@ -230,6 +322,7 @@ public final class ObservableSlideLibrary {
 						LOGGER.error("Failed to remove media " + slide.getName(), ex);
 						failures.add(new FailedOperation<Slide>(slide, ex));
 					}
+					this.updateProgress(i++, slides.size());
 				}
 				return null;
 			}
@@ -250,7 +343,7 @@ public final class ObservableSlideLibrary {
 				onError.accept(failures);
 			}
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
 	
 	/**

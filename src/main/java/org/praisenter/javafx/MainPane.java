@@ -26,6 +26,7 @@ public final class MainPane extends BorderPane implements NavigationManager {
 	
 	private final TreeItem<NavigationItem<Node>> root;
 	private final BreadCrumbBar<NavigationItem<Node>> breadcrumb;
+	private final StatusBar status;
 	
 	private final SetupPane setupPane;
 	private final BibleLibraryPane bibleLibraryPane;
@@ -44,6 +45,9 @@ public final class MainPane extends BorderPane implements NavigationManager {
 		
 		VBox top = new VBox(menu, breadcrumb);
 		this.setTop(top);
+		
+		this.status = new StatusBar(context);
+		this.setBottom(this.status);
 		
 		this.setupPane = new SetupPane(context.getConfiguration());
 		this.bibleLibraryPane = new BibleLibraryPane(context);

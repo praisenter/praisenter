@@ -46,3 +46,8 @@
 .glyph-font {
 	-fx-text-fill: -fx-text-base-color;
 }
+
+/** indeterminate progress bar override */
+.progress-bar:indeterminate > .bar {
+    -fx-background-color: -fx-accent;
+}

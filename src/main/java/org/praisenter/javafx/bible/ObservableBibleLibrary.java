@@ -27,7 +27,7 @@ package org.praisenter.javafx.bible;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -38,13 +38,12 @@ import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleImporter;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.FormatIdentifingBibleImporter;
-import org.praisenter.bible.UnboundBibleImporter;
+import org.praisenter.javafx.MonitoredTask;
+import org.praisenter.javafx.MonitoredThreadPoolExecutor;
 import org.praisenter.javafx.utility.Fx;
-import org.praisenter.slide.Slide;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 
 /**
  * Represents an Observable wrapper to the bible library.
@@ -57,6 +56,7 @@ import javafx.concurrent.Task;
  * @author William Bittle
  * @version 3.0.0
  */
+// TODO translate
 public final class ObservableBibleLibrary {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -65,7 +65,7 @@ public final class ObservableBibleLibrary {
 	private final BibleLibrary library;
 	
 	/** The thread service */
-	private final ExecutorService service;
+	private final MonitoredThreadPoolExecutor service;
 	
 	/** The observable list of bibles */
 	private final ObservableList<BibleListItem> items = FXCollections.observableArrayList();
@@ -75,7 +75,7 @@ public final class ObservableBibleLibrary {
 	 * @param library the bible library
 	 * @param service the thread service
 	 */
-	public ObservableBibleLibrary(BibleLibrary library, ExecutorService service) {
+	public ObservableBibleLibrary(BibleLibrary library, MonitoredThreadPoolExecutor service) {
 		this.library = library;
 		this.service = service;
 		
@@ -125,7 +125,7 @@ public final class ObservableBibleLibrary {
 		});
 		
 		// execute the add on a different thread
-		Task<List<Bible>> task = new Task<List<Bible>>() {
+		MonitoredTask<List<Bible>> task = new MonitoredTask<List<Bible>>("Importing '" + path.toString() + "'", true) {
 			@Override
 			protected List<Bible> call() throws Exception {
 				FormatIdentifingBibleImporter importer = new FormatIdentifingBibleImporter();
@@ -202,9 +202,14 @@ public final class ObservableBibleLibrary {
 		BibleImporter importer = new FormatIdentifingBibleImporter();
 		
 		// execute the add on a different thread
-		Task<Void> task = new Task<Void>() {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Importing " + paths.size() + " bibles" : "Importing '" + paths.get(0).toString() + "'", false) {
+			{
+				updateTitle("test");
+				updateProgress(-1, 0);
+			}
 			@Override
 			protected Void call() throws Exception {
+				long i = 1;
 				for (Path path : paths) {
 					try {
 						List<Bible> bbls = importer.execute(path);
@@ -228,6 +233,7 @@ public final class ObservableBibleLibrary {
 							items.remove(new BibleListItem(path.getFileName().toString()));
 						});
 					}
+					this.updateProgress(i++, paths.size());
 				}
 				return null;
 			}
@@ -269,14 +275,14 @@ public final class ObservableBibleLibrary {
 	 */
 	public void save(Bible bible, Consumer<Bible> onSuccess, BiConsumer<Bible, Throwable> onError) {
 		// execute the add on a different thread
-		Task<Void> task = new Task<Void>() {
+		MonitoredTask<Void> task = new MonitoredTask<Void>("Saving '" + bible.getName() + "'", true) {
 			@Override
 			protected Void call() throws Exception {
 				library.save(bible);
 				return null;
 			}
 		};
-		// TODO need to update name if the name changed
+		// FIXME need to update name if the name changed
 		task.setOnSucceeded((e) -> {
 			if (onSuccess != null) {
 				onSuccess.accept(bible);
@@ -289,7 +295,7 @@ public final class ObservableBibleLibrary {
 				onError.accept(bible, ex);
 			}
 		});
-		this.service.execute(task);
+		this.service.submit(task);
 	}
 	
 	/**
@@ -315,7 +321,7 @@ public final class ObservableBibleLibrary {
 		});
 		
 		// execute the add on a different thread
-		Task<Void> task = new Task<Void>() {
+		MonitoredTask<Void> task = new MonitoredTask<Void>("Removing '" + bible.getName() + "'", true) {
 			@Override
 			protected Void call() throws Exception {
 				library.remove(bible);
@@ -371,9 +377,10 @@ public final class ObservableBibleLibrary {
 		});
 		
 		// execute the add on a different thread
-		Task<Void> task = new Task<Void>() {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(bibles.size() > 1 ? "Removing " + bibles.size() + " bibles" : "Removing '" + bibles.get(0).getName() + "'", false) {
 			@Override
 			protected Void call() throws Exception {
+				long i = 1;
 				for (Bible bible : bibles) {
 					try {
 						library.remove(bible);
@@ -383,6 +390,7 @@ public final class ObservableBibleLibrary {
 						LOGGER.error("Failed to remove bible " + bible.getName(), ex);
 						failures.add(new FailedOperation<Bible>(bible, ex));
 					}
+					this.updateProgress(i++, bibles.size());
 				}
 				return null;
 			}
@@ -411,6 +419,15 @@ public final class ObservableBibleLibrary {
 	}
 	
 	// other
+
+	/**
+	 * Returns the bible for the given id.
+	 * @param id the id
+	 * @return {@link Bible}
+	 */
+	public Bible get(UUID id) {
+		return this.library.get(id);
+	}
 	
 	/**
 	 * Returns the observable list of bibles.

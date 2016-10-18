@@ -75,12 +75,13 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 			LOGGER.debug("Reading OpenSong Bible file: " + path.toAbsolutePath().toString());
 
 			boolean read = false;
+			Throwable throwable = null;
 			// first try to open it as a zip
 			try (FileInputStream fis = new FileInputStream(path.toFile());
 				 BufferedInputStream bis = new BufferedInputStream(fis);
 				 ZipInputStream zis = new ZipInputStream(bis);) {
 				LOGGER.debug("Reading as zip file: " + path.toAbsolutePath().toString());
-				// read the entries (each should be a .xmm file)
+				// read the entries (each should be a .xmm file but its possible it has no extension)
 				ZipEntry entry = null;
 				while ((entry = zis.getNextEntry()) != null) {
 					read = true;
@@ -89,14 +90,21 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 					if (i >= 0) {
 						name = entry.getName().substring(0, i);
 					}
-					Bible bible = this.parse(zis, name);
-					bibles.add(bible);
+					if (!entry.isDirectory()) {
+						try {
+							Bible bible = this.parse(zis, name);
+							bibles.add(bible);
+						} catch (Exception ex) {
+							throwable = ex;
+							LOGGER.warn("Failed to parse zip entry: " + entry.getName());
+						}
+					}
 				}
 			}
 			
 			// check if we read an entry
 			// if not, that may mean the file was not a zip so try it as a normal file
-			if (!read) {
+			if (!read && Files.isRegularFile(path)) {
 				LOGGER.debug("Reading as XML file: " + path.toAbsolutePath().toString());
 				// this indicates the file is not a zip or invalid
 				String name = path.getFileName().toString();
@@ -110,6 +118,13 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 					Bible bible = this.parse(stream, name);
 					bibles.add(bible);
 				}
+			}
+			
+			// throw the exception stored during the unzip process
+			// only if we didn't find any bibles (if we successfully read in
+			// a bible from the zip then we don't want to throw)
+			if (bibles.size() == 0 && throwable != null) {
+				throw new InvalidFormatException(throwable.getMessage(), throwable);
 			}
 
 			return bibles;
@@ -218,7 +233,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 				try {
 					this.chapterNumber = Short.parseShort(number);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse chapter number '" + number + "' for '" + this.bible.name + "'. Using next chapter number in sequence instead.");
+					LOGGER.warn("Failed to parse chapter number '" + number + "' for '" + this.book.name + "' in '" + this.bible.name + "'. Using next chapter number in sequence instead.");
 					this.bible.hadImportWarning = true;
 					this.chapterNumber++;
 				}
@@ -232,7 +247,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 				try {
 					this.number = Short.parseShort(number);
 				} catch (NumberFormatException ex) {
-					LOGGER.warn("Failed to parse verse number '" + number + "' for '" + this.bible.name + "'. Using next verse number in sequence instead.");
+					LOGGER.warn("Failed to parse verse number '" + number + "' for '" + this.book.name + "' chatper '"  + this.chapter.number + "' in '" + this.bible.name + "'. Using next verse number in sequence instead.");
 					this.bible.hadImportWarning = true;
 					this.number++;
 				}

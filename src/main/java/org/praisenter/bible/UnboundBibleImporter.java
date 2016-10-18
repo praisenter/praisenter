@@ -256,7 +256,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 							text = "";
 							bible.hadImportWarning = true;
 							// continue, but log a warning
-							LOGGER.warn("Verse [{}|{}|{}] is missing text on line {} in {}.", bookCode, chapter, verse, i, fileName);
+							LOGGER.warn("Verse [{}|{}|{}] is missing text on line {} in {}.", bookCode, chapter.number, verse, i, fileName);
 						}
 						
 						if (chapter != null) {
