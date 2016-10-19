@@ -43,7 +43,7 @@
 }
 
 /** Icons */
-.glyph-font {
+.menu .glyph-font {
 	-fx-text-fill: -fx-text-base-color;
 }
 

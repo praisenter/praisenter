@@ -1,10 +1,17 @@
 package org.praisenter.javafx;
 
+import org.praisenter.javafx.utility.Fx;
+
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
 
 public abstract class MonitoredTask<T> extends Task<T> {
 	private final String name;
 	private final boolean indeterminant;
+	
+	private ObjectProperty<MonitoredTaskResultStatus> resultStatus = new SimpleObjectProperty<>();
 	
 	public MonitoredTask(String name, boolean indeterminant) {
 		this.name = name;
@@ -52,5 +59,20 @@ public abstract class MonitoredTask<T> extends Task<T> {
 
 	public boolean isIndeterminant() {
 		return this.indeterminant;
+	}
+
+	public MonitoredTaskResultStatus getResultStatus() {
+		return this.resultStatus.get();
+	}
+
+	public ReadOnlyObjectProperty<MonitoredTaskResultStatus> resultStatusProperty() {
+		return this.resultStatus;
+	}
+	
+	protected void setResultStatus(MonitoredTaskResultStatus resultStatus) {
+		// make sure we run on the FX thread
+		Fx.runOnFxThead(() -> {
+			this.resultStatus.set(resultStatus);
+		});
 	}
 }

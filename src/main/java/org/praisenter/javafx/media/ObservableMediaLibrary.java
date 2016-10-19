@@ -38,6 +38,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
 import org.praisenter.javafx.MonitoredTask;
+import org.praisenter.javafx.MonitoredTaskResultStatus;
 import org.praisenter.javafx.MonitoredThreadPoolExecutor;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
@@ -119,10 +120,18 @@ public final class ObservableMediaLibrary {
 		});
 		
 		// execute the add on a different thread
-		MonitoredTask<Media> task = new MonitoredTask<Media>("Importing '" + path.toString() + "'", true) {
+		MonitoredTask<Media> task = new MonitoredTask<Media>("Import '" + path.getFileName() + "'", true) {
 			@Override
 			protected Media call() throws Exception {
-				return library.add(path);
+				updateProgress(-1, 0);
+				try {
+					Media media = library.add(path);
+					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					return media;
+				} catch (Exception ex) {
+					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					throw ex;
+				}
 			}
 		};
 		task.setOnSucceeded((e) -> {
@@ -188,9 +197,13 @@ public final class ObservableMediaLibrary {
 		List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Importing " + paths.size() + " slides" : "Importing '" + paths.get(0).toString() + "'", true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " slides" : "Import '" + paths.get(0).getFileName() + "'", true) {
 			@Override
 			protected Void call() throws Exception {
+				updateProgress(0, paths.size());
+				
+				long i = 1;
+				int errorCount = 0;
 				for (Path path : paths) {
 					try {
 						Media media = library.add(path);
@@ -208,8 +221,20 @@ public final class ObservableMediaLibrary {
 							// remove the loading item
 							items.remove(new MediaListItem(path.getFileName().toString()));
 						});
+						errorCount++;
 					}
+					updateProgress(i++, paths.size());
 				}
+				
+				// set the result status based on the number of errors we got
+				if (errorCount == 0) {
+					this.setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+				} else if (errorCount == paths.size()) {
+					this.setResultStatus(MonitoredTaskResultStatus.ERROR);
+				} else {
+					this.setResultStatus(MonitoredTaskResultStatus.WARNING);
+				}
+				
 				return null;
 			}
 		};
@@ -258,11 +283,18 @@ public final class ObservableMediaLibrary {
 	 */
 	public void remove(Media media, Runnable onSuccess, BiConsumer<Media, Throwable> onError) {
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>("Removing '" + media.getName() + "'", true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>("Remove '" + media.getName() + "'", true) {
 			@Override
 			protected Void call() throws Exception {
-				library.remove(media);
-				return null;
+				updateProgress(-1, 0);
+				try {
+					library.remove(media);
+					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					return null;
+				} catch (Exception ex) {
+					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					throw ex;
+				}
 			}
 		};
 		task.setOnSucceeded((e) -> {
@@ -307,9 +339,13 @@ public final class ObservableMediaLibrary {
 		List<FailedOperation<Media>> failures = new ArrayList<FailedOperation<Media>>();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(media.size() > 1 ? "Removing " + media.size() + " media" : "Removing '" + media.get(0).getName() + "'", true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(media.size() > 1 ? "Remove " + media.size() + " media" : "Remove '" + media.get(0).getName() + "'", true) {
 			@Override
 			protected Void call() throws Exception {
+				updateProgress(0, media.size());
+				
+				long i = 1;
+				int errorCount = 0;
 				for (Media m : media) {
 					try {
 						library.remove(m);
@@ -320,8 +356,20 @@ public final class ObservableMediaLibrary {
 					} catch (Exception ex) {
 						LOGGER.error("Failed to remove media " + m.getName(), ex);
 						failures.add(new FailedOperation<Media>(m, ex));
+						errorCount++;
 					}
+					updateProgress(i, media.size());
 				}
+
+				// set the result status based on the number of errors we got
+				if (errorCount == 0) {
+					this.setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+				} else if (errorCount == media.size()) {
+					this.setResultStatus(MonitoredTaskResultStatus.ERROR);
+				} else {
+					this.setResultStatus(MonitoredTaskResultStatus.WARNING);
+				}
+				
 				return null;
 			}
 		};
@@ -368,10 +416,18 @@ public final class ObservableMediaLibrary {
 	 */
 	public void rename(Media media, String name, Consumer<Media> onSuccess, BiConsumer<Media, Throwable> onError) {
 		// execute the add on a different thread
-		MonitoredTask<Media> task = new MonitoredTask<Media>("Renaming '" + media.getName() + "' to '" + name + "'", true) {
+		MonitoredTask<Media> task = new MonitoredTask<Media>("Rename '" + media.getName() + "' to '" + name + "'", true) {
 			@Override
 			protected Media call() throws Exception {
-				return library.rename(media, name);
+				updateProgress(-1, 0);
+				try {
+					Media m = library.rename(media, name);
+					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					return m;
+				} catch (Exception ex) {
+					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					throw ex;
+				}
 			}
 		};
 		task.setOnSucceeded((e) -> {
