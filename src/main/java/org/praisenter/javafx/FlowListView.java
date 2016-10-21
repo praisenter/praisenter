@@ -29,21 +29,18 @@ import java.util.List;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ListProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleListProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.geometry.Insets;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.TilePane;
 import javafx.util.Callback;
 
 // FEATURE mouse click+drag area selection
-// FEATURE shift-click selection
 
 /**
  * Represents a list view whose items are laid out vertically or horizontally
@@ -58,19 +55,22 @@ import javafx.util.Callback;
 public final class FlowListView<T> extends TilePane {
 	/** The class name for this node */
 	private static final String CLASS_NAME = "flow-list-view";
-	
-	// selection
-	
-	/** The current selection when only one item is selected */
-	private final ObjectProperty<T> selection;
-	
-	/** The list of selected items */
-	private final ListProperty<T> selections;
+
+    /** The :hover CSS pseudo class for styling */
+    private static final PseudoClass HOVER = PseudoClass.getPseudoClass("hover");
+    
+    // state
+    
+    /** The cell factory */
+    private final Callback<T, FlowListCell<T>> cellFactory;
+    
+    /** The selection model */
+	private final FlowListSelectionModel<T> selection;
 	
 	// nodes
 	
 	/** The item nodes */
-	private final ListProperty<FlowListItem<T>> nodes;
+	private final ListProperty<FlowListCell<T>> nodes;
 	
 	// data
 	
@@ -81,10 +81,10 @@ public final class FlowListView<T> extends TilePane {
 	 * Full constructor.
 	 * @param cellFactory the cellfactory
 	 */
-	public FlowListView(Callback<T, FlowListItem<T>> cellFactory) {
-		this.selection = new SimpleObjectProperty<T>(null);
-		this.selections = new SimpleListProperty<T>(FXCollections.observableArrayList());
-		this.nodes = new SimpleListProperty<FlowListItem<T>>(FXCollections.observableArrayList());
+	public FlowListView(Callback<T, FlowListCell<T>> cellFactory) {
+		this.cellFactory = cellFactory;
+		this.selection = new FlowListSelectionModel<T>(this);
+		this.nodes = new SimpleListProperty<FlowListCell<T>>(FXCollections.observableArrayList());
 		this.items = new SimpleListProperty<T>(FXCollections.observableArrayList());
 		
 		this.getStyleClass().add(CLASS_NAME);
@@ -106,7 +106,7 @@ public final class FlowListView<T> extends TilePane {
 		            	 int from = changes.getFrom();
 		            	 int to = changes.getTo();
 		            	 // re-order a sub list so we don't have duplicate nodes in the scene graph
-		            	 List<FlowListItem<T>> range = new ArrayList<FlowListItem<T>>(nodes.subList(from, to));
+		            	 List<FlowListCell<T>> range = new ArrayList<FlowListCell<T>>(nodes.subList(from, to));
 	                     for (int i = from; i < to; ++i) {
 	                    	 int j = changes.getPermutation(i);
 	                    	 range.set(j - from, nodes.get(i));
@@ -121,102 +121,50 @@ public final class FlowListView<T> extends TilePane {
 	                         nodes.removeIf(v -> v.getData().equals(remitem));
 	                     }
                          // clear from selections
-	                     selections.removeAll(changes.getRemoved());
 	                     for (T additem : changes.getAddedSubList()) {
-	                         nodes.add(cellFactory.call(additem));
+	                         nodes.add(createCell(additem));
 	                     }
 	                 }
 		         }
 			}
  		});
- 		
- 		// add an event handler for selection events
-        this.addEventHandler(SelectionEvent.ALL, new EventHandler<SelectionEvent>() {
-        	@SuppressWarnings("unchecked")
-			@Override
-			public void handle(SelectionEvent event) {
-        		// double click should propagate up
-				if (event.getEventType() == SelectionEvent.DOUBLE_CLICK) {
-					return;
-				}
-				
-        		// get the data from the item node
-				FlowListItem<T> view = (FlowListItem<T>)event.getTarget();
-				T item = view.getData();
-				
-				FlowListView.this.handle(item, (EventType<SelectionEvent>)event.getEventType());
-				
-				requestFocus();
-				
-				// stop propagation
-				event.consume();
-			}
-        });
-       
-        this.selections.addListener((obs, ov, nv) -> {
-        	selectItems(nv);
-        	if (nv == null || nv.size() != 1) {
-        		this.selection.set(null);
-        	} else {
-        		this.selection.set(nv.get(0));
-        	}
-        });
-	}
-	
-	/**
-	 * Selects the given items in the list of nodes.
-	 * @param items the items
-	 */
-	private void selectItems(List<T> items) {
-		for (FlowListItem<T> cell : nodes) {
-			cell.setSelected(false);
-		}
-		if (items != null && items.size() > 0) {
-			for (FlowListItem<T> cell : nodes) {
-				if (items.contains(cell.getData())) {
-					cell.setSelected(true);
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Called after an item node's selection property has changed.
-	 * @param item the item
-	 * @param type the selection type
-	 */
-	private void handle(T item, EventType<SelectionEvent> type) {
-		if (type == SelectionEvent.SELECT ||
-			type == SelectionEvent.DESELECT) {
-			// unselect other cells
-			for (FlowListItem<T> cell : nodes) {
-				if (!cell.getData().equals(item) && cell.isSelected()) {
-					cell.setSelected(false);
-				}
-			}
-		}
-		
-		// set the selections property
-		if (type == SelectionEvent.SELECT) {
-			List<T> items = new ArrayList<T>();
-			items.add(item);
-			selections.setAll(items);
-		} else if (type == SelectionEvent.DESELECT) {
-			selections.clear();
-		} else if (type == SelectionEvent.SELECT_MULTIPLE) {
-			selections.add(item);
-		} else if (type == SelectionEvent.DESELECT_MULTIPLE) {
-			selections.remove(item);
-		}
 	}
 	
 	// methods
 	
 	/**
-	 * Selects all the items.
+	 * Creates a cell using the given cell factory and wires up events.
+	 * @param item the item
+	 * @return {@link FlowListCell}
 	 */
-	public void selectAll() {
-		this.selections.setAll(this.items);
+	private FlowListCell<T> createCell(T item) {
+		FlowListCell<T> cell = this.cellFactory.call(item);
+		
+		// wire up events
+    	cell.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+    		@Override
+    		public void handle(MouseEvent event) {
+    			selection.handle(cell, event);
+    		}
+    	});
+    	cell.addEventHandler(MouseEvent.MOUSE_ENTERED, new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent event) {
+				if (!selection.isSelected(cell)) {
+					cell.pseudoClassStateChanged(HOVER, true);
+				}
+			}
+    	});
+    	cell.addEventHandler(MouseEvent.MOUSE_EXITED, new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(MouseEvent event) {
+				if (!selection.isSelected(cell)) {
+					cell.pseudoClassStateChanged(HOVER, false);
+				}
+			}
+    	});
+    	
+    	return cell;
 	}
 	
 	// properties
@@ -247,56 +195,10 @@ public final class FlowListView<T> extends TilePane {
 	}
 	
 	/**
-	 * Returns the current selections.
-	 * @return ObservableList&lt;T&gt;
+	 * Returns the selection model.
+	 * @return {@link FlowListSelectionModel}
 	 */
-	public ObservableList<T> getSelections() {
-		return this.selections.get();
-	}
-	
-	/**
-	 * Sets the current selections.
-	 * @param items the selections
-	 */
-	public void setSelections(ObservableList<T> items) {
-		this.selections.set(items);
-	}
-	
-	/**
-	 * Gets the current selection.
-	 * <p>
-	 * Returns null if multiple are selected.
-	 * @return T
-	 */
-	public T getSelection() {
-		if (this.selections.size() == 1) {
-			return this.selections.get(0);
-		}
-		return null;
-	}
-	
-	/**
-	 * Sets the current selections to the given item only.
-	 * @param item the selection
-	 */
-	@SuppressWarnings("unchecked")
-	public void setSelection(T item) {
-		this.selections.setAll(item);
-	}
-	
-	/**
-	 * Returns the multi-selection property.
-	 * @return ListProperty&lt;T&gt;
-	 */
-	public ListProperty<T> selectionsProperty() {
-		return this.selections;
-	}
-	
-	/**
-	 * Returns the single-selection property.
-	 * @return ReadOnlyObjectProperty&lt;T&gt;
-	 */
-	public ReadOnlyObjectProperty<T> selectionProperty() {
+	public FlowListSelectionModel<T> getSelectionModel() {
 		return this.selection;
 	}
 }

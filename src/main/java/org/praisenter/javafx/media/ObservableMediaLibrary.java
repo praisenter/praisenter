@@ -45,7 +45,6 @@ import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -136,28 +135,22 @@ public final class ObservableMediaLibrary {
 		};
 		task.setOnSucceeded((e) -> {
 			Media media = task.getValue();
-			MediaListItem success = new MediaListItem(media);
-			// changes to the list should be done on the FX UI Thread
-			Fx.runOnFxThead(() -> {
-				items.remove(loading);
-				items.add(success);
-				if (onSuccess != null) {
-					onSuccess.accept(media);
-				}
-			});
+			loading.setMedia(media);
+			loading.setName(media.getName());
+			loading.setLoaded(true);
+			if (onSuccess != null) {
+				onSuccess.accept(media);
+			}
 		});
 		task.setOnFailed((e) -> {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to import media " + path.toAbsolutePath().toString(), ex);
-			// changes to the list should be done on the FX UI Thread
-			Fx.runOnFxThead(() -> {
-				items.remove(loading);
-				if (onError != null) {
-					onError.accept(path, ex);
-				}
-			});
+			items.remove(loading);
+			if (onError != null) {
+				onError.accept(path, ex);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
@@ -183,7 +176,8 @@ public final class ObservableMediaLibrary {
 	public void add(List<Path> paths, Consumer<List<Media>> onSuccess, Consumer<List<FailedOperation<Path>>> onError) {
 		// create the "loading" items
 		List<MediaListItem> loadings = new ArrayList<MediaListItem>();
-		for (Path path : paths) {
+		for (int i = 0; i < paths.size(); i++) {
+			Path path = paths.get(i);
 			loadings.add(new MediaListItem(path.getFileName().toString()));
 		}
 		
@@ -197,29 +191,31 @@ public final class ObservableMediaLibrary {
 		List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " slides" : "Import '" + paths.get(0).getFileName() + "'", true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " media" : "Import '" + paths.get(0).getFileName() + "'", true) {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(0, paths.size());
 				
 				long i = 1;
 				int errorCount = 0;
-				for (Path path : paths) {
+				for (int j = 0; j < paths.size(); j++) {
+					Path path = paths.get(j);
+					MediaListItem item = loadings.get(j);
 					try {
 						Media media = library.add(path);
 						successes.add(media);
 						Fx.runOnFxThead(() -> {
-							// remove the loading item
-							items.remove(new MediaListItem(path.getFileName().toString()));
-							// add the real item
-							items.add(new MediaListItem(media));
+							// update the item
+							item.setMedia(media);
+							item.setName(media.getName());
+							item.setLoaded(true);
 						});
 					} catch (Exception ex) {
 						LOGGER.error("Failed to import media " + path.toAbsolutePath().toString(), ex);
 						failures.add(new FailedOperation<Path>(path, ex));
 						Fx.runOnFxThead(() -> {
 							// remove the loading item
-							items.remove(new MediaListItem(path.getFileName().toString()));
+							items.remove(item);
 						});
 						errorCount++;
 					}
@@ -239,15 +235,13 @@ public final class ObservableMediaLibrary {
 			}
 		};
 		task.setOnSucceeded((e) -> {
-			Fx.runOnFxThead(() -> {
-				// notify successes and failures
-				if (onSuccess != null && successes.size() > 0) {
-					onSuccess.accept(successes);
-				}
-				if (onError != null && failures.size() > 0) {
-					onError.accept(failures);
-				}
-			});
+			// notify successes and failures
+			if (onSuccess != null && successes.size() > 0) {
+				onSuccess.accept(successes);
+			}
+			if (onError != null && failures.size() > 0) {
+				onError.accept(failures);
+			}
 		});
 		task.setOnFailed((e) -> {
 			// this shouldn't happen because we should catch all exceptions
@@ -255,13 +249,11 @@ public final class ObservableMediaLibrary {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to finish import", ex);
 			failures.add(new FailedOperation<Path>(null, ex));
-			Fx.runOnFxThead(() -> {
-				if (onError != null) {
-					onError.accept(failures);
-				}
-			});
+			if (onError != null) {
+				onError.accept(failures);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
@@ -298,24 +290,20 @@ public final class ObservableMediaLibrary {
 			}
 		};
 		task.setOnSucceeded((e) -> {
-			MediaListItem success = new MediaListItem(media);
-			Fx.runOnFxThead(() -> {
-				items.remove(success);
-				if (onSuccess != null) {
-					onSuccess.run();
-				}
-			});
+			MediaListItem success = this.getMediaListItem(media);
+			items.remove(success);
+			if (onSuccess != null) {
+				onSuccess.run();
+			}
 		});
 		task.setOnFailed((e) -> {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to remove media " + media.getName(), ex);
-			Fx.runOnFxThead(() -> {
-				if (onError != null) {
-					onError.accept(media, ex);
-				}
-			});
+			if (onError != null) {
+				onError.accept(media, ex);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
@@ -351,7 +339,7 @@ public final class ObservableMediaLibrary {
 						library.remove(m);
 						Fx.runOnFxThead(() -> {
 							// remove the item
-							items.remove(new MediaListItem(m));
+							items.remove(getMediaListItem(m));
 						});
 					} catch (Exception ex) {
 						LOGGER.error("Failed to remove media " + m.getName(), ex);
@@ -374,12 +362,10 @@ public final class ObservableMediaLibrary {
 			}
 		};
 		task.setOnSucceeded((e) -> {
-			Fx.runOnFxThead(() -> {
-				// notify any failures
-				if (onError != null && failures.size() > 0) {
-					onError.accept(failures);
-				}
-			});
+			// notify any failures
+			if (onError != null && failures.size() > 0) {
+				onError.accept(failures);
+			}
 		});
 		task.setOnFailed((e) -> {
 			// this shouldn't happen because we should catch all exceptions
@@ -387,13 +373,11 @@ public final class ObservableMediaLibrary {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to complete removal", ex);
 			failures.add(new FailedOperation<Media>(null, ex));
-			Fx.runOnFxThead(() -> {
-				if (onError != null) {
-					onError.accept(failures);
-				}
-			});
+			if (onError != null) {
+				onError.accept(failures);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
@@ -432,39 +416,26 @@ public final class ObservableMediaLibrary {
 		};
 		task.setOnSucceeded((e) -> {
 			final Media m1 = task.getValue();
-			// changes to the list should be done on the FX UI Thread
-			Platform.runLater(() -> {
-				// update the list item
-				int index = -1;
-		    	for (int i = 0; i < items.size(); i++) {
-		    		MediaListItem item = items.get(i);
-		    		if (item.media.getId() == media.getId()) {
-		    			index = i;
-		    			break;
-		    		}
-		    	}
-		    	if (index >= 0) {
-		    		items.set(index, new MediaListItem(m1));
-		    	} else {
-		    		items.add(new MediaListItem(m1));
-		    	}
-		    	
-		    	if (onSuccess != null) {
-					onSuccess.accept(m1);
-				}
-			});
+			// update the list item
+			MediaListItem mi = this.getMediaListItem(media);
+	    	
+	    	if (mi != null) {
+		    	mi.setName(m1.getName());
+		    	mi.setMedia(m1);
+	    	}
+	    	
+	    	if (onSuccess != null) {
+				onSuccess.accept(m1);
+			}
 		});
 		task.setOnFailed((e) -> {
 			final Throwable ex = task.getException();
 			LOGGER.error("Failed to rename media " + media.getName(), ex);
-			// run everything on the FX UI Thread
-			Platform.runLater(() -> {
-				if (onError != null) {
-					onError.accept(media, ex);
-				}
-			});
+			if (onError != null) {
+				onError.accept(media, ex);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 
 	/**
@@ -495,14 +466,11 @@ public final class ObservableMediaLibrary {
 		task.setOnFailed((e) -> {
 			final Throwable ex = task.getException();
 			LOGGER.error("Failed to add tag " + tag.getName() + " to media " + media.getName(), ex);
-			// run everything on the FX UI Thread
-			Platform.runLater(() -> {
-				if (onError != null) {
-					onError.accept(tag, ex);
-				}
-			});
+			if (onError != null) {
+				onError.accept(tag, ex);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
@@ -533,14 +501,28 @@ public final class ObservableMediaLibrary {
 		task.setOnFailed((e) -> {
 			final Throwable ex = task.getException();
 			LOGGER.error("Failed to remove tag " + tag.getName() + " from media " + media.getName(), ex);
-			// run everything on the FX UI Thread
-			Platform.runLater(() -> {
-				if (onError != null) {
-					onError.accept(tag, ex);
-				}
-			});
+			if (onError != null) {
+				onError.accept(tag, ex);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
+	}
+	
+	/**
+	 * Returns the media list item for the given media or null if not found.
+	 * @param media the media
+	 * @return {@link MediaListItem}
+	 */
+	private MediaListItem getMediaListItem(Media media) {
+		MediaListItem mi = null;
+    	for (int i = 0; i < items.size(); i++) {
+    		MediaListItem item = items.get(i);
+    		if (item.getMedia().equals(media)) {
+    			mi = item;
+    			break;
+    		}
+    	}
+    	return mi;
 	}
 	
 	// other

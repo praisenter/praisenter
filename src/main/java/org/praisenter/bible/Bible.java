@@ -50,7 +50,7 @@ public final class Bible implements Comparable<Bible> {
 	
 	/** The bible id */
 	@XmlAttribute(name = "id", required = false)
-	UUID id;
+	final UUID id;
 
 	/** The format (for format identification only) */
 	@XmlAttribute(name = "format", required = false)
@@ -100,15 +100,14 @@ public final class Bible implements Comparable<Bible> {
 	 * Default constructor.
 	 */
 	public Bible() {
-		this.id = UUID.randomUUID();
-		this.name = null;
-		this.language = null;
-		this.source = null;
-		this.importDate = null;
-		this.copyright = null;
-		this.hadImportWarning = false;
-		this.books = new ArrayList<Book>();
-		this.notes = null;
+		this(null,
+			 null,
+			 null,
+			 new Date(),
+			 null,
+			 null,
+			 false,
+			 null);
 	}
 	
 	/**
@@ -122,7 +121,7 @@ public final class Bible implements Comparable<Bible> {
 	 * @param hadImportWarning true if a warning occurred during import
 	 * @param books the books for this bible
 	 */
-	public Bible(UUID id, 
+	public Bible(
 		  String name, 
 		  String language, 
 		  String source, 
@@ -131,7 +130,7 @@ public final class Bible implements Comparable<Bible> {
 		  String notes,
 		  boolean hadImportWarning,
 		  List<Book> books) {
-		this.id = id;
+		this.id = UUID.randomUUID();
 		this.name = name;
 		this.language = language;
 		this.source = source;
@@ -153,6 +152,24 @@ public final class Bible implements Comparable<Bible> {
 		return this.name.compareTo(o.name);
 	}
 	
+	@Override
+	public int hashCode() {
+		return this.id.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof Bible) {
+			Bible bbl = (Bible)obj;
+			if (bbl.id.equals(this.id)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public short getMaxBookNumber() {
 		short max = 0;
 		for (Book book : this.books) {
@@ -161,11 +178,17 @@ public final class Bible implements Comparable<Bible> {
 		return max;
 	}
 	
+	/**
+	 * Makes a deep copy of the this bible.
+	 * <p>
+	 * The new bible will have it's own id so the returned bible
+	 * and this bible will not be equal according to the {@link #equals(Object)} method.
+	 * @return {@link Bible}
+	 */
 	public Bible copy() {
 		Bible bible = new Bible();
 		bible.copyright = this.copyright;
 		bible.hadImportWarning = this.hadImportWarning;
-		bible.id = this.id;
 		bible.importDate = this.importDate;
 		bible.lastModifiedDate = new Date();
 		bible.language = this.language;

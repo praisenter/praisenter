@@ -22,5 +22,6 @@ public enum ApplicationAction {
 	MANAGE_SLIDES,
 	MANAGE_SONGS,
 	ABOUT,
+	LOGS,
 	EXIT
 }

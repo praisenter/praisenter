@@ -44,6 +44,7 @@ import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
+import org.praisenter.javafx.FlowListCell;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
@@ -92,6 +93,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
 import javafx.stage.Modality;
+import javafx.util.Callback;
 
 /**
  * Pane specifically for showing the media in a media library.
@@ -178,14 +180,14 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 				MediaSortField field = sortField.get().getValue();
 				boolean desc = sortDescending.get();
 				filtered.setPredicate(m -> {
-					if (!m.loaded || 
-						((type == null || m.media.getType() == type) &&
-						 (tag == null || m.media.getTags().contains(tag)) &&
-						 (text == null || text.length() == 0 || m.media.getName().toLowerCase().contains(text.toLowerCase())))) {
+					if (!m.isLoaded() || 
+						((type == null || m.getMedia().getType() == type) &&
+						 (tag == null || m.getMedia().getTags().contains(tag)) &&
+						 (text == null || text.length() == 0 || m.getMedia().getName().toLowerCase().contains(text.toLowerCase())))) {
 						// make sure its in the available types
-						if (types != null && types.length > 0 && m.loaded) {
+						if (types != null && types.length > 0 && m.isLoaded()) {
 							for (MediaType t : types) {
-								if (t == m.media.getType()) {
+								if (t == m.getMedia().getType()) {
 									return true;
 								}
 							}
@@ -200,18 +202,18 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 					public int compare(MediaListItem o1, MediaListItem o2) {
 						int value = 0;
 						if (field == MediaSortField.NAME) {
-							value = COLLATOR.compare(o1.name, o2.name);
+							value = COLLATOR.compare(o1.getName(), o2.getName());
 						} else {
 							// check for loaded vs. not loaded media
 							// sort non-loaded media to the end
-							if (o1.media == null && o2.media == null) return 0;
-							if (o1.media == null && o2.media != null) return 1;
-							if (o1.media != null && o2.media == null) return -1;
+							if (o1.getMedia() == null && o2.getMedia() == null) return 0;
+							if (o1.getMedia() == null && o2.getMedia() != null) return 1;
+							if (o1.getMedia() != null && o2.getMedia() == null) return -1;
 							
 							if (field == MediaSortField.TYPE) {
-								value = o1.media.getType().compareTo(o2.media.getType());
+								value = o1.getMedia().getType().compareTo(o2.getMedia().getType());
 							} else {
-								value = -1 * (o1.media.getDateAdded().compareTo(o2.media.getDateAdded()));
+								value = -1 * (o1.getMedia().getDateAdded().compareTo(o2.getMedia().getDateAdded()));
 							}
 						}
 						return (desc ? 1 : -1) * value;
@@ -263,7 +265,14 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 		});
         
         // the right side of the split pane
-        this.lstMedia = new FlowListView<MediaListItem>(new MediaListViewCellFactory(context.getMediaLibrary().getThumbnailSettings()));
+        final int thumbHeight = context.getMediaLibrary().getThumbnailSettings().getHeight();
+        DefaultThumbnails thumbs = new DefaultThumbnails(this.context.getMediaLibrary().getThumbnailSettings());
+        this.lstMedia = new FlowListView<MediaListItem>(new Callback<MediaListItem, FlowListCell<MediaListItem>>() {
+        	@Override
+        	public FlowListCell<MediaListItem> call(MediaListItem item) {
+				return new MediaListCell(thumbs, item, thumbHeight);
+			}
+        });
         this.lstMedia.itemsProperty().bindContent(sorted);
         this.lstMedia.setOrientation(orientation);
         
@@ -301,7 +310,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         			if (c.wasAdded()) {
         				for (int i = 0; i < c.getAddedSize(); i++) {
         					MediaListItem item = c.getAddedSubList().get(i);
-        					added |= item != null && item.loaded == false;
+        					added |= item != null && item.isLoaded() == false;
         				}
         			}
         		}
@@ -311,30 +320,32 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         	}
         });
 
-        this.lstMedia.selectionsProperty().addListener((obs, ov, nv) -> {
+        this.lstMedia.getSelectionModel().selectionsProperty().addListener((obs, ov, nv) -> {
         	if (selecting) return;
         	this.selecting = true;
         	if (nv == null || nv.size() != 1) {
         		this.selected.set(null);
         	} else {
-        		this.selected.set(nv.get(0).media);
+        		this.selected.set(nv.get(0).getMedia());
         	}
         	this.selecting = false;
+        	this.stateChanged();
         });
         this.selected.addListener((obs, ov, nv) -> {
         	if (selecting) return;
         	this.selecting = true;
         	if (nv == null) {
-        		lstMedia.setSelection(null);
+        		lstMedia.getSelectionModel().clear();
         	} else {
-        		lstMedia.setSelection(new MediaListItem(nv));
+        		lstMedia.getSelectionModel().select(new MediaListItem(nv));
         	}
         	this.selecting = false;
+        	this.stateChanged();
         });
         
         this.pneMetadata = new MediaMetadataPane(tags);
         // wire up the selected media to the media metadata view with a unidirectional binding
-        this.pneMetadata.mediaProperty().bind(this.lstMedia.selectionProperty());
+        this.pneMetadata.mediaProperty().bind(this.lstMedia.getSelectionModel().selectionProperty());
         this.pneMetadata.addEventHandler(MediaMetadataEvent.RENAME, e -> {
         	this.promptRename(e.getMedia());
         });
@@ -343,31 +354,30 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 
         // setup preview pane for video/audio
         this.pnePlayer = new MediaPlayerPane();
-        this.lstMedia.selectionsProperty().addListener((obs, oldValue, newValue) -> {
+        this.lstMedia.getSelectionModel().selectionsProperty().addListener((obs, oldValue, newValue) -> {
         	MediaPlayer player = null;
         	MediaType type = null;
         	if (newValue != null && newValue.size() == 1) {
         		MediaListItem item = newValue.get(0);
-	        	if (item != null && item.media != null) {
-	        		type = item.media.getType();
+	        	if (item != null && item.getMedia() != null) {
+	        		type = item.getMedia().getType();
 	        		if (type == MediaType.AUDIO || type == MediaType.VIDEO) {
-	        			javafx.scene.media.Media m = new javafx.scene.media.Media(item.media.getPath().toUri().toString());
+	        			javafx.scene.media.Media m = new javafx.scene.media.Media(item.getMedia().getPath().toUri().toString());
 	        			Exception ex = m.getError();
 	        			if (ex != null) {
-	        				LOGGER.error("Error loading media " + item.media.getName(), ex);
+	        				LOGGER.error("Error loading media " + item.getMedia().getName(), ex);
 	        			} else {
 	        				player = new MediaPlayer(m);
 	        				ex = player.getError();
 	        				if (ex != null) {
 	        					player = null;
-	        					LOGGER.error("Error creating media player for " + item.media.getName(), ex);
+	        					LOGGER.error("Error creating media player for " + item.getMedia().getName(), ex);
 	        				}
 	        			}
 	        		}
 	        	}
         	}
         	pnePlayer.setMediaPlayer(player, type);
-        	this.stateChanged();
         });
         
         Label lblImport = new Label(Translations.get("media.import.step1"));
@@ -511,10 +521,10 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     	this.pnePlayer.setMediaPlayer(null, null);
 		// collect the items that are selected
 		List<Media> items = new ArrayList<Media>();
-		for (MediaListItem item : this.lstMedia.selectionsProperty().get()) {
+		for (MediaListItem item : this.lstMedia.getSelectionModel().selectionsProperty().get()) {
 			// only include those that are imported
-			if (item.loaded && item.media != null) {
-				items.add(item.media);
+			if (item.isLoaded() && item.getMedia() != null) {
+				items.add(item.getMedia());
 			}
 		}
 
@@ -532,8 +542,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 			if (result.get() == ButtonType.OK) {
 				// attempt to delete the selected media
 				this.context.getMediaLibrary().remove(items, () -> {
-					// notify that the selections may have changed
-					this.stateChanged();
+					// nothing to do
 				}, (List<FailedOperation<Media>> failures) -> {
 					// on failure we should notify the user
 					// get the exceptions
@@ -547,8 +556,6 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 							MessageFormat.format(Translations.get("media.remove.error"), list), 
 							exceptions);
 					fAlert.show();
-					// notify that the selections may have changed
-					this.stateChanged();
 				});
 			}
 		}
@@ -577,8 +584,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         			media,
         			name, 
         			(Media m) -> {
-        				// notify that the selections may have changed
-    					this.stateChanged();
+        				// nothing to do
         			}, 
         			(Media m, Throwable ex) -> {
         				// log the error
@@ -591,8 +597,6 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         						MessageFormat.format(Translations.get("media.metadata.rename.error"), media.getName(), name), 
         						ex);
         				alert.show();
-        				// notify that the selections may have changed
-    					this.stateChanged();
         			});
     	}
     }
@@ -603,7 +607,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
      */
     private final void onMediaTagAdded(MediaTagEvent event) {
     	MediaListItem item = event.media;
-    	Media media = item.media;
+    	Media media = item.getMedia();
     	Tag tag = event.tag;
     	
     	this.context.getMediaLibrary().addTag(
@@ -615,7 +619,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     			},
     			(Tag failedTag, Throwable ex) -> {
     				// remove it from the tags
-    				item.tags.remove(tag);
+    				item.getTags().remove(tag);
     				// log the error
     				LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getPath().toAbsolutePath().toString(), ex.getMessage());
     				// show an error to the user
@@ -635,7 +639,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
      */
     private final void onMediaTagRemoved(MediaTagEvent event) {
     	MediaListItem item = event.media;
-    	Media media = item.media;
+    	Media media = item.getMedia();
     	Tag tag = event.tag;
     	
     	this.context.getMediaLibrary().removeTag(
@@ -644,7 +648,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     			null,  // nothing to do on success
     			(Tag failedTag, Throwable ex) -> {
     				// add it back
-    				item.tags.add(tag);
+    				item.getTags().add(tag);
     				// log the error
     				LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getPath().toAbsolutePath().toString(), ex.getMessage());
     				// show an error to the user
@@ -675,8 +679,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     			this.promptDelete();
     			break;
     		case SELECT_ALL:
-    			this.lstMedia.selectAll();
-    			this.stateChanged();
+    			this.lstMedia.getSelectionModel().selectAll();
     			break;
     		default:
     			break;
@@ -696,27 +699,13 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     @Override
     public boolean isApplicationActionEnabled(ApplicationAction action) {
     	boolean isSingleSelected = this.selected.get() != null;
-    	boolean isMultiSelected = this.lstMedia.selectionsProperty().size() > 0;
+    	boolean isMultiSelected = this.lstMedia.getSelectionModel().selectionsProperty().size() > 0;
     	switch (action) {
 			case RENAME:
 				return isSingleSelected;
 			case DELETE:
 				return isSingleSelected || isMultiSelected;
 			case SELECT_ALL:
-			case ABOUT:
-			case EXIT:
-			case IMPORT_BIBLES:
-			case IMPORT_SLIDES:
-			case IMPORT_SONGS:
-			case MANAGE_BIBLES:
-			case MANAGE_MEDIA:
-			case MANAGE_SLIDES:
-			case MANAGE_SONGS:
-			case NEW_BIBLE:
-			case NEW_SLIDE:
-			case NEW_SLIDE_SHOW:
-			case NEW_SONG:
-			case PREFERENCES:
 				return true;
 			default:
 				break;

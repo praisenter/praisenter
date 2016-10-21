@@ -27,40 +27,42 @@ package org.praisenter.javafx.media;
 import org.praisenter.Tag;
 import org.praisenter.media.Media;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 
 /**
  * A media item in the {@link MediaLibraryPane} which could be in the process of being
  * added to the library.
- * <p>
- * This class will always have the {@link #name} field set, but {@link #media} will
- * be null when {@link #loaded} is false.
  * @author William Bittle
  * @version 3.0.0
  */
 final class MediaListItem implements Comparable<MediaListItem> {
 	/** The media name */
-	final String name;
+	private final StringProperty name = new SimpleStringProperty();
 	
 	/** The media; can be null */
-	final Media media;
+	private final ObjectProperty<Media> media = new SimpleObjectProperty<Media>(null);
 	
 	/** True if the media is present (or loaded) */
-	final boolean loaded;
+	private final BooleanProperty loaded = new SimpleBooleanProperty(false);
 	
 	/** An observable list of tags to maintain */
-	final ObservableSet<Tag> tags;
+	private final ObservableSet<Tag> tags = FXCollections.observableSet();
 	
 	/**
 	 * Optional constructor for pending items.
 	 * @param name the name
 	 */
 	public MediaListItem(String name) {
-		this.name = name;
-		this.media = null;
-		this.loaded = false;
-		this.tags = null;
+		this.name.set(name);
+		this.media.set(null);
+		this.loaded.set(false);
 	}
 	
 	/**
@@ -68,19 +70,15 @@ final class MediaListItem implements Comparable<MediaListItem> {
 	 * @param media the media
 	 */
 	public MediaListItem(Media media) {
-		this.name = media.getName();
-		this.media = media;
-		this.loaded = true;
-		this.tags = FXCollections.observableSet();
+		this.name.set(media.getName());
+		this.media.set(media);
+		this.loaded.set(true);
 		this.tags.addAll(media.getTags());
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
 	@Override
-	public int hashCode() {
-		return loaded ? media.hashCode() : name.hashCode();
+	public String toString() {
+		return this.name.get();
 	}
 	
 	/* (non-Javadoc)
@@ -90,32 +88,52 @@ final class MediaListItem implements Comparable<MediaListItem> {
 	public int compareTo(MediaListItem o) {
 		// sort loaded last
 		// then sort by media (name)
-		if (this.loaded && o.loaded) {
-			return this.media.compareTo(o.media);
-		} else if (this.loaded) {
+		if (this.loaded.get() && o.loaded.get()) {
+			return this.media.get().compareTo(o.media.get());
+		} else if (this.loaded.get()) {
 			return -1;
 		} else {
 			return 1;
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj == this) return true;
-		if (obj instanceof MediaListItem) {
-			MediaListItem item = (MediaListItem)obj;
-			if (item.loaded == this.loaded) {
-				if (item.loaded) {
-					return item.media.equals(this.media);
-				} else {
-					return item.name.equals(this.name);
-				}
-			}
-		}
-		return false;
+	public String getName() {
+		return this.name.get();
+	}
+	
+	public void setName(String name) {
+		this.name.set(name);
+	}
+	
+	public StringProperty nameProperty() {
+		return this.name;
+	}
+	
+	public Media getMedia() {
+		return this.media.get();
+	}
+	
+	public void setMedia(Media media) {
+		this.media.set(media);
+	}
+	
+	public ObjectProperty<Media> mediaProperty() {
+		return this.media;
+	}
+	
+	public boolean isLoaded() {
+		return this.loaded.get();
+	}
+	
+	public void setLoaded(boolean loaded) {
+		this.loaded.set(loaded);
+	}
+	
+	public BooleanProperty loadedProperty() {
+		return this.loaded;
+	}
+	
+	public ObservableSet<Tag> getTags() {
+		return this.tags;
 	}
 }

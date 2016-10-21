@@ -1,12 +1,18 @@
 package org.praisenter.javafx;
 
+import java.awt.Desktop;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.control.BreadCrumbBar;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.Constants;
 import org.praisenter.javafx.bible.BibleLibraryPane;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.slide.SlideLibraryPane;
@@ -19,14 +25,16 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
-public final class MainPane extends BorderPane implements NavigationManager {
+public final class MainPane extends BorderPane implements NavigationManager, ApplicationPane {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private final PraisenterContext context;
 	
 	private final MainMenu menu;
 	
 	private final TreeItem<NavigationItem<Node>> root;
 	private final BreadCrumbBar<NavigationItem<Node>> breadcrumb;
-	private final StatusBar status;
+	private final MainStatusBar status;
 	
 	private final SetupPane setupPane;
 	private final BibleLibraryPane bibleLibraryPane;
@@ -46,7 +54,7 @@ public final class MainPane extends BorderPane implements NavigationManager {
 		VBox top = new VBox(menu, breadcrumb);
 		this.setTop(top);
 		
-		this.status = new StatusBar(context);
+		this.status = new MainStatusBar(context);
 		this.setBottom(this.status);
 		
 		this.setupPane = new SetupPane(context.getConfiguration());
@@ -58,6 +66,8 @@ public final class MainPane extends BorderPane implements NavigationManager {
 			handleApplicationEvent(e.getAction());
 		});
 	}
+	
+	// APPLICATION PANE
 	
 	public void handleApplicationEvent(ApplicationAction action) {
 		switch (action) {
@@ -76,11 +86,49 @@ public final class MainPane extends BorderPane implements NavigationManager {
 			case EXIT:
 				this.context.getJavaFXContext().getStage().close();
 				break;
+			case LOGS:
+				// open the log directory
+				if (Desktop.isDesktopSupported()) {
+				    try {
+						Desktop.getDesktop().open(Paths.get(Constants.LOGS_ABSOLUTE_PATH).toFile());
+					} catch (IOException ex) {
+						LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
+					}
+				}
 			default:
 				// do nothing
 				break;
 		}
 	}
+	
+	public boolean isApplicationActionEnabled(ApplicationAction action) {
+    	switch (action) {
+			case ABOUT:
+			case EXIT:
+			case IMPORT_BIBLES:
+			case IMPORT_SLIDES:
+			case IMPORT_SONGS:
+			case MANAGE_BIBLES:
+			case MANAGE_MEDIA:
+			case MANAGE_SLIDES:
+			case MANAGE_SONGS:
+			case NEW_BIBLE:
+			case NEW_SLIDE:
+			case NEW_SLIDE_SHOW:
+			case NEW_SONG:
+			case PREFERENCES:
+			case LOGS:
+				return true;
+			default:
+				return false;
+		}
+	}
+	
+	public boolean isApplicationActionVisible(ApplicationAction action) {
+		return true;
+	}
+	
+	// NAVIGATION MANAGER
 	
 	public void push(String name, Node node) {
 		this.push(new NavigationItem<Node>(name, node));

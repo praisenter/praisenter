@@ -75,7 +75,7 @@ public final class MediaPlayerPane extends BorderPane {
 	// data
 	
 	/** The current media player; can be null */
-    private MediaPlayer player;
+//    private MediaPlayer player;
     
     /** The current media duration */
     private Duration duration;
@@ -124,6 +124,7 @@ public final class MediaPlayerPane extends BorderPane {
         this.btnPlay = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
         this.btnPlay.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
+            	MediaPlayer player = mediaView.getMediaPlayer();
             	if (player == null) return;
             	
                 Status status = player.getStatus();
@@ -164,6 +165,7 @@ public final class MediaPlayerPane extends BorderPane {
         this.sldTime.setMinWidth(20);
         this.sldTime.valueProperty().addListener(new InvalidationListener() {
             public void invalidated(Observable ov) {
+            	MediaPlayer player = mediaView.getMediaPlayer();
                 if (player != null && sldTime.isValueChanging()) {
                     // multiply duration by percentage calculated by slider position
                     player.seek(duration.multiply(sldTime.getValue() / 100.0));
@@ -179,6 +181,7 @@ public final class MediaPlayerPane extends BorderPane {
         // mute button
         this.btnMute = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_UP));
         this.btnMute.setOnAction((e) -> {
+        	MediaPlayer player = mediaView.getMediaPlayer();
         	if (player == null) return;
         	// toggle mute state
         	if (player.isMute()) {
@@ -200,6 +203,7 @@ public final class MediaPlayerPane extends BorderPane {
         this.sldVolume.setMinWidth(50);
         this.sldVolume.valueProperty().addListener(new InvalidationListener() {
             public void invalidated(Observable ov) {
+            	MediaPlayer player = mediaView.getMediaPlayer();
                 if (player != null && sldVolume.isValueChanging()) {
                     player.setVolume(sldVolume.getValue() / 100.0);
                 }
@@ -235,12 +239,10 @@ public final class MediaPlayerPane extends BorderPane {
     	// if the current player isn't null
     	// then make sure we clean up the
     	// current one right away
-    	if (this.player != null) {
-    		MediaPlayer op = this.player;
-    		this.player = null;
-    		op.setAudioSpectrumListener(null);
-    		op.stop();
-    		op.dispose();
+    	MediaPlayer old = mediaView.getMediaPlayer();
+    	if (old != null) {
+//    		old.setAudioSpectrumListener(null);
+    		old.dispose();
     	}
     	
     	// reset the controls bar
@@ -248,7 +250,7 @@ public final class MediaPlayerPane extends BorderPane {
 		this.sldTime.setValue(0);
 		
 		// set the new player
-    	this.player = player;
+    	this.mediaView.setMediaPlayer(player);
     	
     	// perform more setup
     	if (player != null) {
@@ -256,7 +258,7 @@ public final class MediaPlayerPane extends BorderPane {
     		this.controlsBar.setDisable(false);
     		
     		// set the mediaview's player
-    		mediaView.setMediaPlayer(player);
+    		this.mediaView.setMediaPlayer(player);
     		
     		// wire up events
     		player.setCycleCount(1);
@@ -310,13 +312,13 @@ public final class MediaPlayerPane extends BorderPane {
 //            	this.setCenter(spectrum);
 //            	player.setAudioSpectrumListener(this);
 //            } else {
-            	this.setCenter(mediaView);
+            	this.setCenter(this.mediaView);
 //            }
     	} else {
     		// disable the controls
     		this.lblTime.setText(formatTime(Duration.ZERO, Duration.ZERO));
     		this.controlsBar.setDisable(true);
-    		mediaView.setMediaPlayer(null);
+    		//mediaView.setMediaPlayer(null);
     	}
     }
     
@@ -324,7 +326,8 @@ public final class MediaPlayerPane extends BorderPane {
      * Updates the controls based on the media player's current status.
      */
     private void updateValues() {
-        if (this.player != null) {
+    	final MediaPlayer player = this.mediaView.getMediaPlayer();
+        if (player != null) {
             Platform.runLater(new Runnable() {
                 public void run() {
                     Duration currentTime = player.getCurrentTime();
@@ -394,8 +397,9 @@ public final class MediaPlayerPane extends BorderPane {
      * Stops the player.
      */
     public void stop() {
-    	if (this.player != null) {
-    		this.player.stop();
+    	MediaPlayer player = this.mediaView.getMediaPlayer();
+    	if (player != null) {
+    		player.stop();
     	}
     }
     

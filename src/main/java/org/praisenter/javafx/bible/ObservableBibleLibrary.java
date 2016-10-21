@@ -146,29 +146,23 @@ public final class ObservableBibleLibrary {
 		};
 		task.setOnSucceeded((e) -> {
 			List<Bible> bibles = task.getValue();
-			// changes to the list should be done on the FX UI Thread
-			Fx.runOnFxThead(() -> {
-				items.remove(loading);
-				for (Bible bible : bibles) {
-					items.add(new BibleListItem(bible));
-				}
-				if (onSuccess != null) {
-					onSuccess.accept(bibles);
-				}
-			});
+			items.remove(loading);
+			for (Bible bible : bibles) {
+				items.add(new BibleListItem(bible));
+			}
+			if (onSuccess != null) {
+				onSuccess.accept(bibles);
+			}
 		});
 		task.setOnFailed((e) -> {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to import bible " + path.toAbsolutePath().toString(), ex);
-			// changes to the list should be done on the FX UI Thread
-			Fx.runOnFxThead(() -> {
-				items.remove(loading);
-				if (onError != null) {
-					onError.accept(path, ex);
-				}
-			});
+			items.remove(loading);
+			if (onError != null) {
+				onError.accept(path, ex);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
@@ -256,15 +250,13 @@ public final class ObservableBibleLibrary {
 			}
 		};
 		task.setOnSucceeded((e) -> {
-			Fx.runOnFxThead(() -> {
-				// notify successes and failures
-				if (onSuccess != null && successes.size() > 0) {
-					onSuccess.accept(successes);
-				}
-				if (onError != null && failures.size() > 0) {
-					onError.accept(failures);
-				}
-			});
+			// notify successes and failures
+			if (onSuccess != null && successes.size() > 0) {
+				onSuccess.accept(successes);
+			}
+			if (onError != null && failures.size() > 0) {
+				onError.accept(failures);
+			}
 		});
 		task.setOnFailed((e) -> {
 			// this shouldn't happen because we should catch all exceptions
@@ -272,13 +264,11 @@ public final class ObservableBibleLibrary {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to complete bible import", ex);
 			failures.add(new FailedOperation<Path>(null, ex));
-			Fx.runOnFxThead(() -> {
-				if (onError != null) {
-					onError.accept(failures);
-				}
-			});
+			if (onError != null) {
+				onError.accept(failures);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 
 	/**
@@ -291,8 +281,21 @@ public final class ObservableBibleLibrary {
 	 * @param onError called when the bible failed to be saved
 	 */
 	public void save(Bible bible, Consumer<Bible> onSuccess, BiConsumer<Bible, Throwable> onError) {
+		this.save("Save '" + bible.getName() + "'", bible, onSuccess, onError);
+	}
+	
+	/**
+	 * Attempts to save the given bible in this bible library.
+	 * <p>
+	 * The onSuccess method will be called when the save is successful. The
+	 * onError method will be called if an error occurs during the save.
+	 * @param bible the bible
+	 * @param onSuccess called when the bible is saved successfully
+	 * @param onError called when the bible failed to be saved
+	 */
+	public void save(String action, Bible bible, Consumer<Bible> onSuccess, BiConsumer<Bible, Throwable> onError) {
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>("Save '" + bible.getName() + "'", true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(action, true) {
 			@Override
 			protected Void call() throws Exception {
 				this.updateProgress(-1, 0);
@@ -308,6 +311,24 @@ public final class ObservableBibleLibrary {
 		};
 		// FIXME need to update name if the name changed
 		task.setOnSucceeded((e) -> {
+			// find the bible item
+			BibleListItem bi = null;
+			for (BibleListItem item : this.items) {
+				if (item.getBible().getId().equals(bible.getId())) {
+					bi = item;
+					break;
+				}
+			}
+			// check if new
+			if (bi == null) {
+				// then add one
+				this.items.add(new BibleListItem(bible));
+			} else if (!bi.getName().equals(bible.getName())) {
+				// then add/remove it
+				bi.setName(bible.getName());
+				bi.setBible(bible);
+			}
+			// check if name changed
 			if (onSuccess != null) {
 				onSuccess.accept(bible);
 			}
@@ -319,7 +340,7 @@ public final class ObservableBibleLibrary {
 				onError.accept(bible, ex);
 			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
@@ -360,24 +381,20 @@ public final class ObservableBibleLibrary {
 			}
 		};
 		task.setOnSucceeded((e) -> {
-			Fx.runOnFxThead(() -> {
-				if (onSuccess != null) {
-					onSuccess.run();
-				}
-			});
+			if (onSuccess != null) {
+				onSuccess.run();
+			}
 		});
 		task.setOnFailed((e) -> {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to remove bible " + bible.getName(), ex);
-			Fx.runOnFxThead(() -> {
-				// add it back
-				items.add(new BibleListItem(bible));
-				if (onError != null) {
-					onError.accept(bible, ex);
-				}
-			});
+			// add it back
+			items.add(new BibleListItem(bible));
+			if (onError != null) {
+				onError.accept(bible, ex);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 
 	/**
@@ -440,12 +457,10 @@ public final class ObservableBibleLibrary {
 			}
 		};
 		task.setOnSucceeded((e) -> {
-			Fx.runOnFxThead(() -> {
-				// notify any failures
-				if (onError != null && failures.size() > 0) {
-					onError.accept(failures);
-				}
-			});
+			// notify any failures
+			if (onError != null && failures.size() > 0) {
+				onError.accept(failures);
+			}
 		});
 		task.setOnFailed((e) -> {
 			// this shouldn't happen because we should catch all exceptions
@@ -453,13 +468,11 @@ public final class ObservableBibleLibrary {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to complete removing bibles", ex);
 			failures.add(new FailedOperation<Bible>(null, ex));
-			Fx.runOnFxThead(() -> {
-				if (onError != null) {
-					onError.accept(failures);
-				}
-			});
+			if (onError != null) {
+				onError.accept(failures);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	// other

@@ -180,7 +180,7 @@ final class BibleMetadataPane extends VBox {
         	public void changed(ObservableValue<? extends BibleListItem> ob, BibleListItem oldValue, BibleListItem newValue) {
         		BibleListItem item = newValue;
         		
-        		if (item == null || !item.loaded) {
+        		if (item == null || !item.isLoaded()) {
         			name.set("");
         			language.set("");
         			source.set("");
@@ -195,14 +195,16 @@ final class BibleMetadataPane extends VBox {
         			String no = Translations.get("no");
         			String unknown = Translations.get("unknown");
         			
-        			name.set(item.bible.getName());
-        			language.set(item.bible.getLanguage());
-        			source.set(item.bible.getSource());
-        	        importDate.set(DATE_FORMATTER.format(item.bible.getImportDate()));
-        			String copy = item.bible.getCopyright();
+        			Bible bible = item.getBible();
+        			
+        			name.set(bible.getName());
+        			language.set(bible.getLanguage());
+        			source.set(bible.getSource());
+        	        importDate.set(DATE_FORMATTER.format(bible.getImportDate()));
+        			String copy = bible.getCopyright();
         	        copyright.set(copy != null && copy.length() > 0 ? copy : unknown);
-        	        verseCount.set(String.valueOf(item.bible.getVerseCount()));
-        	        hadImportErrors.set(item.bible.hadImportWarning() ? yes : no);
+        	        verseCount.set(String.valueOf(bible.getVerseCount()));
+        	        hadImportErrors.set(bible.hadImportWarning() ? yes : no);
         		}
         	}
 		});

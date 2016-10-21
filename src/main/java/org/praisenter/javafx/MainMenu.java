@@ -22,22 +22,21 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+// FIXME still issues with focus and current application pane (mainly with breadcrumb bar and progress button, they steal focus away)
 class MainMenu extends VBox implements EventHandler<ActionEvent> {
 
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
-	private final ApplicationPane defaults = new DefaultApplicationPane();
-	
-	private final Node rootNode;
+	private final MainPane mainPane;
 	private final MenuBar menu;
 	private final HBox toolbar;
 
 	private final ObjectProperty<Node> focusOwner = new SimpleObjectProperty<Node>();
 	private final ObjectProperty<Node> appPane = new SimpleObjectProperty<Node>();
 	
-	public MainMenu(Node rootNode) {
-		this.rootNode = rootNode;
+	public MainMenu(MainPane mainPane) {
+		this.mainPane = mainPane;
 		
 		// MENU
 		
@@ -100,8 +99,9 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		bibles.getItems().addAll(blManage);
 		
 		// Help
-		MenuItem hAbout = createMenuItem("About", null, null, ApplicationAction.ABOUT);
-		help.getItems().addAll(hAbout);
+		MenuItem hAbout = createMenuItem("About", FONT_AWESOME.create(FontAwesome.Glyph.INFO), null, ApplicationAction.ABOUT);
+		MenuItem hLogs = createMenuItem("View Logs", null, null, ApplicationAction.LOGS);
+		help.getItems().addAll(hLogs, hAbout);
 		
 		// TOOLBAR
 		
@@ -129,7 +129,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 			}
 			
 			if (nv == null) {
-				updateMenuState(defaults);
+				updateMenuState(this.mainPane);
 			} else {
 				ApplicationPane pane = (ApplicationPane)nv;
 				// recursively go through the menu updating disabled and visibility states
@@ -144,7 +144,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		// INITIALIZATION
 		
-		updateMenuState(defaults);
+		updateMenuState(this.mainPane);
 	}
 	
 	private MenuItem createMenuItem(String label, Node graphic, KeyCombination accelerator, ApplicationAction action) {
@@ -173,8 +173,10 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 			Object data = menu.getUserData();
 			if (data != null && data instanceof ApplicationAction) {
 				ApplicationAction action = (ApplicationAction)data;
-				boolean disabled = !pane.isApplicationActionEnabled(action);
-				boolean visible = pane.isApplicationActionVisible(action);
+				// an action is disabled or hidden as long as both the root
+				// and the currently focused application pane don't handle it
+				boolean disabled = !(this.mainPane.isApplicationActionEnabled(action) || pane.isApplicationActionEnabled(action));
+				boolean visible = this.mainPane.isApplicationActionVisible(action) || pane.isApplicationActionVisible(action);
 				menu.setDisable(disabled);
 				menu.setVisible(visible);
 			}
@@ -200,7 +202,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 	public void handle(ActionEvent event) {
 		Node focused = this.appPane.get();
 		if (focused == null) {
-			focused = this.rootNode;
+			focused = this.mainPane;
 		}
 		Object source = event.getSource();
 		if (source != null && source instanceof MenuItem) {
@@ -209,33 +211,6 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 				ApplicationAction action = (ApplicationAction)data;
 				focused.fireEvent(new ApplicationEvent(event.getSource(), event.getTarget(), ApplicationEvent.ALL, action));
 			}
-		}
-	}
-	
-	private class DefaultApplicationPane implements ApplicationPane {
-		public boolean isApplicationActionEnabled(ApplicationAction action) {
-	    	switch (action) {
-				case ABOUT:
-				case EXIT:
-				case IMPORT_BIBLES:
-				case IMPORT_SLIDES:
-				case IMPORT_SONGS:
-				case MANAGE_BIBLES:
-				case MANAGE_MEDIA:
-				case MANAGE_SLIDES:
-				case MANAGE_SONGS:
-				case NEW_BIBLE:
-				case NEW_SLIDE:
-				case NEW_SLIDE_SHOW:
-				case NEW_SONG:
-				case PREFERENCES:
-					return true;
-				default:
-					return false;
-			}
-		}
-		public boolean isApplicationActionVisible(ApplicationAction action) {
-			return true;
 		}
 	}
 }

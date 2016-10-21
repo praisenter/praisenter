@@ -26,7 +26,7 @@ package org.praisenter.javafx.slide;
 
 import java.awt.image.BufferedImage;
 
-import org.praisenter.javafx.FlowListItem;
+import org.praisenter.javafx.FlowListCell;
 import org.praisenter.javafx.FlowListView;
 
 import javafx.embed.swing.SwingFXUtils;
@@ -48,7 +48,7 @@ import javafx.util.Callback;
  * @author William Bittle
  * @version 3.0.0
  */
-final class SlideListViewCellFactory implements Callback<SlideListItem, FlowListItem<SlideListItem>> {
+final class SlideListViewCellFactory implements Callback<SlideListItem, FlowListCell<SlideListItem>> {
 	/** The max height for the thumbnails */
 	private final int maxHeight;
 	
@@ -64,8 +64,8 @@ final class SlideListViewCellFactory implements Callback<SlideListItem, FlowList
 	 * @see javafx.util.Callback#call(java.lang.Object)
 	 */
 	@Override
-	public FlowListItem<SlideListItem> call(SlideListItem item) {
-		FlowListItem<SlideListItem> cell = new FlowListItem<SlideListItem>(item);
+	public FlowListCell<SlideListItem> call(SlideListItem item) {
+		FlowListCell<SlideListItem> cell = new FlowListCell<SlideListItem>(item);
 
 		cell.setPrefWidth(110);
 		cell.setAlignment(Pos.TOP_CENTER);

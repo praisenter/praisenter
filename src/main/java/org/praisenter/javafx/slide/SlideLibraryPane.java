@@ -1,6 +1,6 @@
 package org.praisenter.javafx.slide;
 
-import org.praisenter.javafx.FlowListItem;
+import org.praisenter.javafx.FlowListCell;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
@@ -26,7 +26,7 @@ public class SlideLibraryPane extends BorderPane {
 		
 		this.slides.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
 			@SuppressWarnings("unchecked")
-			FlowListItem<SlideListItem> view = (FlowListItem<SlideListItem>)e.getTarget();
+			FlowListCell<SlideListItem> view = (FlowListCell<SlideListItem>)e.getTarget();
 			SlideListItem item = view.getData();
 			
 			editor.setSlide(null);

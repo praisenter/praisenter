@@ -150,7 +150,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(nameRow, 1, 0, 1, 1);
         
         btnRename.setOnAction((e) -> {
-    		fireEvent(new MediaRenameEvent(btnRename, MediaMetadataPane.this, media.get().media));
+    		fireEvent(new MediaRenameEvent(btnRename, MediaMetadataPane.this, media.get().getMedia()));
 	    });
         
         Label lblWidth = new Label(Translations.get("media.metadata.width"));
@@ -231,7 +231,7 @@ final class MediaMetadataPane extends VBox {
         		
         		tagView.setText(null);
         		
-        		if (item == null || !item.loaded) {
+        		if (item == null || !item.isLoaded()) {
         			name.set("");
         			btnRename.setVisible(false);
         			width.set("");
@@ -245,7 +245,7 @@ final class MediaMetadataPane extends VBox {
         		} else {
         			setDisable(false);
         			btnRename.setVisible(true);
-        			Media media = item.media;
+        			Media media = item.getMedia();
         			MediaType type = media.getType();
         			String unknown = Translations.get("unknown");
         			
@@ -280,7 +280,7 @@ final class MediaMetadataPane extends VBox {
         			format.set(media.getFormat().toString());
         			dateAdded.set(DATETIME_FORMATTER.format(media.getDateAdded()));
         			
-        			tagView.tagsProperty().set(newValue.tags);
+        			tagView.tagsProperty().set(newValue.getTags());
         		}
         	}
 		});

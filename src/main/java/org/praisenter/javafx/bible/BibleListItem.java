@@ -26,6 +26,13 @@ package org.praisenter.javafx.bible;
 
 import org.praisenter.bible.Bible;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 /**
  * A bible item in the {@link BibleLibraryPane} which could be in the process of being
  * added to the library.
@@ -37,22 +44,22 @@ import org.praisenter.bible.Bible;
  */
 final class BibleListItem implements Comparable<BibleListItem> {
 	/** The bible name */
-	final String name;
+	private final StringProperty name = new SimpleStringProperty();
 	
 	/** The bible; can be null */
-	final Bible bible;
+	private final ObjectProperty<Bible> bible = new SimpleObjectProperty<Bible>(null);
 	
 	/** True if the bible is present (or loaded) */
-	final boolean loaded;
+	private final BooleanProperty loaded = new SimpleBooleanProperty(false);
 	
 	/**
 	 * Optional constructor for pending items.
 	 * @param name the name
 	 */
 	public BibleListItem(String name) {
-		this.name = name;
-		this.bible = null;
-		this.loaded = false;
+		this.name.set(name);
+		this.bible.set(null);
+		this.loaded.set(false);
 	}
 	
 	/**
@@ -60,9 +67,9 @@ final class BibleListItem implements Comparable<BibleListItem> {
 	 * @param bible the bible
 	 */
 	public BibleListItem(Bible bible) {
-		this.name = bible.getName();
-		this.bible = bible;
-		this.loaded = true;
+		this.name.set(bible.getName());
+		this.bible.set(bible);
+		this.loaded.set(true);
 	}
 	
 	/* (non-Javadoc)
@@ -70,15 +77,7 @@ final class BibleListItem implements Comparable<BibleListItem> {
 	 */
 	@Override
 	public String toString() {
-		return this.name;
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return name.hashCode();
+		return this.name.get();
 	}
 	
 	/* (non-Javadoc)
@@ -88,9 +87,9 @@ final class BibleListItem implements Comparable<BibleListItem> {
 	public int compareTo(BibleListItem o) {
 		// sort loaded last
 		// then sort by media (name)
-		if (this.loaded && o.loaded) {
-			return this.bible.compareTo(o.bible);
-		} else if (this.loaded) {
+		if (this.loaded.get() && o.loaded.get()) {
+			return this.bible.get().compareTo(o.bible.get());
+		} else if (this.loaded.get()) {
 			return -1;
 		} else {
 			return 1;
@@ -106,14 +105,50 @@ final class BibleListItem implements Comparable<BibleListItem> {
 		if (obj == this) return true;
 		if (obj instanceof BibleListItem) {
 			BibleListItem item = (BibleListItem)obj;
-			if (item.loaded == this.loaded) {
-				if (item.loaded) {
-					return item.bible.equals(this.bible);
+			if (item.loaded.get() == this.loaded.get()) {
+				if (item.loaded.get()) {
+					return item.bible.get().equals(this.bible.get());
 				} else {
-					return item.name.equals(this.name);
+					return item.name.get().equals(this.name.get());
 				}
 			}
 		}
 		return false;
+	}
+	
+	public String getName() {
+		return this.name.get();
+	}
+	
+	public void setName(String name) {
+		this.name.set(name);
+	}
+	
+	public StringProperty nameProperty() {
+		return this.name;
+	}
+	
+	public Bible getBible() {
+		return this.bible.get();
+	}
+	
+	public void setBible(Bible bible) {
+		this.bible.set(bible);
+	}
+	
+	public ObjectProperty<Bible> bibleProperty() {
+		return this.bible;
+	}
+	
+	public boolean isLoaded() {
+		return this.loaded.get();
+	}
+	
+	public void setLoaded(boolean loaded) {
+		this.loaded.set(loaded);
+	}
+	
+	public BooleanProperty loadedProperty() {
+		return this.loaded;
 	}
 }

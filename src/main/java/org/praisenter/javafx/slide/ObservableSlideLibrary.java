@@ -109,27 +109,21 @@ public final class ObservableSlideLibrary {
 		task.setOnSucceeded((e) -> {
 			Slide slide = task.getValue();
 			SlideListItem success = new SlideListItem(slide);
-			// changes to the list should be done on the FX UI Thread
-			Fx.runOnFxThead(() -> {
-				items.remove(loading);
-				items.add(success);
-				if (onSuccess != null) {
-					onSuccess.accept(slide);
-				}
-			});
+			items.remove(loading);
+			items.add(success);
+			if (onSuccess != null) {
+				onSuccess.accept(slide);
+			}
 		});
 		task.setOnFailed((e) -> {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to import slide " + path.toAbsolutePath().toString(), ex);
-			// changes to the list should be done on the FX UI Thread
-			Fx.runOnFxThead(() -> {
-				items.remove(loading);
-				if (onError != null) {
-					onError.accept(path, ex);
-				}
-			});
+			items.remove(loading);
+			if (onError != null) {
+				onError.accept(path, ex);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 
 	/**
@@ -211,15 +205,13 @@ public final class ObservableSlideLibrary {
 			}
 		};
 		task.setOnSucceeded((e) -> {
-			Fx.runOnFxThead(() -> {
-				// notify successes and failures
-				if (onSuccess != null && successes.size() > 0) {
-					onSuccess.accept(successes);
-				}
-				if (onError != null && failures.size() > 0) {
-					onError.accept(failures);
-				}
-			});
+			// notify successes and failures
+			if (onSuccess != null && successes.size() > 0) {
+				onSuccess.accept(successes);
+			}
+			if (onError != null && failures.size() > 0) {
+				onError.accept(failures);
+			}
 		});
 		task.setOnFailed((e) -> {
 			// this shouldn't happen because we should catch all exceptions
@@ -227,13 +219,11 @@ public final class ObservableSlideLibrary {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to complete slide import", ex);
 			failures.add(new FailedOperation<Path>(null, ex));
-			Fx.runOnFxThead(() -> {
-				if (onError != null) {
-					onError.accept(failures);
-				}
-			});
+			if (onError != null) {
+				onError.accept(failures);
+			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 
 	/**
@@ -262,6 +252,7 @@ public final class ObservableSlideLibrary {
 			}
 		};
 		task.setOnSucceeded((e) -> {
+			// FIXME handle rename
 			if (onSuccess != null) {
 				onSuccess.accept(slide);
 			}
@@ -273,7 +264,7 @@ public final class ObservableSlideLibrary {
 				onError.accept(slide, ex);
 			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 
 	/**
@@ -322,7 +313,7 @@ public final class ObservableSlideLibrary {
 				onError.accept(slide, ex);
 			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**
@@ -395,7 +386,7 @@ public final class ObservableSlideLibrary {
 				onError.accept(failures);
 			}
 		});
-		this.service.submit(task);
+		this.service.execute(task);
 	}
 	
 	/**

@@ -218,7 +218,7 @@ public final class Media implements Comparable<Media> {
 	 */
 	private Media() {
 		// for jaxb
-		this.id = null;
+		this.id = UUID.randomUUID();
 		this.mimeType = null;
 		this.type = null;
 		this.path = null;
@@ -325,7 +325,7 @@ public final class Media implements Comparable<Media> {
 	 */
 	@Override
 	public int hashCode() {
-		return this.path.hashCode();
+		return this.id.hashCode();
 	}
 	
 	/* (non-Javadoc)
@@ -333,7 +333,7 @@ public final class Media implements Comparable<Media> {
 	 */
 	@Override
 	public String toString() {
-		return this.path.toAbsolutePath().toString();
+		return this.name;
 	}
 	
 	/**

@@ -22,51 +22,45 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.animation;
+package org.praisenter.javafx;
 
-import org.praisenter.javafx.FlowListCell;
-
+import javafx.event.EventTarget;
 import javafx.geometry.Insets;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
-import javafx.scene.image.ImageView;
-import javafx.scene.text.TextAlignment;
-import javafx.util.Callback;
+import javafx.geometry.Pos;
+import javafx.scene.layout.VBox;
 
 /**
- * A custom cell factory for animation options.
+ * Represents a cell in a {@link FlowListView}.
  * @author William Bittle
  * @version 3.0.0
- * @since 3.0.0
+ * @param <T> the item type
  */
-final class AnimationOptionCellFactory implements Callback<AnimationOption, FlowListCell<AnimationOption>> {
-	/* (non-Javadoc)
-	 * @see javafx.util.Callback#call(java.lang.Object)
+public class FlowListCell<T> extends VBox implements EventTarget {
+    /** The class name for this node for CSS styling */
+    private static final String CLASS_NAME = "flow-list-view-item";
+    
+	/** The item's data */
+	private final T data;
+	
+	/**
+	 * Full constructor.
+	 * @param data the data for this item
 	 */
-	@Override
-	public FlowListCell<AnimationOption> call(AnimationOption option) {
-		FlowListCell<AnimationOption> cell = new FlowListCell<AnimationOption>(option);
+	public FlowListCell(T data) {
+		this.data = data;
 		
-		cell.setPrefSize(100, 80);
-		
-		String name = null;
-		
-		name = option.name;
-    	// setup the thumbnail image
-    	final ImageView thumb = new ImageView(option.image);
-    	cell.getChildren().add(thumb);
-    	
-    	// setup the media name label
-    	final Label label = new Label();
-    	label.setText(name);
-    	label.setWrapText(true);
-    	label.setTextAlignment(TextAlignment.CENTER);
-    	label.setTooltip(new Tooltip(name));
-    	label.setPadding(new Insets(5, 0, 0, 0));
-		
-    	// add the image and label to the cell
-    	cell.getChildren().addAll(label);
-    	
-		return cell;
+		// setup the cell
+		this.getStyleClass().add(CLASS_NAME);
+		this.setPadding(new Insets(2, 2, 2, 2));
+		this.setAlignment(Pos.CENTER);
+		this.setFocusTraversable(false);
+	}
+	
+	/**
+	 * Returns the data for this item.
+	 * @return T
+	 */
+	public T getData() {
+		return this.data;
 	}
 }

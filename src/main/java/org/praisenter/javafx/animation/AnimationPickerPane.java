@@ -242,12 +242,12 @@ public final class AnimationPickerPane extends BorderPane {
 		animationListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
 		animationListPane.itemsProperty().set(FXCollections.observableArrayList(animationOptions));
 		animationListPane.setOrientation(javafx.geometry.Orientation.HORIZONTAL);
-		animationListPane.setSelection(new AnimationOption(Swap.class, 0));
+		animationListPane.getSelectionModel().selectOnly(new AnimationOption(Swap.class, 0));
 				
 		easingListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
 		easingListPane.itemsProperty().set(FXCollections.observableArrayList(easingOptions));
 		easingListPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
-		easingListPane.setSelection(new AnimationOption(Linear.class, 0));
+		easingListPane.getSelectionModel().selectOnly(new AnimationOption(Linear.class, 0));
 		
 		// setup the animation config
 		
@@ -299,7 +299,7 @@ public final class AnimationPickerPane extends BorderPane {
 		
 		// value bindings
 		
-		easingListPane.selectionProperty().addListener(listener);
+		easingListPane.getSelectionModel().selectionProperty().addListener(listener);
 		txtDuration.textProperty().addListener(listener);
 		txtDelay.textProperty().addListener(listener);
 		cbAnimationType.valueProperty().addListener(listener);
@@ -313,7 +313,7 @@ public final class AnimationPickerPane extends BorderPane {
 		
 		// hide/show logic
 		
-		animationListPane.selectionProperty().addListener((obs, ov, nv) -> {
+		animationListPane.getSelectionModel().selectionProperty().addListener((obs, ov, nv) -> {
 			if (mutating) return;
 			mutating = true;
 			// remove controls
@@ -460,8 +460,8 @@ public final class AnimationPickerPane extends BorderPane {
     		// assign all the controls their values
 			// FIXME we don't know the animated object type at this time
 			cmbObjects.setValue(new AnimatedObject(animation.getId(), AnimatedObjectType.COMPONENT, "test"));
-			animationListPane.setSelection(new AnimationOption(animation.getClass(), 0));
-			easingListPane.setSelection(new AnimationOption(animation.getEasing().getClass(), 0));
+			animationListPane.getSelectionModel().selectOnly(new AnimationOption(animation.getClass(), 0));
+			easingListPane.getSelectionModel().selectOnly(new AnimationOption(animation.getEasing().getClass(), 0));
 			txtDuration.setText(String.valueOf(animation.getDuration()));
 			txtDelay.setText(String.valueOf(animation.getDelay()));
 			cbAnimationType.setValue(getOption(ANIMATION_TYPE_OPTIONS, animation.getType()));
@@ -501,13 +501,13 @@ public final class AnimationPickerPane extends BorderPane {
 	 * @return {@link SlideAnimation}
 	 */
 	private SlideAnimation getControlValues() {
-		AnimationOption animationOption = this.animationListPane.selectionProperty().get();
+		AnimationOption animationOption = this.animationListPane.getSelectionModel().selectionProperty().get();
 		if (animationOption == null) {
 			// return null if an animation type hasn't been selected
 			animationOption = new AnimationOption(Swap.class, 10);
 		}
 		
-		AnimationOption easingOption = this.easingListPane.selectionProperty().get();
+		AnimationOption easingOption = this.easingListPane.getSelectionModel().selectionProperty().get();
 		if (easingOption == null) {
 			// return null if an easing hasn't been selected
 			easingOption = new AnimationOption(Linear.class, 0);

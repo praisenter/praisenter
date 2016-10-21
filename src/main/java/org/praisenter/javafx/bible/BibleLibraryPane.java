@@ -32,10 +32,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.bible.Bible;
 import org.praisenter.javafx.Alerts;
-import org.praisenter.javafx.FlowListItem;
+import org.praisenter.javafx.ApplicationAction;
+import org.praisenter.javafx.ApplicationEvent;
+import org.praisenter.javafx.ApplicationPane;
+import org.praisenter.javafx.ApplicationPaneEvent;
+import org.praisenter.javafx.FlowListCell;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
@@ -52,23 +58,25 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
+import javafx.util.Callback;
 
 /**
  * Pane specifically for showing the bibles in a bible library.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class BibleLibraryPane extends BorderPane {
+public final class BibleLibraryPane extends BorderPane implements ApplicationPane {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	// selection
 	
 	/** The selected bible */
@@ -141,7 +149,12 @@ public final class BibleLibraryPane extends BorderPane {
 		
 		right.getChildren().addAll(ttlImport, ttlMetadata);
 		
-		this.lstBibles = new FlowListView<BibleListItem>(new BibleListViewCellFactory());
+		this.lstBibles = new FlowListView<BibleListItem>(new Callback<BibleListItem, FlowListCell<BibleListItem>>() {
+			@Override
+			public FlowListCell<BibleListItem> call(BibleListItem item) {
+				return new BibleListCell(item);
+			}
+		});
 		this.lstBibles.itemsProperty().bindContent(context.getBibleLibrary().getItems());
 		this.lstBibles.setOrientation(Orientation.HORIZONTAL);
 		
@@ -149,7 +162,6 @@ public final class BibleLibraryPane extends BorderPane {
         leftScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         leftScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         leftScroller.setFitToWidth(true);
-		leftScroller.addEventHandler(KeyEvent.KEY_PRESSED, this::onBibleDelete);
 		leftScroller.setFocusTraversable(true);
         leftScroller.setContent(this.lstBibles);
         leftScroller.setOnDragOver(this::onBibleDragOver);
@@ -168,34 +180,39 @@ public final class BibleLibraryPane extends BorderPane {
 		
 		this.setCenter(split);
 		
-		this.lstBibles.selectionsProperty().addListener((obs, ov, nv) -> {
+		// update the local selection
+		this.lstBibles.getSelectionModel().selectionsProperty().addListener((obs, ov, nv) -> {
 			if (selecting) return;
 			selecting = true;
         	if (nv == null || nv.size() != 1) {
         		this.selected.set(null);
         	} else {
-        		this.selected.set(nv.get(0).bible);
+        		this.selected.set(nv.get(0).getBible());
         	}
         	selecting = false;
+        	this.stateChanged();
         });
         this.selected.addListener((obs, ov, nv) -> {
         	if (selecting) return;
         	selecting = true;
         	if (nv == null) {
-        		lstBibles.setSelection(null);
+        		lstBibles.getSelectionModel().clear();
         	} else {
-        		lstBibles.setSelection(new BibleListItem(nv));
+        		lstBibles.getSelectionModel().selectOnly(new BibleListItem(nv));
         	}
         	selecting = false;
+        	this.stateChanged();
         });
         
         this.editor = new BibleEditorPane(context);
         this.lstBibles.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
         	@SuppressWarnings("unchecked")
-			FlowListItem<BibleListItem> view = (FlowListItem<BibleListItem>)e.getTarget();
+			FlowListCell<BibleListItem> view = (FlowListCell<BibleListItem>)e.getTarget();
         	BibleListItem item = view.getData();
 			
-			this.editor.setBible(item.bible);
+        	if (item.isLoaded()) {
+        		this.editor.setBible(item.getBible());
+        	}
 			
 //			split.getItems().removeAll(rightScroller);
 //			if (!split.getItems().contains(this.editor)) {
@@ -213,8 +230,18 @@ public final class BibleLibraryPane extends BorderPane {
 			this.setCenter(this.editor);
         });
         
-        // wire up the selected media to the media metadata view with a unidirectional binding
-        bmp.bibleProperty().bind(this.lstBibles.selectionProperty());
+        // wire up the selected bible to the bible metadata view with a unidirectional binding
+        bmp.bibleProperty().bind(this.lstBibles.getSelectionModel().selectionProperty());
+        
+        // check when this node is removed from the parent so that we can switch back to the default view
+        this.parentProperty().addListener((obs, ov, nv) -> {
+        	if (ov == null) {
+        		this.setCenter(split);
+        	}
+        });
+        
+        // setup the event handler for application events
+        this.addEventHandler(ApplicationEvent.ALL, this::onApplicationEvent);
 	}
 	
 	/**
@@ -285,49 +312,147 @@ public final class BibleLibraryPane extends BorderPane {
 	}
 	
 	/**
-	 * Handler for when bibles are deleted using the delete key
-	 * @param event the key event
+	 * Handler for when bibles are deleted.
 	 */
-	private void onBibleDelete(KeyEvent event) {
-		if (event.getCode() == KeyCode.DELETE) {
-			List<Bible> bibles = new ArrayList<Bible>();
-			for (BibleListItem item : lstBibles.selectionsProperty().get()) {
-				// can't delete items that are still being imported
-				if (item.loaded) {
-					bibles.add(item.bible);
-				}
-			}
-			if (bibles.size() > 0) {
-				// attempt to delete the selected media
-				Alert alert = new Alert(AlertType.CONFIRMATION);
-				alert.initOwner(getScene().getWindow());
-				alert.initModality(Modality.WINDOW_MODAL);
-				alert.setTitle(Translations.get("bible.remove.title"));
-				alert.setContentText(Translations.get("bible.remove.content"));
-				alert.setHeaderText(null);
-				Optional<ButtonType> result = alert.showAndWait();
-				if (result.get() == ButtonType.OK) {
-					// attempt to remove
-					this.context.getBibleLibrary().remove(
-							bibles, 
-							() -> {
-								// nothing to do on success
-							}, 
-							(List<FailedOperation<Bible>> failures) -> {
-								// get the exceptions
-								Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-								// get the failed media
-								String list = String.join(", ", failures.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
-								Alert fAlert = Alerts.exception(
-										getScene().getWindow(),
-										null, 
-										null, 
-										MessageFormat.format(Translations.get("bible.remove.error"), list), 
-										exceptions);
-								fAlert.show();
-							});
-				}
+	private void promptDelete() {
+		List<Bible> bibles = new ArrayList<Bible>();
+		for (BibleListItem item : this.lstBibles.getSelectionModel().selectionsProperty().get()) {
+			// can't delete items that are still being imported
+			if (item.isLoaded()) {
+				bibles.add(item.getBible());
 			}
 		}
+		if (bibles.size() > 0) {
+			// attempt to delete the selected media
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.initOwner(getScene().getWindow());
+			alert.initModality(Modality.WINDOW_MODAL);
+			alert.setTitle(Translations.get("bible.remove.title"));
+			alert.setContentText(Translations.get("bible.remove.content"));
+			alert.setHeaderText(null);
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.get() == ButtonType.OK) {
+				// attempt to remove
+				this.context.getBibleLibrary().remove(
+						bibles, 
+						() -> {
+							// nothing to do on success
+						}, 
+						(List<FailedOperation<Bible>> failures) -> {
+							// get the exceptions
+							Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
+							// get the failed media
+							String list = String.join(", ", failures.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
+							Alert fAlert = Alerts.exception(
+									getScene().getWindow(),
+									null, 
+									null, 
+									MessageFormat.format(Translations.get("bible.remove.error"), list), 
+									exceptions);
+							fAlert.show();
+						});
+			}
+		}
+	}
+
+    /**
+     * Event handler for renaming media.
+     * @param event the event
+     */
+    private final void promptRename(Bible bible) {
+    	String old = bible.getName();
+    	TextInputDialog prompt = new TextInputDialog(old);
+    	prompt.initOwner(getScene().getWindow());
+    	prompt.initModality(Modality.WINDOW_MODAL);
+    	prompt.setTitle(Translations.get("bible.metadata.rename.title"));
+    	prompt.setHeaderText(Translations.get("bible.metadata.rename.header"));
+    	prompt.setContentText(Translations.get("bible.metadata.rename.content"));
+    	Optional<String> result = prompt.showAndWait();
+    	// check for the "OK" button
+    	if (result.isPresent()) {
+    		// actually rename it?
+    		String name = result.get();
+        	// update the media's name
+    		bible.setName(name);
+        	this.context.getBibleLibrary().save(
+        			"Rename '" + old + "' to '" + name + "'",
+        			bible, 
+        			(Bible m) -> {
+        				// nothing to do
+        			}, 
+        			(Bible m, Throwable ex) -> {
+        				bible.setName(old);
+        				// log the error
+        				LOGGER.error("Failed to rename bible from '{}' to '{}': {}", old, name, ex.getMessage());
+        				// show an error to the user
+        				Alert alert = Alerts.exception(
+        						getScene().getWindow(),
+        						null, 
+        						null, 
+        						MessageFormat.format(Translations.get("bible.metadata.rename.error"), old, name), 
+        						ex);
+        				alert.show();
+        			});
+    	}
+    }
+    
+    /**
+     * Event handler for application events.
+     * @param event the event
+     */
+    private final void onApplicationEvent(ApplicationEvent event) {
+    	ApplicationAction action = event.getAction();
+    	switch (action) {
+    		case RENAME:
+    			Bible selected = this.selected.get();
+    			if (selected != null) {
+    				this.promptRename(selected);
+    			}
+    			break;
+    		case DELETE:
+    			this.promptDelete();
+    			break;
+    		case SELECT_ALL:
+    			this.lstBibles.getSelectionModel().selectAll();
+    			this.stateChanged();
+    			break;
+    		default:
+    			break;
+    	}
+    }
+    
+    /**
+     * Called when the state of this pane changes.
+     */
+    private final void stateChanged() {
+    	fireEvent(new ApplicationPaneEvent(this.lstBibles, BibleLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, BibleLibraryPane.this));
+    }
+    
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationPane#isApplicationActionEnabled(org.praisenter.javafx.ApplicationAction)
+	 */
+	@Override
+	public boolean isApplicationActionEnabled(ApplicationAction action) {
+		boolean isSingleSelected = this.selected.get() != null;
+    	boolean isMultiSelected = this.lstBibles.getSelectionModel().selectionsProperty().size() > 0;
+    	switch (action) {
+			case RENAME:
+				return isSingleSelected;
+			case DELETE:
+				return isSingleSelected || isMultiSelected;
+			case SELECT_ALL:
+				return true;
+			default:
+				break;
+		}
+    	return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationPane#isApplicationActionVisible(org.praisenter.javafx.ApplicationAction)
+	 */
+	@Override
+	public boolean isApplicationActionVisible(ApplicationAction action) {
+		return true;
 	}
 }

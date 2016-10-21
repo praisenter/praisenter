@@ -48,7 +48,6 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 						byte[] data = read(zis);
 						try {
 							Bible bible = XmlIO.read(new ByteArrayInputStream(data), Bible.class);
-							bible.id = UUID.randomUUID();
 							bible.importDate = new Date();
 							bibles.add(bible);
 						} catch (Exception ex) {
@@ -67,7 +66,6 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 				// just read it
 				try (FileInputStream stream = new FileInputStream(path.toFile())) {
 					Bible bible = XmlIO.read(stream, Bible.class);
-					bible.id = UUID.randomUUID();
 					bible.importDate = new Date();
 					bibles.add(bible);
 				}
