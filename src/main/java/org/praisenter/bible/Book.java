@@ -85,6 +85,10 @@ public final class Book implements Comparable<Book> {
 		this.chapters = chapters != null ? chapters : new ArrayList<Chapter>();
 	}
 
+	/**
+	 * Returns the maximum chapter number for this book.
+	 * @return short
+	 */
 	public short getMaxChapterNumber() {
 		short max = 0;
 		for (Chapter chapter : this.chapters) {
@@ -93,6 +97,10 @@ public final class Book implements Comparable<Book> {
 		return max;
 	}
 	
+	/**
+	 * Performs a deep copy of this book.
+	 * @return {@link Book}
+	 */
 	public Book copy() {
 		Book book = new Book();
 		book.name = this.name;

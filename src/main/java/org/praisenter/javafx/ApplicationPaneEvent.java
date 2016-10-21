@@ -31,7 +31,7 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 
 /**
- * Represents a generic event from the application root.
+ * Represents a generic event from ApplicationPanes.
  * @author William Bittle
  * @version 3.0.0
  */
@@ -39,9 +39,10 @@ public class ApplicationPaneEvent extends Event implements Serializable {
 	/** The serialization id */
 	private static final long serialVersionUID = -2602432492272796559L;
 
-	/** Event type for document save */
+	/** Event type for the state of the application pane changing */
 	public static final EventType<ApplicationPaneEvent> STATE_CHANGED = new EventType<ApplicationPaneEvent>("APPLICATION_PANE_STATE_CHANGED");
 	
+	/** The application pane */
 	private final ApplicationPane pane;
 	
 	/**
@@ -49,12 +50,17 @@ public class ApplicationPaneEvent extends Event implements Serializable {
 	 * @param source the event source
 	 * @param target the event target
 	 * @param type the event type
+	 * @param pane the application pane
 	 */
 	public ApplicationPaneEvent(Object source, EventTarget target, EventType<? extends ApplicationPaneEvent> type, ApplicationPane pane) {
 		super(source, target, type);
 		this.pane = pane;
 	}
 	
+	/**
+	 * Returns the application pane that emitted this event.
+	 * @return {@link ApplicationPane}
+	 */
 	public ApplicationPane getApplicationPane() {
 		return this.pane;
 	}

@@ -116,7 +116,24 @@ final class BibleEditorPane extends BorderPane {
 		bibleEditor.setCellFactory(new Callback<TreeView<TreeData>, TreeCell<TreeData>>(){
             @Override
             public TreeCell<TreeData> call(TreeView<TreeData> itm) {
-            	return new BibleTreeCell(manager);
+            	BibleTreeCell cell = new BibleTreeCell();
+            	// wire up events
+            	cell.setOnDragDetected(e -> {
+        			manager.dragDetected(cell, e);
+        		});
+            	cell.setOnDragExited(e -> {
+        			manager.dragExited(cell, e);
+        		});
+            	cell.setOnDragEntered(e -> {
+        			manager.dragEntered(cell, e);
+        		});
+            	cell.setOnDragOver(e -> {
+        			manager.dragOver(cell, e);
+        		});
+            	cell.setOnDragDropped(e -> {
+        			manager.dragDropped(cell, e);
+        		});
+            	return cell;
             }
         });
 		

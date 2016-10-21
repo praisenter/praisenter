@@ -44,18 +44,6 @@ public final class SelectionEvent extends Event implements Serializable {
 	/** The base selection event type */
 	public static final EventType<SelectionEvent> ALL = new EventType<SelectionEvent>("SELECTION_ALL");
 	
-	/** The selection event type for single selection */
-	public static final EventType<SelectionEvent> SELECT = new EventType<SelectionEvent>(ALL, "SELECT");
-	
-	/** The selection event type for multi-selection */
-	public static final EventType<SelectionEvent> SELECT_MULTIPLE = new EventType<SelectionEvent>(ALL, "SELECT_MULTIPLE");
-	
-	/** The selection event type for single deselection */
-	public static final EventType<SelectionEvent> DESELECT = new EventType<SelectionEvent>(ALL, "DESELECT");
-	
-	/** The selection event type for multi-deselection */
-	public static final EventType<SelectionEvent> DESELECT_MULTIPLE = new EventType<SelectionEvent>(ALL, "DESELECT_MULTIPLE");
-
 	/** The selection event for double clicking on an item */
 	public static final EventType<SelectionEvent> DOUBLE_CLICK = new EventType<SelectionEvent>("SELECTION_DOUBLE_CLICK");
 	

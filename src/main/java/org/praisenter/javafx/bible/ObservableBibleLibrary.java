@@ -25,6 +25,7 @@
 package org.praisenter.javafx.bible;
 
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -42,6 +43,7 @@ import org.praisenter.javafx.MonitoredTask;
 import org.praisenter.javafx.MonitoredTaskResultStatus;
 import org.praisenter.javafx.MonitoredThreadPoolExecutor;
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.resources.translations.Translations;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -126,7 +128,7 @@ public final class ObservableBibleLibrary {
 		});
 		
 		// execute the add on a different thread
-		MonitoredTask<List<Bible>> task = new MonitoredTask<List<Bible>>("Import '" + path.getFileName() + "'", true) {
+		MonitoredTask<List<Bible>> task = new MonitoredTask<List<Bible>>(MessageFormat.format(Translations.get("task.import"), path.getFileName())) {
 			@Override
 			protected List<Bible> call() throws Exception {
 				updateProgress(-1, 0);
@@ -204,7 +206,10 @@ public final class ObservableBibleLibrary {
 		BibleImporter importer = new FormatIdentifingBibleImporter();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " bibles" : "Import '" + paths.get(0).getFileName() + "'", false) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(
+				paths.size() > 1 
+					? MessageFormat.format(Translations.get("bible.task.import"), paths.size())
+					: MessageFormat.format(Translations.get("task.import"), paths.get(0).getFileName())) {
 			@Override
 			protected Void call() throws Exception {
 				this.updateProgress(0, paths.size());
@@ -281,7 +286,7 @@ public final class ObservableBibleLibrary {
 	 * @param onError called when the bible failed to be saved
 	 */
 	public void save(Bible bible, Consumer<Bible> onSuccess, BiConsumer<Bible, Throwable> onError) {
-		this.save("Save '" + bible.getName() + "'", bible, onSuccess, onError);
+		this.save(MessageFormat.format(Translations.get("task.save"), bible.getName()), bible, onSuccess, onError);
 	}
 	
 	/**
@@ -289,13 +294,14 @@ public final class ObservableBibleLibrary {
 	 * <p>
 	 * The onSuccess method will be called when the save is successful. The
 	 * onError method will be called if an error occurs during the save.
+	 * @param action a simple string describing the save action if it's something more specific than "Save"
 	 * @param bible the bible
 	 * @param onSuccess called when the bible is saved successfully
 	 * @param onError called when the bible failed to be saved
 	 */
 	public void save(String action, Bible bible, Consumer<Bible> onSuccess, BiConsumer<Bible, Throwable> onError) {
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(action, true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(action) {
 			@Override
 			protected Void call() throws Exception {
 				this.updateProgress(-1, 0);
@@ -309,7 +315,6 @@ public final class ObservableBibleLibrary {
 				}
 			}
 		};
-		// FIXME need to update name if the name changed
 		task.setOnSucceeded((e) -> {
 			// find the bible item
 			BibleListItem bi = null;
@@ -366,7 +371,7 @@ public final class ObservableBibleLibrary {
 		});
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>("Remove '" + bible.getName() + "'", true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(MessageFormat.format(Translations.get("task.delete"), bible.getName())) {
 			@Override
 			protected Void call() throws Exception {
 				this.updateProgress(-1, 0);
@@ -425,7 +430,10 @@ public final class ObservableBibleLibrary {
 		});
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(bibles.size() > 1 ? "Remove " + bibles.size() + " bibles" : "Remove '" + bibles.get(0).getName() + "'", false) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(
+				bibles.size() > 1 
+					? MessageFormat.format(Translations.get("bible.task.delete"), bibles.size())
+					: MessageFormat.format(Translations.get("task.delete"), bibles.get(0).getName())) {
 			@Override
 			protected Void call() throws Exception {
 				this.updateProgress(-1, bibles.size());

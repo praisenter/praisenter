@@ -324,10 +324,8 @@ public final class FlowListSelectionModel<T> {
     			if (event.isShortcutDown()) {
     				// then its a multi-(de)select
     				if (select) {
-    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.SELECT_MULTIPLE);
     					select(cell);
     				} else {
-    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DESELECT_MULTIPLE);
     					deselect(cell);
     				}
     			} else if (event.isShiftDown()) {
@@ -349,11 +347,9 @@ public final class FlowListSelectionModel<T> {
     			} else {
     				// then its a single select
     				if (select) {
-    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.SELECT);
     					this.clear();
     					this.select(cell);
     				} else {
-    					selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DESELECT);
     					this.deselect(cell);
     				}
     			}

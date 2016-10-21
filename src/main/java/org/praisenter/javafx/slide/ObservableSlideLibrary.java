@@ -92,7 +92,7 @@ public final class ObservableSlideLibrary {
 		});
 		
 		// execute the add on a different thread
-		MonitoredTask<Slide> task = new MonitoredTask<Slide>("Import '" + path.getFileName() + "'", true) {
+		MonitoredTask<Slide> task = new MonitoredTask<Slide>("Import '" + path.getFileName() + "'") {
 			@Override
 			protected Slide call() throws Exception {
 				updateProgress(-1, 0);
@@ -163,7 +163,7 @@ public final class ObservableSlideLibrary {
 		List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " slides" : "Import '" + paths.get(0).getFileName() + "'", false) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " slides" : "Import '" + paths.get(0).getFileName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(0, paths.size());
@@ -237,7 +237,7 @@ public final class ObservableSlideLibrary {
 	 */
 	public void save(Slide slide, Consumer<Slide> onSuccess, BiConsumer<Slide, Throwable> onError) {
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>("Save '" + slide.getName() + "'", true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>("Save '" + slide.getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
@@ -285,7 +285,7 @@ public final class ObservableSlideLibrary {
 	 */
 	public void remove(Slide slide, Runnable onSuccess, BiConsumer<Slide, Throwable> onError) {
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>("Remove '" + slide.getName() + "'", true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>("Remove '" + slide.getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
@@ -336,7 +336,7 @@ public final class ObservableSlideLibrary {
 		List<FailedOperation<Slide>> failures = new ArrayList<FailedOperation<Slide>>();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(slides.size() > 1 ? "Remove " + slides.size() + " slides" : "Remove '" + slides.get(0).getName() + "'", false) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(slides.size() > 1 ? "Remove " + slides.size() + " slides" : "Remove '" + slides.get(0).getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(0, slides.size());

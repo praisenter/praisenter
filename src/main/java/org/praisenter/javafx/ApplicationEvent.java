@@ -42,6 +42,7 @@ public class ApplicationEvent extends Event implements Serializable {
 	/** Event type for document save */
 	public static final EventType<ApplicationEvent> ALL = new EventType<ApplicationEvent>("APPLICATION_ALL");
 	
+	/** The action */
 	private final ApplicationAction action;
 	
 	/**
@@ -49,12 +50,17 @@ public class ApplicationEvent extends Event implements Serializable {
 	 * @param source the event source
 	 * @param target the event target
 	 * @param type the event type
+	 * @param action the action
 	 */
 	public ApplicationEvent(Object source, EventTarget target, EventType<? extends ApplicationEvent> type, ApplicationAction action) {
 		super(source, target, type);
 		this.action = action;
 	}
 	
+	/**
+	 * Returns the action.
+	 * @return {@link ApplicationAction}
+	 */
 	public ApplicationAction getAction() {
 		return this.action;
 	}

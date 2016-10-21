@@ -37,8 +37,7 @@ import javafx.beans.property.StringProperty;
  * A bible item in the {@link BibleLibraryPane} which could be in the process of being
  * added to the library.
  * <p>
- * This class will always have the {@link #name} field set, but {@link #bible} will
- * be null when {@link #loaded} is false.
+ * This class will always have a name set, but the bible will be null until its been loaded.
  * @author William Bittle
  * @version 3.0.0
  */
@@ -96,6 +95,11 @@ final class BibleListItem implements Comparable<BibleListItem> {
 		}
 	}
 	
+	@Override
+	public int hashCode() {
+		return this.name.hashCode();
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
@@ -116,38 +120,74 @@ final class BibleListItem implements Comparable<BibleListItem> {
 		return false;
 	}
 	
+	/**
+	 * Returns the name of this item.
+	 * @return String
+	 */
 	public String getName() {
 		return this.name.get();
 	}
 	
+	/**
+	 * Sets the name of this item.
+	 * @param name the name
+	 */
 	public void setName(String name) {
 		this.name.set(name);
 	}
 	
+	/**
+	 * Returns the name property.
+	 * @return StringProperty
+	 */
 	public StringProperty nameProperty() {
 		return this.name;
 	}
 	
+	/**
+	 * Returns the bible or null.
+	 * @return {@link Bible}
+	 */
 	public Bible getBible() {
 		return this.bible.get();
 	}
 	
+	/**
+	 * Sets the bible.
+	 * @param bible the bible
+	 */
 	public void setBible(Bible bible) {
 		this.bible.set(bible);
 	}
 	
+	/**
+	 * Returns the bible property.
+	 * @return ObjectProperty&lt;{@link Bible}&gt;
+	 */
 	public ObjectProperty<Bible> bibleProperty() {
 		return this.bible;
 	}
 	
+	/**
+	 * Returns true if this bible is loaded.
+	 * @return boolean
+	 */
 	public boolean isLoaded() {
 		return this.loaded.get();
 	}
 	
+	/**
+	 * Sets if this bible has been loaded.
+	 * @param loaded true if loaded
+	 */
 	public void setLoaded(boolean loaded) {
 		this.loaded.set(loaded);
 	}
 	
+	/**
+	 * Returns the loaded property.
+	 * @return BooleanProperty
+	 */
 	public BooleanProperty loadedProperty() {
 		return this.loaded;
 	}

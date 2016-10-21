@@ -73,6 +73,10 @@ public final class Verse implements Comparable<Verse> {
 		return this.number - o.number;
 	}
 	
+	/**
+	 * Performs a deep copy of this verse.
+	 * @return {@link Verse}
+	 */
 	public Verse copy() {
 		Verse verse = new Verse();
 		verse.number = this.number;

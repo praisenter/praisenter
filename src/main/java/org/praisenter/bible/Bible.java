@@ -42,6 +42,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author William Bittle
  * @version 3.0.0
  */
+// FIXME emit version numbers on formats
 @XmlRootElement(name = "bible")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Bible implements Comparable<Bible> {
@@ -112,12 +113,12 @@ public final class Bible implements Comparable<Bible> {
 	
 	/**
 	 * Full constructor.
-	 * @param id the bible id
 	 * @param name the bible name
 	 * @param language the bible language
 	 * @param source the bible source
 	 * @param importDate the import date
 	 * @param copyright the copyright (if any)
+	 * @param notes bible notes
 	 * @param hadImportWarning true if a warning occurred during import
 	 * @param books the books for this bible
 	 */
@@ -152,11 +153,17 @@ public final class Bible implements Comparable<Bible> {
 		return this.name.compareTo(o.name);
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
 	@Override
 	public int hashCode() {
 		return this.id.hashCode();
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null) return false;
@@ -170,6 +177,10 @@ public final class Bible implements Comparable<Bible> {
 		return false;
 	}
 	
+	/**
+	 * Returns the maximum book number in this bible.
+	 * @return short
+	 */
 	public short getMaxBookNumber() {
 		short max = 0;
 		for (Book book : this.books) {
@@ -189,7 +200,7 @@ public final class Bible implements Comparable<Bible> {
 		Bible bible = new Bible();
 		bible.copyright = this.copyright;
 		bible.hadImportWarning = this.hadImportWarning;
-		bible.importDate = this.importDate;
+		bible.importDate = null;
 		bible.lastModifiedDate = new Date();
 		bible.language = this.language;
 		bible.name = this.name;
@@ -270,12 +281,12 @@ public final class Bible implements Comparable<Bible> {
 		return this.importDate;
 	}
 
+	/**
+	 * Returns the last modified date.
+	 * @return Date
+	 */
 	public Date getLastModifiedDate() {
-		return lastModifiedDate;
-	}
-	
-	public void setLastModifiedDate(Date lastModifiedDate) {
-		this.lastModifiedDate = lastModifiedDate;
+		return this.lastModifiedDate;
 	}
 	
 	/**
@@ -294,10 +305,18 @@ public final class Bible implements Comparable<Bible> {
 		this.copyright = copyright;
 	}
 
+	/**
+	 * Returns the notes.
+	 * @return String
+	 */
 	public String getNotes() {
-		return notes;
+		return this.notes;
 	}
 
+	/**
+	 * Sets the notes.
+	 * @param notes the notes
+	 */
 	public void setNotes(String notes) {
 		this.notes = notes;
 	}

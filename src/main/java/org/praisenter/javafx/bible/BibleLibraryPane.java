@@ -226,6 +226,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 //			animation.setRate(3.0);
 //			animation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), new KeyValue(split.getDividers().get(0).positionProperty(), 0.25)));
 //			animation.play();
+        	// FIXME navigation back to bible listing
 			
 			this.setCenter(this.editor);
         });
@@ -375,7 +376,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         	// update the media's name
     		bible.setName(name);
         	this.context.getBibleLibrary().save(
-        			"Rename '" + old + "' to '" + name + "'",
+        			MessageFormat.format(Translations.get("task.rename"), old, name),
         			bible, 
         			(Bible m) -> {
         				// nothing to do

@@ -119,7 +119,7 @@ public final class ObservableMediaLibrary {
 		});
 		
 		// execute the add on a different thread
-		MonitoredTask<Media> task = new MonitoredTask<Media>("Import '" + path.getFileName() + "'", true) {
+		MonitoredTask<Media> task = new MonitoredTask<Media>("Import '" + path.getFileName() + "'") {
 			@Override
 			protected Media call() throws Exception {
 				updateProgress(-1, 0);
@@ -191,7 +191,7 @@ public final class ObservableMediaLibrary {
 		List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " media" : "Import '" + paths.get(0).getFileName() + "'", true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " media" : "Import '" + paths.get(0).getFileName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(0, paths.size());
@@ -275,7 +275,7 @@ public final class ObservableMediaLibrary {
 	 */
 	public void remove(Media media, Runnable onSuccess, BiConsumer<Media, Throwable> onError) {
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>("Remove '" + media.getName() + "'", true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>("Remove '" + media.getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
@@ -327,7 +327,7 @@ public final class ObservableMediaLibrary {
 		List<FailedOperation<Media>> failures = new ArrayList<FailedOperation<Media>>();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(media.size() > 1 ? "Remove " + media.size() + " media" : "Remove '" + media.get(0).getName() + "'", true) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(media.size() > 1 ? "Remove " + media.size() + " media" : "Remove '" + media.get(0).getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(0, media.size());
@@ -400,7 +400,7 @@ public final class ObservableMediaLibrary {
 	 */
 	public void rename(Media media, String name, Consumer<Media> onSuccess, BiConsumer<Media, Throwable> onError) {
 		// execute the add on a different thread
-		MonitoredTask<Media> task = new MonitoredTask<Media>("Rename '" + media.getName() + "' to '" + name + "'", true) {
+		MonitoredTask<Media> task = new MonitoredTask<Media>("Rename '" + media.getName() + "' to '" + name + "'") {
 			@Override
 			protected Media call() throws Exception {
 				updateProgress(-1, 0);
