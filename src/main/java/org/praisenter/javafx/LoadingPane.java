@@ -113,7 +113,8 @@ final class LoadingPane extends Pane {
 		this.loading = new LoadingTask(javaFXContext, configuration);
 		this.loadingThread = new Thread(this.loading);
 		
-		// FEATURE need better splash screen image
+		// FEATURE Replace the current loading background image
+		// FIXME Add "Praisenter" text or logo to the loading pane
 		// set the background image
     	setBackground(new Background(
     			new BackgroundImage(

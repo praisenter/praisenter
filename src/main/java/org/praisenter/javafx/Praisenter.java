@@ -55,8 +55,8 @@ import javafx.util.Duration;
 // FIXME what happens when two of the same movie is played with audio.... For example if displayed on multiple screens
 // FIXME testing on High DPI screens
 
-// FEATURE use Apache POI to read powerpoint files
-// FEATURE check out JavaFX styles here https://github.com/JFXtras/jfxtras-styles
+// FEATURE Use Apache POI to read powerpoint files
+// FEATURE Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
 
 // JAVABUG 09/28/16 High DPI - https://bugs.openjdk.java.net/browse/JDK-8090569
 
@@ -105,7 +105,7 @@ public final class Praisenter extends Application {
 		CONFIG = config;
 	}
 
-	// FEATURE we should look at making some of these "optional" instead of required
+	// FEATURE We should look at making some of the Java FX features "optional" instead of required
 	/** The array of Java FX features that Praisenter uses */
 	private static final ConditionalFeature[] REQUIRED_JAVAFX_FEATURES = new ConditionalFeature[] {
 		ConditionalFeature.TRANSPARENT_WINDOW,

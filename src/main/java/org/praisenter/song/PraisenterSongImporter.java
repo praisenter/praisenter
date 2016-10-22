@@ -38,7 +38,7 @@ import javax.xml.bind.JAXBException;
 import org.praisenter.xml.XmlIO;
 
 // TODO create a formatidentifyingimporter
-// FEATURE allow reading of a zip file with multiple songs in it
+// FIXME Allow reading of a zip file with multiple songs in it
 
 /**
  * Importer for the Praisenter 3.0.0 song format.

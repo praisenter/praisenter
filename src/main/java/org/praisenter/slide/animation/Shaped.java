@@ -31,7 +31,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-//FEATURE add more shape types (Star, Rect, etc)
+//FEATURE Add more shape types (Star, Rect, etc)
 
 /**
  * An animation where a shape is used to reveal or hide.

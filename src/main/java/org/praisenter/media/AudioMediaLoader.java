@@ -98,7 +98,7 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 						final MediaFormat mf = new MediaFormat(format.getName().toLowerCase(), format.getLongName(), mc);
 						final Media media = Media.forAudio(path, mf, length, null);
 						
-						// FEATURE could add some code to call a service to go get the album art
+						// FEATURE Add call to an album art web service
 						
 						return media;
 					}

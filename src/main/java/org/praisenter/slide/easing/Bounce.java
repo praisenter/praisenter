@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-//FEATURE allow the bounce settings to be configurable
+//FEATURE Allow the bounce settings to be configurable
 
 /**
  * Represents a bounce easing.

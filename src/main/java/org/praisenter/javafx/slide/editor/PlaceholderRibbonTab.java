@@ -27,7 +27,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 		placeholderTypes.add(new Option<PlaceholderType>("Text", PlaceholderType.TEXT));
 		placeholderTypes.add(new Option<PlaceholderType>("Title", PlaceholderType.TITLE));
 		
-		// FEATURE add more variants
+		// FEATURE Add more variant options other than Primary/Secondary
 		ObservableList<Option<PlaceholderVariant>> placeholderVariants = FXCollections.observableArrayList();
 		placeholderVariants.add(new Option<PlaceholderVariant>("Primary", PlaceholderVariant.PRIMARY));
 		placeholderVariants.add(new Option<PlaceholderVariant>("Secondary", PlaceholderVariant.SECONDARY));

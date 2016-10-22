@@ -31,8 +31,6 @@ import java.io.InputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-// FEATURE replace 3 letter code language with text here https://www.w3.org/WAI/ER/IG/ert/iso639.htm
-
 /**
  * Abstract class for importing bibles into the bible library.
  * @author William Bittle

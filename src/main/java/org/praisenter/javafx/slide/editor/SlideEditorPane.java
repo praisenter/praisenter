@@ -78,7 +78,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
-// FEATURE grouping of components
+// FEATURE Allow grouping of components to easily move them together
 // JAVABUG 06/30/16 text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option
 
 // TODO slide presentation:

@@ -38,7 +38,7 @@ import org.praisenter.slide.graphics.AbstractSlidePaint;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlidePaint;
 
-// FEATURE ColorAdjust for video/images
+// FEATURE Add ColorAdjust options for video/images
 
 /**
  * Represents a media object for audio, video, and images coming from the {@link MediaLibrary}.
@@ -72,8 +72,8 @@ public final class MediaObject extends AbstractSlidePaint implements SlidePaint 
 	@XmlElement(name = "mute", required = false)
 	final boolean mute;
 
-	// FEATURE add a repeat property that will tile an image
-	// FEATURE JavaFX supports http live streaming, we should evaluate the support and perhaps add an object for it.
+	// FEATURE Add a repeat property that will tile an image
+	// FEATURE Evaluate supporting JavaFX http live streaming
 	
 	/**
 	 * Constructor for JAXB.

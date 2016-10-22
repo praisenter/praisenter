@@ -31,7 +31,7 @@ import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
 
-// FEATURE rotation
+// FEATURE Add the ability to rotate components
 
 /**
  * Base interface for both {@link Slide}s and {@link SlideComponent}s.

@@ -34,7 +34,7 @@ import javax.xml.bind.JAXBException;
 
 import org.praisenter.xml.XmlIO;
 
-// FEATURE allow writing of a zip file with multiple songs in it
+// FEATURE Allow writing of a zip file with multiple songs in it
 
 /**
  * Class used to export a listing of songs in the current praisenter format.

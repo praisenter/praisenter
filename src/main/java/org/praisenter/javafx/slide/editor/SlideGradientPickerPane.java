@@ -73,7 +73,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
-// FEATURE add ability to configure any number of stops
+// FEATURE Add ability to configure any number of gradient stops
 
 /**
  * Pane for configuring a gradient pattern.

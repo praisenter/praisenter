@@ -287,7 +287,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 	private void drawFilmOnFrame(BufferedImage image) {
 		final int w = image.getWidth();
 		final int h = image.getHeight();
-		// FEATURE film settings should be dependent on size of thumbnails
+		// FEATURE Make video "film" settings dependent on size of thumbnails
 		final int lineWidth = 2;
 		final int edgeWidth = 5;
 		final int blockHeight = 5;

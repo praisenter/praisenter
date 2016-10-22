@@ -76,7 +76,7 @@ import org.praisenter.SearchType;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
 
-// FEATURE might be nice to have some sort of duplicate detection process
+// FEATURE Add duplicate detection and merge features
 
 /**
  * A collection of songs that has been loaded into a specific location and converted
