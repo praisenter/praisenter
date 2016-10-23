@@ -38,7 +38,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import org.praisenter.Tag;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.TextPlaceholderComponent;
-
+//FIXME emit version numbers on formats
 /**
  * Represents a slide.
  * <p>

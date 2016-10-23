@@ -397,6 +397,7 @@ public final class ObservableSlideLibrary {
 	 * @param generator the thumbnail generator
 	 */
 	public void generateMissingThumbnails(SlideThumbnailGenerator generator) {
+		int generated = 0;
 		for (Slide slide : library.all()) {
 			if (slide.getThumbnail() == null) {
 				BufferedImage image = generator.generate(slide);
@@ -407,6 +408,7 @@ public final class ObservableSlideLibrary {
 					try {
 						// save it to disk
 						library.save(slide);
+						generated++;
 					} catch (JAXBException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -417,6 +419,7 @@ public final class ObservableSlideLibrary {
 				}
 			}
 		}
+		LOGGER.info("Generated {} slide thumbnails.", generated);
 	}
 	
 	// mutators

@@ -253,6 +253,21 @@ public final class FlowListSelectionModel<T> {
 		}
 	}
 	
+	/**
+	 * Inverts the selection.
+	 */
+	@SuppressWarnings("unchecked")
+	public void invert() {
+		for (Node node : this.view.getChildren()) {
+			FlowListCell<T> cell = (FlowListCell<T>)node;
+			if (this.selected.contains(cell)) {
+				this.deselect(cell);
+			} else {
+				this.select(cell);
+			}
+		}
+	}
+	
 	// INTERNAL
 	
 	/**
@@ -305,17 +320,28 @@ public final class FlowListSelectionModel<T> {
 	 * @param event the mouse event
 	 */
 	final void handle(FlowListCell<T> cell, MouseEvent event) {
-		if (event.getButton() == MouseButton.PRIMARY) {
+		boolean isPrimary = event.getButton() == MouseButton.PRIMARY;
+		boolean isSecondary = event.getButton() == MouseButton.SECONDARY;
+		if (isPrimary || isSecondary) {
 			// build a select event to notify any node interested
 			SelectionEvent selectEvent = null;
 			
-			if (event.getClickCount() == 2) {
+			if (isPrimary && event.getClickCount() == 2) {
 				// double click
 				selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DOUBLE_CLICK);
 			} else {
 				// single click
     			// are we being selected?
-				boolean select = !this.isSelected(cell);
+				boolean selected = this.isSelected(cell);
+				boolean select = !selected;
+				
+				// if this node is selected and the secondary
+				// mouse button was used on this cell then don't
+				// do anything, this should show the context menu
+				// and keep this node selected
+				if (event.isPopupTrigger() && selected) {
+					return;
+				}
 				
 				// if the short cut is no longer down but the last time we selected something
 				// it was, then select this regardless if it was selected already
@@ -323,14 +349,14 @@ public final class FlowListSelectionModel<T> {
 					select = true;
 				}
 				
-    			if (event.isShortcutDown()) {
+    			if (isPrimary && event.isShortcutDown()) {
     				// then its a multi-(de)select
     				if (select) {
     					select(cell);
     				} else {
     					deselect(cell);
     				}
-    			} else if (event.isShiftDown()) {
+    			} else if (isPrimary && event.isShiftDown()) {
     				int start = 0;
     				int end = this.view.getChildren().indexOf(cell);
     				// select from the currently selected cell to the this cell
@@ -361,8 +387,6 @@ public final class FlowListSelectionModel<T> {
 				// fire the event
 				cell.fireEvent(selectEvent);
 			}
-			
-			event.consume();
 		}
 	}
 	

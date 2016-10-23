@@ -10,13 +10,13 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.BorderPane;
 
-public final class BiblePane extends BorderPane {
+public final class BibleNavigationPane extends BorderPane {
 	private ComboBox<BibleListItem> cmbBible;
 	private AutoCompleteComboBox<Book> cmbBook;
 	private Spinner<Integer> spnChapter;
 	private Spinner<Integer> spnVerse;
 	
-	public BiblePane(PraisenterContext context) throws SQLException {
+	public BibleNavigationPane(PraisenterContext context) throws SQLException {
 
 		spnChapter = new Spinner<>(1, 1000, 1, 1);
 		spnVerse = new Spinner<>(1, 1000, 1, 1);

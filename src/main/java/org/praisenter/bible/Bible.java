@@ -42,12 +42,14 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author William Bittle
  * @version 3.0.0
  */
-// FIXME emit version numbers on formats
 @XmlRootElement(name = "bible")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Bible implements Comparable<Bible> {
 	/** The name used for praisenter's format */
 	public static final String FORMAT_NAME = "praisenter";
+	
+	/** The current version number */
+	public static final int CURRENT_VERSION = 1;
 	
 	/** The bible id */
 	@XmlAttribute(name = "id", required = false)
@@ -56,6 +58,10 @@ public final class Bible implements Comparable<Bible> {
 	/** The format (for format identification only) */
 	@XmlAttribute(name = "format", required = false)
 	final String format = FORMAT_NAME;
+	
+	/** The version number */
+	@XmlAttribute(name = "version", required = false)
+	final int version = CURRENT_VERSION;
 	
 	/** The path to the XML document */
 	Path path;

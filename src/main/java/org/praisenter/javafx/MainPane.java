@@ -51,7 +51,7 @@ public final class MainPane extends BorderPane implements NavigationManager, App
 		this.breadcrumb = new BreadCrumbBar<NavigationItem<Node>>();
 		this.breadcrumb.setSelectedCrumb(this.root);
 		
-		VBox top = new VBox(menu, breadcrumb);
+		VBox top = new VBox(menu);
 		this.setTop(top);
 		
 		this.status = new MainStatusBar(context);
@@ -112,10 +112,6 @@ public final class MainPane extends BorderPane implements NavigationManager, App
 			case MANAGE_MEDIA:
 			case MANAGE_SLIDES:
 			case MANAGE_SONGS:
-			case NEW_BIBLE:
-			case NEW_SLIDE:
-			case NEW_SLIDE_SHOW:
-			case NEW_SONG:
 			case PREFERENCES:
 			case LOGS:
 				return true;

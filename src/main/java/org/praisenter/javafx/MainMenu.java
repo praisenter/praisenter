@@ -3,7 +3,6 @@ package org.praisenter.javafx;
 import java.util.Deque;
 import java.util.LinkedList;
 
-import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 
@@ -16,9 +15,6 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -63,44 +59,50 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		fNew.getItems().addAll(fNewSlide, fNewSlideShow, fNewSong, fNewBible);
 		
 		Menu fImport = new Menu("Import");
-		MenuItem fImportSlides = new MenuItem("Slides");
-		MenuItem fImportSongs = new MenuItem("Songs");
-		MenuItem fImportBibles = new MenuItem("Bibles");
-		fImport.getItems().addAll(fImportSlides, fImportSongs, fImportBibles);
+		MenuItem fImportMedia = createMenuItem(ApplicationAction.IMPORT_MEDIA);
+		MenuItem fImportSlides = createMenuItem(ApplicationAction.IMPORT_SLIDES);
+		MenuItem fImportSongs = createMenuItem(ApplicationAction.IMPORT_SONGS);
+		MenuItem fImportBibles = createMenuItem(ApplicationAction.IMPORT_BIBLES);
+		fImport.getItems().addAll(fImportMedia, fImportSlides, fImportSongs, fImportBibles);
 		
-		MenuItem fSave = createMenuItem("Save", FONT_AWESOME.create(FontAwesome.Glyph.SAVE), new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), ApplicationAction.SAVE);
-		MenuItem fSaveAs = createMenuItem("Save As...", FONT_AWESOME.create(FontAwesome.Glyph.SAVE), new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), ApplicationAction.SAVE_AS);
-		MenuItem fSetup = createMenuItem("Preferences", FONT_AWESOME.create(FontAwesome.Glyph.GEAR), null, ApplicationAction.PREFERENCES);
-		MenuItem fExit = createMenuItem("Exit", null, null, ApplicationAction.EXIT);
-		file.getItems().addAll(fNew, new SeparatorMenuItem(), fSave, fSaveAs, new SeparatorMenuItem(), fImport, new SeparatorMenuItem(), fSetup, new SeparatorMenuItem(), fExit);
+		MenuItem fExport = createMenuItem(ApplicationAction.EXPORT);
+		
+		MenuItem fSave = createMenuItem(ApplicationAction.SAVE);
+		MenuItem fSaveAs = createMenuItem(ApplicationAction.SAVE_AS);
+		MenuItem fSetup = createMenuItem(ApplicationAction.PREFERENCES);
+		MenuItem fExit = createMenuItem(ApplicationAction.EXIT);
+		file.getItems().addAll(fNew, new SeparatorMenuItem(), fSave, fSaveAs, new SeparatorMenuItem(), fImport, fExport, new SeparatorMenuItem(), fSetup, new SeparatorMenuItem(), fExit);
 		
 		// Edit
-		MenuItem fCopy = createMenuItem("Copy", FONT_AWESOME.create(FontAwesome.Glyph.COPY), new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN), ApplicationAction.COPY);
-		MenuItem fCut = createMenuItem("Cut", FONT_AWESOME.create(FontAwesome.Glyph.CUT), new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN), ApplicationAction.CUT);
-		MenuItem fPaste = createMenuItem("Paste", FONT_AWESOME.create(FontAwesome.Glyph.PASTE), new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN), ApplicationAction.PASTE);
-		MenuItem fRename = createMenuItem("Rename", FONT_AWESOME.create(FontAwesome.Glyph.TERMINAL), new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), ApplicationAction.RENAME);
-		MenuItem fDelete = createMenuItem("Delete", FONT_AWESOME.create(FontAwesome.Glyph.CLOSE), new KeyCodeCombination(KeyCode.DELETE), ApplicationAction.DELETE);
-		MenuItem fSelectAll = createMenuItem("Select All", null, new KeyCodeCombination(KeyCode.A, KeyCombination.SHORTCUT_DOWN), ApplicationAction.SELECT_ALL);
-		edit.getItems().addAll(fCopy, fCut, fPaste, new SeparatorMenuItem(), fRename, fDelete, fSelectAll);
+		MenuItem fOpen = createMenuItem(ApplicationAction.OPEN);
+		MenuItem fCopy = createMenuItem(ApplicationAction.COPY);
+		MenuItem fCut = createMenuItem(ApplicationAction.CUT);
+		MenuItem fPaste = createMenuItem(ApplicationAction.PASTE);
+		MenuItem fRename = createMenuItem(ApplicationAction.RENAME);
+		MenuItem fDelete = createMenuItem(ApplicationAction.DELETE);
+		MenuItem fSelectAll = createMenuItem(ApplicationAction.SELECT_ALL);
+		MenuItem fSelectNone = createMenuItem(ApplicationAction.SELECT_NONE);
+		MenuItem fSelectInvert = createMenuItem(ApplicationAction.SELECT_INVERT);
+		edit.getItems().addAll(fOpen, new SeparatorMenuItem(), fCopy, fCut, fPaste, new SeparatorMenuItem(), fRename, fDelete, new SeparatorMenuItem(), fSelectAll, fSelectNone, fSelectInvert);
 		
 		// Media
-		MenuItem mManage = createMenuItem("Manage media", null, null, ApplicationAction.MANAGE_MEDIA);
+		MenuItem mManage = createMenuItem(ApplicationAction.MANAGE_MEDIA);
 		media.getItems().addAll(mManage);
 		
 		// Songs
 		// ----
 
 		// Slides
-		MenuItem slManage = createMenuItem("Manage slides", null, null, ApplicationAction.MANAGE_SLIDES);
+		MenuItem slManage = createMenuItem(ApplicationAction.MANAGE_SLIDES);
 		slides.getItems().addAll(slManage);
 		
 		// Bibles
-		MenuItem blManage = createMenuItem("Manage bibles", null, null, ApplicationAction.MANAGE_BIBLES);
+		MenuItem blManage = createMenuItem(ApplicationAction.MANAGE_BIBLES);
 		bibles.getItems().addAll(blManage);
 		
 		// Help
-		MenuItem hAbout = createMenuItem("About", FONT_AWESOME.create(FontAwesome.Glyph.INFO), null, ApplicationAction.ABOUT);
-		MenuItem hLogs = createMenuItem("View Logs", null, null, ApplicationAction.LOGS);
+		MenuItem hAbout = createMenuItem(ApplicationAction.ABOUT);
+		MenuItem hLogs = createMenuItem(ApplicationAction.LOGS);
 		help.getItems().addAll(hLogs, hAbout);
 		
 		// TOOLBAR
@@ -147,10 +149,8 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		updateMenuState(this.mainPane);
 	}
 	
-	private MenuItem createMenuItem(String label, Node graphic, KeyCombination accelerator, ApplicationAction action) {
-		MenuItem item = new MenuItem(label, graphic);
-		item.setAccelerator(accelerator);
-		item.setUserData(action);
+	private MenuItem createMenuItem(ApplicationAction action) {
+		MenuItem item = action.toMenuItem();
 		item.setOnAction(this);
 		return item;
 	}

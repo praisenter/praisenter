@@ -29,13 +29,17 @@ import java.util.List;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ListProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.TilePane;
 import javafx.util.Callback;
@@ -72,6 +76,8 @@ public final class FlowListView<T> extends TilePane {
 	/** The item nodes */
 	private final ListProperty<FlowListCell<T>> nodes;
 	
+	private final ObjectProperty<ContextMenu> contextMenu;
+	
 	// data
 	
 	/** The items themselves */
@@ -85,6 +91,7 @@ public final class FlowListView<T> extends TilePane {
 		this.cellFactory = cellFactory;
 		this.selection = new FlowListSelectionModel<T>(this);
 		this.nodes = new SimpleListProperty<FlowListCell<T>>(FXCollections.observableArrayList());
+		this.contextMenu = new SimpleObjectProperty<ContextMenu>();
 		this.items = new SimpleListProperty<T>(FXCollections.observableArrayList());
 		
 		this.getStyleClass().add(CLASS_NAME);
@@ -127,6 +134,26 @@ public final class FlowListView<T> extends TilePane {
 	                 }
 		         }
 			}
+ 		});
+ 		
+ 		// handle the context menu
+ 		this.setOnContextMenuRequested(e -> {
+ 			ContextMenu menu = this.contextMenu.get();
+ 			if (menu != null) {
+ 				if (menu.isShowing()) {
+ 					menu.hide();
+ 				}
+ 				menu.show(this, e.getScreenX(), e.getScreenY());
+ 			}
+ 		});
+ 		this.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+ 			if (e.getButton() == MouseButton.PRIMARY) {
+ 				// dismiss the context menu
+	 			ContextMenu menu = this.contextMenu.get();
+	 			if (menu != null && menu.isShowing()) {
+	 				menu.hide();
+	 			}
+ 			}
  		});
 	}
 	
@@ -200,5 +227,29 @@ public final class FlowListView<T> extends TilePane {
 	 */
 	public FlowListSelectionModel<T> getSelectionModel() {
 		return this.selection;
+	}
+	
+	/**
+	 * Returns the context menu for this node.
+	 * @return ContextMenu
+	 */
+	public ContextMenu getContextMenu() {
+		return this.contextMenu.get();
+	}
+	
+	/**
+	 * Sets the context menu for this node.
+	 * @param menu the menu
+	 */
+	public void setContextMenu(ContextMenu menu) {
+		this.contextMenu.set(menu);
+	}
+	
+	/**
+	 * The context menu property.
+	 * @return ObjectProperty&lt;ContextMenu&gt;
+	 */
+	public ObjectProperty<ContextMenu> contextMenuProperty() {
+		return this.contextMenu;
 	}
 }

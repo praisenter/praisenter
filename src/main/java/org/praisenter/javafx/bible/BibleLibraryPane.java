@@ -36,8 +36,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.bible.Bible;
+import org.praisenter.bible.PraisenterBibleExporter;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.ApplicationAction;
+import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
@@ -57,6 +59,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
@@ -66,6 +69,8 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 import javafx.util.Callback;
 
@@ -158,6 +163,21 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		this.lstBibles.itemsProperty().bindContent(context.getBibleLibrary().getItems());
 		this.lstBibles.setOrientation(Orientation.HORIZONTAL);
 		
+		// setup the context menu
+		ApplicationContextMenu menu = new ApplicationContextMenu(this);
+		menu.getItems().addAll(
+				menu.createMenuItem(ApplicationAction.OPEN),
+				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.RENAME),
+				menu.createMenuItem(ApplicationAction.DELETE),
+				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.EXPORT),
+				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.SELECT_ALL),
+				menu.createMenuItem(ApplicationAction.SELECT_NONE),
+				menu.createMenuItem(ApplicationAction.SELECT_INVERT));
+		this.lstBibles.setContextMenu(menu);
+		
 		ScrollPane leftScroller = new ScrollPane();
         leftScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         leftScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -212,23 +232,8 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 			
         	if (item.isLoaded()) {
         		this.editor.setBible(item.getBible());
+        		this.setCenter(this.editor);
         	}
-			
-//			split.getItems().removeAll(rightScroller);
-//			if (!split.getItems().contains(this.editor)) {
-//				split.getItems().add(this.editor);
-//			}
-//			
-//			Timeline animation = new Timeline();
-//			animation.setAutoReverse(false);
-//			animation.setCycleCount(1);
-//			//animation.setDelay(0);
-//			animation.setRate(3.0);
-//			animation.getKeyFrames().add(new KeyFrame(Duration.millis(1000), new KeyValue(split.getDividers().get(0).positionProperty(), 0.25)));
-//			animation.play();
-        	// FIXME navigation back to bible listing
-			
-			this.setCenter(this.editor);
         });
         
         // wire up the selected bible to the bible metadata view with a unidirectional binding
@@ -396,6 +401,39 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         			});
     	}
     }
+
+    /**
+     * Event handler for exporting bibles.
+     * @param bibles the bibles to export
+     */
+    private final void promptExport(List<Bible> bibles) {
+    	String name = "bibles"; 
+    	if (bibles.size() == 1) {
+    		name = bibles.get(0).getName();
+    	}
+    	name += ".zip";
+    	FileChooser chooser = new FileChooser();
+    	chooser.setInitialFileName(name);
+    	// TODO translate
+    	chooser.setTitle("Export Bibles");
+    	chooser.getExtensionFilters().add(new ExtensionFilter("Zip files", "*.zip"));
+    	File file = chooser.showSaveDialog(getScene().getWindow());
+    	if (file != null) {
+    		PraisenterBibleExporter exporter = new PraisenterBibleExporter();
+    		try {
+				exporter.execute(file.toPath(), bibles);
+			} catch (Exception ex) {
+				// show an error to the user
+				Alert alert = Alerts.exception(
+						getScene().getWindow(),
+						null, 
+						null, 
+						"Failed to export selected bibles", 
+						ex);
+				alert.show();
+			}
+    	}
+    }
     
     /**
      * Event handler for application events.
@@ -410,12 +448,34 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     				this.promptRename(selected);
     			}
     			break;
+    		case OPEN:
+    			// FIXME open the bible for editing
+    			break;
     		case DELETE:
     			this.promptDelete();
     			break;
     		case SELECT_ALL:
     			this.lstBibles.getSelectionModel().selectAll();
     			this.stateChanged();
+    			System.out.println("selectall");
+    			break;
+    		case SELECT_NONE:
+    			this.lstBibles.getSelectionModel().clear();
+    			this.stateChanged();
+    			break;
+    		case SELECT_INVERT:
+    			this.lstBibles.getSelectionModel().invert();
+    			this.stateChanged();
+    			break;
+    		case EXPORT:
+    			List<BibleListItem> items = this.lstBibles.getSelectionModel().selectionsProperty().get();
+    			List<Bible> bibles = new ArrayList<Bible>();
+    			for (BibleListItem item : items) {
+    				if (item.isLoaded()) {
+    					bibles.add(item.getBible());
+    				}
+    			}
+    			this.promptExport(bibles);
     			break;
     		default:
     			break;
@@ -438,10 +498,14 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     	boolean isMultiSelected = this.lstBibles.getSelectionModel().selectionsProperty().size() > 0;
     	switch (action) {
 			case RENAME:
+			case OPEN:
 				return isSingleSelected;
 			case DELETE:
+			case EXPORT:
 				return isSingleSelected || isMultiSelected;
 			case SELECT_ALL:
+			case SELECT_NONE:
+			case SELECT_INVERT:
 				return true;
 			default:
 				break;

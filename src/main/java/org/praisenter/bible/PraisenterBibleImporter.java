@@ -80,7 +80,9 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 					if (!entry.isDirectory()) {
 						byte[] data = read(zis);
 						try {
-							Bible bible = XmlIO.read(new ByteArrayInputStream(data), Bible.class);
+							// make a copy to ensure the id is changed
+							Bible bible = XmlIO.read(new ByteArrayInputStream(data), Bible.class).copy();
+							// update the import date
 							bible.importDate = new Date();
 							bibles.add(bible);
 						} catch (Exception ex) {
@@ -98,7 +100,9 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 				// hopefully its an .xml
 				// just read it
 				try (FileInputStream stream = new FileInputStream(path.toFile())) {
-					Bible bible = XmlIO.read(stream, Bible.class);
+					// make a copy to ensure the id is changed
+					Bible bible = XmlIO.read(stream, Bible.class).copy();
+					// update the import date
 					bible.importDate = new Date();
 					bibles.add(bible);
 				}
