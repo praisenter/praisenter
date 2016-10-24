@@ -39,16 +39,11 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.ConstraintsBase;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 
 /**
  * Pane specifically for display of {@link Bible}s.
@@ -56,9 +51,6 @@ import javafx.scene.paint.Color;
  * @version 3.0.0
  */
 final class BibleMetadataPane extends VBox {
-	/** A simple bottom border for displaying on labels */
-	private static final Border VALUE_BORDER = new Border(new BorderStroke(Color.color(0.7, 0.7, 0.7), BorderStrokeStyle.DASHED, null, new BorderWidths(0, 0, 1, 0)));
-	
 	/** The date formatter */
 	private static final DateFormat DATE_FORMATTER = DateFormat.getDateInstance(DateFormat.LONG);
 	
@@ -116,7 +108,7 @@ final class BibleMetadataPane extends VBox {
         lblNameValue.textProperty().bind(name);
         lblNameValue.setTooltip(new Tooltip());
         lblNameValue.getTooltip().textProperty().bind(name);
-        lblNameValue.setBorder(VALUE_BORDER);
+        lblNameValue.getStyleClass().add("value-label");
         grid.add(lblName, 0, 0, 1, 1);
         grid.add(lblNameValue, 1, 0, 1, 1);
         
@@ -125,7 +117,7 @@ final class BibleMetadataPane extends VBox {
         lblLanguageValue.textProperty().bind(language);
         lblLanguageValue.setTooltip(new Tooltip());
         lblLanguageValue.getTooltip().textProperty().bind(language);
-        lblLanguageValue.setBorder(VALUE_BORDER);
+        lblLanguageValue.getStyleClass().add("value-label");
         grid.add(lblLanguage, 0, 1, 1, 1);
         grid.add(lblLanguageValue, 1, 1, 1, 1);
         
@@ -134,7 +126,7 @@ final class BibleMetadataPane extends VBox {
         lblSourceValue.textProperty().bind(source);
         lblSourceValue.setTooltip(new Tooltip());
         lblSourceValue.getTooltip().textProperty().bind(source);
-        lblSourceValue.setBorder(VALUE_BORDER);
+        lblSourceValue.getStyleClass().add("value-label");
         grid.add(lblSource, 0, 2, 1, 1);
         grid.add(lblSourceValue, 1, 2, 1, 1);
         
@@ -143,7 +135,7 @@ final class BibleMetadataPane extends VBox {
         lblImportDateValue.textProperty().bind(importDate);
         lblImportDateValue.setTooltip(new Tooltip());
         lblImportDateValue.getTooltip().textProperty().bind(importDate);
-        lblImportDateValue.setBorder(VALUE_BORDER);
+        lblImportDateValue.getStyleClass().add("value-label");
         grid.add(lblImportDate, 0, 3, 1, 1);
         grid.add(lblImportDateValue, 1, 3, 1, 1);
         
@@ -152,7 +144,7 @@ final class BibleMetadataPane extends VBox {
         lblCopyrightValue.textProperty().bind(copyright);
         lblCopyrightValue.setTooltip(new Tooltip());
         lblCopyrightValue.getTooltip().textProperty().bind(copyright);
-        lblCopyrightValue.setBorder(VALUE_BORDER);
+        lblCopyrightValue.getStyleClass().add("value-label");
         grid.add(lblCopyright, 0, 4, 1, 1);
         grid.add(lblCopyrightValue, 1, 4, 1, 1);
         
@@ -161,7 +153,7 @@ final class BibleMetadataPane extends VBox {
         lblVerseCountValue.textProperty().bind(verseCount);
         lblVerseCountValue.setTooltip(new Tooltip());
         lblVerseCountValue.getTooltip().textProperty().bind(verseCount);
-        lblVerseCountValue.setBorder(VALUE_BORDER);
+        lblVerseCountValue.getStyleClass().add("value-label");
         grid.add(lblVerseCount, 0, 5, 1, 1);
         grid.add(lblVerseCountValue, 1, 5, 1, 1);
         
@@ -170,7 +162,7 @@ final class BibleMetadataPane extends VBox {
         lblImportErrorsValue.textProperty().bind(hadImportErrors);
         lblImportErrorsValue.setTooltip(new Tooltip());
         lblImportErrorsValue.getTooltip().setText(Translations.get("bible.properties.importWarnings.tooltip"));
-        lblImportErrorsValue.setBorder(VALUE_BORDER);
+        lblImportErrorsValue.getStyleClass().add("value-label");
         grid.add(lblImportErrors, 0, 6, 1, 1);
         grid.add(lblImportErrorsValue, 1, 6, 1, 1);
         

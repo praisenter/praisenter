@@ -323,69 +323,76 @@ public final class FlowListSelectionModel<T> {
 		boolean isPrimary = event.getButton() == MouseButton.PRIMARY;
 		boolean isSecondary = event.getButton() == MouseButton.SECONDARY;
 		if (isPrimary || isSecondary) {
-			// build a select event to notify any node interested
-			SelectionEvent selectEvent = null;
+			// make sure the mouse event doesn't propagate when a cell
+			// is clicked; this is so that we can deselect when the user
+			// clicks off of an item
+			event.consume();
+
+			// are we being selected?
+			boolean selected = this.isSelected(cell);
+			boolean select = !selected;
 			
+			// check for double click
 			if (isPrimary && event.getClickCount() == 2) {
-				// double click
-				selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DOUBLE_CLICK);
-			} else {
-				// single click
-    			// are we being selected?
-				boolean selected = this.isSelected(cell);
-				boolean select = !selected;
-				
-				// if this node is selected and the secondary
-				// mouse button was used on this cell then don't
-				// do anything, this should show the context menu
-				// and keep this node selected
-				if (event.isPopupTrigger() && selected) {
-					return;
-				}
-				
-				// if the short cut is no longer down but the last time we selected something
-				// it was, then select this regardless if it was selected already
-				if (!event.isShortcutDown() && this.selected.size() > 1) {
-					select = true;
-				}
-				
-    			if (isPrimary && event.isShortcutDown()) {
-    				// then its a multi-(de)select
-    				if (select) {
-    					select(cell);
-    				} else {
-    					deselect(cell);
-    				}
-    			} else if (isPrimary && event.isShiftDown()) {
-    				int start = 0;
-    				int end = this.view.getChildren().indexOf(cell);
-    				// select from the currently selected cell to the this cell
-    				if (this.last != null) {
-    					// select from last to this cell
-    					start = this.view.getChildren().indexOf(this.last);
-    				}
-    				if (end < start) {
-						int temp = end;
-						end = start;
-						start = temp;
-					}
-    				for (Node node : this.view.getChildren().subList(start, end + 1)) {
-						this.select(node);
-					}
-    			} else {
-    				// then its a single select
-    				if (select) {
-    					this.clear();
-    					this.select(cell);
-    				} else {
-    					this.deselect(cell);
-    				}
-    			}
+				// make sure this cell is selected
+				// NOTE: this is the best we can do since we can't wait
+				// on the first click to see if there will be a second
+				// so just make sure its selected when we do get a double click
+				select = true;
+				// build a select event to notify any node interested
+				SelectionEvent selectEvent = new SelectionEvent(cell, cell, SelectionEvent.DOUBLE_CLICK);
+				cell.fireEvent(selectEvent);
 			}
 			
-			if (selectEvent != null) {
-				// fire the event
-				cell.fireEvent(selectEvent);
+			// if this node is selected and the secondary
+			// mouse button was used on this cell then don't
+			// do anything, this should show the context menu
+			// and keep this node selected
+			if (event.isPopupTrigger() && selected) {
+				return;
+			}
+			
+			// if the short cut is no longer down but the last time we selected something
+			// it was, then select this regardless if it was selected already
+			if (!event.isShortcutDown() && this.selected.size() > 1) {
+				select = true;
+			}
+			
+			// CTRL + click
+			if (isPrimary && event.isShortcutDown()) {
+				// then its a multi-(de)select
+				if (select) {
+					select(cell);
+				} else {
+					deselect(cell);
+				}
+			// SHIFT + click
+			} else if (isPrimary && event.isShiftDown()) {
+				int start = 0;
+				int end = this.view.getChildren().indexOf(cell);
+				// select from the currently selected cell to the this cell
+				if (this.last != null) {
+					// select from last to this cell
+					start = this.view.getChildren().indexOf(this.last);
+				}
+				if (end < start) {
+					int temp = end;
+					end = start;
+					start = temp;
+				}
+				for (Node node : this.view.getChildren().subList(start, end + 1)) {
+					this.select(node);
+				}
+			// just click
+			} else {
+				// then its a single select
+				if (select) {
+					this.clear();
+					this.select(cell);
+				} else {
+					this.deselect(cell);
+				}
+    			
 			}
 		}
 	}

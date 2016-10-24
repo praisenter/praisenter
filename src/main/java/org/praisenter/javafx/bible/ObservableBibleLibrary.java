@@ -58,8 +58,8 @@ import javafx.collections.ObservableList;
  * will always be performed on the FX UI thread.
  * @author William Bittle
  * @version 3.0.0
+ * @since 3.0.0
  */
-// TODO translate
 public final class ObservableBibleLibrary {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -212,8 +212,7 @@ public final class ObservableBibleLibrary {
 					: MessageFormat.format(Translations.get("task.import"), paths.get(0).getFileName())) {
 			@Override
 			protected Void call() throws Exception {
-				this.updateProgress(0, paths.size());
-				long i = 1;
+				updateProgress(-1, 0);
 				int errorCount = 0;
 				for (Path path : paths) {
 					try {
@@ -239,7 +238,6 @@ public final class ObservableBibleLibrary {
 						});
 						errorCount++;
 					}
-					this.updateProgress(i++, paths.size());
 				}
 				
 				// set the result status based on the number of errors we got
@@ -436,8 +434,7 @@ public final class ObservableBibleLibrary {
 					: MessageFormat.format(Translations.get("task.delete"), bibles.get(0).getName())) {
 			@Override
 			protected Void call() throws Exception {
-				this.updateProgress(-1, bibles.size());
-				long i = 1;
+				updateProgress(-1, 0);
 				int errorCount = 0;
 				for (Bible bible : bibles) {
 					try {
@@ -449,7 +446,6 @@ public final class ObservableBibleLibrary {
 						failures.add(new FailedOperation<Bible>(bible, ex));
 						errorCount++;
 					}
-					this.updateProgress(i++, bibles.size());
 				}
 
 				// set the result status based on the number of errors we got

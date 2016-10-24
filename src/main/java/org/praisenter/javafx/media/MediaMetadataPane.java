@@ -49,10 +49,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.ConstraintsBase;
 import javafx.scene.layout.GridPane;
@@ -60,7 +56,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 
 /**
  * Pane specifically for display and edit of {@link Media}.
@@ -70,10 +65,6 @@ import javafx.scene.paint.Color;
 final class MediaMetadataPane extends VBox {
 	/** The value used for non-applicable fields (like the length for an image) */
 	private static final String NOT_APPLICABLE = "";
-	
-	/** A simple bottom border for displaying on labels */
-	// FIXME convert to CSS
-	private static final Border VALUE_BORDER = new Border(new BorderStroke(Color.color(0.7, 0.7, 0.7), BorderStrokeStyle.DASHED, null, new BorderWidths(0, 0, 1, 0)));
 	
 	/** A formatter for instance fields */
 	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault());
@@ -138,7 +129,7 @@ final class MediaMetadataPane extends VBox {
         lblNameValue.textProperty().bind(name);
         lblNameValue.setTooltip(new Tooltip());
         lblNameValue.getTooltip().textProperty().bind(name);
-        lblNameValue.setBorder(VALUE_BORDER);
+        lblNameValue.getStyleClass().add("value-label");
         Hyperlink btnRename = new Hyperlink(Translations.get("media.metadata.rename"));
         btnRename.setTooltip(new Tooltip(Translations.get("media.metadata.rename")));
         btnRename.setVisible(false);
@@ -158,7 +149,7 @@ final class MediaMetadataPane extends VBox {
         lblWidthValue.textProperty().bind(width);
         lblWidthValue.setTooltip(new Tooltip());
         lblWidthValue.getTooltip().textProperty().bind(width);
-        lblWidthValue.setBorder(VALUE_BORDER);
+        lblWidthValue.getStyleClass().add("value-label");
         grid.add(lblWidth, 0, 1, 1, 1);
         grid.add(lblWidthValue, 1, 1, 1, 1);
         
@@ -167,7 +158,7 @@ final class MediaMetadataPane extends VBox {
         lblHeightValue.textProperty().bind(height);
         lblHeightValue.setTooltip(new Tooltip());
         lblHeightValue.getTooltip().textProperty().bind(height);
-        lblHeightValue.setBorder(VALUE_BORDER);
+        lblHeightValue.getStyleClass().add("value-label");
         grid.add(lblHeight, 0, 2, 1, 1);
         grid.add(lblHeightValue, 1, 2, 1, 1);
         
@@ -176,7 +167,7 @@ final class MediaMetadataPane extends VBox {
         lblLengthValue.textProperty().bind(length);
         lblLengthValue.setTooltip(new Tooltip());
         lblLengthValue.getTooltip().textProperty().bind(length);
-        lblLengthValue.setBorder(VALUE_BORDER);
+        lblLengthValue.getStyleClass().add("value-label");
         grid.add(lblLength, 0, 3, 1, 1);
         grid.add(lblLengthValue, 1, 3, 1, 1);
         
@@ -185,7 +176,7 @@ final class MediaMetadataPane extends VBox {
         lblSoundValue.textProperty().bind(audio);
         lblSoundValue.setTooltip(new Tooltip());
         lblSoundValue.getTooltip().textProperty().bind(audio);
-        lblSoundValue.setBorder(VALUE_BORDER);
+        lblSoundValue.getStyleClass().add("value-label");
         grid.add(lblSound, 0, 4, 1, 1);
         grid.add(lblSoundValue, 1, 4, 1, 1);
         
@@ -194,7 +185,7 @@ final class MediaMetadataPane extends VBox {
         lblFormatValue.textProperty().bind(format);
         lblFormatValue.setTooltip(new Tooltip());
         lblFormatValue.getTooltip().textProperty().bind(format);
-        lblFormatValue.setBorder(VALUE_BORDER);
+        lblFormatValue.getStyleClass().add("value-label");
         grid.add(lblFormat, 0, 5, 1, 1);
         grid.add(lblFormatValue, 1, 5, 1, 1);
         
@@ -203,7 +194,7 @@ final class MediaMetadataPane extends VBox {
         lblDateAddedValue.textProperty().bind(dateAdded);
         lblDateAddedValue.setTooltip(new Tooltip());
         lblDateAddedValue.getTooltip().textProperty().bind(dateAdded);
-        lblDateAddedValue.setBorder(VALUE_BORDER);
+        lblDateAddedValue.getStyleClass().add("value-label");
         grid.add(lblDateAdded, 0, 6, 1, 1);
         grid.add(lblDateAddedValue, 1, 6, 1, 1);
         

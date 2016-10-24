@@ -189,6 +189,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 		
 		Chapter chapter = null;
 		short chapterNumber = 0;
+		String bookCode = null;
 		
 		while ((line = reader.readLine()) != null) {
 			i++;
@@ -232,15 +233,17 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 				} else {
 					try {
 						// dont bother checking the mapping on these since they are necessary
-						String bookCode = data[columnMapping[0]].trim();
+						String bc = data[columnMapping[0]].trim();
 						short cn = Short.parseShort(data[columnMapping[1]].trim());
-						if (cn != chapterNumber) {
+						
+						if (cn != chapterNumber || !bc.equals(bookCode)) {
 							chapter = new Chapter(cn);
-							Book book = bookMap.get(bookCode);
+							Book book = bookMap.get(bc);
 							if (book != null) {
 								book.chapters.add(chapter);
 							}
 							chapterNumber = cn;
+							bookCode = bc;
 						}
 						short verse = Short.parseShort(data[columnMapping[2]].trim());
 						

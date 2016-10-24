@@ -47,6 +47,7 @@ import org.praisenter.javafx.FlowListCell;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
@@ -66,9 +67,12 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
@@ -162,22 +166,9 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		});
 		this.lstBibles.itemsProperty().bindContent(context.getBibleLibrary().getItems());
 		this.lstBibles.setOrientation(Orientation.HORIZONTAL);
+//		this.lstBibles.setBorder(Fx.newBorder(Color.BLUE));
 		
-		// setup the context menu
-		ApplicationContextMenu menu = new ApplicationContextMenu(this);
-		menu.getItems().addAll(
-				menu.createMenuItem(ApplicationAction.OPEN),
-				new SeparatorMenuItem(),
-				menu.createMenuItem(ApplicationAction.RENAME),
-				menu.createMenuItem(ApplicationAction.DELETE),
-				new SeparatorMenuItem(),
-				menu.createMenuItem(ApplicationAction.EXPORT),
-				new SeparatorMenuItem(),
-				menu.createMenuItem(ApplicationAction.SELECT_ALL),
-				menu.createMenuItem(ApplicationAction.SELECT_NONE),
-				menu.createMenuItem(ApplicationAction.SELECT_INVERT));
-		this.lstBibles.setContextMenu(menu);
-		
+		// FIXME make left side span entire height so that the context menu is available
 		ScrollPane leftScroller = new ScrollPane();
         leftScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         leftScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -197,6 +188,9 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		SplitPane split = new SplitPane(leftScroller, rightScroller);
 		split.setDividerPositions(0.75);
 		SplitPane.setResizableWithParent(rightScroller, false);
+		
+		// make the min height of the listing pane the height of the split pane 
+		this.lstBibles.minHeightProperty().bind(split.heightProperty().subtract(2));
 		
 		this.setCenter(split);
 		
@@ -230,11 +224,27 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 			FlowListCell<BibleListItem> view = (FlowListCell<BibleListItem>)e.getTarget();
         	BibleListItem item = view.getData();
 			
+        	// FIXME we need to do this via the navigation manager or allow multiple open at one time (closable tabs)
         	if (item.isLoaded()) {
         		this.editor.setBible(item.getBible());
         		this.setCenter(this.editor);
         	}
         });
+
+		// setup the context menu
+		ApplicationContextMenu menu = new ApplicationContextMenu(this);
+		menu.getItems().addAll(
+				menu.createMenuItem(ApplicationAction.OPEN),
+				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.RENAME),
+				menu.createMenuItem(ApplicationAction.DELETE),
+				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.EXPORT),
+				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.SELECT_ALL),
+				menu.createMenuItem(ApplicationAction.SELECT_NONE),
+				menu.createMenuItem(ApplicationAction.SELECT_INVERT));
+		this.lstBibles.setContextMenu(menu);
         
         // wire up the selected bible to the bible metadata view with a unidirectional binding
         bmp.bibleProperty().bind(this.lstBibles.getSelectionModel().selectionProperty());
@@ -248,6 +258,9 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         
         // setup the event handler for application events
         this.addEventHandler(ApplicationEvent.ALL, this::onApplicationEvent);
+        
+        // get the context menu state right by triggering a state change initially
+        this.stateChanged();
 	}
 	
 	/**
@@ -407,16 +420,15 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
      * @param bibles the bibles to export
      */
     private final void promptExport(List<Bible> bibles) {
-    	String name = "bibles"; 
+    	String name = Translations.get("bible.export.multiple.filename"); 
     	if (bibles.size() == 1) {
     		name = bibles.get(0).getName();
     	}
     	name += ".zip";
     	FileChooser chooser = new FileChooser();
     	chooser.setInitialFileName(name);
-    	// TODO translate
-    	chooser.setTitle("Export Bibles");
-    	chooser.getExtensionFilters().add(new ExtensionFilter("Zip files", "*.zip"));
+    	chooser.setTitle(Translations.get("bible.export.title"));
+    	chooser.getExtensionFilters().add(new ExtensionFilter(Translations.get("export.zip.name"), Translations.get("export.zip.extension")));
     	File file = chooser.showSaveDialog(getScene().getWindow());
     	if (file != null) {
     		PraisenterBibleExporter exporter = new PraisenterBibleExporter();
@@ -428,10 +440,18 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 						getScene().getWindow(),
 						null, 
 						null, 
-						"Failed to export selected bibles", 
+						Translations.get("bible.export.failed"), 
 						ex);
 				alert.show();
 			}
+    	}
+    }
+    
+    private void editSelected() {
+    	BibleListItem item = this.lstBibles.getSelectionModel().selectionProperty().get();
+    	if (item != null && item.isLoaded()) {
+    		this.editor.setBible(item.getBible());
+    		this.setCenter(this.editor);
     	}
     }
     
@@ -449,7 +469,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     			}
     			break;
     		case OPEN:
-    			// FIXME open the bible for editing
+    			this.editSelected();
     			break;
     		case DELETE:
     			this.promptDelete();
@@ -457,7 +477,6 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     		case SELECT_ALL:
     			this.lstBibles.getSelectionModel().selectAll();
     			this.stateChanged();
-    			System.out.println("selectall");
     			break;
     		case SELECT_NONE:
     			this.lstBibles.getSelectionModel().clear();

@@ -147,6 +147,10 @@ public final class FlowListView<T> extends TilePane {
  			}
  		});
  		this.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+ 			if (!e.isConsumed() && (e.getButton() == MouseButton.PRIMARY || e.getButton() == MouseButton.SECONDARY)) {
+ 				this.selection.clear();
+ 			}
+ 			
  			if (e.getButton() == MouseButton.PRIMARY) {
  				// dismiss the context menu
 	 			ContextMenu menu = this.contextMenu.get();

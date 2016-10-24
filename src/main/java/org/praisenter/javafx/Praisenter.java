@@ -189,12 +189,12 @@ public final class Praisenter extends Application {
     		long t1 = 0;
     		
     		// get the context
-    		PraisenterContext context = e.data;
+    		this.context = e.data;
     		
     		LOGGER.info("Creating the UI.");
     		t0 = System.nanoTime();
     		// create the main pane and add it to the stack
-    		MainPane main = new MainPane(context);
+    		MainPane main = new MainPane(this.context);
     		t1 = System.nanoTime();
     		LOGGER.info("UI created in {} seconds.", (t1 - t0) / 1e9);
     		
