@@ -47,7 +47,6 @@ import org.praisenter.javafx.FlowListCell;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
-import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
@@ -67,12 +66,9 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
@@ -166,9 +162,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		});
 		this.lstBibles.itemsProperty().bindContent(context.getBibleLibrary().getItems());
 		this.lstBibles.setOrientation(Orientation.HORIZONTAL);
-//		this.lstBibles.setBorder(Fx.newBorder(Color.BLUE));
 		
-		// FIXME make left side span entire height so that the context menu is available
 		ScrollPane leftScroller = new ScrollPane();
         leftScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         leftScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -518,6 +512,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     	switch (action) {
 			case RENAME:
 			case OPEN:
+				// FIXME allow copy/paste of bibles
 				return isSingleSelected;
 			case DELETE:
 			case EXPORT:

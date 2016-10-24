@@ -95,6 +95,9 @@ final class BibleListItem implements Comparable<BibleListItem> {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
 	@Override
 	public int hashCode() {
 		return this.name.hashCode();

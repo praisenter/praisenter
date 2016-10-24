@@ -29,7 +29,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 
-// JAVABUG 06/30/16 right/center/justify alignment bugs  https://bugs.openjdk.java.net/browse/JDK-8145496 -- http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8145496
+// JAVABUG 06/30/16 Right/Center/Justify alignment bugs https://bugs.openjdk.java.net/browse/JDK-8145496 -- http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8145496
 
 public abstract class ObservableTextComponent<T extends TextComponent> extends ObservableSlideComponent<T> {
 

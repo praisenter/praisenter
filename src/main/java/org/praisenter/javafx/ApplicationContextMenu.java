@@ -61,7 +61,8 @@ public final class ApplicationContextMenu extends ContextMenu implements EventHa
 		// NOTE: catch any accelerator keys so we can consume the events
 		// so that they don't cause the events to be processed twice, once
 		// in the context menu and once in the main menu
-		// FIXME need to test whether this happens on MacOS and Ubuntu  https://bugs.openjdk.java.net/browse/JDK-8088068
+		// FIXME need to test whether this happens on MacOS and Ubuntu  
+		// JAVABUG 10/24/16 Duplicated accelerators https://bugs.openjdk.java.net/browse/JDK-8088068
 		// NOTE: testing revealed this wasn't necessary, but I'm leaving this
 		// here just in case it crops back up
 //		node.addEventFilter(KeyEvent.KEY_TYPED, this);

@@ -54,6 +54,7 @@ import javafx.scene.shape.StrokeType;
 import javafx.util.Callback;
 import javafx.util.Duration;
 
+// TODO translate
 final class BibleEditorPane extends BorderPane {
 	private final PraisenterContext context;
 
@@ -68,7 +69,6 @@ final class BibleEditorPane extends BorderPane {
 		
 		// TODO saving
 		// TODO updating nodes with changes in fields
-		// TODO updating bible item's text (in the observable bible library)
 		
 		// bible
 		TextField txtName = new TextField();
