@@ -318,8 +318,8 @@ final class LoadingPane extends Pane {
 			// and show the error
 			Alert a = Alerts.exception(
 					getScene().getWindow(),
-					Translations.get("init.failed.title"), 
-					Translations.get("init.failed.header"), 
+					Translations.get("init.error.title"), 
+					Translations.get("init.error.header"), 
 					ex.getMessage(), 
 					ex);
 			a.showAndWait();

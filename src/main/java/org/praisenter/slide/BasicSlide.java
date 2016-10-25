@@ -45,6 +45,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.praisenter.Constants;
 import org.praisenter.ReadonlyIterator;
 import org.praisenter.Tag;
 import org.praisenter.slide.animation.SlideAnimation;
@@ -66,9 +67,13 @@ import org.praisenter.xml.adapters.BufferedImageTypeAdapter;
 	BibleSlide.class
 })
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion, Comparable<Slide> {
+	/** The format (for format identification only) */
+	@XmlAttribute(name = "format", required = false)
+	final String format = Constants.FORMAT_NAME;
+	
 	/** The slide format version */
 	@XmlAttribute(name = "version", required = false)
-	final String version = Slide.VERSION;
+	final String version = Slide.CURRENT_VERSION;
 	
 	/** The slide components */
 	@XmlElementRefs({

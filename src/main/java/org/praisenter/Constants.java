@@ -126,4 +126,10 @@ public final class Constants {
 	// /user/home/dir/Praisenter3/bibles
 	/** The absolute path to the database */
 	public static final String BIBLES_ABSOLUTE_PATH = Constants.ROOT_PATH + BIBLES_RELATIVE_PATH;
+	
+	///////////////////////////
+	// OTHER
+	
+	/** Format name for use in any savable format in the application to differentiate between other formats */
+	public static final String FORMAT_NAME = "praisenter";
 }

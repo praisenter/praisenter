@@ -27,6 +27,8 @@ package org.praisenter.javafx;
 import java.util.Deque;
 import java.util.LinkedList;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
@@ -44,6 +46,9 @@ public final class ApplicationContextMenu extends ContextMenu implements EventHa
 	/** The node this context menu is bound to */
 	private final Node node;
 	
+	/** True if the window that contains the node is focused */
+	private final BooleanProperty windowFocused = new SimpleBooleanProperty();
+	
 	/**
 	 * Minimal constructor.
 	 * @param node the node this context menu is for
@@ -55,6 +60,27 @@ public final class ApplicationContextMenu extends ContextMenu implements EventHa
 		node.addEventHandler(ApplicationPaneEvent.STATE_CHANGED, e -> {
 			if (e.getEventType() == ApplicationPaneEvent.STATE_CHANGED) {
 				updateMenuState(e.getApplicationPane());
+			}
+		});
+
+		// listen for when the scene changes so we can re-bind to the
+		// parent window
+		node.sceneProperty().addListener((obs, ov, nv) -> {
+			windowFocused.unbind();
+			if (nv != null) {
+				windowFocused.bind(nv.getWindow().focusedProperty());
+			}
+		});
+		
+		// we need to re-evaluate the menu state when the focus between menus changes
+		// primarily for re-evaluating the content in the clipboard.
+		// this allows us to disable an item if the user goes to a different app and copies
+		// something that isn't the expected type
+		this.windowFocused.addListener((obs, ov, nv) -> {
+			if (node instanceof ApplicationPane) {
+				ApplicationPane pane = (ApplicationPane)node;
+				// recursively go through the menu updating disabled and visibility states
+				updateMenuState(pane);
 			}
 		});
 		

@@ -45,8 +45,11 @@ public class ApplicationEvent extends Event implements Serializable {
 	/** The action */
 	private final ApplicationAction action;
 	
+	/** The action data */
+	private final Object data;
+	
 	/**
-	 * Full constructor.
+	 * Minimal constructor.
 	 * @param source the event source
 	 * @param target the event target
 	 * @param type the event type
@@ -55,6 +58,21 @@ public class ApplicationEvent extends Event implements Serializable {
 	public ApplicationEvent(Object source, EventTarget target, EventType<? extends ApplicationEvent> type, ApplicationAction action) {
 		super(source, target, type);
 		this.action = action;
+		this.data = null;
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param source the event source
+	 * @param target the event target
+	 * @param type the event type
+	 * @param action the action
+	 * @param data the data
+	 */
+	public ApplicationEvent(Object source, EventTarget target, EventType<? extends ApplicationEvent> type, ApplicationAction action, Object data) {
+		super(source, target, type);
+		this.action = action;
+		this.data = data;
 	}
 	
 	/**
@@ -63,5 +81,13 @@ public class ApplicationEvent extends Event implements Serializable {
 	 */
 	public ApplicationAction getAction() {
 		return this.action;
+	}
+	
+	/**
+	 * Returns the additional data associated to this event.
+	 * @return Object
+	 */
+	public Object getData() {
+		return this.data;
 	}
 }

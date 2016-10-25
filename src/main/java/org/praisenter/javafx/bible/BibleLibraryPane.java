@@ -30,6 +30,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -43,6 +44,7 @@ import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
+import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.FlowListCell;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.PraisenterContext;
@@ -63,6 +65,9 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -74,12 +79,14 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 import javafx.util.Callback;
 
+// TODO sorting
 /**
  * Pane specifically for showing the bibles in a bible library.
  * @author William Bittle
  * @version 3.0.0
  */
 public final class BibleLibraryPane extends BorderPane implements ApplicationPane {
+	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	// selection
@@ -99,9 +106,6 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 	
 	/** The bible listing */
 	private final FlowListView<BibleListItem> lstBibles;
-	
-	/** The bible editor node */
-	private final BibleEditorPane editor;
 	
 	/**
 	 * Minimal constructor.
@@ -212,16 +216,12 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         	this.stateChanged();
         });
         
-        this.editor = new BibleEditorPane(context);
         this.lstBibles.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
         	@SuppressWarnings("unchecked")
 			FlowListCell<BibleListItem> view = (FlowListCell<BibleListItem>)e.getTarget();
         	BibleListItem item = view.getData();
-			
-        	// FIXME we need to do this via the navigation manager or allow multiple open at one time (closable tabs)
         	if (item.isLoaded()) {
-        		this.editor.setBible(item.getBible());
-        		this.setCenter(this.editor);
+        		fireEvent(new ApplicationEvent(e.getSource(), e.getTarget(), ApplicationEvent.ALL, ApplicationAction.EDIT, item.getBible()));
         	}
         });
 
@@ -229,6 +229,9 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		ApplicationContextMenu menu = new ApplicationContextMenu(this);
 		menu.getItems().addAll(
 				menu.createMenuItem(ApplicationAction.OPEN),
+				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.COPY),
+				menu.createMenuItem(ApplicationAction.PASTE),
 				new SeparatorMenuItem(),
 				menu.createMenuItem(ApplicationAction.RENAME),
 				menu.createMenuItem(ApplicationAction.DELETE),
@@ -243,18 +246,8 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         // wire up the selected bible to the bible metadata view with a unidirectional binding
         bmp.bibleProperty().bind(this.lstBibles.getSelectionModel().selectionProperty());
         
-        // check when this node is removed from the parent so that we can switch back to the default view
-        this.parentProperty().addListener((obs, ov, nv) -> {
-        	if (ov == null) {
-        		this.setCenter(split);
-        	}
-        });
-        
         // setup the event handler for application events
         this.addEventHandler(ApplicationEvent.ALL, this::onApplicationEvent);
-        
-        // get the context menu state right by triggering a state change initially
-        this.stateChanged();
 	}
 	
 	/**
@@ -434,18 +427,20 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 						getScene().getWindow(),
 						null, 
 						null, 
-						Translations.get("bible.export.failed"), 
+						Translations.get("bible.export.error"), 
 						ex);
 				alert.show();
 			}
     	}
     }
     
+    /**
+     * Event handler for editing the selected item.
+     */
     private void editSelected() {
     	BibleListItem item = this.lstBibles.getSelectionModel().selectionProperty().get();
     	if (item != null && item.isLoaded()) {
-    		this.editor.setBible(item.getBible());
-    		this.setCenter(this.editor);
+    		fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.EDIT, item.getBible()));
     	}
     }
     
@@ -455,15 +450,53 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
      */
     private final void onApplicationEvent(ApplicationEvent event) {
     	ApplicationAction action = event.getAction();
+    	Bible selected = this.selected.get();
     	switch (action) {
     		case RENAME:
-    			Bible selected = this.selected.get();
     			if (selected != null) {
     				this.promptRename(selected);
     			}
     			break;
     		case OPEN:
     			this.editSelected();
+    			break;
+    		case COPY:
+    			if (selected != null) {
+    				Clipboard cb = Clipboard.getSystemClipboard();
+    				ClipboardContent content = new ClipboardContent();
+    				content.put(DataFormat.PLAIN_TEXT, selected.getName());
+    				content.put(DataFormats.BIBLE_ID, selected.getId());
+    				cb.setContent(content);
+    				this.stateChanged();
+    			}
+    			break;
+    		case PASTE:
+				Clipboard cb = Clipboard.getSystemClipboard();
+				Object data = cb.getContent(DataFormats.BIBLE_ID);
+				if (data != null && data instanceof UUID) {
+					// make a copy
+					Bible bible = this.context.getBibleLibrary().get((UUID)data);
+					if (bible != null) {
+						Bible copy = bible.copy();
+						// set the name to something else
+						copy.setName(MessageFormat.format(Translations.get("bible.copy.name"), bible.getName()));
+						// then save it
+						this.context.getBibleLibrary().save(copy, saved -> {
+							// nothing to do
+						}, (failed, error) -> {
+							// present message to user
+							Alert alert = Alerts.exception(
+									getScene().getWindow(),
+									null, 
+									null, 
+									MessageFormat.format(Translations.get("bible.copy.error"), bible.getName()), 
+									error);
+							alert.show();
+						});
+					} else {
+						LOGGER.warn("Failed to copy bible, it may have been removed.");
+					}
+				}
     			break;
     		case DELETE:
     			this.promptDelete();
@@ -512,7 +545,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     	switch (action) {
 			case RENAME:
 			case OPEN:
-				// FIXME allow copy/paste of bibles
+			case COPY:
 				return isSingleSelected;
 			case DELETE:
 			case EXPORT:
@@ -521,6 +554,9 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 			case SELECT_NONE:
 			case SELECT_INVERT:
 				return true;
+			case PASTE:
+				Clipboard cb = Clipboard.getSystemClipboard();
+				return cb.hasContent(DataFormats.BIBLE_ID);
 			default:
 				break;
 		}

@@ -43,6 +43,7 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Constants;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.UnknownFormatException;
 
@@ -155,7 +156,7 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 			    		return new ZefaniaBibleImporter();
 			    	} else if (r.getLocalName().equalsIgnoreCase("bible")) {
 			    		String format = r.getAttributeValue(null, "format");
-			    		if (format != null && format.toLowerCase().equals(Bible.FORMAT_NAME)) {
+			    		if (format != null && format.toLowerCase().equals(Constants.FORMAT_NAME)) {
 			    			return new PraisenterBibleImporter();
 			    		}
 			    		return new OpenSongBibleImporter();

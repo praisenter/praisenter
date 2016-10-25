@@ -38,7 +38,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import org.praisenter.Tag;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.TextPlaceholderComponent;
-//FIXME emit version numbers on formats
+
 /**
  * Represents a slide.
  * <p>
@@ -55,7 +55,7 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
 @XmlAccessorType(XmlAccessType.NONE)
 public interface Slide extends SlideRegion, Comparable<Slide> {
 	/** The version of the slide format */
-	public static final String VERSION = "3.0.0";
+	public static final String CURRENT_VERSION = "1";
 	
 	/** Value indicating a slide should show forever */
 	public static final long TIME_FOREVER = -1;

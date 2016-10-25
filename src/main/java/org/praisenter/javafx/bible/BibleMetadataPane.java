@@ -192,7 +192,7 @@ final class BibleMetadataPane extends VBox {
         			name.set(bible.getName());
         			language.set(bible.getLanguage());
         			source.set(bible.getSource());
-        	        importDate.set(DATE_FORMATTER.format(bible.getImportDate()));
+        	        importDate.set(bible.getImportDate() != null ? DATE_FORMATTER.format(bible.getImportDate()) : null);
         			String copy = bible.getCopyright();
         	        copyright.set(copy != null && copy.length() > 0 ? copy : unknown);
         	        verseCount.set(String.valueOf(bible.getVerseCount()));

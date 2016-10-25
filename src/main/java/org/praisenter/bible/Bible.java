@@ -37,6 +37,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.praisenter.Constants;
+
 /**
  * Represents a Bible translation.
  * @author William Bittle
@@ -45,9 +47,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "bible")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Bible implements Comparable<Bible> {
-	/** The name used for praisenter's format */
-	public static final String FORMAT_NAME = "praisenter";
-	
 	/** The current version number */
 	public static final int CURRENT_VERSION = 1;
 	
@@ -57,7 +56,7 @@ public final class Bible implements Comparable<Bible> {
 
 	/** The format (for format identification only) */
 	@XmlAttribute(name = "format", required = false)
-	final String format = FORMAT_NAME;
+	final String format = Constants.FORMAT_NAME;
 	
 	/** The version number */
 	@XmlAttribute(name = "version", required = false)
@@ -200,18 +199,20 @@ public final class Bible implements Comparable<Bible> {
 	 * <p>
 	 * The new bible will have it's own id so the returned bible
 	 * and this bible will not be equal according to the {@link #equals(Object)} method.
+	 * <p>
+	 * The new bible will have a null path as well.
 	 * @return {@link Bible}
 	 */
 	public Bible copy() {
 		Bible bible = new Bible();
 		bible.copyright = this.copyright;
-		bible.hadImportWarning = this.hadImportWarning;
+		bible.hadImportWarning = false;
 		bible.importDate = null;
 		bible.lastModifiedDate = new Date();
 		bible.language = this.language;
 		bible.name = this.name;
 		bible.notes = this.notes;
-		bible.path = this.path;
+		bible.path = null;
 		bible.source = this.source;
 		
 		for (Book book : this.books) {

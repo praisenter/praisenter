@@ -47,8 +47,11 @@ public enum ApplicationAction {
 
 	// shared
 	
-	/** Edit the selected document */
+	/** Trigger an edit for the selected item */
 	OPEN("Open"),
+	
+	/** Open the editor for the event's data */
+	EDIT("Edit"),
 	
 	/** Save the current document */
 	SAVE("Save", () -> { 

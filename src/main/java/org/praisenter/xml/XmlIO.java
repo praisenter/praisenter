@@ -28,6 +28,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -88,6 +90,21 @@ public final class XmlIO {
 			}
 		}
 		return context;
+	}
+
+	/**
+	 * Reads the given string as XML.
+	 * @param string the xml in a string
+	 * @param clazz the type to read in
+	 * @return E
+	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
+	 * @throws IOException thrown if an exception occurs while reading the XML
+	 */
+	public static final <E> E read(String string, Class<E> clazz) throws JAXBException, IOException {
+		// otherwise attempt to read the file
+		XmlContext context = getXmlContext(clazz);
+		Unmarshaller unmarshaller = context.unmarshaller;
+		return clazz.cast(unmarshaller.unmarshal(new StringReader(string)));
 	}
 	
 	/**
@@ -156,5 +173,20 @@ public final class XmlIO {
 		XmlContext context = getXmlContext(object.getClass());
 		Marshaller marshaller = context.marshaller;
 		marshaller.marshal(object, stream);
+	}
+	
+	/**
+	 * Writes the XML representation of the given object to string and returns it.
+	 * @param object the object to write to a string
+	 * @return String
+	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
+	 * @throws IOException thrown if an exception occurs while writing the XML
+	 */
+	public static final <E> String save(E object) throws JAXBException, IOException {
+		XmlContext context = getXmlContext(object.getClass());
+		Marshaller marshaller = context.marshaller;
+		StringWriter sw = new StringWriter();
+		marshaller.marshal(object, sw);
+		return sw.toString();
 	}
 }

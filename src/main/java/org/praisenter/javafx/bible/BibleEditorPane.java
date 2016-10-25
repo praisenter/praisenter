@@ -1,7 +1,5 @@
 package org.praisenter.javafx.bible;
 
-import java.util.Collections;
-
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
@@ -9,20 +7,17 @@ import org.praisenter.bible.Bible;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.Verse;
+import org.praisenter.javafx.ApplicationAction;
+import org.praisenter.javafx.ApplicationPane;
+import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.PraisenterContext;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
-import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -31,31 +26,16 @@ import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.TransferMode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
 import javafx.util.Callback;
-import javafx.util.Duration;
 
 // TODO translate
-final class BibleEditorPane extends BorderPane {
+public final class BibleEditorPane extends BorderPane implements ApplicationPane {
 	private final PraisenterContext context;
 
 	/** The font-awesome glyph-font pack */
@@ -282,6 +262,29 @@ final class BibleEditorPane extends BorderPane {
 		this.setLeft(bibleEditor);
 	}
 	
+	@Override
+	public boolean isApplicationActionEnabled(ApplicationAction action) {
+    	switch (action) {
+//    		case NEW_BOOK:
+//    		case NEW_CHAPTER:
+//    		case NEW_VERSE:
+			case COPY:
+			case CUT:
+				return false;
+			case PASTE:
+				return false;
+			case DELETE:
+				return false;
+			default:
+				break;
+		}
+    	return false;
+	}
+	
+	@Override
+	public boolean isApplicationActionVisible(ApplicationAction action) {
+		return true;
+	}
 	
 	public Bible getBible() {
 		return this.bible.get();

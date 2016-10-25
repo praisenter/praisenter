@@ -53,11 +53,6 @@ import javafx.scene.shape.StrokeType;
 public final class SetupPane extends GridPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	// FIXME move this to CSS
-	private static final Paint SCREEN_BORDER_PAINT = new LinearGradient(0, 0, 0.25, 0.25, true, CycleMethod.REFLECT, 
-			new Stop(0.0, new Color(0.1, 0.1, 0.1, 1.0)), 
-			new Stop(1.0, new Color(0.2, 0.2, 0.2, 1.0)));
-	
 	public SetupPane(Configuration configuration) {
 		// the in use config and the saved config can be different if the user
 		// hasn't restarted the app after changing a setting that requires it
@@ -107,51 +102,56 @@ public final class SetupPane extends GridPane {
 		screenPane.setHgap(10);
 		screenPane.setVgap(10);
 		List<ComboBox<Option<ScreenRole>>> screenCombos = new ArrayList<ComboBox<Option<ScreenRole>>>();
-		final double s = 200.0 / 1080.0;
-		final double bw = 10;
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice[] devices = ge.getScreenDevices();
-		for (int i = 0; i < devices.length; i++) {
-			GraphicsDevice device = devices[i];
-			try {
-				Robot robot = new Robot(device);
-				BufferedImage image = robot.createScreenCapture(device.getDefaultConfiguration().getBounds());
-				Image fximage = SwingFXUtils.toFXImage(image, null);
-				ImageView img = new ImageView(fximage);
-				 
-				final double w = Math.ceil(fximage.getWidth() * s);
-				final double h = Math.ceil(fximage.getHeight() * s);
-				
-				img.setFitHeight(h);
-				img.setFitWidth(w);
-				img.setPreserveRatio(true);
-				img.setLayoutX(bw);
-				img.setLayoutY(bw);
-				
-				StackPane stack = new StackPane(img);
-				stack.setBackground(new Background(new BackgroundFill(Color.BLACK, null, new Insets(bw * 0.5))));
-				Fx.setSize(stack, w + bw * 2, h + bw * 2);
-				stack.setBorder(new Border(new BorderStroke(SCREEN_BORDER_PAINT, new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.ROUND, StrokeLineCap.ROUND, bw, 0, new ArrayList<Double>()), new CornerRadii(bw / 5), new BorderWidths(bw))));
-				
-				ComboBox<Option<ScreenRole>> cmbDisplayType = new ComboBox<Option<ScreenRole>>(FXCollections.observableArrayList(screenTypes));
-				cmbDisplayType.setUserData(device);
-				screenCombos.add(cmbDisplayType);
-				
-				for (ScreenMapping map : configuration.getScreenMappings()) {
-					if (map.getId().equals(device.getIDstring())) {
-						cmbDisplayType.setValue(new Option<ScreenRole>(null, map.getRole()));
-						break;
+		parentProperty().addListener((obs, ov, nv) -> {
+			if (nv == null) return;
+			screenPane.getChildren().clear();
+			screenCombos.clear();
+			final double s = 200.0 / 1080.0;
+			final double bw = 10;
+			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			GraphicsDevice[] devices = ge.getScreenDevices();
+			for (int i = 0; i < devices.length; i++) {
+				GraphicsDevice device = devices[i];
+				try {
+					Robot robot = new Robot(device);
+					BufferedImage image = robot.createScreenCapture(device.getDefaultConfiguration().getBounds());
+					Image fximage = SwingFXUtils.toFXImage(image, null);
+					ImageView img = new ImageView(fximage);
+					 
+					final double w = Math.ceil(fximage.getWidth() * s);
+					final double h = Math.ceil(fximage.getHeight() * s);
+					
+					img.setFitHeight(h);
+					img.setFitWidth(w);
+					img.setPreserveRatio(true);
+					img.setLayoutX(bw);
+					img.setLayoutY(bw);
+					
+					StackPane stack = new StackPane(img);
+					stack.setBackground(new Background(new BackgroundFill(Color.BLACK, null, new Insets(bw * 0.5))));
+					Fx.setSize(stack, w + bw * 2, h + bw * 2);
+					stack.getStyleClass().add("screen-snapshot");
+
+					ComboBox<Option<ScreenRole>> cmbDisplayType = new ComboBox<Option<ScreenRole>>(FXCollections.observableArrayList(screenTypes));
+					cmbDisplayType.setUserData(device);
+					screenCombos.add(cmbDisplayType);
+					
+					for (ScreenMapping map : configuration.getScreenMappings()) {
+						if (map.getId().equals(device.getIDstring())) {
+							cmbDisplayType.setValue(new Option<ScreenRole>(null, map.getRole()));
+							break;
+						}
 					}
+					
+					screenPane.add(stack, i, 0);
+					screenPane.add(cmbDisplayType, i, 1);
+					GridPane.setHalignment(cmbDisplayType, HPos.CENTER);
+				} catch (AWTException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
-				
-				screenPane.add(stack, i, 0);
-				screenPane.add(cmbDisplayType, i, 1);
-				GridPane.setHalignment(cmbDisplayType, HPos.CENTER);
-			} catch (AWTException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
 			}
-		}
+		});
 		
 		TitledPane tp1 = new TitledPane("Display Setup", screenPane);
 		tp1.setCollapsible(false);

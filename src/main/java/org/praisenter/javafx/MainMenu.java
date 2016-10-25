@@ -6,7 +6,9 @@ import java.util.LinkedList;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -28,6 +30,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 	private final MenuBar menu;
 	private final HBox toolbar;
 
+	private final BooleanProperty windowFocused = new SimpleBooleanProperty();
 	private final ObjectProperty<Node> focusOwner = new SimpleObjectProperty<Node>();
 	private final ObjectProperty<Node> appPane = new SimpleObjectProperty<Node>();
 	
@@ -114,8 +117,10 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		// auto bind when the scene changes
 		this.sceneProperty().addListener((obs, ov, nv) -> {
 			focusOwner.unbind();
+			windowFocused.unbind();
 			if (nv != null) {
 				focusOwner.bind(nv.focusOwnerProperty());
+				windowFocused.bind(nv.getWindow().focusedProperty());
 			}
 		});
 		
@@ -137,6 +142,21 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 				// recursively go through the menu updating disabled and visibility states
 				updateMenuState(pane);
 				nv.addEventHandler(ApplicationPaneEvent.STATE_CHANGED, MainMenu.this::handleStateChanged);
+			}
+		});
+		
+		// we need to re-evaluate the menu state when the focus between menus changes
+		// primarily for re-evaluating the content in the clipboard.
+		// this allows us to disable an item if the user goes to a different app and copies
+		// something that isn't the expected type
+		this.windowFocused.addListener((obs, ov, nv) -> {
+			Node focused = this.appPane.get();
+			if (focused == null) {
+				updateMenuState(this.mainPane);
+			} else {
+				ApplicationPane pane = (ApplicationPane)focused;
+				// recursively go through the menu updating disabled and visibility states
+				updateMenuState(pane);
 			}
 		});
 		
