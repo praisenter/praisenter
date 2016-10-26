@@ -142,7 +142,17 @@ public enum ApplicationAction {
 	LOGS("View Logs"),
 	
 	/** Exit the application */
-	EXIT("Exit");
+	EXIT("Exit"),
+	
+	// bible
+	
+	NEW_BIBLE("New Bible"),
+	NEW_BOOK("New Book"),
+	NEW_CHAPTER("New Chapter"),
+	NEW_VERSE("New Verse"),
+	RENUMBER("Renumber")
+	
+	;
 	
 	/** The action label */
 	private String label;

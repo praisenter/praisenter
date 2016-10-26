@@ -24,6 +24,7 @@
  */
 package org.praisenter.bible;
 
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,7 +47,10 @@ import org.praisenter.Constants;
  */
 @XmlRootElement(name = "bible")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Bible implements Comparable<Bible> {
+public final class Bible implements Comparable<Bible>, Serializable {
+	/** The serialization id */
+	private static final long serialVersionUID = 2081803110927884508L;
+
 	/** The current version number */
 	public static final int CURRENT_VERSION = 1;
 	
@@ -147,6 +151,37 @@ public final class Bible implements Comparable<Bible> {
 		this.hadImportWarning = hadImportWarning;
 		this.books = books != null ? books : new ArrayList<Book>();
 	}
+
+	/**
+	 * Copy constructor.
+	 * @param bible the bible to copy
+	 * @param exact whether to make an exact copy or not
+	 */
+	public Bible(Bible bible, boolean exact) {
+		this.books = new ArrayList<Book>();
+		this.copyright = bible.copyright;
+		this.language = bible.language;
+		this.name = bible.name;
+		this.notes = bible.notes;
+		this.source = bible.source;
+		this.name = bible.name;
+		this.hadImportWarning = bible.hadImportWarning;
+		this.lastModifiedDate = new Date();
+		
+		if (exact) {
+			this.id = bible.id;
+			this.path = bible.path;
+			this.importDate = bible.importDate;
+		} else {
+			this.id = UUID.randomUUID();
+			this.path = null;
+			this.importDate = null;
+		}
+		
+		for (Book book : this.books) {
+			bible.books.add(book.copy());
+		}
+	}
 	
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
@@ -183,6 +218,15 @@ public final class Bible implements Comparable<Bible> {
 	}
 	
 	/**
+	 * Performs a deep copy of this bible.
+	 * @param exact if an exact copy should be returned
+	 * @return {@link Bible}
+	 */
+	public Bible copy(boolean exact) {
+		return new Bible(this, exact);
+	}
+	
+	/**
 	 * Returns the maximum book number in this bible.
 	 * @return short
 	 */
@@ -192,34 +236,6 @@ public final class Bible implements Comparable<Bible> {
 			max = max < book.number ? book.number : max;
 		}
 		return max;
-	}
-	
-	/**
-	 * Makes a deep copy of the this bible.
-	 * <p>
-	 * The new bible will have it's own id so the returned bible
-	 * and this bible will not be equal according to the {@link #equals(Object)} method.
-	 * <p>
-	 * The new bible will have a null path as well.
-	 * @return {@link Bible}
-	 */
-	public Bible copy() {
-		Bible bible = new Bible();
-		bible.copyright = this.copyright;
-		bible.hadImportWarning = false;
-		bible.importDate = null;
-		bible.lastModifiedDate = new Date();
-		bible.language = this.language;
-		bible.name = this.name;
-		bible.notes = this.notes;
-		bible.path = null;
-		bible.source = this.source;
-		
-		for (Book book : this.books) {
-			bible.books.add(book.copy());
-		}
-		
-		return bible;
 	}
 	
 	/**

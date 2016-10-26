@@ -22,40 +22,42 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx;
+package org.praisenter.javafx.bible;
+
+import org.praisenter.resources.translations.Translations;
 
 /**
- * Interface for the primary views of the application.
- * <p>
- * {@link ApplicationPane}s define what {@link ApplicationAction}s are supported and available
- * when focused.
+ * Enumeration of fields that bibles can be sorted by.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
  */
-public interface ApplicationPane {
+enum BibleSortField {
+	/** The name field */
+	NAME(Translations.get("bible.sort.field.name")),
 	
-	// toggling visibility
+	/** The type field */
+	SOURCE(Translations.get("bible.sort.field.source")),
 	
-	/**
-	 * Returns true if the action is visible. (opt-out)
-	 * <p>
-	 * By default this should always return true.  Doing so will ensure new actions that
-	 * get added are visible.
-	 * @param action the action
-	 * @return boolean
-	 */
-	public boolean isApplicationActionVisible(ApplicationAction action);
+	/** The date added field */
+	LAST_MODIFIED_DATE(Translations.get("bible.sort.field.date"));
 	
-	// toggling disabled/enabled
+	/** The display name of the field */
+	private final String name;
 	
 	/**
-	 * Returns true if the action is enabled. (opt-in)
-	 * <p>
-	 * By default this should always return false. Doing so will ensure new actions that
-	 * get added will not be enabled on controls that are not updated for the new actions.
-	 * @param action the action
-	 * @return boolean
+	 * Full constructor.
+	 * @param name the display name
 	 */
-	public boolean isApplicationActionEnabled(ApplicationAction action);
+	private BibleSortField(String name) {
+		this.name = name;
+	}
+	
+	/**
+	 * Returns the display name of this field.
+	 * @return String
+	 */
+	public String getName() {
+		return this.name;
+	}
 }

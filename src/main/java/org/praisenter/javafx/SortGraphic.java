@@ -43,6 +43,13 @@ public final class SortGraphic extends Pane {
 	final BooleanProperty flip = new SimpleBooleanProperty(); 
 	
 	/**
+	 * Default constructor.
+	 */
+	public SortGraphic() {
+		this(17, 0, 4, 2, 4);
+	}
+	
+	/**
 	 * Full constructor.
 	 * @param width the width of the graphic
 	 * @param x the x coordinate of the graphic

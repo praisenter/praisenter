@@ -24,6 +24,8 @@
  */
 package org.praisenter.bible;
 
+import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -37,7 +39,10 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "verse")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Verse implements Comparable<Verse> {
+public final class Verse implements Comparable<Verse>, Serializable {
+	/** The serialization id */
+	private static final long serialVersionUID = 1013677325712981189L;
+
 	/** The verse number */
 	@XmlAttribute(name = "number", required = false)
 	short number;
@@ -63,7 +68,16 @@ public final class Verse implements Comparable<Verse> {
 		this.number = number;
 		this.text = text;
 	}
-
+	
+	/**
+	 * Copy constructor.
+	 * @param verse the verse to copy
+	 */
+	public Verse(Verse verse) {
+		verse.number = verse.number;
+		verse.text = verse.text;
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
@@ -78,10 +92,7 @@ public final class Verse implements Comparable<Verse> {
 	 * @return {@link Verse}
 	 */
 	public Verse copy() {
-		Verse verse = new Verse();
-		verse.number = this.number;
-		verse.text = this.text;
-		return verse;
+		return new Verse(this);
 	}
 	
 	/**

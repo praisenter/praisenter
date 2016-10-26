@@ -58,8 +58,13 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		MenuItem fNewSlide = new MenuItem("Slide");
 		MenuItem fNewSlideShow = new MenuItem("Slide Show");
 		MenuItem fNewSong = new MenuItem("Song");
-		MenuItem fNewBible = new MenuItem("Bible");
-		fNew.getItems().addAll(fNewSlide, fNewSlideShow, fNewSong, fNewBible);
+		Menu fNewBibleRoot = new Menu("Bible");
+		MenuItem fNewBible = createMenuItem(ApplicationAction.NEW_BIBLE);
+		MenuItem fNewBook = createMenuItem(ApplicationAction.NEW_BOOK);
+		MenuItem fNewChapter = createMenuItem(ApplicationAction.NEW_CHAPTER);
+		MenuItem fNewVerse = createMenuItem(ApplicationAction.NEW_VERSE);
+		fNewBibleRoot.getItems().addAll(fNewBible, fNewBook, fNewChapter, fNewVerse);
+		fNew.getItems().addAll(fNewSlide, fNewSlideShow, fNewSong, fNewBibleRoot);
 		
 		Menu fImport = new Menu("Import");
 		MenuItem fImportMedia = createMenuItem(ApplicationAction.IMPORT_MEDIA);
@@ -83,10 +88,11 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		MenuItem fPaste = createMenuItem(ApplicationAction.PASTE);
 		MenuItem fRename = createMenuItem(ApplicationAction.RENAME);
 		MenuItem fDelete = createMenuItem(ApplicationAction.DELETE);
+		MenuItem fRenumber = createMenuItem(ApplicationAction.RENUMBER);
 		MenuItem fSelectAll = createMenuItem(ApplicationAction.SELECT_ALL);
 		MenuItem fSelectNone = createMenuItem(ApplicationAction.SELECT_NONE);
 		MenuItem fSelectInvert = createMenuItem(ApplicationAction.SELECT_INVERT);
-		edit.getItems().addAll(fOpen, new SeparatorMenuItem(), fCopy, fCut, fPaste, new SeparatorMenuItem(), fRename, fDelete, new SeparatorMenuItem(), fSelectAll, fSelectNone, fSelectInvert);
+		edit.getItems().addAll(fOpen, new SeparatorMenuItem(), fCopy, fCut, fPaste, new SeparatorMenuItem(), fRenumber, fRename, fDelete, new SeparatorMenuItem(), fSelectAll, fSelectNone, fSelectInvert);
 		
 		// Media
 		MenuItem mManage = createMenuItem(ApplicationAction.MANAGE_MEDIA);

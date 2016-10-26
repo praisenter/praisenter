@@ -26,8 +26,11 @@ package org.praisenter.javafx.bible;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.text.Collator;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,24 +50,40 @@ import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.FlowListCell;
 import org.praisenter.javafx.FlowListView;
+import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
+import org.praisenter.javafx.SortGraphic;
 import org.praisenter.resources.translations.Translations;
 
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
@@ -72,6 +91,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -79,15 +99,18 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 import javafx.util.Callback;
 
-// TODO sorting
 /**
  * Pane specifically for showing the bibles in a bible library.
  * @author William Bittle
  * @version 3.0.0
+ * @since 3.0.0
  */
 public final class BibleLibraryPane extends BorderPane implements ApplicationPane {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
+
+	/** The collator for locale dependent sorting */
+	private static final Collator COLLATOR = Collator.getInstance();
 	
 	// selection
 	
@@ -107,6 +130,19 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 	/** The bible listing */
 	private final FlowListView<BibleListItem> lstBibles;
 	
+	// filtering
+
+	/** The search */
+	private final StringProperty textFilter = new SimpleStringProperty();
+
+	// sorting
+	
+	/** The sort property */
+	private final ObjectProperty<Option<BibleSortField>> sortField = new SimpleObjectProperty<Option<BibleSortField>>(new Option<BibleSortField>(BibleSortField.NAME.getName(), BibleSortField.NAME));
+	
+	/** The sort direction */
+	private final BooleanProperty sortDescending = new SimpleBooleanProperty(true);
+	
 	/**
 	 * Minimal constructor.
 	 * @param context the praisenter context
@@ -114,6 +150,72 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 	public BibleLibraryPane(PraisenterContext context) {
 		this.context = context;
 		
+        // add sorting and filtering capabilities
+		ObservableList<BibleListItem> theList = context.getBibleLibrary().getItems();
+        FilteredList<BibleListItem> filtered = new FilteredList<BibleListItem>(theList, p -> true);
+        SortedList<BibleListItem> sorted = new SortedList<BibleListItem>(filtered);
+        
+        // define a general listener for all the filters and sorting
+        InvalidationListener filterListener = new InvalidationListener() {
+			@Override
+			public void invalidated(Observable obs) {
+				String text = textFilter.get();
+				BibleSortField field = sortField.get().getValue();
+				boolean desc = sortDescending.get();
+				filtered.setPredicate(b -> {
+					if (!b.isLoaded() || 
+						((text == null || text.length() == 0 || b.getName().toLowerCase().contains(text.toLowerCase())))) {
+						return true;
+					}
+					return false;
+				});
+				sorted.setComparator(new Comparator<BibleListItem>() {
+					@Override
+					public int compare(BibleListItem o1, BibleListItem o2) {
+						int value = 0;
+						if (field == BibleSortField.NAME) {
+							value = COLLATOR.compare(o1.getName(), o2.getName());
+						} else {
+							// check for loaded vs. not loaded bibles
+							// sort non-loaded bibles to the end
+							if (o1.getBible() == null && o2.getBible() == null) return 0;
+							if (o1.getBible() == null && o2.getBible() != null) return 1;
+							if (o1.getBible() != null && o2.getBible() == null) return -1;
+							
+							if (field == BibleSortField.SOURCE) {
+								value = COLLATOR.compare(o1.getBible().getSource(), o2.getBible().getSource());
+							} else if (field == BibleSortField.LAST_MODIFIED_DATE) {
+								value = -1 * (o1.getBible().getLastModifiedDate().compareTo(o2.getBible().getLastModifiedDate()));
+							}
+						}
+						return (desc ? 1 : -1) * value;
+					}
+				});
+			}
+		};
+		this.textFilter.addListener(filterListener);
+		this.sortField.addListener(filterListener);
+		this.sortDescending.addListener(filterListener);
+		filterListener.invalidated(null);
+		
+		this.lstBibles = new FlowListView<BibleListItem>(new Callback<BibleListItem, FlowListCell<BibleListItem>>() {
+			@Override
+			public FlowListCell<BibleListItem> call(BibleListItem item) {
+				return new BibleListCell(item);
+			}
+		});
+		this.lstBibles.itemsProperty().bindContent(sorted);
+		this.lstBibles.setOrientation(Orientation.HORIZONTAL);
+		
+		ScrollPane leftScroller = new ScrollPane();
+        leftScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        leftScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        leftScroller.setFitToWidth(true);
+		leftScroller.setFocusTraversable(true);
+        leftScroller.setContent(this.lstBibles);
+        leftScroller.setOnDragOver(this::onBibleDragOver);
+        leftScroller.setOnDragDropped(this::onBibleDragDropped);
+
 		VBox right = new VBox();
 		VBox importSteps = new VBox();
 		
@@ -158,24 +260,6 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		
 		right.getChildren().addAll(ttlImport, ttlMetadata);
 		
-		this.lstBibles = new FlowListView<BibleListItem>(new Callback<BibleListItem, FlowListCell<BibleListItem>>() {
-			@Override
-			public FlowListCell<BibleListItem> call(BibleListItem item) {
-				return new BibleListCell(item);
-			}
-		});
-		this.lstBibles.itemsProperty().bindContent(context.getBibleLibrary().getItems());
-		this.lstBibles.setOrientation(Orientation.HORIZONTAL);
-		
-		ScrollPane leftScroller = new ScrollPane();
-        leftScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        leftScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        leftScroller.setFitToWidth(true);
-		leftScroller.setFocusTraversable(true);
-        leftScroller.setContent(this.lstBibles);
-        leftScroller.setOnDragOver(this::onBibleDragOver);
-        leftScroller.setOnDragDropped(this::onBibleDragDropped);
-		
         ScrollPane rightScroller = new ScrollPane();
         rightScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         rightScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -183,14 +267,54 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         rightScroller.setContent(right);
         rightScroller.setMinWidth(250);
         
+        // FILTERING & SORTING
+		
+		ObservableList<Option<BibleSortField>> sortFields = FXCollections.observableArrayList();
+		sortFields.addAll(Arrays.asList(BibleSortField.values())
+        		.stream()
+        		.map(t -> new Option<BibleSortField>(t.getName(), t))
+        		.collect(Collectors.toList()));
+        		
+        Label lblSort = new Label(Translations.get("field.sort"));
+        ChoiceBox<Option<BibleSortField>> cbSort = new ChoiceBox<Option<BibleSortField>>(sortFields);
+        cbSort.valueProperty().bindBidirectional(this.sortField);
+        SortGraphic sortGraphic = new SortGraphic();
+        ToggleButton tgl = new ToggleButton(null, sortGraphic);
+        tgl.selectedProperty().bindBidirectional(this.sortDescending);
+        sortGraphic.flipProperty().bind(this.sortDescending);
+        
+        TextField txtSearch = new TextField();
+        txtSearch.setPromptText(Translations.get("field.search.placeholder"));
+        txtSearch.textProperty().bindBidirectional(this.textFilter);
+        
+        HBox pFilter = new HBox(txtSearch); 
+        pFilter.setAlignment(Pos.BASELINE_LEFT);
+        pFilter.setSpacing(5);
+        
+        HBox pSort = new HBox(lblSort, cbSort, tgl);
+        pSort.setAlignment(Pos.CENTER_LEFT);
+        pSort.setSpacing(5);
+        
+        FlowPane top = new FlowPane();
+        top.setHgap(5);
+        top.setVgap(5);
+        top.setAlignment(Pos.BASELINE_LEFT);
+        top.setPadding(new Insets(5));
+        top.setPrefWrapLength(0);
+        
+        top.getChildren().addAll(pFilter, pSort);
+
 		SplitPane split = new SplitPane(leftScroller, rightScroller);
 		split.setDividerPositions(0.75);
 		SplitPane.setResizableWithParent(rightScroller, false);
 		
+        this.setTop(top);
+        this.setCenter(split);
+        
+        // BINDINGS & EVENTS
+
 		// make the min height of the listing pane the height of the split pane 
 		this.lstBibles.minHeightProperty().bind(split.heightProperty().subtract(2));
-		
-		this.setCenter(split);
 		
 		// update the local selection
 		this.lstBibles.getSelectionModel().selectionsProperty().addListener((obs, ov, nv) -> {
@@ -302,7 +426,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 					(List<FailedOperation<Path>> failures) -> {
 						// get the exceptions
 						Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-						// get the failed media
+						// get the failed bibles
 						String list = String.join(", ", failures.stream().map(f -> f.getData().toAbsolutePath().toString()).collect(Collectors.toList()));
 						Alert alert = Alerts.exception(
 								getScene().getWindow(),
@@ -329,7 +453,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 			}
 		}
 		if (bibles.size() > 0) {
-			// attempt to delete the selected media
+			// attempt to delete the selected bible
 			Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.initOwner(getScene().getWindow());
 			alert.initModality(Modality.WINDOW_MODAL);
@@ -347,7 +471,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 						(List<FailedOperation<Bible>> failures) -> {
 							// get the exceptions
 							Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-							// get the failed media
+							// get the failed bible
 							String list = String.join(", ", failures.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
 							Alert fAlert = Alerts.exception(
 									getScene().getWindow(),
@@ -362,7 +486,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 	}
 
     /**
-     * Event handler for renaming media.
+     * Event handler for renaming bibles.
      * @param event the event
      */
     private final void promptRename(Bible bible) {
@@ -378,7 +502,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     	if (result.isPresent()) {
     		// actually rename it?
     		String name = result.get();
-        	// update the media's name
+        	// update the bible's name
     		bible.setName(name);
         	this.context.getBibleLibrary().save(
         			MessageFormat.format(Translations.get("task.rename"), old, name),
@@ -477,7 +601,8 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 					// make a copy
 					Bible bible = this.context.getBibleLibrary().get((UUID)data);
 					if (bible != null) {
-						Bible copy = bible.copy();
+						// make a copy
+						Bible copy = bible.copy(false);
 						// set the name to something else
 						copy.setName(MessageFormat.format(Translations.get("bible.copy.name"), bible.getName()));
 						// then save it

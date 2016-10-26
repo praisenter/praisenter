@@ -3,6 +3,7 @@ package org.praisenter.javafx;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Locale;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -69,9 +70,17 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			case EDIT:
 				// get the data to know what to do
 				if (data instanceof Bible) {
-					this.bibleEditorPane.setBible((Bible)data);
+					this.bibleEditorPane.setBible(((Bible)data).copy(true));
 					this.navigate(this.bibleEditorPane);
 				}
+				break;
+			case NEW_BIBLE:
+				Bible bible = new Bible();
+				bible.setName("Untitled");
+				bible.setLanguage(Locale.getDefault().getDisplayName());
+				bible.setSource("Praisenter");
+				this.bibleEditorPane.setBible(bible);
+				this.navigate(this.bibleEditorPane);
 				break;
 			case MANAGE_MEDIA:
 				this.navigate(this.mediaLibraryPane);
@@ -102,6 +111,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			case ABOUT:
 			case EXIT:
 			case IMPORT_BIBLES:
+			case NEW_BIBLE:
 			case IMPORT_SLIDES:
 			case IMPORT_SONGS:
 			case MANAGE_BIBLES:

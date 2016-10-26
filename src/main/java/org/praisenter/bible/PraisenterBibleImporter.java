@@ -81,7 +81,7 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 						byte[] data = read(zis);
 						try {
 							// make a copy to ensure the id is changed
-							Bible bible = XmlIO.read(new ByteArrayInputStream(data), Bible.class).copy();
+							Bible bible = XmlIO.read(new ByteArrayInputStream(data), Bible.class).copy(false);
 							// update the import date
 							bible.importDate = new Date();
 							bibles.add(bible);
@@ -101,7 +101,7 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 				// just read it
 				try (FileInputStream stream = new FileInputStream(path.toFile())) {
 					// make a copy to ensure the id is changed
-					Bible bible = XmlIO.read(stream, Bible.class).copy();
+					Bible bible = XmlIO.read(stream, Bible.class).copy(false);
 					// update the import date
 					bible.importDate = new Date();
 					bibles.add(bible);

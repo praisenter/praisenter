@@ -24,6 +24,7 @@
  */
 package org.praisenter.bible;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +42,10 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "book")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Book implements Comparable<Book> {
+public final class Book implements Comparable<Book>, Serializable {
+	/** The serialization id */
+	private static final long serialVersionUID = 8128626695273164169L;
+
 	/** The book name */
 	@XmlElement(name = "name", required = false)
 	String name;
@@ -84,7 +88,21 @@ public final class Book implements Comparable<Book> {
 		this.number = number;
 		this.chapters = chapters != null ? chapters : new ArrayList<Chapter>();
 	}
+	
+	/**
+	 * Copy constructor.
+	 * @param book the book to copy
+	 */
+	public Book(Book book) {
+		this.chapters = new ArrayList<Chapter>();
+		this.name = book.name;
+		this.number = book.number;
 
+		for (Chapter chapter : this.chapters) {
+			book.chapters.add(chapter.copy());
+		}
+	}
+	
 	/**
 	 * Returns the maximum chapter number for this book.
 	 * @return short
@@ -102,15 +120,7 @@ public final class Book implements Comparable<Book> {
 	 * @return {@link Book}
 	 */
 	public Book copy() {
-		Book book = new Book();
-		book.name = this.name;
-		book.number = this.number;
-		
-		for (Chapter chapter : this.chapters) {
-			book.chapters.add(chapter.copy());
-		}
-		
-		return book;
+		return new Book(this);
 	}
 	
 	/* (non-Javadoc)

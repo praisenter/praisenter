@@ -1,21 +1,11 @@
 package org.praisenter.javafx.bible;
 
 import java.util.Collections;
-import java.util.Optional;
 
-import org.praisenter.bible.Book;
-import org.praisenter.bible.Chapter;
-import org.praisenter.bible.Verse;
-
-import javafx.event.ActionEvent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
@@ -31,140 +21,15 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
+// JAVABUG Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
 final class BibleEditorEventManager {
 	private static final Border DRAG_TOP = new Border(new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 2, 0, null), null, new BorderWidths(1, 0, 0, 0)));
 	private static final Border DRAG_BOTTOM = new Border(new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 2, 0, null), null, new BorderWidths(0, 0, 1, 0)));
 	
-	// context menu
-
-	private TreeItem<TreeData> copyCutTarget;
-	
-	public void add(TreeItem<TreeData> item) {
-		int type = getType(item.getValue());
-		if (type == 3) {
-			// add new verse
-			VerseTreeData vd = (VerseTreeData)item.getValue();
-			short number = vd.chapter.getMaxVerseNumber();
-			Verse verse = new Verse(++number, "New verse");
-			vd.chapter.getVerses().add(verse);
-			TreeItem<TreeData> newItem = new TreeItem<TreeData>(new VerseTreeData(vd.bible, vd.book, vd.chapter, verse));
-			item.getParent().getChildren().add(newItem);
-		} else if (type == 2) {
-			// add new verse
-			ChapterTreeData cd = (ChapterTreeData)item.getValue();
-			short number = cd.chapter.getMaxVerseNumber();
-			Verse verse = new Verse(++number, "New verse");
-			cd.chapter.getVerses().add(verse);
-			TreeItem<TreeData> newItem = new TreeItem<TreeData>(new VerseTreeData(cd.bible, cd.book, cd.chapter, verse));
-			item.getChildren().add(newItem);
-			item.setExpanded(true);
-		} else if (type == 1) {
-			// add new chapter
-			BookTreeData bd = (BookTreeData)item.getValue();
-			short number = bd.book.getMaxChapterNumber();
-			Chapter chapter = new Chapter(++number);
-			bd.book.getChapters().add(chapter);
-			TreeItem<TreeData> newItem = new TreeItem<TreeData>(new ChapterTreeData(bd.bible, bd.book, chapter));
-			item.getChildren().add(newItem);
-			item.setExpanded(true);
-		} else if (type == 0) {
-			// add new book
-			BibleTreeData bd = (BibleTreeData)item.getValue();
-			short number = bd.bible.getMaxBookNumber();
-			Book book = new Book("New book", ++number);
-			bd.bible.getBooks().add(book);
-			TreeItem<TreeData> newItem = new TreeItem<TreeData>(new BookTreeData(bd.bible, book));
-			item.getChildren().add(newItem);
-			item.setExpanded(true);
-		}
-	}
-	
-	public void delete(TreeItem<TreeData> item) {
-		int type = getType(item.getValue());
-		if (type != 0) {
-			Alert alert = new Alert(AlertType.CONFIRMATION, "Are you sure you want to delete this?", ButtonType.OK, ButtonType.CANCEL);
-			Optional<ButtonType> result = alert.showAndWait();
-			if (result.isPresent() && result.get() == ButtonType.OK) {
-				// delete the node
-				item.getParent().getChildren().remove(item);
-				// update the data model
-				if (type == 3) {
-					VerseTreeData verse = (VerseTreeData)item.getValue();
-					verse.chapter.getVerses().remove(verse.verse);
-				} else if (type == 2) {
-					ChapterTreeData chapter = (ChapterTreeData)item.getValue();
-					chapter.book.getChapters().remove(chapter.chapter);
-				} else if (type == 1) {
-					BookTreeData book = (BookTreeData)item.getValue();
-					book.bible.getBooks().remove(book.book);
-				}
-			}
-		}
-	}
-	
-	public void copy(TreeItem<TreeData> item) {
-		if (item == null) return;
-		
-		Clipboard clipboard = Clipboard.getSystemClipboard();
-		ClipboardContent content = new ClipboardContent();
-		content.put(DataFormat.PLAIN_TEXT, item.getValue().label.get());
-		clipboard.setContent(content);
-		
-		this.copyCutTarget = item;
-	}
-	
-	public void cut(TreeItem<TreeData> item) {
-		this.copyCutTarget = item;
-		
-		Clipboard clipboard = Clipboard.getSystemClipboard();
-		ClipboardContent content = new ClipboardContent();
-		content.put(DataFormat.PLAIN_TEXT, item.getValue().label.get());
-		clipboard.setContent(content);
-		
-		item.getParent().getChildren().remove(item);
-	}
-	
-	public void paste(TreeItem<TreeData> item) {
-		int type0 = getType(item.getValue());
-		if (copyCutTarget != null) {
-			int type1 = getType(copyCutTarget.getValue());
-			if (type0 == 0 && type1 == 1) {
-				// paste a copy of the book
-				Book book = ((BookTreeData)this.copyCutTarget.getValue()).book.copy();
-				BibleTreeData bible = (BibleTreeData)item.getValue();
-				item.getChildren().add(new TreeItem<TreeData>(new BookTreeData(bible.bible, book)));
-			} else if (type0 == 1 && type1 == 2) {
-				// paste a copy of the chapter
-				Chapter chapter = ((ChapterTreeData)this.copyCutTarget.getValue()).chapter.copy();
-				BookTreeData book = (BookTreeData)item.getValue();
-				item.getChildren().add(new TreeItem<TreeData>(new ChapterTreeData(book.bible, book.book, chapter)));
-			} else if (type0 == 2 && type1 == 3) {
-				// paste a copy of the verse
-				Verse verse = ((VerseTreeData)this.copyCutTarget.getValue()).verse.copy();
-				ChapterTreeData chapter = (ChapterTreeData)item.getValue();
-				item.getChildren().add(new TreeItem<TreeData>(new VerseTreeData(chapter.bible, chapter.book, chapter.chapter, verse)));
-			}
-		}
-	}
-	
-	public boolean canPaste(TreeItem<TreeData> item) {
-		if (this.copyCutTarget == null) {
-			return false;
-		}
-		int type0 = getType(item.getValue());
-		int type1 = getType(copyCutTarget.getValue());
-		if (type0 == 0 && type1 == 1) {
-			return true;
-		} else if (type0 == 1 && type1 == 2) {
-			return true;
-		} else if (type0 == 2 && type1 == 3) {
-			return true;
-		}
-		return false;
-	}
-	
 	// drag n' drop
 
+	// FIXME drag drop multiple
+	// FIXME drag drop book number not sorted?
 	private TreeItem<TreeData> dragTarget;
 	private int dragTargetType;
 	private Border border;
@@ -217,6 +82,7 @@ final class BibleEditorEventManager {
 		
 		determineDragAction(node, toNode, e.getY() >= cell.getHeight() * 0.75);
 		
+		cell.getTreeView().getSelectionModel().clearSelection();
 		cell.getTreeView().getSelectionModel().select(node);
 	}
 	
@@ -251,16 +117,16 @@ final class BibleEditorEventManager {
         	}
         	toNode.getParent().getChildren().add(index, dragged);
     		
-    		if (type0 == 3 && dragged != toNode) {
-    			TreeItem<TreeData> chapterNode = toNode.getParent();
-    			reorderVerse(chapterNode, toNode);
-    		} else if (type0 == 2) {
-    			TreeItem<TreeData> bookNode = toNode.getParent();
-    			reorderChapter(bookNode, toNode);
-    		} else if (type0 == 1) {
-    			TreeItem<TreeData> bibleNode = toNode.getParent();
-    			reorderBook(bibleNode, toNode);
-    		}
+//    		if (type0 == 3 && dragged != toNode) {
+//    			TreeItem<TreeData> chapterNode = toNode.getParent();
+//    			reorderVerse(chapterNode, toNode);
+//    		} else if (type0 == 2) {
+//    			TreeItem<TreeData> bookNode = toNode.getParent();
+//    			reorderChapter(bookNode, toNode);
+//    		} else if (type0 == 1) {
+//    			TreeItem<TreeData> bibleNode = toNode.getParent();
+//    			reorderBook(bibleNode, toNode);
+//    		}
     	}
     }
     

@@ -24,6 +24,7 @@
  */
 package org.praisenter.bible;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +43,10 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "chapter")
 @XmlAccessorType(XmlAccessType.NONE)
-public class Chapter implements Comparable<Chapter> {
+public class Chapter implements Comparable<Chapter>, Serializable {
+	/** The serialization id */
+	private static final long serialVersionUID = 9220452361686192242L;
+
 	/** The chapter number */
 	@XmlAttribute(name = "chapter", required = false)
 	short number;
@@ -77,6 +81,19 @@ public class Chapter implements Comparable<Chapter> {
 		this.verses = verses != null ? verses : new ArrayList<Verse>();
 	}
 	
+	/**
+	 * Copy constructor.
+	 * @param chapter the chapter to copy
+	 */
+	public Chapter(Chapter chapter) {
+		this.number = chapter.number;
+		this.verses = new ArrayList<Verse>();
+		
+		for (Verse verse : this.verses) {
+			chapter.verses.add(verse.copy());
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
@@ -99,18 +116,11 @@ public class Chapter implements Comparable<Chapter> {
 	}
 	
 	/**
-	 * Performs a deep copy of this chapter.
+	 * Returns a deep copy of this chapter
 	 * @return {@link Chapter}
 	 */
 	public Chapter copy() {
-		Chapter chapter = new Chapter();
-		chapter.number = this.number;
-		
-		for (Verse verse : this.verses) {
-			chapter.verses.add(verse.copy());
-		}
-		
-		return chapter;
+		return new Chapter(this);
 	}
 	
 	/**
