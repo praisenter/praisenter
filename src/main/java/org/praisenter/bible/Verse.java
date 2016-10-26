@@ -74,8 +74,8 @@ public final class Verse implements Comparable<Verse>, Serializable {
 	 * @param verse the verse to copy
 	 */
 	public Verse(Verse verse) {
-		verse.number = verse.number;
-		verse.text = verse.text;
+		this.number = verse.number;
+		this.text = verse.text;
 	}
 	
 	/* (non-Javadoc)

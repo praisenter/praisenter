@@ -1,12 +1,9 @@
 package org.praisenter.javafx.bible;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
-import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
@@ -14,7 +11,6 @@ import org.praisenter.bible.Bible;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.Verse;
-import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
@@ -22,17 +18,13 @@ import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextArea;
@@ -44,9 +36,6 @@ import javafx.scene.control.TreeView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -108,7 +97,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		
 		this.setCenter(properties);
 		
-		BibleEditorEventManager manager = new BibleEditorEventManager();
+		BibleEditorDragDropManager manager = new BibleEditorDragDropManager();
 		
 		this.bibleTree = new TreeView<TreeData>();
 		this.bibleTree.setEditable(true);
@@ -135,6 +124,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
             	cell.setOnDragDropped(e -> {
         			manager.dragDropped(cell, e);
         		});
+            	cell.setOnDragDone(e -> {
+            		manager.dragDone(cell, e);
+            	});
             	return cell;
             }
         });
@@ -233,6 +225,10 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	
 	// METHODS
 	
+	/**
+	 * Copies the selected items.
+	 * @param cut true if they should be cut instead of copied
+	 */
 	private void copy(boolean cut) {
 		// get the selection(s)
 		List<TreeItem<TreeData>> items = new ArrayList<TreeItem<TreeData>>(this.bibleTree.getSelectionModel().getSelectedItems());
@@ -292,6 +288,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		}
 	}
 	
+	/**
+	 * Pastes the copied items.
+	 */
 	@SuppressWarnings("unchecked")
 	private void paste() {
 		// get the selection(s)
@@ -371,6 +370,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		}
 	}
 	
+	/**
+	 * Deletes the selected items.
+	 */
 	private void delete() {
 		List<TreeItem<TreeData>> items = new ArrayList<TreeItem<TreeData>>(this.bibleTree.getSelectionModel().getSelectedItems());
 		
@@ -394,6 +396,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		}
 	}
 	
+	/**
+	 * Adds new verses, chapters, and books.
+	 */
 	private void add() {
 		TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
 		
@@ -445,7 +450,11 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		}
 	}
 	
+	/**
+	 * Saves the current bible.
+	 */
 	private void save() {
+		// TODO error handling
 		this.context.getBibleLibrary().save(this.getBible(), b -> {
 			
 		}, (b, ex) -> {
@@ -453,6 +462,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		});
 	}
 	
+	/**
+	 * Renumbers the selected node.
+	 */
 	private void renumber() {
 		// need to determine what is selected
 		// renumber depth first
@@ -462,18 +474,22 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			// remove the data
 			TreeData td = item.getValue();
 			if (td instanceof BibleTreeData) {
-				this.renumberBible(item);
+				renumberBible(item);
 			} else if (td instanceof BookTreeData) {
-				this.renumberBook(item);
+				renumberBook(item);
 			} else if (td instanceof ChapterTreeData) {
-				this.renumberChapter(item);
+				renumberChapter(item);
 			} else if (td instanceof VerseTreeData) {
-				this.renumberChapter(item.getParent());
+				renumberChapter(item.getParent());
 			}
 		}
 	}
 	
-	private void renumberBible(TreeItem<TreeData> node) {
+	/**
+	 * Renumbers the books in the given bible.
+	 * @param node the bible node
+	 */
+	static void renumberBible(TreeItem<TreeData> node) {
 		short i = 1;
 		for (TreeItem<TreeData> item : node.getChildren()) {
 			BookTreeData td = (BookTreeData)item.getValue();
@@ -488,7 +504,11 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		Collections.sort(((BibleTreeData)node.getValue()).bible.getBooks());
 	}
 	
-	private void renumberBook(TreeItem<TreeData> node) {
+	/**
+	 * Renumbers the chapters in the given book.
+	 * @param node the book node.
+	 */
+	static void renumberBook(TreeItem<TreeData> node) {
 		short i = 1;
 		for (TreeItem<TreeData> item : node.getChildren()) {
 			ChapterTreeData td = (ChapterTreeData)item.getValue();
@@ -503,7 +523,11 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		Collections.sort(((BookTreeData)node.getValue()).book.getChapters());
 	}
 	
-	private void renumberChapter(TreeItem<TreeData> node) {
+	/**
+	 * Renumbers the verses in the given chapter.
+	 * @param node the chapter node
+	 */
+	static void renumberChapter(TreeItem<TreeData> node) {
 		short i = 1;
 		for (TreeItem<TreeData> item : node.getChildren()) {
 			VerseTreeData td = (VerseTreeData)item.getValue();

@@ -178,8 +178,8 @@ public final class Bible implements Comparable<Bible>, Serializable {
 			this.importDate = null;
 		}
 		
-		for (Book book : this.books) {
-			bible.books.add(book.copy());
+		for (Book book : bible.books) {
+			this.books.add(book.copy());
 		}
 	}
 	

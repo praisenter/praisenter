@@ -43,7 +43,7 @@ final class BibleTreeCell extends TreeCell<TreeData> {
 	public BibleTreeCell() {
 		// styled for verse
 		this.graphic = new Label();
-		this.graphic.setStyle("-fx-font-weight: bold; -fx-font-size: 0.8em;");
+		this.graphic.getStyleClass().add("verse-number");
 	}
 	
 	/* (non-Javadoc)

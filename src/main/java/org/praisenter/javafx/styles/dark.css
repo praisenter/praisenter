@@ -71,3 +71,8 @@
 	-fx-border-style: solid inside line-join round line-cap round;
 	-fx-border-radius: 2;
 }
+
+.verse-number {
+	-fx-font-weight: bold; 
+	-fx-font-size: 0.8em;
+}

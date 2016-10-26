@@ -89,8 +89,8 @@ public class Chapter implements Comparable<Chapter>, Serializable {
 		this.number = chapter.number;
 		this.verses = new ArrayList<Verse>();
 		
-		for (Verse verse : this.verses) {
-			chapter.verses.add(verse.copy());
+		for (Verse verse : chapter.verses) {
+			this.verses.add(verse.copy());
 		}
 	}
 	

@@ -98,8 +98,8 @@ public final class Book implements Comparable<Book>, Serializable {
 		this.name = book.name;
 		this.number = book.number;
 
-		for (Chapter chapter : this.chapters) {
-			book.chapters.add(chapter.copy());
+		for (Chapter chapter : book.chapters) {
+			this.chapters.add(chapter.copy());
 		}
 	}
 	
