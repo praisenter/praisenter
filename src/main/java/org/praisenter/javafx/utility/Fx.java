@@ -25,6 +25,7 @@
 package org.praisenter.javafx.utility;
 
 import javafx.application.Platform;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.Border;
@@ -93,5 +94,24 @@ public final class Fx {
 		} else {
 			Platform.runLater(runnable);
 		}
+	}
+	
+	/**
+	 * Returns true if the given node is in the chain from the root node
+	 * to the given focused node.
+	 * @param focused the currently focused node
+	 * @param node the node to look for
+	 * @return boolean
+	 */
+	public static boolean isNodeInFocusChain(Node focused, Node node) {
+		boolean isFocused = false;
+		while (focused != null) {
+			if (focused == node) {
+				isFocused = true;
+				break;
+			}
+			focused = focused.getParent();
+		}
+		return isFocused;
 	}
 }

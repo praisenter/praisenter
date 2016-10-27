@@ -14,6 +14,9 @@ import org.praisenter.javafx.bible.BibleLibraryPane;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.slide.SlideLibraryPane;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
@@ -32,6 +35,8 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 	private final BibleEditorPane bibleEditorPane;
 	private final MediaLibraryPane mediaLibraryPane;
 	private final SlideLibraryPane slideLibraryPane;
+	
+	private final ObjectProperty<Node> mainContent = new SimpleObjectProperty<Node>();
 	
 	public MainPane(PraisenterContext context) {
 		this.context = context;
@@ -134,6 +139,15 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 	
 	private void navigate(Node node) {
 		this.setCenter(node);
+		this.mainContent.set(node);
 		node.requestFocus();
+	}
+	
+	public Node getMainContent() {
+		return this.mainContent.get();
+	}
+	
+	public ReadOnlyObjectProperty<Node> mainContentProperty() {
+		return this.mainContent;
 	}
 }

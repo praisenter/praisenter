@@ -34,7 +34,7 @@ package org.praisenter.javafx;
  * @since 3.0.0
  */
 public interface ApplicationPane {
-	
+
 	// toggling visibility
 	
 	/**

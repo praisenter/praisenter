@@ -225,4 +225,20 @@ public enum ApplicationAction {
 		/** The font-awesome glyph-font pack */
 		private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	}
+	
+	/**
+	 * Returns the accelerator for this action.
+	 * @return KeyCombination
+	 */
+	public KeyCombination getAccelerator() {
+		return this.accelerator;
+	}
+	
+	/**
+	 * Returns the label for this action.
+	 * @return String
+	 */
+	public String getLabel() {
+		return this.label;
+	}
 }

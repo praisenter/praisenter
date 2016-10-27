@@ -299,12 +299,13 @@ public final class ObservableBibleLibrary {
 	 */
 	public void save(String action, Bible bible, Consumer<Bible> onSuccess, BiConsumer<Bible, Throwable> onError) {
 		// execute the add on a different thread
+		Bible copy = bible.copy(true);
 		MonitoredTask<Void> task = new MonitoredTask<Void>(action) {
 			@Override
 			protected Void call() throws Exception {
 				this.updateProgress(-1, 0);
 				try {
-					library.save(bible);
+					library.save(copy);
 					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
 					return null;
 				} catch (Exception ex) {
@@ -317,7 +318,7 @@ public final class ObservableBibleLibrary {
 			// find the bible item
 			BibleListItem bi = null;
 			for (BibleListItem item : this.items) {
-				if (item.getBible().getId().equals(bible.getId())) {
+				if (item.getBible().getId().equals(copy.getId())) {
 					bi = item;
 					break;
 				}
@@ -325,21 +326,26 @@ public final class ObservableBibleLibrary {
 			// check if new
 			if (bi == null) {
 				// then add one
-				this.items.add(new BibleListItem(bible));
-			} else if (!bi.getName().equals(bible.getName())) {
-				// then add/remove it
-				bi.setName(bible.getName());
-				bi.setBible(bible);
+				this.items.add(new BibleListItem(copy));
+			} else {
+				// then update it
+				bi.setName(copy.getName());
+				// we set it to a copy because it could
+				// still be edited after being saved
+				// and we only want to change it if saved
+				bi.setBible(copy.copy(true));
 			}
 			// check if name changed
 			if (onSuccess != null) {
+				// return the original
 				onSuccess.accept(bible);
 			}
 		});
 		task.setOnFailed((e) -> {
 			Throwable ex = task.getException();
-			LOGGER.error("Failed to save bible " + bible.getName(), ex);
+			LOGGER.error("Failed to save bible " + copy.getName(), ex);
 			if (onError != null) {
+				// on error return the original
 				onError.accept(bible, ex);
 			}
 		});

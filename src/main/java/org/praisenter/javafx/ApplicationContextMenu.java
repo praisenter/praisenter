@@ -87,13 +87,10 @@ public final class ApplicationContextMenu extends ContextMenu implements EventHa
 		// NOTE: catch any accelerator keys so we can consume the events
 		// so that they don't cause the events to be processed twice, once
 		// in the context menu and once in the main menu
-		// FIXME need to test whether this happens on MacOS and Ubuntu  
 		// JAVABUG 10/24/16 Duplicated accelerators https://bugs.openjdk.java.net/browse/JDK-8088068
-		// NOTE: testing revealed this wasn't necessary, but I'm leaving this
-		// here just in case it crops back up
-//		node.addEventFilter(KeyEvent.KEY_TYPED, this);
-//		node.addEventFilter(KeyEvent.KEY_PRESSED, this);
-//		node.addEventFilter(KeyEvent.KEY_RELEASED, this);
+		node.addEventFilter(KeyEvent.KEY_TYPED, this);
+		node.addEventFilter(KeyEvent.KEY_PRESSED, this);
+		node.addEventFilter(KeyEvent.KEY_RELEASED, this);
 	}
 	
 	/* (non-Javadoc)
@@ -107,8 +104,20 @@ public final class ApplicationContextMenu extends ContextMenu implements EventHa
 		while (menus.size() > 0) {
 			MenuItem menu = menus.pop();
 			if (menu.getAccelerator() != null && menu.getAccelerator().match(event)) {
+				// fire the menu action always
 				menu.fire();
-				event.consume();
+				// check for common events that are available on editable controls
+				if (ApplicationAction.COPY.getAccelerator().match(event) ||
+					ApplicationAction.CUT.getAccelerator().match(event) ||
+					ApplicationAction.PASTE.getAccelerator().match(event) ||
+					ApplicationAction.DELETE.getAccelerator().match(event) ||
+					ApplicationAction.SELECT_ALL.getAccelerator().match(event)) {
+					// allow the event to continue
+				} else {
+					// otherwise consume it so it doesn't get processed by another handler
+					// with the same accelerator/key stroke binding
+					event.consume();
+				}
 				break;
 			}
 		}

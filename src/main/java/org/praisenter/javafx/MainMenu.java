@@ -3,13 +3,14 @@ package org.praisenter.javafx;
 import java.util.Deque;
 import java.util.LinkedList;
 
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
-
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -17,15 +18,12 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 // FIXME still issues with focus and current application pane (mainly with breadcrumb bar and progress button, they steal focus away)
 class MainMenu extends VBox implements EventHandler<ActionEvent> {
-
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
 	private final MainPane mainPane;
 	private final MenuBar menu;
 	private final HBox toolbar;
@@ -36,6 +34,25 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 	
 	public MainMenu(MainPane mainPane) {
 		this.mainPane = mainPane;
+		this.appPane.set(mainPane);
+		
+		EventHandler<ApplicationPaneEvent> paneStateChanged = new EventHandler<ApplicationPaneEvent>() {
+			@Override
+			public void handle(ApplicationPaneEvent event) {
+				ApplicationPane pane = event.getApplicationPane();
+				System.out.println(pane + " triggered StateChanged.");
+				if (pane != null) {
+					updateMenuState(pane);
+				}
+			}
+		};
+		ChangeListener<String> textSelectionChanged = new ChangeListener<String>() {
+			@Override
+			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+				System.out.println("Text selection changed");
+				updateMenuState();
+			}
+		};
 		
 		// MENU
 		
@@ -63,7 +80,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		MenuItem fNewBook = createMenuItem(ApplicationAction.NEW_BOOK);
 		MenuItem fNewChapter = createMenuItem(ApplicationAction.NEW_CHAPTER);
 		MenuItem fNewVerse = createMenuItem(ApplicationAction.NEW_VERSE);
-		fNewBibleRoot.getItems().addAll(fNewBible, fNewBook, fNewChapter, fNewVerse);
+		fNewBibleRoot.getItems().addAll(fNewBible, new SeparatorMenuItem(), fNewBook, fNewChapter, fNewVerse);
 		fNew.getItems().addAll(fNewSlide, fNewSlideShow, fNewSong, fNewBibleRoot);
 		
 		Menu fImport = new Menu("Import");
@@ -92,7 +109,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		MenuItem fSelectAll = createMenuItem(ApplicationAction.SELECT_ALL);
 		MenuItem fSelectNone = createMenuItem(ApplicationAction.SELECT_NONE);
 		MenuItem fSelectInvert = createMenuItem(ApplicationAction.SELECT_INVERT);
-		edit.getItems().addAll(fOpen, new SeparatorMenuItem(), fCopy, fCut, fPaste, new SeparatorMenuItem(), fRenumber, fRename, fDelete, new SeparatorMenuItem(), fSelectAll, fSelectNone, fSelectInvert);
+		edit.getItems().addAll(fOpen, new SeparatorMenuItem(), fCopy, fCut, fPaste, new SeparatorMenuItem(), fRenumber, new SeparatorMenuItem(), fRename, fDelete, new SeparatorMenuItem(), fSelectAll, fSelectNone, fSelectInvert);
 		
 		// Media
 		MenuItem mManage = createMenuItem(ApplicationAction.MANAGE_MEDIA);
@@ -132,22 +149,31 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		// call methods when focus owner changes
 		this.focusOwner.addListener((obs, ov, nv) -> {
+			System.out.println("Focused changed from " + ov + " -> " + nv);
+			
 			Node appPane = getClosestApplicationPane(nv);
 			this.appPane.set(appPane);
-		});
-		
-		this.appPane.addListener((obs, ov, nv) -> {
-			if (ov != null) {
-				ov.removeEventHandler(ApplicationPaneEvent.STATE_CHANGED, MainMenu.this::handleStateChanged);
+			
+			// attach/detach selection change event handler if text input
+			if (ov != null && ov instanceof TextInputControl) {
+				((TextInputControl)ov).selectedTextProperty().removeListener(textSelectionChanged);
+			}
+			if (nv != null && nv instanceof TextInputControl) {
+				((TextInputControl)nv).selectedTextProperty().addListener(textSelectionChanged);
 			}
 			
-			if (nv == null) {
-				updateMenuState(this.mainPane);
-			} else {
-				ApplicationPane pane = (ApplicationPane)nv;
-				// recursively go through the menu updating disabled and visibility states
-				updateMenuState(pane);
-				nv.addEventHandler(ApplicationPaneEvent.STATE_CHANGED, MainMenu.this::handleStateChanged);
+			System.out.println("Updating menu state for " + nv);
+			updateMenuState();
+		});
+		
+		
+		this.appPane.addListener((obs, ov, nv) -> {
+			// attach/detach state changed event handler
+			if (ov != null) {
+				ov.removeEventHandler(ApplicationPaneEvent.STATE_CHANGED, paneStateChanged);
+			}
+			if (nv != null) {
+				nv.addEventHandler(ApplicationPaneEvent.STATE_CHANGED, paneStateChanged);
 			}
 		});
 		
@@ -156,14 +182,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		// this allows us to disable an item if the user goes to a different app and copies
 		// something that isn't the expected type
 		this.windowFocused.addListener((obs, ov, nv) -> {
-			Node focused = this.appPane.get();
-			if (focused == null) {
-				updateMenuState(this.mainPane);
-			} else {
-				ApplicationPane pane = (ApplicationPane)focused;
-				// recursively go through the menu updating disabled and visibility states
-				updateMenuState(pane);
-			}
+			updateMenuState();
 		});
 		
 		// LAYOUT
@@ -172,7 +191,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		// INITIALIZATION
 		
-		updateMenuState(this.mainPane);
+		updateMenuState();
 	}
 	
 	private MenuItem createMenuItem(ApplicationAction action) {
@@ -181,14 +200,18 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		return item;
 	}
 	
-	private void handleStateChanged(ApplicationPaneEvent event) {
-		ApplicationPane pane = event.getApplicationPane();
-		if (pane != null) {
-			updateMenuState(pane);
+	private void updateMenuState() {
+		Node node = this.appPane.get();
+		if (node == null) {
+			node = this.mainPane;
+		}
+		if (node != null && node instanceof ApplicationPane) {
+			this.updateMenuState((ApplicationPane)node);
 		}
 	}
 	
 	private void updateMenuState(ApplicationPane pane) {
+		System.out.println("Menu state updating for " + pane);
 		Deque<MenuItem> menus = new LinkedList<MenuItem>();
 		// seed with the menu bar's menus
 		menus.addAll(this.menu.getMenus());
@@ -226,6 +249,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 	
 	@Override
 	public void handle(ActionEvent event) {
+		Node focusOwner = this.focusOwner.get();
 		Node focused = this.appPane.get();
 		if (focused == null) {
 			focused = this.mainPane;
@@ -235,7 +259,30 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 			Object data = ((MenuItem)source).getUserData();
 			if (data != null && data instanceof ApplicationAction) {
 				ApplicationAction action = (ApplicationAction)data;
-				focused.fireEvent(new ApplicationEvent(event.getSource(), event.getTarget(), ApplicationEvent.ALL, action));
+				// check for text input handling
+				if ((ApplicationAction.COPY == action ||
+					 ApplicationAction.CUT == action ||
+					 ApplicationAction.PASTE == action ||
+					 ApplicationAction.DELETE == action ||
+					 ApplicationAction.SELECT_ALL == action) && focusOwner != null && focusOwner instanceof TextInputControl) {
+					System.out.println("Node is TextInputControl. Bypassing default delegation.");
+					// do the default action
+					TextInputControl control = (TextInputControl)focusOwner;
+					if (ApplicationAction.COPY == action) {
+						control.copy();
+					} else if (ApplicationAction.CUT == action) {
+						control.cut();
+					} else if (ApplicationAction.PASTE == action) {
+						control.paste();
+					} else if (ApplicationAction.DELETE == action) {
+						control.deleteText(control.getSelection());
+					} else if (ApplicationAction.SELECT_ALL == action) {
+						control.selectAll();
+					}
+				} else {
+					System.out.println("Delegating " + action + " to " + focused);
+					focused.fireEvent(new ApplicationEvent(event.getSource(), event.getTarget(), ApplicationEvent.ALL, action));
+				}
 			}
 		}
 	}

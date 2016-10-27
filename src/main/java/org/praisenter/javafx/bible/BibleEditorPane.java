@@ -1,16 +1,19 @@
 package org.praisenter.javafx.bible;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.Verse;
+import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
@@ -18,17 +21,23 @@ import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.utility.Fx;
+import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
@@ -39,24 +48,35 @@ import javafx.scene.input.DataFormat;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.util.Callback;
 
 // TODO translate
 public final class BibleEditorPane extends BorderPane implements ApplicationPane {
+	/** The class level logger */
+	private static final Logger LOGGER = LogManager.getLogger();
+	
+	// data
+	
+	/** The praisenter context */
 	private final PraisenterContext context;
 
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
-//	private final ScrollPane scroller;
+	/** The bible being edited */
 	private final ObjectProperty<Bible> bible = new SimpleObjectProperty<>();
 	
+	// nodes
+	
+	/** The bible tree view */
 	private final TreeView<TreeData> bibleTree;
 	
+	/**
+	 * Minimal constructor.
+	 * @param context the context
+	 */
 	public BibleEditorPane(PraisenterContext context) {
 		this.context = context;
 		
-		// TODO saving
+		// TODO saving UI (small button bar above the treeview?) (save, save & close, save as, back, close, etc)
 		// TODO updating nodes with changes in fields
 		
 		// bible
@@ -279,7 +299,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			
 			Clipboard cb = Clipboard.getSystemClipboard();
 			ClipboardContent cc = new ClipboardContent();
-			cc.put(DataFormat.PLAIN_TEXT, text.toString());
+			cc.put(DataFormat.PLAIN_TEXT, text.toString().trim());
 			cc.put(format, data);
 			cb.setContent(cc);
 			
@@ -454,12 +474,49 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * Saves the current bible.
 	 */
 	private void save() {
-		// TODO error handling
 		this.context.getBibleLibrary().save(this.getBible(), b -> {
-			
+			// nothing to do on success
 		}, (b, ex) -> {
-			ex.printStackTrace();
+			LOGGER.error("Failed to save bible " + b.getName() + " " + b.getId() + " due to: " + ex.getMessage(), ex);
+			Alert alert = Alerts.exception(
+					getScene().getWindow(),
+					null, 
+					null, 
+					MessageFormat.format(Translations.get("bible.save.error"), bible.getName()), 
+					ex);
+			alert.show();
 		});
+	}
+	
+	/**
+	 * Saves the current bible.
+	 */
+	private void saveAs() {
+		String old = this.getBible().getName();
+		
+    	TextInputDialog prompt = new TextInputDialog(old);
+    	prompt.initOwner(getScene().getWindow());
+    	prompt.initModality(Modality.WINDOW_MODAL);
+    	prompt.setTitle(Translations.get("bible.saveas.title"));
+    	prompt.setHeaderText(Translations.get("bible.saveas.header"));
+    	prompt.setContentText(Translations.get("bible.saveas.content"));
+    	Optional<String> result = prompt.showAndWait();
+    	
+    	// check for the "OK" button
+    	if (result.isPresent()) {
+    		// actually rename it?
+    		String name = result.get();
+    		
+        	// create a copy of the current bible
+    		// with new id
+    		Bible copy = this.getBible().copy(false);
+    		// set the name
+    		copy.setName(name);
+    		// set the copy as the one we are editing now
+    		this.bible.set(copy);
+    		// then save
+    		this.save();
+    	}
 	}
 	
 	/**
@@ -545,37 +602,70 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
      * @param event the event
      */
     private final void onApplicationEvent(ApplicationEvent event) {
+    	Node focused = this.getScene().getFocusOwner();
     	ApplicationAction action = event.getAction();
     	switch (action) {
 	    	case NEW_BOOK:
-	    		add();
+	    		// we only want to execute this if the current focus
+				// is within the bibleTree
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					add();
+				}
 	    		break;
 			case NEW_CHAPTER:
-				add();
+				// we only want to execute this if the current focus
+				// is within the bibleTree
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					add();
+				}
 				break;
 			case NEW_VERSE:
-				add();
+				// we only want to execute this if the current focus
+				// is within the bibleTree
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					add();
+				}
 				break;
 			case COPY:
-				this.copy(false);
+				// we only want to execute this if the current focus
+				// is within the bibleTree
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					this.copy(false);
+				}
 				break;
 			case CUT:
-				this.copy(true);
+				// we only want to execute this if the current focus
+				// is within the bibleTree
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					this.copy(true);
+				}
 				break;
 			case PASTE:
-				this.paste();
+				// we only want to execute this if the current focus
+				// is within the bibleTree
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					this.paste();
+				}
 				break;
 			case DELETE:
-				this.delete();
+				// we only want to execute this if the current focus
+				// is within the bibleTree
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					this.delete();
+				}
 				break;
 			case SAVE:
 				this.save();
 				break;
 			case SAVE_AS:
-				// FIXME save as...
+				this.saveAs();
 				break;
 			case RENUMBER:
-				this.renumber();
+				// we only want to execute this if the current focus
+				// is within the bibleTree
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					this.renumber();
+				}
 				break;
     		default:
     			break;
@@ -589,8 +679,13 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
     	fireEvent(new ApplicationPaneEvent(this.bibleTree, BibleEditorPane.this, ApplicationPaneEvent.STATE_CHANGED, BibleEditorPane.this));
     }
     
+    /* (non-Javadoc)
+     * @see org.praisenter.javafx.ApplicationPane#isApplicationActionEnabled(org.praisenter.javafx.ApplicationAction)
+     */
 	@Override
 	public boolean isApplicationActionEnabled(ApplicationAction action) {
+		Node focused = this.getScene().getFocusOwner();
+		
 		// how much is selected?
 		ObservableList<TreeItem<TreeData>> items = this.bibleTree.getSelectionModel().getSelectedItems();
 		int count = items.size();
@@ -613,34 +708,64 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		
     	switch (action) {
     		case NEW_BOOK:
-    			return count == 1 && BibleTreeData.class.equals(type);
+    			if (Fx.isNodeInFocusChain(focused, this.bibleTree)) { 
+    				return count == 1 && BibleTreeData.class.equals(type);
+    			}
+    			return false;
     		case NEW_CHAPTER:
-    			return count == 1 && BookTreeData.class.equals(type);
+    			if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+    				return count == 1 && BookTreeData.class.equals(type);
+    			}
+    			return false;
     		case NEW_VERSE:
-    			return count == 1 && (ChapterTreeData.class.equals(type) || VerseTreeData.class.equals(type));
+    			if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+    				return count == 1 && (ChapterTreeData.class.equals(type) || VerseTreeData.class.equals(type));
+    			}
+    			return false;
 			case COPY:
 			case CUT:
+				// check for focused text input first
+				if (focused instanceof TextInputControl) {
+					String selection = ((TextInputControl)focused).getSelectedText();
+					return selection != null && !selection.isEmpty();
 				// must be the same type and something selected
-				return sameType && count > 0;
+				} else if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					return sameType && count > 0;
+				}
+				return false;
 			case PASTE:
 				Clipboard cb = Clipboard.getSystemClipboard();
-				if (sameType && count == 1) {
-					if (BibleTreeData.class.equals(type)) {
-						// then we can paste books
-						return cb.hasContent(DataFormats.BOOKS);
-					} else if (BookTreeData.class.equals(type)) {
-						return cb.hasContent(DataFormats.CHAPTERS);
-					} else if (ChapterTreeData.class.equals(type)) {
-						return cb.hasContent(DataFormats.VERSES);
-					} else if (VerseTreeData.class.equals(type)) {
-						return cb.hasContent(DataFormats.VERSES);
+				if (focused instanceof TextInputControl) {
+					return cb.hasContent(DataFormat.PLAIN_TEXT);
+				} else if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					if (sameType && count == 1) {
+						if (BibleTreeData.class.equals(type)) {
+							// then we can paste books
+							return cb.hasContent(DataFormats.BOOKS);
+						} else if (BookTreeData.class.equals(type)) {
+							return cb.hasContent(DataFormats.CHAPTERS);
+						} else if (ChapterTreeData.class.equals(type)) {
+							return cb.hasContent(DataFormats.VERSES);
+						} else if (VerseTreeData.class.equals(type)) {
+							return cb.hasContent(DataFormats.VERSES);
+						}
 					}
 				}
 				return false;
 			case DELETE:
-				return count > 0;
+				// check for focused text input first
+				if (focused instanceof TextInputControl) {
+					String selection = ((TextInputControl)focused).getSelectedText();
+					return selection != null && !selection.isEmpty();
+				} else if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					return count > 0;
+				}
+				return false;
 			case RENUMBER:
-				return count == 1;
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					return count == 1;
+				}
+				return false;
 			case SAVE:
 			case SAVE_AS:
 				return true;
@@ -650,19 +775,38 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
     	return false;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationPane#isApplicationActionVisible(org.praisenter.javafx.ApplicationAction)
+	 */
 	@Override
 	public boolean isApplicationActionVisible(ApplicationAction action) {
 		return true;
 	}
 	
+	/**
+	 * Returns the bible being edited.
+	 * @return {@link Bible}
+	 */
 	public Bible getBible() {
 		return this.bible.get();
 	}
 	
+	/**
+	 * Sets the bible to be edited.
+	 * <p>
+	 * This should always be given an exact copy of the desired bible to edit
+	 * to ensure that unsaved changes are not reflected in the rest of the
+	 * application.
+	 * @param bible the bible
+	 */
 	public void setBible(Bible bible) {
 		this.bible.set(bible);
 	}
 	
+	/**
+	 * The bible property.
+	 * @return ObjectProperty&lt;{@link Bible}&gt;
+	 */
 	public ObjectProperty<Bible> bibleProperty() {
 		return this.bible;
 	}

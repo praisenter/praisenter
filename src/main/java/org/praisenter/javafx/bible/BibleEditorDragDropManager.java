@@ -88,10 +88,10 @@ final class BibleEditorDragDropManager {
 					}
 				}
 				
-				Dragboard db = cell.startDragAndDrop(TransferMode.MOVE);
+				Dragboard db = cell.startDragAndDrop(TransferMode.COPY_OR_MOVE);
 				ClipboardContent cc = new ClipboardContent();
 				// we have to put something in there to make sure the d&d works
-				cc.put(DataFormat.PLAIN_TEXT, text.toString());
+				cc.put(DataFormat.PLAIN_TEXT, text.toString().trim());
 				db.setContent(cc);
 				
 				Label label = new Label(cell.getText());
