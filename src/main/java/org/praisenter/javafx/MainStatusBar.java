@@ -14,6 +14,7 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.OverrunStyle;
@@ -60,6 +61,7 @@ class MainStatusBar extends HBox {
 		
 		ListView<MonitoredTask<?>> view = new ListView<MonitoredTask<?>>(context.getExecutorService().tasksProperty());
 		view.setPrefSize(200, 300);
+		view.setPlaceholder(new Label("No pending or completed tasks"));
 		view.setCellFactory(new Callback<ListView<MonitoredTask<?>>, ListCell<MonitoredTask<?>>>() {
 			@Override
 			public ListCell<MonitoredTask<?>> call(ListView<MonitoredTask<?>> view) {

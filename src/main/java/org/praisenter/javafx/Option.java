@@ -24,6 +24,7 @@
  */
 package org.praisenter.javafx;
 
+import java.text.Collator;
 import java.util.Objects;
 
 import org.praisenter.resources.translations.Translations;
@@ -34,7 +35,10 @@ import org.praisenter.resources.translations.Translations;
  * @version 3.0.0
  * @param <T> the option's data
  */
-public final class Option<T> {
+public final class Option<T> implements Comparable<Option<T>> {
+	/** The collator for locale dependent sorting */
+	private static final Collator COLLATOR = Collator.getInstance();
+	
 	/** The option name */
 	final String name;
 	
@@ -89,6 +93,14 @@ public final class Option<T> {
 	@Override
 	public String toString() {
 		return this.name;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(Option<T> o) {
+		return COLLATOR.compare(this.name, o.name);
 	}
 	
 	/**

@@ -174,6 +174,9 @@ public final class Praisenter extends Application {
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon256x256.png"));
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon512x512.png"));
     	
+    	stage.setMinWidth(800);
+    	stage.setMinHeight(500);
+    	
 		// load fonts
     	LOGGER.info("Loading glyph fonts.");
     	GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
