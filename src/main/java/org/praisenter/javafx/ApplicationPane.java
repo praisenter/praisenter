@@ -34,7 +34,11 @@ package org.praisenter.javafx;
  * @since 3.0.0
  */
 public interface ApplicationPane {
-
+	/**
+	 * Sets the focus to a default control on this pane.
+	 */
+	public void setDefaultFocus();
+	
 	// toggling visibility
 	
 	/**

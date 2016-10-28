@@ -410,7 +410,7 @@ public final class SongLibrary {
 	 * @param song the song
 	 * @return String
 	 */
-	private String createFileName(Song song) {
+	public static final String createFileName(Song song) {
 		Title title = song.getDefaultTitle();
 		String variant = song.getVariant();
 		Author author = song.getDefaultAuthor();

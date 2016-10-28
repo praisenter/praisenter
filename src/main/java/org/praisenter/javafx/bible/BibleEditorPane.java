@@ -24,21 +24,27 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
+import com.sun.java_cup.internal.runtime.virtual_parse_stack;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToolBar;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -47,9 +53,11 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.util.Callback;
+import sun.security.provider.ConfigFile.Spi;
 
 // TODO translate
 public final class BibleEditorPane extends BorderPane implements ApplicationPane {
@@ -89,18 +97,20 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		
 		GridPane bibleDetail = new GridPane();
 		bibleDetail.setPadding(new Insets(10));
-		bibleDetail.setVgap(5);
-		bibleDetail.setHgap(5);
+		bibleDetail.setVgap(2);
+//		bibleDetail.setHgap(5);
 		bibleDetail.add(new Label("Name"), 0, 0);
-		bibleDetail.add(txtName, 1, 0);
-		bibleDetail.add(new Label("Language"), 0, 1);
-		bibleDetail.add(txtLanguage, 1, 1);
-		bibleDetail.add(new Label("Source"), 0, 2);
-		bibleDetail.add(txtSource, 1, 2);
-		bibleDetail.add(new Label("Copyright"), 0, 3);
-		bibleDetail.add(txtCopyright, 1, 3);
-		bibleDetail.add(new Label("Notes"), 0, 4);
-		bibleDetail.add(txtNotes, 0, 5, 2, 1);
+		bibleDetail.add(txtName, 0, 1);
+		bibleDetail.add(new Label("Language"), 0, 2);
+		bibleDetail.add(txtLanguage, 0, 3);
+		bibleDetail.add(new Label("Source"), 0, 4);
+		bibleDetail.add(txtSource, 0, 5);
+		bibleDetail.add(new Label("Copyright"), 0, 6);
+		bibleDetail.add(txtCopyright, 0, 7);
+		bibleDetail.add(new Label("Notes"), 0, 8);
+		bibleDetail.add(txtNotes, 0, 9);
+		TitledPane ttlBible = new TitledPane("Bible Properties", bibleDetail);
+		ttlBible.setCollapsible(false);
 		
 		GridPane bookDetail = new GridPane();
 		bookDetail.setPadding(new Insets(10));
@@ -108,14 +118,28 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		bookDetail.setHgap(5);
 		bookDetail.add(new Label("Name"), 0, 0);
 		bookDetail.add(txtBookName, 1, 0);
-		
-		TitledPane ttlBible = new TitledPane("Bible Properties", bibleDetail);
-		ttlBible.setCollapsible(false);
 		TitledPane ttlBook = new TitledPane("Book Properties", bookDetail);
 		ttlBook.setCollapsible(false);
-		VBox properties = new VBox(ttlBible, ttlBook);
 		
-		this.setCenter(properties);
+		GridPane chapterDetail = new GridPane();
+		chapterDetail.setPadding(new Insets(10));
+		chapterDetail.setVgap(5);
+		chapterDetail.setHgap(5);
+		chapterDetail.add(new Label("Number"), 0, 0);
+		chapterDetail.add(new Spinner<Integer>(1, Integer.MAX_VALUE, 1, 1), 1, 0);
+		TitledPane ttlChapter = new TitledPane("Chapter Properties", chapterDetail);
+		ttlChapter.setCollapsible(false);
+		
+		GridPane verseDetail = new GridPane();
+		verseDetail.setPadding(new Insets(10));
+		verseDetail.setVgap(5);
+		verseDetail.setHgap(5);
+		verseDetail.add(new Label("Number"), 0, 0);
+		verseDetail.add(new Spinner<Integer>(1, Integer.MAX_VALUE, 1, 1), 1, 0);
+		verseDetail.add(new Label("Text"), 0, 1);
+		verseDetail.add(new TextArea(), 0, 2, 2, 1);
+		TitledPane ttlVerse = new TitledPane("Verse Properties", verseDetail);
+		ttlVerse.setCollapsible(false);
 		
 		BibleEditorDragDropManager manager = new BibleEditorDragDropManager();
 		
@@ -163,6 +187,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				menu.createMenuItem(ApplicationAction.PASTE),
 				new SeparatorMenuItem(),
 				menu.createMenuItem(ApplicationAction.RENUMBER),
+				new SeparatorMenuItem(),
 				menu.createMenuItem(ApplicationAction.DELETE));
 		this.bibleTree.setContextMenu(menu);
 		
@@ -198,11 +223,27 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			@Override
 			public void onChanged(ListChangeListener.Change<? extends TreeItem<TreeData>> change) {
 				// update state
-				stateChanged();
+				stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
 			}
 		});
 		
-		this.setLeft(this.bibleTree);
+		Button btnSave = ApplicationAction.SAVE.toButton();
+		Button btnSaveAs = ApplicationAction.SAVE_AS.toButton();
+		Button btnClose = ApplicationAction.CLOSE.toButton();
+		ToolBar toolbar = new ToolBar(btnSave, btnSaveAs, btnClose);
+		
+		BorderPane left = new BorderPane(this.bibleTree);
+//		left.setTop(toolbar);
+		
+		VBox mid = new VBox(ttlBook, ttlChapter, ttlVerse);
+		BorderPane right = new BorderPane(ttlBible);
+		
+		SplitPane split = new SplitPane(left, mid, right);
+		split.setDividerPositions(0.25, 0.75);
+		
+//		this.setLeft(left);
+		this.setTop(toolbar);
+		this.setCenter(split);
 		
 		// listen for application events
 		this.addEventHandler(ApplicationEvent.ALL, this::onApplicationEvent);
@@ -304,7 +345,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			cb.setContent(cc);
 			
 			// notify we changed
-			this.stateChanged();
+			this.stateChanged(ApplicationPaneEvent.REASON_DATA_COPIED);
 		}
 	}
 	
@@ -427,13 +468,14 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		if (VerseTreeData.class.equals(type)) {
 			// add new verse
 			VerseTreeData vd = (VerseTreeData)item.getValue();
-			short number = vd.chapter.getMaxVerseNumber();
-			Verse verse = new Verse(++number, "New verse");
+			short number = (short)(vd.verse.getNumber() + 1);
+			Verse verse = new Verse(number, "New verse");
 			// add to data
 			vd.chapter.getVerses().add(verse);
 			// add to view
+			int index = item.getParent().getChildren().indexOf(item);
 			TreeItem<TreeData> newItem = new TreeItem<TreeData>(new VerseTreeData(vd.bible, vd.book, vd.chapter, verse));
-			item.getParent().getChildren().add(newItem);
+			item.getParent().getChildren().add(index + 1, newItem);
 		} else if (ChapterTreeData.class.equals(type)) {
 			// add new verse
 			ChapterTreeData cd = (ChapterTreeData)item.getValue();
@@ -674,9 +716,19 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
     
     /**
      * Called when the state of this pane changes.
+     * @param reason the reason
      */
-    private final void stateChanged() {
-    	fireEvent(new ApplicationPaneEvent(this.bibleTree, BibleEditorPane.this, ApplicationPaneEvent.STATE_CHANGED, BibleEditorPane.this));
+    private final void stateChanged(String reason) {
+    	Scene scene = this.getScene();
+    	// don't bother if there's no place to send the event to
+    	if (scene != null) {
+    		fireEvent(new ApplicationPaneEvent(this.bibleTree, BibleEditorPane.this, ApplicationPaneEvent.STATE_CHANGED, BibleEditorPane.this, reason));
+    	}
+    }
+    
+    @Override
+    public void setDefaultFocus() {
+    	this.requestFocus();
     }
     
     /* (non-Javadoc)
@@ -724,20 +776,13 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
     			return false;
 			case COPY:
 			case CUT:
-				// check for focused text input first
-				if (focused instanceof TextInputControl) {
-					String selection = ((TextInputControl)focused).getSelectedText();
-					return selection != null && !selection.isEmpty();
-				// must be the same type and something selected
-				} else if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
 					return sameType && count > 0;
 				}
 				return false;
 			case PASTE:
 				Clipboard cb = Clipboard.getSystemClipboard();
-				if (focused instanceof TextInputControl) {
-					return cb.hasContent(DataFormat.PLAIN_TEXT);
-				} else if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
 					if (sameType && count == 1) {
 						if (BibleTreeData.class.equals(type)) {
 							// then we can paste books
@@ -754,10 +799,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				return false;
 			case DELETE:
 				// check for focused text input first
-				if (focused instanceof TextInputControl) {
-					String selection = ((TextInputControl)focused).getSelectedText();
-					return selection != null && !selection.isEmpty();
-				} else if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
 					return count > 0;
 				}
 				return false;

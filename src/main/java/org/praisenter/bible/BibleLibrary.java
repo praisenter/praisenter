@@ -424,7 +424,7 @@ public final class BibleLibrary {
 	 * @param bible the bible
 	 * @return String
 	 */
-	private String createFileName(Bible bible) {
+	public static final String createFileName(Bible bible) {
 		StringBuilder sb = new StringBuilder();
 		if (bible != null) {
 			String ttl = StringManipulator.toFileName(bible.name == null ? "" : bible.name);
@@ -545,7 +545,6 @@ public final class BibleLibrary {
 		}
 		
 		if (bibleId != null) {
-			// TODO need to test this
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			builder.add(query, Occur.MUST);
 			builder.add(new TermQuery(new Term(FIELD_BIBLE_ID, bibleId.toString())), Occur.FILTER);

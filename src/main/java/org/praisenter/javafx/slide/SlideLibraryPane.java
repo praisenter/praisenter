@@ -6,6 +6,7 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
 import org.praisenter.javafx.slide.editor.SlideEditorPane;
 
+import javafx.geometry.Orientation;
 import javafx.scene.layout.BorderPane;
 
 public class SlideLibraryPane extends BorderPane {
@@ -18,7 +19,7 @@ public class SlideLibraryPane extends BorderPane {
 		this.context = context;
 		this.editor = new SlideEditorPane(context);
 		
-		this.slides = new FlowListView<SlideListItem>(new SlideListViewCellFactory(100));
+		this.slides = new FlowListView<SlideListItem>(Orientation.HORIZONTAL, new SlideListViewCellFactory(100));
 		this.slides.itemsProperty().bindContent(this.context.getSlideLibrary().getItems());
 		
 		// TODO some nice animation or something to transition back and forth

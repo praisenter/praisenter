@@ -295,7 +295,7 @@ public final class SlideLibrary {
 	 * @param slide the slide
 	 * @return String
 	 */
-	private String createFileName(Slide slide) {
+	public static final String createFileName(Slide slide) {
 		String name = slide.getName();
 		if (name == null) {
 			// just use the id

@@ -42,8 +42,14 @@ public class ApplicationPaneEvent extends Event implements Serializable {
 	/** Event type for the state of the application pane changing */
 	public static final EventType<ApplicationPaneEvent> STATE_CHANGED = new EventType<ApplicationPaneEvent>("APPLICATION_PANE_STATE_CHANGED");
 	
+	public static final String REASON_SELECTION_CHANGED = "Selection Changed";
+	public static final String REASON_DATA_COPIED = "Data copied or cut";
+	
 	/** The application pane */
 	private final ApplicationPane pane;
+	
+	/** The reason */
+	private final String reason;
 	
 	/**
 	 * Full constructor.
@@ -51,10 +57,12 @@ public class ApplicationPaneEvent extends Event implements Serializable {
 	 * @param target the event target
 	 * @param type the event type
 	 * @param pane the application pane
+	 * @param reason the event reason
 	 */
-	public ApplicationPaneEvent(Object source, EventTarget target, EventType<? extends ApplicationPaneEvent> type, ApplicationPane pane) {
+	public ApplicationPaneEvent(Object source, EventTarget target, EventType<? extends ApplicationPaneEvent> type, ApplicationPane pane, String reason) {
 		super(source, target, type);
 		this.pane = pane;
+		this.reason = reason;
 	}
 	
 	/**
@@ -63,5 +71,13 @@ public class ApplicationPaneEvent extends Event implements Serializable {
 	 */
 	public ApplicationPane getApplicationPane() {
 		return this.pane;
+	}
+	
+	/**
+	 * Returns the event reason.
+	 * @return String
+	 */
+	public String getReason() {
+		return this.reason;
 	}
 }

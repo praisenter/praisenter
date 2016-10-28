@@ -97,17 +97,22 @@ public final class Fx {
 	}
 	
 	/**
-	 * Returns true if the given node is in the chain from the root node
+	 * Returns true if any of the given nodes are in the chain from the root node
 	 * to the given focused node.
 	 * @param focused the currently focused node
-	 * @param node the node to look for
+	 * @param nodes the nodes to look for
 	 * @return boolean
 	 */
-	public static boolean isNodeInFocusChain(Node focused, Node node) {
+	public static boolean isNodeInFocusChain(Node focused, Node... nodes) {
 		boolean isFocused = false;
-		while (focused != null) {
-			if (focused == node) {
-				isFocused = true;
+		while (nodes != null && nodes.length > 0 && focused != null) {
+			for (int i = 0; i < nodes.length; i++) {
+				if (focused == nodes[i]) {
+					isFocused = true;
+					break;
+				}
+			}
+			if (isFocused) {
 				break;
 			}
 			focused = focused.getParent();

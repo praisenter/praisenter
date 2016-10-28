@@ -3,8 +3,6 @@ package org.praisenter.javafx;
 import java.util.Deque;
 import java.util.LinkedList;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -19,6 +17,8 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.DataFormat;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -40,17 +40,15 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 			@Override
 			public void handle(ApplicationPaneEvent event) {
 				ApplicationPane pane = event.getApplicationPane();
-				System.out.println(pane + " triggered StateChanged.");
 				if (pane != null) {
-					updateMenuState(pane);
+					updateMenuState(focusOwner.get(), pane, event.getReason());
 				}
 			}
 		};
 		ChangeListener<String> textSelectionChanged = new ChangeListener<String>() {
 			@Override
 			public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-				System.out.println("Text selection changed");
-				updateMenuState();
+				updateMenuState("Text Selection Changed");
 			}
 		};
 		
@@ -149,7 +147,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		// call methods when focus owner changes
 		this.focusOwner.addListener((obs, ov, nv) -> {
-			System.out.println("Focused changed from " + ov + " -> " + nv);
+			System.out.println("Focus changed from " + ov + " -> " + nv);
 			
 			Node appPane = getClosestApplicationPane(nv);
 			this.appPane.set(appPane);
@@ -162,8 +160,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 				((TextInputControl)nv).selectedTextProperty().addListener(textSelectionChanged);
 			}
 			
-			System.out.println("Updating menu state for " + nv);
-			updateMenuState();
+			updateMenuState("Focus Changed");
 		});
 		
 		
@@ -182,7 +179,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		// this allows us to disable an item if the user goes to a different app and copies
 		// something that isn't the expected type
 		this.windowFocused.addListener((obs, ov, nv) -> {
-			updateMenuState();
+			updateMenuState("Window Focus");
 		});
 		
 		// LAYOUT
@@ -191,7 +188,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		// INITIALIZATION
 		
-		updateMenuState();
+		updateMenuState("Initialization");
 	}
 	
 	private MenuItem createMenuItem(ApplicationAction action) {
@@ -200,18 +197,18 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		return item;
 	}
 	
-	private void updateMenuState() {
+	private void updateMenuState(String reason) {
 		Node node = this.appPane.get();
 		if (node == null) {
 			node = this.mainPane;
 		}
 		if (node != null && node instanceof ApplicationPane) {
-			this.updateMenuState((ApplicationPane)node);
+			this.updateMenuState(this.focusOwner.get(), (ApplicationPane)node, reason);
 		}
 	}
 	
-	private void updateMenuState(ApplicationPane pane) {
-		System.out.println("Menu state updating for " + pane);
+	private void updateMenuState(Node focused, ApplicationPane pane, String reason) {
+		System.out.println("Menu state updating for focused:" + focused + " application-pane:" + pane + " due to " + reason);
 		Deque<MenuItem> menus = new LinkedList<MenuItem>();
 		// seed with the menu bar's menus
 		menus.addAll(this.menu.getMenus());
@@ -224,7 +221,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 				ApplicationAction action = (ApplicationAction)data;
 				// an action is disabled or hidden as long as both the root
 				// and the currently focused application pane don't handle it
-				boolean disabled = !(this.mainPane.isApplicationActionEnabled(action) || pane.isApplicationActionEnabled(action));
+				boolean disabled = !(this.mainPane.isApplicationActionEnabled(action) || this.isEnabledForFocused(focused, action) || pane.isApplicationActionEnabled(action));
 				boolean visible = this.mainPane.isApplicationActionVisible(action) || pane.isApplicationActionVisible(action);
 				menu.setDisable(disabled);
 				menu.setVisible(visible);
@@ -237,6 +234,36 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		}
 	}
 
+	/**
+	 * Some actions should be available to normal Java FX controls, namely the text input
+	 * controls for copy/cut/paste/delete/select all.
+	 * @param focused the true focus owner
+	 * @param action the action
+	 * @return boolean
+	 */
+	private boolean isEnabledForFocused(Node focused, ApplicationAction action) {
+		switch (action) {
+			case CUT:
+			case DELETE:
+			case COPY:
+			case SELECT_ALL:
+				if (focused instanceof TextInputControl) {
+					String selection = ((TextInputControl)focused).getSelectedText();
+					return selection != null && !selection.isEmpty();
+				}
+				break;
+			case PASTE:
+				Clipboard cb = Clipboard.getSystemClipboard();
+				if (focused instanceof TextInputControl) {
+					return cb.hasContent(DataFormat.PLAIN_TEXT);
+				}
+				break;
+			default:
+				break;
+		}
+		return false;
+	}
+	
 	private Node getClosestApplicationPane(Node focused) {
 		while (focused != null) {
 			if (focused instanceof ApplicationPane) {

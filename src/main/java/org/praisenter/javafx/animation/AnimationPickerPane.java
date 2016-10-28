@@ -239,14 +239,14 @@ public final class AnimationPickerPane extends BorderPane {
 		List<AnimationOption> animationOptions = new ArrayList<AnimationOption>(Transitions.getAnimationOptions());
 		List<AnimationOption> easingOptions = new ArrayList<AnimationOption>(Transitions.getEasingOptions());
 		
-		animationListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
+		animationListPane = new FlowListView<AnimationOption>(javafx.geometry.Orientation.HORIZONTAL, new AnimationOptionCellFactory());
 		animationListPane.itemsProperty().set(FXCollections.observableArrayList(animationOptions));
-		animationListPane.setOrientation(javafx.geometry.Orientation.HORIZONTAL);
+//		animationListPane.setOrientation(javafx.geometry.Orientation.HORIZONTAL);
 		animationListPane.getSelectionModel().selectOnly(new AnimationOption(Swap.class, 0));
 				
-		easingListPane = new FlowListView<AnimationOption>(new AnimationOptionCellFactory());
+		easingListPane = new FlowListView<AnimationOption>(javafx.geometry.Orientation.VERTICAL, new AnimationOptionCellFactory());
 		easingListPane.itemsProperty().set(FXCollections.observableArrayList(easingOptions));
-		easingListPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
+//		easingListPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
 		easingListPane.getSelectionModel().selectOnly(new AnimationOption(Linear.class, 0));
 		
 		// setup the animation config
@@ -415,17 +415,17 @@ public final class AnimationPickerPane extends BorderPane {
 		
 		panePreview.getChildren().addAll(pane1, pane2);
 		
-		ScrollPane scrAnimations = new ScrollPane(animationListPane);
-		scrAnimations.setFitToWidth(true);
-		scrAnimations.setPrefHeight(300);
+//		ScrollPane scrAnimations = new ScrollPane(animationListPane);
+//		scrAnimations.setFitToWidth(true);
+		animationListPane.setPrefHeight(300);
 		
-		ScrollPane scrEasings = new ScrollPane(easingListPane);
-		scrEasings.setFitToHeight(true);
-		scrEasings.setPrefHeight(115);
+//		ScrollPane scrEasings = new ScrollPane(easingListPane);
+//		scrEasings.setFitToHeight(true);
+		easingListPane.setPrefHeight(115);
 
 		BorderPane left = new BorderPane();
-		left.setCenter(scrAnimations);
-		left.setBottom(scrEasings);
+		left.setCenter(animationListPane);
+		left.setBottom(easingListPane);
 		
 		VBox boxPreview = new VBox();
 		Button btnPreview = new Button("Preview");

@@ -40,6 +40,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.bible.Bible;
+import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.PraisenterBibleExporter;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.ApplicationAction;
@@ -54,6 +55,7 @@ import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
 import org.praisenter.javafx.SortGraphic;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.InvalidationListener;
@@ -71,6 +73,8 @@ import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -198,23 +202,15 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		this.sortDescending.addListener(filterListener);
 		filterListener.invalidated(null);
 		
-		this.lstBibles = new FlowListView<BibleListItem>(new Callback<BibleListItem, FlowListCell<BibleListItem>>() {
+		this.lstBibles = new FlowListView<BibleListItem>(Orientation.HORIZONTAL, new Callback<BibleListItem, FlowListCell<BibleListItem>>() {
 			@Override
 			public FlowListCell<BibleListItem> call(BibleListItem item) {
 				return new BibleListCell(item);
 			}
 		});
 		this.lstBibles.itemsProperty().bindContent(sorted);
-		this.lstBibles.setOrientation(Orientation.HORIZONTAL);
-		
-		ScrollPane leftScroller = new ScrollPane();
-        leftScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        leftScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        leftScroller.setFitToWidth(true);
-		leftScroller.setFocusTraversable(true);
-        leftScroller.setContent(this.lstBibles);
-        leftScroller.setOnDragOver(this::onBibleDragOver);
-        leftScroller.setOnDragDropped(this::onBibleDragDropped);
+        this.lstBibles.setOnDragOver(this::onBibleDragOver);
+        this.lstBibles.setOnDragDropped(this::onBibleDragDropped);
 
 		VBox right = new VBox();
 		VBox importSteps = new VBox();
@@ -304,7 +300,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         
         top.getChildren().addAll(pFilter, pSort);
 
-		SplitPane split = new SplitPane(leftScroller, rightScroller);
+		SplitPane split = new SplitPane(this.lstBibles, rightScroller);
 		split.setDividerPositions(0.75);
 		SplitPane.setResizableWithParent(rightScroller, false);
 		
@@ -313,9 +309,6 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         
         // BINDINGS & EVENTS
 
-		// make the min height of the listing pane the height of the split pane 
-		this.lstBibles.minHeightProperty().bind(split.heightProperty().subtract(2));
-		
 		// update the local selection
 		this.lstBibles.getSelectionModel().selectionsProperty().addListener((obs, ov, nv) -> {
 			if (selecting) return;
@@ -326,7 +319,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         		this.selected.set(nv.get(0).getBible());
         	}
         	selecting = false;
-        	this.stateChanged();
+        	this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
         });
         this.selected.addListener((obs, ov, nv) -> {
         	if (selecting) return;
@@ -337,7 +330,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         		lstBibles.getSelectionModel().selectOnly(new BibleListItem(nv));
         	}
         	selecting = false;
-        	this.stateChanged();
+        	this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
         });
         
         this.lstBibles.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
@@ -533,7 +526,8 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     private final void promptExport(List<Bible> bibles) {
     	String name = Translations.get("bible.export.multiple.filename"); 
     	if (bibles.size() == 1) {
-    		name = bibles.get(0).getName();
+    		// make sure the file name doesn't have bad characters in it
+    		name = BibleLibrary.createFileName(bibles.get(0));
     	}
     	name += ".zip";
     	FileChooser chooser = new FileChooser();
@@ -573,8 +567,12 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
      * @param event the event
      */
     private final void onApplicationEvent(ApplicationEvent event) {
+    	Node focused = this.getScene().getFocusOwner();
+    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.lstBibles);
+    	
     	ApplicationAction action = event.getAction();
     	Bible selected = this.selected.get();
+    	
     	switch (action) {
     		case RENAME:
     			if (selected != null) {
@@ -585,58 +583,66 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     			this.editSelected();
     			break;
     		case COPY:
-    			if (selected != null) {
-    				Clipboard cb = Clipboard.getSystemClipboard();
-    				ClipboardContent content = new ClipboardContent();
-    				content.put(DataFormat.PLAIN_TEXT, selected.getName());
-    				content.put(DataFormats.BIBLE_ID, selected.getId());
-    				cb.setContent(content);
-    				this.stateChanged();
-    			}
+				if (isFocused) {
+	    			if (selected != null) {
+	    				Clipboard cb = Clipboard.getSystemClipboard();
+	    				ClipboardContent content = new ClipboardContent();
+	    				content.put(DataFormat.PLAIN_TEXT, selected.getName());
+	    				content.put(DataFormats.BIBLE_ID, selected.getId());
+	    				cb.setContent(content);
+	    				this.stateChanged(ApplicationPaneEvent.REASON_DATA_COPIED);
+	    			}
+				}
     			break;
     		case PASTE:
-				Clipboard cb = Clipboard.getSystemClipboard();
-				Object data = cb.getContent(DataFormats.BIBLE_ID);
-				if (data != null && data instanceof UUID) {
-					// make a copy
-					Bible bible = this.context.getBibleLibrary().get((UUID)data);
-					if (bible != null) {
+				if (isFocused) {
+					Clipboard cb = Clipboard.getSystemClipboard();
+					Object data = cb.getContent(DataFormats.BIBLE_ID);
+					if (data != null && data instanceof UUID) {
 						// make a copy
-						Bible copy = bible.copy(false);
-						// set the name to something else
-						copy.setName(MessageFormat.format(Translations.get("bible.copy.name"), bible.getName()));
-						// then save it
-						this.context.getBibleLibrary().save(copy, saved -> {
-							// nothing to do
-						}, (failed, error) -> {
-							// present message to user
-							Alert alert = Alerts.exception(
-									getScene().getWindow(),
-									null, 
-									null, 
-									MessageFormat.format(Translations.get("bible.copy.error"), bible.getName()), 
-									error);
-							alert.show();
-						});
-					} else {
-						LOGGER.warn("Failed to copy bible, it may have been removed.");
+						Bible bible = this.context.getBibleLibrary().get((UUID)data);
+						if (bible != null) {
+							// make a copy
+							Bible copy = bible.copy(false);
+							// set the name to something else
+							copy.setName(MessageFormat.format(Translations.get("bible.copy.name"), bible.getName()));
+							// then save it
+							this.context.getBibleLibrary().save(copy, saved -> {
+								// nothing to do
+							}, (failed, error) -> {
+								// present message to user
+								Alert alert = Alerts.exception(
+										getScene().getWindow(),
+										null, 
+										null, 
+										MessageFormat.format(Translations.get("bible.copy.error"), bible.getName()), 
+										error);
+								alert.show();
+							});
+						} else {
+							LOGGER.warn("Failed to copy bible, it may have been removed.");
+						}
 					}
 				}
     			break;
     		case DELETE:
-    			this.promptDelete();
+				if (isFocused) {
+					this.promptDelete();
+				}
     			break;
     		case SELECT_ALL:
-    			this.lstBibles.getSelectionModel().selectAll();
-    			this.stateChanged();
+				if (isFocused) {
+	    			this.lstBibles.getSelectionModel().selectAll();
+	    			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
+				}
     			break;
     		case SELECT_NONE:
     			this.lstBibles.getSelectionModel().clear();
-    			this.stateChanged();
+    			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
     			break;
     		case SELECT_INVERT:
     			this.lstBibles.getSelectionModel().invert();
-    			this.stateChanged();
+    			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
     			break;
     		case EXPORT:
     			List<BibleListItem> items = this.lstBibles.getSelectionModel().selectionsProperty().get();
@@ -655,9 +661,19 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     
     /**
      * Called when the state of this pane changes.
+     * @param reason the reason
      */
-    private final void stateChanged() {
-    	fireEvent(new ApplicationPaneEvent(this.lstBibles, BibleLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, BibleLibraryPane.this));
+    private final void stateChanged(String reason) {
+    	Scene scene = this.getScene();
+    	// don't bother if there's no place to send the event to
+    	if (scene != null) {
+    		fireEvent(new ApplicationPaneEvent(this.lstBibles, BibleLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, BibleLibraryPane.this, reason));
+    	}
+    }
+    
+    @Override
+    public void setDefaultFocus() {
+    	this.lstBibles.requestFocus();
     }
     
 	/* (non-Javadoc)
@@ -665,23 +681,41 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 	 */
 	@Override
 	public boolean isApplicationActionEnabled(ApplicationAction action) {
+		Node focused = this.getScene().getFocusOwner();
+		
 		boolean isSingleSelected = this.selected.get() != null;
     	boolean isMultiSelected = this.lstBibles.getSelectionModel().selectionsProperty().size() > 0;
+    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.lstBibles);
+    	
     	switch (action) {
 			case RENAME:
 			case OPEN:
 			case COPY:
-				return isSingleSelected;
+				if (isFocused) {
+					return isSingleSelected;
+				}
+				break;
 			case DELETE:
 			case EXPORT:
-				return isSingleSelected || isMultiSelected;
+				// check for focused text input first
+				if (isFocused) {
+					return isSingleSelected || isMultiSelected;
+				}
+				break;
 			case SELECT_ALL:
 			case SELECT_NONE:
 			case SELECT_INVERT:
-				return true;
+				if (isFocused) {
+					return true;
+				}
+				break;
 			case PASTE:
-				Clipboard cb = Clipboard.getSystemClipboard();
-				return cb.hasContent(DataFormats.BIBLE_ID);
+				// check for focused text input first
+				if (isFocused) {
+					Clipboard cb = Clipboard.getSystemClipboard();
+					return cb.hasContent(DataFormats.BIBLE_ID);
+				}
+				break;
 			default:
 				break;
 		}

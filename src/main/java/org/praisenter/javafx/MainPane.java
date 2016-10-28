@@ -135,12 +135,23 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		return true;
 	}
 	
+	@Override
+	public void setDefaultFocus() {
+		this.requestFocus();
+	}
+	
 	// NAVIGATION
 	
 	private void navigate(Node node) {
 		this.setCenter(node);
 		this.mainContent.set(node);
-		node.requestFocus();
+		if (node instanceof ApplicationPane) {
+			// when a pane is set as the current pane
+			// we may want to focus a particular part of the pane
+			((ApplicationPane)node).setDefaultFocus();
+		} else {
+			node.requestFocus();
+		}
 	}
 	
 	public Node getMainContent() {

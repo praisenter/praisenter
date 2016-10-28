@@ -267,27 +267,15 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         // the right side of the split pane
         final int thumbHeight = context.getMediaLibrary().getThumbnailSettings().getHeight();
         DefaultThumbnails thumbs = new DefaultThumbnails(this.context.getMediaLibrary().getThumbnailSettings());
-        this.lstMedia = new FlowListView<MediaListItem>(new Callback<MediaListItem, FlowListCell<MediaListItem>>() {
+        this.lstMedia = new FlowListView<MediaListItem>(orientation, new Callback<MediaListItem, FlowListCell<MediaListItem>>() {
         	@Override
         	public FlowListCell<MediaListItem> call(MediaListItem item) {
 				return new MediaListCell(thumbs, item, thumbHeight);
 			}
         });
         this.lstMedia.itemsProperty().bindContent(sorted);
-        this.lstMedia.setOrientation(orientation);
-        
-        ScrollPane leftScroller = new ScrollPane();
-        leftScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        leftScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        if (orientation == Orientation.HORIZONTAL) {
-        	leftScroller.setFitToWidth(true);
-        } else {
-        	leftScroller.setFitToHeight(true);
-        }
-		leftScroller.setFocusTraversable(true);
-        leftScroller.setContent(this.lstMedia);
-        leftScroller.setOnDragDropped(this::onMediaDropped);
-        leftScroller.setOnDragOver(new EventHandler<DragEvent>() {
+        this.lstMedia.setOnDragDropped(this::onMediaDropped);
+        this.lstMedia.setOnDragOver(new EventHandler<DragEvent>() {
 			@Override
 			public void handle(DragEvent event) {
 				Dragboard db = event.getDragboard();
@@ -315,7 +303,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         			}
         		}
         		if (added) {
-        			leftScroller.setVvalue(leftScroller.getVmax());
+        			lstMedia.setVvalue(lstMedia.getVmax());
         		}
         	}
         });
@@ -329,7 +317,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         		this.selected.set(nv.get(0).getMedia());
         	}
         	this.selecting = false;
-        	this.stateChanged();
+        	this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
         });
         this.selected.addListener((obs, ov, nv) -> {
         	if (selecting) return;
@@ -340,7 +328,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         		lstMedia.getSelectionModel().select(new MediaListItem(nv));
         	}
         	this.selecting = false;
-        	this.stateChanged();
+        	this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
         });
         
         this.pneMetadata = new MediaMetadataPane(tags);
@@ -401,7 +389,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         SplitPane split = new SplitPane();
         split.setOrientation(Orientation.HORIZONTAL);
         
-        split.getItems().add(leftScroller);
+        split.getItems().add(this.lstMedia);
         split.getItems().add(rightScroller);
         split.setDividerPositions(0.9);
         SplitPane.setResizableWithParent(rightScroller, Boolean.FALSE);
@@ -689,8 +677,13 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     /**
      * Called when the state of this pane changes.
      */
-    private final void stateChanged() {
-    	fireEvent(new ApplicationPaneEvent(this.lstMedia, MediaLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, MediaLibraryPane.this));
+    private final void stateChanged(String reason) {
+    	fireEvent(new ApplicationPaneEvent(this.lstMedia, MediaLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, MediaLibraryPane.this, reason));
+    }
+    
+    @Override
+    public void setDefaultFocus() {
+    	this.lstMedia.requestFocus();
     }
     
     /* (non-Javadoc)

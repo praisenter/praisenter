@@ -88,7 +88,7 @@ public final class FlowListSelectionModel<T> {
 		this.selections.set(FXCollections.observableArrayList());
 		
 		// remove selections when the children are removed or replaced
-		this.view.getChildren().addListener(new ListChangeListener<Node>() {
+		this.view.getLayoutChildren().addListener(new ListChangeListener<Node>() {
 			@Override
 			public void onChanged(ListChangeListener.Change<? extends Node> changes) {
 				// iterate the changes
@@ -156,7 +156,7 @@ public final class FlowListSelectionModel<T> {
 	@SuppressWarnings("unchecked")
 	public void select(T item) {
 		if (item != null) {
-			for (Node node : this.view.getChildren()) {
+			for (Node node : this.view.getLayoutChildren()) {
 				FlowListCell<T> cell = (FlowListCell<T>)node;
 				if (item.equals(cell.getData())) {
 					this.select(cell);
@@ -202,7 +202,7 @@ public final class FlowListSelectionModel<T> {
 	public void selectAll(Collection<T> items) {
 		if (items != null && !items.isEmpty()) {
 			for (T item : items) {
-				for (Node node : this.view.getChildren()) {
+				for (Node node : this.view.getLayoutChildren()) {
 					FlowListCell<T> cell = (FlowListCell<T>)node;
 					if (item.equals(cell.getData())) {
 						this.select(cell);
@@ -233,7 +233,7 @@ public final class FlowListSelectionModel<T> {
 	public void selectOnly(List<T> items) {
 		this.clear();
 		if (items != null && items.size() > 0) {
-			for (Node node : this.view.getChildren()) {
+			for (Node node : this.view.getLayoutChildren()) {
 				FlowListCell<T> cell = (FlowListCell<T>)node;
 				if (items.contains(cell.getData())) {
 					this.select(cell);
@@ -247,7 +247,7 @@ public final class FlowListSelectionModel<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public void selectAll() {
-		for (Node node : this.view.getChildren()) {
+		for (Node node : this.view.getLayoutChildren()) {
 			FlowListCell<T> cell = (FlowListCell<T>)node;
 			this.select(cell);
 		}
@@ -258,7 +258,7 @@ public final class FlowListSelectionModel<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public void invert() {
-		for (Node node : this.view.getChildren()) {
+		for (Node node : this.view.getLayoutChildren()) {
 			FlowListCell<T> cell = (FlowListCell<T>)node;
 			if (this.selected.contains(cell)) {
 				this.deselect(cell);
@@ -369,18 +369,18 @@ public final class FlowListSelectionModel<T> {
 			// SHIFT + click
 			} else if (isPrimary && event.isShiftDown()) {
 				int start = 0;
-				int end = this.view.getChildren().indexOf(cell);
+				int end = this.view.getLayoutChildren().indexOf(cell);
 				// select from the currently selected cell to the this cell
 				if (this.last != null) {
 					// select from last to this cell
-					start = this.view.getChildren().indexOf(this.last);
+					start = this.view.getLayoutChildren().indexOf(this.last);
 				}
 				if (end < start) {
 					int temp = end;
 					end = start;
 					start = temp;
 				}
-				for (Node node : this.view.getChildren().subList(start, end + 1)) {
+				for (Node node : this.view.getLayoutChildren().subList(start, end + 1)) {
 					this.select(node);
 				}
 			// just click
@@ -392,7 +392,6 @@ public final class FlowListSelectionModel<T> {
 				} else {
 					this.deselect(cell);
 				}
-    			
 			}
 		}
 	}

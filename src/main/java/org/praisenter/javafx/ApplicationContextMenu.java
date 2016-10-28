@@ -64,7 +64,7 @@ public final class ApplicationContextMenu extends ContextMenu implements EventHa
 		});
 
 		// listen for when the scene changes so we can re-bind to the
-		// parent window
+		// parent window and focus owner
 		node.sceneProperty().addListener((obs, ov, nv) -> {
 			windowFocused.unbind();
 			if (nv != null) {

@@ -31,6 +31,7 @@ import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -53,6 +54,11 @@ public enum ApplicationAction {
 	/** Open the editor for the event's data */
 	EDIT("Edit"),
 	
+	/** Close the current editor */
+	CLOSE("Close", () -> {
+		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.CLOSE);
+	}),
+	
 	/** Save the current document */
 	SAVE("Save", () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.SAVE); 
@@ -62,7 +68,7 @@ public enum ApplicationAction {
 	SAVE_AS("Save As...", () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.SAVE); 
 	}, new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN)),
-	
+
 	/** Rename the item */
 	RENAME("Rename", () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.TERMINAL); 
@@ -211,6 +217,27 @@ public enum ApplicationAction {
 		item.setAccelerator(this.accelerator);
 		item.setUserData(this);
 		return item;
+	}
+	
+	public Button toButton() {
+		Button button = new Button(this.label);
+		button.setGraphic(this.graphic != null ? this.graphic.get() : null);
+		button.setUserData(this);
+		return button;
+	}
+	
+	public Button toGraphicOnlyButton() {
+		Button button = new Button();
+		button.setGraphic(this.graphic != null ? this.graphic.get() : null);
+		button.setUserData(this);
+		return button;
+	}
+	
+	public Button toLabelOnlyButton() {
+		Button button = new Button(this.label);
+		button.setGraphic(null);
+		button.setUserData(this);
+		return button;
 	}
 	
 	/**
