@@ -82,7 +82,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			case NEW_BIBLE:
 				Bible bible = new Bible();
 				bible.setName("Untitled");
-				bible.setLanguage(Locale.getDefault().getDisplayName());
+				bible.setLanguage(Locale.getDefault().toLanguageTag());
 				bible.setSource("Praisenter");
 				this.bibleEditorPane.setBible(bible);
 				this.navigate(this.bibleEditorPane);

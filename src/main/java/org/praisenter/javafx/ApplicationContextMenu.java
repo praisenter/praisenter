@@ -56,31 +56,37 @@ public final class ApplicationContextMenu extends ContextMenu implements EventHa
 	public ApplicationContextMenu(Node node) {
 		this.node = node;
 		
-		// listen for state changed events to update the context menu state
-		node.addEventHandler(ApplicationPaneEvent.STATE_CHANGED, e -> {
-			if (e.getEventType() == ApplicationPaneEvent.STATE_CHANGED) {
-				updateMenuState(e.getApplicationPane());
-			}
-		});
-
-		// listen for when the scene changes so we can re-bind to the
-		// parent window and focus owner
-		node.sceneProperty().addListener((obs, ov, nv) -> {
-			windowFocused.unbind();
-			if (nv != null) {
-				windowFocused.bind(nv.getWindow().focusedProperty());
-			}
-		});
+//		// listen for state changed events to update the context menu state
+//		node.addEventHandler(ApplicationPaneEvent.STATE_CHANGED, e -> {
+//			if (e.getEventType() == ApplicationPaneEvent.STATE_CHANGED) {
+//				updateMenuState(e.getApplicationPane());
+//			}
+//		});
+//
+//		// listen for when the scene changes so we can re-bind to the
+//		// parent window and focus owner
+//		node.sceneProperty().addListener((obs, ov, nv) -> {
+//			windowFocused.unbind();
+//			if (nv != null) {
+//				windowFocused.bind(nv.getWindow().focusedProperty());
+//			}
+//		});
+//		
+//		// we need to re-evaluate the menu state when the focus between menus changes
+//		// primarily for re-evaluating the content in the clipboard.
+//		// this allows us to disable an item if the user goes to a different app and copies
+//		// something that isn't the expected type
+//		this.windowFocused.addListener((obs, ov, nv) -> {
+//			if (node instanceof ApplicationPane) {
+//				ApplicationPane pane = (ApplicationPane)node;
+//				// recursively go through the menu updating disabled and visibility states
+//				updateMenuState(pane);
+//			}
+//		});
 		
-		// we need to re-evaluate the menu state when the focus between menus changes
-		// primarily for re-evaluating the content in the clipboard.
-		// this allows us to disable an item if the user goes to a different app and copies
-		// something that isn't the expected type
-		this.windowFocused.addListener((obs, ov, nv) -> {
-			if (node instanceof ApplicationPane) {
-				ApplicationPane pane = (ApplicationPane)node;
-				// recursively go through the menu updating disabled and visibility states
-				updateMenuState(pane);
+		this.setOnShowing(e -> {
+			if (this.node instanceof ApplicationPane) {
+				updateMenuState((ApplicationPane)this.node);
 			}
 		});
 		

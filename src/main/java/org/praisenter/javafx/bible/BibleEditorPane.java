@@ -38,13 +38,13 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Spinner;
@@ -63,7 +63,6 @@ import javafx.scene.input.DataFormat;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
@@ -91,6 +90,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	
 	// state
 	
+	/** True when the bible property is being set */
 	private boolean mutating = false;
 	
 	/**
@@ -101,7 +101,6 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		this.context = context;
 		
 		// TODO saving UI (small button bar above the treeview?) (save, save & close, save as, back, close, etc)
-		// TODO updating nodes with changes in fields
 		
 		ObservableList<Option<Locale>> locales = FXCollections.observableArrayList();
 		for (Locale locale : Locale.getAvailableLocales()) {
@@ -110,7 +109,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		Collections.sort(locales);
 		
 		// bible
+		Label lblName = new Label("Bible Name");
 		TextField txtName = new TextField();
+		Label lblLanguage = new Label("Language");
 		ComboBox<Option<Locale>> cmbLanguage = new ComboBox<Option<Locale>>(locales);
 		cmbLanguage.setEditable(true);
 		cmbLanguage.setCellFactory(new Callback<ListView<Option<Locale>>, ListCell<Option<Locale>>>() {
@@ -152,8 +153,12 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				return new Option<Locale>(locale != null ? locale.getDisplayName() : value, locale);
 			}
 		});
+		cmbLanguage.setMaxWidth(Double.MAX_VALUE);
+		Label lblSource = new Label("Source");
 		TextField txtSource = new TextField();
+		Label lblCopyright = new Label("Copyright");
 		TextField txtCopyright = new TextField();
+		Label lblNotes = new Label("Notes");
 		TextArea txtNotes = new TextArea();
 		txtNotes.setWrapText(true);
 		txtNotes.setPrefHeight(250);
@@ -178,48 +183,21 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		txtText.setWrapText(true);
 		txtText.setPrefHeight(350);
 		
-		lblEditMessage.managedProperty().bind(lblEditMessage.visibleProperty());
-		lblBookName.managedProperty().bind(lblBookName.visibleProperty());
-		txtBookName.managedProperty().bind(txtBookName.visibleProperty());
-		lblChapter.managedProperty().bind(lblChapter.visibleProperty());
-		spnChapter.managedProperty().bind(spnChapter.visibleProperty());
-		lblVerse.managedProperty().bind(lblVerse.visibleProperty());
-		spnVerse.managedProperty().bind(spnVerse.visibleProperty());
-		lblVerseText.managedProperty().bind(lblVerseText.visibleProperty());
-		txtText.managedProperty().bind(txtText.visibleProperty());
-		
-		lblBookName.setVisible(false);
-		txtBookName.setVisible(false);
-		lblChapter.setVisible(false);
-		spnChapter.setVisible(false);
-		lblVerse.setVisible(false);
-		spnVerse.setVisible(false);
-		lblVerseText.setVisible(false);
-		txtText.setVisible(false);
-		
-		VBox bibleDetail = new VBox();
-		bibleDetail.setSpacing(2);
-		bibleDetail.setPadding(new Insets(10));
-		bibleDetail.getChildren().addAll(
-				new Label("Name"),
-				txtName, 
-				new Label("Language"),
-				cmbLanguage,
-				new Label("Source"),
-				txtSource,
-				new Label("Copyright"),
-				txtCopyright,
-				new Label("Notes"),
-				txtNotes);
-		VBox.setVgrow(txtNotes, Priority.ALWAYS);
-		TitledPane ttlBible = new TitledPane("Bible Properties", bibleDetail);
-		ttlBible.setCollapsible(false);
-		
 		VBox otherDetail = new VBox();
 		otherDetail.setSpacing(2);
 		otherDetail.setPadding(new Insets(10));
 		otherDetail.getChildren().addAll(
 				lblEditMessage,
+				lblName,
+				txtName, 
+				lblLanguage,
+				cmbLanguage,
+				lblSource,
+				txtSource,
+				lblCopyright,
+				txtCopyright,
+				lblNotes,
+				txtNotes,
 				lblBookName,
 				txtBookName, 
 				lblChapter,
@@ -229,6 +207,14 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				lblVerseText,
 				txtText);
 		VBox.setVgrow(txtText, Priority.ALWAYS);
+		VBox.setVgrow(txtNotes, Priority.ALWAYS);
+		
+		for (Node node : otherDetail.getChildren()) {
+			node.managedProperty().bind(node.visibleProperty());
+			node.setVisible(false);
+		}
+		lblEditMessage.setVisible(true);
+		
 		TitledPane ttlOther = new TitledPane("Editor", otherDetail);
 		ttlOther.setCollapsible(false);
 		
@@ -281,11 +267,37 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				new SeparatorMenuItem(),
 				menu.createMenuItem(ApplicationAction.DELETE));
 		this.bibleTree.setContextMenu(menu);
+
+		// TOOLBAR
+		
+		Button btnSave = this.createToolbarButton(ApplicationAction.SAVE);
+		Button btnSaveAs = this.createToolbarButton(ApplicationAction.SAVE_AS);
+		Button btnClose = this.createToolbarButton(ApplicationAction.CLOSE);
+		ToolBar toolbar = new ToolBar(btnSave, btnSaveAs, btnClose);
+		
+		// LAYOUT
+		
+		BorderPane left = new BorderPane(this.bibleTree);
+		
+		VBox mid = new VBox(ttlOther);
+		mid.setMinWidth(300);
+		mid.setPrefWidth(300);
+		
+		ttlOther.prefHeightProperty().bind(mid.heightProperty());
+		
+		SplitPane split = new SplitPane(left, mid);
+		split.setDividerPositions(0.75);
+		split.setBackground(null);
+		split.setPadding(new Insets(0));
+		
+		this.setTop(toolbar);
+		this.setCenter(split);
 		
 		// EVENTS & BINDINGS
 		
 		this.bible.addListener((obs, ov, nv) -> {
 			this.mutating = true;
+			bibleTree.getSelectionModel().clearSelection();
 			if (nv != null) {
 				// create the root node
 				TreeItem<TreeData> root = this.forBible(nv);
@@ -340,7 +352,16 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			if (this.bibleTree.getSelectionModel().getSelectedIndices().size() == 1) {
 				TreeData data = nv.getValue();
 				if (data instanceof BibleTreeData) {
-					lblEditMessage.setVisible(true);
+					lblName.setVisible(true);
+					txtName.setVisible(true);
+					lblLanguage.setVisible(true);
+					cmbLanguage.setVisible(true);
+					lblSource.setVisible(true);
+					txtSource.setVisible(true);
+					lblCopyright.setVisible(true);
+					txtCopyright.setVisible(true);
+					lblNotes.setVisible(true);
+					txtNotes.setVisible(true);
 				} else if (data instanceof BookTreeData) {
 					// show book name
 					lblBookName.setVisible(true);
@@ -463,44 +484,18 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			}
 		});
 		
-		// TOOLBAR
-		
-		Button btnSave = ApplicationAction.SAVE.toButton();
-		Button btnSaveAs = ApplicationAction.SAVE_AS.toButton();
-		Button btnClose = ApplicationAction.CLOSE.toButton();
-		ToolBar toolbar = new ToolBar(btnSave, btnSaveAs, btnClose);
-		
-		// LAYOUT
-		
-		BorderPane left = new BorderPane(this.bibleTree);
-		
-		VBox mid = new VBox(ttlOther);
-		VBox right = new VBox(ttlBible);
-		right.setPadding(new Insets(0, 0, 0, 5));
-		mid.setMinWidth(300);
-		
-		ttlOther.prefHeightProperty().bind(mid.heightProperty());
-		ttlBible.prefHeightProperty().bind(right.heightProperty());
-		ttlBible.setPrefWidth(300);
-		
-		SplitPane split = new SplitPane(left, mid);
-		split.setDividerPositions(0.33);
-		split.setBackground(null);
-		split.setPadding(new Insets(0));
-		SplitPane.setResizableWithParent(left, false);
-		
-		BorderPane layout = new BorderPane();
-		layout.setCenter(split);
-		layout.setRight(right);
-		
-//		this.setLeft(left);
-		this.setTop(toolbar);
-		this.setCenter(layout);
-		
 		// listen for application events
 		this.addEventHandler(ApplicationEvent.ALL, this::onApplicationEvent);
 	}
 
+	private Button createToolbarButton(ApplicationAction action) {
+		Button button = action.toButton();
+		button.setOnAction(e -> {
+			this.fireEvent(new ApplicationEvent(button, button, ApplicationEvent.ALL, action));
+		});
+		return button;
+	}
+	
 	// NODE GENERATION
 	
 	private TreeItem<TreeData> forBible(Bible bible) {
@@ -701,7 +696,8 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					ctd.book.getChapters().remove(ctd.chapter);
 				} else if (td instanceof VerseTreeData) {
 					VerseTreeData vtd = (VerseTreeData)td;
-					vtd.chapter.getVerses().remove(vtd.verse);
+					boolean t = vtd.chapter.getVerses().remove(vtd.verse);
+					System.out.println(t);
 				}
 				// remove the node
 				item.getParent().getChildren().remove(item);
@@ -717,6 +713,8 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		
 		if (item == null || item.getValue() == null) return;
 		Class<?> type = item.getValue().getClass();
+		TreeItem<TreeData> newItem = null;
+		
 		if (VerseTreeData.class.equals(type)) {
 			// add new verse
 			VerseTreeData vd = (VerseTreeData)item.getValue();
@@ -726,8 +724,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			vd.chapter.getVerses().add(verse);
 			// add to view
 			int index = item.getParent().getChildren().indexOf(item);
-			TreeItem<TreeData> newItem = new TreeItem<TreeData>(new VerseTreeData(vd.bible, vd.book, vd.chapter, verse));
+			newItem = new TreeItem<TreeData>(new VerseTreeData(vd.bible, vd.book, vd.chapter, verse));
 			item.getParent().getChildren().add(index + 1, newItem);
+			// select it and go to it
 		} else if (ChapterTreeData.class.equals(type)) {
 			// add new verse
 			ChapterTreeData cd = (ChapterTreeData)item.getValue();
@@ -736,7 +735,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			// add to data
 			cd.chapter.getVerses().add(verse);
 			// add to view
-			TreeItem<TreeData> newItem = new TreeItem<TreeData>(new VerseTreeData(cd.bible, cd.book, cd.chapter, verse));
+			newItem = new TreeItem<TreeData>(new VerseTreeData(cd.bible, cd.book, cd.chapter, verse));
 			item.getChildren().add(newItem);
 			item.setExpanded(true);
 		} else if (BookTreeData.class.equals(type)) {
@@ -747,7 +746,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			// add to data
 			bd.book.getChapters().add(chapter);
 			// add to view
-			TreeItem<TreeData> newItem = new TreeItem<TreeData>(new ChapterTreeData(bd.bible, bd.book, chapter));
+			newItem = new TreeItem<TreeData>(new ChapterTreeData(bd.bible, bd.book, chapter));
 			item.getChildren().add(newItem);
 			item.setExpanded(true);
 		} else if (BibleTreeData.class.equals(type)) {
@@ -758,9 +757,24 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			// add to data
 			bd.bible.getBooks().add(book);
 			// add to view
-			TreeItem<TreeData> newItem = new TreeItem<TreeData>(new BookTreeData(bd.bible, book));
+			newItem = new TreeItem<TreeData>(new BookTreeData(bd.bible, book));
 			item.getChildren().add(newItem);
 			item.setExpanded(true);
+		}
+		
+		// did we create an item?
+		if (newItem != null) {
+			// if so, then get it's index
+			int index = this.bibleTree.getRow(newItem);
+			if (index > 0) {
+				// selected it
+				this.bibleTree.getSelectionModel().clearAndSelect(index);
+				final int offset = 10;
+				// scroll to it (we'll close to it, we don't want it at the top)
+				if (index - offset > 0) {
+					this.bibleTree.scrollTo(index - offset);
+				}
+			}
 		}
 	}
 	
@@ -817,22 +831,28 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * Renumbers the selected node.
 	 */
 	private void renumber() {
-		// FIXME we should confirm before executing
+		TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
 		// need to determine what is selected
 		// renumber depth first
-		TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
-		
 		if (item != null) {
-			// remove the data
-			TreeData td = item.getValue();
-			if (td instanceof BibleTreeData) {
-				renumberBible(item);
-			} else if (td instanceof BookTreeData) {
-				renumberBook(item);
-			} else if (td instanceof ChapterTreeData) {
-				renumberChapter(item);
-			} else if (td instanceof VerseTreeData) {
-				renumberChapter(item.getParent());
+			Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("Renumber");
+			alert.setHeaderText("Performing this action will reassign the numbers according to their current order.");
+			alert.setContentText("Are you sure you want to do this?");
+
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.get() == ButtonType.OK){
+				// remove the data
+				TreeData td = item.getValue();
+				if (td instanceof BibleTreeData) {
+					renumberBible(item);
+				} else if (td instanceof BookTreeData) {
+					renumberBook(item);
+				} else if (td instanceof ChapterTreeData) {
+					renumberChapter(item);
+				} else if (td instanceof VerseTreeData) {
+					renumberChapter(item.getParent());
+				}
 			}
 		}
 	}
@@ -955,6 +975,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			case SAVE_AS:
 				this.saveAs();
 				break;
+			case CLOSE:
+				this.fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.MANAGE_BIBLES));
+				break;
 			case RENUMBER:
 				// we only want to execute this if the current focus
 				// is within the bibleTree
@@ -1063,6 +1086,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				return false;
 			case SAVE:
 			case SAVE_AS:
+			case CLOSE:
 				return true;
 			default:
 				break;

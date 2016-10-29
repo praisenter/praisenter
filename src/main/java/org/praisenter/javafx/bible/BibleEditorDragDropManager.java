@@ -8,6 +8,7 @@ import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.Verse;
 
+import javafx.css.PseudoClass;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
@@ -19,6 +20,8 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -33,11 +36,14 @@ final class BibleEditorDragDropManager {
 	// FIXME make this css
 	private static final Border DRAG_TOP = new Border(new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 2, 0, null), null, new BorderWidths(1, 0, 0, 0)));
 	private static final Border DRAG_BOTTOM = new Border(new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 2, 0, null), null, new BorderWidths(0, 0, 1, 0)));
+	private static final Background DRAG_BACKGROUND = new Background(new BackgroundFill(Color.LIGHTBLUE, null, null));
+	
+	private static final PseudoClass DRAG_OVER_PARENT = PseudoClass.getPseudoClass("drag-over-parent");
+	private static final PseudoClass DRAG_OVER_SIBLING_TOP = PseudoClass.getPseudoClass("drag-over-sibling-top");
+	private static final PseudoClass DRAG_OVER_SIBLING_BOTTOM = PseudoClass.getPseudoClass("drag-over-sibling-bottom");
 	
 	private final List<TreeItem<TreeData>> selected;
 	private Class<?> selectedType;
-	
-	private Border border;
 	
 	// TODO test ordering and saving to ensure that they are saved as listed in the tree
 	
@@ -102,11 +108,13 @@ final class BibleEditorDragDropManager {
 	}
 	
 	public void dragExited(TreeCell<TreeData> cell, DragEvent e) {
-		cell.setBorder(border);
+		cell.pseudoClassStateChanged(DRAG_OVER_PARENT, false);
+		cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_BOTTOM, false);
+		cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_TOP, false);
 	}
 	
 	public void dragEntered(TreeCell<TreeData> cell, DragEvent e) {
-		border = cell.getBorder();
+		// nothing to do here
 	}
 	
 	public void dragOver(TreeCell<TreeData> cell, DragEvent e) {
@@ -115,27 +123,43 @@ final class BibleEditorDragDropManager {
 			TreeData data = cell.getItem();
 			boolean allowed = false;
 			
-			if (data instanceof ChapterTreeData && VerseTreeData.class.equals(this.selectedType) ||
-				data instanceof VerseTreeData && VerseTreeData.class.equals(this.selectedType)) {
-				allowed = true;
-			} else if (data instanceof BookTreeData && ChapterTreeData.class.equals(this.selectedType) ||
-					   data instanceof ChapterTreeData && ChapterTreeData.class.equals(this.selectedType)) {
-				allowed = true;
-			} else if (data instanceof BibleTreeData && BookTreeData.class.equals(this.selectedType) ||
-					   data instanceof BookTreeData && BookTreeData.class.equals(this.selectedType)) {
-				allowed = true;
-			} 
-			
-			if (allowed && !this.selected.contains(item)) {
-				e.acceptTransferModes(TransferMode.MOVE);
-				
-				if (e.getY() < cell.getHeight() * 0.75) {
-					cell.setBorder(DRAG_TOP);
-				} else {
-					cell.setBorder(DRAG_BOTTOM);
+			if (!this.selected.contains(item)) {
+				boolean parent = false;
+				if (data instanceof ChapterTreeData && VerseTreeData.class.equals(this.selectedType)) {
+					allowed = true;
+					parent = true;
+				} else if (data instanceof VerseTreeData && VerseTreeData.class.equals(this.selectedType)) {
+					allowed = true;
+				} else if (data instanceof BookTreeData && ChapterTreeData.class.equals(this.selectedType)) {
+					allowed = true;
+					parent = true;
+				} else if (data instanceof ChapterTreeData && ChapterTreeData.class.equals(this.selectedType)) {
+					allowed = true;
+				} else if (data instanceof BibleTreeData && BookTreeData.class.equals(this.selectedType)) { 
+					allowed = true;
+					parent = true;
+				} else if (data instanceof BookTreeData && BookTreeData.class.equals(this.selectedType)) {
+					allowed = true;
 				}
-			} else {
-				e.consume();
+				
+				if (allowed) {
+					e.acceptTransferModes(TransferMode.MOVE);
+					
+					if (parent) {
+//						cell.setBackground(DRAG_BACKGROUND);
+						cell.pseudoClassStateChanged(DRAG_OVER_PARENT, true);
+					} else {
+						if (e.getY() < cell.getHeight() * 0.75) {
+//							cell.setBorder(DRAG_TOP);
+							cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_TOP, true);
+							cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_BOTTOM, false);
+						} else {
+//							cell.setBorder(DRAG_BOTTOM);
+							cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_BOTTOM, true);
+							cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_TOP, false);
+						}
+					}
+				}
 			}
 		}
 	}

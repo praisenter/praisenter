@@ -333,7 +333,7 @@ public final class ObservableBibleLibrary {
 				// we set it to a copy because it could
 				// still be edited after being saved
 				// and we only want to change it if saved
-				bi.setBible(copy.copy(true));
+				bi.setBible(copy);
 			}
 			// check if name changed
 			if (onSuccess != null) {
