@@ -49,7 +49,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		this.status = new MainStatusBar(context);
 		this.setBottom(this.status);
 		
-		this.setupPane = new SetupPane(context.getConfiguration());
+		this.setupPane = new SetupPane(context);
 		this.bibleLibraryPane = new BibleLibraryPane(context);
 		this.bibleEditorPane = new BibleEditorPane(context);
 		this.mediaLibraryPane = new MediaLibraryPane(context, Orientation.HORIZONTAL);

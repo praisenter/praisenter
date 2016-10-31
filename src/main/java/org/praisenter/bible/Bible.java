@@ -193,30 +193,6 @@ public final class Bible implements Comparable<Bible>, Serializable {
 		return this.name.compareTo(o.name);
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return this.id.hashCode();
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj == this) return true;
-		if (obj instanceof Bible) {
-			Bible bbl = (Bible)obj;
-			if (bbl.id.equals(this.id)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
 	/**
 	 * Performs a deep copy of this bible.
 	 * @param exact if an exact copy should be returned

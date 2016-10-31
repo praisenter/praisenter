@@ -69,8 +69,8 @@ public final class Praisenter extends Application {
 	/** The class-level logger */
 	private static final Logger LOGGER;
 	
-	/** The application configuration properties */
-	private static final Configuration CONFIG;
+	/** The configuration */
+	private static final Configuration CONFIGURATION;
 	
 	static {
 		// set the log file path (used in the log4j2.xml file)
@@ -85,24 +85,14 @@ public final class Praisenter extends Application {
 		// create a logger for this class after the log4j has been initialized
 		LOGGER = LogManager.getLogger();
 		
-		// load configuration properties
+		// load (or create) configuration
 		LOGGER.info("Loading configuration.");
-		Configuration config = Configuration.load();
-		if (config == null) {
-			// either an exception occurred loading the configuration
-			// or the configuration hasn't been saved, in either case
-			// we need to create a default configuration
-			LOGGER.info("No configuration found or unable to load configuration. Using default configuration.");
-			config = Configuration.createDefaultConfiguration();
-		} else {
-			// set the language if in the config
-			if (config.getLanguage() != null) {
-				LOGGER.info("Setting the default language to '" + config.getLanguage() + "'.");
-				Locale.setDefault(config.getLanguage());
-			}
+		CONFIGURATION = Configuration.load();
+		// set the language if in the config
+		if (CONFIGURATION.getLanguage() != null) {
+			LOGGER.info("Setting the default language to '" + CONFIGURATION.getLanguage() + "'.");
+			Locale.setDefault(CONFIGURATION.getLanguage());
 		}
-		
-		CONFIG = config;
 	}
 
 	// FEATURE We should look at making some of the Java FX features "optional" instead of required
@@ -181,12 +171,12 @@ public final class Praisenter extends Application {
     	LOGGER.info("Loading glyph fonts.");
     	GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
 		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
-		
+
     	// we'll have a stack of the main pane and the loading pane
     	StackPane stack = new StackPane();
     	
     	// create the loading scene
-    	LoadingPane loading = new LoadingPane(WIDTH, HEIGHT, new JavaFXContext(this, stage), CONFIG);
+    	LoadingPane loading = new LoadingPane(WIDTH, HEIGHT, new JavaFXContext(this, stage), CONFIGURATION);
     	loading.setOnComplete((e) -> {
     		long t0 = 0;
     		long t1 = 0;
@@ -233,7 +223,7 @@ public final class Praisenter extends Application {
     	Scene scene = new Scene(stack);
     	// set the application look and feel
     	// NOTE: this should be the only place where this is done, every other window needs to inherit the css from the parent
-    	scene.getStylesheets().add(CONFIG.getThemeCss());
+    	scene.getStylesheets().add(CONFIGURATION.getTheme().getCss());
     	stage.setScene(scene);
     	stage.setOnCloseRequest((e) -> {
     		LOGGER.info("Checking for background threads that have not completed yet.");

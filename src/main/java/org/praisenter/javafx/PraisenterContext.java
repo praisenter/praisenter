@@ -98,9 +98,9 @@ public final class PraisenterContext {
 			SongLibrary songs, 
 			SlideLibrary slides) {
 		this.javaFXContext = javaFxContext;
-		this.configuration = configuration;
 		this.screenManager = screenManager;
 		this.imageCache = imageCache;
+		this.configuration = configuration;
 
 		// create a thread pool that we can reuse all over the app
 		this.executor = new MonitoredThreadPoolExecutor();

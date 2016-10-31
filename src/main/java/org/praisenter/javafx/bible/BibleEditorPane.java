@@ -29,6 +29,8 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -294,9 +296,15 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		this.setCenter(split);
 		
 		// EVENTS & BINDINGS
-		
+		this.bible.addListener(new InvalidationListener() {
+			@Override
+			public void invalidated(Observable observable) {
+				System.out.println("Editing bible");
+			}
+		});
 		this.bible.addListener((obs, ov, nv) -> {
 			this.mutating = true;
+			System.out.println("Editing bible " + nv);
 			bibleTree.getSelectionModel().clearSelection();
 			if (nv != null) {
 				// create the root node
@@ -410,7 +418,6 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					Locale locale = nv.getValue();
 					language = locale != null ? locale.toLanguageTag() : nv.getName();
 				}
-				System.out.println("Setting language to " + language);
 				bible.setLanguage(language);
 			}
 		});
@@ -682,6 +689,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * Deletes the selected items.
 	 */
 	private void delete() {
+		// FIXME Need an "Are you sure" here
 		List<TreeItem<TreeData>> items = new ArrayList<TreeItem<TreeData>>(this.bibleTree.getSelectionModel().getSelectedItems());
 		
 		if (items.size() > 0) {
@@ -697,7 +705,6 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				} else if (td instanceof VerseTreeData) {
 					VerseTreeData vtd = (VerseTreeData)td;
 					boolean t = vtd.chapter.getVerses().remove(vtd.verse);
-					System.out.println(t);
 				}
 				// remove the node
 				item.getParent().getChildren().remove(item);
@@ -733,7 +740,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			short number = cd.chapter.getMaxVerseNumber();
 			Verse verse = new Verse(++number, "New verse");
 			// add to data
-			cd.chapter.getVerses().add(verse);
+			boolean t = cd.chapter.getVerses().add(verse);
 			// add to view
 			newItem = new TreeItem<TreeData>(new VerseTreeData(cd.bible, cd.book, cd.chapter, verse));
 			item.getChildren().add(newItem);
@@ -835,10 +842,18 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		// need to determine what is selected
 		// renumber depth first
 		if (item != null) {
-			Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.setTitle("Renumber");
-			alert.setHeaderText("Performing this action will reassign the numbers according to their current order.");
-			alert.setContentText("Are you sure you want to do this?");
+			Alert alert = Alerts.optOut(
+					getScene().getWindow(),
+					Modality.WINDOW_MODAL,
+					AlertType.CONFIRMATION, 
+					"Renumber", 
+					"Performing this action will reassign the numbers according to their current order.", 
+					"Are you sure you want to do this?", 
+					"Don't show this again", 
+					(d) -> {
+						// FIXME Store that this shouldn't shown again (and check it before showing)
+						System.out.println("testing");
+					});
 
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.get() == ButtonType.OK){

@@ -298,7 +298,7 @@ final class LoadingPane extends Pane {
 		
 		// setup the screen manager
 		LOGGER.info("Initializing the screen manager.");
-		context.getScreenManager().setup(context.getConfiguration().getScreenMappings());
+		context.getScreenManager().initialize();
 		
 		// load fonts
 		LOGGER.info("Loading fonts.");

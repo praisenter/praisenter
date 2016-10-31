@@ -1,49 +1,46 @@
 package org.praisenter.javafx.configuration;
 
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.javafx.styles.Theme;
 import org.praisenter.xml.XmlIO;
-import org.praisenter.xml.adapters.LocaleXmlAdapter;
 
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.Observable;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableMap;
+import javafx.stage.Screen;
 
 @XmlRootElement(name = "configuration")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Configuration {
 	private static final Logger LOGGER = LogManager.getLogger();
+	
+	/** The data storage */
+	@XmlElement(name = "settings")
+	private final Map<Setting, String> settings = new HashMap<Setting, String>();
 	
 	// restart required
 	
@@ -51,66 +48,52 @@ public final class Configuration {
 	private Locale language;
 	
 	/** The currently in use theme */
-	private String theme;
+	private Theme theme;
 	
-	/** The currently saved language */
-	private final ObjectProperty<Locale> savedLanguage = new SimpleObjectProperty<Locale>();
+	// for listening
 	
-	/** The currently saved theme */
-	private final StringProperty savedTheme = new SimpleStringProperty();
-	
-	// general
-	
-	// TODO changes to the values of the screen mappings wont work (might need to be a list property)
-	/** The screen to role mapping */
-	private final ObservableList<ScreenMapping> screenMappings = FXCollections.observableArrayList();
-	
-	// bible settings
-	
-	/** The primary bible id */
-	private final IntegerProperty primaryBibleId = new SimpleIntegerProperty(-1);
-	
-	/** The secondary bible id */
-	private final IntegerProperty secondaryBibleId = new SimpleIntegerProperty(-1);
-	
-	/** True to include the Apocryphal books (if available) of the bible */
-	private final BooleanProperty apocryphaIncluded = new SimpleBooleanProperty(false);
-	
-	// slide
-	
-	private final ObservableSet<Resolution> resolutions = FXCollections.observableSet();
-	
-	private final ObjectProperty<Resolution> resolution = new SimpleObjectProperty<Resolution>();
-	
-	public Configuration() {
+	private Configuration() {
+		this.language = Locale.getDefault();
+		this.theme = Theme.DEFAULT;
+
+		// set default language/theme
+		this.set(Setting.GENERAL_LANGUAGE, this.language.toLanguageTag());
+		this.set(Setting.GENERAL_THEME, this.theme.toString());
 		
-		InvalidationListener listener = (e) -> {
-			try {
-				Configuration.save(this);
-			} catch (Exception ex) {
-				// just log the error
-				LOGGER.error("Failed to save configuration", ex);
-			}
-		};
-		
-		apocryphaIncluded.addListener(listener);
-		resolutions.addListener(listener);
-		resolution.addListener(listener);
+		// set other defaults
+		this.set(Setting.BIBLE_PRIMARY, null);
+		this.set(Setting.BIBLE_SECONDARY, null);
+		this.set(Setting.BIBLE_SHOW_RENUMBER_WARNING, "true");
 	}
 	
 	public static final Configuration load() {
-		try {
-			Path path = Paths.get(Constants.CONFIG_ABSOLUTE_FILE_PATH);
-			if (Files.exists(path)) {
+		Path path = Paths.get(Constants.CONFIG_ABSOLUTE_FILE_PATH);
+		if (Files.exists(path)) {
+			try {
 				Configuration conf = XmlIO.read(path, Configuration.class);
-				conf.language = conf.savedLanguage.get();
-				conf.theme = conf.savedTheme.get();
+				conf.language = Locale.forLanguageTag(conf.get(Setting.GENERAL_LANGUAGE));
+				conf.theme = Theme.valueOf(conf.get(Setting.GENERAL_THEME));
+				if (conf.theme == null) {
+					conf.theme = Theme.DEFAULT;
+				}
 				return conf;
+			} catch (Exception ex) {
+				LOGGER.info("Failed to load configuration. Using default configuration.", ex);
 			}
-		} catch (Exception ex) {
-			LOGGER.error(ex);
+		} else {
+			LOGGER.info("No configuration found. Using default configuration.");
 		}
-		return null;
+		
+		Configuration conf = new Configuration();
+		
+		// try to save it
+		try {
+			XmlIO.save(path, conf);
+		} catch (Exception ex) {
+			LOGGER.warn("Failed to save default configuration.", ex);
+		}
+		
+		return conf;
 	}
 	
 	public static final void save(Configuration configuration) throws JAXBException, IOException {
@@ -118,167 +101,40 @@ public final class Configuration {
 		XmlIO.save(path, configuration);
 	}
 	
-	public static final Configuration createDefaultConfiguration() {
-		Configuration conf = new Configuration();
-		conf.language = Locale.ENGLISH;
-		conf.theme = "default";
-		conf.savedLanguage.set(conf.language);
-		conf.savedTheme.set(conf.theme);
-		conf.resolutions.addAll(Arrays.asList(Resolution.DEFAULT_RESOLUTIONS));
-		
-		Resolution resolution = null;
-		// default screens
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice[] devices = ge.getScreenDevices();
-		for (int i = 0; i < devices.length; i++) {
-			GraphicsDevice device = devices[i];
-			GraphicsConfiguration gc = device.getDefaultConfiguration();
-			if (i == 0) {
-				// the first is by default the controller screen (no presentation)
-				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.NONE));
-				// backup
-				resolution = new Resolution(gc.getBounds().width, gc.getBounds().height);
-			} else if (i == 1) {
-				// the second is by default the primary presentation screen
-				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.PRESENTATION));
-				// the default presentation resolution
-				resolution = new Resolution(gc.getBounds().width, gc.getBounds().height);
-			} else if (i == 2) {
-				// the third is by default the musician screen
-				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.MUSICIAN));
-			} else {
-				// all others are by default nothing
-				conf.screenMappings.add(new ScreenMapping(device.getIDstring(), ScreenRole.NONE));
-			}
-		}
-		
-		conf.resolution.set(resolution);
-		conf.resolutions.add(resolution);
-		
-		return conf;
+	// public interface
+	
+	public void set(Setting setting, String value) {
+		this.settings.put(setting, value);
 	}
 
+	public boolean isSet(Setting setting) {
+		return this.settings.containsKey(setting) && this.settings.get(setting) != null;
+	}
+	
+	public String get(Setting setting) {
+		return this.settings.get(setting);
+	}
+
+	public void remove(Setting setting) {
+		this.settings.remove(setting);
+	}
+	
+	// helpers
+	
 	public Locale getLanguage() {
 		return this.language;
 	}
-	
-	public void setLanguage(Locale language) {
-		this.savedLanguage.set(language);
-	}
-	
-	@XmlElement(name = "language", required = false)
-	@XmlJavaTypeAdapter(value = LocaleXmlAdapter.class)
-	private Locale getSavedLanguage() {
-		return this.savedLanguage.get();
-	}
-	
-	private void setSavedLanguage(Locale locale) {
-		this.savedLanguage.set(locale);
+
+	public void setLanguage(Locale locale) {
+		this.set(Setting.GENERAL_LANGUAGE, locale != null ? locale.toLanguageTag() : Locale.getDefault().toLanguageTag());
 	}
 
-	public String getTheme() {
+	public Theme getTheme() {
 		return this.theme;
 	}
 	
-	public void setTheme(String theme) {
-		this.savedTheme.set(theme);
-	}
-
-	@XmlElement(name = "theme", required = false)
-	private String getSavedTheme() {
-		return this.savedTheme.get();
-	}
-	
-	private void setSavedTheme(String theme) {
-		this.savedTheme.set(theme);
-	}
-	
-	public String getThemeCss() {
-		String url = Configuration.class.getResource("/org/praisenter/javafx/styles/default.css").toExternalForm();
-		// check if a theme is present
-		if (this.theme != null && this.theme.length() > 0) {
-			URL tUrl = Configuration.class.getResource("/org/praisenter/javafx/styles/" + this.theme + ".css");
-			// make sure the theme is found on the source path
-			if (tUrl != null) {
-				String sUrl = tUrl.toExternalForm();
-				if (sUrl != null) {
-					return sUrl;
-				}
-			}
-		}
-		return url;
-	}
-
-	@XmlElementWrapper(name = "screenMappings", required = false)
-	@XmlElement(name = "screenMapping", required = false)
-	public List<ScreenMapping> getScreenMappings() {
-		return this.screenMappings;
-	}
-	
-	public ObservableList<ScreenMapping> screenMappingsProperty() {
-		return this.screenMappings;
-	}
-
-	@XmlElement(name = "primaryBibleId", required = false)
-	public int getPrimaryBibleId() {
-		return this.primaryBibleId.get();
-	}
-	
-	public void setPrimaryBibleId(int id) {
-		this.primaryBibleId.set(id);
-	}
-	
-	public IntegerProperty primaryBibleIdProperty() {
-		return this.primaryBibleId;
-	}
-
-	@XmlElement(name = "secondaryBibleId", required = false)
-	public int getSecondaryBibleId() {
-		return this.secondaryBibleId.get();
-	}
-	
-	public void setSecondaryBibleId(int id) {
-		this.secondaryBibleId.set(id);
-	}
-	
-	public IntegerProperty secondaryBibleIdProperty() {
-		return this.secondaryBibleId;
-	}
-
-	@XmlElement(name = "apocryphaIncluded", required = false)
-	public boolean isApocryphaIncluded() {
-		return this.apocryphaIncluded.get();
-	}
-	
-	public void setApocryphaIncluded(boolean flag) {
-		this.apocryphaIncluded.set(flag);
-	}
-	
-	public BooleanProperty apocryphaIncludedProperty() {
-		return this.apocryphaIncluded;
-	}
-
-	@XmlElementWrapper(name = "resolutions", required = false)
-	@XmlElement(name = "resolution", required = false)
-	public Set<Resolution> getResolutions() {
-		return this.resolutions;
-	}
-	
-	public ObservableSet<Resolution> resolutionsProperty() {
-		return this.resolutions;
-	}
-
-	@XmlElement(name = "resolution", required = false)
-	public Resolution getResolution() {
-		return this.resolution.get();
-	}
-	
-	public void setResolution(Resolution resolution) {
-		this.resolution.set(resolution);
-	}
-	
-	public ObjectProperty<Resolution> resolutionProperty() {
-		return this.resolution;
+	public void setTheme(Theme theme) {
+		this.set(Setting.GENERAL_THEME, theme != null ? theme.toString() : Theme.DEFAULT.toString());
 	}
 }
 

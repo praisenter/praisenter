@@ -73,12 +73,20 @@ public final class Constants {
 	// CONFIGURATION
 	
 	// /configuration.xml
-	/** The relative path to the configuration folder */
+	/** The relative path to the configuration.xml */
 	public static final String CONFIG_RELATIVE_FILE_PATH = "configuration.xml";
 	
 	// /user/home/dir/Praisenter3/configuration.xml
-	/** The absolute path to the configuration folder */
+	/** The absolute path to the configuration.xml */
 	public static final String CONFIG_ABSOLUTE_FILE_PATH = Constants.ROOT_PATH + CONFIG_RELATIVE_FILE_PATH;
+
+	// /screens.xml
+	/** The relative path to the screens.xml */
+	public static final String SCREENS_RELATIVE_FILE_PATH = "screens.xml";
+	
+	// /user/home/dir/Praisenter3/screens.xml
+	/** The absolute path to the screens.xml */
+	public static final String SCREENS_ABSOLUTE_FILE_PATH = Constants.ROOT_PATH + SCREENS_RELATIVE_FILE_PATH;
 	
 	///////////////////////////
 	// MEDIA

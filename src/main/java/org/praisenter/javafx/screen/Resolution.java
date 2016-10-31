@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.configuration;
+package org.praisenter.javafx.screen;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -36,17 +36,16 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "resolution")
 @XmlAccessorType(XmlAccessType.NONE)
-public class Resolution implements Comparable<Resolution> {
+public final class Resolution implements Comparable<Resolution> {
 	/** The width in pixels */
-	@XmlAttribute(name = "width", required = false)
+	@XmlAttribute(name = "width")
 	final int width;
 	
 	/** The height in pixels */
-	@XmlAttribute(name = "height", required = false)
+	@XmlAttribute(name = "height")
 	final int height;
 
 	/** The list of common screen resolutions */
-	// TODO may want to move this
 	public static final Resolution[] DEFAULT_RESOLUTIONS = new Resolution[] {
 		new Resolution(800, 600),
 		new Resolution(1024, 768),
@@ -59,15 +58,9 @@ public class Resolution implements Comparable<Resolution> {
 		new Resolution(1920, 1200)
 	};
 	
-	/**
-	 * Default constructor.
-	 * <p>
-	 * This constructor should be used with JAXB only.
-	 */
-	@SuppressWarnings("unused")
 	private Resolution() {
-		this.width = 0;
-		this.height = 0;
+		// for jaxb
+		this(0, 0);
 	}
 	
 	/**

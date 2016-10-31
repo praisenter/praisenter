@@ -26,16 +26,26 @@ package org.praisenter.javafx;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.praisenter.resources.translations.Translations;
 
+import javafx.collections.ObservableList;
+import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.stage.Modality;
 import javafx.stage.Window;
+import javafx.util.Callback;
 
 /**
  * Helper class for generating alerts.
@@ -107,4 +117,56 @@ public final class Alerts {
 		
 		return alert;
 	}
+	
+	public static final Alert optOut(
+			Window owner,
+			Modality modality,
+			AlertType type, 
+			String title, 
+			String header, 
+			String content,
+			String optOutMessage, 
+			Consumer<Boolean> optOutAction) {
+		Alert alert = new Alert(type);
+		// override the dialog pane with a new one with the opt out option
+		DialogPane pane = new OptOutDialogPane(optOutMessage, optOutAction);
+		// copy the buttons
+		pane.getButtonTypes().addAll(alert.getButtonTypes());
+		// copy the classes
+		pane.getStyleClass().addAll(alert.getDialogPane().getStyleClass());
+		alert.setDialogPane(pane);
+		alert.setContentText(content);
+		// fool the Alert into thinking there is something expanded
+		pane.setExpandableContent(new Group());
+		pane.setExpanded(true);
+		alert.setTitle(title);
+		alert.setHeaderText(header);
+		
+		if (owner != null) {
+			alert.initOwner(owner);
+		}
+		if (modality != null) {
+			alert.initModality(modality);
+		}
+		
+		return alert;
+	}
+	
+	private static class OptOutDialogPane extends DialogPane {
+		private final String message;
+		private final Consumer<Boolean> action;
+		
+		public OptOutDialogPane(String message, Consumer<Boolean> action) {
+			this.message = message;
+			this.action = action;
+		}
+		
+		@Override
+		protected Node createDetailsButton() {
+			CheckBox optOut = new CheckBox();
+			optOut.setText(this.message);
+			optOut.setOnAction(e -> this.action.accept(optOut.isSelected()));
+			return optOut;
+		}
+	};
 }

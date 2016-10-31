@@ -8,7 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.configuration.Resolution;
+import org.praisenter.javafx.screen.Resolution;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;

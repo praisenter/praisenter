@@ -2,7 +2,7 @@ package org.praisenter.javafx.slide.editor;
 
 import java.io.Serializable;
 
-import org.praisenter.javafx.configuration.Resolution;
+import org.praisenter.javafx.screen.Resolution;
 import org.praisenter.javafx.slide.ObservableSlide;
 
 import javafx.event.EventTarget;

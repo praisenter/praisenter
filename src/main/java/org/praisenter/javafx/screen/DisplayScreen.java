@@ -2,7 +2,6 @@ package org.praisenter.javafx.screen;
 
 import java.util.ArrayList;
 
-import org.praisenter.javafx.configuration.ScreenRole;
 import org.praisenter.javafx.slide.ObservableSlide;
 
 import javafx.animation.Animation.Status;
@@ -27,7 +26,7 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
 public final class DisplayScreen {
-	private final String id;
+	private final int id;
 	private final ScreenRole role;
 	private final Screen screen;
 	private final Stage stage;
@@ -40,7 +39,7 @@ public final class DisplayScreen {
 	
 	private ObservableSlide<?> slide;
 	
-	public DisplayScreen(String id, ScreenRole role, Screen screen) {
+	public DisplayScreen(int id, ScreenRole role, Screen screen) {
 		this.id = id;
 		this.role = role;
 		this.screen = screen;

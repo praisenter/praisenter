@@ -6,7 +6,7 @@ import org.praisenter.Tag;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.TagEvent;
 import org.praisenter.javafx.TagListView;
-import org.praisenter.javafx.configuration.Resolution;
+import org.praisenter.javafx.screen.Resolution;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 
@@ -40,7 +40,7 @@ public class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 		time.setPromptText("00:00");
 		
 		// target resolution
-		ObservableList<Resolution> resolutions = FXCollections.observableArrayList(context.getConfiguration().getResolutions());
+		ObservableList<Resolution> resolutions = FXCollections.observableArrayList(context.getScreenManager().getScreenConfiguration().getResolutions());
 		cmbResolutions = new ComboBox<Resolution>(new SortedList<>(resolutions, new Comparator<Resolution>() {
 			@Override
 			public int compare(Resolution o1, Resolution o2) {
@@ -97,9 +97,7 @@ public class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 		
 		btnNewResolution.setOnAction((e) -> {
 			Resolution res = new Resolution(2000, 4000);
-			if (context.getConfiguration().resolutionsProperty().add(res)) {
-				resolutions.add(res);
-			}
+			context.getScreenManager().getScreenConfiguration().getResolutions().add(res);
 			cmbResolutions.setValue(res);
 		});
 		
