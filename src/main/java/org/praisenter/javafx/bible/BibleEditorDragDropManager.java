@@ -33,19 +33,12 @@ import javafx.scene.shape.StrokeType;
 
 // JAVABUG Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
 final class BibleEditorDragDropManager {
-	// FIXME make this css
-	private static final Border DRAG_TOP = new Border(new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 2, 0, null), null, new BorderWidths(1, 0, 0, 0)));
-	private static final Border DRAG_BOTTOM = new Border(new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 2, 0, null), null, new BorderWidths(0, 0, 1, 0)));
-	private static final Background DRAG_BACKGROUND = new Background(new BackgroundFill(Color.LIGHTBLUE, null, null));
-	
 	private static final PseudoClass DRAG_OVER_PARENT = PseudoClass.getPseudoClass("drag-over-parent");
 	private static final PseudoClass DRAG_OVER_SIBLING_TOP = PseudoClass.getPseudoClass("drag-over-sibling-top");
 	private static final PseudoClass DRAG_OVER_SIBLING_BOTTOM = PseudoClass.getPseudoClass("drag-over-sibling-bottom");
 	
 	private final List<TreeItem<TreeData>> selected;
 	private Class<?> selectedType;
-	
-	// TODO test ordering and saving to ensure that they are saved as listed in the tree
 	
 	public BibleEditorDragDropManager() {
 		this.selected = new ArrayList<TreeItem<TreeData>>();

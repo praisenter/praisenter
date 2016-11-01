@@ -39,7 +39,6 @@ public final class ScreenManager {
 		Screen.getScreens().addListener(new ListChangeListener<Screen>() {
 			@Override
 			public void onChanged(ListChangeListener.Change<? extends Screen> c) {
-				System.out.println("Screens changed.");
 				screensChanged();
 			}
 		});
@@ -52,10 +51,11 @@ public final class ScreenManager {
 			this.saveConfiguration();
 			
 			// update the display screens
-			this.updateScreens();
+			this.updateDisplays();
 		};
 		this.configuration.musicianScreenProperty().addListener(listener);
 		this.configuration.operatorScreenProperty().addListener(listener);
+		this.configuration.mainScreenProperty().addListener(listener);
 		this.configuration.primaryScreenProperty().addListener(listener);
 		this.configuration.getResolutions().addListener(listener);
 		
@@ -80,6 +80,7 @@ public final class ScreenManager {
 		if (!isValid(pDisplay, screens)) {
 			// this indicates that all of them should be invalidated
 			primaryChanged = true;
+			LOGGER.info("The primary screen changed. Resetting screen assignment.");
 		}
 		
 		// verify that the screens are still the way we left them
@@ -102,6 +103,7 @@ public final class ScreenManager {
 		// then the primary display
 		if (dDisplay != null) {
 			if (assigned.containsKey(dDisplay.getId())) {
+				LOGGER.info("The display assigned to " + dDisplay + " is already assigned. Removing assignment.");
 				dDisplay = null;
 			} else {
 				assigned.put(dDisplay.getId(), true);
@@ -110,6 +112,7 @@ public final class ScreenManager {
 		// then the musician display
 		if (mDisplay != null) {
 			if (assigned.containsKey(mDisplay.getId())) {
+				LOGGER.info("The display assigned to " + mDisplay + " is already assigned. Removing assignment.");
 				mDisplay = null;
 			} else {
 				assigned.put(mDisplay.getId(), true);
@@ -139,17 +142,15 @@ public final class ScreenManager {
 			if (oDisplay == null) {
 				// set it to the primary screen index
 				oDisplay = new Display(i, screen);
+				LOGGER.info("Assigning the operator screen to " + oDisplay + ".");
 			} else if (dDisplay == null) {
 				dDisplay = new Display(i, screen);
+				LOGGER.info("Assigning the main screen to " + dDisplay + ".");
 			} else if (mDisplay == null) {
 				mDisplay = new Display(i, screen);
+				LOGGER.info("Assigning the musician screen to " + mDisplay + ".");
 			}
 		}
-		
-//		// make sure the primary screen was set
-//		if (this.configuration.getPrimaryScreenId() == ScreenConfiguration.SCREEN_NOT_AVAILABLE) {
-//			this.configuration.setPrimaryScreenId(this.configuration.getOperatorScreenId());
-//		}
 		
 		// set the configuration
 		this.configuration.setPrimaryScreen(pDisplay);
@@ -160,16 +161,18 @@ public final class ScreenManager {
 		// save the new configuration
 		this.saveConfiguration();
 		
-		this.updateScreens();
+		// update the displays
+		this.updateDisplays();
 		
 		mutating = false;
 	}
 	
-	private void updateScreens() {
+	private void updateDisplays() {
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
 		Display dDisplay = this.configuration.getMainScreen();
 		Display mDisplay = this.configuration.getMusicianScreen();
 		
+		LOGGER.info("Releasing existing displays.");
 		// release any existing stages
 		if (this.main != null) {
 			this.main.release();
@@ -181,10 +184,11 @@ public final class ScreenManager {
 		}
 		
 		// create new ones
-		if (dDisplay != null) {
+		LOGGER.info("Creating new displays.");
+		if (dDisplay != null && dDisplay.getId() < screens.size()) {
 			this.main = new DisplayScreen(dDisplay.getId(), ScreenRole.MAIN, screens.get(dDisplay.getId()));
 		}
-		if (mDisplay != null) {
+		if (mDisplay != null && mDisplay.getId() < screens.size()) {
 			this.musician = new DisplayScreen(mDisplay.getId(), ScreenRole.MUSICIAN, screens.get(mDisplay.getId()));
 		}
 	}
@@ -206,6 +210,7 @@ public final class ScreenManager {
 			return true;
 		}
 		
+		LOGGER.info("Display " + display + " no longer valid. It's resolution or position has changed.");
 		return false;
 	}
 	
@@ -234,6 +239,7 @@ public final class ScreenManager {
 		Path path = Paths.get(Constants.SCREENS_ABSOLUTE_FILE_PATH);
 		try {
 			XmlIO.save(path, this.configuration);
+			LOGGER.info("Screen configuration saved.");
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to save new configuration file.", ex);
 		}

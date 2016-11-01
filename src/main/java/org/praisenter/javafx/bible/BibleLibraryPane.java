@@ -76,7 +76,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Hyperlink;
@@ -407,12 +406,12 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 						if (wFileNames.length > 0) {
 							// show a dialog of the files that had warnings
 							String list = String.join(", ", wFileNames);
-							Alert alert = new Alert(AlertType.INFORMATION);
-							alert.initOwner(getScene().getWindow());
-							alert.initModality(Modality.WINDOW_MODAL);
-							alert.setTitle(Translations.get("bible.import.info.title"));
-							alert.setHeaderText(Translations.get("bible.import.info.header"));
-							alert.setContentText(list);
+							Alert alert = Alerts.info(
+									getScene().getWindow(), 
+									Modality.WINDOW_MODAL,
+									Translations.get("bible.import.info.title"), 
+									Translations.get("bible.import.info.header"), 
+									list);
 							alert.show();
 						}
 					},
@@ -447,12 +446,12 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		}
 		if (bibles.size() > 0) {
 			// attempt to delete the selected bible
-			Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.initOwner(getScene().getWindow());
-			alert.initModality(Modality.WINDOW_MODAL);
-			alert.setTitle(Translations.get("bible.remove.title"));
-			alert.setContentText(Translations.get("bible.remove.content"));
-			alert.setHeaderText(null);
+			Alert alert = Alerts.confirm(
+					getScene().getWindow(), 
+					Modality.WINDOW_MODAL, 
+					Translations.get("bible.remove.title"), 
+					null, 
+					Translations.get("bible.remove.content"));
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.get() == ButtonType.OK) {
 				// attempt to remove
@@ -487,9 +486,9 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     	TextInputDialog prompt = new TextInputDialog(old);
     	prompt.initOwner(getScene().getWindow());
     	prompt.initModality(Modality.WINDOW_MODAL);
-    	prompt.setTitle(Translations.get("bible.metadata.rename.title"));
-    	prompt.setHeaderText(Translations.get("bible.metadata.rename.header"));
-    	prompt.setContentText(Translations.get("bible.metadata.rename.content"));
+    	prompt.setTitle(Translations.get("rename"));
+    	prompt.setHeaderText(Translations.get("name.new"));
+    	prompt.setContentText(Translations.get("name"));
     	Optional<String> result = prompt.showAndWait();
     	// check for the "OK" button
     	if (result.isPresent()) {

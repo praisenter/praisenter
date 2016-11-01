@@ -152,6 +152,48 @@ public final class Alerts {
 		return alert;
 	}
 	
+	public static final Alert info(
+			Window owner,
+			Modality modality,
+			String title, 
+			String header, 
+			String content) {
+		Alert alert = new Alert(AlertType.INFORMATION);
+		alert.setContentText(content);
+		alert.setTitle(title);
+		alert.setHeaderText(header);
+		
+		if (owner != null) {
+			alert.initOwner(owner);
+		}
+		if (modality != null) {
+			alert.initModality(modality);
+		}
+		
+		return alert;
+	}
+	
+	public static final Alert confirm(
+			Window owner,
+			Modality modality,
+			String title, 
+			String header, 
+			String content) {
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+		alert.setContentText(content);
+		alert.setTitle(title);
+		alert.setHeaderText(header);
+		
+		if (owner != null) {
+			alert.initOwner(owner);
+		}
+		if (modality != null) {
+			alert.initModality(modality);
+		}
+		
+		return alert;
+	}
+	
 	private static class OptOutDialogPane extends DialogPane {
 		private final String message;
 		private final Consumer<Boolean> action;

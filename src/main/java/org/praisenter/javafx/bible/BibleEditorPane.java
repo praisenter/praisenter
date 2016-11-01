@@ -26,6 +26,7 @@ import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
@@ -101,9 +102,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 */
 	public BibleEditorPane(PraisenterContext context) {
 		this.context = context;
-		
-		// TODO saving UI (small button bar above the treeview?) (save, save & close, save as, back, close, etc)
-		
+
 		ObservableList<Option<Locale>> locales = FXCollections.observableArrayList();
 		for (Locale locale : Locale.getAvailableLocales()) {
 			locales.add(new Option<Locale>(locale.getDisplayName(), locale));
@@ -689,25 +688,34 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * Deletes the selected items.
 	 */
 	private void delete() {
-		// FIXME Need an "Are you sure" here
 		List<TreeItem<TreeData>> items = new ArrayList<TreeItem<TreeData>>(this.bibleTree.getSelectionModel().getSelectedItems());
 		
 		if (items.size() > 0) {
-			for (TreeItem<TreeData> item : items) {
-				// remove the data
-				TreeData td = item.getValue();
-				if (td instanceof BookTreeData) {
-					BookTreeData btd = (BookTreeData)td;
-					btd.bible.getBooks().remove(btd.book);
-				} else if (td instanceof ChapterTreeData) {
-					ChapterTreeData ctd = (ChapterTreeData)td;
-					ctd.book.getChapters().remove(ctd.chapter);
-				} else if (td instanceof VerseTreeData) {
-					VerseTreeData vtd = (VerseTreeData)td;
-					boolean t = vtd.chapter.getVerses().remove(vtd.verse);
+			Alert alert = Alerts.confirm(
+					getScene().getWindow(),
+					Modality.WINDOW_MODAL,
+					"Delete", 
+					"This will delete all the selected items.", 
+					"Are you sure you want to do this?");
+			
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.get() == ButtonType.OK) {
+				for (TreeItem<TreeData> item : items) {
+					// remove the data
+					TreeData td = item.getValue();
+					if (td instanceof BookTreeData) {
+						BookTreeData btd = (BookTreeData)td;
+						btd.bible.getBooks().remove(btd.book);
+					} else if (td instanceof ChapterTreeData) {
+						ChapterTreeData ctd = (ChapterTreeData)td;
+						ctd.book.getChapters().remove(ctd.chapter);
+					} else if (td instanceof VerseTreeData) {
+						VerseTreeData vtd = (VerseTreeData)td;
+						vtd.chapter.getVerses().remove(vtd.verse);
+					}
+					// remove the node
+					item.getParent().getChildren().remove(item);
 				}
-				// remove the node
-				item.getParent().getChildren().remove(item);
 			}
 		}
 	}
@@ -740,7 +748,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			short number = cd.chapter.getMaxVerseNumber();
 			Verse verse = new Verse(++number, "New verse");
 			// add to data
-			boolean t = cd.chapter.getVerses().add(verse);
+			cd.chapter.getVerses().add(verse);
 			// add to view
 			newItem = new TreeItem<TreeData>(new VerseTreeData(cd.bible, cd.book, cd.chapter, verse));
 			item.getChildren().add(newItem);
@@ -842,20 +850,26 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		// need to determine what is selected
 		// renumber depth first
 		if (item != null) {
-			Alert alert = Alerts.optOut(
-					getScene().getWindow(),
-					Modality.WINDOW_MODAL,
-					AlertType.CONFIRMATION, 
-					"Renumber", 
-					"Performing this action will reassign the numbers according to their current order.", 
-					"Are you sure you want to do this?", 
-					"Don't show this again", 
-					(d) -> {
-						// FIXME Store that this shouldn't shown again (and check it before showing)
-						System.out.println("testing");
-					});
-
-			Optional<ButtonType> result = alert.showAndWait();
+			Optional<ButtonType> result = Optional.of(ButtonType.OK);
+			
+			// see if we should prompt the user to verify
+			boolean verify = this.context.getConfiguration().getBoolean(Setting.BIBLE_SHOW_RENUMBER_WARNING, true);
+			if (verify) {
+				Alert alert = Alerts.optOut(
+						getScene().getWindow(),
+						Modality.WINDOW_MODAL,
+						AlertType.CONFIRMATION, 
+						"Renumber", 
+						"Performing this action will reassign the numbers according to their current order.", 
+						"Are you sure you want to do this?", 
+						"Don't show this again", 
+						(d) -> {
+							this.context.getConfiguration().setBoolean(Setting.BIBLE_SHOW_RENUMBER_WARNING, false);
+						});
+	
+				result = alert.showAndWait();
+			}
+			
 			if (result.get() == ButtonType.OK){
 				// remove the data
 				TreeData td = item.getValue();

@@ -73,7 +73,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
@@ -519,12 +518,12 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 		// are there any items selected?
 		if (items.size() > 0) {
 			// make sure the user really wants to do this
-			Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.initOwner(getScene().getWindow());
-			alert.initModality(Modality.WINDOW_MODAL);
-			alert.setTitle(Translations.get("media.remove.title"));
-			alert.setContentText(Translations.get("media.remove.content"));
-			alert.setHeaderText(null);
+			Alert alert = Alerts.confirm(
+					getScene().getWindow(), 
+					Modality.WINDOW_MODAL, 
+					Translations.get("media.remove.title"), 
+					null, 
+					Translations.get("media.remove.content"));
 			Optional<ButtonType> result = alert.showAndWait();
 			
 			if (result.get() == ButtonType.OK) {
@@ -557,9 +556,9 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     	TextInputDialog prompt = new TextInputDialog(media.getName());
     	prompt.initOwner(getScene().getWindow());
     	prompt.initModality(Modality.WINDOW_MODAL);
-    	prompt.setTitle(Translations.get("media.metadata.rename.title"));
-    	prompt.setHeaderText(Translations.get("media.metadata.rename.header"));
-    	prompt.setContentText(Translations.get("media.metadata.rename.content"));
+    	prompt.setTitle(Translations.get("rename"));
+    	prompt.setHeaderText(Translations.get("name.new"));
+    	prompt.setContentText(Translations.get("name"));
     	Optional<String> result = prompt.showAndWait();
     	// check for the "OK" button
     	if (result.isPresent()) {

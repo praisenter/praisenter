@@ -54,13 +54,10 @@ public class TestBibleLibrary {
 //			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\SF_2009-01-20_ENG_YLT_(YLT).zip"));
 //			bi.execute(Paths.get("C:\\Users\\William\\Desktop\\test\\bibles\\SF_2009-01-20_SPA_RVA_(REINA VALERA 1989).zip"));
 //		} catch (JAXBException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		} catch (InvalidFormatException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		} catch (UnknownFormatException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 		

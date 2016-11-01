@@ -26,7 +26,6 @@ public final class SlideShow {
 	
 	String name;
 	
-	// FIXME we may want to change this to reference the slide ids, that way if they are updated the show is updated as well
 	@XmlElementWrapper(name = "slides")
 	@XmlElement(name = "slide")
 	@XmlJavaTypeAdapter(value = SlideXmlAdapter.class)

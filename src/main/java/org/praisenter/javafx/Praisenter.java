@@ -33,6 +33,7 @@ import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.resources.OpenIconic;
 import org.praisenter.resources.translations.Translations;
 
@@ -52,8 +53,8 @@ import javafx.util.Duration;
 
 // FIXME fix the manifest
 // FIXME explore deployment options
-// FIXME what happens when two of the same movie is played with audio.... For example if displayed on multiple screens
 // FIXME testing on High DPI screens
+// FIXME fix dark theme
 
 // FEATURE Use Apache POI to read powerpoint files
 // FEATURE Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
@@ -107,7 +108,7 @@ public final class Praisenter extends Application {
 	};
 	
 	/** The default width */
-	private static final int WIDTH = 1200;
+	private static final int WIDTH = 1000;
 	
 	/** The default height */
 	private static final int HEIGHT = 700;
@@ -164,8 +165,21 @@ public final class Praisenter extends Application {
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon256x256.png"));
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon512x512.png"));
     	
-    	stage.setMinWidth(800);
-    	stage.setMinHeight(500);
+    	// set minimum size
+    	stage.setMinWidth(WIDTH);
+    	stage.setMinHeight(HEIGHT);
+    	
+    	// read stored position/size
+    	double x = CONFIGURATION.getDouble(Setting.GENERAL_X, stage.getX());
+		double y = CONFIGURATION.getDouble(Setting.GENERAL_Y, stage.getY());
+		double w = CONFIGURATION.getDouble(Setting.GENERAL_WIDTH, WIDTH);
+		double h = CONFIGURATION.getDouble(Setting.GENERAL_HEIGHT, HEIGHT);
+    	
+		// set position and size
+		stage.setX(x);
+		stage.setY(y);
+    	stage.setWidth(w);
+    	stage.setHeight(h);
     	
 		// load fonts
     	LOGGER.info("Loading glyph fonts.");
@@ -226,6 +240,14 @@ public final class Praisenter extends Application {
     	scene.getStylesheets().add(CONFIGURATION.getTheme().getCss());
     	stage.setScene(scene);
     	stage.setOnCloseRequest((e) -> {
+    		// save some application info
+    		CONFIGURATION.beginBatch();
+    		CONFIGURATION.setDouble(Setting.GENERAL_X, stage.getX());
+    		CONFIGURATION.setDouble(Setting.GENERAL_Y, stage.getY());
+    		CONFIGURATION.setDouble(Setting.GENERAL_WIDTH, stage.getWidth());
+    		CONFIGURATION.setDouble(Setting.GENERAL_HEIGHT, stage.getHeight());
+    		CONFIGURATION.endBatch();
+    		
     		LOGGER.info("Checking for background threads that have not completed yet.");
     		// this stuff could be null if we blow up before its created
     		MonitoredThreadPoolExecutor executor = context != null ? context.getExecutorService() : null;

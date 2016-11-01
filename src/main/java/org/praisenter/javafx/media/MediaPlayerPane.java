@@ -52,8 +52,6 @@ import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 
-// FIXME when switching to another pane, the media keeps playing
-
 /**
  * Represents a media player with play/pause and volume controls.
  * @author William Bittle

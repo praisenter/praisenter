@@ -76,3 +76,19 @@
 	-fx-font-weight: bold; 
 	-fx-font-size: 0.8em;
 }
+
+.tree-cell:drag-over-parent {
+	-fx-background-color: rgba(153, 209, 255, 0.5);
+}
+
+.tree-cell:drag-over-sibling-top {
+	-fx-border-color: black;
+    -fx-border-style: solid;
+    -fx-border-width: 1 0 0 0;
+}
+
+.tree-cell:drag-over-sibling-bottom {
+	-fx-border-color: black;
+    -fx-border-style: solid;
+    -fx-border-width: 0 0 1 0;
+}

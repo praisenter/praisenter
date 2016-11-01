@@ -40,11 +40,15 @@ public abstract class ScreenViewDragDropManager {
 	public void dragEntered(ScreenView screen, DragEvent e) {}
 	
 	public void dragOver(ScreenView screen, DragEvent e) {
-		e.acceptTransferModes(TransferMode.MOVE);
+		if (screen == this.dragged) {
+			e.acceptTransferModes(TransferMode.NONE);
+		} else {
+			e.acceptTransferModes(TransferMode.MOVE);
+		}
 	}
 	
 	public void dragDropped(ScreenView screen, DragEvent e) {
-		if (this.dragged != null) {
+		if (this.dragged != null && this.dragged != screen) {
 			this.swap(screen, this.dragged);
 			e.setDropCompleted(true);
 		}

@@ -58,7 +58,10 @@ public final class Resolution implements Comparable<Resolution> {
 		new Resolution(1920, 1200)
 	};
 	
-	private Resolution() {
+	/**
+	 * For JAXB.
+	 */
+	Resolution() {
 		// for jaxb
 		this(0, 0);
 	}

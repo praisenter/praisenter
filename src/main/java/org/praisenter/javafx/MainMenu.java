@@ -22,7 +22,6 @@ import javafx.scene.input.DataFormat;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-// FIXME still issues with focus and current application pane (mainly with breadcrumb bar and progress button, they steal focus away)
 class MainMenu extends VBox implements EventHandler<ActionEvent> {
 	private final MainPane mainPane;
 	private final MenuBar menu;

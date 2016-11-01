@@ -108,7 +108,7 @@ public final class ScreenView extends StackPane {
 				Fx.setSize(this, w + BORDER_WIDTH * 2, h + BORDER_WIDTH * 2);
 				this.getStyleClass().add("screen-snapshot");
 			} catch (Exception ex) {
-				// TODO handle error
+				// TODO handle error - show text with screen number
 			}
 		}
 
