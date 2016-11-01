@@ -158,6 +158,8 @@ public final class DisplayScreen {
 			this.slide.dispose();
 		}
 		
+		this.stage.setOnHiding(null);
+		this.stage.setOnCloseRequest(null);
 		this.stage.close();
 	}
 }

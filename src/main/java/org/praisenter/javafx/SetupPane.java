@@ -13,12 +13,17 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.screen.ScreenConfiguration;
+import org.praisenter.javafx.screen.ScreenView;
+import org.praisenter.javafx.screen.ScreenViewDragDropManager;
 import org.praisenter.javafx.styles.Theme;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -27,6 +32,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.GridPane;
@@ -79,145 +90,95 @@ public final class SetupPane extends GridPane {
 		this.add(lblTheme, 0, row);
 		this.add(cmbTheme, 1, row++);
 		
-//		// get screen options
-//		List<Option<ScreenRole>> screenTypes = new ArrayList<Option<ScreenRole>>();
-//		screenTypes.add(new Option<ScreenRole>("None", ScreenRole.NONE));
-//		screenTypes.add(new Option<ScreenRole>("Presentation", ScreenRole.PRESENTATION));
-//		screenTypes.add(new Option<ScreenRole>("Musician", ScreenRole.MUSICIAN));
-		
 		// get a screenshot of all the screens
 		GridPane screenPane = new GridPane();
 		screenPane.setHgap(10);
 		screenPane.setVgap(10);
 		
-		screenPane.add(new Label("Operator"), 0, 1);
-		screenPane.add(new Label("Primary"), 1, 1);
-		screenPane.add(new Label("Musician"), 2, 1);
+		Label lblOperatorScreen = new Label("Operator");
+		Label lblPrimaryScreen = new Label("Primary");
+		Label lblMusicianScreen = new Label("Musician");
 		
-		parentProperty().addListener((obs, ov, nv) -> {
-			List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
-			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-			GraphicsDevice[] devices = ge.getScreenDevices();
-			
-			Map<Integer, Node> screenshots = new HashMap<Integer, Node>(); 
-			
-			final double s = 200.0 / 1080.0;
-			final double bw = 10;
-			
-			for (int i = 0; i < devices.length; i++) {
-				GraphicsDevice device = devices[i];
+		screenPane.add(lblOperatorScreen, 0, 1);
+		screenPane.add(lblPrimaryScreen, 1, 1);
+		screenPane.add(lblMusicianScreen, 2, 1);
+		
+		GridPane.setHalignment(lblOperatorScreen, HPos.CENTER);
+		GridPane.setHalignment(lblPrimaryScreen, HPos.CENTER);
+		GridPane.setHalignment(lblMusicianScreen, HPos.CENTER);
+		
+		// create a custom manager
+		ScreenViewDragDropManager manager = new ScreenViewDragDropManager() {
+			@Override
+			public void swap(ScreenView view1, ScreenView view2) {
+				int col1 = GridPane.getColumnIndex(view1);
+				int row1 = GridPane.getRowIndex(view1);
+				int col2 = GridPane.getColumnIndex(view2);
+				int row2 = GridPane.getRowIndex(view2);
+				screenPane.getChildren().removeAll(view1, view2);
+				screenPane.add(view2, col1, row1);
+				screenPane.add(view1, col2, row2);
 				
-				// find a matching screen for this device
-				java.awt.Rectangle bounds = device.getDefaultConfiguration().getBounds();
-				int dx = bounds.x;
-				int dy = bounds.y;
-				int id = ScreenConfiguration.SCREEN_NOT_AVAILABLE;
-				for (int j = 0; j < screens.size(); j++) {
-					Screen scrn = screens.get(j);
-					int sx = (int)scrn.getBounds().getMinX();
-					int sy = (int)scrn.getBounds().getMinY();
-					if (sx == dx && sy == dy) {
-						id = j;
-					}
+				// record the changes (will save automatically)
+				ScreenConfiguration sc = context.getScreenManager().getScreenConfiguration();
+				if (col1 == 0) {
+					sc.setOperatorScreen(view2.getDisplay());
+				} else if (col1 == 1) {
+					sc.setMainScreen(view2.getDisplay());
+				} else if (col1 == 2) {
+					sc.setMusicianScreen(view2.getDisplay());
 				}
-				
-				// take a screenshot of the device
-				try {
-					Robot robot = new Robot(device);
-					BufferedImage image = robot.createScreenCapture(device.getDefaultConfiguration().getBounds());
-					Image fximage = SwingFXUtils.toFXImage(image, null);
-					ImageView img = new ImageView(fximage);
-					 
-					final double w = Math.ceil(fximage.getWidth() * s);
-					final double h = Math.ceil(fximage.getHeight() * s);
-					
-					img.setFitHeight(h);
-					img.setFitWidth(w);
-					img.setPreserveRatio(true);
-					img.setLayoutX(bw);
-					img.setLayoutY(bw);
-					
-					StackPane stack = new StackPane(img);
-					stack.setBackground(new Background(new BackgroundFill(Color.BLACK, null, new Insets(bw * 0.5))));
-					Fx.setSize(stack, w + bw * 2, h + bw * 2);
-					stack.getStyleClass().add("screen-snapshot");
-					
-					screenshots.put(id, stack);
-				} catch (Exception ex) {
-					
+				if (col2 == 0) {
+					sc.setOperatorScreen(view1.getDisplay());
+				} else if (col2 == 1) {
+					sc.setMainScreen(view1.getDisplay());
+				} else if (col2 == 2) {
+					sc.setMusicianScreen(view1.getDisplay());
 				}
 			}
-			
-			ScreenConfiguration sc = context.getScreenManager().getScreenConfiguration();
-			
-			if (sc.getOperatorScreenId() != ScreenConfiguration.SCREEN_NOT_AVAILABLE) {
-				screenPane.add(screenshots.get(sc.getOperatorScreenId()), 0, 0);
-			}
-			
-			if (sc.getPrimaryScreenId() != ScreenConfiguration.SCREEN_NOT_AVAILABLE) {
-				screenPane.add(screenshots.get(sc.getPrimaryScreenId()), 1, 0);
-			} else {
-				screenPane.add(getMissingScreenGraphic(200, 150, bw), 2, 0);
-			}
-			
-			if (sc.getMusicianScreenId() != ScreenConfiguration.SCREEN_NOT_AVAILABLE) {
-				screenPane.add(screenshots.get(sc.getMusicianScreenId()), 2, 0);
-			} else {
-				screenPane.add(getMissingScreenGraphic(200, 150, bw), 2, 0);
-			}
-		});
+		};
 		
-//		List<ComboBox<Option<ScreenRole>>> screenCombos = new ArrayList<ComboBox<Option<ScreenRole>>>();
-//		parentProperty().addListener((obs, ov, nv) -> {
-//			if (nv == null) return;
-//			screenPane.getChildren().clear();
-//			screenCombos.clear();
-//			final double s = 200.0 / 1080.0;
-//			final double bw = 10;
-//			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-//			GraphicsDevice[] devices = ge.getScreenDevices();
-//			for (int i = 0; i < devices.length; i++) {
-//				GraphicsDevice device = devices[i];
-//				try {
-//					Robot robot = new Robot(device);
-//					BufferedImage image = robot.createScreenCapture(device.getDefaultConfiguration().getBounds());
-//					Image fximage = SwingFXUtils.toFXImage(image, null);
-//					ImageView img = new ImageView(fximage);
-//					 
-//					final double w = Math.ceil(fximage.getWidth() * s);
-//					final double h = Math.ceil(fximage.getHeight() * s);
-//					
-//					img.setFitHeight(h);
-//					img.setFitWidth(w);
-//					img.setPreserveRatio(true);
-//					img.setLayoutX(bw);
-//					img.setLayoutY(bw);
-//					
-//					StackPane stack = new StackPane(img);
-//					stack.setBackground(new Background(new BackgroundFill(Color.BLACK, null, new Insets(bw * 0.5))));
-//					Fx.setSize(stack, w + bw * 2, h + bw * 2);
-//					stack.getStyleClass().add("screen-snapshot");
-//
-//					ComboBox<Option<ScreenRole>> cmbDisplayType = new ComboBox<Option<ScreenRole>>(FXCollections.observableArrayList(screenTypes));
-//					cmbDisplayType.setUserData(device);
-//					screenCombos.add(cmbDisplayType);
-//					
-//					for (ScreenMapping map : configuration.getScreenMappings()) {
-//						if (map.getId().equals(device.getIDstring())) {
-//							cmbDisplayType.setValue(new Option<ScreenRole>(null, map.getRole()));
-//							break;
-//						}
-//					}
-//					
-//					screenPane.add(stack, i, 0);
-//					screenPane.add(cmbDisplayType, i, 1);
-//					GridPane.setHalignment(cmbDisplayType, HPos.CENTER);
-//				} catch (AWTException e1) {
-//					// TODO Auto-generated catch block
-//					e1.printStackTrace();
-//				}
-//			}
-//		});
+		InvalidationListener screenListener = new InvalidationListener() {
+			@Override
+			public void invalidated(Observable observable) {
+				ScreenConfiguration sc = context.getScreenManager().getScreenConfiguration();
+				
+				Map<Integer, ScreenView> views = ScreenView.createScreenViews(manager);
+				
+				ScreenView operator = null;
+				ScreenView main = null;
+				ScreenView musician = null;
+				if (sc.getOperatorScreen() != null) {
+					operator = views.get(sc.getOperatorScreen().getId());
+				}
+				if (sc.getMainScreen() != null) {
+					main = views.get(sc.getMainScreen().getId());
+				}
+				if (sc.getMusicianScreen() != null) {
+					musician = views.get(sc.getMusicianScreen().getId());
+				}
+				
+				if (operator == null) {
+					operator = ScreenView.createUnassignedScreenView(manager);
+				}
+				if (main == null) {
+					main = ScreenView.createUnassignedScreenView(manager);
+				}
+				if (musician == null) {
+					musician = ScreenView.createUnassignedScreenView(manager);
+				}
+				
+				screenPane.add(operator, 0, 0);
+				screenPane.add(main, 1, 0);
+				screenPane.add(musician, 2, 0);
+			}
+		};
+		
+		// update when the parent changes
+		parentProperty().addListener(screenListener);
+		
+		// update when the screens change
+		Screen.getScreens().addListener(screenListener);
 		
 		TitledPane tp1 = new TitledPane("Display Setup", screenPane);
 		tp1.setCollapsible(false);
@@ -246,15 +207,6 @@ public final class SetupPane extends GridPane {
 //				alert.show();
 //			}
 		});
-	}
-	
-	private static final Node getMissingScreenGraphic(double w, double h, double bw) {
-		Label label = new Label("No screen detected");
-		StackPane stack = new StackPane(label);
-		stack.setBackground(new Background(new BackgroundFill(Color.BLACK, null, new Insets(bw * 0.5))));
-		Fx.setSize(stack, w + bw * 2, h + bw * 2);
-		stack.getStyleClass().add("screen-snapshot");
-		return stack;
 	}
 	
 	private static final String getLocaleName(Locale locale) {

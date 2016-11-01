@@ -5,7 +5,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,6 +16,7 @@ import org.praisenter.xml.XmlIO;
 
 import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
+import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 
 public final class ScreenManager {
@@ -21,9 +24,8 @@ public final class ScreenManager {
 
 	private final ScreenConfiguration configuration;
 	
-	private DisplayScreen primary;
+	private DisplayScreen main;
 	private DisplayScreen musician;
-	private DisplayScreen notification;
 	
 	private boolean mutating = false;
 	
@@ -45,11 +47,16 @@ public final class ScreenManager {
 		// save the screen config whenever something changes it
 		InvalidationListener listener = obs -> {
 			if (mutating) return;
+			
+			// save the configuration
 			this.saveConfiguration();
+			
+			// update the display screens
+			this.updateScreens();
 		};
-		this.configuration.musicianScreenIdProperty().addListener(listener);
-		this.configuration.operatorScreenIdProperty().addListener(listener);
-		this.configuration.primaryScreenIdProperty().addListener(listener);
+		this.configuration.musicianScreenProperty().addListener(listener);
+		this.configuration.operatorScreenProperty().addListener(listener);
+		this.configuration.primaryScreenProperty().addListener(listener);
 		this.configuration.getResolutions().addListener(listener);
 		
 		screensChanged();
@@ -62,70 +69,144 @@ public final class ScreenManager {
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
 		int size = screens.size();
 		
-		// in the event that the screens change the original configuration
-		// is discarded and we need to re-auto-detect the configuration
-		if (this.configuration.getOperatorScreenId() >= size) {
-			this.configuration.setOperatorScreenId(ScreenConfiguration.SCREEN_NOT_AVAILABLE);
-		}
-		if (this.configuration.getPrimaryScreenId() >= size) {
-			this.configuration.setPrimaryScreenId(ScreenConfiguration.SCREEN_NOT_AVAILABLE);
-		}
-		if (this.configuration.getMusicianScreenId() >= size) {
-			this.configuration.setMusicianScreenId(ScreenConfiguration.SCREEN_NOT_AVAILABLE);
+		// get the configured displays
+		Display pDisplay = this.configuration.getPrimaryScreen();
+		Display oDisplay = this.configuration.getOperatorScreen();
+		Display dDisplay = this.configuration.getMainScreen();
+		Display mDisplay = this.configuration.getMusicianScreen();
+		
+		// verify that the primary display is still the same
+		boolean primaryChanged = false;
+		if (!isValid(pDisplay, screens)) {
+			// this indicates that all of them should be invalidated
+			primaryChanged = true;
 		}
 		
+		// verify that the screens are still the way we left them
+		if (primaryChanged || !isValid(oDisplay, screens)) {
+			oDisplay = null;
+		}
+		if (primaryChanged || !isValid(dDisplay, screens)) {
+			dDisplay = null;
+		}
+		if (primaryChanged || !isValid(mDisplay, screens)) {
+			mDisplay = null;
+		}
+		
+		// now verify that no screen is reused
+		Map<Integer, Boolean> assigned = new HashMap<>();
+		// favor the operator screen first
+		if (oDisplay != null) {
+			assigned.put(oDisplay.getId(), true);
+		}
+		// then the primary display
+		if (dDisplay != null) {
+			if (assigned.containsKey(dDisplay.getId())) {
+				dDisplay = null;
+			} else {
+				assigned.put(dDisplay.getId(), true);
+			}
+		}
+		// then the musician display
+		if (mDisplay != null) {
+			if (assigned.containsKey(mDisplay.getId())) {
+				mDisplay = null;
+			} else {
+				assigned.put(mDisplay.getId(), true);
+			}
+		}
+		
+		// now we need to assign displays if they aren't already
 		for (int i = 0; i < size; i++) {
 			Screen screen = screens.get(i);
-			this.configuration.getResolutions().add(new Resolution((int)screen.getBounds().getWidth(), (int)screen.getBounds().getHeight()));
+			Rectangle2D bounds = screen.getBounds();
+			this.configuration.getResolutions().add(new Resolution((int)bounds.getWidth(), (int)bounds.getHeight()));
 			
-			if (this.configuration.getOperatorScreenId() == i || this.configuration.getPrimaryScreenId() == i) {
+			// regardless always update the primary display
+			if (primary.equals(screen)) {
+				pDisplay = new Display(i, screen);
+			}
+			
+			// skip if already assigned
+			if (assigned.containsKey(i)) {
 				continue;
 			}
 			
+			// set it to assigned
+			assigned.put(i, true);
+			
 			// check for the primary screen
-			if (this.configuration.getOperatorScreenId() == ScreenConfiguration.SCREEN_NOT_AVAILABLE && screen.equals(primary)) {
+			if (oDisplay == null) {
 				// set it to the primary screen index
-				this.configuration.setOperatorScreenId(i);
-			} else if (this.configuration.getPrimaryScreenId() == ScreenConfiguration.SCREEN_NOT_AVAILABLE) {
-				this.configuration.setPrimaryScreenId(i);
-			} else if (this.configuration.getMusicianScreenId() == ScreenConfiguration.SCREEN_NOT_AVAILABLE) {
-				this.configuration.setMusicianScreenId(i);
+				oDisplay = new Display(i, screen);
+			} else if (dDisplay == null) {
+				dDisplay = new Display(i, screen);
+			} else if (mDisplay == null) {
+				mDisplay = new Display(i, screen);
 			}
 		}
 		
-		// make sure the primary screen was set
-		if (this.configuration.getPrimaryScreenId() == ScreenConfiguration.SCREEN_NOT_AVAILABLE) {
-			this.configuration.setPrimaryScreenId(this.configuration.getOperatorScreenId());
-		}
+//		// make sure the primary screen was set
+//		if (this.configuration.getPrimaryScreenId() == ScreenConfiguration.SCREEN_NOT_AVAILABLE) {
+//			this.configuration.setPrimaryScreenId(this.configuration.getOperatorScreenId());
+//		}
+		
+		// set the configuration
+		this.configuration.setPrimaryScreen(pDisplay);
+		this.configuration.setMainScreen(dDisplay);
+		this.configuration.setOperatorScreen(oDisplay);
+		this.configuration.setMusicianScreen(mDisplay);
 		
 		// save the new configuration
 		this.saveConfiguration();
 		
-		// create display stages for each screen in use
-		if (this.primary != null) {
-			this.primary.release();
-			this.primary = null;
-		}
-		if (this.notification != null) {
-			this.notification.release();
-			this.notification = null;
-		}
-		Screen ps = this.configuration.getPrimaryScreenId() != ScreenConfiguration.SCREEN_NOT_AVAILABLE ? screens.get(this.configuration.getPrimaryScreenId()) : null;
-		if (ps != null) {
-			this.primary = new DisplayScreen(this.configuration.getPrimaryScreenId(), ScreenRole.PRESENTATION, ps);
-			this.notification = new DisplayScreen(this.configuration.getPrimaryScreenId(), ScreenRole.PRESENTATION, ps);
-		}
+		this.updateScreens();
 		
+		mutating = false;
+	}
+	
+	private void updateScreens() {
+		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
+		Display dDisplay = this.configuration.getMainScreen();
+		Display mDisplay = this.configuration.getMusicianScreen();
+		
+		// release any existing stages
+		if (this.main != null) {
+			this.main.release();
+			this.main = null;
+		}
 		if (this.musician != null) {
 			this.musician.release();
 			this.musician = null;
 		}
-		Screen ms = this.configuration.getMusicianScreenId() != ScreenConfiguration.SCREEN_NOT_AVAILABLE ? screens.get(this.configuration.getMusicianScreenId()) : null;
-		if (ms != null) {
-			this.musician = new DisplayScreen(this.configuration.getMusicianScreenId(), ScreenRole.MUSICIAN, ms);
+		
+		// create new ones
+		if (dDisplay != null) {
+			this.main = new DisplayScreen(dDisplay.getId(), ScreenRole.MAIN, screens.get(dDisplay.getId()));
+		}
+		if (mDisplay != null) {
+			this.musician = new DisplayScreen(mDisplay.getId(), ScreenRole.MUSICIAN, screens.get(mDisplay.getId()));
+		}
+	}
+	
+	private boolean isValid(Display display, List<Screen> screens) {
+		// if it's not assigned, then its valid by default
+		if (display == null || display.getId() < 0 || screens.size() <= display.getId()) {
+			return true;
 		}
 		
-		mutating = false;
+		// otherwise, it needs to be in the list of screens with the
+		// same index and must have the same dimensions
+		Screen screen = screens.get(display.getId());
+		Rectangle2D bounds = screen.getBounds();
+		if ((int)bounds.getMinX() == display.getX() &&
+			(int)bounds.getMinY() == display.getY() &&
+			(int)bounds.getWidth() == display.getWidth() &&
+			(int)bounds.getHeight() == display.getHeight()) {
+			return true;
+		}
+		
+		return false;
 	}
 	
 	private ScreenConfiguration loadConfiguration() {

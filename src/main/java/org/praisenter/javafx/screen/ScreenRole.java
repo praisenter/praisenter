@@ -37,8 +37,8 @@ public enum ScreenRole {
 	/** Not used */
 	NONE,
 	
-	/** The primary output */
-	PRESENTATION,
+	/** The main output */
+	MAIN,
 	
 	/** Specific screen showing song specialized slides */
 	MUSICIAN
