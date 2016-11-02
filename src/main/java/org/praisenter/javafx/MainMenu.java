@@ -3,6 +3,9 @@ package org.praisenter.javafx;
 import java.util.Deque;
 import java.util.LinkedList;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -23,6 +26,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 class MainMenu extends VBox implements EventHandler<ActionEvent> {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private final MainPane mainPane;
 	private final MenuBar menu;
 	private final HBox toolbar;
@@ -146,7 +151,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		// call methods when focus owner changes
 		this.focusOwner.addListener((obs, ov, nv) -> {
-			System.out.println("Focus changed from " + ov + " -> " + nv);
+			LOGGER.debug("Focus changed from {} to {}", ov, nv);
 			
 			Node appPane = getClosestApplicationPane(nv);
 			this.appPane.set(appPane);
@@ -207,7 +212,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 	}
 	
 	private void updateMenuState(Node focused, ApplicationPane pane, String reason) {
-		System.out.println("Menu state updating for focused:" + focused + " application-pane:" + pane + " due to " + reason);
+		LOGGER.debug("Menu state updating for focused: {} application-pane: {} due to {}", focused, pane, reason);
 		Deque<MenuItem> menus = new LinkedList<MenuItem>();
 		// seed with the menu bar's menus
 		menus.addAll(this.menu.getMenus());
@@ -291,7 +296,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 					 ApplicationAction.PASTE == action ||
 					 ApplicationAction.DELETE == action ||
 					 ApplicationAction.SELECT_ALL == action) && focusOwner != null && focusOwner instanceof TextInputControl) {
-					System.out.println("Node is TextInputControl. Bypassing default delegation.");
+					LOGGER.debug("Node {} is TextInputControl. Bypassing default delegation.", focusOwner);
 					// do the default action
 					TextInputControl control = (TextInputControl)focusOwner;
 					if (ApplicationAction.COPY == action) {
@@ -306,7 +311,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 						control.selectAll();
 					}
 				} else {
-					System.out.println("Delegating " + action + " to " + focused);
+					LOGGER.debug("Delegating {} to {}.", action, focused);
 					focused.fireEvent(new ApplicationEvent(event.getSource(), event.getTarget(), ApplicationEvent.ALL, action));
 				}
 			}

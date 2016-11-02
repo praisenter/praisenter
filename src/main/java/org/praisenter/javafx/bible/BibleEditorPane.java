@@ -30,8 +30,6 @@ import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -295,15 +293,8 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		this.setCenter(split);
 		
 		// EVENTS & BINDINGS
-		this.bible.addListener(new InvalidationListener() {
-			@Override
-			public void invalidated(Observable observable) {
-				System.out.println("Editing bible");
-			}
-		});
 		this.bible.addListener((obs, ov, nv) -> {
 			this.mutating = true;
-			System.out.println("Editing bible " + nv);
 			bibleTree.getSelectionModel().clearSelection();
 			if (nv != null) {
 				// create the root node

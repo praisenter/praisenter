@@ -30,6 +30,8 @@ public final class DisplayScreen {
 	private final int id;
 	private final ScreenRole role;
 	private final Screen screen;
+	private final boolean debugMode;
+	
 	private final Stage stage;
 	private final Pane surface;
 	
@@ -40,11 +42,12 @@ public final class DisplayScreen {
 	
 	private ObservableSlide<?> slide;
 	
-	public DisplayScreen(int id, ScreenRole role, Screen screen) {
+	public DisplayScreen(int id, ScreenRole role, Screen screen, boolean debug) {
 		this.id = id;
 		this.role = role;
 		this.screen = screen;
 		this.stage = new Stage(StageStyle.TRANSPARENT);
+		this.debugMode = debug;
 		
 		Rectangle2D bounds = screen.getBounds();
 		this.stage.initModality(Modality.NONE);
@@ -71,12 +74,13 @@ public final class DisplayScreen {
 		
 		this.surface = new Pane();
 		this.surface.setBackground(null);
-		// TODO remove after debug or place under a setting
-		this.surface.setBorder(new Border(new BorderStroke(
-				Color.RED, 
-				new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 10, 0, new ArrayList<Double>()), 
-				null, 
-				new BorderWidths(10))));
+		if (this.debugMode) {
+			this.surface.setBorder(new Border(new BorderStroke(
+					Color.RED, 
+					new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 10, 0, new ArrayList<Double>()), 
+					null, 
+					new BorderWidths(10))));
+		}
 		this.stage.setScene(new Scene(this.surface, Color.TRANSPARENT));
 		this.stage.setTitle(Constants.NAME + " (" + role + ")");
 		this.stage.show();

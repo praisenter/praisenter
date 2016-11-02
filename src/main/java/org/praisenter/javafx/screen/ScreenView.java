@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.utility.Fx;
 
 import javafx.embed.swing.SwingFXUtils;
@@ -22,17 +24,36 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 
+// TODO translate
 public final class ScreenView extends StackPane {
-	private static final double DEFAULT_WIDTH = 200;
-	private static final double DEFAULT_HEIGHT = 150;
-	private static final double BORDER_WIDTH = 10;
-	private static final double SCALE = 200.0 / 1080.0;
+	/** The class-level logger */
+	private static final Logger LOGGER = LogManager.getLogger();
 	
+	/** The maximum width of the screen view images */
+	private static final double MAX_WIDTH = 250;
+	
+	/** The border width of screen */
+	private static final double BORDER_WIDTH = 10;
+	
+	// interaction
+	
+	/** The drag and drop manager */
 	private final ScreenViewDragDropManager manager;
 	
+	// data
+	
+	/** The display detail */
 	private final Display display;
+	
+	/** The screen assigned to the display */
 	private final Screen screen;
 	
+	/**
+	 * Constructor.
+	 * @param manager the drag and drop manager
+	 * @param display the display; can be null
+	 * @param screen the screen; can be null
+	 */
 	private ScreenView(ScreenViewDragDropManager manager, Display display, Screen screen) {
 		this.manager = manager;
 		this.display = display;
@@ -41,6 +62,11 @@ public final class ScreenView extends StackPane {
 		this.build();
 	}
 	
+	/**
+	 * Returns a list of {@link ScreenView}s for all the screens on this system.
+	 * @param manager the drag and drop manager
+	 * @return Map&lt;Integer, {@link ScreenView}&gt;
+	 */
 	public static final Map<Integer, ScreenView> createScreenViews(ScreenViewDragDropManager manager) {
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
 		Map<Integer, ScreenView> views = new HashMap<Integer, ScreenView>();
@@ -53,17 +79,40 @@ public final class ScreenView extends StackPane {
 		return views;
 	}
 	
+	/**
+	 * Returns a new {@link ScreenView} for an unassigned screen.
+	 * @param manager the drag and drop manager
+	 * @return {@link ScreenView}
+	 */
 	public static final ScreenView createUnassignedScreenView(ScreenViewDragDropManager manager) {
 		return new ScreenView(manager, null, null);
 	}
 	
+	/**
+	 * Builds the view for a unassigned display or for a display that we couldn't generate
+	 * a screenshot for.
+	 * @param text the text to display on the screen
+	 */
+	private void buildUnassignedOrError(String text) {
+		// have it mirror the default screen
+		Screen screen = Screen.getPrimary();
+		final double s = MAX_WIDTH / screen.getBounds().getWidth();
+		final double w = MAX_WIDTH;
+		final double h = Math.ceil(screen.getBounds().getHeight() * s);
+		
+		Label label = new Label(text);
+		this.getChildren().add(label);
+		this.setBackground(new Background(new BackgroundFill(Color.BLACK, null, new Insets(BORDER_WIDTH * 0.5))));
+		Fx.setSize(this, w + BORDER_WIDTH * 2, h + BORDER_WIDTH * 2);
+		this.getStyleClass().add("screen-snapshot");
+	}
+	
+	/**
+	 * Builds this view.
+	 */
 	private void build() {
-		if (this.screen == null) { 
-			Label label = new Label("Screen Not Assigned");
-			this.getChildren().add(label);
-			this.setBackground(new Background(new BackgroundFill(Color.BLACK, null, new Insets(BORDER_WIDTH * 0.5))));
-			Fx.setSize(this, DEFAULT_WIDTH + BORDER_WIDTH * 2, DEFAULT_HEIGHT + BORDER_WIDTH * 2);
-			this.getStyleClass().add("screen-snapshot");
+		if (this.screen == null || this.display == null) { 
+			buildUnassignedOrError("Display Not Assigned");
 		} else {
 			// get its coordinates
 			final int sx = (int)this.screen.getBounds().getMinX();
@@ -93,9 +142,11 @@ public final class ScreenView extends StackPane {
 				Image fximage = SwingFXUtils.toFXImage(image, null);
 				ImageView img = new ImageView(fximage);
 				
+				final double s = MAX_WIDTH / fximage.getWidth();
+				
 				// scale the bounds
-				final double w = Math.ceil(fximage.getWidth() * SCALE);
-				final double h = Math.ceil(fximage.getHeight() * SCALE);
+				final double w = Math.ceil(fximage.getWidth() * s);
+				final double h = Math.ceil(fximage.getHeight() * s);
 				
 				img.setFitHeight(h);
 				img.setFitWidth(w);
@@ -108,7 +159,8 @@ public final class ScreenView extends StackPane {
 				Fx.setSize(this, w + BORDER_WIDTH * 2, h + BORDER_WIDTH * 2);
 				this.getStyleClass().add("screen-snapshot");
 			} catch (Exception ex) {
-				// TODO handle error - show text with screen number
+				LOGGER.warn("Failed to generate screenshot for screen " + device.getIDstring(), ex);
+				buildUnassignedOrError(this.display.toString());
 			}
 		}
 
@@ -135,12 +187,16 @@ public final class ScreenView extends StackPane {
 	@Override
 	public String toString() {
 		if (this.display != null) {
-			return "Screen#" + this.display.getId();
+			return this.display.toString();
 		} else {
 			return "NotAvailable";
 		}
 	}
 	
+	/**
+	 * Returns the display.
+	 * @return {@link Display}
+	 */
 	public Display getDisplay() {
 		return this.display;
 	}

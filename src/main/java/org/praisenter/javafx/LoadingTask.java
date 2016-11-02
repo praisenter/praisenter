@@ -32,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.screen.ScreenManager;
 import org.praisenter.media.MediaLibrary;
@@ -121,13 +122,13 @@ final class LoadingTask extends Task<PraisenterContext> {
 		updateProgress(4, 4);
 		LOGGER.info("Slide library loaded in {} seconds with {} slides", (t1 - t0) / 1e9, slides.size());
     	
-		ScreenManager screenManager = new ScreenManager();
+		ScreenManager screenManager = new ScreenManager(this.configuration.isSet(Setting.DEBUG_MODE));
 		
 		LOGGER.info("Building the application context.");
 		// build the context
 		PraisenterContext context = new PraisenterContext(
-				javaFXContext,
-				configuration,
+				this.javaFXContext,
+				this.configuration,
 				screenManager,
 				imageCache,
 				media,

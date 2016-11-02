@@ -51,6 +51,9 @@ public enum Setting {
 	/** The application language */
 	GENERAL_LANGUAGE,
 	
+	/** Debug mode; enhances logging and user feedback */
+	DEBUG_MODE,
+	
 	// bible
 	
 	/** The primary bible */

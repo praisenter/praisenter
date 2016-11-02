@@ -23,15 +23,17 @@ public final class ScreenManager {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private final ScreenConfiguration configuration;
+	private final boolean debugMode;
 	
 	private DisplayScreen main;
 	private DisplayScreen musician;
 	
 	private boolean mutating = false;
 	
-	public ScreenManager() {
+	public ScreenManager(boolean debug) {
 		// load the screen config
 		this.configuration = this.loadConfiguration();
+		this.debugMode = debug;
 	}
 	
 	public void initialize() {
@@ -186,10 +188,10 @@ public final class ScreenManager {
 		// create new ones
 		LOGGER.info("Creating new displays.");
 		if (dDisplay != null && dDisplay.getId() < screens.size()) {
-			this.main = new DisplayScreen(dDisplay.getId(), ScreenRole.MAIN, screens.get(dDisplay.getId()));
+			this.main = new DisplayScreen(dDisplay.getId(), ScreenRole.MAIN, screens.get(dDisplay.getId()), this.debugMode);
 		}
 		if (mDisplay != null && mDisplay.getId() < screens.size()) {
-			this.musician = new DisplayScreen(mDisplay.getId(), ScreenRole.MUSICIAN, screens.get(mDisplay.getId()));
+			this.musician = new DisplayScreen(mDisplay.getId(), ScreenRole.MUSICIAN, screens.get(mDisplay.getId()), this.debugMode);
 		}
 	}
 	

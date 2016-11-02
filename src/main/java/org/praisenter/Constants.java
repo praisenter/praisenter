@@ -87,6 +87,14 @@ public final class Constants {
 	// /user/home/dir/Praisenter3/screens.xml
 	/** The absolute path to the screens.xml */
 	public static final String SCREENS_ABSOLUTE_FILE_PATH = Constants.ROOT_PATH + SCREENS_RELATIVE_FILE_PATH;
+
+	// /locales
+	/** The relative path to the locales directory */
+	public static final String LOCALES_RELATIVE_FILE_PATH = "locales" + RuntimeProperties.PATH_SEPARATOR;
+	
+	// /user/home/dir/Praisenter3/locales
+	/** The absolute path to the locales directory */
+	public static final String LOCALES_ABSOLUTE_FILE_PATH = Constants.ROOT_PATH + LOCALES_RELATIVE_FILE_PATH;
 	
 	///////////////////////////
 	// MEDIA

@@ -24,12 +24,30 @@
  */
 package org.praisenter.resources.translations;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URLClassLoader;
+import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
+import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Constants;
 
 /**
  * Helper class to retrieve transations by key.
@@ -41,11 +59,7 @@ public final class Translations {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The supported locales */
-	public static final Locale[] SUPPORTED_LOCALES = new Locale[] {
-		// add more here as you add more messages_x.properties
-		Locale.ENGLISH,
-		new Locale("es")
-	};
+	public static final Locale[] SUPPORTED_LOCALES;
 	
 	/** The base bundle name */
 	private static final String BUNDLE_BASE_NAME = Translations.class.getPackage().getName() + ".messages";
@@ -57,18 +71,79 @@ public final class Translations {
 	private static final ResourceBundle LOCALE_BUNDLE;
 	
 	static {
+		try {
+			Files.createDirectories(Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		// assign the supported locales
+		SUPPORTED_LOCALES = Translations.getSupportedLocales();
+		
 		// set the default locale bundle
 		Locale defaultLocale = Locale.getDefault();
-		ResourceBundle bundle = DEFAULT_BUNDLE;
+		ResourceBundle bundle = null;
 		try {
 			// attempt to load it
-			bundle = ResourceBundle.getBundle(BUNDLE_BASE_NAME, defaultLocale);
-		} catch (MissingResourceException ex) {
-			LOGGER.warn("Couldn't find messages.properties file for locale '{}', using default.", defaultLocale.toString());
+			// FIXME doesn't fall back to other property files
+			bundle = new PropertyResourceBundle(new InputStreamReader(new FileInputStream(Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH + "messages_" + defaultLocale.toLanguageTag() + ".properties").toFile()), Charset.forName("UTF-8")));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		
+		if (bundle == null) {
+			try {
+				bundle = ResourceBundle.getBundle(BUNDLE_BASE_NAME, defaultLocale);
+			} catch (MissingResourceException ex) {
+				LOGGER.warn("Couldn't find messages.properties file for locale '{}', using default.", defaultLocale.toString());
+			}
+		}
+		
+		if (bundle == null) {
+			bundle = DEFAULT_BUNDLE;
+		}
+		
 		LOCALE_BUNDLE = bundle;
 	}
 
+	private static final Locale[] getSupportedLocales() {
+		List<Locale> locales = new ArrayList<Locale>();
+		// default support
+		locales.add(Locale.ENGLISH);
+		locales.add(new Locale("es"));
+		
+		Pattern p = Pattern.compile("messages_(.+)\\.properties", Pattern.CASE_INSENSITIVE);
+		Path localeDir = Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH);
+		try (DirectoryStream<Path> paths = Files.newDirectoryStream(localeDir)) {
+			Iterator<Path> it = paths.iterator();
+			while (it.hasNext()) {
+				Path path = it.next();
+				if (Files.isRegularFile(path)) {
+					// attempt to read the name
+					String fileName = path.getFileName().toString().toLowerCase();
+					if (fileName.endsWith(".properties")) {
+						Matcher m = p.matcher(fileName);
+						if (m.matches()) {
+							String lang = m.group(1);
+							Locale locale = Locale.forLanguageTag(lang);
+							locales.add(locale);
+						}
+					}
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return locales.toArray(new Locale[0]);
+	}
+	
 	/** Hidden default constructor */
 	private Translations() {}
 	

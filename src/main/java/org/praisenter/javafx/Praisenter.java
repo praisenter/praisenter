@@ -26,8 +26,11 @@ package org.praisenter.javafx;
 
 import java.util.Locale;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
@@ -94,6 +97,16 @@ public final class Praisenter extends Application {
 			LOGGER.info("Setting the default language to '" + CONFIGURATION.getLanguage() + "'.");
 			Locale.setDefault(CONFIGURATION.getLanguage());
 		}
+		
+		// check for debug mode
+		if (CONFIGURATION.isSet(Setting.DEBUG_MODE)) {
+			// if enable, change the log level to DEBUG
+			LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+			org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
+			LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME); 
+			loggerConfig.setLevel(Level.DEBUG);
+			ctx.updateLoggers();
+		}
 	}
 
 	// FEATURE We should look at making some of the Java FX features "optional" instead of required
@@ -108,10 +121,10 @@ public final class Praisenter extends Application {
 	};
 	
 	/** The default width */
-	private static final int WIDTH = 1000;
+	private static final int MIN_WIDTH = 1000;
 	
 	/** The default height */
-	private static final int HEIGHT = 700;
+	private static final int MIN_HEIGHT = 700;
 	
 	/**
 	 * The entry point method.
@@ -166,14 +179,14 @@ public final class Praisenter extends Application {
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon512x512.png"));
     	
     	// set minimum size
-    	stage.setMinWidth(WIDTH);
-    	stage.setMinHeight(HEIGHT);
+    	stage.setMinWidth(MIN_WIDTH);
+    	stage.setMinHeight(MIN_HEIGHT);
     	
     	// read stored position/size
     	double x = CONFIGURATION.getDouble(Setting.GENERAL_X, stage.getX());
 		double y = CONFIGURATION.getDouble(Setting.GENERAL_Y, stage.getY());
-		double w = CONFIGURATION.getDouble(Setting.GENERAL_WIDTH, WIDTH);
-		double h = CONFIGURATION.getDouble(Setting.GENERAL_HEIGHT, HEIGHT);
+		double w = CONFIGURATION.getDouble(Setting.GENERAL_WIDTH, MIN_WIDTH);
+		double h = CONFIGURATION.getDouble(Setting.GENERAL_HEIGHT, MIN_HEIGHT);
     	
 		// set position and size
 		stage.setX(x);
@@ -190,7 +203,7 @@ public final class Praisenter extends Application {
     	StackPane stack = new StackPane();
     	
     	// create the loading scene
-    	LoadingPane loading = new LoadingPane(WIDTH, HEIGHT, new JavaFXContext(this, stage), CONFIGURATION);
+    	LoadingPane loading = new LoadingPane(MIN_WIDTH, MIN_HEIGHT, new JavaFXContext(this, stage), CONFIGURATION);
     	loading.setOnComplete((e) -> {
     		long t0 = 0;
     		long t1 = 0;

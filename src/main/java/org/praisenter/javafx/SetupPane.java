@@ -23,6 +23,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
@@ -48,7 +49,7 @@ public final class SetupPane extends VBox {
 		this.setPadding(new Insets(5));
 		this.setSpacing(5);
 		
-		Label lblRestartWarning = new Label("Changing the Theme or Language requires the application to be restarted to take effect.", FONT_AWESOME.create(FontAwesome.Glyph.WARNING).color(Color.ORANGE));
+		Label lblRestartWarning = new Label("Changing the Theme, Language, or Debug Mode requires the application to be restarted to take effect.", FONT_AWESOME.create(FontAwesome.Glyph.WARNING).color(Color.ORANGE));
 		
 		List<Option<Locale>> locales = new ArrayList<Option<Locale>>();
 		for (Locale locale : Translations.SUPPORTED_LOCALES) {
@@ -59,7 +60,7 @@ public final class SetupPane extends VBox {
 		gridGeneral.setHgap(5);
 		gridGeneral.setVgap(5);
 		
-		// ui.language (requires restart)
+		// language
 		Label lblLocale = new Label("Language");
 		ComboBox<Option<Locale>> cmbLocale = new ComboBox<Option<Locale>>(FXCollections.observableArrayList(locales));
 		cmbLocale.setValue(new Option<Locale>(null, context.getConfiguration().getLanguage()));
@@ -70,12 +71,19 @@ public final class SetupPane extends VBox {
 		themes.add(new Option<Theme>("Default", Theme.DEFAULT));
 		themes.add(new Option<Theme>("Dark", Theme.DARK));
 		
-		// ui.theme (requires restart)
+		// theme
 		Label lblTheme = new Label("Theme");
 		ComboBox<Option<Theme>> cmbTheme = new ComboBox<Option<Theme>>(FXCollections.observableArrayList(themes));
 		cmbTheme.setValue(new Option<Theme>(null, context.getConfiguration().getTheme()));
 		gridGeneral.add(lblTheme, 0, 1);
 		gridGeneral.add(cmbTheme, 1, 1);
+		
+		// debug mode
+		Label lblDebugMode = new Label("Debug Mode");
+		CheckBox chkDebugMode = new CheckBox();
+		chkDebugMode.setSelected(context.getConfiguration().isSet(Setting.DEBUG_MODE));
+		gridGeneral.add(lblDebugMode, 0, 2);
+		gridGeneral.add(chkDebugMode, 1, 2);
 		
 		VBox vboxGeneral = new VBox(gridGeneral, lblRestartWarning);
 		vboxGeneral.setSpacing(7);
@@ -144,6 +152,14 @@ public final class SetupPane extends VBox {
 		
 		cmbTheme.valueProperty().addListener((obs, ov, nv) -> {
 			context.getConfiguration().set(Setting.GENERAL_THEME, nv.value.name());
+		});
+		
+		chkDebugMode.selectedProperty().addListener((obs, ov, nv) -> {
+			if (nv) {
+				context.getConfiguration().setBoolean(Setting.DEBUG_MODE, true);
+			} else {
+				context.getConfiguration().remove(Setting.DEBUG_MODE);
+			}
 		});
 
 		// create a custom manager
