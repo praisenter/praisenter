@@ -82,7 +82,7 @@ public final class Configuration {
 
 		// set default language/theme
 		this.set(Setting.GENERAL_LANGUAGE, this.language.toLanguageTag());
-		this.set(Setting.GENERAL_THEME, this.theme.toString());
+		this.set(Setting.GENERAL_THEME, this.theme.getName());
 		
 		// set other defaults
 		this.set(Setting.BIBLE_PRIMARY, null);
@@ -100,10 +100,10 @@ public final class Configuration {
 			try {
 				Configuration conf = XmlIO.read(path, Configuration.class);
 				conf.language = Locale.forLanguageTag(conf.get(Setting.GENERAL_LANGUAGE));
-				String css = conf.get(Setting.GENERAL_THEME);
+				String name = conf.get(Setting.GENERAL_THEME);
 				// find the matching theme
 				for (Theme theme : Theme.THEMES) {
-					if (theme.getCss().equals(css)) {
+					if (theme.getName().equalsIgnoreCase(name)) {
 						conf.theme = theme;
 						break;
 					}

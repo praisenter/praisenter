@@ -157,7 +157,7 @@ public final class SetupPane extends VBox {
 		});
 		
 		cmbTheme.valueProperty().addListener((obs, ov, nv) -> {
-			context.getConfiguration().set(Setting.GENERAL_THEME, nv.getCss());
+			context.getConfiguration().set(Setting.GENERAL_THEME, nv.getName());
 		});
 		
 		chkDebugMode.selectedProperty().addListener((obs, ov, nv) -> {
