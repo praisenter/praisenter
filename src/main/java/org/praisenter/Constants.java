@@ -95,6 +95,14 @@ public final class Constants {
 	// /user/home/dir/Praisenter3/locales
 	/** The absolute path to the locales directory */
 	public static final String LOCALES_ABSOLUTE_FILE_PATH = Constants.ROOT_PATH + LOCALES_RELATIVE_FILE_PATH;
+
+	// /themes
+	/** The relative path to the themes directory */
+	public static final String THEMES_RELATIVE_FILE_PATH = "themes" + RuntimeProperties.PATH_SEPARATOR;
+	
+	// /user/home/dir/Praisenter3/themes
+	/** The absolute path to the themes directory */
+	public static final String THEMES_ABSOLUTE_FILE_PATH = Constants.ROOT_PATH + THEMES_RELATIVE_FILE_PATH;
 	
 	///////////////////////////
 	// MEDIA

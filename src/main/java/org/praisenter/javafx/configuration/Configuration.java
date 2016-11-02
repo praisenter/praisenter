@@ -41,7 +41,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.javafx.styles.Theme;
+import org.praisenter.javafx.themes.Theme;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -100,7 +100,14 @@ public final class Configuration {
 			try {
 				Configuration conf = XmlIO.read(path, Configuration.class);
 				conf.language = Locale.forLanguageTag(conf.get(Setting.GENERAL_LANGUAGE));
-				conf.theme = Theme.valueOf(conf.get(Setting.GENERAL_THEME));
+				String css = conf.get(Setting.GENERAL_THEME);
+				// find the matching theme
+				for (Theme theme : Theme.THEMES) {
+					if (theme.getCss().equals(css)) {
+						conf.theme = theme;
+						break;
+					}
+				}
 				if (conf.theme == null) {
 					conf.theme = Theme.DEFAULT;
 				}

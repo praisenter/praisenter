@@ -24,24 +24,20 @@
  */
 package org.praisenter.resources.translations;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URLClassLoader;
-import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
-import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,12 +53,18 @@ import org.praisenter.Constants;
 public final class Translations {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The supported locales */
-	public static final Locale[] SUPPORTED_LOCALES;
-	
+
 	/** The base bundle name */
 	private static final String BUNDLE_BASE_NAME = Translations.class.getPackage().getName() + ".messages";
+
+	/** A regex for matching translation file names */
+	private static final Pattern TRANSLATION_PATTERN = Pattern.compile("^messages_(.+)\\.properties$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+	
+	/** The supported locales */
+	public static final List<Locale> SUPPORTED_LOCALES;
+	
+	/** The control to use for loading translations */
+	private static final ResourceBundle.Control DEFAULT_CONTROL = new FileSystemControl();
 	
 	/** The default locale neutral bundle (in our case english) */
 	private static final ResourceBundle DEFAULT_BUNDLE = ResourceBundle.getBundle(BUNDLE_BASE_NAME, Locale.ROOT);
@@ -73,9 +75,8 @@ public final class Translations {
 	static {
 		try {
 			Files.createDirectories(Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH));
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (Exception ex) {
+			LOGGER.warn("Failed to create translations directory.", ex);
 		}
 		
 		// assign the supported locales
@@ -83,65 +84,63 @@ public final class Translations {
 		
 		// set the default locale bundle
 		Locale defaultLocale = Locale.getDefault();
-		ResourceBundle bundle = null;
+		ResourceBundle bundle = DEFAULT_BUNDLE;
 		try {
-			// attempt to load it
-			// FIXME doesn't fall back to other property files
-			bundle = new PropertyResourceBundle(new InputStreamReader(new FileInputStream(Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH + "messages_" + defaultLocale.toLanguageTag() + ".properties").toFile()), Charset.forName("UTF-8")));
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			bundle = ResourceBundle.getBundle(BUNDLE_BASE_NAME, defaultLocale, DEFAULT_CONTROL);
+		} catch (MissingResourceException ex) {
+			LOGGER.warn("Couldn't find messages.properties file for locale '{}', using default.", defaultLocale.toString());
 		}
 		
-		if (bundle == null) {
-			try {
-				bundle = ResourceBundle.getBundle(BUNDLE_BASE_NAME, defaultLocale);
-			} catch (MissingResourceException ex) {
-				LOGGER.warn("Couldn't find messages.properties file for locale '{}', using default.", defaultLocale.toString());
-			}
-		}
-		
-		if (bundle == null) {
-			bundle = DEFAULT_BUNDLE;
-		}
-		
+		// set the locale bundle
 		LOCALE_BUNDLE = bundle;
 	}
 
-	private static final Locale[] getSupportedLocales() {
-		List<Locale> locales = new ArrayList<Locale>();
+	/**
+	 * Loads the supported locales and any locales in the locales directory.
+	 * @return Locale[]
+	 */
+	private static final List<Locale> getSupportedLocales() {
+		Set<Locale> locales = new HashSet<Locale>();
+		
 		// default support
 		locales.add(Locale.ENGLISH);
-		locales.add(new Locale("es"));
 		
-		Pattern p = Pattern.compile("messages_(.+)\\.properties", Pattern.CASE_INSENSITIVE);
+		// look in the locales directory for any additional translations
 		Path localeDir = Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH);
-		try (DirectoryStream<Path> paths = Files.newDirectoryStream(localeDir)) {
-			Iterator<Path> it = paths.iterator();
-			while (it.hasNext()) {
-				Path path = it.next();
-				if (Files.isRegularFile(path)) {
-					// attempt to read the name
-					String fileName = path.getFileName().toString().toLowerCase();
-					if (fileName.endsWith(".properties")) {
-						Matcher m = p.matcher(fileName);
-						if (m.matches()) {
-							String lang = m.group(1);
-							Locale locale = Locale.forLanguageTag(lang);
-							locales.add(locale);
+		if (Files.exists(localeDir) && Files.isDirectory(localeDir)) {
+			try (DirectoryStream<Path> paths = Files.newDirectoryStream(localeDir)) {
+				Iterator<Path> it = paths.iterator();
+				while (it.hasNext()) {
+					Path path = it.next();
+					try {
+						if (Files.isRegularFile(path)) {
+							// attempt to read the name
+							String fileName = path.getFileName().toString().toLowerCase();
+							Matcher m = TRANSLATION_PATTERN.matcher(fileName);
+							if (m.matches()) {
+								String lang = m.group(1);
+								Locale locale = Locale.forLanguageTag(lang);
+								locales.add(locale);
+							}
 						}
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to check type of path for path '" + path + "'.", ex);
 					}
 				}
+			} catch (Exception e) {
+				LOGGER.warn("Failed to iterate translations in '" + localeDir + "'.", e);
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
-		return locales.toArray(new Locale[0]);
+		List<Locale> list = new ArrayList<Locale>(locales);
+		Collections.sort(list, new Comparator<Locale>() {
+			@Override
+			public int compare(Locale o1, Locale o2) {
+				return o1.getDisplayName().compareTo(o2.getDisplayName());
+			}
+		});
+		
+		return Collections.unmodifiableList(list);
 	}
 	
 	/** Hidden default constructor */

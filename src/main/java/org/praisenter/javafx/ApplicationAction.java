@@ -29,6 +29,7 @@ import java.util.function.Supplier;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.resources.translations.Translations;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -43,120 +44,128 @@ import javafx.scene.input.KeyCombination;
  * @version 3.0.0
  * @since 3.0.0
  */
-// TODO translate
 public enum ApplicationAction {
 
 	// shared
 	
 	/** Trigger an edit for the selected item */
-	OPEN("Open"),
+	OPEN(Translations.get("action.open")),
 	
 	/** Open the editor for the event's data */
-	EDIT("Edit"),
+	EDIT(Translations.get("action.edit")),
 	
 	/** Close the current editor */
-	CLOSE("Close", () -> {
+	CLOSE(Translations.get("action.close"), () -> {
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.CLOSE);
 	}),
 	
 	/** Save the current document */
-	SAVE("Save", () -> { 
+	SAVE(Translations.get("action.save"), () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.SAVE); 
 	}, new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN)),
 	
 	/** Save the current document with a different name  */
-	SAVE_AS("Save As...", () -> { 
+	SAVE_AS(Translations.get("action.saveas"), () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.SAVE); 
 	}, new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN)),
 
 	/** Rename the item */
-	RENAME("Rename", () -> { 
+	RENAME(Translations.get("action.rename"), () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.TERMINAL); 
 	}, new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN)),
 	
 	/** Delete the item */
-	DELETE("Delete", () -> { 
+	DELETE(Translations.get("action.delete"), () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.CLOSE); 
 	}, new KeyCodeCombination(KeyCode.DELETE)),
 	
 	/** Select all the items */
-	SELECT_ALL("Select All", new KeyCodeCombination(KeyCode.A, KeyCombination.SHORTCUT_DOWN)),
+	SELECT_ALL(Translations.get("action.selectall"), new KeyCodeCombination(KeyCode.A, KeyCombination.SHORTCUT_DOWN)),
 	
 	/** Select no items */
-	SELECT_NONE("Select None"),
+	SELECT_NONE(Translations.get("action.selectnone")),
 	
 	/** Select all other items */
-	SELECT_INVERT("Select Invert"),
+	SELECT_INVERT(Translations.get("action.selectinvert")),
 	
 	/** Copy the item */
-	COPY("Copy", () -> { 
+	COPY(Translations.get("action.copy"), () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.COPY); 
 	}, new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN)),
 	
 	/** Cut the item */
-	CUT("Cut", () -> { 
+	CUT(Translations.get("action.cut"), () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.CUT); 
 	}, new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN)),
 	
 	/** Paste the item */
-	PASTE("Paste", () -> { 
+	PASTE(Translations.get("action.paste"), () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.PASTE); 
 	}, new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN)),
 	
 	// root level
 	
 	/** Show the preferences view */
-	PREFERENCES("Preferences", () -> { 
+	PREFERENCES(Translations.get("action.preferences"), () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.GEAR); 
 	}),
 	
 	/** Prompt to import slides */
-	IMPORT_SLIDES("Slides"),
+	IMPORT_SLIDES(Translations.get("action.import.slides")),
 	
 	/** Prompt to import songs */
-	IMPORT_SONGS("Songs"),
+	IMPORT_SONGS(Translations.get("action.import.songs")),
 	
 	/** Prompt to import media */
-	IMPORT_MEDIA("Media"),
+	IMPORT_MEDIA(Translations.get("action.import.media")),
 
 	/** Prompt to import bibles */
-	IMPORT_BIBLES("Bibles"),
+	IMPORT_BIBLES(Translations.get("action.import.bibles")),
 	
 	/** Prompt to export */
-	EXPORT("Export", () -> { 
+	EXPORT(Translations.get("action.export"), () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.LEVEL_UP); 
 	}),
 
 	/** Prompt to import media */
-	MANAGE_MEDIA("Manage Media"),
+	MANAGE_MEDIA(Translations.get("action.manage.media")),
 	
 	/** Show the bibles list view */
-	MANAGE_BIBLES("Manage Bibles"),
+	MANAGE_BIBLES(Translations.get("action.manage.bibles")),
 	
 	/** Show the slides list view */
-	MANAGE_SLIDES("Manage Slides"),
+	MANAGE_SLIDES(Translations.get("action.manage.slides")),
 	
 	/** Show the songs list view */
-	MANAGE_SONGS("Manage Songs"),
+	MANAGE_SONGS(Translations.get("action.manage.songs")),
 	
 	/** Show the about info */
-	ABOUT("About", () -> { 
+	ABOUT(Translations.get("action.about"), () -> { 
 		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.INFO); 
 	}),
 	
 	/** View the application logs */
-	LOGS("View Logs"),
+	LOGS(Translations.get("action.viewlogs")),
 	
 	/** Exit the application */
-	EXIT("Exit"),
+	EXIT(Translations.get("action.exit")),
 	
 	// bible
 	
-	NEW_BIBLE("New Bible"),
-	NEW_BOOK("New Book"),
-	NEW_CHAPTER("New Chapter"),
-	NEW_VERSE("New Verse"),
-	RENUMBER("Renumber")
+	/** Create a new bible */
+	NEW_BIBLE(Translations.get("action.bible.newbible")),
+	
+	/** Create a new book for a bible */
+	NEW_BOOK(Translations.get("action.bible.newbook")),
+	
+	/** Create a new chapter for a book */
+	NEW_CHAPTER(Translations.get("action.bible.newchapter")),
+	
+	/** Create a new verse for a chapter */
+	NEW_VERSE(Translations.get("action.bible.newverse")),
+	
+	/** Create a new renumber the selection */
+	RENUMBER(Translations.get("action.bible.renumber"))
 	
 	;
 	
@@ -219,23 +228,13 @@ public enum ApplicationAction {
 		return item;
 	}
 	
+	/**
+	 * Creates a new Button for use in the application for this {@link ApplicationAction}.
+	 * @return Button
+	 */
 	public Button toButton() {
 		Button button = new Button(this.label);
 		button.setGraphic(this.graphic != null ? this.graphic.get() : null);
-		button.setUserData(this);
-		return button;
-	}
-	
-	public Button toGraphicOnlyButton() {
-		Button button = new Button();
-		button.setGraphic(this.graphic != null ? this.graphic.get() : null);
-		button.setUserData(this);
-		return button;
-	}
-	
-	public Button toLabelOnlyButton() {
-		Button button = new Button(this.label);
-		button.setGraphic(null);
 		button.setUserData(this);
 		return button;
 	}

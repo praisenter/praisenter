@@ -45,8 +45,6 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
-// FIXME Don't allow selection of "loading" items
-
 /**
  * A selection model specifically for the {@link FlowListView}.
  * @author William Bittle

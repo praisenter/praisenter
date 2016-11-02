@@ -94,6 +94,9 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				this.navigate(this.slideLibraryPane);
 				break;
 			case EXIT:
+				// close the presentation screens
+				this.context.getScreenManager().release();
+				// close the application
 				this.context.getJavaFXContext().getStage().close();
 				break;
 			case LOGS:

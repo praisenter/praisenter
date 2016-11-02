@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.bible;
 
 import java.text.MessageFormat;
@@ -68,7 +92,11 @@ import javafx.stage.Modality;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 
-// TODO translate
+/**
+ * A pane for editing {@link Bible}s.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class BibleEditorPane extends BorderPane implements ApplicationPane {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -108,9 +136,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		Collections.sort(locales);
 		
 		// bible
-		Label lblName = new Label("Bible Name");
+		Label lblName = new Label(Translations.get("bible.edit.name"));
 		TextField txtName = new TextField();
-		Label lblLanguage = new Label("Language");
+		Label lblLanguage = new Label(Translations.get("bible.edit.language"));
 		ComboBox<Option<Locale>> cmbLanguage = new ComboBox<Option<Locale>>(locales);
 		cmbLanguage.setEditable(true);
 		cmbLanguage.setCellFactory(new Callback<ListView<Option<Locale>>, ListCell<Option<Locale>>>() {
@@ -153,31 +181,31 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			}
 		});
 		cmbLanguage.setMaxWidth(Double.MAX_VALUE);
-		Label lblSource = new Label("Source");
+		Label lblSource = new Label(Translations.get("bible.edit.source"));
 		TextField txtSource = new TextField();
-		Label lblCopyright = new Label("Copyright");
+		Label lblCopyright = new Label(Translations.get("bible.edit.copyright"));
 		TextField txtCopyright = new TextField();
-		Label lblNotes = new Label("Notes");
+		Label lblNotes = new Label(Translations.get("bible.edit.notes"));
 		TextArea txtNotes = new TextArea();
 		txtNotes.setWrapText(true);
 		txtNotes.setPrefHeight(250);
 		
-		Label lblEditMessage = new Label("Select an item to the left to edit", FONT_AWESOME.create(FontAwesome.Glyph.ARROW_LEFT));
+		Label lblEditMessage = new Label(Translations.get("bible.edit.message"), FONT_AWESOME.create(FontAwesome.Glyph.ARROW_LEFT));
 		
 		// book
-		Label lblBookName = new Label("Book Name");
+		Label lblBookName = new Label(Translations.get("bible.edit.bookname"));
 		TextField txtBookName = new TextField();
 		
 		// chapter
-		Label lblChapter = new Label("Chapter Number");
+		Label lblChapter = new Label(Translations.get("bible.edit.chapternumber"));
 		Spinner<Integer> spnChapter = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnChapter.setEditable(true);
 		
 		// verse
-		Label lblVerse = new Label("Verse Number");
+		Label lblVerse = new Label(Translations.get("bible.edit.versenumber"));
 		Spinner<Integer> spnVerse = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnVerse.setEditable(true);
-		Label lblVerseText = new Label("Verse Text");
+		Label lblVerseText = new Label(Translations.get("bible.edit.versetext"));
 		TextArea txtText = new TextArea();
 		txtText.setWrapText(true);
 		txtText.setPrefHeight(350);
@@ -214,7 +242,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		}
 		lblEditMessage.setVisible(true);
 		
-		TitledPane ttlOther = new TitledPane("Editor", otherDetail);
+		TitledPane ttlOther = new TitledPane(Translations.get("bible.edit.title"), otherDetail);
 		ttlOther.setCollapsible(false);
 		
 		BibleEditorDragDropManager manager = new BibleEditorDragDropManager();
@@ -685,9 +713,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			Alert alert = Alerts.confirm(
 					getScene().getWindow(),
 					Modality.WINDOW_MODAL,
-					"Delete", 
-					"This will delete all the selected items.", 
-					"Are you sure you want to do this?");
+					Translations.get("action.delete"), 
+					Translations.get("bible.edit.delete.header"), 
+					Translations.get("bible.edit.delete.content"));
 			
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.get() == ButtonType.OK) {
@@ -725,7 +753,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			// add new verse
 			VerseTreeData vd = (VerseTreeData)item.getValue();
 			short number = (short)(vd.verse.getNumber() + 1);
-			Verse verse = new Verse(number, "New verse");
+			Verse verse = new Verse(number, Translations.get("bible.edit.verse.default"));
 			// add to data
 			vd.chapter.getVerses().add(verse);
 			// add to view
@@ -737,7 +765,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			// add new verse
 			ChapterTreeData cd = (ChapterTreeData)item.getValue();
 			short number = cd.chapter.getMaxVerseNumber();
-			Verse verse = new Verse(++number, "New verse");
+			Verse verse = new Verse(++number, Translations.get("bible.edit.verse.default"));
 			// add to data
 			cd.chapter.getVerses().add(verse);
 			// add to view
@@ -759,7 +787,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			// add new book
 			BibleTreeData bd = (BibleTreeData)item.getValue();
 			short number = bd.bible.getMaxBookNumber();
-			Book book = new Book("New book", ++number);
+			Book book = new Book(Translations.get("bible.edit.book.default"), ++number);
 			// add to data
 			bd.bible.getBooks().add(book);
 			// add to view
@@ -796,7 +824,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					getScene().getWindow(),
 					null, 
 					null, 
-					MessageFormat.format(Translations.get("bible.save.error"), bible.getName()), 
+					MessageFormat.format(Translations.get("bible.save.error.content"), bible.getName()), 
 					ex);
 			alert.show();
 		});
@@ -811,9 +839,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
     	TextInputDialog prompt = new TextInputDialog(old);
     	prompt.initOwner(getScene().getWindow());
     	prompt.initModality(Modality.WINDOW_MODAL);
-    	prompt.setTitle(Translations.get("bible.saveas.title"));
-    	prompt.setHeaderText(Translations.get("bible.saveas.header"));
-    	prompt.setContentText(Translations.get("bible.saveas.content"));
+    	prompt.setTitle(Translations.get("action.saveas"));
+    	prompt.setHeaderText(Translations.get("saveas.header"));
+    	prompt.setContentText(Translations.get("saveas.content"));
     	Optional<String> result = prompt.showAndWait();
     	
     	// check for the "OK" button
@@ -850,10 +878,10 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 						getScene().getWindow(),
 						Modality.WINDOW_MODAL,
 						AlertType.CONFIRMATION, 
-						"Renumber", 
-						"Performing this action will reassign the numbers according to their current order.", 
-						"Are you sure you want to do this?", 
-						"Don't show this again", 
+						Translations.get("action.bible.renumber"), 
+						Translations.get("bible.edit.renumber.header"), 
+						Translations.get("bible.edit.renumber.content"), 
+						Translations.get("optout"), 
 						(d) -> {
 							this.context.getConfiguration().setBoolean(Setting.BIBLE_SHOW_RENUMBER_WARNING, false);
 						});

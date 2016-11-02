@@ -169,11 +169,7 @@ public final class ScreenManager {
 		mutating = false;
 	}
 	
-	private void updateDisplays() {
-		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
-		Display dDisplay = this.configuration.getMainScreen();
-		Display mDisplay = this.configuration.getMusicianScreen();
-		
+	public void release() {
 		LOGGER.info("Releasing existing displays.");
 		// release any existing stages
 		if (this.main != null) {
@@ -184,6 +180,16 @@ public final class ScreenManager {
 			this.musician.release();
 			this.musician = null;
 		}
+	}
+	
+	private void updateDisplays() {
+		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
+		Display dDisplay = this.configuration.getMainScreen();
+		Display mDisplay = this.configuration.getMusicianScreen();
+		
+		LOGGER.info("Releasing existing displays.");
+		// release any existing stages
+		this.release();
 		
 		// create new ones
 		LOGGER.info("Creating new displays.");
@@ -231,8 +237,6 @@ public final class ScreenManager {
 		ScreenConfiguration conf = new ScreenConfiguration();
 		// add the default resolutions
 		conf.getResolutions().addAll(Arrays.asList(Resolution.DEFAULT_RESOLUTIONS));
-		
-		this.saveConfiguration();
 		
 		return conf;
 	}

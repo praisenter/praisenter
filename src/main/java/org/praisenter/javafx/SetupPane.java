@@ -14,7 +14,7 @@ import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.screen.ScreenConfiguration;
 import org.praisenter.javafx.screen.ScreenView;
 import org.praisenter.javafx.screen.ScreenViewDragDropManager;
-import org.praisenter.javafx.styles.Theme;
+import org.praisenter.javafx.themes.Theme;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.InvalidationListener;
@@ -60,21 +60,27 @@ public final class SetupPane extends VBox {
 		gridGeneral.setHgap(5);
 		gridGeneral.setVgap(5);
 		
+		Locale locale = context.getConfiguration().getLanguage();
+		if (locale == null) {
+			locale = Locale.getDefault();
+		}
+		
+		Theme theme = context.getConfiguration().getTheme();
+		if (theme == null) {
+			theme = Theme.DEFAULT;
+		}
+		
 		// language
 		Label lblLocale = new Label("Language");
 		ComboBox<Option<Locale>> cmbLocale = new ComboBox<Option<Locale>>(FXCollections.observableArrayList(locales));
-		cmbLocale.setValue(new Option<Locale>(null, context.getConfiguration().getLanguage()));
+		cmbLocale.setValue(new Option<Locale>(null, locale));
 		gridGeneral.add(lblLocale, 0, 0);
 		gridGeneral.add(cmbLocale, 1, 0);
 		
-		List<Option<Theme>> themes = new ArrayList<Option<Theme>>();
-		themes.add(new Option<Theme>("Default", Theme.DEFAULT));
-		themes.add(new Option<Theme>("Dark", Theme.DARK));
-		
 		// theme
 		Label lblTheme = new Label("Theme");
-		ComboBox<Option<Theme>> cmbTheme = new ComboBox<Option<Theme>>(FXCollections.observableArrayList(themes));
-		cmbTheme.setValue(new Option<Theme>(null, context.getConfiguration().getTheme()));
+		ComboBox<Theme> cmbTheme = new ComboBox<Theme>(FXCollections.observableArrayList(Theme.THEMES));
+		cmbTheme.setValue(theme);
 		gridGeneral.add(lblTheme, 0, 1);
 		gridGeneral.add(cmbTheme, 1, 1);
 		
@@ -151,7 +157,7 @@ public final class SetupPane extends VBox {
 		});
 		
 		cmbTheme.valueProperty().addListener((obs, ov, nv) -> {
-			context.getConfiguration().set(Setting.GENERAL_THEME, nv.value.name());
+			context.getConfiguration().set(Setting.GENERAL_THEME, nv.getCss());
 		});
 		
 		chkDebugMode.selectedProperty().addListener((obs, ov, nv) -> {

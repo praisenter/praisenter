@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.bible;
 
 import java.util.ArrayList;
@@ -11,7 +35,6 @@ import org.praisenter.bible.Verse;
 import javafx.css.PseudoClass;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.ClipboardContent;
@@ -20,31 +43,45 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
 
 // JAVABUG Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
+
+/**
+ * Class used to managed the drag and drop features of the {@link BibleEditorPane}.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 final class BibleEditorDragDropManager {
+	/** The class when dragged over a parent node */
 	private static final PseudoClass DRAG_OVER_PARENT = PseudoClass.getPseudoClass("drag-over-parent");
+	
+	/** The class when dragged over the top half of a sibling node */
 	private static final PseudoClass DRAG_OVER_SIBLING_TOP = PseudoClass.getPseudoClass("drag-over-sibling-top");
+	
+	/** The class when dragged over the bottom half of a sibling node */
 	private static final PseudoClass DRAG_OVER_SIBLING_BOTTOM = PseudoClass.getPseudoClass("drag-over-sibling-bottom");
 	
+	// state
+	
+	/** The list of select nodes */
 	private final List<TreeItem<TreeData>> selected;
+	
+	/** The type of the selected nodes */
 	private Class<?> selectedType;
 	
+	/**
+	 * Default constructor.
+	 */
 	public BibleEditorDragDropManager() {
 		this.selected = new ArrayList<TreeItem<TreeData>>();
 	}
 	
-	public void dragDetected(TreeCell<TreeData> cell, MouseEvent e) {
+	/**
+	 * Called when a drag event is detected on a TreeCell.
+	 * @param cell the cell that was dragged
+	 * @param e the mouse event triggering the drag
+	 */
+	public void dragDetected(BibleTreeCell cell, MouseEvent e) {
 		if (!cell.isEmpty()) {
 			TreeView<TreeData> view = cell.getTreeView();
 			
@@ -100,17 +137,32 @@ final class BibleEditorDragDropManager {
 		}
 	}
 	
-	public void dragExited(TreeCell<TreeData> cell, DragEvent e) {
+	/**
+	 * Called when the mouse leaves a node during a drag.
+	 * @param cell the cell that was exited
+	 * @param e the drag event
+	 */
+	public void dragExited(BibleTreeCell cell, DragEvent e) {
 		cell.pseudoClassStateChanged(DRAG_OVER_PARENT, false);
 		cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_BOTTOM, false);
 		cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_TOP, false);
 	}
 	
-	public void dragEntered(TreeCell<TreeData> cell, DragEvent e) {
+	/**
+	 * Called when the mouse enters a node during a drag.
+	 * @param cell the cell that was entered
+	 * @param e the drag event
+	 */
+	public void dragEntered(BibleTreeCell cell, DragEvent e) {
 		// nothing to do here
 	}
 	
-	public void dragOver(TreeCell<TreeData> cell, DragEvent e) {
+	/**
+	 * Called when the is over another cell during a drag.
+	 * @param cell the cell that the drag is over
+	 * @param e the drag event
+	 */
+	public void dragOver(BibleTreeCell cell, DragEvent e) {
 		if (!cell.isEmpty()) {
 			TreeItem<TreeData> item = cell.getTreeItem();
 			TreeData data = cell.getItem();
@@ -157,7 +209,12 @@ final class BibleEditorDragDropManager {
 		}
 	}
 	
-	public void dragDropped(TreeCell<TreeData> cell, DragEvent e) {
+	/**
+	 * Called when the drag is dropped.
+	 * @param cell the cell that had the drag dropped on
+	 * @param e the drag event
+	 */
+	public void dragDropped(BibleTreeCell cell, DragEvent e) {
 		TreeItem<TreeData> toNode = cell.getTreeItem();
 		
 		// make sure we don't paste onto ourself
@@ -248,7 +305,12 @@ final class BibleEditorDragDropManager {
 		e.setDropCompleted(true);
 	}
 	
-	public void dragDone(TreeCell<TreeData> cell, DragEvent e) {
+	/**
+	 * Called when the drag event finishes.
+	 * @param cell the cell that the drag was initiated on
+	 * @param e the drag event
+	 */
+	public void dragDone(BibleTreeCell cell, DragEvent e) {
 		// regardless if the transfer was successful
 		// clear the local state
 		this.selected.clear();

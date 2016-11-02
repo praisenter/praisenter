@@ -449,9 +449,9 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 			Alert alert = Alerts.confirm(
 					getScene().getWindow(), 
 					Modality.WINDOW_MODAL, 
-					Translations.get("bible.remove.title"), 
+					Translations.get("bible.delete.title"), 
 					null, 
-					Translations.get("bible.remove.content"));
+					Translations.get("bible.delete.content"));
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.get() == ButtonType.OK) {
 				// attempt to remove
@@ -469,7 +469,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 									getScene().getWindow(),
 									null, 
 									null, 
-									MessageFormat.format(Translations.get("bible.remove.error"), list), 
+									MessageFormat.format(Translations.get("bible.delete.error"), list), 
 									exceptions);
 							fAlert.show();
 						});
@@ -682,25 +682,22 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 	public boolean isApplicationActionEnabled(ApplicationAction action) {
 		Node focused = this.getScene().getFocusOwner();
 		
-		boolean isSingleSelected = this.selected.get() != null;
-    	boolean isMultiSelected = this.lstBibles.getSelectionModel().selectionsProperty().size() > 0;
+		List<BibleListItem> selected = this.lstBibles.getSelectionModel().selectionsProperty().get();
+		
+		boolean isSingleSelected = selected.size() == 1;
+    	boolean isMultiSelected = selected.size() > 0;
     	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.lstBibles);
+    	boolean isLoaded = selected.stream().allMatch(b -> b.isLoaded());
     	
     	switch (action) {
 			case RENAME:
 			case OPEN:
 			case COPY:
-				if (isFocused) {
-					return isSingleSelected;
-				}
-				break;
+				return isFocused && isLoaded && isSingleSelected;
 			case DELETE:
 			case EXPORT:
 				// check for focused text input first
-				if (isFocused) {
-					return isSingleSelected || isMultiSelected;
-				}
-				break;
+				return isFocused && (isSingleSelected || isMultiSelected) && isLoaded;
 			case SELECT_ALL:
 			case SELECT_NONE:
 			case SELECT_INVERT:
