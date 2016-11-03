@@ -39,6 +39,7 @@ import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.resources.OpenIconic;
 import org.praisenter.resources.translations.Translations;
+import org.praisenter.utility.RuntimeProperties;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
@@ -83,12 +84,17 @@ public final class Praisenter extends Application {
 		// set the log4j configuration file path
 		System.setProperty(XmlConfigurationFactory.CONFIGURATION_FILE_PROPERTY, "./log4j2.xml");
 		
-		// set the derby log file path
-		System.setProperty("derby.stream.error.file", Constants.DATABASE_LOG_FILE_PATH);
-		
 		// create a logger for this class after the log4j has been initialized
 		LOGGER = LogManager.getLogger();
-		
+    	
+		// print some system info
+    	LOGGER.info(Constants.NAME + " " + Constants.VERSION);
+    	LOGGER.info(RuntimeProperties.OPERATING_SYSTEM + " " + RuntimeProperties.ARCHITECTURE);
+    	LOGGER.info(RuntimeProperties.JAVA_VERSION + " " + RuntimeProperties.JAVA_VENDOR);
+    	LOGGER.info(RuntimeProperties.JVM_ARGUMENTS);
+    	LOGGER.info(RuntimeProperties.JAVA_HOME);
+    	LOGGER.info(RuntimeProperties.USER_HOME);
+    	
 		// load (or create) configuration
 		LOGGER.info("Loading configuration.");
 		CONFIGURATION = Configuration.load();
@@ -143,7 +149,7 @@ public final class Praisenter extends Application {
     @Override
     public void start(Stage stage) throws Exception {
     	// log supported features
-    	LOGGER.info("Supported Java FX Features:");
+    	LOGGER.info("Java FX Feature Support:");
     	for (ConditionalFeature feature : ConditionalFeature.values()) {
     		LOGGER.info(feature.name() + "=" + Platform.isSupported(feature));
     	}

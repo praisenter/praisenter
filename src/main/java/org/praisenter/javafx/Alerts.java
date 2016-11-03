@@ -27,11 +27,9 @@ package org.praisenter.javafx;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import org.praisenter.resources.translations.Translations;
 
-import javafx.collections.ObservableList;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -45,7 +43,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Modality;
 import javafx.stage.Window;
-import javafx.util.Callback;
 
 /**
  * Helper class for generating alerts.
@@ -81,6 +78,7 @@ public final class Alerts {
 		if (owner != null) {
 			alert.initOwner(owner);
 		}
+		alert.initModality(Modality.APPLICATION_MODAL);
 		alert.setTitle(title == null ? Translations.get("error.alert.title") : title);
 		alert.setHeaderText(header == null ? Translations.get("error.alert.message") : header);
 		alert.setContentText(content == null ? Translations.get("error.alert.message") : content);
@@ -118,6 +116,18 @@ public final class Alerts {
 		return alert;
 	}
 	
+	/**
+	 * Creates a new dialog with an opt out option.
+	 * @param owner the owner of this alert
+	 * @param modality the modality of the alert
+	 * @param type the type of alert
+	 * @param title the alert window title
+	 * @param header the alert's header section
+	 * @param content the alert's content section
+	 * @param optOutMessage the opt out label
+	 * @param optOutAction the action to execute when the opt out is changed
+	 * @return Alert
+	 */
 	public static final Alert optOut(
 			Window owner,
 			Modality modality,
@@ -152,6 +162,15 @@ public final class Alerts {
 		return alert;
 	}
 	
+	/**
+	 * Creates a new info dialog.
+	 * @param owner the owner of this alert
+	 * @param modality the modality of the alert
+	 * @param title the alert window title
+	 * @param header the alert's header section
+	 * @param content the alert's content section
+	 * @return Alert
+	 */
 	public static final Alert info(
 			Window owner,
 			Modality modality,
@@ -173,6 +192,15 @@ public final class Alerts {
 		return alert;
 	}
 	
+	/**
+	 * Creates a new confirm dialog.
+	 * @param owner the owner of this alert
+	 * @param modality the modality of the alert
+	 * @param title the alert window title
+	 * @param header the alert's header section
+	 * @param content the alert's content section
+	 * @return Alert
+	 */
 	public static final Alert confirm(
 			Window owner,
 			Modality modality,
@@ -194,15 +222,66 @@ public final class Alerts {
 		return alert;
 	}
 	
+	/**
+	 * Creates a new Yes-No-Cancel confirmation dialog.
+	 * @param owner the owner of this alert
+	 * @param modality the modality of the alert
+	 * @param title the alert window title
+	 * @param header the alert's header section
+	 * @param content the alert's content section
+	 * @return Alert
+	 */
+	public static final Alert yesNoCancel(
+			Window owner,
+			Modality modality,
+			String title, 
+			String header, 
+			String content) {
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+		alert.setContentText(content);
+		alert.setTitle(title);
+		alert.setHeaderText(header);
+		alert.getButtonTypes().setAll(
+				ButtonType.YES,
+				ButtonType.NO,
+				ButtonType.CANCEL);
+		
+		if (owner != null) {
+			alert.initOwner(owner);
+		}
+		if (modality != null) {
+			alert.initModality(modality);
+		}
+		
+		return alert;
+	}
+	
+	/**
+	 * Custom dialog pane that overrides the details button to use
+	 * a check box instead.
+	 * @author William Bittle
+	 * @version 3.0.0
+	 */
 	private static class OptOutDialogPane extends DialogPane {
+		/** The opt out message */
 		private final String message;
+		
+		/** The opt out action */
 		private final Consumer<Boolean> action;
 		
+		/**
+		 * Full constructor.
+		 * @param message the opt out message
+		 * @param action the opt out action
+		 */
 		public OptOutDialogPane(String message, Consumer<Boolean> action) {
 			this.message = message;
 			this.action = action;
 		}
 		
+		/* (non-Javadoc)
+		 * @see javafx.scene.control.DialogPane#createDetailsButton()
+		 */
 		@Override
 		protected Node createDetailsButton() {
 			CheckBox optOut = new CheckBox();

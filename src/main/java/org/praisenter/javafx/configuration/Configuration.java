@@ -31,6 +31,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -81,13 +82,11 @@ public final class Configuration {
 		this.theme = Theme.DEFAULT;
 
 		// set default language/theme
-		this.set(Setting.GENERAL_LANGUAGE, this.language.toLanguageTag());
-		this.set(Setting.GENERAL_THEME, this.theme.getName());
+		this.settings.put(Setting.GENERAL_LANGUAGE, this.language.toLanguageTag());
+		this.settings.put(Setting.GENERAL_THEME, this.theme.getName());
 		
 		// set other defaults
-		this.set(Setting.BIBLE_PRIMARY, null);
-		this.set(Setting.BIBLE_SECONDARY, null);
-		this.set(Setting.BIBLE_SHOW_RENUMBER_WARNING, "true");
+		this.settings.put(Setting.BIBLE_SHOW_RENUMBER_WARNING, "true");
 	}
 	
 	/**
@@ -277,6 +276,15 @@ public final class Configuration {
 		this.set(setting, String.valueOf(value));
 	}
 	
+	/**
+	 * Sets the given setting to the given UUID value.
+	 * @param setting the setting
+	 * @param value the value
+	 */
+	public void setUUID(Setting setting, UUID value) {
+		this.set(setting, value.toString());
+	}
+	
 	// convenience get
 	
 	/**
@@ -384,6 +392,21 @@ public final class Configuration {
 		}
 	}
 	
+	/**
+	 * Returns the value for the given setting or the given default value
+	 * if the setting isn't present or isn't a UUID.
+	 * @param setting the setting
+	 * @param defaultValue the default
+	 * @return UUID
+	 */
+	public UUID getUUID(Setting setting, UUID defaultValue) {
+		try {
+			return UUID.fromString(this.settings.get(setting));
+		} catch (Exception ex) {
+			return defaultValue;
+		}
+	}
+	
 	// helpers
 	
 	/**
@@ -419,6 +442,6 @@ public final class Configuration {
 	 * @param theme the theme
 	 */
 	public void setTheme(Theme theme) {
-		this.set(Setting.GENERAL_THEME, theme != null ? theme.toString() : Theme.DEFAULT.toString());
+		this.set(Setting.GENERAL_THEME, theme != null ? theme.getName() : Theme.DEFAULT.getName());
 	}
 }

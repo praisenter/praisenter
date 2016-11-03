@@ -92,8 +92,6 @@ import javafx.stage.Modality;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 
-// FIXME check for changes and prompt to save before close
-
 /**
  * A pane for editing {@link Bible}s.
  * @author William Bittle
@@ -123,6 +121,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	
 	/** True when the bible property is being set */
 	private boolean mutating = false;
+	
+	/** True if there is unsaved changes */
+	private boolean unsavedChanges = false;
 	
 	/**
 	 * Minimal constructor.
@@ -361,6 +362,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				txtCopyright.setText(null);
 				txtNotes.setText(null);
 			}
+			this.unsavedChanges = false;
 			this.mutating = false;
 		});
 		
@@ -419,6 +421,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			if (this.mutating) return;
 			Bible bible = this.bible.get();
 			if (bible != null) {
+				this.unsavedChanges = true;
 				bible.setName(nv);
 				TreeItem<TreeData> root = this.bibleTree.getRoot();
 				if (root != null) {
@@ -439,6 +442,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					language = locale != null ? locale.toLanguageTag() : nv.getName();
 				}
 				bible.setLanguage(language);
+				this.unsavedChanges = true;
 			}
 		});
 		txtSource.textProperty().addListener((obs, ov, nv) -> {
@@ -446,6 +450,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			Bible bible = this.bible.get();
 			if (bible != null) {
 				bible.setSource(nv);
+				this.unsavedChanges = true;
 			}
 		});
 		txtCopyright.textProperty().addListener((obs, ov, nv) -> {
@@ -453,6 +458,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			Bible bible = this.bible.get();
 			if (bible != null) {
 				bible.setCopyright(nv);
+				this.unsavedChanges = true;
 			}
 		});
 		txtNotes.textProperty().addListener((obs, ov, nv) -> {
@@ -460,6 +466,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			Bible bible = this.bible.get();
 			if (bible != null) {
 				bible.setNotes(nv);
+				this.unsavedChanges = true;
 			}
 		});
 		txtBookName.textProperty().addListener((obs, ov, nv) -> {
@@ -471,6 +478,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					BookTreeData td = (BookTreeData)data;
 					td.book.setName(nv);
 					td.update();
+					this.unsavedChanges = true;
 				}
 			}
 		});
@@ -483,6 +491,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					ChapterTreeData ctd = (ChapterTreeData)data;
 					ctd.chapter.setNumber(nv.shortValue());
 					ctd.update();
+					this.unsavedChanges = true;
 				}
 			}
 		});
@@ -495,6 +504,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					VerseTreeData vtd = (VerseTreeData)data;
 					vtd.verse.setNumber(nv.shortValue());
 					vtd.update();
+					this.unsavedChanges = true;
 				}
 			}
 		});
@@ -507,6 +517,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					VerseTreeData vtd = (VerseTreeData)data;
 					vtd.verse.setText(nv);
 					vtd.update();
+					this.unsavedChanges = true;
 				}
 			}
 		});
@@ -650,6 +661,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 						// add the tree node
 						node.getChildren().add(this.forBook(bible, copy));
 					}
+					this.unsavedChanges = true;
 				}
 			} else if (type.equals(BookTreeData.class)) {
 				BookTreeData td = (BookTreeData)node.getValue();
@@ -666,6 +678,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 						// add the tree node
 						node.getChildren().add(this.forChapter(bible, book, copy));
 					}
+					this.unsavedChanges = true;
 				}
 			} else if (type.equals(ChapterTreeData.class)) {
 				ChapterTreeData td = (ChapterTreeData)node.getValue();
@@ -683,6 +696,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 						// add the tree node
 						node.getChildren().add(this.forVerse(bible, book, chapter, copy));
 					}
+					this.unsavedChanges = true;
 				}
 			} else if (type.equals(VerseTreeData.class)) {
 				VerseTreeData td = (VerseTreeData)node.getValue();
@@ -700,6 +714,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 						// add the tree node
 						node.getParent().getChildren().add(this.forVerse(bible, book, chapter, copy));
 					}
+					this.unsavedChanges = true;
 				}
 			}
 		}
@@ -737,6 +752,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					// remove the node
 					item.getParent().getChildren().remove(item);
 				}
+				this.unsavedChanges = true;
 			}
 		}
 	}
@@ -762,7 +778,6 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			int index = item.getParent().getChildren().indexOf(item);
 			newItem = new TreeItem<TreeData>(new VerseTreeData(vd.bible, vd.book, vd.chapter, verse));
 			item.getParent().getChildren().add(index + 1, newItem);
-			// select it and go to it
 		} else if (ChapterTreeData.class.equals(type)) {
 			// add new verse
 			ChapterTreeData cd = (ChapterTreeData)item.getValue();
@@ -800,6 +815,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		
 		// did we create an item?
 		if (newItem != null) {
+			this.unsavedChanges = true;
 			// if so, then get it's index
 			int index = this.bibleTree.getRow(newItem);
 			if (index > 0) {
@@ -819,7 +835,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 */
 	private void save() {
 		this.context.getBibleLibrary().save(this.getBible(), b -> {
-			// nothing to do on success
+			this.unsavedChanges = false;
 		}, (b, ex) -> {
 			LOGGER.error("Failed to save bible " + b.getName() + " " + b.getId() + " due to: " + ex.getMessage(), ex);
 			Alert alert = Alerts.exception(
@@ -903,6 +919,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				} else if (td instanceof VerseTreeData) {
 					renumberChapter(item.getParent());
 				}
+				this.unsavedChanges = true;
 			}
 		}
 	}
@@ -1026,7 +1043,23 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				this.saveAs();
 				break;
 			case CLOSE:
-				this.fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.MANAGE_BIBLES));
+				if (this.unsavedChanges) {
+					Alert alert = Alerts.yesNoCancel(
+							getScene().getWindow(),
+							Modality.WINDOW_MODAL,
+							Translations.get("warning.modified.title"), 
+							MessageFormat.format(Translations.get("warning.modified.header"), this.bible.get().getName()), 
+							null);
+					Optional<ButtonType> result = alert.showAndWait();
+					if (result.get() == ButtonType.YES) {
+						this.save();
+						this.fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.MANAGE_BIBLES));
+					} else if (result.get() == ButtonType.NO) {
+						this.fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.MANAGE_BIBLES));
+					}
+				} else {
+					this.fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.MANAGE_BIBLES));
+				}
 				break;
 			case RENUMBER:
 				// we only want to execute this if the current focus

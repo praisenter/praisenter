@@ -363,6 +363,30 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	}
 
 	/**
+	 * Returns the specified verse or null if it doesn't exist.
+	 * @param bookNumber the book number
+	 * @param chapterNumber the chapter number
+	 * @param verseNumber the verse number
+	 * @return {@link Verse}
+	 */
+	public Verse getVerse(short bookNumber, short chapterNumber, short verseNumber) {
+		for (Book book : this.books) {
+			if (book.number == bookNumber) {
+				for (Chapter chapter : book.chapters) {
+					if (chapter.number == chapterNumber) {
+						for (Verse verse : chapter.verses) {
+							if (verse.number == verseNumber) {
+								return verse;
+							}
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
 	 * Returns the books of this bible.
 	 * @return List&lt;{@link Book}&gt;
 	 */

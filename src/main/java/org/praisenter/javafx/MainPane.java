@@ -11,6 +11,7 @@ import org.praisenter.Constants;
 import org.praisenter.bible.Bible;
 import org.praisenter.javafx.bible.BibleEditorPane;
 import org.praisenter.javafx.bible.BibleLibraryPane;
+import org.praisenter.javafx.bible.BibleNavigationPane;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.slide.SlideLibraryPane;
 
@@ -58,6 +59,8 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		this.addEventHandler(ApplicationEvent.ALL, e -> {
 			handleApplicationEvent(e);
 		});
+		
+		this.setCenter(new BibleNavigationPane(context));
 	}
 	
 	// APPLICATION PANE
