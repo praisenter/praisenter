@@ -583,43 +583,52 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     			break;
     		case COPY:
 				if (isFocused) {
-	    			if (selected != null) {
-	    				Clipboard cb = Clipboard.getSystemClipboard();
-	    				ClipboardContent content = new ClipboardContent();
-	    				content.put(DataFormat.PLAIN_TEXT, selected.getName());
-	    				content.put(DataFormats.BIBLE_ID, selected.getId());
-	    				cb.setContent(content);
-	    				this.stateChanged(ApplicationPaneEvent.REASON_DATA_COPIED);
-	    			}
+    				Clipboard cb = Clipboard.getSystemClipboard();
+    				ClipboardContent content = new ClipboardContent();
+    				List<String> names = new ArrayList<String>();
+    				List<UUID> ids = new ArrayList<UUID>();
+    				for (BibleListItem item : this.lstBibles.getSelectionModel().selectionsProperty()) {
+    					names.add(item.getName());
+    					ids.add(item.getBible().getId());
+    				}
+    				content.put(DataFormat.PLAIN_TEXT, String.join(", ", names));
+    				content.put(DataFormats.BIBLE_IDS, ids);
+    				cb.setContent(content);
+    				this.stateChanged(ApplicationPaneEvent.REASON_DATA_COPIED);
 				}
     			break;
     		case PASTE:
 				if (isFocused) {
 					Clipboard cb = Clipboard.getSystemClipboard();
-					Object data = cb.getContent(DataFormats.BIBLE_ID);
-					if (data != null && data instanceof UUID) {
+					Object data = cb.getContent(DataFormats.BIBLE_IDS);
+					if (data != null && data instanceof List) {
 						// make a copy
-						Bible bible = this.context.getBibleLibrary().get((UUID)data);
-						if (bible != null) {
-							// make a copy
-							Bible copy = bible.copy(false);
-							// set the name to something else
-							copy.setName(MessageFormat.format(Translations.get("bible.copy.name"), bible.getName()));
-							// then save it
-							this.context.getBibleLibrary().save(copy, saved -> {
-								// nothing to do
-							}, (failed, error) -> {
-								// present message to user
-								Alert alert = Alerts.exception(
-										getScene().getWindow(),
-										null, 
-										null, 
-										MessageFormat.format(Translations.get("bible.copy.error"), bible.getName()), 
-										error);
-								alert.show();
-							});
-						} else {
-							LOGGER.warn("Failed to copy bible, it may have been removed.");
+						List<?> ids = (List<?>)data;
+						for (Object id : ids) {
+							if (id instanceof UUID) {
+								Bible bible = this.context.getBibleLibrary().get((UUID)id);
+								if (bible != null) {
+									// make a copy
+									Bible copy = bible.copy(false);
+									// set the name to something else
+									copy.setName(MessageFormat.format(Translations.get("bible.copy.name"), bible.getName()));
+									// then save it
+									this.context.getBibleLibrary().save(copy, saved -> {
+										// nothing to do
+									}, (failed, error) -> {
+										// present message to user
+										Alert alert = Alerts.exception(
+												getScene().getWindow(),
+												null, 
+												null, 
+												MessageFormat.format(Translations.get("bible.copy.error"), bible.getName()), 
+												error);
+										alert.show();
+									});
+								} else {
+									LOGGER.warn("Failed to copy bible, it may have been removed.");
+								}
+							}
 						}
 					}
 				}
@@ -692,8 +701,8 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     	switch (action) {
 			case RENAME:
 			case OPEN:
-			case COPY:
 				return isFocused && isLoaded && isSingleSelected;
+			case COPY:
 			case DELETE:
 			case EXPORT:
 				// check for focused text input first
@@ -709,7 +718,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				// check for focused text input first
 				if (isFocused) {
 					Clipboard cb = Clipboard.getSystemClipboard();
-					return cb.hasContent(DataFormats.BIBLE_ID);
+					return cb.hasContent(DataFormats.BIBLE_IDS);
 				}
 				break;
 			default:

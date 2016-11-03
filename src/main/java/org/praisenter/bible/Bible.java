@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -39,6 +40,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.Constants;
+import org.praisenter.Localized;
 
 /**
  * Represents a Bible translation.
@@ -47,7 +49,7 @@ import org.praisenter.Constants;
  */
 @XmlRootElement(name = "bible")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Bible implements Comparable<Bible>, Serializable {
+public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	/** The serialization id */
 	private static final long serialVersionUID = 2081803110927884508L;
 
@@ -191,6 +193,17 @@ public final class Bible implements Comparable<Bible>, Serializable {
 		if (o == null) return 1;
 		// sort by id
 		return this.name.compareTo(o.name);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.Localized#getLocale()
+	 */
+	@Override
+	public Locale getLocale() {
+		if (this.language != null) {
+			return Locale.forLanguageTag(this.language);
+		}
+		return null;
 	}
 	
 	/**

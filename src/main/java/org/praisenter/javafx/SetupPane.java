@@ -37,6 +37,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Screen;
 
 // TODO translate
+// FEATURE option to export theme and translation to create new ones
 
 public final class SetupPane extends VBox {
 	/** The class level logger */

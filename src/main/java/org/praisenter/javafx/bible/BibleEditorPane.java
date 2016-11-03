@@ -92,6 +92,8 @@ import javafx.stage.Modality;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 
+// FIXME check for changes and prompt to save before close
+
 /**
  * A pane for editing {@link Bible}s.
  * @author William Bittle
@@ -110,7 +112,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	private final PraisenterContext context;
 
 	/** The bible being edited */
-	private final ObjectProperty<Bible> bible = new SimpleObjectProperty<>();
+	private final ObjectProperty<Bible> bible = new SimpleObjectProperty<Bible>();
 	
 	// nodes
 	
