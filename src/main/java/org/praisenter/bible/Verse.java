@@ -86,6 +86,14 @@ public final class Verse implements Comparable<Verse>, Serializable {
 		if (o == null) return 1;
 		return this.number - o.number;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return this.text;
+	}
 	
 	/**
 	 * Performs a deep copy of this verse.

@@ -103,6 +103,14 @@ public class Chapter implements Comparable<Chapter>, Serializable {
 		return this.number - c.number;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return String.valueOf(this.number);
+	}
+	
 	/**
 	 * Returns the maximum verse number in this chapter.
 	 * @return short
@@ -113,6 +121,17 @@ public class Chapter implements Comparable<Chapter>, Serializable {
 			max = max < verse.number ? verse.number : max;
 		}
 		return max;
+	}
+	
+	/**
+	 * Returns the last verse of this chapter.
+	 * @return {@link Verse}
+	 */
+	public Verse getLastVerse() {
+		if (this.verses.isEmpty()) {
+			return null;
+		}
+		return this.verses.get(this.verses.size() - 1);
 	}
 	
 	/**

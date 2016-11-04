@@ -101,7 +101,7 @@ public final class Configuration {
 				conf.language = Locale.forLanguageTag(conf.get(Setting.GENERAL_LANGUAGE));
 				String name = conf.get(Setting.GENERAL_THEME);
 				// find the matching theme
-				for (Theme theme : Theme.THEMES) {
+				for (Theme theme : Theme.getAvailableThemes()) {
 					if (theme.getName().equalsIgnoreCase(name)) {
 						conf.theme = theme;
 						break;

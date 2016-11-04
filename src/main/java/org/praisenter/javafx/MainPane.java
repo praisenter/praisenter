@@ -14,6 +14,8 @@ import org.praisenter.javafx.bible.BibleLibraryPane;
 import org.praisenter.javafx.bible.BibleNavigationPane;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.slide.SlideLibraryPane;
+import org.praisenter.javafx.slide.editor.SlideEditorPane;
+import org.praisenter.slide.BasicSlide;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -36,6 +38,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 	private final BibleEditorPane bibleEditorPane;
 	private final MediaLibraryPane mediaLibraryPane;
 	private final SlideLibraryPane slideLibraryPane;
+	private final SlideEditorPane slideEditorPane;
 	
 	private final ObjectProperty<Node> mainContent = new SimpleObjectProperty<Node>();
 	
@@ -55,6 +58,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		this.bibleEditorPane = new BibleEditorPane(context);
 		this.mediaLibraryPane = new MediaLibraryPane(context, Orientation.HORIZONTAL);
 		this.slideLibraryPane = new SlideLibraryPane(context);
+		this.slideEditorPane = new SlideEditorPane(context);
 		
 		this.addEventHandler(ApplicationEvent.ALL, e -> {
 			handleApplicationEvent(e);
@@ -90,6 +94,14 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				this.bibleEditorPane.setBible(bible);
 				this.navigate(this.bibleEditorPane);
 				break;
+			case NEW_SLIDE:
+				BasicSlide slide = new BasicSlide();
+				slide.setName("Untitled");
+				slide.setX(0);
+				slide.setY(0);
+				this.slideEditorPane.setSlide(slide);
+				this.navigate(this.slideEditorPane);
+				break;
 			case MANAGE_MEDIA:
 				this.navigate(this.mediaLibraryPane);
 				break;
@@ -123,6 +135,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			case EXIT:
 			case IMPORT_BIBLES:
 			case NEW_BIBLE:
+			case NEW_SLIDE:
 			case IMPORT_SLIDES:
 			case IMPORT_SONGS:
 			case MANAGE_BIBLES:

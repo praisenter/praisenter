@@ -165,7 +165,12 @@ public enum ApplicationAction {
 	NEW_VERSE(Translations.get("action.bible.newverse")),
 	
 	/** Create a new renumber the selection */
-	RENUMBER(Translations.get("action.bible.renumber"))
+	RENUMBER(Translations.get("action.bible.renumber")),
+	
+	// slide
+	
+	/** Create a new slide */
+	NEW_SLIDE(Translations.get("action.slide.newslide"))
 	
 	;
 	

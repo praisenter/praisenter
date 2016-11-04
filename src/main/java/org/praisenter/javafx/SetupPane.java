@@ -38,6 +38,7 @@ import javafx.stage.Screen;
 
 // TODO translate
 // FEATURE option to export theme and translation to create new ones
+// TODO add button to refresh list of themes and list of locales
 
 public final class SetupPane extends VBox {
 	/** The class level logger */
@@ -53,7 +54,7 @@ public final class SetupPane extends VBox {
 		Label lblRestartWarning = new Label("Changing the Theme, Language, or Debug Mode requires the application to be restarted to take effect.", FONT_AWESOME.create(FontAwesome.Glyph.WARNING).color(Color.ORANGE));
 		
 		List<Option<Locale>> locales = new ArrayList<Option<Locale>>();
-		for (Locale locale : Translations.SUPPORTED_LOCALES) {
+		for (Locale locale : Translations.getAvailableLocales()) {
 			locales.add(new Option<Locale>(locale.getDisplayName(), locale));
 		}
 		
@@ -80,7 +81,7 @@ public final class SetupPane extends VBox {
 		
 		// theme
 		Label lblTheme = new Label("Theme");
-		ComboBox<Theme> cmbTheme = new ComboBox<Theme>(FXCollections.observableArrayList(Theme.THEMES));
+		ComboBox<Theme> cmbTheme = new ComboBox<Theme>(FXCollections.observableArrayList(Theme.getAvailableThemes()));
 		cmbTheme.setValue(theme);
 		gridGeneral.add(lblTheme, 0, 1);
 		gridGeneral.add(cmbTheme, 1, 1);

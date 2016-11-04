@@ -22,18 +22,19 @@ public class SlideLibraryPane extends BorderPane {
 		this.slides = new FlowListView<SlideListItem>(Orientation.HORIZONTAL, new SlideListViewCellFactory(100));
 		this.slides.itemsProperty().bindContent(this.context.getSlideLibrary().getItems());
 		
-		// TODO some nice animation or something to transition back and forth
 		// TODO maybe auto-saving?
+		
+		// NOTE: undo/redo might be easier here since the size the XML documents is much smaller than bibles
 		
 		this.slides.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
 			@SuppressWarnings("unchecked")
 			FlowListCell<SlideListItem> view = (FlowListCell<SlideListItem>)e.getTarget();
 			SlideListItem item = view.getData();
 			
-			editor.setSlide(null);
-			editor.setSlide(item.slide);
-			
-			this.setCenter(editor);
+//			editor.setSlide(null);
+//			editor.setSlide(item.slide);
+//			
+//			this.setCenter(editor);
 		});
 		
 		this.setCenter(this.slides);

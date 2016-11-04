@@ -44,7 +44,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 
-// JAVABUG Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
+// JAVABUG 11/03/16 LOW Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
 
 /**
  * Class used to managed the drag and drop features of the {@link BibleEditorPane}.

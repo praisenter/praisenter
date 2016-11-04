@@ -114,6 +114,17 @@ public final class Book implements Comparable<Book>, Serializable {
 		}
 		return max;
 	}
+
+	/**
+	 * Returns the last chapter of this book.
+	 * @return {@link Chapter}
+	 */
+	public Chapter getLastChapter() {
+		if (this.chapters.isEmpty()) {
+			return null;
+		}
+		return this.chapters.get(this.chapters.size() - 1);
+	}
 	
 	/**
 	 * Performs a deep copy of this book.

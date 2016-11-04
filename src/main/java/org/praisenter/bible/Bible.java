@@ -196,6 +196,14 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	}
 	
 	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return this.name;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.Localized#getLocale()
 	 */
 	@Override
@@ -367,7 +375,7 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	 * @param bookNumber the book number
 	 * @param chapterNumber the chapter number
 	 * @param verseNumber the verse number
-	 * @return {@link Verse}
+	 * @return {@link LocatedVerse}
 	 */
 	public LocatedVerse getVerse(short bookNumber, short chapterNumber, short verseNumber) {
 		for (Book book : this.books) {
@@ -386,6 +394,19 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 		return null;
 	}
 	
+	/**
+	 * Returns the next verse after the given location or null if one doesn't exist.
+	 * <p>
+	 * The next verse is defined as the next in the list of verses, not necessarily the
+	 * next verse in terms of number. This should be handled on bible editing side of
+	 * things.
+	 * <p>
+	 * This method will cross book and chapter boundaries.
+	 * @param bookNumber the book number
+	 * @param chapterNumber the chapter number
+	 * @param verseNumber the verse number
+	 * @return {@link LocatedVerse}
+	 */
 	public LocatedVerse getNextVerse(short bookNumber, short chapterNumber, short verseNumber) {
 		boolean found = false;
 		for (Book book : this.books) {
@@ -408,6 +429,206 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Returns the previous verse before the given location or null if one doesn't exist.
+	 * <p>
+	 * The previous verse is defined as the previous in the list of verses, not necessarily the
+	 * previous verse in terms of number. This should be handled on bible editing side of
+	 * things.
+	 * <p>
+	 * This method will cross book and chapter boundaries.
+	 * @param bookNumber the book number
+	 * @param chapterNumber the chapter number
+	 * @param verseNumber the verse number
+	 * @return {@link LocatedVerse}
+	 */
+	public LocatedVerse getPreviousVerse(short bookNumber, short chapterNumber, short verseNumber) {
+		boolean found = false;
+		for (int i = this.books.size() - 1; i >= 0; i--) {
+			Book book = this.books.get(i);
+			if (found || book.number == bookNumber) {
+				for (int j = book.chapters.size() - 1; j >= 0; j--) {
+					Chapter chapter = book.chapters.get(j);
+					if (found || chapter.number == chapterNumber) {
+						for (int k = chapter.verses.size() - 1; k >= 0; k--) {
+							Verse verse = chapter.verses.get(k);
+							if (!found && verse.number == verseNumber) {
+								// we've found the verse
+								// so try to go to the next one
+								found = true;
+								continue;
+							}
+							if (found) {
+								return new LocatedVerse(this, book, chapter, verse);
+							}
+						}
+					}
+				}
+			}
+		}
+		return null;
+//		int vn = 0;
+//		int cn = 0;
+//		int bn = 0;
+//		Book pBook = null;
+//		Chapter pChapter = null;
+//		Verse pVerse = null;
+//		for (Book book : this.books) {
+//			if (book.number == bookNumber) {
+//				cn = 0;
+//				for (Chapter chapter : book.chapters) {
+//					if (chapter.number == chapterNumber) {
+//						vn = 0;
+//						for (Verse verse : chapter.verses) {
+//							if (verse.number == verseNumber) {
+//								if (vn == 0) {
+//									// first verse
+//									if (cn == 0) {
+//										// first chapter
+//										if (bn == 0) {
+//											// first book
+//											// nothing before
+//											return null;
+//										}
+//										// last verse of last chapter of previous book
+//										Chapter lChapter = pBook.getLastChapter();
+//										return new LocatedVerse(this, pBook, lChapter, lChapter.getLastVerse());
+//									}
+//									// last verse of previous chapter
+//									return new LocatedVerse(this, book, pChapter, pChapter.getLastVerse());
+//								} else {
+//									// same book, same chapter, previous verse
+//									return new LocatedVerse(this, book, chapter, pVerse);
+//								}
+//							}
+//							pVerse = verse;
+//							vn++;
+//						}
+//					}
+//					pChapter = chapter;
+//					cn++;
+//				}
+//			}
+//			pBook = book;
+//			bn++;
+//		}
+//		return null;
+	}
+	
+	/**
+	 * Returns the next verse after the given location or null if one doesn't exist.
+	 * <p>
+	 * This method will also return the next-next and the next-previous. For example, 
+	 * if the next triplet of Genesis 1:5 is requested, this method will return 
+	 * previous = Genesis 1:5, current = Genesis 1:6, and next = Genesis 1:7.
+	 * <p>
+	 * The next verse is defined as the next in the list of verses, not necessarily the
+	 * next verse in terms of number. This should be handled on bible editing side of
+	 * things.
+	 * <p>
+	 * This method will cross book and chapter boundaries.
+	 * @param bookNumber the book number
+	 * @param chapterNumber the chapter number
+	 * @param verseNumber the verse number
+	 * @return {@link LocatedVerseTriplet}
+	 */
+	public LocatedVerseTriplet getNextTriplet(short bookNumber, short chapterNumber, short verseNumber) {
+		LocatedVerse previous = null;
+		LocatedVerse current = null;
+		LocatedVerse next = null;
+		boolean start = false;
+		for (Book book : this.books) {
+			if (start || book.number == bookNumber) {
+				for (Chapter chapter : book.chapters) {
+					if (start || chapter.number == chapterNumber) {
+						for (Verse verse : chapter.verses) {
+							if (!start && verse.number == verseNumber) {
+								// we've found the verse
+								// so try to go to the next one
+								previous = new LocatedVerse(this, book, chapter, verse);
+								start = true;
+								continue;
+							} else if (start && current == null) {
+								current = new LocatedVerse(this, book, chapter, verse);
+							} else if (start && next == null) {
+								next = new LocatedVerse(this, book, chapter, verse);
+								return new LocatedVerseTriplet(previous, current, next);
+							}
+						}
+					}
+				}
+			}
+		}
+		if (current != null) {
+			return new LocatedVerseTriplet(previous, current, next);
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns the previous verse before the given location or null if one doesn't exist.
+	 * <p>
+	 * This method will also return the previous-previous and the previous-next. For example, 
+	 * if the previous triplet of Genesis 1:5 is requested, this method will return 
+	 * previous = Genesis 1:3, current = Genesis 1:4, and next = Genesis 1:5.
+	 * <p>
+	 * The previous verse is defined as the previous in the list of verses, not necessarily the
+	 * previous verse in terms of number. This should be handled on bible editing side of
+	 * things.
+	 * <p>
+	 * This method will cross book and chapter boundaries.
+	 * @param bookNumber the book number
+	 * @param chapterNumber the chapter number
+	 * @param verseNumber the verse number
+	 * @return {@link LocatedVerseTriplet}
+	 */
+	public LocatedVerseTriplet getPreviousTriplet(short bookNumber, short chapterNumber, short verseNumber) {
+		LocatedVerse previous = null;
+		LocatedVerse current = null;
+		LocatedVerse next = null;
+		boolean start = false;
+		for (int i = this.books.size() - 1; i >= 0; i--) {
+			Book book = this.books.get(i);
+			if (start || book.number == bookNumber) {
+				for (int j = book.chapters.size() - 1; j >= 0; j--) {
+					Chapter chapter = book.chapters.get(j);
+					if (start || chapter.number == chapterNumber) {
+						for (int k = chapter.verses.size() - 1; k >= 0; k--) {
+							Verse verse = chapter.verses.get(k);
+							if (!start && verse.number == verseNumber) {
+								// we've found the verse
+								// so try to go to the next one
+								next = new LocatedVerse(this, book, chapter, verse);
+								start = true;
+								continue;
+							} else if (start && current == null) {
+								current = new LocatedVerse(this, book, chapter, verse);
+							} else if (start && previous == null) {
+								previous = new LocatedVerse(this, book, chapter, verse);
+								return new LocatedVerseTriplet(previous, current, next);
+							}
+						}
+					}
+				}
+			}
+		}
+		if (current != null) {
+			return new LocatedVerseTriplet(previous, current, next);
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns the last book of this bible.
+	 * @return {@link Book}
+	 */
+	public Book getLastBook() {
+		if (this.books.isEmpty()) {
+			return null;
+		}
+		return this.books.get(this.books.size() - 1);
 	}
 	
 	/**

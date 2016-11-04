@@ -48,10 +48,14 @@ import javafx.animation.SequentialTransition;
 import javafx.application.Application;
 import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Bounds;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -63,7 +67,7 @@ import javafx.util.Duration;
 // FEATURE Use Apache POI to read powerpoint files
 // FEATURE Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
 
-// JAVABUG 09/28/16 High DPI - https://bugs.openjdk.java.net/browse/JDK-8090569
+// JAVABUG 09/28/16 MEDIUM High DPI; Fixed in Java 9 https://bugs.openjdk.java.net/browse/JDK-8091832
 
 /**
  * This is the entry point for the application.
@@ -87,7 +91,7 @@ public final class Praisenter extends Application {
 		// create a logger for this class after the log4j has been initialized
 		LOGGER = LogManager.getLogger();
     	
-		// print some system info
+		// log some system info
     	LOGGER.info(Constants.NAME + " " + Constants.VERSION);
     	LOGGER.info(RuntimeProperties.OPERATING_SYSTEM + " " + RuntimeProperties.ARCHITECTURE);
     	LOGGER.info(RuntimeProperties.JAVA_VERSION + " " + RuntimeProperties.JAVA_VENDOR);
@@ -143,6 +147,26 @@ public final class Praisenter extends Application {
     /** The praisenter context */
     private PraisenterContext context;
     
+    /**
+     * Returns true if the given rectangle is within one of the current screens.
+     * @param x the x coorindate
+     * @param y the y coorindate
+     * @param w the width
+     * @param h the height
+     * @return
+     */
+    private boolean isInScreenBounds(double x, double y, double w, double h) {
+    	Rectangle2D bounds = new Rectangle2D(x, y, w, h);
+        for (Screen screen : Screen.getScreens()) {
+            Rectangle2D sb = screen.getBounds();
+            if (bounds.intersects(sb)) {
+            	return true;
+            }
+        }
+        
+        return false;
+    }
+    
     /* (non-Javadoc)
      * @see javafx.application.Application#start(javafx.stage.Stage)
      */
@@ -194,11 +218,16 @@ public final class Praisenter extends Application {
 		double w = CONFIGURATION.getDouble(Setting.GENERAL_WIDTH, MIN_WIDTH);
 		double h = CONFIGURATION.getDouble(Setting.GENERAL_HEIGHT, MIN_HEIGHT);
     	
-		// set position and size
-		stage.setX(x);
-		stage.setY(y);
-    	stage.setWidth(w);
-    	stage.setHeight(h);
+		// set position and size, but only if
+		// we are in the bounds of a screen
+		// if not, we'll rely on Java FX to place
+		// the window a the default location
+		if (this.isInScreenBounds(x, y, w, h)) {
+			stage.setX(x);
+			stage.setY(y);
+	    	stage.setWidth(w);
+	    	stage.setHeight(h);
+		}
     	
 		// load fonts
     	LOGGER.info("Loading glyph fonts.");

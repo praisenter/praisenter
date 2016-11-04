@@ -60,9 +60,6 @@ public final class Translations {
 	/** A regex for matching translation file names */
 	private static final Pattern TRANSLATION_PATTERN = Pattern.compile("^messages_(.+)\\.properties$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 	
-	/** The supported locales */
-	public static final List<Locale> SUPPORTED_LOCALES;
-	
 	/** The control to use for loading translations */
 	private static final ResourceBundle.Control DEFAULT_CONTROL = new FileSystemControl();
 	
@@ -79,9 +76,6 @@ public final class Translations {
 			LOGGER.warn("Failed to create translations directory.", ex);
 		}
 		
-		// assign the supported locales
-		SUPPORTED_LOCALES = Translations.getSupportedLocales();
-		
 		// set the default locale bundle
 		Locale defaultLocale = Locale.getDefault();
 		ResourceBundle bundle = DEFAULT_BUNDLE;
@@ -97,9 +91,9 @@ public final class Translations {
 
 	/**
 	 * Loads the supported locales and any locales in the locales directory.
-	 * @return Locale[]
+	 * @return List&lt;Locale&gt;
 	 */
-	private static final List<Locale> getSupportedLocales() {
+	public static final List<Locale> getAvailableLocales() {
 		Set<Locale> locales = new HashSet<Locale>();
 		
 		// default support

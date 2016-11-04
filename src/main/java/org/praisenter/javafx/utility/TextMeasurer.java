@@ -32,7 +32,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 
-// JAVABUG 07/01/16 If the text wraps a (whole) word by breaking it up, then the font sizing code won't know what size to look for.  There doesn't seem to be a way to control the word wrapping beyond setting a target width.
+// JAVABUG 07/01/16 MEDIUM If the text wraps a (whole) word by breaking it up, then the font sizing code won't know what size to look for.  There doesn't seem to be a way to control the word wrapping beyond setting a target width.
 
 /**
  * Class used to measure text in JavaFX for doing automatic text resizing.

@@ -74,7 +74,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		// File
 		Menu fNew = new Menu("New");
-		MenuItem fNewSlide = new MenuItem("Slide");
+		MenuItem fNewSlide = createMenuItem(ApplicationAction.NEW_SLIDE);
 		MenuItem fNewSlideShow = new MenuItem("Slide Show");
 		MenuItem fNewSong = new MenuItem("Song");
 		Menu fNewBibleRoot = new Menu("Bible");

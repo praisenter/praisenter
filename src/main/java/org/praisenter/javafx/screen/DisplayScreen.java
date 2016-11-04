@@ -62,8 +62,8 @@ public final class DisplayScreen {
 		this.stage.setResizable(false);
 		
 		// prevent the user from closing or hiding the window
-		// JAVABUG 06/30/16 At some point we need to come up with a way for the sub windows to not be seen; JavaFX does not have a facility for this at this time
-		// JAVABUG 10/31/16 Modal dialog brings wrong stage to front when closed https://bugs.openjdk.java.net/browse/JDK-8159226
+		// JAVABUG 06/30/16 MEDIUM At some point we need to come up with a way for the sub windows to not be seen; JavaFX does not have a facility for this at this time https://bugs.openjdk.java.net/browse/JDK-8091566
+		// JAVABUG 10/31/16 LOW Modal dialog brings wrong stage to front when closed https://bugs.openjdk.java.net/browse/JDK-8159226
 		// for now we have to create these with no owner because once another window/stage owns these
 		// focusing the owner also brings these windows to the foreground...
 		EventHandler<WindowEvent> block = (WindowEvent e) -> {

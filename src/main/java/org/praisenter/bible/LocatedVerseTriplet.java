@@ -25,66 +25,54 @@
 package org.praisenter.bible;
 
 /**
- * Class representing verse in a given bible, book, and chapter.
+ * Class representing a triplet of verses, specifically the previous, current, and next
+ * verses of a given location.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class LocatedVerse {
-	/** The bible */
-	private final Bible bible;
+public final class LocatedVerseTriplet {
+	/** The previous verse */
+	private final LocatedVerse previous;
 	
-	/** The book */
-	private final Book book;
+	/** The current verse */
+	private final LocatedVerse current;
 	
-	/** The chapter */
-	private final Chapter chapter;
-	
-	/** The verse */
-	private final Verse verse;
+	/** The next verse */
+	private final LocatedVerse next;
 	
 	/**
 	 * Full constructor.
-	 * @param bible the bible
-	 * @param book the book
-	 * @param chapter the chapter
-	 * @param verse the verse
+	 * @param previous the previous verse
+	 * @param current the current verse
+	 * @param next the next verse
 	 */
-	public LocatedVerse(Bible bible, Book book, Chapter chapter, Verse verse) {
-		this.bible = bible;
-		this.book = book;
-		this.chapter = chapter;
-		this.verse = verse;
-	}
-
-	/**
-	 * Returns the bible.
-	 * @return {@link Bible}
-	 */
-	public Bible getBible() {
-		return this.bible;
+	public LocatedVerseTriplet(LocatedVerse previous, LocatedVerse current, LocatedVerse next) {
+		this.previous = previous;
+		this.current = current;
+		this.next = next;
 	}
 	
 	/**
-	 * Returns the book.
-	 * @return {@link Book}
+	 * Returns the previous verse.
+	 * @return {@link LocatedVerse}
 	 */
-	public Book getBook() {
-		return this.book;
+	public LocatedVerse getPrevious() {
+		return this.previous;
 	}
 	
 	/**
-	 * Returns the chapter.
-	 * @return {@link Chapter}
+	 * Returns the current verse.
+	 * @return {@link LocatedVerse}
 	 */
-	public Chapter getChapter() {
-		return this.chapter;
+	public LocatedVerse getCurrent() {
+		return this.current;
 	}
 	
 	/**
-	 * Returns the verse.
-	 * @return {@link Verse}
+	 * Returns the next verse.
+	 * @return {@link LocatedVerse}
 	 */
-	public Verse getVerse() {
-		return this.verse;
+	public LocatedVerse getNext() {
+		return this.next;
 	}
 }

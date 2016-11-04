@@ -57,9 +57,6 @@ public final class Theme implements Comparable<Theme> {
 	/** The dark theme */
 	public static final Theme DARK = new Theme("Dark", Theme.class.getResource("/org/praisenter/javafx/themes/dark.css").toExternalForm());
 	
-	/** An unmodifiable list of the available themes */
-	public static final List<Theme> THEMES;
-	
 	static {
 		Path path = Paths.get(Constants.THEMES_ABSOLUTE_FILE_PATH);
 		try {
@@ -67,6 +64,17 @@ public final class Theme implements Comparable<Theme> {
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to create themes folder.", ex);
 		}
+	}
+	
+	/**
+	 * Returns an unmodifiable list of available themes.
+	 * <p>
+	 * This includes the default themes and any user-supplied themes placed in the
+	 * themes directory.
+	 * @return List&lt;{@link Theme}&gt;
+	 */
+	public static final List<Theme> getAvailableThemes() {
+		Path path = Paths.get(Constants.THEMES_ABSOLUTE_FILE_PATH);
 		
 		// create a listing of all the themes
 		List<Theme> themes = new ArrayList<Theme>();
@@ -99,7 +107,7 @@ public final class Theme implements Comparable<Theme> {
 		}
 		
 		Collections.sort(themes);
-		THEMES = Collections.unmodifiableList(themes);
+		return Collections.unmodifiableList(themes);
 	}
 	
 	/** The theme name */
