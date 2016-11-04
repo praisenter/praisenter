@@ -144,14 +144,14 @@ public final class Book implements Comparable<Book>, Serializable {
 	 * Returns the specified verse or null if it doesn't exist.
 	 * @param chapterNumber the chapter number
 	 * @param verseNumber the verse number
-	 * @return {@link Verse}
+	 * @return {@link LocatedVerse}
 	 */
-	public Verse getVerse(short chapterNumber, short verseNumber) {
+	public LocatedVerse getVerse(short chapterNumber, short verseNumber) {
 		for (Chapter chapter : this.chapters) {
 			if (chapter.number == chapterNumber) {
 				for (Verse verse : chapter.verses) {
 					if (verse.number == verseNumber) {
-						return verse;
+						return new LocatedVerse(null, this, chapter, verse);
 					}
 				}
 			}

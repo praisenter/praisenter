@@ -369,14 +369,38 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	 * @param verseNumber the verse number
 	 * @return {@link Verse}
 	 */
-	public Verse getVerse(short bookNumber, short chapterNumber, short verseNumber) {
+	public LocatedVerse getVerse(short bookNumber, short chapterNumber, short verseNumber) {
 		for (Book book : this.books) {
 			if (book.number == bookNumber) {
 				for (Chapter chapter : book.chapters) {
 					if (chapter.number == chapterNumber) {
 						for (Verse verse : chapter.verses) {
 							if (verse.number == verseNumber) {
-								return verse;
+								return new LocatedVerse(this, book, chapter, verse);
+							}
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	public LocatedVerse getNextVerse(short bookNumber, short chapterNumber, short verseNumber) {
+		boolean found = false;
+		for (Book book : this.books) {
+			if (found || book.number == bookNumber) {
+				for (Chapter chapter : book.chapters) {
+					if (found || chapter.number == chapterNumber) {
+						for (Verse verse : chapter.verses) {
+							if (!found && verse.number == verseNumber) {
+								// we've found the verse
+								// so try to go to the next one
+								found = true;
+								continue;
+							}
+							if (found) {
+								return new LocatedVerse(this, book, chapter, verse);
 							}
 						}
 					}

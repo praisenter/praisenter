@@ -24,19 +24,24 @@ public final class BibleReference {
 	@XmlAttribute(name = "verseNumber", required = false)
 	private final short verseNumber;
 	
+	@XmlAttribute(name = "text", required = false)
+	private final String text;
+	
 	private BibleReference() {
 		// for jaxb
 		this.bibleId = null;
 		this.bookNumber = NOT_SET;
 		this.chapterNumber = NOT_SET;
 		this.verseNumber = NOT_SET;
+		this.text = null;
 	}
 	
-	public BibleReference(UUID bibleId, short bookNumber, short chapterNumber, short verseNumber) {
+	public BibleReference(UUID bibleId, short bookNumber, short chapterNumber, short verseNumber, String text) {
 		this.bibleId = bibleId;
 		this.bookNumber = bookNumber;
 		this.chapterNumber = chapterNumber;
 		this.verseNumber = verseNumber;
+		this.text = text;
 	}
 
 	public UUID getBibleId() {
@@ -53,5 +58,9 @@ public final class BibleReference {
 
 	public short getVerseNumber() {
 		return this.verseNumber;
+	}
+	
+	public String getText() {
+		return this.text;
 	}
 }
