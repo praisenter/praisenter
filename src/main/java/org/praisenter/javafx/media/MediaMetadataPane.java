@@ -46,7 +46,6 @@ import javafx.collections.ObservableSet;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
@@ -54,7 +53,6 @@ import javafx.scene.layout.ConstraintsBase;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 /**
@@ -130,19 +128,11 @@ final class MediaMetadataPane extends VBox {
         lblNameValue.setTooltip(new Tooltip());
         lblNameValue.getTooltip().textProperty().bind(name);
         lblNameValue.getStyleClass().add("value-label");
-        Hyperlink btnRename = new Hyperlink(Translations.get("media.metadata.rename"));
-        btnRename.setTooltip(new Tooltip(Translations.get("media.metadata.rename")));
-        btnRename.setVisible(false);
-        btnRename.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         HBox nameRow = new HBox();
         nameRow.setAlignment(Pos.BASELINE_LEFT);
-        nameRow.getChildren().addAll(lblNameValue, btnRename);
+        nameRow.getChildren().addAll(lblNameValue);
         grid.add(lblName, 0, 0, 1, 1);
         grid.add(nameRow, 1, 0, 1, 1);
-        
-        btnRename.setOnAction((e) -> {
-    		fireEvent(new MediaRenameEvent(btnRename, MediaMetadataPane.this, media.get().getMedia()));
-	    });
         
         Label lblWidth = new Label(Translations.get("media.metadata.width"));
         Label lblWidthValue = new Label();
@@ -224,7 +214,6 @@ final class MediaMetadataPane extends VBox {
         		
         		if (item == null || !item.isLoaded()) {
         			name.set("");
-        			btnRename.setVisible(false);
         			width.set("");
         	        height.set("");
         	        length.set("");
@@ -235,7 +224,6 @@ final class MediaMetadataPane extends VBox {
         			setDisable(true);
         		} else {
         			setDisable(false);
-        			btnRename.setVisible(true);
         			Media media = item.getMedia();
         			MediaType type = media.getType();
         			String unknown = Translations.get("unknown");

@@ -24,15 +24,18 @@
  */
 package org.praisenter.javafx;
 
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.List;
 
-import javafx.event.EventHandler;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.KeyEvent;
 
 /**
  * Represents a custom ContextMenu where {@link ApplicationAction}s can be easily bound.
@@ -40,9 +43,15 @@ import javafx.scene.input.KeyEvent;
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class ApplicationContextMenu extends ContextMenu implements EventHandler<KeyEvent> {
+public final class ApplicationContextMenu extends ContextMenu {
 	/** The node this context menu is bound to */
 	private final Node node;
+	
+	/** The scene for the attached node */
+	private final ObjectProperty<Scene> scene = new SimpleObjectProperty<Scene>();
+	
+	/** The menu items */
+	private final List<MenuItem> items = new ArrayList<MenuItem>();
 	
 	/**
 	 * Minimal constructor.
@@ -51,50 +60,31 @@ public final class ApplicationContextMenu extends ContextMenu implements EventHa
 	public ApplicationContextMenu(Node node) {
 		this.node = node;
 		
+		this.scene.bind(node.sceneProperty());
+		
+		// listen for the scene changing of the attached node so that
+		// we can remove and re-add the items, this is due to Java FX
+		// not removing the accelerators when the ContextMenu is removed
+		// from the graph. We don't want accelerators to be executed
+		// when the node is not part of the scene graph
+		this.scene.addListener((obs, ov, nv) -> {
+			if (nv == null) {
+				// its been removed from the graph so remove all the items
+				items.addAll(this.getItems());
+				this.getItems().clear();
+			} else {
+				// its been added to the graph so add all the items back
+				this.getItems().addAll(items);
+				items.clear();
+			}
+		});
+		
 		// just re-evaluate the state when before the menu is shown
 		this.setOnShowing(e -> {
 			if (this.node instanceof ApplicationPane) {
 				updateMenuState((ApplicationPane)this.node);
 			}
 		});
-		
-		// NOTE: catch any accelerator keys so we can consume the events
-		// so that they don't cause the events to be processed twice, once
-		// in the context menu and once in the main menu
-		// JAVABUG 10/24/16 MEDIUM Duplicated accelerators https://bugs.openjdk.java.net/browse/JDK-8088068
-		node.addEventFilter(KeyEvent.KEY_TYPED, this);
-		node.addEventFilter(KeyEvent.KEY_PRESSED, this);
-		node.addEventFilter(KeyEvent.KEY_RELEASED, this);
-	}
-	
-	/* (non-Javadoc)
-	 * @see javafx.event.EventHandler#handle(javafx.event.Event)
-	 */
-	@Override
-	public void handle(KeyEvent event) {
-		Deque<MenuItem> menus = new LinkedList<MenuItem>();
-		// seed with the menu bar's menus
-		menus.addAll(getItems());
-		while (menus.size() > 0) {
-			MenuItem menu = menus.pop();
-			if (menu.getAccelerator() != null && menu.getAccelerator().match(event)) {
-				// fire the menu action always
-				menu.fire();
-				// check for common events that are available on editable controls
-				if (ApplicationAction.COPY.getAccelerator().match(event) ||
-					ApplicationAction.CUT.getAccelerator().match(event) ||
-					ApplicationAction.PASTE.getAccelerator().match(event) ||
-					ApplicationAction.DELETE.getAccelerator().match(event) ||
-					ApplicationAction.SELECT_ALL.getAccelerator().match(event)) {
-					// allow the event to continue
-				} else {
-					// otherwise consume it so it doesn't get processed by another handler
-					// with the same accelerator/key stroke binding
-					event.consume();
-				}
-				break;
-			}
-		}
 	}
 	
 	/**

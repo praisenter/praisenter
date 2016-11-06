@@ -234,6 +234,17 @@ public enum ApplicationAction {
 	}
 	
 	/**
+	 * Creates a new MenuItem for use in a menu for this {@link ApplicationAction}.
+	 * @return MenuItem
+	 */
+	public MenuItem toMenuItemNoAccelerator() {
+		MenuItem item = new MenuItem(this.label);
+		item.setGraphic(this.graphic != null ? this.graphic.get() : null);
+		item.setUserData(this);
+		return item;
+	}
+	
+	/**
 	 * Creates a new Button for use in the application for this {@link ApplicationAction}.
 	 * @return Button
 	 */

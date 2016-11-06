@@ -297,24 +297,16 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 					 ApplicationAction.DELETE == action ||
 					 ApplicationAction.SELECT_ALL == action) && focusOwner != null && focusOwner instanceof TextInputControl) {
 					LOGGER.debug("Node {} is TextInputControl. Bypassing default delegation.", focusOwner);
-					// do the default action
-					TextInputControl control = (TextInputControl)focusOwner;
-					if (ApplicationAction.COPY == action) {
-						control.copy();
-					} else if (ApplicationAction.CUT == action) {
-						control.cut();
-					} else if (ApplicationAction.PASTE == action) {
-						control.paste();
-					} else if (ApplicationAction.DELETE == action) {
-						control.deleteText(control.getSelection());
-					} else if (ApplicationAction.SELECT_ALL == action) {
-						control.selectAll();
-					}
+					// allow it to pass through and don't fire the default
+					// application event
+					return;
 				} else {
 					LOGGER.debug("Delegating {} to {}.", action, focused);
 					focused.fireEvent(new ApplicationEvent(event.getSource(), event.getTarget(), ApplicationEvent.ALL, action));
+					event.consume();
 				}
 			}
 		}
+		
 	}
 }

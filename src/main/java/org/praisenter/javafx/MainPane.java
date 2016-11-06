@@ -3,7 +3,9 @@ package org.praisenter.javafx;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +24,8 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
@@ -41,14 +45,16 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 	private final SlideEditorPane slideEditorPane;
 	
 	private final ObjectProperty<Node> mainContent = new SimpleObjectProperty<Node>();
+
+//	private final Map<KeyCombination, Runnable> defaultAccelerators = new HashMap<>();
 	
 	public MainPane(PraisenterContext context) {
 		this.context = context;
 		
 		this.menu = new MainMenu(this);
 		
-		VBox top = new VBox(menu);
-		this.setTop(top);
+//		VBox top = new VBox(menu);
+		this.setTop(menu);
 		
 		this.status = new MainStatusBar(context);
 		this.setBottom(this.status);
@@ -65,6 +71,13 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		});
 		
 		this.setCenter(new BibleNavigationPane(context));
+		
+//		this.sceneProperty().addListener((obs, ov, nv) -> {
+//			if (nv != null) {
+//				this.defaultAccelerators.clear();
+//				this.defaultAccelerators.putAll(nv.getAccelerators());
+//			}
+//		});
 	}
 	
 	// APPLICATION PANE
@@ -161,9 +174,18 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 	
 	// NAVIGATION
 	
-	private void navigate(Node node) {
+	private void navigate(Node node) { 
+		this.setCenter(null);
 		this.setCenter(node);
+		
+		// JAVABUG 10/24/16 MEDIUM Duplicated accelerators https://bugs.openjdk.java.net/browse/JDK-8088068
+		// we need to do this so that any accelerators on the content area (the center node) are overridden 
+		// by the accelerators in the menu
+		this.setTop(null);
+		this.setTop(menu);
+		
 		this.mainContent.set(node);
+
 		if (node instanceof ApplicationPane) {
 			// when a pane is set as the current pane
 			// we may want to focus a particular part of the pane

@@ -208,6 +208,9 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 			this.bible.importDate = new Date();
 			this.bible.name = name;
 			this.bible.source = SOURCE;
+			this.bookNumber = 1;
+			this.chapterNumber = 1;
+			this.verse = 1;
 		}
 		
 		/**

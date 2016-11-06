@@ -143,7 +143,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 		BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
 		// read them line by line
 		String line = null;
-		short order = 0;
+		short order = 1;
 		int i = 1;
 		while ((line = reader.readLine()) != null) {
 			if (line.startsWith("#")) {

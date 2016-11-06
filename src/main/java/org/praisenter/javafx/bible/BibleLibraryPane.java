@@ -364,6 +364,14 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         
         // setup the event handler for application events
         this.addEventHandler(ApplicationEvent.ALL, this::onApplicationEvent);
+        
+//        this.parentProperty().addListener((obs, ov, nv) -> {
+//        	if (nv == null) {
+//        		this.lstBibles.setContextMenu(null);
+//        	} else {
+//        		this.lstBibles.setContextMenu(menu);
+//        	}
+//        });
 	}
 	
 	/**

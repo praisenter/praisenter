@@ -50,6 +50,9 @@ import javafx.stage.Window;
  * @version 3.0.0
  */
 public final class Alerts {
+	/** The max width of a dialog */
+	private static final double MAX_WIDTH = 550;
+	
 	/** Hidden constructor */
 	private Alerts() {}
 	
@@ -111,7 +114,7 @@ public final class Alerts {
 
 		// Set expandable Exception into the dialog pane.
 		alert.getDialogPane().setExpandableContent(expContent);
-		alert.getDialogPane().setPrefWidth(550);
+		alert.getDialogPane().setMaxWidth(MAX_WIDTH);
 		
 		return alert;
 	}
@@ -158,6 +161,7 @@ public final class Alerts {
 		if (modality != null) {
 			alert.initModality(modality);
 		}
+		pane.setMaxWidth(MAX_WIDTH);
 		
 		return alert;
 	}
@@ -188,6 +192,7 @@ public final class Alerts {
 		if (modality != null) {
 			alert.initModality(modality);
 		}
+		alert.getDialogPane().setMaxWidth(MAX_WIDTH);
 		
 		return alert;
 	}
@@ -218,6 +223,7 @@ public final class Alerts {
 		if (modality != null) {
 			alert.initModality(modality);
 		}
+		alert.getDialogPane().setMaxWidth(MAX_WIDTH);
 		
 		return alert;
 	}
@@ -252,6 +258,7 @@ public final class Alerts {
 		if (modality != null) {
 			alert.initModality(modality);
 		}
+		alert.getDialogPane().setMaxWidth(MAX_WIDTH);
 		
 		return alert;
 	}

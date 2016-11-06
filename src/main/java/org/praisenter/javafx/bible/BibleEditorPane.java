@@ -198,6 +198,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		// book
 		Label lblBookName = new Label(Translations.get("bible.edit.bookname"));
 		TextField txtBookName = new TextField();
+		Label lblBookNumber = new Label(Translations.get("bible.edit.booknumber"));
+		Spinner<Integer> spnBookNumber = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
+		spnBookNumber.setEditable(true);
 		
 		// chapter
 		Label lblChapter = new Label(Translations.get("bible.edit.chapternumber"));
@@ -213,10 +216,10 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		txtText.setWrapText(true);
 		txtText.setPrefHeight(350);
 		
-		VBox otherDetail = new VBox();
-		otherDetail.setSpacing(2);
-		otherDetail.setPadding(new Insets(10));
-		otherDetail.getChildren().addAll(
+		VBox editorFields = new VBox();
+		editorFields.setSpacing(2);
+		editorFields.setPadding(new Insets(10));
+		editorFields.getChildren().addAll(
 				lblEditMessage,
 				lblName,
 				txtName, 
@@ -230,6 +233,8 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				txtNotes,
 				lblBookName,
 				txtBookName, 
+				lblBookNumber,
+				spnBookNumber,
 				lblChapter,
 				spnChapter,
 				lblVerse,
@@ -239,13 +244,13 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		VBox.setVgrow(txtText, Priority.ALWAYS);
 		VBox.setVgrow(txtNotes, Priority.ALWAYS);
 		
-		for (Node node : otherDetail.getChildren()) {
+		for (Node node : editorFields.getChildren()) {
 			node.managedProperty().bind(node.visibleProperty());
 			node.setVisible(false);
 		}
 		lblEditMessage.setVisible(true);
 		
-		TitledPane ttlOther = new TitledPane(Translations.get("bible.edit.title"), otherDetail);
+		TitledPane ttlOther = new TitledPane(Translations.get("bible.edit.title"), editorFields);
 		ttlOther.setCollapsible(false);
 		
 		BibleEditorDragDropManager manager = new BibleEditorDragDropManager();
@@ -376,7 +381,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		
 		this.bibleTree.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
 			this.mutating = true;
-			for (Node node : otherDetail.getChildren()) {
+			for (Node node : editorFields.getChildren()) {
 				node.setVisible(false);
 			}
 			if (this.bibleTree.getSelectionModel().getSelectedIndices().size() == 1) {
@@ -397,6 +402,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					lblBookName.setVisible(true);
 					txtBookName.setVisible(true);
 					txtBookName.setText(((BookTreeData)data).book.getName());
+					lblBookNumber.setVisible(true);
+					spnBookNumber.setVisible(true);
+					spnBookNumber.getValueFactory().setValue((int)((BookTreeData)data).book.getNumber());
 				} else if (data instanceof ChapterTreeData) {
 					// show book name
 					lblChapter.setVisible(true);
@@ -478,6 +486,19 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					BookTreeData td = (BookTreeData)data;
 					td.book.setName(nv);
 					td.update();
+					this.unsavedChanges = true;
+				}
+			}
+		});
+		spnBookNumber.valueProperty().addListener((obs, ov, nv) -> {
+			if (this.mutating) return;
+			TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
+			if (item != null) {
+				TreeData data = item.getValue();
+				if (data != null && data instanceof BookTreeData) {
+					BookTreeData btd = (BookTreeData)data;
+					btd.book.setNumber(nv.shortValue());
+					btd.update();
 					this.unsavedChanges = true;
 				}
 			}
@@ -723,7 +744,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	/**
 	 * Deletes the selected items.
 	 */
-	private void delete() {
+	private void promptDelete() {
 		List<TreeItem<TreeData>> items = new ArrayList<TreeItem<TreeData>>(this.bibleTree.getSelectionModel().getSelectedItems());
 		
 		if (items.size() > 0) {
@@ -851,7 +872,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	/**
 	 * Saves the current bible.
 	 */
-	private void saveAs() {
+	private void promptSaveAs() {
 		String old = this.getBible().getName();
 		
     	TextInputDialog prompt = new TextInputDialog(old);
@@ -882,7 +903,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	/**
 	 * Renumbers the selected node.
 	 */
-	private void renumber() {
+	private void promptRenumber() {
 		TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
 		// need to determine what is selected
 		// renumber depth first
@@ -1033,14 +1054,14 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				// we only want to execute this if the current focus
 				// is within the bibleTree
 				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
-					this.delete();
+					this.promptDelete();
 				}
 				break;
 			case SAVE:
 				this.save();
 				break;
 			case SAVE_AS:
-				this.saveAs();
+				this.promptSaveAs();
 				break;
 			case CLOSE:
 				if (this.unsavedChanges) {
@@ -1049,7 +1070,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 							Modality.WINDOW_MODAL,
 							Translations.get("warning.modified.title"), 
 							MessageFormat.format(Translations.get("warning.modified.header"), this.bible.get().getName()), 
-							null);
+							Translations.get("warning.modified.content"));
 					Optional<ButtonType> result = alert.showAndWait();
 					if (result.get() == ButtonType.YES) {
 						this.save();
@@ -1065,7 +1086,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				// we only want to execute this if the current focus
 				// is within the bibleTree
 				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
-					this.renumber();
+					this.promptRenumber();
 				}
 				break;
     		default:

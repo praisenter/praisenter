@@ -202,6 +202,9 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 			this.bible.importDate = new Date();
 			this.bible.language = null;
 			this.bible.source = SOURCE;
+			this.bookNumber = 1;
+			this.chapterNumber = 1;
+			this.number = 1;
 		}
 		
 		/**

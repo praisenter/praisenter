@@ -68,7 +68,6 @@ import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -274,17 +273,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         });
         this.lstMedia.itemsProperty().bindContent(sorted);
         this.lstMedia.setOnDragDropped(this::onMediaDropped);
-        this.lstMedia.setOnDragOver(new EventHandler<DragEvent>() {
-			@Override
-			public void handle(DragEvent event) {
-				Dragboard db = event.getDragboard();
-				if (db.hasFiles()) {
-					event.acceptTransferModes(TransferMode.COPY);
-				} else {
-					event.consume();
-				}
-			}
-        });
+        this.lstMedia.setOnDragOver(this::onMediaDragOver);
         
         // only scroll down when media is being added
         // we know this when there's medialistitems added
@@ -498,6 +487,19 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 		event.setDropCompleted(true);
 		event.consume();
 	}
+    
+    /**
+     * Event handler for dragging over the media library.
+     * @param event the event
+     */
+    private final void onMediaDragOver(DragEvent event) {
+		Dragboard db = event.getDragboard();
+		if (db.hasFiles()) {
+			event.acceptTransferModes(TransferMode.COPY);
+		} else {
+			event.consume();
+		}
+    }
     
     /**
      * Event handler for the delete key for removing media.

@@ -23,11 +23,13 @@ import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -38,7 +40,6 @@ import javafx.stage.Screen;
 
 // TODO translate
 // FEATURE option to export theme and translation to create new ones
-// TODO add button to refresh list of themes and list of locales
 
 public final class SetupPane extends VBox {
 	/** The class level logger */
@@ -76,15 +77,23 @@ public final class SetupPane extends VBox {
 		Label lblLocale = new Label("Language");
 		ComboBox<Option<Locale>> cmbLocale = new ComboBox<Option<Locale>>(FXCollections.observableArrayList(locales));
 		cmbLocale.setValue(new Option<Locale>(null, locale));
+		Button btnRefreshLocales = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.REFRESH));
 		gridGeneral.add(lblLocale, 0, 0);
 		gridGeneral.add(cmbLocale, 1, 0);
+		gridGeneral.add(btnRefreshLocales, 2, 0);
+		cmbLocale.setMaxWidth(Double.MAX_VALUE);
+		GridPane.setFillWidth(cmbLocale, true);
 		
 		// theme
 		Label lblTheme = new Label("Theme");
 		ComboBox<Theme> cmbTheme = new ComboBox<Theme>(FXCollections.observableArrayList(Theme.getAvailableThemes()));
 		cmbTheme.setValue(theme);
+		Button btnRefreshThemes = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.REFRESH));
 		gridGeneral.add(lblTheme, 0, 1);
 		gridGeneral.add(cmbTheme, 1, 1);
+		gridGeneral.add(btnRefreshThemes, 2, 1);
+		cmbTheme.setMaxWidth(Double.MAX_VALUE);
+		GridPane.setFillWidth(cmbTheme, true);
 		
 		// debug mode
 		Label lblDebugMode = new Label("Debug Mode");
@@ -155,11 +164,27 @@ public final class SetupPane extends VBox {
 		// EVENTS
 
 		cmbLocale.valueProperty().addListener((obs, ov, nv) -> {
-			context.getConfiguration().set(Setting.GENERAL_LANGUAGE, nv.value.toLanguageTag());
+			if (nv != null) {
+				context.getConfiguration().set(Setting.GENERAL_LANGUAGE, nv.value.toLanguageTag());
+			}
+		});
+		
+		btnRefreshLocales.setOnAction(e -> {
+			List<Option<Locale>> locs = new ArrayList<Option<Locale>>();
+			for (Locale loc : Translations.getAvailableLocales()) {
+				locs.add(new Option<Locale>(loc.getDisplayName(), loc));
+			}
+			cmbLocale.setItems(FXCollections.observableArrayList(locs));
 		});
 		
 		cmbTheme.valueProperty().addListener((obs, ov, nv) -> {
-			context.getConfiguration().set(Setting.GENERAL_THEME, nv.getName());
+			if (nv != null) {
+				context.getConfiguration().set(Setting.GENERAL_THEME, nv.getName());
+			}
+		});
+		
+		btnRefreshThemes.setOnAction(e -> {
+			cmbTheme.setItems(FXCollections.observableArrayList(Theme.getAvailableThemes()));
 		});
 		
 		chkDebugMode.selectedProperty().addListener((obs, ov, nv) -> {
