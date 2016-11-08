@@ -469,52 +469,6 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 			}
 		}
 		return null;
-//		int vn = 0;
-//		int cn = 0;
-//		int bn = 0;
-//		Book pBook = null;
-//		Chapter pChapter = null;
-//		Verse pVerse = null;
-//		for (Book book : this.books) {
-//			if (book.number == bookNumber) {
-//				cn = 0;
-//				for (Chapter chapter : book.chapters) {
-//					if (chapter.number == chapterNumber) {
-//						vn = 0;
-//						for (Verse verse : chapter.verses) {
-//							if (verse.number == verseNumber) {
-//								if (vn == 0) {
-//									// first verse
-//									if (cn == 0) {
-//										// first chapter
-//										if (bn == 0) {
-//											// first book
-//											// nothing before
-//											return null;
-//										}
-//										// last verse of last chapter of previous book
-//										Chapter lChapter = pBook.getLastChapter();
-//										return new LocatedVerse(this, pBook, lChapter, lChapter.getLastVerse());
-//									}
-//									// last verse of previous chapter
-//									return new LocatedVerse(this, book, pChapter, pChapter.getLastVerse());
-//								} else {
-//									// same book, same chapter, previous verse
-//									return new LocatedVerse(this, book, chapter, pVerse);
-//								}
-//							}
-//							pVerse = verse;
-//							vn++;
-//						}
-//					}
-//					pChapter = chapter;
-//					cn++;
-//				}
-//			}
-//			pBook = book;
-//			bn++;
-//		}
-//		return null;
 	}
 	
 	/**
@@ -618,6 +572,23 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 			return new LocatedVerseTriplet(previous, current, next);
 		}
 		return null;
+	}
+	
+	/**
+	 * Returns a matching triplet from this bible for given triplet.
+	 * @param triplet the triplet to find
+	 * @return {@link LocatedVerseTriplet}
+	 */
+	public LocatedVerseTriplet getMatchingTriplet(LocatedVerseTriplet triplet) {
+		LocatedVerse previous = triplet.getPrevious();
+		LocatedVerse current = triplet.getCurrent();
+		LocatedVerse next = triplet.getNext();
+		
+		previous = previous != null ? this.getVerse(previous.getBook().number, previous.getChapter().number, previous.getVerse().number) : null;
+		current = current != null ? this.getVerse(current.getBook().number, current.getChapter().number, current.getVerse().number) : null;;
+		next = next != null ? this.getVerse(next.getBook().number, next.getChapter().number, next.getVerse().number) : null;;
+		
+		return new LocatedVerseTriplet(previous, current, next);
 	}
 	
 	/**

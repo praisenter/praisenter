@@ -52,11 +52,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 public final class BibleNavigationPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private ComboBox<BibleListItem> cmbBible;
+	private ComboBox<BibleListItem> cmbBiblePrimary;
+	private ComboBox<BibleListItem> cmbBibleSecondary;
 	private AutoCompleteComboBox<Book> cmbBook;
 	private Spinner<Integer> spnChapter;
 	private Spinner<Integer> spnVerse;
@@ -99,22 +101,36 @@ public final class BibleNavigationPane extends BorderPane {
 			backupBible = bibles.get(0).getBible().getId();
 		}
 		
-		UUID id = context.getConfiguration().getUUID(Setting.BIBLE_PRIMARY, null);
-		if (id == null) {
-			id = backupBible;
+		UUID primaryId = context.getConfiguration().getUUID(Setting.BIBLE_PRIMARY, null);
+		if (primaryId == null) {
+			primaryId = backupBible;
 		}
 		
-		Bible bible = null;
-		if (id != null) {
-			bible = bl.get(id);
-			if (bible == null) {
-				id = backupBible;
-				bible = bl.get(backupBible);
+		UUID secondaryId = context.getConfiguration().getUUID(Setting.BIBLE_SECONDARY, null);
+		if (secondaryId == null) {
+			secondaryId = backupBible;
+		}
+		
+		Bible primaryBible = null;
+		if (primaryId != null) {
+			primaryBible = bl.get(primaryId);
+			if (primaryBible == null) {
+				primaryId = backupBible;
+				primaryBible = bl.get(backupBible);
+			}
+		}
+		
+		Bible secondaryBible = null;
+		if (secondaryId != null) {
+			secondaryBible = bl.get(secondaryId);
+			if (secondaryBible == null) {
+				secondaryId = backupBible;
+				secondaryBible = bl.get(backupBible);
 			}
 		}
 		
 		ObservableList<Book> books = FXCollections.observableArrayList();
-		List<Book> bb = bible != null ? bible.getBooks() : null;
+		List<Book> bb = primaryBible != null ? primaryBible.getBooks() : null;
 		if (bb != null) {
 			books.addAll(bb);
 		}
@@ -129,9 +145,9 @@ public final class BibleNavigationPane extends BorderPane {
 			}
 		});
 		
-		cmbBible = new ComboBox<BibleListItem>(bibles);
-		cmbBible.getSelectionModel().select(new BibleListItem(bible));
-		cmbBible.valueProperty().addListener((obs, ov, nv) -> {
+		cmbBiblePrimary = new ComboBox<BibleListItem>(bibles);
+		cmbBiblePrimary.getSelectionModel().select(new BibleListItem(primaryBible));
+		cmbBiblePrimary.valueProperty().addListener((obs, ov, nv) -> {
 			try {
 				if (nv != null) {
 					context.getConfiguration().setUUID(Setting.BIBLE_PRIMARY, nv.getBible().getId());
@@ -141,7 +157,19 @@ public final class BibleNavigationPane extends BorderPane {
 					books.clear();
 				}
 			} catch (Exception ex) {
-				LOGGER.error("An unexpected error occurred when a different bible was selected: " + ov + " -> " + nv, ex);
+				LOGGER.error("An unexpected error occurred when a different primary bible was selected: " + ov + " -> " + nv, ex);
+			}
+		});
+		
+		cmbBibleSecondary = new ComboBox<BibleListItem>(bibles);
+		cmbBibleSecondary.getSelectionModel().select(new BibleListItem(secondaryBible));
+		cmbBibleSecondary.valueProperty().addListener((obs, ov, nv) -> {
+			try {
+				if (nv != null) {
+					context.getConfiguration().setUUID(Setting.BIBLE_SECONDARY, nv.getBible().getId());
+				}
+			} catch (Exception ex) {
+				LOGGER.error("An unexpected error occurred when a different secondary bible was selected: " + ov + " -> " + nv, ex);
 			}
 		});
 		
@@ -167,7 +195,7 @@ public final class BibleNavigationPane extends BorderPane {
 		
 		Button next = new Button("next");
 		next.setOnAction((e) -> {
-			Bible bbl = cmbBible.valueProperty().get().getBible();
+			Bible bbl = cmbBiblePrimary.valueProperty().get().getBible();
 			Book book = cmbBook.valueProperty().get();
 			if (book != null) {
 				short ch = spnChapter.getValue().shortValue();
@@ -191,7 +219,8 @@ public final class BibleNavigationPane extends BorderPane {
 		
 		Button prev = new Button("prev");
 		prev.setOnAction((e) -> {
-			Bible bbl = cmbBible.valueProperty().get().getBible();
+			
+			Bible bbl = cmbBiblePrimary.valueProperty().get().getBible();
 			Book book = cmbBook.valueProperty().get();
 			if (book != null) {
 				short ch = spnChapter.getValue().shortValue();
@@ -213,9 +242,10 @@ public final class BibleNavigationPane extends BorderPane {
 			}
 		});
 		
-		HBox row = new HBox(cmbBible, cmbBook, spnChapter, spnVerse, btn, prev, next);
+		HBox row = new HBox(5, cmbBiblePrimary, cmbBook, spnChapter, spnVerse, btn, prev, next);
+		HBox row2 = new HBox(cmbBibleSecondary);
 		
-		setTop(row);
+		setTop(new VBox(5, row, row2));
 		setCenter(text);
 	}
 }

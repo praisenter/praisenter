@@ -57,6 +57,22 @@ public final class LocatedVerse {
 	}
 
 	/**
+	 * Returns true if the given location is the same as this location.
+	 * @param bookNumber the book number
+	 * @param chapterNumber the chapter number
+	 * @param verseNumber the verse number
+	 * @return boolean
+	 */
+	public boolean isSameLocation(short bookNumber, short chapterNumber, short verseNumber) {
+		if (this.book != null && this.book.number == bookNumber &&
+			this.chapter != null && this.chapter.number == chapterNumber &&
+			this.verse != null && this.verse.number == verseNumber) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
 	 * Returns the bible.
 	 * @return {@link Bible}
 	 */
