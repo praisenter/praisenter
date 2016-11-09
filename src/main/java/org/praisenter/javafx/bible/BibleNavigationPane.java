@@ -146,7 +146,9 @@ public final class BibleNavigationPane extends BorderPane {
 		});
 		
 		cmbBiblePrimary = new ComboBox<BibleListItem>(bibles);
-		cmbBiblePrimary.getSelectionModel().select(new BibleListItem(primaryBible));
+		if (primaryBible != null) {
+			cmbBiblePrimary.getSelectionModel().select(new BibleListItem(primaryBible));
+		}
 		cmbBiblePrimary.valueProperty().addListener((obs, ov, nv) -> {
 			try {
 				if (nv != null) {
@@ -162,7 +164,9 @@ public final class BibleNavigationPane extends BorderPane {
 		});
 		
 		cmbBibleSecondary = new ComboBox<BibleListItem>(bibles);
-		cmbBibleSecondary.getSelectionModel().select(new BibleListItem(secondaryBible));
+		if (secondaryBible != null) {
+			cmbBibleSecondary.getSelectionModel().select(new BibleListItem(secondaryBible));
+		}
 		cmbBibleSecondary.valueProperty().addListener((obs, ov, nv) -> {
 			try {
 				if (nv != null) {
@@ -175,18 +179,30 @@ public final class BibleNavigationPane extends BorderPane {
 		
 		Button btn = new Button("show value");
 		btn.setOnAction((e) -> {
+			Bible bible = cmbBiblePrimary.getValue().getBible();
+			Bible b2 = cmbBibleSecondary.getValue().getBible();
 			Book book = cmbBook.valueProperty().get();
 			if (book != null) {
+				short bn = book.getNumber();
 				short ch = spnChapter.getValue().shortValue();
 				short v = spnVerse.getValue().shortValue();
+				StringBuilder sb = new StringBuilder();
 				try {
-					
-					LocatedVerse lv = book.getVerse(ch, v);
+					LocatedVerse lv = bible.getVerse(bn, ch, v);
 					if (lv != null) {
-						text.setText(lv.getVerse().getText());
+						sb.append(lv.getVerse().getText());
 					} else {
-						text.setText("Verse not found");
+						sb.append("Verse not found in " + bible.getName());
 					}
+					
+					if (b2 != null) {
+						LocatedVerse tv = b2.getVerse(bn, ch, v);
+						if (tv != null) {
+							sb.append(tv.getVerse().getText());
+						}
+					}
+					
+					text.setText(sb.toString());
 				} catch (Exception ex) {
 					LOGGER.warn("Failed to get verse: " + book + " " + ch + ":" + v, ex);
 				}
