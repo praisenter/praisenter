@@ -178,7 +178,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		this.setCenter(null);
 		this.setCenter(node);
 		
-		// JAVABUG 10/24/16 MEDIUM Duplicated accelerators https://bugs.openjdk.java.net/browse/JDK-8088068
+		// JAVABUG 10/24/16 MEDIUM [workaround] Duplicated accelerators https://bugs.openjdk.java.net/browse/JDK-8088068
 		// we need to do this so that any accelerators on the content area (the center node) are overridden 
 		// by the accelerators in the menu
 		this.setTop(null);

@@ -67,7 +67,7 @@ public final class BibleNavigationPane extends BorderPane {
 	
 	private ListProperty<BibleReference> selected = new SimpleListProperty<BibleReference>();
 	
-	// JAVABUG 11/03/16 MEDIUM Fixed in Java 9; Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946
+	// JAVABUG 11/03/16 MEDIUM [fixed-9]; Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946
 	
 	// TODO features: 
 	// max chapter/verse number 
@@ -152,9 +152,20 @@ public final class BibleNavigationPane extends BorderPane {
 		cmbBiblePrimary.valueProperty().addListener((obs, ov, nv) -> {
 			try {
 				if (nv != null) {
+					Book selectedBook = cmbBook.getValue();
 					context.getConfiguration().setUUID(Setting.BIBLE_PRIMARY, nv.getBible().getId());
 					books.setAll(nv.getBible().getBooks());
-					cmbBook.setValue(null);
+					
+					Book book = null;
+					if (selectedBook != null) {
+						for (Book b : nv.getBible().getBooks()) {
+							if (b.getNumber() == selectedBook.getNumber()) {
+								book = b;
+								break;
+							}
+						}
+					}
+					cmbBook.setValue(book);
 				} else {
 					books.clear();
 				}

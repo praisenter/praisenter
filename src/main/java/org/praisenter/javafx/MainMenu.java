@@ -15,6 +15,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.control.IndexRange;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -303,16 +304,21 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 					if (ApplicationAction.COPY == action) {
 						control.copy();
 					} else if (ApplicationAction.CUT == action) {
-						control.cut();
+						// JAVABUG 11/09/16 LOW [workaround] for java.lang.StringIndexOutOfBoundsException when only using control.cut();
+						control.copy();
+						IndexRange selection = control.getSelection();
+						control.deselect();
+						control.deleteText(selection);
 					} else if (ApplicationAction.PASTE == action) {
 						control.paste();
 					} else if (ApplicationAction.DELETE == action) {
-						control.deleteText(control.getSelection());
+						// JAVABUG 11/09/16 LOW [workaround] workaround for java.lang.StringIndexOutOfBoundsException when only using control.deleteText(control.getSelection());
+						IndexRange selection = control.getSelection();
+						control.deselect();
+						control.deleteText(selection);
 					} else if (ApplicationAction.SELECT_ALL == action) {
 						control.selectAll();
 					}
-					// FIXME java.lang.StringIndexOutOfBoundsException: String index out of range: 35 on delete
-					
 				} else {
 					LOGGER.debug("Delegating {} to {}.", action, focused);
 					focused.fireEvent(new ApplicationEvent(event.getSource(), event.getTarget(), ApplicationEvent.ALL, action));

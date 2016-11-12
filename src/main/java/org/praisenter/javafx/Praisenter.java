@@ -48,8 +48,6 @@ import javafx.animation.SequentialTransition;
 import javafx.application.Application;
 import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
-import javafx.geometry.BoundingBox;
-import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -67,7 +65,7 @@ import javafx.util.Duration;
 // FEATURE Use Apache POI to read powerpoint files
 // FEATURE Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
 
-// JAVABUG 09/28/16 MEDIUM High DPI; Fixed in Java 9 https://bugs.openjdk.java.net/browse/JDK-8091832
+// JAVABUG 09/28/16 MEDIUM [fixed-9] High DPI https://bugs.openjdk.java.net/browse/JDK-8091832
 
 /**
  * This is the entry point for the application.
