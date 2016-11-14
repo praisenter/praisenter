@@ -108,7 +108,7 @@ final class LoadingTask extends Task<PraisenterContext> {
 		MediaThumbnailSettings settings = new MediaThumbnailSettings(
 				Constants.MEDIA_THUMBNAIL_SIZE, 
 				Constants.MEDIA_THUMBNAIL_SIZE);
-    	MediaLibrary media = MediaLibrary.open(mediaPath, new JavaFXMediaImportFilter(mediaPath), settings);
+    	MediaLibrary media = MediaLibrary.open(mediaPath, new JavaFXMediaImportFilter(mediaPath, this.configuration), settings);
     	t1 = System.nanoTime();
     	updateProgress(3, 4);
     	LOGGER.info("Media library loaded in {} seconds with {} media items", (t1 - t0) / 1e9, media.size());

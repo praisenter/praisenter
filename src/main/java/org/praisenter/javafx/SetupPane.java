@@ -11,10 +11,12 @@ import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.screen.ScreenConfiguration;
 import org.praisenter.javafx.screen.ScreenView;
 import org.praisenter.javafx.screen.ScreenViewDragDropManager;
 import org.praisenter.javafx.themes.Theme;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.InvalidationListener;
@@ -22,12 +24,22 @@ import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.Separator;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -41,7 +53,7 @@ import javafx.stage.Screen;
 // TODO translate
 // FEATURE option to export theme and translation to create new ones
 
-public final class SetupPane extends VBox {
+public final class SetupPane extends BorderPane {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -49,19 +61,10 @@ public final class SetupPane extends VBox {
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	public SetupPane(PraisenterContext context) {
-		this.setPadding(new Insets(5));
-		this.setSpacing(5);
-		
-		Label lblRestartWarning = new Label("Changing the Theme, Language, or Debug Mode requires the application to be restarted to take effect.", FONT_AWESOME.create(FontAwesome.Glyph.WARNING).color(Color.ORANGE));
-		
 		List<Option<Locale>> locales = new ArrayList<Option<Locale>>();
 		for (Locale locale : Translations.getAvailableLocales()) {
 			locales.add(new Option<Locale>(locale.getDisplayName(), locale));
 		}
-		
-		GridPane gridGeneral = new GridPane();
-		gridGeneral.setHgap(5);
-		gridGeneral.setVgap(5);
 		
 		Locale locale = context.getConfiguration().getLanguage();
 		if (locale == null) {
@@ -72,6 +75,15 @@ public final class SetupPane extends VBox {
 		if (theme == null) {
 			theme = Theme.DEFAULT;
 		}
+		
+		// GENERAL
+		
+		Label lblGeneral = new Label("General");
+		lblGeneral.getStyleClass().add("header");
+		
+		GridPane gridGeneral = new GridPane();
+		gridGeneral.setHgap(5);
+		gridGeneral.setVgap(5);
 		
 		// language
 		Label lblLocale = new Label("Language");
@@ -98,19 +110,66 @@ public final class SetupPane extends VBox {
 		// debug mode
 		Label lblDebugMode = new Label("Debug Mode");
 		CheckBox chkDebugMode = new CheckBox();
-		chkDebugMode.setSelected(context.getConfiguration().isSet(Setting.DEBUG_MODE));
+		chkDebugMode.setSelected(context.getConfiguration().getBoolean(Setting.DEBUG_MODE, false));
 		gridGeneral.add(lblDebugMode, 0, 2);
 		gridGeneral.add(chkDebugMode, 1, 2);
+
+		Label lblRestartWarning = new Label("Changing the Theme, Language, or Debug Mode requires the application to be restarted to take effect.", FONT_AWESOME.create(FontAwesome.Glyph.INFO_CIRCLE).color(Color.DODGERBLUE));
+		lblRestartWarning.setPadding(new Insets(0, 0, 5, 0));
 		
-		VBox vboxGeneral = new VBox(gridGeneral, lblRestartWarning);
-		vboxGeneral.setSpacing(7);
+		VBox vboxGeneral = new VBox(lblRestartWarning, gridGeneral);
+		vboxGeneral.getStyleClass().add("well");
+		vboxGeneral.setMaxWidth(Double.MAX_VALUE);
 		
-		TitledPane ttlGeneral = new TitledPane("General Settings", vboxGeneral);
-		ttlGeneral.setCollapsible(false);
-		this.getChildren().add(ttlGeneral);
+		// MEDIA
+		
+		GridPane gridMedia = new GridPane();
+		gridMedia.setHgap(5);
+		gridMedia.setVgap(5);
+		
+		Label lblMedia = new Label("Media");
+		lblMedia.getStyleClass().add("header");
+		
+		// transcoding
+		Label lblTranscodeAudioVideo = new Label("Transcode");
+		CheckBox chkTranscodeAudioVideo = new CheckBox();
+		chkTranscodeAudioVideo.setSelected(context.getConfiguration().getBoolean(Setting.MEDIA_TRANSCODING_ENABLED, true));
+		gridMedia.add(lblTranscodeAudioVideo, 0, 0);
+		gridMedia.add(chkTranscodeAudioVideo, 1, 0);
+		
+		// transcoding video
+		Label lblVideo = new Label("Video");
+		TextField txtVideoExtension = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_VIDEO_EXTENSION, JavaFXMediaImportFilter.DEFAULT_VIDEO_EXTENSION));
+		TextField txtVideoCommand = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_VIDEO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND));
+		txtVideoExtension.setPrefWidth(75);
+		txtVideoCommand.setPrefWidth(600);
+		gridMedia.add(lblVideo, 0, 1);
+		gridMedia.add(txtVideoExtension, 1, 1);
+		gridMedia.add(txtVideoCommand, 2, 1);
+
+		// transcoding audio
+		Label lblAudio = new Label("Audio");
+		TextField txtAudioExtension = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_AUDIO_EXTENSION, JavaFXMediaImportFilter.DEFAULT_AUDIO_EXTENSION));
+		TextField txtAudioCommand = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_AUDIO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND));
+		txtAudioExtension.setPrefWidth(75);
+		txtAudioCommand.setPrefWidth(600);
+		gridMedia.add(lblAudio, 0, 2);
+		gridMedia.add(txtAudioExtension, 1, 2);
+		gridMedia.add(txtAudioCommand, 2, 2);
+		
+		VBox vboxMedia = new VBox(gridMedia);
+		vboxMedia.getStyleClass().add("well");
+		vboxMedia.setMaxWidth(Double.MAX_VALUE);
+		
+		// SCREENS
+		
+		Label lblScreenHeader = new Label("Screen Configuration");
+		lblScreenHeader.getStyleClass().add("header");
 		
 		Label lblScreenWarning = new Label("Changing the screen assignment will close any currently displayed slides or notifications.", FONT_AWESOME.create(FontAwesome.Glyph.WARNING).color(Color.ORANGE));
 		Label lblScreenHowTo = new Label("Drag and drop the screen to assign its role.");
+		lblScreenHowTo.setPadding(new Insets(0, 0, 10, 0));
+		lblScreenWarning.setPadding(new Insets(0, 0, 10, 0));
 		
 		// get a screenshot of all the screens
 		GridPane screenPane = new GridPane();
@@ -154,12 +213,21 @@ public final class SetupPane extends VBox {
 		GridPane.setHalignment(lblPrimaryScreen, HPos.CENTER);
 		GridPane.setHalignment(lblMusicianScreen, HPos.CENTER);
 		
-		VBox vboxScreens = new VBox(lblScreenHowTo, screenPane, lblScreenWarning);
-		vboxScreens.setSpacing(7);
+		VBox vboxScreens = new VBox(lblScreenHowTo, lblScreenWarning, screenPane);
+		vboxScreens.getStyleClass().add("well");
+		vboxScreens.setMaxWidth(Double.MAX_VALUE);
+//		vboxScreens.setSpacing(7);
+//		vboxScreens.setPadding(new Insets(10));
+//		vboxScreens.setAlignment(Pos.TOP_CENTER);
 		
-		TitledPane ttlScreens = new TitledPane("Display Setup", vboxScreens);
-		ttlScreens.setCollapsible(false);
-		this.getChildren().add(ttlScreens);
+//		Tab tabScreens = new Tab(" Screens ", new ScrollPane(vboxScreens));
+//		tabScreens.setClosable(false);
+		
+		VBox layout = new VBox(lblGeneral, vboxGeneral, lblMedia, vboxMedia, lblScreenHeader, vboxScreens);
+		ScrollPane scroller = new ScrollPane(layout);
+		scroller.setFitToWidth(true);
+		
+		this.setCenter(scroller);
 		
 		// EVENTS
 
@@ -276,13 +344,19 @@ public final class SetupPane extends VBox {
 				lblPrimaryDescription.setPrefWidth(main.getPrefWidth());
 				lblMusicianDescription.setPrefWidth(musician.getPrefWidth());
 				
-				int i = 3;
+				int i = 0;
+				int j = 3;
 				for (ScreenView view : views.values()) {
-					Label lblUnused = new Label("Unused");
-					screenPane.add(view, i, 0);
-					screenPane.add(lblUnused, i, 1);
+					Label lblUnused = new Label("Unassigned");
+					lblUnused.setFont(Font.font("System", FontWeight.BOLD, 15));
+					screenPane.add(view, i, j);
+					screenPane.add(lblUnused, i, j + 1);
 					GridPane.setHalignment(lblUnused, HPos.CENTER);
 					i++;
+					if (i % 3 == 0) {
+						i = 0;
+						j += 2;
+					}
 				}
 			}
 		};

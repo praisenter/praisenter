@@ -31,8 +31,10 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.SearchType;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleReference;
+import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.LocatedVerse;
 import org.praisenter.bible.LocatedVerseTriplet;
@@ -50,6 +52,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -62,6 +65,7 @@ public final class BibleNavigationPane extends BorderPane {
 	private AutoCompleteComboBox<Book> cmbBook;
 	private Spinner<Integer> spnChapter;
 	private Spinner<Integer> spnVerse;
+	private TextField txtSearch;
 	
 	private Label text;
 	
@@ -90,6 +94,8 @@ public final class BibleNavigationPane extends BorderPane {
 		this.spnVerse.setEditable(true);
 		
 		this.text = new Label();
+		this.txtSearch = new TextField();
+		this.txtSearch.setPromptText("search");
 		
 		// filter the list of selectable bibles by whether they are loaded or not
 		ObservableBibleLibrary bl = context.getBibleLibrary();		
@@ -269,8 +275,33 @@ public final class BibleNavigationPane extends BorderPane {
 			}
 		});
 		
+		txtSearch.setOnAction(e -> {
+			// FIXME this should instead send the current text to a new non-modal window with the results in a grid
+			try {
+				bl.search("In the beginning", SearchType.PHRASE, results -> {
+					StringBuilder sb = new StringBuilder();
+					for (BibleSearchResult result : results) {
+						sb.append(result.getBible().getName())
+						  .append(" ")
+						  .append(result.getBook().getName())
+						  .append(" ")
+						  .append(result.getChapter().getNumber())
+						  .append(":")
+						  .append(result.getVerse().getNumber())
+						  .append(" ")
+						  .append(result.getVerse().getText())
+						  .append(Constants.NEW_LINE);
+					}
+					text.setText(sb.toString());
+				}, null);
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		});
+		
 		HBox row = new HBox(5, cmbBiblePrimary, cmbBook, spnChapter, spnVerse, btn, prev, next);
-		HBox row2 = new HBox(cmbBibleSecondary);
+		HBox row2 = new HBox(cmbBibleSecondary, txtSearch);
 		
 		setTop(new VBox(5, row, row2));
 		setCenter(text);

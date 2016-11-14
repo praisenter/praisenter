@@ -63,5 +63,22 @@ public enum Setting {
 	BIBLE_SECONDARY,
 	
 	/** If the renumber warning should show */
-	BIBLE_SHOW_RENUMBER_WARNING
+	BIBLE_SHOW_RENUMBER_WARNING,
+	
+	// media
+	
+	/** If media transcoding is enabled */
+	MEDIA_TRANSCODING_ENABLED,
+	
+	/** The video media target extension (which will imply format) */
+	MEDIA_TRANSCODING_VIDEO_EXTENSION,
+	
+	/** The audio media target extension (which will imply format) */
+	MEDIA_TRANSCODING_AUDIO_EXTENSION,
+	
+	/** The video media FFmpeg command */
+	MEDIA_TRANSCODING_VIDEO_COMMAND,
+	
+	/** The audio media FFmpeg command */
+	MEDIA_TRANSCODING_AUDIO_COMMAND,
 }

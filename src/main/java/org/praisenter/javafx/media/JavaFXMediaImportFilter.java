@@ -36,6 +36,8 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.media.FFmpegMediaImportFilter;
 import org.praisenter.media.MediaImportFilter;
 import org.praisenter.media.MediaType;
@@ -51,17 +53,25 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The video target extension (will be treated as the destination format as well) */
-	private static final String VIDEO_EXT = ".mp4";
+	public static final String DEFAULT_VIDEO_EXTENSION = ".mp4";
 	
 	/** The audio target extension (will be treated as the destination format as well) */
-	private static final String AUDIO_EXT = ".m4a";
+	public static final String DEFAULT_AUDIO_EXTENSION = ".m4a";
+	
+	/** The default FFmpeg command for transcoding */
+	public static final String DEFAULT_COMMAND = "{ffmpeg} -i {source} -y -ignore_unknown {target}";
+	
+	/** The application configuration */
+	private final Configuration configuration;
 	
 	/**
 	 * Minimal constructor.
 	 * @param path the path to place the files required for filtering
+	 * @param configuration the application configuration
 	 */
-	public JavaFXMediaImportFilter(Path path) {
+	public JavaFXMediaImportFilter(Path path, Configuration configuration) {
 		super(path);
+		this.configuration = configuration;
 	}
 	
 	/* (non-Javadoc)
@@ -69,13 +79,20 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 	 */
 	@Override
 	public Path getTarget(Path location, String name, MediaType type) {
-		// we have to transcode audio/video to what JavaFX can support
-		if (type == MediaType.VIDEO || type == MediaType.AUDIO) {
-			String ext = type == MediaType.VIDEO ? VIDEO_EXT : AUDIO_EXT;
-			if (!name.toLowerCase().endsWith(ext)) {
-				name += ext;
+		// check if transcoding is enabled
+		if (this.configuration.getBoolean(Setting.MEDIA_TRANSCODING_ENABLED, true)) {
+			// we have to transcode audio/video to what JavaFX can support
+			if (type == MediaType.VIDEO || type == MediaType.AUDIO) {
+				// get the new extension
+				String ext = 
+						type == MediaType.VIDEO 
+						? this.configuration.getString(Setting.MEDIA_TRANSCODING_VIDEO_EXTENSION, DEFAULT_VIDEO_EXTENSION)
+						: this.configuration.getString(Setting.MEDIA_TRANSCODING_AUDIO_EXTENSION, DEFAULT_AUDIO_EXTENSION);
+				if (!name.toLowerCase().endsWith(ext)) {
+					name += ext;
+				}
+				return location.resolve(name);
 			}
-			return location.resolve(name);
 		}
 		return super.getTarget(location, name, type);
 	}
@@ -85,18 +102,22 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 	 */
 	@Override
 	public void filter(Path source, Path target, MediaType type) throws TranscodeException, FileAlreadyExistsException, IOException {
-		if (type == MediaType.VIDEO || type == MediaType.AUDIO) {
-			if (Files.exists(target)) {
-				throw new FileAlreadyExistsException(target.toAbsolutePath().toString());
+		// is transcoding enabled?
+		if (this.configuration.getBoolean(Setting.MEDIA_TRANSCODING_ENABLED, true)) {
+			// is the media audio or video?
+			if (type == MediaType.VIDEO || type == MediaType.AUDIO) {
+				if (Files.exists(target)) {
+					throw new FileAlreadyExistsException(target.toAbsolutePath().toString());
+				}
+				
+				// NOTE: attempting to read and play media here to verify whether it was playable by JavaFX failed.
+				// it would play here, but not when attached to a visible MediaView. So for now we'll just have to
+				// always transcode the video first
+				
+				// transcode to supported formats
+				this.transcode(source, target, type);
+				return;
 			}
-			
-			// NOTE: attempting to read and play media here to verify whether it was playable by JavaFX failed.
-			// it would play here, but not when attached to a visible MediaView. So for now we'll just have to
-			// always transcode the video first
-			
-			// transcode to supported formats
-			this.transcode(source, target, type);
-			return;
 		}
 		super.filter(source, target, type);
 	}
@@ -117,23 +138,25 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 		}
 		
 		List<String> command = new ArrayList<String>();
-		command.add(this.ffmpeg.toAbsolutePath().toString());
-		// input file
-		command.add("-i");
-		command.add(source.toAbsolutePath().toString());
-		// overwrite files without asking
-		command.add("-y");
-		// ignore unknown stream types
-		command.add("-ignore_unknown");
 		
-		if (type == MediaType.VIDEO) {
-			// I needed this at one time, now I don't and I'm not sure when that changed...
-			// -fix_fmt yuv420p for old media players, javafx for example...
-//			command.add("-pix_fmt");
-//			command.add("yuv420p");
+		// split the command by whitespace
+		String[] parts = 
+				(type == MediaType.VIDEO 
+				 ? this.configuration.getString(Setting.MEDIA_TRANSCODING_VIDEO_COMMAND, DEFAULT_COMMAND)
+				 : this.configuration.getString(Setting.MEDIA_TRANSCODING_AUDIO_COMMAND, DEFAULT_COMMAND)
+				).split("\\s+");
+		// add all the parts to the command list replacing {x} with the appropriate path
+		for (String part : parts) {
+			if (part.toLowerCase().equals("{ffmpeg}")) {
+				command.add(this.ffmpeg.toAbsolutePath().toString());
+			} else if (part.toLowerCase().equals("{source}")) {
+				command.add(source.toAbsolutePath().toString());
+			} else if (part.toLowerCase().equals("{target}")) {
+				command.add(target.toAbsolutePath().toString());
+			} else {
+				command.add(part);
+			}
 		}
-		
-		command.add(target.toAbsolutePath().toString());
 		
 		// run the command
 		ProcessBuilder pb = new ProcessBuilder(command);

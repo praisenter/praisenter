@@ -5,11 +5,11 @@ import java.nio.file.Paths;
 import org.praisenter.javafx.ImageCache;
 import org.praisenter.javafx.JavaFXContext;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.media.MediaThumbnailSettings;
-import org.praisenter.utility.ClasspathLoader;
 
 import javafx.application.Application;
 import javafx.geometry.Orientation;
@@ -30,7 +30,7 @@ public class TestMediaLibrary extends Application {
 				100, 100);
     	MediaLibrary library = null;
 		try {
-			library = MediaLibrary.open(path, new JavaFXMediaImportFilter(path), settings);
+			library = MediaLibrary.open(path, new JavaFXMediaImportFilter(path, null), settings);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

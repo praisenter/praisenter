@@ -91,3 +91,17 @@
     -fx-border-style: solid;
     -fx-border-width: 0 0 1 0;
 }
+
+.header {
+	-fx-font-weight: bold;
+	-fx-padding: 10 0 10 20;
+}
+
+.well {
+	-fx-background-insets: 0, 1 0 1 0, 1;
+	-fx-padding: 1em 0 1em 2em;
+	-fx-background-color:
+        -fx-outer-border,
+        -fx-text-box-border,
+        linear-gradient(from 0px 0px to 0px 5px, -fx-text-box-border, derive(-fx-text-box-border, 30%));
+}

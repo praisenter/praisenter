@@ -167,6 +167,9 @@ public enum ApplicationAction {
 	/** Create a new renumber the selection */
 	RENUMBER(Translations.get("action.bible.renumber")),
 	
+	/** Re-indexes the bible search index */
+	REINDEX_BIBLES(Translations.get("action.reindex")),
+	
 	// slide
 	
 	/** Create a new slide */

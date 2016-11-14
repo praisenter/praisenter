@@ -105,7 +105,7 @@ public class TestSlideDisplay extends Application {
 				100, 100);
     	MediaLibrary library = null;
 		try {
-			library = MediaLibrary.open(path, new JavaFXMediaImportFilter(path), settings);
+			library = MediaLibrary.open(path, new JavaFXMediaImportFilter(path, null), settings);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

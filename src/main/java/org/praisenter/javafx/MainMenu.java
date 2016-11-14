@@ -127,7 +127,8 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		// Bibles
 		MenuItem blManage = createMenuItem(ApplicationAction.MANAGE_BIBLES);
-		bibles.getItems().addAll(blManage);
+		MenuItem blReindex = createMenuItem(ApplicationAction.REINDEX_BIBLES);
+		bibles.getItems().addAll(blManage, new SeparatorMenuItem(), blReindex);
 		
 		// Help
 		MenuItem hAbout = createMenuItem(ApplicationAction.ABOUT);
@@ -251,10 +252,14 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 			case CUT:
 			case DELETE:
 			case COPY:
-			case SELECT_ALL:
 				if (focused instanceof TextInputControl) {
 					String selection = ((TextInputControl)focused).getSelectedText();
 					return selection != null && !selection.isEmpty();
+				}
+				break;
+			case SELECT_ALL:
+				if (focused instanceof TextInputControl) {
+					return true;
 				}
 				break;
 			case PASTE:

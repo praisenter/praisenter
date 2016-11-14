@@ -24,6 +24,7 @@
  */
 package org.praisenter.javafx.bible;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -35,9 +36,11 @@ import java.util.function.Consumer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
+import org.praisenter.SearchType;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleImporter;
 import org.praisenter.bible.BibleLibrary;
+import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.FormatIdentifingBibleImporter;
 import org.praisenter.javafx.MonitoredTask;
 import org.praisenter.javafx.MonitoredTaskResultStatus;
@@ -47,6 +50,7 @@ import org.praisenter.resources.translations.Translations;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 
 /**
  * Represents an Observable wrapper to the bible library.
@@ -483,6 +487,95 @@ public final class ObservableBibleLibrary {
 			}
 		});
 		this.service.execute(task);
+	}
+	
+	// searching
+	
+	/**
+	 * Attempts to rebuild the bible searching index.
+	 * <p>
+	 * The onSuccess method will be called on success. The onError method will be 
+	 * called if an error occurs.
+	 * <p>
+	 * Re-indexing the bible library can take a significant amount of time.
+	 * @param onSuccess called for the bibles that were successfully removed
+	 * @param onError called for the bibles that failed to be removed
+	 */
+	public void reindex(Runnable onSuccess, Consumer<Throwable> onError) {
+		MonitoredTask<Void> task = new MonitoredTask<Void>(Translations.get("bible.reindex")) {
+			@Override
+			protected Void call() throws Exception {
+				updateProgress(-1, 0);
+				try {
+					library.reindex();
+					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+				} catch (Exception ex) {
+					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					throw ex;
+				}
+				return null;
+			}
+		};
+		task.setOnSucceeded((e) -> {
+			if (onSuccess != null) {
+				onSuccess.run();
+			}
+		});
+		task.setOnFailed((e) -> {
+			Throwable ex = task.getException();
+			LOGGER.error("Failed to rebuild the bible index.", ex);
+			if (onError != null) {
+				onError.accept(ex);
+			}
+		});
+		this.service.execute(task);
+	}
+	
+	/**
+	 * Searches all bibles for the given text using the given search type.
+	 * @param text the text to search for
+	 * @param searchType the search type
+	 * @param onSuccess called when the search is complete
+	 * @param onError called when the search failed
+	 */
+	public void search(String text, SearchType searchType, Consumer<List<BibleSearchResult>> onSuccess, Consumer<Throwable> onError) {
+		this.search(null, text, searchType, onSuccess, onError);
+	}
+	
+	/**
+	 * Searches the given bible for the given text using the given search type.
+	 * @param bibleId the id of the bible to search
+	 * @param text the text to search for
+	 * @param searchType the search type
+	 * @param onSuccess called when the search is complete
+	 * @param onError called when the search failed
+	 */
+	public void search(UUID bibleId, String text, SearchType searchType, Consumer<List<BibleSearchResult>> onSuccess, Consumer<Throwable> onError) {
+		Task<List<BibleSearchResult>> task = new Task<List<BibleSearchResult>>() {
+			@Override
+			protected List<BibleSearchResult> call() throws Exception {
+				updateProgress(-1, 0);
+				try {
+					return library.search(bibleId, text, searchType);
+				} catch (Exception ex) {
+					throw ex;
+				}
+			}
+		};
+		task.setOnSucceeded((e) -> {
+			if (onSuccess != null) {
+				onSuccess.accept(task.getValue());
+			}
+		});
+		task.setOnFailed((e) -> {
+			Throwable ex = task.getException();
+			LOGGER.error("Failed to search. BibleId: " + bibleId + " Text: '" + text + "' Type: " + searchType, ex);
+			if (onError != null) {
+				onError.accept(ex);
+			}
+		});
+		this.service.execute(task);
+		
 	}
 	
 	// other

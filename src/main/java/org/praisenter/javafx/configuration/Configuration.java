@@ -42,6 +42,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.themes.Theme;
 import org.praisenter.xml.XmlIO;
 
@@ -87,6 +88,11 @@ public final class Configuration {
 		
 		// set other defaults
 		this.settings.put(Setting.BIBLE_SHOW_RENUMBER_WARNING, "true");
+		this.settings.put(Setting.MEDIA_TRANSCODING_ENABLED, "true");
+		this.settings.put(Setting.MEDIA_TRANSCODING_VIDEO_EXTENSION, JavaFXMediaImportFilter.DEFAULT_VIDEO_EXTENSION);
+		this.settings.put(Setting.MEDIA_TRANSCODING_AUDIO_EXTENSION, JavaFXMediaImportFilter.DEFAULT_AUDIO_EXTENSION);
+		this.settings.put(Setting.MEDIA_TRANSCODING_VIDEO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND);
+		this.settings.put(Setting.MEDIA_TRANSCODING_AUDIO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND);
 	}
 	
 	/**
@@ -214,6 +220,17 @@ public final class Configuration {
 	// convenience set
 	
 	/**
+	 * Sets the given setting to the given string value.
+	 * <p>
+	 * An alias for {@link #set(Setting, String)}.
+	 * @param setting the setting
+	 * @param value the value
+	 */
+	public void setString(Setting setting, String value) {
+		this.set(setting, value);
+	}
+	
+	/**
 	 * Sets the given setting to the given boolean value.
 	 * @param setting the setting
 	 * @param value the value
@@ -286,6 +303,21 @@ public final class Configuration {
 	}
 	
 	// convenience get
+
+	/**
+	 * Returns the value for the given setting or the given default value
+	 * if the setting isn't present or is empty.
+	 * @param setting the setting
+	 * @param defaultValue the default
+	 * @return String
+	 */
+	public String getString(Setting setting, String defaultValue) {
+		String value = this.settings.get(setting);
+		if (value == null || value.trim().length() == 0) {
+			return defaultValue;
+		}
+		return value;
+	}
 	
 	/**
 	 * Returns the value for the given setting or the given default value
@@ -295,11 +327,17 @@ public final class Configuration {
 	 * @return boolean
 	 */
 	public boolean getBoolean(Setting setting, boolean defaultValue) {
-		try {
-			return Boolean.parseBoolean(this.settings.get(setting));
-		} catch (Exception ex) {
+		String value = this.settings.get(setting);
+		if (value == null || value.trim().length() == 0) {
 			return defaultValue;
 		}
+		value = value.trim();
+		if (value.toLowerCase().equals("true")) {
+			return true;
+		} else if (value.toLowerCase().equals("false")) {
+			return false;
+		}
+		return defaultValue;
 	}
 	
 	/**

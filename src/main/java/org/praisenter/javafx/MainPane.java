@@ -92,6 +92,9 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			case MANAGE_BIBLES:
 				this.navigate(this.bibleLibraryPane);
 				break;
+			case REINDEX_BIBLES:
+				this.context.getBibleLibrary().reindex(null, null);
+				break;
 			case EDIT:
 				// get the data to know what to do
 				if (data instanceof Bible) {
@@ -152,6 +155,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			case IMPORT_SLIDES:
 			case IMPORT_SONGS:
 			case MANAGE_BIBLES:
+			case REINDEX_BIBLES:
 			case MANAGE_MEDIA:
 			case MANAGE_SLIDES:
 			case MANAGE_SONGS:

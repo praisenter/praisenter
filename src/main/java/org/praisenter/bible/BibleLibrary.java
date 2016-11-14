@@ -456,7 +456,7 @@ public final class BibleLibrary {
 	 * @return List&lt;{@link BibleSearchResult}&gt;
 	 * @throws IOException if an IO error occurs
 	 */
-	public List<BibleSearchResult> search(UUID bibleId, String text, SearchType type) throws IOException {
+	public synchronized List<BibleSearchResult> search(UUID bibleId, String text, SearchType type) throws IOException {
 		// verify text
 		if (text == null || text.length() == 0) {
 			return Collections.emptyList();
