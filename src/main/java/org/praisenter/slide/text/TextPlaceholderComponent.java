@@ -48,21 +48,32 @@ import org.praisenter.slide.SlideRegion;
 @XmlAccessorType(XmlAccessType.NONE)
 public class TextPlaceholderComponent extends BasicTextComponent implements SlideRegion, SlideComponent, TextComponent {
 	/** The placeholder type */
-	@XmlElement(name = "type", required = false)
-	PlaceholderType type;
+	@XmlElement(name = "placeholderType", required = false)
+	PlaceholderType placeholderType;
 	
 	/** The placeholder variants */
 	@XmlElement(name = "variant", required = false)
-	@XmlElementWrapper(name = "variants", required = false)
-	final Set<PlaceholderVariant> variants;
+	@XmlElementWrapper(name = "placeholderVariants", required = false)
+	final Set<PlaceholderVariant> placeholderVariants;
 
 	/**
-	 * Creates a new placeholder for all text.
+	 * Default constructor.
 	 */
 	public TextPlaceholderComponent() {
-		this.type = PlaceholderType.TEXT;
-		this.variants = new TreeSet<PlaceholderVariant>();
-		this.variants.add(PlaceholderVariant.PRIMARY);
+		this.placeholderType = PlaceholderType.TEXT;
+		this.placeholderVariants = new TreeSet<PlaceholderVariant>();
+		this.placeholderVariants.add(PlaceholderVariant.PRIMARY);
+	}
+
+	/**
+	 * Copy constructor.
+	 * @param other the component to copy
+	 * @param exact whether to copy the component exactly
+	 */
+	public TextPlaceholderComponent(TextPlaceholderComponent other, boolean exact) {
+		super(other, exact);
+		this.placeholderType = other.placeholderType;
+		this.placeholderVariants = new TreeSet<PlaceholderVariant>(other.placeholderVariants);
 	}
 	
 	/* (non-Javadoc)
@@ -70,37 +81,41 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	 */
 	@Override
 	public TextPlaceholderComponent copy() {
-		TextPlaceholderComponent comp = new TextPlaceholderComponent();
-		this.copy(comp);
-		comp.type = this.type;
-		comp.variants.addAll(this.variants);
-		return comp;
+		return this.copy(false);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#copy(boolean)
+	 */
+	@Override
+	public TextPlaceholderComponent copy(boolean exact) {
+		return new TextPlaceholderComponent(this, exact);
 	}
 
 	/**
 	 * Returns the placeholder type.
 	 * @return {@link PlaceholderType}
 	 */
-	public PlaceholderType getType() {
-		return this.type;
+	public PlaceholderType getPlaceholderType() {
+		return this.placeholderType;
 	}
 
 	/**
 	 * Sets the type of this placeholder.
 	 * @param type the type
 	 */
-	public void setType(PlaceholderType type) {
+	public void setPlaceholderType(PlaceholderType type) {
 		if (type == null) {
 			type = PlaceholderType.TEXT;
 		}
-		this.type = type;
+		this.placeholderType = type;
 	}
 
 	/**
 	 * Returns this placeholder's variants.
 	 * @return Set&lt;{@link PlaceholderVariant}&gt;
 	 */
-	public Set<PlaceholderVariant> getVariants() {
-		return this.variants;
+	public Set<PlaceholderVariant> getPlaceholderVariants() {
+		return this.placeholderVariants;
 	}
 }

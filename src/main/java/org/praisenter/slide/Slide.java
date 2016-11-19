@@ -48,9 +48,7 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
  * @version 3.0.0
  */
 @XmlSeeAlso({
-	BasicSlide.class,
-	SongSlide.class,
-	BibleSlide.class
+	BasicSlide.class
 })
 @XmlAccessorType(XmlAccessType.NONE)
 public interface Slide extends SlideRegion, Comparable<Slide> {
@@ -240,6 +238,11 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	 */
 	public abstract Slide copy();
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#copy(boolean)
+	 */
+	public abstract Slide copy(boolean exact);
+	
 	/**
 	 * Returns the tags for this slide.
 	 * @return Set&lt;{@link Tag}&gt;
@@ -248,7 +251,15 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	
 	// thumbnails
 	
+	/**
+	 * Returns the thumbnail for this slide.
+	 * @return BufferedImage
+	 */
 	public abstract BufferedImage getThumbnail();
 	
+	/**
+	 * Sets the thumbnail for this slide.
+	 * @param thumbnail the thumbnail
+	 */
 	public abstract void setThumbnail(BufferedImage thumbnail);
 }

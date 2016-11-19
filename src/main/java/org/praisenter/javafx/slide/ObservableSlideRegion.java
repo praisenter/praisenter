@@ -95,22 +95,23 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.backgroundNode.setMouseTransparent(true);
 		
 		this.rootPane = new StackPane(this.container);
+		this.rootPane.getStyleClass().add("slide-component");
 		
 		// listen for changes
 		this.x.addListener((obs, ov, nv) -> { 
-			this.region.setX((int)Math.floor(nv.doubleValue()));
+			this.region.setX(nv.intValue());
 			this.updatePosition();
 		});
 		this.y.addListener((obs, ov, nv) -> { 
-			this.region.setY((int)Math.floor(nv.doubleValue()));
+			this.region.setY(nv.intValue());
 			this.updatePosition();
 		});
 		this.width.addListener((obs, ov, nv) -> { 
-			this.region.setWidth((int)Math.floor(nv.doubleValue()));
+			this.region.setWidth(nv.intValue());
 			updateSize();
 		});
 		this.height.addListener((obs, ov, nv) -> { 
-			this.region.setHeight((int)Math.floor(nv.doubleValue()));
+			this.region.setHeight(nv.intValue());
 			updateSize();
 		});
 		this.background.addListener((obs, ov, nv) -> { 

@@ -76,7 +76,7 @@ public abstract class SlideAnimation {
 	/**
 	 * Default constructor.
 	 */
-	protected SlideAnimation() {
+	public SlideAnimation() {
 		this.id = null;
 		this.type = AnimationType.IN;
 		this.duration = 300;
@@ -89,7 +89,7 @@ public abstract class SlideAnimation {
 	 * @param other the new animation to copy to
 	 * @param id the id that the new animation applies to
 	 */
-	void copy(SlideAnimation other, UUID id) {
+	public void copy(SlideAnimation other, UUID id) {
 		other.delay = this.delay;
 		other.duration = this.duration;
 		other.easing = this.easing.copy();

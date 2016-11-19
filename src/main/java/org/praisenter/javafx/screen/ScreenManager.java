@@ -36,6 +36,11 @@ public final class ScreenManager {
 		this.debugMode = debug;
 	}
 	
+	/**
+	 * Initializes the screen manager.
+	 * <p>
+	 * NOTE: This method should be called on the Java FX UI thread.
+	 */
 	public void initialize() {
 		// listen for screen changes
 		Screen.getScreens().addListener(new ListChangeListener<Screen>() {
@@ -62,6 +67,42 @@ public final class ScreenManager {
 		this.configuration.getResolutions().addListener(listener);
 		
 		screensChanged();
+	}
+	
+	/**
+	 * Releases any pre-allocated screens or any other resources.
+	 */
+	public void release() {
+		LOGGER.info("Releasing existing displays.");
+		// release any existing stages
+		if (this.main != null) {
+			this.main.release();
+			this.main = null;
+		}
+		if (this.musician != null) {
+			this.musician.release();
+			this.musician = null;
+		}
+	}
+
+	/**
+	 * Returns the display that will be used for presenation.
+	 * <p>
+	 * Typically this will be the MAIN screen, but can be the
+	 * OPERATOR or PRIMARY when the MAIN screen is not set
+	 * or invalid.
+	 * @return {@link Display}
+	 */
+	public Display getPresentationDisplay() {
+		Display main = this.configuration.getMainScreen();
+		Display operator = this.configuration.getOperatorScreen();
+		Display primary = this.configuration.getPrimaryScreen();
+		if (main != null && main.getId() >= 0) {
+			return main;
+		} else if (operator != null && operator.getId() >= 0) {
+			return operator;
+		}
+		return primary;
 	}
 	
 	private void screensChanged() {
@@ -167,19 +208,6 @@ public final class ScreenManager {
 		this.updateDisplays();
 		
 		mutating = false;
-	}
-	
-	public void release() {
-		LOGGER.info("Releasing existing displays.");
-		// release any existing stages
-		if (this.main != null) {
-			this.main.release();
-			this.main = null;
-		}
-		if (this.musician != null) {
-			this.musician.release();
-			this.musician = null;
-		}
 	}
 	
 	private void updateDisplays() {

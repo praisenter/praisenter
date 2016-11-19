@@ -63,8 +63,7 @@ import org.praisenter.xml.adapters.BufferedImageTypeAdapter;
 @XmlRootElement(name = "slide")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso({
-	SongSlide.class,
-	BibleSlide.class
+	
 })
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion, Comparable<Slide> {
 	/** The format (for format identification only) */
@@ -74,6 +73,18 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	/** The slide format version */
 	@XmlAttribute(name = "version", required = false)
 	final String version = Slide.CURRENT_VERSION;
+
+	// for internal use really
+	/** The slide path; can be null */
+	Path path;
+	
+	/** The slide name */
+	@XmlElement(name = "name")
+	String name;
+	
+	/** The time the slide will show in milliseconds */
+	@XmlElement(name = "time", required = false)
+	long time;
 	
 	/** The slide components */
 	@XmlElementRefs({
@@ -90,20 +101,6 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@XmlElement(name = "animation", required = false)
 	@XmlElementWrapper(name = "animations", required = false)
 	final List<SlideAnimation> animations;
-	
-	// for internal use really
-	/** The slide path; can be null */
-	Path path;
-	
-	/** The slide name */
-	@XmlElement(name = "name")
-	String name;
-	
-	// other
-	
-	/** The time the slide will show in milliseconds */
-	@XmlElement(name = "time", required = false)
-	long time;
 	
 	/** The tags */
 	@XmlElement(name = "tag", required = false)
@@ -124,10 +121,10 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	}
 	
 	/**
-	 * Internal constructor for setting an explicit id.
+	 * Constructor for setting an explicit id.
 	 * @param id the id
 	 */
-	BasicSlide(UUID id) {
+	public BasicSlide(UUID id) {
 		super(id);
 		this.components = new ArrayList<SlideComponent>();
 		this.animations = new ArrayList<SlideAnimation>();
@@ -136,39 +133,49 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	}
 	
 	/**
-	 * Copies over the values of this slide to the given slide.
-	 * @param to the slide to copy to
+	 * Copy constructor.
+	 * @param other the component to copy
+	 * @param exact whether to copy the component exactly
 	 */
-	protected void copy(Slide to) {
+	public BasicSlide(BasicSlide other, boolean exact) {
 		// copy over the super class stuff
-		this.copy((SlideRegion)to);
+		super(other, exact);
+		
+		this.components = new ArrayList<SlideComponent>();
+		this.animations = new ArrayList<SlideAnimation>();
+		this.tags = new TreeSet<Tag>();
+		
+		if (exact) {
+			this.path = other.path;
+		}
+		
+		this.time = other.time;
+		this.name = other.name;
+		
 		// copy the components
-		for (int i = 0; i < this.components.size(); i++) {
-			SlideComponent sc = this.components.get(i);
-			SlideComponent copy = sc.copy();
-			to.addComponent(copy);
+		for (int i = 0; i < other.components.size(); i++) {
+			SlideComponent sc = other.components.get(i);
+			SlideComponent copy = sc.copy(exact);
+			this.components.add(copy);
 			
 			// component animations
-			List<SlideAnimation> animations = this.getAnimations(sc.getId());
+			List<SlideAnimation> animations = other.getAnimations(sc.getId());
 			for(SlideAnimation animation : animations) {
-				to.getAnimations().add(animation.copy(copy.getId()));
+				this.animations.add(animation.copy(copy.getId()));
 			}
 		}
 		
 		// slide animations
-		List<SlideAnimation> animations = this.getAnimations(this.getId());
+		List<SlideAnimation> animations = other.getAnimations(other.getId());
 		for(SlideAnimation animation : animations) {
-			to.getAnimations().add(animation.copy(to.getId()));
+			this.animations.add(animation.copy(this.id));
 		}
 		
-		// copy other props
-		to.setTime(this.time);
-		to.setName(this.name);
-		to.getTags().addAll(this.tags);
+		// tags
+		this.tags.addAll(other.tags);
 		
-		// NOTE: path is NOT copied
-		// NOTE: this method should copy everything since it
-		// will be used by subclasses
+		// thumbnail
+		this.thumbnail = other.thumbnail;
 	}
 	
 	/* (non-Javadoc)
@@ -176,11 +183,15 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	 */
 	@Override
 	public BasicSlide copy() {
-		// NOTE: this generates a new id
-		BasicSlide slide = new BasicSlide();
-		// copy over the stuff
-		this.copy(slide);
-		return slide;
+		return this.copy(false);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#copy(boolean)
+	 */
+	@Override
+	public BasicSlide copy(boolean exact) {
+		return new BasicSlide(this, exact);
 	}
 	
 	/* (non-Javadoc)
@@ -197,20 +208,6 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		} else {
 			return this.name.compareTo(other.getName());
 		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object other) {
-		if (other == null) return false;
-		if (other == this) return true;
-		if (other instanceof Slide) {
-			Slide s = (Slide)other;
-			return s.getId().equals(this.id);
-		}
-		return false;
 	}
 	
 	/* (non-Javadoc)

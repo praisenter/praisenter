@@ -24,6 +24,8 @@
  */
 package org.praisenter.slide;
 
+import java.util.UUID;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 
@@ -34,41 +36,25 @@ import javax.xml.bind.annotation.XmlAccessorType;
  */
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractSlideComponent extends AbstractSlideRegion implements SlideRegion, SlideComponent {
-//	/** The z-order */
-//	@XmlElement(name = "order", required = false)
-//	int order;
-//	
-//	/* (non-Javadoc)
-//	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-//	 */
-//	@Override
-//	public int compareTo(SlideComponent o) {
-//		return this.order - o.getOrder();
-//	}
-//	
 	/**
-	 * Copies over the values of this component to the given component.
-	 * @param to the component to copy to
+	 * Default constructor.
 	 */
-	protected void copy(SlideComponent to) {
-		// shouldn't need a deep copy of any of these
-//		to.setOrder(this.order);
-		this.copy((SlideRegion)to);
+	public AbstractSlideComponent() {}
+	
+	/**
+	 * Optional constructor.
+	 * @param id the id
+	 */
+	public AbstractSlideComponent(UUID id) {
+		super(id);
 	}
-//	
-//	/* (non-Javadoc)
-//	 * @see org.praisenter.slide.SlideComponent#getOrder()
-//	 */
-//	@Override
-//	public int getOrder() {
-//		return this.order;
-//	}
-//	
-//	/* (non-Javadoc)
-//	 * @see org.praisenter.slide.SlideComponent#setOrder(int)
-//	 */
-//	@Override
-//	public void setOrder(int order) {
-//		this.order = order;
-//	}
+	
+	/**
+	 * Copy constructor.
+	 * @param other the component to copy
+	 * @param exact whether to copy the component exactly
+	 */
+	public AbstractSlideComponent(AbstractSlideComponent other, boolean exact) {
+		super(other, exact);
+	}
 }

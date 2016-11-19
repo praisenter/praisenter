@@ -24,93 +24,84 @@
  */
 package org.praisenter.javafx.slide;
 
-import java.awt.image.BufferedImage;
-
 import org.praisenter.javafx.FlowListCell;
-import org.praisenter.javafx.FlowListView;
+import org.praisenter.slide.Slide;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.TextAlignment;
-import javafx.util.Callback;
 
 /**
- * Cell factory for the {@link FlowListView} specifically for showing slide items.
+ * Custom list cell for {@link SlideListItem}s.
  * @author William Bittle
  * @version 3.0.0
+ * @since 3.0.0
  */
-final class SlideListViewCellFactory implements Callback<SlideListItem, FlowListCell<SlideListItem>> {
-	/** The max height for the thumbnails */
-	private final int maxHeight;
+final class SlideListCell extends FlowListCell<SlideListItem> {
+	/** The slide for this cell */
+	private final ObjectProperty<Slide> slide = new SimpleObjectProperty<Slide>(null);
 	
 	/**
-	 * Creates a new cell factory for slide items.
-	 * @param maxHeight the maximum height for the thumbnails
+	 * Minimal constructor.
+	 * @param item the slide item
+	 * @param maxHeight the max height for the cell
 	 */
-	public SlideListViewCellFactory(int maxHeight) {
-		this.maxHeight = maxHeight;
-	}
-	
-	/* (non-Javadoc)
-	 * @see javafx.util.Callback#call(java.lang.Object)
-	 */
-	@Override
-	public FlowListCell<SlideListItem> call(SlideListItem item) {
-		FlowListCell<SlideListItem> cell = new FlowListCell<SlideListItem>(item);
+	public SlideListCell(SlideListItem item, int maxHeight) {
+		super(item);
+		
+		this.setPrefWidth(110);
+		this.setAlignment(Pos.TOP_CENTER);
+		
+    	final ImageView thumb = new ImageView();
+    	// place it in a VBox for good positioning
+    	final VBox wrapper = new VBox(thumb);
+    	wrapper.setAlignment(Pos.BOTTOM_CENTER);
+    	wrapper.setPrefHeight(maxHeight);
+    	wrapper.setMaxHeight(maxHeight);
+    	wrapper.setMinHeight(maxHeight);
+    	wrapper.managedProperty().bind(wrapper.visibleProperty());
+    	this.getChildren().add(wrapper);
 
-		cell.setPrefWidth(110);
-		cell.setAlignment(Pos.TOP_CENTER);
+		// setup an indeterminant progress bar
+		ProgressIndicator progress = new ProgressIndicator();
+		progress.managedProperty().bind(progress.visibleProperty());
+		this.getChildren().add(progress);
 		
-		String name = null;
-		
-		if (item.loaded) {
-			name = item.name;
-	    	// setup the thumbnail image
-			BufferedImage image = item.slide.getThumbnail();
-			
-			Node node = null;
-			if (image != null) {
-				node = new ImageView(SwingFXUtils.toFXImage(image, null));
-			} else {
-				Rectangle r = new Rectangle(0, 0, maxHeight / 2, maxHeight);
-				r.setFill(new Color(1, 1, 1, 1));
-				node = r;
+		this.slide.addListener((obs, ov, nv) -> {
+			// setup the thumbnail image
+			Image image = null;
+			if (nv != null) {
+				if (nv.getThumbnail() != null) {
+					image = SwingFXUtils.toFXImage(nv.getThumbnail(), null);
+				}
 			}
 			
-			VBox wrapper = new VBox(node);
-	    	// place it in a VBox for good positioning
-	    	wrapper.setAlignment(Pos.BOTTOM_CENTER);
-	    	wrapper.setPrefHeight(maxHeight);
-	    	wrapper.setMaxHeight(maxHeight);
-	    	wrapper.setMinHeight(maxHeight);
-	    	node.setEffect(new DropShadow(2, 2, 2, Color.rgb(0, 0, 0, 0.25)));
-	    	cell.getChildren().add(wrapper);
-		} else {
-			name = item.name;
-			// setup an indeterminant progress bar
-			ProgressIndicator progress = new ProgressIndicator();
-			cell.getChildren().add(progress);
-		}
-    	
-    	// setup the media name label
+			thumb.setImage(image);
+    		thumb.setEffect(new DropShadow(2, 2, 2, Color.rgb(0, 0, 0, 0.25)));
+		});
+		
+		wrapper.visibleProperty().bind(item.loadedProperty());
+		progress.visibleProperty().bind(item.loadedProperty().not());
+		this.slide.bind(item.slideProperty());
+		
+    	// setup the slide name label
     	final Label label = new Label();
-    	label.setText(name);
+    	label.textProperty().bind(item.nameProperty());
     	label.setWrapText(true);
     	label.setTextAlignment(TextAlignment.CENTER);
     	label.setPadding(new Insets(5, 0, 0, 0));
 		
     	// add the image and label to the cell
-    	cell.getChildren().addAll(label);
-    	
-		return cell;
+    	this.getChildren().addAll(label);
 	}
 }

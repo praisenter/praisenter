@@ -109,24 +109,25 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	}
 	
 	/**
-	 * Copies over the values of this component to the given component.
-	 * @param to the component to copy to
+	 * Copy constructor.
+	 * @param other the component to copy
+	 * @param exact whether to copy the component exactly
 	 */
-	protected void copy(AbstractTextComponent to) {
-		// copy the super class stuff
-		to.copy((SlideComponent)to);
-		// copy the text component stuff
-		to.setTextPaint(this.textPaint);
-		to.setTextBorder(this.textBorder);
-		to.setFont(this.font);
-		to.setFontScaleType(this.fontScaleType);
-		to.setVerticalTextAlignment(this.verticalTextAlignment);
-		to.setHorizontalTextAlignment(this.horizontalTextAlignment);
-		to.setPadding(this.padding);
-		to.setLineSpacing(this.lineSpacing);
-		to.setTextWrapping(this.textWrapping);
-		to.setTextShadow(this.textShadow);
-		to.setTextGlow(this.textGlow);
+	public AbstractTextComponent(AbstractTextComponent other, boolean exact) {
+		super(other, exact);
+		// NOTE: all are immutable
+		this.font = other.font;
+		this.fontScaleType = other.fontScaleType;
+		this.horizontalTextAlignment = other.horizontalTextAlignment;
+		this.lineSpacing = other.lineSpacing;
+		this.padding = other.padding;
+		this.textBorder = other.textBorder;
+		this.textGlow = other.textGlow;
+		this.textPaint = other.textPaint;
+		this.textShadow = other.textShadow;
+		this.textWrapping = other.textWrapping;
+		this.verticalTextAlignment = other.verticalTextAlignment;
+		this.textPaint = other.textPaint;
 	}
 	
 	/* (non-Javadoc)

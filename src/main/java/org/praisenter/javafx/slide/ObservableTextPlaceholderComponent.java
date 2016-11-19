@@ -16,14 +16,14 @@ import javafx.collections.SetChangeListener;
 public final class ObservableTextPlaceholderComponent extends ObservableTextComponent<TextPlaceholderComponent> {
 	
 	final ObjectProperty<PlaceholderType> placeholderType = new SimpleObjectProperty<PlaceholderType>();
-	final ObservableSet<PlaceholderVariant> variants = FXCollections.observableSet();
+	final ObservableSet<PlaceholderVariant> placeholderVariants = FXCollections.observableSet();
 	
 	public ObservableTextPlaceholderComponent(TextPlaceholderComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values
-		this.placeholderType.set(component.getType());
-		this.variants.addAll(component.getVariants());
+		this.placeholderType.set(component.getPlaceholderType());
+		this.placeholderVariants.addAll(component.getPlaceholderVariants());
 		
 		if (this.mode == SlideMode.EDIT ||
 			this.mode == SlideMode.PREVIEW ||
@@ -33,25 +33,25 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 		
 		// TODO this will need to be replaced with the appropriate text at display time
 		this.placeholderType.addListener((obs, ov, nv) -> { 
-			this.region.setType(nv); 
+			this.region.setPlaceholderType(nv); 
 			this.text.set(this.getText());
 		});
 		
-		this.variants.addListener(new InvalidationListener() {
+		this.placeholderVariants.addListener(new InvalidationListener() {
 			@Override
 			public void invalidated(Observable observable) {
 				text.set(getText());
 			}
 		});
 		
-		this.variants.addListener(new SetChangeListener<PlaceholderVariant>() {
+		this.placeholderVariants.addListener(new SetChangeListener<PlaceholderVariant>() {
 			@Override
 			public void onChanged(javafx.collections.SetChangeListener.Change<? extends PlaceholderVariant> change) {
 				if (change.wasAdded()) {
-					region.getVariants().add(change.getElementAdded());
+					region.getPlaceholderVariants().add(change.getElementAdded());
 				}
 				if (change.wasRemoved()) {
-					region.getVariants().remove(change.getElementRemoved());
+					region.getPlaceholderVariants().remove(change.getElementRemoved());
 				}
 			}
 		});
@@ -75,13 +75,13 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 	
 	// variants
 	
-	public ObservableSet<PlaceholderVariant> getVariants() {
-		return this.variants;
+	public ObservableSet<PlaceholderVariant> getPlaceholderVariants() {
+		return this.placeholderVariants;
 	}
 
 	public String getText() {
 		StringBuilder sb = new StringBuilder();
-		for (PlaceholderVariant variant : this.variants) {
+		for (PlaceholderVariant variant : this.placeholderVariants) {
 			if (sb.length() > 0) sb.append("\n\n");
 			sb.append(this.getTextFor(this.placeholderType.get(), variant));
 		}

@@ -61,6 +61,8 @@ public final class SetupPane extends BorderPane {
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	public SetupPane(PraisenterContext context) {
+		this.getStyleClass().add("setup-pane");
+		
 		List<Option<Locale>> locales = new ArrayList<Option<Locale>>();
 		for (Locale locale : Translations.getAvailableLocales()) {
 			locales.add(new Option<Locale>(locale.getDisplayName(), locale));
@@ -77,9 +79,6 @@ public final class SetupPane extends BorderPane {
 		}
 		
 		// GENERAL
-		
-		Label lblGeneral = new Label("General");
-		lblGeneral.getStyleClass().add("header");
 		
 		GridPane gridGeneral = new GridPane();
 		gridGeneral.setHgap(5);
@@ -118,18 +117,13 @@ public final class SetupPane extends BorderPane {
 		lblRestartWarning.setPadding(new Insets(0, 0, 5, 0));
 		
 		VBox vboxGeneral = new VBox(lblRestartWarning, gridGeneral);
-		vboxGeneral.getStyleClass().add("well");
-		vboxGeneral.setMaxWidth(Double.MAX_VALUE);
 		
 		// MEDIA
 		
 		GridPane gridMedia = new GridPane();
 		gridMedia.setHgap(5);
 		gridMedia.setVgap(5);
-		
-		Label lblMedia = new Label("Media");
-		lblMedia.getStyleClass().add("header");
-		
+
 		// transcoding
 		Label lblTranscodeAudioVideo = new Label("Transcode");
 		CheckBox chkTranscodeAudioVideo = new CheckBox();
@@ -158,13 +152,8 @@ public final class SetupPane extends BorderPane {
 		gridMedia.add(txtAudioCommand, 2, 2);
 		
 		VBox vboxMedia = new VBox(gridMedia);
-		vboxMedia.getStyleClass().add("well");
-		vboxMedia.setMaxWidth(Double.MAX_VALUE);
 		
 		// SCREENS
-		
-		Label lblScreenHeader = new Label("Screen Configuration");
-		lblScreenHeader.getStyleClass().add("header");
 		
 		Label lblScreenWarning = new Label("Changing the screen assignment will close any currently displayed slides or notifications.", FONT_AWESOME.create(FontAwesome.Glyph.WARNING).color(Color.ORANGE));
 		Label lblScreenHowTo = new Label("Drag and drop the screen to assign its role.");
@@ -214,16 +203,18 @@ public final class SetupPane extends BorderPane {
 		GridPane.setHalignment(lblMusicianScreen, HPos.CENTER);
 		
 		VBox vboxScreens = new VBox(lblScreenHowTo, lblScreenWarning, screenPane);
-		vboxScreens.getStyleClass().add("well");
-		vboxScreens.setMaxWidth(Double.MAX_VALUE);
-//		vboxScreens.setSpacing(7);
-//		vboxScreens.setPadding(new Insets(10));
-//		vboxScreens.setAlignment(Pos.TOP_CENTER);
+
+		// LAYOUT
 		
-//		Tab tabScreens = new Tab(" Screens ", new ScrollPane(vboxScreens));
-//		tabScreens.setClosable(false);
+		TitledPane ttlGeneral = new TitledPane("General", vboxGeneral);
+		TitledPane ttlMedia = new TitledPane("Media", vboxMedia);
+		TitledPane ttlScreens = new TitledPane("Screens", vboxScreens);
 		
-		VBox layout = new VBox(lblGeneral, vboxGeneral, lblMedia, vboxMedia, lblScreenHeader, vboxScreens);
+		ttlGeneral.setCollapsible(false);
+		ttlMedia.setCollapsible(false);
+		ttlScreens.setCollapsible(false);
+		
+		VBox layout = new VBox(ttlGeneral, ttlMedia, ttlScreens);
 		ScrollPane scroller = new ScrollPane(layout);
 		scroller.setFitToWidth(true);
 		

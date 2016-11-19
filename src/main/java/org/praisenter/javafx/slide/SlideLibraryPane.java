@@ -8,6 +8,7 @@ import org.praisenter.javafx.slide.editor.SlideEditorPane;
 
 import javafx.geometry.Orientation;
 import javafx.scene.layout.BorderPane;
+import javafx.util.Callback;
 
 public class SlideLibraryPane extends BorderPane {
 	private final PraisenterContext context;
@@ -19,7 +20,12 @@ public class SlideLibraryPane extends BorderPane {
 		this.context = context;
 		this.editor = new SlideEditorPane(context);
 		
-		this.slides = new FlowListView<SlideListItem>(Orientation.HORIZONTAL, new SlideListViewCellFactory(100));
+		this.slides = new FlowListView<SlideListItem>(Orientation.HORIZONTAL, new Callback<SlideListItem, FlowListCell<SlideListItem>>() {
+        	@Override
+        	public FlowListCell<SlideListItem> call(SlideListItem item) {
+				return new SlideListCell(item, 100);
+			}
+        });
 		this.slides.itemsProperty().bindContent(this.context.getSlideLibrary().getItems());
 		
 		// TODO maybe auto-saving?

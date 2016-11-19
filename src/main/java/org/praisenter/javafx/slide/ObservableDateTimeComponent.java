@@ -18,17 +18,17 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 		}
 	};
 	
-	final ObjectProperty<SimpleDateFormat> format = new SimpleObjectProperty<SimpleDateFormat>();
+	final ObjectProperty<SimpleDateFormat> dateTimeFormat = new SimpleObjectProperty<SimpleDateFormat>();
 	
 	public ObservableDateTimeComponent(DateTimeComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values
-		this.format.set(component.getFormat());
+		this.dateTimeFormat.set(component.getDateTimeFormat());
 		
 		// listen for changes
-		this.format.addListener((obs, ov, nv) -> { 
-			this.region.setFormat(nv);
+		this.dateTimeFormat.addListener((obs, ov, nv) -> { 
+			this.region.setDateTimeFormat(nv);
 			String text = this.region.getText();
 			this.text.set(text);
 		});
@@ -50,15 +50,15 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 	
 	// format
 	
-	public SimpleDateFormat getFormat() {
-		return this.format.get();
+	public SimpleDateFormat getDateTimeFormat() {
+		return this.dateTimeFormat.get();
 	}
 	
-	public void setFormat(SimpleDateFormat format) {
-		this.format.set(format);
+	public void setDateTimeFormat(SimpleDateFormat format) {
+		this.dateTimeFormat.set(format);
 	}
 	
-	public ObjectProperty<SimpleDateFormat> formatProperty() {
-		return this.format;
+	public ObjectProperty<SimpleDateFormat> dateTimeFormatProperty() {
+		return this.dateTimeFormat;
 	}
 }

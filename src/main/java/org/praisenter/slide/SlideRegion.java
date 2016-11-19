@@ -206,11 +206,14 @@ public interface SlideRegion {
 	
 	/**
 	 * Returns a deep copy of this region.
-	 * <p>
-	 * The copy is deep in the sense that all mutable objects
-	 * will be deep copied and immutable objects will be the shallow
-	 * copied.
 	 * @return {@link SlideRegion}
 	 */
 	public abstract SlideRegion copy();
+	
+	/**
+	 * Returns an deep copy of this region.
+	 * @param exact true if an exact copy should be made
+	 * @return {@link SlideRegion}
+	 */
+	public abstract SlideRegion copy(boolean exact);
 }

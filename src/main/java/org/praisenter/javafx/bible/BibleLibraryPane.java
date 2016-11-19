@@ -151,6 +151,8 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 	 * @param context the praisenter context
 	 */
 	public BibleLibraryPane(PraisenterContext context) {
+		this.getStyleClass().add("bible-library-pane");
+		
 		this.context = context;
 		
         // add sorting and filtering capabilities

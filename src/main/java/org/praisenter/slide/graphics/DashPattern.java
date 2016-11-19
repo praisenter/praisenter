@@ -80,8 +80,8 @@ public enum DashPattern {
 				return false;
 			}
 			// we dont apply scaling to the dots
-			if (isEqual(this.lengths[0], dashLengths[0]) &&
-				isEqual(this.lengths[1], dashLengths[1])) {
+			if (isEqualTolerance(this.lengths[0], dashLengths[0]) &&
+				isEqualTolerance(this.lengths[1], dashLengths[1])) {
 				return true;
 			}
 			return false;
@@ -106,8 +106,8 @@ public enum DashPattern {
 			if (dashLengths == null || dashLengths.length != this.lengths.length) {
 				return false;
 			}
-			if (isEqual(this.lengths[0], dashLengths[0]) &&
-				isEqual(this.lengths[1], dashLengths[1])) {
+			if (isEqualTolerance(this.lengths[0], dashLengths[0]) &&
+				isEqualTolerance(this.lengths[1], dashLengths[1])) {
 				return true;
 			}
 			return false;
@@ -136,10 +136,10 @@ public enum DashPattern {
 			if (dashLengths == null || dashLengths.length != this.lengths.length) {
 				return false;
 			}
-			if (isEqual(this.lengths[0], dashLengths[0]) &&
-				isEqual(this.lengths[1], dashLengths[1]) &&
-				isEqual(this.lengths[2], dashLengths[2]) &&
-				isEqual(this.lengths[3], dashLengths[3])) {
+			if (isEqualTolerance(this.lengths[0], dashLengths[0]) &&
+				isEqualTolerance(this.lengths[1], dashLengths[1]) &&
+				isEqualTolerance(this.lengths[2], dashLengths[2]) &&
+				isEqualTolerance(this.lengths[3], dashLengths[3])) {
 				return true;
 			}
 			return false;
@@ -166,8 +166,8 @@ public enum DashPattern {
 			if (dashLengths == null || dashLengths.length != this.lengths.length) {
 				return false;
 			}
-			if (isEqual(this.lengths[0], dashLengths[0]) &&
-				isEqual(this.lengths[1], dashLengths[1])) {
+			if (isEqualTolerance(this.lengths[0], dashLengths[0]) &&
+				isEqualTolerance(this.lengths[1], dashLengths[1])) {
 				return true;
 			}
 			return false;
@@ -196,10 +196,10 @@ public enum DashPattern {
 			if (dashLengths == null || dashLengths.length != this.lengths.length) {
 				return false;
 			}
-			if (isEqual(this.lengths[0], dashLengths[0]) &&
-				isEqual(this.lengths[1], dashLengths[1]) &&
-				isEqual(this.lengths[2], dashLengths[2]) &&
-				isEqual(this.lengths[3], dashLengths[3])) {
+			if (isEqualTolerance(this.lengths[0], dashLengths[0]) &&
+				isEqualTolerance(this.lengths[1], dashLengths[1]) &&
+				isEqualTolerance(this.lengths[2], dashLengths[2]) &&
+				isEqualTolerance(this.lengths[3], dashLengths[3])) {
 				return true;
 			}
 			return false;
@@ -230,12 +230,12 @@ public enum DashPattern {
 			if (dashLengths == null || dashLengths.length != this.lengths.length) {
 				return false;
 			}
-			if (isEqual(this.lengths[0], dashLengths[0]) &&
-				isEqual(this.lengths[1], dashLengths[1]) &&
-				isEqual(this.lengths[2], dashLengths[2]) &&
-				isEqual(this.lengths[3], dashLengths[3]) &&
-				isEqual(this.lengths[2], dashLengths[4]) &&
-				isEqual(this.lengths[3], dashLengths[5])) {
+			if (isEqualTolerance(this.lengths[0], dashLengths[0]) &&
+				isEqualTolerance(this.lengths[1], dashLengths[1]) &&
+				isEqualTolerance(this.lengths[2], dashLengths[2]) &&
+				isEqualTolerance(this.lengths[3], dashLengths[3]) &&
+				isEqualTolerance(this.lengths[2], dashLengths[4]) &&
+				isEqualTolerance(this.lengths[3], dashLengths[5])) {
 				return true;
 			}
 			return false;
@@ -310,7 +310,7 @@ public enum DashPattern {
 	 * @param test the test value
 	 * @return boolean
 	 */
-	private static final boolean isEqual(double value, double test) {
+	private static final boolean isEqualTolerance(double value, double test) {
 		return isInRange(value, test - 0.0001, test + 0.0001);
 	}
 }

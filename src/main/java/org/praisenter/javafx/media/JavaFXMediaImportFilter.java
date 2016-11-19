@@ -147,14 +147,15 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 				).split("\\s+");
 		// add all the parts to the command list replacing {x} with the appropriate path
 		for (String part : parts) {
-			if (part.toLowerCase().equals("{ffmpeg}")) {
+			String token = part.trim().toLowerCase();
+			if (token.equals("{ffmpeg}")) {
 				command.add(this.ffmpeg.toAbsolutePath().toString());
-			} else if (part.toLowerCase().equals("{source}")) {
+			} else if (token.equals("{source}")) {
 				command.add(source.toAbsolutePath().toString());
-			} else if (part.toLowerCase().equals("{target}")) {
+			} else if (token.equals("{target}")) {
 				command.add(target.toAbsolutePath().toString());
 			} else {
-				command.add(part);
+				command.add(part.trim());
 			}
 		}
 		

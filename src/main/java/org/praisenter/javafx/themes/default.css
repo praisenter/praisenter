@@ -59,23 +59,27 @@
 	-fx-border-style: dashed;
 }
 
-/** border for screenshots */
-.screen-snapshot {
+/** screens */
+.screen-view {
+	-fx-background-color: black;
+	-fx-background-insets: 5;
 	-fx-border-color: linear-gradient(from 0% 0% to 25% 25%, reflect, rgb(25, 25, 25), rgb(51, 51, 51));
 	-fx-border-width: 10;
 	-fx-border-style: solid inside line-join round line-cap round;
 	-fx-border-radius: 2;
 }
 
-.screen-snapshot .label {
+.screen-view .label {
 	-fx-text-fill: rgba(255, 255, 255);
 }
 
+/** bible editor verse number style */
 .verse-number {
 	-fx-font-weight: bold; 
 	-fx-font-size: 0.8em;
 }
 
+/** tree cell drag n drop styles */
 .tree-cell:drag-over-parent {
 	-fx-background-color: rgba(153, 209, 255, 0.5);
 }
@@ -92,16 +96,20 @@
     -fx-border-width: 0 0 1 0;
 }
 
-.header {
-	-fx-font-weight: bold;
-	-fx-padding: 10 0 10 20;
+.setup-pane .scroll-pane {
+	-fx-background-insets: 0, 0 1 1 0;
+	-fx-padding: 0;
 }
 
-.well {
-	-fx-background-insets: 0, 1 0 1 0, 1;
-	-fx-padding: 1em 0 1em 2em;
-	-fx-background-color:
-        -fx-outer-border,
-        -fx-text-box-border,
-        linear-gradient(from 0px 0px to 0px 5px, -fx-text-box-border, derive(-fx-text-box-border, 30%));
+/** slide editing */
+.slide-component:hover {
+	-fx-border-color: black, white;
+	-fx-border-style: segments(2, 4) phase 0 outside line-join miter 2 line-cap butt, segments(2, 4) phase 2 outside line-join miter 2 line-cap butt;
+	-fx-border-width: 1, 1;
+}
+
+.slide-component:selected {
+	-fx-border-color: black, white;
+	-fx-border-style: segments(2, 4) phase 0 outside line-join miter 2 line-cap butt, segments(2, 4) phase 2 outside line-join miter 2 line-cap butt;
+	-fx-border-width: 1, 1;
 }

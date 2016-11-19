@@ -45,12 +45,18 @@ public class BasicTextComponent extends AbstractTextComponent implements SlideRe
 	protected String text;
 
 	/**
-	 * Copies over the values of this component to the given component.
-	 * @param to the component to copy to
+	 * Default constructor.
 	 */
-	protected void copy(BasicTextComponent to) {
-		this.copy((TextComponent)to);
-		this.setText(this.text);
+	public BasicTextComponent() {}
+	
+	/**
+	 * Copy constructor.
+	 * @param other the component to copy
+	 * @param exact whether to copy the component exactly
+	 */
+	public BasicTextComponent(BasicTextComponent other, boolean exact) {
+		super(other, exact);
+		this.text = other.text;
 	}
 	
 	/* (non-Javadoc)
@@ -58,9 +64,15 @@ public class BasicTextComponent extends AbstractTextComponent implements SlideRe
 	 */
 	@Override
 	public BasicTextComponent copy() {
-		BasicTextComponent comp = new BasicTextComponent();
-		this.copy(comp);
-		return comp;
+		return this.copy(false);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#copy(boolean)
+	 */
+	@Override
+	public BasicTextComponent copy(boolean exact) {
+		return new BasicTextComponent(this, exact);
 	}
 	
 	/* (non-Javadoc)

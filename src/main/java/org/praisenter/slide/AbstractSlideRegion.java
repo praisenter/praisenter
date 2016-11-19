@@ -108,7 +108,7 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * Subclass constructor.
 	 * @param id the id
 	 */
-	AbstractSlideRegion(UUID id) {
+	public AbstractSlideRegion(UUID id) {
 		this.id = id;
 		this.opacity = 1.0;
 		this.x = 0;
@@ -122,21 +122,23 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	}
 	
 	/**
-	 * Copies over the values of this region to the given region.
-	 * @param to the region to copy to
+	 * Copy constructor.
+	 * @param other the component to copy
+	 * @param exact whether to copy the component exactly
 	 */
-	protected void copy(SlideRegion to) {
-		// id is not copied
-		// shouldn't need a deep copy of any of these
-		to.setX(this.x);
-		to.setY(this.y);
-		to.setWidth(this.width);
-		to.setHeight(this.height);
-		to.setBorder(this.border);
-		to.setBackground(this.background);
-		to.setOpacity(this.opacity);
-		to.setShadow(this.shadow);
-		to.setGlow(this.glow);
+	public AbstractSlideRegion(AbstractSlideRegion other, boolean exact) {
+		this.id = exact ? other.id : UUID.randomUUID();
+		
+		this.opacity = other.opacity;
+		this.x = other.x;
+		this.y = other.y;
+		this.width = other.width;
+		this.height = other.height;
+		// NOTE: all of these are immutable so no deep copy needed
+		this.border = other.border;
+		this.background = other.background;
+		this.shadow = other.shadow;
+		this.glow = other.glow;
 	}
 	
 	/* (non-Javadoc)

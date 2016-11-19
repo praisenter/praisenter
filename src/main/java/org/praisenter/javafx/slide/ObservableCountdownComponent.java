@@ -20,22 +20,22 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 		}
 	};
 	
-	final ObjectProperty<LocalDateTime> target = new SimpleObjectProperty<LocalDateTime>();
-	final StringProperty format = new SimpleStringProperty();
+	final ObjectProperty<LocalDateTime> countdownTarget = new SimpleObjectProperty<LocalDateTime>();
+	final StringProperty countdownFormat = new SimpleStringProperty();
 	
 	public ObservableCountdownComponent(CountdownComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values
-		this.target.set(component.getTarget());
-		this.format.set(component.getFormat());
+		this.countdownTarget.set(component.getCountdownTarget());
+		this.countdownFormat.set(component.getCountdownFormat());
 		
-		this.target.addListener((obs, ov, nv) -> { 
-			this.region.setTarget(nv); 
+		this.countdownTarget.addListener((obs, ov, nv) -> { 
+			this.region.setCountdownTarget(nv); 
 			this.text.set(this.region.getText());
 		});
-		this.format.addListener((obs, ov, nv) -> { 
-			this.region.setFormat(nv);
+		this.countdownFormat.addListener((obs, ov, nv) -> { 
+			this.region.setCountdownFormat(nv);
 			this.text.set(this.region.getText());
 		});
 				
@@ -56,29 +56,29 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 	
 	// target
 	
-	public LocalDateTime getTarget() {
-		return this.target.get();
+	public LocalDateTime getCountdownTarget() {
+		return this.countdownTarget.get();
 	}
 	
-	public void setTarget(LocalDateTime target) {
-		this.target.set(target);
+	public void setCountdownTarget(LocalDateTime target) {
+		this.countdownTarget.set(target);
 	}
 	
-	public ObjectProperty<LocalDateTime> targetProperty() {
-		return this.target;
+	public ObjectProperty<LocalDateTime> countdownTargetProperty() {
+		return this.countdownTarget;
 	}
 	
 	// format
 	
-	public String getFormat() {
-		return this.format.get();
+	public String getCountdownFormat() {
+		return this.countdownFormat.get();
 	}
 	
-	public void setFormat(String format) {
-		this.format.set(format);
+	public void setCountdownFormat(String format) {
+		this.countdownFormat.set(format);
 	}
 	
-	public StringProperty formatProperty() {
-		return this.format;
+	public StringProperty countdownFormatProperty() {
+		return this.countdownFormat;
 	}
 }

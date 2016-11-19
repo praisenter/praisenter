@@ -66,8 +66,8 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
 				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
-				tc.getVariants().clear();
-				tc.getVariants().addAll(change.getList().stream().map((o) -> o.getValue()).collect(Collectors.toList()));
+				tc.getPlaceholderVariants().clear();
+				tc.getPlaceholderVariants().addAll(change.getList().stream().map((o) -> o.getValue()).collect(Collectors.toList()));
 			}
 		});
 		
@@ -78,7 +78,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 				ObservableTextPlaceholderComponent otpc = (ObservableTextPlaceholderComponent)nv;
 				this.cmbPlaceholderType.setValue(new Option<PlaceholderType>(null, otpc.getPlaceholderType()));
 				this.cmbPlaceholderVariants.getCheckModel().clearChecks();
-				for (PlaceholderVariant variant : otpc.getVariants()) {
+				for (PlaceholderVariant variant : otpc.getPlaceholderVariants()) {
 					this.cmbPlaceholderVariants.getCheckModel().check(new Option<PlaceholderVariant>(null, variant));
 				}
 			} else {

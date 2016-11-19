@@ -86,6 +86,8 @@ final class BibleMetadataPane extends VBox {
 	 * Creates a new metadata pane.
 	 */
 	public BibleMetadataPane() {
+		this.getStyleClass().add("bible-metadata-pane");
+		
 		this.setPadding(new Insets(0, 5, 10, 5));
 		this.setDisable(true);
 		

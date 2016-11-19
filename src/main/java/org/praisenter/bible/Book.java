@@ -114,7 +114,25 @@ public final class Book implements Comparable<Book>, Serializable {
 		}
 		return max;
 	}
-
+	
+	/**
+	 * Returns the specified chapter of this book or null if not present.
+	 * @param chapter the chapter number
+	 * @return {@link Chapter}
+	 */
+	public Chapter getChapter(short chapter) {
+		if (this.chapters.isEmpty()) {
+			return null;
+		}
+		for (short i = 0; i < this.chapters.size(); i++) {
+			Chapter chap = this.chapters.get(i);
+			if (chap.getNumber() == chapter) {
+				return chap;
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Returns the last chapter of this book.
 	 * @return {@link Chapter}

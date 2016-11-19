@@ -66,6 +66,7 @@ import javafx.util.Duration;
 // FEATURE Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
 
 // JAVABUG 09/28/16 MEDIUM [fixed-9] High DPI https://bugs.openjdk.java.net/browse/JDK-8091832
+// JAVABUG 11/03/16 MEDIUM [fixed-9]; Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946
 
 /**
  * This is the entry point for the application.
@@ -139,6 +140,14 @@ public final class Praisenter extends Application {
 	 * @param args any arguments
 	 */
     public static void main(String[] args) {
+//    	if (args.length == 0) {
+//    		try {
+//    			Runtime.getRuntime().exec("java")
+//    		} catch (Exception ex) {
+//    			
+//    		}
+//    	}
+    	
         launch(args);
     }
     

@@ -14,14 +14,10 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.utility.Fx;
 
 import javafx.embed.swing.SwingFXUtils;
-import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 
 // TODO translate
@@ -55,6 +51,8 @@ public final class ScreenView extends StackPane {
 	 * @param screen the screen; can be null
 	 */
 	private ScreenView(ScreenViewDragDropManager manager, Display display, Screen screen) {
+		this.getStyleClass().add("screen-view");
+		
 		this.manager = manager;
 		this.display = display;
 		this.screen = screen;
@@ -102,9 +100,7 @@ public final class ScreenView extends StackPane {
 		
 		Label label = new Label(text);
 		this.getChildren().add(label);
-		this.setBackground(new Background(new BackgroundFill(Color.BLACK, null, new Insets(BORDER_WIDTH * 0.5))));
 		Fx.setSize(this, w + BORDER_WIDTH * 2, h + BORDER_WIDTH * 2);
-		this.getStyleClass().add("screen-snapshot");
 	}
 	
 	/**
@@ -155,9 +151,8 @@ public final class ScreenView extends StackPane {
 				img.setLayoutY(BORDER_WIDTH);
 				
 				this.getChildren().add(img);
-				this.setBackground(new Background(new BackgroundFill(Color.BLACK, null, new Insets(BORDER_WIDTH * 0.5))));
 				Fx.setSize(this, w + BORDER_WIDTH * 2, h + BORDER_WIDTH * 2);
-				this.getStyleClass().add("screen-snapshot");
+				this.getStyleClass().add("snapshot");
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to generate screenshot for screen " + device.getIDstring(), ex);
 				buildUnassignedOrError(this.display.toString());
@@ -184,6 +179,9 @@ public final class ScreenView extends StackPane {
 		});
 	}
 	
+	/* (non-Javadoc)
+	 * @see javafx.scene.Node#toString()
+	 */
 	@Override
 	public String toString() {
 		if (this.display != null) {

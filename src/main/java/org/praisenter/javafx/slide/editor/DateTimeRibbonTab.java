@@ -60,7 +60,7 @@ class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlideRegion<?> comp = this.component.get();
 			if (comp != null && comp instanceof ObservableDateTimeComponent) {
 				ObservableDateTimeComponent otc = (ObservableDateTimeComponent)comp;
-				otc.setFormat(format);
+				otc.setDateTimeFormat(format);
 			}
 		});
 		
@@ -70,7 +70,7 @@ class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 				this.setDisable(false);
 				ObservableDateTimeComponent otc = (ObservableDateTimeComponent)nv;
 				String format = "EEEE MMMM, d yyyy";
-				SimpleDateFormat fmt = otc.getFormat();
+				SimpleDateFormat fmt = otc.getDateTimeFormat();
 				if (fmt != null) {
 					format = fmt.toPattern();
 				}

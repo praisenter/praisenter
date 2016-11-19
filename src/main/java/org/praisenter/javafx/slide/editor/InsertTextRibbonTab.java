@@ -71,8 +71,8 @@ public class InsertTextRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 			CountdownComponent cdc = new CountdownComponent();
 			cdc.setWidth(200);
 			cdc.setHeight(100);
-			cdc.setTarget(LocalDateTime.now().plusHours(1));
-			cdc.setFormat("%4$02d:%5$02d:%6$02d");
+			cdc.setCountdownTarget(LocalDateTime.now().plusHours(1));
+			cdc.setCountdownFormat("%4$02d:%5$02d:%6$02d");
 			cdc.setTextPaint(new SlideColor(0, 0, 0, 1));
 			cdc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 20));
 			fireEvent(new SlideComponentAddEvent(countdown, InsertTextRibbonTab.this, new ObservableCountdownComponent(cdc, context, SlideMode.EDIT)));
@@ -91,8 +91,8 @@ public class InsertTextRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 			TextPlaceholderComponent phc = new TextPlaceholderComponent();
 			phc.setWidth(200);
 			phc.setHeight(100);
-			phc.setType(PlaceholderType.TITLE);
-			phc.getVariants().add(PlaceholderVariant.PRIMARY);
+			phc.setPlaceholderType(PlaceholderType.TITLE);
+			phc.getPlaceholderVariants().add(PlaceholderVariant.PRIMARY);
 			phc.setTextPaint(new SlideColor(0, 0, 0, 1));
 			phc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 20));
 			fireEvent(new SlideComponentAddEvent(placeholder, InsertTextRibbonTab.this, new ObservableTextPlaceholderComponent(phc, context, SlideMode.EDIT)));

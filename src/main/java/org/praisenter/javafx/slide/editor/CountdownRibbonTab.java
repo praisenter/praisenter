@@ -81,7 +81,7 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlideRegion<?> comp = this.component.get();
 			if (comp != null && comp instanceof ObservableCountdownComponent) {
 				ObservableCountdownComponent otc = (ObservableCountdownComponent)comp;
-				otc.setFormat(format);
+				otc.setCountdownFormat(format);
 			}
 		});
 		
@@ -90,9 +90,9 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 			if (nv != null && nv instanceof ObservableCountdownComponent) {
 				this.setDisable(false);
 				ObservableCountdownComponent otc = (ObservableCountdownComponent)nv;
-				String format = fromPattern(otc.getFormat());
+				String format = fromPattern(otc.getCountdownFormat());
 				this.cmbCountdownFormat.setValue(format);
-				this.pkrCountdownTime.setValue(otc.getTarget());
+				this.pkrCountdownTime.setValue(otc.getCountdownTarget());
 				updateExample(format);
 			} else {
 				this.cmbCountdownFormat.setValue(countdownFormats.get(2));
@@ -108,7 +108,7 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlideRegion<?> comp = this.component.get();
 			if (comp != null && comp instanceof ObservableCountdownComponent) {
 				ObservableCountdownComponent otc = (ObservableCountdownComponent)comp;
-				otc.setTarget(nv);
+				otc.setCountdownTarget(nv);
 			}
 		});
 	}

@@ -46,19 +46,39 @@ import org.praisenter.xml.adapters.SimpleDateFormatTypeAdapter;
 @XmlAccessorType(XmlAccessType.NONE)
 public class DateTimeComponent extends AbstractTextComponent implements SlideRegion, SlideComponent, TextComponent {
 	/** The date/time format */
-	@XmlElement(name = "format", required = false)
+	@XmlElement(name = "dateTimeFormat", required = false)
 	@XmlJavaTypeAdapter(value = SimpleDateFormatTypeAdapter.class)
-	SimpleDateFormat format;
+	SimpleDateFormat dateTimeFormat;
 
+	/**
+	 * Default constructor.
+	 */
+	public DateTimeComponent() {}
+	
+	/**
+	 * Copy constructor.
+	 * @param other the component to copy
+	 * @param exact whether to copy the component exactly
+	 */
+	public DateTimeComponent(DateTimeComponent other, boolean exact) {
+		super(other, exact);
+		this.dateTimeFormat = new SimpleDateFormat(other.dateTimeFormat.toPattern());
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideRegion#copy()
 	 */
 	@Override
 	public DateTimeComponent copy() {
-		DateTimeComponent comp = new DateTimeComponent();
-		this.copy(comp);
-		comp.setFormat((SimpleDateFormat)this.format.clone());
-		return comp;
+		return this.copy(false);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#copy(boolean)
+	 */
+	@Override
+	public DateTimeComponent copy(boolean exact) {
+		return new DateTimeComponent(this, exact);
 	}
 	
 	/**
@@ -75,22 +95,22 @@ public class DateTimeComponent extends AbstractTextComponent implements SlideReg
 	 */
 	@Override
 	public String getText() {
-		return this.format != null ? this.format.format(new Date()) : (new Date()).toString();
+		return this.dateTimeFormat != null ? this.dateTimeFormat.format(new Date()) : (new Date()).toString();
 	}
 
 	/**
 	 * Returns the date/time format.
 	 * @return SimpleDateFormat
 	 */
-	public SimpleDateFormat getFormat() {
-		return this.format;
+	public SimpleDateFormat getDateTimeFormat() {
+		return this.dateTimeFormat;
 	}
 
 	/**
 	 * Sets the date/time format.
 	 * @param format the format
 	 */
-	public void setFormat(SimpleDateFormat format) {
-		this.format = format;
+	public void setDateTimeFormat(SimpleDateFormat format) {
+		this.dateTimeFormat = format;
 	}
 }

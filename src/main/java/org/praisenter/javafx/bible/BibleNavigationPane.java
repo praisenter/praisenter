@@ -30,12 +30,16 @@ import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.GlyphFont;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.SearchType;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleReference;
 import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.Book;
+import org.praisenter.bible.Chapter;
 import org.praisenter.bible.LocatedVerse;
 import org.praisenter.bible.LocatedVerseTriplet;
 import org.praisenter.javafx.AutoCompleteComboBox;
@@ -54,11 +58,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public final class BibleNavigationPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
+
+	/** The font-awesome glyph-font pack */
+	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	private ComboBox<BibleListItem> cmbBiblePrimary;
 	private ComboBox<BibleListItem> cmbBibleSecondary;
@@ -69,16 +77,14 @@ public final class BibleNavigationPane extends BorderPane {
 	
 	private Label text;
 	
+	private Label lblChapters;
+	private Label lblVerses;
+	
 	private ListProperty<BibleReference> selected = new SimpleListProperty<BibleReference>();
 	
-	// JAVABUG 11/03/16 MEDIUM [fixed-9]; Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946
-	
 	// TODO features: 
-	// max chapter/verse number 
 	// validation 
 	// selection (shift? and ctrl keys)
-	// next
-	// previous
 	// search box (brings up full search window-non-modal)
 	// toggle to use secondary translation (or just allow a blank option)
 	// template selection
@@ -86,16 +92,22 @@ public final class BibleNavigationPane extends BorderPane {
 	// send (not sure here...)
 	
 	public BibleNavigationPane(PraisenterContext context) {
-
+		this.getStyleClass().add("bible-navigation-pane");
+		
 		this.spnChapter = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		this.spnVerse = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		
 		this.spnChapter.setEditable(true);
+		this.spnChapter.setMaxWidth(75);
 		this.spnVerse.setEditable(true);
+		this.spnVerse.setMaxWidth(75);
 		
 		this.text = new Label();
 		this.txtSearch = new TextField();
 		this.txtSearch.setPromptText("search");
+		
+		lblChapters = new Label();
+		lblVerses = new Label();
 		
 		// filter the list of selectable bibles by whether they are loaded or not
 		ObservableBibleLibrary bl = context.getBibleLibrary();		
@@ -141,16 +153,6 @@ public final class BibleNavigationPane extends BorderPane {
 			books.addAll(bb);
 		}
 		
-		cmbBook = new AutoCompleteComboBox<Book>(books, new AutoCompleteComparator<Book>() {
-			public boolean matches(String typedText, Book objectToCompare) {
-				Pattern pattern = Pattern.compile("^" + Pattern.quote(typedText) + ".*", Pattern.CASE_INSENSITIVE);
-				if (pattern.matcher(objectToCompare.getName()).matches()) {
-					return true;
-				}
-				return false;
-			}
-		});
-		
 		cmbBiblePrimary = new ComboBox<BibleListItem>(bibles);
 		if (primaryBible != null) {
 			cmbBiblePrimary.getSelectionModel().select(new BibleListItem(primaryBible));
@@ -194,6 +196,23 @@ public final class BibleNavigationPane extends BorderPane {
 			}
 		});
 		
+		cmbBook = new AutoCompleteComboBox<Book>(books, new AutoCompleteComparator<Book>() {
+			public boolean matches(String typedText, Book objectToCompare) {
+				Pattern pattern = Pattern.compile("^" + Pattern.quote(typedText) + ".*", Pattern.CASE_INSENSITIVE);
+				if (pattern.matcher(objectToCompare.getName()).matches()) {
+					return true;
+				}
+				return false;
+			}
+		});
+		cmbBook.valueProperty().addListener((obs, ov, nv) -> {
+			updateRanges();
+		});
+		
+		spnChapter.valueProperty().addListener((obs, ov, nv) -> {
+			updateRanges();
+		});
+		
 		Button btn = new Button("show value");
 		btn.setOnAction((e) -> {
 			Bible bible = cmbBiblePrimary.getValue().getBible();
@@ -226,7 +245,7 @@ public final class BibleNavigationPane extends BorderPane {
 			}
 		});
 		
-		Button next = new Button("next");
+		Button next = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.ARROW_RIGHT));
 		next.setOnAction((e) -> {
 			Bible bbl = cmbBiblePrimary.valueProperty().get().getBible();
 			Book book = cmbBook.valueProperty().get();
@@ -250,7 +269,7 @@ public final class BibleNavigationPane extends BorderPane {
 			}
 		});
 		
-		Button prev = new Button("prev");
+		Button prev = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.ARROW_LEFT));
 		prev.setOnAction((e) -> {
 			
 			Bible bbl = cmbBiblePrimary.valueProperty().get().getBible();
@@ -300,10 +319,49 @@ public final class BibleNavigationPane extends BorderPane {
 			}
 		});
 		
-		HBox row = new HBox(5, cmbBiblePrimary, cmbBook, spnChapter, spnVerse, btn, prev, next);
-		HBox row2 = new HBox(cmbBibleSecondary, txtSearch);
+		// LAYOUT
 		
-		setTop(new VBox(5, row, row2));
-		setCenter(text);
+		GridPane layout = new GridPane();
+		layout.setVgap(5);
+		layout.setHgap(5);
+		
+		layout.add(cmbBiblePrimary, 0, 0);
+		layout.add(cmbBook, 1, 0);
+		layout.add(spnChapter, 2, 0);
+		layout.add(spnVerse, 3, 0);
+		layout.add(btn, 4, 0);
+		layout.add(prev, 5, 0);
+		layout.add(next, 6, 0);
+		
+		layout.add(cmbBibleSecondary, 0, 1);
+		layout.add(lblChapters, 2, 1);
+		layout.add(lblVerses, 3, 1);
+
+		setCenter(layout);
+		
+		setBottom(text);
+	}
+	
+	private void updateRanges() {
+		Book book = this.cmbBook.getValue();
+		Integer ch = this.spnChapter.getValue();
+		if (book != null) {
+			lblChapters.setText("1-" + book.getMaxChapterNumber());
+		} else {
+			// no book selected
+			lblChapters.setText(null);
+		}
+		if (book != null && ch != null) {
+			Chapter chapter = book.getChapter(ch.shortValue());
+			if (chapter != null) {
+				lblVerses.setText("1-" + chapter.getMaxVerseNumber());
+			} else {
+				// invalid chapter
+				lblVerses.setText("N/A");
+			}
+		} else {
+			// no book or chapter selected
+			lblVerses.setText(null);
+		}
 	}
 }

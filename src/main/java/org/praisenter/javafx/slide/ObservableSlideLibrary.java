@@ -23,7 +23,6 @@ import org.praisenter.javafx.MonitoredThreadPoolExecutor;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
-import org.praisenter.slide.SlideThumbnailGenerator;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -36,6 +35,8 @@ public final class ObservableSlideLibrary {
 	
 	/** The slide library */
 	private final SlideLibrary library;
+
+	private final JavaFXSlideThumbnailGenerator thumbnailGenerator;
 	
 	/** The thread service */
 	private final MonitoredThreadPoolExecutor service;
@@ -43,8 +44,9 @@ public final class ObservableSlideLibrary {
 	/** The observable list of slides */
 	private final ObservableList<SlideListItem> items = FXCollections.observableArrayList();
 
-	public ObservableSlideLibrary(SlideLibrary library, MonitoredThreadPoolExecutor service) {
+	public ObservableSlideLibrary(SlideLibrary library, JavaFXSlideThumbnailGenerator thumbnailGenerator, MonitoredThreadPoolExecutor service) {
 		this.library = library;
+		this.thumbnailGenerator = thumbnailGenerator;
 		this.service = service;
 		
 		List<Slide> slides = null;
@@ -237,12 +239,18 @@ public final class ObservableSlideLibrary {
 	 */
 	public void save(Slide slide, Consumer<Slide> onSuccess, BiConsumer<Slide, Throwable> onError) {
 		// execute the add on a different thread
+		
+		// generate a thumbnail on the FX thread
+		BufferedImage image = this.thumbnailGenerator.generate(slide);
+		slide.setThumbnail(image);
+
+		Slide copy = slide.copy(true);
 		MonitoredTask<Void> task = new MonitoredTask<Void>("Save '" + slide.getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
 				try {
-					library.save(slide);
+					library.save(copy);
 					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
 					return null;
 				} catch (Exception ex) {
@@ -253,7 +261,29 @@ public final class ObservableSlideLibrary {
 		};
 		task.setOnSucceeded((e) -> {
 			// FIXME handle rename
+			// find the slide item
+			SlideListItem si = null;
+			for (SlideListItem item : this.items) {
+				if (item.getSlide().getId().equals(copy.getId())) {
+					si = item;
+					break;
+				}
+			}
+			// check if new
+			if (si == null) {
+				// then add one
+				this.items.add(new SlideListItem(copy));
+			} else {
+				// then update it
+				si.setName(copy.getName());
+				// we set it to a copy because it could
+				// still be edited after being saved
+				// and we only want to change it if saved
+				si.setSlide(copy);
+			}
+			// check if name changed
 			if (onSuccess != null) {
+				// return the original
 				onSuccess.accept(slide);
 			}
 		});
@@ -394,13 +424,12 @@ public final class ObservableSlideLibrary {
 	 * to generate a thumbnail for each and save the slide with the thumbnail.
 	 * <p>
 	 * This method must be called from the Java FX UI thread.
-	 * @param generator the thumbnail generator
 	 */
-	public void generateMissingThumbnails(SlideThumbnailGenerator generator) {
+	public void generateMissingThumbnails() {
 		int generated = 0;
 		for (Slide slide : library.all()) {
 			if (slide.getThumbnail() == null) {
-				BufferedImage image = generator.generate(slide);
+				BufferedImage image = this.thumbnailGenerator.generate(slide);
 				// check if we were able to generate the image
 				if (image != null) {
 					// set the image
@@ -431,8 +460,8 @@ public final class ObservableSlideLibrary {
 	public Set<Tag> getTags() {
 		Set<Tag> tags = new TreeSet<Tag>();
 		for (SlideListItem item : items) {
-			if (item.loaded) {
-				tags.addAll(item.slide.getTags());
+			if (item.isLoaded()) {
+				tags.addAll(item.getSlide().getTags());
 			}
 		}
 		return tags;

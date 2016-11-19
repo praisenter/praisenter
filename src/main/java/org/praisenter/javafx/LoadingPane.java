@@ -24,11 +24,17 @@
  */
 package org.praisenter.javafx;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+
+import javax.xml.bind.JAXBException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.slide.JavaFXSlideThumbnailGenerator;
 import org.praisenter.resources.translations.Translations;
+import org.praisenter.slide.Slide;
 import org.praisenter.utility.RuntimeProperties;
 
 import javafx.animation.Animation;
@@ -294,7 +300,7 @@ final class LoadingPane extends Pane {
 	private void onPraisenterContextCreated(PraisenterContext context) {
 		// generate any missing slide thumbnails
 		LOGGER.info("Generating missing slide thumbnails.");
-		context.getSlideLibrary().generateMissingThumbnails(new JavaFXSlideThumbnailGenerator(100, 100, context));
+		context.getSlideLibrary().generateMissingThumbnails();
 		
 		// setup the screen manager
 		LOGGER.info("Initializing the screen manager.");

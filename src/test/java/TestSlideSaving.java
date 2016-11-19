@@ -9,14 +9,6 @@ import javax.xml.bind.JAXBException;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
-import org.praisenter.slide.SlideShow;
-import org.praisenter.slide.SongSlide;
-import org.praisenter.slide.SongSlideLyrics;
-import org.praisenter.slide.animation.Direction;
-import org.praisenter.slide.animation.Fade;
-import org.praisenter.slide.animation.Push;
-import org.praisenter.slide.easing.Back;
-import org.praisenter.slide.easing.Bounce;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
@@ -37,7 +29,6 @@ import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.PlaceholderType;
-import org.praisenter.slide.text.PlaceholderVariant;
 import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
@@ -48,8 +39,8 @@ import org.praisenter.xml.XmlIO;
 
 public class TestSlideSaving {
 	public static void main(String[] args) throws JAXBException, IOException {
-//		BasicSlide slide = new BasicSlide();
-		SongSlide slide = new SongSlide();
+		BasicSlide slide = new BasicSlide();
+//		SongSlide slide = new SongSlide();
 //		BibleSlide slide = new BibleSlide();
 		
 		slide.setWidth(800);
@@ -134,7 +125,7 @@ public class TestSlideSaving {
 		dt.setPadding(new SlidePadding(20));
 		dt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
 		dt.setTextPaint(new SlideColor(1.0, 0, 0, 1));
-		dt.setFormat(new SimpleDateFormat("M/d/yyyy h:mm a z"));
+		dt.setDateTimeFormat(new SimpleDateFormat("M/d/yyyy h:mm a z"));
 		
 		TextPlaceholderComponent tp = new TextPlaceholderComponent();
 		tp.setFont(new SlideFont("Verdana", SlideFontWeight.NORMAL, SlideFontPosture.ITALIC, 5));
@@ -150,7 +141,7 @@ public class TestSlideSaving {
 		tp.setTextPaint(gradient);
 		tp.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE), 1, 0));
 		tp.setLineSpacing(2);
-		tp.setType(PlaceholderType.TITLE);
+		tp.setPlaceholderType(PlaceholderType.TITLE);
 		//tp.setVariants(variants);
 		
 		CountdownComponent cd = new CountdownComponent();
@@ -168,7 +159,7 @@ public class TestSlideSaving {
 		cd.setTextPaint(gradient);
 		cd.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, new Double[] { 10.0, 10.0, 5.0 }), 1, 0));
 //		cd.setLineSpacing(2);
-		cd.setTarget(LocalDateTime.now().plusYears(1).plusMonths(2).plusDays(3).plusHours(4).plusMinutes(5).plusSeconds(6));
+		cd.setCountdownTarget(LocalDateTime.now().plusYears(1).plusMonths(2).plusDays(3).plusHours(4).plusMinutes(5).plusSeconds(6));
 		//tp.setVariants(variants);
 		
 		slide.addComponent(txt);
@@ -181,10 +172,10 @@ public class TestSlideSaving {
 		slide.setBackground(new SlideColor(0, 0, 1.0, 0.5));
 		//slide.setBorder(thick);
 		
-		slide.setSongId(UUID.randomUUID());
-		slide.setVerse("v1");
-		slide.getLyrics().add(new SongSlideLyrics("en"));
-		slide.getLyrics().add(new SongSlideLyrics("es-MX"));
+//		slide.setSongId(UUID.randomUUID());
+//		slide.setVerse("v1");
+//		slide.getLyrics().add(new SongSlideLyrics("en"));
+//		slide.getLyrics().add(new SongSlideLyrics("es-MX"));
 		
 //		slide.setBookCode("01O");
 //		slide.setChapter(1);

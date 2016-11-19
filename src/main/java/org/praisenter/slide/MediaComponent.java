@@ -43,17 +43,36 @@ public class MediaComponent extends AbstractSlideComponent implements SlideRegio
 	@XmlElement(name = "media", required = false)
 	MediaObject media;
 
+	/**
+	 * Default constructor.
+	 */
+	public MediaComponent() {}
+	
+	/**
+	 * Copy constructor.
+	 * @param other the media component to copy
+	 * @param exact whether to copy the component exactly
+	 */
+	public MediaComponent(MediaComponent other, boolean exact) {
+		super(other, exact);
+		// NOTE: since MediaObject is immutable
+		this.media = other.media;
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideRegion#copy()
 	 */
 	@Override
 	public MediaComponent copy() {
-		MediaComponent comp = new MediaComponent();
-		// copy the super classes stuff
-		this.copy(comp);
-		// a shallow copy should work here
-		comp.setMedia(this.media);
-		return comp;
+		return this.copy(false);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#copy(boolean)
+	 */
+	@Override
+	public MediaComponent copy(boolean exact) {
+		return new MediaComponent(this, exact);
 	}
 	
 	/**

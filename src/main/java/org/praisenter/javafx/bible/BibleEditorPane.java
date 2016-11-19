@@ -130,6 +130,8 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * @param context the context
 	 */
 	public BibleEditorPane(PraisenterContext context) {
+		this.getStyleClass().add("bible-editor-pane");
+		
 		this.context = context;
 
 		ObservableList<Option<Locale>> locales = FXCollections.observableArrayList();

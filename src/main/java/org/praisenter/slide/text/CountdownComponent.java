@@ -48,20 +48,31 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	private static final String DEFAULT_FORMAT = "%1$02d:%2$02d:%3$02d:%4$02d:%5$02d:%6$02d";
 	
 	/** The target countdown time */
-	@XmlElement(name = "target", required = false)
+	@XmlElement(name = "countdownTarget", required = false)
 	@XmlJavaTypeAdapter(value = LocalDateTimeXmlAdapter.class)
-	LocalDateTime target;
+	LocalDateTime countdownTarget;
 
 	/** The duration format */
-	@XmlElement(name = "format", required = false)
-	String format;
+	@XmlElement(name = "countdownFormat", required = false)
+	String countdownFormat;
 	
 	/**
 	 * Default constructor.
 	 */
 	public CountdownComponent() {
-		this.target = null;
-		this.format = DEFAULT_FORMAT;
+		this.countdownTarget = null;
+		this.countdownFormat = DEFAULT_FORMAT;
+	}
+	
+	/**
+	 * Copy constructor.
+	 * @param other the component to copy
+	 * @param exact whether to copy the component exactly
+	 */
+	public CountdownComponent(CountdownComponent other, boolean exact) {
+		super(other, exact);
+		this.countdownTarget = other.countdownTarget;
+		this.countdownFormat = other.countdownFormat;
 	}
 	
 	/* (non-Javadoc)
@@ -69,11 +80,15 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	 */
 	@Override
 	public CountdownComponent copy() {
-		CountdownComponent comp = new CountdownComponent();
-		this.copy(comp);
-		
-		return comp;
+		return this.copy(false);
+	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#copy(boolean)
+	 */
+	@Override
+	public CountdownComponent copy(boolean exact) {
+		return new CountdownComponent(this, exact);
 	}
 	
 	/**
@@ -90,11 +105,11 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	 */
 	@Override
 	public String getText() {
-		if (this.target != null) {
-			return formatCountdown(this.format, this.target);
+		if (this.countdownTarget != null) {
+			return formatCountdown(this.countdownFormat, this.countdownTarget);
 		}
 		return String.format(
-		        (this.format != null && this.format.trim().length() > 0 ? this.format : DEFAULT_FORMAT), 
+		        (this.countdownFormat != null && this.countdownFormat.trim().length() > 0 ? this.countdownFormat : DEFAULT_FORMAT), 
 		        0,
 		        0,
 		        0,
@@ -134,34 +149,34 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	 * Returns the target time to count down to.
 	 * @return LocalDateTime
 	 */
-	public LocalDateTime getTarget() {
-		return this.target;
+	public LocalDateTime getCountdownTarget() {
+		return this.countdownTarget;
 	}
 	
 	/**
 	 * Sets the target time to count down to.
 	 * @param target the target time
 	 */
-	public void setTarget(LocalDateTime target) {
-		this.target = target;
+	public void setCountdownTarget(LocalDateTime target) {
+		this.countdownTarget = target;
 	}
 
 	/**
 	 * Gets the count down format.
 	 * @return String
 	 */
-	public String getFormat() {
-		return this.format;
+	public String getCountdownFormat() {
+		return this.countdownFormat;
 	}
 
 	/**
 	 * Sets the count down format.
 	 * @param format the format string
 	 */
-	public void setFormat(String format) {
+	public void setCountdownFormat(String format) {
 		if (format == null || format.length() <= 0) {
 			format = DEFAULT_FORMAT;
 		}
-		this.format = format;
+		this.countdownFormat = format;
 	}
 }

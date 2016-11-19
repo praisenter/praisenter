@@ -33,6 +33,7 @@ import org.praisenter.javafx.bible.ObservableBibleLibrary;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.javafx.screen.ScreenManager;
+import org.praisenter.javafx.slide.JavaFXSlideThumbnailGenerator;
 import org.praisenter.javafx.slide.ObservableSlideLibrary;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.slide.SlideLibrary;
@@ -106,7 +107,8 @@ public final class PraisenterContext {
 		this.executor = new MonitoredThreadPoolExecutor();
 		this.mediaLibrary = new ObservableMediaLibrary(media, this.executor);
 		this.bibleLibrary = new ObservableBibleLibrary(bibles, this.executor);
-		this.slideLibrary = new ObservableSlideLibrary(slides, this.executor);
+		// FIXME move the thumbnail settings to the normal SlideLibrary
+		this.slideLibrary = new ObservableSlideLibrary(slides, new JavaFXSlideThumbnailGenerator(100, 100, this), this.executor);
 		
 		Set<Tag> tags = new TreeSet<Tag>();
 		// add all the tags to the main tag set
