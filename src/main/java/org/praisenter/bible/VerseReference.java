@@ -41,7 +41,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "bibleReference")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class BibleReference {
+public final class VerseReference {
 	/** The not set flag */
 	public static final short NOT_SET = -1;
 	
@@ -71,7 +71,7 @@ public final class BibleReference {
 	/**
 	 * For JAXB only.
 	 */
-	BibleReference() {
+	VerseReference() {
 		// for jaxb
 		this.bibleId = null;
 		this.bookName = null;
@@ -90,7 +90,7 @@ public final class BibleReference {
 	 * @param verseNumber the verse number
 	 * @param text the verse text
 	 */
-	public BibleReference(UUID bibleId, String bookName, short bookNumber, short chapterNumber, short verseNumber, String text) {
+	public VerseReference(UUID bibleId, String bookName, short bookNumber, short chapterNumber, short verseNumber, String text) {
 		this.bibleId = bibleId;
 		this.bookName = bookName;
 		this.bookNumber = bookNumber;
