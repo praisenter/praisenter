@@ -13,9 +13,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
-@XmlSeeAlso({
-	BasicSlide.class
-})
 @XmlRootElement(name = "slideShow")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideShow {

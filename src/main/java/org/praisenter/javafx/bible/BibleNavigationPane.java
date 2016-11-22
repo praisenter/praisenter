@@ -36,7 +36,7 @@ import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.SearchType;
 import org.praisenter.bible.Bible;
-import org.praisenter.bible.VerseReference;
+import org.praisenter.bible.ReferenceVerse;
 import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
@@ -80,7 +80,7 @@ public final class BibleNavigationPane extends BorderPane {
 	private Label lblChapters;
 	private Label lblVerses;
 	
-	private ListProperty<VerseReference> selected = new SimpleListProperty<VerseReference>();
+	private ListProperty<ReferenceVerse> selected = new SimpleListProperty<ReferenceVerse>();
 	
 	// TODO features: 
 	// validation 

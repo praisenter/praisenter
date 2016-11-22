@@ -37,6 +37,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.Tag;
 import org.praisenter.slide.animation.SlideAnimation;
+import org.praisenter.slide.text.PlaceholderVariant;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
 /**
@@ -129,14 +130,6 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	public abstract <E extends SlideComponent> List<E> getComponents(Class<E> clazz);
 	
 	/**
-	 * Returns true if this slide contains any {@link TextPlaceholderComponent}s.
-	 * @return boolean
-	 */
-	public abstract boolean hasPlaceholders();
-	
-	// z-ordering
-	
-	/**
 	 * Moves the given component up by one.
 	 * <p>
 	 * If the given component is not on this slide, this method does nothing.
@@ -191,6 +184,12 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	 * @param component the component to move to the bottom
 	 */
 	public abstract void moveComponentBack(SlideComponent component);
+
+	/**
+	 * Returns true if this slide contains any {@link TextPlaceholderComponent}s.
+	 * @return boolean
+	 */
+	public abstract boolean hasPlaceholders();
 	
 	// sequencing
 	
@@ -242,6 +241,30 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	 * @see org.praisenter.slide.SlideRegion#copy(boolean)
 	 */
 	public abstract Slide copy(boolean exact);
+	
+	// other
+	
+	/**
+	 * Sets the data for the given variant.
+	 * @param variant the variant
+	 * @param data the data
+	 * @return Object the old value or null
+	 */
+	public abstract Object setPlaceholderData(PlaceholderVariant variant, Object data);
+	
+	/**
+	 * Returns the data for the given variant or null.
+	 * @param variant the variant
+	 * @return Object
+	 */
+	public abstract Object getPlaceholderData(PlaceholderVariant variant);
+	
+	/**
+	 * Removes the data for the given variant.
+	 * @param variant the variant
+	 * @return Object the old value or null
+	 */
+	public abstract Object removePlaceholderData(PlaceholderVariant variant);
 	
 	/**
 	 * Returns the tags for this slide.

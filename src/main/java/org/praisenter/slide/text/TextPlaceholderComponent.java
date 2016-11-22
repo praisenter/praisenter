@@ -39,7 +39,7 @@ import org.praisenter.slide.SlideRegion;
 /**
  * Represents a text component whose text will be supplied from an external source.
  * <p>
- * The external source can place text into the component based on the give types applied
+ * The external source can place text into the component based on the given types applied
  * to the placeholder.
  * @author William Bittle
  * @version 3.0.0

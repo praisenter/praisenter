@@ -39,9 +39,9 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "bibleReference")
+@XmlRootElement(name = "referenceVerse")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class VerseReference {
+public final class ReferenceVerse implements Comparable<ReferenceVerse> {
 	/** The not set flag */
 	public static final short NOT_SET = -1;
 	
@@ -49,6 +49,11 @@ public final class VerseReference {
 	@XmlAttribute(name = "bibleId", required = false)
 	private final UUID bibleId;
 	
+	/** The name of the bible */
+	@XmlAttribute(name = "bibleName", required = false)
+	private final String bibleName;
+	
+	/** The name of the book */
 	@XmlAttribute(name = "bookName", required = false)
 	private final String bookName;
 	
@@ -71,9 +76,10 @@ public final class VerseReference {
 	/**
 	 * For JAXB only.
 	 */
-	VerseReference() {
+	ReferenceVerse() {
 		// for jaxb
 		this.bibleId = null;
+		this.bibleName = null;
 		this.bookName = null;
 		this.bookNumber = NOT_SET;
 		this.chapterNumber = NOT_SET;
@@ -84,14 +90,16 @@ public final class VerseReference {
 	/**
 	 * Full constructor.
 	 * @param bibleId the id of the bible
+	 * @param bibleName the name of the bible
 	 * @param bookName the book name
 	 * @param bookNumber the book number
 	 * @param chapterNumber the chapter number
 	 * @param verseNumber the verse number
 	 * @param text the verse text
 	 */
-	public VerseReference(UUID bibleId, String bookName, short bookNumber, short chapterNumber, short verseNumber, String text) {
+	public ReferenceVerse(UUID bibleId, String bibleName, String bookName, short bookNumber, short chapterNumber, short verseNumber, String text) {
 		this.bibleId = bibleId;
+		this.bibleName = bibleName;
 		this.bookName = bookName;
 		this.bookNumber = bookNumber;
 		this.chapterNumber = chapterNumber;
@@ -99,12 +107,41 @@ public final class VerseReference {
 		this.text = text;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(ReferenceVerse o) {
+		if (o == null) {
+			return -1;
+		}
+		int diff = this.bibleId.compareTo(o.bibleId);
+		if (diff == 0) {
+			diff = this.bookNumber - o.bookNumber;
+			if (diff == 0) {
+				diff = this.chapterNumber - o.chapterNumber;
+				if (diff == 0) {
+					return this.verseNumber - o.verseNumber;
+				}
+			}
+		}
+		return diff;
+	}
+	
 	/**
 	 * Returns the bible id.
 	 * @return UUID
 	 */
 	public UUID getBibleId() {
 		return this.bibleId;
+	}
+	
+	/**
+	 * Returns the bible name.
+	 * @return String
+	 */
+	public String getBibleName() {
+		return this.bibleName;
 	}
 	
 	/**
