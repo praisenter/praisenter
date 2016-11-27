@@ -33,6 +33,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.praisenter.TextType;
+import org.praisenter.TextVariant;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 
@@ -49,20 +51,20 @@ import org.praisenter.slide.SlideRegion;
 public class TextPlaceholderComponent extends BasicTextComponent implements SlideRegion, SlideComponent, TextComponent {
 	/** The placeholder type */
 	@XmlElement(name = "placeholderType", required = false)
-	PlaceholderType placeholderType;
+	TextType placeholderType;
 	
 	/** The placeholder variants */
 	@XmlElement(name = "variant", required = false)
 	@XmlElementWrapper(name = "placeholderVariants", required = false)
-	final Set<PlaceholderVariant> placeholderVariants;
+	final Set<TextVariant> placeholderVariants;
 
 	/**
 	 * Default constructor.
 	 */
 	public TextPlaceholderComponent() {
-		this.placeholderType = PlaceholderType.TEXT;
-		this.placeholderVariants = new TreeSet<PlaceholderVariant>();
-		this.placeholderVariants.add(PlaceholderVariant.PRIMARY);
+		this.placeholderType = TextType.TEXT;
+		this.placeholderVariants = new TreeSet<TextVariant>();
+		this.placeholderVariants.add(TextVariant.PRIMARY);
 	}
 
 	/**
@@ -73,7 +75,7 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	public TextPlaceholderComponent(TextPlaceholderComponent other, boolean exact) {
 		super(other, exact);
 		this.placeholderType = other.placeholderType;
-		this.placeholderVariants = new TreeSet<PlaceholderVariant>(other.placeholderVariants);
+		this.placeholderVariants = new TreeSet<TextVariant>(other.placeholderVariants);
 	}
 	
 	/* (non-Javadoc)
@@ -94,9 +96,9 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 
 	/**
 	 * Returns the placeholder type.
-	 * @return {@link PlaceholderType}
+	 * @return {@link TextType}
 	 */
-	public PlaceholderType getPlaceholderType() {
+	public TextType getPlaceholderType() {
 		return this.placeholderType;
 	}
 
@@ -104,18 +106,18 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	 * Sets the type of this placeholder.
 	 * @param type the type
 	 */
-	public void setPlaceholderType(PlaceholderType type) {
+	public void setPlaceholderType(TextType type) {
 		if (type == null) {
-			type = PlaceholderType.TEXT;
+			type = TextType.TEXT;
 		}
 		this.placeholderType = type;
 	}
 
 	/**
 	 * Returns this placeholder's variants.
-	 * @return Set&lt;{@link PlaceholderVariant}&gt;
+	 * @return Set&lt;{@link TextVariant}&gt;
 	 */
-	public Set<PlaceholderVariant> getPlaceholderVariants() {
+	public Set<TextVariant> getPlaceholderVariants() {
 		return this.placeholderVariants;
 	}
 }

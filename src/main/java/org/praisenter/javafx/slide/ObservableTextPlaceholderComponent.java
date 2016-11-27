@@ -1,8 +1,8 @@
 package org.praisenter.javafx.slide;
 
+import org.praisenter.TextType;
+import org.praisenter.TextVariant;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.slide.text.PlaceholderType;
-import org.praisenter.slide.text.PlaceholderVariant;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
 import javafx.beans.InvalidationListener;
@@ -15,8 +15,8 @@ import javafx.collections.SetChangeListener;
 
 public final class ObservableTextPlaceholderComponent extends ObservableTextComponent<TextPlaceholderComponent> {
 	
-	final ObjectProperty<PlaceholderType> placeholderType = new SimpleObjectProperty<PlaceholderType>();
-	final ObservableSet<PlaceholderVariant> placeholderVariants = FXCollections.observableSet();
+	final ObjectProperty<TextType> placeholderType = new SimpleObjectProperty<TextType>();
+	final ObservableSet<TextVariant> placeholderVariants = FXCollections.observableSet();
 	
 	public ObservableTextPlaceholderComponent(TextPlaceholderComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
@@ -44,9 +44,9 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 			}
 		});
 		
-		this.placeholderVariants.addListener(new SetChangeListener<PlaceholderVariant>() {
+		this.placeholderVariants.addListener(new SetChangeListener<TextVariant>() {
 			@Override
-			public void onChanged(javafx.collections.SetChangeListener.Change<? extends PlaceholderVariant> change) {
+			public void onChanged(javafx.collections.SetChangeListener.Change<? extends TextVariant> change) {
 				if (change.wasAdded()) {
 					region.getPlaceholderVariants().add(change.getElementAdded());
 				}
@@ -61,43 +61,43 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 	
 	// placeholder type
 	
-	public PlaceholderType getPlaceholderType() {
+	public TextType getPlaceholderType() {
 		return this.placeholderType.get();
 	}
 	
-	public void setPlaceholderType(PlaceholderType type) {
+	public void setPlaceholderType(TextType type) {
 		this.placeholderType.set(type);
 	}
 	
-	public ObjectProperty<PlaceholderType> placeholderTypeProperty() {
+	public ObjectProperty<TextType> placeholderTypeProperty() {
 		return this.placeholderType;
 	}
 	
 	// variants
 	
-	public ObservableSet<PlaceholderVariant> getPlaceholderVariants() {
+	public ObservableSet<TextVariant> getPlaceholderVariants() {
 		return this.placeholderVariants;
 	}
 
 	public String getText() {
 		StringBuilder sb = new StringBuilder();
-		for (PlaceholderVariant variant : this.placeholderVariants) {
+		for (TextVariant variant : this.placeholderVariants) {
 			if (sb.length() > 0) sb.append("\n\n");
 			sb.append(this.getTextFor(this.placeholderType.get(), variant));
 		}
 		return sb.toString();
 	}
 	
-	private String getTextFor(PlaceholderType type, PlaceholderVariant variant) {
+	private String getTextFor(TextType type, TextVariant variant) {
 		// TODO translate
-		if (type == PlaceholderType.TITLE) {
-			if (variant == PlaceholderVariant.PRIMARY) {
+		if (type == TextType.TITLE) {
+			if (variant == TextVariant.PRIMARY) {
 				return "The Primary Title";
 			} else {
 				return "The Secondary Title";
 			}
 		} else {
-			if (variant == PlaceholderVariant.PRIMARY) {
+			if (variant == TextVariant.PRIMARY) {
 				return "The primary text.";
 			} else {
 				return "The secondary text.";

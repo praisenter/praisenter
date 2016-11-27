@@ -25,6 +25,7 @@
 package org.praisenter.javafx.utility;
 
 import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -118,5 +119,35 @@ public final class Fx {
 			focused = focused.getParent();
 		}
 		return isFocused;
+	}
+	
+	/**
+	 * Returns a uniformly scaled rectangle for the given width and height and target width and height.
+	 * @param w the width
+	 * @param h the height
+	 * @param tw the target width
+	 * @param th the target height
+	 * @return Rectangle2D
+	 */
+	public static Rectangle2D getUniformlyScaledBounds(double w, double h, double tw, double th) {
+		// compute the scale factors
+		double sw = tw / w;
+		double sh = th / h;
+
+		// to scale uniformly we need to 
+		// scale by the smallest factor
+		if (sw < sh) {
+			w = tw;
+			h = (int)Math.ceil(sw * h);
+		} else {
+			w = (int)Math.ceil(sh * w);
+			h = th;
+		}
+
+		// center the image
+		double x = (tw - w) / 2.0;
+		double y = (th - h) / 2.0;
+		
+		return new Rectangle2D(x, y, Math.max(w, 0), Math.max(h, 0));
 	}
 }

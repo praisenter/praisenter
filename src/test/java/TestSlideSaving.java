@@ -6,6 +6,11 @@ import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 
+import org.praisenter.TextType;
+import org.praisenter.TextVariant;
+import org.praisenter.bible.BibleReferenceSet;
+import org.praisenter.bible.BibleReferenceSetType;
+import org.praisenter.bible.BibleReferenceVerse;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
@@ -28,7 +33,6 @@ import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
-import org.praisenter.slide.text.PlaceholderType;
 import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
@@ -141,7 +145,7 @@ public class TestSlideSaving {
 		tp.setTextPaint(gradient);
 		tp.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE), 1, 0));
 		tp.setLineSpacing(2);
-		tp.setPlaceholderType(PlaceholderType.TITLE);
+		tp.setPlaceholderType(TextType.TITLE);
 		//tp.setVariants(variants);
 		
 		CountdownComponent cd = new CountdownComponent();
@@ -168,6 +172,18 @@ public class TestSlideSaving {
 		slide.addComponent(tp);
 		slide.addComponent(cd);
 
+		BibleReferenceSet rs = new BibleReferenceSet();
+		rs.setType(BibleReferenceSetType.SINGLE);
+		rs.getReferenceVerses().add(new BibleReferenceVerse(
+				UUID.randomUUID(), 
+				"Test", 
+				"Genesis", 
+				(short)1, 
+				(short)1, 
+				(short)1, 
+				"This is the text"));
+		slide.setPlaceholderData(TextVariant.PRIMARY, rs);
+		
 //		slide.setBackground(vid);
 		slide.setBackground(new SlideColor(0, 0, 1.0, 0.5));
 		//slide.setBorder(thick);
@@ -182,11 +198,11 @@ public class TestSlideSaving {
 //		slide.setVerse(1);
 //		slide.getBibles().add("KJV");
 		
-//		XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), slide);
-//		Slide s = XmlIO.read(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), BasicSlide.class);
+		XmlIO.save(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), slide);
+		Slide s = XmlIO.read(Paths.get("C:\\Users\\William\\Desktop\\test\\slides\\test.xml"), BasicSlide.class);
 		
-		XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), slide);
-		Slide s = XmlIO.read(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), BasicSlide.class);
+//		XmlIO.save(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), slide);
+//		Slide s = XmlIO.read(Paths.get("D:\\Personal\\Praisenter\\slides\\test.xml"), BasicSlide.class);
 		
 		System.out.println(s.getId() + " " + s.getClass().getName());
 		

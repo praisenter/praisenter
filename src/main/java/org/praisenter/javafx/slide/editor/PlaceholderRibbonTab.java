@@ -3,11 +3,11 @@ package org.praisenter.javafx.slide.editor;
 import java.util.stream.Collectors;
 
 import org.controlsfx.control.CheckComboBox;
+import org.praisenter.TextType;
+import org.praisenter.TextVariant;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
-import org.praisenter.slide.text.PlaceholderType;
-import org.praisenter.slide.text.PlaceholderVariant;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,34 +17,34 @@ import javafx.scene.layout.VBox;
 
 class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 
-	private final ComboBox<Option<PlaceholderType>> cmbPlaceholderType;
-	private final CheckComboBox<Option<PlaceholderVariant>> cmbPlaceholderVariants;
+	private final ComboBox<Option<TextType>> cmbTextType;
+	private final CheckComboBox<Option<TextVariant>> cmbTextVariants;
 	
 	public PlaceholderRibbonTab() {
 		super("Placeholder");
 
-		ObservableList<Option<PlaceholderType>> placeholderTypes = FXCollections.observableArrayList();
-		placeholderTypes.add(new Option<PlaceholderType>("Text", PlaceholderType.TEXT));
-		placeholderTypes.add(new Option<PlaceholderType>("Title", PlaceholderType.TITLE));
+		ObservableList<Option<TextType>> placeholderTypes = FXCollections.observableArrayList();
+		placeholderTypes.add(new Option<TextType>("Text", TextType.TEXT));
+		placeholderTypes.add(new Option<TextType>("Title", TextType.TITLE));
 		
 		// FEATURE Add more variant options other than Primary/Secondary
-		ObservableList<Option<PlaceholderVariant>> placeholderVariants = FXCollections.observableArrayList();
-		placeholderVariants.add(new Option<PlaceholderVariant>("Primary", PlaceholderVariant.PRIMARY));
-		placeholderVariants.add(new Option<PlaceholderVariant>("Secondary", PlaceholderVariant.SECONDARY));
+		ObservableList<Option<TextVariant>> placeholderVariants = FXCollections.observableArrayList();
+		placeholderVariants.add(new Option<TextVariant>("Primary", TextVariant.PRIMARY));
+		placeholderVariants.add(new Option<TextVariant>("Secondary", TextVariant.SECONDARY));
 		
-		this.cmbPlaceholderType = new ComboBox<Option<PlaceholderType>>(placeholderTypes);
-		this.cmbPlaceholderType.setValue(placeholderTypes.get(0));
-		this.cmbPlaceholderType.setMaxWidth(200);
-		this.cmbPlaceholderType.setPrefWidth(200);
+		this.cmbTextType = new ComboBox<Option<TextType>>(placeholderTypes);
+		this.cmbTextType.setValue(placeholderTypes.get(0));
+		this.cmbTextType.setMaxWidth(200);
+		this.cmbTextType.setPrefWidth(200);
 		
-		this.cmbPlaceholderVariants = new CheckComboBox<Option<PlaceholderVariant>>(placeholderVariants);
-		this.cmbPlaceholderVariants.setMaxWidth(200);
-		this.cmbPlaceholderVariants.setPrefWidth(200);
+		this.cmbTextVariants = new CheckComboBox<Option<TextVariant>>(placeholderVariants);
+		this.cmbTextVariants.setMaxWidth(200);
+		this.cmbTextVariants.setPrefWidth(200);
 		
 		// layout
 		
-		HBox row1 = new HBox(2, this.cmbPlaceholderType);
-		HBox row2 = new HBox(2, this.cmbPlaceholderVariants);
+		HBox row1 = new HBox(2, this.cmbTextType);
+		HBox row2 = new HBox(2, this.cmbTextVariants);
 
 		VBox layout = new VBox(2, row1, row2);
 		
@@ -52,7 +52,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 		
 		// events
 
-		this.cmbPlaceholderType.valueProperty().addListener((obs, ov, nv) -> {
+		this.cmbTextType.valueProperty().addListener((obs, ov, nv) -> {
 			if (mutating) return;
 			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
@@ -61,7 +61,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 			}
 		});
 		
-		this.cmbPlaceholderVariants.checkModelProperty().get().getCheckedItems().addListener((javafx.collections.ListChangeListener.Change<? extends Option<PlaceholderVariant>> change) -> {
+		this.cmbTextVariants.checkModelProperty().get().getCheckedItems().addListener((javafx.collections.ListChangeListener.Change<? extends Option<TextVariant>> change) -> {
 			if (mutating) return;
 			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
@@ -76,15 +76,15 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 			if (nv != null && nv instanceof ObservableTextPlaceholderComponent) {
 				this.setDisable(false);
 				ObservableTextPlaceholderComponent otpc = (ObservableTextPlaceholderComponent)nv;
-				this.cmbPlaceholderType.setValue(new Option<PlaceholderType>(null, otpc.getPlaceholderType()));
-				this.cmbPlaceholderVariants.getCheckModel().clearChecks();
-				for (PlaceholderVariant variant : otpc.getPlaceholderVariants()) {
-					this.cmbPlaceholderVariants.getCheckModel().check(new Option<PlaceholderVariant>(null, variant));
+				this.cmbTextType.setValue(new Option<TextType>(null, otpc.getPlaceholderType()));
+				this.cmbTextVariants.getCheckModel().clearChecks();
+				for (TextVariant variant : otpc.getPlaceholderVariants()) {
+					this.cmbTextVariants.getCheckModel().check(new Option<TextVariant>(null, variant));
 				}
 			} else {
 				this.setDisable(true);
-				this.cmbPlaceholderType.setValue(placeholderTypes.get(0));
-				this.cmbPlaceholderVariants.getCheckModel().clearChecks();
+				this.cmbTextType.setValue(placeholderTypes.get(0));
+				this.cmbTextVariants.getCheckModel().clearChecks();
 			}
 			mutating = false;
 		});

@@ -41,7 +41,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "referenceVerse")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class ReferenceVerse implements Comparable<ReferenceVerse> {
+public final class BibleReferenceVerse implements Comparable<BibleReferenceVerse> {
 	/** The not set flag */
 	public static final short NOT_SET = -1;
 	
@@ -76,7 +76,7 @@ public final class ReferenceVerse implements Comparable<ReferenceVerse> {
 	/**
 	 * For JAXB only.
 	 */
-	ReferenceVerse() {
+	BibleReferenceVerse() {
 		// for jaxb
 		this.bibleId = null;
 		this.bibleName = null;
@@ -97,7 +97,7 @@ public final class ReferenceVerse implements Comparable<ReferenceVerse> {
 	 * @param verseNumber the verse number
 	 * @param text the verse text
 	 */
-	public ReferenceVerse(UUID bibleId, String bibleName, String bookName, short bookNumber, short chapterNumber, short verseNumber, String text) {
+	public BibleReferenceVerse(UUID bibleId, String bibleName, String bookName, short bookNumber, short chapterNumber, short verseNumber, String text) {
 		this.bibleId = bibleId;
 		this.bibleName = bibleName;
 		this.bookName = bookName;
@@ -111,7 +111,7 @@ public final class ReferenceVerse implements Comparable<ReferenceVerse> {
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)
 	 */
 	@Override
-	public int compareTo(ReferenceVerse o) {
+	public int compareTo(BibleReferenceVerse o) {
 		if (o == null) {
 			return -1;
 		}
@@ -126,6 +126,36 @@ public final class ReferenceVerse implements Comparable<ReferenceVerse> {
 			}
 		}
 		return diff;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (o == null) return false;
+		if (o == this) return true;
+		if (o instanceof BibleReferenceVerse) {
+			BibleReferenceVerse ov = (BibleReferenceVerse)o;
+			return ov.bibleId.equals(this.bibleId) &&
+				   ov.bookNumber == this.bookNumber &&
+				   ov.chapterNumber == this.chapterNumber &&
+				   ov.verseNumber == this.verseNumber;
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hash = 37;
+		hash = hash * 13 + this.bibleId.hashCode();
+		hash = hash * 13 + this.bookNumber;
+		hash = hash * 13 + this.chapterNumber;
+		hash = hash * 13 + this.verseNumber;
+		return hash;
 	}
 	
 	/**

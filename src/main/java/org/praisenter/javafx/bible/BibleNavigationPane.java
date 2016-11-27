@@ -24,7 +24,9 @@
  */
 package org.praisenter.javafx.bible;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -35,20 +37,20 @@ import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.SearchType;
+import org.praisenter.TextVariant;
+import org.praisenter.TextVariantSet;
 import org.praisenter.bible.Bible;
-import org.praisenter.bible.ReferenceVerse;
 import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.LocatedVerse;
 import org.praisenter.bible.LocatedVerseTriplet;
+import org.praisenter.bible.BibleReferenceSet;
 import org.praisenter.javafx.AutoCompleteComboBox;
 import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.configuration.Setting;
 
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -59,8 +61,6 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 
 public final class BibleNavigationPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -80,7 +80,7 @@ public final class BibleNavigationPane extends BorderPane {
 	private Label lblChapters;
 	private Label lblVerses;
 	
-	private ListProperty<ReferenceVerse> selected = new SimpleListProperty<ReferenceVerse>();
+	private TextVariantSet<BibleReferenceSet> selected = new TextVariantSet<BibleReferenceSet>();
 	
 	// TODO features: 
 	// validation 
@@ -213,7 +213,7 @@ public final class BibleNavigationPane extends BorderPane {
 			updateRanges();
 		});
 		
-		Button btn = new Button("show value");
+		Button btn = new Button("Find");
 		btn.setOnAction((e) -> {
 			Bible bible = cmbBiblePrimary.getValue().getBible();
 			Bible b2 = cmbBibleSecondary.getValue().getBible();

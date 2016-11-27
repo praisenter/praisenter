@@ -22,18 +22,17 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.text;
+package org.praisenter;
 
 import javax.xml.bind.annotation.XmlEnum;
 
 /**
- * Represents a variant of the text in a placeholder
- * (a translation for example).
+ * Represents a variant of text (a translation for example).
  * @author William Bittle
  * @version 3.0.0
  */
 @XmlEnum
-public enum PlaceholderVariant {
+public enum TextVariant {
 	/** The primary text */
 	PRIMARY,
 	

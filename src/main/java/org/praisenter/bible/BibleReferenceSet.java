@@ -13,41 +13,53 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.TextType;
+import org.praisenter.TextTypeSet;
 
 @XmlRootElement(name = "referenceSet")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class ReferenceSet {
+public final class BibleReferenceSet extends TextTypeSet {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private static final int TITLE = 0;
-	private static final int TEXT = 1;
-	
 	@XmlAttribute(name = "type")
-	private final ReferenceSetType type;
+	private BibleReferenceSetType type;
 	
 	@XmlElement(name = "reference")
 	@XmlElementWrapper(name = "references")
-	private final Set<ReferenceVerse> references;
+	private final Set<BibleReferenceVerse> references;
 	
-	private ReferenceSet() {
-		this.type = null;
-		this.references = null;
-	}
-	
-	public ReferenceSet(ReferenceSetType type) {
-		this.type = type;
+	public BibleReferenceSet() {
+		this.type = BibleReferenceSetType.COLLECTION;
 		this.references = new LinkedHashSet<>();
 	}
 	
-	public String getReference() {
-		return this.getDisplayText(TITLE);
+	public BibleReferenceSetType getType() {
+		return this.type;
+	}
+
+	public void setType(BibleReferenceSetType type) {
+		this.type = type;
+	}
+
+	public Set<BibleReferenceVerse> getReferenceVerses() {
+		return this.references;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.TextTypeSet#copy()
+	 */
+	public BibleReferenceSet copy() {
+		BibleReferenceSet rs = new BibleReferenceSet();
+		rs.type = this.type;
+		rs.references.addAll(this.references);
+		return rs;
 	}
 	
-	public String getText() {
-		return this.getDisplayText(TEXT);
-	}
-	
-	private String getDisplayText(int output) {
+	/* (non-Javadoc)
+	 * @see org.praisenter.TextTypeSet#getText(org.praisenter.TextType)
+	 */
+	@Override
+	public String getText(TextType type) {
 		// check for null
 		if (this.references == null) {
 			return null;
@@ -64,9 +76,9 @@ public final class ReferenceSet {
 		boolean sameChapter = true;
 		boolean sameBook = true;
 		boolean sameBible = true;
-		ReferenceVerse start = null;
-		ReferenceVerse end = null;
-		for (ReferenceVerse rv : this.references) {
+		BibleReferenceVerse start = null;
+		BibleReferenceVerse end = null;
+		for (BibleReferenceVerse rv : this.references) {
 			if (start == null) {
 				start = rv;
 				continue;
@@ -92,18 +104,18 @@ public final class ReferenceSet {
 			end = rv;
 		}
 		
-		ReferenceSetType type = this.type;
+		BibleReferenceSetType rt = this.type;
 		if (this.type == null) {
-			type = ReferenceSetType.COLLECTION;
+			rt = BibleReferenceSetType.COLLECTION;
 		}
 		if (start == end) {
-			type = ReferenceSetType.SINGLE;
+			rt = BibleReferenceSetType.SINGLE;
 		}
 		
-		switch (type) {
+		switch (rt) {
 			case RANGE:
 				if (start.getBibleId().equals(end.getBibleId())) {
-					if (output == TITLE) {
+					if (type == TextType.TITLE) {
 						return getRangeTitle(start, end);
 					} else {
 						return getRangeText(this.references, sameBook, sameChapter);
@@ -113,14 +125,14 @@ public final class ReferenceSet {
 					return null;
 				}
 			case COLLECTION:
-				if (output == TITLE) {
+				if (type == TextType.TITLE) {
 					return getCollectionTitle(start, sameBible, sameBook, sameChapter);
 				} else {
 					return getCollectionText(this.references, sameBible, sameBook, sameChapter);
 				}
 			case SINGLE:
 			default:
-				if (output == TITLE) {
+				if (type == TextType.TITLE) {
 					return MessageFormat.format("{0} {1}:{2}", start.getBookName(), start.getChapterNumber(), start.getVerseNumber());
 				} else {
 					return start.getText();
@@ -128,7 +140,7 @@ public final class ReferenceSet {
 		}
 	}
 	
-	private static String getRangeTitle(ReferenceVerse start, ReferenceVerse end) {
+	private static String getRangeTitle(BibleReferenceVerse start, BibleReferenceVerse end) {
 		if (start.getBookNumber() == end.getBookNumber()) {
 			if (start.getChapterNumber() == end.getChapterNumber()) {
 				return MessageFormat.format("{0} {1}:{2}-{3}", start.getBookName(), start.getChapterNumber(), start.getVerseNumber(), end.getVerseNumber());
@@ -140,10 +152,10 @@ public final class ReferenceSet {
 		}
 	}
 	
-	private static String getRangeText(Set<ReferenceVerse> verses, boolean sameBook, boolean sameChapter) {
+	private static String getRangeText(Set<BibleReferenceVerse> verses, boolean sameBook, boolean sameChapter) {
 		StringBuilder sb = new StringBuilder();
-		ReferenceVerse last = null;
-		for (ReferenceVerse rv : verses) {
+		BibleReferenceVerse last = null;
+		for (BibleReferenceVerse rv : verses) {
 			if (last != null) {
 				if (last.getBookNumber() == rv.getBookNumber()) {
 					if (last.getChapterNumber() == rv.getChapterNumber()) {
@@ -168,7 +180,7 @@ public final class ReferenceSet {
 		return sb.toString();
 	}
 	
-	private static String getCollectionTitle(ReferenceVerse start, boolean sameBible, boolean sameBook, boolean sameChapter) {
+	private static String getCollectionTitle(BibleReferenceVerse start, boolean sameBible, boolean sameBook, boolean sameChapter) {
 		if (sameChapter) {
 			return MessageFormat.format("{0} {1}", start.getBookName(), start.getChapterNumber());
 		} else if (sameBook) {
@@ -180,10 +192,10 @@ public final class ReferenceSet {
 		}
 	}
 	
-	private static String getCollectionText(Set<ReferenceVerse> verses, boolean sameBible, boolean sameBook, boolean sameChapter) {
+	private static String getCollectionText(Set<BibleReferenceVerse> verses, boolean sameBible, boolean sameBook, boolean sameChapter) {
 		StringBuilder sb = new StringBuilder();
-		ReferenceVerse last = null;
-		for (ReferenceVerse rv : verses) {
+		BibleReferenceVerse last = null;
+		for (BibleReferenceVerse rv : verses) {
 			if (last != null) {
 				if (last.getBibleId().equals(rv.getBibleId())) {
 					if (last.getBookNumber() == rv.getBookNumber()) {

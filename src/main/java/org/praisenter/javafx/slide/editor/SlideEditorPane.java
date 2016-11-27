@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.praisenter.TextType;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
@@ -17,6 +18,7 @@ import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.Scaling;
 import org.praisenter.javafx.slide.SlideMode;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
@@ -41,7 +43,6 @@ import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
-import org.praisenter.slide.text.PlaceholderType;
 import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
@@ -54,11 +55,9 @@ import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Cursor;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -73,7 +72,6 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -202,7 +200,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 					double h = s.getHeight();
 					double tw = slidePreview.getWidth() - padding * 2;
 					double th = slidePreview.getHeight() - padding * 2;
-					return Math.floor(getUniformlyScaledBounds(w, h, tw, th).getWidth());
+					return Math.floor(Fx.getUniformlyScaledBounds(w, h, tw, th).getWidth());
 				}
 				return 0;
 			}
@@ -220,7 +218,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 					double h = s.getHeight();
 					double tw = slidePreview.getWidth() - padding * 2;
 					double th = slidePreview.getHeight() - padding * 2;
-					return Math.floor(getUniformlyScaledBounds(w, h, tw, th).getHeight());
+					return Math.floor(Fx.getUniformlyScaledBounds(w, h, tw, th).getHeight());
 				}
 				return 0;
 			}
@@ -396,28 +394,6 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		});
 	}
 	
-	private static final Rectangle2D getUniformlyScaledBounds(double w, double h, double tw, double th) {
-		// compute the scale factors
-		double sw = tw / w;
-		double sh = th / h;
-
-		// to scale uniformly we need to 
-		// scale by the smallest factor
-		if (sw < sh) {
-			w = tw;
-			h = (int)Math.ceil(sw * h);
-		} else {
-			w = (int)Math.ceil(sh * w);
-			h = th;
-		}
-
-		// center the image
-		double x = (tw - w) / 2.0;
-		double y = (th - h) / 2.0;
-		
-		return new Rectangle2D(x, y, Math.max(w, 0), Math.max(h, 0));
-	}
-	
 	private static final Slide createTestSlide() {
 		BasicSlide slide = new BasicSlide();
 		slide.setWidth(800);
@@ -519,7 +495,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		tp.setTextPaint(gradient);
 		tp.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE), 1, 0));
 		tp.setLineSpacing(2);
-		tp.setPlaceholderType(PlaceholderType.TITLE);
+		tp.setPlaceholderType(TextType.TITLE);
 		//tp.setVariants(variants);
 		
 		CountdownComponent cd = new CountdownComponent();

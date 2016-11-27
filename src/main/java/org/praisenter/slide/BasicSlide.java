@@ -28,10 +28,8 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -44,18 +42,21 @@ import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.Constants;
 import org.praisenter.ReadonlyIterator;
 import org.praisenter.Tag;
-import org.praisenter.bible.ReferenceSet;
+import org.praisenter.TextType;
+import org.praisenter.TextTypeSet;
+import org.praisenter.TextVariant;
+import org.praisenter.TextVariantSet;
+import org.praisenter.bible.BibleReferenceSet;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.PlaceholderType;
-import org.praisenter.slide.text.PlaceholderVariant;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.xml.adapters.BufferedImageTypeAdapter;
 
@@ -105,7 +106,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 
 	/** Any placeholder data */
 	@XmlElement(name = "placeholderData", required = false)
-	final Map<PlaceholderVariant, Object> placeholderData;
+	final TextVariantSet<TextTypeSet> placeholderData;
 	
 	/** The tags */
 	@XmlElement(name = "tag", required = false)
@@ -133,7 +134,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		super(id);
 		this.components = new ArrayList<SlideComponent>();
 		this.animations = new ArrayList<SlideAnimation>();
-		this.placeholderData = new HashMap<PlaceholderVariant, Object>();
+		this.placeholderData = new TextVariantSet();
 		this.time = Slide.TIME_FOREVER;
 		this.tags = new TreeSet<Tag>();
 	}
@@ -149,7 +150,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		
 		this.components = new ArrayList<SlideComponent>();
 		this.animations = new ArrayList<SlideAnimation>();
-		this.placeholderData = new HashMap<PlaceholderVariant, Object>(other.placeholderData);
+		this.placeholderData = new TextVariantSet(other.placeholderData);
 		this.tags = new TreeSet<Tag>();
 		
 		if (exact) {
@@ -483,21 +484,30 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		this.thumbnail = thumbnail;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getPlaceholderData(org.praisenter.TextVariant)
+	 */
 	@Override
-	public Object getPlaceholderData(PlaceholderVariant variant) {
+	public TextTypeSet getPlaceholderData(TextVariant variant) {
 		return this.placeholderData.get(variant);
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#setPlaceholderData(org.praisenter.TextVariant, org.praisenter.TextTypeSet)
+	 */
 	@Override
-	public Object setPlaceholderData(PlaceholderVariant variant, Object data) {
-		Object value = this.placeholderData.put(variant, data);
+	public TextTypeSet setPlaceholderData(TextVariant variant, TextTypeSet data) {
+		TextTypeSet value = this.placeholderData.set(variant, data);
 		this.updatePlaceholders();
 		return value;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#removePlaceholderData(org.praisenter.TextVariant)
+	 */
 	@Override
-	public Object removePlaceholderData(PlaceholderVariant variant) {
-		Object value = this.placeholderData.remove(variant);
+	public TextTypeSet removePlaceholderData(TextVariant variant) {
+		TextTypeSet value = this.placeholderData.remove(variant);
 		if (value != null) {
 			this.updatePlaceholders();
 		}
@@ -507,42 +517,19 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	protected void updatePlaceholders() {
 		// iterate all the placeholders
 		for (TextPlaceholderComponent tpc : this.getComponents(TextPlaceholderComponent.class)) {
-			String text = null;
-			// determine the placeholder type and get the text for that placeholder
-			// for all it's configured variants
-			if (tpc.getPlaceholderType() == PlaceholderType.TITLE) {
-				text = this.getTitleText(tpc.getPlaceholderVariants());
-			} else if (tpc.getPlaceholderType() == PlaceholderType.TEXT) {
-				text = this.getText(tpc.getPlaceholderVariants());				
-			}
+			String text = this.getPlaceholderText(tpc.getPlaceholderType(), tpc.getPlaceholderVariants());
 			tpc.setText(text);
 		}
 	}
 	
-	private String getTitleText(Set<PlaceholderVariant> variants) {
+	protected String getPlaceholderText(TextType type, Set<TextVariant> variants) {
 		if (this.placeholderData == null) {
 			return null;
 		}
 		List<String> items = new ArrayList<String>();
-		for (PlaceholderVariant variant : variants) {
-			Object data = this.placeholderData.get(variant);
-			if (data instanceof ReferenceSet) {
-				items.add(((ReferenceSet)data).getReference());
-			}
-		}
-		return String.join(Constants.NEW_LINE, items);
-	}
-	
-	private String getText(Set<PlaceholderVariant> variants) {
-		if (this.placeholderData == null) {
-			return null;
-		}
-		List<String> items = new ArrayList<String>();
-		for (PlaceholderVariant variant : variants) {
-			Object data = this.placeholderData.get(variant);
-			if (data instanceof ReferenceSet) {
-				items.add(((ReferenceSet)data).getText());
-			}
+		for (TextVariant variant : variants) {
+			TextTypeSet data = this.placeholderData.get(variant);
+			items.add(data.getText(type));
 		}
 		return String.join(Constants.NEW_LINE, items);
 	}

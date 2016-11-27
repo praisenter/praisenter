@@ -1,6 +1,6 @@
 package org.praisenter.bible;
 
-public enum ReferenceSetType {
+public enum BibleReferenceSetType {
 	SINGLE,
 	RANGE,
 	COLLECTION
