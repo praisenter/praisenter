@@ -100,36 +100,6 @@ import javafx.scene.shape.StrokeType;
 public final class SlideEditorPane extends BorderPane implements ApplicationPane {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
-	/** The component hover line width */
-	private static final double LINE_WIDTH = 1.0;
-	
-	/** The component hover dash length */
-	private static final double DASH_LENGTH = 2.0f;
-	
-	/** The space between the dashes */
-	private static final double DASH_SPACE_LENGTH = DASH_LENGTH * 2; 
-	
-	// we use two borders each with a different color to allow it to
-	// be visible regardless of the color of the background of the component
-	
-	/** The component hover border color 1 */
-	private static final Color BORDER_COLOR_1 = Color.BLACK;
-	
-	/** The component hover border color 2 */
-	private static final Color BORDER_COLOR_2 = Color.WHITE;
-	
-	/** The size of the resize prongs (should be an odd number to center on corners and sides well) */
-	static final int RESIZE_PRONG_SIZE = 9;
-	
-	// for selection and grid
-	// TODO convert to CSS
-	/** The border 1 stroke */
-	static final BorderStroke BORDER_STROKE_1 = new BorderStroke(BORDER_COLOR_1, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, 0.0, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
-	
-	/** The border 2 stroke */
-	static final BorderStroke BORDER_STROKE_2 = new BorderStroke(BORDER_COLOR_2, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, Double.MAX_VALUE, DASH_LENGTH, Arrays.stream(new Double[] { DASH_LENGTH, DASH_SPACE_LENGTH }).collect(Collectors.toList())), null, new BorderWidths(LINE_WIDTH));
-	
-	private static final PseudoClass HOVER = PseudoClass.getPseudoClass("hover");
 	private static final PseudoClass SELECTED = PseudoClass.getPseudoClass("selected");
 	
 	private final PraisenterContext context;

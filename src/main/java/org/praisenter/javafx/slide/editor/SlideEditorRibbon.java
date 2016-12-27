@@ -6,12 +6,13 @@ import org.praisenter.javafx.slide.ObservableSlideRegion;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.layout.HBox;
 
-final class SlideEditorRibbon extends TabPane {
+final class SlideEditorRibbon extends TabPane implements EventHandler<SlideRibbonEvent> {
 	private final ObjectProperty<ObservableSlide<?>> slide = new SimpleObjectProperty<ObservableSlide<?>>();
 	private final ObjectProperty<ObservableSlideRegion<?>> component = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 	
@@ -43,6 +44,8 @@ final class SlideEditorRibbon extends TabPane {
 		ComponentEditorRibbonTab dateTimeFormat = new DateTimeRibbonTab();
 		ComponentEditorRibbonTab countdownFormat = new CountdownRibbonTab();
 		ComponentEditorRibbonTab placeholder = new PlaceholderRibbonTab();
+		
+		this.addEventHandler(SlideRibbonEvent.ALL, this);
 		
 		slide.componentProperty().bind(this.slide);
 		
@@ -108,6 +111,16 @@ final class SlideEditorRibbon extends TabPane {
 		tabFormat.setClosable(false);
 		
 		this.getTabs().addAll(tabSlide, tabInsert, tabBox, tabText, tabFormat);
+	}
+	
+	/* (non-Javadoc)
+	 * @see javafx.event.EventHandler#handle(javafx.event.Event)
+	 */
+	@Override
+	public void handle(SlideRibbonEvent event) {
+		if (event.getEventType() == SlideRibbonEvent.PLACEHOLDER) {
+			this.slide.get().updatePlaceholders();
+		}
 	}
 	
 	public ObservableSlide<?> getSlide() {

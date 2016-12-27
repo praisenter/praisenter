@@ -22,6 +22,9 @@ public class BibleReferenceTextStore implements TextStore {
 	
 	public BibleReferenceTextStore() {
 		this.data = new HashMap<TextVariant, BibleReferenceSet>();
+		for (TextVariant variant : TextVariant.values()) {
+			this.data.put(variant, new BibleReferenceSet());
+		}
 	}
 	
 	public BibleReferenceTextStore(BibleReferenceTextStore store) {
@@ -72,5 +75,11 @@ public class BibleReferenceTextStore implements TextStore {
 	
 	public void setVariant(TextVariant variant, BibleReferenceSet data) {
 		this.data.put(variant, data);
+	}
+	
+	public void clear() {
+		for (BibleReferenceSet set : this.data.values()) {
+			set.clear();
+		}
 	}
 }

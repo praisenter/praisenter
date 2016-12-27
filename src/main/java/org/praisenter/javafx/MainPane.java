@@ -19,6 +19,7 @@ import org.praisenter.javafx.screen.Display;
 import org.praisenter.javafx.slide.SlideLibraryPane;
 import org.praisenter.javafx.slide.editor.SlideEditorPane;
 import org.praisenter.slide.BasicSlide;
+import org.praisenter.slide.Slide;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -71,7 +72,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			handleApplicationEvent(e);
 		});
 		
-		this.setCenter(new BibleNavigationPane(context));
+		this.setCenter(new SlideDataPane(context));
 		
 //		this.sceneProperty().addListener((obs, ov, nv) -> {
 //			if (nv != null) {
@@ -101,6 +102,10 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				if (data instanceof Bible) {
 					this.bibleEditorPane.setBible(((Bible)data).copy(true));
 					this.navigate(this.bibleEditorPane);
+				}
+				if (data instanceof Slide) {
+					this.slideEditorPane.setSlide(((Slide)data).copy(true));
+					this.navigate(this.slideEditorPane);
 				}
 				break;
 			case NEW_BIBLE:

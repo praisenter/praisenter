@@ -24,30 +24,26 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-public class SlidePreviewPane {
+public class SlidePreviewPane extends StackPane {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 
 	private final PraisenterContext context;
 	
-	private final ObjectProperty<ObservableSlide<Slide>> slide = new SimpleObjectProperty<ObservableSlide<Slide>>();
+	private final ObjectProperty<Slide> slide = new SimpleObjectProperty<Slide>();
 
-	private final StackPane slidePreview;
-	
-	public SlidePreviewPane(PraisenterContext context) {
+	public SlidePreviewPane(PraisenterContext context, SlideMode mode) {
 		this.context = context;
 		
 		final int padding = 0;
 		
-		slidePreview = new StackPane();
-//		slidePreview.setPrefSize(500, 400);
-		slidePreview.setPadding(new Insets(padding));
-		slidePreview.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
+		this.setPadding(new Insets(padding));
+		this.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
 		
 		// clip by the slide Preview area
-		Rectangle clipRect = new Rectangle(slidePreview.getWidth(), slidePreview.getHeight());
-		clipRect.heightProperty().bind(slidePreview.heightProperty());
-		clipRect.widthProperty().bind(slidePreview.widthProperty());
-		slidePreview.setClip(clipRect);
+		Rectangle clipRect = new Rectangle(this.getWidth(), this.getHeight());
+		clipRect.heightProperty().bind(this.heightProperty());
+		clipRect.widthProperty().bind(this.widthProperty());
+		this.setClip(clipRect);
 		
 		StackPane slideBounds = new StackPane();
 		slideBounds.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
@@ -61,17 +57,17 @@ public class SlidePreviewPane {
 		// and the available width height using a uniform scale factor
 		DoubleBinding widthSizing = new DoubleBinding() {
 			{
-				bind(slidePreview.widthProperty(), 
-					 slidePreview.heightProperty());
+				bind(widthProperty(), 
+					 heightProperty());
 			}
 			@Override
 			protected double computeValue() {
-				ObservableSlide<?> s = slide.get();
+				Slide s = slide.get();
 				if (s != null) {
 					double w = s.getWidth();
 					double h = s.getHeight();
-					double tw = slidePreview.getWidth() - padding * 2;
-					double th = slidePreview.getHeight() - padding * 2;
+					double tw = getWidth() - padding * 2;
+					double th = getHeight() - padding * 2;
 					return Math.floor(Fx.getUniformlyScaledBounds(w, h, tw, th).getWidth());
 				}
 				return 0;
@@ -79,17 +75,17 @@ public class SlidePreviewPane {
 		};
 		DoubleBinding heightSizing = new DoubleBinding() {
 			{
-				bind(slidePreview.widthProperty(), 
-					 slidePreview.heightProperty());
+				bind(widthProperty(), 
+					 heightProperty());
 			}
 			@Override
 			protected double computeValue() {
-				ObservableSlide<?> s = slide.get();
+				Slide s = slide.get();
 				if (s != null) {
 					double w = s.getWidth();
 					double h = s.getHeight();
-					double tw = slidePreview.getWidth() - padding * 2;
-					double th = slidePreview.getHeight() - padding * 2;
+					double tw = getWidth() - padding * 2;
+					double th = getHeight() - padding * 2;
 					return Math.floor(Fx.getUniformlyScaledBounds(w, h, tw, th).getHeight());
 				}
 				return 0;
@@ -101,18 +97,19 @@ public class SlidePreviewPane {
 		Pane slideCanvas = new Pane();
 		slideCanvas.setMinSize(0, 0);
 		slideCanvas.setSnapToPixel(true);
-		slidePreview.setSnapToPixel(true);
+		this.setSnapToPixel(true);
 		
 		ObjectBinding<Scaling> scaleFactor = new ObjectBinding<Scaling>() {
 			{
-				bind(slidePreview.widthProperty(), slidePreview.heightProperty());
+				bind(widthProperty(), 
+					 heightProperty());
 			}
 			@Override
 			protected Scaling computeValue() {
-				double tw = slidePreview.getWidth() - padding * 2;
-				double th = slidePreview.getHeight() - padding * 2;
+				double tw = getWidth() - padding * 2;
+				double th = getHeight() - padding * 2;
 				
-				ObservableSlide<?> s = slide.get();
+				Slide s = slide.get();
 				if (s == null) {
 					return new Scaling(1, 0, 0);
 				}
@@ -144,33 +141,46 @@ public class SlidePreviewPane {
 			}
 		};
 		
-		slidePreview.getChildren().addAll(slideBounds, slideCanvas);
+		this.getChildren().addAll(slideBounds, slideCanvas);
 		StackPane.setAlignment(slideBounds, Pos.CENTER);
 		
 		// setup of the editor when the slide being edited changes
 		slide.addListener((obs, ov, nv) -> {
 			slideCanvas.getChildren().clear();
 			
-			if (ov != null) {
-				ov.scalingProperty().unbind();
-				Iterator<ObservableSlideComponent<?>> components = ov.componentIterator();
-				while (components.hasNext()) {
-					ObservableSlideComponent<?> osr = components.next();
-					osr.scalingProperty().unbind();
-				}
-			}
+//			if (ov != null) {
+//				ov.scalingProperty().unbind();
+//				Iterator<ObservableSlideComponent<?>> components = ov.componentIterator();
+//				while (components.hasNext()) {
+//					ObservableSlideComponent<?> osr = components.next();
+//					osr.scalingProperty().unbind();
+//				}
+//			}
 			
 			if (nv != null) {
-				StackPane rootPane = nv.getDisplayPane();
+				ObservableSlide<Slide> os = new ObservableSlide<>(nv, context, mode);
+				StackPane rootPane = os.getDisplayPane();
 				slideCanvas.getChildren().add(rootPane);
-				nv.scalingProperty().bind(scaleFactor);
+				os.scalingProperty().bind(scaleFactor);
 				
-				Iterator<ObservableSlideComponent<?>> components = nv.componentIterator();
+				Iterator<ObservableSlideComponent<?>> components = os.componentIterator();
 				while (components.hasNext()) {
 					ObservableSlideComponent<?> osr = components.next();
 					osr.scalingProperty().bind(scaleFactor);
 				}
 			}
 		});
+	}
+	
+	public Slide getSlide() {
+		return this.slide.get();
+	}
+	
+	public void setSlide(Slide slide) {
+		this.slide.set(slide);
+	}
+	
+	public ObjectProperty<Slide> slideProperty() {
+		return this.slide;
 	}
 }

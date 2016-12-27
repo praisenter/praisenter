@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
+import org.praisenter.TextStore;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.MediaComponent;
@@ -39,6 +40,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	private final StringProperty name = new SimpleStringProperty();
 	private final ObjectProperty<Path> path = new SimpleObjectProperty<Path>();
 	private final LongProperty time = new SimpleLongProperty();
+	private final ObjectProperty<TextStore> placeholderData = new SimpleObjectProperty<TextStore>();
 	
 	private final ObservableList<ObservableSlideComponent<?>> components = FXCollections.observableArrayList();
 
@@ -54,6 +56,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.name.set(slide.getName());
 		this.path.set(slide.getPath());
 		this.time.set(slide.getTime());
+		this.placeholderData.set(slide.getPlaceholderData());
 		
 		for (SlideComponent component : slide.getComponents(SlideComponent.class)) {
 			ObservableSlideComponent<?> comp = this.observableSlideComponent(component);
@@ -72,6 +75,9 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		});
 		this.time.addListener((obs, ov, nv) -> { 
 			slide.setTime(nv.longValue()); 
+		});
+		this.placeholderData.addListener((obs, ov, nv) -> {
+			slide.setPlaceholderData(nv);
 		});
 		
 		this.scale.addListener((obs, ov, nv) -> {
@@ -194,8 +200,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	public void addComponent(ObservableSlideComponent<?> component) {
 		// this sets the order, so must be done first
 		this.region.addComponent(component.region);
-		// copy over the order to the observable
-//		component.order.set(component.region.getOrder());
 		// add to the observable list
 		this.components.add(component);
 		
@@ -217,14 +221,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.region.moveComponentDown(component.region);
 		
 		// now we need to reflect those changes in the observable objects
-		
-		// reset the orders
-//		for (ObservableSlideComponent<?> comp : this.components) {
-//			comp.setOrder(comp.region.getOrder());
-//		}
-		// resort the components list
-//		FXCollections.sort(this.components);
-		
+
 		int index = this.components.indexOf(component);
 		if (index > 0) {
 			Collections.swap(this.components, index, index - 1);
@@ -240,12 +237,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		
 		// now we need to reflect those changes in the observable objects
 		
-		// reset the orders
-//		for (ObservableSlideComponent<?> comp : this.components) {
-//			comp.setOrder(comp.region.getOrder());
-//		}
-		// resort the components list
-//		FXCollections.sort(this.components);
 		int index = this.components.indexOf(component);
 		if (index >= 0 && index < this.components.size() - 1) {
 			Collections.swap(this.components, index, index + 1);
@@ -261,12 +252,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		
 		// now we need to reflect those changes in the observable objects
 		
-		// reset the orders
-//		for (ObservableSlideComponent<?> comp : this.components) {
-//			comp.setOrder(comp.region.getOrder());
-//		}
-		// resort the components list
-//		FXCollections.sort(this.components);
 		this.components.remove(component);
 		this.components.add(component);
 		
@@ -280,12 +265,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		
 		// now we need to reflect those changes in the observable objects
 		
-		// reset the orders
-//		for (ObservableSlideComponent<?> comp : this.components) {
-//			comp.setOrder(comp.region.getOrder());
-//		}
-		// resort the components list
-//		FXCollections.sort(this.components);
 		this.components.remove(component);
 		this.components.add(0, component);
 		
@@ -335,13 +314,38 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		return this.time;
 	}
 
+	// placeholder
+	
+	public TextStore getPlaceholderData() {
+		return this.placeholderData.get();
+	}
+	
+	public void setPlaceholderData(TextStore data) {
+		this.placeholderData.set(data);
+	}
+	
+	public ObjectProperty<TextStore> placeholderDataProperty() {
+		return this.placeholderData;
+	}
+	
+	public boolean hasPlaceholders() {
+		return this.region.hasPlaceholders();
+	}
+	
+	public void updatePlaceholders() {
+		this.region.updatePlaceholders();
+		// iterate all the placeholders
+		for (ObservableSlideComponent<?> osc : this.components) {
+			if (osc instanceof ObservableTextPlaceholderComponent) {
+				ObservableTextPlaceholderComponent otpc = (ObservableTextPlaceholderComponent)osc;
+				otpc.setText(otpc.getText());
+			}
+		}
+	}
+	
 	// others
 	
 	public String getVersion() {
 		return this.region.getVersion();
-	}
-
-	public boolean hasPlaceholders() {
-		return this.region.hasPlaceholders();
 	}
 }

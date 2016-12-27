@@ -66,7 +66,6 @@ final class MediaLibraryDialog extends BorderPane {
 		if (owner != null) {
 			this.dialog.initOwner(owner);
 		}
-		// FIXME add OK/Cancel buttons
 		this.dialog.setTitle(Translations.get("media.library.title"));
 		this.dialog.initModality(Modality.WINDOW_MODAL);
 		this.dialog.initStyle(StageStyle.UTILITY);

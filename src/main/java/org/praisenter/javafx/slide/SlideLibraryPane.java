@@ -1,5 +1,7 @@
 package org.praisenter.javafx.slide;
 
+import org.praisenter.javafx.ApplicationAction;
+import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.FlowListCell;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.PraisenterContext;
@@ -36,11 +38,9 @@ public class SlideLibraryPane extends BorderPane {
 			@SuppressWarnings("unchecked")
 			FlowListCell<SlideListItem> view = (FlowListCell<SlideListItem>)e.getTarget();
 			SlideListItem item = view.getData();
-			
-//			editor.setSlide(null);
-//			editor.setSlide(item.slide);
-//			
-//			this.setCenter(editor);
+			if (item.isLoaded()) {
+	    		fireEvent(new ApplicationEvent(e.getSource(), e.getTarget(), ApplicationEvent.ALL, ApplicationAction.EDIT, item.getSlide()));
+	    	}
 		});
 		
 		this.setCenter(this.slides);

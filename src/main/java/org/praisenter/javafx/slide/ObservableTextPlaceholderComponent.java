@@ -69,7 +69,7 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 	}
 	
 	public String getText() {
-		String text = super.getText();
+		String text = this.region.getText();
 		if (this.mode == SlideMode.EDIT && (text == null || text.length() == 0)) {
 			text = this.getTextFor(this.placeholderType.get(), this.placeholderVariant.get());
 		}

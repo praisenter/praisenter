@@ -15,8 +15,10 @@ import org.praisenter.utility.ImageManipulator;
 
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenerator {
@@ -44,9 +46,15 @@ public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenera
 			ObservableSlide<?> nSlide = new ObservableSlide<>(slide, context, SlideMode.SNAPSHOT);
 			
 			SnapshotParameters sp = new SnapshotParameters();
+			// make sure the snapshot's background is transparent
 			sp.setFill(Color.TRANSPARENT);
+			// make sure we only render the slide width/height since components can spill
+			// over the width, but won't be shown when displayed
+			sp.setViewport(new Rectangle2D(0, 0, slide.getWidth(), slide.getHeight()));
 			
-			return nSlide.getDisplayPane().snapshot(sp, null);
+			// use a Pane to contain the slide's display pane so that we avoid the
+			// issue of positioning based on what the display pane's type is
+			return new Pane(nSlide.getDisplayPane()).snapshot(sp, null);
 		};
 		
 		// since we are using Java FX to render the slides, we need to make sure

@@ -220,4 +220,8 @@ public final class BibleReferenceSet {
 		}
 		return sb.toString();
 	}
+	
+	public void clear() {
+		this.references.clear();
+	}
 }

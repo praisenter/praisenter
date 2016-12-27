@@ -24,10 +24,12 @@
  */
 package org.praisenter.javafx.slide.editor;
 
+import org.controlsfx.control.PopOver;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.graphics.SlideGradient;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.scene.Node;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -41,7 +43,9 @@ import javafx.stage.Window;
  */
 final class SlideGradientPickerDialog extends BorderPane {
 	/** The dialog */
-	private final Stage dialog;
+//	private final Stage dialog;
+	
+	private final PopOver dialog;
 	
 	/** The media library pane */
 	private final SlideGradientPickerPane gradientPane;
@@ -52,30 +56,23 @@ final class SlideGradientPickerDialog extends BorderPane {
 	 */
 	public SlideGradientPickerDialog(Window owner) {
 		// build the dialog
-		this.dialog = new Stage();
-		if (owner != null) {
-			this.dialog.initOwner(owner);
-		}
-		// TODO translate
-		// FIXME add ok/cancel buttons
-		this.dialog.setTitle("Gradient");
-		this.dialog.initModality(Modality.WINDOW_MODAL);
-		this.dialog.initStyle(StageStyle.UTILITY);
-		// NOTE: this makes the title portion of the modal shorter
-		this.dialog.setResizable(false);
+		this.dialog = new PopOver();
+		this.dialog.setDetachable(false);
+		this.dialog.setAutoFix(false);
 		
 		// build the media library pane
 		this.gradientPane = new SlideGradientPickerPane();
-
 		this.setCenter(this.gradientPane);
-		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));
+		
+		this.dialog.setContentNode(this);
 	}
 	
 	/**
 	 * Shows this dialog.
+	 * @param owner the owning node
 	 */
-	public void show() {
-		this.dialog.show();
+	public void show(Node owner) {
+		this.dialog.show(owner);
 	}
 	
 	/**

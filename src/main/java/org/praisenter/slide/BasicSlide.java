@@ -150,7 +150,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		
 		this.components = new ArrayList<SlideComponent>();
 		this.animations = new ArrayList<SlideAnimation>();
-		this.placeholderData = other.placeholderData.copy();
+		this.placeholderData = other.placeholderData != null ? other.placeholderData.copy() : null;
 		this.tags = new TreeSet<Tag>();
 		
 		if (exact) {
@@ -501,9 +501,10 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		this.updatePlaceholders();
 	}
 	
-	/**
-	 * Updates any placeholders on this slide with the current placeholder data.
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#updatePlaceholders()
 	 */
+	@Override
 	public void updatePlaceholders() {
 		// iterate all the placeholders
 		for (TextPlaceholderComponent tpc : this.getComponents(TextPlaceholderComponent.class)) {

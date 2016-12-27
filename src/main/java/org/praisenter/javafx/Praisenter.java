@@ -225,15 +225,21 @@ public final class Praisenter extends Application {
 		double w = CONFIGURATION.getDouble(Setting.GENERAL_WIDTH, MIN_WIDTH);
 		double h = CONFIGURATION.getDouble(Setting.GENERAL_HEIGHT, MIN_HEIGHT);
     	
-		// set position and size, but only if
+		// clamp the size
+		if (w < MIN_WIDTH) w = MIN_WIDTH;
+		if (h < MIN_HEIGHT) h = MIN_HEIGHT;
+		
+		// set the size
+		stage.setWidth(w);
+    	stage.setHeight(h);
+		
+		// set position, but only if
 		// we are in the bounds of a screen
 		// if not, we'll rely on Java FX to place
 		// the window a the default location
 		if (this.isInScreenBounds(x, y, w, h)) {
 			stage.setX(x);
 			stage.setY(y);
-	    	stage.setWidth(w);
-	    	stage.setHeight(h);
 		}
     	
 		// load fonts

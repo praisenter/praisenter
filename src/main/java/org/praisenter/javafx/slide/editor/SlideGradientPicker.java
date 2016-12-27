@@ -88,7 +88,7 @@ final class SlideGradientPicker extends SplitMenuButton {
 			value.bindBidirectional(this.dialog.valueProperty());
 		}
 		// show the dialog
-		dialog.show();
+		dialog.show(this);
 	}
 	
 	/**

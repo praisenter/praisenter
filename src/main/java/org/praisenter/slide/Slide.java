@@ -257,6 +257,11 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	public abstract TextStore getPlaceholderData();
 	
 	/**
+	 * Updates any placeholders on this slide with the current placeholder data.
+	 */
+	public void updatePlaceholders();
+	
+	/**
 	 * Returns the tags for this slide.
 	 * @return Set&lt;{@link Tag}&gt;
 	 */

@@ -438,12 +438,8 @@ public final class ObservableSlideLibrary {
 						// save it to disk
 						library.save(slide);
 						generated++;
-					} catch (JAXBException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					} catch (Exception e) {
+						LOGGER.warn("Failed to save slide after generating thumbnail: " + e.getMessage(), e);
 					}
 				}
 			}

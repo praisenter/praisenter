@@ -35,9 +35,11 @@ import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.SearchType;
+import org.praisenter.TextVariant;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleReferenceSet;
 import org.praisenter.bible.BibleReferenceTextStore;
+import org.praisenter.bible.BibleReferenceVerse;
 import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
@@ -51,11 +53,13 @@ import org.praisenter.javafx.configuration.Setting;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 
@@ -64,6 +68,10 @@ public final class BibleNavigationPane extends BorderPane {
 
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
+	
+	private static final String FIND = "FIND";
+	private static final String NEXT = "NEXT";
+	private static final String PREVIOUS = "PREVIOUS";
 	
 	private ComboBox<BibleListItem> cmbBiblePrimary;
 	private ComboBox<BibleListItem> cmbBibleSecondary;
@@ -81,7 +89,6 @@ public final class BibleNavigationPane extends BorderPane {
 	
 	// TODO features: 
 	// validation 
-	// selection (shift? and ctrl keys)
 	// search box (brings up full search window-non-modal)
 	// toggle to use secondary translation (or just allow a blank option)
 	// template selection
@@ -360,5 +367,101 @@ public final class BibleNavigationPane extends BorderPane {
 			// no book or chapter selected
 			lblVerses.setText(null);
 		}
+	}
+	
+	private void onAction(MouseEvent event, String type) {
+		if (!event.isControlDown()){
+			this.selected.clear();
+		}
+		
+		Bible bible = cmbBiblePrimary.getValue().getBible();
+		Bible bible2 = cmbBibleSecondary.getValue().getBible();
+		Book book = cmbBook.valueProperty().get();
+		if (book != null) {
+			short bn = book.getNumber();
+			short ch = spnChapter.getValue().shortValue();
+			short v = spnVerse.getValue().shortValue();
+			
+			switch(type) {
+				case FIND:
+					StringBuilder sb = new StringBuilder();
+					try {
+						LocatedVerse lv = bible.getVerse(bn, ch, v);
+						if (lv != null) {
+							sb.append(lv.getVerse().getText());
+							this.selected.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(lv));
+						} else {
+							sb.append("Verse not found in " + bible.getName());
+						}
+						
+						if (bible2 != null) {
+							LocatedVerse tv = bible2.getVerse(bn, ch, v);
+							if (tv != null) {
+								sb.append(tv.getVerse().getText());
+								this.selected.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(lv));
+							}
+						}
+						
+						text.setText(sb.toString());
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to get verse: " + book + " " + ch + ":" + v, ex);
+					}
+					break;
+				case NEXT:
+					try {
+						LocatedVerseTriplet lv = bible.getNextTriplet(book.getNumber(), ch, v);
+						if (lv != null) {
+							cmbBook.setValue(lv.getCurrent().getBook());
+							spnChapter.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getChapter().getNumber()));
+							spnVerse.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getVerse().getNumber()));
+							text.setText(
+									lv.getPrevious().getVerse().getText() + Constants.NEW_LINE +
+									lv.getCurrent().getVerse().getText() + Constants.NEW_LINE +
+									(lv.getNext() != null ? lv.getNext().getVerse().getText() : ""));
+							
+							this.selected.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(lv.getCurrent()));
+						}
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to get next verse for: " + book + " " + ch + ":" + v, ex);
+					}
+					break;
+				case PREVIOUS:
+					try {
+						LocatedVerseTriplet lv = bible.getPreviousTriplet(book.getNumber(), ch, v);
+						if (lv != null) {
+							cmbBook.setValue(lv.getCurrent().getBook());
+							spnChapter.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getChapter().getNumber()));
+							spnVerse.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getVerse().getNumber()));
+							text.setText(
+									(lv.getPrevious() != null ? lv.getPrevious().getVerse().getText() + Constants.NEW_LINE : "") +
+									lv.getCurrent().getVerse().getText() + Constants.NEW_LINE +
+									lv.getNext().getVerse().getText());
+							
+							this.selected.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(lv.getCurrent()));
+						}
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to get previous verse for: " + book + " " + ch + ":" + v, ex);
+					}
+					break;
+				default:
+					break;
+			}
+			
+		}
+	}
+	
+	private BibleReferenceVerse toReference(LocatedVerse verse) {
+		return new BibleReferenceVerse(
+				verse.getBible().getId(), 
+				verse.getBible().getName(), 
+				verse.getBook().getName(), 
+				verse.getBook().getNumber(), 
+				verse.getChapter().getNumber(), 
+				verse.getVerse().getNumber(), 
+				verse.getVerse().getText());
+	}
+	
+	public BibleReferenceTextStore getData() {
+		return this.selected;
 	}
 }

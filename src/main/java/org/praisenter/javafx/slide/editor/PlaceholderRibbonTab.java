@@ -56,6 +56,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
 				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
 				tc.setPlaceholderType(nv.getValue());
+				fireEvent(new SlideRibbonEvent(this.cmbTextType, this.cmbTextType, SlideRibbonEvent.PLACEHOLDER));
 			}
 		});
 		
@@ -65,6 +66,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
 				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
 				tc.setPlaceholderVariant(nv.getValue());
+				fireEvent(new SlideRibbonEvent(this.cmbTextVariant, this.cmbTextVariant, SlideRibbonEvent.PLACEHOLDER));
 			}
 		});
 		
