@@ -10,6 +10,7 @@ import org.praisenter.TextType;
 import org.praisenter.TextVariant;
 import org.praisenter.bible.BibleReferenceSet;
 import org.praisenter.bible.BibleReferenceSetType;
+import org.praisenter.bible.BibleReferenceTextStore;
 import org.praisenter.bible.BibleReferenceVerse;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
@@ -172,6 +173,7 @@ public class TestSlideSaving {
 		slide.addComponent(tp);
 		slide.addComponent(cd);
 
+		BibleReferenceTextStore data = new BibleReferenceTextStore();
 		BibleReferenceSet rs = new BibleReferenceSet();
 		rs.setType(BibleReferenceSetType.SINGLE);
 		rs.getReferenceVerses().add(new BibleReferenceVerse(
@@ -182,7 +184,8 @@ public class TestSlideSaving {
 				(short)1, 
 				(short)1, 
 				"This is the text"));
-		slide.setPlaceholderData(TextVariant.PRIMARY, rs);
+		data.setVariant(TextVariant.PRIMARY, rs);
+		slide.setPlaceholderData(data);
 		
 //		slide.setBackground(vid);
 		slide.setBackground(new SlideColor(0, 0, 1.0, 0.5));

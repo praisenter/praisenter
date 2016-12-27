@@ -3,27 +3,23 @@ package org.praisenter.javafx.slide;
 import org.praisenter.TextType;
 import org.praisenter.TextVariant;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
 
 public final class ObservableTextPlaceholderComponent extends ObservableTextComponent<TextPlaceholderComponent> {
 	
 	final ObjectProperty<TextType> placeholderType = new SimpleObjectProperty<TextType>();
-	final ObservableSet<TextVariant> placeholderVariants = FXCollections.observableSet();
+	final ObjectProperty<TextVariant> placeholderVariant = new SimpleObjectProperty<TextVariant>();
 	
 	public ObservableTextPlaceholderComponent(TextPlaceholderComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
 		
 		// set initial values
 		this.placeholderType.set(component.getPlaceholderType());
-		this.placeholderVariants.addAll(component.getPlaceholderVariants());
+		this.placeholderVariant.set(component.getPlaceholderVariant());
 		
 		if (this.mode == SlideMode.EDIT ||
 			this.mode == SlideMode.PREVIEW ||
@@ -31,31 +27,16 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 			this.text.set(this.getText());
 		}
 		
-		// TODO this will need to be replaced with the appropriate text at display time
 		this.placeholderType.addListener((obs, ov, nv) -> { 
 			this.region.setPlaceholderType(nv); 
 			this.text.set(this.getText());
 		});
 		
-		this.placeholderVariants.addListener(new InvalidationListener() {
-			@Override
-			public void invalidated(Observable observable) {
-				text.set(getText());
-			}
+		this.placeholderVariant.addListener((obs, ov, nv) -> {
+			this.region.setPlaceholderVariant(nv); 
+			this.text.set(this.getText());
 		});
-		
-		this.placeholderVariants.addListener(new SetChangeListener<TextVariant>() {
-			@Override
-			public void onChanged(javafx.collections.SetChangeListener.Change<? extends TextVariant> change) {
-				if (change.wasAdded()) {
-					region.getPlaceholderVariants().add(change.getElementAdded());
-				}
-				if (change.wasRemoved()) {
-					region.getPlaceholderVariants().remove(change.getElementRemoved());
-				}
-			}
-		});
-		
+
 		this.build();
 	}
 	
@@ -73,34 +54,40 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 		return this.placeholderType;
 	}
 	
-	// variants
+	// placeholder variant
 	
-	public ObservableSet<TextVariant> getPlaceholderVariants() {
-		return this.placeholderVariants;
+	public TextVariant getPlaceholderVariant() {
+		return this.placeholderVariant.get();
 	}
-
+	
+	public void setPlaceholderVariant(TextVariant variant) {
+		this.placeholderVariant.set(variant);
+	}
+	
+	public ObjectProperty<TextVariant> placeholderVariantProperty() {
+		return this.placeholderVariant;
+	}
+	
 	public String getText() {
-		StringBuilder sb = new StringBuilder();
-		for (TextVariant variant : this.placeholderVariants) {
-			if (sb.length() > 0) sb.append("\n\n");
-			sb.append(this.getTextFor(this.placeholderType.get(), variant));
+		String text = super.getText();
+		if (this.mode == SlideMode.EDIT && (text == null || text.length() == 0)) {
+			text = this.getTextFor(this.placeholderType.get(), this.placeholderVariant.get());
 		}
-		return sb.toString();
+		return text;
 	}
 	
 	private String getTextFor(TextType type, TextVariant variant) {
-		// TODO translate
 		if (type == TextType.TITLE) {
 			if (variant == TextVariant.PRIMARY) {
-				return "The Primary Title";
+				return Translations.get("slide.placeholder.type.title.primary");
 			} else {
-				return "The Secondary Title";
+				return Translations.get("slide.placeholder.type.title.secondary");
 			}
 		} else {
 			if (variant == TextVariant.PRIMARY) {
-				return "The primary text.";
+				return Translations.get("slide.placeholder.type.text.primary");
 			} else {
-				return "The secondary text.";
+				return Translations.get("slide.placeholder.type.text.secondary");
 			}
 		}
 	}

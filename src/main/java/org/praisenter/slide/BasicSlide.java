@@ -42,17 +42,15 @@ import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlElementRefs;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.Constants;
 import org.praisenter.ReadonlyIterator;
 import org.praisenter.Tag;
+import org.praisenter.TextStore;
 import org.praisenter.TextType;
-import org.praisenter.TextTypeSet;
 import org.praisenter.TextVariant;
-import org.praisenter.TextVariantSet;
-import org.praisenter.bible.BibleReferenceSet;
+import org.praisenter.bible.BibleReferenceTextStore;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.CountdownComponent;
@@ -105,8 +103,10 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	final List<SlideAnimation> animations;
 
 	/** Any placeholder data */
-	@XmlElement(name = "placeholderData", required = false)
-	final TextVariantSet<TextTypeSet> placeholderData;
+	@XmlElementRefs({
+		@XmlElementRef(type = BibleReferenceTextStore.class)
+	})
+	TextStore placeholderData;
 	
 	/** The tags */
 	@XmlElement(name = "tag", required = false)
@@ -134,7 +134,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		super(id);
 		this.components = new ArrayList<SlideComponent>();
 		this.animations = new ArrayList<SlideAnimation>();
-		this.placeholderData = new TextVariantSet();
+		this.placeholderData = null;
 		this.time = Slide.TIME_FOREVER;
 		this.tags = new TreeSet<Tag>();
 	}
@@ -150,7 +150,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		
 		this.components = new ArrayList<SlideComponent>();
 		this.animations = new ArrayList<SlideAnimation>();
-		this.placeholderData = new TextVariantSet(other.placeholderData);
+		this.placeholderData = other.placeholderData.copy();
 		this.tags = new TreeSet<Tag>();
 		
 		if (exact) {
@@ -488,49 +488,41 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	 * @see org.praisenter.slide.Slide#getPlaceholderData(org.praisenter.TextVariant)
 	 */
 	@Override
-	public TextTypeSet getPlaceholderData(TextVariant variant) {
-		return this.placeholderData.get(variant);
+	public TextStore getPlaceholderData() {
+		return this.placeholderData;
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#setPlaceholderData(org.praisenter.TextVariant, org.praisenter.TextTypeSet)
 	 */
 	@Override
-	public TextTypeSet setPlaceholderData(TextVariant variant, TextTypeSet data) {
-		TextTypeSet value = this.placeholderData.set(variant, data);
+	public void setPlaceholderData(TextStore data) {
+		this.placeholderData = data;
 		this.updatePlaceholders();
-		return value;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#removePlaceholderData(org.praisenter.TextVariant)
+	/**
+	 * Updates any placeholders on this slide with the current placeholder data.
 	 */
-	@Override
-	public TextTypeSet removePlaceholderData(TextVariant variant) {
-		TextTypeSet value = this.placeholderData.remove(variant);
-		if (value != null) {
-			this.updatePlaceholders();
-		}
-		return value;
-	}
-	
-	protected void updatePlaceholders() {
+	public void updatePlaceholders() {
 		// iterate all the placeholders
 		for (TextPlaceholderComponent tpc : this.getComponents(TextPlaceholderComponent.class)) {
-			String text = this.getPlaceholderText(tpc.getPlaceholderType(), tpc.getPlaceholderVariants());
+			String text = this.getPlaceholderText(tpc.getPlaceholderType(), tpc.getPlaceholderVariant());
 			tpc.setText(text);
 		}
 	}
 	
-	protected String getPlaceholderText(TextType type, Set<TextVariant> variants) {
+	/**
+	 * Returns the placeholder text for the given type and variant.
+	 * @param type the type
+	 * @param variant the variant
+	 * @return String
+	 */
+	protected String getPlaceholderText(TextType type, TextVariant variant) {
 		if (this.placeholderData == null) {
 			return null;
 		}
-		List<String> items = new ArrayList<String>();
-		for (TextVariant variant : variants) {
-			TextTypeSet data = this.placeholderData.get(variant);
-			items.add(data.getText(type));
-		}
-		return String.join(Constants.NEW_LINE, items);
+		
+		return this.placeholderData.get(variant, type);
 	}
 }

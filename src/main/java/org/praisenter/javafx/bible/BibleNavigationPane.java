@@ -24,9 +24,7 @@
  */
 package org.praisenter.javafx.bible;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -37,15 +35,14 @@ import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.SearchType;
-import org.praisenter.TextVariant;
-import org.praisenter.TextVariantSet;
 import org.praisenter.bible.Bible;
+import org.praisenter.bible.BibleReferenceSet;
+import org.praisenter.bible.BibleReferenceTextStore;
 import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.LocatedVerse;
 import org.praisenter.bible.LocatedVerseTriplet;
-import org.praisenter.bible.BibleReferenceSet;
 import org.praisenter.javafx.AutoCompleteComboBox;
 import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.PraisenterContext;
@@ -80,7 +77,7 @@ public final class BibleNavigationPane extends BorderPane {
 	private Label lblChapters;
 	private Label lblVerses;
 	
-	private TextVariantSet<BibleReferenceSet> selected = new TextVariantSet<BibleReferenceSet>();
+	private BibleReferenceTextStore selected = new BibleReferenceTextStore();
 	
 	// TODO features: 
 	// validation 

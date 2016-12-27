@@ -1,8 +1,5 @@
 package org.praisenter.javafx.slide.editor;
 
-import java.util.stream.Collectors;
-
-import org.controlsfx.control.CheckComboBox;
 import org.praisenter.TextType;
 import org.praisenter.TextVariant;
 import org.praisenter.javafx.Option;
@@ -18,7 +15,7 @@ import javafx.scene.layout.VBox;
 class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 
 	private final ComboBox<Option<TextType>> cmbTextType;
-	private final CheckComboBox<Option<TextVariant>> cmbTextVariants;
+	private final ComboBox<Option<TextVariant>> cmbTextVariant;
 	
 	public PlaceholderRibbonTab() {
 		super("Placeholder");
@@ -37,14 +34,15 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 		this.cmbTextType.setMaxWidth(200);
 		this.cmbTextType.setPrefWidth(200);
 		
-		this.cmbTextVariants = new CheckComboBox<Option<TextVariant>>(placeholderVariants);
-		this.cmbTextVariants.setMaxWidth(200);
-		this.cmbTextVariants.setPrefWidth(200);
+		this.cmbTextVariant = new ComboBox<Option<TextVariant>>(placeholderVariants);
+		this.cmbTextVariant.setValue(placeholderVariants.get(0));
+		this.cmbTextVariant.setMaxWidth(200);
+		this.cmbTextVariant.setPrefWidth(200);
 		
 		// layout
 		
 		HBox row1 = new HBox(2, this.cmbTextType);
-		HBox row2 = new HBox(2, this.cmbTextVariants);
+		HBox row2 = new HBox(2, this.cmbTextVariant);
 
 		VBox layout = new VBox(2, row1, row2);
 		
@@ -61,13 +59,12 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 			}
 		});
 		
-		this.cmbTextVariants.checkModelProperty().get().getCheckedItems().addListener((javafx.collections.ListChangeListener.Change<? extends Option<TextVariant>> change) -> {
+		this.cmbTextVariant.valueProperty().addListener((obs, ov, nv) -> {
 			if (mutating) return;
 			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
 				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
-				tc.getPlaceholderVariants().clear();
-				tc.getPlaceholderVariants().addAll(change.getList().stream().map((o) -> o.getValue()).collect(Collectors.toList()));
+				tc.setPlaceholderVariant(nv.getValue());
 			}
 		});
 		
@@ -77,14 +74,11 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 				this.setDisable(false);
 				ObservableTextPlaceholderComponent otpc = (ObservableTextPlaceholderComponent)nv;
 				this.cmbTextType.setValue(new Option<TextType>(null, otpc.getPlaceholderType()));
-				this.cmbTextVariants.getCheckModel().clearChecks();
-				for (TextVariant variant : otpc.getPlaceholderVariants()) {
-					this.cmbTextVariants.getCheckModel().check(new Option<TextVariant>(null, variant));
-				}
+				this.cmbTextVariant.setValue(new Option<TextVariant>(null, otpc.getPlaceholderVariant()));
 			} else {
 				this.setDisable(true);
 				this.cmbTextType.setValue(placeholderTypes.get(0));
-				this.cmbTextVariants.getCheckModel().clearChecks();
+				this.cmbTextVariant.setValue(placeholderVariants.get(0));
 			}
 			mutating = false;
 		});

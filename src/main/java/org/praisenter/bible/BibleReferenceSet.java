@@ -2,6 +2,7 @@ package org.praisenter.bible;
 
 import java.text.MessageFormat;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -13,12 +14,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.TextStore;
 import org.praisenter.TextType;
-import org.praisenter.TextTypeSet;
+import org.praisenter.TextVariant;
 
-@XmlRootElement(name = "referenceSet")
+@XmlRootElement(name = "bibleReferenceSet")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class BibleReferenceSet extends TextTypeSet {
+public final class BibleReferenceSet {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	@XmlAttribute(name = "type")
@@ -45,9 +47,6 @@ public final class BibleReferenceSet extends TextTypeSet {
 		return this.references;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.praisenter.TextTypeSet#copy()
-	 */
 	public BibleReferenceSet copy() {
 		BibleReferenceSet rs = new BibleReferenceSet();
 		rs.type = this.type;
@@ -55,10 +54,6 @@ public final class BibleReferenceSet extends TextTypeSet {
 		return rs;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.TextTypeSet#getText(org.praisenter.TextType)
-	 */
-	@Override
 	public String getText(TextType type) {
 		// check for null
 		if (this.references == null) {

@@ -24,18 +24,36 @@
  */
 package org.praisenter;
 
-import javax.xml.bind.annotation.XmlEnum;
+import java.util.Map;
 
 /**
- * An enumeration of the types of text.
+ * Represents a storage object for text types and variants.
+ * <p>
+ * Typically, each implementation of this interface will have a different method of
+ * storing the text data.  This interface defines a minimal set of methods to allow
+ * usage of these objects with no understanding of the underlying storage mechanism.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
-public enum TextType {
-	/** Represents text that is a title */
-	TITLE,
+public interface TextStore {
+	/**
+	 * Returns the text for the given variant and type.
+	 * @param variant the variant
+	 * @param type the type
+	 * @return String
+	 */
+	public abstract String get(TextVariant variant, TextType type);
 	
-	/** Represents text that is a block of text */
-	TEXT
+	/**
+	 * Returns a map from the text type to the text for the given variant.
+	 * @param variant the variant
+	 * @return Map&lt;{@link TextType}, String&gt;
+	 */
+	public abstract Map<TextType, String> get(TextVariant variant);
+	
+	/**
+	 * Returns a deep copy of this text store.
+	 * @return {@link TextStore}
+	 */
+	public abstract TextStore copy();
 }

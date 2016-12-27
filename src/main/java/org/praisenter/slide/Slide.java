@@ -36,8 +36,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.Tag;
-import org.praisenter.TextTypeSet;
-import org.praisenter.TextVariant;
+import org.praisenter.TextStore;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
@@ -246,26 +245,16 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	// other
 	
 	/**
-	 * Sets the data for the given variant.
-	 * @param variant the variant
+	 * Sets the placeholder data.
 	 * @param data the data
-	 * @return {@link TextTypeSet} the old value or null
 	 */
-	public abstract TextTypeSet setPlaceholderData(TextVariant variant, TextTypeSet data);
+	public abstract void setPlaceholderData(TextStore data);
 	
 	/**
-	 * Returns the data for the given variant or null.
-	 * @param variant the variant
-	 * @return {@link TextTypeSet}
+	 * Returns the placeholder data.
+	 * @return {@link TextStore}
 	 */
-	public abstract TextTypeSet getPlaceholderData(TextVariant variant);
-	
-	/**
-	 * Removes the data for the given variant.
-	 * @param variant the variant
-	 * @return {@link TextTypeSet} the old value or null
-	 */
-	public abstract TextTypeSet removePlaceholderData(TextVariant variant);
+	public abstract TextStore getPlaceholderData();
 	
 	/**
 	 * Returns the tags for this slide.

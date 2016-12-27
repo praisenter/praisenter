@@ -92,7 +92,7 @@ public class InsertTextRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 			phc.setWidth(200);
 			phc.setHeight(100);
 			phc.setPlaceholderType(TextType.TITLE);
-			phc.getPlaceholderVariants().add(TextVariant.PRIMARY);
+			phc.setPlaceholderVariant(TextVariant.PRIMARY);
 			phc.setTextPaint(new SlideColor(0, 0, 0, 1));
 			phc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 20));
 			fireEvent(new SlideComponentAddEvent(placeholder, InsertTextRibbonTab.this, new ObservableTextPlaceholderComponent(phc, context, SlideMode.EDIT)));

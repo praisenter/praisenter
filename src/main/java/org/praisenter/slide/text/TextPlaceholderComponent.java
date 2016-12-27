@@ -24,13 +24,9 @@
  */
 package org.praisenter.slide.text;
 
-import java.util.Set;
-import java.util.TreeSet;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.TextType;
@@ -53,18 +49,16 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	@XmlElement(name = "placeholderType", required = false)
 	TextType placeholderType;
 	
-	/** The placeholder variants */
-	@XmlElement(name = "variant", required = false)
-	@XmlElementWrapper(name = "placeholderVariants", required = false)
-	final Set<TextVariant> placeholderVariants;
+	/** The placeholder variant */
+	@XmlElement(name = "placeholderVariant", required = false)
+	TextVariant placeholderVariant;
 
 	/**
 	 * Default constructor.
 	 */
 	public TextPlaceholderComponent() {
 		this.placeholderType = TextType.TEXT;
-		this.placeholderVariants = new TreeSet<TextVariant>();
-		this.placeholderVariants.add(TextVariant.PRIMARY);
+		this.placeholderVariant = TextVariant.PRIMARY;
 	}
 
 	/**
@@ -75,7 +69,7 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	public TextPlaceholderComponent(TextPlaceholderComponent other, boolean exact) {
 		super(other, exact);
 		this.placeholderType = other.placeholderType;
-		this.placeholderVariants = new TreeSet<TextVariant>(other.placeholderVariants);
+		this.placeholderVariant = other.placeholderVariant;
 	}
 	
 	/* (non-Javadoc)
@@ -114,10 +108,21 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	}
 
 	/**
-	 * Returns this placeholder's variants.
-	 * @return Set&lt;{@link TextVariant}&gt;
+	 * Returns this placeholder's variant.
+	 * @return {@link TextVariant}
 	 */
-	public Set<TextVariant> getPlaceholderVariants() {
-		return this.placeholderVariants;
+	public TextVariant getPlaceholderVariant() {
+		return this.placeholderVariant;
+	}
+	
+	/**
+	 * Sets this placeholder's variant.
+	 * @param variant the text variant
+	 */
+	public void setPlaceholderVariant(TextVariant variant) {
+		if (variant == null) {
+			variant = TextVariant.PRIMARY;
+		}
+		this.placeholderVariant = variant;
 	}
 }
