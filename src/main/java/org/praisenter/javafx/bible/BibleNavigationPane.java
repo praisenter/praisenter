@@ -33,14 +33,10 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
-import org.praisenter.Constants;
-import org.praisenter.SearchType;
 import org.praisenter.TextVariant;
 import org.praisenter.bible.Bible;
-import org.praisenter.bible.BibleReferenceSet;
 import org.praisenter.bible.BibleReferenceTextStore;
 import org.praisenter.bible.BibleReferenceVerse;
-import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.LocatedVerse;
@@ -50,15 +46,15 @@ import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.configuration.Setting;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -78,25 +74,23 @@ public final class BibleNavigationPane extends BorderPane {
 	private AutoCompleteComboBox<Book> cmbBook;
 	private Spinner<Integer> spnChapter;
 	private Spinner<Integer> spnVerse;
-	private TextField txtSearch;
-	
-	private Label text;
 	
 	private Label lblChapters;
 	private Label lblVerses;
 	
-	private BibleReferenceTextStore selected = new BibleReferenceTextStore();
+	private final ObjectProperty<BibleReferenceTextStore> value = new SimpleObjectProperty<BibleReferenceTextStore>();
 	
 	// TODO features: 
 	// validation 
 	// search box (brings up full search window-non-modal)
 	// toggle to use secondary translation (or just allow a blank option)
-	// template selection
 	// add (create slide?)
 	// send (not sure here...)
 	
 	public BibleNavigationPane(PraisenterContext context) {
 		this.getStyleClass().add("bible-navigation-pane");
+		
+		this.value.set(new BibleReferenceTextStore());
 		
 		this.spnChapter = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		this.spnVerse = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
@@ -106,12 +100,8 @@ public final class BibleNavigationPane extends BorderPane {
 		this.spnVerse.setEditable(true);
 		this.spnVerse.setMaxWidth(75);
 		
-		this.text = new Label();
-		this.txtSearch = new TextField();
-		this.txtSearch.setPromptText("search");
-		
-		lblChapters = new Label();
-		lblVerses = new Label();
+		this.lblChapters = new Label();
+		this.lblVerses = new Label();
 		
 		// filter the list of selectable bibles by whether they are loaded or not
 		ObservableBibleLibrary bl = context.getBibleLibrary();		
@@ -218,110 +208,21 @@ public final class BibleNavigationPane extends BorderPane {
 		});
 		
 		Button btn = new Button("Find");
-		btn.setOnAction((e) -> {
-			Bible bible = cmbBiblePrimary.getValue().getBible();
-			Bible b2 = cmbBibleSecondary.getValue().getBible();
-			Book book = cmbBook.valueProperty().get();
-			if (book != null) {
-				short bn = book.getNumber();
-				short ch = spnChapter.getValue().shortValue();
-				short v = spnVerse.getValue().shortValue();
-				StringBuilder sb = new StringBuilder();
-				try {
-					LocatedVerse lv = bible.getVerse(bn, ch, v);
-					if (lv != null) {
-						sb.append(lv.getVerse().getText());
-					} else {
-						sb.append("Verse not found in " + bible.getName());
-					}
-					
-					if (b2 != null) {
-						LocatedVerse tv = b2.getVerse(bn, ch, v);
-						if (tv != null) {
-							sb.append(tv.getVerse().getText());
-						}
-					}
-					
-					text.setText(sb.toString());
-				} catch (Exception ex) {
-					LOGGER.warn("Failed to get verse: " + book + " " + ch + ":" + v, ex);
-				}
-			}
+		btn.setOnMouseClicked((e) -> {
+			onAction(e, FIND);
 		});
 		
 		Button next = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.ARROW_RIGHT));
-		next.setOnAction((e) -> {
-			Bible bbl = cmbBiblePrimary.valueProperty().get().getBible();
-			Book book = cmbBook.valueProperty().get();
-			if (book != null) {
-				short ch = spnChapter.getValue().shortValue();
-				short v = spnVerse.getValue().shortValue();
-				try {
-					LocatedVerseTriplet lv = bbl.getNextTriplet(book.getNumber(), ch, v);
-					if (lv != null) {
-						cmbBook.setValue(lv.getCurrent().getBook());
-						spnChapter.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getChapter().getNumber()));
-						spnVerse.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getVerse().getNumber()));
-						text.setText(
-								lv.getPrevious().getVerse().getText() + Constants.NEW_LINE +
-								lv.getCurrent().getVerse().getText() + Constants.NEW_LINE +
-								(lv.getNext() != null ? lv.getNext().getVerse().getText() : ""));
-					}
-				} catch (Exception ex) {
-					LOGGER.warn("Failed to get next verse for: " + book + " " + ch + ":" + v, ex);
-				}
-			}
+		next.setOnMouseClicked((e) -> {
+			onAction(e, NEXT);
 		});
 		
 		Button prev = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.ARROW_LEFT));
-		prev.setOnAction((e) -> {
-			
-			Bible bbl = cmbBiblePrimary.valueProperty().get().getBible();
-			Book book = cmbBook.valueProperty().get();
-			if (book != null) {
-				short ch = spnChapter.getValue().shortValue();
-				short v = spnVerse.getValue().shortValue();
-				try {
-					LocatedVerseTriplet lv = bbl.getPreviousTriplet(book.getNumber(), ch, v);
-					if (lv != null) {
-						cmbBook.setValue(lv.getCurrent().getBook());
-						spnChapter.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getChapter().getNumber()));
-						spnVerse.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getVerse().getNumber()));
-						text.setText(
-								(lv.getPrevious() != null ? lv.getPrevious().getVerse().getText() + Constants.NEW_LINE : "") +
-								lv.getCurrent().getVerse().getText() + Constants.NEW_LINE +
-								lv.getNext().getVerse().getText());
-					}
-				} catch (Exception ex) {
-					LOGGER.warn("Failed to get previous verse for: " + book + " " + ch + ":" + v, ex);
-				}
-			}
+		prev.setOnMouseClicked((e) -> {
+			onAction(e, PREVIOUS);
 		});
 		
-		txtSearch.setOnAction(e -> {
-			// FIXME this should instead send the current text to a new non-modal window with the results in a grid
-			try {
-				bl.search("In the beginning", SearchType.PHRASE, results -> {
-					StringBuilder sb = new StringBuilder();
-					for (BibleSearchResult result : results) {
-						sb.append(result.getBible().getName())
-						  .append(" ")
-						  .append(result.getBook().getName())
-						  .append(" ")
-						  .append(result.getChapter().getNumber())
-						  .append(":")
-						  .append(result.getVerse().getNumber())
-						  .append(" ")
-						  .append(result.getVerse().getText())
-						  .append(Constants.NEW_LINE);
-					}
-					text.setText(sb.toString());
-				}, null);
-			} catch (Exception e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		});
+		BibleSearchButton btnSearch = new BibleSearchButton(context);
 		
 		// LAYOUT
 		
@@ -336,14 +237,13 @@ public final class BibleNavigationPane extends BorderPane {
 		layout.add(btn, 4, 0);
 		layout.add(prev, 5, 0);
 		layout.add(next, 6, 0);
+		layout.add(btnSearch, 7, 0);
 		
 		layout.add(cmbBibleSecondary, 0, 1);
 		layout.add(lblChapters, 2, 1);
 		layout.add(lblVerses, 3, 1);
 
 		setCenter(layout);
-		
-		setBottom(text);
 	}
 	
 	private void updateRanges() {
@@ -370,56 +270,38 @@ public final class BibleNavigationPane extends BorderPane {
 	}
 	
 	private void onAction(MouseEvent event, String type) {
+		BibleReferenceTextStore data = null;
 		if (!event.isControlDown()){
-			this.selected.clear();
+			data = new BibleReferenceTextStore();
+		} else {
+			data = this.value.get().copy();
 		}
 		
 		Bible bible = cmbBiblePrimary.getValue().getBible();
 		Bible bible2 = cmbBibleSecondary.getValue().getBible();
 		Book book = cmbBook.valueProperty().get();
-		if (book != null) {
-			short bn = book.getNumber();
-			short ch = spnChapter.getValue().shortValue();
-			short v = spnVerse.getValue().shortValue();
-			
+
+		short bn = book != null ? book.getNumber() : 0;
+		short ch = spnChapter.getValue().shortValue();
+		short v = spnVerse.getValue().shortValue();
+		LocatedVerseTriplet lv = null;
+		
+		if (bible != null && book != null) {
 			switch(type) {
 				case FIND:
-					StringBuilder sb = new StringBuilder();
 					try {
-						LocatedVerse lv = bible.getVerse(bn, ch, v);
-						if (lv != null) {
-							sb.append(lv.getVerse().getText());
-							this.selected.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(lv));
-						} else {
-							sb.append("Verse not found in " + bible.getName());
-						}
-						
-						if (bible2 != null) {
-							LocatedVerse tv = bible2.getVerse(bn, ch, v);
-							if (tv != null) {
-								sb.append(tv.getVerse().getText());
-								this.selected.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(lv));
-							}
-						}
-						
-						text.setText(sb.toString());
+						lv = bible.getTriplet(bn, ch, v);
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to get verse: " + book + " " + ch + ":" + v, ex);
 					}
 					break;
 				case NEXT:
 					try {
-						LocatedVerseTriplet lv = bible.getNextTriplet(book.getNumber(), ch, v);
+						lv = bible.getNextTriplet(book.getNumber(), ch, v);
 						if (lv != null) {
 							cmbBook.setValue(lv.getCurrent().getBook());
 							spnChapter.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getChapter().getNumber()));
 							spnVerse.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getVerse().getNumber()));
-							text.setText(
-									lv.getPrevious().getVerse().getText() + Constants.NEW_LINE +
-									lv.getCurrent().getVerse().getText() + Constants.NEW_LINE +
-									(lv.getNext() != null ? lv.getNext().getVerse().getText() : ""));
-							
-							this.selected.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(lv.getCurrent()));
 						}
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to get next verse for: " + book + " " + ch + ":" + v, ex);
@@ -427,17 +309,11 @@ public final class BibleNavigationPane extends BorderPane {
 					break;
 				case PREVIOUS:
 					try {
-						LocatedVerseTriplet lv = bible.getPreviousTriplet(book.getNumber(), ch, v);
+						lv = bible.getPreviousTriplet(book.getNumber(), ch, v);
 						if (lv != null) {
 							cmbBook.setValue(lv.getCurrent().getBook());
 							spnChapter.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getChapter().getNumber()));
 							spnVerse.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getVerse().getNumber()));
-							text.setText(
-									(lv.getPrevious() != null ? lv.getPrevious().getVerse().getText() + Constants.NEW_LINE : "") +
-									lv.getCurrent().getVerse().getText() + Constants.NEW_LINE +
-									lv.getNext().getVerse().getText());
-							
-							this.selected.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(lv.getCurrent()));
 						}
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to get previous verse for: " + book + " " + ch + ":" + v, ex);
@@ -446,8 +322,24 @@ public final class BibleNavigationPane extends BorderPane {
 				default:
 					break;
 			}
-			
 		}
+		
+		if (lv != null) {
+			data.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(lv.getCurrent()));
+			
+			// TODO need to somehow show next/previous verse text
+			
+			if (bible2 != null) {
+				LocatedVerseTriplet tv = bible2.getMatchingTriplet(lv);
+				if (tv != null) {
+					data.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(tv.getCurrent()));
+				}
+			}
+		} else {
+			// TODO need to show message 
+		}
+		
+		this.value.set(data);
 	}
 	
 	private BibleReferenceVerse toReference(LocatedVerse verse) {
@@ -461,7 +353,15 @@ public final class BibleNavigationPane extends BorderPane {
 				verse.getVerse().getText());
 	}
 	
-	public BibleReferenceTextStore getData() {
-		return this.selected;
+	public BibleReferenceTextStore getValue() {
+		return this.value.get();
+	}
+	
+	public void setValue(BibleReferenceTextStore value) {
+		this.value.set(value);
+	}
+	
+	public ObjectProperty<BibleReferenceTextStore> valueProperty() {
+		return this.value;
 	}
 }

@@ -62,7 +62,7 @@ public class TestBibleLibrary {
 //		}
 		
 //		List<BibleSearchResult> results = bl.search(null, "void", SearchType.ALL_WORDS);
-		List<BibleSearchResult> results = bl.search(UUID.fromString("0d4c1aba-1bef-4cc9-9992-f21ee68ff774"), "void", SearchType.ALL_WORDS);
+		List<BibleSearchResult> results = bl.search(UUID.fromString("0d4c1aba-1bef-4cc9-9992-f21ee68ff774"), null, "void", SearchType.ALL_WORDS);
 		Collections.sort(results);
 		for (BibleSearchResult result : results) {
 			System.out.print(result.getBible().getName() + " " + result.getBook().getName() + " " + result.getChapter().getNumber() + ":" + result.getVerse().getNumber());

@@ -64,11 +64,11 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	FontScaleType fontScaleType;
 	
 	/** The text vertical alignment */
-	@XmlElement(name = "verticalAlignment", required = false)
+	@XmlElement(name = "textVerticalAlignment", required = false)
 	VerticalTextAlignment verticalTextAlignment;
 	
 	/** The text horizontal alignment */
-	@XmlElement(name = "horizontalAlignment", required = false)
+	@XmlElement(name = "textHorizontalAlignment", required = false)
 	HorizontalTextAlignment horizontalTextAlignment;
 	
 	/** The bounds padding */
@@ -84,11 +84,11 @@ public abstract class AbstractTextComponent extends AbstractSlideComponent imple
 	boolean textWrapping;
 
 	/** The text shadow */
-	@XmlElement(name = "shadow", required = false)
+	@XmlElement(name = "textShadow", required = false)
 	SlideShadow textShadow;
 
 	/** The text glow */
-	@XmlElement(name = "glow", required = false)
+	@XmlElement(name = "textGlow", required = false)
 	SlideShadow textGlow;
 	
 	/**

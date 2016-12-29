@@ -2,6 +2,7 @@ package org.praisenter.javafx.slide;
 
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.Slide;
+import org.praisenter.utility.ClasspathLoader;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -12,11 +13,17 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 
-public class SlideComboBox extends Pane implements Callback<ListView<SlideListItem>, ListCell<SlideListItem>> {
+public final class SlideComboBox extends Pane implements Callback<ListView<SlideListItem>, ListCell<SlideListItem>> {
+	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
+	
 	private final PraisenterContext context;
 	
 	private final ComboBox<SlideListItem> cmbSlides;
@@ -68,22 +75,26 @@ public class SlideComboBox extends Pane implements Callback<ListView<SlideListIt
 	public ListCell<SlideListItem> call(ListView<SlideListItem> param) {
 		return new ListCell<SlideListItem>() {
 			private final ImageView graphic;
+			private final Pane pane;
 			
 			{
+				pane = new Pane();
+				pane.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
 				graphic = new ImageView();
 				graphic.setFitWidth(100);
+				pane.getChildren().add(graphic);
+				setGraphic(pane);
 			}
 			
 			@Override
 			protected void updateItem(SlideListItem item, boolean empty) {
 				super.updateItem(item, empty);
-
+				
 				if (item == null || empty) {
 					this.graphic.setImage(null);
 					setText(null);
 				} else {
 					this.graphic.setImage(SwingFXUtils.toFXImage(item.getSlide().getThumbnail(), null));
-					setGraphic(this.graphic);
 					setText(item.getName());
 				}
 			}

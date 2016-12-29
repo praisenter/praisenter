@@ -1,59 +1,100 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.bible;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.TextStore;
 import org.praisenter.TextType;
-import org.praisenter.TextVariant;
 
+/**
+ * Represents a set of {@link BibleReferenceVerse}s.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 @XmlRootElement(name = "bibleReferenceSet")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class BibleReferenceSet {
+	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	@XmlAttribute(name = "type")
-	private BibleReferenceSetType type;
-	
+	/** The references */
 	@XmlElement(name = "reference")
 	@XmlElementWrapper(name = "references")
 	private final Set<BibleReferenceVerse> references;
 	
+	/**
+	 * Default constructor.
+	 * <p>
+	 * Creates an empty set.
+	 */
 	public BibleReferenceSet() {
-		this.type = BibleReferenceSetType.COLLECTION;
 		this.references = new LinkedHashSet<>();
 	}
-	
-	public BibleReferenceSetType getType() {
-		return this.type;
-	}
 
-	public void setType(BibleReferenceSetType type) {
-		this.type = type;
-	}
-
-	public Set<BibleReferenceVerse> getReferenceVerses() {
-		return this.references;
-	}
-
+	/**
+	 * Returns a deep copy of this reference set.
+	 * @return {@link BibleReferenceSet}
+	 */
 	public BibleReferenceSet copy() {
 		BibleReferenceSet rs = new BibleReferenceSet();
-		rs.type = this.type;
 		rs.references.addAll(this.references);
 		return rs;
 	}
 	
+	/**
+	 * Returns the list of references.
+	 * @return Set&lt;{@link BibleReferenceVerse}&gt;
+	 */
+	public Set<BibleReferenceVerse> getReferenceVerses() {
+		return this.references;
+	}
+
+	/**
+	 * Removes all the references in this set.
+	 */
+	public void clear() {
+		this.references.clear();
+	}
+	
+	/**
+	 * Returns the text for the given type.
+	 * @param type the type
+	 * @return String
+	 */
 	public String getText(TextType type) {
 		// check for null
 		if (this.references == null) {
@@ -76,6 +117,7 @@ public final class BibleReferenceSet {
 		for (BibleReferenceVerse rv : this.references) {
 			if (start == null) {
 				start = rv;
+				end = rv;
 				continue;
 			}
 			
@@ -99,13 +141,14 @@ public final class BibleReferenceSet {
 			end = rv;
 		}
 		
-		BibleReferenceSetType rt = this.type;
-		if (this.type == null) {
-			rt = BibleReferenceSetType.COLLECTION;
-		}
-		if (start == end) {
+		// by default it's a lose collection of verses
+		BibleReferenceSetType rt = BibleReferenceSetType.COLLECTION;
+		
+		// if there's only one verse, then it's a single verse, clearly
+		if (this.references.size() == 1) {
 			rt = BibleReferenceSetType.SINGLE;
 		}
+		
 		
 		switch (rt) {
 			case RANGE:
@@ -135,6 +178,14 @@ public final class BibleReferenceSet {
 		}
 	}
 	
+	// private
+	
+	/**
+	 * Returns the title text for a range of bible verses between start and end.
+	 * @param start the start verse
+	 * @param end the end verse
+	 * @return String
+	 */
 	private static String getRangeTitle(BibleReferenceVerse start, BibleReferenceVerse end) {
 		if (start.getBookNumber() == end.getBookNumber()) {
 			if (start.getChapterNumber() == end.getChapterNumber()) {
@@ -146,35 +197,15 @@ public final class BibleReferenceSet {
 			return MessageFormat.format("{0} {1}:{2} - {3} {4}:{5}", start.getBookName(), start.getChapterNumber(), start.getVerseNumber(), end.getBookName(), end.getChapterNumber(), end.getVerseNumber());
 		}
 	}
-	
-	private static String getRangeText(Set<BibleReferenceVerse> verses, boolean sameBook, boolean sameChapter) {
-		StringBuilder sb = new StringBuilder();
-		BibleReferenceVerse last = null;
-		for (BibleReferenceVerse rv : verses) {
-			if (last != null) {
-				if (last.getBookNumber() == rv.getBookNumber()) {
-					if (last.getChapterNumber() == rv.getChapterNumber()) {
-						sb.append(" ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
-					} else {
-						// chapter changed
-						sb.append(rv.getChapterNumber()).append(": ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
-					}
-				} else {
-					// book changed
-					sb.append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(": ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
-				}
-			} else if (sameChapter) {
-				sb.append(rv.getVerseNumber()).append(" ").append(rv.getText());
-			} else if (sameBook) {
-				sb.append(rv.getChapterNumber()).append(": ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
-			} else {
-				sb.append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(": ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
-			}
-			last = rv;
-		}
-		return sb.toString();
-	}
-	
+
+	/**
+	 * Returns the title text for a collection of bible verses.
+	 * @param start the first verse of the collection
+	 * @param sameBible true if all the verses are in the same bible
+	 * @param sameBook true if all the verses are in the same book
+	 * @param sameChapter true if all the verses are in the same chapter
+	 * @return String
+	 */
 	private static String getCollectionTitle(BibleReferenceVerse start, boolean sameBible, boolean sameBook, boolean sameChapter) {
 		if (sameChapter) {
 			return MessageFormat.format("{0} {1}", start.getBookName(), start.getChapterNumber());
@@ -187,10 +218,56 @@ public final class BibleReferenceSet {
 		}
 	}
 	
-	private static String getCollectionText(Set<BibleReferenceVerse> verses, boolean sameBible, boolean sameBook, boolean sameChapter) {
-		StringBuilder sb = new StringBuilder();
+	/**
+	 * Returns the body text for a range of bible verses.
+	 * @param verses the verses in the range
+	 * @param sameBook true if all the verses are in the same book
+	 * @param sameChapter true if all the verses are in the same chapter
+	 * @return String
+	 */
+	private static String getRangeText(Set<BibleReferenceVerse> verses, boolean sameBook, boolean sameChapter) {
+		List<String> strings = new ArrayList<String>();
 		BibleReferenceVerse last = null;
 		for (BibleReferenceVerse rv : verses) {
+			StringBuilder sb = new StringBuilder();
+			if (last != null) {
+				if (last.getBookNumber() == rv.getBookNumber()) {
+					if (last.getChapterNumber() == rv.getChapterNumber()) {
+						sb.append(" ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
+					} else {
+						// chapter changed
+						sb.append(rv.getChapterNumber()).append(":").append(rv.getVerseNumber()).append(" ").append(rv.getText());
+					}
+				} else {
+					// book changed
+					sb.append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(":").append(rv.getVerseNumber()).append(" ").append(rv.getText());
+				}
+			} else if (sameChapter) {
+				sb.append(rv.getVerseNumber()).append(" ").append(rv.getText());
+			} else if (sameBook) {
+				sb.append(rv.getChapterNumber()).append(":").append(rv.getVerseNumber()).append(" ").append(rv.getText());
+			} else {
+				sb.append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(":").append(rv.getVerseNumber()).append(" ").append(rv.getText());
+			}
+			last = rv;
+			strings.add(sb.toString());
+		}
+		return String.join(" ", strings);
+	}
+	
+	/**
+	 * Returns the body text for a collection of bible verses.
+	 * @param verses the verses of the collection
+	 * @param sameBible true if all the verses are in the same bible
+	 * @param sameBook true if all the verses are in the same book
+	 * @param sameChapter true if all the verses are in the same chapter
+	 * @return String
+	 */
+	private static String getCollectionText(Set<BibleReferenceVerse> verses, boolean sameBible, boolean sameBook, boolean sameChapter) {
+		List<String> strings = new ArrayList<String>();
+		BibleReferenceVerse last = null;
+		for (BibleReferenceVerse rv : verses) {
+			StringBuilder sb = new StringBuilder();
 			if (last != null) {
 				if (last.getBibleId().equals(rv.getBibleId())) {
 					if (last.getBookNumber() == rv.getBookNumber()) {
@@ -198,30 +275,27 @@ public final class BibleReferenceSet {
 							sb.append(" ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
 						} else {
 							// chapter changed
-							sb.append(rv.getChapterNumber()).append(": ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
+							sb.append(rv.getChapterNumber()).append(":").append(rv.getVerseNumber()).append(" ").append(rv.getText());
 						}
 					} else {
 						// book changed
-						sb.append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(": ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
+						sb.append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(":").append(rv.getVerseNumber()).append(" ").append(rv.getText());
 					}
 				} else {
-					sb.append("[").append(rv.getBibleName()).append("] ").append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(": ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
+					sb.append("[").append(rv.getBibleName()).append("] ").append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(":").append(rv.getVerseNumber()).append(" ").append(rv.getText());
 				}
 			} else if (sameChapter) {
 				sb.append(rv.getVerseNumber()).append(" ").append(rv.getText());
 			} else if (sameBook) {
-				sb.append(rv.getChapterNumber()).append(": ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
+				sb.append(rv.getChapterNumber()).append(":").append(rv.getVerseNumber()).append(" ").append(rv.getText());
 			} else if (sameBible) {
-				sb.append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(": ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
+				sb.append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(":").append(rv.getVerseNumber()).append(" ").append(rv.getText());
 			} else {
-				sb.append("[").append(rv.getBibleName()).append("] ").append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(": ").append(rv.getVerseNumber()).append(" ").append(rv.getText());
+				sb.append("[").append(rv.getBibleName()).append("] ").append(rv.getBookName()).append(" ").append(rv.getChapterNumber()).append(":").append(rv.getVerseNumber()).append(" ").append(rv.getText());
 			}
 			last = rv;
+			strings.add(sb.toString());
 		}
-		return sb.toString();
-	}
-	
-	public void clear() {
-		this.references.clear();
+		return String.join(" ", strings);
 	}
 }

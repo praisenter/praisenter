@@ -48,15 +48,20 @@ public final class BibleSearchResult implements Comparable<BibleSearchResult> {
 	/** The matched text */
 	final List<BibleSearchMatch> matches;
 	
+	/** The matching score */
+	final float score;
+	
 	/**
 	 * Full constructor.
+	 * @param score the score
 	 * @param bible the bible
 	 * @param book the book
 	 * @param chapter the chapter
 	 * @param verse the verse
 	 * @param matches the matched text
 	 */
-	public BibleSearchResult(Bible bible, Book book, Chapter chapter, Verse verse, List<BibleSearchMatch> matches) {
+	public BibleSearchResult(float score, Bible bible, Book book, Chapter chapter, Verse verse, List<BibleSearchMatch> matches) {
+		this.score = score;
 		this.bible = bible;
 		this.book = book;
 		this.chapter = chapter;
@@ -80,6 +85,14 @@ public final class BibleSearchResult implements Comparable<BibleSearchResult> {
 			}
 		}
 		return diff;
+	}
+	
+	/**
+	 * Returns the score for this match.
+	 * @return float
+	 */
+	public float getScore() {
+		return this.score;
 	}
 	
 	/**

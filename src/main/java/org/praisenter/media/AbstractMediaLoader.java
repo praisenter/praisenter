@@ -24,10 +24,12 @@
  */
 package org.praisenter.media;
 
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
 import org.praisenter.utility.ImageManipulator;
+
+import com.twelvemonkeys.image.ImageUtil;
+import com.twelvemonkeys.image.ResampleOp;
 
 /**
  * An abstract implementation of the {@link MediaLoader} interface.
@@ -53,11 +55,14 @@ public abstract class AbstractMediaLoader implements MediaLoader {
 	 * @return BufferedImage
 	 */
 	protected final BufferedImage createThumbnail(BufferedImage image) {
+		// convert the image to an image type with transparency first
+		BufferedImage withTransparency = ImageUtil.toBuffered(image, BufferedImage.TYPE_INT_ARGB);
+		// then down scale
 		return ImageManipulator.getUniformScaledImage(
-				image, 
+				withTransparency, 
 				this.settings.width, 
 				this.settings.height, 
-				AffineTransformOp.TYPE_BICUBIC);
+				ResampleOp.FILTER_LANCZOS);
 	}
 	
 	/* (non-Javadoc)

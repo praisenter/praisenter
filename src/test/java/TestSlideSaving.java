@@ -175,7 +175,6 @@ public class TestSlideSaving {
 
 		BibleReferenceTextStore data = new BibleReferenceTextStore();
 		BibleReferenceSet rs = new BibleReferenceSet();
-		rs.setType(BibleReferenceSetType.SINGLE);
 		rs.getReferenceVerses().add(new BibleReferenceVerse(
 				UUID.randomUUID(), 
 				"Test", 

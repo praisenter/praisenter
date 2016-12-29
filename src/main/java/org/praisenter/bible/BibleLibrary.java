@@ -50,6 +50,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
@@ -111,13 +112,16 @@ public final class BibleLibrary {
 	/** The lucene field to store the bible's unique identifier */
 	private static final String FIELD_BIBLE_ID = "bibleid";
 	
-	/** The lucene field to store the bible's unique identifier */
-	private static final String FIELD_BOOK_NUMBER = "bookid";
+	/** The lucene field to store the book number as a searchable value */
+	private static final String FIELD_BOOK_ID = "bookid";
 	
-	/** The lucene field to store the bible's unique identifier */
+	/** The lucene field to store the book number */
+	private static final String FIELD_BOOK_NUMBER = "booknumber";
+	
+	/** The lucene field to store the chapter number */
 	private static final String FIELD_VERSE_CHAPTER = "chapter";
 	
-	/** The lucene field to store the bible's unique identifier */
+	/** The lucene field to store the verse number */
 	private static final String FIELD_VERSE_NUMBER = "verse";
 	
 	/** The lucene field that contains all the bible searchable text */
@@ -245,8 +249,15 @@ public final class BibleLibrary {
 							Field pathField = new StringField(FIELD_PATH, bible.path.toAbsolutePath().toString(), Field.Store.YES);
 							document.add(pathField);
 							
+							// allow filtering by the bible id
 							Field bibleField = new StringField(FIELD_BIBLE_ID, bible.id.toString(), Field.Store.YES);
 							document.add(bibleField);
+							
+							// allow filtering by the book number
+							Field bookIdField = new IntPoint(FIELD_BOOK_ID, book.number);
+							document.add(bookIdField);
+							
+							// stored data so we can look up the verse
 							
 							Field bookField = new StoredField(FIELD_BOOK_NUMBER, book.number);
 							document.add(bookField);
@@ -451,28 +462,23 @@ public final class BibleLibrary {
 	/**
 	 * Searches this bible library for the given text using the given search type.
 	 * @param bibleId the id of the bible to search; or null to search all
+	 * @param bookNumber the book number of the book to search; or null to search all
 	 * @param text the search text
 	 * @param type the search type
 	 * @return List&lt;{@link BibleSearchResult}&gt;
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized List<BibleSearchResult> search(UUID bibleId, String text, SearchType type) throws IOException {
+	public synchronized List<BibleSearchResult> search(UUID bibleId, Short bookNumber, String text, SearchType type) throws IOException {
 		// verify text
 		if (text == null || text.length() == 0) {
 			return Collections.emptyList();
-		}
-		
-		// check for wildcard characters for non-wildcard searches
-		if (type != SearchType.ALL_WILDCARD && type != SearchType.ANY_WILDCARD && !text.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
-			// take the wildcard characters out
-			text = text.replaceAll("\\" + WildcardQuery.WILDCARD_CHAR, "");
 		}
 		
 		// tokenize
 		List<String> tokens = this.getTokens(text, FIELD_TEXT);
 		
 		// search
-		return this.search(getQueryForTokens(bibleId, FIELD_TEXT, tokens, type));
+		return this.search(getQueryForTokens(bibleId, bookNumber, FIELD_TEXT, tokens, type));
 	}
 
 	/**
@@ -502,40 +508,37 @@ public final class BibleLibrary {
 	/**
 	 * Builds a lucene query for the given lucene field, tokens and search type.
 	 * @param bibleId the id of the bible to search; or null to search all
+	 * @param bookNumber the book number of the book to search; or null to search all
 	 * @param field the lucene field to search
 	 * @param tokens the tokens to search for
 	 * @param type the type of search
 	 * @return Query
 	 */
-	private Query getQueryForTokens(UUID bibleId, String field, List<String> tokens, SearchType type) {
+	private Query getQueryForTokens(UUID bibleId, Short bookNumber, String field, List<String> tokens, SearchType type) {
 		Query query = null;
-		final String[] temp = new String[0];
+		
 		if (tokens.size() == 0) return null;
 		if (tokens.size() == 1) {
+			// if its a single token then do a wildcard search on it (starts with)
 			String token = tokens.get(0);
-			if (type == SearchType.ALL_WILDCARD || type == SearchType.ANY_WILDCARD) {
-				// check for wildcard character
-				if (!token.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
-					token = WildcardQuery.WILDCARD_CHAR + token + WildcardQuery.WILDCARD_CHAR;
-				}
-				query = new WildcardQuery(new Term(field, token));
-			} else {
-				query = new TermQuery(new Term(field, token));
+			if (!token.contains(Character.toString(WildcardQuery.WILDCARD_STRING))) {
+				token =  token + WildcardQuery.WILDCARD_STRING;
 			}
+			query = new WildcardQuery(new Term(field, token));
 		// PHRASE
 		} else if (type == SearchType.PHRASE) {
-			query = new PhraseQuery(2, field, tokens.toArray(temp));
+			query = new PhraseQuery(2, field, tokens.toArray(new String[0]));
 		// ALL_WILDCARD, ANY_WILDCARD
 		} else if (type == SearchType.ALL_WILDCARD || type == SearchType.ANY_WILDCARD) {
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			for (String token : tokens) {
-				if (!token.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
-					token = WildcardQuery.WILDCARD_CHAR + token + WildcardQuery.WILDCARD_CHAR;
+				if (!token.contains(Character.toString(WildcardQuery.WILDCARD_STRING))) {
+					token = token + WildcardQuery.WILDCARD_STRING;
 				}
 				builder.add(new WildcardQuery(new Term(field, token)), type == SearchType.ALL_WILDCARD ? Occur.MUST : Occur.SHOULD);
 			}
 			query = builder.build();
-		// ALL_WORDS, ANY_WORD, LOCATION
+		// ALL_WORDS, ANY_WORD
 		} else {
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			for (String token : tokens) {
@@ -544,11 +547,18 @@ public final class BibleLibrary {
 			query = builder.build();
 		}
 		
+		// check if the bible id was supplied
 		if (bibleId != null) {
+			// then filter by the bible
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			builder.add(query, Occur.MUST);
 			builder.add(new TermQuery(new Term(FIELD_BIBLE_ID, bibleId.toString())), Occur.FILTER);
-			return builder.build();
+			//check if the book number was supplied
+			if (bookNumber != null) {
+				// then filter by the book number too
+				builder.add(IntPoint.newExactQuery(FIELD_BOOK_ID, bookNumber), Occur.FILTER);
+			}
+			query = builder.build();
 		}
 		
 		return query;
@@ -568,7 +578,7 @@ public final class BibleLibrary {
 		try (IndexReader reader = DirectoryReader.open(this.directory)) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			
-			TopDocs result = searcher.search(query, 25);
+			TopDocs result = searcher.search(query, 250);
 			ScoreDoc[] docs = result.scoreDocs;
 			
 			Scorer scorer = new QueryScorer(query);
@@ -632,7 +642,7 @@ public final class BibleLibrary {
 					}
 				}
 				
-				BibleSearchResult match = new BibleSearchResult(bible, book, chapter, verse, matches);
+				BibleSearchResult match = new BibleSearchResult(doc.score, bible, book, chapter, verse, matches);
 				results.add(match);
 			}
 		}

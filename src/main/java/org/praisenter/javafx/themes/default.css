@@ -102,13 +102,13 @@
 }
 
 /** slide editing */
-.slide-component:hover {
+.slide-component:edit-hover {
 	-fx-border-color: black, white;
 	-fx-border-style: segments(2, 4) phase 0 outside line-join miter 2 line-cap butt, segments(2, 4) phase 2 outside line-join miter 2 line-cap butt;
 	-fx-border-width: 1, 1;
 }
 
-.slide-component:selected {
+.slide-component:edit-selected {
 	-fx-border-color: black, white;
 	-fx-border-style: segments(2, 4) phase 0 outside line-join miter 2 line-cap butt, segments(2, 4) phase 2 outside line-join miter 2 line-cap butt;
 	-fx-border-width: 1, 1;

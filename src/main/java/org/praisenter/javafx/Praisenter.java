@@ -62,6 +62,8 @@ import javafx.util.Duration;
 // FIXME testing on High DPI screens
 // FIXME fix dark theme
 
+// TODO Evaluate detecting text language for better indexing (a field per language) in lucene; Apache Tika or LangDetect; This would also be used in the searches to know what indexed fields to use
+
 // FEATURE Use Apache POI to read powerpoint files
 // FEATURE Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
 

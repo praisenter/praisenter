@@ -472,6 +472,55 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	}
 	
 	/**
+	 * Returns the verse for the given location or null if one doesn't exist.
+	 * <p>
+	 * This method will also return the previous and the next. For example, 
+	 * if the triplet of Genesis 1:5 is requested, this method will return 
+	 * previous = Genesis 1:4, current = Genesis 1:5, and next = Genesis 1:6.
+	 * <p>
+	 * The next verse is defined as the next in the list of verses, not necessarily the
+	 * next verse in terms of number. This should be handled on bible editing side of
+	 * things.
+	 * <p>
+	 * This method will cross book and chapter boundaries.
+	 * @param bookNumber the book number
+	 * @param chapterNumber the chapter number
+	 * @param verseNumber the verse number
+	 * @return {@link LocatedVerseTriplet}
+	 */
+	public LocatedVerseTriplet getTriplet(short bookNumber, short chapterNumber, short verseNumber) {
+		LocatedVerse current = null;
+		LocatedVerse next = null;
+		boolean start = false;
+		for (Book book : this.books) {
+			if (start || book.number == bookNumber) {
+				for (Chapter chapter : book.chapters) {
+					if (start || chapter.number == chapterNumber) {
+						for (Verse verse : chapter.verses) {
+							if (!start && verse.number == verseNumber) {
+								// we've found the verse
+								// so try to go to the next one
+								current = new LocatedVerse(this, book, chapter, verse);
+								start = true;
+								continue;
+							} else if (start && next == null) {
+								next = new LocatedVerse(this, book, chapter, verse);
+							}
+						}
+					}
+				}
+			}
+		}
+		if (current != null) {
+			return new LocatedVerseTriplet(
+					this.getPreviousVerse(bookNumber, chapterNumber, verseNumber), 
+					current, 
+					next);
+		}
+		return null;
+	}
+	
+	/**
 	 * Returns the next verse after the given location or null if one doesn't exist.
 	 * <p>
 	 * This method will also return the next-next and the next-previous. For example, 

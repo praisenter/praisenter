@@ -26,6 +26,7 @@ package org.praisenter.javafx.slide;
 
 import org.praisenter.javafx.FlowListCell;
 import org.praisenter.slide.Slide;
+import org.praisenter.utility.ClasspathLoader;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -37,6 +38,10 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
@@ -48,6 +53,8 @@ import javafx.scene.text.TextAlignment;
  * @since 3.0.0
  */
 final class SlideListCell extends FlowListCell<SlideListItem> {
+	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
+	
 	/** The slide for this cell */
 	private final ObjectProperty<Slide> slide = new SimpleObjectProperty<Slide>(null);
 	
@@ -62,9 +69,13 @@ final class SlideListCell extends FlowListCell<SlideListItem> {
 		this.setPrefWidth(110);
 		this.setAlignment(Pos.TOP_CENTER);
 		
+		final Pane pane = new Pane();
+		pane.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
+		
     	final ImageView thumb = new ImageView();
+    	pane.getChildren().add(thumb);
     	// place it in a VBox for good positioning
-    	final VBox wrapper = new VBox(thumb);
+    	final VBox wrapper = new VBox(pane);
     	wrapper.setAlignment(Pos.BOTTOM_CENTER);
     	wrapper.setPrefHeight(maxHeight);
     	wrapper.setMaxHeight(maxHeight);
@@ -88,6 +99,7 @@ final class SlideListCell extends FlowListCell<SlideListItem> {
 			
 			thumb.setImage(image);
     		thumb.setEffect(new DropShadow(2, 2, 2, Color.rgb(0, 0, 0, 0.25)));
+    		pane.setMaxWidth(image.getWidth());
 		});
 		
 		wrapper.visibleProperty().bind(item.loadedProperty());

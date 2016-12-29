@@ -24,20 +24,22 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-public class SlidePreviewPane extends StackPane {
+public final class SlidePreviewPane extends StackPane {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 
 	private final PraisenterContext context;
 	
-	private final ObjectProperty<Slide> slide = new SimpleObjectProperty<Slide>();
+	private final ObjectProperty<Slide> value = new SimpleObjectProperty<Slide>();
 
 	public SlidePreviewPane(PraisenterContext context, SlideMode mode) {
 		this.context = context;
 		
-		final int padding = 0;
+		final int padding = 20;
 		
 		this.setPadding(new Insets(padding));
 		this.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
+		this.setSnapToPixel(true);
+		// this.setBorder(Fx.newBorder(Color.AQUA));
 		
 		// clip by the slide Preview area
 		Rectangle clipRect = new Rectangle(this.getWidth(), this.getHeight());
@@ -47,7 +49,7 @@ public class SlidePreviewPane extends StackPane {
 		
 		StackPane slideBounds = new StackPane();
 		slideBounds.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
-		
+//		slideBounds.setBorder(Fx.newBorder(Color.RED));
 		DropShadow sdw = new DropShadow();
 		sdw.setRadius(5);
 		sdw.setColor(Color.rgb(0, 0, 0, 0.3));
@@ -62,7 +64,7 @@ public class SlidePreviewPane extends StackPane {
 			}
 			@Override
 			protected double computeValue() {
-				Slide s = slide.get();
+				Slide s = value.get();
 				if (s != null) {
 					double w = s.getWidth();
 					double h = s.getHeight();
@@ -80,7 +82,7 @@ public class SlidePreviewPane extends StackPane {
 			}
 			@Override
 			protected double computeValue() {
-				Slide s = slide.get();
+				Slide s = value.get();
 				if (s != null) {
 					double w = s.getWidth();
 					double h = s.getHeight();
@@ -97,7 +99,14 @@ public class SlidePreviewPane extends StackPane {
 		Pane slideCanvas = new Pane();
 		slideCanvas.setMinSize(0, 0);
 		slideCanvas.setSnapToPixel(true);
-		this.setSnapToPixel(true);
+		slideCanvas.setBackground(null);
+//		slideCanvas.setBorder(Fx.newBorder(Color.GREEN));
+		
+		// clip the canvas by the bounds
+		Rectangle clip = new Rectangle(slideCanvas.getWidth(), slideCanvas.getHeight());
+		clip.heightProperty().bind(slideCanvas.heightProperty());
+		clip.widthProperty().bind(slideCanvas.widthProperty());
+		slideCanvas.setClip(clip);
 		
 		ObjectBinding<Scaling> scaleFactor = new ObjectBinding<Scaling>() {
 			{
@@ -109,7 +118,7 @@ public class SlidePreviewPane extends StackPane {
 				double tw = getWidth() - padding * 2;
 				double th = getHeight() - padding * 2;
 				
-				Slide s = slide.get();
+				Slide s = value.get();
 				if (s == null) {
 					return new Scaling(1, 0, 0);
 				}
@@ -127,9 +136,9 @@ public class SlidePreviewPane extends StackPane {
 				// scale by the smallest factor
 				if (sw < sh) {
 					w = tw;
-					h = (int)Math.ceil(sw * h);
+					h = sw * h;
 				} else {
-					w = (int)Math.ceil(sh * w);
+					w = sh * w;
 					h = th;
 				}
 
@@ -145,18 +154,9 @@ public class SlidePreviewPane extends StackPane {
 		StackPane.setAlignment(slideBounds, Pos.CENTER);
 		
 		// setup of the editor when the slide being edited changes
-		slide.addListener((obs, ov, nv) -> {
+		this.value.addListener((obs, ov, nv) -> {
 			slideCanvas.getChildren().clear();
-			
-//			if (ov != null) {
-//				ov.scalingProperty().unbind();
-//				Iterator<ObservableSlideComponent<?>> components = ov.componentIterator();
-//				while (components.hasNext()) {
-//					ObservableSlideComponent<?> osr = components.next();
-//					osr.scalingProperty().unbind();
-//				}
-//			}
-			
+
 			if (nv != null) {
 				ObservableSlide<Slide> os = new ObservableSlide<>(nv, context, mode);
 				StackPane rootPane = os.getDisplayPane();
@@ -169,18 +169,25 @@ public class SlidePreviewPane extends StackPane {
 					osr.scalingProperty().bind(scaleFactor);
 				}
 			}
+			
+			// since the width/height of the slides could be different
+			// then we need to invalidate these to make sure that we
+			// compute them for the new slide
+			widthSizing.invalidate();
+			heightSizing.invalidate();
+			scaleFactor.invalidate();
 		});
 	}
 	
-	public Slide getSlide() {
-		return this.slide.get();
+	public Slide getValue() {
+		return this.value.get();
 	}
 	
-	public void setSlide(Slide slide) {
-		this.slide.set(slide);
+	public void setValue(Slide value) {
+		this.value.set(value);
 	}
 	
-	public ObjectProperty<Slide> slideProperty() {
-		return this.slide;
+	public ObjectProperty<Slide> valueProperty() {
+		return this.value;
 	}
 }

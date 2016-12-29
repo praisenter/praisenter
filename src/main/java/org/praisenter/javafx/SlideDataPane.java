@@ -4,6 +4,7 @@ import org.praisenter.javafx.bible.BibleNavigationPane;
 import org.praisenter.javafx.slide.SlideComboBox;
 import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.javafx.slide.SlidePreviewPane;
+import org.praisenter.slide.Slide;
 
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
@@ -19,7 +20,7 @@ public class SlideDataPane extends BorderPane {
 	public SlideDataPane(PraisenterContext context) {
 		this.context = context;
 		
-		this.slidePreviewPane = new SlidePreviewPane(context, SlideMode.PREVIEW);
+		this.slidePreviewPane = new SlidePreviewPane(context, SlideMode.SNAPSHOT);
 	
 		this.cmbTemplate = new SlideComboBox(context);
 		this.bibleNavigationPane = new BibleNavigationPane(context);
@@ -35,6 +36,23 @@ public class SlideDataPane extends BorderPane {
 		
 		this.setCenter(editor);
 		
-		this.slidePreviewPane.slideProperty().bind(this.cmbTemplate.slideProperty());
+		this.cmbTemplate.slideProperty().addListener((obs, ov, nv) -> {
+			if (nv != null) {
+				Slide slide = nv.copy();
+				slide.setPlaceholderData(this.bibleNavigationPane.getValue());
+				this.slidePreviewPane.setValue(slide);
+			} else {
+				this.slidePreviewPane.setValue(nv);
+			}
+		});
+		
+		this.bibleNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
+			Slide slide = this.cmbTemplate.getSlide();
+			if (slide != null) {
+				slide = slide.copy();
+				slide.setPlaceholderData(nv);
+				this.slidePreviewPane.setValue(slide);
+			}
+		});
 	}
 }

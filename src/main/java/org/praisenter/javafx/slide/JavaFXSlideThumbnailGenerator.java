@@ -13,6 +13,9 @@ import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideThumbnailGenerator;
 import org.praisenter.utility.ImageManipulator;
 
+import com.twelvemonkeys.image.ImageUtil;
+import com.twelvemonkeys.image.ResampleOp;
+
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Rectangle2D;
@@ -62,7 +65,10 @@ public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenera
 		if (Platform.isFxApplicationThread()) {
 			try {
 				// if we are already on the Java FX thread then just generate the thumbnail
-				return ImageManipulator.getUniformScaledImage(SwingFXUtils.fromFXImage(r.call(), null), width, height, AffineTransformOp.TYPE_BICUBIC);
+				BufferedImage image = SwingFXUtils.fromFXImage(r.call(), null);
+				// make sure its a in the right format for scaling
+				image = ImageUtil.toBuffered(image, BufferedImage.TYPE_INT_ARGB);
+				return ImageManipulator.getUniformScaledImage(image, width, height, ResampleOp.FILTER_LANCZOS);
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to generate image", ex);
 				return null;

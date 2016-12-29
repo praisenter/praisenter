@@ -133,15 +133,21 @@ public final class FillPane extends StackPane {
 			clip.setArcWidth(br * 2);
 		}
 		
+		// reset
+		this.mediaView.setFitWidth(0);
+		this.mediaView.setFitHeight(0);
+		this.mediaView.setPreserveRatio(true);
+		
 		if (scaling == ScaleType.NONUNIFORM) { 
 			this.mediaView.setFitWidth(w);
 			this.mediaView.setFitHeight(h);
+			this.mediaView.setPreserveRatio(false);
 		} else if (scaling == ScaleType.UNIFORM) {
 			// set the fit w/h based on the min
 			if (w < h) {
 				this.mediaView.setFitWidth(w);
 			} else {
-				this.mediaView.setFitWidth(h);
+				this.mediaView.setFitHeight(h);
 			}
 		} else {
 			// then center it

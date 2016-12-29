@@ -29,8 +29,11 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
+
+import com.twelvemonkeys.image.ResampleOp;
 
 // TODO Clean up unused methods
 
@@ -197,17 +200,9 @@ public final class ImageManipulator {
 	 * @return BufferedImage
 	 */
 	public static final BufferedImage getNonUniformScaledImage(BufferedImage image, int tw, int th, int quality) {
-		// get the width/height
-        int iw = image.getWidth();
-        int ih = image.getHeight();
-        
-	    // get the scaling factors
-	    double pw = (double)tw / (double)iw;
-		double ph = (double)th / (double)ih;
-
 	    // attempt to resize it
-	    AffineTransformOp scale = new AffineTransformOp(AffineTransform.getScaleInstance(pw, ph), quality);
-	    return scale.filter(image, null);
+		BufferedImageOp op = new ResampleOp(tw, th, quality);
+	    return op.filter(image, null);
 	}
 	
 	/**
@@ -237,8 +232,8 @@ public final class ImageManipulator {
 		}
 		
 	    // attempt to resize it
-	    AffineTransformOp scale = new AffineTransformOp(AffineTransform.getScaleInstance(s, s), quality);
-	    return scale.filter(image, null);
+		BufferedImageOp op = new ResampleOp((int)Math.floor(s * iw), (int)Math.floor(s * ih), quality);
+	    return op.filter(image, null);
 	}
 //	
 //	/**

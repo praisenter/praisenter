@@ -24,7 +24,6 @@
  */
 package org.praisenter.javafx.bible;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -539,11 +538,11 @@ public final class ObservableBibleLibrary {
 	 * @param onError called when the search failed
 	 */
 	public void search(String text, SearchType searchType, Consumer<List<BibleSearchResult>> onSuccess, Consumer<Throwable> onError) {
-		this.search(null, text, searchType, onSuccess, onError);
+		this.search(null, null, text, searchType, onSuccess, onError);
 	}
-	
+
 	/**
-	 * Searches the given bible for the given text using the given search type.
+	 * Searches all bibles for the given text using the given search type.
 	 * @param bibleId the id of the bible to search
 	 * @param text the text to search for
 	 * @param searchType the search type
@@ -551,12 +550,25 @@ public final class ObservableBibleLibrary {
 	 * @param onError called when the search failed
 	 */
 	public void search(UUID bibleId, String text, SearchType searchType, Consumer<List<BibleSearchResult>> onSuccess, Consumer<Throwable> onError) {
+		this.search(bibleId, null, text, searchType, onSuccess, onError);
+	}
+	
+	/**
+	 * Searches the given bible for the given text using the given search type.
+	 * @param bibleId the id of the bible to search
+	 * @param bookNumber the book number of the book to search
+	 * @param text the text to search for
+	 * @param searchType the search type
+	 * @param onSuccess called when the search is complete
+	 * @param onError called when the search failed
+	 */
+	public void search(UUID bibleId, Short bookNumber, String text, SearchType searchType, Consumer<List<BibleSearchResult>> onSuccess, Consumer<Throwable> onError) {
 		Task<List<BibleSearchResult>> task = new Task<List<BibleSearchResult>>() {
 			@Override
 			protected List<BibleSearchResult> call() throws Exception {
 				updateProgress(-1, 0);
 				try {
-					return library.search(bibleId, text, searchType);
+					return library.search(bibleId, bookNumber, text, searchType);
 				} catch (Exception ex) {
 					throw ex;
 				}

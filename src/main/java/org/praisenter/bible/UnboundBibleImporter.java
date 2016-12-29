@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -187,10 +188,6 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 		Arrays.fill(columnMapping, -1);
 		int i = 0;
 		
-		Chapter chapter = null;
-		short chapterNumber = 0;
-		String bookCode = null;
-		
 		while ((line = reader.readLine()) != null) {
 			i++;
 			if (line.startsWith("#")) {
@@ -236,15 +233,16 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 						String bc = data[columnMapping[0]].trim();
 						short cn = Short.parseShort(data[columnMapping[1]].trim());
 						
-						if (cn != chapterNumber || !bc.equals(bookCode)) {
+						// get the book
+						Book book = bookMap.get(bc);
+						// get the chapter
+						Chapter chapter = book.getChapter(cn);
+						// check for chapter not exists
+						if (chapter == null) {
 							chapter = new Chapter(cn);
-							Book book = bookMap.get(bc);
-							if (book != null) {
-								book.chapters.add(chapter);
-							}
-							chapterNumber = cn;
-							bookCode = bc;
+							book.chapters.add(chapter);
 						}
+						
 						short verse = Short.parseShort(data[columnMapping[2]].trim());
 						
 						String text = null;
@@ -259,7 +257,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 							text = "";
 							bible.hadImportWarning = true;
 							// continue, but log a warning
-							LOGGER.warn("Verse [{}|{}|{}] is missing text on line {} in {}.", bookCode, chapter.number, verse, i, fileName);
+							LOGGER.warn("Verse [{}|{}|{}] is missing text on line {} in {}.", bc, cn, verse, i, fileName);
 						}
 						
 						if (chapter != null) {
@@ -270,6 +268,14 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 						throw new InvalidFormatException(fileName + ":" + i);
 					}
 				}
+			}
+		}
+		
+		// sort since the chapters/verses could be out of order
+		for (Book book : bible.books) {
+			Collections.sort(book.chapters);
+			for (Chapter chapter : book.chapters) {
+				Collections.sort(chapter.verses);
 			}
 		}
 	}

@@ -67,7 +67,7 @@ public final class Fx {
 	 * @return Border
 	 */
 	public static final Border newBorder(Color color) {
-		return new Border(new BorderStroke(color, BorderStrokeStyle.SOLID, null, new BorderWidths(1)));
+		return new Border(new BorderStroke(color, BorderStrokeStyle.SOLID, null, new BorderWidths(5)));
 	}
 
 	/**
@@ -138,9 +138,9 @@ public final class Fx {
 		// scale by the smallest factor
 		if (sw < sh) {
 			w = tw;
-			h = (int)Math.ceil(sw * h);
+			h = sw * h;
 		} else {
-			w = (int)Math.ceil(sh * w);
+			w = sh * w;
 			h = th;
 		}
 

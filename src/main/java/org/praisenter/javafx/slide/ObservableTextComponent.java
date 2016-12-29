@@ -68,8 +68,8 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		this.padding.set(component.getPadding());
 		this.lineSpacing.set(component.getLineSpacing());
 		this.textWrapping.set(component.isTextWrapping());
-		this.textShadow.set(component.getShadow());
-		this.textGlow.set(component.getGlow());
+		this.textShadow.set(component.getTextShadow());
+		this.textGlow.set(component.getTextGlow());
 		
 		this.textWrapper = new VBox();
 		this.textNode = new Text();
@@ -131,6 +131,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		updateTextPaint();
 		updateTextBorder();
 		updateAlignment();
+		updateTextEffects();
 		
 		super.build(this.textWrapper);
 		

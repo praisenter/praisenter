@@ -14,7 +14,7 @@ import javafx.scene.layout.Region;
 
 class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 
-	private static final PseudoClass HOVER = PseudoClass.getPseudoClass("hover");
+	private static final PseudoClass HOVER = PseudoClass.getPseudoClass("edit-hover");
 	private static final int MIN_DIMENSION = 50;
 	
 	private final ObservableSlideRegion<?> region;

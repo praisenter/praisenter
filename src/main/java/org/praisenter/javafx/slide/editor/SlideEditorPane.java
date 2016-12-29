@@ -100,7 +100,7 @@ import javafx.scene.shape.StrokeType;
 public final class SlideEditorPane extends BorderPane implements ApplicationPane {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
-	private static final PseudoClass SELECTED = PseudoClass.getPseudoClass("selected");
+	private static final PseudoClass SELECTED = PseudoClass.getPseudoClass("edit-selected");
 	
 	private final PraisenterContext context;
 	
@@ -228,9 +228,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				// scale by the smallest factor
 				if (sw < sh) {
 					w = tw;
-					h = (int)Math.ceil(sw * h);
+					h = sw * h;
 				} else {
-					w = (int)Math.ceil(sh * w);
+					w = sh * w;
 					h = th;
 				}
 
