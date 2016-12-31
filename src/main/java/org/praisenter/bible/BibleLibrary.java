@@ -591,40 +591,15 @@ public final class BibleLibrary {
 				Bible bible = this.bibles.get(UUID.fromString(document.get(FIELD_BIBLE_ID)));
 				short bookNumber = document.getField(FIELD_BOOK_NUMBER).numericValue().shortValue();
 				short chapterNumber = document.getField(FIELD_VERSE_CHAPTER).numericValue().shortValue();
-				short number = document.getField(FIELD_VERSE_NUMBER).numericValue().shortValue();
+				short verseNumber = document.getField(FIELD_VERSE_NUMBER).numericValue().shortValue();
 				
-				Book book = null;
-				Chapter chapter = null;
-				Verse verse = null;
+				LocatedVerse verse = null;
 				if (bible != null) {
-					for (Book b : bible.books) {
-						if (b.number == bookNumber) {
-							book = b;
-							break;
-						}
-					}
-					
-					if (book != null) {
-						for (Chapter c : book.chapters) {
-							if (c.number == chapterNumber) {
-								chapter = c;
-								break;
-							}
-						}
-					}
-					
-					if (chapter != null) {
-						for (Verse v : chapter.verses) {
-							if (v.number == number) {
-								verse = v;
-								break;
-							}
-						}
-					}
+					verse = bible.getVerse(bookNumber, chapterNumber, verseNumber);
 				}
 				
 				// just continue if its not found
-				if (bible == null) {
+				if (verse == null) {
 					continue;
 				}
 				
@@ -642,7 +617,7 @@ public final class BibleLibrary {
 					}
 				}
 				
-				BibleSearchResult match = new BibleSearchResult(doc.score, bible, book, chapter, verse, matches);
+				BibleSearchResult match = new BibleSearchResult(doc.score, verse.getBible(), verse.getBook(), verse.getChapter(), verse.getVerse(), matches);
 				results.add(match);
 			}
 		}

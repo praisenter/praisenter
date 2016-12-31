@@ -118,7 +118,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 							// a piece of film
 							drawFilmOnFrame(thumb);
 						} catch (Exception e) {
-							LOGGER.warn("Failed to read first frame of video '{}': {}", path.toAbsolutePath().toString(), e.getMessage());
+							LOGGER.warn("Failed to read first frame of video '" + path.toAbsolutePath().toString() + ": " + e.getMessage(), e);
 							image = null;
 							thumb = null;
 						}

@@ -348,6 +348,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		menu.getItems().addAll(
 				menu.createMenuItem(ApplicationAction.OPEN),
 				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.NEW_BIBLE, Translations.get("action.new")),
 				menu.createMenuItem(ApplicationAction.COPY),
 				menu.createMenuItem(ApplicationAction.PASTE),
 				new SeparatorMenuItem(),
@@ -731,6 +732,8 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 					return cb.hasContent(DataFormats.BIBLE_IDS);
 				}
 				break;
+			case NEW_BIBLE:
+				return true;
 			default:
 				break;
 		}
