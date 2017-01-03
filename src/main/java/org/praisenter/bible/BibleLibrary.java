@@ -62,16 +62,18 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.Scorer;
+import org.apache.lucene.search.spans.SpanMultiTermQueryWrapper;
+import org.apache.lucene.search.spans.SpanNearQuery;
+import org.apache.lucene.search.spans.SpanQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.praisenter.Constants;
@@ -519,34 +521,31 @@ public final class BibleLibrary {
 		
 		if (tokens.size() == 0) return null;
 		if (tokens.size() == 1) {
-			// if its a single token then do a wildcard search on it (starts with)
+			// single term, just do a fuzzy query on it with a larger max edit distance
 			String token = tokens.get(0);
-			if (!token.contains(Character.toString(WildcardQuery.WILDCARD_STRING))) {
-				token =  token + WildcardQuery.WILDCARD_STRING;
-			}
-			query = new WildcardQuery(new Term(field, token));
+			query = new FuzzyQuery(new Term(field, token));
 		// PHRASE
 		} else if (type == SearchType.PHRASE) {
-			query = new PhraseQuery(2, field, tokens.toArray(new String[0]));
-		// ALL_WILDCARD, ANY_WILDCARD
-		} else if (type == SearchType.ALL_WILDCARD || type == SearchType.ANY_WILDCARD) {
-			BooleanQuery.Builder builder = new BooleanQuery.Builder();
-			for (String token : tokens) {
-				if (!token.contains(Character.toString(WildcardQuery.WILDCARD_STRING))) {
-					token = token + WildcardQuery.WILDCARD_STRING;
-				}
-				builder.add(new WildcardQuery(new Term(field, token)), type == SearchType.ALL_WILDCARD ? Occur.MUST : Occur.SHOULD);
+			// for phrase, do a span-near-fuzzy query since we 
+			// care if the words are close to each other
+			SpanQuery[] sqs = new SpanQuery[tokens.size()];
+			for (int i = 0; i < tokens.size(); i++) {
+				sqs[i] = new SpanMultiTermQueryWrapper<FuzzyQuery>(new FuzzyQuery(new Term(field, tokens.get(i))));
 			}
-			query = builder.build();
+			// the terms should be within 3 terms of each other
+			query = new SpanNearQuery(sqs, 3, false);
 		// ALL_WORDS, ANY_WORD
 		} else {
+			// do an and/or combination of fuzzy queries
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			for (String token : tokens) {
-				builder.add(new TermQuery(new Term(field, token)), type == SearchType.ALL_WORDS ? Occur.MUST : Occur.SHOULD);
+				builder.add(new FuzzyQuery(new Term(field, token)), type == SearchType.ALL_WORDS ? Occur.MUST : Occur.SHOULD);
 			}
 			query = builder.build();
 		}
+		// ALL_WILDCARD, ANY_WILDCARD (not available as an option)
 		
+		// further filter on any other criteria
 		// check if the bible id was supplied
 		if (bibleId != null) {
 			// then filter by the bible

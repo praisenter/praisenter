@@ -1,5 +1,6 @@
 package org.praisenter.javafx.bible;
 
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -24,6 +25,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -32,6 +34,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
@@ -42,6 +45,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
 public class BibleSearchPane extends BorderPane {
+	private static final DecimalFormat SCORE_FORMAT = new DecimalFormat("#.000000");
+	
 	private final PraisenterContext context;
 	
 	private final TextField txtSearch;
@@ -52,6 +57,9 @@ public class BibleSearchPane extends BorderPane {
 	private final TableView<BibleSearchResult> table;
 	
 	// TODO translate
+	// TODO ability to double click verse to set the current "value"
+	
+	// FEATURE add searching to the bible editor for finding and editing easily
 	
 	public BibleSearchPane(PraisenterContext context) {
 		this.context = context;
@@ -59,12 +67,10 @@ public class BibleSearchPane extends BorderPane {
 		this.setPadding(new Insets(5));
 		
 		ObservableList<Option<SearchType>> types = FXCollections.observableArrayList();
-		types.add(new Option<SearchType>("All Words", SearchType.ALL_WORDS));
 		types.add(new Option<SearchType>("Phrase", SearchType.PHRASE));
-//		types.add(new Option<SearchType>("Any Word", SearchType.ANY_WORD));
-//		types.add(new Option<SearchType>("Any Wildcard", SearchType.ANY_WILDCARD));
-//		types.add(new Option<SearchType>("All Wildcards", SearchType.ALL_WILDCARD));
-		
+		types.add(new Option<SearchType>("All Words", SearchType.ALL_WORDS));
+		types.add(new Option<SearchType>("Any Word", SearchType.ANY_WORD));
+
 		this.txtSearch = new TextField();
 		this.txtSearch.setPromptText("Search terms");
 		
@@ -162,6 +168,20 @@ public class BibleSearchPane extends BorderPane {
 		verseNumber.setCellValueFactory(p -> new ReadOnlyObjectWrapper<Verse>(p.getValue().getVerse()));
 		verseText.setCellValueFactory(p -> new ReadOnlyObjectWrapper<Verse>(p.getValue().getVerse()));
 		
+		score.setCellFactory(p -> new TableCell<BibleSearchResult, Number>() {
+			{
+				setAlignment(Pos.CENTER_RIGHT);
+			}
+			@Override
+			protected void updateItem(Number item, boolean empty) {
+				super.updateItem(item, empty);
+				if (item == null || empty) {
+					setText(null);
+				} else {
+					setText(SCORE_FORMAT.format(item));
+				}
+			}
+		});
 		bibleName.setCellFactory(p -> new TableCell<BibleSearchResult, Bible>() {
 			@Override
 			protected void updateItem(Bible item, boolean empty) {
@@ -207,18 +227,28 @@ public class BibleSearchPane extends BorderPane {
 			}
 		});
 		verseText.setCellFactory(p -> new TableCell<BibleSearchResult, Verse>() {
+			private final Tooltip tooltip;
+			{
+				this.tooltip = new Tooltip();
+				this.tooltip.setWrapText(true);
+				this.tooltip.setMaxWidth(300);
+				setTooltip(null);
+			}
 			@Override
 			protected void updateItem(Verse item, boolean empty) {
 				super.updateItem(item, empty);
 				if (item == null || empty) {
 					setText(null);
+					setTooltip(null);
 				} else {
-					setText(String.valueOf(item.getText()));
+					setText(item.getText());
+					tooltip.setText(item.getText());
+					setTooltip(tooltip);
 				}
 			}
 		});
 		
-		score.setPrefWidth(50);
+		score.setPrefWidth(75);
 		bibleName.setPrefWidth(175);
 		bookName.setPrefWidth(150);
 		chapterNumber.setPrefWidth(50);
