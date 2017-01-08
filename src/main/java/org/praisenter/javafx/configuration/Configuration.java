@@ -83,8 +83,8 @@ public final class Configuration {
 		this.theme = Theme.DEFAULT;
 
 		// set default language/theme
-		this.settings.put(Setting.GENERAL_LANGUAGE, this.language.toLanguageTag());
-		this.settings.put(Setting.GENERAL_THEME, this.theme.getName());
+		this.settings.put(Setting.APP_LANGUAGE, this.language.toLanguageTag());
+		this.settings.put(Setting.APP_THEME, this.theme.getName());
 		
 		// set other defaults
 		this.settings.put(Setting.BIBLE_SHOW_RENUMBER_WARNING, "true");
@@ -104,8 +104,8 @@ public final class Configuration {
 		if (Files.exists(path)) {
 			try {
 				Configuration conf = XmlIO.read(path, Configuration.class);
-				conf.language = Locale.forLanguageTag(conf.get(Setting.GENERAL_LANGUAGE));
-				String name = conf.get(Setting.GENERAL_THEME);
+				conf.language = Locale.forLanguageTag(conf.get(Setting.APP_LANGUAGE));
+				String name = conf.get(Setting.APP_THEME);
 				// find the matching theme
 				for (Theme theme : Theme.getAvailableThemes()) {
 					if (theme.getName().equalsIgnoreCase(name)) {
@@ -462,7 +462,7 @@ public final class Configuration {
 	 * @param locale the locale
 	 */
 	public void setLanguage(Locale locale) {
-		this.set(Setting.GENERAL_LANGUAGE, locale != null ? locale.toLanguageTag() : Locale.getDefault().toLanguageTag());
+		this.set(Setting.APP_LANGUAGE, locale != null ? locale.toLanguageTag() : Locale.getDefault().toLanguageTag());
 	}
 
 	/**
@@ -480,6 +480,6 @@ public final class Configuration {
 	 * @param theme the theme
 	 */
 	public void setTheme(Theme theme) {
-		this.set(Setting.GENERAL_THEME, theme != null ? theme.getName() : Theme.DEFAULT.getName());
+		this.set(Setting.APP_THEME, theme != null ? theme.getName() : Theme.DEFAULT.getName());
 	}
 }

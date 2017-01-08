@@ -24,12 +24,15 @@
  */
 package org.praisenter.javafx.bible;
 
-import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.WritableStringValue;
 import javafx.scene.control.Button;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -45,8 +48,11 @@ final class BibleSearchButton extends Button {
 	/** The bible search dialog */
 	private Stage dialog;
 	
+	/** The search text */
+	private final StringProperty searchText = new SimpleStringProperty();
+	
 	/** The selected value */
-	private final ObjectProperty<BibleSearchResult> value = new SimpleObjectProperty<BibleSearchResult>();
+	private final ObjectProperty<SelectedBibleSearchResult> value = new SimpleObjectProperty<SelectedBibleSearchResult>();
 	
 	/**
 	 * Full constructor.
@@ -56,6 +62,9 @@ final class BibleSearchButton extends Button {
 		this.setText("Search...");
 		this.setOnAction((e) -> {
 			if (dialog == null) {
+				this.value.unbind();
+				this.searchText.unbind();
+				
 				Window owner = getScene().getWindow();
 				// create the media dialog
 				// passing the owner (we don't create
@@ -75,7 +84,12 @@ final class BibleSearchButton extends Button {
 				
 				// build the media library pane
 				BibleSearchPane bsp = new BibleSearchPane(context);
-
+				this.value.bind(bsp.valueProperty());
+				
+				this.searchText.addListener((obs, ov, nv) -> {
+					bsp.setText(nv);
+				});
+				
 				dialog.setScene(Fx.newSceneInheritCss(bsp, getScene().getWindow()));
 			}
 			// show the dialog
@@ -85,26 +99,33 @@ final class BibleSearchButton extends Button {
 	
 	/**
 	 * Returns the value property.
-	 * @return ObjectProperty&lt;{@link BibleSearchResult}&gt;
+	 * @return ReadOnlyObjectProperty&lt;{@link SelectedBibleSearchResult}&gt;
 	 */
-	public ObjectProperty<BibleSearchResult> valueProperty() {
+	public ReadOnlyObjectProperty<SelectedBibleSearchResult> valueProperty() {
 		return this.value;
 	}
 	
 	/**
 	 * Returns the current value of this picker.
-	 * @return {@link BibleSearchResult}
+	 * @return {@link SelectedBibleSearchResult}
 	 */
-	public BibleSearchResult getValue() {
+	public SelectedBibleSearchResult getValue() {
 		return this.value.get();
 	}
 	
-	// TODO this shouldn't be valid, instead you should supply a string for the text search
 	/**
-	 * Sets the current value of this picker.
-	 * @param result the desired value
+	 * Sets the search text.
+	 * @param search the search text
 	 */
-	public void setValue(BibleSearchResult result) {
-		this.value.set(result);
+	public void setSearchText(String search) {
+		this.searchText.set(search);
+	}
+	
+	/**
+	 * Returns the search text property.
+	 * @return StringProperty
+	 */
+	public WritableStringValue searchTextProperty() {
+		return this.searchText;
 	}
 }

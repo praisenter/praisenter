@@ -52,6 +52,8 @@ import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 
+// TODO clean up and potential global exception capturing
+
 /**
  * Represents a media player with play/pause and volume controls.
  * @author William Bittle

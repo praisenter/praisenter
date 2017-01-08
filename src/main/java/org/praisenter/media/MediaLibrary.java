@@ -50,13 +50,14 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.Tag;
+import org.praisenter.ThumbnailSettings;
 import org.praisenter.xml.XmlIO;
 
 /**
  * A collection of media that has been loaded into a specific location and converted
  * into supported formats with additional files generated for enhanced performance.
  * <p>
- * Obtain a {@link MediaLibrary} instance by calling the {@link #open(Path, MediaThumbnailSettings)}
+ * Obtain a {@link MediaLibrary} instance by calling the {@link #open(Path, ThumbnailSettings)}
  * static method. Only one instance should be created for each path. Multiple instances
  * modifying the same path can have unexpected results and can show different sets of media.
  * <p>
@@ -100,7 +101,7 @@ public final class MediaLibrary {
 	private final MediaImportFilter importFilter;
 	
 	/** The thumbnail settings */
-	private final MediaThumbnailSettings thumbnailSettings;
+	private final ThumbnailSettings thumbnailSettings;
 	
 	// loaded
 	
@@ -112,27 +113,27 @@ public final class MediaLibrary {
 	
 	/**
 	 * Sets up a new {@link MediaLibrary} at the given path using the {@link DefaultMediaImportFilter}
-	 * with the given {@link MediaThumbnailSettings}.
+	 * with the given {@link ThumbnailSettings}.
 	 * @param path the root path to the media library
-	 * @param settings the thumbnail settings
+	 * @param thumbnailSettings the thumbnail settings
 	 * @return {@link MediaLibrary}
 	 * @throws IOException if an IO error occurs
 	 */
-	public static final MediaLibrary open(Path path, MediaThumbnailSettings settings) throws IOException {
-		return open(path, null, settings);
+	public static final MediaLibrary open(Path path, ThumbnailSettings thumbnailSettings) throws IOException {
+		return open(path, null, thumbnailSettings);
 	}
 	
 	/**
 	 * Sets up a new {@link MediaLibrary} at the given path using the {@link DefaultMediaImportFilter}
-	 * with the given {@link MediaThumbnailSettings}.
+	 * with the given {@link ThumbnailSettings}.
 	 * @param path the root path to the media library
 	 * @param importFilter the import filter
-	 * @param settings the thumbnail settings
+	 * @param thumbnailSettings the thumbnail settings
 	 * @return {@link MediaLibrary}
 	 * @throws IOException if an IO error occurs
 	 */
-	public static final MediaLibrary open(Path path, MediaImportFilter importFilter, MediaThumbnailSettings settings) throws IOException {
-		MediaLibrary library = new MediaLibrary(path, importFilter, settings);
+	public static final MediaLibrary open(Path path, MediaImportFilter importFilter, ThumbnailSettings thumbnailSettings) throws IOException {
+		MediaLibrary library = new MediaLibrary(path, importFilter, thumbnailSettings);
 		library.initialize();
 		return library;
 	}
@@ -143,18 +144,17 @@ public final class MediaLibrary {
 	 * @param importFilter the import filter
 	 * @param settings the thumbnail settings
 	 */
-	private MediaLibrary(Path path, MediaImportFilter importFilter, MediaThumbnailSettings settings) {
+	private MediaLibrary(Path path, MediaImportFilter importFilter, ThumbnailSettings thumbnailSettings) {
 		this.path = path;
 		this.metadataPath = path.resolve(METADATA_DIR);
+		this.thumbnailSettings = thumbnailSettings;
 		
 		this.importFilter = importFilter == null ? new DefaultMediaImportFilter() : importFilter;
 		
-		this.thumbnailSettings = settings;
-		
 		this.loaders = new MediaLoader[] {
-			new ImageMediaLoader(settings),
-			new VideoMediaLoader(settings),
-			new AudioMediaLoader(settings)
+			new ImageMediaLoader(thumbnailSettings),
+			new VideoMediaLoader(thumbnailSettings),
+			new AudioMediaLoader(thumbnailSettings)
 		};
 		
 		this.media = new HashMap<UUID, Media>();
@@ -380,7 +380,7 @@ public final class MediaLibrary {
 		// make sure it exists and is a file
 		if (Files.exists(source) && Files.isRegularFile(source)) {
 			MediaType type = getMediaType(source);
-			return insert(source, type, source.getFileName().toString());
+			return filter(source, type, source.getFileName().toString());
 		} else {
 			throw new FileNotFoundException(source.toAbsolutePath().toString());
 		}
@@ -403,7 +403,7 @@ public final class MediaLibrary {
 		
 		// insert the media into the library
 		MediaType type = getMediaType(temp);
-		Path target = insert(temp, type, name);
+		Path target = filter(temp, type, name);
 		
 		// delete the temp file
 		Files.delete(temp);
@@ -412,6 +412,9 @@ public final class MediaLibrary {
 	
 	/**
 	 * Inserts the given source into the media library performing any pre-processing before hand.
+	 * <p>
+	 * Note: this process can take a long time depending on the media type and the pre-processing
+	 * taking place.
 	 * @param source the source file
 	 * @param type the media type
 	 * @param name the file name
@@ -421,7 +424,7 @@ public final class MediaLibrary {
 	 * @throws TranscodeException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	private final Path insert(Path source, MediaType type, String name) throws FileAlreadyExistsException, IOException, TranscodeException, UnknownMediaTypeException {
+	private final Path filter(Path source, MediaType type, String name) throws FileAlreadyExistsException, IOException, TranscodeException, UnknownMediaTypeException {
 		if (type == null) {
 			throw new UnknownMediaTypeException(source.toAbsolutePath().toString());
 		}
@@ -462,6 +465,7 @@ public final class MediaLibrary {
 	 * Renames the given media and returns a new media object
 	 * representing the renamed media.
 	 * @param path the path
+	 * @param name the new name
 	 * @return {@link Media}
 	 * @throws FileAlreadyExistsException if the target file name already exists
 	 * @throws JAXBException if the metadata fails to save
@@ -507,7 +511,7 @@ public final class MediaLibrary {
 	 * @param id the id
 	 * @return boolean
 	 */
-	public synchronized boolean contains(UUID id) {
+	public boolean contains(UUID id) {
 		return this.media.containsKey(id);
 	}
 	
@@ -522,7 +526,7 @@ public final class MediaLibrary {
 	 * @param id the id
 	 * @return {@link Media}
 	 */
-	public synchronized Media get(UUID id) {
+	public Media get(UUID id) {
 		return this.media.get(id);
 	}
 	
@@ -560,7 +564,7 @@ public final class MediaLibrary {
 	 * Returns the number of media items in the library.
 	 * @return int
 	 */
-	public synchronized int size() {
+	public int size() {
 		return this.media.size();
 	}
 	
@@ -575,13 +579,16 @@ public final class MediaLibrary {
 	 * @throws TranscodeException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized Media add(Path path) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, UnknownMediaTypeException, InvalidFormatException {
+	public Media add(Path path) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, UnknownMediaTypeException, InvalidFormatException {
 		// copy it to the library
+		// NOTE: don't synchronize this since it could take a long time
 		Path libraryPath = copy(path);
-		// attempt to load it
-		Media media = update(libraryPath, null);
-		// return it
-		return media;
+		synchronized (this) {
+			// attempt to load it
+			Media media = update(libraryPath, null);
+			// return it
+			return media;
+		}
 	}
 	
 	/**
@@ -595,13 +602,16 @@ public final class MediaLibrary {
 	 * @throws TranscodeException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized Media add(InputStream stream, String name) throws FileAlreadyExistsException, IOException, TranscodeException, UnknownMediaTypeException, InvalidFormatException {
+	public Media add(InputStream stream, String name) throws FileAlreadyExistsException, IOException, TranscodeException, UnknownMediaTypeException, InvalidFormatException {
 		// copy it to the library
+		// NOTE: don't synchronize this since it could take a long time
 		Path libraryPath = copy(stream, name);
-		// attempt to load it
-		Media media = update(libraryPath, null);
-		// return it
-		return media;
+		synchronized (this) {
+			// attempt to load it
+			Media media = update(libraryPath, null);
+			// return it
+			return media;
+		}
 	}
 	
 	/**
@@ -715,18 +725,10 @@ public final class MediaLibrary {
 	}
 
 	/**
-	 * Returns the import filter for this media library.
-	 * @return {@link MediaImportFilter}
+	 * Returns the thumbnail settings.
+	 * @return {@link ThumbnailSettings}
 	 */
-	public MediaImportFilter getImportFilter() {
-		return this.importFilter;
-	}
-	
-	/**
-	 * Returns the thumbnail settings for this media library.
-	 * @return {@link MediaThumbnailSettings}
-	 */
-	public MediaThumbnailSettings getThumbnailSettings() {
+	public ThumbnailSettings getThumbnailSettings() {
 		return this.thumbnailSettings;
 	}
 }

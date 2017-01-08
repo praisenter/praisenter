@@ -51,6 +51,18 @@ final class BookTreeData extends TreeData {
 		
 		this.label.set(book.getName());
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(TreeData)
+	 */
+	@Override
+	public int compareTo(TreeData o) {
+		if (o != null && o instanceof BookTreeData) {
+			BookTreeData ctd = (BookTreeData)o;
+			return this.book.compareTo(ctd.book);
+		}
+		return -1;
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.bible.TreeData#update()

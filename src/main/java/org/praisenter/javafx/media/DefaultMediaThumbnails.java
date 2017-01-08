@@ -22,54 +22,61 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.media;
+package org.praisenter.javafx.media;
+
+import org.praisenter.ThumbnailSettings;
+
+import javafx.scene.image.Image;
 
 /**
- * Media library thumbnail settings.
- * <p>
- * Used to specify the size of the thumbnails to generate and the default
- * thumbnails when a thumbnail cannot be created.
+ * Represents a class that stores default thumbnails for media items
+ * that failed to generate a thumbnail or cannot (audio or streaming video).
  * @author William Bittle
  * @version 3.0.0
  */
-public final class MediaThumbnailSettings {
-	/** The desired thumbnail width */
-	final int width;
+final class DefaultMediaThumbnails {
+	/** The default image thumbnail */
+	private final Image defaultImageThumbnail;
 	
-	/** The desired thumbnail height */
-	final int height;
+	/** The default video thumbnail */
+	private final Image defaultVideoThumbnail;
+	
+	/** The default audio thumbnail */
+	private final Image defaultAudioThumbnail;
 	
 	/**
-	 * Full constructor.
-	 * <p>
-	 * Generated thumbnails will retain their aspect ratio and fit within
-	 * the given width and height.
-	 * <p>
-	 * The default thumbnails will be sized appropriately if they aren't already.
-	 * @param width the desired thumbnail width
-	 * @param height the desired thumbnail height
+	 * Creates a set of default thumbnails based on the given settings.
+	 * @param thumbnailSettings the thumbnail settings
 	 */
-	public MediaThumbnailSettings(
-			int width, 
-			int height) {
-		super();
-		this.width = width;
-		this.height = height;
+	public DefaultMediaThumbnails(ThumbnailSettings thumbnailSettings) {
+		final int w = thumbnailSettings.getWidth();
+		final int h = thumbnailSettings.getHeight();
+		this.defaultImageThumbnail = new Image("/org/praisenter/resources/image-default-thumbnail.png", w, h, true, true, false);
+		this.defaultVideoThumbnail = new Image("/org/praisenter/resources/video-default-thumbnail.png", w, h, true, true, false);
+		this.defaultAudioThumbnail = new Image("/org/praisenter/resources/music-default-thumbnail.png", w, h, true, true, false);
 	}
-
+	
 	/**
-	 * Returns the desired thumbnail width.
-	 * @return int
+	 * Returns the default image thumbnail.
+	 * @return Image
 	 */
-	public int getWidth() {
-		return this.width;
+	public Image getDefaultImageThumbnail() {
+		return this.defaultImageThumbnail;
 	}
-
+	
 	/**
-	 * Returns the desired thumbnail height.
-	 * @return int
+	 * Returns the default video thumbnail.
+	 * @return Image
 	 */
-	public int getHeight() {
-		return this.height;
+	public Image getDefaultVideoThumbnail() {
+		return this.defaultVideoThumbnail;
+	}
+	
+	/**
+	 * Returns the default audio thumbnail.
+	 * @return Image
+	 */
+	public Image getDefaultAudioThumbnail() {
+		return this.defaultAudioThumbnail;
 	}
 }

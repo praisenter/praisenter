@@ -59,26 +59,24 @@ final class BibleListCell extends FlowListCell<BibleListItem> {
 		
     	// setup the thumbnail image
     	final ImageView thumb = new ImageView(ICON);
-    	
     	thumb.setFitHeight(100);
     	thumb.setPreserveRatio(true);
 		thumb.setEffect(new DropShadow(2, 2, 2, Color.rgb(0, 0, 0, 0.25)));
+		thumb.managedProperty().bind(thumb.visibleProperty());
+		
+		// setup an indeterminant progress bar
+		ProgressIndicator progress = new ProgressIndicator();
+		progress.managedProperty().bind(progress.visibleProperty());
 		
 		// place it in a VBox for good positioning
-    	final VBox wrapper = new VBox(thumb);
+    	final VBox wrapper = new VBox(thumb, progress);
     	wrapper.setAlignment(Pos.BOTTOM_CENTER);
     	wrapper.setPrefHeight(100);
     	wrapper.setMaxHeight(100);
     	wrapper.setMinHeight(100);
-    	wrapper.managedProperty().bind(wrapper.visibleProperty());
     	this.getChildren().add(wrapper);
-	
-		// setup an indeterminant progress bar
-		ProgressIndicator progress = new ProgressIndicator();
-		progress.managedProperty().bind(progress.visibleProperty());
-		this.getChildren().add(progress);
 		
-		wrapper.visibleProperty().bind(item.loadedProperty());
+		thumb.visibleProperty().bind(item.loadedProperty());
 		progress.visibleProperty().bind(item.loadedProperty().not());
     	
     	// setup the media name label

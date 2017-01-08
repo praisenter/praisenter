@@ -76,6 +76,9 @@ final class MediaListItem implements Comparable<MediaListItem> {
 		this.tags.addAll(media.getTags());
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
 		return this.name.get();
@@ -97,42 +100,82 @@ final class MediaListItem implements Comparable<MediaListItem> {
 		}
 	}
 	
+	/**
+	 * Returns the name of the item.
+	 * @return String
+	 */
 	public String getName() {
 		return this.name.get();
 	}
 	
+	/**
+	 * Sets the name of the item.
+	 * @param name the name
+	 */
 	public void setName(String name) {
 		this.name.set(name);
 	}
 	
+	/**
+	 * The name property.
+	 * @return StringProperty
+	 */
 	public StringProperty nameProperty() {
 		return this.name;
 	}
 	
+	/**
+	 * Returns the media.
+	 * @return {@link Media}
+	 */
 	public Media getMedia() {
 		return this.media.get();
 	}
 	
+	/**
+	 * Sets the media.
+	 * @param media the media
+	 */
 	public void setMedia(Media media) {
 		this.media.set(media);
 	}
 	
+	/**
+	 * The media property.
+	 * @return ObjectProperty&lt;{@link Media}&gt;
+	 */
 	public ObjectProperty<Media> mediaProperty() {
 		return this.media;
 	}
 	
+	/**
+	 * Returns true if the media is loaded.
+	 * @return boolean
+	 */
 	public boolean isLoaded() {
 		return this.loaded.get();
 	}
 	
+	/**
+	 * Sets if this media has been loaded.
+	 * @param loaded true if loaded
+	 */
 	public void setLoaded(boolean loaded) {
 		this.loaded.set(loaded);
 	}
 	
+	/**
+	 * Returns the loaded property.
+	 * @return BooleanProperty
+	 */
 	public BooleanProperty loadedProperty() {
 		return this.loaded;
 	}
 	
+	/**
+	 * Returns this item's set of tags.
+	 * @return ObservableSet&lt;{@link Tag}&gt;
+	 */
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
 	}

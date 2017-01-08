@@ -22,47 +22,46 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.media;
+package org.praisenter.javafx.bible;
 
-import java.awt.image.BufferedImage;
-
-import org.praisenter.ThumbnailSettings;
-import org.praisenter.utility.ImageManipulator;
-
-import com.twelvemonkeys.image.ImageUtil;
-import com.twelvemonkeys.image.ResampleOp;
+import org.praisenter.bible.BibleSearchResult;
 
 /**
- * An abstract implementation of the {@link MediaLoader} interface.
+ * Represents a search result that was selected and whether it should
+ * be appended to the current selection or should replace the current selection.
  * @author William Bittle
  * @version 3.0.0
  */
-public abstract class AbstractMediaLoader implements MediaLoader {
-	/** The thumbnail settings */
-	protected final ThumbnailSettings thumbnailSettings;
+final class SelectedBibleSearchResult {
+	/** The search result */
+	private final BibleSearchResult result;
+	
+	/** True if this result should be appended */
+	private final boolean append;
 	
 	/**
-	 * Minimal constructor.
-	 * @param thumbnailSettings the thumbnail generation settings
+	 * Full constructor.
+	 * @param result the result
+	 * @param append whether it should be appended
 	 */
-	public AbstractMediaLoader(ThumbnailSettings thumbnailSettings) {
-		this.thumbnailSettings = thumbnailSettings;
+	public SelectedBibleSearchResult(BibleSearchResult result, boolean append) {
+		this.result = result;
+		this.append = append;
 	}
-	
+
 	/**
-	 * Creates a thumbnail from the given image using the current
-	 * thumbnail settings.
-	 * @param image the full size image
-	 * @return BufferedImage
+	 * Returns the result
+	 * @return {@link BibleSearchResult}
 	 */
-	protected final BufferedImage createThumbnail(BufferedImage image) {
-		// convert the image to an image type with transparency first
-		BufferedImage withTransparency = ImageUtil.toBuffered(image, BufferedImage.TYPE_INT_ARGB);
-		// then down scale
-		return ImageManipulator.getUniformScaledImage(
-				withTransparency, 
-				this.thumbnailSettings.getWidth(), 
-				this.thumbnailSettings.getHeight(), 
-				ResampleOp.FILTER_LANCZOS);
+	public BibleSearchResult getResult() {
+		return this.result;
+	}
+
+	/**
+	 * True if this result should be appended.
+	 * @return boolean
+	 */
+	public boolean isAppend() {
+		return this.append;
 	}
 }

@@ -30,13 +30,13 @@ import java.nio.file.Paths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.ThumbnailSettings;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.screen.ScreenManager;
 import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.song.SongLibrary;
@@ -82,6 +82,10 @@ final class LoadingTask extends Task<PraisenterContext> {
 		
 		updateProgress(0, 4);
 		
+		ThumbnailSettings thumbnailSettings = new ThumbnailSettings(
+				Constants.THUMBNAIL_SIZE, 
+				Constants.THUMBNAIL_SIZE);
+		
 		// bible loading
 		LOGGER.info("Loading bible library");
 		t0 = System.nanoTime();
@@ -105,10 +109,7 @@ final class LoadingTask extends Task<PraisenterContext> {
 		updateMessage(Translations.get("loading.library.media"));
 		t0 = System.nanoTime();
 		Path mediaPath = Paths.get(Constants.MEDIA_ABSOLUTE_PATH);
-		MediaThumbnailSettings settings = new MediaThumbnailSettings(
-				Constants.MEDIA_THUMBNAIL_SIZE, 
-				Constants.MEDIA_THUMBNAIL_SIZE);
-    	MediaLibrary media = MediaLibrary.open(mediaPath, new JavaFXMediaImportFilter(mediaPath, this.configuration), settings);
+    	MediaLibrary media = MediaLibrary.open(mediaPath, new JavaFXMediaImportFilter(mediaPath, this.configuration), thumbnailSettings);
     	t1 = System.nanoTime();
     	updateProgress(3, 4);
     	LOGGER.info("Media library loaded in {} seconds with {} media items", (t1 - t0) / 1e9, media.size());
@@ -122,7 +123,7 @@ final class LoadingTask extends Task<PraisenterContext> {
 		updateProgress(4, 4);
 		LOGGER.info("Slide library loaded in {} seconds with {} slides", (t1 - t0) / 1e9, slides.size());
     	
-		ScreenManager screenManager = new ScreenManager(this.configuration.isSet(Setting.DEBUG_MODE));
+		ScreenManager screenManager = new ScreenManager(this.configuration.isSet(Setting.APP_DEBUG_MODE));
 		
 		LOGGER.info("Building the application context.");
 		// build the context

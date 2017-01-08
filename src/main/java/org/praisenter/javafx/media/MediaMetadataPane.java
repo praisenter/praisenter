@@ -252,6 +252,8 @@ final class MediaMetadataPane extends VBox {
         			// has sound?
         			if (media.getType() == MediaType.VIDEO) {
         				audio.set(media.hasAudio() ? Translations.get("yes") : Translations.get("no"));
+        			} else if (media.getType() == MediaType.AUDIO) {
+        				audio.set(Translations.get("yes"));
         			} else {
         				audio.set(NOT_APPLICABLE);
         			}

@@ -33,7 +33,7 @@ import javafx.beans.property.StringProperty;
  * @version 3.0.0
  * @since 3.0.0
  */
-abstract class TreeData {
+abstract class TreeData implements Comparable<TreeData> {
 	/** The tree data label */
 	final StringProperty label = new SimpleStringProperty();
 	

@@ -9,7 +9,6 @@ import javax.xml.bind.JAXBException;
 import org.praisenter.TextType;
 import org.praisenter.TextVariant;
 import org.praisenter.bible.BibleReferenceSet;
-import org.praisenter.bible.BibleReferenceSetType;
 import org.praisenter.bible.BibleReferenceTextStore;
 import org.praisenter.bible.BibleReferenceVerse;
 import org.praisenter.slide.BasicSlide;

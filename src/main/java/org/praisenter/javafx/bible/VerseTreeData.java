@@ -64,6 +64,18 @@ final class VerseTreeData extends TreeData {
 		this.label.set(verse.getText());
 		this.number.set(String.valueOf(verse.getNumber()));
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(TreeData)
+	 */
+	@Override
+	public int compareTo(TreeData o) {
+		if (o != null && o instanceof VerseTreeData) {
+			VerseTreeData ctd = (VerseTreeData)o;
+			return this.verse.compareTo(ctd.verse);
+		}
+		return -1;
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.bible.TreeData#update()

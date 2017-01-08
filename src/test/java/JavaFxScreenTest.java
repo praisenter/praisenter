@@ -1,8 +1,5 @@
-import org.praisenter.javafx.utility.Fx;
-
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.layout.VBox;

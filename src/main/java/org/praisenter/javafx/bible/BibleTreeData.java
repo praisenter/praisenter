@@ -44,6 +44,18 @@ final class BibleTreeData extends TreeData {
 		this.bible = bible;
 		this.label.set(bible.getName());
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(TreeData)
+	 */
+	@Override
+	public int compareTo(TreeData o) {
+		if (o != null && o instanceof BibleTreeData) {
+			BibleTreeData ctd = (BibleTreeData)o;
+			return this.bible.compareTo(ctd.bible);
+		}
+		return -1;
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.bible.TreeData#update()

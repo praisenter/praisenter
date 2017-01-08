@@ -38,6 +38,7 @@ import javax.imageio.stream.ImageInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.InvalidFormatException;
+import org.praisenter.ThumbnailSettings;
 
 /**
  * {@link MediaLoader} that loads image media.
@@ -50,10 +51,10 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 	
 	/**
 	 * Minimal constructor.
-	 * @param settings the thumbnail settings
+	 * @param thumbnailSettings the thumbnail settings
 	 */
-	public ImageMediaLoader(MediaThumbnailSettings settings) {
-		super(settings);
+	public ImageMediaLoader(ThumbnailSettings thumbnailSettings) {
+		super(thumbnailSettings);
 	}
 	
 	/* (non-Javadoc)

@@ -83,6 +83,10 @@ import javafx.scene.shape.StrokeType;
 // FEATURE Allow grouping of components to easily move them together
 // JAVABUG 06/30/16 LOW Text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option
 
+// FIXME show the appropriate ribbon when selecting a node
+// FIXME show the appropriate ribbon when creating a new node
+// FIXME show the media selection dialog before adding a the media component
+
 // TODO slide presentation:
 //		user selects slide
 //		if slide has placeholders

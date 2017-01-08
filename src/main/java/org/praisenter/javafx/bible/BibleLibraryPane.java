@@ -328,7 +328,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         	if (nv == null) {
         		lstBibles.getSelectionModel().clear();
         	} else {
-        		lstBibles.getSelectionModel().selectOnly(new BibleListItem(nv));
+        		lstBibles.getSelectionModel().selectOnly(context.getBibleLibrary().getListItem(nv.getId()));
         	}
         	selecting = false;
         	this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
@@ -367,14 +367,6 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
         
         // setup the event handler for application events
         this.addEventHandler(ApplicationEvent.ALL, this::onApplicationEvent);
-        
-//        this.parentProperty().addListener((obs, ov, nv) -> {
-//        	if (nv == null) {
-//        		this.lstBibles.setContextMenu(null);
-//        	} else {
-//        		this.lstBibles.setContextMenu(menu);
-//        	}
-//        });
 	}
 	
 	/**
@@ -690,6 +682,9 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     	}
     }
     
+    /* (non-Javadoc)
+     * @see org.praisenter.javafx.ApplicationPane#setDefaultFocus()
+     */
     @Override
     public void setDefaultFocus() {
     	this.lstBibles.requestFocus();

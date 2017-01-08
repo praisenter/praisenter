@@ -16,7 +16,6 @@ import org.praisenter.javafx.screen.ScreenConfiguration;
 import org.praisenter.javafx.screen.ScreenView;
 import org.praisenter.javafx.screen.ScreenViewDragDropManager;
 import org.praisenter.javafx.themes.Theme;
-import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.InvalidationListener;
@@ -24,24 +23,16 @@ import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
-import javafx.scene.control.Separator;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -109,7 +100,7 @@ public final class SetupPane extends BorderPane {
 		// debug mode
 		Label lblDebugMode = new Label("Debug Mode");
 		CheckBox chkDebugMode = new CheckBox();
-		chkDebugMode.setSelected(context.getConfiguration().getBoolean(Setting.DEBUG_MODE, false));
+		chkDebugMode.setSelected(context.getConfiguration().getBoolean(Setting.APP_DEBUG_MODE, false));
 		gridGeneral.add(lblDebugMode, 0, 2);
 		gridGeneral.add(chkDebugMode, 1, 2);
 
@@ -224,7 +215,7 @@ public final class SetupPane extends BorderPane {
 
 		cmbLocale.valueProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
-				context.getConfiguration().set(Setting.GENERAL_LANGUAGE, nv.value.toLanguageTag());
+				context.getConfiguration().set(Setting.APP_LANGUAGE, nv.value.toLanguageTag());
 			}
 		});
 		
@@ -238,7 +229,7 @@ public final class SetupPane extends BorderPane {
 		
 		cmbTheme.valueProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
-				context.getConfiguration().set(Setting.GENERAL_THEME, nv.getName());
+				context.getConfiguration().set(Setting.APP_THEME, nv.getName());
 			}
 		});
 		
@@ -248,9 +239,9 @@ public final class SetupPane extends BorderPane {
 		
 		chkDebugMode.selectedProperty().addListener((obs, ov, nv) -> {
 			if (nv) {
-				context.getConfiguration().setBoolean(Setting.DEBUG_MODE, true);
+				context.getConfiguration().setBoolean(Setting.APP_DEBUG_MODE, true);
 			} else {
-				context.getConfiguration().remove(Setting.DEBUG_MODE);
+				context.getConfiguration().remove(Setting.APP_DEBUG_MODE);
 			}
 		});
 

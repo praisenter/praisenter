@@ -1,5 +1,30 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.media;
 
+import org.praisenter.ThumbnailSettings;
 import org.praisenter.javafx.FlowListCell;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
@@ -18,29 +43,44 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 
-public final class MediaListCell extends FlowListCell<MediaListItem> {
+/**
+ * Represents a {@link FlowListCell} for {@link MediaListItem}s.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+final class MediaListCell extends FlowListCell<MediaListItem> {
+	/** The media */
 	private final ObjectProperty<Media> media = new SimpleObjectProperty<Media>(null);
 	
-	public MediaListCell(DefaultThumbnails thumbs, MediaListItem item, int maxHeight) {
+	/**
+	 * Minimal constructor.
+	 * @param item the media list item
+	 * @param thumbnailSettings the thumbnail settings
+	 * @param defaultThumbnails the default thumbnails
+	 */
+	public MediaListCell(MediaListItem item, ThumbnailSettings thumbnailSettings, DefaultMediaThumbnails defaultThumbnails) {
 		super(item);
+		
+		final int maxHeight = thumbnailSettings.getHeight();
 		
 		this.setPrefWidth(110);
 		this.setAlignment(Pos.TOP_CENTER);
 		
+		// setup an image view for loaded items
     	final ImageView thumb = new ImageView();
-    	// place it in a VBox for good positioning
-    	final VBox wrapper = new VBox(thumb);
+    	thumb.managedProperty().bind(thumb.visibleProperty());
+    	
+		// setup an indeterminant progress bar for pending items
+		final ProgressIndicator progress = new ProgressIndicator();
+		progress.managedProperty().bind(progress.visibleProperty());
+		
+		// place it in a VBox for good positioning
+		final VBox wrapper = new VBox(thumb, progress);
     	wrapper.setAlignment(Pos.BOTTOM_CENTER);
     	wrapper.setPrefHeight(maxHeight);
     	wrapper.setMaxHeight(maxHeight);
     	wrapper.setMinHeight(maxHeight);
-    	wrapper.managedProperty().bind(wrapper.visibleProperty());
-    	this.getChildren().add(wrapper);
-
-		// setup an indeterminant progress bar
-		ProgressIndicator progress = new ProgressIndicator();
-		progress.managedProperty().bind(progress.visibleProperty());
-		this.getChildren().add(progress);
+		this.getChildren().add(wrapper);
 		
 		this.media.addListener((obs, ov, nv) -> {
 			// setup the thumbnail image
@@ -48,11 +88,11 @@ public final class MediaListCell extends FlowListCell<MediaListItem> {
 			if (nv != null) {
 				if (nv.getThumbnail() == null) {
 					if (nv.getType() == MediaType.IMAGE) {
-						image = thumbs.getDefaultImageThumbnail();
+						image = defaultThumbnails.getDefaultImageThumbnail();
 					} else if (nv.getType() == MediaType.VIDEO) {
-						image = thumbs.getDefaultVideoThumbnail();
+						image = defaultThumbnails.getDefaultVideoThumbnail();
 					} else if (nv.getType() == MediaType.AUDIO) {
-						image = thumbs.getDefaultAudioThumbnail();
+						image = defaultThumbnails.getDefaultAudioThumbnail();
 					}
 				} else {
 					image = SwingFXUtils.toFXImage(nv.getThumbnail(), null);
@@ -68,7 +108,7 @@ public final class MediaListCell extends FlowListCell<MediaListItem> {
 	    	}
 		});
 		
-		wrapper.visibleProperty().bind(item.loadedProperty());
+		thumb.visibleProperty().bind(item.loadedProperty());
 		progress.visibleProperty().bind(item.loadedProperty().not());
 		this.media.bind(item.mediaProperty());
 		

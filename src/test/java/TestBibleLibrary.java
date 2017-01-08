@@ -6,19 +6,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.zip.ZipException;
 
-import javax.xml.bind.JAXBException;
-
-import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
-import org.praisenter.Constants;
-import org.praisenter.InvalidFormatException;
 import org.praisenter.SearchType;
-import org.praisenter.UnknownFormatException;
-import org.praisenter.bible.BibleImporter;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.BibleSearchMatch;
 import org.praisenter.bible.BibleSearchResult;
-import org.praisenter.bible.FormatIdentifingBibleImporter;
-import org.praisenter.bible.UnboundBibleImporter;
 
 
 public class TestBibleLibrary {

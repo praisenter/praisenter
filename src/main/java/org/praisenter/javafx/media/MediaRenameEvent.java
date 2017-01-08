@@ -40,7 +40,7 @@ final class MediaRenameEvent extends MediaMetadataEvent implements Serializable 
 	private static final long serialVersionUID = 7525223765039656381L;
 	
 	/** The media */
-	final Media media;
+	private final Media media;
 	
 	/**
 	 * Full constructor.

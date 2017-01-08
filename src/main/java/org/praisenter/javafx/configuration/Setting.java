@@ -34,25 +34,25 @@ import javax.xml.bind.annotation.XmlEnum;
 @XmlEnum
 public enum Setting {
 	/** The application width */
-	GENERAL_WIDTH,
+	APP_WIDTH,
 	
 	/** The application height */
-	GENERAL_HEIGHT,
+	APP_HEIGHT,
 	
 	/** The application x position */
-	GENERAL_X,
+	APP_X,
 	
 	/** The application y position */
-	GENERAL_Y,
+	APP_Y,
 	
 	/** The application theme */
-	GENERAL_THEME,
+	APP_THEME,
 	
 	/** The application language */
-	GENERAL_LANGUAGE,
+	APP_LANGUAGE,
 	
 	/** Debug mode; enhances logging and user feedback */
-	DEBUG_MODE,
+	APP_DEBUG_MODE,
 	
 	// bible
 	
@@ -64,6 +64,9 @@ public enum Setting {
 	
 	/** If the renumber warning should show */
 	BIBLE_SHOW_RENUMBER_WARNING,
+	
+	/** If the reorder warning should show */
+	BIBLE_SHOW_REORDER_WARNING,
 	
 	// media
 	

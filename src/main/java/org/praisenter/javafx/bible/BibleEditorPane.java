@@ -300,6 +300,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				menu.createMenuItem(ApplicationAction.CUT),
 				menu.createMenuItem(ApplicationAction.PASTE),
 				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.REORDER),
 				menu.createMenuItem(ApplicationAction.RENUMBER),
 				new SeparatorMenuItem(),
 				menu.createMenuItem(ApplicationAction.DELETE));
@@ -903,6 +904,104 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	}
 	
 	/**
+	 * Reorders the selected node.
+	 */
+	private void promptReorder() {
+		TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
+		// need to determine what is selected
+		// renumber depth first
+		if (item != null) {
+			Optional<ButtonType> result = Optional.of(ButtonType.OK);
+			
+			// see if we should prompt the user to verify
+			boolean verify = this.context.getConfiguration().getBoolean(Setting.BIBLE_SHOW_REORDER_WARNING, true);
+			if (verify) {
+				Alert alert = Alerts.optOut(
+						getScene().getWindow(),
+						Modality.WINDOW_MODAL,
+						AlertType.CONFIRMATION, 
+						Translations.get("action.bible.reorder"), 
+						Translations.get("bible.edit.reorder.header"), 
+						Translations.get("bible.edit.reorder.content"), 
+						Translations.get("optout"), 
+						(d) -> {
+							this.context.getConfiguration().setBoolean(Setting.BIBLE_SHOW_REORDER_WARNING, false);
+						});
+	
+				result = alert.showAndWait();
+			}
+			
+			if (result.get() == ButtonType.OK){
+				// remove the data
+				TreeData td = item.getValue();
+				if (td instanceof BibleTreeData) {
+					reorderBooks(item);
+				} else if (td instanceof BookTreeData) {
+					reorderChapters(item);
+				} else if (td instanceof ChapterTreeData) {
+					reorderVerses(item);
+				} else if (td instanceof VerseTreeData) {
+					reorderVerses(item.getParent());
+				}
+				this.unsavedChanges = true;
+			}
+		}
+	}
+
+	/**
+	 * Reorders the books in the given bible.
+	 * @param node the bible node
+	 */
+	private void reorderBooks(TreeItem<TreeData> node) {
+		// sort the chapters in each book
+		for (TreeItem<TreeData> item : node.getChildren()) {
+			reorderChapters(item);
+		}
+		// sort the books
+		Bible bible = ((BibleTreeData)node.getValue()).bible;
+		Collections.sort(bible.getBooks());
+		// sort the nodes
+		node.getChildren().sort((TreeItem<TreeData> b1, TreeItem<TreeData> b2) -> {
+			if (b1 == null) return 1;
+			if (b2 == null) return -1;
+			return b1.getValue().compareTo(b2.getValue());
+		});
+	}
+	
+	/**
+	 * Reorders the chapters in the given book.
+	 * @param node the book node.
+	 */
+	private void reorderChapters(TreeItem<TreeData> node) {
+		for (TreeItem<TreeData> item : node.getChildren()) {
+			reorderVerses(item);
+		}
+		// make sure the data is sorted the same way
+		Collections.sort(((BookTreeData)node.getValue()).book.getChapters());
+		// sort the nodes
+		node.getChildren().sort((TreeItem<TreeData> b1, TreeItem<TreeData> b2) -> {
+			if (b1 == null) return 1;
+			if (b2 == null) return -1;
+			return b1.getValue().compareTo(b2.getValue());
+		});
+	}
+	
+	/**
+	 * Reorders the verses in the given chapter.
+	 * @param node the chapter node
+	 */
+	private void reorderVerses(TreeItem<TreeData> node) {
+		// make sure the data is sorted the same way
+		Collections.sort(((ChapterTreeData)node.getValue()).chapter.getVerses());
+		// sort the nodes
+		node.getChildren().sort((TreeItem<TreeData> b1, TreeItem<TreeData> b2) -> {
+			if (b1 == null) return 1;
+			if (b2 == null) return -1;
+			return b1.getValue().compareTo(b2.getValue());
+		});
+	}
+
+	/**
 	 * Renumbers the selected node.
 	 */
 	private void promptRenumber() {
@@ -951,7 +1050,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * Renumbers the books in the given bible.
 	 * @param node the bible node
 	 */
-	static void renumberBible(TreeItem<TreeData> node) {
+	private void renumberBible(TreeItem<TreeData> node) {
 		short i = 1;
 		for (TreeItem<TreeData> item : node.getChildren()) {
 			BookTreeData td = (BookTreeData)item.getValue();
@@ -970,7 +1069,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * Renumbers the chapters in the given book.
 	 * @param node the book node.
 	 */
-	static void renumberBook(TreeItem<TreeData> node) {
+	private void renumberBook(TreeItem<TreeData> node) {
 		short i = 1;
 		for (TreeItem<TreeData> item : node.getChildren()) {
 			ChapterTreeData td = (ChapterTreeData)item.getValue();
@@ -989,7 +1088,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * Renumbers the verses in the given chapter.
 	 * @param node the chapter node
 	 */
-	static void renumberChapter(TreeItem<TreeData> node) {
+	private void renumberChapter(TreeItem<TreeData> node) {
 		short i = 1;
 		for (TreeItem<TreeData> item : node.getChildren()) {
 			VerseTreeData td = (VerseTreeData)item.getValue();
@@ -1091,6 +1190,13 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					this.promptRenumber();
 				}
 				break;
+			case REORDER:
+				// we only want to execute this if the current focus
+				// is within the bibleTree
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					this.promptReorder();
+				}
+				break;
     		default:
     			break;
     	}
@@ -1186,6 +1292,11 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				}
 				return false;
 			case RENUMBER:
+				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
+					return count == 1;
+				}
+				return false;
+			case REORDER:
 				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
 					return count == 1;
 				}

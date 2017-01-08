@@ -71,7 +71,7 @@ final class BibleMetadataPane extends VBox {
 	private final StringProperty source = new SimpleStringProperty();
 	
 	/** The import date */
-	private final StringProperty importDate = new SimpleStringProperty();
+	private final StringProperty updatedDate = new SimpleStringProperty();
 	
 	/** Has copyright */
 	private final StringProperty copyright = new SimpleStringProperty();
@@ -132,11 +132,11 @@ final class BibleMetadataPane extends VBox {
         grid.add(lblSource, 0, 2, 1, 1);
         grid.add(lblSourceValue, 1, 2, 1, 1);
         
-        Label lblImportDate = new Label(Translations.get("bible.properties.importDate"));
+        Label lblImportDate = new Label(Translations.get("bible.properties.updatedDate"));
         Label lblImportDateValue = new Label();
-        lblImportDateValue.textProperty().bind(importDate);
+        lblImportDateValue.textProperty().bind(updatedDate);
         lblImportDateValue.setTooltip(new Tooltip());
-        lblImportDateValue.getTooltip().textProperty().bind(importDate);
+        lblImportDateValue.getTooltip().textProperty().bind(updatedDate);
         lblImportDateValue.getStyleClass().add("value-label");
         grid.add(lblImportDate, 0, 3, 1, 1);
         grid.add(lblImportDateValue, 1, 3, 1, 1);
@@ -178,7 +178,7 @@ final class BibleMetadataPane extends VBox {
         			name.set("");
         			language.set("");
         			source.set("");
-        	        importDate.set("");
+        	        updatedDate.set("");
         	        copyright.set("");
         	        verseCount.set("");
         	        hadImportErrors.set("");
@@ -194,7 +194,7 @@ final class BibleMetadataPane extends VBox {
         			name.set(bible.getName());
         			language.set(bible.getLanguage());
         			source.set(bible.getSource());
-        	        importDate.set(bible.getImportDate() != null ? DATE_FORMATTER.format(bible.getImportDate()) : null);
+        	        updatedDate.set(bible.getLastModifiedDate() != null ? DATE_FORMATTER.format(bible.getLastModifiedDate()) : null);
         			String copy = bible.getCopyright();
         	        copyright.set(copy != null && copy.length() > 0 ? copy : unknown);
         	        verseCount.set(String.valueOf(bible.getVerseCount()));

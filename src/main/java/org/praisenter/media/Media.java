@@ -48,7 +48,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
-import org.praisenter.xml.adapters.BufferedImageTypeAdapter;
+import org.praisenter.xml.adapters.BufferedImageJpegTypeAdapter;
+import org.praisenter.xml.adapters.BufferedImagePngTypeAdapter;
 import org.praisenter.xml.adapters.InstantXmlAdapter;
 import org.praisenter.xml.adapters.PathXmlAdapter;
 
@@ -140,12 +141,12 @@ public final class Media implements Comparable<Media> {
 
 	/** The media thumbnail */
 	@XmlElement(name = "thumbnail", required = false)
-	@XmlJavaTypeAdapter(BufferedImageTypeAdapter.class)
+	@XmlJavaTypeAdapter(BufferedImagePngTypeAdapter.class)
 	final BufferedImage thumbnail;
-
+ 
 	/** The media frame (only for video) */
 	@XmlElement(name = "frame", required = false)
-	@XmlJavaTypeAdapter(BufferedImageTypeAdapter.class)
+	@XmlJavaTypeAdapter(BufferedImageJpegTypeAdapter.class)
 	final BufferedImage frame;
 
 	/**

@@ -2,14 +2,13 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.praisenter.ThumbnailSettings;
 import org.praisenter.javafx.ImageCache;
 import org.praisenter.javafx.JavaFXContext;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaThumbnailSettings;
 
 import javafx.application.Application;
 import javafx.geometry.Orientation;
@@ -26,7 +25,7 @@ public class TestMediaLibrary extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
 //    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
-		MediaThumbnailSettings settings = new MediaThumbnailSettings(
+		ThumbnailSettings settings = new ThumbnailSettings(
 				100, 100);
     	MediaLibrary library = null;
 		try {

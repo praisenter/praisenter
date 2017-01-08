@@ -1,5 +1,6 @@
 package org.praisenter.javafx.slide;
 
+import org.praisenter.Tag;
 import org.praisenter.slide.Slide;
 
 import javafx.beans.property.BooleanProperty;
@@ -8,6 +9,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 
 final class SlideListItem implements Comparable<SlideListItem> {
 	/** The slide name */
@@ -18,7 +21,9 @@ final class SlideListItem implements Comparable<SlideListItem> {
 	
 	/** True if the slide is present (or loaded) */
 	private final BooleanProperty loaded = new SimpleBooleanProperty(false);
-	
+
+	/** An observable list of tags to maintain */
+	private final ObservableSet<Tag> tags = FXCollections.observableSet();
 	
 	/**
 	 * Optional constructor for pending items.
@@ -38,6 +43,7 @@ final class SlideListItem implements Comparable<SlideListItem> {
 		this.name.set(slide.getName());
 		this.slide.set(slide);
 		this.loaded.set(true);
+		this.tags.addAll(slide.getTags());
 	}
 
 	/* (non-Javadoc)
@@ -62,34 +68,6 @@ final class SlideListItem implements Comparable<SlideListItem> {
 		} else {
 			return 1;
 		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return this.name.hashCode();
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj == this) return true;
-		if (obj instanceof SlideListItem) {
-			SlideListItem item = (SlideListItem)obj;
-			if (item.loaded.get() == this.loaded.get()) {
-				if (item.loaded.get()) {
-					return item.slide.get().equals(this.slide.get());
-				} else {
-					return item.name.get().equals(this.name.get());
-				}
-			}
-		}
-		return false;
 	}
 	
 	/**

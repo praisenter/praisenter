@@ -17,8 +17,11 @@ import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.configuration.Setting;
 
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyFloatWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -32,6 +35,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -56,8 +60,9 @@ public class BibleSearchPane extends BorderPane {
 	
 	private final TableView<BibleSearchResult> table;
 	
+	private final ObjectProperty<SelectedBibleSearchResult> value = new SimpleObjectProperty<SelectedBibleSearchResult>();
+	
 	// TODO translate
-	// TODO ability to double click verse to set the current "value"
 	
 	// FEATURE add searching to the bible editor for finding and editing easily
 	
@@ -77,33 +82,35 @@ public class BibleSearchPane extends BorderPane {
 		this.cmbSearchType = new ComboBox<>(types);
 		this.cmbSearchType.setValue(types.get(0));
 		
+		ObservableBibleLibrary library = context.getBibleLibrary();
+		
 		// filter the list of selectable bibles by whether they are loaded or not		
-		FilteredList<BibleListItem> bibles = new FilteredList<BibleListItem>(context.getBibleLibrary().getItems());
+		FilteredList<BibleListItem> bibles = new FilteredList<BibleListItem>(library.getItems());
 		bibles.setPredicate(b -> b.isLoaded());
 		
-		Bible backupBible = null;
+		BibleListItem backupBible = null;
 		if (bibles.size() > 0) {
-			backupBible = bibles.get(0).getBible();
+			backupBible = bibles.get(0);
 		}
 		
 		UUID primaryId = context.getConfiguration().getUUID(Setting.BIBLE_PRIMARY, null);
-		Bible primaryBible = null;
+		BibleListItem primaryBible = null;
 		if (primaryId != null) {
-			primaryBible = context.getBibleLibrary().get(primaryId);
+			primaryBible = library.getListItem(primaryId);
 			if (primaryBible == null) {
 				primaryBible = backupBible;
 			}
 		}
 		
 		ObservableList<Book> books = FXCollections.observableArrayList();
-		List<Book> bb = primaryBible != null ? primaryBible.getBooks() : null;
+		List<Book> bb = primaryBible != null ? primaryBible.getBible().getBooks() : null;
 		if (bb != null) {
 			books.addAll(bb);
 		}
 		
 		this.cmbBiblePrimary = new ComboBox<BibleListItem>(bibles);
 		if (primaryBible != null) {
-			this.cmbBiblePrimary.getSelectionModel().select(new BibleListItem(primaryBible));
+			this.cmbBiblePrimary.getSelectionModel().select(primaryBible);
 		}
 		
 		this.cmbBiblePrimary.valueProperty().addListener((obs, ov, nv) -> {
@@ -262,6 +269,18 @@ public class BibleSearchPane extends BorderPane {
 		this.table.getColumns().add(verseNumber);
 		this.table.getColumns().add(verseText);
 		
+		this.table.setRowFactory( tv -> {
+		    TableRow<BibleSearchResult> row = new TableRow<BibleSearchResult>();
+		    row.setOnMouseClicked(event -> {
+		        if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
+		        	BibleSearchResult rowData = row.getItem();
+		            // set the current value
+		        	value.set(new SelectedBibleSearchResult(rowData, event.isShortcutDown()));
+		        }
+		    });
+		    return row ;
+		});
+		
 		// loading
 		ProgressIndicator progress = new ProgressIndicator();
 		progress.setMaxSize(50, 50);
@@ -286,7 +305,7 @@ public class BibleSearchPane extends BorderPane {
 			
 			if (text != null && text.length() != 0 && type != null) {
 				overlay.setVisible(true);
-				context.getBibleLibrary().search(
+				library.search(
 						item != null ? item.getBible().getId() : null, 
 						book != null ? book.getNumber() : null,
 						text, 
@@ -302,5 +321,22 @@ public class BibleSearchPane extends BorderPane {
 		
 		txtSearch.setOnAction(handler);
 		btnSearch.setOnAction(handler);
+	}
+	
+	public SelectedBibleSearchResult getValue() {
+		return this.value.get();
+	}
+	
+	public ReadOnlyObjectProperty<SelectedBibleSearchResult> valueProperty() {
+		return this.value;
+	}
+	
+	public String getText() {
+		return this.txtSearch.getText();
+	}
+	
+	public void setText(String text) {
+		this.txtSearch.setText(text);
+		this.txtSearch.commitValue();
 	}
 }

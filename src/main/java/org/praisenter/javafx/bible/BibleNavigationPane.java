@@ -37,6 +37,7 @@ import org.praisenter.TextVariant;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleReferenceTextStore;
 import org.praisenter.bible.BibleReferenceVerse;
+import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.LocatedVerse;
@@ -55,7 +56,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 
@@ -69,14 +69,14 @@ public final class BibleNavigationPane extends BorderPane {
 	private static final String NEXT = "NEXT";
 	private static final String PREVIOUS = "PREVIOUS";
 	
-	private ComboBox<BibleListItem> cmbBiblePrimary;
-	private ComboBox<BibleListItem> cmbBibleSecondary;
-	private AutoCompleteComboBox<Book> cmbBook;
-	private Spinner<Integer> spnChapter;
-	private Spinner<Integer> spnVerse;
+	private final ComboBox<BibleListItem> cmbBiblePrimary;
+	private final ComboBox<BibleListItem> cmbBibleSecondary;
+	private final AutoCompleteComboBox<Book> cmbBook;
+	private final Spinner<Integer> spnChapter;
+	private final Spinner<Integer> spnVerse;
 	
-	private Label lblChapters;
-	private Label lblVerses;
+	private final Label lblChapters;
+	private final Label lblVerses;
 	
 	private final ObjectProperty<BibleReferenceTextStore> value = new SimpleObjectProperty<BibleReferenceTextStore>();
 	
@@ -108,50 +108,65 @@ public final class BibleNavigationPane extends BorderPane {
 		FilteredList<BibleListItem> bibles = new FilteredList<BibleListItem>(context.getBibleLibrary().getItems());
 		bibles.setPredicate(b -> b.isLoaded());
 		
-		UUID backupBible = null;
+		UUID backupBibleId = null;
 		if (bibles != null && bibles.size() > 0) {
-			backupBible = bibles.get(0).getBible().getId();
+			backupBibleId = bibles.get(0).getBible().getId();
 		}
 		
 		UUID primaryId = context.getConfiguration().getUUID(Setting.BIBLE_PRIMARY, null);
 		if (primaryId == null) {
-			primaryId = backupBible;
+			primaryId = backupBibleId;
 		}
 		
 		UUID secondaryId = context.getConfiguration().getUUID(Setting.BIBLE_SECONDARY, null);
 		if (secondaryId == null) {
-			secondaryId = backupBible;
+			secondaryId = backupBibleId;
 		}
 		
-		Bible primaryBible = null;
+		BibleListItem primaryBible = null;
 		if (primaryId != null) {
-			primaryBible = bl.get(primaryId);
+			primaryBible = bl.getListItem(primaryId);
 			if (primaryBible == null) {
-				primaryId = backupBible;
-				primaryBible = bl.get(backupBible);
+				primaryId = backupBibleId;
+				primaryBible = bl.getListItem(backupBibleId);
 			}
 		}
 		
-		Bible secondaryBible = null;
+		BibleListItem secondaryBible = null;
 		if (secondaryId != null) {
-			secondaryBible = bl.get(secondaryId);
+			secondaryBible = bl.getListItem(secondaryId);
 			if (secondaryBible == null) {
-				secondaryId = backupBible;
-				secondaryBible = bl.get(backupBible);
+				secondaryId = backupBibleId;
+				secondaryBible = bl.getListItem(backupBibleId);
 			}
 		}
 		
 		ObservableList<Book> books = FXCollections.observableArrayList();
-		List<Book> bb = primaryBible != null ? primaryBible.getBooks() : null;
+		List<Book> bb = primaryBible != null ? primaryBible.getBible().getBooks() : null;
 		if (bb != null) {
 			books.addAll(bb);
 		}
 		
-		cmbBiblePrimary = new ComboBox<BibleListItem>(bibles);
+		this.cmbBiblePrimary = new ComboBox<BibleListItem>(bibles);
+		this.cmbBibleSecondary = new ComboBox<BibleListItem>(bibles);
+		this.cmbBook = new AutoCompleteComboBox<Book>(books, new AutoCompleteComparator<Book>() {
+			public boolean matches(String typedText, Book objectToCompare) {
+				Pattern pattern = Pattern.compile("^" + Pattern.quote(typedText) + ".*", Pattern.CASE_INSENSITIVE);
+				if (pattern.matcher(objectToCompare.getName()).matches()) {
+					return true;
+				}
+				return false;
+			}
+		});
+		
 		if (primaryBible != null) {
-			cmbBiblePrimary.getSelectionModel().select(new BibleListItem(primaryBible));
+			this.cmbBiblePrimary.getSelectionModel().select(primaryBible);
 		}
-		cmbBiblePrimary.valueProperty().addListener((obs, ov, nv) -> {
+		if (secondaryBible != null) {
+			this.cmbBibleSecondary.getSelectionModel().select(secondaryBible);
+		}
+		
+		this.cmbBiblePrimary.valueProperty().addListener((obs, ov, nv) -> {
 			try {
 				if (nv != null) {
 					Book selectedBook = cmbBook.getValue();
@@ -176,11 +191,7 @@ public final class BibleNavigationPane extends BorderPane {
 			}
 		});
 		
-		cmbBibleSecondary = new ComboBox<BibleListItem>(bibles);
-		if (secondaryBible != null) {
-			cmbBibleSecondary.getSelectionModel().select(new BibleListItem(secondaryBible));
-		}
-		cmbBibleSecondary.valueProperty().addListener((obs, ov, nv) -> {
+		this.cmbBibleSecondary.valueProperty().addListener((obs, ov, nv) -> {
 			try {
 				if (nv != null) {
 					context.getConfiguration().setUUID(Setting.BIBLE_SECONDARY, nv.getBible().getId());
@@ -190,39 +201,44 @@ public final class BibleNavigationPane extends BorderPane {
 			}
 		});
 		
-		cmbBook = new AutoCompleteComboBox<Book>(books, new AutoCompleteComparator<Book>() {
-			public boolean matches(String typedText, Book objectToCompare) {
-				Pattern pattern = Pattern.compile("^" + Pattern.quote(typedText) + ".*", Pattern.CASE_INSENSITIVE);
-				if (pattern.matcher(objectToCompare.getName()).matches()) {
-					return true;
-				}
-				return false;
-			}
-		});
-		cmbBook.valueProperty().addListener((obs, ov, nv) -> {
+		this.cmbBook.valueProperty().addListener((obs, ov, nv) -> {
 			updateRanges();
 		});
 		
-		spnChapter.valueProperty().addListener((obs, ov, nv) -> {
+		this.spnChapter.valueProperty().addListener((obs, ov, nv) -> {
 			updateRanges();
 		});
 		
 		Button btn = new Button("Find");
 		btn.setOnMouseClicked((e) -> {
-			onAction(e, FIND);
+			LocatedVerseTriplet triplet = getTripletForInput(FIND);
+			updateValue(triplet, e.isShortcutDown());
 		});
 		
 		Button next = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.ARROW_RIGHT));
 		next.setOnMouseClicked((e) -> {
-			onAction(e, NEXT);
+			LocatedVerseTriplet triplet = getTripletForInput(NEXT);
+			updateValue(triplet, e.isShortcutDown());
 		});
 		
 		Button prev = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.ARROW_LEFT));
 		prev.setOnMouseClicked((e) -> {
-			onAction(e, PREVIOUS);
+			LocatedVerseTriplet triplet = getTripletForInput(PREVIOUS);
+			updateValue(triplet, e.isShortcutDown());
 		});
 		
 		BibleSearchButton btnSearch = new BibleSearchButton(context);
+		
+		btnSearch.valueProperty().addListener((obs, ov, nv) -> {
+			if (nv != null) {
+				BibleSearchResult result = nv.getResult();
+				LocatedVerseTriplet triplet = result.getBible().getTriplet(
+						result.getBook().getNumber(), 
+						result.getChapter().getNumber(), 
+						result.getVerse().getNumber());
+				updateValue(triplet, nv.isAppend());
+			}
+		});
 		
 		// LAYOUT
 		
@@ -230,18 +246,18 @@ public final class BibleNavigationPane extends BorderPane {
 		layout.setVgap(5);
 		layout.setHgap(5);
 		
-		layout.add(cmbBiblePrimary, 0, 0);
-		layout.add(cmbBook, 1, 0);
-		layout.add(spnChapter, 2, 0);
-		layout.add(spnVerse, 3, 0);
+		layout.add(this.cmbBiblePrimary, 0, 0);
+		layout.add(this.cmbBook, 1, 0);
+		layout.add(this.spnChapter, 2, 0);
+		layout.add(this.spnVerse, 3, 0);
 		layout.add(btn, 4, 0);
 		layout.add(prev, 5, 0);
 		layout.add(next, 6, 0);
 		layout.add(btnSearch, 7, 0);
 		
-		layout.add(cmbBibleSecondary, 0, 1);
-		layout.add(lblChapters, 2, 1);
-		layout.add(lblVerses, 3, 1);
+		layout.add(this.cmbBibleSecondary, 0, 1);
+		layout.add(this.lblChapters, 2, 1);
+		layout.add(this.lblVerses, 3, 1);
 
 		setCenter(layout);
 	}
@@ -250,93 +266,95 @@ public final class BibleNavigationPane extends BorderPane {
 		Book book = this.cmbBook.getValue();
 		Integer ch = this.spnChapter.getValue();
 		if (book != null) {
-			lblChapters.setText("1-" + book.getMaxChapterNumber());
+			this.lblChapters.setText("1-" + book.getMaxChapterNumber());
 		} else {
 			// no book selected
-			lblChapters.setText(null);
+			this.lblChapters.setText(null);
 		}
 		if (book != null && ch != null) {
 			Chapter chapter = book.getChapter(ch.shortValue());
 			if (chapter != null) {
-				lblVerses.setText("1-" + chapter.getMaxVerseNumber());
+				this.lblVerses.setText("1-" + chapter.getMaxVerseNumber());
 			} else {
 				// invalid chapter
-				lblVerses.setText("N/A");
+				this.lblVerses.setText("-");
 			}
 		} else {
 			// no book or chapter selected
-			lblVerses.setText(null);
+			this.lblVerses.setText(null);
 		}
 	}
 	
-	private void onAction(MouseEvent event, String type) {
-		BibleReferenceTextStore data = null;
-		if (!event.isControlDown()){
-			data = new BibleReferenceTextStore();
-		} else {
-			data = this.value.get().copy();
-		}
-		
-		Bible bible = cmbBiblePrimary.getValue().getBible();
-		Bible bible2 = cmbBibleSecondary.getValue().getBible();
-		Book book = cmbBook.valueProperty().get();
+	private LocatedVerseTriplet getTripletForInput(String type) {
+		Bible bible = this.cmbBiblePrimary.getValue().getBible();
+		Book book = this.cmbBook.valueProperty().get();
 
 		short bn = book != null ? book.getNumber() : 0;
-		short ch = spnChapter.getValue().shortValue();
-		short v = spnVerse.getValue().shortValue();
-		LocatedVerseTriplet lv = null;
+		short ch = this.spnChapter.getValue().shortValue();
+		short v = this.spnVerse.getValue().shortValue();
 		
 		if (bible != null && book != null) {
 			switch(type) {
 				case FIND:
 					try {
-						lv = bible.getTriplet(bn, ch, v);
+						return bible.getTriplet(bn, ch, v);
 					} catch (Exception ex) {
-						LOGGER.warn("Failed to get verse: " + book + " " + ch + ":" + v, ex);
+						LOGGER.warn("Failed to get verse: " + book.getName() + " " + ch + ":" + v, ex);
 					}
 					break;
 				case NEXT:
 					try {
-						lv = bible.getNextTriplet(book.getNumber(), ch, v);
-						if (lv != null) {
-							cmbBook.setValue(lv.getCurrent().getBook());
-							spnChapter.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getChapter().getNumber()));
-							spnVerse.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getVerse().getNumber()));
-						}
+						return bible.getNextTriplet(bn, ch, v);
 					} catch (Exception ex) {
-						LOGGER.warn("Failed to get next verse for: " + book + " " + ch + ":" + v, ex);
+						LOGGER.warn("Failed to get next verse for: " + book.getName() + " " + ch + ":" + v, ex);
 					}
 					break;
 				case PREVIOUS:
 					try {
-						lv = bible.getPreviousTriplet(book.getNumber(), ch, v);
-						if (lv != null) {
-							cmbBook.setValue(lv.getCurrent().getBook());
-							spnChapter.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getChapter().getNumber()));
-							spnVerse.getValueFactory().setValue(Integer.valueOf(lv.getCurrent().getVerse().getNumber()));
-						}
+						return bible.getPreviousTriplet(bn, ch, v);
 					} catch (Exception ex) {
-						LOGGER.warn("Failed to get previous verse for: " + book + " " + ch + ":" + v, ex);
+						LOGGER.warn("Failed to get previous verse for: " + book.getName() + " " + ch + ":" + v, ex);
 					}
 					break;
 				default:
+					LOGGER.warn("Unknown operation type: {}", type);
 					break;
 			}
 		}
 		
-		if (lv != null) {
-			data.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(lv.getCurrent()));
-			
-			// TODO need to somehow show next/previous verse text
-			
+		return null;
+	}
+	
+	private void updateValue(LocatedVerseTriplet triplet, boolean append) {
+		if (triplet == null) return;
+		
+		// make sure the fields are updated
+		this.cmbBook.setValue(triplet.getCurrent().getBook());
+		this.spnChapter.getValueFactory().setValue(Integer.valueOf(triplet.getCurrent().getChapter().getNumber()));
+		this.spnVerse.getValueFactory().setValue(Integer.valueOf(triplet.getCurrent().getVerse().getNumber()));
+		
+		BibleReferenceTextStore data = null;
+		if (!append){
+			data = new BibleReferenceTextStore();
+		} else {
+			data = this.value.get().copy();
+		}
+		
+		// update the text store
+		data.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(triplet.getCurrent()));
+		
+		// TODO need to somehow show next/previous verse text
+		
+		// search for the secondary
+		BibleListItem secondary = this.cmbBibleSecondary.getValue();
+		if (secondary != null) {
+			Bible bible2 = secondary.getBible();
 			if (bible2 != null) {
-				LocatedVerseTriplet tv = bible2.getMatchingTriplet(lv);
-				if (tv != null) {
-					data.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(tv.getCurrent()));
+				LocatedVerseTriplet matchingTriplet = bible2.getMatchingTriplet(triplet);
+				if (matchingTriplet != null) {
+					data.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getCurrent()));
 				}
 			}
-		} else {
-			// TODO need to show message 
 		}
 		
 		this.value.set(data);

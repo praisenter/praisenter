@@ -2,7 +2,6 @@
 
 import java.util.UUID;
 
-import org.praisenter.javafx.Praisenter;
 import org.praisenter.javafx.animation.AnimatedObject;
 import org.praisenter.javafx.animation.AnimatedObjectType;
 import org.praisenter.javafx.animation.AnimationPickerPane;

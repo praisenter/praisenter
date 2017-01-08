@@ -1,9 +1,7 @@
-import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,11 +14,7 @@ import org.praisenter.song.Author;
 import org.praisenter.song.Song;
 import org.praisenter.song.SongLibrary;
 import org.praisenter.song.Title;
-import org.praisenter.song.churchview.ChurchViewSongImporter;
-import org.praisenter.song.openlyrics.OpenLyricsAuthor;
-import org.praisenter.song.openlyrics.OpenLyricsSong;
 import org.praisenter.song.openlyrics.OpenLyricsSongImporter;
-import org.praisenter.song.openlyrics.OpenLyricsTitle;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
 

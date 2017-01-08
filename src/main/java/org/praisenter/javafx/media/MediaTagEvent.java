@@ -27,7 +27,6 @@ package org.praisenter.javafx.media;
 import java.io.Serializable;
 
 import org.praisenter.Tag;
-import org.praisenter.media.Media;
 
 import javafx.event.EventTarget;
 import javafx.event.EventType;
@@ -41,32 +40,32 @@ final class MediaTagEvent extends MediaMetadataEvent implements Serializable {
 	/** The serialization id */
 	private static final long serialVersionUID = -6875123457221924279L;
 
-	/** The media */
-	final MediaListItem media;
+	/** The media list item */
+	private final MediaListItem mediaListItem;
 	
 	/** The new name */
-	final Tag tag;
+	private final Tag tag;
 	
 	/**
 	 * Full constructor.
 	 * @param source the event source
 	 * @param target the event target
 	 * @param type the event type
-	 * @param media the media
+	 * @param mediaListItem the media list item
 	 * @param tag the tag added or removed
 	 */
-	public MediaTagEvent(Object source, EventTarget target, EventType<? extends MediaMetadataEvent> type, MediaListItem media, Tag tag) {
+	public MediaTagEvent(Object source, EventTarget target, EventType<? extends MediaMetadataEvent> type, MediaListItem mediaListItem, Tag tag) {
 		super(source, target, type);
-		this.media = media;
+		this.mediaListItem = mediaListItem;
 		this.tag = tag;
 	}
 
 	/**
-	 * Returns the media value.
-	 * @return {@link Media}
+	 * Returns the media list item.
+	 * @return {@link MediaListItem}
 	 */
-	public MediaListItem getMedia() {
-		return this.media;
+	public MediaListItem getMediaListItem() {
+		return this.mediaListItem;
 	}
 
 	/**

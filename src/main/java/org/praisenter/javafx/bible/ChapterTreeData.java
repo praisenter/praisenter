@@ -61,6 +61,18 @@ final class ChapterTreeData extends TreeData {
 	}
 	
 	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(TreeData)
+	 */
+	@Override
+	public int compareTo(TreeData o) {
+		if (o != null && o instanceof ChapterTreeData) {
+			ChapterTreeData ctd = (ChapterTreeData)o;
+			return this.chapter.compareTo(ctd.chapter);
+		}
+		return -1;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.bible.TreeData#update()
 	 */
 	@Override

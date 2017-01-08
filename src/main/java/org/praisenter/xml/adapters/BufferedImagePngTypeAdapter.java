@@ -38,12 +38,12 @@ import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.codec.binary.Base64OutputStream;
 
 /**
- * Image type adapter for xml output.
+ * Image (png) type adapter for xml output.
  * @author William Bittle
  * @version 2.0.0
  * @since 2.0.0
  */
-public class BufferedImageTypeAdapter extends XmlAdapter<String, BufferedImage> {
+public class BufferedImagePngTypeAdapter extends XmlAdapter<String, BufferedImage> {
 	/* (non-Javadoc)
 	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
 	 */

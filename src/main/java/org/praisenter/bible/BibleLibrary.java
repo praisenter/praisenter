@@ -312,7 +312,7 @@ public final class BibleLibrary {
 	 * @param id the bible id
 	 * @return {@link Bible}
 	 */
-	public synchronized Bible get(UUID id) {
+	public Bible get(UUID id) {
 		if (id == null) return null;
 		return this.bibles.get(id);
 	}
@@ -338,7 +338,7 @@ public final class BibleLibrary {
 	 * @param id the bible id
 	 * @return boolean
 	 */
-	public synchronized boolean contains(UUID id) {
+	public boolean contains(UUID id) {
 		if (id == null) return false;
 		return this.bibles.containsKey(id);
 	}
@@ -348,7 +348,7 @@ public final class BibleLibrary {
 	 * @param bible the bible
 	 * @return boolean
 	 */
-	public synchronized boolean contains(Bible bible) {
+	public boolean contains(Bible bible) {
 		if (bible == null || bible.id == null) return false;
 		return this.bibles.containsKey(bible.id);
 	}
@@ -360,23 +360,34 @@ public final class BibleLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized void save(Bible bible) throws JAXBException, IOException {
-		if (this.bibles.containsKey(bible.id)) {
+		// check for old bible data
+		Bible old = this.bibles.get(bible.id);
+		if (old != null) {
 			// then its an update
-			bible.path = this.bibles.get(bible.id).path;
+			bible.path = old.path;
 			// update the last modified date
 			bible.lastModifiedDate = new Date();
 		}
 		
+		// generate the file name and path
+		String name = createFileName(bible);
+		Path path = this.path.resolve(name + EXTENSION);
+		
+		// check if the old path was given
 		if (bible.path == null) {
-			String name = createFileName(bible);
-			Path path = this.path.resolve(name + EXTENSION);
+			// this indicates that we need to save a new one so
 			// verify there doesn't exist a bible with this name already
 			if (Files.exists(path)) {
-				// just use the guid
+				// just use the UUID
 				path = this.path.resolve(bible.id.toString().replaceAll("-", "") + EXTENSION);
 			}
-			bible.path = path;
+		} else if (!bible.path.equals(path)) {
+			// this indicates that we need to rename the file
+			Files.move(bible.path, path);
 		}
+		
+		// set the path
+		bible.path = path;
 		
 		// save the bible		
 		XmlIO.save(bible.path, bible);

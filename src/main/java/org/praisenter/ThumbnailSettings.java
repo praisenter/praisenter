@@ -22,47 +22,43 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.media;
-
-import java.awt.image.BufferedImage;
-
-import org.praisenter.ThumbnailSettings;
-import org.praisenter.utility.ImageManipulator;
-
-import com.twelvemonkeys.image.ImageUtil;
-import com.twelvemonkeys.image.ResampleOp;
+package org.praisenter;
 
 /**
- * An abstract implementation of the {@link MediaLoader} interface.
+ * Represents settings for generating or displaying thumbnails.
  * @author William Bittle
  * @version 3.0.0
  */
-public abstract class AbstractMediaLoader implements MediaLoader {
-	/** The thumbnail settings */
-	protected final ThumbnailSettings thumbnailSettings;
+public final class ThumbnailSettings {
+	/** The width */
+	private final int width;
+	
+	/** The height */
+	private final int height;
 	
 	/**
 	 * Minimal constructor.
-	 * @param thumbnailSettings the thumbnail generation settings
+	 * @param width the width
+	 * @param height the height
 	 */
-	public AbstractMediaLoader(ThumbnailSettings thumbnailSettings) {
-		this.thumbnailSettings = thumbnailSettings;
+	public ThumbnailSettings(int width, int height) {
+		this.width = width;
+		this.height = height;
+	}
+
+	/**
+	 * Returns the width.
+	 * @return int
+	 */
+	public int getWidth() {
+		return this.width;
 	}
 	
 	/**
-	 * Creates a thumbnail from the given image using the current
-	 * thumbnail settings.
-	 * @param image the full size image
-	 * @return BufferedImage
+	 * Returns the height.
+	 * @return int
 	 */
-	protected final BufferedImage createThumbnail(BufferedImage image) {
-		// convert the image to an image type with transparency first
-		BufferedImage withTransparency = ImageUtil.toBuffered(image, BufferedImage.TYPE_INT_ARGB);
-		// then down scale
-		return ImageManipulator.getUniformScaledImage(
-				withTransparency, 
-				this.thumbnailSettings.getWidth(), 
-				this.thumbnailSettings.getHeight(), 
-				ResampleOp.FILTER_LANCZOS);
+	public int getHeight() {
+		return this.height;
 	}
 }

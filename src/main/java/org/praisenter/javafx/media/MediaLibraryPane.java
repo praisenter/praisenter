@@ -39,8 +39,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
+import org.praisenter.ThumbnailSettings;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.ApplicationAction;
+import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
@@ -49,6 +51,7 @@ import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SortGraphic;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
@@ -62,7 +65,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
@@ -71,12 +73,15 @@ import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
@@ -263,39 +268,18 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 		});
         
         // the right side of the split pane
-        final int thumbHeight = context.getMediaLibrary().getThumbnailSettings().getHeight();
-        DefaultThumbnails thumbs = new DefaultThumbnails(this.context.getMediaLibrary().getThumbnailSettings());
+        ThumbnailSettings thumbnailSettings = context.getMediaLibrary().getThumbnailSettings();
+        DefaultMediaThumbnails defaultThumbnails = new DefaultMediaThumbnails(thumbnailSettings);
         this.lstMedia = new FlowListView<MediaListItem>(orientation, new Callback<MediaListItem, FlowListCell<MediaListItem>>() {
         	@Override
         	public FlowListCell<MediaListItem> call(MediaListItem item) {
-				return new MediaListCell(thumbs, item, thumbHeight);
+				return new MediaListCell(item, thumbnailSettings, defaultThumbnails);
 			}
         });
         this.lstMedia.itemsProperty().bindContent(sorted);
         this.lstMedia.setOnDragDropped(this::onMediaDropped);
         this.lstMedia.setOnDragOver(this::onMediaDragOver);
         
-        // only scroll down when media is being added
-        // we know this when there's medialistitems added
-        // that have the loaded flag = false
-        theList.addListener(new ListChangeListener<MediaListItem>() {
-        	@Override
-        	public void onChanged(javafx.collections.ListChangeListener.Change<? extends MediaListItem> c) {
-        		boolean added = false;
-        		while (c.next()) {
-        			if (c.wasAdded()) {
-        				for (int i = 0; i < c.getAddedSize(); i++) {
-        					MediaListItem item = c.getAddedSubList().get(i);
-        					added |= item != null && item.isLoaded() == false;
-        				}
-        			}
-        		}
-        		if (added) {
-        			lstMedia.setVvalue(lstMedia.getVmax());
-        		}
-        	}
-        });
-
         this.lstMedia.getSelectionModel().selectionsProperty().addListener((obs, ov, nv) -> {
         	if (selecting) return;
         	this.selecting = true;
@@ -313,11 +297,24 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         	if (nv == null) {
         		lstMedia.getSelectionModel().clear();
         	} else {
-        		lstMedia.getSelectionModel().select(new MediaListItem(nv));
+        		lstMedia.getSelectionModel().select(library.getListItem(nv.getId()));
         	}
         	this.selecting = false;
         	this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
         });
+        
+		// setup the context menu
+		ApplicationContextMenu menu = new ApplicationContextMenu(this);
+		menu.getItems().addAll(
+				menu.createMenuItem(ApplicationAction.RENAME),
+				menu.createMenuItem(ApplicationAction.DELETE),
+				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.EXPORT),
+				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.SELECT_ALL),
+				menu.createMenuItem(ApplicationAction.SELECT_NONE),
+				menu.createMenuItem(ApplicationAction.SELECT_INVERT));
+		this.lstMedia.setContextMenu(menu);
         
         this.pneMetadata = new MediaMetadataPane(tags);
         // wire up the selected media to the media metadata view with a unidirectional binding
@@ -595,9 +592,9 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
      * @param event the event
      */
     private final void onMediaTagAdded(MediaTagEvent event) {
-    	MediaListItem item = event.media;
+    	MediaListItem item = event.getMediaListItem();
     	Media media = item.getMedia();
-    	Tag tag = event.tag;
+    	Tag tag = event.getTag();
     	
     	this.context.getMediaLibrary().addTag(
     			media, 
@@ -627,9 +624,9 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
      * @param event the event
      */
     private final void onMediaTagRemoved(MediaTagEvent event) {
-    	MediaListItem item = event.media;
+    	MediaListItem item = event.getMediaListItem();
     	Media media = item.getMedia();
-    	Tag tag = event.tag;
+    	Tag tag = event.getTag();
     	
     	this.context.getMediaLibrary().removeTag(
     			media, 
@@ -656,19 +653,46 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
      * @param event the event
      */
     private final void onApplicationEvent(ApplicationEvent event) {
+    	Node focused = this.getScene().getFocusOwner();
+    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.lstMedia);
+    	
     	ApplicationAction action = event.getAction();
+    	Media selected = this.selected.get();
+    	
     	switch (action) {
-    		case RENAME:
-    			Media selected = this.selected.get();
-    			if (selected != null) {
-    				this.promptRename(selected);
-    			}
-    			break;
+			case RENAME:
+				if (selected != null) {
+					this.promptRename(selected);
+				}
+				break;
     		case DELETE:
-    			this.promptDelete();
+				if (isFocused) {
+					this.promptDelete();
+				}
     			break;
     		case SELECT_ALL:
-    			this.lstMedia.getSelectionModel().selectAll();
+				if (isFocused) {
+	    			this.lstMedia.getSelectionModel().selectAll();
+	    			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
+				}
+    			break;
+    		case SELECT_NONE:
+    			this.lstMedia.getSelectionModel().clear();
+    			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
+    			break;
+    		case SELECT_INVERT:
+    			this.lstMedia.getSelectionModel().invert();
+    			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
+    			break;
+    		case EXPORT:
+    			List<MediaListItem> items = this.lstMedia.getSelectionModel().selectionsProperty().get();
+    			List<Media> media = new ArrayList<Media>();
+    			for (MediaListItem item : items) {
+    				if (item.isLoaded()) {
+    					media.add(item.getMedia());
+    				}
+    			}
+    			// TODO Export this.promptExport(media);
     			break;
     		default:
     			break;
@@ -679,9 +703,16 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
      * Called when the state of this pane changes.
      */
     private final void stateChanged(String reason) {
-    	fireEvent(new ApplicationPaneEvent(this.lstMedia, MediaLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, MediaLibraryPane.this, reason));
+    	Scene scene = this.getScene();
+    	// don't bother if there's no place to send the event to
+    	if (scene != null) {
+    		fireEvent(new ApplicationPaneEvent(this.lstMedia, MediaLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, MediaLibraryPane.this, reason));
+    	}
     }
     
+    /* (non-Javadoc)
+     * @see org.praisenter.javafx.ApplicationPane#setDefaultFocus()
+     */
     @Override
     public void setDefaultFocus() {
     	this.lstMedia.requestFocus();
@@ -692,15 +723,29 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
      */
     @Override
     public boolean isApplicationActionEnabled(ApplicationAction action) {
-    	boolean isSingleSelected = this.selected.get() != null;
-    	boolean isMultiSelected = this.lstMedia.getSelectionModel().selectionsProperty().size() > 0;
+    	Node focused = this.getScene().getFocusOwner();
+		
+		List<MediaListItem> selected = this.lstMedia.getSelectionModel().selectionsProperty().get();
+		
+		boolean isSingleSelected = selected.size() == 1;
+    	boolean isMultiSelected = selected.size() > 0;
+    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.lstMedia);
+    	boolean isLoaded = selected.stream().allMatch(b -> b.isLoaded());
+    	
     	switch (action) {
-			case RENAME:
-				return isSingleSelected;
+	    	case RENAME:
+				return isFocused && isLoaded && isSingleSelected;
 			case DELETE:
-				return isSingleSelected || isMultiSelected;
+			case EXPORT:
+				// check for focused text input first
+				return isFocused && (isSingleSelected || isMultiSelected) && isLoaded;
 			case SELECT_ALL:
-				return true;
+			case SELECT_NONE:
+			case SELECT_INVERT:
+				if (isFocused) {
+					return true;
+				}
+				break;
 			default:
 				break;
 		}

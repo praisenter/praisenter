@@ -95,34 +95,6 @@ final class BibleListItem implements Comparable<BibleListItem> {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		return this.name.hashCode();
-	}
-	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj == this) return true;
-		if (obj instanceof BibleListItem) {
-			BibleListItem item = (BibleListItem)obj;
-			if (item.loaded.get() == this.loaded.get()) {
-				if (item.loaded.get()) {
-					return item.bible.get().equals(this.bible.get());
-				} else {
-					return item.name.get().equals(this.name.get());
-				}
-			}
-		}
-		return false;
-	}
-	
 	/**
 	 * Returns the name of this item.
 	 * @return String

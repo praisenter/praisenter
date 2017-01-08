@@ -35,6 +35,7 @@ import java.nio.file.Path;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.InvalidFormatException;
+import org.praisenter.ThumbnailSettings;
 import org.praisenter.utility.ImageManipulator;
 
 import io.humble.video.Codec;
@@ -59,10 +60,10 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 	
 	/**
 	 * Minimal constructor.
-	 * @param settings the thumbnail settings
+	 * @param thumbnailSettings the thumbnail settings
 	 */
-	public VideoMediaLoader(MediaThumbnailSettings settings) {
-		super(settings);
+	public VideoMediaLoader(ThumbnailSettings thumbnailSettings) {
+		super(thumbnailSettings);
 	}
 	
 	/* (non-Javadoc)

@@ -56,7 +56,7 @@ import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
-import org.praisenter.xml.adapters.BufferedImageTypeAdapter;
+import org.praisenter.xml.adapters.BufferedImagePngTypeAdapter;
 
 /**
  * Implementation of the {@link Slide} interface.
@@ -115,7 +115,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	
 	/** The thumbnail for this slide */
 	@XmlElement(name = "thumbnail", required = false)
-	@XmlJavaTypeAdapter(BufferedImageTypeAdapter.class)
+	@XmlJavaTypeAdapter(BufferedImagePngTypeAdapter.class)
 	BufferedImage thumbnail;
 	
 	/**

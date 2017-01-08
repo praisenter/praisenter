@@ -3,6 +3,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+import org.praisenter.ThumbnailSettings;
 import org.praisenter.javafx.ImageCache;
 import org.praisenter.javafx.JavaFXContext;
 import org.praisenter.javafx.PraisenterContext;
@@ -11,7 +12,6 @@ import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaThumbnailSettings;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.graphics.ScaleType;
@@ -34,7 +34,6 @@ import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.VerticalTextAlignment;
-import org.praisenter.utility.ClasspathLoader;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -101,7 +100,7 @@ public class TestSlideDisplay extends Application {
 		
 		Path path = Paths.get("D:\\Personal\\Praisenter\\testmedialibrary");
 //    	Path path = Paths.get("C:\\Users\\William\\Desktop\\test\\media");
-		MediaThumbnailSettings settings = new MediaThumbnailSettings(
+		ThumbnailSettings settings = new ThumbnailSettings(
 				100, 100);
     	MediaLibrary library = null;
 		try {

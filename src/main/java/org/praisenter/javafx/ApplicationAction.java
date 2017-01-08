@@ -164,8 +164,11 @@ public enum ApplicationAction {
 	/** Create a new verse for a chapter */
 	NEW_VERSE(Translations.get("action.bible.newverse")),
 	
-	/** Create a new renumber the selection */
+	/** Renumbers the selection */
 	RENUMBER(Translations.get("action.bible.renumber")),
+	
+	/** Reorders the selection */
+	REORDER(Translations.get("action.bible.reorder")),
 	
 	/** Re-indexes the bible search index */
 	REINDEX_BIBLES(Translations.get("action.reindex")),

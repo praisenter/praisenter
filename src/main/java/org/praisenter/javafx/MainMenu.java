@@ -108,11 +108,12 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		MenuItem fPaste = createMenuItem(ApplicationAction.PASTE);
 		MenuItem fRename = createMenuItem(ApplicationAction.RENAME);
 		MenuItem fDelete = createMenuItem(ApplicationAction.DELETE);
+		MenuItem fReorder = createMenuItem(ApplicationAction.REORDER);
 		MenuItem fRenumber = createMenuItem(ApplicationAction.RENUMBER);
 		MenuItem fSelectAll = createMenuItem(ApplicationAction.SELECT_ALL);
 		MenuItem fSelectNone = createMenuItem(ApplicationAction.SELECT_NONE);
 		MenuItem fSelectInvert = createMenuItem(ApplicationAction.SELECT_INVERT);
-		edit.getItems().addAll(fOpen, new SeparatorMenuItem(), fCopy, fCut, fPaste, new SeparatorMenuItem(), fRenumber, new SeparatorMenuItem(), fRename, fDelete, new SeparatorMenuItem(), fSelectAll, fSelectNone, fSelectInvert);
+		edit.getItems().addAll(fOpen, new SeparatorMenuItem(), fCopy, fCut, fPaste, new SeparatorMenuItem(), fReorder, fRenumber, new SeparatorMenuItem(), fRename, fDelete, new SeparatorMenuItem(), fSelectAll, fSelectNone, fSelectInvert);
 		
 		// Media
 		MenuItem mManage = createMenuItem(ApplicationAction.MANAGE_MEDIA);

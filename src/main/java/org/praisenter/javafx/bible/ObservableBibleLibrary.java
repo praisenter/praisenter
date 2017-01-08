@@ -27,7 +27,9 @@ package org.praisenter.javafx.bible;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -101,7 +103,7 @@ public final class ObservableBibleLibrary {
 	        }
 		}
 	}
-	
+
 	/**
 	 * Attempts to add the given path to the bible library.
 	 * <p>
@@ -192,15 +194,15 @@ public final class ObservableBibleLibrary {
 	 */
 	public void add(List<Path> paths, Consumer<List<Bible>> onSuccess, Consumer<List<FailedOperation<Path>>> onError) {
 		// create the "loading" items
-		List<BibleListItem> loadings = new ArrayList<BibleListItem>();
+		Map<Path, BibleListItem> loadings = new HashMap<Path, BibleListItem>();
 		for (Path path : paths) {
-			loadings.add(new BibleListItem(path.getFileName().toString()));
+			loadings.put(path, new BibleListItem(path.getFileName().toString()));
 		}
 		
 		// changes to the list should be done on the FX UI Thread
 		Fx.runOnFxThead(() -> {
 			// add it to the items list
-			items.addAll(loadings);
+			items.addAll(loadings.values());
 		});
 		
 		List<Bible> successes = new ArrayList<Bible>();
@@ -218,6 +220,7 @@ public final class ObservableBibleLibrary {
 				updateProgress(-1, 0);
 				int errorCount = 0;
 				for (Path path : paths) {
+					BibleListItem loading = loadings.get(path);
 					try {
 						List<Bible> bbls = importer.execute(path);
 						for (Bible bible : bbls) {
@@ -226,7 +229,7 @@ public final class ObservableBibleLibrary {
 						successes.addAll(bbls);
 						Fx.runOnFxThead(() -> {
 							// remove the loading item
-							items.remove(new BibleListItem(path.getFileName().toString()));
+							items.remove(loading);
 							// add the real item
 							for (Bible bible : bbls) {
 								items.add(new BibleListItem(bible));
@@ -237,7 +240,7 @@ public final class ObservableBibleLibrary {
 						failures.add(new FailedOperation<Path>(path, ex));
 						Fx.runOnFxThead(() -> {
 							// remove the loading item
-							items.remove(new BibleListItem(path.getFileName().toString()));
+							items.remove(loading);
 						});
 						errorCount++;
 					}
@@ -319,13 +322,7 @@ public final class ObservableBibleLibrary {
 		};
 		task.setOnSucceeded((e) -> {
 			// find the bible item
-			BibleListItem bi = null;
-			for (BibleListItem item : this.items) {
-				if (item.getBible().getId().equals(copy.getId())) {
-					bi = item;
-					break;
-				}
-			}
+			BibleListItem bi = this.getListItem(copy);
 			// check if new
 			if (bi == null) {
 				// then add one
@@ -373,10 +370,6 @@ public final class ObservableBibleLibrary {
 	 * @param onError called when the bible failed to be removed
 	 */
 	public void remove(Bible bible, Runnable onSuccess, BiConsumer<Bible, Throwable> onError) {
-		Fx.runOnFxThead(() -> {
-			items.remove(new BibleListItem(bible));
-		});
-		
 		// execute the add on a different thread
 		MonitoredTask<Void> task = new MonitoredTask<Void>(MessageFormat.format(Translations.get("task.delete"), bible.getName())) {
 			@Override
@@ -393,6 +386,8 @@ public final class ObservableBibleLibrary {
 			}
 		};
 		task.setOnSucceeded((e) -> {
+			BibleListItem bi = this.getListItem(bible);
+			items.remove(bi);
 			if (onSuccess != null) {
 				onSuccess.run();
 			}
@@ -400,8 +395,6 @@ public final class ObservableBibleLibrary {
 		task.setOnFailed((e) -> {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to remove bible " + bible.getName(), ex);
-			// add it back
-			items.add(new BibleListItem(bible));
 			if (onError != null) {
 				onError.accept(bible, ex);
 			}
@@ -429,13 +422,6 @@ public final class ObservableBibleLibrary {
 	public void remove(List<Bible> bibles, Runnable onSuccess, Consumer<List<FailedOperation<Bible>>> onError) {
 		List<FailedOperation<Bible>> failures = new ArrayList<FailedOperation<Bible>>();
 		
-		Fx.runOnFxThead(() -> {
-			for (Bible bible : bibles) {
-				// remove the item
-				items.remove(new BibleListItem(bible));
-			}
-		});
-		
 		// execute the add on a different thread
 		MonitoredTask<Void> task = new MonitoredTask<Void>(
 				bibles.size() > 1 
@@ -444,17 +430,21 @@ public final class ObservableBibleLibrary {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
+				long i = 1;
 				int errorCount = 0;
-				for (Bible bible : bibles) {
+				for (Bible b : bibles) {
 					try {
-						library.remove(bible);
+						library.remove(b);
+						Fx.runOnFxThead(() -> {
+							// remove the item
+							items.remove(getListItem(b));
+						});
 					} catch (Exception ex) {
-						// add it back
-						items.add(new BibleListItem(bible));
-						LOGGER.error("Failed to remove bible " + bible.getName(), ex);
-						failures.add(new FailedOperation<Bible>(bible, ex));
+						LOGGER.error("Failed to remove bible " + b.getName(), ex);
+						failures.add(new FailedOperation<Bible>(b, ex));
 						errorCount++;
 					}
+					updateProgress(i, bibles.size());
 				}
 
 				// set the result status based on the number of errors we got
@@ -587,7 +577,24 @@ public final class ObservableBibleLibrary {
 			}
 		});
 		this.service.execute(task);
-		
+	}
+
+	/**
+	 * Returns the bible list item for the given bible or null if not found.
+	 * @param bible the bible
+	 * @return {@link BibleListItem}
+	 */
+	private BibleListItem getListItem(Bible bible) {
+		if (bible == null) return null;
+		BibleListItem bi = null;
+    	for (int i = 0; i < items.size(); i++) {
+    		BibleListItem item = items.get(i);
+    		if (item.getBible().getId().equals(bible.getId())) {
+    			bi = item;
+    			break;
+    		}
+    	}
+    	return bi;
 	}
 	
 	// other
@@ -599,6 +606,16 @@ public final class ObservableBibleLibrary {
 	 */
 	public Bible get(UUID id) {
 		return this.library.get(id);
+	}
+	
+	/**
+	 * Returns the bible for the given id.
+	 * @param id the id
+	 * @return {@link BibleListItem}
+	 */
+	public BibleListItem getListItem(UUID id) {
+		Bible bible = this.library.get(id);
+		return this.getListItem(bible);
 	}
 	
 	/**

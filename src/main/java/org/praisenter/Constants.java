@@ -112,9 +112,6 @@ public final class Constants {
 	/** The absolute path to the media folder */
 	public static final String MEDIA_ABSOLUTE_PATH = Constants.ROOT_PATH + MEDIA_RELATIVE_PATH;
 	
-	/** The media thumbnail size */
-	public static final int MEDIA_THUMBNAIL_SIZE = 100;
-	
 	///////////////////////////
 	// SONGS
 	
@@ -150,6 +147,9 @@ public final class Constants {
 	
 	///////////////////////////
 	// OTHER
+
+	/** The thumbnail size */
+	public static final int THUMBNAIL_SIZE = 100;
 	
 	/** Format name for use in any savable format in the application to differentiate between other formats */
 	public static final String FORMAT_NAME = "praisenter";

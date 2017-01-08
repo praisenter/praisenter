@@ -56,10 +56,4 @@ public interface MediaLoader {
 	 * @throws InvalidFormatException if the media could not be read
 	 */
 	public abstract Media load(Path path) throws IOException, FileNotFoundException, InvalidFormatException;
-	
-	/**
-	 * Returns the thumbnail settings this loader is configured with.
-	 * @return {@link MediaThumbnailSettings}
-	 */
-	public abstract MediaThumbnailSettings getThumbnailSettings();
 }

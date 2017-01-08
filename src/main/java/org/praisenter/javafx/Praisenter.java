@@ -110,7 +110,7 @@ public final class Praisenter extends Application {
 		}
 		
 		// check for debug mode
-		if (CONFIGURATION.isSet(Setting.DEBUG_MODE)) {
+		if (CONFIGURATION.isSet(Setting.APP_DEBUG_MODE)) {
 			// if enable, change the log level to DEBUG
 			LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
 			org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
@@ -222,10 +222,10 @@ public final class Praisenter extends Application {
     	stage.setMinHeight(MIN_HEIGHT);
     	
     	// read stored position/size
-    	double x = CONFIGURATION.getDouble(Setting.GENERAL_X, stage.getX());
-		double y = CONFIGURATION.getDouble(Setting.GENERAL_Y, stage.getY());
-		double w = CONFIGURATION.getDouble(Setting.GENERAL_WIDTH, MIN_WIDTH);
-		double h = CONFIGURATION.getDouble(Setting.GENERAL_HEIGHT, MIN_HEIGHT);
+    	double x = CONFIGURATION.getDouble(Setting.APP_X, stage.getX());
+		double y = CONFIGURATION.getDouble(Setting.APP_Y, stage.getY());
+		double w = CONFIGURATION.getDouble(Setting.APP_WIDTH, MIN_WIDTH);
+		double h = CONFIGURATION.getDouble(Setting.APP_HEIGHT, MIN_HEIGHT);
     	
 		// clamp the size
 		if (w < MIN_WIDTH) w = MIN_WIDTH;
@@ -305,10 +305,10 @@ public final class Praisenter extends Application {
     	stage.setOnCloseRequest((e) -> {
     		// save some application info
     		CONFIGURATION.beginBatch();
-    		CONFIGURATION.setDouble(Setting.GENERAL_X, stage.getX());
-    		CONFIGURATION.setDouble(Setting.GENERAL_Y, stage.getY());
-    		CONFIGURATION.setDouble(Setting.GENERAL_WIDTH, stage.getWidth());
-    		CONFIGURATION.setDouble(Setting.GENERAL_HEIGHT, stage.getHeight());
+    		CONFIGURATION.setDouble(Setting.APP_X, stage.getX());
+    		CONFIGURATION.setDouble(Setting.APP_Y, stage.getY());
+    		CONFIGURATION.setDouble(Setting.APP_WIDTH, stage.getWidth());
+    		CONFIGURATION.setDouble(Setting.APP_HEIGHT, stage.getHeight());
     		CONFIGURATION.endBatch();
     		
     		LOGGER.info("Checking for background threads that have not completed yet.");

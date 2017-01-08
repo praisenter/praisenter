@@ -2,7 +2,6 @@
 import java.io.IOException;
 import java.nio.file.Path;
 
-import io.humble.video.AudioChannel.Layout;
 import io.humble.video.AudioFormat;
 import io.humble.video.Codec;
 import io.humble.video.Decoder;
@@ -19,7 +18,6 @@ import io.humble.video.MediaSampled;
 import io.humble.video.Muxer;
 import io.humble.video.MuxerFormat;
 import io.humble.video.MuxerStream;
-import io.humble.video.Rational;
 
 public final class Transcoder {
 	private static class DemuxerStreamHelper {

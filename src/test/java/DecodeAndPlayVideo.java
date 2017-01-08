@@ -20,6 +20,10 @@
  *******************************************************************************/
 
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
 import io.humble.video.Decoder;
 import io.humble.video.Demuxer;
 import io.humble.video.DemuxerStream;
@@ -29,22 +33,16 @@ import io.humble.video.MediaDescriptor;
 import io.humble.video.MediaPacket;
 import io.humble.video.MediaPicture;
 import io.humble.video.Rational;
-import io.humble.video.awt.ImageFrame;
 import io.humble.video.awt.MediaPictureConverter;
 import io.humble.video.awt.MediaPictureConverterFactory;
-import javafx.animation.AnimationTimer;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
-import javafx.scene.effect.Blend;
-import javafx.scene.effect.BlendMode;
-import javafx.scene.effect.Effect;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
@@ -55,18 +53,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
-
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 /**
  * Opens a media file, finds the first video stream, and then plays it.

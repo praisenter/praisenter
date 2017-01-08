@@ -26,7 +26,9 @@ package org.praisenter.javafx.media;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -37,13 +39,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
+import org.praisenter.ThumbnailSettings;
 import org.praisenter.javafx.MonitoredTask;
 import org.praisenter.javafx.MonitoredTaskResultStatus;
 import org.praisenter.javafx.MonitoredThreadPoolExecutor;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
-import org.praisenter.media.MediaThumbnailSettings;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -175,16 +177,15 @@ public final class ObservableMediaLibrary {
 	 */
 	public void add(List<Path> paths, Consumer<List<Media>> onSuccess, Consumer<List<FailedOperation<Path>>> onError) {
 		// create the "loading" items
-		List<MediaListItem> loadings = new ArrayList<MediaListItem>();
-		for (int i = 0; i < paths.size(); i++) {
-			Path path = paths.get(i);
-			loadings.add(new MediaListItem(path.getFileName().toString()));
+		Map<Path, MediaListItem> loadings = new HashMap<Path, MediaListItem>();
+		for (Path path : paths) {
+			loadings.put(path, new MediaListItem(path.getFileName().toString()));
 		}
 		
 		// changes to the list should be done on the FX UI Thread
 		Fx.runOnFxThead(() -> {
 			// add it to the items list
-			items.addAll(loadings);
+			items.addAll(loadings.values());
 		});
 		
 		List<Media> successes = new ArrayList<Media>();
@@ -198,9 +199,8 @@ public final class ObservableMediaLibrary {
 				
 				long i = 1;
 				int errorCount = 0;
-				for (int j = 0; j < paths.size(); j++) {
-					Path path = paths.get(j);
-					MediaListItem item = loadings.get(j);
+				for (Path path : paths) {
+					MediaListItem item = loadings.get(path);
 					try {
 						Media media = library.add(path);
 						successes.add(media);
@@ -290,7 +290,7 @@ public final class ObservableMediaLibrary {
 			}
 		};
 		task.setOnSucceeded((e) -> {
-			MediaListItem success = this.getMediaListItem(media);
+			MediaListItem success = this.getListItem(media);
 			items.remove(success);
 			if (onSuccess != null) {
 				onSuccess.run();
@@ -339,7 +339,7 @@ public final class ObservableMediaLibrary {
 						library.remove(m);
 						Fx.runOnFxThead(() -> {
 							// remove the item
-							items.remove(getMediaListItem(m));
+							items.remove(getListItem(m));
 						});
 					} catch (Exception ex) {
 						LOGGER.error("Failed to remove media " + m.getName(), ex);
@@ -417,7 +417,7 @@ public final class ObservableMediaLibrary {
 		task.setOnSucceeded((e) -> {
 			final Media m1 = task.getValue();
 			// update the list item
-			MediaListItem mi = this.getMediaListItem(media);
+			MediaListItem mi = this.getListItem(media);
 	    	
 	    	if (mi != null) {
 		    	mi.setName(m1.getName());
@@ -513,7 +513,8 @@ public final class ObservableMediaLibrary {
 	 * @param media the media
 	 * @return {@link MediaListItem}
 	 */
-	private MediaListItem getMediaListItem(Media media) {
+	private MediaListItem getListItem(Media media) {
+		if (media == null) return null;
 		MediaListItem mi = null;
     	for (int i = 0; i < items.size(); i++) {
     		MediaListItem item = items.get(i);
@@ -528,20 +529,22 @@ public final class ObservableMediaLibrary {
 	// other
 	
 	/**
-	 * Returns the thumbnail settings.
-	 * @return {@link MediaThumbnailSettings}
-	 */
-	public MediaThumbnailSettings getThumbnailSettings() {
-		return this.library.getThumbnailSettings();
-	}
-	
-	/**
 	 * Returns the media for the given id.
 	 * @param id the id
 	 * @return {@link Media}
 	 */
 	public Media get(UUID id) {
 		return this.library.get(id);
+	}
+
+	/**
+	 * Returns the media for the given id.
+	 * @param id the id
+	 * @return {@link MediaListItem}
+	 */
+	public MediaListItem getListItem(UUID id) {
+		Media media = this.library.get(id);
+		return this.getListItem(media);
 	}
 	
 	/**
@@ -562,5 +565,13 @@ public final class ObservableMediaLibrary {
 	 */
 	public ObservableList<MediaListItem> getItems() {
 		return this.items;
+	}
+
+	/**
+	 * Returns the thumbnail settings.
+	 * @return {@link ThumbnailSettings}
+	 */
+	public ThumbnailSettings getThumbnailSettings() {
+		return this.library.getThumbnailSettings();
 	}
 }
