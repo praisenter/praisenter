@@ -38,6 +38,9 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.GlyphFont;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.FailedOperation;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleLibrary;
@@ -114,6 +117,9 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 
 	/** The collator for locale dependent sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
+	
+	/** The font-awesome glyph-font pack */
+	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	// selection
 	
@@ -216,20 +222,20 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		VBox right = new VBox();
 		VBox importSteps = new VBox();
 		
-		Label lblStep1 = new Label(Translations.get("bible.import.list1"));
-		Label lblStep2 = new Label(Translations.get("bible.import.list2"));
-		Label lblStep1Text = new Label(Translations.get("bible.import.step1"));
-		Label lblStep2Text = new Label(Translations.get("bible.import.step2"));
+		Label lblStep1 = new Label(Translations.get("bible.import.howto.list1"));
+		Label lblStep2 = new Label(Translations.get("bible.import.howto.list2"));
+		Label lblStep1Text = new Label(Translations.get("bible.import.howto.step1"));
+		Label lblStep2Text = new Label(Translations.get("bible.import.howto.step2"));
 		
-		Hyperlink lblUnbound = new Hyperlink(Translations.get("bible.import.unbound"));
+		Hyperlink lblUnbound = new Hyperlink(Translations.get("bible.import.howto.unbound"));
 		lblUnbound.setOnAction(e -> {
 			context.getJavaFXContext().getApplication().getHostServices().showDocument("https://unbound.biola.edu/index.cfm?method=downloads.showDownloadMain");
 		});
-		Hyperlink lblZefania = new Hyperlink(Translations.get("bible.import.zefania"));
+		Hyperlink lblZefania = new Hyperlink(Translations.get("bible.import.howto.zefania"));
 		lblZefania.setOnAction(e -> {
 			context.getJavaFXContext().getApplication().getHostServices().showDocument("https://sourceforge.net/projects/zefania-sharp/files/Bibles/");
 		});
-		Hyperlink lblOpenSong = new Hyperlink(Translations.get("bible.import.opensong"));
+		Hyperlink lblOpenSong = new Hyperlink(Translations.get("bible.import.howto.opensong"));
 		lblOpenSong.setOnAction(e -> {
 			context.getJavaFXContext().getApplication().getHostServices().showDocument("http://www.opensong.org/home/download");
 		});
@@ -252,7 +258,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 
 		BibleMetadataPane bmp = new BibleMetadataPane();
 
-		TitledPane ttlImport = new TitledPane(Translations.get("bible.import.title"), importSteps);
+		TitledPane ttlImport = new TitledPane(Translations.get("bible.import.howto.title"), importSteps);
 		TitledPane ttlMetadata = new TitledPane(Translations.get("bible.properties.title"), bmp);
 		
 		right.getChildren().addAll(ttlImport, ttlMetadata);
@@ -355,6 +361,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				menu.createMenuItem(ApplicationAction.RENAME),
 				menu.createMenuItem(ApplicationAction.DELETE),
 				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.IMPORT_BIBLES, Translations.get("action.import"), FONT_AWESOME.create(FontAwesome.Glyph.LEVEL_DOWN)),
 				menu.createMenuItem(ApplicationAction.EXPORT),
 				new SeparatorMenuItem(),
 				menu.createMenuItem(ApplicationAction.SELECT_ALL),
@@ -405,8 +412,8 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 					paths, 
 					(List<Bible> bibles) -> {
 						// get the warning files
-						String[] wFileNames = bibles.stream().filter(b -> b.hadImportWarning()).map(f -> f.getName()).collect(Collectors.toList()).toArray(new String[0]);
-						if (wFileNames.length > 0) {
+						List<String> wFileNames = bibles.stream().filter(b -> b.hadImportWarning()).map(f -> f.getName()).collect(Collectors.toList());
+						if (wFileNames.size() > 0) {
 							// show a dialog of the files that had warnings
 							String list = String.join(", ", wFileNames);
 							Alert alert = Alerts.info(
@@ -728,6 +735,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				}
 				break;
 			case NEW_BIBLE:
+			case IMPORT_BIBLES:
 				return true;
 			default:
 				break;

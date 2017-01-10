@@ -141,7 +141,8 @@ public final class Configuration {
 	 * @throws JAXBException if the configuration cannot be serialized
 	 * @throws IOException if an IO error occurs
 	 */
-	private final void save() throws JAXBException, IOException {
+	private final synchronized void save() throws JAXBException, IOException {
+		// TODO this should probably be done on another thread
 		Path path = Paths.get(Constants.CONFIG_ABSOLUTE_FILE_PATH);
 		XmlIO.save(path, this);
 	}

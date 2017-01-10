@@ -44,7 +44,7 @@ import javafx.stage.Window;
  * @author William Bittle
  * @version 3.0.0
  */
-final class BibleSearchButton extends Button {
+public final class BibleSearchButton extends Button {
 	/** The bible search dialog */
 	private Stage dialog;
 	
@@ -72,8 +72,6 @@ final class BibleSearchButton extends Button {
 				// 	1. we don't know the owner at creation time
 				//  2. we don't know if the user will request it at all
 				dialog = new Stage();
-				// TODO set the value
-				// TODO bind the value of this button to the value of the pane
 				dialog.initOwner(owner);
 				dialog.setTitle("Bible Search");
 				dialog.initModality(Modality.NONE);

@@ -62,13 +62,12 @@ import javafx.util.Duration;
 // FIXME testing on High DPI screens
 // FIXME fix dark theme
 
-// TODO Evaluate detecting text language for better indexing (a field per language) in lucene; Apache Tika or LangDetect; This would also be used in the searches to know what indexed fields to use
-
+// FEATURE Evaluate detecting text language for better indexing (a field per language) in lucene; Apache Tika or LangDetect; This would also be used in the searches to know what indexed fields to use
 // FEATURE Use Apache POI to read powerpoint files
 // FEATURE Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
 
 // JAVABUG 09/28/16 MEDIUM [fixed-9] High DPI https://bugs.openjdk.java.net/browse/JDK-8091832
-// JAVABUG 11/03/16 MEDIUM [fixed-9]; Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946
+// JAVABUG 11/03/16 MEDIUM [fixed-9] Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946
 
 /**
  * This is the entry point for the application.
@@ -94,11 +93,11 @@ public final class Praisenter extends Application {
     	
 		// log some system info
     	LOGGER.info(Constants.NAME + " " + Constants.VERSION);
-    	LOGGER.info(RuntimeProperties.OPERATING_SYSTEM + " " + RuntimeProperties.ARCHITECTURE);
-    	LOGGER.info(RuntimeProperties.JAVA_VERSION + " " + RuntimeProperties.JAVA_VENDOR);
-    	LOGGER.info(RuntimeProperties.JVM_ARGUMENTS);
-    	LOGGER.info(RuntimeProperties.JAVA_HOME);
-    	LOGGER.info(RuntimeProperties.USER_HOME);
+    	LOGGER.info("OS:        " + (RuntimeProperties.IS_WINDOWS_OS ? "[W] " : RuntimeProperties.IS_MAC_OS ? "[M] " : RuntimeProperties.IS_LINUX_OS ? "[L] " : "[O] ") + RuntimeProperties.OPERATING_SYSTEM + " " + RuntimeProperties.ARCHITECTURE);
+    	LOGGER.info("Java:      " + RuntimeProperties.JAVA_VERSION + " " + RuntimeProperties.JAVA_VENDOR);
+    	LOGGER.info("JVM Args:  " + RuntimeProperties.JVM_ARGUMENTS);
+    	LOGGER.info("Java Home: " + RuntimeProperties.JAVA_HOME);
+    	LOGGER.info("User Home: " + RuntimeProperties.USER_HOME);
     	
 		// load (or create) configuration
 		LOGGER.info("Loading configuration.");
@@ -142,14 +141,6 @@ public final class Praisenter extends Application {
 	 * @param args any arguments
 	 */
     public static void main(String[] args) {
-//    	if (args.length == 0) {
-//    		try {
-//    			Runtime.getRuntime().exec("java")
-//    		} catch (Exception ex) {
-//    			
-//    		}
-//    	}
-    	
         launch(args);
     }
     

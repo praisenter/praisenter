@@ -124,6 +124,7 @@
 			<artifactId>javafx-maven-plugin</artifactId>
 			<version>8.6.0</version>
 			<configuration>
+				<verbose>true</verbose>
 				<mainClass>org.praisenter.javafx.Praisenter</mainClass>
 				<!-- <jfxAppOutputDir>outputdir</jfxAppOutputDir>
 				<jfxMainAppJarName>main-app-jar-name</jfxMainAppJarName>
@@ -132,8 +133,13 @@
 				<vendor>vendor</vendor>
 				<needShortcut>true</needShortcut>
 				<needMenu>true</needMenu>
+				<runtime />
+				<appName>Praisenter</appName>
 				<!-- <appName>app-name</appName>
 				<additionalAppResources>additional-resources-folder</additionalAppResources> -->
+				<jvmArgs>
+				    <jvmArg>-Xmx:2g</jvmArg>
+				</jvmArgs>
 			</configuration>
 			<executions>
 				<execution>

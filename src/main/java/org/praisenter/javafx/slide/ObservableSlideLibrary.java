@@ -260,7 +260,6 @@ public final class ObservableSlideLibrary {
 			}
 		};
 		task.setOnSucceeded((e) -> {
-			// FIXME handle rename
 			// find the slide item
 			SlideListItem si = null;
 			for (SlideListItem item : this.items) {

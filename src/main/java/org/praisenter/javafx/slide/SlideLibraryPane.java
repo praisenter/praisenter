@@ -30,9 +30,9 @@ public class SlideLibraryPane extends BorderPane {
         });
 		this.slides.itemsProperty().bindContent(this.context.getSlideLibrary().getItems());
 		
-		// TODO maybe auto-saving?
+		// TODO menus are not available when focused on slide editor (only when focused on ribbon)
 		
-		// NOTE: undo/redo might be easier here since the size the XML documents is much smaller than bibles
+		// TODO: undo/redo might be easier here since the size the XML documents is much smaller than bibles
 		
 		this.slides.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
 			@SuppressWarnings("unchecked")

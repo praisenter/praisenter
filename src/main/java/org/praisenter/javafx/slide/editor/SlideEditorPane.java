@@ -523,8 +523,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				Slide s = os.getRegion();
 				
 				context.getSlideLibrary().save(s, slide -> {
-					System.out.println("success");
+					// TODO handle success?
 				}, (slide, ex) -> {
+					// TODO handle error
 					ex.printStackTrace();
 				});
 				break;

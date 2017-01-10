@@ -241,8 +241,18 @@ public enum ApplicationAction {
 	 * @return MenuItem
 	 */
 	public MenuItem toMenuItem(String label) {
+		return this.toMenuItem(label, this.graphic != null ? this.graphic.get() : null);
+	}
+
+	/**
+	 * Creates a new MenuItem for use in a menu for this {@link ApplicationAction}.
+	 * @param label a different label for the action
+	 * @param graphic a different graphic for the action
+	 * @return MenuItem
+	 */
+	public MenuItem toMenuItem(String label, Node graphic) {
 		MenuItem item = new MenuItem(label);
-		item.setGraphic(this.graphic != null ? this.graphic.get() : null);
+		item.setGraphic(graphic);
 		item.setAccelerator(this.accelerator);
 		item.setUserData(this);
 		return item;
@@ -262,8 +272,18 @@ public enum ApplicationAction {
 	 * @return Button
 	 */
 	public Button toButton(String label) {
+		return this.toButton(label, this.graphic != null ? this.graphic.get() : null);
+	}
+
+	/**
+	 * Creates a new Button for use in the application for this {@link ApplicationAction}.
+	 * @param label a different label for the action
+	 * @param graphic a different graphic for the action
+	 * @return Button
+	 */
+	public Button toButton(String label, Node graphic) {
 		Button button = new Button(label);
-		button.setGraphic(this.graphic != null ? this.graphic.get() : null);
+		button.setGraphic(graphic);
 		button.setUserData(this);
 		return button;
 	}

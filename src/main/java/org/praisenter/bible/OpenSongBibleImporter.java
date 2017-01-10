@@ -198,7 +198,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 		public OpenSongHandler(String name) {
 			this.bible = new Bible();
 			this.bible.name = name;
-			this.bible.copyright = "N/A";
+			this.bible.copyright = null;
 			this.bible.importDate = new Date();
 			this.bible.language = null;
 			this.bible.source = SOURCE;

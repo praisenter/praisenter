@@ -205,7 +205,7 @@ public final class SetupPane extends BorderPane {
 		ttlMedia.setCollapsible(false);
 		ttlScreens.setCollapsible(false);
 		
-		VBox layout = new VBox(ttlGeneral, ttlMedia, ttlScreens);
+		VBox layout = new VBox(ttlGeneral, ttlScreens, ttlMedia);
 		ScrollPane scroller = new ScrollPane(layout);
 		scroller.setFitToWidth(true);
 		

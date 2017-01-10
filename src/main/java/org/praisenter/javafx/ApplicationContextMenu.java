@@ -93,7 +93,11 @@ public final class ApplicationContextMenu extends ContextMenu {
 	 * @return MenuItem
 	 */
 	public MenuItem createMenuItem(ApplicationAction action) {
-		return this.createMenuItem(action, null);
+		MenuItem item = action.toMenuItem();
+		item.setOnAction(e -> {
+			this.node.fireEvent(new ApplicationEvent(item, item, ApplicationEvent.ALL, action));
+		});
+		return item;
 	}
 	
 	/**
@@ -103,10 +107,22 @@ public final class ApplicationContextMenu extends ContextMenu {
 	 * @return MenuItem
 	 */
 	public MenuItem createMenuItem(ApplicationAction action, String label) {
-		MenuItem item = label != null && label.length() > 0
-				? action.toMenuItem(label)
-				: action.toMenuItem();
-		
+		MenuItem item = action.toMenuItem(label);
+		item.setOnAction(e -> {
+			this.node.fireEvent(new ApplicationEvent(item, item, ApplicationEvent.ALL, action));
+		});
+		return item;
+	}
+	
+	/**
+	 * Helper method for making {@link ApplicationAction} MenuItems.
+	 * @param action the action
+	 * @param label an alternate label for the item
+	 * @param graphic an alternate graphic for the item
+	 * @return MenuItem
+	 */
+	public MenuItem createMenuItem(ApplicationAction action, String label, Node graphic) {
+		MenuItem item = action.toMenuItem(label, graphic);
 		item.setOnAction(e -> {
 			this.node.fireEvent(new ApplicationEvent(item, item, ApplicationEvent.ALL, action));
 		});

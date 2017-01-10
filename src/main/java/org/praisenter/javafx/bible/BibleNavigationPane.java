@@ -82,7 +82,6 @@ public final class BibleNavigationPane extends BorderPane {
 	
 	// TODO features: 
 	// validation 
-	// search box (brings up full search window-non-modal)
 	// toggle to use secondary translation (or just allow a blank option)
 	// add (create slide?)
 	// send (not sure here...)

@@ -52,8 +52,6 @@ import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 
-// TODO clean up and potential global exception capturing
-
 /**
  * Represents a media player with play/pause and volume controls.
  * @author William Bittle
@@ -67,16 +65,6 @@ public final class MediaPlayerPane extends BorderPane {
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
-//	private static final double SPECTRUM_BAR_MAX_HEIGHT = 150;
-//	private static final double SPECTRUM_BAR_WIDTH = 5;
-//	private static final int SPECTRUM_BANDS = 50;
-//	private static final int SPECTRUM_THRESHOLD = -128;
-	
-	// data
-	
-	/** The current media player; can be null */
-//    private MediaPlayer player;
-    
     /** The current media duration */
     private Duration duration;
     
@@ -103,8 +91,6 @@ public final class MediaPlayerPane extends BorderPane {
     /** The container for all the media playback controls */
     private final HBox controlsBar;
 
-//    private final GridPane spectrum;
-    
     /**
      * Default constructor.
      */
@@ -213,12 +199,6 @@ public final class MediaPlayerPane extends BorderPane {
         this.controlsBar.getChildren().addAll(this.btnPlay, this.sldTime, this.lblTime, this.btnMute, this.sldVolume);
         this.controlsBar.setDisable(true);
 		
-//        this.spectrum = new GridPane();
-//        this.spectrum.setHgap(1);
-//        this.spectrum.setMaxHeight(SPECTRUM_BAR_MAX_HEIGHT);
-//        this.spectrum.setMinHeight(SPECTRUM_BAR_MAX_HEIGHT);
-//        this.spectrum.setAlignment(Pos.BOTTOM_CENTER);
-        
         this.setBottom(this.controlsBar);
     }
     
@@ -241,7 +221,6 @@ public final class MediaPlayerPane extends BorderPane {
     	// current one right away
     	MediaPlayer old = mediaView.getMediaPlayer();
     	if (old != null) {
-//    		old.setAudioSpectrumListener(null);
     		old.dispose();
     	}
     	
@@ -298,27 +277,11 @@ public final class MediaPlayerPane extends BorderPane {
                 }
             });
             
-            // setup spectrum ui
-//            if (type == MediaType.AUDIO) {
-//            	player.setAudioSpectrumNumBands(SPECTRUM_BANDS);
-//            	player.setAudioSpectrumThreshold(SPECTRUM_THRESHOLD);
-//            	player.setAudioSpectrumInterval(0.02);
-//            	spectrum.getChildren().clear();
-//            	for (int i = 0; i < SPECTRUM_BANDS; i++) {
-//            		Region r = this.buildSpectrumBar();
-//            		spectrum.add(r, i, 0);
-//            		GridPane.setValignment(r, VPos.BOTTOM);
-//            	}
-//            	this.setCenter(spectrum);
-//            	player.setAudioSpectrumListener(this);
-//            } else {
-            	this.setCenter(this.mediaView);
-//            }
+        	this.setCenter(this.mediaView);
     	} else {
     		// disable the controls
     		this.lblTime.setText(formatTime(Duration.ZERO, Duration.ZERO));
     		this.controlsBar.setDisable(true);
-    		//mediaView.setMediaPlayer(null);
     	}
     }
     
@@ -328,21 +291,19 @@ public final class MediaPlayerPane extends BorderPane {
     private void updateValues() {
     	final MediaPlayer player = this.mediaView.getMediaPlayer();
         if (player != null) {
-            Platform.runLater(new Runnable() {
-                public void run() {
-                    Duration currentTime = player.getCurrentTime();
-                    lblTime.setText(formatTime(currentTime, duration));
-                    sldTime.setDisable(duration.isUnknown());
-                    if (!sldTime.isDisabled()
-                            && duration.greaterThan(Duration.ZERO)
-                            && !sldTime.isValueChanging()) {
-                        sldTime.setValue(currentTime.divide(duration.toMillis()).toMillis()
-                                * 100.0);
-                    }
-                    if (!sldVolume.isValueChanging()) {
-                        sldVolume.setValue((int) Math.round(player.getVolume()
-                                * 100));
-                    }
+            Platform.runLater(() -> {
+                Duration currentTime = player.getCurrentTime();
+                lblTime.setText(formatTime(currentTime, duration));
+                sldTime.setDisable(duration.isUnknown());
+                if (!sldTime.isDisabled()
+                        && duration.greaterThan(Duration.ZERO)
+                        && !sldTime.isValueChanging()) {
+                    sldTime.setValue(currentTime.divide(duration.toMillis()).toMillis()
+                            * 100.0);
+                }
+                if (!sldVolume.isValueChanging()) {
+                    sldVolume.setValue((int) Math.round(player.getVolume()
+                            * 100));
                 }
             });
         }
@@ -361,8 +322,7 @@ public final class MediaPlayerPane extends BorderPane {
             intElapsed -= elapsedHours * 60 * 60;
         }
         int elapsedMinutes = intElapsed / 60;
-        int elapsedSeconds = intElapsed - elapsedHours * 60 * 60
-                - elapsedMinutes * 60;
+        int elapsedSeconds = intElapsed - elapsedHours * 60 * 60 - elapsedMinutes * 60;
 
         if (duration.greaterThan(Duration.ZERO)) {
             int intDuration = (int) Math.floor(duration.toSeconds());
@@ -371,24 +331,17 @@ public final class MediaPlayerPane extends BorderPane {
                 intDuration -= durationHours * 60 * 60;
             }
             int durationMinutes = intDuration / 60;
-            int durationSeconds = intDuration - durationHours * 60 * 60
-                    - durationMinutes * 60;
+            int durationSeconds = intDuration - durationHours * 60 * 60 - durationMinutes * 60;
             if (durationHours > 0) {
-                return String.format("%d:%02d:%02d/%d:%02d:%02d",
-                        elapsedHours, elapsedMinutes, elapsedSeconds,
-                        durationHours, durationMinutes, durationSeconds);
+                return String.format("%d:%02d:%02d/%d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds, durationHours, durationMinutes, durationSeconds);
             } else {
-                return String.format("%02d:%02d/%02d:%02d",
-                        elapsedMinutes, elapsedSeconds, durationMinutes,
-                        durationSeconds);
+                return String.format("%02d:%02d/%02d:%02d", elapsedMinutes, elapsedSeconds, durationMinutes, durationSeconds);
             }
         } else {
             if (elapsedHours > 0) {
-                return String.format("%d:%02d:%02d", elapsedHours,
-                        elapsedMinutes, elapsedSeconds);
+                return String.format("%d:%02d:%02d", elapsedHours, elapsedMinutes, elapsedSeconds);
             } else {
-                return String.format("%02d:%02d", elapsedMinutes,
-                        elapsedSeconds);
+                return String.format("%02d:%02d", elapsedMinutes, elapsedSeconds);
             }
         }
     }
@@ -402,32 +355,4 @@ public final class MediaPlayerPane extends BorderPane {
     		player.stop();
     	}
     }
-    
-//    private Region buildSpectrumBar() {
-//    	Region r = new Region();
-//    	r.setMaxWidth(SPECTRUM_BAR_WIDTH);
-//    	r.setPrefWidth(SPECTRUM_BAR_WIDTH);
-//    	r.setMinHeight(SPECTRUM_BAR_MAX_HEIGHT);
-//    	r.setBackground(new Background(new BackgroundFill(new LinearGradient(
-//    			0.0, 
-//    			0.0, 
-//    			SPECTRUM_BAR_WIDTH, 
-//    			SPECTRUM_BAR_MAX_HEIGHT, 
-//    			false, 
-//    			CycleMethod.NO_CYCLE, 
-//    			new Stop(SPECTRUM_BAR_MAX_HEIGHT, Color.BLUE),
-//    			new Stop(0.0, Color.RED)), null, null)));
-//    	return r;
-//    }
-//    
-//    @Override
-//    public void spectrumDataUpdate(double timestamp, double duration, float[] magnitudes, float[] phases) {
-//    	for (int i = 0; i < magnitudes.length; i++) {
-//    		float mag = magnitudes[i];
-//    		Region r = (Region)spectrum.getChildren().get(i);
-//    		double h = SPECTRUM_BAR_MAX_HEIGHT * (mag - SPECTRUM_THRESHOLD) / -SPECTRUM_THRESHOLD;
-//    		r.setMinHeight(h);
-//    		r.setMaxHeight(h);
-//    	}
-//    }
 }

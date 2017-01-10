@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.SearchType;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleSearchResult;
@@ -49,6 +51,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
 public class BibleSearchPane extends BorderPane {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private static final DecimalFormat SCORE_FORMAT = new DecimalFormat("#.000000");
 	
 	private final PraisenterContext context;
@@ -117,7 +121,6 @@ public class BibleSearchPane extends BorderPane {
 			try {
 				if (nv != null) {
 					Book selectedBook = this.cmbBook.getValue();
-					context.getConfiguration().setUUID(Setting.BIBLE_PRIMARY, nv.getBible().getId());
 					books.setAll(nv.getBible().getBooks());
 					
 					Book book = null;
@@ -134,7 +137,7 @@ public class BibleSearchPane extends BorderPane {
 					books.clear();
 				}
 			} catch (Exception ex) {
-				// TODO handle error LOGGER.error("An unexpected error occurred when a different primary bible was selected: " + ov + " -> " + nv, ex);
+				LOGGER.error("An error occurred when a different primary bible was selected: " + ov + " -> " + nv, ex);
 			}
 		});
 		

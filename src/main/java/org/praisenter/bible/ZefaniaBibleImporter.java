@@ -206,6 +206,7 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 		public ZefaniaHandler(String name) {
 			this.bible = new Bible();
 			this.bible.importDate = new Date();
+			this.bible.copyright = null;
 			this.bible.name = name;
 			this.bible.source = SOURCE;
 			this.bookNumber = 1;
