@@ -24,14 +24,17 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-public final class SlidePreviewPane extends StackPane {
+// TODO "Create" slide (to add to show)
+// TODO Show now
+
+public final class SingleSlidePreviewPane extends StackPane {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 
 	private final PraisenterContext context;
 	
 	private final ObjectProperty<Slide> value = new SimpleObjectProperty<Slide>();
 
-	public SlidePreviewPane(PraisenterContext context, SlideMode mode) {
+	public SingleSlidePreviewPane(PraisenterContext context, SlideMode mode) {
 		this.context = context;
 		
 		final int padding = 20;

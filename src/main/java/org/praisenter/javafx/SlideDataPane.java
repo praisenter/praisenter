@@ -1,9 +1,9 @@
 package org.praisenter.javafx;
 
 import org.praisenter.javafx.bible.BibleNavigationPane;
-import org.praisenter.javafx.slide.SlideComboBox;
+import org.praisenter.javafx.slide.PlaceholderSlideComboBox;
 import org.praisenter.javafx.slide.SlideMode;
-import org.praisenter.javafx.slide.SlidePreviewPane;
+import org.praisenter.javafx.slide.SingleSlidePreviewPane;
 import org.praisenter.slide.Slide;
 
 import javafx.scene.layout.BorderPane;
@@ -12,17 +12,17 @@ import javafx.scene.layout.VBox;
 public class SlideDataPane extends BorderPane {
 	private final PraisenterContext context;
 	
-	private SlidePreviewPane slidePreviewPane;
+	private SingleSlidePreviewPane slidePreviewPane;
 	
-	private SlideComboBox cmbTemplate;
+	private PlaceholderSlideComboBox cmbTemplate;
 	private BibleNavigationPane bibleNavigationPane;
 	
 	public SlideDataPane(PraisenterContext context) {
 		this.context = context;
 		
-		this.slidePreviewPane = new SlidePreviewPane(context, SlideMode.SNAPSHOT);
+		this.slidePreviewPane = new SingleSlidePreviewPane(context, SlideMode.SNAPSHOT);
 	
-		this.cmbTemplate = new SlideComboBox(context);
+		this.cmbTemplate = new PlaceholderSlideComboBox(context);
 		this.bibleNavigationPane = new BibleNavigationPane(context);
 		
 		this.slidePreviewPane.setMaxSize(400, 300);
@@ -46,6 +46,7 @@ public class SlideDataPane extends BorderPane {
 			}
 		});
 		
+		// TODO show prev/next
 		this.bibleNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
 			Slide slide = this.cmbTemplate.getSlide();
 			if (slide != null) {

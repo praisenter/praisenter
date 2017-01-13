@@ -133,6 +133,24 @@ public class Chapter implements Comparable<Chapter>, Serializable {
 		}
 		return this.verses.get(this.verses.size() - 1);
 	}
+
+	/**
+	 * Returns the specified verse of this chapter or null if not present.
+	 * @param verse the verse number
+	 * @return {@link Verse}
+	 */
+	public Verse getVerse(short verse) {
+		if (this.verses.isEmpty()) {
+			return null;
+		}
+		for (short i = 0; i < this.verses.size(); i++) {
+			Verse v = this.verses.get(i);
+			if (v.getNumber() == verse) {
+				return v;
+			}
+		}
+		return null;
+	}
 	
 	/**
 	 * Returns a deep copy of this chapter

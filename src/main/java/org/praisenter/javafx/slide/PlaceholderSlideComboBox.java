@@ -21,7 +21,7 @@ import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.Pane;
 import javafx.util.Callback;
 
-public final class SlideComboBox extends Pane implements Callback<ListView<SlideListItem>, ListCell<SlideListItem>> {
+public final class PlaceholderSlideComboBox extends Pane implements Callback<ListView<SlideListItem>, ListCell<SlideListItem>> {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
 	private final PraisenterContext context;
@@ -30,7 +30,7 @@ public final class SlideComboBox extends Pane implements Callback<ListView<Slide
 	private boolean mutating = false;
 	private final ObjectProperty<Slide> selected = new SimpleObjectProperty<Slide>();
 	
-	public SlideComboBox(PraisenterContext context) {
+	public PlaceholderSlideComboBox(PraisenterContext context) {
 		this.cmbSlides = new ComboBox<SlideListItem>();
 		
 		ObservableList<SlideListItem> theList = context.getSlideLibrary().getItems();

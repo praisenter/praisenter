@@ -53,6 +53,7 @@ import javafx.scene.text.TextAlignment;
  * @since 3.0.0
  */
 final class SlideListCell extends FlowListCell<SlideListItem> {
+	/** The transparent pattern for translucent slides */
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
 	
 	/** The slide for this cell */

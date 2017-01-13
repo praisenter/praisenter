@@ -42,6 +42,7 @@ import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.LocatedVerse;
 import org.praisenter.bible.LocatedVerseTriplet;
+import org.praisenter.bible.Verse;
 import org.praisenter.javafx.AutoCompleteComboBox;
 import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.PraisenterContext;
@@ -52,52 +53,99 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 
+/**
+ * A pane used to navigate bible verses.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class BibleNavigationPane extends BorderPane {
+	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
+	// actions
+	
+	/** The find action */
 	private static final String FIND = "FIND";
+	
+	/** The next action */
 	private static final String NEXT = "NEXT";
+	
+	/** The previous action */
 	private static final String PREVIOUS = "PREVIOUS";
 	
+	// nodes
+	
+	/** The primary bible */
 	private final ComboBox<BibleListItem> cmbBiblePrimary;
+	
+	/** The secondary bible */
 	private final ComboBox<BibleListItem> cmbBibleSecondary;
+	
+	/** The book */
 	private final AutoCompleteComboBox<Book> cmbBook;
+	
+	/** The chapter */
 	private final Spinner<Integer> spnChapter;
+	
+	/** The verse */
 	private final Spinner<Integer> spnVerse;
 	
+	// validation
+	
+	/** The chapter validation label */
 	private final Label lblChapters;
+	
+	/** The verse validation label */
 	private final Label lblVerses;
 	
+	/** Node used to show a red x when controls are in an invalid state */
+	private final Node invalid = FONT_AWESOME.create(FontAwesome.Glyph.CLOSE).color(Color.RED);
+	
+	// value
+	
+	/** The value for the pane */
 	private final ObjectProperty<BibleReferenceTextStore> value = new SimpleObjectProperty<BibleReferenceTextStore>();
 	
-	// TODO features: 
-	// validation 
-	// toggle to use secondary translation (or just allow a blank option)
-	// add (create slide?)
-	// send (not sure here...)
+	/** The previous verse for the value for the pane */
+	private final ObjectProperty<BibleReferenceTextStore> previous = new SimpleObjectProperty<BibleReferenceTextStore>();
 	
+	/** The next verse for the value for the pane */
+	private final ObjectProperty<BibleReferenceTextStore> next = new SimpleObjectProperty<BibleReferenceTextStore>();
+	
+	// TODO Translate
+	
+	/**
+	 * Minimal constructor.
+	 * @param context the context.
+	 */
 	public BibleNavigationPane(PraisenterContext context) {
 		this.getStyleClass().add("bible-navigation-pane");
 		
 		this.value.set(new BibleReferenceTextStore());
+		this.previous.set(new BibleReferenceTextStore());
+		this.next.set(new BibleReferenceTextStore());
 		
 		this.spnChapter = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		this.spnVerse = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		
 		this.spnChapter.setEditable(true);
-		this.spnChapter.setMaxWidth(75);
+		this.spnChapter.setMaxWidth(65);
 		this.spnVerse.setEditable(true);
-		this.spnVerse.setMaxWidth(75);
+		this.spnVerse.setMaxWidth(65);
 		
 		this.lblChapters = new Label();
 		this.lblVerses = new Label();
@@ -157,6 +205,7 @@ public final class BibleNavigationPane extends BorderPane {
 				return false;
 			}
 		});
+		this.cmbBook.setPromptText("Book");
 		
 		if (primaryBible != null) {
 			this.cmbBiblePrimary.getSelectionModel().select(primaryBible);
@@ -201,11 +250,15 @@ public final class BibleNavigationPane extends BorderPane {
 		});
 		
 		this.cmbBook.valueProperty().addListener((obs, ov, nv) -> {
-			updateRanges();
+			validate();
 		});
 		
 		this.spnChapter.valueProperty().addListener((obs, ov, nv) -> {
-			updateRanges();
+			validate();
+		});
+		
+		this.spnVerse.valueProperty().addListener((obs, ov, nv) -> {
+			validate();
 		});
 		
 		Button btn = new Button("Find");
@@ -214,13 +267,13 @@ public final class BibleNavigationPane extends BorderPane {
 			updateValue(triplet, e.isShortcutDown());
 		});
 		
-		Button next = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.ARROW_RIGHT));
+		Button next = new Button("Next");
 		next.setOnMouseClicked((e) -> {
 			LocatedVerseTriplet triplet = getTripletForInput(NEXT);
 			updateValue(triplet, e.isShortcutDown());
 		});
 		
-		Button prev = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.ARROW_LEFT));
+		Button prev = new Button("Previous");
 		prev.setOnMouseClicked((e) -> {
 			LocatedVerseTriplet triplet = getTripletForInput(PREVIOUS);
 			updateValue(triplet, e.isShortcutDown());
@@ -241,49 +294,88 @@ public final class BibleNavigationPane extends BorderPane {
 		
 		// LAYOUT
 		
+		HBox bibleRow = new HBox(5, this.cmbBiblePrimary, this.cmbBibleSecondary);
+		
+		
 		GridPane layout = new GridPane();
 		layout.setVgap(5);
 		layout.setHgap(5);
 		
-		layout.add(this.cmbBiblePrimary, 0, 0);
-		layout.add(this.cmbBook, 1, 0);
-		layout.add(this.spnChapter, 2, 0);
-		layout.add(this.spnVerse, 3, 0);
-		layout.add(btn, 4, 0);
-		layout.add(prev, 5, 0);
-		layout.add(next, 6, 0);
-		layout.add(btnSearch, 7, 0);
+		layout.add(bibleRow, 0, 0, 4, 1);
 		
-		layout.add(this.cmbBibleSecondary, 0, 1);
-		layout.add(this.lblChapters, 2, 1);
-		layout.add(this.lblVerses, 3, 1);
+		layout.add(this.cmbBook, 0, 1);
+		layout.add(this.spnChapter, 1, 1);
+		layout.add(this.spnVerse, 2, 1);
+		layout.add(btn, 3, 1);
+		
+		layout.add(prev, 1, 2);
+		layout.add(next, 2, 2);
+		layout.add(btnSearch, 3, 2);
+		
+		layout.add(this.lblChapters, 1, 3);
+		layout.add(this.lblVerses, 2, 3);
 
+		this.lblChapters.setAlignment(Pos.BASELINE_CENTER);
+		this.lblVerses.setAlignment(Pos.BASELINE_CENTER);
+		
+		this.lblChapters.setMaxWidth(Double.MAX_VALUE);
+		this.lblVerses.setMaxWidth(Double.MAX_VALUE);
+		btn.setMaxWidth(200);
+		prev.setMaxWidth(Double.MAX_VALUE);
+		next.setMaxWidth(Double.MAX_VALUE);
+		btnSearch.setMaxWidth(Double.MAX_VALUE);
+		
+		GridPane.setFillWidth(this.lblChapters, true);
+		GridPane.setFillWidth(this.lblVerses, true);
+		GridPane.setFillWidth(this.spnChapter, true);
+		GridPane.setFillWidth(this.spnVerse, true);
+		GridPane.setFillWidth(btn, true);
+		GridPane.setFillWidth(prev, true);
+		GridPane.setFillWidth(next, true);
+		GridPane.setFillWidth(btnSearch, true);
+		
 		setCenter(layout);
 	}
 	
-	private void updateRanges() {
+	/**
+	 * Validates the control values.
+	 */
+	private void validate() {
 		Book book = this.cmbBook.getValue();
 		Integer ch = this.spnChapter.getValue();
+		Integer vs = this.spnVerse.getValue();
+		
+		this.lblChapters.setText(null);
+		this.lblChapters.setGraphic(null);
+		this.lblVerses.setText(null);
+		this.lblVerses.setGraphic(null);
+		
 		if (book != null) {
 			this.lblChapters.setText("1-" + book.getMaxChapterNumber());
-		} else {
-			// no book selected
-			this.lblChapters.setText(null);
-		}
-		if (book != null && ch != null) {
-			Chapter chapter = book.getChapter(ch.shortValue());
-			if (chapter != null) {
-				this.lblVerses.setText("1-" + chapter.getMaxVerseNumber());
-			} else {
-				// invalid chapter
-				this.lblVerses.setText("-");
+			if (ch != null) {
+				Chapter chapter = book.getChapter(ch.shortValue());
+				if (chapter != null) {
+					this.lblVerses.setText("1-" + chapter.getMaxVerseNumber());
+					if (vs != null) {
+						Verse verse = chapter.getVerse(vs.shortValue());
+						if (verse == null) {
+							// invalid verse
+							this.lblVerses.setGraphic(invalid);
+						}
+					}
+				} else {
+					// invalid chapter
+					this.lblChapters.setGraphic(invalid);
+				}
 			}
-		} else {
-			// no book or chapter selected
-			this.lblVerses.setText(null);
 		}
 	}
 	
+	/**
+	 * Returns the triplet for the current input controls.
+	 * @param type the action type
+	 * @return {@link LocatedVerseTriplet}
+	 */
 	private LocatedVerseTriplet getTripletForInput(String type) {
 		Bible bible = this.cmbBiblePrimary.getValue().getBible();
 		Book book = this.cmbBook.valueProperty().get();
@@ -324,41 +416,75 @@ public final class BibleNavigationPane extends BorderPane {
 		return null;
 	}
 	
+	/**
+	 * Updates the current value based on the given triplet.
+	 * @param triplet the triplet
+	 * @param append if the triplet should be appended or replace
+	 */
 	private void updateValue(LocatedVerseTriplet triplet, boolean append) {
-		if (triplet == null) return;
+		if (triplet == null) {
+			this.value.get().clear();
+			this.previous.get().clear();
+			this.next.get().clear();
+			return;
+		}
 		
 		// make sure the fields are updated
 		this.cmbBook.setValue(triplet.getCurrent().getBook());
 		this.spnChapter.getValueFactory().setValue(Integer.valueOf(triplet.getCurrent().getChapter().getNumber()));
 		this.spnVerse.getValueFactory().setValue(Integer.valueOf(triplet.getCurrent().getVerse().getNumber()));
 		
-		BibleReferenceTextStore data = null;
+		BibleReferenceTextStore value = null;
+		BibleReferenceTextStore previous = null;
+		BibleReferenceTextStore next = null;
 		if (!append){
-			data = new BibleReferenceTextStore();
+			value = new BibleReferenceTextStore();
+			previous = new BibleReferenceTextStore();
+			next = new BibleReferenceTextStore();
 		} else {
-			data = this.value.get().copy();
+			value = this.value.get().copy();
+			previous = this.value.get().copy();
+			next = this.value.get().copy();
 		}
 		
-		// update the text store
-		data.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(triplet.getCurrent()));
-		
-		// TODO need to somehow show next/previous verse text
+		// update the text stores
+		value.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(triplet.getCurrent()));
+		if (triplet.getPrevious() != null) {
+			previous.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(triplet.getPrevious()));
+		}
+		if (triplet.getNext() != null) {
+			next.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(triplet.getNext()));
+		}
 		
 		// search for the secondary
 		BibleListItem secondary = this.cmbBibleSecondary.getValue();
 		if (secondary != null) {
 			Bible bible2 = secondary.getBible();
-			if (bible2 != null) {
+			// only show the secondary if a different bible is chosen
+			if (bible2 != null && bible2.getId() != triplet.getCurrent().getBible().getId()) {
 				LocatedVerseTriplet matchingTriplet = bible2.getMatchingTriplet(triplet);
 				if (matchingTriplet != null) {
-					data.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getCurrent()));
+					value.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getCurrent()));
+					if (matchingTriplet.getPrevious() != null) {
+						previous.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getPrevious()));
+					}
+					if (matchingTriplet.getNext() != null) {
+						next.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getNext()));
+					}
 				}
 			}
 		}
 		
-		this.value.set(data);
+		this.value.set(value);
+		this.previous.set(previous);
+		this.next.set(next);
 	}
 	
+	/**
+	 * Converts the given located verse into a reference.
+	 * @param verse the located verse
+	 * @return {@link BibleReferenceVerse}
+	 */
 	private BibleReferenceVerse toReference(LocatedVerse verse) {
 		return new BibleReferenceVerse(
 				verse.getBible().getId(), 
@@ -370,15 +496,79 @@ public final class BibleNavigationPane extends BorderPane {
 				verse.getVerse().getText());
 	}
 	
+	/**
+	 * Returns the current value of this pane.
+	 * @return {@link BibleReferenceTextStore}
+	 */
 	public BibleReferenceTextStore getValue() {
 		return this.value.get();
 	}
 	
+	/**
+	 * Sets the current value of this pane.
+	 * @param value the new value
+	 */
 	public void setValue(BibleReferenceTextStore value) {
 		this.value.set(value);
 	}
 	
+	/**
+	 * The value property.
+	 * @return ObjectProperty&lt;{@link BibleReferenceTextStore}&gt;
+	 */
 	public ObjectProperty<BibleReferenceTextStore> valueProperty() {
 		return this.value;
+	}
+	
+	// previous
+	
+	/**
+	 * Returns the previous verse for the current value of this pane.
+	 * @return {@link BibleReferenceTextStore}
+	 */
+	public BibleReferenceTextStore getPrevious() {
+		return this.previous.get();
+	}
+	
+	/**
+	 * Sets the previous verse for the current value of this pane.
+	 * @param value the new value
+	 */
+	public void setPrevious(BibleReferenceTextStore value) {
+		this.previous.set(value);
+	}
+	
+	/**
+	 * The previous verse for the value property.
+	 * @return ObjectProperty&lt;{@link BibleReferenceTextStore}&gt;
+	 */
+	public ObjectProperty<BibleReferenceTextStore> previousProperty() {
+		return this.previous;
+	}
+	
+	// next
+	
+	/**
+	 * Returns the next verse for the current value of this pane.
+	 * @return {@link BibleReferenceTextStore}
+	 */
+	public BibleReferenceTextStore getNext() {
+		return this.next.get();
+	}
+	
+	/**
+	 * Sets the next verse for the current value of this pane.
+	 * @param value the new value
+	 */
+	public void setNext(BibleReferenceTextStore value) {
+		this.next.set(value);
+	}
+	
+	/**
+	 * The next verse for the value property.
+	 * @return ObjectProperty&lt;{@link BibleReferenceTextStore}&gt;
+	 */
+	public ObjectProperty<BibleReferenceTextStore> nextProperty() {
+		return this.next;
 	}
 }

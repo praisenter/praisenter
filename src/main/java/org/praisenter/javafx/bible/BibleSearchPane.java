@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.bible;
 
 import java.text.DecimalFormat;
@@ -44,35 +68,54 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
-public class BibleSearchPane extends BorderPane {
+// TODO translate
+
+// FEATURE add searching to the bible editor for finding and editing easily
+
+/**
+ * A pane for searching for bible verses.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+public final class BibleSearchPane extends BorderPane {
+	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	/** The format for the seach score */
 	private static final DecimalFormat SCORE_FORMAT = new DecimalFormat("#.000000");
+
+	// nodes
 	
-	private final PraisenterContext context;
-	
+	/** The search box */
 	private final TextField txtSearch;
-	private final ComboBox<Option<SearchType>> cmbSearchType;
+	
+	/** The bible to search */
 	private final ComboBox<BibleListItem> cmbBiblePrimary;
+
+	/** The book */
 	private final AutoCompleteComboBox<Book> cmbBook;
 	
+	/** The search type */
+	private final ComboBox<Option<SearchType>> cmbSearchType;
+	
+	/** The results table */
 	private final TableView<BibleSearchResult> table;
 	
+	// value
+	
+	/** The selected row */
 	private final ObjectProperty<SelectedBibleSearchResult> value = new SimpleObjectProperty<SelectedBibleSearchResult>();
 	
-	// TODO translate
-	
-	// FEATURE add searching to the bible editor for finding and editing easily
-	
+	/**
+	 * Minimal constructor.
+	 * @param context the context
+	 */
 	public BibleSearchPane(PraisenterContext context) {
-		this.context = context;
-		
 		this.setPadding(new Insets(5));
 		
 		ObservableList<Option<SearchType>> types = FXCollections.observableArrayList();
@@ -83,7 +126,7 @@ public class BibleSearchPane extends BorderPane {
 		this.txtSearch = new TextField();
 		this.txtSearch.setPromptText("Search terms");
 		
-		this.cmbSearchType = new ComboBox<>(types);
+		this.cmbSearchType = new ComboBox<Option<SearchType>>(types);
 		this.cmbSearchType.setValue(types.get(0));
 		
 		ObservableBibleLibrary library = context.getBibleLibrary();
@@ -150,6 +193,7 @@ public class BibleSearchPane extends BorderPane {
 				return false;
 			}
 		});
+		this.cmbBook.setPromptText("Book");
 		
 		Button btnSearch = new Button("Search");
 		
@@ -287,8 +331,8 @@ public class BibleSearchPane extends BorderPane {
 		// loading
 		ProgressIndicator progress = new ProgressIndicator();
 		progress.setMaxSize(50, 50);
-		progress.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(10), null)));
 		StackPane overlay = new StackPane(progress);
+		// TODO css
 		overlay.setBackground(new Background(new BackgroundFill(Color.rgb(255, 255, 255, 0.2), null, null)));
 		StackPane stack = new StackPane(this.table, overlay);
 		
@@ -326,18 +370,34 @@ public class BibleSearchPane extends BorderPane {
 		btnSearch.setOnAction(handler);
 	}
 	
+	/**
+	 * The selected result.
+	 * @return {@link SelectedBibleSearchResult}
+	 */
 	public SelectedBibleSearchResult getValue() {
 		return this.value.get();
 	}
 	
+	/**
+	 * The selected result property.
+	 * @return ReadOnlyObjectProperty&lt;{@link SelectedBibleSearchResult}&gt;
+	 */
 	public ReadOnlyObjectProperty<SelectedBibleSearchResult> valueProperty() {
 		return this.value;
 	}
 	
+	/**
+	 * Returns the search text.
+	 * @return String
+	 */
 	public String getText() {
 		return this.txtSearch.getText();
 	}
 	
+	/**
+	 * Sets the search text.
+	 * @param text the text
+	 */
 	public void setText(String text) {
 		this.txtSearch.setText(text);
 		this.txtSearch.commitValue();
