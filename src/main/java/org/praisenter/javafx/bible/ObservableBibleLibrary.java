@@ -283,8 +283,9 @@ public final class ObservableBibleLibrary {
 	/**
 	 * Attempts to save the given bible in this bible library.
 	 * <p>
-	 * The onSuccess method will be called when the save is successful. The
-	 * onError method will be called if an error occurs during the save.
+	 * The onSuccess method will be called when the save is successful and will pass back the bible object
+	 * that represents the saved version of the bible. The onError method will be called if an error occurs 
+	 * during the save and will return the original bible object.
 	 * @param bible the bible
 	 * @param onSuccess called when the bible is saved successfully
 	 * @param onError called when the bible failed to be saved
@@ -296,16 +297,18 @@ public final class ObservableBibleLibrary {
 	/**
 	 * Attempts to save the given bible in this bible library.
 	 * <p>
-	 * The onSuccess method will be called when the save is successful. The
-	 * onError method will be called if an error occurs during the save.
+	 * The onSuccess method will be called when the save is successful and will pass back the bible object
+	 * that represents the saved version of the bible. The onError method will be called if an error occurs 
+	 * during the save and will return the original bible object.
 	 * @param action a simple string describing the save action if it's something more specific than "Save"
 	 * @param bible the bible
 	 * @param onSuccess called when the bible is saved successfully
 	 * @param onError called when the bible failed to be saved
 	 */
 	public void save(String action, Bible bible, Consumer<Bible> onSuccess, BiConsumer<Bible, Throwable> onError) {
-		// execute the add on a different thread
+		// synchronously make a copy
 		Bible copy = bible.copy(true);
+		// execute the add on a different thread
 		MonitoredTask<Void> task = new MonitoredTask<Void>(action) {
 			@Override
 			protected Void call() throws Exception {
@@ -338,7 +341,7 @@ public final class ObservableBibleLibrary {
 			// check if name changed
 			if (onSuccess != null) {
 				// return the original
-				onSuccess.accept(bible);
+				onSuccess.accept(copy);
 			}
 		});
 		task.setOnFailed((e) -> {

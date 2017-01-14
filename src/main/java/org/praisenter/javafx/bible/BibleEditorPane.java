@@ -31,8 +31,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
@@ -50,6 +48,7 @@ import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.actions.Actions;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
@@ -76,7 +75,6 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.TreeCell;
@@ -98,9 +96,6 @@ import javafx.util.StringConverter;
  * @version 3.0.0
  */
 public final class BibleEditorPane extends BorderPane implements ApplicationPane {
-	/** The class level logger */
-	private static final Logger LOGGER = LogManager.getLogger();
-	
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
@@ -116,6 +111,8 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	
 	/** The bible tree view */
 	private final TreeView<TreeData> bibleTree;
+	
+	private final TextField txtName;
 	
 	// state
 	
@@ -142,7 +139,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		
 		// bible
 		Label lblName = new Label(Translations.get("bible.edit.name"));
-		TextField txtName = new TextField();
+		this.txtName = new TextField();
 		Label lblLanguage = new Label(Translations.get("bible.edit.language"));
 		ComboBox<Option<Locale>> cmbLanguage = new ComboBox<Option<Locale>>(locales);
 		cmbLanguage.setEditable(true);
@@ -224,7 +221,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		editorFields.getChildren().addAll(
 				lblEditMessage,
 				lblName,
-				txtName, 
+				this.txtName, 
 				lblLanguage,
 				cmbLanguage,
 				lblSource,
@@ -334,17 +331,17 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		// EVENTS & BINDINGS
 		this.bible.addListener((obs, ov, nv) -> {
 			this.mutating = true;
-			bibleTree.getSelectionModel().clearSelection();
+			this.bibleTree.getSelectionModel().clearSelection();
 			if (nv != null) {
 				// create the root node
 				TreeItem<TreeData> root = this.forBible(nv);
 				root.setExpanded(true);
 				
 				// set the tree
-				bibleTree.setRoot(root);
+				this.bibleTree.setRoot(root);
 				
 				// set the editor fields
-				txtName.setText(nv.getName());
+				this.txtName.setText(nv.getName());
 				if (nv.getLanguage() != null) {
 					Locale locale = Locale.forLanguageTag(nv.getLanguage());
 					if (locale != null) {
@@ -361,9 +358,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				txtCopyright.setText(nv.getCopyright());
 				txtNotes.setText(nv.getNotes());
 			} else {
-				bibleTree.setRoot(null);
+				this.bibleTree.setRoot(null);
 				
-				txtName.setText(null);
+				this.txtName.setText(null);
 				cmbLanguage.setValue(null);
 				cmbLanguage.getEditor().setText(null);
 				txtSource.setText(null);
@@ -391,7 +388,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				TreeData data = nv.getValue();
 				if (data instanceof BibleTreeData) {
 					lblName.setVisible(true);
-					txtName.setVisible(true);
+					this.txtName.setVisible(true);
 					lblLanguage.setVisible(true);
 					cmbLanguage.setVisible(true);
 					lblSource.setVisible(true);
@@ -428,7 +425,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			this.mutating = false;
 		});
 		
-		txtName.textProperty().addListener((obs, ov, nv) -> {
+		this.txtName.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			Bible bible = this.bible.get();
 			if (bible != null) {
@@ -858,49 +855,49 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * Saves the current bible.
 	 */
 	private void save() {
-		this.context.getBibleLibrary().save(this.getBible(), b -> {
-			this.unsavedChanges = false;
-		}, (b, ex) -> {
-			LOGGER.error("Failed to save bible " + b.getName() + " " + b.getId() + " due to: " + ex.getMessage(), ex);
-			Alert alert = Alerts.exception(
-					getScene().getWindow(),
-					null, 
-					null, 
-					MessageFormat.format(Translations.get("bible.save.error.content"), bible.getName()), 
-					ex);
-			alert.show();
-		});
+		this.unsavedChanges = false;
+		
+		Actions.bibleSave(
+			this.context, 
+			this.getScene().getWindow(), 
+			this.getBible(), 
+			null, 
+			(bible, error) -> {
+				this.unsavedChanges = true;
+			});
 	}
 	
 	/**
 	 * Saves the current bible.
 	 */
 	private void promptSaveAs() {
-		String old = this.getBible().getName();
-		
-    	TextInputDialog prompt = new TextInputDialog(old);
-    	prompt.initOwner(getScene().getWindow());
-    	prompt.initModality(Modality.WINDOW_MODAL);
-    	prompt.setTitle(Translations.get("action.saveas"));
-    	prompt.setHeaderText(Translations.get("saveas.header"));
-    	prompt.setContentText(Translations.get("saveas.content"));
-    	Optional<String> result = prompt.showAndWait();
-    	
-    	// check for the "OK" button
-    	if (result.isPresent()) {
-    		// actually rename it?
-    		String name = result.get();
-    		
-        	// create a copy of the current bible
-    		// with new id
-    		Bible copy = this.getBible().copy(false);
-    		// set the name
-    		copy.setName(name);
-    		// set the copy as the one we are editing now
-    		this.bible.set(copy);
-    		// then save
-    		this.save();
-    	}
+		this.unsavedChanges = false;
+
+		Actions.biblePromptSaveAs(
+			this.context, 
+			this.getScene().getWindow(), 
+			this.getBible(), 
+			(Bible saved) -> {
+				// make the current bible being edited act
+				// as the one we saved so that any subsequent
+				// saves save to this one and so that we don't
+				// lose any changes made by the user in the
+				// while the save as action was processing
+				this.bible.get().as(saved);
+				// store the value of unsavedChanges
+				boolean moreChanges = this.unsavedChanges;
+				// manually update the name field
+				this.txtName.setText(saved.getName());
+				// did the user make changes while the save was happening?
+				if (!moreChanges) {
+					// make sure changing the name field doesn't
+					// flag it as unsaved
+					this.unsavedChanges = false;
+				}
+			}, 
+			(failed, error) -> {
+				this.unsavedChanges = true;
+			});
 	}
 	
 	/**
@@ -1165,6 +1162,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				this.promptSaveAs();
 				break;
 			case CLOSE:
+				// TODO this doesn't get called when switching panes
 				if (this.unsavedChanges) {
 					Alert alert = Alerts.yesNoCancel(
 							getScene().getWindow(),

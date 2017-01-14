@@ -31,8 +31,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -83,7 +83,7 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 							// make a copy to ensure the id is changed
 							Bible bible = XmlIO.read(new ByteArrayInputStream(data), Bible.class).copy(false);
 							// update the import date
-							bible.importDate = new Date();
+							bible.importDate = Instant.now();
 							bibles.add(bible);
 						} catch (Exception ex) {
 							throwable = ex;
@@ -103,7 +103,7 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 					// make a copy to ensure the id is changed
 					Bible bible = XmlIO.read(stream, Bible.class).copy(false);
 					// update the import date
-					bible.importDate = new Date();
+					bible.importDate = Instant.now();
 					bibles.add(bible);
 				}
 			}

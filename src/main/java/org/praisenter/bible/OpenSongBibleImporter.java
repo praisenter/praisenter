@@ -32,8 +32,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -199,7 +199,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 			this.bible = new Bible();
 			this.bible.name = name;
 			this.bible.copyright = null;
-			this.bible.importDate = new Date();
+			this.bible.importDate = Instant.now();
 			this.bible.language = null;
 			this.bible.source = SOURCE;
 			this.bookNumber = 1;

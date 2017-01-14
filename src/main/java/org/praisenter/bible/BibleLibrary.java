@@ -29,9 +29,9 @@ import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -212,7 +212,7 @@ public final class BibleLibrary {
 									// once the bible has been loaded successfully
 									// and added to the lucene index successfully
 									// then we'll add it to the bible map
-									this.bibles.put(bible.id, bible);
+									this.bibles.put(bible.getId(), bible);
 								} catch (Exception e) {
 									// make sure its not in the index
 									// we don't want to be able to find the bible
@@ -252,7 +252,7 @@ public final class BibleLibrary {
 							document.add(pathField);
 							
 							// allow filtering by the bible id
-							Field bibleField = new StringField(FIELD_BIBLE_ID, bible.id.toString(), Field.Store.YES);
+							Field bibleField = new StringField(FIELD_BIBLE_ID, bible.getId().toString(), Field.Store.YES);
 							document.add(bibleField);
 							
 							// allow filtering by the book number
@@ -298,7 +298,7 @@ public final class BibleLibrary {
 					// add the data to the document
 					List<Document> documents = createDocuments(bible);
 					// update the document
-					writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.id.toString()), documents);
+					writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.getId().toString()), documents);
 				} catch (Exception e) {
 					// make sure its not in the index
 					LOGGER.warn("Failed to update the bible in the lucene index '" + bible.path.toAbsolutePath().toString() + "'", e);
@@ -349,8 +349,8 @@ public final class BibleLibrary {
 	 * @return boolean
 	 */
 	public boolean contains(Bible bible) {
-		if (bible == null || bible.id == null) return false;
-		return this.bibles.containsKey(bible.id);
+		if (bible == null || bible.getId() == null) return false;
+		return this.bibles.containsKey(bible.getId());
 	}
 	
 	/**
@@ -360,13 +360,14 @@ public final class BibleLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized void save(Bible bible) throws JAXBException, IOException {
+		// update the last modified date
+		bible.lastModifiedDate = Instant.now();
+		
 		// check for old bible data
-		Bible old = this.bibles.get(bible.id);
+		Bible old = this.bibles.get(bible.getId());
 		if (old != null) {
 			// then its an update
 			bible.path = old.path;
-			// update the last modified date
-			bible.lastModifiedDate = new Date();
 		}
 		
 		// generate the file name and path
@@ -379,7 +380,7 @@ public final class BibleLibrary {
 			// verify there doesn't exist a bible with this name already
 			if (Files.exists(path)) {
 				// just use the UUID
-				path = this.path.resolve(bible.id.toString().replaceAll("-", "") + EXTENSION);
+				path = this.path.resolve(bible.getId().toString().replaceAll("-", "") + EXTENSION);
 			}
 		} else if (!bible.path.equals(path)) {
 			// this indicates that we need to rename the file
@@ -400,10 +401,10 @@ public final class BibleLibrary {
 			List<Document> documents = createDocuments(bible);
 			
 			// update the document
-			writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.id.toString()), documents);
+			writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.getId().toString()), documents);
 		}
 		
-		this.bibles.put(bible.id, bible);
+		this.bibles.put(bible.getId(), bible);
 	}
 	
 	/**
@@ -439,8 +440,8 @@ public final class BibleLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized void remove(Bible bible) throws IOException {
-		if (bible == null || bible.id == null) return;
-		remove(bible.id);
+		if (bible == null || bible.getId() == null) return;
+		remove(bible.getId());
 	}
 	
 	/**
@@ -451,7 +452,8 @@ public final class BibleLibrary {
 	public static final String createFileName(Bible bible) {
 		StringBuilder sb = new StringBuilder();
 		if (bible != null) {
-			String ttl = StringManipulator.toFileName(bible.name == null ? "" : bible.name);
+			String name = bible.name;
+			String ttl = StringManipulator.toFileName(name == null ? "" : name);
 			if (ttl.length() == 0) {
 				ttl = "Untitled";
 			}

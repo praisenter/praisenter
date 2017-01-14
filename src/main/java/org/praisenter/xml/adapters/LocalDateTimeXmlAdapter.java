@@ -38,15 +38,15 @@ public final class LocalDateTimeXmlAdapter extends XmlAdapter<String, LocalDateT
 	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
 	 */
 	@Override
-	public String marshal(LocalDateTime instant) throws Exception {
-		return instant.toString();
+	public String marshal(LocalDateTime datetime) throws Exception {
+		return datetime != null ? datetime.toString() : null;
 	}
 
 	/* (non-Javadoc)
 	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#unmarshal(java.lang.Object)
 	 */
 	@Override
-	public LocalDateTime unmarshal(String instant) throws Exception {
-		return LocalDateTime.parse(instant);
+	public LocalDateTime unmarshal(String datetime) throws Exception {
+		return datetime != null && datetime.length() > 0 ? LocalDateTime.parse(datetime) : null;
 	}
 }

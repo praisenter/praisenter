@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.FailedOperation;
 import org.praisenter.bible.Bible;
+import org.praisenter.javafx.actions.Actions;
 import org.praisenter.javafx.bible.BibleEditorPane;
 import org.praisenter.javafx.bible.BibleLibraryPane;
 import org.praisenter.javafx.media.MediaLibraryPane;
@@ -94,6 +95,9 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		switch (action) {
 			case IMPORT_BIBLES:
 				this.promptBibleImport();
+				break;
+			case IMPORT_MEDIA:
+				this.promptMediaImport();
 				break;
 			case PREFERENCES:
 				this.navigate(this.setupPane);
@@ -198,42 +202,14 @@ public final class MainPane extends BorderPane implements ApplicationPane {
      * Event handler for importing bibles.
      */
     private final void promptBibleImport() {
-    	FileChooser chooser = new FileChooser();
-    	chooser.setTitle(Translations.get("bible.import.title"));
-    	List<File> files = chooser.showOpenMultipleDialog(getScene().getWindow());
-    	if (files != null && files.size() > 0) {
-			List<Path> paths = files.stream().map(f -> f.toPath()).collect(Collectors.toList());
-			this.context.getBibleLibrary().add(
-					paths, 
-					(List<Bible> bibles) -> {
-						// get the warning files
-						List<String> wFileNames = bibles.stream().filter(b -> b.hadImportWarning()).map(f -> f.getName()).collect(Collectors.toList());
-						if (wFileNames.size() > 0) {
-							// show a dialog of the files that had warnings
-							String list = String.join(", ", wFileNames);
-							Alert alert = Alerts.info(
-									getScene().getWindow(), 
-									Modality.WINDOW_MODAL,
-									Translations.get("bible.import.info.title"), 
-									Translations.get("bible.import.info.header"), 
-									list);
-							alert.show();
-						}
-					},
-					(List<FailedOperation<Path>> failures) -> {
-						// get the exceptions
-						Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-						// get the failed bibles
-						String list = String.join(", ", failures.stream().map(f -> f.getData().toAbsolutePath().toString()).collect(Collectors.toList()));
-						Alert alert = Alerts.exception(
-								getScene().getWindow(),
-								null, 
-								null,
-								MessageFormat.format(Translations.get("bible.import.error"), list), 
-								exceptions);
-						alert.show();
-					});
-    	}
+    	Actions.biblePromptImport(this.context, this.getScene().getWindow(), null, null);
+    }
+    
+    /**
+     * Event handler for importing media.
+     */
+    private final void promptMediaImport() {
+    	Actions.mediaPromptImport(this.context, this.getScene().getWindow(), null, null);
     }
     
 	// NAVIGATION

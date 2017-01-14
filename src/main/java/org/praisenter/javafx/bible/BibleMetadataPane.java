@@ -24,7 +24,9 @@
  */
 package org.praisenter.javafx.bible;
 
-import java.text.DateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 
 import org.praisenter.bible.Bible;
 import org.praisenter.resources.translations.Translations;
@@ -52,7 +54,7 @@ import javafx.scene.layout.VBox;
  */
 final class BibleMetadataPane extends VBox {
 	/** The date formatter */
-	private static final DateFormat DATE_FORMATTER = DateFormat.getDateInstance(DateFormat.LONG);
+	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault());
 	
 	// properties
 	
@@ -70,8 +72,11 @@ final class BibleMetadataPane extends VBox {
 	/** The source */
 	private final StringProperty source = new SimpleStringProperty();
 	
-	/** The import date */
+	/** The last modified date */
 	private final StringProperty updatedDate = new SimpleStringProperty();
+	
+	/** The import date */
+	private final StringProperty importDate = new SimpleStringProperty();
 	
 	/** Has copyright */
 	private final StringProperty copyright = new SimpleStringProperty();
@@ -132,14 +137,23 @@ final class BibleMetadataPane extends VBox {
         grid.add(lblSource, 0, 2, 1, 1);
         grid.add(lblSourceValue, 1, 2, 1, 1);
         
-        Label lblImportDate = new Label(Translations.get("bible.properties.updatedDate"));
+        Label lblImportDate = new Label(Translations.get("bible.properties.importDate"));
         Label lblImportDateValue = new Label();
-        lblImportDateValue.textProperty().bind(updatedDate);
+        lblImportDateValue.textProperty().bind(importDate);
         lblImportDateValue.setTooltip(new Tooltip());
-        lblImportDateValue.getTooltip().textProperty().bind(updatedDate);
+        lblImportDateValue.getTooltip().textProperty().bind(importDate);
         lblImportDateValue.getStyleClass().add("value-label");
         grid.add(lblImportDate, 0, 3, 1, 1);
         grid.add(lblImportDateValue, 1, 3, 1, 1);
+        
+        Label lblUpdatedDate = new Label(Translations.get("bible.properties.updatedDate"));
+        Label lblUpdatedDateValue = new Label();
+        lblUpdatedDateValue.textProperty().bind(updatedDate);
+        lblUpdatedDateValue.setTooltip(new Tooltip());
+        lblUpdatedDateValue.getTooltip().textProperty().bind(updatedDate);
+        lblUpdatedDateValue.getStyleClass().add("value-label");
+        grid.add(lblUpdatedDate, 0, 4, 1, 1);
+        grid.add(lblUpdatedDateValue, 1, 4, 1, 1);
         
         Label lblCopyright = new Label(Translations.get("bible.properties.copyright"));
         Label lblCopyrightValue = new Label();
@@ -147,8 +161,8 @@ final class BibleMetadataPane extends VBox {
         lblCopyrightValue.setTooltip(new Tooltip());
         lblCopyrightValue.getTooltip().textProperty().bind(copyright);
         lblCopyrightValue.getStyleClass().add("value-label");
-        grid.add(lblCopyright, 0, 4, 1, 1);
-        grid.add(lblCopyrightValue, 1, 4, 1, 1);
+        grid.add(lblCopyright, 0, 5, 1, 1);
+        grid.add(lblCopyrightValue, 1, 5, 1, 1);
         
         Label lblVerseCount = new Label(Translations.get("bible.properties.verseCount"));
         Label lblVerseCountValue = new Label();
@@ -156,8 +170,8 @@ final class BibleMetadataPane extends VBox {
         lblVerseCountValue.setTooltip(new Tooltip());
         lblVerseCountValue.getTooltip().textProperty().bind(verseCount);
         lblVerseCountValue.getStyleClass().add("value-label");
-        grid.add(lblVerseCount, 0, 5, 1, 1);
-        grid.add(lblVerseCountValue, 1, 5, 1, 1);
+        grid.add(lblVerseCount, 0, 6, 1, 1);
+        grid.add(lblVerseCountValue, 1, 6, 1, 1);
         
         Label lblImportErrors = new Label(Translations.get("bible.properties.importWarnings"));
         Label lblImportErrorsValue = new Label();
@@ -165,8 +179,8 @@ final class BibleMetadataPane extends VBox {
         lblImportErrorsValue.setTooltip(new Tooltip());
         lblImportErrorsValue.getTooltip().setText(Translations.get("bible.properties.importWarnings.tooltip"));
         lblImportErrorsValue.getStyleClass().add("value-label");
-        grid.add(lblImportErrors, 0, 6, 1, 1);
-        grid.add(lblImportErrorsValue, 1, 6, 1, 1);
+        grid.add(lblImportErrors, 0, 7, 1, 1);
+        grid.add(lblImportErrorsValue, 1, 7, 1, 1);
         
         // handle when the media is changed
         this.bible.addListener(new ChangeListener<BibleListItem>() {
@@ -179,6 +193,7 @@ final class BibleMetadataPane extends VBox {
         			language.set("");
         			source.set("");
         	        updatedDate.set("");
+        	        importDate.set("");
         	        copyright.set("");
         	        verseCount.set("");
         	        hadImportErrors.set("");
@@ -194,7 +209,8 @@ final class BibleMetadataPane extends VBox {
         			name.set(bible.getName());
         			language.set(bible.getLanguage());
         			source.set(bible.getSource());
-        	        updatedDate.set(bible.getLastModifiedDate() != null ? DATE_FORMATTER.format(bible.getLastModifiedDate()) : null);
+        	        updatedDate.set(bible.getLastModifiedDate() != null ? DATETIME_FORMATTER.format(bible.getLastModifiedDate()) : null);
+        	        importDate.set(bible.getImportDate() != null ? DATETIME_FORMATTER.format(bible.getImportDate()) : null);
         			String copy = bible.getCopyright();
         	        copyright.set(copy != null && copy.length() > 0 ? copy : unknown);
         	        verseCount.set(String.valueOf(bible.getVerseCount()));

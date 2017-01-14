@@ -74,7 +74,7 @@ public final class BibleSearchResult implements Comparable<BibleSearchResult> {
 	 */
 	@Override
 	public int compareTo(BibleSearchResult o) {
-		int diff = bible.id.compareTo(o.bible.id);
+		int diff = bible.getId().compareTo(o.bible.getId());
 		if (diff == 0) {
 			diff = book.number - o.book.number;
 			if (diff == 0) {

@@ -27,20 +27,19 @@ package org.praisenter.javafx.media;
 import java.io.File;
 import java.nio.file.Path;
 import java.text.Collator;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.FailedOperation;
+import org.controlsfx.glyphfont.FontAwesome;
+import org.controlsfx.glyphfont.GlyphFont;
+import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Tag;
 import org.praisenter.ThumbnailSettings;
-import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
@@ -51,6 +50,7 @@ import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SortGraphic;
+import org.praisenter.javafx.actions.Actions;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
@@ -75,8 +75,6 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -84,7 +82,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.DragEvent;
@@ -95,7 +92,6 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
-import javafx.stage.Modality;
 import javafx.util.Callback;
 
 /**
@@ -109,6 +105,9 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 	
 	/** The collator for locale dependent sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
+
+	/** The font-awesome glyph-font pack */
+	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	// data
 	
@@ -309,6 +308,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 				menu.createMenuItem(ApplicationAction.RENAME),
 				menu.createMenuItem(ApplicationAction.DELETE),
 				new SeparatorMenuItem(),
+				menu.createMenuItem(ApplicationAction.IMPORT_MEDIA, Translations.get("action.import"), FONT_AWESOME.create(FontAwesome.Glyph.LEVEL_DOWN)),
 				menu.createMenuItem(ApplicationAction.EXPORT),
 				new SeparatorMenuItem(),
 				menu.createMenuItem(ApplicationAction.SELECT_ALL),
@@ -443,6 +443,19 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         	}
         });
     }
+
+    /**
+     * Event handler for dragging over the media library.
+     * @param event the event
+     */
+    private final void onMediaDragOver(DragEvent event) {
+		Dragboard db = event.getDragboard();
+		if (db.hasFiles()) {
+			event.acceptTransferModes(TransferMode.COPY);
+		} else {
+			event.consume();
+		}
+    }
     
     /**
      * Event handler for dragging files to import media.
@@ -461,42 +474,17 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 				paths.add(file.toPath());
 			}
 			
-			// attempt to import them
-			this.context.getMediaLibrary().add(
-					paths, 
-					(List<Media> media) -> {
-						// nothing to do on success
-					}, 
-					(List<FailedOperation<Path>> failures) -> {
-						// get the exceptions
-						Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-						// get the failed media
-						String list = String.join(", ", failures.stream().map(f -> f.getData().getFileName().toString()).collect(Collectors.toList()));
-						Alert alert = Alerts.exception(
-								getScene().getWindow(),
-								null, 
-								null, 
-								MessageFormat.format(Translations.get("media.import.error"), list), 
-								exceptions);
-						alert.show();
-					});
+			// import
+			Actions.mediaImport(
+				this.context,
+				this.getScene().getWindow(), 
+				paths, 
+				null,
+				null);
 		}
 		event.setDropCompleted(true);
 		event.consume();
 	}
-    
-    /**
-     * Event handler for dragging over the media library.
-     * @param event the event
-     */
-    private final void onMediaDragOver(DragEvent event) {
-		Dragboard db = event.getDragboard();
-		if (db.hasFiles()) {
-			event.acceptTransferModes(TransferMode.COPY);
-		} else {
-			event.consume();
-		}
-    }
     
     /**
      * Event handler for the delete key for removing media.
@@ -513,38 +501,13 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 				items.add(item.getMedia());
 			}
 		}
-
-		// are there any items selected?
-		if (items.size() > 0) {
-			// make sure the user really wants to do this
-			Alert alert = Alerts.confirm(
-					getScene().getWindow(), 
-					Modality.WINDOW_MODAL, 
-					Translations.get("media.remove.title"), 
-					null, 
-					Translations.get("media.remove.content"));
-			Optional<ButtonType> result = alert.showAndWait();
-			
-			if (result.get() == ButtonType.OK) {
-				// attempt to delete the selected media
-				this.context.getMediaLibrary().remove(items, () -> {
-					// nothing to do
-				}, (List<FailedOperation<Media>> failures) -> {
-					// on failure we should notify the user
-					// get the exceptions
-					Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-					// get the failed media
-					String list = String.join(", ", failures.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
-					Alert fAlert = Alerts.exception(
-							getScene().getWindow(),
-							null, 
-							null, 
-							MessageFormat.format(Translations.get("media.remove.error"), list), 
-							exceptions);
-					fAlert.show();
-				});
-			}
-		}
+		
+		Actions.mediaPromptDelete(
+			this.context, 
+			this.getScene().getWindow(), 
+			items, 
+			null,
+			null);
     }
     
     /**
@@ -552,39 +515,15 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
      * @param event the event
      */
     private final void promptRename(Media media) {
-    	TextInputDialog prompt = new TextInputDialog(media.getName());
-    	prompt.initOwner(getScene().getWindow());
-    	prompt.initModality(Modality.WINDOW_MODAL);
-    	prompt.setTitle(Translations.get("rename"));
-    	prompt.setHeaderText(Translations.get("name.new"));
-    	prompt.setContentText(Translations.get("name"));
-    	Optional<String> result = prompt.showAndWait();
-    	// check for the "OK" button
-    	if (result.isPresent()) {
-    		// actually rename it?
-    		String name = result.get();
-    		// make sure the file isn't being previewed
-        	this.pnePlayer.setMediaPlayer(null, null);
-        	// update the media's name
-        	this.context.getMediaLibrary().rename(
-        			media,
-        			name, 
-        			(Media m) -> {
-        				// nothing to do
-        			}, 
-        			(Media m, Throwable ex) -> {
-        				// log the error
-        				LOGGER.error("Failed to rename media from '{}' to '{}': {}", media.getName(), name, ex.getMessage());
-        				// show an error to the user
-        				Alert alert = Alerts.exception(
-        						getScene().getWindow(),
-        						null, 
-        						null, 
-        						MessageFormat.format(Translations.get("media.metadata.rename.error"), media.getName(), name), 
-        						ex);
-        				alert.show();
-        			});
-    	}
+		// make sure the file isn't being previewed
+    	this.pnePlayer.setMediaPlayer(null, null);
+    	
+    	Actions.mediaPromptRename(
+			this.context, 
+			this.getScene().getWindow(), 
+			media, 
+			null,
+			null);
     }
     
     /**
@@ -596,27 +535,16 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     	Media media = item.getMedia();
     	Tag tag = event.getTag();
     	
-    	this.context.getMediaLibrary().addTag(
-    			media, 
-    			tag, 
-    			(Tag addedTag) -> {
-    				// add the tag to the global list of tags
-    				this.context.getTags().add(addedTag);
-    			},
-    			(Tag failedTag, Throwable ex) -> {
-    				// remove it from the tags
-    				item.getTags().remove(tag);
-    				// log the error
-    				LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getPath().toAbsolutePath().toString(), ex.getMessage());
-    				// show an error to the user
-    				Alert alert = Alerts.exception(
-    						getScene().getWindow(),
-    						null, 
-    						null, 
-    						MessageFormat.format(Translations.get("tags.add.error"), tag.getName()), 
-    						ex);
-    				alert.show();
-    			});
+		Actions.mediaAddTag(
+			this.context, 
+			this.getScene().getWindow(), 
+			media, 
+			tag,
+			null,
+			(failedTag, error) -> {
+				// remove it from the tags
+				item.getTags().remove(tag);
+			});
     }
     
     /**
@@ -628,24 +556,16 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     	Media media = item.getMedia();
     	Tag tag = event.getTag();
     	
-    	this.context.getMediaLibrary().removeTag(
-    			media, 
-    			tag, 
-    			null,  // nothing to do on success
-    			(Tag failedTag, Throwable ex) -> {
-    				// add it back
-    				item.getTags().add(tag);
-    				// log the error
-    				LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getPath().toAbsolutePath().toString(), ex.getMessage());
-    				// show an error to the user
-    				Alert alert = Alerts.exception(
-    						getScene().getWindow(),
-    						null, 
-    						null, 
-    						MessageFormat.format(Translations.get("tags.remove.error"), tag.getName()), 
-    						ex);
-    				alert.show();
-    			});
+    	Actions.mediaAddTag(
+			this.context, 
+			this.getScene().getWindow(), 
+			media, 
+			tag,
+			null,
+			(failedTag, error) -> {
+				// add it back
+				item.getTags().add(tag);
+			});
     }
     
     /**
@@ -746,6 +666,8 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 					return true;
 				}
 				break;
+			case IMPORT_MEDIA:
+				return true;
 			default:
 				break;
 		}

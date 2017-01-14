@@ -32,8 +32,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -205,7 +205,7 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 		 */
 		public ZefaniaHandler(String name) {
 			this.bible = new Bible();
-			this.bible.importDate = new Date();
+			this.bible.importDate = Instant.now();
 			this.bible.copyright = null;
 			this.bible.name = name;
 			this.bible.source = SOURCE;

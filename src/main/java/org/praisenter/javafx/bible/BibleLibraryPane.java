@@ -27,25 +27,17 @@ package org.praisenter.javafx.bible;
 import java.io.File;
 import java.nio.file.Path;
 import java.text.Collator;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
-import org.praisenter.FailedOperation;
 import org.praisenter.bible.Bible;
-import org.praisenter.bible.BibleLibrary;
-import org.praisenter.bible.PraisenterBibleExporter;
-import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
@@ -58,6 +50,7 @@ import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
 import org.praisenter.javafx.SortGraphic;
+import org.praisenter.javafx.actions.Actions;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
@@ -78,8 +71,6 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -87,7 +78,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.Clipboard;
@@ -100,9 +90,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.stage.Modality;
 import javafx.util.Callback;
 
 /**
@@ -112,9 +99,6 @@ import javafx.util.Callback;
  * @since 3.0.0
  */
 public final class BibleLibraryPane extends BorderPane implements ApplicationPane {
-	/** The class level logger */
-	private static final Logger LOGGER = LogManager.getLogger();
-
 	/** The collator for locale dependent sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
 	
@@ -407,37 +391,12 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				paths.add(file.toPath());
 			}
 			
-			// attempt to add to the library
-			this.context.getBibleLibrary().add(
+			Actions.bibleImport(
+					this.context, 
+					this.getScene().getWindow(), 
 					paths, 
-					(List<Bible> bibles) -> {
-						// get the warning files
-						List<String> wFileNames = bibles.stream().filter(b -> b.hadImportWarning()).map(f -> f.getName()).collect(Collectors.toList());
-						if (wFileNames.size() > 0) {
-							// show a dialog of the files that had warnings
-							String list = String.join(", ", wFileNames);
-							Alert alert = Alerts.info(
-									getScene().getWindow(), 
-									Modality.WINDOW_MODAL,
-									Translations.get("bible.import.info.title"), 
-									Translations.get("bible.import.info.header"), 
-									list);
-							alert.show();
-						}
-					},
-					(List<FailedOperation<Path>> failures) -> {
-						// get the exceptions
-						Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-						// get the failed bibles
-						String list = String.join(", ", failures.stream().map(f -> f.getData().toAbsolutePath().toString()).collect(Collectors.toList()));
-						Alert alert = Alerts.exception(
-								getScene().getWindow(),
-								null, 
-								null,
-								MessageFormat.format(Translations.get("bible.import.error"), list), 
-								exceptions);
-						alert.show();
-					});
+					null, 
+					null);
 		}
 		event.setDropCompleted(true);
 		event.consume();
@@ -454,37 +413,13 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				bibles.add(item.getBible());
 			}
 		}
-		if (bibles.size() > 0) {
-			// attempt to delete the selected bible
-			Alert alert = Alerts.confirm(
-					getScene().getWindow(), 
-					Modality.WINDOW_MODAL, 
-					Translations.get("bible.delete.title"), 
-					null, 
-					Translations.get("bible.delete.content"));
-			Optional<ButtonType> result = alert.showAndWait();
-			if (result.get() == ButtonType.OK) {
-				// attempt to remove
-				this.context.getBibleLibrary().remove(
-						bibles, 
-						() -> {
-							// nothing to do on success
-						}, 
-						(List<FailedOperation<Bible>> failures) -> {
-							// get the exceptions
-							Exception[] exceptions = failures.stream().map(f -> f.getException()).collect(Collectors.toList()).toArray(new Exception[0]);
-							// get the failed bible
-							String list = String.join(", ", failures.stream().map(f -> f.getData().getName()).collect(Collectors.toList()));
-							Alert fAlert = Alerts.exception(
-									getScene().getWindow(),
-									null, 
-									null, 
-									MessageFormat.format(Translations.get("bible.delete.error"), list), 
-									exceptions);
-							fAlert.show();
-						});
-			}
-		}
+		
+		Actions.biblePromptDelete(
+				this.context, 
+				this.getScene().getWindow(), 
+				bibles, 
+				null, 
+				null);
 	}
 
     /**
@@ -492,73 +427,76 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
      * @param event the event
      */
     private final void promptRename(Bible bible) {
-    	String old = bible.getName();
-    	TextInputDialog prompt = new TextInputDialog(old);
-    	prompt.initOwner(getScene().getWindow());
-    	prompt.initModality(Modality.WINDOW_MODAL);
-    	prompt.setTitle(Translations.get("rename"));
-    	prompt.setHeaderText(Translations.get("name.new"));
-    	prompt.setContentText(Translations.get("name"));
-    	Optional<String> result = prompt.showAndWait();
-    	// check for the "OK" button
-    	if (result.isPresent()) {
-    		// actually rename it?
-    		String name = result.get();
-        	// update the bible's name
-    		bible.setName(name);
-        	this.context.getBibleLibrary().save(
-        			MessageFormat.format(Translations.get("task.rename"), old, name),
-        			bible, 
-        			(Bible m) -> {
-        				// nothing to do
-        			}, 
-        			(Bible m, Throwable ex) -> {
-        				bible.setName(old);
-        				// log the error
-        				LOGGER.error("Failed to rename bible from '{}' to '{}': {}", old, name, ex.getMessage());
-        				// show an error to the user
-        				Alert alert = Alerts.exception(
-        						getScene().getWindow(),
-        						null, 
-        						null, 
-        						MessageFormat.format(Translations.get("bible.metadata.rename.error"), old, name), 
-        						ex);
-        				alert.show();
-        			});
-    	}
+    	Actions.biblePromptRename(
+    			this.context, 
+    			this.getScene().getWindow(), 
+    			bible, 
+				null, 
+				null);
+    }
+    
+    /**
+     * Event handler for copying bibles.
+     */
+    private final void copyBibles() {
+    	Clipboard cb = Clipboard.getSystemClipboard();
+		ClipboardContent content = new ClipboardContent();
+		List<String> names = new ArrayList<String>();
+		List<UUID> ids = new ArrayList<UUID>();
+		for (BibleListItem item : this.lstBibles.getSelectionModel().selectionsProperty()) {
+			if (item.isLoaded()) {
+				names.add(item.getName());
+				ids.add(item.getBible().getId());
+			}
+		}
+		content.put(DataFormat.PLAIN_TEXT, String.join(", ", names));
+		content.put(DataFormats.BIBLE_IDS, ids);
+		cb.setContent(content);
+		this.stateChanged(ApplicationPaneEvent.REASON_DATA_COPIED);
+    }
+    
+    /**
+     * Event handler for the paste action.
+     */
+    private final void pasteCopiedBibles() {
+    	Clipboard cb = Clipboard.getSystemClipboard();
+		Object data = cb.getContent(DataFormats.BIBLE_IDS);
+		if (data != null && data instanceof List) {
+			// make a copy
+			List<?> ids = (List<?>)data;
+			for (Object id : ids) {
+				if (id instanceof UUID) {
+					Bible bible = this.context.getBibleLibrary().get((UUID)id);
+					
+					Actions.bibleCopy(
+							this.context, 
+							this.getScene().getWindow(),
+							bible, 
+							null, 
+							null);
+				}
+			}
+		}
     }
 
     /**
      * Event handler for exporting bibles.
-     * @param bibles the bibles to export
      */
-    private final void promptExport(List<Bible> bibles) {
-    	String name = Translations.get("bible.export.multiple.filename"); 
-    	if (bibles.size() == 1) {
-    		// make sure the file name doesn't have bad characters in it
-    		name = BibleLibrary.createFileName(bibles.get(0));
-    	}
-    	name += ".zip";
-    	FileChooser chooser = new FileChooser();
-    	chooser.setInitialFileName(name);
-    	chooser.setTitle(Translations.get("bible.export.title"));
-    	chooser.getExtensionFilters().add(new ExtensionFilter(Translations.get("export.zip.name"), Translations.get("export.zip.extension")));
-    	File file = chooser.showSaveDialog(getScene().getWindow());
-    	if (file != null) {
-    		PraisenterBibleExporter exporter = new PraisenterBibleExporter();
-    		try {
-				exporter.execute(file.toPath(), bibles);
-			} catch (Exception ex) {
-				// show an error to the user
-				Alert alert = Alerts.exception(
-						getScene().getWindow(),
-						null, 
-						null, 
-						Translations.get("bible.export.error"), 
-						ex);
-				alert.show();
+    private final void promptExport() {
+    	List<BibleListItem> items = this.lstBibles.getSelectionModel().selectionsProperty().get();
+		List<Bible> bibles = new ArrayList<Bible>();
+		for (BibleListItem item : items) {
+			if (item.isLoaded()) {
+				bibles.add(item.getBible());
 			}
-    	}
+		}
+    	
+    	Actions.biblePromptExport(
+    			this.context, 
+    			this.getScene().getWindow(), 
+    			bibles, 
+				null, 
+				null);
     }
     
     /**
@@ -593,54 +531,12 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     			break;
     		case COPY:
 				if (isFocused) {
-    				Clipboard cb = Clipboard.getSystemClipboard();
-    				ClipboardContent content = new ClipboardContent();
-    				List<String> names = new ArrayList<String>();
-    				List<UUID> ids = new ArrayList<UUID>();
-    				for (BibleListItem item : this.lstBibles.getSelectionModel().selectionsProperty()) {
-    					names.add(item.getName());
-    					ids.add(item.getBible().getId());
-    				}
-    				content.put(DataFormat.PLAIN_TEXT, String.join(", ", names));
-    				content.put(DataFormats.BIBLE_IDS, ids);
-    				cb.setContent(content);
-    				this.stateChanged(ApplicationPaneEvent.REASON_DATA_COPIED);
+    				this.copyBibles();
 				}
     			break;
     		case PASTE:
 				if (isFocused) {
-					Clipboard cb = Clipboard.getSystemClipboard();
-					Object data = cb.getContent(DataFormats.BIBLE_IDS);
-					if (data != null && data instanceof List) {
-						// make a copy
-						List<?> ids = (List<?>)data;
-						for (Object id : ids) {
-							if (id instanceof UUID) {
-								Bible bible = this.context.getBibleLibrary().get((UUID)id);
-								if (bible != null) {
-									// make a copy
-									Bible copy = bible.copy(false);
-									// set the name to something else
-									copy.setName(MessageFormat.format(Translations.get("bible.copy.name"), bible.getName()));
-									// then save it
-									this.context.getBibleLibrary().save(copy, saved -> {
-										// nothing to do
-									}, (failed, error) -> {
-										// present message to user
-										Alert alert = Alerts.exception(
-												getScene().getWindow(),
-												null, 
-												null, 
-												MessageFormat.format(Translations.get("bible.copy.error"), bible.getName()), 
-												error);
-										alert.show();
-									});
-								} else {
-									LOGGER.warn("Failed to copy bible, it may have been removed.");
-								}
-							}
-						}
-					}
+					this.pasteCopiedBibles();
 				}
     			break;
     		case DELETE:
@@ -663,14 +559,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
     			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
     			break;
     		case EXPORT:
-    			List<BibleListItem> items = this.lstBibles.getSelectionModel().selectionsProperty().get();
-    			List<Bible> bibles = new ArrayList<Bible>();
-    			for (BibleListItem item : items) {
-    				if (item.isLoaded()) {
-    					bibles.add(item.getBible());
-    				}
-    			}
-    			this.promptExport(bibles);
+    			this.promptExport();
     			break;
     		default:
     			break;

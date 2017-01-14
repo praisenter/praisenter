@@ -39,7 +39,7 @@ public final class InstantXmlAdapter extends XmlAdapter<String, Instant> {
 	 */
 	@Override
 	public String marshal(Instant instant) throws Exception {
-		return instant.toString();
+		return instant != null ? instant.toString() : null;
 	}
 
 	/* (non-Javadoc)
@@ -47,6 +47,6 @@ public final class InstantXmlAdapter extends XmlAdapter<String, Instant> {
 	 */
 	@Override
 	public Instant unmarshal(String instant) throws Exception {
-		return Instant.parse(instant);
+		return instant != null && instant.length() > 0 ? Instant.parse(instant) : null;
 	}
 }
