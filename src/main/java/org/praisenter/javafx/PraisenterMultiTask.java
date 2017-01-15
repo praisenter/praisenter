@@ -26,8 +26,13 @@ package org.praisenter.javafx;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 
 import org.praisenter.FailedOperation;
+
+import javafx.beans.InvalidationListener;
+import javafx.concurrent.Task;
 
 /**
  * Represents a task that can be monitored and that has a name and resulting status.
@@ -37,17 +42,47 @@ import org.praisenter.FailedOperation;
  * @param <T> the task result type
  * @param <V> the task result
  */
-public abstract class PraisenterMultiTask<T, V> extends PraisenterTask<T> {
-	/** The list of failures */
-	private List<FailedOperation<V>> failures;
+public final class PraisenterMultiTask<T, V> extends PraisenterTask<Void> {
+	private final List<PraisenterTask<T>> tasks;
+	
+	private final CountDownLatch latch;
 	
 	/**
 	 * Minimal constructor.
 	 * @param name the task name or description
 	 */
-	public PraisenterMultiTask(String name) {
+	public PraisenterMultiTask(String name, List<PraisenterTask<T>> tasks) {
 		super(name);
-		this.failures = null;
+		this.tasks = tasks;
+		this.latch = new CountDownLatch(tasks.size());
+		
+		InvalidationListener listener = (obs) -> {
+			latch.countDown();
+		};
+		
+		for (Task<?> t : tasks) {
+			t.onCancelledProperty().addListener(listener);
+			t.onFailedProperty().addListener(listener);
+			t.onSucceededProperty().addListener(listener);
+		}
+	}
+	
+	@Override
+	protected Void call() throws Exception {
+		try {
+			latch.await();
+		} catch (Exception ex) {
+			// TODO handle
+		}
+		return null;
+	}
+	
+	@Override
+	public void execute(ExecutorService service) {
+		for (Task<?> t : tasks) {
+			service.execute(t);
+		}
+		service.execute(this);
 	}
 	
 	/**

@@ -24,10 +24,13 @@
  */
 package org.praisenter.javafx;
 
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 
 import org.praisenter.javafx.utility.Fx;
 
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -47,12 +50,40 @@ public abstract class PraisenterTask<T> extends Task<T> {
 	/** The task's result status */
 	private final ObjectProperty<PraisenterTaskResultStatus> resultStatus = new SimpleObjectProperty<PraisenterTaskResultStatus>();
 	
+	private final CyclicBarrier barrier;
+	
 	/**
 	 * Minimal constructor.
 	 * @param name the task name or description
 	 */
 	public PraisenterTask(String name) {
+		this(name, null);
+	}
+	
+	/**
+	 * Minimal constructor.
+	 * @param name the task name or description
+	 */
+	public PraisenterTask(String name, CyclicBarrier barrier) {
 		this.name = name;
+		this.barrier = barrier;
+		
+		InvalidationListener listener = (obs) -> {
+			if (this.barrier != null) {
+				try {
+					this.barrier.await();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (BrokenBarrierException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		};
+		this.onCancelledProperty().addListener(listener);
+		this.onFailedProperty().addListener(listener);
+		this.onSucceededProperty().addListener(listener);
 	}
 	
 	/* (non-Javadoc)

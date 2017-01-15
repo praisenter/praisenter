@@ -6,7 +6,9 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
@@ -19,7 +21,12 @@ import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyDoubleProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.concurrent.Task;
+import javafx.concurrent.Worker.State;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.FileChooser;
@@ -51,10 +58,31 @@ public final class Actions {
 //		return task;
 //	}
 	
-	public static final PraisenterMultiTask<List<Media>, Path> mediaImport(ObservableMediaLibrary library, Window owner, List<Path> paths) {
+	public static final Task<Void> wait(List<PraisenterTask<Media>> tasks, ExecutorService service) {
 		// TODO return a task that waits on the cyclic barrier to complete
+		CyclicBarrier barrier = new CyclicBarrier(tasks.size() + 1);
+		Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				for (Task<?> t : tasks) {
+					
+				}
+				return null;
+			}
+		};
+	}
+	
+	public static final List<PraisenterTask<Media>> mediaImport(ObservableMediaLibrary library, Window owner, List<Path> paths) {
 		CyclicBarrier barrier = new CyclicBarrier(paths.size() + 1);
-		
+		CountDownLatch latch = new CountDownLatch(paths.size());
+		Task<Void> t = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				
+				latch.await();
+				return null;
+			}
+		};
 		// attempt to import them
 		PraisenterMultiTask<List<Media>, Path> task = library.add(paths);
 		task.onFailedProperty().addListener((e) -> {
