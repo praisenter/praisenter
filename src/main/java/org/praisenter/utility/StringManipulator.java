@@ -24,6 +24,8 @@
  */
 package org.praisenter.utility;
 
+import java.util.UUID;
+
 /**
  * Class containing string manipulation methods.
  * @author William Bittle
@@ -80,5 +82,14 @@ public final class StringManipulator {
 		String name = filename.toString().replaceAll("[" + replacement + "]+", Character.toString(replacement));
 		
 		return name;
+	}
+	
+	/**
+	 * Converts the given UUID to a string and strips "-" characters.
+	 * @param uuid the UUID
+	 * @return String
+	 */
+	public static String toFileName(UUID uuid) {
+		return uuid.toString().toLowerCase().replaceAll("-", "");
 	}
 }

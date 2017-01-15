@@ -476,11 +476,10 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 			
 			// import
 			Actions.mediaImport(
-				this.context,
+				this.context.getMediaLibrary(),
 				this.getScene().getWindow(), 
-				paths, 
-				null,
-				null);
+				paths)
+			.execute(this.context.getExecutorService());
 		}
 		event.setDropCompleted(true);
 		event.consume();
@@ -612,7 +611,13 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     					media.add(item.getMedia());
     				}
     			}
-    			// TODO Export this.promptExport(media);
+    			
+    			Actions.mediaPromptExport(
+    					this.context, 
+    					this.getScene().getWindow(), 
+    					media, 
+    					null,
+    					null);
     			break;
     		default:
     			break;

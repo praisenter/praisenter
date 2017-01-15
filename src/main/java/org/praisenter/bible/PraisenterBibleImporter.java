@@ -43,6 +43,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.UnknownFormatException;
+import org.praisenter.utility.Zip;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -78,7 +79,7 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 				while ((entry = zis.getNextEntry()) != null) {
 					read = true;
 					if (!entry.isDirectory()) {
-						byte[] data = read(zis);
+						byte[] data = Zip.read(zis);
 						try {
 							// make a copy to ensure the id is changed
 							Bible bible = XmlIO.read(new ByteArrayInputStream(data), Bible.class).copy(false);

@@ -13,8 +13,8 @@ import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.PraisenterBibleExporter;
 import org.praisenter.javafx.Alerts;
-import org.praisenter.javafx.MonitoredTask;
-import org.praisenter.javafx.MonitoredTaskResultStatus;
+import org.praisenter.javafx.PraisenterTask;
+import org.praisenter.javafx.PraisenterTaskResultStatus;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.resources.translations.Translations;
 
@@ -64,17 +64,17 @@ final class BiblePromptExportAction implements AsyncAction {
     	if (file != null) {
     		final Path path = file.toPath();
     		final PraisenterBibleExporter exporter = new PraisenterBibleExporter();
-    		MonitoredTask<Void> task = new MonitoredTask<Void>(MessageFormat.format(Translations.get("task.export"), name)) {
+    		PraisenterTask<Void> task = new PraisenterTask<Void>(MessageFormat.format(Translations.get("task.export"), name)) {
 				@Override
 				protected Void call() throws Exception {
 					this.updateProgress(-1, 0);
 					try {
 						exporter.execute(path, bibles);
-						setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+						setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 						return null;
 					} catch (Exception ex) {
 						LOGGER.error("Failed to export bible(s).", ex);
-						setResultStatus(MonitoredTaskResultStatus.ERROR);
+						setResultStatus(PraisenterTaskResultStatus.ERROR);
 						throw ex;
 					}
 				}

@@ -46,6 +46,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.InvalidFormatException;
+import org.praisenter.utility.Zip;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -144,7 +145,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 	 */
 	private Bible parse(InputStream stream, String name) throws IOException, InvalidFormatException {
 		try {
-			byte[] content = read(stream);
+			byte[] content = Zip.read(stream);
 			// read the bytes
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser parser = factory.newSAXParser();

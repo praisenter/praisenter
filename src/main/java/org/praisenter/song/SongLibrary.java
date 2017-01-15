@@ -36,17 +36,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.activation.FileTypeMap;
-import javax.activation.MimetypesFileTypeMap;
 import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -73,6 +71,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.praisenter.Constants;
 import org.praisenter.SearchType;
+import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
 
@@ -171,8 +170,6 @@ public final class SongLibrary {
 		Files.createDirectories(this.path);
 		Files.createDirectories(this.indexPath);
 		
-		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
-		
 		// load and update the index
 		this.directory = FSDirectory.open(this.indexPath);
 		
@@ -188,8 +185,7 @@ public final class SongLibrary {
 					// only open files
 					if (Files.isRegularFile(file)) {
 						// only open xml files
-						String mimeType = map.getContentType(file.toString());
-						if (mimeType.equals("application/xml")) {
+						if (MimeType.XML.check(file)) {
 							try (InputStream is = Files.newInputStream(file)) {
 								try {
 									// read in the xml

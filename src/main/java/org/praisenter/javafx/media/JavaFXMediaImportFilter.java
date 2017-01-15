@@ -27,8 +27,6 @@ package org.praisenter.javafx.media;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +89,6 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 				if (!name.toLowerCase().endsWith(ext)) {
 					name += ext;
 				}
-				return location.resolve(name);
 			}
 		}
 		return super.getTarget(location, name, type);
@@ -101,15 +98,11 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 	 * @see org.praisenter.media.DefaultMediaImportFilter#filter(java.nio.file.Path, java.nio.file.Path, org.praisenter.media.MediaType)
 	 */
 	@Override
-	public void filter(Path source, Path target, MediaType type) throws TranscodeException, FileAlreadyExistsException, IOException {
+	public void filter(Path source, Path target, MediaType type) throws TranscodeException, IOException {
 		// is transcoding enabled?
 		if (this.configuration.getBoolean(Setting.MEDIA_TRANSCODING_ENABLED, true)) {
 			// is the media audio or video?
 			if (type == MediaType.VIDEO || type == MediaType.AUDIO) {
-				if (Files.exists(target)) {
-					throw new FileAlreadyExistsException(target.toAbsolutePath().toString());
-				}
-				
 				// NOTE: attempting to read and play media here to verify whether it was playable by JavaFX failed.
 				// it would play here, but not when attached to a visible MediaView. So for now we'll just have to
 				// always transcode the video first

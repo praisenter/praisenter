@@ -24,12 +24,10 @@
  */
 package org.praisenter.javafx;
 
-import org.praisenter.javafx.utility.Fx;
+import java.util.Collections;
+import java.util.List;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.concurrent.Task;
+import org.praisenter.FailedOperation;
 
 /**
  * Represents a task that can be monitored and that has a name and resulting status.
@@ -37,62 +35,35 @@ import javafx.concurrent.Task;
  * @version 3.0.0
  * @since 3.0.0
  * @param <T> the task result type
+ * @param <V> the task result
  */
-public abstract class MonitoredTask<T> extends Task<T> {
-	/** The task name/description */
-	private final String name;
-	
-	/** The task's result status */
-	private ObjectProperty<MonitoredTaskResultStatus> resultStatus = new SimpleObjectProperty<>();
+public abstract class PraisenterMultiTask<T, V> extends PraisenterTask<T> {
+	/** The list of failures */
+	private List<FailedOperation<V>> failures;
 	
 	/**
 	 * Minimal constructor.
 	 * @param name the task name or description
 	 */
-	public MonitoredTask(String name) {
-		this.name = name;
+	public PraisenterMultiTask(String name) {
+		super(name);
+		this.failures = null;
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return this.name;
-	}
-	
-	/**
-	 * Returns the task name/description.
-	 * @return String
-	 */
-	public String getName() {
-		return this.name;
-	}
-
 	/**
 	 * Returns the result status or null if not complete.
-	 * @return {@link MonitoredTaskResultStatus}
+	 * @return List&lt;{@link FailedOperation}&lt;V&gt;&gt;
 	 */
-	public MonitoredTaskResultStatus getResultStatus() {
-		return this.resultStatus.get();
-	}
-
-	/**
-	 * Returns the result status property.
-	 * @return ReadOnlyObjectProperty&lt;{@link MonitoredTaskResultStatus}&gt;
-	 */
-	public ReadOnlyObjectProperty<MonitoredTaskResultStatus> resultStatusProperty() {
-		return this.resultStatus;
+	public List<FailedOperation<V>> getResultFailures() {
+		if (this.failures == null) return null;
+		return Collections.unmodifiableList(this.failures);
 	}
 	
 	/**
-	 * Called from sub classes to set the result status.
-	 * @param resultStatus the result status
+	 * Called from sub classes to set the result failures.
+	 * @param failures the result failures
 	 */
-	protected void setResultStatus(MonitoredTaskResultStatus resultStatus) {
-		// make sure we run on the FX thread
-		Fx.runOnFxThead(() -> {
-			this.resultStatus.set(resultStatus);
-		});
+	protected void setResultFailures(List<FailedOperation<V>> failures) {
+		this.failures = failures;
 	}
 }

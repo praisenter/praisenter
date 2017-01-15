@@ -209,7 +209,9 @@ public final class MainPane extends BorderPane implements ApplicationPane {
      * Event handler for importing media.
      */
     private final void promptMediaImport() {
-    	Actions.mediaPromptImport(this.context, this.getScene().getWindow(), null, null);
+    	Actions.mediaPromptImport(
+    			this.context.getMediaLibrary(), 
+    			this.getScene().getWindow());
     }
     
 	// NAVIGATION

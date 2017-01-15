@@ -59,12 +59,12 @@ class MainStatusBar extends HBox {
 		
 		button.setGraphic(progress);
 		
-		ListView<MonitoredTask<?>> view = new ListView<MonitoredTask<?>>(context.getExecutorService().tasksProperty());
+		ListView<PraisenterTask<?>> view = new ListView<PraisenterTask<?>>(context.getExecutorService().tasksProperty());
 		view.setPrefSize(200, 300);
 		view.setPlaceholder(new Label("No pending or completed tasks"));
-		view.setCellFactory(new Callback<ListView<MonitoredTask<?>>, ListCell<MonitoredTask<?>>>() {
+		view.setCellFactory(new Callback<ListView<PraisenterTask<?>>, ListCell<PraisenterTask<?>>>() {
 			@Override
-			public ListCell<MonitoredTask<?>> call(ListView<MonitoredTask<?>> view) {
+			public ListCell<PraisenterTask<?>> call(ListView<PraisenterTask<?>> view) {
 				return new MonitoredTaskListCell();
 			}
 		});

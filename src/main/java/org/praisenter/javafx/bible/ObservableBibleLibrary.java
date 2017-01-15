@@ -43,8 +43,8 @@ import org.praisenter.bible.BibleImporter;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.FormatIdentifingBibleImporter;
-import org.praisenter.javafx.MonitoredTask;
-import org.praisenter.javafx.MonitoredTaskResultStatus;
+import org.praisenter.javafx.PraisenterTask;
+import org.praisenter.javafx.PraisenterTaskResultStatus;
 import org.praisenter.javafx.MonitoredThreadPoolExecutor;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
@@ -133,7 +133,7 @@ public final class ObservableBibleLibrary {
 		});
 		
 		// execute the add on a different thread
-		MonitoredTask<List<Bible>> task = new MonitoredTask<List<Bible>>(MessageFormat.format(Translations.get("task.import"), path.getFileName())) {
+		PraisenterTask<List<Bible>> task = new PraisenterTask<List<Bible>>(MessageFormat.format(Translations.get("task.import"), path.getFileName())) {
 			@Override
 			protected List<Bible> call() throws Exception {
 				updateProgress(-1, 0);
@@ -143,10 +143,10 @@ public final class ObservableBibleLibrary {
 					for (Bible bible : bibles) {
 						library.save(bible);
 					}
-					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return bibles;
 				} catch (Exception ex) {
-					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					setResultStatus(PraisenterTaskResultStatus.ERROR);
 					throw ex;
 				}
 			}
@@ -211,7 +211,7 @@ public final class ObservableBibleLibrary {
 		BibleImporter importer = new FormatIdentifingBibleImporter();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(
+		PraisenterTask<Void> task = new PraisenterTask<Void>(
 				paths.size() > 1 
 					? MessageFormat.format(Translations.get("bible.task.import"), paths.size())
 					: MessageFormat.format(Translations.get("task.import"), paths.get(0).getFileName())) {
@@ -248,11 +248,11 @@ public final class ObservableBibleLibrary {
 				
 				// set the result status based on the number of errors we got
 				if (errorCount == 0) {
-					this.setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 				} else if (errorCount == paths.size()) {
-					this.setResultStatus(MonitoredTaskResultStatus.ERROR);
+					this.setResultStatus(PraisenterTaskResultStatus.ERROR);
 				} else {
-					this.setResultStatus(MonitoredTaskResultStatus.WARNING);
+					this.setResultStatus(PraisenterTaskResultStatus.WARNING);
 				}
 				
 				return null;
@@ -309,16 +309,16 @@ public final class ObservableBibleLibrary {
 		// synchronously make a copy
 		Bible copy = bible.copy(true);
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(action) {
+		PraisenterTask<Void> task = new PraisenterTask<Void>(action) {
 			@Override
 			protected Void call() throws Exception {
 				this.updateProgress(-1, 0);
 				try {
 					library.save(copy);
-					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return null;
 				} catch (Exception ex) {
-					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					setResultStatus(PraisenterTaskResultStatus.ERROR);
 					throw ex;
 				}
 			}
@@ -374,16 +374,16 @@ public final class ObservableBibleLibrary {
 	 */
 	public void remove(Bible bible, Runnable onSuccess, BiConsumer<Bible, Throwable> onError) {
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(MessageFormat.format(Translations.get("task.delete"), bible.getName())) {
+		PraisenterTask<Void> task = new PraisenterTask<Void>(MessageFormat.format(Translations.get("task.delete"), bible.getName())) {
 			@Override
 			protected Void call() throws Exception {
 				this.updateProgress(-1, 0);
 				try {
 					library.remove(bible);
-					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return null;
 				} catch (Exception ex) {
-					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					setResultStatus(PraisenterTaskResultStatus.ERROR);
 					throw ex;
 				}
 			}
@@ -426,7 +426,7 @@ public final class ObservableBibleLibrary {
 		List<FailedOperation<Bible>> failures = new ArrayList<FailedOperation<Bible>>();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(
+		PraisenterTask<Void> task = new PraisenterTask<Void>(
 				bibles.size() > 1 
 					? MessageFormat.format(Translations.get("bible.task.delete"), bibles.size())
 					: MessageFormat.format(Translations.get("task.delete"), bibles.get(0).getName())) {
@@ -452,11 +452,11 @@ public final class ObservableBibleLibrary {
 
 				// set the result status based on the number of errors we got
 				if (errorCount == 0) {
-					this.setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 				} else if (errorCount == bibles.size()) {
-					this.setResultStatus(MonitoredTaskResultStatus.ERROR);
+					this.setResultStatus(PraisenterTaskResultStatus.ERROR);
 				} else {
-					this.setResultStatus(MonitoredTaskResultStatus.WARNING);
+					this.setResultStatus(PraisenterTaskResultStatus.WARNING);
 				}
 				
 				return null;
@@ -494,15 +494,15 @@ public final class ObservableBibleLibrary {
 	 * @param onError called for the bibles that failed to be removed
 	 */
 	public void reindex(Runnable onSuccess, Consumer<Throwable> onError) {
-		MonitoredTask<Void> task = new MonitoredTask<Void>(Translations.get("bible.reindex")) {
+		PraisenterTask<Void> task = new PraisenterTask<Void>(Translations.get("bible.reindex")) {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
 				try {
 					library.reindex();
-					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 				} catch (Exception ex) {
-					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					setResultStatus(PraisenterTaskResultStatus.ERROR);
 					throw ex;
 				}
 				return null;
@@ -592,7 +592,7 @@ public final class ObservableBibleLibrary {
 		BibleListItem bi = null;
     	for (int i = 0; i < items.size(); i++) {
     		BibleListItem item = items.get(i);
-    		if (item.getBible().getId().equals(bible.getId())) {
+    		if (item.isLoaded() && item.getBible().getId().equals(bible.getId())) {
     			bi = item;
     			break;
     		}

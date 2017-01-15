@@ -36,8 +36,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import javax.activation.FileTypeMap;
-import javax.activation.MimetypesFileTypeMap;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -48,10 +46,10 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
+import org.praisenter.utility.MimeType;
 import org.praisenter.xml.adapters.BufferedImageJpegTypeAdapter;
 import org.praisenter.xml.adapters.BufferedImagePngTypeAdapter;
 import org.praisenter.xml.adapters.InstantXmlAdapter;
-import org.praisenter.xml.adapters.PathXmlAdapter;
 
 /**
  * A media item in the media library.
@@ -85,9 +83,11 @@ public final class Media implements Comparable<Media> {
 	final UUID id;
 	
 	/** The path to the media file */
-	@XmlElement(name = "path", required = false)
-	@XmlJavaTypeAdapter(value = PathXmlAdapter.class)
-	final Path path;
+	Path path;
+	
+	/** The media's file name */
+	@XmlElement(name = "fileName", required = false)
+	final String fileName;
 	
 	/** The media type */
 	@XmlElement(name = "type", required = false)
@@ -224,6 +224,7 @@ public final class Media implements Comparable<Media> {
 		this.type = null;
 		this.path = null;
 		this.name = null;
+		this.fileName = null;
 		this.size = UNKNOWN;
 		this.dateAdded = Instant.now();
 		this.lastModified = UNKNOWN;
@@ -255,14 +256,19 @@ public final class Media implements Comparable<Media> {
 		this.id = id == null ? UUID.randomUUID() : id;
 		
 		// get the media type
-		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
-		this.mimeType = map.getContentType(path.toString());
+		this.mimeType = MimeType.get(path);
 		this.type = MediaType.getMediaTypeFromMimeType(this.mimeType);
 		
 		// paths and names
 		this.path = path;
 		String name = path.getFileName().toString();
-		name = name.substring(0, name.lastIndexOf('.'));
+		this.fileName = name;
+		
+		// remove extension (if present)
+		int idx = name.lastIndexOf('.');
+		if (idx >= 0) {
+			name = name.substring(0, idx);
+		}
 		this.name = name;
 		
 		// date added
@@ -353,6 +359,14 @@ public final class Media implements Comparable<Media> {
 		return this.path;
 	}
 
+	/**
+	 * Returns the media file name.
+	 * @return String
+	 */
+	public String getFileName() {
+		return this.fileName;
+	}
+	
 	/**
 	 * Returns the media type.
 	 * @return {@link MediaType}

@@ -46,6 +46,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.UnknownFormatException;
+import org.praisenter.utility.Zip;
 
 /**
  * A bible importer that attempts to determine the format of the given path using
@@ -101,12 +102,12 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 						return new OpenSongBibleImporter();
 					// check for .xml extension, could be any kind of XML really (Zefania)
 					} else if (entry.getName().toLowerCase().endsWith(".xml")) {
-						byte[] content = AbstractBibleImporter.read(zis);
+						byte[] content = Zip.read(zis);
 						return this.getImporterForXml(new ByteArrayInputStream(content));
 					// otherwise read the first line of the file to see
 					// if we can determine the file type that way
 					} else {
-						byte[] content = AbstractBibleImporter.read(zis);
+						byte[] content = Zip.read(zis);
 						BibleImporter bi = this.getImporterForFile(new ByteArrayInputStream(content));
 						if (bi != null) {
 							return bi;
@@ -119,12 +120,12 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 			return new OpenSongBibleImporter();
 		// check for .xml extension, could be any kind of XML really (Zefania)
 		} else if (fileName.endsWith(".xml")) {
-			byte[] content = AbstractBibleImporter.read(new FileInputStream(path.toFile()));
+			byte[] content = Zip.read(new FileInputStream(path.toFile()));
 			return this.getImporterForXml(new ByteArrayInputStream(content));
 		// otherwise read the first line of the file to see
 		// if we can determine the file type that way
 		} else {
-			byte[] content = AbstractBibleImporter.read(new FileInputStream(path.toFile()));
+			byte[] content = Zip.read(new FileInputStream(path.toFile()));
 			BibleImporter importer = this.getImporterForFile(new ByteArrayInputStream(content));
 			if (importer instanceof UnboundBibleImporter) {
 				// we need two files for The Unbound Bible format, we can't just read one of them

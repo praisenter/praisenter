@@ -25,12 +25,12 @@
 package org.praisenter.javafx;
 
 /**
- * Enumeration of results of a {@link MonitoredTask}.
+ * Enumeration of results of a {@link PraisenterTask}.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
  */
-public enum MonitoredTaskResultStatus {
+public enum PraisenterTaskResultStatus {
 	/** The task completed successfully */
 	SUCCESS,
 	

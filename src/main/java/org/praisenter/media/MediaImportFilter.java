@@ -25,7 +25,6 @@
 package org.praisenter.media;
 
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 
 /**
@@ -54,8 +53,7 @@ public interface MediaImportFilter {
 	 * @param target the target media file location and name
 	 * @param type the media type
 	 * @throws TranscodeException if the media failed to transcode into the filter's intended format
-	 * @throws FileAlreadyExistsException if the target media file name already exists
 	 * @throws IOException if an IO error occurs
 	 */
-	public void filter(Path source, Path target, MediaType type) throws TranscodeException, FileAlreadyExistsException, IOException;
+	public void filter(Path source, Path target, MediaType type) throws TranscodeException, IOException;
 }

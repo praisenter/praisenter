@@ -32,13 +32,11 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
-import javax.activation.FileTypeMap;
-import javax.activation.MimetypesFileTypeMap;
 import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
@@ -78,6 +76,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.praisenter.Constants;
 import org.praisenter.SearchType;
+import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
 
@@ -172,19 +171,17 @@ public final class BibleLibrary {
 	private BibleLibrary(Path path) {
 		this.path = path;
 		this.indexPath = this.path.resolve(INDEX_DIR);
-		this.bibles = new HashMap<UUID, Bible>();
+		this.bibles = new ConcurrentHashMap<UUID, Bible>();
 	}
 	
 	/**
 	 * Performs the initialization required by the bible library.
 	 * @throws IOException if an IO error occurs
 	 */
-	private void initialize() throws IOException {
+	private synchronized void initialize() throws IOException {
 		// verify paths exist
 		Files.createDirectories(this.path);
 		Files.createDirectories(this.indexPath);
-		
-		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
 		
 		// load and update the index
 		this.directory = FSDirectory.open(this.indexPath);
@@ -201,8 +198,7 @@ public final class BibleLibrary {
 					// only open files
 					if (Files.isRegularFile(file)) {
 						// only open xml files
-						String mimeType = map.getContentType(file.toString());
-						if (mimeType.equals("application/xml")) {
+						if (MimeType.XML.check(file)) {
 							try (InputStream is = Files.newInputStream(file)) {
 								try {
 									// read in the xml
@@ -321,7 +317,7 @@ public final class BibleLibrary {
 	 * Returns all the bibles in this bible library.
 	 * @return List&lt;{@link Bible}&gt;
 	 */
-	public synchronized List<Bible> all() {
+	public List<Bible> all() {
 		return new ArrayList<Bible>(this.bibles.values());
 	}
 	
@@ -329,7 +325,7 @@ public final class BibleLibrary {
 	 * Returns the number of bibles in the library.
 	 * @return int
 	 */
-	public synchronized int size() {
+	public int size() {
 		return this.bibles.size();
 	}
 	
@@ -380,7 +376,7 @@ public final class BibleLibrary {
 			// verify there doesn't exist a bible with this name already
 			if (Files.exists(path)) {
 				// just use the UUID
-				path = this.path.resolve(bible.getId().toString().replaceAll("-", "") + EXTENSION);
+				path = this.path.resolve(StringManipulator.toFileName(bible.getId()) + EXTENSION);
 			}
 		} else if (!bible.path.equals(path)) {
 			// this indicates that we need to rename the file
@@ -483,7 +479,7 @@ public final class BibleLibrary {
 	 * @return List&lt;{@link BibleSearchResult}&gt;
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized List<BibleSearchResult> search(UUID bibleId, Short bookNumber, String text, SearchType type) throws IOException {
+	public List<BibleSearchResult> search(UUID bibleId, Short bookNumber, String text, SearchType type) throws IOException {
 		// verify text
 		if (text == null || text.length() == 0) {
 			return Collections.emptyList();
@@ -584,7 +580,7 @@ public final class BibleLibrary {
 	 * @see <a href="http://stackoverflow.com/questions/25814445/accessing-words-around-a-positional-match-in-lucene">Accessing words around a positional match in Lucene</a>
 	 * @see BibleSearchResult
 	 */
-	private List<BibleSearchResult> search(Query query) throws IOException {
+	private synchronized List<BibleSearchResult> search(Query query) throws IOException {
 		List<BibleSearchResult> results = new ArrayList<BibleSearchResult>();
 		
 		try (IndexReader reader = DirectoryReader.open(this.directory)) {

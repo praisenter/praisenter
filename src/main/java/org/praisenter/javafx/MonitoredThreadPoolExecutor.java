@@ -60,7 +60,7 @@ public final class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 	private final BooleanProperty isRunning = new SimpleBooleanProperty(false);
 	
 	/** The tasks */
-	private final ObservableList<MonitoredTask<?>> tasks = FXCollections.observableList(new LinkedList<>());
+	private final ObservableList<PraisenterTask<?>> tasks = FXCollections.observableList(new LinkedList<>());
 	
 	/**
 	 * Constructor.
@@ -88,7 +88,7 @@ public final class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 	 * Executes the given task.
 	 * @param task the task
 	 */
-	public void execute(MonitoredTask<?> task) {
+	public void execute(PraisenterTask<?> task) {
 		super.execute(task);
 		this.updateTaskList(task);
 	}
@@ -98,7 +98,7 @@ public final class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 	 * to fit within the maximum number of tasks.
 	 * @param task
 	 */
-	private void updateTaskList(MonitoredTask<?> task) {
+	private void updateTaskList(PraisenterTask<?> task) {
 		// make sure this runs on the FX thread
 		Fx.runOnFxThead(() -> {
 			// add the task
@@ -118,9 +118,9 @@ public final class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 			// trim the list of completed tasks starting
 			// from the head of the queue
 			if (tasks.size() > MAXIMUM_TASK_LIST_LENGTH) {
-				Iterator<MonitoredTask<?>> it = tasks.iterator();
+				Iterator<PraisenterTask<?>> it = tasks.iterator();
 				while (it.hasNext()) {
-					MonitoredTask<?> t = it.next();
+					PraisenterTask<?> t = it.next();
 					// check if its done
 					if (t.isDone()) {
 						// if so remove it
@@ -154,9 +154,9 @@ public final class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 	
 	/**
 	 * Returns a readonly list of tasks ordered by their execution.
-	 * @return ObservableList&lt;{@link MonitoredTask}&gt;
+	 * @return ObservableList&lt;{@link PraisenterTask}&gt;
 	 */
-	public ObservableList<MonitoredTask<?>> tasksProperty() {
+	public ObservableList<PraisenterTask<?>> tasksProperty() {
 		return FXCollections.unmodifiableObservableList(this.tasks);
 	}
 }

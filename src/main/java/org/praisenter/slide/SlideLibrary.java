@@ -36,13 +36,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.activation.FileTypeMap;
-import javax.activation.MimetypesFileTypeMap;
 import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.utility.MimeType;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -107,20 +106,17 @@ public final class SlideLibrary {
 		// verify paths exist
 		Files.createDirectories(this.path);
 		
-		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
-
 		// index existing documents
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(this.path)) {
 			for (Path file : stream) {
 				// only open files
 				if (Files.isRegularFile(file)) {
 					// only open xml files
-					String mimeType = map.getContentType(file.toString());
-					if (mimeType.equals("application/xml")) {
+					if (MimeType.XML.check(file)) {
 						try (InputStream is = Files.newInputStream(file)) {
 							try {
 								// read in the xml
-								Slide slide = XmlIO.read(is, BasicSlide.class);
+								BasicSlide slide = XmlIO.read(is, BasicSlide.class);
 								slide.setPath(file);
 								
 								// we can't attempt generating thumbnails at this time

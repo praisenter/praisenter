@@ -67,7 +67,7 @@ final class FileSystemControl extends ResourceBundle.Control {
 	    // remove the package from the bundle name so that all locale
 	    // files will be in the format of "messages.properties"
 	    int lastPeriod = bundleName.lastIndexOf('.');
-	    if (lastPeriod != -1) {
+	    if (lastPeriod >= 0) {
 	        bundleName = bundleName.substring(lastPeriod + 1);
 	    }
 

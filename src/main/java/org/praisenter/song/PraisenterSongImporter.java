@@ -31,10 +31,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.activation.FileTypeMap;
-import javax.activation.MimetypesFileTypeMap;
 import javax.xml.bind.JAXBException;
 
+import org.praisenter.utility.MimeType;
 import org.praisenter.xml.XmlIO;
 
 // TODO create a formatidentifyingimporter
@@ -55,9 +54,7 @@ public final class PraisenterSongImporter implements SongImporter {
 		// only open files
 		if (Files.isRegularFile(path)) {
 			// only open xml files
-			FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
-			String mimeType = map.getContentType(path.toString());
-			if (mimeType.equals("application/xml")) {
+			if (MimeType.XML.check(path)) {
 				try (InputStream is = Files.newInputStream(path)) {
 					// read in the xml
 					try {

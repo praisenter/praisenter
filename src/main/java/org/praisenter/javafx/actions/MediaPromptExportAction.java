@@ -1,21 +1,14 @@
 package org.praisenter.javafx.actions;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.nio.file.Path;
-import java.text.MessageFormat;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.Alerts;
-import org.praisenter.javafx.MonitoredTask;
-import org.praisenter.javafx.MonitoredTaskResultStatus;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
@@ -65,61 +58,29 @@ final class MediaPromptExportAction implements AsyncAction {
     	File file = chooser.showSaveDialog(this.owner);
     	if (file != null) {
     		final Path path = file.toPath();
-    		MonitoredTask<Void> task = new MonitoredTask<Void>(MessageFormat.format(Translations.get("task.export"), name)) {
-				@Override
-				protected Void call() throws Exception {
-					this.updateProgress(-1, 0);
-					// FIXME export metadata with it? would need another set of code to read this zip then
-					byte[] buffer = new byte[1024];
-					try {
-						try (FileOutputStream fos = new FileOutputStream(path.toFile());
-							 ZipOutputStream zos = new ZipOutputStream(fos)) {
-							for (Media m : media) {
-								try (FileInputStream fis = new FileInputStream(m.getPath().toFile())) {
-									ZipEntry entry = new ZipEntry(m.getPath().getFileName().toString());
-									zos.putNextEntry(entry);
-									
-									int length;
-									while ((length = fis.read(buffer)) > 0) {
-										zos.write(buffer, 0, length);
-									}
-									
-									zos.closeEntry();
-								}
-							}
-						} catch (Exception ex) {
-							LOGGER.error("Failed to export bibles: " + ex.getMessage(), ex);
-							throw ex;
-						}
-						setResultStatus(MonitoredTaskResultStatus.SUCCESS);
-						return null;
-					} catch (Exception ex) {
-						LOGGER.error("Failed to export media.", ex);
-						setResultStatus(MonitoredTaskResultStatus.ERROR);
-						throw ex;
+    		
+    		context.getMediaLibrary().exportMedia(
+				path, 
+				this.media, 
+				() -> {
+					if (this.onSuccess != null) {
+						this.onSuccess.accept(path);
 					}
-				}
-			};
-			task.setOnSucceeded((e) -> {
-				if (this.onSuccess != null) {
-					this.onSuccess.accept(path);
-				}
-			});
-			task.setOnFailed((e) -> {
-				// show an error to the user
-				Alert alert = Alerts.exception(
-						this.owner,
-						null, 
-						null, 
-						Translations.get("media.export.error"), 
-						task.getException());
-				alert.show();
-				
-				if (this.onError != null) {
-					this.onError.accept(path, task.getException());
-				}
-			});
-    		this.context.getExecutorService().execute(task);
+				}, 
+				(error) -> {
+					// show an error to the user
+					Alert alert = Alerts.exception(
+							this.owner,
+							null, 
+							null, 
+							Translations.get("media.export.error"), 
+							error);
+					alert.show();
+					
+					if (this.onError != null) {
+						this.onError.accept(path, error);
+					}
+				});
     	}
 		return null;
 	}

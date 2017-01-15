@@ -27,19 +27,21 @@ package org.praisenter.media;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Iterator;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.utility.ImageManipulator;
+import org.praisenter.utility.StringManipulator;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Metadata;
@@ -62,21 +64,24 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 	@Override
 	public Path getTarget(Path location, String name, MediaType type) {
 		// by default it should be the file name in the location
-		return location.resolve(name);
+		Path path = location.resolve(name);
+		// but we need to confirm if the file name already exists
+		if (Files.exists(path)) {
+			// generate a UUID based name
+			String ext = FilenameUtils.getExtension(name);
+			name = StringManipulator.toFileName(UUID.randomUUID()) + ext;
+			path = location.resolve(name);
+		}
+		return path;
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.media.MediaImportFilter#filter(java.nio.file.Path, java.nio.file.Path, org.praisenter.media.MediaType)
 	 */
 	@Override
-	public void filter(Path source, Path target, MediaType type) throws TranscodeException, FileAlreadyExistsException, IOException {
+	public void filter(Path source, Path target, MediaType type) throws TranscodeException, IOException {
 		// just copy from source to target
-		
-		// see if we can use the same name in the destination file
-		if (Files.exists(target)) {
-			throw new FileAlreadyExistsException(target.toAbsolutePath().toString());
-		}
-		
+
 		// for image media we want to go ahead and fix any rotation stuff
 		if (type == MediaType.IMAGE) {
 			// attempt to get the orientation of the image

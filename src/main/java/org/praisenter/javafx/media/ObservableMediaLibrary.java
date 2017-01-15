@@ -32,17 +32,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
 import org.praisenter.ThumbnailSettings;
-import org.praisenter.javafx.MonitoredTask;
-import org.praisenter.javafx.MonitoredTaskResultStatus;
-import org.praisenter.javafx.MonitoredThreadPoolExecutor;
+import org.praisenter.javafx.PraisenterMultiTask;
+import org.praisenter.javafx.PraisenterTask;
+import org.praisenter.javafx.PraisenterTaskResultStatus;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
@@ -70,20 +68,15 @@ public final class ObservableMediaLibrary {
 	/** The media library */
 	private final MediaLibrary library;
 	
-	/** The thread service */
-	private final MonitoredThreadPoolExecutor service;
-	
 	/** The observable list of media items */
 	private final ObservableList<MediaListItem> items;
 	
 	/**
 	 * Minimal constructor.
 	 * @param library the media library
-	 * @param service the thread service
 	 */
-	public ObservableMediaLibrary(MediaLibrary library, MonitoredThreadPoolExecutor service) {
+	public ObservableMediaLibrary(MediaLibrary library) {
 		this.library = library;
-		this.service = service;
 		this.items = FXCollections.observableArrayList();
 		
 		// initialize the observable list
@@ -94,23 +87,10 @@ public final class ObservableMediaLibrary {
 	
 	/**
 	 * Attempts to add the given path to the media library.
-	 * <p>
-	 * The onSuccess method will be called when the import is successful. The
-	 * onError method will be called if an error occurs during import.
-	 * <p>
-	 * An item is added to the observable list to represent that the media is
-	 * being imported. This item will be removed when the import completes, whether
-	 * its successful or not.
-	 * <p>
-	 * The observable list of media will be updated if the media is successfully
-	 * added to the MediaLibrary. Both the update of the observable list and
-	 * the onSuccess and onError methods will be performed on the Java FX UI
-	 * thread.
 	 * @param path the path to the media
-	 * @param onSuccess called when the media is imported successfully
-	 * @param onError called when the media failed to be imported
+	 * @return {@link PraisenterTask}&lt;{@link Media}&gt;
 	 */
-	public void add(Path path, Consumer<Media> onSuccess, BiConsumer<Path, Throwable> onError) {
+	public PraisenterTask<Media> add(Path path) {
 		// create a "loading" item
 		final MediaListItem loading = new MediaListItem(path.getFileName().toString());
 		
@@ -121,335 +101,261 @@ public final class ObservableMediaLibrary {
 		});
 		
 		// execute the add on a different thread
-		MonitoredTask<Media> task = new MonitoredTask<Media>("Import '" + path.getFileName() + "'") {
+		PraisenterTask<Media> task = new PraisenterTask<Media>("Import '" + path.getFileName() + "'") {
 			@Override
 			protected Media call() throws Exception {
 				updateProgress(-1, 0);
 				try {
 					Media media = library.add(path);
-					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return media;
 				} catch (Exception ex) {
-					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					setResultStatus(PraisenterTaskResultStatus.ERROR);
 					throw ex;
 				}
 			}
 		};
-		task.setOnSucceeded((e) -> {
+		task.onSucceededProperty().addListener((e) -> {
 			Media media = task.getValue();
 			loading.setMedia(media);
 			loading.setName(media.getName());
 			loading.setLoaded(true);
-			if (onSuccess != null) {
-				onSuccess.accept(media);
-			}
 		});
-		task.setOnFailed((e) -> {
+		task.onFailedProperty().addListener((e) -> {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to import media " + path.toAbsolutePath().toString(), ex);
 			items.remove(loading);
-			if (onError != null) {
-				onError.accept(path, ex);
-			}
 		});
-		this.service.execute(task);
+		return task;
 	}
-	
-	/**
-	 * Attempts to add the given paths to the media library.
-	 * <p>
-	 * The onSuccess method will be called with all the successful imports. The
-	 * onError method will be called with all the failed imports. The onSuccess
-	 * and onError methods will only be called if there's at least one successful
-	 * or one failed import respectively.
-	 * <p>
-	 * Items are added to the observable list to represent that the media is
-	 * being imported. These items will be removed when the import completes, whether
-	 * they are successful or not.
-	 * <p>
-	 * The observable list of media will be updated if the media is successfully
-	 * added to the MediaLibrary. Both the update of the observable list and
-	 * the onSuccess and onError methods will be performed on the Java FX UI
-	 * thread.
-	 * @param paths the paths to the media
-	 * @param onSuccess called with the media that was imported successfully
-	 * @param onError called with the media that failed to be imported
-	 */
-	public void add(List<Path> paths, Consumer<List<Media>> onSuccess, Consumer<List<FailedOperation<Path>>> onError) {
-		// create the "loading" items
-		Map<Path, MediaListItem> loadings = new HashMap<Path, MediaListItem>();
-		for (Path path : paths) {
-			loadings.put(path, new MediaListItem(path.getFileName().toString()));
-		}
-		
-		// changes to the list should be done on the FX UI Thread
-		Fx.runOnFxThead(() -> {
-			// add it to the items list
-			items.addAll(loadings.values());
-		});
-		
-		List<Media> successes = new ArrayList<Media>();
-		List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
-		
-		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " media" : "Import '" + paths.get(0).getFileName() + "'") {
-			@Override
-			protected Void call() throws Exception {
-				updateProgress(0, paths.size());
-				
-				long i = 1;
-				int errorCount = 0;
-				for (Path path : paths) {
-					MediaListItem item = loadings.get(path);
-					try {
-						Media media = library.add(path);
-						successes.add(media);
-						Fx.runOnFxThead(() -> {
-							// update the item
-							item.setMedia(media);
-							item.setName(media.getName());
-							item.setLoaded(true);
-						});
-					} catch (Exception ex) {
-						LOGGER.error("Failed to import media " + path.toAbsolutePath().toString(), ex);
-						failures.add(new FailedOperation<Path>(path, ex));
-						Fx.runOnFxThead(() -> {
-							// remove the loading item
-							items.remove(item);
-						});
-						errorCount++;
-					}
-					updateProgress(i++, paths.size());
-				}
-				
-				// set the result status based on the number of errors we got
-				if (errorCount == 0) {
-					this.setResultStatus(MonitoredTaskResultStatus.SUCCESS);
-				} else if (errorCount == paths.size()) {
-					this.setResultStatus(MonitoredTaskResultStatus.ERROR);
-				} else {
-					this.setResultStatus(MonitoredTaskResultStatus.WARNING);
-				}
-				
-				return null;
-			}
-		};
-		task.setOnSucceeded((e) -> {
-			// notify successes and failures
-			if (onSuccess != null && successes.size() > 0) {
-				onSuccess.accept(successes);
-			}
-			if (onError != null && failures.size() > 0) {
-				onError.accept(failures);
-			}
-		});
-		task.setOnFailed((e) -> {
-			// this shouldn't happen because we should catch all exceptions
-			// inside the task, but lets put it here just in case
-			Throwable ex = task.getException();
-			LOGGER.error("Failed to finish import", ex);
-			failures.add(new FailedOperation<Path>(null, ex));
-			if (onError != null) {
-				onError.accept(failures);
-			}
-		});
-		this.service.execute(task);
-	}
-	
+//	
+//	/**
+//	 * Attempts to add the given paths to the media library.
+//	 * @param paths the paths to the media
+//	 * @return {@link PraisenterMultiTask}&lt;List&lt;{@link Media}&gt;, Path&gt;
+//	 */
+//	public PraisenterMultiTask<List<Media>, Path> add(List<Path> paths) {
+//		// create the "loading" items
+//		final Map<Path, MediaListItem> loadings = new HashMap<Path, MediaListItem>();
+//		for (Path path : paths) {
+//			loadings.put(path, new MediaListItem(path.getFileName().toString()));
+//		}
+//		
+//		// changes to the list should be done on the FX UI Thread
+//		Fx.runOnFxThead(() -> {
+//			// add it to the items list
+//			items.addAll(loadings.values());
+//		});
+//		
+//		// execute the add on a different thread
+//		PraisenterMultiTask<List<Media>, Path> task = new PraisenterMultiTask<List<Media>, Path>(paths.size() > 1 ? "Import " + paths.size() + " media" : "Import '" + paths.get(0).getFileName() + "'") {
+//			@Override
+//			protected List<Media> call() throws Exception {
+//				updateProgress(-1, 0);
+//				
+//				List<Media> successes = new ArrayList<Media>();
+//				List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
+//				
+//				int successCount = 0;
+//				for (Path path : paths) {
+//					// check for cancellation
+//					if (!this.isCancelled()) {
+//						// add the media
+//						MediaListItem loading = loadings.get(path);
+//						try {
+//							Media media = library.add(path);
+//							successes.add(media);
+//							successCount++;
+//							
+//							// update the item UI
+//							Fx.runOnFxThead(() -> {
+//								loading.setMedia(media);
+//								loading.setName(media.getName());
+//								loading.setLoaded(true);
+//							});
+//						} catch (Exception ex) {
+//							LOGGER.error("Failed to import media " + path.toAbsolutePath().toString(), ex);
+//							failures.add(new FailedOperation<Path>(path, ex));
+//							
+//							// remove the loading item UI
+//							Fx.runOnFxThead(() -> {
+//								items.remove(loading);
+//							});
+//						}
+//					} else {
+//						// add the path as failed (cancelled)
+//						failures.add(new FailedOperation<Path>(path, null));
+//					}
+//				}
+//				
+//				// set the result status based on the number of successes
+//				if (successCount == paths.size()) {
+//					this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
+//				} else if (successCount == 0) {
+//					this.setResultStatus(PraisenterTaskResultStatus.ERROR);
+//				} else {
+//					this.setResultStatus(PraisenterTaskResultStatus.WARNING);
+//				}
+//				
+//				// set any failures
+//				this.setResultFailures(failures);
+//				
+//				// return the list of successes
+//				return successes;
+//			}
+//		};
+//		task.onFailedProperty().addListener((e) -> {
+//			// this shouldn't happen because we should catch all exceptions
+//			// inside the task, but lets put it here just in case
+//			Throwable ex = task.getException();
+//			LOGGER.error("Failed to finish import", ex);
+//		});
+//		return task;
+//	}
+//	
 	/**
 	 * Attempts to remove the given media from the media library.
-	 * <p>
-	 * The onSuccess method will be called on success. The onError method will be 
-	 * called if an error occurs during removal.
-	 * <p>
-	 * Removing a media item is typically a fast operation so no loading items are
-	 * added.
-	 * <p>
-	 * The observable list of media will be updated if the media is successfully
-	 * removed from the MediaLibrary. Both the update of the observable list and
-	 * the onSuccess and onError methods will be performed on the Java FX UI
-	 * thread.
 	 * @param media the media to remove
-	 * @param onSuccess called when the media is successfully removed
-	 * @param onError called when the media failed to be removed
+	 * @return {@link PraisenterTask}&lt;Void&gt;
 	 */
-	public void remove(Media media, Runnable onSuccess, BiConsumer<Media, Throwable> onError) {
+	public PraisenterTask<Void> remove(Media media) {
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>("Remove '" + media.getName() + "'") {
+		PraisenterTask<Void> task = new PraisenterTask<Void>("Remove '" + media.getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
 				try {
 					library.remove(media);
-					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return null;
 				} catch (Exception ex) {
-					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					setResultStatus(PraisenterTaskResultStatus.ERROR);
 					throw ex;
 				}
 			}
 		};
-		task.setOnSucceeded((e) -> {
+		task.onSucceededProperty().addListener((e) -> {
 			MediaListItem success = this.getListItem(media);
-			items.remove(success);
-			if (onSuccess != null) {
-				onSuccess.run();
+			if (success != null) {
+				items.remove(success);
 			}
 		});
-		task.setOnFailed((e) -> {
+		task.onFailedProperty().addListener((e) -> {
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to remove media " + media.getName(), ex);
-			if (onError != null) {
-				onError.accept(media, ex);
-			}
 		});
-		this.service.execute(task);
+		return task;
 	}
-	
-	/**
-	 * Attempts to remove all the given media from the media library.
-	 * <p>
-	 * The onSuccess method will be called on success. The onError method will be 
-	 * called if an error occurs during removal.
-	 * <p>
-	 * Removing a media item is typically a fast operation so no loading items are
-	 * added.
-	 * <p>
-	 * The observable list of media will be updated if the media is successfully
-	 * removed from the MediaLibrary. Both the update of the observable list and
-	 * the onSuccess and onError methods will be performed on the Java FX UI
-	 * thread.
-	 * @param media the media to remove
-	 * @param onSuccess called when the media is successfully removed
-	 * @param onError called when the media failed to be removed
-	 */
-	public void remove(List<Media> media, Runnable onSuccess, Consumer<List<FailedOperation<Media>>> onError) {
-		List<FailedOperation<Media>> failures = new ArrayList<FailedOperation<Media>>();
-		
-		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(media.size() > 1 ? "Remove " + media.size() + " media" : "Remove '" + media.get(0).getName() + "'") {
-			@Override
-			protected Void call() throws Exception {
-				updateProgress(0, media.size());
-				
-				long i = 1;
-				int errorCount = 0;
-				for (Media m : media) {
-					try {
-						library.remove(m);
-						Fx.runOnFxThead(() -> {
-							// remove the item
-							items.remove(getListItem(m));
-						});
-					} catch (Exception ex) {
-						LOGGER.error("Failed to remove media " + m.getName(), ex);
-						failures.add(new FailedOperation<Media>(m, ex));
-						errorCount++;
-					}
-					updateProgress(i, media.size());
-				}
-
-				// set the result status based on the number of errors we got
-				if (errorCount == 0) {
-					this.setResultStatus(MonitoredTaskResultStatus.SUCCESS);
-				} else if (errorCount == media.size()) {
-					this.setResultStatus(MonitoredTaskResultStatus.ERROR);
-				} else {
-					this.setResultStatus(MonitoredTaskResultStatus.WARNING);
-				}
-				
-				return null;
-			}
-		};
-		task.setOnSucceeded((e) -> {
-			// notify any failures
-			if (onError != null && failures.size() > 0) {
-				onError.accept(failures);
-			}
-		});
-		task.setOnFailed((e) -> {
-			// this shouldn't happen because we should catch all exceptions
-			// inside the task, but lets put it here just in case
-			Throwable ex = task.getException();
-			LOGGER.error("Failed to complete removal", ex);
-			failures.add(new FailedOperation<Media>(null, ex));
-			if (onError != null) {
-				onError.accept(failures);
-			}
-		});
-		this.service.execute(task);
-	}
-	
+//	
+//	/**
+//	 * Attempts to remove all the given media from the media library.
+//	 * @param media the media to remove
+//	 * @return {@link PraisenterMultiTask}&lt;Void, {@link Media}&gt;
+//	 */
+//	public PraisenterMultiTask<Void, Media> remove(List<Media> media) {
+//		// execute the add on a different thread
+//		PraisenterMultiTask<Void, Media> task = new PraisenterMultiTask<Void, Media>(media.size() > 1 ? "Remove " + media.size() + " media" : "Remove '" + media.get(0).getName() + "'") {
+//			@Override
+//			protected Void call() throws Exception {
+//				updateProgress(-1, 0);
+//				
+//				List<FailedOperation<Media>> failures = new ArrayList<FailedOperation<Media>>();
+//				
+//				int successCount = 0;
+//				for (Media m : media) {
+//					// check for cancellation
+//					if (!this.isCancelled()) {
+//						// remove the media
+//						try {
+//							library.remove(m);
+//							successCount++;
+//							
+//							// remove the item UI
+//							Fx.runOnFxThead(() -> {
+//								MediaListItem item = getListItem(m);
+//								if (item != null) {
+//									items.remove(item);
+//								}
+//							});
+//						} catch (Exception ex) {
+//							LOGGER.error("Failed to remove media " + m.getName(), ex);
+//							failures.add(new FailedOperation<Media>(m, ex));
+//						}
+//					} else {
+//						// add the media as failed (cancelled)
+//						failures.add(new FailedOperation<Media>(m, null));
+//					}
+//				}
+//
+//				// set the result status based on the number of successes
+//				if (successCount == media.size()) {
+//					this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
+//				} else if (successCount == 0) {
+//					this.setResultStatus(PraisenterTaskResultStatus.ERROR);
+//				} else {
+//					this.setResultStatus(PraisenterTaskResultStatus.WARNING);
+//				}
+//
+//				// set any failures
+//				this.setResultFailures(failures);
+//				
+//				return null;
+//			}
+//		};
+//		task.onFailedProperty().addListener((e) -> {
+//			// this shouldn't happen because we should catch all exceptions
+//			// inside the task, but lets put it here just in case
+//			Throwable ex = task.getException();
+//			LOGGER.error("Failed to complete removal", ex);
+//		});
+//		return task;
+//	}
+//	
 	/**
 	 * Attempts to rename the given media.
-	 * <p>
-	 * The onSuccess method will be called on success. The onError method will be 
-	 * called if an error occurs during renaming (like it being in use).
-	 * <p>
-	 * Renaming a media item is typically a fast operation so no loading items are
-	 * added.
-	 * <p>
-	 * The observable list of media will be updated if the media is successfully
-	 * renamed from the MediaLibrary. Both the update of the observable list and
-	 * the onSuccess and onError methods will be performed on the Java FX UI
-	 * thread.
 	 * @param media the media to rename
 	 * @param name the new name
-	 * @param onSuccess called when the media is successfully renamed
-	 * @param onError called when the media failed to be renamed
+	 * @return {@link PraisenterTask}&lt;{@link Media}&gt;
 	 */
-	public void rename(Media media, String name, Consumer<Media> onSuccess, BiConsumer<Media, Throwable> onError) {
+	public PraisenterTask<Media> rename(Media media, String name) {
 		// execute the add on a different thread
-		MonitoredTask<Media> task = new MonitoredTask<Media>("Rename '" + media.getName() + "' to '" + name + "'") {
+		PraisenterTask<Media> task = new PraisenterTask<Media>("Rename '" + media.getName() + "' to '" + name + "'") {
 			@Override
 			protected Media call() throws Exception {
 				updateProgress(-1, 0);
 				try {
 					Media m = library.rename(media, name);
-					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return m;
 				} catch (Exception ex) {
-					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					setResultStatus(PraisenterTaskResultStatus.ERROR);
 					throw ex;
 				}
 			}
 		};
-		task.setOnSucceeded((e) -> {
+		task.onSucceededProperty().addListener((e) -> {
 			final Media m1 = task.getValue();
 			// update the list item
-			MediaListItem mi = this.getListItem(media);
-	    	
-	    	if (mi != null) {
-		    	mi.setName(m1.getName());
-		    	mi.setMedia(m1);
+			MediaListItem item = this.getListItem(media);
+	    	if (item != null) {
+		    	item.setName(m1.getName());
+		    	item.setMedia(m1);
 	    	}
-	    	
-	    	if (onSuccess != null) {
-				onSuccess.accept(m1);
-			}
 		});
-		task.setOnFailed((e) -> {
+		task.onFailedProperty().addListener((e) -> {
 			final Throwable ex = task.getException();
 			LOGGER.error("Failed to rename media " + media.getName(), ex);
-			if (onError != null) {
-				onError.accept(media, ex);
-			}
 		});
-		this.service.execute(task);
+		return task;
 	}
 
 	/**
 	 * Attempts to add the given tag to the given media.
-	 * <p>
-	 * The onSuccess method will be called on success. The onError method will be 
-	 * called if an error occurs.
 	 * @param media the media
 	 * @param tag the tag to add
-	 * @param onSuccess called when the tag is successfully added
-	 * @param onError called when the tag failed to be added
+	 * @return Task&lt;Void&gt;
 	 */
-	public void addTag(Media media, Tag tag, Consumer<Tag> onSuccess, BiConsumer<Tag, Throwable> onError) {
-		// execute the add on a different thread
+	public Task<Void> addTag(Media media, Tag tag) {
 		// NOTE: don't bother monitoring tag-add
 		Task<Void> task = new Task<Void>() {
 			@Override
@@ -458,32 +364,20 @@ public final class ObservableMediaLibrary {
 				return null;
 			}
 		};
-		task.setOnSucceeded((e) -> {
-			if (onSuccess != null) {
-				onSuccess.accept(tag);
-			}
-		});
-		task.setOnFailed((e) -> {
+		task.onFailedProperty().addListener((e) -> {
 			final Throwable ex = task.getException();
 			LOGGER.error("Failed to add tag " + tag.getName() + " to media " + media.getName(), ex);
-			if (onError != null) {
-				onError.accept(tag, ex);
-			}
 		});
-		this.service.execute(task);
+		return task;
 	}
 	
 	/**
 	 * Attempts to remove the given tag from the given media.
-	 * <p>
-	 * The onSuccess method will be called on success. The onError method will be 
-	 * called if an error occurs.
 	 * @param media the media
 	 * @param tag the tag to remove
-	 * @param onSuccess called when the tag is successfully removed
-	 * @param onError called when the tag failed to be removed
+	 * @return Task&lt;Void&gt;
 	 */
-	public void removeTag(final Media media, final Tag tag, Consumer<Tag> onSuccess, BiConsumer<Tag, Throwable> onError) {
+	public Task<Void> removeTag(Media media, Tag tag) {
 		// execute the add on a different thread
 		// NOTE: don't bother monitoring tag-remove
 		Task<Void> task = new Task<Void>() {
@@ -493,19 +387,41 @@ public final class ObservableMediaLibrary {
 				return null;
 			}
 		};
-		task.setOnSucceeded((e) -> {
-			if (onSuccess != null) {
-				onSuccess.accept(tag);
-			}
-		});
-		task.setOnFailed((e) -> {
+		task.onFailedProperty().addListener((e) -> {
 			final Throwable ex = task.getException();
 			LOGGER.error("Failed to remove tag " + tag.getName() + " from media " + media.getName(), ex);
-			if (onError != null) {
-				onError.accept(tag, ex);
-			}
 		});
-		this.service.execute(task);
+		return task;
+	}
+	
+	/**
+	 * Exports the given media to the given path.
+	 * @param path the path to export to (zip file)
+	 * @param media the media to export
+	 * @return {@link PraisenterTask}&lt;Void&gt;
+	 */
+	public PraisenterTask<Void> exportMedia(Path path, List<Media> media) {
+		// execute the add on a different thread
+		PraisenterTask<Void> task = new PraisenterTask<Void>(media.size() > 1 ? "Export " + media.size() + " media" : "Export '" + media.get(0).getName() + "'") {
+			@Override
+			protected Void call() throws Exception {
+				updateProgress(-1, 0);
+				try {
+					library.exportMedia(path, media);
+					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
+					return null;
+				} catch (Exception ex) {
+					LOGGER.error("Failed to export media.", ex);
+					setResultStatus(PraisenterTaskResultStatus.ERROR);
+					throw ex;
+				}
+			}
+		};
+		task.onFailedProperty().addListener((e) -> {
+			Throwable ex = task.getException();
+			LOGGER.error("Failed to complete export", ex);
+		});
+		return task;
 	}
 	
 	/**
@@ -518,7 +434,7 @@ public final class ObservableMediaLibrary {
 		MediaListItem mi = null;
     	for (int i = 0; i < items.size(); i++) {
     		MediaListItem item = items.get(i);
-    		if (item.getMedia().equals(media)) {
+    		if (item.isLoaded() && item.getMedia().equals(media)) {
     			mi = item;
     			break;
     		}

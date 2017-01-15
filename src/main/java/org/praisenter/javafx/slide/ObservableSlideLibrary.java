@@ -17,8 +17,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
-import org.praisenter.javafx.MonitoredTask;
-import org.praisenter.javafx.MonitoredTaskResultStatus;
+import org.praisenter.javafx.PraisenterTask;
+import org.praisenter.javafx.PraisenterTaskResultStatus;
 import org.praisenter.javafx.MonitoredThreadPoolExecutor;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.Slide;
@@ -94,16 +94,16 @@ public final class ObservableSlideLibrary {
 		});
 		
 		// execute the add on a different thread
-		MonitoredTask<Slide> task = new MonitoredTask<Slide>("Import '" + path.getFileName() + "'") {
+		PraisenterTask<Slide> task = new PraisenterTask<Slide>("Import '" + path.getFileName() + "'") {
 			@Override
 			protected Slide call() throws Exception {
 				updateProgress(-1, 0);
 				try {
 					Slide slide = library.add(path);
-					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return slide;
 				} catch (Exception ex) {
-					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					setResultStatus(PraisenterTaskResultStatus.ERROR);
 					throw ex;
 				}
 			}
@@ -165,7 +165,7 @@ public final class ObservableSlideLibrary {
 		List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " slides" : "Import '" + paths.get(0).getFileName() + "'") {
+		PraisenterTask<Void> task = new PraisenterTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " slides" : "Import '" + paths.get(0).getFileName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(0, paths.size());
@@ -196,11 +196,11 @@ public final class ObservableSlideLibrary {
 				
 				// set the result status based on the number of errors we got
 				if (errorCount == 0) {
-					this.setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 				} else if (errorCount == paths.size()) {
-					this.setResultStatus(MonitoredTaskResultStatus.ERROR);
+					this.setResultStatus(PraisenterTaskResultStatus.ERROR);
 				} else {
-					this.setResultStatus(MonitoredTaskResultStatus.WARNING);
+					this.setResultStatus(PraisenterTaskResultStatus.WARNING);
 				}
 				
 				return null;
@@ -245,16 +245,16 @@ public final class ObservableSlideLibrary {
 		slide.setThumbnail(image);
 
 		Slide copy = slide.copy(true);
-		MonitoredTask<Void> task = new MonitoredTask<Void>("Save '" + slide.getName() + "'") {
+		PraisenterTask<Void> task = new PraisenterTask<Void>("Save '" + slide.getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
 				try {
 					library.save(copy);
-					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return null;
 				} catch (Exception ex) {
-					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					setResultStatus(PraisenterTaskResultStatus.ERROR);
 					throw ex;
 				}
 			}
@@ -314,16 +314,16 @@ public final class ObservableSlideLibrary {
 	 */
 	public void remove(Slide slide, Runnable onSuccess, BiConsumer<Slide, Throwable> onError) {
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>("Remove '" + slide.getName() + "'") {
+		PraisenterTask<Void> task = new PraisenterTask<Void>("Remove '" + slide.getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
 				try {
 					library.remove(slide);
-					setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return null;
 				} catch (Exception ex) {
-					setResultStatus(MonitoredTaskResultStatus.ERROR);
+					setResultStatus(PraisenterTaskResultStatus.ERROR);
 					throw ex;
 				}
 			}
@@ -365,7 +365,7 @@ public final class ObservableSlideLibrary {
 		List<FailedOperation<Slide>> failures = new ArrayList<FailedOperation<Slide>>();
 		
 		// execute the add on a different thread
-		MonitoredTask<Void> task = new MonitoredTask<Void>(slides.size() > 1 ? "Remove " + slides.size() + " slides" : "Remove '" + slides.get(0).getName() + "'") {
+		PraisenterTask<Void> task = new PraisenterTask<Void>(slides.size() > 1 ? "Remove " + slides.size() + " slides" : "Remove '" + slides.get(0).getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(0, slides.size());
@@ -389,11 +389,11 @@ public final class ObservableSlideLibrary {
 				
 				// set the result status based on the number of errors we got
 				if (errorCount == 0) {
-					this.setResultStatus(MonitoredTaskResultStatus.SUCCESS);
+					this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 				} else if (errorCount == slides.size()) {
-					this.setResultStatus(MonitoredTaskResultStatus.ERROR);
+					this.setResultStatus(PraisenterTaskResultStatus.ERROR);
 				} else {
-					this.setResultStatus(MonitoredTaskResultStatus.WARNING);
+					this.setResultStatus(PraisenterTaskResultStatus.WARNING);
 				}
 				
 				return null;

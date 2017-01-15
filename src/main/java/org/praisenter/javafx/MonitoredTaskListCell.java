@@ -40,12 +40,12 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.paint.Color;
 
 /**
- * A list cell specifically for {@link MonitoredTask}s.
+ * A list cell specifically for {@link PraisenterTask}s.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
  */
-final class MonitoredTaskListCell extends ListCell<MonitoredTask<?>> {
+final class MonitoredTaskListCell extends ListCell<PraisenterTask<?>> {
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
@@ -53,7 +53,7 @@ final class MonitoredTaskListCell extends ListCell<MonitoredTask<?>> {
 	private final ObjectProperty<Worker.State> status = new SimpleObjectProperty<>(Worker.State.READY);
 	
 	/** The result status */
-	private final ObjectProperty<MonitoredTaskResultStatus> result = new SimpleObjectProperty<>();
+	private final ObjectProperty<PraisenterTaskResultStatus> result = new SimpleObjectProperty<>();
 	
 	/** The progress indicator while working */
 	private final ProgressIndicator indicator = new ProgressIndicator();
@@ -87,7 +87,7 @@ final class MonitoredTaskListCell extends ListCell<MonitoredTask<?>> {
 	 */
 	private void setTextGraphic() {
 		Worker.State nv = this.status.get();
-		MonitoredTaskResultStatus status = this.result.get();
+		PraisenterTaskResultStatus status = this.result.get();
 		
 		// unless the task result has been set, use the task's status
 		if (status == null) {
@@ -104,11 +104,11 @@ final class MonitoredTaskListCell extends ListCell<MonitoredTask<?>> {
 			}
 		} else {
 			// otherwise use the result status
-			if (status == MonitoredTaskResultStatus.WARNING) {
+			if (status == PraisenterTaskResultStatus.WARNING) {
 				this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.WARNING).color(Color.GOLD));
-			} else if (status == MonitoredTaskResultStatus.ERROR) {
+			} else if (status == PraisenterTaskResultStatus.ERROR) {
 				this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.REMOVE).color(Color.RED));
-			} else if (status == MonitoredTaskResultStatus.SUCCESS) {
+			} else if (status == PraisenterTaskResultStatus.SUCCESS) {
 				this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.CHECK).color(Color.LIMEGREEN));
 			} else {
 				this.setGraphic(null);
@@ -120,7 +120,7 @@ final class MonitoredTaskListCell extends ListCell<MonitoredTask<?>> {
 	 * @see javafx.scene.control.Cell#updateItem(java.lang.Object, boolean)
 	 */
 	@Override
-	protected void updateItem(MonitoredTask<?> item, boolean empty) {
+	protected void updateItem(PraisenterTask<?> item, boolean empty) {
 		super.updateItem(item, empty);
 		this.indicator.progressProperty().unbind();
 		this.status.unbind();
