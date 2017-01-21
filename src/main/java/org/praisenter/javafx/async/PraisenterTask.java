@@ -22,16 +22,15 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx;
+package org.praisenter.javafx.async;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
-import org.praisenter.FailedOperation;
+import org.praisenter.javafx.utility.Fx;
 
-import javafx.beans.InvalidationListener;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
 
 /**
@@ -40,65 +39,69 @@ import javafx.concurrent.Task;
  * @version 3.0.0
  * @since 3.0.0
  * @param <T> the task result type
- * @param <V> the task result
+ * @param <V> the task input type
  */
-public final class PraisenterMultiTask<T, V> extends PraisenterTask<Void> {
-	private final List<PraisenterTask<T>> tasks;
+public abstract class PraisenterTask<T, V> extends ExecutableTask<T> {
+	/** The task name/description */
+	private final String name;
 	
-	private final CountDownLatch latch;
+	private final V input;
+	
+	/** The task's result status */
+	private final ObjectProperty<PraisenterTaskResultStatus> resultStatus = new SimpleObjectProperty<PraisenterTaskResultStatus>();
 	
 	/**
 	 * Minimal constructor.
 	 * @param name the task name or description
 	 */
-	public PraisenterMultiTask(String name, List<PraisenterTask<T>> tasks) {
-		super(name);
-		this.tasks = tasks;
-		this.latch = new CountDownLatch(tasks.size());
-		
-		InvalidationListener listener = (obs) -> {
-			latch.countDown();
-		};
-		
-		for (Task<?> t : tasks) {
-			t.onCancelledProperty().addListener(listener);
-			t.onFailedProperty().addListener(listener);
-			t.onSucceededProperty().addListener(listener);
-		}
+	public PraisenterTask(String name, V input) {
+		this.name = name;
+		this.input = input;
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
-	protected Void call() throws Exception {
-		try {
-			latch.await();
-		} catch (Exception ex) {
-			// TODO handle
-		}
-		return null;
+	public String toString() {
+		return this.name;
 	}
 	
-	@Override
-	public void execute(ExecutorService service) {
-		for (Task<?> t : tasks) {
-			service.execute(t);
-		}
-		service.execute(this);
+	/**
+	 * Returns the task name/description.
+	 * @return String
+	 */
+	public String getName() {
+		return this.name;
+	}
+
+	public V getInput() {
+		return this.input;
 	}
 	
 	/**
 	 * Returns the result status or null if not complete.
-	 * @return List&lt;{@link FailedOperation}&lt;V&gt;&gt;
+	 * @return {@link PraisenterTaskResultStatus}
 	 */
-	public List<FailedOperation<V>> getResultFailures() {
-		if (this.failures == null) return null;
-		return Collections.unmodifiableList(this.failures);
+	public PraisenterTaskResultStatus getResultStatus() {
+		return this.resultStatus.get();
 	}
 	
 	/**
-	 * Called from sub classes to set the result failures.
-	 * @param failures the result failures
+	 * The result status property.
+	 * @return ReadOnlyObjectProperty&lt;{@link PraisenterTaskResultStatus}&gt;
 	 */
-	protected void setResultFailures(List<FailedOperation<V>> failures) {
-		this.failures = failures;
+	public ReadOnlyObjectProperty<PraisenterTaskResultStatus> resultStatusProperty() {
+		return this.resultStatus;
+	}
+	
+	/**
+	 * Called from sub classes to set the result status.
+	 * @param resultStatus the result status
+	 */
+	protected void setResultStatus(PraisenterTaskResultStatus resultStatus) {
+		Fx.runOnFxThead(() -> {
+			this.resultStatus.set(resultStatus);
+		});
 	}
 }

@@ -13,9 +13,9 @@ import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.PraisenterBibleExporter;
 import org.praisenter.javafx.Alerts;
-import org.praisenter.javafx.PraisenterTask;
-import org.praisenter.javafx.PraisenterTaskResultStatus;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.async.PraisenterTask;
+import org.praisenter.javafx.async.PraisenterTaskResultStatus;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.scene.control.Alert;

@@ -22,45 +22,21 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter;
+package org.praisenter.javafx.async;
 
 /**
- * Represents a failed asynchronous operation.
+ * Enumeration of results of a {@link PraisenterTask}.
  * @author William Bittle
  * @version 3.0.0
- * @param <T> the data type
+ * @since 3.0.0
  */
-public final class FailedOperation<T> {
-	/** The data */
-	private final T data;
+public enum PraisenterTaskResultStatus {
+	/** The task completed successfully */
+	SUCCESS,
 	
-	/** The exception */
-	private final Throwable exception;
+	/** The task partially completed or had warnings */
+	WARNING,
 	
-	/**
-	 * Full constructor.
-	 * @param data the data
-	 * @param exception the exception
-	 */
-	public FailedOperation(T data, Throwable exception) {
-		this.data = data;
-		this.exception = exception;
-	}
-	
-	/**
-	 * Returns the data for this operation.
-	 * @return T
-	 */
-	public T getData() {
-		return this.data;
-	}
-	
-	/**
-	 * Returns the exception for this operation.
-	 * @return Exception
-	 */
-	public Throwable getException() {
-		return this.exception;
-	}
-	
+	/** The task encountered an error */
+	ERROR
 }

@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx;
+package org.praisenter.javafx.async;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -49,7 +49,7 @@ import javafx.concurrent.Worker;
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
+public final class PraisenterThreadPoolExecutor extends ThreadPoolExecutor {
 	/** Keep the last X number of task results around */
 	private static final int MAXIMUM_TASK_LIST_LENGTH = 25;
 	
@@ -60,12 +60,12 @@ public final class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 	private final BooleanProperty isRunning = new SimpleBooleanProperty(false);
 	
 	/** The tasks */
-	private final ObservableList<PraisenterTask<?>> tasks = FXCollections.observableList(new LinkedList<>());
+	private final ObservableList<PraisenterTask<?, ?>> tasks = FXCollections.observableList(new LinkedList<>());
 	
 	/**
 	 * Constructor.
 	 */
-	public MonitoredThreadPoolExecutor() {
+	public PraisenterThreadPoolExecutor() {
 		super(2, 
 			10, 
 			1, 
@@ -88,7 +88,7 @@ public final class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 	 * Executes the given task.
 	 * @param task the task
 	 */
-	public void execute(PraisenterTask<?> task) {
+	public void execute(PraisenterTask<?, ?> task) {
 		super.execute(task);
 		this.updateTaskList(task);
 	}
@@ -98,7 +98,7 @@ public final class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 	 * to fit within the maximum number of tasks.
 	 * @param task
 	 */
-	private void updateTaskList(PraisenterTask<?> task) {
+	private void updateTaskList(PraisenterTask<?, ?> task) {
 		// make sure this runs on the FX thread
 		Fx.runOnFxThead(() -> {
 			// add the task
@@ -118,9 +118,9 @@ public final class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 			// trim the list of completed tasks starting
 			// from the head of the queue
 			if (tasks.size() > MAXIMUM_TASK_LIST_LENGTH) {
-				Iterator<PraisenterTask<?>> it = tasks.iterator();
+				Iterator<PraisenterTask<?, ?>> it = tasks.iterator();
 				while (it.hasNext()) {
-					PraisenterTask<?> t = it.next();
+					PraisenterTask<?, ?> t = it.next();
 					// check if its done
 					if (t.isDone()) {
 						// if so remove it
@@ -156,7 +156,7 @@ public final class MonitoredThreadPoolExecutor extends ThreadPoolExecutor {
 	 * Returns a readonly list of tasks ordered by their execution.
 	 * @return ObservableList&lt;{@link PraisenterTask}&gt;
 	 */
-	public ObservableList<PraisenterTask<?>> tasksProperty() {
+	public ObservableList<PraisenterTask<?, ?>> tasksProperty() {
 		return FXCollections.unmodifiableObservableList(this.tasks);
 	}
 }

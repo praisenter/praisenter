@@ -27,6 +27,8 @@ package org.praisenter.javafx;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.javafx.async.PraisenterTask;
+import org.praisenter.javafx.async.PraisenterTaskResultStatus;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -45,7 +47,7 @@ import javafx.scene.paint.Color;
  * @version 3.0.0
  * @since 3.0.0
  */
-final class MonitoredTaskListCell extends ListCell<PraisenterTask<?>> {
+final class MonitoredTaskListCell extends ListCell<PraisenterTask<?, ?>> {
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
@@ -120,7 +122,7 @@ final class MonitoredTaskListCell extends ListCell<PraisenterTask<?>> {
 	 * @see javafx.scene.control.Cell#updateItem(java.lang.Object, boolean)
 	 */
 	@Override
-	protected void updateItem(PraisenterTask<?> item, boolean empty) {
+	protected void updateItem(PraisenterTask<?, ?> item, boolean empty) {
 		super.updateItem(item, empty);
 		this.indicator.progressProperty().unbind();
 		this.status.unbind();

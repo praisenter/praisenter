@@ -25,22 +25,18 @@
 package org.praisenter.javafx.media;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
 import org.praisenter.ThumbnailSettings;
-import org.praisenter.javafx.PraisenterMultiTask;
-import org.praisenter.javafx.PraisenterTask;
-import org.praisenter.javafx.PraisenterTaskResultStatus;
+import org.praisenter.javafx.async.ExecutableTask;
+import org.praisenter.javafx.async.PraisenterTask;
+import org.praisenter.javafx.async.PraisenterTaskResultStatus;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
@@ -90,7 +86,7 @@ public final class ObservableMediaLibrary {
 	 * @param path the path to the media
 	 * @return {@link PraisenterTask}&lt;{@link Media}&gt;
 	 */
-	public PraisenterTask<Media> add(Path path) {
+	public PraisenterTask<Media, Path> add(Path path) {
 		// create a "loading" item
 		final MediaListItem loading = new MediaListItem(path.getFileName().toString());
 		
@@ -101,12 +97,12 @@ public final class ObservableMediaLibrary {
 		});
 		
 		// execute the add on a different thread
-		PraisenterTask<Media> task = new PraisenterTask<Media>("Import '" + path.getFileName() + "'") {
+		PraisenterTask<Media, Path> task = new PraisenterTask<Media, Path>("Import '" + path.getFileName() + "'", path) {
 			@Override
 			protected Media call() throws Exception {
 				updateProgress(-1, 0);
 				try {
-					Media media = library.add(path);
+					Media media = library.add(this.getInput());
 					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return media;
 				} catch (Exception ex) {
@@ -218,14 +214,14 @@ public final class ObservableMediaLibrary {
 	 * @param media the media to remove
 	 * @return {@link PraisenterTask}&lt;Void&gt;
 	 */
-	public PraisenterTask<Void> remove(Media media) {
+	public PraisenterTask<Void, Media> remove(Media media) {
 		// execute the add on a different thread
-		PraisenterTask<Void> task = new PraisenterTask<Void>("Remove '" + media.getName() + "'") {
+		PraisenterTask<Void, Media> task = new PraisenterTask<Void, Media>("Remove '" + media.getName() + "'", media) {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
 				try {
-					library.remove(media);
+					library.remove(this.getInput());
 					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return null;
 				} catch (Exception ex) {
@@ -246,7 +242,7 @@ public final class ObservableMediaLibrary {
 		});
 		return task;
 	}
-//	
+
 //	/**
 //	 * Attempts to remove all the given media from the media library.
 //	 * @param media the media to remove
@@ -310,21 +306,21 @@ public final class ObservableMediaLibrary {
 //		});
 //		return task;
 //	}
-//	
+	
 	/**
 	 * Attempts to rename the given media.
 	 * @param media the media to rename
 	 * @param name the new name
 	 * @return {@link PraisenterTask}&lt;{@link Media}&gt;
 	 */
-	public PraisenterTask<Media> rename(Media media, String name) {
+	public PraisenterTask<Media, String> rename(Media media, String name) {
 		// execute the add on a different thread
-		PraisenterTask<Media> task = new PraisenterTask<Media>("Rename '" + media.getName() + "' to '" + name + "'") {
+		PraisenterTask<Media, String> task = new PraisenterTask<Media, String>("Rename '" + media.getName() + "' to '" + name + "'", name) {
 			@Override
 			protected Media call() throws Exception {
 				updateProgress(-1, 0);
 				try {
-					Media m = library.rename(media, name);
+					Media m = library.rename(media, this.getInput());
 					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return m;
 				} catch (Exception ex) {
@@ -355,9 +351,9 @@ public final class ObservableMediaLibrary {
 	 * @param tag the tag to add
 	 * @return Task&lt;Void&gt;
 	 */
-	public Task<Void> addTag(Media media, Tag tag) {
+	public ExecutableTask<Void> addTag(Media media, Tag tag) {
 		// NOTE: don't bother monitoring tag-add
-		Task<Void> task = new Task<Void>() {
+		ExecutableTask<Void> task = new ExecutableTask<Void>() {
 			@Override
 			protected Void call() throws Exception {
 				library.addTag(media, tag);
@@ -377,10 +373,10 @@ public final class ObservableMediaLibrary {
 	 * @param tag the tag to remove
 	 * @return Task&lt;Void&gt;
 	 */
-	public Task<Void> removeTag(Media media, Tag tag) {
+	public ExecutableTask<Void> removeTag(Media media, Tag tag) {
 		// execute the add on a different thread
 		// NOTE: don't bother monitoring tag-remove
-		Task<Void> task = new Task<Void>() {
+		ExecutableTask<Void> task = new ExecutableTask<Void>() {
 			@Override
 			protected Void call() throws Exception {
 				library.removeTag(media, tag);
@@ -400,14 +396,14 @@ public final class ObservableMediaLibrary {
 	 * @param media the media to export
 	 * @return {@link PraisenterTask}&lt;Void&gt;
 	 */
-	public PraisenterTask<Void> exportMedia(Path path, List<Media> media) {
+	public PraisenterTask<Void, List<Media>> exportMedia(Path path, List<Media> media) {
 		// execute the add on a different thread
-		PraisenterTask<Void> task = new PraisenterTask<Void>(media.size() > 1 ? "Export " + media.size() + " media" : "Export '" + media.get(0).getName() + "'") {
+		PraisenterTask<Void, List<Media>> task = new PraisenterTask<Void, List<Media>>(media.size() > 1 ? "Export " + media.size() + " media" : "Export '" + media.get(0).getName() + "'", media) {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
 				try {
-					library.exportMedia(path, media);
+					library.exportMedia(path, this.getInput());
 					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 					return null;
 				} catch (Exception ex) {

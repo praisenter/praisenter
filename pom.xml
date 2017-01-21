@@ -7,8 +7,36 @@
   <version>3.0.0</version>
   <packaging>jar</packaging>
 
-  <name>praisenter</name>
-  <url>http://maven.apache.org</url>
+  <!-- General Project Information -->
+  <name>Praisenter</name>
+  <description>Free church presentation software package.</description>
+  <url>http://www.praisenter.org</url>
+  <inceptionYear>2014</inceptionYear>
+  <organization>
+  	<name>Praisenter</name>
+  	<url>http://www.praisenter.org</url>
+  </organization>
+  <licenses>
+  	<license>
+  		<name>GNU General Public License v3</name>
+  		<url>https://www.gnu.org/licenses/gpl-3.0.en.html</url>
+  		<distribution>manual</distribution>
+  		<comments>This is the license for the packaged software.</comments>
+  	</license>
+  	<license>
+  		<name>3-Clause BSD License</name>
+  		<url>https://opensource.org/licenses/BSD-3-Clause</url>
+  		<distribution>manual</distribution>
+  		<comments>The Praisenter code is offered under the BSD 3-clause license.</comments>
+  	</license>
+  </licenses>
+  <developers>
+  	<developer>
+  		<name>William Bittle</name>
+  		<email>william.bittle@praisenter.org</email>
+  		<timezone>America/New_York</timezone>
+  	</developer>
+  </developers>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -51,6 +51,7 @@ import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SortGraphic;
 import org.praisenter.javafx.actions.Actions;
+import org.praisenter.javafx.async.ExecutableTask;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
@@ -70,6 +71,7 @@ import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -502,11 +504,10 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 		}
 		
 		Actions.mediaPromptDelete(
-			this.context, 
+			this.context.getMediaLibrary(), 
 			this.getScene().getWindow(), 
-			items, 
-			null,
-			null);
+			items)
+		.execute(this.context.getExecutorService());
     }
     
     /**
@@ -518,11 +519,10 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     	this.pnePlayer.setMediaPlayer(null, null);
     	
     	Actions.mediaPromptRename(
-			this.context, 
+			this.context.getMediaLibrary(), 
 			this.getScene().getWindow(), 
-			media, 
-			null,
-			null);
+			media)
+    	.execute(this.context.getExecutorService());
     }
     
     /**
@@ -534,16 +534,19 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     	Media media = item.getMedia();
     	Tag tag = event.getTag();
     	
-		Actions.mediaAddTag(
-			this.context, 
+    	ExecutableTask<?> task = Actions.mediaAddTag(
+			this.context.getMediaLibrary(), 
 			this.getScene().getWindow(), 
 			media, 
-			tag,
-			null,
-			(failedTag, error) -> {
-				// remove it from the tags
-				item.getTags().remove(tag);
-			});
+			tag);
+		task.onScheduledProperty().addListener(obs -> {
+			this.context.getTags().add(tag);
+		});
+		task.onFailedProperty().addListener(obs -> {
+			// remove it from the tags
+			item.getTags().remove(tag);
+		});
+		task.execute(this.context.getExecutorService());
     }
     
     /**
@@ -555,16 +558,16 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     	Media media = item.getMedia();
     	Tag tag = event.getTag();
     	
-    	Actions.mediaAddTag(
-			this.context, 
-			this.getScene().getWindow(), 
-			media, 
-			tag,
-			null,
-			(failedTag, error) -> {
-				// add it back
-				item.getTags().add(tag);
-			});
+    	ExecutableTask<?> task = Actions.mediaDeleteTag(
+    			this.context.getMediaLibrary(), 
+    			this.getScene().getWindow(), 
+    			media, 
+    			tag);
+    		task.onFailedProperty().addListener(obs -> {
+    			// add it back to the item
+    			item.getTags().add(tag);
+    		});
+    		task.execute(this.context.getExecutorService());
     }
     
     /**

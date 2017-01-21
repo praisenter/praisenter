@@ -17,9 +17,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
-import org.praisenter.javafx.PraisenterTask;
-import org.praisenter.javafx.PraisenterTaskResultStatus;
-import org.praisenter.javafx.MonitoredThreadPoolExecutor;
+import org.praisenter.javafx.async.PraisenterThreadPoolExecutor;
+import org.praisenter.javafx.async.PraisenterTask;
+import org.praisenter.javafx.async.PraisenterTaskResultStatus;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
@@ -39,12 +39,12 @@ public final class ObservableSlideLibrary {
 	private final JavaFXSlideThumbnailGenerator thumbnailGenerator;
 	
 	/** The thread service */
-	private final MonitoredThreadPoolExecutor service;
+	private final PraisenterThreadPoolExecutor service;
 	
 	/** The observable list of slides */
 	private final ObservableList<SlideListItem> items = FXCollections.observableArrayList();
 
-	public ObservableSlideLibrary(SlideLibrary library, JavaFXSlideThumbnailGenerator thumbnailGenerator, MonitoredThreadPoolExecutor service) {
+	public ObservableSlideLibrary(SlideLibrary library, JavaFXSlideThumbnailGenerator thumbnailGenerator, PraisenterThreadPoolExecutor service) {
 		this.library = library;
 		this.thumbnailGenerator = thumbnailGenerator;
 		this.service = service;

@@ -2,29 +2,18 @@ package org.praisenter.javafx;
 
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.PopOver.ArrowLocation;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.Glyph;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.javafx.async.PraisenterTask;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.util.Callback;
 
@@ -59,12 +48,12 @@ class MainStatusBar extends HBox {
 		
 		button.setGraphic(progress);
 		
-		ListView<PraisenterTask<?>> view = new ListView<PraisenterTask<?>>(context.getExecutorService().tasksProperty());
+		ListView<PraisenterTask<?, ?>> view = new ListView<PraisenterTask<?, ?>>(context.getExecutorService().tasksProperty());
 		view.setPrefSize(200, 300);
 		view.setPlaceholder(new Label("No pending or completed tasks"));
-		view.setCellFactory(new Callback<ListView<PraisenterTask<?>>, ListCell<PraisenterTask<?>>>() {
+		view.setCellFactory(new Callback<ListView<PraisenterTask<?, ?>>, ListCell<PraisenterTask<?, ?>>>() {
 			@Override
-			public ListCell<PraisenterTask<?>> call(ListView<PraisenterTask<?>> view) {
+			public ListCell<PraisenterTask<?, ?>> call(ListView<PraisenterTask<?, ?>> view) {
 				return new MonitoredTaskListCell();
 			}
 		});

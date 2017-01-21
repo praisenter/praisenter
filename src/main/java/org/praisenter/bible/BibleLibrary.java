@@ -75,6 +75,7 @@ import org.apache.lucene.search.spans.SpanQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.praisenter.Constants;
+import org.praisenter.LockMap;
 import org.praisenter.SearchType;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
@@ -152,6 +153,10 @@ public final class BibleLibrary {
 	/** The bibles */
 	private final Map<UUID, Bible> bibles;
 	
+	// locks
+	
+	private final LockMap<String> locks;
+	
 	/**
 	 * Sets up a new {@link BibleLibrary} at the given path.
 	 * @param path the root path to the bible library
@@ -172,13 +177,14 @@ public final class BibleLibrary {
 		this.path = path;
 		this.indexPath = this.path.resolve(INDEX_DIR);
 		this.bibles = new ConcurrentHashMap<UUID, Bible>();
+		this.locks = new LockMap<String>();
 	}
 	
 	/**
 	 * Performs the initialization required by the bible library.
 	 * @throws IOException if an IO error occurs
 	 */
-	private synchronized void initialize() throws IOException {
+	private void initialize() throws IOException {
 		// verify paths exist
 		Files.createDirectories(this.path);
 		Files.createDirectories(this.indexPath);
@@ -281,6 +287,10 @@ public final class BibleLibrary {
 		return documents;
 	}
 	
+	private Object getIndexLock() {
+		return this.locks.get("INDEX");
+	}
+	
 	/**
 	 * Re-indexes all bibles.
 	 * @throws IOException if an IO error occurs
@@ -355,52 +365,56 @@ public final class BibleLibrary {
 	 * @throws JAXBException if an error occurs while writing the bible to XML
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized void save(Bible bible) throws JAXBException, IOException {
+	public void save(Bible bible) throws JAXBException, IOException {
 		// update the last modified date
 		bible.lastModifiedDate = Instant.now();
 		
-		// check for old bible data
-		Bible old = this.bibles.get(bible.getId());
-		if (old != null) {
-			// then its an update
-			bible.path = old.path;
-		}
-		
-		// generate the file name and path
-		String name = createFileName(bible);
-		Path path = this.path.resolve(name + EXTENSION);
-		
-		// check if the old path was given
-		if (bible.path == null) {
-			// this indicates that we need to save a new one so
-			// verify there doesn't exist a bible with this name already
-			if (Files.exists(path)) {
-				// just use the UUID
-				path = this.path.resolve(StringManipulator.toFileName(bible.getId()) + EXTENSION);
+		synchronized(this.locks.get(bible.getId().toString())) {
+			// check for old bible data
+			Bible old = this.bibles.get(bible.getId());
+			if (old != null) {
+				// then its an update
+				bible.path = old.path;
 			}
-		} else if (!bible.path.equals(path)) {
-			// this indicates that we need to rename the file
-			Files.move(bible.path, path);
+			
+			// generate the file name and path
+			String name = createFileName(bible);
+			Path path = this.path.resolve(name + EXTENSION);
+			
+			// check if the old path was given
+			if (bible.path == null) {
+				// this indicates that we need to save a new one so
+				// verify there doesn't exist a bible with this name already
+				if (Files.exists(path)) {
+					// just use the UUID
+					path = this.path.resolve(StringManipulator.toFileName(bible.getId()) + EXTENSION);
+				}
+			} else if (!bible.path.equals(path)) {
+				// this indicates that we need to rename the file
+				Files.move(bible.path, path);
+			}
+			
+			// set the path
+			bible.path = path;
+		
+			// save the bible		
+			XmlIO.save(bible.path, bible);
+
+			this.bibles.put(bible.getId(), bible);
 		}
-		
-		// set the path
-		bible.path = path;
-		
-		// save the bible		
-		XmlIO.save(bible.path, bible);
 		
 		// add to/update the lucene index
-		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
-		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-			// update the fields
-			List<Document> documents = createDocuments(bible);
-			
-			// update the document
-			writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.getId().toString()), documents);
+		synchronized (this.getIndexLock()) {
+			IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
+			config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+				// update the fields
+				List<Document> documents = createDocuments(bible);
+				
+				// update the document
+				writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.getId().toString()), documents);
+			}
 		}
-		
-		this.bibles.put(bible.getId(), bible);
 	}
 	
 	/**
@@ -409,35 +423,30 @@ public final class BibleLibrary {
 	 * @param id the id of the bible
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized void remove(UUID id) throws IOException {
-		if (id == null) return;
-		// remove from the lucene index so it can't be found
-		// in searches any more
-		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
-		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-			// update the document
-			writer.deleteDocuments(new Term(FIELD_BIBLE_ID, id.toString()));
+	public void remove(Bible bible) throws IOException {
+		if (bible == null) return;
+		UUID id = bible.getId();
+		
+		synchronized (this.getIndexLock()) {
+			// remove from the lucene index so it can't be found
+			// in searches any more
+			IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
+			config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+				// update the document
+				writer.deleteDocuments(new Term(FIELD_BIBLE_ID, id.toString()));
+			}
 		}
 		
-		// remove it from the map
-		Bible bible = this.bibles.remove(id);
-		
-		// delete the file
-		if (bible != null) {
-			Files.deleteIfExists(bible.path);
+		synchronized (this.locks.get(id.toString())) {
+			// remove it from the map
+			this.bibles.remove(id);
+			
+			// delete the file
+			if (bible != null) {
+				Files.deleteIfExists(bible.path);
+			}
 		}
-	}
-	
-	/**
-	 * Removes the given bible from the bible library and deletes the file on
-	 * the file system.
-	 * @param bible the bible to remove
-	 * @throws IOException if an IO error occurs
-	 */
-	public synchronized void remove(Bible bible) throws IOException {
-		if (bible == null || bible.getId() == null) return;
-		remove(bible.getId());
 	}
 	
 	/**
@@ -479,17 +488,17 @@ public final class BibleLibrary {
 	 * @return List&lt;{@link BibleSearchResult}&gt;
 	 * @throws IOException if an IO error occurs
 	 */
-	public List<BibleSearchResult> search(UUID bibleId, Short bookNumber, String text, SearchType type) throws IOException {
+	public List<BibleSearchResult> search(BibleSearchCriteria criteria) throws IOException {
 		// verify text
-		if (text == null || text.length() == 0) {
+		if (criteria == null || criteria.getText() == null || criteria.getText().length() == 0) {
 			return Collections.emptyList();
 		}
 		
 		// tokenize
-		List<String> tokens = this.getTokens(text, FIELD_TEXT);
+		List<String> tokens = this.getTokens(criteria.getText(), FIELD_TEXT);
 		
 		// search
-		return this.search(getQueryForTokens(bibleId, bookNumber, FIELD_TEXT, tokens, type));
+		return this.search(getQueryForTokens(criteria.getBibleId(), criteria.getBookNumber(), FIELD_TEXT, tokens, criteria.getType()));
 	}
 
 	/**
@@ -580,7 +589,7 @@ public final class BibleLibrary {
 	 * @see <a href="http://stackoverflow.com/questions/25814445/accessing-words-around-a-positional-match-in-lucene">Accessing words around a positional match in Lucene</a>
 	 * @see BibleSearchResult
 	 */
-	private synchronized List<BibleSearchResult> search(Query query) throws IOException {
+	private List<BibleSearchResult> search(Query query) throws IOException {
 		List<BibleSearchResult> results = new ArrayList<BibleSearchResult>();
 		
 		try (IndexReader reader = DirectoryReader.open(this.directory)) {

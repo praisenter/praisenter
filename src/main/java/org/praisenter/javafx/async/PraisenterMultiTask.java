@@ -22,21 +22,64 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx;
+package org.praisenter.javafx.async;
+
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+
+import javafx.beans.InvalidationListener;
+import javafx.concurrent.Task;
 
 /**
- * Enumeration of results of a {@link PraisenterTask}.
+ * Represents a task that can be monitored and that has a name and resulting status.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
+ * @param <T> the task result type
+ * @param <V> the task result
  */
-public enum PraisenterTaskResultStatus {
-	/** The task completed successfully */
-	SUCCESS,
+public class PraisenterMultiTask<T, V> extends PraisenterTask<Void, Void> {
+	private final List<PraisenterTask<T, V>> tasks;
 	
-	/** The task partially completed or had warnings */
-	WARNING,
+	private final CountDownLatch latch;
 	
-	/** The task encountered an error */
-	ERROR
+	/**
+	 * Minimal constructor.
+	 * @param name the task name or description
+	 */
+	public PraisenterMultiTask(String name, List<PraisenterTask<T, V>> tasks) {
+		super(name, null);
+		this.tasks = tasks;
+		this.latch = new CountDownLatch(tasks.size());
+		
+		InvalidationListener listener = (obs) -> {
+			latch.countDown();
+		};
+		
+		for (Task<?> t : tasks) {
+			t.onCancelledProperty().addListener(listener);
+			t.onFailedProperty().addListener(listener);
+			t.onSucceededProperty().addListener(listener);
+		}
+	}
+	
+	@Override
+	protected Void call() throws Exception {
+		try {
+			latch.await();
+		} catch (Exception ex) {
+			// TODO handle
+			ex.printStackTrace();
+		}
+		return null;
+	}
+	
+	@Override
+	public void execute(ExecutorService service) {
+		for (Task<?> t : this.tasks) {
+			service.execute(t);
+		}
+		service.execute(this);
+	}
 }
