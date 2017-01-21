@@ -1,19 +1,13 @@
 package org.praisenter.javafx;
 
 import java.awt.Desktop;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.MessageFormat;
-import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.FailedOperation;
 import org.praisenter.bible.Bible;
 import org.praisenter.javafx.actions.Actions;
 import org.praisenter.javafx.bible.BibleEditorPane;
@@ -22,7 +16,6 @@ import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.screen.Display;
 import org.praisenter.javafx.slide.SlideLibraryPane;
 import org.praisenter.javafx.slide.editor.SlideEditorPane;
-import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.Slide;
 
@@ -31,10 +24,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.FileChooser;
-import javafx.stage.Modality;
 
 public final class MainPane extends BorderPane implements ApplicationPane {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -106,7 +96,9 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				this.navigate(this.bibleLibraryPane);
 				break;
 			case REINDEX_BIBLES:
-				this.context.getBibleLibrary().reindex(null, null);
+				this.context.getBibleLibrary()
+					.reindex()
+					.execute(this.context.getExecutorService());
 				break;
 			case EDIT:
 				// get the data to know what to do
@@ -202,7 +194,10 @@ public final class MainPane extends BorderPane implements ApplicationPane {
      * Event handler for importing bibles.
      */
     private final void promptBibleImport() {
-    	Actions.biblePromptImport(this.context, this.getScene().getWindow(), null, null);
+    	Actions.biblePromptImport(
+    			this.context.getBibleLibrary(), 
+    			this.getScene().getWindow())
+    	.execute(this.context.getExecutorService());
     }
     
     /**
@@ -211,7 +206,8 @@ public final class MainPane extends BorderPane implements ApplicationPane {
     private final void promptMediaImport() {
     	Actions.mediaPromptImport(
     			this.context.getMediaLibrary(), 
-    			this.getScene().getWindow());
+    			this.getScene().getWindow())
+    	.execute(this.context.getExecutorService());
     }
     
 	// NAVIGATION

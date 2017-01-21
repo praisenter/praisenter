@@ -39,8 +39,8 @@ import javafx.concurrent.Task;
  * @param <T> the task result type
  * @param <V> the task result
  */
-public class PraisenterMultiTask<T, V> extends PraisenterTask<Void, Void> {
-	private final List<PraisenterTask<T, V>> tasks;
+public class PraisenterMultiTask<T extends PraisenterTask<?, ?>> extends PraisenterTask<List<T>, Void> {
+	private final List<T> tasks;
 	
 	private final CountDownLatch latch;
 	
@@ -48,7 +48,7 @@ public class PraisenterMultiTask<T, V> extends PraisenterTask<Void, Void> {
 	 * Minimal constructor.
 	 * @param name the task name or description
 	 */
-	public PraisenterMultiTask(String name, List<PraisenterTask<T, V>> tasks) {
+	public PraisenterMultiTask(String name, List<T> tasks) {
 		super(name, null);
 		this.tasks = tasks;
 		this.latch = new CountDownLatch(tasks.size());
@@ -65,14 +65,16 @@ public class PraisenterMultiTask<T, V> extends PraisenterTask<Void, Void> {
 	}
 	
 	@Override
-	protected Void call() throws Exception {
+	protected List<T> call() throws Exception {
 		try {
 			latch.await();
+			this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 		} catch (Exception ex) {
+			this.setResultStatus(PraisenterTaskResultStatus.ERROR);
 			// TODO handle
 			ex.printStackTrace();
 		}
-		return null;
+		return this.tasks;
 	}
 	
 	@Override

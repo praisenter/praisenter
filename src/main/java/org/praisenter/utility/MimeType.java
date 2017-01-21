@@ -10,7 +10,8 @@ import org.apache.logging.log4j.Logger;
 import org.apache.tika.Tika;
 
 public enum MimeType {
-	XML("application/xml");
+	XML("application/xml"),
+	ZIP("application/zip");
 	
 	private static final Logger LOGGER = LogManager.getLogger();
 	

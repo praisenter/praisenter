@@ -1,18 +1,19 @@
 package org.praisenter.javafx.async;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
-public final class EmptyPraisenterMultiTask<T, V> extends PraisenterMultiTask<T, V> {
+public final class EmptyPraisenterMultiTask<T extends PraisenterTask<?, ?>> extends PraisenterMultiTask<T> {
 	private EmptyPraisenterMultiTask() {
 		super("", null);
 	}
 	
-	public static final <T, V> EmptyPraisenterMultiTask<T, V> create() {
-		return new EmptyPraisenterMultiTask<T, V>();
+	public static final <T extends PraisenterTask<?, ?>> EmptyPraisenterMultiTask<T> create() {
+		return new EmptyPraisenterMultiTask<T>();
 	}
 	
 	@Override
-	protected Void call() throws Exception {
+	protected List<T> call() throws Exception {
 		this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
 		return null;
 	}

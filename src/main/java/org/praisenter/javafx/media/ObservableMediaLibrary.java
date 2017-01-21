@@ -34,6 +34,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
 import org.praisenter.ThumbnailSettings;
+import org.praisenter.javafx.async.EmptyExecutableTask;
+import org.praisenter.javafx.async.EmptyPraisenterTask;
 import org.praisenter.javafx.async.ExecutableTask;
 import org.praisenter.javafx.async.PraisenterTask;
 import org.praisenter.javafx.async.PraisenterTaskResultStatus;
@@ -43,7 +45,6 @@ import org.praisenter.media.MediaLibrary;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 
 /**
  * Represents an Observable wrapper to the media library.
@@ -80,362 +81,296 @@ public final class ObservableMediaLibrary {
 			this.items.add(new MediaListItem(media));
         }
 	}
-	
-	/**
-	 * Attempts to add the given path to the media library.
-	 * @param path the path to the media
-	 * @return {@link PraisenterTask}&lt;{@link Media}&gt;
-	 */
-	public PraisenterTask<Media, Path> add(Path path) {
-		// create a "loading" item
-		final MediaListItem loading = new MediaListItem(path.getFileName().toString());
-		
-		// changes to the list should be done on the FX UI Thread
-		Fx.runOnFxThead(() -> {
-			// add it to the items list
-			items.add(loading);
-		});
-		
-		// execute the add on a different thread
-		PraisenterTask<Media, Path> task = new PraisenterTask<Media, Path>("Import '" + path.getFileName() + "'", path) {
-			@Override
-			protected Media call() throws Exception {
-				updateProgress(-1, 0);
-				try {
-					Media media = library.add(this.getInput());
-					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-					return media;
-				} catch (Exception ex) {
-					setResultStatus(PraisenterTaskResultStatus.ERROR);
-					throw ex;
-				}
-			}
-		};
-		task.onSucceededProperty().addListener((e) -> {
-			Media media = task.getValue();
-			loading.setMedia(media);
-			loading.setName(media.getName());
-			loading.setLoaded(true);
-		});
-		task.onFailedProperty().addListener((e) -> {
-			Throwable ex = task.getException();
-			LOGGER.error("Failed to import media " + path.toAbsolutePath().toString(), ex);
-			items.remove(loading);
-		});
-		return task;
-	}
-//	
-//	/**
-//	 * Attempts to add the given paths to the media library.
-//	 * @param paths the paths to the media
-//	 * @return {@link PraisenterMultiTask}&lt;List&lt;{@link Media}&gt;, Path&gt;
-//	 */
-//	public PraisenterMultiTask<List<Media>, Path> add(List<Path> paths) {
-//		// create the "loading" items
-//		final Map<Path, MediaListItem> loadings = new HashMap<Path, MediaListItem>();
-//		for (Path path : paths) {
-//			loadings.put(path, new MediaListItem(path.getFileName().toString()));
-//		}
-//		
-//		// changes to the list should be done on the FX UI Thread
-//		Fx.runOnFxThead(() -> {
-//			// add it to the items list
-//			items.addAll(loadings.values());
-//		});
-//		
-//		// execute the add on a different thread
-//		PraisenterMultiTask<List<Media>, Path> task = new PraisenterMultiTask<List<Media>, Path>(paths.size() > 1 ? "Import " + paths.size() + " media" : "Import '" + paths.get(0).getFileName() + "'") {
-//			@Override
-//			protected List<Media> call() throws Exception {
-//				updateProgress(-1, 0);
-//				
-//				List<Media> successes = new ArrayList<Media>();
-//				List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
-//				
-//				int successCount = 0;
-//				for (Path path : paths) {
-//					// check for cancellation
-//					if (!this.isCancelled()) {
-//						// add the media
-//						MediaListItem loading = loadings.get(path);
-//						try {
-//							Media media = library.add(path);
-//							successes.add(media);
-//							successCount++;
-//							
-//							// update the item UI
-//							Fx.runOnFxThead(() -> {
-//								loading.setMedia(media);
-//								loading.setName(media.getName());
-//								loading.setLoaded(true);
-//							});
-//						} catch (Exception ex) {
-//							LOGGER.error("Failed to import media " + path.toAbsolutePath().toString(), ex);
-//							failures.add(new FailedOperation<Path>(path, ex));
-//							
-//							// remove the loading item UI
-//							Fx.runOnFxThead(() -> {
-//								items.remove(loading);
-//							});
-//						}
-//					} else {
-//						// add the path as failed (cancelled)
-//						failures.add(new FailedOperation<Path>(path, null));
-//					}
-//				}
-//				
-//				// set the result status based on the number of successes
-//				if (successCount == paths.size()) {
-//					this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-//				} else if (successCount == 0) {
-//					this.setResultStatus(PraisenterTaskResultStatus.ERROR);
-//				} else {
-//					this.setResultStatus(PraisenterTaskResultStatus.WARNING);
-//				}
-//				
-//				// set any failures
-//				this.setResultFailures(failures);
-//				
-//				// return the list of successes
-//				return successes;
-//			}
-//		};
-//		task.onFailedProperty().addListener((e) -> {
-//			// this shouldn't happen because we should catch all exceptions
-//			// inside the task, but lets put it here just in case
-//			Throwable ex = task.getException();
-//			LOGGER.error("Failed to finish import", ex);
-//		});
-//		return task;
-//	}
-//	
-	/**
-	 * Attempts to remove the given media from the media library.
-	 * @param media the media to remove
-	 * @return {@link PraisenterTask}&lt;Void&gt;
-	 */
-	public PraisenterTask<Void, Media> remove(Media media) {
-		// execute the add on a different thread
-		PraisenterTask<Void, Media> task = new PraisenterTask<Void, Media>("Remove '" + media.getName() + "'", media) {
-			@Override
-			protected Void call() throws Exception {
-				updateProgress(-1, 0);
-				try {
-					library.remove(this.getInput());
-					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-					return null;
-				} catch (Exception ex) {
-					setResultStatus(PraisenterTaskResultStatus.ERROR);
-					throw ex;
-				}
-			}
-		};
-		task.onSucceededProperty().addListener((e) -> {
-			MediaListItem success = this.getListItem(media);
-			if (success != null) {
-				items.remove(success);
-			}
-		});
-		task.onFailedProperty().addListener((e) -> {
-			Throwable ex = task.getException();
-			LOGGER.error("Failed to remove media " + media.getName(), ex);
-		});
-		return task;
-	}
 
-//	/**
-//	 * Attempts to remove all the given media from the media library.
-//	 * @param media the media to remove
-//	 * @return {@link PraisenterMultiTask}&lt;Void, {@link Media}&gt;
-//	 */
-//	public PraisenterMultiTask<Void, Media> remove(List<Media> media) {
-//		// execute the add on a different thread
-//		PraisenterMultiTask<Void, Media> task = new PraisenterMultiTask<Void, Media>(media.size() > 1 ? "Remove " + media.size() + " media" : "Remove '" + media.get(0).getName() + "'") {
-//			@Override
-//			protected Void call() throws Exception {
-//				updateProgress(-1, 0);
-//				
-//				List<FailedOperation<Media>> failures = new ArrayList<FailedOperation<Media>>();
-//				
-//				int successCount = 0;
-//				for (Media m : media) {
-//					// check for cancellation
-//					if (!this.isCancelled()) {
-//						// remove the media
-//						try {
-//							library.remove(m);
-//							successCount++;
-//							
-//							// remove the item UI
-//							Fx.runOnFxThead(() -> {
-//								MediaListItem item = getListItem(m);
-//								if (item != null) {
-//									items.remove(item);
-//								}
-//							});
-//						} catch (Exception ex) {
-//							LOGGER.error("Failed to remove media " + m.getName(), ex);
-//							failures.add(new FailedOperation<Media>(m, ex));
-//						}
-//					} else {
-//						// add the media as failed (cancelled)
-//						failures.add(new FailedOperation<Media>(m, null));
-//					}
-//				}
-//
-//				// set the result status based on the number of successes
-//				if (successCount == media.size()) {
-//					this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-//				} else if (successCount == 0) {
-//					this.setResultStatus(PraisenterTaskResultStatus.ERROR);
-//				} else {
-//					this.setResultStatus(PraisenterTaskResultStatus.WARNING);
-//				}
-//
-//				// set any failures
-//				this.setResultFailures(failures);
-//				
-//				return null;
-//			}
-//		};
-//		task.onFailedProperty().addListener((e) -> {
-//			// this shouldn't happen because we should catch all exceptions
-//			// inside the task, but lets put it here just in case
-//			Throwable ex = task.getException();
-//			LOGGER.error("Failed to complete removal", ex);
-//		});
-//		return task;
-//	}
-	
-	/**
-	 * Attempts to rename the given media.
-	 * @param media the media to rename
-	 * @param name the new name
-	 * @return {@link PraisenterTask}&lt;{@link Media}&gt;
-	 */
-	public PraisenterTask<Media, String> rename(Media media, String name) {
-		// execute the add on a different thread
-		PraisenterTask<Media, String> task = new PraisenterTask<Media, String>("Rename '" + media.getName() + "' to '" + name + "'", name) {
-			@Override
-			protected Media call() throws Exception {
-				updateProgress(-1, 0);
-				try {
-					Media m = library.rename(media, this.getInput());
-					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-					return m;
-				} catch (Exception ex) {
-					setResultStatus(PraisenterTaskResultStatus.ERROR);
-					throw ex;
-				}
-			}
-		};
-		task.onSucceededProperty().addListener((e) -> {
-			final Media m1 = task.getValue();
-			// update the list item
-			MediaListItem item = this.getListItem(media);
-	    	if (item != null) {
-		    	item.setName(m1.getName());
-		    	item.setMedia(m1);
-	    	}
-		});
-		task.onFailedProperty().addListener((e) -> {
-			final Throwable ex = task.getException();
-			LOGGER.error("Failed to rename media " + media.getName(), ex);
-		});
-		return task;
-	}
-
-	/**
-	 * Attempts to add the given tag to the given media.
-	 * @param media the media
-	 * @param tag the tag to add
-	 * @return Task&lt;Void&gt;
-	 */
-	public ExecutableTask<Void> addTag(Media media, Tag tag) {
-		// NOTE: don't bother monitoring tag-add
-		ExecutableTask<Void> task = new ExecutableTask<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				library.addTag(media, tag);
-				return null;
-			}
-		};
-		task.onFailedProperty().addListener((e) -> {
-			final Throwable ex = task.getException();
-			LOGGER.error("Failed to add tag " + tag.getName() + " to media " + media.getName(), ex);
-		});
-		return task;
-	}
-	
-	/**
-	 * Attempts to remove the given tag from the given media.
-	 * @param media the media
-	 * @param tag the tag to remove
-	 * @return Task&lt;Void&gt;
-	 */
-	public ExecutableTask<Void> removeTag(Media media, Tag tag) {
-		// execute the add on a different thread
-		// NOTE: don't bother monitoring tag-remove
-		ExecutableTask<Void> task = new ExecutableTask<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				library.removeTag(media, tag);
-				return null;
-			}
-		};
-		task.onFailedProperty().addListener((e) -> {
-			final Throwable ex = task.getException();
-			LOGGER.error("Failed to remove tag " + tag.getName() + " from media " + media.getName(), ex);
-		});
-		return task;
-	}
-	
-	/**
-	 * Exports the given media to the given path.
-	 * @param path the path to export to (zip file)
-	 * @param media the media to export
-	 * @return {@link PraisenterTask}&lt;Void&gt;
-	 */
-	public PraisenterTask<Void, List<Media>> exportMedia(Path path, List<Media> media) {
-		// execute the add on a different thread
-		PraisenterTask<Void, List<Media>> task = new PraisenterTask<Void, List<Media>>(media.size() > 1 ? "Export " + media.size() + " media" : "Export '" + media.get(0).getName() + "'", media) {
-			@Override
-			protected Void call() throws Exception {
-				updateProgress(-1, 0);
-				try {
-					library.exportMedia(path, this.getInput());
-					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-					return null;
-				} catch (Exception ex) {
-					LOGGER.error("Failed to export media.", ex);
-					setResultStatus(PraisenterTaskResultStatus.ERROR);
-					throw ex;
-				}
-			}
-		};
-		task.onFailedProperty().addListener((e) -> {
-			Throwable ex = task.getException();
-			LOGGER.error("Failed to complete export", ex);
-		});
-		return task;
-	}
-	
 	/**
 	 * Returns the media list item for the given media or null if not found.
 	 * @param media the media
 	 * @return {@link MediaListItem}
 	 */
 	private MediaListItem getListItem(Media media) {
-		if (media == null) return null;
+		if (media == null) {
+			return null;
+		}
 		MediaListItem mi = null;
     	for (int i = 0; i < items.size(); i++) {
     		MediaListItem item = items.get(i);
-    		if (item.isLoaded() && item.getMedia().equals(media)) {
+    		if (item != null && 
+    			item.isLoaded() && 
+    			item.getMedia() != null && 
+    			item.getMedia().equals(media)) {
     			mi = item;
     			break;
     		}
     	}
     	return mi;
+	}
+	
+	/**
+	 * Attempts to add the given path to the media library.
+	 * @param path the path to the media
+	 * @return {@link PraisenterTask}&lt;{@link Media}, Path&gt;
+	 */
+	public PraisenterTask<Media, Path> add(Path path) {
+		// sanity check
+		if (path != null) {
+			// create a "loading" item
+			final MediaListItem loading = new MediaListItem(path.getFileName().toString());
+			
+			// changes to the list should be done on the FX UI Thread
+			Fx.runOnFxThead(() -> {
+				// add it to the items list
+				items.add(loading);
+			});
+			
+			// execute the add on a different thread
+			PraisenterTask<Media, Path> task = new PraisenterTask<Media, Path>("Import '" + path.getFileName() + "'", path) {
+				@Override
+				protected Media call() throws Exception {
+					updateProgress(-1, 0);
+					try {
+						Media media = library.add(this.getInput());
+						setResultStatus(PraisenterTaskResultStatus.SUCCESS);
+						return media;
+					} catch (Exception ex) {
+						setResultStatus(PraisenterTaskResultStatus.ERROR);
+						throw ex;
+					}
+				}
+			};
+			task.onSucceededProperty().addListener((e) -> {
+				Media media = task.getValue();
+				loading.setMedia(media);
+				loading.setName(media.getName());
+				loading.setLoaded(true);
+			});
+			task.onFailedProperty().addListener((e) -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to import media " + path.toAbsolutePath().toString(), ex);
+				items.remove(loading);
+			});
+			return task;
+		}
+		return EmptyPraisenterTask.create();
+	}
+
+	/**
+	 * Attempts to remove the given media from the media library.
+	 * @param media the media to remove
+	 * @return {@link PraisenterTask}&lt;Void, {@link Media}&gt;
+	 */
+	public PraisenterTask<Void, Media> remove(Media media) {
+		// sanity check
+		if (media != null) {
+			// execute the add on a different thread
+			PraisenterTask<Void, Media> task = new PraisenterTask<Void, Media>("Remove '" + media.getName() + "'", media) {
+				@Override
+				protected Void call() throws Exception {
+					updateProgress(-1, 0);
+					try {
+						library.remove(this.getInput());
+						setResultStatus(PraisenterTaskResultStatus.SUCCESS);
+						return null;
+					} catch (Exception ex) {
+						setResultStatus(PraisenterTaskResultStatus.ERROR);
+						throw ex;
+					}
+				}
+			};
+			task.onSucceededProperty().addListener((e) -> {
+				MediaListItem success = this.getListItem(media);
+				if (success != null) {
+					items.remove(success);
+				}
+			});
+			task.onFailedProperty().addListener((e) -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to remove media " + media.getName(), ex);
+			});
+			return task;
+		}
+		return EmptyPraisenterTask.create();
+	}
+
+	/**
+	 * Attempts to rename the given media.
+	 * @param media the media to rename
+	 * @param name the new name
+	 * @return {@link PraisenterTask}&lt;{@link Media}, String&gt;
+	 */
+	public PraisenterTask<Media, String> rename(Media media, String name) {
+		// sanity check
+		if (media != null && name != null && name.length() > 0) {
+			// execute the add on a different thread
+			PraisenterTask<Media, String> task = new PraisenterTask<Media, String>("Rename '" + media.getName() + "' to '" + name + "'", name) {
+				@Override
+				protected Media call() throws Exception {
+					updateProgress(-1, 0);
+					String name = this.getInput();
+					try {
+						Media m = library.rename(media, name);
+						setResultStatus(PraisenterTaskResultStatus.SUCCESS);
+						return m;
+					} catch (Exception ex) {
+						setResultStatus(PraisenterTaskResultStatus.ERROR);
+						throw ex;
+					}
+				}
+			};
+			task.onSucceededProperty().addListener((e) -> {
+				final Media m1 = task.getValue();
+				// update the list item
+				MediaListItem item = this.getListItem(media);
+		    	if (item != null) {
+			    	item.setName(m1.getName());
+			    	item.setMedia(m1);
+		    	}
+			});
+			task.onFailedProperty().addListener((e) -> {
+				final Throwable ex = task.getException();
+				LOGGER.error("Failed to rename media " + media.getName(), ex);
+			});
+			return task;
+		}
+		return EmptyPraisenterTask.create();
+	}
+
+	// tags
+	
+	/**
+	 * Attempts to add the given tag to the given media.
+	 * @param media the media
+	 * @param tag the tag to add
+	 * @return {@link ExecutableTask}&lt;Void&gt;
+	 */
+	public ExecutableTask<Void> addTag(Media media, Tag tag) {
+		// sanity check
+		if (media != null && tag != null) {
+			// NOTE: don't bother monitoring tag-add
+			ExecutableTask<Void> task = new ExecutableTask<Void>() {
+				@Override
+				protected Void call() throws Exception {
+					library.addTag(media, tag);
+					return null;
+				}
+			};
+			task.onFailedProperty().addListener((e) -> {
+				final Throwable ex = task.getException();
+				LOGGER.error("Failed to add tag " + tag.getName() + " to media " + media.getName(), ex);
+			});
+			return task;
+		}
+		return EmptyExecutableTask.create();
+	}
+	
+	/**
+	 * Attempts to remove the given tag from the given media.
+	 * @param media the media
+	 * @param tag the tag to remove
+	 * @return {@link ExecutableTask}&lt;Void&gt;
+	 */
+	public ExecutableTask<Void> removeTag(Media media, Tag tag) {
+		// sanity check
+		if (media != null && tag != null) {
+			// execute the add on a different thread
+			// NOTE: don't bother monitoring tag-remove
+			ExecutableTask<Void> task = new ExecutableTask<Void>() {
+				@Override
+				protected Void call() throws Exception {
+					library.removeTag(media, tag);
+					return null;
+				}
+			};
+			task.onFailedProperty().addListener((e) -> {
+				final Throwable ex = task.getException();
+				LOGGER.error("Failed to remove tag " + tag.getName() + " from media " + media.getName(), ex);
+			});
+			return task;
+		}
+		return EmptyExecutableTask.create();
+	}
+	
+	// import/export
+	
+	/**
+	 * Exports the given media to the given path.
+	 * @param path the path to export to (zip file)
+	 * @param media the media to export
+	 * @return {@link PraisenterTask}&lt;Void, List&lt;{@link Media}&gt;&gt;
+	 */
+	public PraisenterTask<Void, List<Media>> exportMedia(Path path, List<Media> media) {
+		// sanity check
+		if (path != null && media != null) {
+			// execute the add on a different thread
+			PraisenterTask<Void, List<Media>> task = new PraisenterTask<Void, List<Media>>(media.size() > 1 ? "Export " + media.size() + " media" : "Export '" + media.get(0).getName() + "'", media) {
+				@Override
+				protected Void call() throws Exception {
+					updateProgress(-1, 0);
+					try {
+						library.exportMedia(path, this.getInput());
+						setResultStatus(PraisenterTaskResultStatus.SUCCESS);
+						return null;
+					} catch (Exception ex) {
+						LOGGER.error("Failed to export media.", ex);
+						setResultStatus(PraisenterTaskResultStatus.ERROR);
+						throw ex;
+					}
+				}
+			};
+			task.onFailedProperty().addListener((e) -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to complete export", ex);
+			});
+			return task;
+		}
+		return EmptyPraisenterTask.create();
+	}
+
+	/**
+	 * Imports the given media.
+	 * @param path the path to import
+	 * @return {@link PraisenterTask}&lt;List&lt;{@link Media}&gt;, Path&gt;
+	 */
+	public PraisenterTask<List<Media>, Path> importMedia(Path path) {
+		// sanity check
+		if (path != null) {
+			// create a "loading" item
+			final MediaListItem loading = new MediaListItem(path.getFileName().toString());
+			
+			// changes to the list should be done on the FX UI Thread
+			Fx.runOnFxThead(() -> {
+				// add it to the items list
+				items.add(loading);
+			});
+			
+			// execute the add on a different thread
+			PraisenterTask<List<Media>, Path> task = new PraisenterTask<List<Media>, Path>("Importing", path) {
+				@Override
+				protected List<Media> call() throws Exception {
+					updateProgress(-1, 0);
+					try {
+						List<Media> media = library.importMedia(this.getInput());
+						setResultStatus(PraisenterTaskResultStatus.SUCCESS);
+						return media;
+					} catch (Exception ex) {
+						LOGGER.error("Failed to export media.", ex);
+						setResultStatus(PraisenterTaskResultStatus.ERROR);
+						throw ex;
+					}
+				}
+			};
+			task.onSucceededProperty().addListener(obs -> {
+				items.remove(loading);
+				for (Media media : task.getValue()) {
+					items.add(new MediaListItem(media));
+				}
+			});
+			task.onFailedProperty().addListener(obs -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to import media: " + path.toString(), ex);
+			});
+			return task;
+		}
+		return EmptyPraisenterTask.create();
 	}
 	
 	// other

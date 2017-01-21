@@ -392,11 +392,10 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 			}
 			
 			Actions.bibleImport(
-					this.context, 
+					this.context.getBibleLibrary(), 
 					this.getScene().getWindow(), 
-					paths, 
-					null, 
-					null);
+					paths)
+			.execute(this.context.getExecutorService());
 		}
 		event.setDropCompleted(true);
 		event.consume();
@@ -415,11 +414,10 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		}
 		
 		Actions.biblePromptDelete(
-				this.context, 
+				this.context.getBibleLibrary(), 
 				this.getScene().getWindow(), 
-				bibles, 
-				null, 
-				null);
+				bibles)
+		.execute(this.context.getExecutorService());
 	}
 
     /**
@@ -428,11 +426,10 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
      */
     private final void promptRename(Bible bible) {
     	Actions.biblePromptRename(
-    			this.context, 
+    			this.context.getBibleLibrary(), 
     			this.getScene().getWindow(), 
-    			bible, 
-				null, 
-				null);
+    			bible)
+    	.execute(this.context.getExecutorService());
     }
     
     /**
@@ -469,11 +466,10 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 					Bible bible = this.context.getBibleLibrary().get((UUID)id);
 					
 					Actions.bibleCopy(
-							this.context, 
+							this.context.getBibleLibrary(), 
 							this.getScene().getWindow(),
-							bible, 
-							null, 
-							null);
+							bible)
+					.execute(this.context.getExecutorService());
 				}
 			}
 		}
@@ -492,11 +488,10 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		}
     	
     	Actions.biblePromptExport(
-    			this.context, 
+    			this.context.getBibleLibrary(), 
     			this.getScene().getWindow(), 
-    			bibles, 
-				null, 
-				null);
+    			bibles)
+    	.execute(this.context.getExecutorService());
     }
     
     /**

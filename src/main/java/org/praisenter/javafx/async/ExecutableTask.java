@@ -12,5 +12,4 @@ public abstract class ExecutableTask<T> extends Task<T> {
 	public void execute(ExecutorService service) {
 		service.execute(this);
 	}
-	
 }

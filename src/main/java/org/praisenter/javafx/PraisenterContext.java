@@ -107,7 +107,7 @@ public final class PraisenterContext {
 		// create a thread pool that we can reuse all over the app
 		this.executor = new PraisenterThreadPoolExecutor();
 		this.mediaLibrary = new ObservableMediaLibrary(media);
-		this.bibleLibrary = new ObservableBibleLibrary(bibles, this.executor);
+		this.bibleLibrary = new ObservableBibleLibrary(bibles);
 		// FIXME move the thumbnail settings to the normal SlideLibrary
 		this.slideLibrary = new ObservableSlideLibrary(slides, new JavaFXSlideThumbnailGenerator(100, 100, this), this.executor);
 		

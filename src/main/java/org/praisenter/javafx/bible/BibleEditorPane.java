@@ -49,6 +49,7 @@ import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.actions.Actions;
+import org.praisenter.javafx.async.PraisenterTask;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
@@ -857,14 +858,14 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	private void save() {
 		this.unsavedChanges = false;
 		
-		Actions.bibleSave(
-			this.context, 
+		PraisenterTask<Bible, Bible> task = Actions.bibleSave(
+			this.context.getBibleLibrary(), 
 			this.getScene().getWindow(), 
-			this.getBible(), 
-			null, 
-			(bible, error) -> {
-				this.unsavedChanges = true;
-			});
+			this.getBible());
+		task.onFailedProperty().addListener(obs -> {
+			this.unsavedChanges = true;
+		});
+		task.execute(this.context.getExecutorService());
 	}
 	
 	/**
@@ -873,31 +874,33 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	private void promptSaveAs() {
 		this.unsavedChanges = false;
 
-		Actions.biblePromptSaveAs(
-			this.context, 
+		PraisenterTask<Bible, Bible> task = Actions.biblePromptSaveAs(
+			this.context.getBibleLibrary(), 
 			this.getScene().getWindow(), 
-			this.getBible(), 
-			(Bible saved) -> {
-				// make the current bible being edited act
-				// as the one we saved so that any subsequent
-				// saves save to this one and so that we don't
-				// lose any changes made by the user in the
-				// while the save as action was processing
-				this.bible.get().as(saved);
-				// store the value of unsavedChanges
-				boolean moreChanges = this.unsavedChanges;
-				// manually update the name field
-				this.txtName.setText(saved.getName());
-				// did the user make changes while the save was happening?
-				if (!moreChanges) {
-					// make sure changing the name field doesn't
-					// flag it as unsaved
-					this.unsavedChanges = false;
-				}
-			}, 
-			(failed, error) -> {
-				this.unsavedChanges = true;
-			});
+			this.getBible());
+		task.onFailedProperty().addListener(obs -> {
+			Bible saved = task.getValue();
+			// make the current bible being edited act
+			// as the one we saved so that any subsequent
+			// saves save to this one and so that we don't
+			// lose any changes made by the user in the
+			// while the save as action was processing
+			this.bible.get().as(saved);
+			// store the value of unsavedChanges
+			boolean moreChanges = this.unsavedChanges;
+			// manually update the name field
+			this.txtName.setText(saved.getName());
+			// did the user make changes while the save was happening?
+			if (!moreChanges) {
+				// make sure changing the name field doesn't
+				// flag it as unsaved
+				this.unsavedChanges = false;
+			}
+		});
+		task.onFailedProperty().addListener(obs -> {
+			this.unsavedChanges = true;
+		});
+		task.execute(this.context.getExecutorService());
 	}
 	
 	/**

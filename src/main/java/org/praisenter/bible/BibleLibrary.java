@@ -292,28 +292,6 @@ public final class BibleLibrary {
 	}
 	
 	/**
-	 * Re-indexes all bibles.
-	 * @throws IOException if an IO error occurs
-	 */
-	public synchronized void reindex() throws IOException {
-		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-		config.setOpenMode(OpenMode.CREATE);
-		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-			for (Bible bible : this.bibles.values()) {
-				try {
-					// add the data to the document
-					List<Document> documents = createDocuments(bible);
-					// update the document
-					writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.getId().toString()), documents);
-				} catch (Exception e) {
-					// make sure its not in the index
-					LOGGER.warn("Failed to update the bible in the lucene index '" + bible.path.toAbsolutePath().toString() + "'", e);
-				}
-			}
-		}
-	}
-	
-	/**
 	 * Returns the bible for the given id or null if not found.
 	 * @param id the bible id
 	 * @return {@link Bible}
@@ -337,26 +315,6 @@ public final class BibleLibrary {
 	 */
 	public int size() {
 		return this.bibles.size();
-	}
-	
-	/**
-	 * Returns true if the given id is in the bible library.
-	 * @param id the bible id
-	 * @return boolean
-	 */
-	public boolean contains(UUID id) {
-		if (id == null) return false;
-		return this.bibles.containsKey(id);
-	}
-	
-	/**
-	 * Returns true if the given bible is in the bible library.
-	 * @param bible the bible
-	 * @return boolean
-	 */
-	public boolean contains(Bible bible) {
-		if (bible == null || bible.getId() == null) return false;
-		return this.bibles.containsKey(bible.getId());
 	}
 	
 	/**
@@ -418,14 +376,15 @@ public final class BibleLibrary {
 	}
 	
 	/**
-	 * Removes the given bible id from the bible library and deletes the file on
-	 * the file system.
-	 * @param id the id of the bible
+	 * Removes the given bible from the bible library, deletes the file on
+	 * the file system, and removes it's data from the lucene index.
+	 * @param bible the bible to remove
 	 * @throws IOException if an IO error occurs
 	 */
 	public void remove(Bible bible) throws IOException {
 		if (bible == null) return;
 		UUID id = bible.getId();
+		if (id == null) return;
 		
 		synchronized (this.getIndexLock()) {
 			// remove from the lucene index so it can't be found
@@ -476,15 +435,36 @@ public final class BibleLibrary {
 		
 		return name;
 	}
+
+	/**
+	 * Re-indexes all bibles.
+	 * @throws IOException if an IO error occurs
+	 */
+	public void reindex() throws IOException {
+		synchronized (this.getIndexLock()) {
+			IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
+			config.setOpenMode(OpenMode.CREATE);
+			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+				for (Bible bible : this.bibles.values()) {
+					try {
+						// add the data to the document
+						List<Document> documents = createDocuments(bible);
+						// update the document
+						writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.getId().toString()), documents);
+					} catch (Exception e) {
+						// make sure its not in the index
+						LOGGER.warn("Failed to update the bible in the lucene index '" + bible.path.toAbsolutePath().toString() + "'", e);
+					}
+				}
+			}
+		}
+	}
 	
 	// searching
 	
 	/**
-	 * Searches this bible library for the given text using the given search type.
-	 * @param bibleId the id of the bible to search; or null to search all
-	 * @param bookNumber the book number of the book to search; or null to search all
-	 * @param text the search text
-	 * @param type the search type
+	 * Searches this bible library for the given criteria.
+	 * @param criteria the search criteria
 	 * @return List&lt;{@link BibleSearchResult}&gt;
 	 * @throws IOException if an IO error occurs
 	 */
@@ -498,7 +478,7 @@ public final class BibleLibrary {
 		List<String> tokens = this.getTokens(criteria.getText(), FIELD_TEXT);
 		
 		// search
-		return this.search(getQueryForTokens(criteria.getBibleId(), criteria.getBookNumber(), FIELD_TEXT, tokens, criteria.getType()));
+		return this.search(getQueryForTokens(criteria.getBibleId(), criteria.getBookNumber(), FIELD_TEXT, tokens, criteria.getType()), criteria.getMaximumResults());
 	}
 
 	/**
@@ -584,18 +564,19 @@ public final class BibleLibrary {
 	/**
 	 * Runs the given lucene query and returns a list of bible search results.
 	 * @param query the lucene query to execute
+	 * @param maxResults the maximum results to return
 	 * @return List&lt;{@link BibleSearchResult}&gt;
 	 * @throws IOException if an IO error occurs
 	 * @see <a href="http://stackoverflow.com/questions/25814445/accessing-words-around-a-positional-match-in-lucene">Accessing words around a positional match in Lucene</a>
 	 * @see BibleSearchResult
 	 */
-	private List<BibleSearchResult> search(Query query) throws IOException {
+	private List<BibleSearchResult> search(Query query, int maxResults) throws IOException {
 		List<BibleSearchResult> results = new ArrayList<BibleSearchResult>();
 		
 		try (IndexReader reader = DirectoryReader.open(this.directory)) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			
-			TopDocs result = searcher.search(query, 250);
+			TopDocs result = searcher.search(query, maxResults + 1);
 			ScoreDoc[] docs = result.scoreDocs;
 			
 			Scorer scorer = new QueryScorer(query);

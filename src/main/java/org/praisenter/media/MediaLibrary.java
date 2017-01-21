@@ -698,13 +698,20 @@ public final class MediaLibrary {
 		return imported;
 	}
 	
+	/**
+	 * Exports the given media to the given path.
+	 * @param path the path; a zip file
+	 * @param media the media to export
+	 * @throws FileNotFoundException if the given path is not a file or cannot be created
+	 * @throws ZipException if an error occurs while building the zip file
+	 * @throws IOException if an IO error occurs
+	 */
 	public void exportMedia(Path path, List<Media> media) throws FileNotFoundException, ZipException, IOException {
 		long stamp = this.exportLock.writeLock();
 		
 		byte[] buffer = new byte[1024];
 		int length;
-		
-		// TODO locking
+
 		try (FileOutputStream fos = new FileOutputStream(path.toFile());
 			 ZipOutputStream zos = new ZipOutputStream(fos)) {
 			for (Media m : media) {

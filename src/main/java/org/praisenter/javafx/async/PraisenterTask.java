@@ -24,14 +24,11 @@
  */
 package org.praisenter.javafx.async;
 
-import java.util.concurrent.ExecutorService;
-
 import org.praisenter.javafx.utility.Fx;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.concurrent.Task;
 
 /**
  * Represents a task that can be monitored and that has a name and resulting status.
@@ -45,6 +42,7 @@ public abstract class PraisenterTask<T, V> extends ExecutableTask<T> {
 	/** The task name/description */
 	private final String name;
 	
+	/** The task input */
 	private final V input;
 	
 	/** The task's result status */
@@ -53,6 +51,7 @@ public abstract class PraisenterTask<T, V> extends ExecutableTask<T> {
 	/**
 	 * Minimal constructor.
 	 * @param name the task name or description
+	 * @param input the task input
 	 */
 	public PraisenterTask(String name, V input) {
 		this.name = name;
@@ -75,6 +74,10 @@ public abstract class PraisenterTask<T, V> extends ExecutableTask<T> {
 		return this.name;
 	}
 
+	/**
+	 * Returns the input for this task.
+	 * @return V
+	 */
 	public V getInput() {
 		return this.input;
 	}

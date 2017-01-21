@@ -71,7 +71,6 @@ import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -563,11 +562,11 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     			this.getScene().getWindow(), 
     			media, 
     			tag);
-    		task.onFailedProperty().addListener(obs -> {
-    			// add it back to the item
-    			item.getTags().add(tag);
-    		});
-    		task.execute(this.context.getExecutorService());
+		task.onFailedProperty().addListener(obs -> {
+			// add it back to the item
+			item.getTags().add(tag);
+		});
+		task.execute(this.context.getExecutorService());
     }
     
     /**
@@ -616,11 +615,11 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     			}
     			
     			Actions.mediaPromptExport(
-    					this.context, 
+    					this.context.getMediaLibrary(), 
     					this.getScene().getWindow(), 
-    					media, 
-    					null,
-    					null);
+    					media)
+    			.execute(this.context.getExecutorService());
+    			
     			break;
     		default:
     			break;
