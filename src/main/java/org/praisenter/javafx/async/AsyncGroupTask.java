@@ -24,87 +24,68 @@
  */
 package org.praisenter.javafx.async;
 
-import org.praisenter.javafx.utility.Fx;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.InvalidationListener;
+import javafx.concurrent.Task;
 
 /**
  * Represents a task that can be monitored and that has a name and resulting status.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
- * @param <T> the task result type
- * @param <V> the task input type
+ * @param <T> the task type
  */
-public abstract class PraisenterTask<T, V> extends ExecutableTask<T> {
-	/** The task name/description */
-	private final String name;
+public class AsyncGroupTask<T extends AsyncTask<?>> extends AsyncTask<List<T>> {
+	private final List<T> tasks;
 	
-	/** The task input */
-	private final V input;
-	
-	/** The task's result status */
-	private final ObjectProperty<PraisenterTaskResultStatus> resultStatus = new SimpleObjectProperty<PraisenterTaskResultStatus>();
+	private final CountDownLatch latch;
 	
 	/**
 	 * Minimal constructor.
 	 * @param name the task name or description
-	 * @param input the task input
 	 */
-	public PraisenterTask(String name, V input) {
-		this.name = name;
-		this.input = input;
+	public AsyncGroupTask(List<T> tasks) {
+		this(null, tasks);
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
+	/**
+	 * Minimal constructor.
+	 * @param name the task name or description
 	 */
+	public AsyncGroupTask(String name, List<T> tasks) {
+		super(name);
+		this.tasks = tasks;
+		this.latch = new CountDownLatch(tasks != null ? tasks.size() : 0);
+		
+		if (tasks != null) {
+			for (AsyncTask<?> t : tasks) {
+				t.addCompletedHandler((e) -> {
+					latch.countDown();
+				});
+			}
+		}
+	}
+	
 	@Override
-	public String toString() {
-		return this.name;
+	protected List<T> call() throws Exception {
+		try {
+			this.latch.await();
+			return this.tasks;
+		} catch (Exception ex) {
+			throw ex;
+		}
 	}
 	
-	/**
-	 * Returns the task name/description.
-	 * @return String
-	 */
-	public String getName() {
-		return this.name;
-	}
-
-	/**
-	 * Returns the input for this task.
-	 * @return V
-	 */
-	public V getInput() {
-		return this.input;
-	}
-	
-	/**
-	 * Returns the result status or null if not complete.
-	 * @return {@link PraisenterTaskResultStatus}
-	 */
-	public PraisenterTaskResultStatus getResultStatus() {
-		return this.resultStatus.get();
-	}
-	
-	/**
-	 * The result status property.
-	 * @return ReadOnlyObjectProperty&lt;{@link PraisenterTaskResultStatus}&gt;
-	 */
-	public ReadOnlyObjectProperty<PraisenterTaskResultStatus> resultStatusProperty() {
-		return this.resultStatus;
-	}
-	
-	/**
-	 * Called from sub classes to set the result status.
-	 * @param resultStatus the result status
-	 */
-	protected void setResultStatus(PraisenterTaskResultStatus resultStatus) {
-		Fx.runOnFxThead(() -> {
-			this.resultStatus.set(resultStatus);
-		});
+	@Override
+	public void execute(PraisenterThreadPoolExecutor service) {
+		if (this.tasks != null) {
+			for (AsyncTask<?> t : this.tasks) {
+				service.execute(t);
+			}
+		}
+		service.execute(this);
 	}
 }

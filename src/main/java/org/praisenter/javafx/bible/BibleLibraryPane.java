@@ -50,7 +50,7 @@ import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
 import org.praisenter.javafx.SortGraphic;
-import org.praisenter.javafx.actions.Actions;
+import org.praisenter.javafx.actions.BibleActions;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
@@ -391,7 +391,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				paths.add(file.toPath());
 			}
 			
-			Actions.bibleImport(
+			BibleActions.bibleImport(
 					this.context.getBibleLibrary(), 
 					this.getScene().getWindow(), 
 					paths)
@@ -413,7 +413,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 			}
 		}
 		
-		Actions.biblePromptDelete(
+		BibleActions.biblePromptDelete(
 				this.context.getBibleLibrary(), 
 				this.getScene().getWindow(), 
 				bibles)
@@ -425,7 +425,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
      * @param event the event
      */
     private final void promptRename(Bible bible) {
-    	Actions.biblePromptRename(
+    	BibleActions.biblePromptRename(
     			this.context.getBibleLibrary(), 
     			this.getScene().getWindow(), 
     			bible)
@@ -465,7 +465,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				if (id instanceof UUID) {
 					Bible bible = this.context.getBibleLibrary().get((UUID)id);
 					
-					Actions.bibleCopy(
+					BibleActions.bibleCopy(
 							this.context.getBibleLibrary(), 
 							this.getScene().getWindow(),
 							bible)
@@ -487,7 +487,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 			}
 		}
     	
-    	Actions.biblePromptExport(
+    	BibleActions.biblePromptExport(
     			this.context.getBibleLibrary(), 
     			this.getScene().getWindow(), 
     			bibles)

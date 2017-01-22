@@ -50,8 +50,8 @@ import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SortGraphic;
-import org.praisenter.javafx.actions.Actions;
-import org.praisenter.javafx.async.ExecutableTask;
+import org.praisenter.javafx.actions.MediaActions;
+import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
@@ -336,17 +336,21 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 	        	if (item != null && item.getMedia() != null) {
 	        		type = item.getMedia().getType();
 	        		if (type == MediaType.AUDIO || type == MediaType.VIDEO) {
-	        			javafx.scene.media.Media m = new javafx.scene.media.Media(item.getMedia().getPath().toUri().toString());
-	        			Exception ex = m.getError();
-	        			if (ex != null) {
+	        			try {
+		        			javafx.scene.media.Media m = new javafx.scene.media.Media(item.getMedia().getPath().toUri().toString());
+		        			Exception ex = m.getError();
+		        			if (ex != null) {
+		        				LOGGER.error("Error loading media " + item.getMedia().getName(), ex);
+		        			} else {
+		        				player = new MediaPlayer(m);
+		        				ex = player.getError();
+		        				if (ex != null) {
+		        					player = null;
+		        					LOGGER.error("Error creating media player for " + item.getMedia().getName(), ex);
+		        				}
+		        			}
+	        			} catch (Exception ex) {
 	        				LOGGER.error("Error loading media " + item.getMedia().getName(), ex);
-	        			} else {
-	        				player = new MediaPlayer(m);
-	        				ex = player.getError();
-	        				if (ex != null) {
-	        					player = null;
-	        					LOGGER.error("Error creating media player for " + item.getMedia().getName(), ex);
-	        				}
 	        			}
 	        		}
 	        	}
@@ -476,7 +480,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 			}
 			
 			// import
-			Actions.mediaImport(
+			MediaActions.mediaImport(
 				this.context.getMediaLibrary(),
 				this.getScene().getWindow(), 
 				paths)
@@ -502,7 +506,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 			}
 		}
 		
-		Actions.mediaPromptDelete(
+		MediaActions.mediaPromptDelete(
 			this.context.getMediaLibrary(), 
 			this.getScene().getWindow(), 
 			items)
@@ -517,7 +521,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 		// make sure the file isn't being previewed
     	this.pnePlayer.setMediaPlayer(null, null);
     	
-    	Actions.mediaPromptRename(
+    	MediaActions.mediaPromptRename(
 			this.context.getMediaLibrary(), 
 			this.getScene().getWindow(), 
 			media)
@@ -533,15 +537,15 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     	Media media = item.getMedia();
     	Tag tag = event.getTag();
     	
-    	ExecutableTask<?> task = Actions.mediaAddTag(
+    	AsyncTask<?> task = MediaActions.mediaAddTag(
 			this.context.getMediaLibrary(), 
 			this.getScene().getWindow(), 
 			media, 
 			tag);
-		task.onScheduledProperty().addListener(obs -> {
+		task.addSuccessHandler((e) -> {
 			this.context.getTags().add(tag);
 		});
-		task.onFailedProperty().addListener(obs -> {
+		task.addCancelledOrFailedHandler((e) -> {
 			// remove it from the tags
 			item.getTags().remove(tag);
 		});
@@ -557,12 +561,12 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     	Media media = item.getMedia();
     	Tag tag = event.getTag();
     	
-    	ExecutableTask<?> task = Actions.mediaDeleteTag(
+    	AsyncTask<?> task = MediaActions.mediaDeleteTag(
     			this.context.getMediaLibrary(), 
     			this.getScene().getWindow(), 
     			media, 
     			tag);
-		task.onFailedProperty().addListener(obs -> {
+		task.addCancelledOrFailedHandler((e) -> {
 			// add it back to the item
 			item.getTags().add(tag);
 		});
@@ -614,7 +618,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     				}
     			}
     			
-    			Actions.mediaPromptExport(
+    			MediaActions.mediaPromptExport(
     					this.context.getMediaLibrary(), 
     					this.getScene().getWindow(), 
     					media)

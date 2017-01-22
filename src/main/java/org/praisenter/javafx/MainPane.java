@@ -9,7 +9,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.bible.Bible;
-import org.praisenter.javafx.actions.Actions;
+import org.praisenter.javafx.actions.BibleActions;
+import org.praisenter.javafx.actions.MediaActions;
 import org.praisenter.javafx.bible.BibleEditorPane;
 import org.praisenter.javafx.bible.BibleLibraryPane;
 import org.praisenter.javafx.media.MediaLibraryPane;
@@ -194,7 +195,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
      * Event handler for importing bibles.
      */
     private final void promptBibleImport() {
-    	Actions.biblePromptImport(
+    	BibleActions.biblePromptImport(
     			this.context.getBibleLibrary(), 
     			this.getScene().getWindow())
     	.execute(this.context.getExecutorService());
@@ -204,7 +205,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
      * Event handler for importing media.
      */
     private final void promptMediaImport() {
-    	Actions.mediaPromptImport(
+    	MediaActions.mediaPromptImport(
     			this.context.getMediaLibrary(), 
     			this.getScene().getWindow())
     	.execute(this.context.getExecutorService());

@@ -34,11 +34,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
 import org.praisenter.ThumbnailSettings;
-import org.praisenter.javafx.async.EmptyExecutableTask;
-import org.praisenter.javafx.async.EmptyPraisenterTask;
-import org.praisenter.javafx.async.ExecutableTask;
-import org.praisenter.javafx.async.PraisenterTask;
-import org.praisenter.javafx.async.PraisenterTaskResultStatus;
+import org.praisenter.javafx.async.AsyncTask;
+import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
@@ -108,9 +105,9 @@ public final class ObservableMediaLibrary {
 	/**
 	 * Attempts to add the given path to the media library.
 	 * @param path the path to the media
-	 * @return {@link PraisenterTask}&lt;{@link Media}, Path&gt;
+	 * @return {@link AsyncTask}&lt;{@link Media}&gt;
 	 */
-	public PraisenterTask<Media, Path> add(Path path) {
+	public AsyncTask<Media> add(Path path) {
 		// sanity check
 		if (path != null) {
 			// create a "loading" item
@@ -123,115 +120,91 @@ public final class ObservableMediaLibrary {
 			});
 			
 			// execute the add on a different thread
-			PraisenterTask<Media, Path> task = new PraisenterTask<Media, Path>("Import '" + path.getFileName() + "'", path) {
+			AsyncTask<Media> task = new AsyncTask<Media>("Import '" + path.getFileName() + "'") {
 				@Override
 				protected Media call() throws Exception {
 					updateProgress(-1, 0);
-					try {
-						Media media = library.add(this.getInput());
-						setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-						return media;
-					} catch (Exception ex) {
-						setResultStatus(PraisenterTaskResultStatus.ERROR);
-						throw ex;
-					}
+					return library.add(path);
 				}
 			};
-			task.onSucceededProperty().addListener((e) -> {
+			task.addSuccessHandler((e) -> {
 				Media media = task.getValue();
-				loading.setMedia(media);
-				loading.setName(media.getName());
-				loading.setLoaded(true);
+				items.remove(loading);
+				items.add(new MediaListItem(media));
 			});
-			task.onFailedProperty().addListener((e) -> {
+			task.addCancelledOrFailedHandler((e) -> {
 				Throwable ex = task.getException();
 				LOGGER.error("Failed to import media " + path.toAbsolutePath().toString(), ex);
 				items.remove(loading);
 			});
 			return task;
 		}
-		return EmptyPraisenterTask.create();
+		return AsyncTaskFactory.empty();
 	}
 
 	/**
 	 * Attempts to remove the given media from the media library.
 	 * @param media the media to remove
-	 * @return {@link PraisenterTask}&lt;Void, {@link Media}&gt;
+	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
-	public PraisenterTask<Void, Media> remove(Media media) {
+	public AsyncTask<Void> remove(Media media) {
 		// sanity check
 		if (media != null) {
 			// execute the add on a different thread
-			PraisenterTask<Void, Media> task = new PraisenterTask<Void, Media>("Remove '" + media.getName() + "'", media) {
+			AsyncTask<Void> task = new AsyncTask<Void>("Remove '" + media.getName() + "'") {
 				@Override
 				protected Void call() throws Exception {
 					updateProgress(-1, 0);
-					try {
-						library.remove(this.getInput());
-						setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-						return null;
-					} catch (Exception ex) {
-						setResultStatus(PraisenterTaskResultStatus.ERROR);
-						throw ex;
-					}
+					library.remove(media);
+					return null;
 				}
 			};
-			task.onSucceededProperty().addListener((e) -> {
-				MediaListItem success = this.getListItem(media);
-				if (success != null) {
-					items.remove(success);
+			task.addSuccessHandler((e) -> {
+				final MediaListItem item = this.getListItem(media);
+				if (item != null) {
+					items.remove(item);
 				}
 			});
-			task.onFailedProperty().addListener((e) -> {
+			task.addCancelledOrFailedHandler((e) -> {
 				Throwable ex = task.getException();
 				LOGGER.error("Failed to remove media " + media.getName(), ex);
 			});
 			return task;
 		}
-		return EmptyPraisenterTask.create();
+		return AsyncTaskFactory.empty();
 	}
 
 	/**
 	 * Attempts to rename the given media.
 	 * @param media the media to rename
 	 * @param name the new name
-	 * @return {@link PraisenterTask}&lt;{@link Media}, String&gt;
+	 * @return {@link AsyncTask}&lt;{@link Media}&gt;
 	 */
-	public PraisenterTask<Media, String> rename(Media media, String name) {
+	public AsyncTask<Media> rename(Media media, String name) {
 		// sanity check
 		if (media != null && name != null && name.length() > 0) {
 			// execute the add on a different thread
-			PraisenterTask<Media, String> task = new PraisenterTask<Media, String>("Rename '" + media.getName() + "' to '" + name + "'", name) {
+			AsyncTask<Media> task = new AsyncTask<Media>("Rename '" + media.getName() + "' to '" + name + "'") {
 				@Override
 				protected Media call() throws Exception {
 					updateProgress(-1, 0);
-					String name = this.getInput();
-					try {
-						Media m = library.rename(media, name);
-						setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-						return m;
-					} catch (Exception ex) {
-						setResultStatus(PraisenterTaskResultStatus.ERROR);
-						throw ex;
-					}
+					return library.rename(media, name);
 				}
 			};
-			task.onSucceededProperty().addListener((e) -> {
+			task.addSuccessHandler((e) -> {
 				final Media m1 = task.getValue();
 				// update the list item
 				MediaListItem item = this.getListItem(media);
-		    	if (item != null) {
-			    	item.setName(m1.getName());
-			    	item.setMedia(m1);
-		    	}
+		    	items.remove(item);
+		    	items.add(new MediaListItem(m1));
 			});
-			task.onFailedProperty().addListener((e) -> {
+			task.addCancelledOrFailedHandler((e) -> {
 				final Throwable ex = task.getException();
 				LOGGER.error("Failed to rename media " + media.getName(), ex);
 			});
 			return task;
 		}
-		return EmptyPraisenterTask.create();
+		return AsyncTaskFactory.empty();
 	}
 
 	// tags
@@ -240,53 +213,53 @@ public final class ObservableMediaLibrary {
 	 * Attempts to add the given tag to the given media.
 	 * @param media the media
 	 * @param tag the tag to add
-	 * @return {@link ExecutableTask}&lt;Void&gt;
+	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
-	public ExecutableTask<Void> addTag(Media media, Tag tag) {
+	public AsyncTask<Void> addTag(Media media, Tag tag) {
 		// sanity check
 		if (media != null && tag != null) {
 			// NOTE: don't bother monitoring tag-add
-			ExecutableTask<Void> task = new ExecutableTask<Void>() {
+			AsyncTask<Void> task = new AsyncTask<Void>() {
 				@Override
 				protected Void call() throws Exception {
 					library.addTag(media, tag);
 					return null;
 				}
 			};
-			task.onFailedProperty().addListener((e) -> {
+			task.addCancelledOrFailedHandler((e) -> {
 				final Throwable ex = task.getException();
 				LOGGER.error("Failed to add tag " + tag.getName() + " to media " + media.getName(), ex);
 			});
 			return task;
 		}
-		return EmptyExecutableTask.create();
+		return AsyncTaskFactory.empty();
 	}
 	
 	/**
 	 * Attempts to remove the given tag from the given media.
 	 * @param media the media
 	 * @param tag the tag to remove
-	 * @return {@link ExecutableTask}&lt;Void&gt;
+	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
-	public ExecutableTask<Void> removeTag(Media media, Tag tag) {
+	public AsyncTask<Void> removeTag(Media media, Tag tag) {
 		// sanity check
 		if (media != null && tag != null) {
 			// execute the add on a different thread
 			// NOTE: don't bother monitoring tag-remove
-			ExecutableTask<Void> task = new ExecutableTask<Void>() {
+			AsyncTask<Void> task = new AsyncTask<Void>() {
 				@Override
 				protected Void call() throws Exception {
 					library.removeTag(media, tag);
 					return null;
 				}
 			};
-			task.onFailedProperty().addListener((e) -> {
+			task.addCancelledOrFailedHandler((e) -> {
 				final Throwable ex = task.getException();
 				LOGGER.error("Failed to remove tag " + tag.getName() + " from media " + media.getName(), ex);
 			});
 			return task;
 		}
-		return EmptyExecutableTask.create();
+		return AsyncTaskFactory.empty();
 	}
 	
 	// import/export
@@ -295,42 +268,35 @@ public final class ObservableMediaLibrary {
 	 * Exports the given media to the given path.
 	 * @param path the path to export to (zip file)
 	 * @param media the media to export
-	 * @return {@link PraisenterTask}&lt;Void, List&lt;{@link Media}&gt;&gt;
+	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
-	public PraisenterTask<Void, List<Media>> exportMedia(Path path, List<Media> media) {
+	public AsyncTask<Void> exportMedia(Path path, List<Media> media) {
 		// sanity check
 		if (path != null && media != null) {
 			// execute the add on a different thread
-			PraisenterTask<Void, List<Media>> task = new PraisenterTask<Void, List<Media>>(media.size() > 1 ? "Export " + media.size() + " media" : "Export '" + media.get(0).getName() + "'", media) {
+			AsyncTask<Void> task = new AsyncTask<Void>(media.size() > 1 ? "Export " + media.size() + " media" : "Export '" + media.get(0).getName() + "'") {
 				@Override
 				protected Void call() throws Exception {
 					updateProgress(-1, 0);
-					try {
-						library.exportMedia(path, this.getInput());
-						setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-						return null;
-					} catch (Exception ex) {
-						LOGGER.error("Failed to export media.", ex);
-						setResultStatus(PraisenterTaskResultStatus.ERROR);
-						throw ex;
-					}
+					library.exportMedia(path, media);
+					return null;
 				}
 			};
-			task.onFailedProperty().addListener((e) -> {
+			task.addCancelledOrFailedHandler((e) -> {
 				Throwable ex = task.getException();
 				LOGGER.error("Failed to complete export", ex);
 			});
 			return task;
 		}
-		return EmptyPraisenterTask.create();
+		return AsyncTaskFactory.empty();
 	}
 
 	/**
 	 * Imports the given media.
 	 * @param path the path to import
-	 * @return {@link PraisenterTask}&lt;List&lt;{@link Media}&gt;, Path&gt;
+	 * @return {@link AsyncTask}&lt;List&lt;{@link Media}&gt;&gt;
 	 */
-	public PraisenterTask<List<Media>, Path> importMedia(Path path) {
+	public AsyncTask<List<Media>> importMedia(Path path) {
 		// sanity check
 		if (path != null) {
 			// create a "loading" item
@@ -343,34 +309,27 @@ public final class ObservableMediaLibrary {
 			});
 			
 			// execute the add on a different thread
-			PraisenterTask<List<Media>, Path> task = new PraisenterTask<List<Media>, Path>("Importing", path) {
+			AsyncTask<List<Media>> task = new AsyncTask<List<Media>>("Importing") {
 				@Override
 				protected List<Media> call() throws Exception {
 					updateProgress(-1, 0);
-					try {
-						List<Media> media = library.importMedia(this.getInput());
-						setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-						return media;
-					} catch (Exception ex) {
-						LOGGER.error("Failed to export media.", ex);
-						setResultStatus(PraisenterTaskResultStatus.ERROR);
-						throw ex;
-					}
+					return library.importMedia(path);
 				}
 			};
-			task.onSucceededProperty().addListener(obs -> {
+			task.addSuccessHandler((e) -> {
 				items.remove(loading);
 				for (Media media : task.getValue()) {
 					items.add(new MediaListItem(media));
 				}
 			});
-			task.onFailedProperty().addListener(obs -> {
+			task.addCancelledOrFailedHandler((e) -> {
+				items.remove(loading);
 				Throwable ex = task.getException();
 				LOGGER.error("Failed to import media: " + path.toString(), ex);
 			});
 			return task;
 		}
-		return EmptyPraisenterTask.create();
+		return AsyncTaskFactory.empty();
 	}
 	
 	// other

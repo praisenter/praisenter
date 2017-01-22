@@ -37,24 +37,35 @@ import javax.xml.bind.Unmarshaller;
  */
 final class XmlContext {
 	/** The JAXB context */
-	final JAXBContext context;
-	
-	/** The marshaller */
-	final Marshaller marshaller;
-	
-	/** The unmarshaller */
-	final Unmarshaller unmarshaller;
+	private final JAXBContext context;
 	
 	/** Hidden constructor */
-	private XmlContext(
-			JAXBContext context,
-			Marshaller marshaller,
-			Unmarshaller unmarshaller) {
+	private XmlContext(JAXBContext context) {
 		this.context = context;
-		this.marshaller = marshaller;
-		this.unmarshaller = unmarshaller;
 	}
 
+	/**
+	 * Returns an unmarshaller for this context.
+	 * @return Unmarshaller
+	 * @throws JAXBException if the unmarshaller could not be created
+	 */
+	Unmarshaller getUnmarshaller() throws JAXBException {
+		return this.context.createUnmarshaller();
+	}
+	
+	/**
+	 * Returns a marshaller for this context.
+	 * @return Marshaller
+	 * @throws JAXBException if the marshaller could not be created
+	 */
+	Marshaller getMarshaller() throws JAXBException {
+		Marshaller marshaller = context.createMarshaller();
+		// format the output nicely and use UTF-8
+		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+		return marshaller;
+	}
+	
 	/**
 	 * Creates a new {@link XmlContext} object for the given class.
 	 * @param clazz the class
@@ -63,17 +74,7 @@ final class XmlContext {
 	 * @throws JAXBException thrown if an exception occurs while trying to build the {@link XmlContext}
 	 */
 	static final XmlContext create(Class<?> clazz) throws PropertyException, JAXBException {
-		// create the JAXB context
-		JAXBContext context = JAXBContext.newInstance(clazz);
-		
-		// create the unmarshaller
-		Unmarshaller unmarshaller = context.createUnmarshaller();
-		
-		// create the marshaller
-		Marshaller marshaller = context.createMarshaller();
-		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-		
-		return new XmlContext(context, marshaller, unmarshaller);
+		// NOTE: the JAXBContext is thread safe, but the marshaller and unmarshallers are not
+		return new XmlContext(JAXBContext.newInstance(clazz));
 	}
 }

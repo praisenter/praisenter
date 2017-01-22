@@ -68,7 +68,7 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 		// but we need to confirm if the file name already exists
 		if (Files.exists(path)) {
 			// generate a UUID based name
-			String ext = FilenameUtils.getExtension(name);
+			String ext = "." + FilenameUtils.getExtension(name);
 			name = StringManipulator.toFileName(UUID.randomUUID()) + ext;
 			path = location.resolve(name);
 		}

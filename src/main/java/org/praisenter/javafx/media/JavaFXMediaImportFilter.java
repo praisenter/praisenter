@@ -50,6 +50,9 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	/** The app level lock */
+	private static final Object LOCK = new Object();
+	
 	/** The video target extension (will be treated as the destination format as well) */
 	public static final String DEFAULT_VIDEO_EXTENSION = ".mp4";
 	
@@ -157,42 +160,46 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 		pb.redirectErrorStream(true);
 		Process process = null;
 		
-		try {
-			LOGGER.info("Starting FFmpeg process with command: " + String.join(" ", command));
-			process = pb.start();
-			LOGGER.info("Waiting for FFmpeg to complete transcoding...");
-			
-			// we must read the input streams otherwise they fill up
-			// and the sub process will hang
-			BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-	        String line = null;
-	        StringBuilder s = new StringBuilder();
-	        // readLine is a blocking call so this will pause us until the
-	        // executable completes or encounters an error
-	        while((line = input.readLine()) != null) {            
-	            s.append(line).append(Constants.NEW_LINE);
-	        }
-	        
-	        try {
-	        	// just in case i guess
-	        	int exitCode = process.waitFor();
-	        	LOGGER.info("FFmpeg completed with exitcode = " + exitCode);
-	        	try {
-					input.close();
-				} catch (IOException e) {}
-	        	
-	        	if (exitCode != 0) {
-	        		LOGGER.error(s.toString());
-	    			throw new TranscodeException("Please refer to the log for FFmpeg output.");
-	    		}
-	        } catch (InterruptedException ex) {
-	        	throw new TranscodeException("The thread was interrupted while wait for the transcoding to complete.", ex);
-	        }
-		} catch (IOException ex) {
-			throw new TranscodeException("Failed to transcode file '" + source.toAbsolutePath().toString() + "'.", ex);
-		} finally {
-			if (process != null) {
-				process.destroy();
+		// for now, we are going to lock this globally so that
+		// it doesn't kill the computer's performance
+		synchronized (LOCK) {
+			try {
+				LOGGER.info("Starting FFmpeg process with command: " + String.join(" ", command));
+				process = pb.start();
+				LOGGER.info("Waiting for FFmpeg to complete transcoding...");
+				
+				// we must read the input streams otherwise they fill up
+				// and the sub process will hang
+				BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
+		        String line = null;
+		        StringBuilder s = new StringBuilder();
+		        // readLine is a blocking call so this will pause us until the
+		        // executable completes or encounters an error
+		        while((line = input.readLine()) != null) {
+		            s.append(line).append(Constants.NEW_LINE);
+		        }
+		        
+		        try {
+		        	// just in case i guess
+		        	int exitCode = process.waitFor();
+		        	LOGGER.info("FFmpeg completed with exitcode = " + exitCode);
+		        	try {
+						input.close();
+					} catch (IOException e) {}
+		        	
+		        	if (exitCode != 0) {
+		        		LOGGER.error(s.toString());
+		    			throw new TranscodeException("Please refer to the log for FFmpeg output.");
+		    		}
+		        } catch (InterruptedException ex) {
+		        	throw new TranscodeException("The thread was interrupted while wait for the transcoding to complete.", ex);
+		        }
+			} catch (IOException ex) {
+				throw new TranscodeException("Failed to transcode file '" + source.toAbsolutePath().toString() + "'.", ex);
+			} finally {
+				if (process != null) {
+					process.destroy();
+				}
 			}
 		}
 	}

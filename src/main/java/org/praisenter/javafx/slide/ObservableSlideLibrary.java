@@ -1,7 +1,6 @@
 package org.praisenter.javafx.slide;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,15 +10,11 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import javax.xml.bind.JAXBException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.FailedOperation;
 import org.praisenter.Tag;
+import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.PraisenterThreadPoolExecutor;
-import org.praisenter.javafx.async.PraisenterTask;
-import org.praisenter.javafx.async.PraisenterTaskResultStatus;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
@@ -94,18 +89,11 @@ public final class ObservableSlideLibrary {
 		});
 		
 		// execute the add on a different thread
-		PraisenterTask<Slide> task = new PraisenterTask<Slide>("Import '" + path.getFileName() + "'") {
+		AsyncTask<Slide> task = new AsyncTask<Slide>("Import '" + path.getFileName() + "'") {
 			@Override
 			protected Slide call() throws Exception {
 				updateProgress(-1, 0);
-				try {
-					Slide slide = library.add(path);
-					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-					return slide;
-				} catch (Exception ex) {
-					setResultStatus(PraisenterTaskResultStatus.ERROR);
-					throw ex;
-				}
+				return library.add(path);
 			}
 		};
 		task.setOnSucceeded((e) -> {
@@ -148,7 +136,7 @@ public final class ObservableSlideLibrary {
 	 * @param onSuccess called with the slides that were imported successfully
 	 * @param onError called with the slides that failed to be imported
 	 */
-	public void add(List<Path> paths, Consumer<List<Slide>> onSuccess, Consumer<List<FailedOperation<Path>>> onError) {
+	public void add(List<Path> paths, Consumer<List<Slide>> onSuccess) {
 		// create the "loading" items
 		List<SlideListItem> loadings = new ArrayList<SlideListItem>();
 		for (Path path : paths) {
@@ -162,10 +150,9 @@ public final class ObservableSlideLibrary {
 		});
 		
 		List<Slide> successes = new ArrayList<Slide>();
-		List<FailedOperation<Path>> failures = new ArrayList<FailedOperation<Path>>();
 		
 		// execute the add on a different thread
-		PraisenterTask<Void> task = new PraisenterTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " slides" : "Import '" + paths.get(0).getFileName() + "'") {
+		AsyncTask<Void> task = new AsyncTask<Void>(paths.size() > 1 ? "Import " + paths.size() + " slides" : "Import '" + paths.get(0).getFileName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(0, paths.size());
@@ -184,7 +171,6 @@ public final class ObservableSlideLibrary {
 						});
 					} catch (Exception ex) {
 						LOGGER.error("Failed to import slide(s) " + path.toAbsolutePath().toString(), ex);
-						failures.add(new FailedOperation<Path>(path, ex));
 						Fx.runOnFxThead(() -> {
 							// remove the loading item
 							items.remove(new SlideListItem(path.getFileName().toString()));
@@ -192,15 +178,6 @@ public final class ObservableSlideLibrary {
 						errorCount++;
 					}
 					this.updateProgress(i++, paths.size());
-				}
-				
-				// set the result status based on the number of errors we got
-				if (errorCount == 0) {
-					this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-				} else if (errorCount == paths.size()) {
-					this.setResultStatus(PraisenterTaskResultStatus.ERROR);
-				} else {
-					this.setResultStatus(PraisenterTaskResultStatus.WARNING);
 				}
 				
 				return null;
@@ -211,19 +188,13 @@ public final class ObservableSlideLibrary {
 			if (onSuccess != null && successes.size() > 0) {
 				onSuccess.accept(successes);
 			}
-			if (onError != null && failures.size() > 0) {
-				onError.accept(failures);
-			}
 		});
 		task.setOnFailed((e) -> {
 			// this shouldn't happen because we should catch all exceptions
 			// inside the task, but lets put it here just in case
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to complete slide import", ex);
-			failures.add(new FailedOperation<Path>(null, ex));
-			if (onError != null) {
-				onError.accept(failures);
-			}
+			
 		});
 		this.service.execute(task);
 	}
@@ -245,18 +216,12 @@ public final class ObservableSlideLibrary {
 		slide.setThumbnail(image);
 
 		Slide copy = slide.copy(true);
-		PraisenterTask<Void> task = new PraisenterTask<Void>("Save '" + slide.getName() + "'") {
+		AsyncTask<Void> task = new AsyncTask<Void>("Save '" + slide.getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
-				try {
-					library.save(copy);
-					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-					return null;
-				} catch (Exception ex) {
-					setResultStatus(PraisenterTaskResultStatus.ERROR);
-					throw ex;
-				}
+				library.save(copy);
+				return null;
 			}
 		};
 		task.setOnSucceeded((e) -> {
@@ -314,18 +279,12 @@ public final class ObservableSlideLibrary {
 	 */
 	public void remove(Slide slide, Runnable onSuccess, BiConsumer<Slide, Throwable> onError) {
 		// execute the add on a different thread
-		PraisenterTask<Void> task = new PraisenterTask<Void>("Remove '" + slide.getName() + "'") {
+		AsyncTask<Void> task = new AsyncTask<Void>("Remove '" + slide.getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(-1, 0);
-				try {
-					library.remove(slide);
-					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-					return null;
-				} catch (Exception ex) {
-					setResultStatus(PraisenterTaskResultStatus.ERROR);
-					throw ex;
-				}
+				library.remove(slide);
+				return null;
 			}
 		};
 		task.setOnSucceeded((e) -> {
@@ -361,11 +320,9 @@ public final class ObservableSlideLibrary {
 	 * @param onSuccess called when a slide is successfully removed
 	 * @param onError called when a slide failed to be removed
 	 */
-	public void remove(List<Slide> slides, Runnable onSuccess, Consumer<List<FailedOperation<Slide>>> onError) {
-		List<FailedOperation<Slide>> failures = new ArrayList<FailedOperation<Slide>>();
-		
+	public void remove(List<Slide> slides, Runnable onSuccess) {
 		// execute the add on a different thread
-		PraisenterTask<Void> task = new PraisenterTask<Void>(slides.size() > 1 ? "Remove " + slides.size() + " slides" : "Remove '" + slides.get(0).getName() + "'") {
+		AsyncTask<Void> task = new AsyncTask<Void>(slides.size() > 1 ? "Remove " + slides.size() + " slides" : "Remove '" + slides.get(0).getName() + "'") {
 			@Override
 			protected Void call() throws Exception {
 				updateProgress(0, slides.size());
@@ -381,19 +338,9 @@ public final class ObservableSlideLibrary {
 						});
 					} catch (Exception ex) {
 						LOGGER.error("Failed to remove media " + slide.getName(), ex);
-						failures.add(new FailedOperation<Slide>(slide, ex));
 						errorCount++;
 					}
 					this.updateProgress(i++, slides.size());
-				}
-				
-				// set the result status based on the number of errors we got
-				if (errorCount == 0) {
-					this.setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-				} else if (errorCount == slides.size()) {
-					this.setResultStatus(PraisenterTaskResultStatus.ERROR);
-				} else {
-					this.setResultStatus(PraisenterTaskResultStatus.WARNING);
 				}
 				
 				return null;
@@ -401,19 +348,13 @@ public final class ObservableSlideLibrary {
 		};
 		task.setOnSucceeded((e) -> {
 			// notify any failures
-			if (onError != null && failures.size() > 0) {
-				onError.accept(failures);
-			}
+			
 		});
 		task.setOnFailed((e) -> {
 			// this shouldn't happen because we should catch all exceptions
 			// inside the task, but lets put it here just in case
 			Throwable ex = task.getException();
 			LOGGER.error("Failed to complete removal", ex);
-			failures.add(new FailedOperation<Slide>(null, ex));
-			if (onError != null) {
-				onError.accept(failures);
-			}
 		});
 		this.service.execute(task);
 	}

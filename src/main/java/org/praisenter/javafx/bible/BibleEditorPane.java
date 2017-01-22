@@ -48,8 +48,8 @@ import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.actions.Actions;
-import org.praisenter.javafx.async.PraisenterTask;
+import org.praisenter.javafx.actions.BibleActions;
+import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
@@ -858,7 +858,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	private void save() {
 		this.unsavedChanges = false;
 		
-		PraisenterTask<Bible, Bible> task = Actions.bibleSave(
+		AsyncTask<Bible> task = BibleActions.bibleSave(
 			this.context.getBibleLibrary(), 
 			this.getScene().getWindow(), 
 			this.getBible());
@@ -874,7 +874,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	private void promptSaveAs() {
 		this.unsavedChanges = false;
 
-		PraisenterTask<Bible, Bible> task = Actions.biblePromptSaveAs(
+		AsyncTask<Bible> task = BibleActions.biblePromptSaveAs(
 			this.context.getBibleLibrary(), 
 			this.getScene().getWindow(), 
 			this.getBible());

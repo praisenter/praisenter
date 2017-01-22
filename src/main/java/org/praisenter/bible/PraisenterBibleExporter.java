@@ -55,9 +55,10 @@ public final class PraisenterBibleExporter implements BibleExporter {
 		try (FileOutputStream fos = new FileOutputStream(path.toFile());
 			 ZipOutputStream zos = new ZipOutputStream(fos)) {
 			for (Bible bible : bibles) {
-				ZipEntry entry = new ZipEntry(bible.path.getFileName().toString());
+				Bible copy = bible.copy(true);
+				ZipEntry entry = new ZipEntry(copy.path.getFileName().toString());
 				zos.putNextEntry(entry);
-				XmlIO.save(zos, bible);
+				XmlIO.save(zos, copy);
 				zos.closeEntry();
 			}
 		} catch (Exception ex) {

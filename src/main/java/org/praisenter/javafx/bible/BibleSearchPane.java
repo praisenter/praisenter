@@ -33,6 +33,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.SearchType;
 import org.praisenter.bible.Bible;
+import org.praisenter.bible.BibleSearchCriteria;
 import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
@@ -41,6 +42,7 @@ import org.praisenter.javafx.AutoCompleteComboBox;
 import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Setting;
 
 import javafx.beans.property.ObjectProperty;
@@ -352,17 +354,20 @@ public final class BibleSearchPane extends BorderPane {
 			
 			if (text != null && text.length() != 0 && type != null) {
 				overlay.setVisible(true);
-				library.search(
+				BibleSearchCriteria criteria = new BibleSearchCriteria(
 						item != null ? item.getBible().getId() : null, 
 						book != null ? book.getNumber() : null,
 						text, 
-						type.getValue(), 
-						results -> {
-							this.table.setItems(FXCollections.observableArrayList(results));
-							lblResults.setText("Results: " + results.size());
-							overlay.setVisible(false);
-						}, 
-						null);
+						type.getValue());
+				AsyncTask<List<BibleSearchResult>> task = library.search(criteria);
+				task.onSucceededProperty().addListener(obs -> {
+					List<BibleSearchResult> results = task.getValue();
+					this.table.setItems(FXCollections.observableArrayList(results));
+					int size = results.size();
+					lblResults.setText("Results: " + (size > BibleSearchCriteria.MAXIMUM_RESULTS ? size + "+" : size));
+					overlay.setVisible(false);
+				});
+				task.execute(context.getExecutorService());
 			}
 		};
 		

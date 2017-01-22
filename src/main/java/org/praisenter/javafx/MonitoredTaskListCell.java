@@ -27,8 +27,7 @@ package org.praisenter.javafx;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
-import org.praisenter.javafx.async.PraisenterTask;
-import org.praisenter.javafx.async.PraisenterTaskResultStatus;
+import org.praisenter.javafx.async.AsyncTask;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -42,20 +41,17 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.paint.Color;
 
 /**
- * A list cell specifically for {@link PraisenterTask}s.
+ * A list cell specifically for {@link AsyncTask}s.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
  */
-final class MonitoredTaskListCell extends ListCell<PraisenterTask<?, ?>> {
+final class MonitoredTaskListCell extends ListCell<AsyncTask<?>> {
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	/** The task status */
 	private final ObjectProperty<Worker.State> status = new SimpleObjectProperty<>(Worker.State.READY);
-	
-	/** The result status */
-	private final ObjectProperty<PraisenterTaskResultStatus> result = new SimpleObjectProperty<>();
 	
 	/** The progress indicator while working */
 	private final ProgressIndicator indicator = new ProgressIndicator();
@@ -79,9 +75,6 @@ final class MonitoredTaskListCell extends ListCell<PraisenterTask<?, ?>> {
 		this.status.addListener((obs, ov, nv) -> {
 			setTextGraphic();
 		});
-		this.result.addListener((obs, ov, nv) -> {
-			setTextGraphic();
-		});
 	}
 	
 	/**
@@ -89,32 +82,18 @@ final class MonitoredTaskListCell extends ListCell<PraisenterTask<?, ?>> {
 	 */
 	private void setTextGraphic() {
 		Worker.State nv = this.status.get();
-		PraisenterTaskResultStatus status = this.result.get();
 		
 		// unless the task result has been set, use the task's status
-		if (status == null) {
-			if (nv == Worker.State.RUNNING || nv == Worker.State.READY || nv == Worker.State.SCHEDULED) {
-				this.setGraphic(this.indicator);
-			} else if (nv == Worker.State.CANCELLED) {
-				this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.REMOVE).color(Color.LIGHTGRAY));
-			} else if (nv == Worker.State.FAILED) {
-				this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.REMOVE).color(Color.RED));
-			} else if (nv == Worker.State.SUCCEEDED) {
-				this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.CHECK).color(Color.LIMEGREEN));
-			} else {
-				this.setGraphic(null);
-			}
+		if (nv == Worker.State.RUNNING || nv == Worker.State.READY || nv == Worker.State.SCHEDULED) {
+			this.setGraphic(this.indicator);
+		} else if (nv == Worker.State.CANCELLED) {
+			this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.REMOVE).color(Color.LIGHTGRAY));
+		} else if (nv == Worker.State.FAILED) {
+			this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.REMOVE).color(Color.RED));
+		} else if (nv == Worker.State.SUCCEEDED) {
+			this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.CHECK).color(Color.LIMEGREEN));
 		} else {
-			// otherwise use the result status
-			if (status == PraisenterTaskResultStatus.WARNING) {
-				this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.WARNING).color(Color.GOLD));
-			} else if (status == PraisenterTaskResultStatus.ERROR) {
-				this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.REMOVE).color(Color.RED));
-			} else if (status == PraisenterTaskResultStatus.SUCCESS) {
-				this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.CHECK).color(Color.LIMEGREEN));
-			} else {
-				this.setGraphic(null);
-			}
+			this.setGraphic(null);
 		}
 	}
 	
@@ -122,17 +101,15 @@ final class MonitoredTaskListCell extends ListCell<PraisenterTask<?, ?>> {
 	 * @see javafx.scene.control.Cell#updateItem(java.lang.Object, boolean)
 	 */
 	@Override
-	protected void updateItem(PraisenterTask<?, ?> item, boolean empty) {
+	protected void updateItem(AsyncTask<?> item, boolean empty) {
 		super.updateItem(item, empty);
 		this.indicator.progressProperty().unbind();
 		this.status.unbind();
-		this.result.unbind();
 		if (empty) {
 			this.setGraphic(null);
 		} else {
 			this.indicator.progressProperty().bind(item.progressProperty());
 			this.status.bind(item.stateProperty());
-			this.result.bind(item.resultStatusProperty());
 			setTextGraphic();
 			this.setText(item.getName());
 			this.tooltip.setText(item.getName());

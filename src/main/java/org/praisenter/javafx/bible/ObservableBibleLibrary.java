@@ -36,9 +36,8 @@ import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.BibleSearchCriteria;
 import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.FormatIdentifingBibleImporter;
-import org.praisenter.javafx.async.ExecutableTask;
-import org.praisenter.javafx.async.PraisenterTask;
-import org.praisenter.javafx.async.PraisenterTaskResultStatus;
+import org.praisenter.javafx.async.AsyncTask;
+import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
@@ -92,197 +91,6 @@ public final class ObservableBibleLibrary {
 	}
 
 	/**
-	 * Attempts to add the given path to the bible library.
-	 * @param path the path to the bible
-	 * @return {@link PraisenterTask}&lt;List&lt;{@link Bible}, Path&gt;&gt;
-	 */
-	public PraisenterTask<List<Bible>, Path> add(Path path) {
-		// create a "loading" item
-		final BibleListItem loading = new BibleListItem(path.getFileName().toString());
-		
-		// changes to the list should be done on the FX UI Thread
-		Fx.runOnFxThead(() -> {
-			// add it to the items list
-			items.add(loading);
-		});
-		
-		// execute the add on a different thread
-		PraisenterTask<List<Bible>, Path> task = new PraisenterTask<List<Bible>, Path>(MessageFormat.format(Translations.get("task.import"), path.getFileName()), path) {
-			@Override
-			protected List<Bible> call() throws Exception {
-				updateProgress(-1, 0);
-				try {
-					FormatIdentifingBibleImporter importer = new FormatIdentifingBibleImporter();
-					List<Bible> bibles = importer.execute(this.getInput());
-					for (Bible bible : bibles) {
-						library.save(bible);
-					}
-					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-					return bibles;
-				} catch (Exception ex) {
-					setResultStatus(PraisenterTaskResultStatus.ERROR);
-					throw ex;
-				}
-			}
-		};
-		task.setOnSucceeded((e) -> {
-			List<Bible> bibles = task.getValue();
-			items.remove(loading);
-			for (Bible bible : bibles) {
-				items.add(new BibleListItem(bible));
-			}
-		});
-		task.setOnFailed((e) -> {
-			Throwable ex = task.getException();
-			LOGGER.error("Failed to import bible " + path.toAbsolutePath().toString(), ex);
-			items.remove(loading);
-		});
-		return task;
-	}
-	
-	/**
-	 * Attempts to save the given bible in this bible library.
-	 * @param bible the bible
-	 * @return {@link PraisenterTask}&lt;{@link Bible}, {@link Bible}&gt;
-	 */
-	public PraisenterTask<Bible, Bible> save(Bible bible) {
-		return this.save(MessageFormat.format(Translations.get("task.save"), bible.getName()), bible);
-	}
-	
-	/**
-	 * Attempts to save the given bible in this bible library.
-	 * @param action a simple string describing the save action if it's something more specific than "Save"
-	 * @param bible the bible
-	 * @return {@link PraisenterTask}&lt;{@link Bible}, {@link Bible}&gt;
-	 */
-	public PraisenterTask<Bible, Bible> save(String action, Bible bible) {
-		// synchronously make a copy
-		Bible copy = bible.copy(true);
-		// execute the add on a different thread
-		PraisenterTask<Bible, Bible> task = new PraisenterTask<Bible, Bible>(action, copy) {
-			@Override
-			protected Bible call() throws Exception {
-				this.updateProgress(-1, 0);
-				try {
-					library.save(this.getInput());
-					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-					return this.getInput();
-				} catch (Exception ex) {
-					setResultStatus(PraisenterTaskResultStatus.ERROR);
-					throw ex;
-				}
-			}
-		};
-		task.setOnSucceeded((e) -> {
-			// find the bible item
-			BibleListItem bi = this.getListItem(copy);
-			// check if new
-			if (bi == null) {
-				// then add one
-				this.items.add(new BibleListItem(copy));
-			} else {
-				// then update it
-				bi.setName(copy.getName());
-				// we set it to a copy because it could
-				// still be edited after being saved
-				// and we only want to change it if saved
-				bi.setBible(copy);
-			}
-		});
-		task.setOnFailed((e) -> {
-			Throwable ex = task.getException();
-			LOGGER.error("Failed to save bible " + copy.getName(), ex);
-		});
-		return task;
-	}
-	
-	/**
-	 * Attempts to remove the given bible from the bible library.
-	 * @param bible the bible to remove
-	 * @return {@link PraisenterTask}&lt;Void, {@link Bible}&gt;
-	 */
-	public PraisenterTask<Void, Bible> remove(Bible bible) {
-		// execute the add on a different thread
-		PraisenterTask<Void, Bible> task = new PraisenterTask<Void, Bible>(MessageFormat.format(Translations.get("task.delete"), bible.getName()), bible) {
-			@Override
-			protected Void call() throws Exception {
-				this.updateProgress(-1, 0);
-				try {
-					library.remove(this.getInput());
-					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-					return null;
-				} catch (Exception ex) {
-					setResultStatus(PraisenterTaskResultStatus.ERROR);
-					throw ex;
-				}
-			}
-		};
-		task.setOnSucceeded((e) -> {
-			BibleListItem bi = this.getListItem(bible);
-			items.remove(bi);
-		});
-		task.setOnFailed((e) -> {
-			Throwable ex = task.getException();
-			LOGGER.error("Failed to remove bible " + bible.getName(), ex);
-		});
-		return task;
-	}
-
-	// searching
-	
-	/**
-	 * Attempts to rebuild the bible searching index.
-	 * <p>
-	 * Re-indexing the bible library can take a significant amount of time.
-	 * @return {@link PraisenterTask}&lt;Void, Void&gt;
-	 */
-	public PraisenterTask<Void, Void> reindex() {
-		PraisenterTask<Void, Void> task = new PraisenterTask<Void, Void>(Translations.get("bible.reindex"), null) {
-			@Override
-			protected Void call() throws Exception {
-				updateProgress(-1, 0);
-				try {
-					library.reindex();
-					setResultStatus(PraisenterTaskResultStatus.SUCCESS);
-				} catch (Exception ex) {
-					setResultStatus(PraisenterTaskResultStatus.ERROR);
-					throw ex;
-				}
-				return null;
-			}
-		};
-		task.setOnFailed((e) -> {
-			Throwable ex = task.getException();
-			LOGGER.error("Failed to reindex bible library: ", ex);
-		});
-		return task;
-	}
-	
-	/**
-	 * Searches the given bible for the given text using the given search type.
-	 * @param criteria the search criteria
-	 * @return {@link ExecutableTask}&lt;List&lt;{@link BibleSearchResult}&gt;&gt;
-	 */
-	public ExecutableTask<List<BibleSearchResult>> search(BibleSearchCriteria criteria) {
-		ExecutableTask<List<BibleSearchResult>> task = new ExecutableTask<List<BibleSearchResult>>() {
-			@Override
-			protected List<BibleSearchResult> call() throws Exception {
-				updateProgress(-1, 0);
-				try {
-					return library.search(criteria);
-				} catch (Exception ex) {
-					throw ex;
-				}
-			}
-		};
-		task.setOnFailed((e) -> {
-			Throwable ex = task.getException();
-			LOGGER.error("Failed to search bible: " + criteria, ex);
-		});
-		return task;
-	}
-
-	/**
 	 * Returns the bible list item for the given bible or null if not found.
 	 * @param bible the bible
 	 * @return {@link BibleListItem}
@@ -300,6 +108,171 @@ public final class ObservableBibleLibrary {
     	return bi;
 	}
 	
+	/**
+	 * Attempts to add the given path to the bible library.
+	 * @param path the path to the bible
+	 * @return {@link AsyncTask}&lt;List&lt;{@link Bible}&gt;&gt;
+	 */
+	public AsyncTask<List<Bible>> add(Path path) {
+		if (path != null) {
+			// create a "loading" item
+			final BibleListItem loading = new BibleListItem(path.getFileName().toString());
+			
+			// changes to the list should be done on the FX UI Thread
+			Fx.runOnFxThead(() -> {
+				// add it to the items list
+				items.add(loading);
+			});
+			
+			// execute the add on a different thread
+			AsyncTask<List<Bible>> task = new AsyncTask<List<Bible>>(MessageFormat.format(Translations.get("task.import"), path.getFileName())) {
+				@Override
+				protected List<Bible> call() throws Exception {
+					updateProgress(-1, 0);
+					FormatIdentifingBibleImporter importer = new FormatIdentifingBibleImporter();
+					List<Bible> bibles = importer.execute(path);
+					for (Bible bible : bibles) {
+						library.save(bible);
+					}
+					return bibles;
+				}
+			};
+			task.setOnSucceeded((e) -> {
+				List<Bible> bibles = task.getValue();
+				items.remove(loading);
+				for (Bible bible : bibles) {
+					items.add(new BibleListItem(bible));
+				}
+			});
+			task.setOnFailed((e) -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to import bible " + path.toAbsolutePath().toString(), ex);
+				items.remove(loading);
+			});
+			return task;
+		}
+		return AsyncTaskFactory.empty();
+	}
+	
+	/**
+	 * Attempts to save the given bible in this bible library.
+	 * @param bible the bible
+	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 */
+	public AsyncTask<Bible> save(Bible bible) {
+		return this.save(MessageFormat.format(Translations.get("task.save"), bible.getName()), bible);
+	}
+	
+	/**
+	 * Attempts to save the given bible in this bible library.
+	 * @param action a simple string describing the save action if it's something more specific than "Save"
+	 * @param bible the bible
+	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 */
+	public AsyncTask<Bible> save(String action, Bible bible) {
+		if (bible != null) {
+			// synchronously make a copy
+			final Bible copy = bible.copy(true);
+			// execute the add on a different thread
+			AsyncTask<Bible> task = new AsyncTask<Bible>(action) {
+				@Override
+				protected Bible call() throws Exception {
+					this.updateProgress(-1, 0);
+					library.save(copy);
+					return copy;
+				}
+			};
+			task.setOnSucceeded((e) -> {
+				// find the bible item
+				BibleListItem bi = this.getListItem(copy);
+				// check if new
+				if (bi != null) {
+					this.items.remove(bi);
+				}
+				this.items.add(new BibleListItem(copy));
+			});
+			task.setOnFailed((e) -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to save bible " + copy.getName(), ex);
+			});
+			return task;
+		}
+		return AsyncTaskFactory.empty();
+	}
+	
+	/**
+	 * Attempts to remove the given bible from the bible library.
+	 * @param bible the bible to remove
+	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 */
+	public AsyncTask<Void> remove(Bible bible) {
+		if (bible != null) {
+			// execute the add on a different thread
+			AsyncTask<Void> task = new AsyncTask<Void>(MessageFormat.format(Translations.get("task.delete"), bible.getName())) {
+				@Override
+				protected Void call() throws Exception {
+					this.updateProgress(-1, 0);
+					library.remove(bible);
+					return null;
+				}
+			};
+			task.setOnSucceeded((e) -> {
+				BibleListItem bi = this.getListItem(bible);
+				items.remove(bi);
+			});
+			task.setOnFailed((e) -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to remove bible " + bible.getName(), ex);
+			});
+			return task;
+		}
+		return AsyncTaskFactory.empty();
+	}
+
+	// searching
+	
+	/**
+	 * Attempts to rebuild the bible searching index.
+	 * <p>
+	 * Re-indexing the bible library can take a significant amount of time.
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
+	public AsyncTask<Void> reindex() {
+		AsyncTask<Void> task = new AsyncTask<Void>(Translations.get("bible.reindex")) {
+			@Override
+			protected Void call() throws Exception {
+				updateProgress(-1, 0);
+				library.reindex();
+				return null;
+			}
+		};
+		task.setOnFailed((e) -> {
+			Throwable ex = task.getException();
+			LOGGER.error("Failed to reindex bible library: ", ex);
+		});
+		return task;
+	}
+	
+	/**
+	 * Searches the given bible for the given text using the given search type.
+	 * @param criteria the search criteria
+	 * @return {@link AsyncTask}&lt;List&lt;{@link BibleSearchResult}&gt;&gt;
+	 */
+	public AsyncTask<List<BibleSearchResult>> search(BibleSearchCriteria criteria) {
+		AsyncTask<List<BibleSearchResult>> task = new AsyncTask<List<BibleSearchResult>>() {
+			@Override
+			protected List<BibleSearchResult> call() throws Exception {
+				updateProgress(-1, 0);
+				return library.search(criteria);
+			}
+		};
+		task.setOnFailed((e) -> {
+			Throwable ex = task.getException();
+			LOGGER.error("Failed to search bible: " + criteria, ex);
+		});
+		return task;
+	}
+
 	// other
 
 	/**

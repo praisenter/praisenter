@@ -60,13 +60,13 @@ public final class PraisenterThreadPoolExecutor extends ThreadPoolExecutor {
 	private final BooleanProperty isRunning = new SimpleBooleanProperty(false);
 	
 	/** The tasks */
-	private final ObservableList<PraisenterTask<?, ?>> tasks = FXCollections.observableList(new LinkedList<>());
+	private final ObservableList<AsyncTask<?>> tasks = FXCollections.observableList(new LinkedList<AsyncTask<?>>());
 	
 	/**
 	 * Constructor.
 	 */
 	public PraisenterThreadPoolExecutor() {
-		super(2, 
+		super(5, 
 			10, 
 			1, 
 			TimeUnit.MINUTES, 
@@ -88,9 +88,12 @@ public final class PraisenterThreadPoolExecutor extends ThreadPoolExecutor {
 	 * Executes the given task.
 	 * @param task the task
 	 */
-	public void execute(PraisenterTask<?, ?> task) {
+	public void execute(AsyncTask<?> task) {
 		super.execute(task);
-		this.updateTaskList(task);
+		// only track it if it has a name
+		if (task.getName() != null && task.getName().length() > 0) {
+			this.updateTaskList(task);
+		}
 	}
 	
 	/**
@@ -98,7 +101,7 @@ public final class PraisenterThreadPoolExecutor extends ThreadPoolExecutor {
 	 * to fit within the maximum number of tasks.
 	 * @param task
 	 */
-	private void updateTaskList(PraisenterTask<?, ?> task) {
+	private void updateTaskList(AsyncTask<?> task) {
 		// make sure this runs on the FX thread
 		Fx.runOnFxThead(() -> {
 			// add the task
@@ -118,9 +121,9 @@ public final class PraisenterThreadPoolExecutor extends ThreadPoolExecutor {
 			// trim the list of completed tasks starting
 			// from the head of the queue
 			if (tasks.size() > MAXIMUM_TASK_LIST_LENGTH) {
-				Iterator<PraisenterTask<?, ?>> it = tasks.iterator();
+				Iterator<AsyncTask<?>> it = tasks.iterator();
 				while (it.hasNext()) {
-					PraisenterTask<?, ?> t = it.next();
+					AsyncTask<?> t = it.next();
 					// check if its done
 					if (t.isDone()) {
 						// if so remove it
@@ -154,9 +157,9 @@ public final class PraisenterThreadPoolExecutor extends ThreadPoolExecutor {
 	
 	/**
 	 * Returns a readonly list of tasks ordered by their execution.
-	 * @return ObservableList&lt;{@link PraisenterTask}&gt;
+	 * @return ObservableList&lt;{@link AsyncTask}&gt;
 	 */
-	public ObservableList<PraisenterTask<?, ?>> tasksProperty() {
+	public ObservableList<AsyncTask<?>> tasksProperty() {
 		return FXCollections.unmodifiableObservableList(this.tasks);
 	}
 }

@@ -103,7 +103,7 @@ public final class XmlIO {
 	public static final <E> E read(String string, Class<E> clazz) throws JAXBException, IOException {
 		// otherwise attempt to read the file
 		XmlContext context = getXmlContext(clazz);
-		Unmarshaller unmarshaller = context.unmarshaller;
+		Unmarshaller unmarshaller = context.getUnmarshaller();
 		return clazz.cast(unmarshaller.unmarshal(new StringReader(string)));
 	}
 	
@@ -123,7 +123,7 @@ public final class XmlIO {
 		}
 		// otherwise attempt to read the file
 		XmlContext context = getXmlContext(clazz);
-		Unmarshaller unmarshaller = context.unmarshaller;
+		Unmarshaller unmarshaller = context.getUnmarshaller();
 		return clazz.cast(unmarshaller.unmarshal(path.toFile()));
 	}
 	
@@ -138,7 +138,7 @@ public final class XmlIO {
 	public static final <E> E read(InputStream stream, Class<E> clazz) throws JAXBException, IOException {
 		// otherwise attempt to read the file
 		XmlContext context = getXmlContext(clazz);
-		Unmarshaller unmarshaller = context.unmarshaller;
+		Unmarshaller unmarshaller = context.getUnmarshaller();
 		return clazz.cast(unmarshaller.unmarshal(stream));
 	}
 	
@@ -158,7 +158,7 @@ public final class XmlIO {
 			}
 		}
 		XmlContext context = getXmlContext(object.getClass());
-		Marshaller marshaller = context.marshaller;
+		Marshaller marshaller = context.getMarshaller();
 		marshaller.marshal(object, path.toFile());
 	}
 	
@@ -171,7 +171,7 @@ public final class XmlIO {
 	 */
 	public static final <E> void save(OutputStream stream, E object) throws JAXBException, IOException {
 		XmlContext context = getXmlContext(object.getClass());
-		Marshaller marshaller = context.marshaller;
+		Marshaller marshaller = context.getMarshaller();
 		marshaller.marshal(object, stream);
 	}
 	
@@ -184,7 +184,7 @@ public final class XmlIO {
 	 */
 	public static final <E> String save(E object) throws JAXBException, IOException {
 		XmlContext context = getXmlContext(object.getClass());
-		Marshaller marshaller = context.marshaller;
+		Marshaller marshaller = context.getMarshaller();
 		StringWriter sw = new StringWriter();
 		marshaller.marshal(object, sw);
 		return sw.toString();

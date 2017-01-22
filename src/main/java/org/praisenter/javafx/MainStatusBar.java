@@ -2,7 +2,7 @@ package org.praisenter.javafx;
 
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.PopOver.ArrowLocation;
-import org.praisenter.javafx.async.PraisenterTask;
+import org.praisenter.javafx.async.AsyncTask;
 
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
@@ -48,12 +48,12 @@ class MainStatusBar extends HBox {
 		
 		button.setGraphic(progress);
 		
-		ListView<PraisenterTask<?, ?>> view = new ListView<PraisenterTask<?, ?>>(context.getExecutorService().tasksProperty());
+		ListView<AsyncTask<?>> view = new ListView<AsyncTask<?>>(context.getExecutorService().tasksProperty());
 		view.setPrefSize(200, 300);
 		view.setPlaceholder(new Label("No pending or completed tasks"));
-		view.setCellFactory(new Callback<ListView<PraisenterTask<?, ?>>, ListCell<PraisenterTask<?, ?>>>() {
+		view.setCellFactory(new Callback<ListView<AsyncTask<?>>, ListCell<AsyncTask<?>>>() {
 			@Override
-			public ListCell<PraisenterTask<?, ?>> call(ListView<PraisenterTask<?, ?>> view) {
+			public ListCell<AsyncTask<?>> call(ListView<AsyncTask<?>> view) {
 				return new MonitoredTaskListCell();
 			}
 		});
