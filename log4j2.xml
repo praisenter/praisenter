@@ -6,9 +6,9 @@
         <Property name="log.pattern">%-5level %d{ISO8601} [%t] %c.%M:%L %m%n%ex</Property>
     </Properties>
     <Appenders>
-<!--         <Console name="console" target="SYSTEM_OUT"> -->
-<!--             <PatternLayout pattern="${PATTERN}"/> -->
-<!--         </Console> -->
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout pattern="${log.pattern}"/>
+		</Console>
 
         <RollingFile name="file"
                      fileName="${sys:praisenter.logs.dir}/praisenter.log"
@@ -24,6 +24,9 @@
     <Loggers>
         <Root level="info">
             <AppenderRef ref="file"/>
+        </Root>
+        <Root level="debug">
+        	<AppenderRef ref="console"/>
         </Root>
     </Loggers>
 </Configuration>

@@ -49,7 +49,7 @@ import javafx.concurrent.Worker;
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class PraisenterThreadPoolExecutor extends ThreadPoolExecutor {
+public final class AsyncTaskExecutor extends ThreadPoolExecutor {
 	/** Keep the last X number of task results around */
 	private static final int MAXIMUM_TASK_LIST_LENGTH = 25;
 	
@@ -65,7 +65,7 @@ public final class PraisenterThreadPoolExecutor extends ThreadPoolExecutor {
 	/**
 	 * Constructor.
 	 */
-	public PraisenterThreadPoolExecutor() {
+	public AsyncTaskExecutor() {
 		super(5, 
 			10, 
 			1, 

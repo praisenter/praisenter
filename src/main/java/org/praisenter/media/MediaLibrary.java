@@ -588,12 +588,15 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public Media add(Path path) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, UnknownMediaTypeException, InvalidFormatException {
+		LOGGER.debug("Adding media '{}'", path);
 		// lock on the incoming file name
 		synchronized(this.getPathLock(path)) {
 			// copy it to the library
 			// NOTE: don't synchronize this since it could take a long time
+			LOGGER.debug("Copying media '{}' to media library", path);
 			Path libraryPath = copy(path);
 			// attempt to load it
+			LOGGER.debug("Loading media '{}'", path);
 			Media media = update(libraryPath, null);
 			// return it
 			return media;

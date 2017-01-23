@@ -26,34 +26,33 @@ package org.praisenter.javafx.async;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-
-import javafx.beans.InvalidationListener;
-import javafx.concurrent.Task;
 
 /**
- * Represents a task that can be monitored and that has a name and resulting status.
+ * Represents a task that waits on a set of other tasks to complete.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
  * @param <T> the task type
  */
 public class AsyncGroupTask<T extends AsyncTask<?>> extends AsyncTask<List<T>> {
+	/** The tasks */
 	private final List<T> tasks;
 	
+	/** the latch for waiting */
 	private final CountDownLatch latch;
 	
 	/**
 	 * Minimal constructor.
-	 * @param name the task name or description
+	 * @param tasks the set of tasks to wait upon
 	 */
 	public AsyncGroupTask(List<T> tasks) {
 		this(null, tasks);
 	}
 	
 	/**
-	 * Minimal constructor.
-	 * @param name the task name or description
+	 * Optional constructor.
+	 * @param name the task name
+	 * @param tasks the set of tasks to wait upon
 	 */
 	public AsyncGroupTask(String name, List<T> tasks) {
 		super(name);
@@ -61,6 +60,8 @@ public class AsyncGroupTask<T extends AsyncTask<?>> extends AsyncTask<List<T>> {
 		this.latch = new CountDownLatch(tasks != null ? tasks.size() : 0);
 		
 		if (tasks != null) {
+			// for each task, make sure we countdown the latch
+			// when they finish
 			for (AsyncTask<?> t : tasks) {
 				t.addCompletedHandler((e) -> {
 					latch.countDown();
@@ -69,9 +70,14 @@ public class AsyncGroupTask<T extends AsyncTask<?>> extends AsyncTask<List<T>> {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see javafx.concurrent.Task#call()
+	 */
 	@Override
 	protected List<T> call() throws Exception {
 		try {
+			// don't allow this task to return until all the other
+			// tasks are complete
 			this.latch.await();
 			return this.tasks;
 		} catch (Exception ex) {
@@ -79,13 +85,18 @@ public class AsyncGroupTask<T extends AsyncTask<?>> extends AsyncTask<List<T>> {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.async.AsyncTask#execute(org.praisenter.javafx.async.AsyncTaskExecutor)
+	 */
 	@Override
-	public void execute(PraisenterThreadPoolExecutor service) {
+	public void execute(AsyncTaskExecutor service) {
+		// execute the sub tasks
 		if (this.tasks != null) {
 			for (AsyncTask<?> t : this.tasks) {
 				service.execute(t);
 			}
 		}
+		// then execute this task
 		service.execute(this);
 	}
 }

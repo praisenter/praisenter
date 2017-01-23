@@ -35,7 +35,7 @@ import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
-import org.praisenter.javafx.async.PraisenterThreadPoolExecutor;
+import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.resources.OpenIconic;
@@ -305,7 +305,7 @@ public final class Praisenter extends Application {
     		
     		LOGGER.info("Checking for background threads that have not completed yet.");
     		// this stuff could be null if we blow up before its created
-    		PraisenterThreadPoolExecutor executor = context != null ? context.getExecutorService() : null;
+    		AsyncTaskExecutor executor = context != null ? context.getExecutorService() : null;
     		if (executor != null) {
     			
     			// for testing shutdown waiting

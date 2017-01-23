@@ -76,9 +76,11 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 	 */
 	@Override
 	public Media load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
+		LOGGER.debug("Image media '{}' loading", path);
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			// read the image
 			try (ImageInputStream in = ImageIO.createImageInputStream(path.toFile())) {
+				
 				Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
 				// loop through the readers until we find one that works
 				while (readers.hasNext()) {
@@ -93,6 +95,7 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 						MediaFormat format = new MediaFormat(fmt, getDescription(fmt));
 						Media media = Media.forImage(path, format, (int)image.getWidth(), (int)image.getHeight(), null, thumb);
 						
+						LOGGER.debug("Image media '{}' loaded", path);
 						return media;
 					} finally {
 						reader.dispose();

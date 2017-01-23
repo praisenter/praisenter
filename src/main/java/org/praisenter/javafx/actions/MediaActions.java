@@ -236,7 +236,7 @@ public final class MediaActions {
 	public static final AsyncTask<Void> mediaDeleteTag(ObservableMediaLibrary library, Window owner, Media media, Tag tag) {
 		// sanity check
 		if (media != null && tag != null) {
-			AsyncTask<Void> task = library.addTag(media, tag);
+			AsyncTask<Void> task = library.removeTag(media, tag);
 			task.addCancelledOrFailedHandler((e) -> {
 				Throwable error = task.getException();
 				// log the error

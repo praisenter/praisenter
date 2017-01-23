@@ -29,7 +29,7 @@ import java.util.TreeSet;
 
 import org.praisenter.Tag;
 import org.praisenter.bible.BibleLibrary;
-import org.praisenter.javafx.async.PraisenterThreadPoolExecutor;
+import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.bible.ObservableBibleLibrary;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.media.ObservableMediaLibrary;
@@ -77,7 +77,7 @@ public final class PraisenterContext {
 	private final ObservableSet<Tag> tags;
 	
 	/** The worker thread pool */
-	private final PraisenterThreadPoolExecutor executor;
+	private final AsyncTaskExecutor executor;
 	
 	/**
 	 * Full constructor.
@@ -105,7 +105,7 @@ public final class PraisenterContext {
 		this.configuration = configuration;
 
 		// create a thread pool that we can reuse all over the app
-		this.executor = new PraisenterThreadPoolExecutor();
+		this.executor = new AsyncTaskExecutor();
 		this.mediaLibrary = new ObservableMediaLibrary(media);
 		this.bibleLibrary = new ObservableBibleLibrary(bibles);
 		// FIXME move the thumbnail settings to the normal SlideLibrary
@@ -191,7 +191,7 @@ public final class PraisenterContext {
 	 * Returns the worker thread pool.
 	 * @return ThreadPoolExecutor
 	 */
-	public PraisenterThreadPoolExecutor getExecutorService() {
+	public AsyncTaskExecutor getExecutorService() {
 		return this.executor;
 	}
 }

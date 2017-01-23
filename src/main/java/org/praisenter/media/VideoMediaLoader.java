@@ -83,6 +83,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 	 */
 	@Override
 	public Media load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
+		LOGGER.debug("Video media '{}' loading", path);
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			Demuxer demuxer = null;
 			try {
@@ -112,7 +113,9 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 						video = new MediaCodec(CodecType.VIDEO, codec.getName(), codec.getLongName());
 						// attempt to read the first image of the stream
 						try {
+							LOGGER.debug("Video media '{}' - searching for best frame.", path);
 							image = readBestFrame(path, demuxer, decoder, i);
+							LOGGER.debug("Video media '{}' - creating thumbnail.", path);
 							thumb = createThumbnail(image);
 							
 							// draw on the thumb nail to make it look like
@@ -145,6 +148,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 				
 				final MediaFormat mf = new MediaFormat(format.getName().toLowerCase(), format.getLongName(), codecs);
 				final Media media = Media.forVideo(path, mf, width, height, length, audio != null, null, thumb, image);
+				LOGGER.debug("Video media '{}' loaded", path);
 				return media;
 			} catch (InterruptedException ex) {
 				throw new IOException(ex);
