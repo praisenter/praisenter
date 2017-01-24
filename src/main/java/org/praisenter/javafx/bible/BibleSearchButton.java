@@ -26,6 +26,7 @@ package org.praisenter.javafx.bible;
 
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -59,7 +60,7 @@ public final class BibleSearchButton extends Button {
 	 * @param context the praisenter context
 	 */
 	public BibleSearchButton(PraisenterContext context) {
-		this.setText("Search...");
+		this.setText(Translations.get("search"));
 		this.setOnAction((e) -> {
 			if (dialog == null) {
 				this.value.unbind();
@@ -73,7 +74,7 @@ public final class BibleSearchButton extends Button {
 				//  2. we don't know if the user will request it at all
 				dialog = new Stage();
 				dialog.initOwner(owner);
-				dialog.setTitle("Bible Search");
+				dialog.setTitle(Translations.get("bible.search.title"));
 				dialog.initModality(Modality.NONE);
 				dialog.initStyle(StageStyle.UTILITY);
 				dialog.setWidth(800);

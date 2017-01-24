@@ -158,7 +158,7 @@ public final class Translations {
 			LOGGER.warn("Failed to find key '" + key + "' for locale '" + locale.toString() + "' and in the default translation.");
 		}
 		
-		// last resort just return a default string
-		return "";
+		// last resort just return the key itself
+		return key;
 	}
 }

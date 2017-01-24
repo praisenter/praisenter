@@ -1,4 +1,4 @@
-package org.praisenter.javafx.actions;
+package org.praisenter.javafx.media;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -16,12 +16,10 @@ import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.async.AsyncGroupTask;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
-import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.MimeType;
 
-import javafx.beans.InvalidationListener;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
@@ -151,7 +149,7 @@ public final class MediaActions {
 								owner,
 								null, 
 								null, 
-								MessageFormat.format(Translations.get("media.metadata.rename.error"), media.getName(), name), 
+								MessageFormat.format(Translations.get("media.rename.error"), media.getName(), name), 
 								ex);
 						alert.show();
 					});

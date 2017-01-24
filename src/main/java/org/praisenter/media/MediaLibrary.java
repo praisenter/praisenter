@@ -119,7 +119,10 @@ public final class MediaLibrary {
 	
 	// locking
 	
+	/** The mutex locks */
 	private final LockMap<String> locks;
+	
+	/** The export lock */
 	private final StampedLock exportLock;
 	
 	/**
@@ -264,10 +267,20 @@ public final class MediaLibrary {
 		}
 	}
 
+	/**
+	 * Returns a lock for the given path.
+	 * @param path the path
+	 * @return Object
+	 */
 	private final Object getPathLock(Path path) {
 		return this.locks.get(path.getFileName().toString());
 	}
 	
+	/**
+	 * Returns a lock for the given media.
+	 * @param media the media
+	 * @return Object
+	 */
 	private final Object getMediaLock(Media media) {
 		return this.locks.get(media.getId().toString());
 	}

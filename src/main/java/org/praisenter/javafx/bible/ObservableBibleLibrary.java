@@ -203,7 +203,7 @@ public final class ObservableBibleLibrary {
 	/**
 	 * Attempts to remove the given bible from the bible library.
 	 * @param bible the bible to remove
-	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
 	public AsyncTask<Void> remove(Bible bible) {
 		if (bible != null) {
@@ -229,6 +229,24 @@ public final class ObservableBibleLibrary {
 		return AsyncTaskFactory.empty();
 	}
 
+	/**
+	 * Exports the given bibles to the given file.
+	 * @param path the file
+	 * @param bibles the bibles to export
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
+	public AsyncTask<Void> exportBibles(Path path, List<Bible> bibles) {
+		AsyncTask<Void> task = new AsyncTask<Void>(MessageFormat.format(Translations.get("task.export"), path.getFileName())) {
+			@Override
+			protected Void call() throws Exception {
+				this.updateProgress(-1, 0);
+				library.export(path, bibles);
+				return null;
+			}
+		};
+		return task;
+	}
+	
 	// searching
 	
 	/**

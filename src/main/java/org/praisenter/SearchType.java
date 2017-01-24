@@ -30,12 +30,6 @@ package org.praisenter;
  * @version 3.0.0
  */
 public enum SearchType {
-	/** Any of the terms must be contained in the text */
-	ANY_WILDCARD,
-	
-	/** All of the terms must be contained in the text */
-	ALL_WILDCARD,
-	
 	/** The results must contain all the words */
 	ALL_WORDS,
 	

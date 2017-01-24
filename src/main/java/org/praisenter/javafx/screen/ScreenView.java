@@ -152,7 +152,6 @@ public final class ScreenView extends StackPane {
 				
 				this.getChildren().add(img);
 				Fx.setSize(this, w + BORDER_WIDTH * 2, h + BORDER_WIDTH * 2);
-				this.getStyleClass().add("snapshot");
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to generate screenshot for screen " + device.getIDstring(), ex);
 				buildUnassignedOrError(this.display.toString());

@@ -52,9 +52,12 @@ import javafx.scene.layout.VBox;
  * @author William Bittle
  * @version 3.0.0
  */
-final class BibleMetadataPane extends VBox {
+final class BibleInfoPane extends VBox {
 	/** The date formatter */
 	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault());
+	
+	/** The pane class name */
+	private static final String CLASS_NAME = "bible-info-pane";
 	
 	// properties
 	
@@ -90,8 +93,8 @@ final class BibleMetadataPane extends VBox {
 	/**
 	 * Creates a new metadata pane.
 	 */
-	public BibleMetadataPane() {
-		this.getStyleClass().add("bible-metadata-pane");
+	public BibleInfoPane() {
+		this.getStyleClass().add(CLASS_NAME);
 		
 		this.setPadding(new Insets(0, 5, 10, 5));
 		this.setDisable(true);

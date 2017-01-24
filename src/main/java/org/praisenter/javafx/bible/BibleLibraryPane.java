@@ -50,7 +50,6 @@ import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
 import org.praisenter.javafx.SortGraphic;
-import org.praisenter.javafx.actions.BibleActions;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
@@ -102,6 +101,9 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 	/** The collator for locale dependent sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
 	
+	/** The pane class name */
+	private static final String CLASS_NAME = "bible-library-pane";
+	
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
@@ -141,7 +143,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 	 * @param context the praisenter context
 	 */
 	public BibleLibraryPane(PraisenterContext context) {
-		this.getStyleClass().add("bible-library-pane");
+		this.getStyleClass().add(CLASS_NAME);
 		
 		this.context = context;
 		
@@ -240,7 +242,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				new HBox(lblOpenSong),
 				new HBox(lblStep2, lblStep2Text));
 
-		BibleMetadataPane bmp = new BibleMetadataPane();
+		BibleInfoPane bmp = new BibleInfoPane();
 
 		TitledPane ttlImport = new TitledPane(Translations.get("bible.import.howto.title"), importSteps);
 		TitledPane ttlMetadata = new TitledPane(Translations.get("bible.properties.title"), bmp);

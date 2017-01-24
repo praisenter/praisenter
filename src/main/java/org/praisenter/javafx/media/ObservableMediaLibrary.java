@@ -25,6 +25,7 @@
 package org.praisenter.javafx.media;
 
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -39,6 +40,7 @@ import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
+import org.praisenter.resources.translations.Translations;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -54,7 +56,6 @@ import javafx.collections.ObservableList;
  * @author William Bittle
  * @version 3.0.0
  */
-// TODO translate
 public final class ObservableMediaLibrary {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -120,7 +121,7 @@ public final class ObservableMediaLibrary {
 			});
 			
 			// execute the add on a different thread
-			AsyncTask<Media> task = new AsyncTask<Media>("Import '" + path.getFileName() + "'") {
+			AsyncTask<Media> task = new AsyncTask<Media>(MessageFormat.format(Translations.get("task.import"), path.getFileName())) {
 				@Override
 				protected Media call() throws Exception {
 					updateProgress(-1, 0);
@@ -151,7 +152,7 @@ public final class ObservableMediaLibrary {
 		// sanity check
 		if (media != null) {
 			// execute the add on a different thread
-			AsyncTask<Void> task = new AsyncTask<Void>("Remove '" + media.getName() + "'") {
+			AsyncTask<Void> task = new AsyncTask<Void>(MessageFormat.format(Translations.get("task.delete"), media.getName())) {
 				@Override
 				protected Void call() throws Exception {
 					updateProgress(-1, 0);
@@ -184,7 +185,7 @@ public final class ObservableMediaLibrary {
 		// sanity check
 		if (media != null && name != null && name.length() > 0) {
 			// execute the add on a different thread
-			AsyncTask<Media> task = new AsyncTask<Media>("Rename '" + media.getName() + "' to '" + name + "'") {
+			AsyncTask<Media> task = new AsyncTask<Media>(MessageFormat.format(Translations.get("task.rename"), media.getName(), name)) {
 				@Override
 				protected Media call() throws Exception {
 					updateProgress(-1, 0);
@@ -274,7 +275,10 @@ public final class ObservableMediaLibrary {
 		// sanity check
 		if (path != null && media != null) {
 			// execute the add on a different thread
-			AsyncTask<Void> task = new AsyncTask<Void>(media.size() > 1 ? "Export " + media.size() + " media" : "Export '" + media.get(0).getName() + "'") {
+			AsyncTask<Void> task = new AsyncTask<Void>(
+					media.size() > 1 
+					? MessageFormat.format(Translations.get("task.export.multiple.media"), media.size())
+					: MessageFormat.format(Translations.get("task.export"), media.get(0).getName())) {
 				@Override
 				protected Void call() throws Exception {
 					updateProgress(-1, 0);
@@ -309,7 +313,7 @@ public final class ObservableMediaLibrary {
 			});
 			
 			// execute the add on a different thread
-			AsyncTask<List<Media>> task = new AsyncTask<List<Media>>("Importing") {
+			AsyncTask<List<Media>> task = new AsyncTask<List<Media>>(MessageFormat.format(Translations.get("task.import"), path.getFileName())) {
 				@Override
 				protected List<Media> call() throws Exception {
 					updateProgress(-1, 0);

@@ -25,6 +25,7 @@
 package org.praisenter.javafx.bible;
 
 import java.text.DecimalFormat;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -44,6 +45,7 @@ import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyFloatWrapper;
@@ -75,8 +77,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
-// TODO translate
-
 // FEATURE add searching to the bible editor for finding and editing easily
 
 /**
@@ -89,7 +89,7 @@ public final class BibleSearchPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The format for the seach score */
-	private static final DecimalFormat SCORE_FORMAT = new DecimalFormat("#.000000");
+	private static final DecimalFormat SCORE_FORMAT = new DecimalFormat(Translations.get("search.score.format"));
 
 	// nodes
 	
@@ -121,12 +121,12 @@ public final class BibleSearchPane extends BorderPane {
 		this.setPadding(new Insets(5));
 		
 		ObservableList<Option<SearchType>> types = FXCollections.observableArrayList();
-		types.add(new Option<SearchType>("Phrase", SearchType.PHRASE));
-		types.add(new Option<SearchType>("All Words", SearchType.ALL_WORDS));
-		types.add(new Option<SearchType>("Any Word", SearchType.ANY_WORD));
+		types.add(new Option<SearchType>(Translations.get("search.type.phrase"), SearchType.PHRASE));
+		types.add(new Option<SearchType>(Translations.get("search.type.allwords"), SearchType.ALL_WORDS));
+		types.add(new Option<SearchType>(Translations.get("search.type.anyword"), SearchType.ANY_WORD));
 
 		this.txtSearch = new TextField();
-		this.txtSearch.setPromptText("Search terms");
+		this.txtSearch.setPromptText(Translations.get("search.terms.placeholder"));
 		
 		this.cmbSearchType = new ComboBox<Option<SearchType>>(types);
 		this.cmbSearchType.setValue(types.get(0));
@@ -195,9 +195,9 @@ public final class BibleSearchPane extends BorderPane {
 				return false;
 			}
 		});
-		this.cmbBook.setPromptText("Book");
+		this.cmbBook.setPromptText(Translations.get("bible.book.placeholder"));
 		
-		Button btnSearch = new Button("Search");
+		Button btnSearch = new Button(Translations.get("search.button"));
 		
 		HBox top = new HBox(5, txtSearch, cmbBiblePrimary, cmbBook, cmbSearchType, btnSearch);
 		HBox.setHgrow(txtSearch, Priority.ALWAYS);
@@ -210,12 +210,12 @@ public final class BibleSearchPane extends BorderPane {
 		this.table = new TableView<BibleSearchResult>();
 		
 		// columns
-		TableColumn<BibleSearchResult, Number> score = new TableColumn<BibleSearchResult, Number>("Score");
-		TableColumn<BibleSearchResult, Bible> bibleName = new TableColumn<BibleSearchResult, Bible>("Bible");
-		TableColumn<BibleSearchResult, Book> bookName = new TableColumn<BibleSearchResult, Book>("Book");
-		TableColumn<BibleSearchResult, Chapter> chapterNumber = new TableColumn<BibleSearchResult, Chapter>("Chap");
-		TableColumn<BibleSearchResult, Verse> verseNumber = new TableColumn<BibleSearchResult, Verse>("Verse");
-		TableColumn<BibleSearchResult, Verse> verseText = new TableColumn<BibleSearchResult, Verse>("Text");
+		TableColumn<BibleSearchResult, Number> score = new TableColumn<BibleSearchResult, Number>(Translations.get("search.score"));
+		TableColumn<BibleSearchResult, Bible> bibleName = new TableColumn<BibleSearchResult, Bible>(Translations.get("bible.search.results.bible"));
+		TableColumn<BibleSearchResult, Book> bookName = new TableColumn<BibleSearchResult, Book>(Translations.get("bible.search.results.book"));
+		TableColumn<BibleSearchResult, Chapter> chapterNumber = new TableColumn<BibleSearchResult, Chapter>(Translations.get("bible.search.results.chapter"));
+		TableColumn<BibleSearchResult, Verse> verseNumber = new TableColumn<BibleSearchResult, Verse>(Translations.get("bible.search.results.verse"));
+		TableColumn<BibleSearchResult, Verse> verseText = new TableColumn<BibleSearchResult, Verse>(Translations.get("bible.search.results.text"));
 		
 		score.setCellValueFactory(p -> new ReadOnlyFloatWrapper(p.getValue().getScore()));
 		bibleName.setCellValueFactory(p -> new ReadOnlyObjectWrapper<Bible>(p.getValue().getBible()));
@@ -364,7 +364,7 @@ public final class BibleSearchPane extends BorderPane {
 					List<BibleSearchResult> results = task.getValue();
 					this.table.setItems(FXCollections.observableArrayList(results));
 					int size = results.size();
-					lblResults.setText("Results: " + (size > BibleSearchCriteria.MAXIMUM_RESULTS ? size + "+" : size));
+					lblResults.setText(MessageFormat.format(Translations.get("bible.search.results.output"), size > BibleSearchCriteria.MAXIMUM_RESULTS ? size + "+" : size));
 					overlay.setVisible(false);
 				});
 				task.execute(context.getExecutorService());

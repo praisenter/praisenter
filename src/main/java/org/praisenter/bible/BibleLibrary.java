@@ -155,6 +155,7 @@ public final class BibleLibrary {
 	
 	// locks
 	
+	/** The mutex locks */
 	private final LockMap<String> locks;
 	
 	/**
@@ -287,6 +288,10 @@ public final class BibleLibrary {
 		return documents;
 	}
 	
+	/**
+	 * Returns the lock for the index.
+	 * @return Object
+	 */
 	private Object getIndexLock() {
 		return this.locks.get("INDEX");
 	}
@@ -406,6 +411,18 @@ public final class BibleLibrary {
 				Files.deleteIfExists(bible.path);
 			}
 		}
+	}
+	
+	/**
+	 * Exports the given bibles to the given file.
+	 * @param path the file
+	 * @param bibles the bibles to export
+	 * @throws IOException if an IO error occurs
+	 * @throws JAXBException if a bible cannot be written to XML
+	 */
+	public void export(Path path, List<Bible> bibles) throws IOException, JAXBException {
+		final PraisenterBibleExporter exporter = new PraisenterBibleExporter();
+		exporter.execute(path, bibles);
 	}
 	
 	/**

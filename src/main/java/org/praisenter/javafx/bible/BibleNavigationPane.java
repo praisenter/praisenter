@@ -24,6 +24,7 @@
  */
 package org.praisenter.javafx.bible;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -47,6 +48,7 @@ import org.praisenter.javafx.AutoCompleteComboBox;
 import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -126,8 +128,6 @@ public final class BibleNavigationPane extends BorderPane {
 	/** The next verse for the value for the pane */
 	private final ObjectProperty<BibleReferenceTextStore> next = new SimpleObjectProperty<BibleReferenceTextStore>();
 	
-	// TODO Translate
-	
 	/**
 	 * Minimal constructor.
 	 * @param context the context.
@@ -205,7 +205,7 @@ public final class BibleNavigationPane extends BorderPane {
 				return false;
 			}
 		});
-		this.cmbBook.setPromptText("Book");
+		this.cmbBook.setPromptText(Translations.get("bible.book.placeholder"));
 		
 		if (primaryBible != null) {
 			this.cmbBiblePrimary.getSelectionModel().select(primaryBible);
@@ -261,19 +261,19 @@ public final class BibleNavigationPane extends BorderPane {
 			validate();
 		});
 		
-		Button btn = new Button("Find");
+		Button btn = new Button(Translations.get("bible.nav.find"));
 		btn.setOnMouseClicked((e) -> {
 			LocatedVerseTriplet triplet = getTripletForInput(FIND);
 			updateValue(triplet, e.isShortcutDown());
 		});
 		
-		Button next = new Button("Next");
+		Button next = new Button(Translations.get("bible.nav.next"));
 		next.setOnMouseClicked((e) -> {
 			LocatedVerseTriplet triplet = getTripletForInput(NEXT);
 			updateValue(triplet, e.isShortcutDown());
 		});
 		
-		Button prev = new Button("Previous");
+		Button prev = new Button(Translations.get("bible.nav.previous"));
 		prev.setOnMouseClicked((e) -> {
 			LocatedVerseTriplet triplet = getTripletForInput(PREVIOUS);
 			updateValue(triplet, e.isShortcutDown());
@@ -351,11 +351,11 @@ public final class BibleNavigationPane extends BorderPane {
 		this.lblVerses.setGraphic(null);
 		
 		if (book != null) {
-			this.lblChapters.setText("1-" + book.getMaxChapterNumber());
+			this.lblChapters.setText(MessageFormat.format(Translations.get("bible.range"), book.getMaxChapterNumber()));
 			if (ch != null) {
 				Chapter chapter = book.getChapter(ch.shortValue());
 				if (chapter != null) {
-					this.lblVerses.setText("1-" + chapter.getMaxVerseNumber());
+					this.lblVerses.setText(MessageFormat.format(Translations.get("bible.range"), chapter.getMaxVerseNumber()));
 					if (vs != null) {
 						Verse verse = chapter.getVerse(vs.shortValue());
 						if (verse == null) {

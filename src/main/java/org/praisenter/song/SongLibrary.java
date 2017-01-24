@@ -459,11 +459,11 @@ public final class SongLibrary {
 			return Collections.emptyList();
 		}
 		
-		// check for wildcard characters for non-wildcard searches
-		if (type != SearchType.ALL_WILDCARD && type != SearchType.ANY_WILDCARD && !text.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
-			// take the wildcard characters out
-			text = text.replaceAll("\\" + WildcardQuery.WILDCARD_CHAR, "");
-		}
+//		// check for wildcard characters for non-wildcard searches
+//		if (type != SearchType.ALL_WILDCARD && type != SearchType.ANY_WILDCARD && !text.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
+//			// take the wildcard characters out
+//			text = text.replaceAll("\\" + WildcardQuery.WILDCARD_CHAR, "");
+//		}
 		
 		// tokenize
 		List<String> tokens = this.getTokens(text, FIELD_TEXT);
@@ -508,28 +508,28 @@ public final class SongLibrary {
 		if (tokens.size() == 0) return null;
 		if (tokens.size() == 1) {
 			String token = tokens.get(0);
-			if (type == SearchType.ALL_WILDCARD || type == SearchType.ANY_WILDCARD) {
+//			if (type == SearchType.ALL_WILDCARD || type == SearchType.ANY_WILDCARD) {
 				// check for wildcard character
 				if (!token.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
 					token = WildcardQuery.WILDCARD_CHAR + token + WildcardQuery.WILDCARD_CHAR;
 				}
 				return new WildcardQuery(new Term(field, token));
-			} else {
-				return new TermQuery(new Term(field, token));
-			}
+//			} else {
+//				return new TermQuery(new Term(field, token));
+//			}
 		// PHRASE
 		} else if (type == SearchType.PHRASE) {
 			return new PhraseQuery(2, field, tokens.toArray(temp));
 		// ALL_WILDCARD, ANY_WILDCARD
-		} else if (type == SearchType.ALL_WILDCARD || type == SearchType.ANY_WILDCARD) {
-			BooleanQuery.Builder builder = new BooleanQuery.Builder();
-			for (String token : tokens) {
-				if (!token.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
-					token = WildcardQuery.WILDCARD_CHAR + token + WildcardQuery.WILDCARD_CHAR;
-				}
-				builder.add(new WildcardQuery(new Term(field, token)), type == SearchType.ALL_WILDCARD ? Occur.MUST : Occur.SHOULD);
-			}
-			return builder.build();
+//		} else if (type == SearchType.ALL_WILDCARD || type == SearchType.ANY_WILDCARD) {
+//			BooleanQuery.Builder builder = new BooleanQuery.Builder();
+//			for (String token : tokens) {
+//				if (!token.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
+//					token = WildcardQuery.WILDCARD_CHAR + token + WildcardQuery.WILDCARD_CHAR;
+//				}
+//				builder.add(new WildcardQuery(new Term(field, token)), type == SearchType.ALL_WILDCARD ? Occur.MUST : Occur.SHOULD);
+//			}
+//			return builder.build();
 		// ALL_WORDS, ANY_WORD, LOCATION
 		} else {
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();

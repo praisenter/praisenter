@@ -1,4 +1,28 @@
-package org.praisenter.javafx.actions;
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.praisenter.javafx.bible;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -13,15 +37,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleLibrary;
-import org.praisenter.bible.PraisenterBibleExporter;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.async.AsyncGroupTask;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
-import org.praisenter.javafx.bible.ObservableBibleLibrary;
 import org.praisenter.resources.translations.Translations;
 
-import javafx.beans.InvalidationListener;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
@@ -30,11 +51,28 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 
+/**
+ * Wrapper class for user actions with the {@link ObservableBibleLibrary} that encapsulate
+ * user related alerts and warnings.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class BibleActions {
+	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	/** Hidden constructor */
 	private BibleActions() {}
 
+	/**
+	 * Returns a task that will import the given paths as bibles.
+	 * <p>
+	 * Returns a list of the bibles that were imported successfully.
+	 * @param library the library to import into
+	 * @param owner the window owner
+	 * @param paths the paths to import
+	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;List&lt;{@link Bible}&gt;&gt;&gt;
+	 */
 	public static final AsyncGroupTask<AsyncTask<List<Bible>>> bibleImport(ObservableBibleLibrary library, Window owner, List<Path> paths) {
 		// sanity check
 		if (paths != null && !paths.isEmpty()) {
@@ -94,6 +132,15 @@ public final class BibleActions {
 		return AsyncTaskFactory.none();
 	}
 	
+	/**
+	 * Returns a task that will save the given bible.
+	 * <p>
+	 * Returns the bible that was saved.
+	 * @param library the library to save to
+	 * @param owner the window owner
+	 * @param bible the bible to save
+	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 */
 	public static final AsyncTask<Bible> bibleSave(ObservableBibleLibrary library, Window owner, Bible bible) {
 		// sanity check
 		if (bible != null) {
@@ -114,6 +161,16 @@ public final class BibleActions {
 		return AsyncTaskFactory.empty();
 	}
 
+	/**
+	 * Returns a task that will prompt the user for a new name for the given bible and save it with
+	 * that new name.
+	 * <p>
+	 * Returns the bible with the new name.
+	 * @param library the library to save to
+	 * @param owner the window owner
+	 * @param bible the bible to rename
+	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 */
 	public static final AsyncTask<Bible> biblePromptRename(ObservableBibleLibrary library, Window owner, Bible bible) {
 		// sanity check
 		if (bible != null) {
@@ -156,6 +213,13 @@ public final class BibleActions {
 		return AsyncTaskFactory.empty();
 	}
 
+	/**
+	 * Returns a task that will prompt the user to select a file name to export the given bibles to.
+	 * @param library the library to save to
+	 * @param owner the window owner
+	 * @param bibles the bibles to export
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
 	public static final AsyncTask<Void> biblePromptExport(ObservableBibleLibrary library, Window owner, List<Bible> bibles) {
 		// sanity check
 		if (bibles != null && !bibles.isEmpty()) {
@@ -172,16 +236,7 @@ public final class BibleActions {
 	    	// check for cancellation
 	    	if (file != null) {
 	    		final Path path = file.toPath();
-	    		final PraisenterBibleExporter exporter = new PraisenterBibleExporter();
-	    		// TODO this should be in the ObservableBibleLibrary
-	    		AsyncTask<Void> task = new AsyncTask<Void>(MessageFormat.format(Translations.get("task.export"), name)) {
-					@Override
-					protected Void call() throws Exception {
-						this.updateProgress(-1, 0);
-						exporter.execute(path, bibles);
-						return null;
-					}
-				};
+	    		AsyncTask<Void> task = library.exportBibles(path, bibles);
 				task.addCancelledOrFailedHandler((e) -> {
 					// show an error to the user
 					Alert alert = Alerts.exception(
@@ -199,6 +254,14 @@ public final class BibleActions {
 		return AsyncTaskFactory.empty();
 	}
 
+	/**
+	 * Returns a task that will prompt the user for files to import as bibles.
+	 * <p>
+	 * Returns a list of the bibles that were imported successfully.
+	 * @param library the library to import into
+	 * @param owner the window owner
+	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;List&lt;{@link Bible}&gt;&gt;&gt;
+	 */
 	public static final AsyncGroupTask<AsyncTask<List<Bible>>> biblePromptImport(ObservableBibleLibrary library, Window owner) {
 		FileChooser chooser = new FileChooser();
 		chooser.setTitle(Translations.get("bible.import.title"));
@@ -214,6 +277,15 @@ public final class BibleActions {
 		return AsyncTaskFactory.none();
 	}
 
+	/**
+	 * Returns a task that will make a copy of the given bible.
+	 * <p>
+	 * Returns the copy.
+	 * @param library the library to save to
+	 * @param owner the window owner
+	 * @param bible the bible to copy
+	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 */
 	public static final AsyncTask<Bible> bibleCopy(ObservableBibleLibrary library, Window owner, Bible bible) {
 		if (bible != null) {
 			// make a copy
@@ -240,6 +312,16 @@ public final class BibleActions {
 		return AsyncTaskFactory.empty();
 	}
 
+	/**
+	 * Returns a task that will prompt the user for a new name for the given bible and save a new
+	 * bible with that new name.
+	 * <p>
+	 * Returns the new bible.
+	 * @param library the library to save to
+	 * @param owner the window owner
+	 * @param bible the bible to rename
+	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 */
 	public static final AsyncTask<Bible> biblePromptSaveAs(ObservableBibleLibrary library, Window owner, Bible bible) {
 		if (bible != null) {
 			String old = bible.getName();
@@ -278,6 +360,13 @@ public final class BibleActions {
 		return AsyncTaskFactory.empty();
 	}
 
+	/**
+	 * Returns a task that will prompt the user for for confirmation to delete the given bibles.
+	 * @param library the library to import into
+	 * @param owner the window owner
+	 * @param bibles the bibles to delete
+	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;Void&gt;&gt;
+	 */
 	public static final AsyncGroupTask<AsyncTask<Void>> biblePromptDelete(ObservableBibleLibrary library, Window owner, List<Bible> bibles) {
 		if (bibles != null) {
 			// attempt to delete the selected bible

@@ -50,7 +50,6 @@ import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SortGraphic;
-import org.praisenter.javafx.actions.MediaActions;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
@@ -104,6 +103,9 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 	/** The class-level loader */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	/** The pane class name */
+	private static final String CLASS_NAME = "media-library-pane";
+	
 	/** The collator for locale dependent sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
 
@@ -148,7 +150,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 	private final FlowListView<MediaListItem> lstMedia;
 	
 	/** The media metadata pane */
-	private final MediaMetadataPane pneMetadata;
+	private final MediaInfoPane pneMetadata;
 	
 	/** The media preview player */
 	private final MediaPlayerPane pnePlayer;
@@ -164,6 +166,8 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     		Orientation orientation, 
     		MediaType... types) {
     	this.context = context;
+    	
+    	this.getStyleClass().add(CLASS_NAME);
     	
 		final ObservableMediaLibrary library = context.getMediaLibrary();
 		final ObservableSet<Tag> tags = context.getTags();
@@ -317,7 +321,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 				menu.createMenuItem(ApplicationAction.SELECT_INVERT));
 		this.lstMedia.setContextMenu(menu);
         
-        this.pneMetadata = new MediaMetadataPane(tags);
+        this.pneMetadata = new MediaInfoPane(tags);
         // wire up the selected media to the media metadata view with a unidirectional binding
         this.pneMetadata.mediaProperty().bind(this.lstMedia.getSelectionModel().selectionProperty());
         this.pneMetadata.addEventHandler(MediaMetadataEvent.RENAME, e -> {
@@ -363,7 +367,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         lblImport.setWrapText(true);
         
         TitledPane ttlImport = new TitledPane(Translations.get("media.import.title"), lblImport);
-        TitledPane ttlMetadata = new TitledPane(Translations.get("media.metadata.title"), this.pneMetadata);
+        TitledPane ttlMetadata = new TitledPane(Translations.get("media.properties.title"), this.pneMetadata);
         TitledPane ttlPreview = new TitledPane(Translations.get("media.preview.title"), this.pnePlayer);
         
         VBox rightGroup = new VBox(ttlImport, ttlMetadata);

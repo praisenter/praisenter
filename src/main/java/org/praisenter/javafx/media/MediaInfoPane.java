@@ -60,9 +60,12 @@ import javafx.scene.layout.VBox;
  * @author William Bittle
  * @version 3.0.0
  */
-final class MediaMetadataPane extends VBox {
+final class MediaInfoPane extends VBox {
 	/** The value used for non-applicable fields (like the length for an image) */
 	private static final String NOT_APPLICABLE = "";
+	
+	/** The pane class name */
+	private static final String CLASS_NAME = "media-info-pane";
 	
 	/** A formatter for instance fields */
 	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault());
@@ -104,7 +107,8 @@ final class MediaMetadataPane extends VBox {
 	 * Creates a new media metadata pane.
 	 * @param allTags the set of all tags
 	 */
-	public MediaMetadataPane(ObservableSet<Tag> allTags) {
+	public MediaInfoPane(ObservableSet<Tag> allTags) {
+		this.getStyleClass().add(CLASS_NAME);
 		this.setPadding(new Insets(0, 5, 10, 5));
 		this.setDisable(true);
 		
@@ -122,7 +126,7 @@ final class MediaMetadataPane extends VBox {
         // for debugging
         //this.setGridLinesVisible(true);
         
-        Label lblName = new Label(Translations.get("media.metadata.name"));
+        Label lblName = new Label(Translations.get("media.properties.name"));
         Label lblNameValue = new Label();
         lblNameValue.textProperty().bind(name);
         lblNameValue.setTooltip(new Tooltip());
@@ -134,7 +138,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblName, 0, 0, 1, 1);
         grid.add(nameRow, 1, 0, 1, 1);
         
-        Label lblWidth = new Label(Translations.get("media.metadata.width"));
+        Label lblWidth = new Label(Translations.get("media.properties.width"));
         Label lblWidthValue = new Label();
         lblWidthValue.textProperty().bind(width);
         lblWidthValue.setTooltip(new Tooltip());
@@ -143,7 +147,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblWidth, 0, 1, 1, 1);
         grid.add(lblWidthValue, 1, 1, 1, 1);
         
-        Label lblHeight = new Label(Translations.get("media.metadata.height"));
+        Label lblHeight = new Label(Translations.get("media.properties.height"));
         Label lblHeightValue = new Label();
         lblHeightValue.textProperty().bind(height);
         lblHeightValue.setTooltip(new Tooltip());
@@ -152,7 +156,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblHeight, 0, 2, 1, 1);
         grid.add(lblHeightValue, 1, 2, 1, 1);
         
-        Label lblLength = new Label(Translations.get("media.metadata.length"));
+        Label lblLength = new Label(Translations.get("media.properties.length"));
         Label lblLengthValue = new Label();
         lblLengthValue.textProperty().bind(length);
         lblLengthValue.setTooltip(new Tooltip());
@@ -161,7 +165,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblLength, 0, 3, 1, 1);
         grid.add(lblLengthValue, 1, 3, 1, 1);
         
-        Label lblSound = new Label(Translations.get("media.metadata.sound"));
+        Label lblSound = new Label(Translations.get("media.properties.sound"));
         Label lblSoundValue = new Label();
         lblSoundValue.textProperty().bind(audio);
         lblSoundValue.setTooltip(new Tooltip());
@@ -170,7 +174,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblSound, 0, 4, 1, 1);
         grid.add(lblSoundValue, 1, 4, 1, 1);
         
-        Label lblFormat = new Label(Translations.get("media.metadata.format"));
+        Label lblFormat = new Label(Translations.get("media.properties.format"));
         Label lblFormatValue = new Label();
         lblFormatValue.textProperty().bind(format);
         lblFormatValue.setTooltip(new Tooltip());
@@ -179,7 +183,7 @@ final class MediaMetadataPane extends VBox {
         grid.add(lblFormat, 0, 5, 1, 1);
         grid.add(lblFormatValue, 1, 5, 1, 1);
         
-        Label lblDateAdded = new Label(Translations.get("media.metadata.dateAdded"));
+        Label lblDateAdded = new Label(Translations.get("media.properties.dateAdded"));
         Label lblDateAddedValue = new Label();
         lblDateAddedValue.textProperty().bind(dateAdded);
         lblDateAddedValue.setTooltip(new Tooltip());
@@ -193,13 +197,13 @@ final class MediaMetadataPane extends VBox {
         this.tagView.addEventHandler(TagEvent.ALL, new EventHandler<TagEvent>() {
 			@Override
 			public void handle(TagEvent event) {
-				MediaListItem media = MediaMetadataPane.this.media.get();
+				MediaListItem media = MediaInfoPane.this.media.get();
 				Tag tag = event.getTag();
 				// bubble up the event
 				if (event.getEventType() == TagEvent.ADDED) {
-					fireEvent(new MediaTagEvent(tagView, MediaMetadataPane.this, MediaMetadataEvent.ADD_TAG, media, tag));
+					fireEvent(new MediaTagEvent(tagView, MediaInfoPane.this, MediaMetadataEvent.ADD_TAG, media, tag));
 				} else if (event.getEventType() == TagEvent.REMOVED) {
-					fireEvent(new MediaTagEvent(tagView, MediaMetadataPane.this, MediaMetadataEvent.REMOVE_TAG, media, tag));
+					fireEvent(new MediaTagEvent(tagView, MediaInfoPane.this, MediaMetadataEvent.REMOVE_TAG, media, tag));
 				}
 			}
         });
