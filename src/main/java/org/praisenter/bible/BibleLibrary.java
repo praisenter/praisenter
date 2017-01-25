@@ -24,6 +24,7 @@
  */
 package org.praisenter.bible;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
@@ -33,6 +34,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -76,8 +78,10 @@ import org.apache.lucene.search.spans.SpanQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.praisenter.Constants;
+import org.praisenter.InvalidFormatException;
 import org.praisenter.LockMap;
 import org.praisenter.SearchType;
+import org.praisenter.UnknownFormatException;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
@@ -227,7 +231,7 @@ public final class BibleLibrary {
 									LOGGER.warn("Failed to load bible '" + file.toAbsolutePath().toString() + "'", e);
 									writer.deleteDocuments(new Term(FIELD_PATH, file.toAbsolutePath().toString()));
 								}
-							} catch (IOException ex) {
+							} catch (Exception ex) {
 								// make sure its not in the index
 								// we don't want to be able to find the bible
 								// if we failed to load it
@@ -406,6 +410,8 @@ public final class BibleLibrary {
 							LOGGER.debug("Renaming bible '{}' to '{}'.", bible.getName(), path.getFileName());
 							// otherwise rename the file
 							Files.move(original, path);
+							bible.path = path;
+							XmlIO.save(bible.path, bible);
 						}
 					}
 				} else {
@@ -483,9 +489,37 @@ public final class BibleLibrary {
 	 * @throws IOException if an IO error occurs
 	 * @throws JAXBException if a bible cannot be written to XML
 	 */
-	public void export(Path path, List<Bible> bibles) throws IOException, JAXBException {
+	public void exportBibles(Path path, List<Bible> bibles) throws IOException, JAXBException {
 		final PraisenterBibleExporter exporter = new PraisenterBibleExporter();
 		exporter.execute(path, bibles);
+	}
+	
+	/**
+	 * Imports the given bibles into the library.
+	 * @param path the path to a zip file
+	 * @return List&lt;{@link Bible}&gt;
+	 * @throws FileNotFoundException if the given path is not found
+	 * @throws InvalidFormatException if the file wasn't in the format expected
+	 * @throws UnknownFormatException if the format of the file couldn't be determined
+	 * @throws JAXBException if an error occurs while reading XML
+	 * @throws IOException if an IO error occurs
+	 */
+	public List<Bible> importBibles(Path path) throws FileNotFoundException, IOException, JAXBException, InvalidFormatException, UnknownFormatException {
+		FormatIdentifingBibleImporter importer = new FormatIdentifingBibleImporter();
+		List<Bible> bibles = importer.execute(path);
+		
+		LOGGER.debug("'{}' bibles found in '{}'.", bibles.size(), path);
+		Iterator<Bible> it = bibles.iterator();
+		while (it.hasNext()) {
+			Bible bible = it.next();
+			try {
+				this.save(bible);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to save the bible '" + bible.getName() + "'", ex);
+				it.remove();
+			}
+		}
+		return bibles;
 	}
 	
 	/**

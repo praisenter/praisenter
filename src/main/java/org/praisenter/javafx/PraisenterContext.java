@@ -109,7 +109,8 @@ public final class PraisenterContext {
 		this.mediaLibrary = new ObservableMediaLibrary(media);
 		this.bibleLibrary = new ObservableBibleLibrary(bibles);
 		// FIXME move the thumbnail settings to the normal SlideLibrary
-		this.slideLibrary = new ObservableSlideLibrary(slides, new JavaFXSlideThumbnailGenerator(100, 100, this), this.executor);
+		JavaFXSlideThumbnailGenerator jfxThumbnailGenerator = new JavaFXSlideThumbnailGenerator(100, 100, this);
+		this.slideLibrary = new ObservableSlideLibrary(slides, jfxThumbnailGenerator);
 		
 		Set<Tag> tags = new TreeSet<Tag>();
 		// add all the tags to the main tag set

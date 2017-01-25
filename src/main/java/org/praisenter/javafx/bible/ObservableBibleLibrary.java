@@ -35,7 +35,6 @@ import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.BibleSearchCriteria;
 import org.praisenter.bible.BibleSearchResult;
-import org.praisenter.bible.FormatIdentifingBibleImporter;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.javafx.utility.Fx;
@@ -98,9 +97,12 @@ public final class ObservableBibleLibrary {
 	private BibleListItem getListItem(Bible bible) {
 		if (bible == null) return null;
 		BibleListItem bi = null;
-    	for (int i = 0; i < items.size(); i++) {
-    		BibleListItem item = items.get(i);
-    		if (item.isLoaded() && item.getBible().getId().equals(bible.getId())) {
+    	for (int i = 0; i < this.items.size(); i++) {
+    		BibleListItem item = this.items.get(i);
+    		if (item != null &&
+    			item.isLoaded() &&
+    			item.getBible() != null &&
+    			item.getBible().getId().equals(bible.getId())) {
     			bi = item;
     			break;
     		}
@@ -129,12 +131,7 @@ public final class ObservableBibleLibrary {
 				@Override
 				protected List<Bible> call() throws Exception {
 					updateProgress(-1, 0);
-					FormatIdentifingBibleImporter importer = new FormatIdentifingBibleImporter();
-					List<Bible> bibles = importer.execute(path);
-					for (Bible bible : bibles) {
-						library.save(bible);
-					}
-					return bibles;
+					return library.importBibles(path);
 				}
 			};
 			task.setOnSucceeded((e) -> {
@@ -184,7 +181,7 @@ public final class ObservableBibleLibrary {
 			};
 			task.setOnSucceeded((e) -> {
 				// find the bible item
-				BibleListItem bi = this.getListItem(copy);
+				BibleListItem bi = this.getListItem(bible);
 				// check if new
 				if (bi != null) {
 					this.items.remove(bi);
@@ -246,7 +243,7 @@ public final class ObservableBibleLibrary {
 			@Override
 			protected Void call() throws Exception {
 				this.updateProgress(-1, 0);
-				library.export(path, bibles);
+				library.exportBibles(path, bibles);
 				return null;
 			}
 		};

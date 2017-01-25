@@ -28,20 +28,25 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.InvalidFormatException;
+import org.praisenter.LockMap;
+import org.praisenter.UnknownFormatException;
 import org.praisenter.utility.MimeType;
+import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -75,6 +80,11 @@ public final class SlideLibrary {
 	
 	/** The slides */
 	private final Map<UUID, Slide> slides;
+
+	// locks
+	
+	/** The mutex locks */
+	private final LockMap<String> locks;
 	
 	/**
 	 * Sets up a new {@link SlideLibrary} at the given path.
@@ -95,7 +105,8 @@ public final class SlideLibrary {
 	 */
 	private SlideLibrary(Path path) {
 		this.path = path;
-		this.slides = new HashMap<UUID, Slide>();
+		this.slides = new ConcurrentHashMap<UUID, Slide>();
+		this.locks = new LockMap<String>();
 	}
 	
 	/**
@@ -103,6 +114,8 @@ public final class SlideLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	private void initialize() throws IOException {
+		LOGGER.debug("Initializing slide library at '{}'.", this.path);
+		
 		// verify paths exist
 		Files.createDirectories(this.path);
 		
@@ -117,7 +130,7 @@ public final class SlideLibrary {
 							try {
 								// read in the xml
 								BasicSlide slide = XmlIO.read(is, BasicSlide.class);
-								slide.setPath(file);
+								slide.path = file;
 								
 								// we can't attempt generating thumbnails at this time
 								// since it would rely on the caller's systems to be in place already
@@ -127,7 +140,7 @@ public final class SlideLibrary {
 							} catch (Exception e) {
 								LOGGER.warn("Failed to load slide '" + file.toAbsolutePath().toString() + "'", e);
 							}
-						} catch (IOException ex) {
+						} catch (Exception ex) {
 							LOGGER.warn("Failed to load slide '" + file.toAbsolutePath().toString() + "'", ex);
 						}
 					}
@@ -135,23 +148,25 @@ public final class SlideLibrary {
 			}
 		}
 	}
-	
+
 	/**
-	 * Returns all the slides in the library.
-	 * @return List&lt;{@link Slide}&gt;
+	 * Returns a lock for the given slide.
+	 * @param slide the slide
+	 * @return Object
 	 */
-	public synchronized List<Slide> all() {
-		return new ArrayList<Slide>(this.slides.values());
+	private Object getSlideLock(Slide slide) {
+		return this.locks.get(slide.getId().toString());
 	}
-	
+
 	/**
-	 * Returns the number of slides in the library.
-	 * @return int
+	 * Returns a lock for the given path file name.
+	 * @param path the path
+	 * @return Object
 	 */
-	public synchronized int size() {
-		return this.slides.size();
+	private Object getPathLock(Path path) {
+		return this.locks.get(path.getFileName().toString());
 	}
-	
+
 	/**
 	 * Returns the slide for the given id.
 	 * <p>
@@ -159,79 +174,25 @@ public final class SlideLibrary {
 	 * @param id the slide id
 	 * @return {@link Slide}
 	 */
-	public synchronized Slide get(UUID id) {
+	public Slide get(UUID id) {
 		if (id == null) return null;
 		return this.slides.get(id);
 	}
 	
 	/**
-	 * Returns true if the given slide id is in the library.
-	 * <p>
-	 * Returns false if the id is null.
-	 * @param id the slide id
-	 * @return boolean
+	 * Returns all the slides in the library.
+	 * @return List&lt;{@link Slide}&gt;
 	 */
-	public synchronized boolean contains(UUID id) {
-		if (id == null) return false;
-		return this.slides.containsKey(id);
-	}
-
-	/**
-	 * Returns true if the given slide is in the library.
-	 * <p>
-	 * Returns false if the slide is null.
-	 * @param slide the slide
-	 * @return boolean
-	 */
-	public synchronized boolean contains(Slide slide) {
-		if (slide == null || slide.getId() == null) return false;
-		return this.slides.containsKey(slide.getId());
+	public List<Slide> all() {
+		return new ArrayList<Slide>(this.slides.values());
 	}
 	
 	/**
-	 * Adds the given slide to the slide library.
-	 * @param stream the stream of the slide to add to the library
-	 * @throws FileNotFoundException if the given path was not found
-	 * @throws JAXBException if an error occurs writing the XML
-	 * @throws IOException if an IO error occurs
-	 * @return {@link Slide}
+	 * Returns the number of slides in the library.
+	 * @return int
 	 */
-	public synchronized Slide add(InputStream stream) throws FileNotFoundException, JAXBException, IOException {
-		if (stream == null) {
-			return null;
-		}
-		
-		// attempt to read the file
-		Slide slide = XmlIO.read(stream, BasicSlide.class);
-		slide.setPath(null);
-		
-		// add it to the library
-		this.save(slide);
-		
-		return slide;
-	}
-	
-	/**
-	 * Adds the given slide to the slide library.
-	 * @param path the path to the slide to add to the library
-	 * @throws FileNotFoundException if the given path was not found
-	 * @throws JAXBException if an error occurs writing the XML
-	 * @throws IOException if an IO error occurs
-	 * @return {@link Slide}
-	 */
-	public synchronized Slide add(Path path) throws FileNotFoundException, JAXBException, IOException {
-		if (path == null) {
-			return null;
-		}
-		
-		// attempt to read the file
-		Slide slide = XmlIO.read(path, BasicSlide.class);
-		slide.setPath(null);
-		
-		// add it to the library
-		this.save(slide);
-		
-		return slide;
+	public int size() {
+		return this.slides.size();
 	}
 	
 	/**
@@ -240,23 +201,72 @@ public final class SlideLibrary {
 	 * @throws JAXBException if an error occurs writing the XML
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized void save(Slide slide) throws JAXBException, IOException {
-		if (slide.getPath() == null) {
-			String name = createFileName(slide);
+	public void save(Slide slide) throws JAXBException, IOException {
+		// calling this method could indicate one of the following:
+		// 1. New
+		// 2. Save Existing
+		// 3. Save Existing + Rename
+		
+		// obtain the lock on the slide
+		synchronized (this.getSlideLock(slide)) {
+			LOGGER.debug("Saving slide '{}'.", slide.getName());
+			
+			// generate the file name and path
+			String name = SlideLibrary.createFileName(slide);
 			Path path = this.path.resolve(name + EXTENSION);
-			// verify there doesn't exist a song with this name already
-			if (Files.exists(path)) {
-				// just use the UUID
-				path = this.path.resolve(slide.getId().toString().replaceAll("-", "") + EXTENSION);
+			Path uuid = this.path.resolve(StringManipulator.toFileName(slide.getId()) + EXTENSION);
+			
+			// check for operation
+			if (!this.slides.containsKey(slide.getId())) {
+				LOGGER.debug("Adding slide '{}'.", slide.getName());
+				// then its a new
+				synchronized (this.getPathLock(path)) {
+					// check if the path exists once we obtain the lock
+					if (Files.exists(path)) {
+						// just use the UUID (which shouldn't need a lock since it's unique)
+						path = uuid;
+					}
+					slide.setPath(path);
+					XmlIO.save(path, slide);
+					LOGGER.debug("Slide '{}' saved to '{}'.", slide.getName(), path);
+				}
+			} else {
+				LOGGER.debug("Updating slide '{}'.", slide.getName());
+				// it's an existing one
+				Path original = slide.getPath();
+				if (!original.equals(path)) {
+					// obtain the desired path lock
+					synchronized (this.getPathLock(path)) {
+						// check if the path exists once we obtain the lock
+						if (Files.exists(path)) {
+							// is the original path the UUID path (which indicates that when it was imported
+							// it had a file name conflict)
+							if (original.equals(uuid)) {
+								// if so, this isn't really a rename, just save it
+								XmlIO.save(slide.getPath(), slide);
+							} else {
+								// if the path already exists and the current path isn't the uuid path
+								// then we know that this was a rename to a different name that already exists
+								LOGGER.warn("Unable to rename slide '{}' to '{}' because a file with that name already exists.", slide.getName(), path.getFileName());
+								throw new FileAlreadyExistsException(path.getFileName().toString());
+							}
+						} else {
+							LOGGER.debug("Renaming slide '{}' to '{}'.", slide.getName(), path.getFileName());
+							// otherwise rename the file
+							Files.move(original, path);
+							slide.setPath(path);
+							XmlIO.save(path, slide);
+						}
+					}
+				} else {
+					// it's a normal save
+					XmlIO.save(slide.getPath(), slide);
+				}
 			}
-			slide.setPath(path);
+			
+			// update the slide map
+			this.slides.put(slide.getId(), slide);
 		}
-		
-		// save the song
-		XmlIO.save(slide.getPath(), slide);
-		
-		// make sure the library is updated
-		this.slides.put(slide.getId(), slide);
 	}
 	
 	/**
@@ -264,26 +274,62 @@ public final class SlideLibrary {
 	 * @param slide the slide to remove
 	 * @throws IOException if and IO error occurs
 	 */
-	public synchronized void remove(Slide slide) throws IOException {
+	public void remove(Slide slide) throws IOException {
 		if (slide == null) return;
 		
-		// delete the file
-		Path path = slide != null ? slide.getPath() : null;
-		if (path != null) {
-			Files.deleteIfExists(path);
-		}
+		UUID id = slide.getId();
+		if (id == null) return;
 		
-		this.slides.remove(slide.getId());
+		synchronized (this.getSlideLock(slide)) {
+			LOGGER.debug("Removing slide '{}'.", slide.getName());
+			// delete the file
+			if (slide.getPath() != null) {
+				Files.deleteIfExists(slide.getPath());
+			}
+			// remove it from the map
+			this.slides.remove(id);
+		}
+	}
+
+	/**
+	 * Exports the given slides to the given file.
+	 * @param path the file
+	 * @param slides the slides to export
+	 * @throws IOException if an IO error occurs
+	 * @throws JAXBException if a slide cannot be written to XML
+	 */
+	public void exportSlides(Path path, List<Slide> slides) throws IOException, JAXBException {
+		// TODO implement
+		throw new UnsupportedOperationException();
 	}
 	
 	/**
-	 * Removes the slide with the given id from the library.
-	 * @param id the slide id
-	 * @throws IOException if and IO error occurs
+	 * Imports the given slides into the library.
+	 * @param path the path to a zip file
+	 * @return List&lt;{@link Slide}&gt;
+	 * @throws FileNotFoundException if the given path is not found
+	 * @throws InvalidFormatException if the file wasn't in the format expected
+	 * @throws UnknownFormatException if the format of the file couldn't be determined
+	 * @throws JAXBException if an error occurs while reading XML
+	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized void remove(UUID id) throws IOException {
-		if (id == null) return;
-		this.remove(this.get(id));
+	public List<Slide> importSlides(Path path) throws FileNotFoundException, IOException, JAXBException, InvalidFormatException, UnknownFormatException {
+		// TODO implement
+		throw new UnsupportedOperationException();
+		
+//		List<Slide> slides = null;
+//		LOGGER.debug("'{}' slides found in '{}'.", slides.size(), path);
+//		Iterator<Slide> it = slides.iterator();
+//		while (it.hasNext()) {
+//			Slide slide = it.next();
+//			try {
+//				this.save(slide);
+//			} catch (Exception ex) {
+//				LOGGER.error("Failed to save the slide '" + slide.getName() + "'", ex);
+//				it.remove();
+//			}
+//		}
+//		return slides;
 	}
 	
 	/**
