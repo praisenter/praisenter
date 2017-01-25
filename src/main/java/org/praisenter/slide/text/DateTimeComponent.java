@@ -62,7 +62,9 @@ public class DateTimeComponent extends AbstractTextComponent implements SlideReg
 	 */
 	public DateTimeComponent(DateTimeComponent other, boolean exact) {
 		super(other, exact);
-		this.dateTimeFormat = new SimpleDateFormat(other.dateTimeFormat.toPattern());
+		if (other.dateTimeFormat != null) {
+			this.dateTimeFormat = new SimpleDateFormat(other.dateTimeFormat.toPattern());
+		}
 	}
 	
 	/* (non-Javadoc)

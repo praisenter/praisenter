@@ -207,6 +207,14 @@ public final class ObservableBibleLibrary {
 	 */
 	public AsyncTask<Void> remove(Bible bible) {
 		if (bible != null) {
+			final BibleListItem bi = this.getListItem(bible);
+			
+			// changes to the list should be done on the FX UI Thread
+			Fx.runOnFxThead(() -> {
+				// go ahead and remove it
+				items.remove(bi);
+			});
+			
 			// execute the add on a different thread
 			AsyncTask<Void> task = new AsyncTask<Void>(MessageFormat.format(Translations.get("task.delete"), bible.getName())) {
 				@Override
@@ -216,13 +224,11 @@ public final class ObservableBibleLibrary {
 					return null;
 				}
 			};
-			task.setOnSucceeded((e) -> {
-				BibleListItem bi = this.getListItem(bible);
-				items.remove(bi);
-			});
 			task.setOnFailed((e) -> {
 				Throwable ex = task.getException();
 				LOGGER.error("Failed to remove bible " + bible.getName(), ex);
+				// add the item back
+				items.add(bi);
 			});
 			return task;
 		}

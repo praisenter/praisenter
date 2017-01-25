@@ -151,6 +151,16 @@ public final class ObservableMediaLibrary {
 	public AsyncTask<Void> remove(Media media) {
 		// sanity check
 		if (media != null) {
+			final MediaListItem item = this.getListItem(media);
+
+			// changes to the list should be done on the FX UI Thread
+			Fx.runOnFxThead(() -> {
+				// remove the item
+				if (item != null) {
+					items.remove(item);
+				}
+			});
+			
 			// execute the add on a different thread
 			AsyncTask<Void> task = new AsyncTask<Void>(MessageFormat.format(Translations.get("task.delete"), media.getName())) {
 				@Override
@@ -160,15 +170,11 @@ public final class ObservableMediaLibrary {
 					return null;
 				}
 			};
-			task.addSuccessHandler((e) -> {
-				final MediaListItem item = this.getListItem(media);
-				if (item != null) {
-					items.remove(item);
-				}
-			});
 			task.addCancelledOrFailedHandler((e) -> {
 				Throwable ex = task.getException();
 				LOGGER.error("Failed to remove media " + media.getName(), ex);
+				// add it back
+				items.add(item);
 			});
 			return task;
 		}
@@ -184,6 +190,16 @@ public final class ObservableMediaLibrary {
 	public AsyncTask<Media> rename(Media media, String name) {
 		// sanity check
 		if (media != null && name != null && name.length() > 0) {
+			final MediaListItem item = this.getListItem(media);
+
+			// changes to the list should be done on the FX UI Thread
+			Fx.runOnFxThead(() -> {
+				// remove the item
+				if (item != null) {
+					items.remove(item);
+				}
+			});
+			
 			// execute the add on a different thread
 			AsyncTask<Media> task = new AsyncTask<Media>(MessageFormat.format(Translations.get("task.rename"), media.getName(), name)) {
 				@Override
@@ -193,15 +209,15 @@ public final class ObservableMediaLibrary {
 				}
 			};
 			task.addSuccessHandler((e) -> {
+				// add a new item for the renamed media
 				final Media m1 = task.getValue();
-				// update the list item
-				MediaListItem item = this.getListItem(media);
-		    	items.remove(item);
 		    	items.add(new MediaListItem(m1));
 			});
 			task.addCancelledOrFailedHandler((e) -> {
 				final Throwable ex = task.getException();
 				LOGGER.error("Failed to rename media " + media.getName(), ex);
+				// add it back
+				items.add(item);
 			});
 			return task;
 		}

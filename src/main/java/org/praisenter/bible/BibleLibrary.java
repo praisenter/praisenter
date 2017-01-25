@@ -27,6 +27,7 @@ package org.praisenter.bible;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -186,11 +187,14 @@ public final class BibleLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	private void initialize() throws IOException {
+		LOGGER.debug("Initializing bible library at '{}'.", this.path);
+		
 		// verify paths exist
 		Files.createDirectories(this.path);
 		Files.createDirectories(this.indexPath);
 		
 		// load and update the index
+		LOGGER.debug("Initializing bible library lucene index.");
 		this.directory = FSDirectory.open(this.indexPath);
 		
 		// don't exclude stop words!
@@ -297,6 +301,24 @@ public final class BibleLibrary {
 	}
 	
 	/**
+	 * Returns a lock for the given bible.
+	 * @param bible the bible
+	 * @return Object
+	 */
+	private Object getBibleLock(Bible bible) {
+		return this.locks.get(bible.getId().toString());
+	}
+
+	/**
+	 * Returns a lock for the given path file name.
+	 * @param path the path
+	 * @return Object
+	 */
+	private Object getPathLock(Path path) {
+		return this.locks.get(path.getFileName().toString());
+	}
+	
+	/**
 	 * Returns the bible for the given id or null if not found.
 	 * @param id the bible id
 	 * @return {@link Bible}
@@ -332,42 +354,73 @@ public final class BibleLibrary {
 		// update the last modified date
 		bible.lastModifiedDate = Instant.now();
 		
-		synchronized(this.locks.get(bible.getId().toString())) {
-			// check for old bible data
-			Bible old = this.bibles.get(bible.getId());
-			if (old != null) {
-				// then its an update
-				bible.path = old.path;
-			}
+		// calling this method could indicate one of the following:
+		// 1. New
+		// 2. Save Existing
+		// 3. Save Existing + Rename
+		
+		// obtain the lock on the bible
+		synchronized (this.getBibleLock(bible)) {
+			LOGGER.debug("Saving bible '{}'.", bible.getName());
 			
 			// generate the file name and path
-			String name = createFileName(bible);
+			String name = BibleLibrary.createFileName(bible);
 			Path path = this.path.resolve(name + EXTENSION);
+			Path uuid = this.path.resolve(StringManipulator.toFileName(bible.getId()) + EXTENSION);
 			
-			// check if the old path was given
-			if (bible.path == null) {
-				// this indicates that we need to save a new one so
-				// verify there doesn't exist a bible with this name already
-				if (Files.exists(path)) {
-					// just use the UUID
-					path = this.path.resolve(StringManipulator.toFileName(bible.getId()) + EXTENSION);
+			// check for operation
+			if (!this.bibles.containsKey(bible.getId())) {
+				LOGGER.debug("Adding bible '{}'.", bible.getName());
+				// then its a new
+				synchronized (this.getPathLock(path)) {
+					// check if the path exists once we obtain the lock
+					if (Files.exists(path)) {
+						// just use the UUID (which shouldn't need a lock since it's unique)
+						path = uuid;
+					}
+					bible.path = path;
+					XmlIO.save(bible.path, bible);
+					LOGGER.debug("Bible '{}' saved to '{}'.", bible.getName(), bible.path);
 				}
-			} else if (!bible.path.equals(path)) {
-				// this indicates that we need to rename the file
-				Files.move(bible.path, path);
+			} else {
+				LOGGER.debug("Updating bible '{}'.", bible.getName());
+				// it's an existing one
+				Path original = bible.path;
+				if (!original.equals(path)) {
+					// obtain the desired path lock
+					synchronized (this.getPathLock(path)) {
+						// check if the path exists once we obtain the lock
+						if (Files.exists(path)) {
+							// is the original path the UUID path (which indicates that when it was imported
+							// it had a file name conflict)
+							if (original.equals(uuid)) {
+								// if so, this isn't really a rename, just save it
+								XmlIO.save(bible.path, bible);
+							} else {
+								// if the path already exists and the current path isn't the uuid path
+								// then we know that this was a rename to a different name that already exists
+								LOGGER.warn("Unable to rename bible '{}' to '{}' because a file with that name already exists.", bible.getName(), path.getFileName());
+								throw new FileAlreadyExistsException(path.getFileName().toString());
+							}
+						} else {
+							LOGGER.debug("Renaming bible '{}' to '{}'.", bible.getName(), path.getFileName());
+							// otherwise rename the file
+							Files.move(original, path);
+						}
+					}
+				} else {
+					// it's a normal save
+					XmlIO.save(bible.path, bible);
+				}
 			}
 			
-			// set the path
-			bible.path = path;
-		
-			// save the bible		
-			XmlIO.save(bible.path, bible);
-
+			// update the bible map
 			this.bibles.put(bible.getId(), bible);
 		}
 		
 		// add to/update the lucene index
 		synchronized (this.getIndexLock()) {
+			LOGGER.debug("Updating lucene index for bible '{}'.", bible.getName());
 			IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
 			config.setOpenMode(OpenMode.CREATE_OR_APPEND);
 			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
@@ -376,6 +429,10 @@ public final class BibleLibrary {
 				
 				// update the document
 				writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.getId().toString()), documents);
+			} catch (Exception ex) {
+				// if this happens, the user should really just execute a reindex
+				// we don't know what to back out at this point
+				LOGGER.warn("Failed to update the lucene index for bible '" + bible.getName() + "'. Please initiate a reindex.", ex);
 			}
 		}
 	}
@@ -388,10 +445,22 @@ public final class BibleLibrary {
 	 */
 	public void remove(Bible bible) throws IOException {
 		if (bible == null) return;
+		
 		UUID id = bible.getId();
 		if (id == null) return;
 		
+		synchronized (this.getBibleLock(bible)) {
+			LOGGER.debug("Removing bible '{}'.", bible.getName());
+			// delete the file
+			if (bible.path != null) {
+				Files.deleteIfExists(bible.path);
+			}
+			// remove it from the map
+			this.bibles.remove(id);
+		}
+		
 		synchronized (this.getIndexLock()) {
+			LOGGER.debug("Removing lucene indexing for bible '{}'.", bible.getName());
 			// remove from the lucene index so it can't be found
 			// in searches any more
 			IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
@@ -399,16 +468,10 @@ public final class BibleLibrary {
 			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
 				// update the document
 				writer.deleteDocuments(new Term(FIELD_BIBLE_ID, id.toString()));
-			}
-		}
-		
-		synchronized (this.locks.get(id.toString())) {
-			// remove it from the map
-			this.bibles.remove(id);
-			
-			// delete the file
-			if (bible != null) {
-				Files.deleteIfExists(bible.path);
+			} catch (Exception ex) {
+				// if this happens, the user should really just execute a reindex
+				// we don't know what to back out at this point
+				LOGGER.warn("Failed to remove the lucene indexing for bible '" + bible.getName() + "'. Please initiate a reindex.", ex);
 			}
 		}
 	}
@@ -459,6 +522,7 @@ public final class BibleLibrary {
 	 */
 	public void reindex() throws IOException {
 		synchronized (this.getIndexLock()) {
+			LOGGER.debug("Re-indexing lucene based on current bibles.");
 			IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
 			config.setOpenMode(OpenMode.CREATE);
 			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
@@ -470,7 +534,7 @@ public final class BibleLibrary {
 						writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.getId().toString()), documents);
 					} catch (Exception e) {
 						// make sure its not in the index
-						LOGGER.warn("Failed to update the bible in the lucene index '" + bible.path.toAbsolutePath().toString() + "'", e);
+						LOGGER.warn("Failed to update the lucene index for bible '" + bible.path.toAbsolutePath().toString() + "'.", e);
 					}
 				}
 			}
@@ -494,8 +558,11 @@ public final class BibleLibrary {
 		// tokenize
 		List<String> tokens = this.getTokens(criteria.getText(), FIELD_TEXT);
 		
+		// build query
+		Query query = getQueryForTokens(criteria.getBibleId(), criteria.getBookNumber(), FIELD_TEXT, tokens, criteria.getType());
+		
 		// search
-		return this.search(getQueryForTokens(criteria.getBibleId(), criteria.getBookNumber(), FIELD_TEXT, tokens, criteria.getType()), criteria.getMaximumResults());
+		return this.search(query, criteria.getMaximumResults());
 	}
 
 	/**
@@ -508,6 +575,7 @@ public final class BibleLibrary {
 	private List<String> getTokens(String text, String field) throws IOException {
 		List<String> tokens = new ArrayList<String>();
 		
+		LOGGER.debug("Tokenizing input '{}'.", text);
 		TokenStream stream = this.analyzer.tokenStream(field, text);
 		CharTermAttribute attr = stream.addAttribute(CharTermAttribute.class);
 		stream.reset();
@@ -519,6 +587,7 @@ public final class BibleLibrary {
 		stream.end();
 		stream.close();
 		
+		LOGGER.debug("Input tokenized into: {}", String.join(", ", tokens));
 		return tokens;
 	}
 	
@@ -534,13 +603,16 @@ public final class BibleLibrary {
 	private Query getQueryForTokens(UUID bibleId, Short bookNumber, String field, List<String> tokens, SearchType type) {
 		Query query = null;
 		
+		LOGGER.debug("Building lucene query based on search type '{}' and tokens.", type);
 		if (tokens.size() == 0) return null;
 		if (tokens.size() == 1) {
+			LOGGER.debug("Using single token FuzzyQuery.");
 			// single term, just do a fuzzy query on it with a larger max edit distance
 			String token = tokens.get(0);
 			query = new FuzzyQuery(new Term(field, token));
 		// PHRASE
 		} else if (type == SearchType.PHRASE) {
+			LOGGER.debug("Using SpanMultiTermQuery with FuzzyQuery for each token.");
 			// for phrase, do a span-near-fuzzy query since we 
 			// care if the words are close to each other
 			SpanQuery[] sqs = new SpanQuery[tokens.size()];
@@ -551,6 +623,7 @@ public final class BibleLibrary {
 			query = new SpanNearQuery(sqs, 3, false);
 		// ALL_WORDS, ANY_WORD
 		} else {
+			LOGGER.debug("Using BooleanQuery with FuzzyQuery for each token.");
 			// do an and/or combination of fuzzy queries
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			for (String token : tokens) {
@@ -563,12 +636,14 @@ public final class BibleLibrary {
 		// further filter on any other criteria
 		// check if the bible id was supplied
 		if (bibleId != null) {
+			LOGGER.debug("Adding bible id '{}' to filter.", bibleId);
 			// then filter by the bible
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			builder.add(query, Occur.MUST);
 			builder.add(new TermQuery(new Term(FIELD_BIBLE_ID, bibleId.toString())), Occur.FILTER);
 			//check if the book number was supplied
 			if (bookNumber != null) {
+				LOGGER.debug("Adding book number '{}' to filter.", bookNumber);
 				// then filter by the book number too
 				builder.add(IntPoint.newExactQuery(FIELD_BOOK_ID, bookNumber), Occur.FILTER);
 			}
@@ -590,11 +665,16 @@ public final class BibleLibrary {
 	private List<BibleSearchResult> search(Query query, int maxResults) throws IOException {
 		List<BibleSearchResult> results = new ArrayList<BibleSearchResult>();
 		
+		// NOTE: this doesn't need to be synchronized with the index, it will use a snapshot
+		// of the index at the time it's opened
+		LOGGER.debug("Searching using constructed query.");
 		try (IndexReader reader = DirectoryReader.open(this.directory)) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			
 			TopDocs result = searcher.search(query, maxResults + 1);
 			ScoreDoc[] docs = result.scoreDocs;
+			
+			LOGGER.debug("Search found {} results.", docs.length);
 			
 			Scorer scorer = new QueryScorer(query);
 			Highlighter highlighter = new Highlighter(scorer);
@@ -615,6 +695,7 @@ public final class BibleLibrary {
 				
 				// just continue if its not found
 				if (verse == null) {
+					LOGGER.warn("Unable to find {} {}:{} in '{}'. A re-index might fix this problem.", bookNumber, chapterNumber, verseNumber, bible != null ? bible.getName() : "null");
 					continue;
 				}
 				

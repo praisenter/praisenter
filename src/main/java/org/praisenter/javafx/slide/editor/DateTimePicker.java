@@ -113,9 +113,7 @@ class DateTimePicker extends VBox {
 			@Override
 			public void invalidated(Observable observable) {
 				if (mutating) return;
-				mutating = true;
 				value.set(getControlValues());
-				mutating = false;
 			}
 		};
 		
@@ -125,13 +123,20 @@ class DateTimePicker extends VBox {
 		this.spnSeconds.valueProperty().addListener(listener);
 		
 		this.value.addListener((obs, ov, nv) -> {
-			if (mutating) return;
 			mutating = true;
-			this.pkrDate.setValue(nv.toLocalDate());
-			LocalTime t = nv.toLocalTime();
-			this.spnHours.getValueFactory().setValue(t.getHour());
-			this.spnMinutes.getValueFactory().setValue(t.getMinute());
-			this.spnSeconds.getValueFactory().setValue(t.getSecond());
+			if (nv != null) {
+				this.pkrDate.setValue(nv.toLocalDate());
+				LocalTime t = nv.toLocalTime();
+				this.spnHours.getValueFactory().setValue(t.getHour());
+				this.spnMinutes.getValueFactory().setValue(t.getMinute());
+				this.spnSeconds.getValueFactory().setValue(t.getSecond());
+			} else {
+				this.pkrDate.setValue(LocalDate.now());
+				LocalTime t = LocalTime.now();
+				this.spnHours.getValueFactory().setValue(t.getHour());
+				this.spnMinutes.getValueFactory().setValue(t.getMinute());
+				this.spnSeconds.getValueFactory().setValue(t.getSecond());
+			}
 			mutating = false;
 		});
 	}

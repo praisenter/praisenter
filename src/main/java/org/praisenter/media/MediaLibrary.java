@@ -43,6 +43,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.StampedLock;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
@@ -58,7 +59,6 @@ import org.praisenter.LockMap;
 import org.praisenter.Tag;
 import org.praisenter.ThumbnailSettings;
 import org.praisenter.utility.MimeType;
-import org.praisenter.utility.StringManipulator;
 import org.praisenter.utility.Zip;
 import org.praisenter.xml.XmlIO;
 
@@ -181,12 +181,14 @@ public final class MediaLibrary {
 	 * @throws IOException
 	 */
 	private final void initialize() throws IOException {
+		LOGGER.debug("Initializing media library at '{}'.", this.path);
 		// make sure the paths exist
 		Files.createDirectories(this.path);
 		// for metadata and thumbnails
 		Files.createDirectories(this.metadataPath);
 		
 		// load existing meta data into a temporary map for verification
+		LOGGER.debug("Reading media metadata.");
 		Map<Path, Media> metadata = new HashMap<Path, Media>();
 		try (DirectoryStream<Path> dir = Files.newDirectoryStream(this.metadataPath)) {
 			for (Path path : dir) {
@@ -197,6 +199,28 @@ public final class MediaLibrary {
 							// when we read the metadata we need to update it with
 							// the path to the media file since we don't store it
 							media.path = this.path.resolve(media.fileName);
+							
+							// verify the media exists, this will perform clean up on left over
+							// metadata if media gets deleted and the deletion of the metadata fails
+							// that should be the only case where this would happen
+							try {
+								if (!Files.exists(media.path)) {
+									try {
+										LOGGER.warn("Media '{}' doesn't exist for metadata '{}'. Deleting metadata.", media.path, path);
+										// then delete the metadata
+										Files.deleteIfExists(path);
+									} catch (Exception e2) {
+										LOGGER.error("Failed to remove metadata '" + path + "' after detecting the media it refers to doesn't exist.", e2);
+									}
+									// and move onto the next item
+									continue;
+								}
+							} catch (Exception e1) {
+								LOGGER.error("Failed to verify if the media '" + media.path + "' exists.", e1);
+								// if we fail to confirm existence we should just skip it
+								continue;
+							}
+							
 							metadata.put(media.getPath(), media);
 						} catch (Exception e) {
 							// just continue loading
@@ -209,6 +233,7 @@ public final class MediaLibrary {
 			LOGGER.warn("Failed loading existing media metadata.", ex);
 		}
 		
+		LOGGER.debug("Scaning for media without metadata.");
 		// scan media folder and perform verification
 		try (DirectoryStream<Path> dir = Files.newDirectoryStream(this.path)) {
 			for (Path path : dir) {
@@ -247,6 +272,7 @@ public final class MediaLibrary {
 					
 					if (update) {
 						try {
+							LOGGER.debug("Creating or updating media metadata for '{}'.", path.getFileName());
 							// there's potential here for the media to not be supported by 
 							// JavaFX, but we'll still show it in the library
 							// for now we'll just leave this open and just check when we
@@ -367,6 +393,7 @@ public final class MediaLibrary {
 		
 		// save the metadata
 		try {
+			LOGGER.debug("Saving new metadata for '{}'.", newMedia.fileName);
 			saveMetadata(newMedia);
 		} catch (Exception e) {
 			LOGGER.warn("Failed to save metadata for '" + path.toAbsolutePath().toString() + "'", e);
@@ -439,20 +466,52 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	private final Path copy(Path source) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, UnknownMediaTypeException {
+		Path target = null;
 		// make sure it exists and is a file
 		if (Files.exists(source) && Files.isRegularFile(source)) {
-			// get the media type
-			MediaType type = getMediaType(source);
-			// check to make sure it's a media file
-			if (type == null) {
-				throw new UnknownMediaTypeException(source.toAbsolutePath().toString());
+			try {
+				// get the media type
+				MediaType type = this.getMediaType(source);
+				// check to make sure it's a media file
+				if (type == null) {
+					throw new UnknownMediaTypeException(source.toAbsolutePath().toString());
+				}
+				// get the target name based on the import filter
+				target = this.importFilter.getTarget(this.path, source.getFileName().toString(), type);
+				// make sure we obtain a lock on the target path
+				synchronized (this.getPathLock(target)) {
+					LOGGER.debug("Copying and filtering media '{}' to '{}'.", source, target);
+					// its possible that while waiting for the target lock that another thread
+					// creates a file with the same name, we need to check for existence again
+					// to make sure its not there.
+					if (!Files.exists(target)) {
+						// if it is there, this should be a rare case, just throw an exception and the user
+						// can try again
+						LOGGER.warn("Failed to copy media '{}' to '{}' because '{}' already exists.", source, target, target);
+						throw new FileAlreadyExistsException(target.getFileName().toString());
+					}
+					// get the media file into the library
+					this.importFilter.filter(source, target, type);
+				}
+				// return the library path
+				return target;
+			} catch (Exception ex) {
+				// if it's not a media type exception is something else
+				// and we should log that
+				if (!(ex instanceof UnknownMediaTypeException)) {
+					LOGGER.warn("Failed to copy or filter the media '" + source + "'.", ex);
+				}
+				// clean up the target if it exists
+				if (target != null) {
+					try {
+						Files.deleteIfExists(target);
+					} catch (Exception ex1) {
+						LOGGER.error("Failed to clean up file '" + target + "'.", ex1);
+					}
+				}
+				// re-throw the exception
+				throw ex;
 			}
-			// get the target name based on the import filter
-			Path target = this.importFilter.getTarget(this.path, source.getFileName().toString(), type);
-			// get the media file into the library
-			this.importFilter.filter(source, target, type);
-			// return the library path
-			return target;
 		} else {
 			throw new FileNotFoundException(source.toAbsolutePath().toString());
 		}
@@ -464,16 +523,41 @@ public final class MediaLibrary {
 	 * @return boolean if the deletion succeeds
 	 * @throws IOException if an IO error occurs
 	 */
-	private final boolean delete(Path path) throws IOException {
-		Path mPath = this.getMetadataPath(path);
+	private final boolean delete(Media media) throws IOException {
+		// make sure the media isn't null
+		if (media != null) {
+			// get the media path
+			Path path = media.getPath();
+			// get the metadata path
+			Path mPath = this.getMetadataPath(path);
+			
+			// delete the media
+			LOGGER.debug("Deleting media '{}'.", path);
+			Files.deleteIfExists(path);
+			
+			// if the media gets deleted successfully, then we need to
+			// remove it from the library
+			this.media.remove(media.getId());
+			
+			// delete the metadata
+			try  {
+				// deleting the metadata second is better since the media will
+				// not be shown in the library if the metadata is missing
+				LOGGER.debug("Deleting media metadata '{}'.", mPath);
+				Files.deleteIfExists(mPath);
+			} catch (Exception ex) {
+				// we only want to log the message here and return back to the caller
+				// that the media is actually gone (since the media itself is gone
+				// even though the metadata isn't)
+				LOGGER.warn("Failed to delete metadata '" + mPath + "'. This should be cleaned up upon the next initialization of the media library.", ex);
+			}
+			
+			// it all worked
+			return true;
+		}
 		
-		// delete the file
-		Files.deleteIfExists(path);
-
-		// delete the metadata
-		Files.deleteIfExists(mPath);
-		
-		return true;
+		// nothing to delete
+		return false;
 	}
 	
 	/**
@@ -505,19 +589,38 @@ public final class MediaLibrary {
 		
 		synchronized(this.getPathLock(target)) {
 			// move (rename) the media
+			// NOTE: this will blow up if the target already exists, which is what we want
+			// it's possible that while waiting for the target lock, that an add occurs with
+			// the same file name
+			LOGGER.debug("Moving (renaming) the media file from '{}' to '{}'", source, target);
 			Files.move(source, target);
 			
+			// save the renamed metadata
 			Media media1 = Media.forRenamed(target, media);
-			
-			// metadata
-			
+			try {
+				LOGGER.debug("Saving the renamed metadata '{}'.", media1.getFileName());
+				this.saveMetadata(media1);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to save new metadata for '" + media1.name + "'. Attempting to undo rename operation.", ex);
+				// try to move it back
+				try {
+					Files.move(target, source);
+					LOGGER.info("Successfully recovered from failed rename operation.");
+				} catch (Exception e1) {
+					LOGGER.fatal("Failed to recover from failed rename operation. This should be fixed on the next initialization of the media library.");
+				}
+				throw ex;
+			}
+
 			// remove old metadata
 			Path smPath = this.metadataPath.resolve(name0 + METADATA_EXT);
+			try {
+				LOGGER.debug("Removing the old metadata '{}'.", smPath);
+				Files.delete(smPath);
+			} catch (Exception ex) {
+				LOGGER.warn("Failed to delete old metadata '" + smPath + "'. This should be cleaned up upon the next initialization of the media library.", ex);
+			}
 			
-			Files.delete(smPath);
-			// save new metadata
-			this.saveMetadata(media1);
-	
 			// just overwrite the media item with the new one
 			this.media.put(media.id, media1);
 			
@@ -607,32 +710,45 @@ public final class MediaLibrary {
 			// copy it to the library
 			// NOTE: don't synchronize this since it could take a long time
 			LOGGER.debug("Copying media '{}' to media library", path);
-			Path libraryPath = copy(path);
+			Path target = copy(path);
 			// attempt to load it
 			LOGGER.debug("Loading media '{}'", path);
-			Media media = update(libraryPath, null);
+			Media media = update(target, null);
 			// return it
 			return media;
 		}
 	}
 
-	public List<Media> importMedia(Path path) throws FileAlreadyExistsException, FileNotFoundException, IOException, UnknownMediaTypeException, InvalidFormatException {
+	/**
+	 * Attempts to import the media contained in a zip file at the given path.
+	 * <p>
+	 * The media imported this way is assumed to have underwent the filtering/transcoding process at some
+	 * time. Therefore these operations are not performed in this method.
+	 * <p>
+	 * This should be a zip file generated by Praisenter. Any media files contained within that do not
+	 * have related metadata will be skipped.
+	 * @param path the path to the zip file
+	 * @return List&lt;{@link Media}&gt;
+	 * @throws FileNotFoundException if the given path isn't found
+	 * @throws IOException if an IO error occurs
+	 * @throws ZipException if an error occurs reading the zip file
+	 */
+	public List<Media> importMedia(Path path) throws FileNotFoundException, ZipException, IOException {
 		byte[] buffer = new byte[1024];
 		int length;
-		// TODO locking
 		
+		// keep track of successfully imported media
 		List<Media> imported = new ArrayList<Media>();
 		
 		// for an import, we verify that it's a zip file
 		// and then import whatever media has metadata as is 
 		// (doesn't pass through the filter process)
 		
-		// 1) copy all media files to the media folder
-		// 2) verify each media file has a metadata file
-		// 3) if so, write the metadata file
-		// 4) if not, delete the media file
+		// this allows a user to do the transcoding, reading
+		// thumbnail & frame generation on a different computer
+		// and then transfer to the primary
 		
-		// read all metadata first
+		// read all metadata in the zip first
 		Map<String, Media> metadata = new HashMap<String, Media>();
 		try (FileInputStream fis = new FileInputStream(path.toFile());
 			 ZipInputStream zis = new ZipInputStream(fis)) {
@@ -641,16 +757,17 @@ public final class MediaLibrary {
 				if (!entry.isDirectory()) {
 					String name = entry.getName();
 					// check for xml entries
+					// this is the best we can do here since ZipInputStream doesn't
+					// support mark/reset
 					if (MimeType.XML.check(name)) {
-						// its a metadata file
-						// read and parse it
+						// its a metadata file, try to read and parse it
 						try {
 							byte[] data = Zip.read(zis);
 							Media media = XmlIO.read(new ByteArrayInputStream(data), Media.class);
 							metadata.put(media.fileName, media);
 						} catch (Exception ex) {
 							// it failed, might be some other type of xml file
-							// TODO handle
+							LOGGER.warn("Failed to read '" + name + "' as media metadata.", ex);
 						}
 					}
 				}
@@ -668,45 +785,53 @@ public final class MediaLibrary {
 					Media media = metadata.get(name);
 					if (media != null) {
 						try {
-							Path mediaFile = this.path.resolve(name);
-							// check if a media file of the same name exists
-							if (!Files.exists(mediaFile)) {
-								// use the UUID
-								String newName = StringManipulator.toFileName(media.getId());
-								// append extension
-								int idx = name.lastIndexOf('.');
-								if (idx >= 0) {
-									newName += name.substring(idx);
+							// get a lock for the source file name
+							synchronized (this.locks.get(name)) {
+								// get the target name based on the import filter
+								Path target = this.importFilter.getTarget(this.path, name, media.type);
+								// get a lock for the target file name
+								synchronized (this.getPathLock(target)) {
+									// make sure the target doesn't exist
+									if (Files.exists(target)) {
+										LOGGER.warn("Unable to import '{}' because the file '{}' already exists.", name, target);
+										continue;
+									}
+									// update the media after being renamed
+									media = Media.forRenamed(target, media);
+									
+									// copy the media to the library
+									try (FileOutputStream fos = new FileOutputStream(target.toFile())) {
+										length = 0;
+										while ((length = zis.read(buffer)) > 0) {
+											fos.write(buffer, 0, length);
+										}
+									}
+									
+									try {
+										// write the metadata
+										this.saveMetadata(media);
+									} catch (Exception ex) {
+										// attempt to delete the target file
+										try {
+											Files.deleteIfExists(target);
+										} catch (Exception ex1) {
+											LOGGER.warn("Unable to delete '{}' after failing to write metadata. This should be fixed upon the next initialization of the media library.", target);
+										}
+										throw ex;
+									}
+									
+									// update the list of media
+									this.media.put(media.getId(), media);
 								}
-								mediaFile = this.path.resolve(newName);
 							}
-							// update the media after being renamed
-							media = Media.forRenamed(mediaFile, media);
-							// copy the media
-							try (FileOutputStream fos = new FileOutputStream(mediaFile.toFile())) {
-								length = 0;
-								while ((length = zis.read(buffer)) > 0) {
-									fos.write(buffer, 0, length);
-								}
-							}
-							// write the metadata
-							this.saveMetadata(media);
-							
-							synchronized (this) {
-								// update the list of media
-								this.media.put(media.getId(), media);
-							}
-							
 							imported.add(media);
 						} catch (Exception ex) {
-							// it failed, not sure why
-							// TODO handle
+							// it failed to write either the media or the metadata
+							LOGGER.error("Failed to write the media or metadata to the library for '" + name + "'.", ex);
 						}
 					} else {
-						// TODO no metadata
+						LOGGER.info("Media '{}' doesn't have related metadata so cannot be imported. Please unzip and import this file manually.", name);
 					}
-				} else {
-					// TODO not a media file
 				}
 			}
 		}
@@ -728,6 +853,7 @@ public final class MediaLibrary {
 		byte[] buffer = new byte[1024];
 		int length;
 
+		LOGGER.debug("Building zip file of media for export.");
 		try (FileOutputStream fos = new FileOutputStream(path.toFile());
 			 ZipOutputStream zos = new ZipOutputStream(fos)) {
 			for (Media m : media) {
@@ -758,6 +884,7 @@ public final class MediaLibrary {
 					zos.closeEntry();
 				}
 			}
+			LOGGER.debug("Export completed successfully.");
 		} finally {
 			this.exportLock.unlockWrite(stamp);
 		}
@@ -769,25 +896,20 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public void remove(Media media) throws IOException {
-		Path path = media.getPath();
 		// get the export lock so an export doesn't occur
 		// during remove
 		long stamp = this.exportLock.readLock();
 		try {
 			// obtain the lock for this media item
 			synchronized(this.getMediaLock(media)) {
+				LOGGER.debug("Removing media '{}'.", media.getName());
 				// sanity check, it's possible that while this thread
-				// was waiting for the lock, that this media was renamed
+				// was waiting for the lock, that this media was renamed.
 				// the media map will contain the latest metadata for us 
 				// to update
-				media = this.media.get(media.getId());
-				// make sure the media wasn't removed
-				if (media != null) {
-					// delete the files
-					delete(path);
-					// remove from the library's cache
-					this.media.remove(path);
-				}
+				Media latest = this.media.get(media.getId());
+				// attempt to delete it
+				delete(latest);
 			}
 		} finally {
 			this.exportLock.unlockRead(stamp);
@@ -811,6 +933,7 @@ public final class MediaLibrary {
 		try {
 			// obtain the lock for this media item
 			synchronized(this.getMediaLock(media)) {
+				LOGGER.debug("Renaming media '{}' to '{}'.", media.getName(), name);
 				// sanity check, it's possible that while this thread
 				// was waiting for the lock, that this media was deleted
 				// or updated. the media map will contain the latest 
@@ -843,12 +966,22 @@ public final class MediaLibrary {
 			// was waiting for the lock, that this media was deleted
 			// or renamed. the media map will contain the latest 
 			// metadata for us to update
-			media = this.media.get(media.getId());
+			Media latest = this.media.get(media.getId());
 			// make sure the media wasn't removed
-			if (media != null) {
-				boolean added = media.tags.add(tag);
+			if (latest != null) {
+				LOGGER.debug("Adding tag '{}' to media '{}'.", tag, media.getName());
+				// see if adding the tag really does add it...
+				boolean added = latest.tags.add(tag);
 				if (added) {
-					saveMetadata(media);
+					try {
+						saveMetadata(latest);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save metadata after adding tag '{}' to media '{}'.", tag, media.getName());
+						// remove the tag due to not being able to save
+						latest.tags.remove(tag);
+						// rethrow the exception
+						throw ex;
+					}
 				}
 				return added;
 			}
@@ -871,12 +1004,26 @@ public final class MediaLibrary {
 			// was waiting for the lock, that this media was deleted
 			// or renamed. the media map will contain the latest 
 			// metadata for us to update
-			media = this.media.get(media.getId());
+			Media latest = this.media.get(media.getId());
 			// make sure the media wasn't removed
-			if (media != null) {
-				boolean added = media.tags.addAll(tags);
+			if (latest != null) {
+				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
+				LOGGER.debug("Adding tags '{}' to media '{}'.", ts, media.getName());
+				// keep the old set just in case the new set fails to save
+				TreeSet<Tag> old = new TreeSet<Tag>(latest.tags);
+				// attempt to add all of the tags
+				boolean added = latest.tags.addAll(tags);
 				if (added) {
-					saveMetadata(media);
+					try {
+						// attempt to save
+						saveMetadata(latest);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save metadata after adding tags '{}' to media '{}'.", ts, media.getName());
+						// reset to initial state
+						latest.tags.retainAll(old);
+						// rethrow the exception
+						throw ex;
+					}
 				}
 				return added;
 			}
@@ -899,13 +1046,28 @@ public final class MediaLibrary {
 			// was waiting for the lock, that this media was deleted
 			// or renamed. the media map will contain the latest 
 			// metadata for us to update
-			media = this.media.get(media.getId());
+			Media latest = this.media.get(media.getId());
 			// make sure the media wasn't removed
-			if (media != null) {
-				boolean changed = media.tags.addAll(tags);
-				changed |= media.tags.retainAll(tags);
+			if (latest != null) {
+				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
+				LOGGER.debug("Setting tags '{}' on media '{}'.", ts, media.getName());
+				// keep the old set just in case the new set fails to save
+				TreeSet<Tag> old = new TreeSet<Tag>(latest.tags);
+				// attempt to set the tags
+				boolean changed = latest.tags.addAll(tags);
+				changed |= latest.tags.retainAll(tags);
 				if (changed) {
-					saveMetadata(media);
+					try {
+						// attempt to save
+						saveMetadata(latest);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save metadata after setting tags '{}' on media '{}'.", ts, media.getName());
+						// reset to initial state
+						latest.tags.clear();
+						latest.tags.addAll(old);
+						// rethrow the exception
+						throw ex;
+					}
 				}
 				return changed;
 			}
@@ -928,12 +1090,21 @@ public final class MediaLibrary {
 			// was waiting for the lock, that this media was deleted
 			// or renamed. the media map will contain the latest 
 			// metadata for us to update
-			media = this.media.get(media.getId());
+			Media latest = this.media.get(media.getId());
 			// make sure the media wasn't removed
-			if (media != null) {
-				boolean removed = media.tags.remove(tag);
+			if (latest != null) {
+				LOGGER.debug("Removing tag '{}' from media '{}'.", tag, media.getName());
+				boolean removed = latest.tags.remove(tag);
 				if (removed) {
-					saveMetadata(media);
+					try {
+						saveMetadata(latest);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save metadata after removing tag '{}' from media '{}'.", tag, media.getName());
+						// reset to initial state
+						latest.tags.add(tag);
+						// rethrow the exception
+						throw ex;
+					}
 				}
 				return removed;
 			}
@@ -956,12 +1127,26 @@ public final class MediaLibrary {
 			// was waiting for the lock, that this media was deleted
 			// or renamed. the media map will contain the latest 
 			// metadata for us to update
-			media = this.media.get(media.getId());
+			Media latest = this.media.get(media.getId());
 			// make sure the media wasn't removed
-			if (media != null) {
-				boolean removed = media.tags.removeAll(tags);
+			if (latest != null) {
+				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
+				LOGGER.debug("Removing tags '{}' from media '{}'.", ts, media.getName());
+				// keep the old set just in case the new set fails to save
+				TreeSet<Tag> old = new TreeSet<Tag>(latest.tags);
+				// attempt to set the tags
+				boolean removed = latest.tags.removeAll(tags);
 				if (removed) {
-					saveMetadata(media);
+					try {
+						saveMetadata(latest);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save metadata after removing tags '{}' from media '{}'.", ts, media.getName());
+						// reset to initial state
+						latest.tags.clear();
+						latest.tags.addAll(old);
+						// rethrow the exception
+						throw ex;
+					}
 				}
 				return removed;
 			}

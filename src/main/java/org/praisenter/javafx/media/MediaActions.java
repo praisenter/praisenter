@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.media;
 
 import java.io.File;
@@ -28,11 +52,29 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 
+/**
+ * Wrapper class for user actions with the {@link ObservableMediaLibrary} that encapsulate
+ * user related alerts and warnings.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class MediaActions {
+	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	/** Hidden constructor */
 	private MediaActions() {}
 	
+	/**
+	 * Returns a task that will import the given paths as media items.
+	 * <p>
+	 * Returns the list of completed tasks all of which will either have a single media item as
+	 * the result or a list of media items.
+	 * @param library the library to import into
+	 * @param owner the window owner
+	 * @param paths the paths to import
+	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;List&lt;?&gt;&gt;&gt;
+	 */
 	public static final AsyncGroupTask<AsyncTask<?>> mediaImport(ObservableMediaLibrary library, Window owner, List<Path> paths) {
 		// sanity check
 		if (paths != null && !paths.isEmpty()) {
@@ -75,6 +117,15 @@ public final class MediaActions {
 		return AsyncTaskFactory.none();
 	}
 	
+	/**
+	 * Returns a task that will prompt the user for files to import as media items.
+	 * <p>
+	 * Returns the list of completed tasks all of which will either have a single media item as
+	 * the result or a list of media items.
+	 * @param library the library to import into
+	 * @param owner the window owner
+	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;List&lt;?&gt;&gt;&gt;
+	 */
 	public static final AsyncGroupTask<AsyncTask<?>> mediaPromptImport(ObservableMediaLibrary library, Window owner) {
 		FileChooser chooser = new FileChooser();
     	chooser.setTitle(Translations.get("media.import.title"));
@@ -87,6 +138,13 @@ public final class MediaActions {
     	return AsyncTaskFactory.none();
 	}
 
+	/**
+	 * Returns a task that will prompt the user to select a file to export the given media to.
+	 * @param library the library to import into
+	 * @param owner the window owner
+	 * @param media the media to export
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
 	public static final AsyncTask<Void> mediaPromptExport(ObservableMediaLibrary library, Window owner, List<Media> media) {
 		// sanity check
 		if (media != null && !media.isEmpty()) {
@@ -122,6 +180,13 @@ public final class MediaActions {
     	return AsyncTaskFactory.empty();
 	}
 	
+	/**
+	 * Returns a task that will prompt the user to supply a new name for the given media and will rename the media.
+	 * @param library the library to import into
+	 * @param owner the window owner
+	 * @param media the media to rename
+	 * @return {@link AsyncTask}&lt;Media&gt;
+	 */
 	public static final AsyncTask<Media> mediaPromptRename(ObservableMediaLibrary library, Window owner, Media media) {
 		// sanity check
 		if (media != null) {
@@ -162,6 +227,13 @@ public final class MediaActions {
     	return AsyncTaskFactory.empty();
 	}
 
+	/**
+	 * Returns a task that will prompt the user for confirmation for deleting the given media items.
+	 * @param library the library to import into
+	 * @param owner the window owner
+	 * @param media the media to delete
+	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;Void&gt;&gt;
+	 */
 	public static final AsyncGroupTask<AsyncTask<Void>> mediaPromptDelete(ObservableMediaLibrary library, Window owner, List<Media> media) {
 		if (media != null) {
 			// make sure the user really wants to do this
@@ -209,6 +281,14 @@ public final class MediaActions {
 		return AsyncTaskFactory.none();
 	}
 
+	/**
+	 * Returns a task that will add the given tag to the given media.
+	 * @param library the library to import into
+	 * @param owner the window owner
+	 * @param media the media
+	 * @param tag the tag to add
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
 	public static final AsyncTask<Void> mediaAddTag(ObservableMediaLibrary library, Window owner, Media media, Tag tag) {
 		// sanity check
 		if (media != null && tag != null) {
@@ -231,6 +311,14 @@ public final class MediaActions {
 		return AsyncTaskFactory.empty();
 	}
 	
+	/**
+	 * Returns a task that will delete the given tag from the given media.
+	 * @param library the library to import into
+	 * @param owner the window owner
+	 * @param media the media
+	 * @param tag the tag to remove
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
 	public static final AsyncTask<Void> mediaDeleteTag(ObservableMediaLibrary library, Window owner, Media media, Tag tag) {
 		// sanity check
 		if (media != null && tag != null) {
@@ -252,5 +340,4 @@ public final class MediaActions {
 		}
 		return AsyncTaskFactory.empty();
 	}
-
 }
