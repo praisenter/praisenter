@@ -36,7 +36,7 @@ public class SlideDataPane extends BorderPane {
 		
 		this.setCenter(editor);
 		
-		this.cmbTemplate.slideProperty().addListener((obs, ov, nv) -> {
+		this.cmbTemplate.valueProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
 				Slide slide = nv.copy();
 				slide.setPlaceholderData(this.bibleNavigationPane.getValue());
@@ -48,7 +48,7 @@ public class SlideDataPane extends BorderPane {
 		
 		// TODO show prev/next
 		this.bibleNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
-			Slide slide = this.cmbTemplate.getSlide();
+			Slide slide = this.cmbTemplate.getValue();
 			if (slide != null) {
 				slide = slide.copy();
 				slide.setPlaceholderData(nv);

@@ -33,6 +33,7 @@ import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.VerticalTextAlignment;
+import org.praisenter.utility.ClasspathLoader;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;

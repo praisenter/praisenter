@@ -228,7 +228,7 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	 * @param width the target width
 	 * @param height the target height
 	 */
-	public abstract void fit(int width, int height);
+	public abstract void fit(double width, double height);
 	
 	// copy
 	

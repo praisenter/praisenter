@@ -1,39 +1,88 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.screen;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.Constants;
-import org.praisenter.xml.XmlIO;
+import org.praisenter.javafx.async.AsyncTaskExecutor;
+import org.praisenter.javafx.configuration.Display;
+import org.praisenter.javafx.configuration.ObservableConfiguration;
+import org.praisenter.javafx.configuration.Resolution;
+import org.praisenter.javafx.configuration.Resolutions;
+import org.praisenter.javafx.configuration.Setting;
 
-import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
+import javafx.collections.MapChangeListener;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 
-public final class ScreenManager {
+/**
+ * Represents the application's display screen manager.
+ * <p>
+ * This class manages the displays for presentation.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+public final class DisplayManager {
+	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	private final ScreenConfiguration configuration;
+	/** The configuration */
+	private final ObservableConfiguration configuration;
+	
+	/** The global executor */
+	private final AsyncTaskExecutor executor;
+	
+	/** True if debug mode is enabled */
 	private final boolean debugMode;
 	
+	// data (for now, only to outputs)
+	
+	/** The main display */
 	private DisplayScreen main;
+	
+	/** The musician display */
 	private DisplayScreen musician;
 	
+	/** True if the screens are being mutated */
 	private boolean mutating = false;
 	
-	public ScreenManager(boolean debug) {
-		// load the screen config
-		this.configuration = this.loadConfiguration();
-		this.debugMode = debug;
+	/**
+	 * Minimal constructor.
+	 * @param configuration the configuration
+	 * @param executor the executor
+	 */
+	public DisplayManager(ObservableConfiguration configuration, AsyncTaskExecutor executor) {
+		this.configuration = configuration;
+		this.executor = executor;
+		this.debugMode = configuration.getBoolean(Setting.APP_DEBUG_MODE, false);
 	}
 	
 	/**
@@ -50,21 +99,21 @@ public final class ScreenManager {
 			}
 		});
 		
-		// save the screen config whenever something changes it
-		InvalidationListener listener = obs -> {
-			if (mutating) return;
-			
-			// save the configuration
-			this.saveConfiguration();
-			
-			// update the display screens
-			this.updateDisplays();
-		};
-		this.configuration.musicianScreenProperty().addListener(listener);
-		this.configuration.operatorScreenProperty().addListener(listener);
-		this.configuration.mainScreenProperty().addListener(listener);
-		this.configuration.primaryScreenProperty().addListener(listener);
-		this.configuration.getResolutions().addListener(listener);
+		this.configuration.getSettings().addListener(new MapChangeListener<Setting, Object>() {
+			@Override
+			public void onChanged(
+					javafx.collections.MapChangeListener.Change<? extends Setting, ? extends Object> change) {
+				if (change.getKey() == Setting.DISPLAY_OPERATOR ||
+					change.getKey() == Setting.DISPLAY_MAIN ||
+					change.getKey() == Setting.DISPLAY_MUSICIAN) {
+					// make sure this isn't being called as a result of
+					// the screens being changed at the OS level
+					if (mutating) return;
+					// update the display screens
+					updateDisplays();
+				}
+			}
+		});
 		
 		screensChanged();
 	}
@@ -94,9 +143,9 @@ public final class ScreenManager {
 	 * @return {@link Display}
 	 */
 	public Display getPresentationDisplay() {
-		Display main = this.configuration.getMainScreen();
-		Display operator = this.configuration.getOperatorScreen();
-		Display primary = this.configuration.getPrimaryScreen();
+		Display main = this.configuration.getObject(Setting.DISPLAY_MAIN, null);
+		Display operator = this.configuration.getObject(Setting.DISPLAY_OPERATOR, null);
+		Display primary = this.configuration.getObject(Setting.DISPLAY_PRIMARY, null);
 		if (main != null && main.getId() >= 0) {
 			return main;
 		} else if (operator != null && operator.getId() >= 0) {
@@ -113,10 +162,10 @@ public final class ScreenManager {
 		int size = screens.size();
 		
 		// get the configured displays
-		Display pDisplay = this.configuration.getPrimaryScreen();
-		Display oDisplay = this.configuration.getOperatorScreen();
-		Display dDisplay = this.configuration.getMainScreen();
-		Display mDisplay = this.configuration.getMusicianScreen();
+		Display pDisplay = this.configuration.getObject(Setting.DISPLAY_PRIMARY, null);
+		Display oDisplay = this.configuration.getObject(Setting.DISPLAY_OPERATOR, null);
+		Display dDisplay = this.configuration.getObject(Setting.DISPLAY_MAIN, null);
+		Display mDisplay = this.configuration.getObject(Setting.DISPLAY_MUSICIAN, null);
 		
 		// verify that the primary display is still the same
 		boolean primaryChanged = false;
@@ -139,11 +188,7 @@ public final class ScreenManager {
 		
 		// now verify that no screen is reused
 		Map<Integer, Boolean> assigned = new HashMap<>();
-		// favor the operator screen first
-		if (oDisplay != null) {
-			assigned.put(oDisplay.getId(), true);
-		}
-		// then the primary display
+		// then the main display
 		if (dDisplay != null) {
 			if (assigned.containsKey(dDisplay.getId())) {
 				LOGGER.info("The display assigned to " + dDisplay + " is already assigned. Removing assignment.");
@@ -163,10 +208,17 @@ public final class ScreenManager {
 		}
 		
 		// now we need to assign displays if they aren't already
+		Resolutions resolutions = new Resolutions();
+		resolutions.addAll(this.configuration.getResolutions());
 		for (int i = 0; i < size; i++) {
 			Screen screen = screens.get(i);
 			Rectangle2D bounds = screen.getBounds();
-			this.configuration.getResolutions().add(new Resolution((int)bounds.getWidth(), (int)bounds.getHeight()));
+			
+			// add the resolution
+			Resolution resolution = new Resolution(
+					(int)bounds.getWidth(), 
+					(int)bounds.getHeight());
+			resolutions.add(resolution);
 			
 			// regardless always update the primary display
 			if (primary.equals(screen)) {
@@ -196,13 +248,14 @@ public final class ScreenManager {
 		}
 		
 		// set the configuration
-		this.configuration.setPrimaryScreen(pDisplay);
-		this.configuration.setMainScreen(dDisplay);
-		this.configuration.setOperatorScreen(oDisplay);
-		this.configuration.setMusicianScreen(mDisplay);
-		
-		// save the new configuration
-		this.saveConfiguration();
+		this.configuration.createBatch()
+			.setObject(Setting.DISPLAY_PRIMARY, pDisplay)
+			.setObject(Setting.DISPLAY_MAIN, dDisplay)
+			.setObject(Setting.DISPLAY_OPERATOR, oDisplay)
+			.setObject(Setting.DISPLAY_MUSICIAN, mDisplay)
+			.setObject(Setting.DISPLAY_RESOLUTIONS, resolutions)
+		.commitBatch()
+		.execute(this.executor);
 		
 		// update the displays
 		this.updateDisplays();
@@ -212,8 +265,8 @@ public final class ScreenManager {
 	
 	private void updateDisplays() {
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
-		Display dDisplay = this.configuration.getMainScreen();
-		Display mDisplay = this.configuration.getMusicianScreen();
+		Display dDisplay = this.configuration.getObject(Setting.DISPLAY_MAIN, null);
+		Display mDisplay = this.configuration.getObject(Setting.DISPLAY_MUSICIAN, null);
 		
 		LOGGER.info("Releasing existing displays.");
 		// release any existing stages
@@ -248,40 +301,5 @@ public final class ScreenManager {
 		
 		LOGGER.info("Display " + display + " no longer valid. It's resolution or position has changed.");
 		return false;
-	}
-	
-	private ScreenConfiguration loadConfiguration() {
-		Path path = Paths.get(Constants.SCREENS_ABSOLUTE_FILE_PATH);
-		if (Files.exists(path)) {
-			try {
-				return XmlIO.read(path, ScreenConfiguration.class);
-			} catch (Exception ex) {
-				LOGGER.info("Failed to load configuration. Using default configuration.", ex);
-			}
-		} else {
-			LOGGER.info("No configuration found. Using default configuration.");
-		}
-		
-		ScreenConfiguration conf = new ScreenConfiguration();
-		// add the default resolutions
-		conf.getResolutions().addAll(Arrays.asList(Resolution.DEFAULT_RESOLUTIONS));
-		
-		return conf;
-	}
-	
-	private void saveConfiguration() {
-		Path path = Paths.get(Constants.SCREENS_ABSOLUTE_FILE_PATH);
-		try {
-			XmlIO.save(path, this.configuration);
-			LOGGER.info("Screen configuration saved.");
-		} catch (Exception ex) {
-			LOGGER.warn("Failed to save new configuration file.", ex);
-		}
-	}
-	
-	// public interface
-	
-	public ScreenConfiguration getScreenConfiguration() {
-		return this.configuration;
 	}
 }

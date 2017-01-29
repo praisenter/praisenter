@@ -387,7 +387,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			for (Node node : editorFields.getChildren()) {
 				node.setVisible(false);
 			}
-			if (this.bibleTree.getSelectionModel().getSelectedIndices().size() == 1) {
+			if (nv != null && this.bibleTree.getSelectionModel().getSelectedIndices().size() == 1) {
 				TreeData data = nv.getValue();
 				if (data instanceof BibleTreeData) {
 					lblName.setVisible(true);
@@ -927,7 +927,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 						Translations.get("bible.edit.reorder.content"), 
 						Translations.get("optout"), 
 						(d) -> {
-							this.context.getConfiguration().setBoolean(Setting.BIBLE_SHOW_REORDER_WARNING, false);
+							this.context.getConfiguration()
+								.setBoolean(Setting.BIBLE_SHOW_REORDER_WARNING, false)
+								.execute(this.context.getExecutorService());
 						});
 	
 				result = alert.showAndWait();
@@ -1025,7 +1027,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 						Translations.get("bible.edit.renumber.content"), 
 						Translations.get("optout"), 
 						(d) -> {
-							this.context.getConfiguration().setBoolean(Setting.BIBLE_SHOW_RENUMBER_WARNING, false);
+							this.context.getConfiguration()
+								.setBoolean(Setting.BIBLE_SHOW_RENUMBER_WARNING, false)
+								.execute(this.context.getExecutorService());
 						});
 	
 				result = alert.showAndWait();

@@ -22,83 +22,12 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+@XmlSchema(xmlns = {
+	@XmlNs(prefix = "xsi", namespaceURI = XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI),
+    @XmlNs(prefix = "xs", namespaceURI = XMLConstants.W3C_XML_SCHEMA_NS_URI)
+})
 package org.praisenter.javafx.configuration;
 
-import javax.xml.bind.annotation.XmlEnum;
-
-/**
- * Represents a simple application setting.
- * @author William Bittle
- * @version 3.0.0
- */
-@XmlEnum
-public enum Setting {
-	/** The application width */
-	APP_WIDTH,
-	
-	/** The application height */
-	APP_HEIGHT,
-	
-	/** The application x position */
-	APP_X,
-	
-	/** The application y position */
-	APP_Y,
-	
-	/** The application theme */
-	APP_THEME,
-	
-	/** The application language */
-	APP_LANGUAGE,
-	
-	/** Debug mode; enhances logging and user feedback */
-	APP_DEBUG_MODE,
-	
-	// bible
-	
-	/** The primary bible */
-	BIBLE_PRIMARY,
-	
-	/** The secondary bible */
-	BIBLE_SECONDARY,
-	
-	/** If the renumber warning should show */
-	BIBLE_SHOW_RENUMBER_WARNING,
-	
-	/** If the reorder warning should show */
-	BIBLE_SHOW_REORDER_WARNING,
-	
-	// media
-	
-	/** If media transcoding is enabled */
-	MEDIA_TRANSCODING_ENABLED,
-	
-	/** The video media target extension (which will imply format) */
-	MEDIA_TRANSCODING_VIDEO_EXTENSION,
-	
-	/** The audio media target extension (which will imply format) */
-	MEDIA_TRANSCODING_AUDIO_EXTENSION,
-	
-	/** The video media FFmpeg command */
-	MEDIA_TRANSCODING_VIDEO_COMMAND,
-	
-	/** The audio media FFmpeg command */
-	MEDIA_TRANSCODING_AUDIO_COMMAND,
-	
-	// displays
-	
-	/** The primary display */
-	DISPLAY_PRIMARY,
-	
-	/** The main display */
-	DISPLAY_MAIN,
-	
-	/** The musician display */
-	DISPLAY_MUSICIAN,
-	
-	/** The operator display */
-	DISPLAY_OPERATOR,
-	
-	/** The set of resolutions */
-	DISPLAY_RESOLUTIONS,
-}
+import javax.xml.XMLConstants;
+import javax.xml.bind.annotation.XmlNs;
+import javax.xml.bind.annotation.XmlSchema;

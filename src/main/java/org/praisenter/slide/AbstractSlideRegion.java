@@ -62,19 +62,19 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	
 	/** The x coordinate */
 	@XmlElement(name = "x", required = false)
-	int x;
+	double x;
 	
 	/** The y coordinate */
 	@XmlElement(name = "y", required = false)
-	int y;
+	double y;
 	
 	/** The width */
 	@XmlElement(name = "width", required = false)
-	int width;
+	double width;
 	
 	/** The height */
 	@XmlElement(name = "height", required = false)
-	int height;
+	double height;
 	
 	/** The border */
 	@XmlElement(name = "border", required = false)
@@ -153,7 +153,7 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#getX()
 	 */
 	@Override
-	public int getX() {
+	public double getX() {
 		return this.x;
 	}
 	
@@ -161,7 +161,7 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#setX(int)
 	 */
 	@Override
-	public void setX(int x) {
+	public void setX(double x) {
 		this.x = x;
 	}
 	
@@ -169,7 +169,7 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#getY()
 	 */
 	@Override
-	public int getY() {
+	public double getY() {
 		return this.y;
 	}
 	
@@ -177,7 +177,7 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#setY(int)
 	 */
 	@Override
-	public void setY(int y) {
+	public void setY(double y) {
 		this.y = y;
 	}
 	
@@ -185,7 +185,7 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#getWidth()
 	 */
 	@Override
-	public int getWidth() {
+	public double getWidth() {
 		return this.width;
 	}
 	
@@ -193,7 +193,7 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#setWidth(int)
 	 */
 	@Override
-	public void setWidth(int width) {
+	public void setWidth(double width) {
 		this.width = width;
 	}
 	
@@ -201,7 +201,7 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#getHeight()
 	 */
 	@Override
-	public int getHeight() {
+	public double getHeight() {
 		return this.height;
 	}
 	
@@ -209,7 +209,7 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#setHeight(int)
 	 */
 	@Override
-	public void setHeight(int height) {
+	public void setHeight(double height) {
 		this.height = height;
 	}
 	
@@ -311,7 +311,7 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#resize(int, int)
 	 */
 	@Override
-	public Rectangle resize(int dw, int dh) {
+	public Rectangle resize(double dw, double dh) {
 		// update
 		this.width += dw;
 		this.height += dh;
@@ -331,7 +331,7 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#translate(int, int)
 	 */
 	@Override
-	public void translate(int dx, int dy) {
+	public void translate(double dx, double dy) {
 		this.x += dx;
 		this.y += dy;
 	}

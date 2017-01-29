@@ -25,8 +25,8 @@
 package org.praisenter.javafx.slide;
 
 import org.praisenter.javafx.FlowListCell;
+import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.Slide;
-import org.praisenter.utility.ClasspathLoader;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -53,9 +53,6 @@ import javafx.scene.text.TextAlignment;
  * @since 3.0.0
  */
 final class SlideListCell extends FlowListCell<SlideListItem> {
-	/** The transparent pattern for translucent slides */
-	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
-	
 	/** The slide for this cell */
 	private final ObjectProperty<Slide> slide = new SimpleObjectProperty<Slide>(null);
 	
@@ -71,7 +68,7 @@ final class SlideListCell extends FlowListCell<SlideListItem> {
 		this.setAlignment(Pos.TOP_CENTER);
 		
 		final Pane pane = new Pane();
-		pane.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
+		pane.setBackground(new Background(new BackgroundImage(Fx.TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
 		
     	final ImageView thumb = new ImageView();
     	pane.getChildren().add(thumb);

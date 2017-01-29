@@ -182,8 +182,8 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	void updateSize() {
 		super.updateSize();
 		
-		int w = this.width.get();
-		int h = this.height.get();
+		double w = this.width.get();
+		double h = this.height.get();
 		
 		Fx.setSize(this.textWrapper, w, h);
 		
@@ -204,14 +204,14 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	}
 	
 	void updateFont() {
-		int w = this.width.get();
-		int h = this.height.get();
+		double w = this.width.get();
+		double h = this.height.get();
 		
 		// compute the bounding text width and height so 
 		// we can compute an accurate font size
 		SlidePadding padding = this.padding.get();
-		double pw = Math.max(1.0, Math.floor(w - padding.getLeft() - padding.getRight()));
-		double ph = Math.max(1.0, Math.floor(h - padding.getTop() - padding.getBottom()));
+		double pw = Math.max(1.0, w - padding.getLeft() - padding.getRight());
+		double ph = Math.max(1.0, h - padding.getTop() - padding.getBottom());
 		FontScaleType scaleType = this.fontScaleType.get();
 		double lineSpacing = this.lineSpacing.get();
 		

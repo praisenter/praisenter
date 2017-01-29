@@ -105,17 +105,7 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	 */
 	@Override
 	public String getText() {
-		if (this.countdownTarget != null) {
-			return formatCountdown(this.countdownFormat, this.countdownTarget);
-		}
-		return String.format(
-		        (this.countdownFormat != null && this.countdownFormat.trim().length() > 0 ? this.countdownFormat : DEFAULT_FORMAT), 
-		        0,
-		        0,
-		        0,
-		        0,
-		        0,
-		        0);
+		return formatCountdown(this.countdownFormat, this.countdownTarget);
 	}
 	
 	/**
@@ -127,16 +117,36 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	public static final String formatCountdown(String format, LocalDateTime target) {
 		LocalDateTime temp = LocalDateTime.now();
 		
+		long years = 0;
+		long months = 0;
+		long days = 0;
+		long hours = 0;
+		long minutes = 0;
+		long seconds = 0;
+		
 		// get the individual durations and advance each time
-		long years = temp.until(target, ChronoUnit.YEARS); 	temp = temp.plusYears(years);
-		long months = temp.until(target, ChronoUnit.MONTHS); 	temp = temp.plusMonths(months);
-		long days = temp.until(target, ChronoUnit.DAYS); 		temp = temp.plusDays(days);
-		long hours = temp.until(target, ChronoUnit.HOURS); 	temp = temp.plusHours(hours);
-		long minutes = temp.until(target, ChronoUnit.MINUTES); temp = temp.plusMinutes(minutes);
-		long seconds = temp.until(target, ChronoUnit.SECONDS);
+		if (target != null) {
+			years	= temp.until(target, ChronoUnit.YEARS); 	temp = temp.plusYears(years);
+			months	= temp.until(target, ChronoUnit.MONTHS); 	temp = temp.plusMonths(months);
+			days	= temp.until(target, ChronoUnit.DAYS); 		temp = temp.plusDays(days);
+			hours	= temp.until(target, ChronoUnit.HOURS); 	temp = temp.plusHours(hours);
+			minutes = temp.until(target, ChronoUnit.MINUTES); 	temp = temp.plusMinutes(minutes);
+			seconds = temp.until(target, ChronoUnit.SECONDS);
+		}
+		
+		if (format != null && format.trim().length() > 0) {
+			return String.format(
+			        format, 
+			        years,
+			        months,
+			        days,
+			        hours,
+			        minutes,
+			        seconds);
+		}
 		
 		return String.format(
-		        format, 
+		        DEFAULT_FORMAT, 
 		        years,
 		        months,
 		        days,

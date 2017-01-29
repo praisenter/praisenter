@@ -34,7 +34,6 @@ import org.praisenter.slide.graphics.SlideGradientCycleType;
 import org.praisenter.slide.graphics.SlideGradientStop;
 import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlideRadialGradient;
-import org.praisenter.utility.ClasspathLoader;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -51,7 +50,6 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -81,9 +79,6 @@ import javafx.scene.shape.StrokeType;
  * @version 3.0.0
  */
 final class SlideGradientPickerPane extends HBox {
-	/** An image pattern to represent transparency */
-	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/resources/transparent.png");
-	
 	/** The preview pane width */
 	private static final double WIDTH = 200;
 	
@@ -238,7 +233,7 @@ final class SlideGradientPickerPane extends HBox {
         
         // the transparent (tiled) background
         Pane bg = new Pane();
-        bg.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
+        bg.setBackground(new Background(new BackgroundImage(Fx.TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
     	Fx.setSize(bg, WIDTH, HEIGHT);
         
         // the preview pane itself

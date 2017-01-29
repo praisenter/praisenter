@@ -40,7 +40,7 @@ import org.praisenter.slide.graphics.SlideStroke;
  */
 public interface SlideRegion {
 	/** The minimum size of a region */
-	public static final int MIN_SIZE = 20;
+	public static final double MIN_SIZE = 20.0;
 	
 	/**
 	 * Return's the unique id.
@@ -50,51 +50,51 @@ public interface SlideRegion {
 	
 	/**
 	 * Returns the x coordinate of this region.
-	 * @return int
+	 * @return double
 	 */
-	public abstract int getX();
+	public abstract double getX();
 	
 	/**
 	 * Sets the x coordinate of this region.
 	 * @param x the x coordinate
 	 */
-	public abstract void setX(int x);
+	public abstract void setX(double x);
 	
 	/**
 	 * Returns the y coordinate of this region.
-	 * @return int
+	 * @return double
 	 */
-	public abstract int getY();
+	public abstract double getY();
 	
 	/**
 	 * Sets the y coordinate of this region.
 	 * @param y the y coordinate
 	 */
-	public abstract void setY(int y);
+	public abstract void setY(double y);
 	
 	/**
 	 * Returns the width of this region.
-	 * @return int
+	 * @return double
 	 */
-	public abstract int getWidth();
+	public abstract double getWidth();
 	
 	/**
 	 * Sets the width of this region.
 	 * @param width the width
 	 */
-	public abstract void setWidth(int width);
+	public abstract void setWidth(double width);
 	
 	/**
 	 * Returns the height of this region.
-	 * @return int
+	 * @return double
 	 */
-	public abstract int getHeight();
+	public abstract double getHeight();
 	
 	/**
 	 * Sets the height of this region.
 	 * @param height the height
 	 */
-	public abstract void setHeight(int height);
+	public abstract void setHeight(double height);
 	
 	/**
 	 * Returns the background of this region.
@@ -182,14 +182,14 @@ public interface SlideRegion {
 	 * @return {@link Rectangle}
 	 * @see #MIN_SIZE
 	 */
-	public abstract Rectangle resize(int dw, int dh);
+	public abstract Rectangle resize(double dw, double dh);
 	
 	/**
 	 * Translates this region by the given change in x and y.
 	 * @param dx the change in x
 	 * @param dy the change in y
 	 */
-	public abstract void translate(int dx, int dy);
+	public abstract void translate(double dx, double dy);
 	
 	// transition
 	

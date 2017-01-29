@@ -55,6 +55,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -134,8 +135,13 @@ public final class BibleSearchPane extends BorderPane {
 		ObservableBibleLibrary library = context.getBibleLibrary();
 		
 		// filter the list of selectable bibles by whether they are loaded or not		
-		FilteredList<BibleListItem> bibles = new FilteredList<BibleListItem>(library.getItems());
-		bibles.setPredicate(b -> b.isLoaded());
+		FilteredList<BibleListItem> filtered = context.getBibleLibrary().getItems().filtered(b -> b.isLoaded());
+		SortedList<BibleListItem> bibles = filtered.sorted((a, b) -> {
+			if (a == b) return 0;
+			if (a == null) return -1;
+			if (b == null) return 1;
+			return a.compareTo(b);
+		});
 		
 		BibleListItem backupBible = null;
 		if (bibles.size() > 0) {

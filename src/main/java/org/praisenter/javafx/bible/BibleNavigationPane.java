@@ -55,6 +55,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -151,9 +152,14 @@ public final class BibleNavigationPane extends BorderPane {
 		this.lblVerses = new Label();
 		
 		// filter the list of selectable bibles by whether they are loaded or not
-		ObservableBibleLibrary bl = context.getBibleLibrary();		
-		FilteredList<BibleListItem> bibles = new FilteredList<BibleListItem>(context.getBibleLibrary().getItems());
-		bibles.setPredicate(b -> b.isLoaded());
+		ObservableBibleLibrary bl = context.getBibleLibrary();
+		FilteredList<BibleListItem> filtered = context.getBibleLibrary().getItems().filtered(b -> b.isLoaded());
+		SortedList<BibleListItem> bibles = filtered.sorted((a, b) -> {
+			if (a == b) return 0;
+			if (a == null) return -1;
+			if (b == null) return 1;
+			return a.compareTo(b);
+		});
 		
 		UUID backupBibleId = null;
 		if (bibles != null && bibles.size() > 0) {
@@ -218,7 +224,9 @@ public final class BibleNavigationPane extends BorderPane {
 			try {
 				if (nv != null) {
 					Book selectedBook = cmbBook.getValue();
-					context.getConfiguration().setUUID(Setting.BIBLE_PRIMARY, nv.getBible().getId());
+					context.getConfiguration()
+						.setUUID(Setting.BIBLE_PRIMARY, nv.getBible().getId())
+						.execute(context.getExecutorService());
 					books.setAll(nv.getBible().getBooks());
 					
 					Book book = null;
@@ -242,7 +250,9 @@ public final class BibleNavigationPane extends BorderPane {
 		this.cmbBibleSecondary.valueProperty().addListener((obs, ov, nv) -> {
 			try {
 				if (nv != null) {
-					context.getConfiguration().setUUID(Setting.BIBLE_SECONDARY, nv.getBible().getId());
+					context.getConfiguration()
+						.setUUID(Setting.BIBLE_SECONDARY, nv.getBible().getId())
+						.execute(context.getExecutorService());
 				}
 			} catch (Exception ex) {
 				LOGGER.error("An unexpected error occurred when a different secondary bible was selected: " + ov + " -> " + nv, ex);

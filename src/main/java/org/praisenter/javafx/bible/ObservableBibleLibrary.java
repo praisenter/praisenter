@@ -40,6 +40,7 @@ import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
+import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -63,7 +64,7 @@ public final class ObservableBibleLibrary {
 	private final BibleLibrary library;
 	
 	/** The observable list of bibles */
-	private final ObservableList<BibleListItem> items = FXCollections.observableArrayList();
+	private final ObservableList<BibleListItem> items;
 	
 	/**
 	 * Minimal constructor.
@@ -71,6 +72,15 @@ public final class ObservableBibleLibrary {
 	 */
 	public ObservableBibleLibrary(BibleLibrary library) {
 		this.library = library;
+		
+		this.items = FXCollections.observableArrayList((bli) -> {
+			// supply the list of properties that should trigger the list to do notification
+			return new Observable[] {
+				bli.bibleProperty(),
+				bli.loadedProperty(),
+				bli.nameProperty()
+			};
+		});
 
 		List<Bible> bibles = null;
 		if (library != null) {
@@ -184,9 +194,11 @@ public final class ObservableBibleLibrary {
 				BibleListItem bi = this.getListItem(bible);
 				// check if new
 				if (bi != null) {
-					this.items.remove(bi);
+					bi.setBible(copy);
+					bi.setName(copy.getName());
+				} else {
+					this.items.add(new BibleListItem(copy));
 				}
-				this.items.add(new BibleListItem(copy));
 			});
 			task.setOnFailed((e) -> {
 				Throwable ex = task.getException();

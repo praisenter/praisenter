@@ -109,7 +109,7 @@ public class TestSlideDisplay extends Application {
 			e.printStackTrace();
 		}
 		
-		ObservableMediaLibrary oml = new ObservableMediaLibrary(library, null);
+		ObservableMediaLibrary oml = new ObservableMediaLibrary(library);
 		
 		MediaObject img = new MediaObject(
 				UUID.fromString("f6668fb0-3a40-4590-99a4-1ba474315dca"),
@@ -142,7 +142,7 @@ public class TestSlideDisplay extends Application {
 		slide.setBorder(thick);
 		
 		
-		PraisenterContext context = new PraisenterContext(new JavaFXContext(null, stage), null, null, new ImageCache(), library, null, null, null);
+		PraisenterContext context = new PraisenterContext(new JavaFXContext(null, stage), null, library, null, null, null);
 //		
 //		FxSlide wrapper = new FxSlide(context, slide, SlideMode.PRESENT);
 //		List<MediaPlayer> players = wrapper.getMediaPlayers();

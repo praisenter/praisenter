@@ -484,7 +484,7 @@ public final class MediaLibrary {
 					// its possible that while waiting for the target lock that another thread
 					// creates a file with the same name, we need to check for existence again
 					// to make sure its not there.
-					if (!Files.exists(target)) {
+					if (Files.exists(target)) {
 						// if it is there, this should be a rare case, just throw an exception and the user
 						// can try again
 						LOGGER.warn("Failed to copy media '{}' to '{}' because '{}' already exists.", source, target, target);

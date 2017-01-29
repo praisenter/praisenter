@@ -37,6 +37,7 @@ import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.resources.OpenIconic;
 import org.praisenter.resources.translations.Translations;
@@ -99,14 +100,19 @@ public final class Praisenter extends Application {
     	LOGGER.info("JVM Args:  " + RuntimeProperties.JVM_ARGUMENTS);
     	LOGGER.info("Java Home: " + RuntimeProperties.JAVA_HOME);
     	LOGGER.info("User Home: " + RuntimeProperties.USER_HOME);
+    	LOGGER.info("Locale:    " + Locale.getDefault().toLanguageTag());
     	
 		// load (or create) configuration
 		LOGGER.info("Loading configuration.");
 		CONFIGURATION = Configuration.load();
 		// set the language if in the config
-		if (CONFIGURATION.getLanguage() != null) {
-			LOGGER.info("Setting the default language to '" + CONFIGURATION.getLanguage() + "'.");
-			Locale.setDefault(CONFIGURATION.getLanguage());
+		String lang = CONFIGURATION.getString(Setting.APP_LANGUAGE, null);
+		if (lang != null) {
+			Locale locale = Locale.forLanguageTag(lang);
+			if (locale != null) {
+				LOGGER.info("Setting the default language to '" + locale + "'.");
+				Locale.setDefault(locale);
+			}
 		}
 		
 		// check for debug mode
@@ -241,11 +247,13 @@ public final class Praisenter extends Application {
     	GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
 		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
 
+		ObservableConfiguration configuration = new ObservableConfiguration(CONFIGURATION);
+		
     	// we'll have a stack of the main pane and the loading pane
     	StackPane stack = new StackPane();
     	
     	// create the loading scene
-    	LoadingPane loading = new LoadingPane(MIN_WIDTH, MIN_HEIGHT, new JavaFXContext(this, stage), CONFIGURATION);
+    	LoadingPane loading = new LoadingPane(MIN_WIDTH, MIN_HEIGHT, new JavaFXContext(this, stage), configuration);
     	loading.setOnComplete((e) -> {
     		long t0 = 0;
     		long t1 = 0;
@@ -292,16 +300,21 @@ public final class Praisenter extends Application {
     	Scene scene = new Scene(stack);
     	// set the application look and feel
     	// NOTE: this should be the only place where this is done, every other window needs to inherit the css from the parent
-    	scene.getStylesheets().add(CONFIGURATION.getTheme().getCss());
+    	scene.getStylesheets().add(configuration.getTheme().getCss());
     	stage.setScene(scene);
     	stage.setOnCloseRequest((e) -> {
     		// save some application info
-    		CONFIGURATION.beginBatch();
+    		LOGGER.debug("Saving application location and size: ({}, {}) {}x{}", stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
     		CONFIGURATION.setDouble(Setting.APP_X, stage.getX());
     		CONFIGURATION.setDouble(Setting.APP_Y, stage.getY());
     		CONFIGURATION.setDouble(Setting.APP_WIDTH, stage.getWidth());
     		CONFIGURATION.setDouble(Setting.APP_HEIGHT, stage.getHeight());
-    		CONFIGURATION.endBatch();
+    		try {
+    			// save the configuration synchronously
+    			CONFIGURATION.save();
+    		} catch (Exception ex) {
+    			LOGGER.warn("Failed to save application x,y and width,height when the application closed.", ex);
+    		}
     		
     		LOGGER.info("Checking for background threads that have not completed yet.");
     		// this stuff could be null if we blow up before its created

@@ -10,9 +10,12 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.javafx.async.AsyncTask;
+import org.praisenter.javafx.configuration.Display;
+import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.javafx.configuration.SettingBatch;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
-import org.praisenter.javafx.screen.ScreenConfiguration;
 import org.praisenter.javafx.screen.ScreenView;
 import org.praisenter.javafx.screen.ScreenViewDragDropManager;
 import org.praisenter.javafx.themes.Theme;
@@ -215,7 +218,9 @@ public final class SetupPane extends BorderPane {
 
 		cmbLocale.valueProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
-				context.getConfiguration().set(Setting.APP_LANGUAGE, nv.value.toLanguageTag());
+				context.getConfiguration()
+					.setString(Setting.APP_LANGUAGE, nv.value.toLanguageTag())
+					.execute(context.getExecutorService());
 			}
 		});
 		
@@ -229,7 +234,9 @@ public final class SetupPane extends BorderPane {
 		
 		cmbTheme.valueProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
-				context.getConfiguration().set(Setting.APP_THEME, nv.getName());
+				context.getConfiguration()
+					.setString(Setting.APP_THEME, nv.getName())
+					.execute(context.getExecutorService());
 			}
 		});
 		
@@ -239,9 +246,13 @@ public final class SetupPane extends BorderPane {
 		
 		chkDebugMode.selectedProperty().addListener((obs, ov, nv) -> {
 			if (nv) {
-				context.getConfiguration().setBoolean(Setting.APP_DEBUG_MODE, true);
+				context.getConfiguration()
+					.setBoolean(Setting.APP_DEBUG_MODE, true)
+					.execute(context.getExecutorService());
 			} else {
-				context.getConfiguration().remove(Setting.APP_DEBUG_MODE);
+				context.getConfiguration()
+					.remove(Setting.APP_DEBUG_MODE)
+					.execute(context.getExecutorService());
 			}
 		});
 
@@ -258,27 +269,31 @@ public final class SetupPane extends BorderPane {
 				screenPane.add(view1, col2, row2);
 				
 				// record the changes (will save automatically)
-				ScreenConfiguration sc = context.getScreenManager().getScreenConfiguration();
+				ObservableConfiguration conf = context.getConfiguration();
+				SettingBatch<AsyncTask<Void>> batch = conf.createBatch();
 				if (col1 == 0) {
-					sc.setOperatorScreen(view2.getDisplay());
+					batch.setObject(Setting.DISPLAY_OPERATOR, view2.getDisplay());
 					lblOperatorDescription.setPrefWidth(view2.getPrefWidth());
 				} else if (col1 == 1) {
-					sc.setMainScreen(view2.getDisplay());
+					batch.setObject(Setting.DISPLAY_MAIN, view2.getDisplay());
 					lblPrimaryDescription.setPrefWidth(view2.getPrefWidth());
 				} else if (col1 == 2) {
-					sc.setMusicianScreen(view2.getDisplay());
+					batch.setObject(Setting.DISPLAY_MUSICIAN, view2.getDisplay());
 					lblMusicianDescription.setPrefWidth(view2.getPrefWidth());
 				}
 				if (col2 == 0) {
-					sc.setOperatorScreen(view1.getDisplay());
+					batch.setObject(Setting.DISPLAY_OPERATOR, view1.getDisplay());
 					lblOperatorDescription.setPrefWidth(view1.getPrefWidth());
 				} else if (col2 == 1) {
-					sc.setMainScreen(view1.getDisplay());
+					batch.setObject(Setting.DISPLAY_MAIN, view1.getDisplay());
 					lblPrimaryDescription.setPrefWidth(view1.getPrefWidth());
 				} else if (col2 == 2) {
-					sc.setMusicianScreen(view1.getDisplay());
+					batch.setObject(Setting.DISPLAY_MUSICIAN, view1.getDisplay());
 					lblMusicianDescription.setPrefWidth(view1.getPrefWidth());
 				}
+				
+				batch.commitBatch()
+					.execute(context.getExecutorService());
 			}
 		};
 		
@@ -287,21 +302,25 @@ public final class SetupPane extends BorderPane {
 		InvalidationListener screenListener = new InvalidationListener() {
 			@Override
 			public void invalidated(Observable observable) {
-				ScreenConfiguration sc = context.getScreenManager().getScreenConfiguration();
+				ObservableConfiguration conf = context.getConfiguration();
+				
+				Display os = conf.getObject(Setting.DISPLAY_OPERATOR, null);
+				Display ms = conf.getObject(Setting.DISPLAY_MAIN, null);
+				Display cs = conf.getObject(Setting.DISPLAY_MUSICIAN, null);
 				
 				Map<Integer, ScreenView> views = ScreenView.createScreenViews(manager);
 				
 				ScreenView operator = null;
 				ScreenView main = null;
 				ScreenView musician = null;
-				if (sc.getOperatorScreen() != null) {
-					operator = views.remove(sc.getOperatorScreen().getId());
+				if (os != null) {
+					operator = views.remove(os.getId());
 				}
-				if (sc.getMainScreen() != null) {
-					main = views.remove(sc.getMainScreen().getId());
+				if (ms != null) {
+					main = views.remove(ms.getId());
 				}
-				if (sc.getMusicianScreen() != null) {
-					musician = views.remove(sc.getMusicianScreen().getId());
+				if (cs != null) {
+					musician = views.remove(cs.getId());
 				}
 				
 				if (operator == null) {

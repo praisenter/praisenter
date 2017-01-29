@@ -22,6 +22,7 @@ import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
+import org.praisenter.utility.Scaling;
 
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
@@ -80,11 +81,6 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 			slide.setPlaceholderData(nv);
 		});
 		
-		this.scale.addListener((obs, ov, nv) -> {
-			rootPane.setTranslateX(nv.sx);
-			rootPane.setTranslateY(nv.sy);
-		});
-		
 		this.build();
 	}
 
@@ -98,11 +94,11 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		super.updateSize();
 		
 		// also update the size and scaling for the component canvas
-		int w = this.width.get();
-		int h = this.height.get();
+		double w = this.width.get();
+		double h = this.height.get();
 		
 		Scaling s = this.scale.get();
-		Fx.setSize(this.componentCanvas, w * s.scale, h * s.scale);
+		Fx.setSize(this.componentCanvas, Math.ceil(w * s.factor), Math.ceil(h * s.factor));
 	}
 	
 	public List<Node> getComponentDisplayPanes() {

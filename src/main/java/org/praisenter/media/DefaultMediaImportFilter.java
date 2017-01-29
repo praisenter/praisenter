@@ -84,6 +84,7 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 
 		// for image media we want to go ahead and fix any rotation stuff
 		if (type == MediaType.IMAGE) {
+			LOGGER.debug("Media type is '{}'. Reading EXIF for orientation.", MediaType.IMAGE);
 			// attempt to get the orientation of the image
 			int orientation = getExifOrientation(source);
 			// if we did, fix it if necessary
@@ -92,7 +93,7 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 				return;
 			}
 		}
-		
+		LOGGER.debug("Copying '{}' to media library.", source);
 		Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 	}
 	
@@ -113,9 +114,12 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 				ImageReader reader = readers.next();
 				reader.setInput(in);
 				// read and correct the image
+				LOGGER.debug("Correcting orientation of '{}'.", source);
 				BufferedImage image = ImageManipulator.correctExifOrientation(reader.read(0), orientation);
 				
+				// TODO does this need to be done all the time or only if we correct the orientation?
 				if (image.getColorModel().hasAlpha() && ("JPG".equals(reader.getFormatName().toUpperCase()) || "JPEG".equals(reader.getFormatName().toUpperCase()))) {
+					LOGGER.debug("Converting color model of '{}'.", source);
 					BufferedImage bi = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
 					Graphics2D g2d = bi.createGraphics();
 					g2d.drawImage(image, 0, 0, null);
@@ -123,6 +127,7 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 					image = bi;
 				}
 				
+				LOGGER.debug("Writing corrected image to media library.");
 				ImageIO.write(image, reader.getFormatName(), target.toFile());
 				break;
 			}
@@ -142,7 +147,7 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 		try {
 			Metadata meta = ImageMetadataReader.readMetadata(source.toFile());
 			ExifIFD0Directory directory = meta.getFirstDirectoryOfType(ExifIFD0Directory.class);
-			if (directory != null) {
+			if (directory != null && directory.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
 				orientation = directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
 			}
 		} catch (Exception e) {

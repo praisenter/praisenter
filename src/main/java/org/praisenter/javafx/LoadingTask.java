@@ -32,10 +32,8 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.ThumbnailSettings;
 import org.praisenter.bible.BibleLibrary;
-import org.praisenter.javafx.configuration.Configuration;
-import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
-import org.praisenter.javafx.screen.ScreenManager;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.SlideLibrary;
@@ -57,14 +55,14 @@ final class LoadingTask extends Task<PraisenterContext> {
 	private final JavaFXContext javaFXContext;
 	
 	/** The configuration */
-	private final Configuration configuration;
+	private final ObservableConfiguration configuration;
 	
 	/**
 	 * Minimal constructor.
 	 * @param javaFXContext the JavaFX context information
 	 * @param configuration the configuration
 	 */
-	public LoadingTask(JavaFXContext javaFXContext, Configuration configuration) {
+	public LoadingTask(JavaFXContext javaFXContext, ObservableConfiguration configuration) {
 		this.javaFXContext = javaFXContext;
 		this.configuration = configuration;
 	}
@@ -76,9 +74,6 @@ final class LoadingTask extends Task<PraisenterContext> {
 	protected PraisenterContext call() throws Exception {
 		long t0 = 0;
 		long t1 = 0;
-		
-		// create an image cache
-		ImageCache imageCache = new ImageCache();
 		
 		updateProgress(0, 4);
 		
@@ -123,15 +118,11 @@ final class LoadingTask extends Task<PraisenterContext> {
 		updateProgress(4, 4);
 		LOGGER.info("Slide library loaded in {} seconds with {} slides", (t1 - t0) / 1e9, slides.size());
     	
-		ScreenManager screenManager = new ScreenManager(this.configuration.isSet(Setting.APP_DEBUG_MODE));
-		
 		LOGGER.info("Building the application context.");
 		// build the context
 		PraisenterContext context = new PraisenterContext(
 				this.javaFXContext,
 				this.configuration,
-				screenManager,
-				imageCache,
 				media,
 				bibles,
 				songs,

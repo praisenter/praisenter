@@ -34,7 +34,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.media.FFmpegMediaImportFilter;
 import org.praisenter.media.MediaImportFilter;
@@ -63,14 +63,14 @@ public final class JavaFXMediaImportFilter extends FFmpegMediaImportFilter imple
 	public static final String DEFAULT_COMMAND = "{ffmpeg} -i {source} -y -ignore_unknown {target}";
 	
 	/** The application configuration */
-	private final Configuration configuration;
+	private final ObservableConfiguration configuration;
 	
 	/**
 	 * Minimal constructor.
 	 * @param path the path to place the files required for filtering
 	 * @param configuration the application configuration
 	 */
-	public JavaFXMediaImportFilter(Path path, Configuration configuration) {
+	public JavaFXMediaImportFilter(Path path, ObservableConfiguration configuration) {
 		super(path);
 		this.configuration = configuration;
 	}

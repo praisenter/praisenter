@@ -6,7 +6,9 @@ import org.praisenter.Tag;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.TagEvent;
 import org.praisenter.javafx.TagListView;
-import org.praisenter.javafx.screen.Resolution;
+import org.praisenter.javafx.configuration.Resolution;
+import org.praisenter.javafx.configuration.Resolutions;
+import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 
@@ -40,13 +42,10 @@ final class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 		time.setPromptText("00:00");
 		
 		// target resolution
-		ObservableList<Resolution> resolutions = FXCollections.observableArrayList(context.getScreenManager().getScreenConfiguration().getResolutions());
-		cmbResolutions = new ComboBox<Resolution>(new SortedList<>(resolutions, new Comparator<Resolution>() {
-			@Override
-			public int compare(Resolution o1, Resolution o2) {
-				return o1.compareTo(o2);
-			}
-		}));
+		SortedList<Resolution> sorted = context.getConfiguration().getResolutions().sorted((a, b) -> {
+			return a.compareTo(b);
+		});
+		cmbResolutions = new ComboBox<Resolution>(sorted);
 		
 		Button btnNewResolution = new Button("Add");
 		
@@ -69,7 +68,7 @@ final class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 				ObservableSlide<?> slide = (ObservableSlide<?>)comp;
 				this.name.setText(slide.getName());
 //				this.time.setText(slide.getTime());
-				this.cmbResolutions.setValue(new Resolution(slide.getWidth(), slide.getHeight()));
+				this.cmbResolutions.setValue(new Resolution((int)slide.getWidth(), (int)slide.getHeight()));
 			}
 			mutating = false;
 		});
@@ -96,8 +95,14 @@ final class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 		});
 		
 		btnNewResolution.setOnAction((e) -> {
+			// TODO fix
 			Resolution res = new Resolution(2000, 4000);
-			context.getScreenManager().getScreenConfiguration().getResolutions().add(res);
+			Resolutions resolutions = context.getConfiguration().getObject(Setting.DISPLAY_RESOLUTIONS, null);
+			resolutions.add(res);
+			context.getConfiguration()
+				.setObject(Setting.DISPLAY_RESOLUTIONS, resolutions)
+				.execute(context.getExecutorService());
+			
 			cmbResolutions.setValue(res);
 		});
 		

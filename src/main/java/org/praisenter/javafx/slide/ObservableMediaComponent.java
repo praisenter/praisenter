@@ -44,8 +44,8 @@ public final class ObservableMediaComponent extends ObservableSlideComponent<Med
 	void updateSize() {
 		super.updateSize();
 		
-		int w = this.width.get();
-		int h = this.height.get();
+		double w = this.width.get();
+		double h = this.height.get();
 		this.mediaNode.setSize(w, h);
 	}
 	

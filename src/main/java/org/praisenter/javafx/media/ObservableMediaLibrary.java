@@ -42,6 +42,7 @@ import org.praisenter.media.Media;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.resources.translations.Translations;
 
+import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -72,7 +73,14 @@ public final class ObservableMediaLibrary {
 	 */
 	public ObservableMediaLibrary(MediaLibrary library) {
 		this.library = library;
-		this.items = FXCollections.observableArrayList();
+		this.items = FXCollections.observableArrayList((mli) -> {
+			// supply the list of properties that should trigger the list to do notification
+			return new Observable[] {
+				mli.mediaProperty(),
+				mli.loadedProperty(),
+				mli.nameProperty()
+			};
+		});
 		
 		// initialize the observable list
 		for (Media media : library.all()) {
@@ -130,8 +138,9 @@ public final class ObservableMediaLibrary {
 			};
 			task.addSuccessHandler((e) -> {
 				Media media = task.getValue();
-				items.remove(loading);
-				items.add(new MediaListItem(media));
+				loading.setMedia(media);
+				loading.setName(media.getName());
+				loading.setLoaded(true);
 			});
 			task.addCancelledOrFailedHandler((e) -> {
 				Throwable ex = task.getException();

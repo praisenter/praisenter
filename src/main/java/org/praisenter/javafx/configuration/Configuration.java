@@ -28,16 +28,20 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,70 +57,54 @@ import org.praisenter.xml.XmlIO;
  */
 @XmlRootElement(name = "configuration")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Configuration {
+// we have to define any custom types that might be saved in settings
+@XmlSeeAlso({
+	Display.class,
+	Resolution.class,
+	Resolutions.class,
+	UUID.class
+})
+public final class Configuration extends SettingMap<Void> {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The data storage */
-	@XmlElement(name = "settings")
-	private final Map<Setting, String> settings = new HashMap<Setting, String>();
-	
-	// restart required
-	
-	/** The currently in use language */
-	private Locale language;
-	
-	/** The currently in use theme */
-	private Theme theme;
-	
-	// for batch
-	
-	/** The batch mode flag */
-	private boolean batching;
+
+	/** The other settings */
+	@XmlElement(name = "settings", required = false)
+	private final Map<Setting, Object> settings;
 	
 	/**
 	 * Hidden constructor for new configuration.
 	 */
 	private Configuration() {
-		this.batching = false;
-		this.language = Locale.getDefault();
-		this.theme = Theme.DEFAULT;
+		this.settings = new ConcurrentHashMap<Setting, Object>();
 
 		// set default language/theme
-		this.settings.put(Setting.APP_LANGUAGE, this.language.toLanguageTag());
-		this.settings.put(Setting.APP_THEME, this.theme.getName());
+		this.settings.put(Setting.APP_LANGUAGE, Locale.getDefault().toLanguageTag());
+		this.settings.put(Setting.APP_THEME, Theme.DEFAULT.getName());
 		
 		// set other defaults
-		this.settings.put(Setting.BIBLE_SHOW_RENUMBER_WARNING, "true");
-		this.settings.put(Setting.MEDIA_TRANSCODING_ENABLED, "true");
+		this.settings.put(Setting.BIBLE_SHOW_RENUMBER_WARNING, true);
+		this.settings.put(Setting.BIBLE_SHOW_REORDER_WARNING, true);
+		this.settings.put(Setting.MEDIA_TRANSCODING_ENABLED, true);
 		this.settings.put(Setting.MEDIA_TRANSCODING_VIDEO_EXTENSION, JavaFXMediaImportFilter.DEFAULT_VIDEO_EXTENSION);
 		this.settings.put(Setting.MEDIA_TRANSCODING_AUDIO_EXTENSION, JavaFXMediaImportFilter.DEFAULT_AUDIO_EXTENSION);
 		this.settings.put(Setting.MEDIA_TRANSCODING_VIDEO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND);
 		this.settings.put(Setting.MEDIA_TRANSCODING_AUDIO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND);
+		
+		Resolutions resolutions = new Resolutions();
+		resolutions.addAll(Arrays.asList(Resolution.DEFAULT_RESOLUTIONS));
+		this.settings.put(Setting.DISPLAY_RESOLUTIONS, resolutions);
 	}
 	
 	/**
 	 * Loads the current configuration or return a new default configuration.
 	 * @return {@link Configuration}
 	 */
-	public static final Configuration load() {
+	public static Configuration load() {
 		Path path = Paths.get(Constants.CONFIG_ABSOLUTE_FILE_PATH);
 		if (Files.exists(path)) {
 			try {
-				Configuration conf = XmlIO.read(path, Configuration.class);
-				conf.language = Locale.forLanguageTag(conf.get(Setting.APP_LANGUAGE));
-				String name = conf.get(Setting.APP_THEME);
-				// find the matching theme
-				for (Theme theme : Theme.getAvailableThemes()) {
-					if (theme.getName().equalsIgnoreCase(name)) {
-						conf.theme = theme;
-						break;
-					}
-				}
-				if (conf.theme == null) {
-					conf.theme = Theme.DEFAULT;
-				}
-				return conf;
+				return XmlIO.read(path, Configuration.class);
 			} catch (Exception ex) {
 				LOGGER.info("Failed to load configuration. Using default configuration.", ex);
 			}
@@ -141,346 +129,68 @@ public final class Configuration {
 	 * @throws JAXBException if the configuration cannot be serialized
 	 * @throws IOException if an IO error occurs
 	 */
-	private final synchronized void save() throws JAXBException, IOException {
-		// TODO this should probably be done on another thread
+	public final synchronized void save() throws JAXBException, IOException {
 		Path path = Paths.get(Constants.CONFIG_ABSOLUTE_FILE_PATH);
 		XmlIO.save(path, this);
 	}
 	
 	// public interface
 	
-	/**
-	 * Sets the given setting to the given value.
-	 * @param setting the setting
-	 * @param value the value
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.configuration.SettingMap#set(org.praisenter.javafx.configuration.Setting, java.lang.String)
 	 */
-	public void set(Setting setting, String value) {
-		this.settings.put(setting, value);
-		if (!this.batching) {
-			try  {
-				this.save();
-			} catch (Exception ex) {
-				LOGGER.error("Failed to save configuration after assigning " + setting + " to " + value);
-			}
+	public Void set(Setting setting, Object value) {
+		if (value == null) {
+			this.settings.remove(setting);
+		} else {
+			this.settings.put(setting, value);
 		}
+		return null;
 	}
 
-	/**
-	 * Returns true if the given setting is present and non-null.
-	 * @param setting the setting
-	 * @return boolean
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.configuration.SettingMap#isSet(org.praisenter.javafx.configuration.Setting)
 	 */
 	public boolean isSet(Setting setting) {
 		return this.settings.containsKey(setting) && this.settings.get(setting) != null;
 	}
 	
-	/**
-	 * Returns the given settings value or null if not present.
-	 * @param setting the setting
-	 * @return String
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.configuration.SettingMap#get(org.praisenter.javafx.configuration.Setting)
 	 */
-	public String get(Setting setting) {
+	public Object get(Setting setting) {
 		return this.settings.get(setting);
 	}
 
-	/**
-	 * Removes the given setting.
-	 * @param setting the setting
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.configuration.SettingMap#remove(org.praisenter.javafx.configuration.Setting)
 	 */
-	public void remove(Setting setting) {
+	public Void remove(Setting setting) {
 		this.settings.remove(setting);
-		if (!this.batching) {
-			try  {
-				this.save();
-			} catch (Exception ex) {
-				LOGGER.error("Failed to save configuration after removing " + setting);
+		return null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.configuration.SettingMap#setAll(java.util.Map)
+	 */
+	@Override
+	protected Void setAll(Map<Setting, Object> settings) {
+		for (Setting key : settings.keySet()) {
+			Object value = settings.get(key);
+			if (value != null) {
+				this.settings.put(key, value);
+			} else {
+				this.settings.remove(key);
 			}
 		}
+		return null;
 	}
 	
-	/**
-	 * Begins batch mode where incremental changes are not saved until
-	 * {@link #endBatch()} is called.
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.configuration.SettingMap#getAll()
 	 */
-	public void beginBatch() {
-		this.batching = true;
-	}
-	
-	/**
-	 * Ends batch mode and saves all changes.
-	 */
-	public void endBatch() {
-		this.batching = false;
-		try  {
-			this.save();
-		} catch (Exception ex) {
-			LOGGER.error("Failed to save configuration after batch configuration.");
-		}
-	}
-	
-	// convenience set
-	
-	/**
-	 * Sets the given setting to the given string value.
-	 * <p>
-	 * An alias for {@link #set(Setting, String)}.
-	 * @param setting the setting
-	 * @param value the value
-	 */
-	public void setString(Setting setting, String value) {
-		this.set(setting, value);
-	}
-	
-	/**
-	 * Sets the given setting to the given boolean value.
-	 * @param setting the setting
-	 * @param value the value
-	 */
-	public void setBoolean(Setting setting, boolean value) {
-		this.set(setting, String.valueOf(value));
-	}
-	
-	/**
-	 * Sets the given setting to the given byte value.
-	 * @param setting the setting
-	 * @param value the value
-	 */
-	public void setByte(Setting setting, byte value) {
-		this.set(setting, String.valueOf(value));
-	}
-
-	/**
-	 * Sets the given setting to the given short value.
-	 * @param setting the setting
-	 * @param value the value
-	 */
-	public void setShort(Setting setting, short value) {
-		this.set(setting, String.valueOf(value));
-	}
-	
-	/**
-	 * Sets the given setting to the given int value.
-	 * @param setting the setting
-	 * @param value the value
-	 */
-	public void setInt(Setting setting, int value) {
-		this.set(setting, String.valueOf(value));
-	}
-	
-	/**
-	 * Sets the given setting to the given long value.
-	 * @param setting the setting
-	 * @param value the value
-	 */
-	public void setLong(Setting setting, long value) {
-		this.set(setting, String.valueOf(value));
-	}
-	
-	/**
-	 * Sets the given setting to the given double value.
-	 * @param setting the setting
-	 * @param value the value
-	 */
-	public void setDouble(Setting setting, double value) {
-		this.set(setting, String.valueOf(value));
-	}
-	
-	/**
-	 * Sets the given setting to the given float value.
-	 * @param setting the setting
-	 * @param value the value
-	 */
-	public void setFloat(Setting setting, float value) {
-		this.set(setting, String.valueOf(value));
-	}
-	
-	/**
-	 * Sets the given setting to the given UUID value.
-	 * @param setting the setting
-	 * @param value the value
-	 */
-	public void setUUID(Setting setting, UUID value) {
-		this.set(setting, value.toString());
-	}
-	
-	// convenience get
-
-	/**
-	 * Returns the value for the given setting or the given default value
-	 * if the setting isn't present or is empty.
-	 * @param setting the setting
-	 * @param defaultValue the default
-	 * @return String
-	 */
-	public String getString(Setting setting, String defaultValue) {
-		String value = this.settings.get(setting);
-		if (value == null || value.trim().length() == 0) {
-			return defaultValue;
-		}
-		return value;
-	}
-	
-	/**
-	 * Returns the value for the given setting or the given default value
-	 * if the setting isn't present or isn't a boolean.
-	 * @param setting the setting
-	 * @param defaultValue the default
-	 * @return boolean
-	 */
-	public boolean getBoolean(Setting setting, boolean defaultValue) {
-		String value = this.settings.get(setting);
-		if (value == null || value.trim().length() == 0) {
-			return defaultValue;
-		}
-		value = value.trim();
-		if (value.toLowerCase().equals("true")) {
-			return true;
-		} else if (value.toLowerCase().equals("false")) {
-			return false;
-		}
-		return defaultValue;
-	}
-	
-	/**
-	 * Returns the value for the given setting or the given default value
-	 * if the setting isn't present or isn't a byte.
-	 * @param setting the setting
-	 * @param defaultValue the default
-	 * @return byte
-	 */
-	public byte getByte(Setting setting, byte defaultValue) {
-		try {
-			return Byte.parseByte(this.settings.get(setting));
-		} catch (Exception ex) {
-			return defaultValue;
-		}
-	}
-
-	/**
-	 * Returns the value for the given setting or the given default value
-	 * if the setting isn't present or isn't a short.
-	 * @param setting the setting
-	 * @param defaultValue the default
-	 * @return short
-	 */
-	public short getShort(Setting setting, short defaultValue) {
-		try {
-			return Short.parseShort(this.settings.get(setting));
-		} catch (Exception ex) {
-			return defaultValue;
-		}
-	}
-	
-	/**
-	 * Returns the value for the given setting or the given default value
-	 * if the setting isn't present or isn't a int.
-	 * @param setting the setting
-	 * @param defaultValue the default
-	 * @return int
-	 */
-	public int getInt(Setting setting, int defaultValue) {
-		try {
-			return Integer.parseInt(this.settings.get(setting));
-		} catch (Exception ex) {
-			return defaultValue;
-		}
-	}
-	
-	/**
-	 * Returns the value for the given setting or the given default value
-	 * if the setting isn't present or isn't a long.
-	 * @param setting the setting
-	 * @param defaultValue the default
-	 * @return long
-	 */
-	public long getLong(Setting setting, long defaultValue) {
-		try {
-			return Long.parseLong(this.settings.get(setting));
-		} catch (Exception ex) {
-			return defaultValue;
-		}
-	}
-	
-	/**
-	 * Returns the value for the given setting or the given default value
-	 * if the setting isn't present or isn't a double.
-	 * @param setting the setting
-	 * @param defaultValue the default
-	 * @return double
-	 */
-	public double getDouble(Setting setting, double defaultValue) {
-		try {
-			return Double.parseDouble(this.settings.get(setting));
-		} catch (Exception ex) {
-			return defaultValue;
-		}
-	}
-	
-	/**
-	 * Returns the value for the given setting or the given default value
-	 * if the setting isn't present or isn't a float.
-	 * @param setting the setting
-	 * @param defaultValue the default
-	 * @return float
-	 */
-	public float getFloat(Setting setting, float defaultValue) {
-		try {
-			return Float.parseFloat(this.settings.get(setting));
-		} catch (Exception ex) {
-			return defaultValue;
-		}
-	}
-	
-	/**
-	 * Returns the value for the given setting or the given default value
-	 * if the setting isn't present or isn't a UUID.
-	 * @param setting the setting
-	 * @param defaultValue the default
-	 * @return UUID
-	 */
-	public UUID getUUID(Setting setting, UUID defaultValue) {
-		try {
-			return UUID.fromString(this.settings.get(setting));
-		} catch (Exception ex) {
-			return defaultValue;
-		}
-	}
-	
-	// helpers
-	
-	/**
-	 * Returns the current language.
-	 * @return Locale
-	 */
-	public Locale getLanguage() {
-		return this.language;
-	}
-
-	/**
-	 * Sets the current language.
-	 * <p>
-	 * NOTE: The application must be restarted to see this change.
-	 * @param locale the locale
-	 */
-	public void setLanguage(Locale locale) {
-		this.set(Setting.APP_LANGUAGE, locale != null ? locale.toLanguageTag() : Locale.getDefault().toLanguageTag());
-	}
-
-	/**
-	 * Returns the current theme.
-	 * @return {@link Theme}
-	 */
-	public Theme getTheme() {
-		return this.theme;
-	}
-	
-	/**
-	 * Sets the current theme.
-	 * <p>
-	 * NOTE: The application must be restarted to see this change.
-	 * @param theme the theme
-	 */
-	public void setTheme(Theme theme) {
-		this.set(Setting.APP_THEME, theme != null ? theme.getName() : Theme.DEFAULT.getName());
+	@Override
+	protected Map<Setting, Object> getAll() {
+		return Collections.unmodifiableMap(this.settings);
 	}
 }

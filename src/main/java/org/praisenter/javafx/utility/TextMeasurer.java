@@ -156,7 +156,7 @@ public final class TextMeasurer {
 			i++;
 		}
 		if (i > 0) {
-			LOGGER.debug("Font fitting iterations: " + i);
+			LOGGER.trace("Font fitting iterations: " + i);
 		}
 		// the Math.min(min, cur) ensures we choose the lower bound
 		// the - 1.0 is further insurance that its small enough
@@ -240,7 +240,7 @@ public final class TextMeasurer {
 			i++;
 		}
 		if (i > 0) {
-			LOGGER.debug("Font fitting iterations: " + i);
+			LOGGER.trace("Font fitting iterations: " + i);
 		}
 		// the Math.min(min, cur) ensures we choose the lower bound
 		// the - 1.0 is further insurance that its small enough

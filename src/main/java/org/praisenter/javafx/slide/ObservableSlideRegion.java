@@ -9,12 +9,11 @@ import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
+import org.praisenter.utility.Scaling;
 
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
@@ -23,7 +22,6 @@ import javafx.scene.effect.InnerShadow;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 
 public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	protected final PraisenterContext context;
@@ -35,10 +33,10 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	
 	// editable properties
 	
-	protected final IntegerProperty x = new SimpleIntegerProperty();
-	protected final IntegerProperty y = new SimpleIntegerProperty();
-	protected final IntegerProperty width = new SimpleIntegerProperty();
-	protected final IntegerProperty height = new SimpleIntegerProperty();
+	protected final DoubleProperty x = new SimpleDoubleProperty();
+	protected final DoubleProperty y = new SimpleDoubleProperty();
+	protected final DoubleProperty width = new SimpleDoubleProperty();
+	protected final DoubleProperty height = new SimpleDoubleProperty();
 	
 	protected final ObjectProperty<SlidePaint> background = new SimpleObjectProperty<SlidePaint>();
 	protected final ObjectProperty<SlideStroke> border = new SimpleObjectProperty<SlideStroke>();
@@ -46,13 +44,13 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	protected final ObjectProperty<SlideShadow> shadow = new SimpleObjectProperty<SlideShadow>();
 	protected final ObjectProperty<SlideShadow> glow = new SimpleObjectProperty<SlideShadow>();
 	
-	protected final ObjectProperty<Scaling> scale = new SimpleObjectProperty<Scaling>(new Scaling(1.0, 0.0, 0.0));
+	protected final ObjectProperty<Scaling> scale = new SimpleObjectProperty<Scaling>();
 	
 	// nodes
 	
 	// edit
 	
-	protected final StackPane rootPane;
+	protected final Pane rootPane;
 	
 	// both edit and display
 	
@@ -64,6 +62,8 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.region = region;
 		this.context = context;
 		this.mode = mode;
+		
+		this.scale.set(Scaling.getNoScaling(region.getWidth(), region.getHeight()));
 		
 		// set initial values
 		this.x.set(region.getX());
@@ -94,7 +94,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.backgroundNode = new FillPane(context, mode);
 		this.backgroundNode.setMouseTransparent(true);
 		
-		this.rootPane = new StackPane(this.container);
+		this.rootPane = new Pane(this.container);
 		this.rootPane.getStyleClass().add("slide-component");
 		
 		// listen for changes
@@ -136,8 +136,8 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		});
 		
 		this.scale.addListener((obs, ov, nv) -> {
-			this.container.setScaleX(nv.scale);
-			this.container.setScaleY(nv.scale);
+			this.container.setScaleX(nv.factor);
+			this.container.setScaleY(nv.factor);
 			
 			updatePosition();
 			updateSize();
@@ -148,20 +148,22 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		// set position
 		
 		// get the coordinates in slide space
-		int x = this.x.get();
-		int y = this.y.get();
+		double x = this.x.get();
+		double y = this.y.get();
 		
 		// set the position of the edit pane (which has the border)
 		// to slide coordinates transformed into the parent node coordinates
 		Scaling s = this.scale.get();
 		
-		this.rootPane.setLayoutX(Math.floor(x * s.scale));
-		this.rootPane.setLayoutY(Math.floor(y * s.scale));
+		this.rootPane.setLayoutX(x * s.factor);
+		this.rootPane.setLayoutY(y * s.factor);
+		
+		updateScaledTranslation();
 	}
 	
 	void updateSize() {
-		int w = this.width.get();
-		int h = this.height.get();
+		double w = this.width.get();
+		double h = this.height.get();
 		
 		Fx.setSize(this.container, w, h);
 		Fx.setSize(this.borderNode, w, h);
@@ -170,7 +172,18 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		
 		Scaling s = this.scale.get();
 		double bw = this.getBorder() != null ? this.getBorder().getWidth() : 0;
-		Fx.setSize(this.rootPane, (w + bw) * s.scale, (h + bw) * s.scale);
+		Fx.setSize(this.rootPane, (w + bw) * s.factor, (h + bw) * s.factor);
+		
+		updateScaledTranslation();
+	}
+	
+	void updateScaledTranslation() {
+		Scaling s = this.scale.get();
+		// scaling operates from the center of the node
+		// so we have to reposition the node so that it
+		// stays in the same place
+		this.container.setTranslateX(-(this.width.get() - this.width.get() * s.factor) / 2.0);
+		this.container.setTranslateY(-(this.height.get() - this.height.get() * s.factor) / 2.0);
 	}
 	
 	void updateBorder() {
@@ -233,7 +246,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	 * scene using any {@link SlideMode}.
 	 * @return Pane
 	 */
-	public StackPane getDisplayPane() {
+	public Pane getDisplayPane() {
 		return this.rootPane;
 	}
 	
@@ -284,57 +297,57 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 
 	// x
 	
-	public int getX() {
+	public double getX() {
 		return this.x.get();
 	}
 	
-	public void setX(int x) {
+	public void setX(double x) {
 		this.x.set(x);
 	}
 	
-	public IntegerProperty xProperty() {
+	public DoubleProperty xProperty() {
 		return this.x;
 	}
 	
 	// y
 	
-	public int getY() {
+	public double getY() {
 		return this.y.get();
 	}
 	
-	public void setY(int y) {
+	public void setY(double y) {
 		this.y.set(y);
 	}
 	
-	public IntegerProperty yProperty() {
+	public DoubleProperty yProperty() {
 		return this.y;
 	}
 	
 	// width
 
-	public int getWidth() {
+	public double getWidth() {
 		return this.width.get();
 	}
 	
-	public void setWidth(int width) {
+	public void setWidth(double width) {
 		this.width.set(width);
 	}
 	
-	public IntegerProperty widthProperty() {
+	public DoubleProperty widthProperty() {
 		return this.width;
 	}
 	
 	// height
 
-	public int getHeight() {
+	public double getHeight() {
 		return this.height.get();
 	}
 	
-	public void setHeight(int height) {
+	public void setHeight(double height) {
 		this.height.set(height);
 	}
 	
-	public IntegerProperty heightProperty() {
+	public DoubleProperty heightProperty() {
 		return this.height;
 	}
 	

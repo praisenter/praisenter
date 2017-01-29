@@ -42,6 +42,7 @@ import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
 
+import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -70,7 +71,7 @@ public final class ObservableSlideLibrary {
 	private final JavaFXSlideThumbnailGenerator thumbnailGenerator;
 	
 	/** The observable list of slides */
-	private final ObservableList<SlideListItem> items = FXCollections.observableArrayList();
+	private final ObservableList<SlideListItem> items;
 
 	/**
 	 * Minimal constructor.
@@ -80,6 +81,14 @@ public final class ObservableSlideLibrary {
 	public ObservableSlideLibrary(SlideLibrary library, JavaFXSlideThumbnailGenerator thumbnailGenerator) {
 		this.library = library;
 		this.thumbnailGenerator = thumbnailGenerator;
+		
+		items = FXCollections.observableArrayList((sli) -> {
+			return new Observable[] {
+				sli.slideProperty(),
+				sli.nameProperty(),
+				sli.loadedProperty()
+			};
+		});
 		
 		List<Slide> slides = null;
 		if (library != null) {
@@ -197,9 +206,11 @@ public final class ObservableSlideLibrary {
 				SlideListItem si = this.getListItem(slide);
 				// check if new
 				if (si != null) {
-					this.items.remove(si);
+					si.setSlide(copy);
+					si.setName(slide.getName());
+				} else {
+					this.items.add(new SlideListItem(copy));
 				}
-				this.items.add(new SlideListItem(copy));
 			});
 			task.setOnFailed((e) -> {
 				Throwable ex = task.getException();

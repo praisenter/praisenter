@@ -424,10 +424,10 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	 * @see org.praisenter.slide.Slide#fit(int, int)
 	 */
 	@Override
-	public void fit(int width, int height) {
+	public void fit(double width, double height) {
 		// compute the resize percentages
-		double pw = (double)width / (double)this.width;
-		double ph = (double)height / (double)this.height;
+		double pw = width / this.width;
+		double ph = height / this.height;
 		// set the slide size
 		this.width = width;
 		this.height = height;

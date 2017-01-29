@@ -12,9 +12,9 @@ import org.praisenter.bible.Bible;
 import org.praisenter.javafx.bible.BibleActions;
 import org.praisenter.javafx.bible.BibleEditorPane;
 import org.praisenter.javafx.bible.BibleLibraryPane;
+import org.praisenter.javafx.configuration.Display;
 import org.praisenter.javafx.media.MediaActions;
 import org.praisenter.javafx.media.MediaLibraryPane;
-import org.praisenter.javafx.screen.Display;
 import org.praisenter.javafx.slide.SlideLibraryPane;
 import org.praisenter.javafx.slide.editor.SlideEditorPane;
 import org.praisenter.slide.BasicSlide;
@@ -126,7 +126,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				slide.setX(0);
 				slide.setY(0);
 				// set the default size to the target screen's size
-				Display target = context.getScreenManager().getPresentationDisplay();
+				Display target = context.getDisplayManager().getPresentationDisplay();
 				slide.setWidth(target.getWidth());
 				slide.setHeight(target.getHeight());
 				this.slideEditorPane.setSlide(slide);
@@ -140,7 +140,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				break;
 			case EXIT:
 				// close the presentation screens
-				this.context.getScreenManager().release();
+				this.context.getDisplayManager().release();
 				// close the application
 				this.context.getJavaFXContext().getStage().close();
 				break;

@@ -24,17 +24,12 @@
  */
 package org.praisenter.javafx;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-
-import javax.xml.bind.JAXBException;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.configuration.Configuration;
-import org.praisenter.javafx.slide.JavaFXSlideThumbnailGenerator;
+import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.resources.translations.Translations;
-import org.praisenter.slide.Slide;
 import org.praisenter.utility.RuntimeProperties;
 
 import javafx.animation.Animation;
@@ -111,7 +106,7 @@ final class LoadingPane extends Pane {
 	 * @param javaFXContext the JavaFX context
 	 * @param configuration the application configuration
 	 */
-	public LoadingPane(final double width, final double height, JavaFXContext javaFXContext, Configuration configuration) {
+	public LoadingPane(final double width, final double height, JavaFXContext javaFXContext, ObservableConfiguration configuration) {
 		this.setPrefWidth(width);
 		this.setPrefHeight(height);
 		
@@ -304,12 +299,18 @@ final class LoadingPane extends Pane {
 		
 		// setup the screen manager
 		LOGGER.info("Initializing the screen manager.");
-		context.getScreenManager().initialize();
+		context.getDisplayManager().initialize();
 		
 		// load fonts
 		LOGGER.info("Loading fonts.");
-		Font.getFamilies();
+		List<String> families = Font.getFamilies();
 		Font.getFontNames();
+		// to improve performance of font pickers, we need to preload
+		// the fonts by creating a font for each one
+		for (String family : families) {
+			Font.font(family);
+		}
+		LOGGER.info("Fonts loaded.");
 
 		// notify any listeners
 		this.onComplete.handle(new CompleteEvent<PraisenterContext>(LoadingPane.this, LoadingPane.this, context));

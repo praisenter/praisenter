@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.screen;
+package org.praisenter.javafx.configuration;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -39,11 +39,11 @@ import javax.xml.bind.annotation.XmlRootElement;
 public final class Resolution implements Comparable<Resolution> {
 	/** The width in pixels */
 	@XmlAttribute(name = "width")
-	final int width;
+	private final int width;
 	
 	/** The height in pixels */
 	@XmlAttribute(name = "height")
-	final int height;
+	private final int height;
 
 	/** The list of common screen resolutions */
 	public static final Resolution[] DEFAULT_RESOLUTIONS = new Resolution[] {

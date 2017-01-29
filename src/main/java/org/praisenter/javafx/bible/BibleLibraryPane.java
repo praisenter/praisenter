@@ -149,8 +149,8 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 		
         // add sorting and filtering capabilities
 		ObservableList<BibleListItem> theList = context.getBibleLibrary().getItems();
-        FilteredList<BibleListItem> filtered = new FilteredList<BibleListItem>(theList, p -> true);
-        SortedList<BibleListItem> sorted = new SortedList<BibleListItem>(filtered);
+        FilteredList<BibleListItem> filtered = theList.filtered(p -> true);
+        SortedList<BibleListItem> sorted = filtered.sorted();
         
         // define a general listener for all the filters and sorting
         InvalidationListener filterListener = new InvalidationListener() {

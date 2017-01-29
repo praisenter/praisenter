@@ -31,9 +31,9 @@ import org.praisenter.Tag;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.bible.ObservableBibleLibrary;
-import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.media.ObservableMediaLibrary;
-import org.praisenter.javafx.screen.ScreenManager;
+import org.praisenter.javafx.screen.DisplayManager;
 import org.praisenter.javafx.slide.JavaFXSlideThumbnailGenerator;
 import org.praisenter.javafx.slide.ObservableSlideLibrary;
 import org.praisenter.media.MediaLibrary;
@@ -56,11 +56,8 @@ public final class PraisenterContext {
 	private final JavaFXContext javaFXContext;
 	
 	/** The application configuration */
-	private final Configuration configuration;
+	private final ObservableConfiguration configuration;
 
-	/** The screen manager */
-	private final ScreenManager screenManager;
-	
 	/** The media library */
 	private final ObservableMediaLibrary mediaLibrary;
 
@@ -69,7 +66,10 @@ public final class PraisenterContext {
 	
 	/** The slide library */
 	private final ObservableSlideLibrary slideLibrary;
-	
+
+	/** The display manager */
+	private final DisplayManager displayManager;
+
 	/** The image cache */
 	private final ImageCache imageCache;
 	
@@ -83,8 +83,6 @@ public final class PraisenterContext {
 	 * Full constructor.
 	 * @param javaFxContext the Java FX context
 	 * @param configuration the application configuration
-	 * @param screenManager the display screen manager
-	 * @param imageCache the image cache
 	 * @param media the media library
 	 * @param bibles the bible library
 	 * @param songs the song library
@@ -92,20 +90,17 @@ public final class PraisenterContext {
 	 */
 	public PraisenterContext(
 			JavaFXContext javaFxContext,
-			Configuration configuration,
-			ScreenManager screenManager,
-			ImageCache imageCache,
+			ObservableConfiguration configuration,
 			MediaLibrary media,
 			BibleLibrary bibles,
 			SongLibrary songs, 
 			SlideLibrary slides) {
 		this.javaFXContext = javaFxContext;
-		this.screenManager = screenManager;
-		this.imageCache = imageCache;
 		this.configuration = configuration;
-
-		// create a thread pool that we can reuse all over the app
+		
+		this.imageCache = new ImageCache();
 		this.executor = new AsyncTaskExecutor();
+
 		this.mediaLibrary = new ObservableMediaLibrary(media);
 		this.bibleLibrary = new ObservableBibleLibrary(bibles);
 		// FIXME move the thumbnail settings to the normal SlideLibrary
@@ -122,6 +117,8 @@ public final class PraisenterContext {
 		}
 		
 		this.tags = FXCollections.observableSet(tags);
+
+		this.displayManager = new DisplayManager(configuration, this.executor);
 	}
 
 	/**
@@ -134,18 +131,18 @@ public final class PraisenterContext {
 	
 	/**
 	 * Returns the application configuration.
-	 * @return {@link Configuration}
+	 * @return {@link ObservableConfiguration}
 	 */
-	public Configuration getConfiguration() {
+	public ObservableConfiguration getConfiguration() {
 		return this.configuration;
 	}
 
 	/**
-	 * Returns the screen manager.
-	 * @return {@link ScreenManager}
+	 * Returns the display manager.
+	 * @return {@link DisplayManager}
 	 */
-	public ScreenManager getScreenManager() {
-		return this.screenManager;
+	public DisplayManager getDisplayManager() {
+		return this.displayManager;
 	}
 	
 	/**

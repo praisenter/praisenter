@@ -34,7 +34,7 @@ public class TestMediaLibrary extends Application {
 			e.printStackTrace();
 		}
 		
-		PraisenterContext context = new PraisenterContext(new JavaFXContext(null, primaryStage), null, null, new ImageCache(), library, null, null, null);
+		PraisenterContext context = new PraisenterContext(new JavaFXContext(null, primaryStage), null, library, null, null, null);
 		
 		BorderPane root = new BorderPane();
 //		MediaPicker pkrMedia = new MediaPicker(context, MediaType.IMAGE, MediaType.AUDIO);

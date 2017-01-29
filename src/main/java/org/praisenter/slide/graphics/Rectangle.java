@@ -31,23 +31,23 @@ package org.praisenter.slide.graphics;
  */
 public final class Rectangle {
 	/** The x coordinate */
-	final int x;
+	final double x;
 	
 	/** The y coordinate */
-	final int y;
+	final double y;
 	
 	/** The width */
-	final int width;
+	final double width;
 	
 	/** The height */
-	final int height;
+	final double height;
 	
 	/**
 	 * Creates a new rectangle with the given width and height.
 	 * @param width the width
 	 * @param height the height
 	 */
-	public Rectangle(int width, int height) {
+	public Rectangle(double width, double height) {
 		super();
 		this.x = 0;
 		this.y = 0;
@@ -62,7 +62,7 @@ public final class Rectangle {
 	 * @param width the width
 	 * @param height the height
 	 */
-	public Rectangle(int x, int y, int width, int height) {
+	public Rectangle(double x, double y, double width, double height) {
 		super();
 		this.x = x;
 		this.y = y;
@@ -72,33 +72,33 @@ public final class Rectangle {
 
 	/**
 	 * Returns the x coordinate.
-	 * @return int
+	 * @return double
 	 */
-	public int getX() {
+	public double getX() {
 		return this.x;
 	}
 
 	/**
 	 * Returns the y coordinate.
-	 * @return int
+	 * @return double
 	 */
-	public int getY() {
+	public double getY() {
 		return this.y;
 	}
 
 	/**
 	 * Returns the width.
-	 * @return int
+	 * @return double
 	 */
-	public int getWidth() {
+	public double getWidth() {
 		return this.width;
 	}
 
 	/**
 	 * Returns the height.
-	 * @return int
+	 * @return double
 	 */
-	public int getHeight() {
+	public double getHeight() {
 		return this.height;
 	}
 }

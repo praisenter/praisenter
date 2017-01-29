@@ -130,12 +130,6 @@ class DateTimePicker extends VBox {
 				this.spnHours.getValueFactory().setValue(t.getHour());
 				this.spnMinutes.getValueFactory().setValue(t.getMinute());
 				this.spnSeconds.getValueFactory().setValue(t.getSecond());
-			} else {
-				this.pkrDate.setValue(LocalDate.now());
-				LocalTime t = LocalTime.now();
-				this.spnHours.getValueFactory().setValue(t.getHour());
-				this.spnMinutes.getValueFactory().setValue(t.getMinute());
-				this.spnSeconds.getValueFactory().setValue(t.getSecond());
 			}
 			mutating = false;
 		});
@@ -145,9 +139,9 @@ class DateTimePicker extends VBox {
 		return LocalDateTime.of(
 				this.pkrDate.getValue(),
 				LocalTime.of(
-						this.spnHours.getValue(), 
-						this.spnMinutes.getValue(), 
-						this.spnSeconds.getValue()));
+					this.spnHours.getValue(), 
+					this.spnMinutes.getValue(), 
+					this.spnSeconds.getValue()));
 	}
 	
 	public LocalDateTime getValue() {

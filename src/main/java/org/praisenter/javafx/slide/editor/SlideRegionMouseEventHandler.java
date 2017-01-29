@@ -2,7 +2,7 @@ package org.praisenter.javafx.slide.editor;
 
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
-import org.praisenter.javafx.slide.Scaling;
+import org.praisenter.utility.Scaling;
 
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
@@ -25,10 +25,10 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 	private double sx;
 	private double sy;
 	
-	private int x;
-	private int y;
-	private int w;
-	private int h;
+	private double x;
+	private double y;
+	private double w;
+	private double h;
 	
 	public SlideRegionMouseEventHandler(ObservableSlideRegion<?> region) {
 		this.region = region;
@@ -109,9 +109,9 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 			
 			// get the scaled (transformed translation)
 			Scaling scaling = region.getScaling();
-			double sf = 1.0 / scaling.scale;
-			int dxi = (int)Math.floor(dx * sf);
-			int dyi = (int)Math.floor(dy * sf);
+			double sf = 1.0 / scaling.factor;
+			double dxi = dx * sf;
+			double dyi = dy * sf;
 			
 			// are we moving the node?
 			if (cursor == Cursor.MOVE) {				
@@ -171,7 +171,7 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 		event.consume();
 	}
 	
-	private static int clamp(int dimension, int value) {
+	private static double clamp(double dimension, double value) {
 		if (value < 0) {
 			if (dimension + value < MIN_DIMENSION) {
 				return -(dimension - MIN_DIMENSION);

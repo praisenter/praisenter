@@ -160,7 +160,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		// call methods when focus owner changes
 		this.focusOwner.addListener((obs, ov, nv) -> {
-			LOGGER.debug("Focus changed from {} to {}", ov, nv);
+			LOGGER.trace("Focus changed from {} to {}", ov, nv);
 			
 			Node appPane = getClosestApplicationPane(nv);
 			this.appPane.set(appPane);
@@ -221,7 +221,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 	}
 	
 	private void updateMenuState(Node focused, ApplicationPane pane, String reason) {
-		LOGGER.debug("Menu state updating for focused: {} application-pane: {} due to {}", focused, pane, reason);
+		LOGGER.trace("Menu state updating for focused: {} application-pane: {} due to {}", focused, pane, reason);
 		Deque<MenuItem> menus = new LinkedList<MenuItem>();
 		// seed with the menu bar's menus
 		menus.addAll(this.menu.getMenus());
@@ -309,7 +309,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 					 ApplicationAction.PASTE == action ||
 					 ApplicationAction.DELETE == action ||
 					 ApplicationAction.SELECT_ALL == action) && focusOwner != null && focusOwner instanceof TextInputControl) {
-					LOGGER.debug("Node {} is TextInputControl. Bypassing default delegation.", focusOwner);
+					LOGGER.trace("Node {} is TextInputControl. Bypassing default delegation.", focusOwner);
 					// allow it to pass through and don't fire the default
 					// application event
 					TextInputControl control = (TextInputControl)focusOwner;
@@ -332,7 +332,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 						control.selectAll();
 					}
 				} else {
-					LOGGER.debug("Delegating {} to {}.", action, focused);
+					LOGGER.trace("Delegating {} to {}.", action, focused);
 					focused.fireEvent(new ApplicationEvent(event.getSource(), event.getTarget(), ApplicationEvent.ALL, action));
 				}
 			}

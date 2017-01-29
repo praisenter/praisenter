@@ -174,8 +174,8 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 		
         // add sorting and filtering capabilities
 		ObservableList<MediaListItem> theList = library.getItems();
-        FilteredList<MediaListItem> filtered = new FilteredList<MediaListItem>(theList, p -> true);
-        SortedList<MediaListItem> sorted = new SortedList<MediaListItem>(filtered);
+        FilteredList<MediaListItem> filtered = theList.filtered(p -> true);
+        SortedList<MediaListItem> sorted = filtered.sorted();
         
         // define a general listener for all the filters and sorting
         InvalidationListener filterListener = new InvalidationListener() {
