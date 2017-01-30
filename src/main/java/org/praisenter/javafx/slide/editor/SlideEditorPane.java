@@ -10,7 +10,6 @@ import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.configuration.Resolution;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
@@ -101,7 +100,6 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	
 	private final PraisenterContext context;
 	
-	private Resolution resolution = null;
 	private final ObjectProperty<ObservableSlide<Slide>> slide = new SimpleObjectProperty<ObservableSlide<Slide>>();
 	private final ObjectProperty<ObservableSlideRegion<?>> selected = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 
@@ -111,49 +109,56 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		this.context = context;
 		
 		// create the ribbon
-		
 		SlideEditorRibbon ribbon = new SlideEditorRibbon(context);
 		VBox top = new VBox(ribbon);
 		top.setBorder(new Border(new BorderStroke(null, null, Color.GRAY, null, null, null, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, null, new BorderWidths(0, 0, 1, 0), null)));
 		this.setTop(top);
 		
-		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		// Slide Preview Node hierarchy
-		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		// BorderPane											This node ensures the size of slidePreview is maximized
-		//	- StackPane (slidePreview)							This node is the wrapper for the transparency background and slide node
-		//		- StackPane (slideBounds)						This node shows the (non-scaled) tiled transparency image.
-		//		- StackPane (slideCanvas)						Container for slide (allows scaling to work properly)
-		//			- StackPane (slide editable node)			This observable slide's node
-		//				- Pane (componentCanvas)				This node houses all the component nodes and is used to offset the x/y positions of the components by the slide's x/y position
-		//					- Component 1
-		//					- Component 2
-		//					- Component 3
-		//					...
+		// Node hierarchy:
+		// +-------------------------------+--------------+---------------------------------------------------------+
+		// | Name                          | Type         | Role                                                    |
+		// +-------------------------------+--------------+---------------------------------------------------------+
+		// | slidePreview                  | StackPane    | Editor background color                                 |
+		// | +- slideBounds                | StackPane    | Transparent background, uniform sizing, and drop shadow |
+		// |    +- slideCanvas             | Pane         | Contains all the Observable Slide nodes                 |
+		// |       +- rootPane             | Pane         | The root pane for the slide                             |
+		// |          +- container         | Pane         | Provides scaling                                        |
+		// |             +- backgroundNode | FillPane     | For the slide background                                |
+		// |             +- borderNode     | Region       | The slide border                                        |
+		// |          +- componentCanvas   | Pane         | The slide components                                    |
+		// |             +- rootPane       | Pane         | Component 1                                             |
+		// |             +- rootPane       | Pane         | Component 2                                             |
+		// |             +- ....           | Pane         | Component N                                             |
+		// +-------------------------------+--------------+---------------------------------------------------------+
 		
 		final double padding = 10;
 		
-		slidePreview = new StackPane();
-		slidePreview.setPrefSize(500, 400);
-		slidePreview.setPadding(new Insets(padding));
-		slidePreview.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
+		// create the slidePreview area
+		this.slidePreview = new StackPane();
+		this.slidePreview.setPrefSize(500, 400);
+		this.slidePreview.setPadding(new Insets(padding));
+		this.slidePreview.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
+		this.slidePreview.setSnapToPixel(true);
 		
-		// clip by the slide Preview area
-		Rectangle clipRect = new Rectangle(slidePreview.getWidth(), slidePreview.getHeight());
-		clipRect.heightProperty().bind(slidePreview.heightProperty());
-		clipRect.widthProperty().bind(slidePreview.widthProperty());
-		slidePreview.setClip(clipRect);
+		// clip by the slidePreview area
+		Rectangle clipRect = new Rectangle(this.slidePreview.getWidth(), this.slidePreview.getHeight());
+		clipRect.heightProperty().bind(this.slidePreview.heightProperty());
+		clipRect.widthProperty().bind(this.slidePreview.widthProperty());
+		this.slidePreview.setClip(clipRect);
 		
+		// create the slideBounds area for the
+		// unscaled transparency background
 		StackPane slideBounds = new StackPane();
 		slideBounds.setBackground(new Background(new BackgroundImage(Fx.TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
-		
+		// add a drop shadow effect for better looks
 		DropShadow sdw = new DropShadow();
 		sdw.setRadius(5);
 		sdw.setColor(Color.rgb(0, 0, 0, 0.3));
 		slideBounds.setEffect(sdw);
 		
-		// we resize and position canvasBack based on the target width/height 
-		// and the available width height using a uniform scale factor
+		// we size the slideBounds to a uniform scaled version
+		// using the current available space and the slide's 
+		// target resolution
 		DoubleBinding widthSizing = new DoubleBinding() {
 			{
 				bind(slidePreview.widthProperty(), 
@@ -193,11 +198,32 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		slideBounds.maxWidthProperty().bind(widthSizing);
 		slideBounds.maxHeightProperty().bind(heightSizing);
 		
+		// create the slideCanvas
 		Pane slideCanvas = new Pane();
 		slideCanvas.setMinSize(0, 0);
 		slideCanvas.setSnapToPixel(true);
-		slidePreview.setSnapToPixel(true);
 		
+		// build the preview hierarchy
+		slideBounds.getChildren().add(slideCanvas);
+		this.slidePreview.getChildren().addAll(slideBounds);
+		StackPane.setAlignment(slideBounds, Pos.CENTER);
+		StackPane.setAlignment(slideCanvas, Pos.CENTER);
+		this.setCenter(this.slidePreview);
+
+		// events
+		
+		// listener for selection changes
+		this.selected.addListener((obs, ov, nv) -> {
+			if (ov != null) {
+				ov.getDisplayPane().pseudoClassStateChanged(SELECTED, false);
+			}
+			if (nv != null) {
+				nv.getDisplayPane().pseudoClassStateChanged(SELECTED, true);
+			}
+		});
+		
+		// scaling must be applied to the slide and components separately so that
+		// we avoid scaling the selection border
 		ObjectBinding<Scaling> scaleFactor = new ObjectBinding<Scaling>() {
 			{
 				bind(slidePreview.widthProperty(), slidePreview.heightProperty());
@@ -219,34 +245,12 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			}
 		};
 		
-		slideBounds.getChildren().add(slideCanvas);
-		slidePreview.getChildren().addAll(slideBounds);
-		StackPane.setAlignment(slideBounds, Pos.CENTER);
-		StackPane.setAlignment(slideCanvas, Pos.CENTER);
-		
-		// for testing
-//		slidePreview.setBorder(Fx.newBorder(Color.ORANGE));
-//		slideBounds.setBorder(Fx.newBorder(Color.RED));
-//		slideCanvas.setBorder(Fx.newBorder(Color.YELLOW));
-
-		this.setCenter(slidePreview);
-		
-		selected.addListener((obs, ov, nv) -> {
-			if (ov != null) {
-				ov.getDisplayPane().pseudoClassStateChanged(SELECTED, false);
-			}
-			if (nv != null) {
-				nv.getDisplayPane().pseudoClassStateChanged(SELECTED, true);
-			}
-		});
-		
-		// events
-		
 		// setup of the editor when the slide being edited changes
-		slide.addListener((obs, ov, nv) -> {
+		this.slide.addListener((obs, ov, nv) -> {
 			slideCanvas.getChildren().clear();
-			selected.set(null);
+			this.selected.set(null);
 			
+			// unbind the scaling from the old value
 			if (ov != null) {
 				ov.scalingProperty().unbind();
 				Iterator<ObservableSlideComponent<?>> components = ov.componentIterator();
@@ -254,17 +258,15 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 					ObservableSlideComponent<?> osr = components.next();
 					osr.scalingProperty().unbind();
 				}
-//				slideBounds.maxWidthProperty().unbind();
-//				slideBounds.maxHeightProperty().unbind();
 			}
 			
 			if (nv != null) {
-				resolution = new Resolution((int)nv.getWidth(), (int)nv.getHeight());
+				// add the slide node to the slideCanvas
 				Pane rootEditPane = nv.getDisplayPane();
 				slideCanvas.getChildren().add(rootEditPane);
+				// bind the scale factor
 				nv.scalingProperty().bind(scaleFactor);
-//				slideBounds.maxWidthProperty().bind(nv.getDisplayPane().widthProperty());
-//				slideBounds.maxHeightProperty().bind(nv.getDisplayPane().heightProperty());
+				// setup the mouse event handler
 				SlideRegionMouseEventHandler slideMouseHandler = new SlideRegionMouseEventHandler(nv);
 				rootEditPane.addEventHandler(MouseEvent.ANY, slideMouseHandler);
 				rootEditPane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
@@ -274,15 +276,19 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				Iterator<ObservableSlideComponent<?>> components = nv.componentIterator();
 				while (components.hasNext()) {
 					ObservableSlideComponent<?> osr = components.next();
-					SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(osr);
 					Pane pane = osr.getDisplayPane();
+					// bind the scale factor
 					osr.scalingProperty().bind(scaleFactor);
+					// setup the mouse event handler
+					SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(osr);
 					pane.addEventHandler(MouseEvent.ANY, mouseHandler);
 					pane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
 						selected.set(osr);
 					});
 				}
 				
+				// invalidate the scale and sizes because the slide
+				// might be a different target resolution than the last
 				scaleFactor.invalidate();
 				widthSizing.invalidate();
 				heightSizing.invalidate();
@@ -305,7 +311,6 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		
 		// setting the target resolution
 		ribbon.addEventHandler(SlideEditorEvent.TARGET_RESOLUTION, (e) -> {
-			resolution = e.resolution;
 			scaleFactor.invalidate();
 			widthSizing.invalidate();
 			heightSizing.invalidate();
@@ -316,11 +321,13 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			ObservableSlideComponent<?> component = e.getComponent();
 			slide.get().addComponent(component);
 			
-			SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(component);
 			Pane pane = component.getDisplayPane();
+			// bind the scale factor
 			component.scalingProperty().bind(scaleFactor);
+			// setup the mouse event handler
+			SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(component);
 			pane.addEventHandler(MouseEvent.ANY, mouseHandler);
-			pane.addEventHandler(MouseEvent.MOUSE_PRESSED, (me) -> {
+			pane.addEventHandler(MouseEvent.MOUSE_PRESSED, (ev) -> {
 				selected.set(component);
 			});
 		});
@@ -338,13 +345,13 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		
 		// bindings
 
-		ribbon.slideProperty().bind(slide);
-		ribbon.componentProperty().bind(selected);
+		ribbon.slideProperty().bind(this.slide);
+		ribbon.componentProperty().bind(this.selected);
 		
 		// set values		
 		
 		Slide s = createTestSlide();
-		slide.set(new ObservableSlide<Slide>(s, context, SlideMode.EDIT));
+		this.slide.set(new ObservableSlide<Slide>(s, context, SlideMode.EDIT));
 		
 		this.addEventHandler(ApplicationEvent.ALL, e -> {
 			handleApplicationEvent(e.getAction());

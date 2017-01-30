@@ -1,10 +1,31 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.configuration;
 
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,20 +33,22 @@ import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.javafx.themes.Theme;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
-import javafx.collections.ObservableSet;
 
+/**
+ * Represents an observable version of the {@link Configuration} class.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	// data
 	
+	/** The configuration */
 	private final Configuration configuration;
 
 	// restart required
@@ -38,17 +61,27 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	
 	// observables
 	
+	/** An observable version of the settings */
 	private final ObservableMap<Setting, Object> settings = FXCollections.observableHashMap();
-	private final ObservableMap<Setting, Object> roSettings = FXCollections.unmodifiableObservableMap(settings);
 	
+	/** A readonly version of the observable settings for clients to listen on */
+	private final ObservableMap<Setting, Object> readonlySettings = FXCollections.unmodifiableObservableMap(this.settings);
+	
+	/** An observable list of resolutions (stored in settings but not observable as such) */
 	private final ObservableList<Resolution> resolutions = FXCollections.observableArrayList();
-	private final ObservableList<Resolution> readonly = FXCollections.unmodifiableObservableList(resolutions);
 	
+	/** A readonly version of the observable list of resolutions for clients to listen on */
+	private final ObservableList<Resolution> readonlyResolutions = FXCollections.unmodifiableObservableList(this.resolutions);
+	
+	/**
+	 * Minimal constructor.
+	 * @param configuration the configuration to wrap
+	 */
 	public ObservableConfiguration(Configuration configuration) {
-		// load the configuration
+		// set the configuration
 		this.configuration = configuration;
 		
-		// set all settings
+		// add all the settings to the observable map
 		this.settings.putAll(configuration.getAll());
 		
 		// set language
@@ -65,13 +98,18 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 		}
 		this.theme = theme;
 		
-		// set resolutions
-		Resolutions resolutions = this.configuration.getObject(Setting.DISPLAY_RESOLUTIONS, null);
+		// add all resolutions to the observable list
+		ResolutionSet resolutions = this.configuration.getObject(Setting.DISPLAY_RESOLUTIONS, null);
 		if (resolutions != null) {
 			this.resolutions.addAll(resolutions);
 		}
 	}
 	
+	/**
+	 * Updates the configuration and observables to reflect the given change.
+	 * @param setting the setting to change
+	 * @param value the setting's new value
+	 */
 	private void update(Setting setting, Object value) {
 		if (setting == null) {
 			return;
@@ -81,8 +119,8 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 		this.configuration.set(setting, value);
 		
 		if (setting == Setting.DISPLAY_RESOLUTIONS) {
-			if (value != null && value instanceof Resolutions) {
-				Resolutions resolutions = (Resolutions)value;
+			if (value != null && value instanceof ResolutionSet) {
+				ResolutionSet resolutions = (ResolutionSet)value;
 				this.resolutions.setAll(resolutions);
 			} else {
 				this.resolutions.clear();
@@ -90,6 +128,10 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 		}
 	}
 	
+	/**
+	 * Updates the configuration and observables to reflect the given changes.
+	 * @param settings a map of settings changes
+	 */
 	private void update(Map<Setting, Object> settings) {
 		if (settings == null) {
 			return;
@@ -100,8 +142,8 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 		
 		if (settings.containsKey(Setting.DISPLAY_RESOLUTIONS)) {
 			Object value = settings.get(Setting.DISPLAY_RESOLUTIONS);
-			if (value != null && value instanceof Resolutions) {
-				Resolutions resolutions = (Resolutions)value;
+			if (value != null && value instanceof ResolutionSet) {
+				ResolutionSet resolutions = (ResolutionSet)value;
 				this.resolutions.setAll(resolutions);
 			} else {
 				this.resolutions.clear();
@@ -185,7 +227,25 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 		});
 	}
 	
-	// helpers
+	// observables
+	
+	/**
+	 * Returns the settings for observation.
+	 * @return ObservableMap&lt;{@link Setting}, Object&gt;
+	 */
+	public ObservableMap<Setting, Object> getSettings() {
+		return this.readonlySettings;
+	}
+	
+	/**
+	 * Returns an observable list of resolutions.
+	 * @return ObservableList&lt;{@link Resolution}&gt;
+	 */
+	public ObservableList<Resolution> getResolutions() {
+		return this.readonlyResolutions;
+	}
+
+	// restart required
 	
 	/**
 	 * Returns the current language.
@@ -200,6 +260,7 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	 * <p>
 	 * NOTE: The application must be restarted to see this change.
 	 * @param locale the locale
+	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
 	public AsyncTask<Void> setLanguage(Locale locale) {
 		return this.set(Setting.APP_LANGUAGE, locale != null ? locale.toLanguageTag() : Locale.getDefault().toLanguageTag());
@@ -218,16 +279,9 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	 * <p>
 	 * NOTE: The application must be restarted to see this change.
 	 * @param theme the theme
+	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
 	public AsyncTask<Void> setTheme(Theme theme) {
 		return this.set(Setting.APP_THEME, theme != null ? theme.getName() : Theme.DEFAULT.getName());
-	}
-	
-	public ObservableMap<Setting, Object> getSettings() {
-		return this.roSettings;
-	}
-	
-	public ObservableList<Resolution> getResolutions() {
-		return this.readonly;
 	}
 }

@@ -45,6 +45,20 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	
 	private final ObservableList<ObservableSlideComponent<?>> components = FXCollections.observableArrayList();
 
+	// Node hierarchy:
+	// +-----------------------+--------------+-------------------------------+
+	// | Name                  | Type         | Role                          |
+	// +-----------------------+--------------+-------------------------------+
+	// | rootPane              | Pane         | Provides x,y positioning      |
+	// | +- container          | Pane         | Provides scaling              |
+	// |    +- backgroundNode  | FillPane     | For the background            |
+	// |    +- borderNode      | Region       | The border                    |
+	// | +- componentCanvas    | Pane         | For parent level x,y offsets  |
+	// |    +- rootPane        | Pane         | Component 1                   |
+	// |    +- rootPane        | Pane         | Component 2                   |
+	// |    +- ....            | Pane         | Component N                   |
+	// +-----------------------+--------------+-------------------------------+
+	
 	private final Pane componentCanvas;
 	
 	public ObservableSlide(T slide, PraisenterContext context, SlideMode mode) {

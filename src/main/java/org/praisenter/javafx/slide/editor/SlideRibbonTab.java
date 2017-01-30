@@ -7,7 +7,7 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.TagEvent;
 import org.praisenter.javafx.TagListView;
 import org.praisenter.javafx.configuration.Resolution;
-import org.praisenter.javafx.configuration.Resolutions;
+import org.praisenter.javafx.configuration.ResolutionSet;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
@@ -97,7 +97,7 @@ final class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 		btnNewResolution.setOnAction((e) -> {
 			// TODO fix
 			Resolution res = new Resolution(2000, 4000);
-			Resolutions resolutions = context.getConfiguration().getObject(Setting.DISPLAY_RESOLUTIONS, null);
+			ResolutionSet resolutions = context.getConfiguration().getObject(Setting.DISPLAY_RESOLUTIONS, null);
 			resolutions.add(res);
 			context.getConfiguration()
 				.setObject(Setting.DISPLAY_RESOLUTIONS, resolutions)

@@ -35,7 +35,7 @@ import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.configuration.Display;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.configuration.Resolution;
-import org.praisenter.javafx.configuration.Resolutions;
+import org.praisenter.javafx.configuration.ResolutionSet;
 import org.praisenter.javafx.configuration.Setting;
 
 import javafx.collections.ListChangeListener;
@@ -208,7 +208,7 @@ public final class DisplayManager {
 		}
 		
 		// now we need to assign displays if they aren't already
-		Resolutions resolutions = new Resolutions();
+		ResolutionSet resolutions = new ResolutionSet();
 		resolutions.addAll(this.configuration.getResolutions());
 		for (int i = 0; i < size; i++) {
 			Screen screen = screens.get(i);

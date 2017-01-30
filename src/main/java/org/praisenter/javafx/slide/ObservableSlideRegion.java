@@ -22,6 +22,7 @@ import javafx.scene.effect.InnerShadow;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
 
 public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	protected final PraisenterContext context;
@@ -48,12 +49,18 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	
 	// nodes
 	
-	// edit
+	// Node hierarchy:
+	// +-----------------------+--------------+-------------------------------+
+	// | Name                  | Type         | Role                          |
+	// +-----------------------+--------------+-------------------------------+
+	// | rootPane              | Pane         | Provides x,y positioning      |
+	// | +- container          | Pane         | Provides scaling              |
+	// |    +- backgroundNode  | FillPane     | For the background            |
+	// |    +- content         | Node         | The region's content (if any) |
+	// |    +- borderNode      | Region       | The border                    |
+	// +-----------------------+--------------+-------------------------------+
 	
 	protected final Pane rootPane;
-	
-	// both edit and display
-	
 	private final Pane container;
 	private final FillPane backgroundNode;
 	private final Region borderNode;
@@ -171,8 +178,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.backgroundNode.setSize(w, h);
 		
 		Scaling s = this.scale.get();
-		double bw = this.getBorder() != null ? this.getBorder().getWidth() : 0;
-		Fx.setSize(this.rootPane, (w + bw) * s.factor, (h + bw) * s.factor);
+		Fx.setSize(this.rootPane, w * s.factor, h * s.factor);
 		
 		updateScaledTranslation();
 	}
@@ -182,6 +188,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		// scaling operates from the center of the node
 		// so we have to reposition the node so that it
 		// stays in the same place
+		// FIXME the border is jacking something up
 		this.container.setTranslateX(-(this.width.get() - this.width.get() * s.factor) / 2.0);
 		this.container.setTranslateY(-(this.height.get() - this.height.get() * s.factor) / 2.0);
 	}
@@ -198,7 +205,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		
 		double r = ss != null ? ss.getRadius() : 0.0;
 		this.backgroundNode.setBorderRadius(r);
-		updateSize();
 	}
 	
 	void updateFill() {

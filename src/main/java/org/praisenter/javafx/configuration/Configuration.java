@@ -30,7 +30,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -61,7 +60,7 @@ import org.praisenter.xml.XmlIO;
 @XmlSeeAlso({
 	Display.class,
 	Resolution.class,
-	Resolutions.class,
+	ResolutionSet.class,
 	UUID.class
 })
 public final class Configuration extends SettingMap<Void> {
@@ -91,7 +90,7 @@ public final class Configuration extends SettingMap<Void> {
 		this.settings.put(Setting.MEDIA_TRANSCODING_VIDEO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND);
 		this.settings.put(Setting.MEDIA_TRANSCODING_AUDIO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND);
 		
-		Resolutions resolutions = new Resolutions();
+		ResolutionSet resolutions = new ResolutionSet();
 		resolutions.addAll(Arrays.asList(Resolution.DEFAULT_RESOLUTIONS));
 		this.settings.put(Setting.DISPLAY_RESOLUTIONS, resolutions);
 	}
