@@ -304,9 +304,9 @@ public final class SetupPane extends BorderPane {
 			public void invalidated(Observable observable) {
 				ObservableConfiguration conf = context.getConfiguration();
 				
-				Display os = conf.getObject(Setting.DISPLAY_OPERATOR, null);
-				Display ms = conf.getObject(Setting.DISPLAY_MAIN, null);
-				Display cs = conf.getObject(Setting.DISPLAY_MUSICIAN, null);
+				Display os = conf.getObject(Setting.DISPLAY_OPERATOR, Display.class, null);
+				Display ms = conf.getObject(Setting.DISPLAY_MAIN, Display.class, null);
+				Display cs = conf.getObject(Setting.DISPLAY_MUSICIAN, Display.class, null);
 				
 				Map<Integer, ScreenView> views = ScreenView.createScreenViews(manager);
 				

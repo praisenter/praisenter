@@ -119,12 +119,14 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		// | Name                          | Type         | Role                                                    |
 		// +-------------------------------+--------------+---------------------------------------------------------+
 		// | slidePreview                  | StackPane    | Editor background color                                 |
-		// | +- slideBounds                | StackPane    | Transparent background, uniform sizing, and drop shadow |
+		// | +- slideBounds                | Pane         | Transparent background, uniform sizing, and drop shadow |
 		// |    +- slideCanvas             | Pane         | Contains all the Observable Slide nodes                 |
 		// |       +- rootPane             | Pane         | The root pane for the slide                             |
 		// |          +- container         | Pane         | Provides scaling                                        |
 		// |             +- backgroundNode | FillPane     | For the slide background                                |
 		// |             +- borderNode     | Region       | The slide border                                        |
+		// |          +- editBorderNode    | Region       | The edit border                                         |
+		// +-------------------------------+--Components--+---------------------------------------------------------+
 		// |          +- componentCanvas   | Pane         | The slide components                                    |
 		// |             +- rootPane       | Pane         | Component 1                                             |
 		// |             +- rootPane       | Pane         | Component 2                                             |
@@ -148,7 +150,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		
 		// create the slideBounds area for the
 		// unscaled transparency background
-		StackPane slideBounds = new StackPane();
+		Pane slideBounds = new Pane();
 		slideBounds.setBackground(new Background(new BackgroundImage(Fx.TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
 		// add a drop shadow effect for better looks
 		DropShadow sdw = new DropShadow();
@@ -172,7 +174,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 					double h = s.getHeight();
 					double tw = Math.min(slidePreview.getWidth() - padding * 2, w);
 					double th = Math.min(slidePreview.getHeight() - padding * 2, h);
-					return Scaling.getUniformScaling(w, h, tw, th).width - 1;
+					return Math.floor(Scaling.getUniformScaling(w, h, tw, th).width) - 1;
 				}
 				return 0;
 			}
@@ -190,7 +192,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 					double h = s.getHeight();
 					double tw = Math.min(slidePreview.getWidth() - padding * 2, w);
 					double th = Math.min(slidePreview.getHeight() - padding * 2, h);
-					return Scaling.getUniformScaling(w, h, tw, th).height - 1;
+					return Math.floor(Scaling.getUniformScaling(w, h, tw, th).height) - 1;
 				}
 				return 0;
 			}
@@ -215,10 +217,10 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		// listener for selection changes
 		this.selected.addListener((obs, ov, nv) -> {
 			if (ov != null) {
-				ov.getDisplayPane().pseudoClassStateChanged(SELECTED, false);
+				ov.getEditBorderNode().pseudoClassStateChanged(SELECTED, false);
 			}
 			if (nv != null) {
-				nv.getDisplayPane().pseudoClassStateChanged(SELECTED, true);
+				nv.getEditBorderNode().pseudoClassStateChanged(SELECTED, true);
 			}
 		});
 		

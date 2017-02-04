@@ -30,16 +30,56 @@ package org.praisenter.javafx.slide;
  * @version 3.0.0
  */
 public enum SlideMode {
-	/** For editing a slide */
+	/** 
+	 * For editing a slide.
+	 * <p>
+	 * This will show additional borders/UI elements on the slide components
+	 * specific to editing.
+	 * <p>
+	 * All video media will use the single frame. Audio media and 
+	 * animations will not be shown.
+	 * <p>
+	 * Quality: SPEED
+	 */
 	EDIT,
 	
-	/** For taking a snapshot of a slide (EDIT w/o scaling and selection borders) */
+	/**
+	 * For taking a snapshot of a slide to use as a thumb nail or image. 
+	 * <p>
+	 * All video media will use the single frame. Audio media and 
+	 * animations will not be included.
+	 * <p>
+	 * Quality: DEFAULT
+	 */
 	SNAPSHOT,
 	
-	/** For previewing a slide (PRESENT w/ audio muted by default) */
+	/**
+	 * For previewing a slide before presentation.
+	 * <p>
+	 * All video media will use the single frame. Audio media and 
+	 * animations will not be included.
+	 * <p>
+	 * Quality: DEFAULT
+	 */
 	PREVIEW,
+	
+	/**
+	 * For previewing a slide before presentation.
+	 * <p>
+	 * This will show all animations and video, but will not play audio.
+	 * <p>
+	 * Quality: DEFAULT
+	 */
+	PREVIEW_ALL,
 		
-	/** Normal presentation */
+	/**
+	 * Normal presentation.
+	 * <p>
+	 * This will show all animations and videos and play audio.
+	 * <p>
+	 * Quality: DEFAULT
+	 * TODO quality?
+	 */
 	PRESENT,
 
 	/** TODO not sure how this will be used just yet */

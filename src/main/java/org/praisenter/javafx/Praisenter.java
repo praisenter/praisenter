@@ -83,6 +83,9 @@ public final class Praisenter extends Application {
 	/** The configuration */
 	private static final Configuration CONFIGURATION;
 	
+	/** The start time */
+	private static final long START_TIME = System.nanoTime();
+	
 	static {
 		// set the log file path (used in the log4j2.xml file)
 		System.setProperty("praisenter.logs.dir", Constants.LOGS_ABSOLUTE_PATH);
@@ -286,6 +289,8 @@ public final class Praisenter extends Application {
 					LOGGER.info("Fade out of loading screen complete.");
 					stack.getChildren().remove(loading);
 					LOGGER.info("Loading scene removed from the scene graph. {} node(s) remaining.", stack.getChildren().size());
+					long endTime = System.nanoTime();
+					LOGGER.info("Loading took {} seconds.", (endTime - START_TIME) / 1e9);
 				}
 			});
 			

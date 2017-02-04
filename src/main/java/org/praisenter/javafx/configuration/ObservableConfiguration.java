@@ -99,7 +99,7 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 		this.theme = theme;
 		
 		// add all resolutions to the observable list
-		ResolutionSet resolutions = this.configuration.getObject(Setting.DISPLAY_RESOLUTIONS, null);
+		ResolutionSet resolutions = this.configuration.getObject(Setting.DISPLAY_RESOLUTIONS, ResolutionSet.class, null);
 		if (resolutions != null) {
 			this.resolutions.addAll(resolutions);
 		}

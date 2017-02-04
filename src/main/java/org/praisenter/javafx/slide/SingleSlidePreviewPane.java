@@ -82,7 +82,7 @@ public final class SingleSlidePreviewPane extends StackPane {
 		clipRect.widthProperty().bind(this.widthProperty());
 		this.setClip(clipRect);
 		
-		StackPane slideBounds = new StackPane();
+		Pane slideBounds = new Pane();
 		slideBounds.setBackground(new Background(new BackgroundImage(Fx.TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
 		DropShadow sdw = new DropShadow();
 		sdw.setRadius(5);
@@ -104,7 +104,7 @@ public final class SingleSlidePreviewPane extends StackPane {
 					double h = s.getHeight();
 					double tw = getWidth() - padding * 2;
 					double th = getHeight() - padding * 2;
-					return Scaling.getUniformScaling(w, h, tw, th).width - 1;
+					return Math.floor(Scaling.getUniformScaling(w, h, tw, th).width) - 1;
 				}
 				return 0;
 			}
@@ -122,7 +122,7 @@ public final class SingleSlidePreviewPane extends StackPane {
 					double h = s.getHeight();
 					double tw = getWidth() - padding * 2;
 					double th = getHeight() - padding * 2;
-					return Scaling.getUniformScaling(w, h, tw, th).height - 1;
+					return Math.floor(Scaling.getUniformScaling(w, h, tw, th).height) - 1;
 				}
 				return 0;
 			}
@@ -173,7 +173,7 @@ public final class SingleSlidePreviewPane extends StackPane {
 			slideCanvas.getChildren().clear();
 
 			if (nv != null) {
-				ObservableSlide<Slide> os = new ObservableSlide<>(nv, context, this.mode.get() == null ? SlideMode.SNAPSHOT : this.mode.get());
+				ObservableSlide<Slide> os = new ObservableSlide<>(nv, context, this.mode.get() == null ? SlideMode.PREVIEW : this.mode.get());
 				Pane rootPane = os.getDisplayPane();
 				slideCanvas.getChildren().add(rootPane);
 				os.scalingProperty().bind(scaleFactor);

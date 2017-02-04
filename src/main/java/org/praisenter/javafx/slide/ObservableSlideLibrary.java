@@ -46,8 +46,8 @@ import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-// TODO translate
 // TODO Create importer classes
+
 /**
  * Represents an Observable wrapper to the slide library.
  * <p>

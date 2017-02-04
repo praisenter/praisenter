@@ -23,6 +23,7 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 		
 		if (this.mode == SlideMode.EDIT ||
 			this.mode == SlideMode.PREVIEW ||
+			this.mode == SlideMode.PREVIEW_ALL ||
 			this.mode == SlideMode.SNAPSHOT) {
 			this.text.set(this.getText());
 		}

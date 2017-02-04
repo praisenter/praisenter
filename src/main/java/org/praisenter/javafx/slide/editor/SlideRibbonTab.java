@@ -97,7 +97,7 @@ final class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 		btnNewResolution.setOnAction((e) -> {
 			// TODO fix
 			Resolution res = new Resolution(2000, 4000);
-			ResolutionSet resolutions = context.getConfiguration().getObject(Setting.DISPLAY_RESOLUTIONS, null);
+			ResolutionSet resolutions = context.getConfiguration().getObject(Setting.DISPLAY_RESOLUTIONS, ResolutionSet.class, new ResolutionSet());
 			resolutions.add(res);
 			context.getConfiguration()
 				.setObject(Setting.DISPLAY_RESOLUTIONS, resolutions)

@@ -46,6 +46,7 @@ public final class DisplayScreen {
 		this.id = id;
 		this.role = role;
 		this.screen = screen;
+		// TODO use same icons as Praisenter
 		this.stage = new Stage(StageStyle.TRANSPARENT);
 		this.debugMode = debug;
 		

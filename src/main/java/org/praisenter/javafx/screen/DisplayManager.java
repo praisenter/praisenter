@@ -143,9 +143,9 @@ public final class DisplayManager {
 	 * @return {@link Display}
 	 */
 	public Display getPresentationDisplay() {
-		Display main = this.configuration.getObject(Setting.DISPLAY_MAIN, null);
-		Display operator = this.configuration.getObject(Setting.DISPLAY_OPERATOR, null);
-		Display primary = this.configuration.getObject(Setting.DISPLAY_PRIMARY, null);
+		Display main = this.configuration.getObject(Setting.DISPLAY_MAIN, Display.class, null);
+		Display operator = this.configuration.getObject(Setting.DISPLAY_OPERATOR, Display.class, null);
+		Display primary = this.configuration.getObject(Setting.DISPLAY_PRIMARY, Display.class, null);
 		if (main != null && main.getId() >= 0) {
 			return main;
 		} else if (operator != null && operator.getId() >= 0) {
@@ -162,10 +162,10 @@ public final class DisplayManager {
 		int size = screens.size();
 		
 		// get the configured displays
-		Display pDisplay = this.configuration.getObject(Setting.DISPLAY_PRIMARY, null);
-		Display oDisplay = this.configuration.getObject(Setting.DISPLAY_OPERATOR, null);
-		Display dDisplay = this.configuration.getObject(Setting.DISPLAY_MAIN, null);
-		Display mDisplay = this.configuration.getObject(Setting.DISPLAY_MUSICIAN, null);
+		Display pDisplay = this.configuration.getObject(Setting.DISPLAY_PRIMARY, Display.class, null);
+		Display oDisplay = this.configuration.getObject(Setting.DISPLAY_OPERATOR, Display.class, null);
+		Display dDisplay = this.configuration.getObject(Setting.DISPLAY_MAIN, Display.class, null);
+		Display mDisplay = this.configuration.getObject(Setting.DISPLAY_MUSICIAN, Display.class, null);
 		
 		// verify that the primary display is still the same
 		boolean primaryChanged = false;
@@ -265,8 +265,8 @@ public final class DisplayManager {
 	
 	private void updateDisplays() {
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
-		Display dDisplay = this.configuration.getObject(Setting.DISPLAY_MAIN, null);
-		Display mDisplay = this.configuration.getObject(Setting.DISPLAY_MUSICIAN, null);
+		Display dDisplay = this.configuration.getObject(Setting.DISPLAY_MAIN, Display.class, null);
+		Display mDisplay = this.configuration.getObject(Setting.DISPLAY_MUSICIAN, Display.class, null);
 		
 		LOGGER.info("Releasing existing displays.");
 		// release any existing stages

@@ -336,16 +336,16 @@ abstract class SettingMap<T> {
 	 * Returns the value for the given setting or the given default value
 	 * if the setting isn't present or isn't of type V.
 	 * @param setting the setting
+	 * @param clazz the class to cast to
 	 * @param defaultValue the default
 	 * @return V
 	 */
-	@SuppressWarnings("unchecked")
-	public <V> V getObject(Setting setting, V defaultValue) {
+	public <V> V getObject(Setting setting, Class<V> clazz, V defaultValue) {
 		Object val = this.get(setting);
 		if (val != null) {
 			try {
-				return (V)val;
-			} catch (ClassCastException ex) {
+				return (V)clazz.cast(val);
+			} catch (Exception ex) {
 				return defaultValue;
 			}
 		}

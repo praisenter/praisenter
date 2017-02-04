@@ -36,13 +36,13 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 	
 	public void entered(MouseEvent event) {
 		if (event.getEventType() == MouseEvent.MOUSE_ENTERED) {
-			region.getDisplayPane().pseudoClassStateChanged(HOVER, true);
+			region.getEditBorderNode().pseudoClassStateChanged(HOVER, true);
 		}
 	}
 	
 	public void exited(MouseEvent event) {
 		if (event.getEventType() == MouseEvent.MOUSE_EXITED) {
-			region.getDisplayPane().pseudoClassStateChanged(HOVER, false);
+			region.getEditBorderNode().pseudoClassStateChanged(HOVER, false);
 			Scene scene = region.getDisplayPane().getScene();
 			if (scene != null) {
 				scene.setCursor(Cursor.DEFAULT);
@@ -174,10 +174,10 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 	private static double clamp(double dimension, double value) {
 		if (value < 0) {
 			if (dimension + value < MIN_DIMENSION) {
-				return -(dimension - MIN_DIMENSION);
+				return -Math.floor(dimension - MIN_DIMENSION);
 			}
 		}
-		return value;
+		return Math.floor(value);
 	}
 	
 	@Override

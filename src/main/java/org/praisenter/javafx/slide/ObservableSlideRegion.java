@@ -9,20 +9,30 @@ import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
+import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Scaling;
 
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.effect.Effect;
 import javafx.scene.effect.InnerShadow;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Shape;
+import javafx.scene.transform.Scale;
 
 public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	protected final PraisenterContext context;
@@ -58,9 +68,11 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	// |    +- backgroundNode  | FillPane     | For the background            |
 	// |    +- content         | Node         | The region's content (if any) |
 	// |    +- borderNode      | Region       | The border                    |
+	// | +- editBorderNode     | Region       | The edit border               |
 	// +-----------------------+--------------+-------------------------------+
 	
 	protected final Pane rootPane;
+	protected final Region editBorderNode;
 	private final Pane container;
 	private final FillPane backgroundNode;
 	private final Region borderNode;
@@ -87,22 +99,37 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.container = new Pane();
 		// this is the magic for it to be fast enough
 		this.container.setCache(true);
-		if (this.mode == SlideMode.EDIT ||
-			this.mode == SlideMode.MUSICIAN ||
-			this.mode == SlideMode.PREVIEW) {
+		if (this.mode == SlideMode.EDIT) {
 			this.container.setCacheHint(CacheHint.SPEED);
+		} else {
+			this.container.setCacheHint(CacheHint.DEFAULT);
 		}
 		this.container.setBackground(null);
 		this.container.setMouseTransparent(true);
+		this.container.setSnapToPixel(true);
 		
 		this.borderNode = new Region();
 		this.borderNode.setMouseTransparent(true);
+		this.borderNode.setSnapToPixel(true);
 		
 		this.backgroundNode = new FillPane(context, mode);
 		this.backgroundNode.setMouseTransparent(true);
+		this.backgroundNode.setSnapToPixel(true);
 		
 		this.rootPane = new Pane(this.container);
-		this.rootPane.getStyleClass().add("slide-component");
+		this.rootPane.setSnapToPixel(true);
+		
+		if (this.mode == SlideMode.EDIT) {
+			this.editBorderNode = new Region();
+			this.editBorderNode.setSnapToPixel(true);
+			this.editBorderNode.setMouseTransparent(true);
+			this.editBorderNode.prefWidthProperty().bind(this.rootPane.widthProperty());
+			this.editBorderNode.prefHeightProperty().bind(this.rootPane.heightProperty());
+			this.editBorderNode.getStyleClass().add("slide-edit-region");
+			this.rootPane.getChildren().add(this.editBorderNode);
+		} else {
+			this.editBorderNode = null;
+		}
 		
 		// listen for changes
 		this.x.addListener((obs, ov, nv) -> { 
@@ -143,9 +170,10 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		});
 		
 		this.scale.addListener((obs, ov, nv) -> {
-			this.container.setScaleX(nv.factor);
-			this.container.setScaleY(nv.factor);
-			
+			// scale from the top left corner of the node
+			this.container.getTransforms().clear();
+			this.container.getTransforms().add(new Scale(nv.factor, nv.factor, 0, 0));
+
 			updatePosition();
 			updateSize();
 		});
@@ -162,10 +190,8 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		// to slide coordinates transformed into the parent node coordinates
 		Scaling s = this.scale.get();
 		
-		this.rootPane.setLayoutX(x * s.factor);
-		this.rootPane.setLayoutY(y * s.factor);
-		
-		updateScaledTranslation();
+		this.rootPane.setLayoutX(Math.floor(x * s.factor));
+		this.rootPane.setLayoutY(Math.floor(y * s.factor));
 	}
 	
 	void updateSize() {
@@ -178,19 +204,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.backgroundNode.setSize(w, h);
 		
 		Scaling s = this.scale.get();
-		Fx.setSize(this.rootPane, w * s.factor, h * s.factor);
-		
-		updateScaledTranslation();
-	}
-	
-	void updateScaledTranslation() {
-		Scaling s = this.scale.get();
-		// scaling operates from the center of the node
-		// so we have to reposition the node so that it
-		// stays in the same place
-		// FIXME the border is jacking something up
-		this.container.setTranslateX(-(this.width.get() - this.width.get() * s.factor) / 2.0);
-		this.container.setTranslateY(-(this.height.get() - this.height.get() * s.factor) / 2.0);
+		Fx.setSize(this.rootPane, Math.ceil(w * s.factor), Math.ceil(h * s.factor));
 	}
 	
 	void updateBorder() {
@@ -254,6 +268,10 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	 */
 	public Pane getDisplayPane() {
 		return this.rootPane;
+	}
+	
+	public Region getEditBorderNode() {
+		return this.editBorderNode;
 	}
 	
 	// playable stuff

@@ -29,23 +29,27 @@ import javafx.scene.media.MediaView;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
-public final class FillPane extends StackPane {
+/**
+ * A custom pane that can show an color, gradient, image, video, etc.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+final class FillPane extends StackPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	final PraisenterContext context;
-	final SlideMode mode;
+	private final PraisenterContext context;
+	private final SlideMode mode;
 	
-	final MediaView mediaView;
-	final VBox paintView;
-	Image image;
+	private final MediaView mediaView;
+	private final VBox paintView;
 	
-	Media media;
-	MediaType type;
-	ScaleType scaling;
+	private Media media;
+	private ScaleType scaleType;
+	private Image image;
 	
-	double width;
-	double height;
-	double borderRadius;
+	private double width;
+	private double height;
+	private double borderRadius;
 	
 	public FillPane(PraisenterContext context, SlideMode mode) {
 		this.context = context;
@@ -100,8 +104,7 @@ public final class FillPane extends StackPane {
 		this.paintView.setBackground(null);
 		this.image = null;
 		this.media = null;
-		this.type = null;
-		this.scaling = null;
+		this.scaleType = null;
 	}
 	
 	private void setPaintViewSize() {
@@ -138,11 +141,11 @@ public final class FillPane extends StackPane {
 		this.mediaView.setFitHeight(0);
 		this.mediaView.setPreserveRatio(true);
 		
-		if (scaling == ScaleType.NONUNIFORM) { 
+		if (this.scaleType == ScaleType.NONUNIFORM) { 
 			this.mediaView.setFitWidth(w);
 			this.mediaView.setFitHeight(h);
 			this.mediaView.setPreserveRatio(false);
-		} else if (scaling == ScaleType.UNIFORM) {
+		} else if (this.scaleType == ScaleType.UNIFORM) {
 			// set the fit w/h based on the min
 			if (w < h) {
 				this.mediaView.setFitWidth(w);
@@ -181,6 +184,8 @@ public final class FillPane extends StackPane {
 			this.removePaint();
 		} else {
 			MediaType type = media.getType();
+			// they are the same media item
+			this.scaleType = mo.getScaling();
 			
 			// did the media change
 			if (!media.equals(this.media)) {
@@ -189,12 +194,11 @@ public final class FillPane extends StackPane {
 				
 				// set data
 				this.media = media;
-				this.type = type;
-				this.scaling = mo.getScaling();
 				
 				// create new image if we are in edit mode or if the media type is image
 				if (this.mode == SlideMode.EDIT ||
 					this.mode == SlideMode.SNAPSHOT ||
+					this.mode == SlideMode.PREVIEW ||
 					type == MediaType.IMAGE) {
 					this.image = JavaFXTypeConverter.toJavaFXImage(this.context.getMediaLibrary(), this.context.getImageCache(), media);
 					Background background = new Background(new BackgroundImage(
@@ -211,9 +215,6 @@ public final class FillPane extends StackPane {
 					setMediaViewSize();
 				}
 			} else {
-				// they are the same media item
-				this.scaling = mo.getScaling();
-				
 				// set player settings based on the given media
 				MediaPlayer player = this.mediaView.getMediaPlayer();
 				if (player != null) {

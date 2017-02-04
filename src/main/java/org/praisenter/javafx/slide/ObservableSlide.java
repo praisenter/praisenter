@@ -66,6 +66,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		
 		this.componentCanvas = new Pane();
 		this.componentCanvas.setMinSize(0, 0);
+		this.componentCanvas.setSnapToPixel(true);
 		
 		// set initial values
 		this.name.set(slide.getName());

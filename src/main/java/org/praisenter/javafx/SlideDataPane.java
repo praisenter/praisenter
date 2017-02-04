@@ -20,7 +20,7 @@ public class SlideDataPane extends BorderPane {
 	public SlideDataPane(PraisenterContext context) {
 		this.context = context;
 		
-		this.slidePreviewPane = new SingleSlidePreviewPane(context, SlideMode.SNAPSHOT);
+		this.slidePreviewPane = new SingleSlidePreviewPane(context, SlideMode.PREVIEW);
 	
 		this.cmbTemplate = new PlaceholderSlideComboBox(context);
 		this.bibleNavigationPane = new BibleNavigationPane(context);

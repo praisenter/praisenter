@@ -102,14 +102,14 @@
 }
 
 /** slide editing */
-.slide-component:edit-hover {
+.slide-edit-region:edit-hover {
 	-fx-border-color: black, white;
-	-fx-border-style: segments(2, 4) phase 0 outside line-join miter 2 line-cap butt, segments(2, 4) phase 2 outside line-join miter 2 line-cap butt;
+	-fx-border-style: segments(2, 2) phase 0 outside line-join miter 2 line-cap butt, segments(2, 2) phase 2 outside line-join miter 2 line-cap butt;
 	-fx-border-width: 1, 1;
 }
 
-.slide-component:edit-selected {
+.slide-edit-region:edit-selected {
 	-fx-border-color: black, white;
-	-fx-border-style: segments(2, 4) phase 0 outside line-join miter 2 line-cap butt, segments(2, 4) phase 2 outside line-join miter 2 line-cap butt;
+	-fx-border-style: segments(4, 4) phase 0 outside line-join miter 2 line-cap butt, segments(4, 4) phase 4 outside line-join miter 2 line-cap butt;
 	-fx-border-width: 1, 1;
 }
