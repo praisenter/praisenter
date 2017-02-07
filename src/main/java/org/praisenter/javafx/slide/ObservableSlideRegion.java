@@ -9,29 +9,19 @@ import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
-import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Scaling;
 
-import javafx.beans.binding.DoubleBinding;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.effect.Effect;
 import javafx.scene.effect.InnerShadow;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Shape;
 import javafx.scene.transform.Scale;
 
 public abstract class ObservableSlideRegion<T extends SlideRegion> {
@@ -122,7 +112,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		if (this.mode == SlideMode.EDIT) {
 			this.editBorderNode = new Region();
 			this.editBorderNode.setSnapToPixel(true);
-			this.editBorderNode.setMouseTransparent(true);
 			this.editBorderNode.prefWidthProperty().bind(this.rootPane.widthProperty());
 			this.editBorderNode.prefHeightProperty().bind(this.rootPane.heightProperty());
 			this.editBorderNode.getStyleClass().add("slide-edit-region");
@@ -237,7 +226,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		builder.add(shadow, shadow != null && shadow instanceof InnerShadow ? 10 : 30);
 		builder.add(glow, glow != null && glow instanceof InnerShadow ? 20 : 40);
 		Effect effect = builder.build();
-		this.container.setEffect(effect);
+		this.backgroundNode.setEffect(effect);
 	}
 	
 	void build(Node content) {

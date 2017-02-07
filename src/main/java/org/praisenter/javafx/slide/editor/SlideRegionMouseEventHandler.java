@@ -1,11 +1,14 @@
 package org.praisenter.javafx.slide.editor;
 
+import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.utility.Scaling;
 
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
+import javafx.event.EventTarget;
+import javafx.event.EventType;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -17,6 +20,7 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 	private static final PseudoClass HOVER = PseudoClass.getPseudoClass("edit-hover");
 	private static final int MIN_DIMENSION = 50;
 	
+	private final ObservableSlide<?> slide;
 	private final ObservableSlideRegion<?> region;
 	
 	private Scene scene = null;
@@ -30,7 +34,8 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 	private double w;
 	private double h;
 	
-	public SlideRegionMouseEventHandler(ObservableSlideRegion<?> region) {
+	public SlideRegionMouseEventHandler(ObservableSlide<?> slide, ObservableSlideRegion<?> region) {
+		this.slide = slide;
 		this.region = region;
 	}
 	
@@ -43,12 +48,12 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 	public void exited(MouseEvent event) {
 		if (event.getEventType() == MouseEvent.MOUSE_EXITED) {
 			region.getEditBorderNode().pseudoClassStateChanged(HOVER, false);
+			
 			Scene scene = region.getDisplayPane().getScene();
 			if (scene != null) {
 				scene.setCursor(Cursor.DEFAULT);
 			}
 		}
-//		event.consume();
 	}
 	
 	public void hover(MouseEvent event) {

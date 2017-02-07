@@ -1,8 +1,10 @@
 package org.praisenter.javafx.slide.editor;
 
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
+import org.praisenter.javafx.slide.ObservableTextComponent;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -111,6 +113,19 @@ final class SlideEditorRibbon extends TabPane implements EventHandler<SlideRibbo
 		tabFormat.setClosable(false);
 		
 		this.getTabs().addAll(tabSlide, tabInsert, tabBox, tabText, tabFormat);
+		
+		this.component.addListener((obs, ov, nv) -> {
+			// switch focus to the likely tab given the component type
+			if (nv != null) {
+				if (nv instanceof ObservableSlide) {
+					this.getSelectionModel().select(tabBox);
+				} else if (nv instanceof ObservableTextComponent) {
+					this.getSelectionModel().select(tabText);
+				} else if (nv instanceof ObservableMediaComponent) {
+					this.getSelectionModel().select(tabBox);
+				}
+			}
+		});
 	}
 	
 	/* (non-Javadoc)

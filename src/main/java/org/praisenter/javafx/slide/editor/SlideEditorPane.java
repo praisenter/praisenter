@@ -76,6 +76,7 @@ import javafx.scene.shape.StrokeType;
 
 // FEATURE Allow grouping of components to easily move them together
 // JAVABUG 06/30/16 LOW Text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option
+// JAVABUG 02/04/17 MEDIUM DropShadow and Glow effects cannot be mouse transparent - https://bugs.openjdk.java.net/browse/JDK-8092268, https://bugs.openjdk.java.net/browse/JDK-8101376
 
 // FIXME show the appropriate ribbon when selecting a node
 // FIXME show the appropriate ribbon when creating a new node
@@ -103,14 +104,15 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	private final ObjectProperty<ObservableSlide<Slide>> slide = new SimpleObjectProperty<ObservableSlide<Slide>>();
 	private final ObjectProperty<ObservableSlideRegion<?>> selected = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 
+	private final SlideEditorRibbon ribbon;
 	private final StackPane slidePreview;
 	
 	public SlideEditorPane(PraisenterContext context) {
 		this.context = context;
 		
 		// create the ribbon
-		SlideEditorRibbon ribbon = new SlideEditorRibbon(context);
-		VBox top = new VBox(ribbon);
+		this.ribbon = new SlideEditorRibbon(context);
+		VBox top = new VBox(this.ribbon);
 		top.setBorder(new Border(new BorderStroke(null, null, Color.GRAY, null, null, null, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, null, new BorderWidths(0, 0, 1, 0), null)));
 		this.setTop(top);
 		
@@ -269,7 +271,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				// bind the scale factor
 				nv.scalingProperty().bind(scaleFactor);
 				// setup the mouse event handler
-				SlideRegionMouseEventHandler slideMouseHandler = new SlideRegionMouseEventHandler(nv);
+				SlideRegionMouseEventHandler slideMouseHandler = new SlideRegionMouseEventHandler(nv, nv);
 				rootEditPane.addEventHandler(MouseEvent.ANY, slideMouseHandler);
 				rootEditPane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
 					selected.set(nv);
@@ -282,9 +284,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 					// bind the scale factor
 					osr.scalingProperty().bind(scaleFactor);
 					// setup the mouse event handler
-					SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(osr);
-					pane.addEventHandler(MouseEvent.ANY, mouseHandler);
-					pane.addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
+					SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(nv, osr);
+					osr.getEditBorderNode().addEventHandler(MouseEvent.ANY, mouseHandler);
+					osr.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
 						selected.set(osr);
 					});
 				}
@@ -327,9 +329,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			// bind the scale factor
 			component.scalingProperty().bind(scaleFactor);
 			// setup the mouse event handler
-			SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(component);
-			pane.addEventHandler(MouseEvent.ANY, mouseHandler);
-			pane.addEventHandler(MouseEvent.MOUSE_PRESSED, (ev) -> {
+			SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(slide.get(), component);
+			component.getEditBorderNode().addEventHandler(MouseEvent.ANY, mouseHandler);
+			component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (ev) -> {
 				selected.set(component);
 			});
 		});
@@ -535,7 +537,11 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 
 	@Override
 	public void setDefaultFocus() {
-		// no-op
+		// NOTE: this is here so that the slide ribbon has focus initially so that
+		// the focus is inside the editor pane, allowing the application actions
+		// to work. selection of components in the editor isn't the same as standard
+		// java fx selection
+		this.ribbon.requestFocus();
 	}
 	
 	@Override

@@ -45,6 +45,9 @@ public enum Setting {
 	/** The application y position */
 	APP_Y,
 	
+	/** The application is maximized */
+	APP_MAXIMIZED,
+	
 	/** The application theme */
 	APP_THEME,
 	

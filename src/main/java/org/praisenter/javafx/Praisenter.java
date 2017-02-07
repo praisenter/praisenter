@@ -245,6 +245,11 @@ public final class Praisenter extends Application {
 			stage.setY(y);
 		}
     	
+		// check for maximized
+		if (CONFIGURATION.getBoolean(Setting.APP_MAXIMIZED, false)) {
+			stage.setMaximized(true);
+		}
+		
 		// load fonts
     	LOGGER.info("Loading glyph fonts.");
     	GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
@@ -310,10 +315,14 @@ public final class Praisenter extends Application {
     	stage.setOnCloseRequest((e) -> {
     		// save some application info
     		LOGGER.debug("Saving application location and size: ({}, {}) {}x{}", stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
-    		CONFIGURATION.setDouble(Setting.APP_X, stage.getX());
-    		CONFIGURATION.setDouble(Setting.APP_Y, stage.getY());
-    		CONFIGURATION.setDouble(Setting.APP_WIDTH, stage.getWidth());
-    		CONFIGURATION.setDouble(Setting.APP_HEIGHT, stage.getHeight());
+    		if (!stage.isMaximized()) {
+	    		CONFIGURATION.setDouble(Setting.APP_X, stage.getX());
+	    		CONFIGURATION.setDouble(Setting.APP_Y, stage.getY());
+	    		CONFIGURATION.setDouble(Setting.APP_WIDTH, stage.getWidth());
+	    		CONFIGURATION.setDouble(Setting.APP_HEIGHT, stage.getHeight());
+    		}
+    		CONFIGURATION.setBoolean(Setting.APP_MAXIMIZED, stage.isMaximized());
+    		
     		try {
     			// save the configuration synchronously
     			CONFIGURATION.save();
