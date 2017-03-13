@@ -55,7 +55,7 @@ public final class SetupPane extends BorderPane {
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	public SetupPane(PraisenterContext context) {
-		this.getStyleClass().add("setup-pane");
+		this.getStyleClass().add(Styles.SETUP_PANE);
 		
 		List<Option<Locale>> locales = new ArrayList<Option<Locale>>();
 		for (Locale locale : Translations.getAvailableLocales()) {

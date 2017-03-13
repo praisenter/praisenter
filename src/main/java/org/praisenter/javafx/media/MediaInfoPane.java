@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
 import org.praisenter.Tag;
+import org.praisenter.javafx.Styles;
 import org.praisenter.javafx.TagEvent;
 import org.praisenter.javafx.TagListView;
 import org.praisenter.media.Media;
@@ -63,9 +64,6 @@ import javafx.scene.layout.VBox;
 final class MediaInfoPane extends VBox {
 	/** The value used for non-applicable fields (like the length for an image) */
 	private static final String NOT_APPLICABLE = "";
-	
-	/** The pane class name */
-	private static final String CLASS_NAME = "media-info-pane";
 	
 	/** A formatter for instance fields */
 	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault());
@@ -108,7 +106,7 @@ final class MediaInfoPane extends VBox {
 	 * @param allTags the set of all tags
 	 */
 	public MediaInfoPane(ObservableSet<Tag> allTags) {
-		this.getStyleClass().add(CLASS_NAME);
+		this.getStyleClass().add(Styles.MEDIA_INFO_PANE);
 		this.setPadding(new Insets(0, 5, 10, 5));
 		this.setDisable(true);
 		
@@ -131,7 +129,7 @@ final class MediaInfoPane extends VBox {
         lblNameValue.textProperty().bind(name);
         lblNameValue.setTooltip(new Tooltip());
         lblNameValue.getTooltip().textProperty().bind(name);
-        lblNameValue.getStyleClass().add("value-label");
+        lblNameValue.getStyleClass().add(Styles.VALUE_LABEL);
         HBox nameRow = new HBox();
         nameRow.setAlignment(Pos.BASELINE_LEFT);
         nameRow.getChildren().addAll(lblNameValue);
@@ -143,7 +141,7 @@ final class MediaInfoPane extends VBox {
         lblWidthValue.textProperty().bind(width);
         lblWidthValue.setTooltip(new Tooltip());
         lblWidthValue.getTooltip().textProperty().bind(width);
-        lblWidthValue.getStyleClass().add("value-label");
+        lblWidthValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblWidth, 0, 1, 1, 1);
         grid.add(lblWidthValue, 1, 1, 1, 1);
         
@@ -152,7 +150,7 @@ final class MediaInfoPane extends VBox {
         lblHeightValue.textProperty().bind(height);
         lblHeightValue.setTooltip(new Tooltip());
         lblHeightValue.getTooltip().textProperty().bind(height);
-        lblHeightValue.getStyleClass().add("value-label");
+        lblHeightValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblHeight, 0, 2, 1, 1);
         grid.add(lblHeightValue, 1, 2, 1, 1);
         
@@ -161,7 +159,7 @@ final class MediaInfoPane extends VBox {
         lblLengthValue.textProperty().bind(length);
         lblLengthValue.setTooltip(new Tooltip());
         lblLengthValue.getTooltip().textProperty().bind(length);
-        lblLengthValue.getStyleClass().add("value-label");
+        lblLengthValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblLength, 0, 3, 1, 1);
         grid.add(lblLengthValue, 1, 3, 1, 1);
         
@@ -170,7 +168,7 @@ final class MediaInfoPane extends VBox {
         lblSoundValue.textProperty().bind(audio);
         lblSoundValue.setTooltip(new Tooltip());
         lblSoundValue.getTooltip().textProperty().bind(audio);
-        lblSoundValue.getStyleClass().add("value-label");
+        lblSoundValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblSound, 0, 4, 1, 1);
         grid.add(lblSoundValue, 1, 4, 1, 1);
         
@@ -179,7 +177,7 @@ final class MediaInfoPane extends VBox {
         lblFormatValue.textProperty().bind(format);
         lblFormatValue.setTooltip(new Tooltip());
         lblFormatValue.getTooltip().textProperty().bind(format);
-        lblFormatValue.getStyleClass().add("value-label");
+        lblFormatValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblFormat, 0, 5, 1, 1);
         grid.add(lblFormatValue, 1, 5, 1, 1);
         
@@ -188,7 +186,7 @@ final class MediaInfoPane extends VBox {
         lblDateAddedValue.textProperty().bind(dateAdded);
         lblDateAddedValue.setTooltip(new Tooltip());
         lblDateAddedValue.getTooltip().textProperty().bind(dateAdded);
-        lblDateAddedValue.getStyleClass().add("value-label");
+        lblDateAddedValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblDateAdded, 0, 6, 1, 1);
         grid.add(lblDateAddedValue, 1, 6, 1, 1);
         

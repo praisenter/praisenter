@@ -59,42 +59,42 @@ public class InsertTextRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 
 		text.setOnAction((e) -> {
 			BasicTextComponent btc = new BasicTextComponent();
-			btc.setWidth(200);
-			btc.setHeight(100);
+			btc.setWidth(400);
+			btc.setHeight(300);
 			btc.setText("New Text Component");
 			btc.setTextPaint(new SlideColor(0, 0, 0, 1));
-			btc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 20));
+			btc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50));
 			fireEvent(new SlideComponentAddEvent(text, InsertTextRibbonTab.this, new ObservableBasicTextComponent<>(btc, context, SlideMode.EDIT)));
 		});
 		
 		countdown.setOnAction((e) -> {
 			CountdownComponent cdc = new CountdownComponent();
-			cdc.setWidth(200);
-			cdc.setHeight(100);
+			cdc.setWidth(400);
+			cdc.setHeight(300);
 			cdc.setCountdownTarget(LocalDateTime.now().plusHours(1));
 			cdc.setCountdownFormat("%4$02d:%5$02d:%6$02d");
 			cdc.setTextPaint(new SlideColor(0, 0, 0, 1));
-			cdc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 20));
+			cdc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50));
 			fireEvent(new SlideComponentAddEvent(countdown, InsertTextRibbonTab.this, new ObservableCountdownComponent(cdc, context, SlideMode.EDIT)));
 		});
 		
 		datetime.setOnAction((e) -> {
 			DateTimeComponent dtc = new DateTimeComponent();
-			dtc.setWidth(200);
-			dtc.setHeight(100);
+			dtc.setWidth(400);
+			dtc.setHeight(300);
 			dtc.setTextPaint(new SlideColor(0, 0, 0, 1));
-			dtc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 20));
+			dtc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50));
 			fireEvent(new SlideComponentAddEvent(datetime, InsertTextRibbonTab.this, new ObservableDateTimeComponent(dtc, context, SlideMode.EDIT)));
 		});
 		
 		placeholder.setOnAction((e) -> {
 			TextPlaceholderComponent phc = new TextPlaceholderComponent();
-			phc.setWidth(200);
-			phc.setHeight(100);
+			phc.setWidth(400);
+			phc.setHeight(300);
 			phc.setPlaceholderType(TextType.TITLE);
 			phc.setPlaceholderVariant(TextVariant.PRIMARY);
 			phc.setTextPaint(new SlideColor(0, 0, 0, 1));
-			phc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 20));
+			phc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50));
 			fireEvent(new SlideComponentAddEvent(placeholder, InsertTextRibbonTab.this, new ObservableTextPlaceholderComponent(phc, context, SlideMode.EDIT)));
 		});
 	}

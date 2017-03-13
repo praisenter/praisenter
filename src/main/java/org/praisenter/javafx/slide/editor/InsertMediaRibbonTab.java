@@ -45,23 +45,20 @@ public class InsertMediaRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 		// FIXME either 1) force the user to select a media item before adding the component or 2) add the component with some default content
 		image.setOnAction((e) -> {
 			MediaComponent mc = new MediaComponent();
-			mc.setWidth(200);
-			mc.setHeight(100);
-			mc.setBackground(randomColor());
+			mc.setWidth(400);
+			mc.setHeight(300);
 			fireEvent(new SlideComponentAddEvent(image, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, context, SlideMode.EDIT)));
 		});
 		video.setOnAction((e) -> {
 			MediaComponent mc = new MediaComponent();
-			mc.setWidth(200);
-			mc.setHeight(100);
-			mc.setBackground(randomColor());
+			mc.setWidth(400);
+			mc.setHeight(300);
 			fireEvent(new SlideComponentAddEvent(video, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, context, SlideMode.EDIT)));
 		});
 		audio.setOnAction((e) -> {
 			MediaComponent mc = new MediaComponent();
-			mc.setWidth(200);
-			mc.setHeight(100);
-			mc.setBackground(randomColor());
+			mc.setWidth(400);
+			mc.setHeight(300);
 			fireEvent(new SlideComponentAddEvent(audio, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, context, SlideMode.EDIT)));
 		});
 	}

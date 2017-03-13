@@ -67,7 +67,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Background;
@@ -241,12 +240,10 @@ public final class AnimationPickerPane extends BorderPane {
 		
 		animationListPane = new FlowListView<AnimationOption>(javafx.geometry.Orientation.HORIZONTAL, new AnimationOptionCellFactory());
 		animationListPane.itemsProperty().set(FXCollections.observableArrayList(animationOptions));
-//		animationListPane.setOrientation(javafx.geometry.Orientation.HORIZONTAL);
 		animationListPane.getSelectionModel().selectOnly(new AnimationOption(Swap.class, 0));
 				
 		easingListPane = new FlowListView<AnimationOption>(javafx.geometry.Orientation.VERTICAL, new AnimationOptionCellFactory());
 		easingListPane.itemsProperty().set(FXCollections.observableArrayList(easingOptions));
-//		easingListPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
 		easingListPane.getSelectionModel().selectOnly(new AnimationOption(Linear.class, 0));
 		
 		// setup the animation config

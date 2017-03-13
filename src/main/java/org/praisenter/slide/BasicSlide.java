@@ -281,7 +281,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	public void addComponent(SlideComponent component) {
 		this.components.add(component);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#removeComponent(org.praisenter.slide.SlideComponent)
 	 */

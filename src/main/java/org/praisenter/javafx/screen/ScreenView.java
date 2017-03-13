@@ -35,6 +35,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.Styles;
 import org.praisenter.javafx.configuration.Display;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
@@ -81,7 +82,7 @@ public final class ScreenView extends StackPane {
 	 * @param screen the screen; can be null
 	 */
 	private ScreenView(ScreenViewDragDropManager manager, Display display, Screen screen) {
-		this.getStyleClass().add("screen-view");
+		this.getStyleClass().add(Styles.SCREEN_VIEW);
 		
 		this.manager = manager;
 		this.display = display;

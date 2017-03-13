@@ -48,6 +48,7 @@ import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.Styles;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.utility.Fx;
@@ -99,9 +100,6 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
-	/** The pane class name */
-	private static final String CLASS_NAME = "bible-editor-pane";
-	
 	// data
 	
 	/** The praisenter context */
@@ -115,6 +113,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	/** The bible tree view */
 	private final TreeView<TreeData> bibleTree;
 	
+	/** The field for the bible name */
 	private final TextField txtName;
 	
 	// state
@@ -130,7 +129,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * @param context the context
 	 */
 	public BibleEditorPane(PraisenterContext context) {
-		this.getStyleClass().add(CLASS_NAME);
+		this.getStyleClass().add(Styles.BIBLE_EDITOR_PANE);
 		
 		this.context = context;
 

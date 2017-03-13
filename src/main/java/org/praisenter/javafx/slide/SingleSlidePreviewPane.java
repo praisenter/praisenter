@@ -27,6 +27,7 @@ package org.praisenter.javafx.slide;
 import java.util.Iterator;
 
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.Styles;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.Slide;
 import org.praisenter.utility.Scaling;
@@ -68,6 +69,8 @@ public final class SingleSlidePreviewPane extends StackPane {
 	 * @param mode the initial slide mode
 	 */
 	public SingleSlidePreviewPane(PraisenterContext context, SlideMode mode) {
+		this.getStyleClass().add(Styles.SLIDE_PREVIEW_PANE);
+		
 		this.mode.set(mode);
 		
 		final int padding = 20;

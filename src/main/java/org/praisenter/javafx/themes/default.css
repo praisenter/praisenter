@@ -74,7 +74,7 @@
 }
 
 /** bible editor verse number style */
-.verse-number {
+.bible-verse-number {
 	-fx-font-weight: bold; 
 	-fx-font-size: 0.8em;
 }

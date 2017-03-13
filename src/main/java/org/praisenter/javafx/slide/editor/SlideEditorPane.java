@@ -10,6 +10,8 @@ import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.Styles;
+import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
@@ -78,7 +80,6 @@ import javafx.scene.shape.StrokeType;
 // JAVABUG 06/30/16 LOW Text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option
 // JAVABUG 02/04/17 MEDIUM DropShadow and Glow effects cannot be mouse transparent - https://bugs.openjdk.java.net/browse/JDK-8092268, https://bugs.openjdk.java.net/browse/JDK-8101376
 
-// FIXME show the appropriate ribbon when selecting a node
 // FIXME show the appropriate ribbon when creating a new node
 // FIXME show the media selection dialog before adding a the media component
 
@@ -108,6 +109,8 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	private final StackPane slidePreview;
 	
 	public SlideEditorPane(PraisenterContext context) {
+		this.getStyleClass().add(Styles.SLIDE_EDITOR_PANE);
+		
 		this.context = context;
 		
 		// create the ribbon
@@ -323,9 +326,18 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		// adding components
 		ribbon.addEventHandler(SlideEditorEvent.ADD_COMPONENT, (e) -> {
 			ObservableSlideComponent<?> component = e.getComponent();
-			slide.get().addComponent(component);
+			
+			// compute the location (center it)
+			double sw = slide.get().getWidth();
+			double sh = slide.get().getHeight();
+			double w = component.getWidth();
+			double h = component.getHeight();
+			component.setX((sw - w) * 0.5);
+			component.setY((sh - h) * 0.5);
 			
 			Pane pane = component.getDisplayPane();
+			slide.get().addComponent(component);
+			
 			// bind the scale factor
 			component.scalingProperty().bind(scaleFactor);
 			// setup the mouse event handler
@@ -334,6 +346,31 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (ev) -> {
 				selected.set(component);
 			});
+			
+			// set it as the selected component
+			selected.set(component);
+			
+			// if the component type is media, then show the media dialog
+			if (component instanceof ObservableMediaComponent) {
+				ObservableMediaComponent omc = (ObservableMediaComponent)component;
+				MediaLibraryDialog dialog = new MediaLibraryDialog(
+						getScene().getWindow(), 
+						context);
+				dialog.valueProperty().addListener((obs, ov, nv) -> {
+					MediaObject mo = null;
+					if (nv != null) {
+						UUID id = nv.getId();
+						MediaObject omo = omc.getMedia();
+						if (omo != null) {
+							mo = new MediaObject(id, omo.getScaling(), omo.isLoop(), omo.isMute());
+						} else {
+							mo = new MediaObject(id, ScaleType.UNIFORM, false, false);
+						}
+					}
+					omc.setMedia(mo);
+				});
+				dialog.show();
+			}
 		});
 		
 		// removing components

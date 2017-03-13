@@ -106,7 +106,7 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	 * @param component the component to add
 	 */
 	public abstract void addComponent(SlideComponent component);
-	
+
 	/**
 	 * Removes the given component from this slide.
 	 * @param component the component to remove

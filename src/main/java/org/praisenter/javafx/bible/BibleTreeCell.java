@@ -24,6 +24,8 @@
  */
 package org.praisenter.javafx.bible;
 
+import org.praisenter.javafx.Styles;
+
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
 
@@ -43,7 +45,7 @@ final class BibleTreeCell extends TreeCell<TreeData> {
 	public BibleTreeCell() {
 		// styled for verse
 		this.graphic = new Label();
-		this.graphic.getStyleClass().add("verse-number");
+		this.graphic.getStyleClass().add(Styles.BIBLE_VERSE_NUMBER);
 	}
 	
 	/* (non-Javadoc)

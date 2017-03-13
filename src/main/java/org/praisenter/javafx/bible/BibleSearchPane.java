@@ -43,6 +43,7 @@ import org.praisenter.javafx.AutoCompleteComboBox;
 import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.Styles;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.resources.translations.Translations;
@@ -119,6 +120,8 @@ public final class BibleSearchPane extends BorderPane {
 	 * @param context the context
 	 */
 	public BibleSearchPane(PraisenterContext context) {
+		this.getStyleClass().add(Styles.BIBLE_SEARCH_PANE);
+		
 		this.setPadding(new Insets(5));
 		
 		ObservableList<Option<SearchType>> types = FXCollections.observableArrayList();

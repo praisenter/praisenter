@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
 import org.praisenter.bible.Bible;
+import org.praisenter.javafx.Styles;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
@@ -55,9 +56,6 @@ import javafx.scene.layout.VBox;
 final class BibleInfoPane extends VBox {
 	/** The date formatter */
 	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault());
-	
-	/** The pane class name */
-	private static final String CLASS_NAME = "bible-info-pane";
 	
 	// properties
 	
@@ -94,7 +92,7 @@ final class BibleInfoPane extends VBox {
 	 * Creates a new metadata pane.
 	 */
 	public BibleInfoPane() {
-		this.getStyleClass().add(CLASS_NAME);
+		this.getStyleClass().add(Styles.BIBLE_INFO_PANE);
 		
 		this.setPadding(new Insets(0, 5, 10, 5));
 		this.setDisable(true);
@@ -118,7 +116,7 @@ final class BibleInfoPane extends VBox {
         lblNameValue.textProperty().bind(name);
         lblNameValue.setTooltip(new Tooltip());
         lblNameValue.getTooltip().textProperty().bind(name);
-        lblNameValue.getStyleClass().add("value-label");
+        lblNameValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblName, 0, 0, 1, 1);
         grid.add(lblNameValue, 1, 0, 1, 1);
         
@@ -127,7 +125,7 @@ final class BibleInfoPane extends VBox {
         lblLanguageValue.textProperty().bind(language);
         lblLanguageValue.setTooltip(new Tooltip());
         lblLanguageValue.getTooltip().textProperty().bind(language);
-        lblLanguageValue.getStyleClass().add("value-label");
+        lblLanguageValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblLanguage, 0, 1, 1, 1);
         grid.add(lblLanguageValue, 1, 1, 1, 1);
         
@@ -136,7 +134,7 @@ final class BibleInfoPane extends VBox {
         lblSourceValue.textProperty().bind(source);
         lblSourceValue.setTooltip(new Tooltip());
         lblSourceValue.getTooltip().textProperty().bind(source);
-        lblSourceValue.getStyleClass().add("value-label");
+        lblSourceValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblSource, 0, 2, 1, 1);
         grid.add(lblSourceValue, 1, 2, 1, 1);
         
@@ -145,7 +143,7 @@ final class BibleInfoPane extends VBox {
         lblImportDateValue.textProperty().bind(importDate);
         lblImportDateValue.setTooltip(new Tooltip());
         lblImportDateValue.getTooltip().textProperty().bind(importDate);
-        lblImportDateValue.getStyleClass().add("value-label");
+        lblImportDateValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblImportDate, 0, 3, 1, 1);
         grid.add(lblImportDateValue, 1, 3, 1, 1);
         
@@ -154,7 +152,7 @@ final class BibleInfoPane extends VBox {
         lblUpdatedDateValue.textProperty().bind(updatedDate);
         lblUpdatedDateValue.setTooltip(new Tooltip());
         lblUpdatedDateValue.getTooltip().textProperty().bind(updatedDate);
-        lblUpdatedDateValue.getStyleClass().add("value-label");
+        lblUpdatedDateValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblUpdatedDate, 0, 4, 1, 1);
         grid.add(lblUpdatedDateValue, 1, 4, 1, 1);
         
@@ -163,7 +161,7 @@ final class BibleInfoPane extends VBox {
         lblCopyrightValue.textProperty().bind(copyright);
         lblCopyrightValue.setTooltip(new Tooltip());
         lblCopyrightValue.getTooltip().textProperty().bind(copyright);
-        lblCopyrightValue.getStyleClass().add("value-label");
+        lblCopyrightValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblCopyright, 0, 5, 1, 1);
         grid.add(lblCopyrightValue, 1, 5, 1, 1);
         
@@ -172,7 +170,7 @@ final class BibleInfoPane extends VBox {
         lblVerseCountValue.textProperty().bind(verseCount);
         lblVerseCountValue.setTooltip(new Tooltip());
         lblVerseCountValue.getTooltip().textProperty().bind(verseCount);
-        lblVerseCountValue.getStyleClass().add("value-label");
+        lblVerseCountValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblVerseCount, 0, 6, 1, 1);
         grid.add(lblVerseCountValue, 1, 6, 1, 1);
         
@@ -181,7 +179,7 @@ final class BibleInfoPane extends VBox {
         lblImportErrorsValue.textProperty().bind(hadImportErrors);
         lblImportErrorsValue.setTooltip(new Tooltip());
         lblImportErrorsValue.getTooltip().setText(Translations.get("bible.properties.importWarnings.tooltip"));
-        lblImportErrorsValue.getStyleClass().add("value-label");
+        lblImportErrorsValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblImportErrors, 0, 7, 1, 1);
         grid.add(lblImportErrorsValue, 1, 7, 1, 1);
         

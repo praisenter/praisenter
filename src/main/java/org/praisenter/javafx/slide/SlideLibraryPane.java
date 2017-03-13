@@ -6,6 +6,7 @@ import org.praisenter.javafx.FlowListCell;
 import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
+import org.praisenter.javafx.Styles;
 import org.praisenter.javafx.slide.editor.SlideEditorPane;
 
 import javafx.geometry.Orientation;
@@ -19,6 +20,8 @@ public class SlideLibraryPane extends BorderPane {
 	private final FlowListView<SlideListItem> slides;
 	
 	public SlideLibraryPane(PraisenterContext context) {
+		this.getStyleClass().add(Styles.SLIDE_LIBRARY_PANE);
+		
 		this.context = context;
 		this.editor = new SlideEditorPane(context);
 		

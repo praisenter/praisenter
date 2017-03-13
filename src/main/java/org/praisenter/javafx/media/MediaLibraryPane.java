@@ -50,6 +50,7 @@ import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SortGraphic;
+import org.praisenter.javafx.Styles;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
@@ -102,9 +103,6 @@ import javafx.util.Callback;
 public final class MediaLibraryPane extends BorderPane implements ApplicationPane {
 	/** The class-level loader */
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The pane class name */
-	private static final String CLASS_NAME = "media-library-pane";
 	
 	/** The collator for locale dependent sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
@@ -167,7 +165,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     		MediaType... types) {
     	this.context = context;
     	
-    	this.getStyleClass().add(CLASS_NAME);
+    	this.getStyleClass().add(Styles.MEDIA_LIBRARY_PANE);
     	
 		final ObservableMediaLibrary library = context.getMediaLibrary();
 		final ObservableSet<Tag> tags = context.getTags();

@@ -29,6 +29,7 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.javafx.Styles;
 import org.praisenter.media.MediaType;
 
 import javafx.application.Platform;
@@ -65,9 +66,6 @@ public final class MediaPlayerPane extends BorderPane {
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
-	/** The pane class name */
-	private static final String CLASS_NAME = "media-player-pane";
-	
     /** The current media duration */
     private Duration duration;
     
@@ -98,7 +96,7 @@ public final class MediaPlayerPane extends BorderPane {
      * Default constructor.
      */
     public MediaPlayerPane() {
-    	this.getStyleClass().add(CLASS_NAME);
+    	this.getStyleClass().add(Styles.MEDIA_PLAYER_PANE);
         this.mediaView = new MediaView();
         this.mediaView.setPreserveRatio(true);
         

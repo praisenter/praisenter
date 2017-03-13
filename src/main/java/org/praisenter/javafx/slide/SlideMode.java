@@ -70,7 +70,7 @@ public enum SlideMode {
 	 * <p>
 	 * Quality: DEFAULT
 	 */
-	PREVIEW_ALL,
+	PREVIEW_NO_AUDIO,
 		
 	/**
 	 * Normal presentation.

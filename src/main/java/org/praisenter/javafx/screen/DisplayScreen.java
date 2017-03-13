@@ -11,6 +11,7 @@ import javafx.animation.Transition;
 import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -46,8 +47,18 @@ public final class DisplayScreen {
 		this.id = id;
 		this.role = role;
 		this.screen = screen;
-		// TODO use same icons as Praisenter
 		this.stage = new Stage(StageStyle.TRANSPARENT);
+
+    	// icons
+		this.stage.getIcons().add(new Image("org/praisenter/resources/logo/icon16x16.png"));
+		this.stage.getIcons().add(new Image("org/praisenter/resources/logo/icon32x32.png"));
+		this.stage.getIcons().add(new Image("org/praisenter/resources/logo/icon48x48.png"));
+		this.stage.getIcons().add(new Image("org/praisenter/resources/logo/icon64x64.png"));
+		this.stage.getIcons().add(new Image("org/praisenter/resources/logo/icon96x96.png"));
+		this.stage.getIcons().add(new Image("org/praisenter/resources/logo/icon128x128.png"));
+		this.stage.getIcons().add(new Image("org/praisenter/resources/logo/icon256x256.png"));
+		this.stage.getIcons().add(new Image("org/praisenter/resources/logo/icon512x512.png"));
+    	
 		this.debugMode = debug;
 		
 		Rectangle2D bounds = screen.getBounds();
