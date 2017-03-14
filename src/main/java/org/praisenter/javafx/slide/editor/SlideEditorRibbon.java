@@ -34,22 +34,25 @@ final class SlideEditorRibbon extends TabPane implements EventHandler<SlideRibbo
 		ComponentEditorRibbonTab glow = new GlowRibbonTab();
 		ComponentEditorRibbonTab container = new ContainerRibbonTab();
 		
-		// text format
+		// text
 		ComponentEditorRibbonTab font = new FontRibbonTab();
 		ComponentEditorRibbonTab paragraph = new ParagraphRibbonTab();
 		ComponentEditorRibbonTab fontBorder = new FontBorderRibbonTab();
 		ComponentEditorRibbonTab fontShadow = new FontShadowRibbonTab();
 		ComponentEditorRibbonTab fontGlow = new FontGlowRibbonTab();
-		
-		// text content
 		ComponentEditorRibbonTab text = new TextRibbonTab();
 		ComponentEditorRibbonTab dateTimeFormat = new DateTimeRibbonTab();
 		ComponentEditorRibbonTab countdownFormat = new CountdownRibbonTab();
 		ComponentEditorRibbonTab placeholder = new PlaceholderRibbonTab();
 		
+		// media
+		ComponentEditorRibbonTab media = new MediaRibbonTab(context);
+		
 		this.addEventHandler(SlideRibbonEvent.ALL, this);
 		
 		slide.componentProperty().bind(this.slide);
+		
+		// bind the component property
 		
 		background.componentProperty().bind(component);
 		border.componentProperty().bind(component);
@@ -63,12 +66,15 @@ final class SlideEditorRibbon extends TabPane implements EventHandler<SlideRibbo
 		fontBorder.componentProperty().bind(component);
 		fontShadow.componentProperty().bind(component);
 		fontGlow.componentProperty().bind(component);
-		
 		text.componentProperty().bind(component);
 		dateTimeFormat.componentProperty().bind(component);
 		countdownFormat.componentProperty().bind(component);
 		placeholder.componentProperty().bind(component);
 
+		media.componentProperty().bind(component);
+		
+		// default all to disabled
+		
 		background.setDisable(true);
 		border.setDisable(true);
 		stacking.setDisable(true);
@@ -81,11 +87,14 @@ final class SlideEditorRibbon extends TabPane implements EventHandler<SlideRibbo
 		fontBorder.setDisable(true);
 		fontShadow.setDisable(true);
 		fontGlow.setDisable(true);
+		text.setVisible(false);
+		dateTimeFormat.setVisible(false);
+		countdownFormat.setVisible(false);
+		placeholder.setVisible(false);
 		
-		text.setDisable(true);
-		dateTimeFormat.setDisable(true);
-		countdownFormat.setDisable(true);
-		placeholder.setDisable(true);
+		media.setDisable(true);
+		
+		// build the UI
 		
 		HBox ribSlide = new HBox(slide);
 		ribSlide.setPadding(new Insets(0, 0, 0, 2));
@@ -102,17 +111,17 @@ final class SlideEditorRibbon extends TabPane implements EventHandler<SlideRibbo
 		Tab tabBox = new Tab(" Container ", ribBox);
 		tabBox.setClosable(false);
 		
-		HBox ribText = new HBox(font, paragraph, fontBorder, fontShadow, fontGlow);
+		HBox ribText = new HBox(font, paragraph, fontBorder, fontShadow, fontGlow, text, dateTimeFormat, countdownFormat, placeholder);
 		ribText.setPadding(new Insets(0, 0, 0, 2));
-		Tab tabText = new Tab(" Text Format ", ribText);
+		Tab tabText = new Tab(" Text ", ribText);
 		tabText.setClosable(false);
 		
-		HBox ribFormat = new HBox(text, dateTimeFormat, countdownFormat, placeholder);
-		ribFormat.setPadding(new Insets(0, 0, 0, 2));
-		Tab tabFormat = new Tab(" Text Content ", ribFormat);
-		tabFormat.setClosable(false);
+		HBox ribMedia = new HBox(media);
+		ribMedia.setPadding(new Insets(0, 0, 0, 2));
+		Tab tabMedia = new Tab(" Media ", ribMedia);
+		tabMedia.setClosable(false);
 		
-		this.getTabs().addAll(tabSlide, tabInsert, tabBox, tabText, tabFormat);
+		this.getTabs().addAll(tabSlide, tabInsert, tabBox, tabText, tabMedia);
 		
 		this.component.addListener((obs, ov, nv) -> {
 			// switch focus to the likely tab given the component type
@@ -122,7 +131,7 @@ final class SlideEditorRibbon extends TabPane implements EventHandler<SlideRibbo
 				} else if (nv instanceof ObservableTextComponent) {
 					this.getSelectionModel().select(tabText);
 				} else if (nv instanceof ObservableMediaComponent) {
-					this.getSelectionModel().select(tabBox);
+					this.getSelectionModel().select(tabMedia);
 				}
 			}
 		});

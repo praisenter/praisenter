@@ -226,6 +226,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			}
 			if (nv != null) {
 				nv.getEditBorderNode().pseudoClassStateChanged(SELECTED, true);
+				nv.getEditBorderNode().requestFocus();
 			}
 		});
 		

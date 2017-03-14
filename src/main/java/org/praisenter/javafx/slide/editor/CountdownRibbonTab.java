@@ -8,20 +8,16 @@ import java.util.regex.Pattern;
 
 import org.praisenter.javafx.slide.ObservableCountdownComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
-import org.praisenter.slide.text.CountdownComponent;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
 
 class CountdownRibbonTab extends ComponentEditorRibbonTab {
 	private final DateTimePicker pkrCountdownTime;
-	private final TextField txtCountdownFormat;
 	private final ComboBox<String> cmbCountdownFormat;
 	
 	private final List<Pair<String, String>> formatMapping;
@@ -51,13 +47,8 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 		countdownFormats.add("mm:ss");
 		countdownFormats.add("ss");
 		
-		this.txtCountdownFormat = new TextField();
-		this.txtCountdownFormat.setEditable(false);
-		this.txtCountdownFormat.setPrefWidth(200);
-		this.txtCountdownFormat.setTooltip(new Tooltip());
-		
 		this.cmbCountdownFormat = new ComboBox<String>(countdownFormats);
-		this.cmbCountdownFormat.setPrefWidth(200);
+		this.cmbCountdownFormat.setPrefWidth(175);
 		this.cmbCountdownFormat.setEditable(true);
 		this.cmbCountdownFormat.setValue(countdownFormats.get(2));
 		
@@ -67,17 +58,17 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 		
 		HBox row1 = new HBox(2, this.pkrCountdownTime);
 		HBox row2 = new HBox(2, this.cmbCountdownFormat);
-		HBox row3 = new HBox(2, this.txtCountdownFormat);
 
-		VBox layout = new VBox(2, row1, row2, row3);
+		VBox layout = new VBox(2, row1, row2);
 		
 		this.container.setCenter(layout);
 		
 		// events
+		this.managedProperty().bind(this.visibleProperty());
 		
 		this.cmbCountdownFormat.getEditor().textProperty().addListener((obs, ov, nv) -> {
 			if (mutating) return;
-			String format = updateExample(nv);
+			String format = getFormat(nv);
 			ObservableSlideRegion<?> comp = this.component.get();
 			if (comp != null && comp instanceof ObservableCountdownComponent) {
 				ObservableCountdownComponent otc = (ObservableCountdownComponent)comp;
@@ -88,22 +79,20 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 		this.component.addListener((obs, ov, nv) -> {
 			mutating = true;
 			if (nv != null && nv instanceof ObservableCountdownComponent) {
-				this.setDisable(false);
 				ObservableCountdownComponent otc = (ObservableCountdownComponent)nv;
 				String format = fromPattern(otc.getCountdownFormat());
 				this.cmbCountdownFormat.setValue(format);
 				this.pkrCountdownTime.setValue(otc.getCountdownTarget());
-				updateExample(format);
+				this.setVisible(true);
 			} else {
 				this.cmbCountdownFormat.setValue(countdownFormats.get(2));
 				this.pkrCountdownTime.setValue(LocalDateTime.now());
-				this.setDisable(true);
+				this.setVisible(false);
 			}
 			mutating = false;
 		});
 		
 		this.pkrCountdownTime.valueProperty().addListener((obs, ov, nv) -> {
-			updateExample(this.cmbCountdownFormat.getValue());
 			if (mutating) return;
 			ObservableSlideRegion<?> comp = this.component.get();
 			if (comp != null && comp instanceof ObservableCountdownComponent) {
@@ -113,20 +102,11 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 		});
 	}
 	
-	private String updateExample(String format) {
-		String fmt = null;
-		String text = "";
+	private String getFormat(String format) {
 		if (format != null && format.trim().length() > 0) {
-			fmt = toPattern(format);
-			text = CountdownComponent.formatCountdown(fmt, this.pkrCountdownTime.getValue());
-		} else {
-			text = "Invalid format";
+			return toPattern(format);
 		}
-		
-		this.txtCountdownFormat.setText(text);
-		this.txtCountdownFormat.getTooltip().setText(text);
-		
-		return fmt;
+		return null;
 	}
 	
 	private String toPattern(String format) {

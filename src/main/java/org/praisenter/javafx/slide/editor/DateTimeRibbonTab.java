@@ -1,7 +1,6 @@
 package org.praisenter.javafx.slide.editor;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import org.praisenter.javafx.slide.ObservableDateTimeComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
@@ -9,14 +8,11 @@ import org.praisenter.javafx.slide.ObservableSlideRegion;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 
-	private final TextField txtDateFormat;
 	private final ComboBox<String> cmbDateTimeFormat;
 	
 	public DateTimeRibbonTab() {
@@ -32,31 +28,26 @@ class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 		dateTimeFormats.add("M/d/yyyy");
 		dateTimeFormats.add("M/d/yyyy h:mm a");
 		dateTimeFormats.add("M/d/yyyy h:mm a z");
-		
-		this.txtDateFormat = new TextField();
-		this.txtDateFormat.setEditable(false);
-		this.txtDateFormat.setPrefWidth(200);
-		this.txtDateFormat.setTooltip(new Tooltip());
-		
+
 		this.cmbDateTimeFormat = new ComboBox<String>(dateTimeFormats);
-		this.cmbDateTimeFormat.setPrefWidth(200);
+		this.cmbDateTimeFormat.setPrefWidth(175);
 		this.cmbDateTimeFormat.setEditable(true);
 		this.cmbDateTimeFormat.setValue(dateTimeFormats.get(0));
 		
 		// layout
 		
 		HBox row1 = new HBox(2, this.cmbDateTimeFormat);
-		HBox row2 = new HBox(2, this.txtDateFormat);
 
-		VBox layout = new VBox(2, row1, row2);
+		VBox layout = new VBox(2, row1);
 		
 		this.container.setCenter(layout);
 		
 		// events
+		this.managedProperty().bind(this.visibleProperty());
 		
 		this.cmbDateTimeFormat.getEditor().textProperty().addListener((obs, ov, nv) -> {
 			if (mutating) return;
-			SimpleDateFormat format = updateExample(nv);
+			SimpleDateFormat format = getFormat(nv);
 			ObservableSlideRegion<?> comp = this.component.get();
 			if (comp != null && comp instanceof ObservableDateTimeComponent) {
 				ObservableDateTimeComponent otc = (ObservableDateTimeComponent)comp;
@@ -67,7 +58,6 @@ class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 		this.component.addListener((obs, ov, nv) -> {
 			mutating = true;
 			if (nv instanceof ObservableDateTimeComponent) {
-				this.setDisable(false);
 				ObservableDateTimeComponent otc = (ObservableDateTimeComponent)nv;
 				String format = "EEEE MMMM, d yyyy";
 				SimpleDateFormat fmt = otc.getDateTimeFormat();
@@ -75,31 +65,22 @@ class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 					format = fmt.toPattern();
 				}
 				this.cmbDateTimeFormat.setValue(format);
-				updateExample(format);
+				this.setVisible(true);
 			} else {
-				this.setDisable(true);
+				this.setVisible(false);
 			}
 			mutating = false;
 		});
 	}
 	
-	private SimpleDateFormat updateExample(String format) {
-		SimpleDateFormat sdf = null;
-		String text = "";
+	private SimpleDateFormat getFormat(String format) {
 		if (format != null && format.trim().length() > 0) {
 			try {
-				sdf = new SimpleDateFormat(format);
-				text = sdf.format(new Date());
+				return new SimpleDateFormat(format);
 			} catch (Exception e) {
-				text = "Invalid format";
+				// TODO log
 			}
-		} else {
-			text = "Invalid format";
 		}
-		
-		this.txtDateFormat.setText(text);
-		this.txtDateFormat.getTooltip().setText(text);
-		
-		return sdf;
+		return null;
 	}
 }

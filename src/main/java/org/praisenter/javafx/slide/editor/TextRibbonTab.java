@@ -10,6 +10,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+// TODO button to pop out a big text editor
+
 class TextRibbonTab extends ComponentEditorRibbonTab {
 	private final TextArea text;
 
@@ -19,17 +21,16 @@ class TextRibbonTab extends ComponentEditorRibbonTab {
 		this.text = new TextArea();
 		this.text.setMaxHeight(75);
 		this.text.setWrapText(true);
-		this.text.setMaxWidth(200);
+		this.text.setMaxWidth(175);
 		
 		// layout
 		
 		HBox row1 = new HBox(2, this.text);
-//		HBox row2 = new HBox(2, this.cbFontScaling, this.spnLineSpacing);
-//		HBox row3 = new HBox(2, mnuPaintType, this.pkrColor, this.pkrGradient);
 		VBox layout = new VBox(2, row1);
 		this.container.setCenter(layout);
 	
 		// events
+		this.managedProperty().bind(this.visibleProperty());
 		
 		this.component.addListener((obs, ov, nv) -> {
 			mutating = true;
@@ -37,12 +38,12 @@ class TextRibbonTab extends ComponentEditorRibbonTab {
 				!(nv instanceof ObservableCountdownComponent) &&
 				!(nv instanceof ObservableDateTimeComponent) &&
 				!(nv instanceof ObservableTextPlaceholderComponent)) {
-				this.setDisable(false);
+				this.setVisible(true);
 				ObservableTextComponent<?> otc = (ObservableTextComponent<?>)nv;
 				this.text.setText(otc.getText()); 
 			} else {
 				this.text.setText(null); 
-				this.setDisable(true);
+				this.setVisible(false);
 			}
 			mutating = false;
 		});

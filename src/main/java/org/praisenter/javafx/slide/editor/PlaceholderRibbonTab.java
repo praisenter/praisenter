@@ -31,13 +31,13 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 		
 		this.cmbTextType = new ComboBox<Option<TextType>>(placeholderTypes);
 		this.cmbTextType.setValue(placeholderTypes.get(0));
-		this.cmbTextType.setMaxWidth(200);
-		this.cmbTextType.setPrefWidth(200);
+		this.cmbTextType.setMaxWidth(175);
+		this.cmbTextType.setPrefWidth(175);
 		
 		this.cmbTextVariant = new ComboBox<Option<TextVariant>>(placeholderVariants);
 		this.cmbTextVariant.setValue(placeholderVariants.get(0));
-		this.cmbTextVariant.setMaxWidth(200);
-		this.cmbTextVariant.setPrefWidth(200);
+		this.cmbTextVariant.setMaxWidth(175);
+		this.cmbTextVariant.setPrefWidth(175);
 		
 		// layout
 		
@@ -49,6 +49,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 		this.container.setCenter(layout);
 		
 		// events
+		this.managedProperty().bind(this.visibleProperty());
 
 		this.cmbTextType.valueProperty().addListener((obs, ov, nv) -> {
 			if (mutating) return;
@@ -73,14 +74,14 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 		this.component.addListener((obs, ov, nv) -> {
 			mutating = true;
 			if (nv != null && nv instanceof ObservableTextPlaceholderComponent) {
-				this.setDisable(false);
 				ObservableTextPlaceholderComponent otpc = (ObservableTextPlaceholderComponent)nv;
 				this.cmbTextType.setValue(new Option<TextType>(null, otpc.getPlaceholderType()));
 				this.cmbTextVariant.setValue(new Option<TextVariant>(null, otpc.getPlaceholderVariant()));
+				this.setVisible(true);
 			} else {
-				this.setDisable(true);
 				this.cmbTextType.setValue(placeholderTypes.get(0));
 				this.cmbTextVariant.setValue(placeholderVariants.get(0));
+				this.setVisible(false);
 			}
 			mutating = false;
 		});

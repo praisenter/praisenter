@@ -105,9 +105,10 @@ class DateTimePicker extends VBox {
 		this.spnSeconds.setEditable(true);
 		this.spnSeconds.setPrefWidth(55);
 		
-		HBox time = new HBox(2, this.pkrDate, this.spnHours, this.spnMinutes, this.spnSeconds);
+		HBox date = new HBox(2, this.pkrDate);
+		HBox time = new HBox(this.spnHours, this.spnMinutes, this.spnSeconds);
 		
-		this.getChildren().addAll(time);
+		this.getChildren().addAll(date, time);
 		
 		InvalidationListener listener = new InvalidationListener() {
 			@Override

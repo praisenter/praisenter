@@ -115,7 +115,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		});
 		this.textWrapping.addListener((obs, ov, nv) -> {
 			this.region.setTextWrapping(nv);
-			this.updateFont();
+			this.updateSize();
 		});
 		this.textShadow.addListener((obs, ov, nv) -> {
 			this.region.setTextShadow(nv);
