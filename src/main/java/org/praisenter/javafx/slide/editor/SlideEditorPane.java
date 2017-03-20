@@ -549,15 +549,17 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	}
 	
 	private void handleApplicationEvent(ApplicationAction action) {
+		ObservableSlide<Slide> os = this.slide.get();
+		Slide s = os.getRegion();
+		
 		switch (action) {
 			case SAVE:
-				ObservableSlide<Slide> os = this.slide.get();
-				Slide s = os.getRegion();
-				
 				this.context.getSlideLibrary().save(s)
 					.execute(this.context.getExecutorService());
 				
 				break;
+			case SAVE_AS:
+				// TODO slide actions class
 			default:
 				return;
 		}
@@ -567,6 +569,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	public boolean isApplicationActionEnabled(ApplicationAction action) {
 		switch (action) {
 			case SAVE:
+			case SAVE_AS:
 				return true;
 			default:
 				return false;

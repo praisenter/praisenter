@@ -33,11 +33,9 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.SearchType;
-import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleSearchCriteria;
 import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.Book;
-import org.praisenter.bible.Chapter;
 import org.praisenter.bible.Verse;
 import org.praisenter.javafx.AutoCompleteComboBox;
 import org.praisenter.javafx.AutoCompleteComparator;
@@ -220,17 +218,11 @@ public final class BibleSearchPane extends BorderPane {
 		
 		// columns
 		TableColumn<BibleSearchResult, Number> score = new TableColumn<BibleSearchResult, Number>(Translations.get("search.score"));
-		TableColumn<BibleSearchResult, Bible> bibleName = new TableColumn<BibleSearchResult, Bible>(Translations.get("bible.search.results.bible"));
-		TableColumn<BibleSearchResult, Book> bookName = new TableColumn<BibleSearchResult, Book>(Translations.get("bible.search.results.book"));
-		TableColumn<BibleSearchResult, Chapter> chapterNumber = new TableColumn<BibleSearchResult, Chapter>(Translations.get("bible.search.results.chapter"));
-		TableColumn<BibleSearchResult, Verse> verseNumber = new TableColumn<BibleSearchResult, Verse>(Translations.get("bible.search.results.verse"));
+		TableColumn<BibleSearchResult, BibleSearchResult> reference = new TableColumn<BibleSearchResult, BibleSearchResult>(Translations.get("bible.search.results.reference"));
 		TableColumn<BibleSearchResult, Verse> verseText = new TableColumn<BibleSearchResult, Verse>(Translations.get("bible.search.results.text"));
 		
 		score.setCellValueFactory(p -> new ReadOnlyFloatWrapper(p.getValue().getScore()));
-		bibleName.setCellValueFactory(p -> new ReadOnlyObjectWrapper<Bible>(p.getValue().getBible()));
-		bookName.setCellValueFactory(p -> new ReadOnlyObjectWrapper<Book>(p.getValue().getBook()));
-		chapterNumber.setCellValueFactory(p -> new ReadOnlyObjectWrapper<Chapter>(p.getValue().getChapter()));
-		verseNumber.setCellValueFactory(p -> new ReadOnlyObjectWrapper<Verse>(p.getValue().getVerse()));
+		reference.setCellValueFactory(p -> new ReadOnlyObjectWrapper<BibleSearchResult>(p.getValue()));
 		verseText.setCellValueFactory(p -> new ReadOnlyObjectWrapper<Verse>(p.getValue().getVerse()));
 		
 		score.setCellFactory(p -> new TableCell<BibleSearchResult, Number>() {
@@ -247,47 +239,17 @@ public final class BibleSearchPane extends BorderPane {
 				}
 			}
 		});
-		bibleName.setCellFactory(p -> new TableCell<BibleSearchResult, Bible>() {
+		reference.setCellFactory(p -> new TableCell<BibleSearchResult, BibleSearchResult>() {
 			@Override
-			protected void updateItem(Bible item, boolean empty) {
+			protected void updateItem(BibleSearchResult item, boolean empty) {
 				super.updateItem(item, empty);
 				if (item == null || empty) {
 					setText(null);
 				} else {
-					setText(item.getName());
-				}
-			}
-		});
-		bookName.setCellFactory(p -> new TableCell<BibleSearchResult, Book>() {
-			@Override
-			protected void updateItem(Book item, boolean empty) {
-				super.updateItem(item, empty);
-				if (item == null || empty) {
-					setText(null);
-				} else {
-					setText(item.getName());
-				}
-			}
-		});
-		chapterNumber.setCellFactory(p -> new TableCell<BibleSearchResult, Chapter>() {
-			@Override
-			protected void updateItem(Chapter item, boolean empty) {
-				super.updateItem(item, empty);
-				if (item == null || empty) {
-					setText(null);
-				} else {
-					setText(String.valueOf(item.getNumber()));
-				}
-			}
-		});
-		verseNumber.setCellFactory(p -> new TableCell<BibleSearchResult, Verse>() {
-			@Override
-			protected void updateItem(Verse item, boolean empty) {
-				super.updateItem(item, empty);
-				if (item == null || empty) {
-					setText(null);
-				} else {
-					setText(String.valueOf(item.getNumber()));
+					setText(MessageFormat.format("{0} {1}:{2}", 
+							item.getBook().getName(),
+							item.getChapter().getNumber(),
+							item.getVerse().getNumber()));
 				}
 			}
 		});
@@ -314,23 +276,17 @@ public final class BibleSearchPane extends BorderPane {
 		});
 		
 		score.setPrefWidth(75);
-		bibleName.setPrefWidth(175);
-		bookName.setPrefWidth(150);
-		chapterNumber.setPrefWidth(50);
-		verseNumber.setPrefWidth(50);
+		reference.setPrefWidth(150);
 		verseText.setPrefWidth(600);
 		
 		this.table.getColumns().add(score);
-		this.table.getColumns().add(bibleName);
-		this.table.getColumns().add(bookName);
-		this.table.getColumns().add(chapterNumber);
-		this.table.getColumns().add(verseNumber);
+		this.table.getColumns().add(reference);
 		this.table.getColumns().add(verseText);
 		
 		this.table.setRowFactory( tv -> {
 		    TableRow<BibleSearchResult> row = new TableRow<BibleSearchResult>();
 		    row.setOnMouseClicked(event -> {
-		        if (event.getClickCount() == 2 && (! row.isEmpty()) ) {
+		        if (event.getClickCount() == 2 && (!row.isEmpty())) {
 		        	BibleSearchResult rowData = row.getItem();
 		            // set the current value
 		        	value.set(new SelectedBibleSearchResult(rowData, event.isShortcutDown()));
@@ -369,11 +325,13 @@ public final class BibleSearchPane extends BorderPane {
 						text, 
 						type.getValue());
 				AsyncTask<List<BibleSearchResult>> task = library.search(criteria);
-				task.onSucceededProperty().addListener(obs -> {
+				task.addSuccessHandler(evt -> {
 					List<BibleSearchResult> results = task.getValue();
 					this.table.setItems(FXCollections.observableArrayList(results));
 					int size = results.size();
-					lblResults.setText(MessageFormat.format(Translations.get("bible.search.results.output"), size > BibleSearchCriteria.MAXIMUM_RESULTS ? size + "+" : size));
+					lblResults.setText(MessageFormat.format(Translations.get("bible.search.results.output"), size > BibleSearchCriteria.MAXIMUM_RESULTS ? BibleSearchCriteria.MAXIMUM_RESULTS + "+" : size));
+				});
+				task.addCompletedHandler(evt -> {
 					overlay.setVisible(false);
 				});
 				task.execute(context.getExecutorService());
