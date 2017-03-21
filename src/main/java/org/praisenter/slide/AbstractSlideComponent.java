@@ -28,12 +28,25 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlSeeAlso;
+
+import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.CountdownComponent;
+import org.praisenter.slide.text.DateTimeComponent;
+import org.praisenter.slide.text.TextPlaceholderComponent;
 
 /**
  * Abstract implementation of the {@link SlideComponent} interface.
  * @author William Bittle
  * @version 3.0.0
  */
+@XmlSeeAlso({
+	MediaComponent.class,
+	BasicTextComponent.class,
+	DateTimeComponent.class,
+	TextPlaceholderComponent.class,
+	CountdownComponent.class
+})
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractSlideComponent extends AbstractSlideRegion implements SlideRegion, SlideComponent {
 	/**

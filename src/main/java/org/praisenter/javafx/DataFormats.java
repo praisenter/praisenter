@@ -12,6 +12,8 @@ public final class DataFormats {
 	public static final DataFormat CHAPTERS = DataFormats.forSerializedClass(org.praisenter.bible.Chapter.class);
 	public static final DataFormat VERSES = DataFormats.forSerializedClass(org.praisenter.bible.Verse.class);
 	
+	public static final DataFormat SLIDE_COMPONENT = DataFormats.forSerializedClass(org.praisenter.slide.SlideComponent.class);
+	
 	private static final DataFormat forSerializedClass(Class<?> clazz) {
 		return new DataFormat("application/x-java-serialized-object;class=" + clazz.getName());
 	}

@@ -1,14 +1,21 @@
 package org.praisenter.javafx.slide.editor;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.UUID;
 
+import javax.xml.bind.JAXBException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.TextType;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
+import org.praisenter.javafx.ApplicationPaneEvent;
+import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.Styles;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
@@ -17,9 +24,11 @@ import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.slide.AbstractSlideComponent;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.ShadowType;
@@ -47,6 +56,7 @@ import org.praisenter.slide.text.SlideFontWeight;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.utility.Scaling;
+import org.praisenter.xml.XmlIO;
 
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -55,8 +65,12 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.input.KeyCode;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -98,6 +112,8 @@ import javafx.scene.shape.StrokeType;
 //		the new slide is added to the scene graph
 //		the transition is played
 public final class SlideEditorPane extends BorderPane implements ApplicationPane {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private static final PseudoClass SELECTED = PseudoClass.getPseudoClass("edit-selected");
 	
 	private final PraisenterContext context;
@@ -328,13 +344,15 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		ribbon.addEventHandler(SlideEditorEvent.ADD_COMPONENT, (e) -> {
 			ObservableSlideComponent<?> component = e.getComponent();
 			
-			// compute the location (center it)
-			double sw = slide.get().getWidth();
-			double sh = slide.get().getHeight();
-			double w = component.getWidth();
-			double h = component.getHeight();
-			component.setX((sw - w) * 0.5);
-			component.setY((sh - h) * 0.5);
+			if (e.isCentered()) {
+				// compute the location (center it)
+				double sw = slide.get().getWidth();
+				double sh = slide.get().getHeight();
+				double w = component.getWidth();
+				double h = component.getHeight();
+				component.setX((sw - w) * 0.5);
+				component.setY((sh - h) * 0.5);
+			}
 			
 			Pane pane = component.getDisplayPane();
 			slide.get().addComponent(component);
@@ -348,39 +366,30 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				selected.set(component);
 			});
 			
-			// set it as the selected component
-			selected.set(component);
-			
-			// if the component type is media, then show the media dialog
-			if (component instanceof ObservableMediaComponent) {
-				ObservableMediaComponent omc = (ObservableMediaComponent)component;
-				MediaLibraryDialog dialog = new MediaLibraryDialog(
-						getScene().getWindow(), 
-						context);
-				dialog.valueProperty().addListener((obs, ov, nv) -> {
-					MediaObject mo = null;
-					if (nv != null) {
-						UUID id = nv.getId();
-						MediaObject omo = omc.getMedia();
-						if (omo != null) {
-							mo = new MediaObject(id, omo.getScaling(), omo.isLoop(), omo.isMute());
-						} else {
-							mo = new MediaObject(id, ScaleType.UNIFORM, false, false);
+			if (e.isSelected()) {
+				// set it as the selected component
+				selected.set(component);
+				
+				// if the component type is media, then show the media dialog
+				if (component instanceof ObservableMediaComponent) {
+					ObservableMediaComponent omc = (ObservableMediaComponent)component;
+					MediaLibraryDialog dialog = new MediaLibraryDialog(
+							getScene().getWindow(), 
+							context);
+					dialog.valueProperty().addListener((obs, ov, nv) -> {
+						MediaObject mo = null;
+						if (nv != null) {
+							UUID id = nv.getId();
+							MediaObject omo = omc.getMedia();
+							if (omo != null) {
+								mo = new MediaObject(id, omo.getScaling(), omo.isLoop(), omo.isMute());
+							} else {
+								mo = new MediaObject(id, ScaleType.UNIFORM, false, false);
+							}
 						}
-					}
-					omc.setMedia(mo);
-				});
-				dialog.show();
-			}
-		});
-		
-		// removing components
-		this.setOnKeyReleased((e) -> {
-			if (e.getCode() == KeyCode.DELETE) {
-				// remove the currently selected component
-				ObservableSlideRegion<?> component = selected.get();
-				if (component != null && component instanceof ObservableSlideComponent) {
-					slide.get().removeComponent((ObservableSlideComponent<?>)component);
+						omc.setMedia(mo);
+					});
+					dialog.show();
 				}
 			}
 		});
@@ -548,18 +557,94 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		return this.slide.get().getRegion();
 	}
 	
-	private void handleApplicationEvent(ApplicationAction action) {
+	// METHODS
+	
+	private final void save(boolean saveAs) {
 		ObservableSlide<Slide> os = this.slide.get();
 		Slide s = os.getRegion();
 		
+		if (!saveAs) {
+			this.context.getSlideLibrary().save(s)
+						.execute(this.context.getExecutorService());
+		} else {
+			// TODO save as
+		}
+	}
+	
+	private final void copy(boolean cut) {
+		ObservableSlide<?> slide = this.slide.get();
+		ObservableSlideRegion<?> selected = this.selected.get();
+		
+		if (selected != null) {
+			Clipboard cb = Clipboard.getSystemClipboard();
+			ClipboardContent cc = new ClipboardContent();
+			cc.put(DataFormat.PLAIN_TEXT, selected.getId().toString());
+			try {
+				cc.put(DataFormats.SLIDE_COMPONENT, XmlIO.save(selected.getRegion().copy()));
+				cb.setContent(cc);
+				
+				if (cut) {
+					// remove the component
+					slide.removeComponent((ObservableSlideComponent<?>)selected);
+				}
+				
+				// notify we changed
+				this.stateChanged(ApplicationPaneEvent.REASON_DATA_COPIED);
+			} catch (Exception e) {
+				LOGGER.warn("Failed to serialize the slide component to the clipboard.", e);
+			}
+		}
+	}
+	
+	private final void paste() {
+		ObservableSlide<?> slide = this.slide.get();
+		
+		Clipboard cb = Clipboard.getSystemClipboard();
+		Object data = cb.getContent(DataFormats.SLIDE_COMPONENT);
+		if (data != null && data instanceof String) {
+			SlideComponent sc;
+			try {
+				sc = (SlideComponent)XmlIO.read((String)data, AbstractSlideComponent.class);
+				sc = sc.copy();
+				sc.translate(20, 20);
+				ObservableSlideComponent<?> osc = slide.observableSlideComponent(sc);
+				this.ribbon.fireEvent(new SlideComponentAddEvent(this, this, osc, false, true));
+			} catch (Exception e) {
+				LOGGER.warn("Failed to parse the copied slide component that's in the clipboard: '" + data + "'", e);
+			}
+		}
+	}
+	
+	private final void delete() {
+		ObservableSlide<?> slide = this.slide.get();
+		ObservableSlideRegion<?> selected = this.selected.get();
+		
+		if (selected != null && selected instanceof ObservableSlideComponent) {
+			slide.removeComponent((ObservableSlideComponent<?>)selected);
+			this.selected.set(slide);
+		}
+	}
+	
+	private void handleApplicationEvent(ApplicationAction action) {
 		switch (action) {
 			case SAVE:
-				this.context.getSlideLibrary().save(s)
-					.execute(this.context.getExecutorService());
-				
+				this.save(false);
 				break;
 			case SAVE_AS:
-				// TODO slide actions class
+				this.save(true);
+				break;
+			case CUT:
+				this.copy(true);
+				break;
+			case COPY:
+				this.copy(false);
+				break;
+			case PASTE:
+				this.paste();
+				break;
+			case DELETE:
+				this.delete();
+				break;
 			default:
 				return;
 		}
@@ -567,10 +652,23 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	
 	@Override
 	public boolean isApplicationActionEnabled(ApplicationAction action) {
+		Node focused = this.getScene().getFocusOwner();
+		ObservableSlideRegion<?> selected = this.selected.get();
+		
 		switch (action) {
 			case SAVE:
 			case SAVE_AS:
 				return true;
+			case COPY:
+			case CUT:
+			case DELETE:
+				return selected != null && selected instanceof ObservableSlideComponent;
+			case PASTE:
+				Clipboard cb = Clipboard.getSystemClipboard();
+				if (Fx.isNodeInFocusChain(focused, this.slidePreview)) {
+					return cb.hasContent(DataFormats.SLIDE_COMPONENT);
+				}
+				return false;
 			default:
 				return false;
 		}
@@ -589,4 +687,16 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	public boolean isApplicationActionVisible(ApplicationAction action) {
 		return true;
 	}
+
+    /**
+     * Called when the state of this pane changes.
+     * @param reason the reason
+     */
+    private final void stateChanged(String reason) {
+    	Scene scene = this.getScene();
+    	// don't bother if there's no place to send the event to
+    	if (scene != null) {
+    		fireEvent(new ApplicationPaneEvent(this, this, ApplicationPaneEvent.STATE_CHANGED, this, reason));
+    	}
+    }
 }

@@ -24,25 +24,11 @@
  */
 package org.praisenter.slide;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
-
-import org.praisenter.slide.text.BasicTextComponent;
-import org.praisenter.slide.text.CountdownComponent;
-import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.TextPlaceholderComponent;
-
 /**
  * Represents a component or section of a slide.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlSeeAlso({
-	MediaComponent.class,
-	BasicTextComponent.class,
-	DateTimeComponent.class,
-	TextPlaceholderComponent.class,
-	CountdownComponent.class
-})
 public interface SlideComponent extends SlideRegion {
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideRegion#copy()
