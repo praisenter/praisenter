@@ -214,7 +214,7 @@ public final class MediaActions {
 								owner,
 								null, 
 								null, 
-								MessageFormat.format(Translations.get("media.rename.error"), media.getName(), name), 
+								MessageFormat.format(Translations.get("task.rename.error"), media.getName(), name), 
 								ex);
 						alert.show();
 					});

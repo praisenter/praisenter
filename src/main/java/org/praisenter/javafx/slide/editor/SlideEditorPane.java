@@ -11,6 +11,7 @@ import javax.xml.bind.JAXBException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.TextType;
+import org.praisenter.bible.Bible;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
@@ -18,10 +19,13 @@ import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.Styles;
+import org.praisenter.javafx.async.AsyncTask;
+import org.praisenter.javafx.bible.BibleActions;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
+import org.praisenter.javafx.slide.SlideActions;
 import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.AbstractSlideComponent;
@@ -561,14 +565,45 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	
 	private final void save(boolean saveAs) {
 		ObservableSlide<Slide> os = this.slide.get();
-		Slide s = os.getRegion();
+		Slide slide = os.getRegion();
 		
-		if (!saveAs) {
-			this.context.getSlideLibrary().save(s)
-						.execute(this.context.getExecutorService());
+		AsyncTask<Slide> task = null;
+		if (saveAs) {
+			task = SlideActions.slidePromptSaveAs(
+					this.context.getSlideLibrary(), 
+					this.getScene().getWindow(), 
+					slide);
 		} else {
-			// TODO save as
+			task = SlideActions.slideSave(
+					this.context.getSlideLibrary(), 
+					this.getScene().getWindow(), 
+					slide);
 		}
+		
+		task.addSuccessHandler(e -> {
+			Slide saved = (Slide)e.getSource().getValue();
+			// make the current bible being edited act
+			// as the one we saved so that any subsequent
+			// saves save to this one and so that we don't
+			// lose any changes made by the user in the
+			// while the save as action was processing
+			this.slide.get().getRegion().as(saved);
+			// manually update the name field
+			this.ribbon.setSlideName(saved.getName());
+			// TODO track changes
+//			// store the value of unsavedChanges
+//			boolean moreChanges = this.unsavedChanges;
+//			// did the user make changes while the save was happening?
+//			if (!moreChanges) {
+//				// make sure changing the name field doesn't
+//				// flag it as unsaved
+//				this.unsavedChanges = false;
+//			}
+		});
+		task.addCancelledOrFailedHandler(e -> {
+			//this.unsavedChanges = true;
+		});
+		task.execute(this.context.getExecutorService());
 	}
 	
 	private final void copy(boolean cut) {

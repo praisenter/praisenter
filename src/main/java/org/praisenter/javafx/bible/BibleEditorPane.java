@@ -863,7 +863,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			this.context.getBibleLibrary(), 
 			this.getScene().getWindow(), 
 			this.getBible());
-		task.onFailedProperty().addListener(obs -> {
+		task.addCancelledOrFailedHandler(e -> {
 			this.unsavedChanges = true;
 		});
 		task.execute(this.context.getExecutorService());
@@ -879,7 +879,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			this.context.getBibleLibrary(), 
 			this.getScene().getWindow(), 
 			this.getBible());
-		task.onFailedProperty().addListener(obs -> {
+		task.addSuccessHandler(e -> {
 			Bible saved = task.getValue();
 			// make the current bible being edited act
 			// as the one we saved so that any subsequent
@@ -898,7 +898,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				this.unsavedChanges = false;
 			}
 		});
-		task.onFailedProperty().addListener(obs -> {
+		task.addCancelledOrFailedHandler(e -> {
 			this.unsavedChanges = true;
 		});
 		task.execute(this.context.getExecutorService());

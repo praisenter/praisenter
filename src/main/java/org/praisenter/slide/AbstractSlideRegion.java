@@ -58,7 +58,7 @@ import org.praisenter.slide.object.MediaObject;
 public abstract class AbstractSlideRegion implements SlideRegion {
 	/** The id */
 	@XmlElement(name = "id", required = false)
-	final UUID id;
+	UUID id;
 	
 	/** The x coordinate */
 	@XmlElement(name = "x", required = false)

@@ -122,4 +122,9 @@ final class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 			}
         });
 	}
+	
+	public void setName(String name) {
+		this.name.setText(name);
+	}
+	
 }

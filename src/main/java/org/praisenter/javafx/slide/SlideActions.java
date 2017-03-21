@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.bible;
+package org.praisenter.javafx.slide;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -35,13 +35,13 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.bible.Bible;
-import org.praisenter.bible.BibleLibrary;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.async.AsyncGroupTask;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.resources.translations.Translations;
+import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideLibrary;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -52,39 +52,40 @@ import javafx.stage.Modality;
 import javafx.stage.Window;
 
 /**
- * Wrapper class for user actions with the {@link ObservableBibleLibrary} that encapsulate
+ * Wrapper class for user actions with the {@link ObservableSlideLibrary} that encapsulate
  * user related alerts and warnings.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class BibleActions {
+public final class SlideActions {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** Hidden constructor */
-	private BibleActions() {}
+	private SlideActions() {}
 
 	/**
-	 * Returns a task that will import the given paths as bibles.
+	 * Returns a task that will import the given paths as slides.
 	 * <p>
-	 * Returns a list of the bibles that were imported successfully.
+	 * Returns a list of the slides that were imported successfully.
 	 * @param library the library to import into
 	 * @param owner the window owner
 	 * @param paths the paths to import
-	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;List&lt;{@link Bible}&gt;&gt;&gt;
+	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;List&lt;{@link Slide}&gt;&gt;&gt;
 	 */
-	public static final AsyncGroupTask<AsyncTask<List<Bible>>> bibleImport(ObservableBibleLibrary library, Window owner, List<Path> paths) {
+	public static final AsyncGroupTask<AsyncTask<List<Slide>>> slideImport(ObservableSlideLibrary library, Window owner, List<Path> paths) {
 		// sanity check
 		if (paths != null && !paths.isEmpty()) {
 			// build a list of tasks to execute
-			List<AsyncTask<List<Bible>>> tasks = new ArrayList<AsyncTask<List<Bible>>>();
+			List<AsyncTask<List<Slide>>> tasks = new ArrayList<AsyncTask<List<Slide>>>();
 			for (Path path : paths) {
 				if (path != null) {
+					// FIXME handle zip files
 					tasks.add(library.add(path));
 				}
 			}
 			// wrap the tasks in a multi-task wait task
-			AsyncGroupTask<AsyncTask<List<Bible>>> task = new AsyncGroupTask<AsyncTask<List<Bible>>>(tasks);
+			AsyncGroupTask<AsyncTask<List<Slide>>> task = new AsyncGroupTask<AsyncTask<List<Slide>>>(tasks);
 			// define a listener to be called when the wrapper task completes
 			task.addCompletedHandler((e) -> {
 				// get the exceptions
@@ -103,27 +104,6 @@ public final class BibleActions {
 							null, 
 							exceptions);
 					alert.show();
-				} else {
-					// get the warnings
-					List<String> wFileNames = tasks
-							.stream()
-							.map(t -> t.getValue())
-							.flatMap(List::stream)
-							.filter(b -> b.hadImportWarning())
-							.map(f -> f.getName())
-							.collect(Collectors.toList());
-					// did we have any warnings?
-					if (wFileNames.size() > 0) {
-						// show a dialog of the files that had warnings
-						String list = String.join(", ", wFileNames);
-						Alert alert = Alerts.info(
-								owner, 
-								Modality.WINDOW_MODAL,
-								Translations.get("bible.import.info.title"), 
-								Translations.get("bible.import.info.header"), 
-								list);
-						alert.show();
-					}
 				}
 			});
 			// return the 
@@ -133,26 +113,26 @@ public final class BibleActions {
 	}
 	
 	/**
-	 * Returns a task that will save the given bible.
+	 * Returns a task that will save the given slide.
 	 * <p>
-	 * Returns the bible that was saved.
+	 * Returns the slide that was saved.
 	 * @param library the library to save to
 	 * @param owner the window owner
-	 * @param bible the bible to save
-	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 * @param slide the slide to save
+	 * @return {@link AsyncTask}&lt;{@link Slide}&gt;
 	 */
-	public static final AsyncTask<Bible> bibleSave(ObservableBibleLibrary library, Window owner, Bible bible) {
+	public static final AsyncTask<Slide> slideSave(ObservableSlideLibrary library, Window owner, Slide slide) {
 		// sanity check
-		if (bible != null) {
-			AsyncTask<Bible> task = library.save(bible);
+		if (slide != null) {
+			AsyncTask<Slide> task = library.save(slide);
 	    	task.addCancelledOrFailedHandler((e) -> {
 	    		Throwable error = task.getException();
-	    		LOGGER.error("Failed to save bible " + bible.getName() + " " + bible.getId() + " due to: " + error.getMessage(), error);
+	    		LOGGER.error("Failed to save slide " + slide.getName() + " " + slide.getId() + " due to: " + error.getMessage(), error);
 				Alert alert = Alerts.exception(
 						owner,
 						null, 
 						null, 
-						MessageFormat.format(Translations.get("bible.save.error.content"), bible.getName()), 
+						MessageFormat.format(Translations.get("slide.save.error.content"), slide.getName()), 
 						error);
 				alert.show();
 			});
@@ -162,19 +142,19 @@ public final class BibleActions {
 	}
 
 	/**
-	 * Returns a task that will prompt the user for a new name for the given bible and save it with
+	 * Returns a task that will prompt the user for a new name for the given slide and save it with
 	 * that new name.
 	 * <p>
-	 * Returns the bible with the new name.
+	 * Returns the slide with the new name.
 	 * @param library the library to save to
 	 * @param owner the window owner
-	 * @param bible the bible to rename
-	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 * @param slide the slide to rename
+	 * @return {@link AsyncTask}&lt;{@link Slide}&gt;
 	 */
-	public static final AsyncTask<Bible> biblePromptRename(ObservableBibleLibrary library, Window owner, Bible bible) {
+	public static final AsyncTask<Slide> slidePromptRename(ObservableSlideLibrary library, Window owner, Slide slide) {
 		// sanity check
-		if (bible != null) {
-			String old = bible.getName();
+		if (slide != null) {
+			String old = slide.getName();
 	    	TextInputDialog prompt = new TextInputDialog(old);
 	    	prompt.initOwner(owner);
 	    	prompt.initModality(Modality.WINDOW_MODAL);
@@ -187,14 +167,14 @@ public final class BibleActions {
 	    		// actually rename it?
 	    		String name = result.get();
 	    		if (!Objects.equals(old, name)) {
-		        	// update the bible's name
-		    		bible.setName(name);
-		    		AsyncTask<Bible> task = library.save(MessageFormat.format(Translations.get("task.rename"), old, name), bible);
+		        	// update the slide's name
+		    		slide.setName(name);
+		    		AsyncTask<Slide> task = library.save(MessageFormat.format(Translations.get("task.rename"), old, name), slide);
 		        	task.addCancelledOrFailedHandler((e) -> {
 		        		Throwable error = task.getException();
-		        		bible.setName(old);
+		        		slide.setName(old);
 						// log the error
-						LOGGER.error("Failed to rename bible from '{}' to '{}': {}", old, name, error.getMessage());
+						LOGGER.error("Failed to rename slide from '{}' to '{}': {}", old, name, error.getMessage());
 						// show an error to the user
 						Alert alert = Alerts.exception(
 								owner,
@@ -214,36 +194,37 @@ public final class BibleActions {
 	}
 
 	/**
-	 * Returns a task that will prompt the user to select a file name to export the given bibles to.
+	 * Returns a task that will prompt the user to select a file name to export the given slides to.
 	 * @param library the library to save to
 	 * @param owner the window owner
-	 * @param bibles the bibles to export
+	 * @param slides the slides to export
 	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
-	public static final AsyncTask<Void> biblePromptExport(ObservableBibleLibrary library, Window owner, List<Bible> bibles) {
+	public static final AsyncTask<Void> slidePromptExport(ObservableSlideLibrary library, Window owner, List<Slide> slides) {
 		// sanity check
-		if (bibles != null && !bibles.isEmpty()) {
-			String name = Translations.get("bible.export.multiple.filename"); 
-	    	if (bibles.size() == 1) {
+		// TODO export media with it?
+		if (slides != null && !slides.isEmpty()) {
+			String name = Translations.get("slide.export.multiple.filename"); 
+	    	if (slides.size() == 1) {
 	    		// make sure the file name doesn't have bad characters in it
-	    		name = BibleLibrary.createFileName(bibles.get(0));
+	    		name = SlideLibrary.createFileName(slides.get(0));
 	    	}
 	    	FileChooser chooser = new FileChooser();
 	    	chooser.setInitialFileName(name + ".zip");
-	    	chooser.setTitle(Translations.get("bible.export.title"));
+	    	chooser.setTitle(Translations.get("slide.export.title"));
 	    	chooser.getExtensionFilters().add(new ExtensionFilter(Translations.get("export.zip.name"), Translations.get("export.zip.extension")));
 	    	File file = chooser.showSaveDialog(owner);
 	    	// check for cancellation
 	    	if (file != null) {
 	    		final Path path = file.toPath();
-	    		AsyncTask<Void> task = library.exportBibles(path, bibles);
+	    		AsyncTask<Void> task = library.exportSlides(path, slides);
 				task.addCancelledOrFailedHandler((e) -> {
 					// show an error to the user
 					Alert alert = Alerts.exception(
 							owner,
 							null, 
 							null, 
-							Translations.get("bible.export.error"), 
+							Translations.get("slide.export.error"), 
 							task.getException());
 					alert.show();
 				});
@@ -255,16 +236,16 @@ public final class BibleActions {
 	}
 
 	/**
-	 * Returns a task that will prompt the user for files to import as bibles.
+	 * Returns a task that will prompt the user for files to import as slides.
 	 * <p>
-	 * Returns a list of the bibles that were imported successfully.
+	 * Returns a list of the slides that were imported successfully.
 	 * @param library the library to import into
 	 * @param owner the window owner
-	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;List&lt;{@link Bible}&gt;&gt;&gt;
+	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;List&lt;{@link Slide}&gt;&gt;&gt;
 	 */
-	public static final AsyncGroupTask<AsyncTask<List<Bible>>> biblePromptImport(ObservableBibleLibrary library, Window owner) {
+	public static final AsyncGroupTask<AsyncTask<List<Slide>>> slidePromptImport(ObservableSlideLibrary library, Window owner) {
 		FileChooser chooser = new FileChooser();
-		chooser.setTitle(Translations.get("bible.import.title"));
+		chooser.setTitle(Translations.get("slide.import.title"));
 		List<File> files = chooser.showOpenMultipleDialog(owner);
 		if (files != null && files.size() > 0) {
 			List<Path> paths = files
@@ -272,38 +253,38 @@ public final class BibleActions {
 					.filter(f -> f != null && f.isFile())
 					.map(f -> f.toPath())
 					.collect(Collectors.toList());
-			return bibleImport(library, owner, paths);
+			return slideImport(library, owner, paths);
 		}
 		return AsyncTaskFactory.none();
 	}
 
 	/**
-	 * Returns a task that will make a copy of the given bible.
+	 * Returns a task that will make a copy of the given slide.
 	 * <p>
 	 * Returns the copy.
 	 * @param library the library to save to
 	 * @param owner the window owner
-	 * @param bible the bible to copy
-	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 * @param slide the slide to copy
+	 * @return {@link AsyncTask}&lt;{@link Slide}&gt;
 	 */
-	public static final AsyncTask<Bible> bibleCopy(ObservableBibleLibrary library, Window owner, Bible bible) {
-		if (bible != null) {
+	public static final AsyncTask<Slide> slideCopy(ObservableSlideLibrary library, Window owner, Slide slide) {
+		if (slide != null) {
 			// make a copy
-			Bible copy = bible.copy(false);
+			Slide copy = slide.copy(false);
 			// set the name to something else
-			copy.setName(MessageFormat.format(Translations.get("copyof"), bible.getName()));
+			copy.setName(MessageFormat.format(Translations.get("copyof"), slide.getName()));
 			// save it
-			AsyncTask<Bible> task = library.save(copy);
+			AsyncTask<Slide> task = library.save(copy);
 	    	task.addCancelledOrFailedHandler((e) -> {
 	    		Throwable error = task.getException();
 	    		// log the error
-				LOGGER.error("Failed to copy bible.", error);
+				LOGGER.error("Failed to copy slide.", error);
 				// present message to user
 				Alert alert = Alerts.exception(
 						owner,
 						null, 
 						null, 
-						MessageFormat.format(Translations.get("bible.copy.error"), bible.getName()), 
+						MessageFormat.format(Translations.get("slide.copy.error"), slide.getName()), 
 						error);
 				alert.show();
 			});
@@ -313,18 +294,18 @@ public final class BibleActions {
 	}
 
 	/**
-	 * Returns a task that will prompt the user for a new name for the given bible and save a new
-	 * bible with that new name.
+	 * Returns a task that will prompt the user for a new name for the given slide and save a new
+	 * slide with that new name.
 	 * <p>
-	 * Returns the new bible.
+	 * Returns the new slide.
 	 * @param library the library to save to
 	 * @param owner the window owner
-	 * @param bible the bible to rename
-	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
+	 * @param slide the slide to rename
+	 * @return {@link AsyncTask}&lt;{@link Slide}&gt;
 	 */
-	public static final AsyncTask<Bible> biblePromptSaveAs(ObservableBibleLibrary library, Window owner, Bible bible) {
-		if (bible != null) {
-			String old = bible.getName();
+	public static final AsyncTask<Slide> slidePromptSaveAs(ObservableSlideLibrary library, Window owner, Slide slide) {
+		if (slide != null) {
+			String old = slide.getName();
 	    	TextInputDialog prompt = new TextInputDialog(old);
 	    	prompt.initOwner(owner);
 	    	prompt.initModality(Modality.WINDOW_MODAL);
@@ -335,22 +316,22 @@ public final class BibleActions {
 	    	// check for the "OK" button
 	    	if (result.isPresent()) {
 	    		String name = result.get();
-	        	// create a copy of the current bible with new id
-	    		Bible copy = bible.copy(false);
+	        	// create a copy of the current slide with new id
+	    		Slide copy = slide.copy(false);
 	    		// set the name
 	    		copy.setName(name);
 	    		// save it
-	    		AsyncTask<Bible> task = library.save(copy);
+	    		AsyncTask<Slide> task = library.save(copy);
 		    	task.addCancelledOrFailedHandler((e) -> {
 		    		Throwable error = task.getException();
 		    		// log the error
-					LOGGER.error("Failed to save bible as " + name + ".", error);
+					LOGGER.error("Failed to save slide as " + name + ".", error);
 					// present message to user
 					Alert alert = Alerts.exception(
 							owner,
 							null, 
 							null, 
-							MessageFormat.format(Translations.get("bible.saveas.error"), bible.getName(), name), 
+							MessageFormat.format(Translations.get("slide.saveas.error"), slide.getName(), name), 
 							error);
 					alert.show();
 				});
@@ -361,26 +342,26 @@ public final class BibleActions {
 	}
 
 	/**
-	 * Returns a task that will prompt the user for for confirmation to delete the given bibles.
+	 * Returns a task that will prompt the user for for confirmation to delete the given slides.
 	 * @param library the library to import into
 	 * @param owner the window owner
-	 * @param bibles the bibles to delete
+	 * @param slides the slides to delete
 	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;Void&gt;&gt;
 	 */
-	public static final AsyncGroupTask<AsyncTask<Void>> biblePromptDelete(ObservableBibleLibrary library, Window owner, List<Bible> bibles) {
-		if (bibles != null) {
-			// attempt to delete the selected bible
+	public static final AsyncGroupTask<AsyncTask<Void>> slidePromptDelete(ObservableSlideLibrary library, Window owner, List<Slide> slides) {
+		if (slides != null) {
+			// attempt to delete the selected slide
 			Alert alert = Alerts.confirm(
 					owner, 
 					Modality.WINDOW_MODAL, 
-					Translations.get("bible.delete.title"), 
+					Translations.get("slide.delete.title"), 
 					null, 
-					Translations.get("bible.delete.content"));
+					Translations.get("slide.delete.content"));
 			
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.get() == ButtonType.OK) {
 				List<AsyncTask<Void>> tasks = new ArrayList<AsyncTask<Void>>();
-				for (Bible b : bibles) {
+				for (Slide b : slides) {
 					if (b != null) {
 						tasks.add(library.remove(b));
 					}

@@ -201,6 +201,15 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	public BasicSlide copy(boolean exact) {
 		return new BasicSlide(this, exact);
 	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#as(org.praisenter.slide.Slide)
+	 */
+	public void as(Slide slide) {
+		this.id = slide.getId();
+		this.name = slide.getName();
+		this.path = slide.getPath();
+	}
 	
 	/* (non-Javadoc)
 	 * @see java.lang.Comparable#compareTo(java.lang.Object)

@@ -241,6 +241,18 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	 * @see org.praisenter.slide.SlideRegion#copy(boolean)
 	 */
 	public abstract Slide copy(boolean exact);
+
+	/**
+	 * Sets this slide as an instance of the given slide.
+	 * <p>
+	 * When this method is called, this slide will now have
+	 * the same id and name as the given slide, along with
+	 * other internal properties. The slide data, components,
+	 * etc. are not copied from the given slide.  Also, 
+	 * editable metadata is not copied.
+	 * @param slide the slide act as
+	 */
+	public abstract void as(Slide slide);
 	
 	// other
 	
