@@ -358,4 +358,30 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 		
 		return false;
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#isMediaReferenced(java.util.UUID[])
+	 */
+	@Override
+	public boolean isMediaReferenced(UUID... ids) {
+		// check the background
+		if (this.background != null && this.background instanceof MediaObject) {
+			MediaObject mo = (MediaObject)this.background;
+			for (UUID id : ids) {
+				if (id.equals(mo.getId())) {
+					return true;
+				}
+			}
+		}
+		// check the slide stroke
+		if (this.border != null && this.border.getPaint() != null && this.border.getPaint() instanceof MediaObject) {
+			MediaObject mo = (MediaObject)this.border.getPaint();
+			for (UUID id : ids) {
+				if (id.equals(mo.getId())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }

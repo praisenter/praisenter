@@ -309,6 +309,15 @@ public final class ObservableSlideLibrary {
 		LOGGER.info("Generated {} slide thumbnails.", generated);
 	}
 	
+	/**
+	 * Returns true if any of the given media is referenced.
+	 * @param ids the media ids
+	 * @return boolean
+	 */
+	public boolean isMediaReferenced(List<UUID> ids) {
+		return this.library.isMediaReferenced(ids.toArray(new UUID[0]));
+	}
+	
 	// mutators
 
 	/**

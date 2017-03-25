@@ -509,7 +509,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 		}
 		
 		MediaActions.mediaPromptDelete(
-			this.context.getMediaLibrary(), 
+			this.context, 
 			this.getScene().getWindow(), 
 			items)
 		.execute(this.context.getExecutorService());

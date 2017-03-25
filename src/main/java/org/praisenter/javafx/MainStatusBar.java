@@ -44,6 +44,7 @@ class MainStatusBar extends HBox {
 		});
 		progress.setMaxHeight(10);
 		progress.setMinWidth(200);
+		progress.setPrefWidth(200);
 		progress.setStyle("-fx-indeterminate-bar-escape: false; -fx-indeterminate-bar-flip: true;");
 		
 		button.setGraphic(progress);

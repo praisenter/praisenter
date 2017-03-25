@@ -333,6 +333,20 @@ public final class SlideLibrary {
 	}
 	
 	/**
+	 * Returns true if any of the given media is in use on a slide.
+	 * @param ids the media ids
+	 * @return boolean
+	 */
+	public boolean isMediaReferenced(UUID... ids) {
+		for (Slide slide : this.slides.values()) {
+			if (slide.isMediaReferenced(ids)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
 	 * Creates a file name for the given slide name.
 	 * @param slide the slide
 	 * @return String

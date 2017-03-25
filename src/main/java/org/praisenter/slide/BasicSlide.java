@@ -535,4 +535,19 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		
 		return this.placeholderData.get(variant, type);
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.AbstractSlideRegion#isMediaReferenced(java.util.UUID[])
+	 */
+	@Override
+	public boolean isMediaReferenced(UUID... ids) {
+		for (SlideComponent component : this.components) {
+			for (UUID id : ids) {
+				if (component.isMediaReferenced(id)){
+					return true;
+				}
+			}
+		}
+		return super.isMediaReferenced(ids);
+	}
 }

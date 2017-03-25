@@ -312,7 +312,10 @@ public final class Praisenter extends Application {
     	// NOTE: this should be the only place where this is done, every other window needs to inherit the css from the parent
     	scene.getStylesheets().add(configuration.getTheme().getCss());
     	stage.setScene(scene);
-    	stage.setOnCloseRequest((e) -> {
+    	stage.setOnHiding((e) -> {
+			// close the presentation screens
+			this.context.getDisplayManager().release();
+			
     		// save some application info
     		LOGGER.debug("Saving application location and size: ({}, {}) {}x{}", stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
     		if (!stage.isMaximized()) {

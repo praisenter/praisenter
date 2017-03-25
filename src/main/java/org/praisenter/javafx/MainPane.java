@@ -139,8 +139,6 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				this.navigate(this.slideLibraryPane);
 				break;
 			case EXIT:
-				// close the presentation screens
-				this.context.getDisplayManager().release();
 				// close the application
 				this.context.getJavaFXContext().getStage().close();
 				break;
@@ -152,6 +150,8 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 					} catch (IOException ex) {
 						LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
 					}
+				} else {
+					LOGGER.warn("Desktop is not supported. Failed to open log path.");
 				}
 			default:
 				// do nothing

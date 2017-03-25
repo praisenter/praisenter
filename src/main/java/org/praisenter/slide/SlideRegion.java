@@ -201,6 +201,13 @@ public interface SlideRegion {
 	 * @return boolean
 	 */
 	public abstract boolean isBackgroundTransitionRequired(SlideRegion region);
+
+	/**
+	 * Returns true if any of the given media ids are used on this slide region.
+	 * @param ids the media ids
+	 * @return boolean
+	 */
+	public boolean isMediaReferenced(UUID... ids);
 	
 	// copying
 	

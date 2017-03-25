@@ -37,6 +37,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
 import org.praisenter.javafx.Alerts;
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.async.AsyncGroupTask;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
@@ -229,23 +230,28 @@ public final class MediaActions {
 
 	/**
 	 * Returns a task that will prompt the user for confirmation for deleting the given media items.
-	 * @param library the library to import into
+	 * @param context the context
 	 * @param owner the window owner
 	 * @param media the media to delete
 	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;Void&gt;&gt;
 	 */
-	public static final AsyncGroupTask<AsyncTask<Void>> mediaPromptDelete(ObservableMediaLibrary library, Window owner, List<Media> media) {
-		if (media != null) {
+	public static final AsyncGroupTask<AsyncTask<Void>> mediaPromptDelete(PraisenterContext context, Window owner, List<Media> media) {
+		if (media != null && !media.isEmpty()) {
+			// check for usage
+			boolean isInUse = context.getSlideLibrary().isMediaReferenced(media.stream().map(m -> m.getId()).collect(Collectors.toList()));
+			
 			// make sure the user really wants to do this
 			Alert confirm = Alerts.confirm(
 					owner, 
 					Modality.WINDOW_MODAL, 
 					Translations.get("media.remove.title"), 
 					null, 
-					Translations.get("media.remove.content"));
+					isInUse ? Translations.get("media.remove.referenced") : Translations.get("media.remove.content"));
 			Optional<ButtonType> result = confirm.showAndWait();
+			
 			// for real?
 			if (result.get() == ButtonType.OK) {
+				ObservableMediaLibrary library = context.getMediaLibrary();
 				List<AsyncTask<Void>> tasks = new ArrayList<AsyncTask<Void>>();
 				for (Media m : media) {
 					if (m != null) {

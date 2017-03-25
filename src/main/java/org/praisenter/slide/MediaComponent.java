@@ -24,6 +24,8 @@
  */
 package org.praisenter.slide;
 
+import java.util.UUID;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -73,6 +75,19 @@ public class MediaComponent extends AbstractSlideComponent implements SlideRegio
 	@Override
 	public MediaComponent copy(boolean exact) {
 		return new MediaComponent(this, exact);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#isMediaReferenced(java.util.UUID[])
+	 */
+	@Override
+	public boolean isMediaReferenced(UUID... ids) {
+		for (UUID id : ids) {
+			if (this.media != null && id.equals(this.media.getId())) {
+				return true;
+			}
+		}
+		return super.isMediaReferenced(ids);
 	}
 	
 	/**
