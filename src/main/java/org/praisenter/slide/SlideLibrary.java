@@ -70,7 +70,7 @@ public final class SlideLibrary {
 	
 	// static
 
-	/** The extension to use for the song files */
+	/** The extension to use for the slide files */
 	private static final String EXTENSION = ".xml";
 	
 	// instance
