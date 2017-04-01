@@ -95,6 +95,9 @@ public final class MediaLibrary {
 	/** The suffix added to a media file for metadata */
 	private static final String METADATA_EXT = "_metadata.xml";
 	
+	/** The directory to store media when exported with other data */
+	private static final String ZIP_DIR = "media";
+	
 	// instance variables
 	
 	/** The root path to the media library */
@@ -740,6 +743,22 @@ public final class MediaLibrary {
 		// keep track of successfully imported media
 		List<Media> imported = new ArrayList<Media>();
 		
+		// get the root folder by inspecting what's in the zip
+		// if there's a media folder then look there only, otherwise
+		// look in the root
+		String root = "";
+		try (FileInputStream fis = new FileInputStream(path.toFile());
+			 ZipInputStream zis = new ZipInputStream(fis)) {
+			ZipEntry entry = null;
+			while ((entry = zis.getNextEntry()) != null) {
+				if (entry.isDirectory() && ZIP_DIR.equals(entry.getName())) {
+					root = ZIP_DIR;
+					break;
+				}
+			}
+		}
+		root = root.toUpperCase();
+		
 		// for an import, we verify that it's a zip file
 		// and then import whatever media has metadata as is 
 		// (doesn't pass through the filter process)
@@ -756,18 +775,21 @@ public final class MediaLibrary {
 			while ((entry = zis.getNextEntry()) != null) {
 				if (!entry.isDirectory()) {
 					String name = entry.getName();
-					// check for xml entries
-					// this is the best we can do here since ZipInputStream doesn't
-					// support mark/reset
-					if (MimeType.XML.check(name)) {
-						// its a metadata file, try to read and parse it
-						try {
-							byte[] data = Zip.read(zis);
-							Media media = XmlIO.read(new ByteArrayInputStream(data), Media.class);
-							metadata.put(media.fileName, media);
-						} catch (Exception ex) {
-							// it failed, might be some other type of xml file
-							LOGGER.warn("Failed to read '" + name + "' as media metadata.", ex);
+					// verify that the media is in the correct folder
+					if (name.toUpperCase().startsWith(root)) {
+						// check for xml entries
+						// this is the best we can do here since ZipInputStream doesn't
+						// support mark/reset
+						if (MimeType.XML.check(name)) {
+							// its a metadata file, try to read and parse it
+							try {
+								byte[] data = Zip.read(zis);
+								Media media = XmlIO.read(new ByteArrayInputStream(data), Media.class);
+								metadata.put(media.fileName, media);
+							} catch (Exception ex) {
+								// it failed, might be some other type of xml file
+								LOGGER.warn("Failed to read '" + name + "' as media metadata.", ex);
+							}
 						}
 					}
 				}
@@ -781,56 +803,59 @@ public final class MediaLibrary {
 			while ((entry = zis.getNextEntry()) != null) {
 				if (!entry.isDirectory()) {
 					String name = entry.getName();
-					// does it have associated metadata?
-					Media media = metadata.get(name);
-					if (media != null) {
-						try {
-							// get a lock for the source file name
-							synchronized (this.locks.get(name)) {
-								// get the target name based on the import filter
-								Path target = this.importFilter.getTarget(this.path, name, media.type);
-								// get a lock for the target file name
-								synchronized (this.getPathLock(target)) {
-									// make sure the target doesn't exist
-									if (Files.exists(target)) {
-										LOGGER.warn("Unable to import '{}' because the file '{}' already exists.", name, target);
-										continue;
-									}
-									// update the media after being renamed
-									media = Media.forRenamed(target, media);
-									
-									// copy the media to the library
-									try (FileOutputStream fos = new FileOutputStream(target.toFile())) {
-										length = 0;
-										while ((length = zis.read(buffer)) > 0) {
-											fos.write(buffer, 0, length);
+					// verify that the media is in the correct folder
+					if (name.toUpperCase().startsWith(root)) {
+						// does it have associated metadata?
+						Media media = metadata.get(name);
+						if (media != null) {
+							try {
+								// get a lock for the source file name
+								synchronized (this.locks.get(name)) {
+									// get the target name based on the import filter
+									Path target = this.importFilter.getTarget(this.path, name, media.type);
+									// get a lock for the target file name
+									synchronized (this.getPathLock(target)) {
+										// make sure the target doesn't exist
+										if (Files.exists(target)) {
+											LOGGER.warn("Unable to import '{}' because the file '{}' already exists.", name, target);
+											continue;
 										}
-									}
-									
-									try {
-										// write the metadata
-										this.saveMetadata(media);
-									} catch (Exception ex) {
-										// attempt to delete the target file
+										// update the media after being renamed
+										media = Media.forRenamed(target, media);
+										
+										// copy the media to the library
+										try (FileOutputStream fos = new FileOutputStream(target.toFile())) {
+											length = 0;
+											while ((length = zis.read(buffer)) > 0) {
+												fos.write(buffer, 0, length);
+											}
+										}
+										
 										try {
-											Files.deleteIfExists(target);
-										} catch (Exception ex1) {
-											LOGGER.warn("Unable to delete '{}' after failing to write metadata. This should be fixed upon the next initialization of the media library.", target);
+											// write the metadata
+											this.saveMetadata(media);
+										} catch (Exception ex) {
+											// attempt to delete the target file
+											try {
+												Files.deleteIfExists(target);
+											} catch (Exception ex1) {
+												LOGGER.warn("Unable to delete '{}' after failing to write metadata. This should be fixed upon the next initialization of the media library.", target);
+											}
+											throw ex;
 										}
-										throw ex;
+										
+										// update the list of media
+										this.media.put(media.getId(), media);
 									}
-									
-									// update the list of media
-									this.media.put(media.getId(), media);
 								}
+								imported.add(media);
+							} catch (Exception ex) {
+								// it failed to write either the media or the metadata
+								LOGGER.error("Failed to write the media or metadata to the library for '" + name + "'.", ex);
 							}
-							imported.add(media);
-						} catch (Exception ex) {
-							// it failed to write either the media or the metadata
-							LOGGER.error("Failed to write the media or metadata to the library for '" + name + "'.", ex);
+						} else {
+							LOGGER.info("Media '{}' doesn't have related metadata so cannot be imported. Please unzip and import this file manually.", name);
 						}
-					} else {
-						LOGGER.info("Media '{}' doesn't have related metadata so cannot be imported. Please unzip and import this file manually.", name);
 					}
 				}
 			}
@@ -838,7 +863,7 @@ public final class MediaLibrary {
 		
 		return imported;
 	}
-	
+
 	/**
 	 * Exports the given media to the given path.
 	 * @param path the path; a zip file
@@ -848,40 +873,71 @@ public final class MediaLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public void exportMedia(Path path, List<Media> media) throws FileNotFoundException, ZipException, IOException {
+		try (FileOutputStream fos = new FileOutputStream(path.toFile());
+			 ZipOutputStream zos = new ZipOutputStream(fos)) {
+			this.exportMedia(zos, null, media);
+		}
+	}
+	
+	/**
+	 * Exports the given media to the given path.
+	 * @param stream the zip output stream to write to
+	 * @param media the media to export
+	 * @throws FileNotFoundException if the given path is not a file or cannot be created
+	 * @throws ZipException if an error occurs while building the zip file
+	 * @throws IOException if an IO error occurs
+	 */
+	public void exportMedia(ZipOutputStream stream, List<Media> media) throws FileNotFoundException, ZipException, IOException {
+		this.exportMedia(stream, MediaLibrary.ZIP_DIR, media);
+	}
+	
+	/**
+	 * Exports the given media to the given path.
+	 * @param stream the zip output stream to write to
+	 * @param folder the folder in the zip to place the media
+	 * @param media the media to export
+	 * @throws FileNotFoundException if the given path is not a file or cannot be created
+	 * @throws ZipException if an error occurs while building the zip file
+	 * @throws IOException if an IO error occurs
+	 */
+	private void exportMedia(ZipOutputStream stream, String folder, List<Media> media) throws FileNotFoundException, ZipException, IOException {
 		long stamp = this.exportLock.writeLock();
 		
 		byte[] buffer = new byte[1024];
 		int length;
-
-		LOGGER.debug("Building zip file of media for export.");
-		try (FileOutputStream fos = new FileOutputStream(path.toFile());
-			 ZipOutputStream zos = new ZipOutputStream(fos)) {
+		
+		try {
 			for (Media m : media) {
 				Path mediaPath = m.getPath();
 				Path metaPath = this.getMetadataPath(mediaPath);
 				String mediafileName = mediaPath.getFileName().toString();
 				String metaFileName = this.getMetadataFileName(mediaPath);
 				
+				String root = "";
+				if (folder != null) {
+					root = folder + "/";
+				}
+				
 				// the media
 				try (FileInputStream fis = new FileInputStream(mediaPath.toFile())) {
-					ZipEntry entry = new ZipEntry(mediafileName);
-					zos.putNextEntry(entry);
+					ZipEntry entry = new ZipEntry(root + mediafileName);
+					stream.putNextEntry(entry);
 					length = 0;
 					while ((length = fis.read(buffer)) > 0) {
-						zos.write(buffer, 0, length);
+						stream.write(buffer, 0, length);
 					}
-					zos.closeEntry();
+					stream.closeEntry();
 				}
 				
 				// the metadata
 				try (FileInputStream fis = new FileInputStream(metaPath.toFile())) {
-					ZipEntry entry = new ZipEntry(METADATA_DIR + "/" + metaFileName);
-					zos.putNextEntry(entry);
+					ZipEntry entry = new ZipEntry(root + METADATA_DIR + "/" + metaFileName);
+					stream.putNextEntry(entry);
 					length = 0;
 					while ((length = fis.read(buffer)) > 0) {
-						zos.write(buffer, 0, length);
+						stream.write(buffer, 0, length);
 					}
-					zos.closeEntry();
+					stream.closeEntry();
 				}
 			}
 			LOGGER.debug("Export completed successfully.");

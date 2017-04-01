@@ -33,8 +33,6 @@ import java.util.zip.ZipOutputStream;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -44,9 +42,6 @@ import org.praisenter.xml.XmlIO;
  * @since 3.0.0
  */
 public final class PraisenterBibleExporter implements BibleExporter {
-	/** The class level logger */
-	private static final Logger LOGGER = LogManager.getLogger();
-	
 	/* (non-Javadoc)
 	 * @see org.praisenter.bible.BibleExporter#execute(java.nio.file.Path, java.util.List)
 	 */
@@ -61,9 +56,25 @@ public final class PraisenterBibleExporter implements BibleExporter {
 				XmlIO.save(zos, copy);
 				zos.closeEntry();
 			}
-		} catch (Exception ex) {
-			LOGGER.error("Failed to export bibles: " + ex.getMessage(), ex);
-			throw ex;
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.bible.BibleExporter#execute(java.util.zip.ZipOutputStream, java.lang.String, java.util.List)
+	 */
+	@Override
+	public void execute(ZipOutputStream stream, String folder, List<Bible> bibles) throws IOException, JAXBException {
+		String root = "";
+		if (folder != null) {
+			root = folder + "/";
+		}
+		
+		for (Bible bible : bibles) {
+			Bible copy = bible.copy(true);
+			ZipEntry entry = new ZipEntry(root + copy.path.getFileName().toString());
+			stream.putNextEntry(entry);
+			XmlIO.save(stream, copy);
+			stream.closeEntry();
 		}
 	}
 }

@@ -31,11 +31,14 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.ZipOutputStream;
 
 import javax.xml.bind.JAXBException;
 
@@ -72,6 +75,9 @@ public final class SlideLibrary {
 
 	/** The extension to use for the slide files */
 	private static final String EXTENSION = ".xml";
+	
+	/** The directory used for slides when combined with other data */
+	static final String ZIP_DIR = "slides";
 	
 	// instance
 	
@@ -211,6 +217,9 @@ public final class SlideLibrary {
 		synchronized (this.getSlideLock(slide)) {
 			LOGGER.debug("Saving slide '{}'.", slide.getName());
 			
+			// update the last modified date
+			slide.setLastModifiedDate(Instant.now());
+			
 			// generate the file name and path
 			String name = SlideLibrary.createFileName(slide);
 			Path path = this.path.resolve(name + EXTENSION);
@@ -299,8 +308,20 @@ public final class SlideLibrary {
 	 * @throws JAXBException if a slide cannot be written to XML
 	 */
 	public void exportSlides(Path path, List<Slide> slides) throws IOException, JAXBException {
-		// TODO implement
-		throw new UnsupportedOperationException();
+		SlideExporter exporter = new PraisenterSlideExporter();
+		exporter.execute(path, slides);
+	}
+
+	/**
+	 * Exports the given slides to the given stream.
+	 * @param stream the stream to write to
+	 * @param slides the slides to export
+	 * @throws IOException if an IO error occurs
+	 * @throws JAXBException if a slide cannot be written to XML
+	 */
+	public void exportSlides(ZipOutputStream stream, List<Slide> slides) throws IOException, JAXBException {
+		SlideExporter exporter = new PraisenterSlideExporter();
+		exporter.execute(stream, ZIP_DIR, slides);
 	}
 	
 	/**
@@ -314,22 +335,26 @@ public final class SlideLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public List<Slide> importSlides(Path path) throws FileNotFoundException, IOException, JAXBException, InvalidFormatException, UnknownFormatException {
-		// TODO implement
-		throw new UnsupportedOperationException();
+		FormatIdentifingSlideImporter importer = new FormatIdentifingSlideImporter();
+		List<Slide> slides = importer.execute(path);
 		
-//		List<Slide> slides = null;
-//		LOGGER.debug("'{}' slides found in '{}'.", slides.size(), path);
-//		Iterator<Slide> it = slides.iterator();
-//		while (it.hasNext()) {
-//			Slide slide = it.next();
-//			try {
-//				this.save(slide);
-//			} catch (Exception ex) {
-//				LOGGER.error("Failed to save the slide '" + slide.getName() + "'", ex);
-//				it.remove();
-//			}
-//		}
-//		return slides;
+		LOGGER.debug("'{}' slides found in '{}'.", slides.size(), path);
+		Iterator<Slide> it = slides.iterator();
+		while (it.hasNext()) {
+			Slide slide = it.next();
+			// update the import date
+			if (slide instanceof BasicSlide) {
+				BasicSlide s = (BasicSlide)slide;
+				s.createdDate = Instant.now();
+			}
+			try {
+				this.save(slide);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to save the slide '" + slide.getName() + "'", ex);
+				it.remove();
+			}
+		}
+		return slides;
 	}
 	
 	/**

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -166,7 +167,7 @@ public final class ObservableSlideLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -218,7 +219,7 @@ public final class ObservableSlideLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 	
 	/**
@@ -253,7 +254,7 @@ public final class ObservableSlideLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -268,6 +269,25 @@ public final class ObservableSlideLibrary {
 			protected Void call() throws Exception {
 				this.updateProgress(-1, 0);
 				library.exportSlides(path, slides);
+				return null;
+			}
+		};
+		return task;
+	}
+
+	/**
+	 * Exports the given slides to the given file.
+	 * @param stream the stream to export to
+	 * @param fileName the file name to export to
+	 * @param slides the slides to export
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
+	public AsyncTask<Void> exportSlides(ZipOutputStream stream, String fileName, List<Slide> slides) {
+		AsyncTask<Void> task = new AsyncTask<Void>(MessageFormat.format(Translations.get("task.export"), fileName)) {
+			@Override
+			protected Void call() throws Exception {
+				this.updateProgress(-1, 0);
+				library.exportSlides(stream, slides);
 				return null;
 			}
 		};
@@ -348,7 +368,7 @@ public final class ObservableSlideLibrary {
 	 * @param id the id
 	 * @return {@link SlideListItem}
 	 */
-	public SlideListItem getListItem(UUID id) {
+	SlideListItem getListItem(UUID id) {
 		Slide slide = this.library.get(id);
 		return this.getListItem(slide);
 	}
@@ -357,7 +377,7 @@ public final class ObservableSlideLibrary {
 	 * Returns the observable list of slides.
 	 * @return ObservableList&lt;{@link SlideListItem}&gt;
 	 */
-	public ObservableList<SlideListItem> getItems() {
+	ObservableList<SlideListItem> getItems() {
 		return this.items;
 	}
 }

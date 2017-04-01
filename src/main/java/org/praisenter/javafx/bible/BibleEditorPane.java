@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
@@ -53,6 +55,7 @@ import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
+import org.praisenter.xml.XmlIO;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -97,6 +100,9 @@ import javafx.util.StringConverter;
  * @version 3.0.0
  */
 public final class BibleEditorPane extends BorderPane implements ApplicationPane {
+	/** The class level logger */
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	/** The font-awesome glyph-font pack */
 	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
@@ -606,35 +612,47 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			DataFormat format = null;
 			StringBuilder text = new StringBuilder();
 			
-			List<Object> data = new ArrayList<Object>();
+			List<String> data = new ArrayList<String>();
 			for (TreeItem<TreeData> item : items) {
 				TreeData td = item.getValue();
 				if (td instanceof BookTreeData) {
 					BookTreeData btd = (BookTreeData)td;
 					Book book = btd.book;
-					data.add(book);
-					format = DataFormats.BOOKS;
-					text.append(book.getName()).append(Constants.NEW_LINE);
-					if (cut) {
-						btd.bible.getBooks().remove(book);
+					try {
+						data.add(XmlIO.save(book));
+						format = DataFormats.BOOKS;
+						text.append(book.getName()).append(Constants.NEW_LINE);
+						if (cut) {
+							btd.bible.getBooks().remove(book);
+						}
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to add the book '" + book.getName() + "' to the clipboard.", ex);
 					}
 				} else if (td instanceof ChapterTreeData) {
 					ChapterTreeData ctd = (ChapterTreeData)td;
 					Chapter chapter = ctd.chapter;
-					data.add(chapter);
-					format = DataFormats.CHAPTERS;
-					text.append(chapter.getNumber()).append(Constants.NEW_LINE);
-					if (cut) {
-						ctd.book.getChapters().remove(chapter);
+					try {
+						data.add(XmlIO.save(chapter));
+						format = DataFormats.CHAPTERS;
+						text.append(chapter.getNumber()).append(Constants.NEW_LINE);
+						if (cut) {
+							ctd.book.getChapters().remove(chapter);
+						}
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to add the chapter '" + chapter.getNumber() + "' to the clipboard.", ex);
 					}
 				} else if (td instanceof VerseTreeData) {
 					VerseTreeData vtd = (VerseTreeData)td;
 					Verse verse = vtd.verse;
-					data.add(verse);
-					format = DataFormats.VERSES;
-					text.append(verse.getText()).append(Constants.NEW_LINE);
-					if (cut) {
-						vtd.chapter.getVerses().remove(verse);
+					try {
+						data.add(XmlIO.save(verse));
+						format = DataFormats.VERSES;
+						text.append(verse.getText()).append(Constants.NEW_LINE);
+						if (cut) {
+							vtd.chapter.getVerses().remove(verse);
+						}
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to add the verse '" + verse.getText() + "' to the clipboard.", ex);
 					}
 				}
 			}
@@ -674,17 +692,21 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				// then we can paste books
 				Object data = cb.getContent(DataFormats.BOOKS);
 				if (data != null && data instanceof List) {
-					List<Book> books = (List<Book>)data;
+					List<String> books = (List<String>)data;
 					short max = bible.getMaxBookNumber();
-					for (Book book : books) {
-						Book copy = book.copy();
-						copy.setNumber(++max);
-						// add the book to the bible
-						bible.getBooks().add(copy);
-						// add the tree node
-						node.getChildren().add(this.forBook(bible, copy));
+					for (String book : books) {
+						try {
+							Book copy = XmlIO.read(book, Book.class);
+							copy.setNumber(++max);
+							// add the book to the bible
+							bible.getBooks().add(copy);
+							// add the tree node
+							node.getChildren().add(this.forBook(bible, copy));
+							this.unsavedChanges = true;
+						} catch (Exception ex) {
+							LOGGER.warn("Failed to paste the book '" + book + "'.", ex);
+						}
 					}
-					this.unsavedChanges = true;
 				}
 			} else if (type.equals(BookTreeData.class)) {
 				BookTreeData td = (BookTreeData)node.getValue();
@@ -693,13 +715,17 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				// then we can paste books
 				Object data = cb.getContent(DataFormats.CHAPTERS);
 				if (data != null && data instanceof List) {
-					List<Chapter> chapters = (List<Chapter>)data;
-					for (Chapter chapter : chapters) {
-						Chapter copy = chapter.copy();
-						// add the book to the bible
-						book.getChapters().add(copy);
-						// add the tree node
-						node.getChildren().add(this.forChapter(bible, book, copy));
+					List<String> chapters = (List<String>)data;
+					for (String chapter : chapters) {
+						try {
+							Chapter copy = XmlIO.read(chapter, Chapter.class);
+							// add the book to the bible
+							book.getChapters().add(copy);
+							// add the tree node
+							node.getChildren().add(this.forChapter(bible, book, copy));
+						} catch (Exception ex) {
+							LOGGER.warn("Failed to paste the book '" + book + "'.", ex);
+						}
 					}
 					this.unsavedChanges = true;
 				}
@@ -711,13 +737,17 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				// then we can paste books
 				Object data = cb.getContent(DataFormats.VERSES);
 				if (data != null && data instanceof List) {
-					List<Verse> verses = (List<Verse>)data;
-					for (Verse verse : verses) {
-						Verse copy = verse.copy();
-						// add the book to the bible
-						chapter.getVerses().add(copy);
-						// add the tree node
-						node.getChildren().add(this.forVerse(bible, book, chapter, copy));
+					List<String> verses = (List<String>)data;
+					for (String verse : verses) {
+						try {
+							Verse copy = XmlIO.read(verse, Verse.class);
+							// add the book to the bible
+							chapter.getVerses().add(copy);
+							// add the tree node
+							node.getChildren().add(this.forVerse(bible, book, chapter, copy));
+						} catch (Exception ex) {
+							LOGGER.warn("Failed to paste the book '" + book + "'.", ex);
+						}
 					}
 					this.unsavedChanges = true;
 				}
@@ -729,13 +759,17 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				// then we can paste books
 				Object data = cb.getContent(DataFormats.VERSES);
 				if (data != null && data instanceof List) {
-					List<Verse> verses = (List<Verse>)data;
-					for (Verse verse : verses) {
-						Verse copy = verse.copy();
-						// add the book to the bible
-						chapter.getVerses().add(copy);
-						// add the tree node
-						node.getParent().getChildren().add(this.forVerse(bible, book, chapter, copy));
+					List<String> verses = (List<String>)data;
+					for (String verse : verses) {
+						try {
+							Verse copy = XmlIO.read(verse, Verse.class);
+							// add the book to the bible
+							chapter.getVerses().add(copy);
+							// add the tree node
+							node.getParent().getChildren().add(this.forVerse(bible, book, chapter, copy));
+						} catch (Exception ex) {
+							LOGGER.warn("Failed to paste the book '" + book + "'.", ex);
+						}
 					}
 					this.unsavedChanges = true;
 				}

@@ -24,7 +24,9 @@
  */
 package org.praisenter.slide;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -363,25 +365,36 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#isMediaReferenced(java.util.UUID[])
 	 */
 	@Override
-	public boolean isMediaReferenced(UUID... ids) {
+	public final boolean isMediaReferenced(UUID... ids) {
+		Set<UUID> media = this.getReferencedMedia();
+		for (UUID testId : ids) {
+			if (media.contains(testId)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getReferencedMedia()
+	 */
+	@Override
+	public Set<UUID> getReferencedMedia() {
+		Set<UUID> ids = new HashSet<UUID>();
 		// check the background
 		if (this.background != null && this.background instanceof MediaObject) {
 			MediaObject mo = (MediaObject)this.background;
-			for (UUID id : ids) {
-				if (id.equals(mo.getId())) {
-					return true;
-				}
+			if (mo.getId() != null) {
+				ids.add(mo.getId());
 			}
 		}
 		// check the slide stroke
 		if (this.border != null && this.border.getPaint() != null && this.border.getPaint() instanceof MediaObject) {
 			MediaObject mo = (MediaObject)this.border.getPaint();
-			for (UUID id : ids) {
-				if (id.equals(mo.getId())) {
-					return true;
-				}
+			if (mo.getId() != null) {
+				ids.add(mo.getId());
 			}
 		}
-		return false;
+		return ids;
 	}
 }

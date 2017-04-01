@@ -129,7 +129,7 @@ public final class BibleActions {
 			// return the 
 			return task;
 		}
-		return AsyncTaskFactory.none();
+		return AsyncTaskFactory.group();
 	}
 	
 	/**
@@ -158,7 +158,7 @@ public final class BibleActions {
 			});
 	    	return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -210,7 +210,7 @@ public final class BibleActions {
 	    	}
 	    	// user cancellation
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -251,7 +251,7 @@ public final class BibleActions {
 	    	}
 		}
 		// user cancellation
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -274,7 +274,7 @@ public final class BibleActions {
 					.collect(Collectors.toList());
 			return bibleImport(library, owner, paths);
 		}
-		return AsyncTaskFactory.none();
+		return AsyncTaskFactory.group();
 	}
 
 	/**
@@ -309,7 +309,7 @@ public final class BibleActions {
 			});
 	    	return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -357,7 +357,7 @@ public final class BibleActions {
 		    	return task;
 	    	}
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -411,7 +411,7 @@ public final class BibleActions {
 				return task;
 			}
 		}
-		return AsyncTaskFactory.none();
+		return AsyncTaskFactory.group();
 	}
 	
 }

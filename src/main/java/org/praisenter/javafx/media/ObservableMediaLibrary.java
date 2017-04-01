@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -149,7 +150,7 @@ public final class ObservableMediaLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -187,7 +188,7 @@ public final class ObservableMediaLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -230,7 +231,7 @@ public final class ObservableMediaLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	// tags
@@ -258,7 +259,7 @@ public final class ObservableMediaLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 	
 	/**
@@ -285,11 +286,11 @@ public final class ObservableMediaLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 	
 	// import/export
-	
+
 	/**
 	 * Exports the given media to the given path.
 	 * @param path the path to export to (zip file)
@@ -298,7 +299,7 @@ public final class ObservableMediaLibrary {
 	 */
 	public AsyncTask<Void> exportMedia(Path path, List<Media> media) {
 		// sanity check
-		if (path != null && media != null) {
+		if (path != null && media != null && media.size() > 0) {
 			// execute the add on a different thread
 			AsyncTask<Void> task = new AsyncTask<Void>(
 					media.size() > 1 
@@ -317,7 +318,37 @@ public final class ObservableMediaLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
+	}
+	
+	/**
+	 * Exports the given media to the given path.
+	 * @param stream the zip stream to write to
+	 * @param media the media to export
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
+	public AsyncTask<Void> exportMedia(ZipOutputStream stream, List<Media> media) {
+		// sanity check
+		if (stream != null && media != null && media.size() > 0) {
+			// execute the add on a different thread
+			AsyncTask<Void> task = new AsyncTask<Void>(
+					media.size() > 1 
+					? MessageFormat.format(Translations.get("task.export.multiple.media"), media.size())
+					: MessageFormat.format(Translations.get("task.export"), media.get(0).getName())) {
+				@Override
+				protected Void call() throws Exception {
+					updateProgress(-1, 0);
+					library.exportMedia(stream, media);
+					return null;
+				}
+			};
+			task.addCancelledOrFailedHandler((e) -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to complete export", ex);
+			});
+			return task;
+		}
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -358,7 +389,7 @@ public final class ObservableMediaLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 	
 	// other
@@ -377,7 +408,7 @@ public final class ObservableMediaLibrary {
 	 * @param id the id
 	 * @return {@link MediaListItem}
 	 */
-	public MediaListItem getListItem(UUID id) {
+	MediaListItem getListItem(UUID id) {
 		Media media = this.library.get(id);
 		return this.getListItem(media);
 	}
@@ -398,7 +429,7 @@ public final class ObservableMediaLibrary {
 	 * Returns the observable list of media.
 	 * @return ObservableList&lt;{@link MediaListItem}&gt;
 	 */
-	public ObservableList<MediaListItem> getItems() {
+	ObservableList<MediaListItem> getItems() {
 		return this.items;
 	}
 

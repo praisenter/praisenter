@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.ZipOutputStream;
 
 import javax.xml.bind.JAXBException;
 
@@ -136,6 +137,9 @@ public final class BibleLibrary {
 	
 	/** The relative path to the directory containing the lucene index */
 	private static final String INDEX_DIR = "_index";
+	
+	/** The sub folder in the zip to store bibles */
+	private static final String ZIP_DIR = "bibles";
 	
 	// location
 	
@@ -356,7 +360,7 @@ public final class BibleLibrary {
 	 */
 	public void save(Bible bible) throws JAXBException, IOException {
 		// update the last modified date
-		bible.lastModifiedDate = Instant.now();
+		bible.setLastModifiedDate(Instant.now());
 		
 		// calling this method could indicate one of the following:
 		// 1. New
@@ -492,6 +496,18 @@ public final class BibleLibrary {
 	public void exportBibles(Path path, List<Bible> bibles) throws IOException, JAXBException {
 		final PraisenterBibleExporter exporter = new PraisenterBibleExporter();
 		exporter.execute(path, bibles);
+	}
+
+	/**
+	 * Exports the given bibles to the given file.
+	 * @param stream the zip stream to export to
+	 * @param bibles the bibles to export
+	 * @throws IOException if an IO error occurs
+	 * @throws JAXBException if a bible cannot be written to XML
+	 */
+	public void exportBibles(ZipOutputStream stream, List<Bible> bibles) throws IOException, JAXBException {
+		final PraisenterBibleExporter exporter = new PraisenterBibleExporter();
+		exporter.execute(stream, ZIP_DIR, bibles);
 	}
 	
 	/**

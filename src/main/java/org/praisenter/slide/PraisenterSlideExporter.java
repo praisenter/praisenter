@@ -33,8 +33,6 @@ import java.util.zip.ZipOutputStream;
 
 import javax.xml.bind.JAXBException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -44,9 +42,6 @@ import org.praisenter.xml.XmlIO;
  * @since 3.0.0
  */
 public final class PraisenterSlideExporter implements SlideExporter {
-	/** The class level logger */
-	private static final Logger LOGGER = LogManager.getLogger();
-	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideExporter#execute(java.nio.file.Path, java.util.List)
 	 */
@@ -57,14 +52,29 @@ public final class PraisenterSlideExporter implements SlideExporter {
 			for (Slide slide : slides) {
 				Slide copy = slide.copy(true);
 				ZipEntry entry = new ZipEntry(copy.getPath().getFileName().toString());
-				// TODO we should also include media?
 				zos.putNextEntry(entry);
 				XmlIO.save(zos, copy);
 				zos.closeEntry();
 			}
-		} catch (Exception ex) {
-			LOGGER.error("Failed to export bibles: " + ex.getMessage(), ex);
-			throw ex;
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideExporter#execute(java.util.zip.ZipOutputStream, java.lang.String, java.util.List)
+	 */
+	@Override
+	public void execute(ZipOutputStream stream, String folder, List<Slide> slides) throws IOException, JAXBException {
+		String root = "";
+		if (folder != null) {
+			root = folder + "/";
+		}
+		
+		for (Slide slide : slides) {
+			Slide copy = slide.copy(true);
+			ZipEntry entry = new ZipEntry(root + copy.getPath().getFileName().toString());
+			stream.putNextEntry(entry);
+			XmlIO.save(stream, copy);
+			stream.closeEntry();
 		}
 	}
 }

@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.UUID;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -158,7 +159,7 @@ public final class ObservableBibleLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 	
 	/**
@@ -206,7 +207,7 @@ public final class ObservableBibleLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 	
 	/**
@@ -241,7 +242,7 @@ public final class ObservableBibleLibrary {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -256,6 +257,25 @@ public final class ObservableBibleLibrary {
 			protected Void call() throws Exception {
 				this.updateProgress(-1, 0);
 				library.exportBibles(path, bibles);
+				return null;
+			}
+		};
+		return task;
+	}
+
+	/**
+	 * Exports the given bibles to the given file.
+	 * @param stream the zip output stream
+	 * @param fileName the file name to export to
+	 * @param bibles the bibles to export
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
+	public AsyncTask<Void> exportBibles(ZipOutputStream stream, String fileName, List<Bible> bibles) {
+		AsyncTask<Void> task = new AsyncTask<Void>(MessageFormat.format(Translations.get("task.export"), fileName)) {
+			@Override
+			protected Void call() throws Exception {
+				this.updateProgress(-1, 0);
+				library.exportBibles(stream, bibles);
 				return null;
 			}
 		};
@@ -322,7 +342,7 @@ public final class ObservableBibleLibrary {
 	 * @param id the id
 	 * @return {@link BibleListItem}
 	 */
-	public BibleListItem getListItem(UUID id) {
+	BibleListItem getListItem(UUID id) {
 		Bible bible = this.library.get(id);
 		return this.getListItem(bible);
 	}
@@ -331,7 +351,7 @@ public final class ObservableBibleLibrary {
 	 * Returns the observable list of bibles.
 	 * @return ObservableList&lt;{@link BibleListItem}&gt;
 	 */
-	public ObservableList<BibleListItem> getItems() {
+	ObservableList<BibleListItem> getItems() {
 		return this.items;
 	}
 }

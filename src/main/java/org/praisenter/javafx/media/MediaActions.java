@@ -115,7 +115,7 @@ public final class MediaActions {
 			// return the 
 			return task;
 		}
-		return AsyncTaskFactory.none();
+		return AsyncTaskFactory.group();
 	}
 	
 	/**
@@ -136,7 +136,7 @@ public final class MediaActions {
     		List<Path> paths = files.stream().filter(f -> f != null).map(f -> f.toPath()).collect(Collectors.toList());
     		return mediaImport(library, owner, paths);
     	}
-    	return AsyncTaskFactory.none();
+    	return AsyncTaskFactory.group();
 	}
 
 	/**
@@ -178,7 +178,7 @@ public final class MediaActions {
 	    	}
     	}
     	// user cancellation
-    	return AsyncTaskFactory.empty();
+    	return AsyncTaskFactory.single();
 	}
 	
 	/**
@@ -225,7 +225,7 @@ public final class MediaActions {
 	    	}
 	    	// user cancellation
 		}
-    	return AsyncTaskFactory.empty();
+    	return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -284,7 +284,7 @@ public final class MediaActions {
 				return task;
 			}
 		}
-		return AsyncTaskFactory.none();
+		return AsyncTaskFactory.group();
 	}
 
 	/**
@@ -314,7 +314,7 @@ public final class MediaActions {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 	
 	/**
@@ -344,6 +344,6 @@ public final class MediaActions {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 }

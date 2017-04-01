@@ -24,6 +24,7 @@
  */
 package org.praisenter.slide;
 
+import java.util.Set;
 import java.util.UUID;
 
 import org.praisenter.slide.graphics.Rectangle;
@@ -208,6 +209,12 @@ public interface SlideRegion {
 	 * @return boolean
 	 */
 	public boolean isMediaReferenced(UUID... ids);
+	
+	/**
+	 * Returns a set of all the referenced media ids.
+	 * @return Set&lt;UUID&gt;
+	 */
+	public Set<UUID> getReferencedMedia();
 	
 	// copying
 	

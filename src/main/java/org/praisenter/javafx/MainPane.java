@@ -15,6 +15,7 @@ import org.praisenter.javafx.bible.BibleLibraryPane;
 import org.praisenter.javafx.configuration.Display;
 import org.praisenter.javafx.media.MediaActions;
 import org.praisenter.javafx.media.MediaLibraryPane;
+import org.praisenter.javafx.slide.SlideActions;
 import org.praisenter.javafx.slide.SlideLibraryPane;
 import org.praisenter.javafx.slide.editor.SlideEditorPane;
 import org.praisenter.slide.BasicSlide;
@@ -89,6 +90,9 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				break;
 			case IMPORT_MEDIA:
 				this.promptMediaImport();
+				break;
+			case IMPORT_SLIDES:
+				this.promptSlideImport();
 				break;
 			case PREFERENCES:
 				this.navigate(this.setupPane);
@@ -207,6 +211,16 @@ public final class MainPane extends BorderPane implements ApplicationPane {
     private final void promptMediaImport() {
     	MediaActions.mediaPromptImport(
     			this.context.getMediaLibrary(), 
+    			this.getScene().getWindow())
+    	.execute(this.context.getExecutorService());
+    }
+    
+    /**
+     * Event handler for importing slides.
+     */
+    private final void promptSlideImport() {
+    	SlideActions.slidePromptImport(
+    			this.context, 
     			this.getScene().getWindow())
     	.execute(this.context.getExecutorService());
     }

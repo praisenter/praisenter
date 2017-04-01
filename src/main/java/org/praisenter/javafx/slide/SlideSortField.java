@@ -22,40 +22,42 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.bible;
+package org.praisenter.javafx.slide;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.zip.ZipOutputStream;
-
-import javax.xml.bind.JAXBException;
+import org.praisenter.resources.translations.Translations;
 
 /**
- * Represents an exporter for {@link Bible}s stored within the application.
+ * Enumeration of fields that slides can be sorted by.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
  */
-public interface BibleExporter {
-	/**
-	 * Exports the given bibles to the given path.
-	 * <p>
-	 * The given path should be a normal file and preferably with a .zip extension.
-	 * @param path the path to export to
-	 * @param bibles the bibles to export
-	 * @throws IOException if an IO error occurs
-	 * @throws JAXBException if an error occurs while writing the XML
-	 */
-	public abstract void execute(Path path, List<Bible> bibles) throws IOException, JAXBException;
+enum SlideSortField {
+	/** The name field */
+	NAME(Translations.get("slide.sort.field.name")),
+	
+	/** The date added field */
+	CREATED_DATE(Translations.get("slide.sort.field.created")),
+	
+	/** The date added field */
+	LAST_MODIFIED_DATE(Translations.get("slide.sort.field.modified"));
+	
+	/** The display name of the field */
+	private final String name;
 	
 	/**
-	 * Exports the given bibles to the given zip stream.
-	 * @param stream the zip stream to export to
-	 * @param folder the folder in the stream to export to
-	 * @param bibles the bibles to export
-	 * @throws IOException if an IO error occurs
-	 * @throws JAXBException if an error occurs while writing the XML
+	 * Full constructor.
+	 * @param name the display name
 	 */
-	public abstract void execute(ZipOutputStream stream, String folder, List<Bible> bibles) throws IOException, JAXBException;
+	private SlideSortField(String name) {
+		this.name = name;
+	}
+	
+	/**
+	 * Returns the display name of this field.
+	 * @return String
+	 */
+	public String getName() {
+		return this.name;
+	}
 }

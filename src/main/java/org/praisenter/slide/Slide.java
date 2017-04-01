@@ -26,6 +26,7 @@ package org.praisenter.slide;
 
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -271,13 +272,31 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	/**
 	 * Updates any placeholders on this slide with the current placeholder data.
 	 */
-	public void updatePlaceholders();
+	public abstract void updatePlaceholders();
 	
 	/**
 	 * Returns the tags for this slide.
 	 * @return Set&lt;{@link Tag}&gt;
 	 */
 	public abstract Set<Tag> getTags();
+	
+	/**
+	 * Returns the last modified date for the slide.
+	 * @return Instant
+	 */
+	public abstract Instant getLastModifiedDate();
+
+	/**
+	 * Sets the last modified date for the slide.
+	 * @param date the date
+	 */
+	public abstract void setLastModifiedDate(Instant date);
+	
+	/**
+	 * Returns the date the slide was created.
+	 * @return Instant
+	 */
+	public abstract Instant getCreatedDate();
 	
 	// thumbnails
 	

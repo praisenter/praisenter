@@ -324,7 +324,7 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 
 	/**
 	 * Returns the import date.
-	 * @return Date
+	 * @return Instant
 	 */
 	public Instant getImportDate() {
 		return this.importDate;
@@ -332,10 +332,18 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 
 	/**
 	 * Returns the last modified date.
-	 * @return Date
+	 * @return Instant
 	 */
 	public Instant getLastModifiedDate() {
 		return this.lastModifiedDate;
+	}
+
+	/**
+	 * Sets the last modified date.
+	 * @param date the last modified date
+	 */
+	public void setLastModifiedDate(Instant date) {
+		this.lastModifiedDate = date;
 	}
 	
 	/**

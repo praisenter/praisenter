@@ -25,23 +25,33 @@
 package org.praisenter.javafx.slide;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.Alerts;
+import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.async.AsyncChainedTask;
 import org.praisenter.javafx.async.AsyncGroupTask;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
+import org.praisenter.javafx.media.ObservableMediaLibrary;
+import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideLibrary;
+import org.praisenter.utility.MimeType;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -68,24 +78,31 @@ public final class SlideActions {
 	 * Returns a task that will import the given paths as slides.
 	 * <p>
 	 * Returns a list of the slides that were imported successfully.
-	 * @param library the library to import into
+	 * @param context the context
 	 * @param owner the window owner
 	 * @param paths the paths to import
 	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;List&lt;{@link Slide}&gt;&gt;&gt;
 	 */
-	public static final AsyncGroupTask<AsyncTask<List<Slide>>> slideImport(ObservableSlideLibrary library, Window owner, List<Path> paths) {
+	public static final AsyncGroupTask<AsyncTask<?>> slideImport(PraisenterContext context, Window owner, List<Path> paths) {
 		// sanity check
 		if (paths != null && !paths.isEmpty()) {
+			ObservableMediaLibrary mediaLibrary = context.getMediaLibrary();
+			ObservableSlideLibrary library = context.getSlideLibrary();
+			
 			// build a list of tasks to execute
-			List<AsyncTask<List<Slide>>> tasks = new ArrayList<AsyncTask<List<Slide>>>();
+			List<AsyncTask<?>> tasks = new ArrayList<AsyncTask<?>>();
 			for (Path path : paths) {
 				if (path != null) {
-					// FIXME handle zip files
+					if (MimeType.ZIP.check(path)) {
+						// import any media in the zip
+						tasks.add(mediaLibrary.importMedia(path));
+					}
+					// import the slides
 					tasks.add(library.add(path));
 				}
 			}
 			// wrap the tasks in a multi-task wait task
-			AsyncGroupTask<AsyncTask<List<Slide>>> task = new AsyncGroupTask<AsyncTask<List<Slide>>>(tasks);
+			AsyncGroupTask<AsyncTask<?>> task = new AsyncGroupTask<AsyncTask<?>>(tasks);
 			// define a listener to be called when the wrapper task completes
 			task.addCompletedHandler((e) -> {
 				// get the exceptions
@@ -109,7 +126,7 @@ public final class SlideActions {
 			// return the 
 			return task;
 		}
-		return AsyncTaskFactory.none();
+		return AsyncTaskFactory.group();
 	}
 	
 	/**
@@ -138,7 +155,7 @@ public final class SlideActions {
 			});
 	    	return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -190,19 +207,18 @@ public final class SlideActions {
 	    	}
 	    	// user cancellation
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
 	 * Returns a task that will prompt the user to select a file name to export the given slides to.
-	 * @param library the library to save to
+	 * @param context the context
 	 * @param owner the window owner
 	 * @param slides the slides to export
 	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
-	public static final AsyncTask<Void> slidePromptExport(ObservableSlideLibrary library, Window owner, List<Slide> slides) {
+	public static final AsyncChainedTask<AsyncTask<Void>> slidePromptExport(PraisenterContext context, Window owner, List<Slide> slides) {
 		// sanity check
-		// TODO export media with it?
 		if (slides != null && !slides.isEmpty()) {
 			String name = Translations.get("slide.export.multiple.filename"); 
 	    	if (slides.size() == 1) {
@@ -217,33 +233,95 @@ public final class SlideActions {
 	    	// check for cancellation
 	    	if (file != null) {
 	    		final Path path = file.toPath();
-	    		AsyncTask<Void> task = library.exportSlides(path, slides);
-				task.addCancelledOrFailedHandler((e) -> {
-					// show an error to the user
-					Alert alert = Alerts.exception(
-							owner,
-							null, 
-							null, 
-							Translations.get("slide.export.error"), 
-							task.getException());
-					alert.show();
-				});
-				return task;
+	    		
+	    		final ObservableMediaLibrary mediaLibrary = context.getMediaLibrary();
+	    		final ObservableSlideLibrary slideLibrary = context.getSlideLibrary();
+	    		
+	    		// get the dependent media
+	    		final List<Media> media = new ArrayList<Media>();
+	    		final Set<UUID> ids = new HashSet<UUID>();
+	    		for (Slide slide : slides) {
+	    			ids.addAll(slide.getReferencedMedia());
+	    		}
+	    		for (UUID id : ids) {
+	    			if (id != null) {
+	    				Media m = mediaLibrary.get(id);
+	    				// check for missing media
+	    				if (m != null) {
+	    					media.add(m);
+	    				} else {
+	    					LOGGER.warn("Unable to export media '{}' because it no longer exists in the media library.", id);
+	    				}
+	    			}
+	    		}
+	    		
+	    		try {
+		    		final FileOutputStream fos = new FileOutputStream(path.toFile());
+		    		final ZipOutputStream zos = new ZipOutputStream(fos);
+		    		
+		    		List<AsyncTask<Void>> tasks = new ArrayList<AsyncTask<Void>>();
+		    		// export the slides
+	    			tasks.add(slideLibrary.exportSlides(zos, path.getFileName().toString(), slides));
+	    			// export the media
+	    			if (!media.isEmpty()) {
+	    				tasks.add(mediaLibrary.exportMedia(zos, media));
+	    			}
+	    			AsyncChainedTask<AsyncTask<Void>> task = new AsyncChainedTask<AsyncTask<Void>>(tasks);
+	    			task.addCompletedHandler(e -> {
+	    				if (zos != null) {
+		    				try {
+		    					zos.close();
+		    				} catch (Exception ex) {
+		    					LOGGER.warn("Failed to close ZipOutputStream after writing slides and media.", ex);
+		    				}
+	    				}
+	    				if (fos != null) {
+	    					try {
+		    					fos.close();
+		    				} catch (Exception ex) {
+		    					LOGGER.warn("Failed to close FileOutputStream after writing slides and media.", ex);
+		    				}
+	    				}
+	    			});
+	    			// define a listener to be called when the wrapper task completes
+					task.addCompletedHandler((e) -> {
+						// get the exceptions
+						Exception[] exceptions = tasks
+								.stream()
+								.filter(t -> t.getException() != null)
+								.map(t -> t.getException())
+								.collect(Collectors.toList())
+								.toArray(new Exception[0]);
+						// did we have any errors?
+						if (exceptions.length > 0) {
+							Alert fAlert = Alerts.exception(
+									owner,
+									null, 
+									null, 
+									Translations.get("slide.export.error"), 
+									exceptions);
+							fAlert.show();
+						}
+					});
+					return task;
+	    		} catch (Exception ex) {
+	    			LOGGER.warn("Failed to export slides and media.", ex);
+	    		}
 	    	}
 		}
 		// user cancellation
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.chain();
 	}
 
 	/**
 	 * Returns a task that will prompt the user for files to import as slides.
 	 * <p>
 	 * Returns a list of the slides that were imported successfully.
-	 * @param library the library to import into
+	 * @param context the context
 	 * @param owner the window owner
 	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;List&lt;{@link Slide}&gt;&gt;&gt;
 	 */
-	public static final AsyncGroupTask<AsyncTask<List<Slide>>> slidePromptImport(ObservableSlideLibrary library, Window owner) {
+	public static final AsyncGroupTask<AsyncTask<?>> slidePromptImport(PraisenterContext context, Window owner) {
 		FileChooser chooser = new FileChooser();
 		chooser.setTitle(Translations.get("slide.import.title"));
 		List<File> files = chooser.showOpenMultipleDialog(owner);
@@ -253,9 +331,9 @@ public final class SlideActions {
 					.filter(f -> f != null && f.isFile())
 					.map(f -> f.toPath())
 					.collect(Collectors.toList());
-			return slideImport(library, owner, paths);
+			return slideImport(context, owner, paths);
 		}
-		return AsyncTaskFactory.none();
+		return AsyncTaskFactory.group();
 	}
 
 	/**
@@ -290,7 +368,7 @@ public final class SlideActions {
 			});
 	    	return task;
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -338,7 +416,7 @@ public final class SlideActions {
 		    	return task;
 	    	}
 		}
-		return AsyncTaskFactory.empty();
+		return AsyncTaskFactory.single();
 	}
 
 	/**
@@ -392,7 +470,7 @@ public final class SlideActions {
 				return task;
 			}
 		}
-		return AsyncTaskFactory.none();
+		return AsyncTaskFactory.group();
 	}
 	
 }

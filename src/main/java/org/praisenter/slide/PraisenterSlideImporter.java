@@ -65,6 +65,23 @@ public final class PraisenterSlideImporter implements SlideImporter {
 		if (Files.exists(path)) {
 			LOGGER.debug("Reading file: " + path.toAbsolutePath().toString());
 
+			// get the root folder by inspecting what's in the zip
+			// if there's a media folder then look there only, otherwise
+			// look in the root
+			String root = "";
+			try (FileInputStream fis = new FileInputStream(path.toFile());
+				 ZipInputStream zis = new ZipInputStream(fis)) {
+				ZipEntry entry = null;
+				while ((entry = zis.getNextEntry()) != null) {
+					if (entry.isDirectory() && SlideLibrary.ZIP_DIR.equals(entry.getName())) {
+						root = SlideLibrary.ZIP_DIR + "/";
+						break;
+					}
+				}
+			} catch (Exception ex) { }
+			root = root.toUpperCase();
+			
+			// try to read as zip
 			boolean read = false;
 			Throwable throwable = null;
 			// first try to open it as a zip
@@ -76,7 +93,7 @@ public final class PraisenterSlideImporter implements SlideImporter {
 				ZipEntry entry = null;
 				while ((entry = zis.getNextEntry()) != null) {
 					read = true;
-					if (!entry.isDirectory()) {
+					if (!entry.isDirectory() && entry.getName().toLowerCase().startsWith(root)) {
 						byte[] data = Zip.read(zis);
 						try {
 							// make a copy to ensure the id is changed

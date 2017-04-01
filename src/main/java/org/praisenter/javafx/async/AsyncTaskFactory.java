@@ -40,7 +40,7 @@ public final class AsyncTaskFactory {
 	 * Returns a task that is effectively a no-op.
 	 * @return {@link AsyncTask}
 	 */
-	public static <T> AsyncTask<T> empty() {
+	public static <T> AsyncTask<T> single() {
 		return new CallableAsyncTask<T>(() -> { return null; });
 	}
 	
@@ -67,7 +67,7 @@ public final class AsyncTaskFactory {
 	 * Returns a group task that is effectively a no-op.
 	 * @return {@link AsyncGroupTask}
 	 */
-	public static <T extends AsyncTask<?>> AsyncGroupTask<T> none() {
+	public static <T extends AsyncTask<?>> AsyncGroupTask<T> group() {
 		return new AsyncGroupTask<T>(null);
 	}
 	
@@ -88,5 +88,32 @@ public final class AsyncTaskFactory {
 	 */
 	public static <T extends AsyncTask<?>> AsyncGroupTask<T> group(String name, List<T> tasks) {
 		return new AsyncGroupTask<T>(name, tasks);
+	}
+
+	/**
+	 * Returns a chain task that is effectively a no-op.
+	 * @return {@link AsyncChainedTask}
+	 */
+	public static <T extends AsyncTask<?>> AsyncChainedTask<T> chain() {
+		return new AsyncChainedTask<T>(null);
+	}
+	
+	/**
+	 * Returns a task that waits on the given set of tasks to execute sequentially.
+	 * @param tasks the tasks to wait on
+	 * @return {@link AsyncChainedTask}
+	 */
+	public static <T extends AsyncTask<?>> AsyncChainedTask<T> chain(List<T> tasks) {
+		return new AsyncChainedTask<T>(tasks);
+	}
+	
+	/**
+	 * Returns a task that waits on the given set of tasks to execute sequentially.
+	 * @param name the name of the task
+	 * @param tasks the tasks to wait on
+	 * @return {@link AsyncChainedTask}
+	 */
+	public static <T extends AsyncTask<?>> AsyncChainedTask<T> chain(String name, List<T> tasks) {
+		return new AsyncChainedTask<T>(name, tasks);
 	}
 }

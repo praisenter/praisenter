@@ -447,7 +447,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 			}
 		}
 		content.put(DataFormat.PLAIN_TEXT, String.join(", ", names));
-		content.put(DataFormats.BIBLE_IDS, ids);
+		content.put(DataFormats.BIBLES, ids);
 		cb.setContent(content);
 		this.stateChanged(ApplicationPaneEvent.REASON_DATA_COPIED);
     }
@@ -457,7 +457,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
      */
     private final void pasteCopiedBibles() {
     	Clipboard cb = Clipboard.getSystemClipboard();
-		Object data = cb.getContent(DataFormats.BIBLE_IDS);
+		Object data = cb.getContent(DataFormats.BIBLES);
 		if (data != null && data instanceof List) {
 			// make a copy
 			List<?> ids = (List<?>)data;
@@ -615,7 +615,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				// check for focused text input first
 				if (isFocused) {
 					Clipboard cb = Clipboard.getSystemClipboard();
-					return cb.hasContent(DataFormats.BIBLE_IDS);
+					return cb.hasContent(DataFormats.BIBLES);
 				}
 				break;
 			case NEW_BIBLE:

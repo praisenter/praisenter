@@ -26,6 +26,7 @@ package org.praisenter.slide;
 
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -57,6 +58,7 @@ import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.xml.adapters.BufferedImagePngTypeAdapter;
+import org.praisenter.xml.adapters.InstantXmlAdapter;
 
 /**
  * Implementation of the {@link Slide} interface.
@@ -81,7 +83,17 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	/** The slide name */
 	@XmlElement(name = "name")
 	String name;
-	
+
+	/** The date the slide was created */
+	@XmlAttribute(name = "createdDate", required = false)
+	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
+	Instant createdDate;
+
+	/** The date the slide was last changed */
+	@XmlAttribute(name = "lastModifiedDate", required = false)
+	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
+	Instant lastModifiedDate;
+
 	/** The time the slide will show in milliseconds */
 	@XmlElement(name = "time", required = false)
 	long time;
@@ -137,6 +149,8 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		this.placeholderData = null;
 		this.time = Slide.TIME_FOREVER;
 		this.tags = new TreeSet<Tag>();
+		this.createdDate = Instant.now();
+		this.lastModifiedDate = this.createdDate;
 	}
 	
 	/**
@@ -152,6 +166,8 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		this.animations = new ArrayList<SlideAnimation>();
 		this.placeholderData = other.placeholderData != null ? other.placeholderData.copy() : null;
 		this.tags = new TreeSet<Tag>();
+		this.createdDate = Instant.now();
+		this.lastModifiedDate = this.createdDate;
 		
 		if (exact) {
 			this.path = other.path;
@@ -241,6 +257,30 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@Override
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getCreatedDate()
+	 */
+	@Override
+	public Instant getCreatedDate() {
+		return this.createdDate;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getLastModifiedDate()
+	 */
+	@Override
+	public Instant getLastModifiedDate() {
+		return this.lastModifiedDate;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#setLastModifiedDate(java.time.Instant)
+	 */
+	@Override
+	public void setLastModifiedDate(Instant date) {
+		this.lastModifiedDate = date;
 	}
 	
 	/* (non-Javadoc)
@@ -537,17 +577,14 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.AbstractSlideRegion#isMediaReferenced(java.util.UUID[])
+	 * @see org.praisenter.slide.AbstractSlideRegion#getReferencedMedia()
 	 */
 	@Override
-	public boolean isMediaReferenced(UUID... ids) {
+	public Set<UUID> getReferencedMedia() {
+		Set<UUID> media = super.getReferencedMedia();
 		for (SlideComponent component : this.components) {
-			for (UUID id : ids) {
-				if (component.isMediaReferenced(id)){
-					return true;
-				}
-			}
+			media.addAll(component.getReferencedMedia());
 		}
-		return super.isMediaReferenced(ids);
+		return media;
 	}
 }
