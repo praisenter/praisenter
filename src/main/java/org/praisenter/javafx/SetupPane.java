@@ -18,6 +18,7 @@ import org.praisenter.javafx.configuration.SettingBatch;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
 import org.praisenter.javafx.screen.ScreenView;
 import org.praisenter.javafx.screen.ScreenViewDragDropManager;
+import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.themes.Theme;
 import org.praisenter.resources.translations.Translations;
 

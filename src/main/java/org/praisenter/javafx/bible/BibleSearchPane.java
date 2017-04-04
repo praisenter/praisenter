@@ -41,9 +41,9 @@ import org.praisenter.javafx.AutoCompleteComboBox;
 import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.Styles;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.javafx.themes.Styles;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;

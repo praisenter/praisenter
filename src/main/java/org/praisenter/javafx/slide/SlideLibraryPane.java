@@ -4,8 +4,10 @@ import java.io.File;
 import java.nio.file.Path;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,7 +25,8 @@ import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
-import org.praisenter.javafx.Styles;
+import org.praisenter.javafx.SortGraphic;
+import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.BasicSlide;
@@ -38,13 +41,23 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
@@ -52,6 +65,9 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
 // TODO: undo/redo might be easier here since the size the XML documents is much smaller than bibles
@@ -81,7 +97,7 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 	// nodes
 	
 	/** The slide listing */
-	private final FlowListView<SlideListItem> slides;
+	private final FlowListView<SlideListItem> lstSlides;
 
 	// filtering
 
@@ -149,19 +165,19 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 		this.sortDescending.addListener(filterListener);
 		filterListener.invalidated(null);
 		
-		this.slides = new FlowListView<SlideListItem>(Orientation.HORIZONTAL, new Callback<SlideListItem, FlowListCell<SlideListItem>>() {
+		this.lstSlides = new FlowListView<SlideListItem>(Orientation.HORIZONTAL, new Callback<SlideListItem, FlowListCell<SlideListItem>>() {
         	@Override
         	public FlowListCell<SlideListItem> call(SlideListItem item) {
 				return new SlideListCell(item, 100);
 			}
         });
-		this.slides.itemsProperty().bindContent(sorted);
-        this.slides.setOnDragOver(this::onDragOver);
-        this.slides.setOnDragDropped(this::onDragDropped);
+		this.lstSlides.itemsProperty().bindContent(sorted);
+        this.lstSlides.setOnDragOver(this::onDragOver);
+        this.lstSlides.setOnDragDropped(this::onDragDropped);
 
-//		VBox right = new VBox();
-//		VBox importSteps = new VBox();
-//		
+		VBox right = new VBox();
+		VBox importSteps = new VBox();
+		
 //		Label lblStep1 = new Label(Translations.get("bible.import.howto.list1"));
 //		Label lblStep2 = new Label(Translations.get("bible.import.howto.list2"));
 //		Label lblStep1Text = new Label(Translations.get("bible.import.howto.step1"));
@@ -179,7 +195,7 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 //		lblOpenSong.setOnAction(e -> {
 //			context.getJavaFXContext().getApplication().getHostServices().showDocument("http://www.opensong.org/home/download");
 //		});
-//		
+		
 //		lblUnbound.setPadding(new Insets(0, 0, 0, 20));
 //		lblZefania.setPadding(new Insets(0, 0, 0, 20));
 //		lblOpenSong.setPadding(new Insets(0, 0, 0, 20));
@@ -195,27 +211,69 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 //				new HBox(lblZefania),
 //				new HBox(lblOpenSong),
 //				new HBox(lblStep2, lblStep2Text));
-//
-//		BibleInfoPane bmp = new BibleInfoPane();
-//
-//		TitledPane ttlImport = new TitledPane(Translations.get("bible.import.howto.title"), importSteps);
-//		TitledPane ttlMetadata = new TitledPane(Translations.get("bible.properties.title"), bmp);
-//		
-//		right.getChildren().addAll(ttlImport, ttlMetadata);
-//		
-//        ScrollPane rightScroller = new ScrollPane();
-//        rightScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-//        rightScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-//        rightScroller.setFitToWidth(true);
-//        rightScroller.setContent(right);
-//        rightScroller.setMinWidth(250);
-        
-		this.setCenter(this.slides);
 
+		SlideInfoPane sip = new SlideInfoPane(context.getTags());
+
+		TitledPane ttlImport = new TitledPane(Translations.get("bible.import.howto.title"), importSteps);
+		TitledPane ttlMetadata = new TitledPane(Translations.get("bible.properties.title"), sip);
+		
+		right.getChildren().addAll(ttlImport, ttlMetadata);
+		
+        ScrollPane rightScroller = new ScrollPane();
+        rightScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        rightScroller.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        rightScroller.setFitToWidth(true);
+        rightScroller.setContent(right);
+        rightScroller.setMinWidth(250);
+        
+        // FILTERING & SORTING
+		
+		ObservableList<Option<SlideSortField>> sortFields = FXCollections.observableArrayList();
+		sortFields.addAll(Arrays.asList(SlideSortField.values())
+        		.stream()
+        		.map(t -> new Option<SlideSortField>(t.getName(), t))
+        		.collect(Collectors.toList()));
+        		
+        Label lblSort = new Label(Translations.get("field.sort"));
+        ChoiceBox<Option<SlideSortField>> cbSort = new ChoiceBox<Option<SlideSortField>>(sortFields);
+        cbSort.valueProperty().bindBidirectional(this.sortField);
+        SortGraphic sortGraphic = new SortGraphic();
+        ToggleButton tgl = new ToggleButton(null, sortGraphic);
+        tgl.selectedProperty().bindBidirectional(this.sortDescending);
+        sortGraphic.flipProperty().bind(this.sortDescending);
+        
+        TextField txtSearch = new TextField();
+        txtSearch.setPromptText(Translations.get("field.search.placeholder"));
+        txtSearch.textProperty().bindBidirectional(this.textFilter);
+        
+        HBox pFilter = new HBox(txtSearch); 
+        pFilter.setAlignment(Pos.BASELINE_LEFT);
+        pFilter.setSpacing(5);
+        
+        HBox pSort = new HBox(lblSort, cbSort, tgl);
+        pSort.setAlignment(Pos.CENTER_LEFT);
+        pSort.setSpacing(5);
+        
+        FlowPane top = new FlowPane();
+        top.setHgap(5);
+        top.setVgap(5);
+        top.setAlignment(Pos.BASELINE_LEFT);
+        top.setPadding(new Insets(5));
+        top.setPrefWrapLength(0);
+        
+        top.getChildren().addAll(pFilter, pSort);
+
+		SplitPane split = new SplitPane(this.lstSlides, rightScroller);
+		split.setDividerPositions(0.75);
+		SplitPane.setResizableWithParent(rightScroller, false);
+		
+        this.setTop(top);
+        this.setCenter(split);
+        
         // BINDINGS & EVENTS
 
 		// update the local selection
-		this.slides.getSelectionModel().selectionsProperty().addListener((obs, ov, nv) -> {
+		this.lstSlides.getSelectionModel().selectionsProperty().addListener((obs, ov, nv) -> {
 			if (selecting) return;
 			selecting = true;
         	if (nv == null || nv.size() != 1) {
@@ -230,15 +288,15 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
         	if (selecting) return;
         	selecting = true;
         	if (nv == null) {
-        		slides.getSelectionModel().clear();
+        		lstSlides.getSelectionModel().clear();
         	} else {
-        		slides.getSelectionModel().selectOnly(context.getSlideLibrary().getListItem(nv.getId()));
+        		lstSlides.getSelectionModel().selectOnly(context.getSlideLibrary().getListItem(nv.getId()));
         	}
         	selecting = false;
         	this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
         });
         
-		this.slides.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
+		this.lstSlides.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
 			@SuppressWarnings("unchecked")
 			FlowListCell<SlideListItem> view = (FlowListCell<SlideListItem>)e.getTarget();
 			SlideListItem item = view.getData();
@@ -265,7 +323,10 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 				menu.createMenuItem(ApplicationAction.SELECT_ALL),
 				menu.createMenuItem(ApplicationAction.SELECT_NONE),
 				menu.createMenuItem(ApplicationAction.SELECT_INVERT));
-		this.slides.setContextMenu(menu);
+		this.lstSlides.setContextMenu(menu);
+
+        // wire up the selected bible to the bible metadata view with a unidirectional binding
+        sip.slideProperty().bind(this.lstSlides.getSelectionModel().selectionProperty());
         
         // setup the event handler for application events
         this.addEventHandler(ApplicationEvent.ALL, this::onApplicationEvent);
@@ -317,7 +378,7 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 	 */
 	private void promptDelete() {
 		List<Slide> slides = new ArrayList<Slide>();
-		for (SlideListItem item : this.slides.getSelectionModel().selectionsProperty().get()) {
+		for (SlideListItem item : this.lstSlides.getSelectionModel().selectionsProperty().get()) {
 			// can't delete items that are still being imported
 			if (item.isLoaded()) {
 				slides.add(item.getSlide());
@@ -351,7 +412,7 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 		ClipboardContent content = new ClipboardContent();
 		List<String> names = new ArrayList<String>();
 		List<String> data = new ArrayList<String>();
-		for (SlideListItem item : this.slides.getSelectionModel().selectionsProperty()) {
+		for (SlideListItem item : this.lstSlides.getSelectionModel().selectionsProperty()) {
 			if (item.isLoaded()) {
 				try {
 					data.add(XmlIO.save(item.getSlide()));
@@ -397,7 +458,7 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
      * Event handler for exporting slides.
      */
     private final void promptExport() {
-    	List<SlideListItem> items = this.slides.getSelectionModel().selectionsProperty().get();
+    	List<SlideListItem> items = this.lstSlides.getSelectionModel().selectionsProperty().get();
 		List<Slide> slides = new ArrayList<Slide>();
 		for (SlideListItem item : items) {
 			if (item.isLoaded()) {
@@ -416,7 +477,7 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
      * Event handler for editing the selected item.
      */
     private void editSelected() {
-    	SlideListItem item = this.slides.getSelectionModel().selectionProperty().get();
+    	SlideListItem item = this.lstSlides.getSelectionModel().selectionProperty().get();
     	if (item != null && item.isLoaded()) {
     		fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.EDIT, item.getSlide()));
     	}
@@ -428,7 +489,7 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
      */
     private final void onApplicationEvent(ApplicationEvent event) {
     	Node focused = this.getScene().getFocusOwner();
-    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.slides);
+    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.lstSlides);
     	
     	ApplicationAction action = event.getAction();
     	Slide selected = this.selected.get();
@@ -459,16 +520,16 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
     			break;
     		case SELECT_ALL:
 				if (isFocused) {
-	    			this.slides.getSelectionModel().selectAll();
+	    			this.lstSlides.getSelectionModel().selectAll();
 	    			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
 				}
     			break;
     		case SELECT_NONE:
-    			this.slides.getSelectionModel().clear();
+    			this.lstSlides.getSelectionModel().clear();
     			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
     			break;
     		case SELECT_INVERT:
-    			this.slides.getSelectionModel().invert();
+    			this.lstSlides.getSelectionModel().invert();
     			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
     			break;
     		case EXPORT:
@@ -487,7 +548,7 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
     	Scene scene = this.getScene();
     	// don't bother if there's no place to send the event to
     	if (scene != null) {
-    		fireEvent(new ApplicationPaneEvent(this.slides, SlideLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, SlideLibraryPane.this, reason));
+    		fireEvent(new ApplicationPaneEvent(this.lstSlides, SlideLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, SlideLibraryPane.this, reason));
     	}
     }
     
@@ -495,11 +556,11 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 	public boolean isApplicationActionEnabled(ApplicationAction action) {
     	Node focused = this.getScene().getFocusOwner();
 		
-		List<SlideListItem> selected = this.slides.getSelectionModel().selectionsProperty().get();
+		List<SlideListItem> selected = this.lstSlides.getSelectionModel().selectionsProperty().get();
 		
 		boolean isSingleSelected = selected.size() == 1;
     	boolean isMultiSelected = selected.size() > 0;
-    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.slides);
+    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.lstSlides);
     	boolean isLoaded = selected.stream().allMatch(b -> b.isLoaded());
 		
 		switch (action) {

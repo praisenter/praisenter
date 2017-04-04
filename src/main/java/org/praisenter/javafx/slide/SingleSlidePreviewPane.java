@@ -27,7 +27,7 @@ package org.praisenter.javafx.slide;
 import java.util.Iterator;
 
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.Styles;
+import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.Slide;
 import org.praisenter.utility.Scaling;

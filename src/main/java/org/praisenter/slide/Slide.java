@@ -207,6 +207,15 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	 */
 	public abstract void setTime(long time);
 	
+	/**
+	 * Returns the total time required for this slide.
+	 * <p>
+	 * The total time is this slide's time + any transition in time.
+	 * @return long
+	 * @see #TIME_FOREVER
+	 */
+	public abstract long getTotalTime();
+	
 	// component animations
 	
 	/**

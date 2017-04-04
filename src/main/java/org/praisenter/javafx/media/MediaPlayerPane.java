@@ -29,7 +29,7 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
-import org.praisenter.javafx.Styles;
+import org.praisenter.javafx.themes.Styles;
 import org.praisenter.media.MediaType;
 
 import javafx.application.Platform;

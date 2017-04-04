@@ -22,48 +22,39 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.bible;
+package org.praisenter.javafx.slide;
 
-import org.praisenter.javafx.themes.Styles;
+import java.io.Serializable;
 
-import javafx.scene.control.Label;
-import javafx.scene.control.TreeCell;
+import javafx.event.Event;
+import javafx.event.EventTarget;
+import javafx.event.EventType;
 
 /**
- * Specialized TreeCell for the bible editor.
+ * Represents a generic event when metadata for a slide is changed.
  * @author William Bittle
  * @version 3.0.0
- * @since 3.0.0
  */
-final class BibleTreeCell extends TreeCell<TreeData> {
-	/** The tree cell graphic */
-	private final Label graphic;
+class SlideMetadataEvent extends Event implements Serializable {
+	/** The serialization id */
+	private static final long serialVersionUID = -6472954757817478303L;
+
+	/** Event type to catch any event */
+	public static final EventType<SlideMetadataEvent> ANY = new EventType<SlideMetadataEvent>("SLIDE_METADATA");
+	
+	/** Event type to catch only tag add events */
+	public static final EventType<SlideTagEvent> ADD_TAG = new EventType<SlideTagEvent>("SLIDE_METADATA_ADD_TAG");
+	
+	/** Event type to catch only tag remove events */
+	public static final EventType<SlideTagEvent> REMOVE_TAG = new EventType<SlideTagEvent>("SLIDE_METADATA_REMOVE_TAG");
 	
 	/**
-	 * Default constructor.
+	 * Full constructor.
+	 * @param source the event source
+	 * @param target the event target
+	 * @param type the event type
 	 */
-	public BibleTreeCell() {
-		// styled for verse
-		this.graphic = new Label();
-		this.graphic.getStyleClass().add(Styles.BIBLE_VERSE_NUMBER);
+	public SlideMetadataEvent(Object source, EventTarget target, EventType<? extends SlideMetadataEvent> type) {
+		super(source, target, type);
 	}
-	
-	/* (non-Javadoc)
-	 * @see javafx.scene.control.Cell#updateItem(java.lang.Object, boolean)
-	 */
-    @Override
-    protected void updateItem(TreeData item, boolean empty) {
-        super.updateItem(item, empty);
-        this.textProperty().unbind();
-        this.graphic.textProperty().unbind();
-        if (!empty && item != null) {
-            this.textProperty().bind(item.label);
-            this.graphic.textProperty().bind(item.number);
-            this.setGraphic(this.graphic);
-        } else {
-        	this.setText(null);
-        	this.graphic.setText(null);
-        	this.setGraphic(null);
-        }
-    }
 }

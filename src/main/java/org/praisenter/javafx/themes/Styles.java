@@ -1,4 +1,4 @@
-package org.praisenter.javafx;
+package org.praisenter.javafx.themes;
 
 public final class Styles {
 	private Styles() {}
@@ -19,6 +19,7 @@ public final class Styles {
 	public static final String MEDIA_LIBRARY_PANE = "media-library-pane";
 	public static final String MEDIA_PLAYER_PANE = "media-player-pane";
 	
+	public static final String SLIDE_INFO_PANE = "slide-info-pane";
 	public static final String SLIDE_LIBRARY_PANE = "slide-library-pane";
 	public static final String SLIDE_PREVIEW_PANE = "slide-preview-pane";
 	public static final String SLIDE_EDITOR_PANE = "slide-editor-pane";

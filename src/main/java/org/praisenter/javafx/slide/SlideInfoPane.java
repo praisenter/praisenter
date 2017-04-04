@@ -22,15 +22,18 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.bible;
+package org.praisenter.javafx.slide;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
-import org.praisenter.bible.Bible;
+import org.praisenter.Tag;
+import org.praisenter.javafx.TagEvent;
+import org.praisenter.javafx.TagListView;
 import org.praisenter.javafx.themes.Styles;
 import org.praisenter.resources.translations.Translations;
+import org.praisenter.slide.Slide;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -38,6 +41,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableSet;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -49,18 +54,18 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 /**
- * Pane specifically for display of {@link Bible}s.
+ * Pane specifically for display of {@link Slide}s.
  * @author William Bittle
  * @version 3.0.0
  */
-final class BibleInfoPane extends VBox {
+final class SlideInfoPane extends VBox {
 	/** The date formatter */
 	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault());
 	
 	// properties
 	
-	/** The bible */
-	private final ObjectProperty<BibleListItem> bible = new SimpleObjectProperty<BibleListItem>();
+	/** The slide */
+	private final ObjectProperty<SlideListItem> slide = new SimpleObjectProperty<SlideListItem>();
 	
 	// the sub properties
 	
@@ -68,31 +73,28 @@ final class BibleInfoPane extends VBox {
 	private final StringProperty name = new SimpleStringProperty();
 	
 	/** The language */
-	private final StringProperty language = new SimpleStringProperty();
+	private final StringProperty time = new SimpleStringProperty();
 	
 	/** The source */
-	private final StringProperty source = new SimpleStringProperty();
+	private final StringProperty totalTime = new SimpleStringProperty();
 	
 	/** The last modified date */
 	private final StringProperty updatedDate = new SimpleStringProperty();
 	
-	/** The import date */
-	private final StringProperty importDate = new SimpleStringProperty();
+	/** The create date */
+	private final StringProperty createDate = new SimpleStringProperty();
+
+	// nodes
 	
-	/** Has copyright */
-	private final StringProperty copyright = new SimpleStringProperty();
-	
-	/** The verse count */
-	private final StringProperty verseCount = new SimpleStringProperty();
-	
-	/** Had import errors */
-	private final StringProperty hadImportErrors = new SimpleStringProperty();
+	/** The tag view for editing tags */
+	private final TagListView tagView;
 	
 	/**
 	 * Creates a new metadata pane.
+	 * @param allTags the observable list of all tags
 	 */
-	public BibleInfoPane() {
-		this.getStyleClass().add(Styles.BIBLE_INFO_PANE);
+	public SlideInfoPane(ObservableSet<Tag> allTags) {
+		this.getStyleClass().add(Styles.SLIDE_INFO_PANE);
 		
 		this.setPadding(new Insets(0, 5, 10, 5));
 		this.setDisable(true);
@@ -111,7 +113,7 @@ final class BibleInfoPane extends VBox {
         // for debugging
         //this.setGridLinesVisible(true);
         
-        Label lblName = new Label(Translations.get("bible.properties.name"));
+        Label lblName = new Label(Translations.get("slide.properties.name"));
         Label lblNameValue = new Label();
         lblNameValue.textProperty().bind(name);
         lblNameValue.setTooltip(new Tooltip());
@@ -120,34 +122,34 @@ final class BibleInfoPane extends VBox {
         grid.add(lblName, 0, 0, 1, 1);
         grid.add(lblNameValue, 1, 0, 1, 1);
         
-        Label lblLanguage = new Label(Translations.get("bible.properties.language"));
+        Label lblLanguage = new Label(Translations.get("slide.properties.time"));
         Label lblLanguageValue = new Label();
-        lblLanguageValue.textProperty().bind(language);
+        lblLanguageValue.textProperty().bind(time);
         lblLanguageValue.setTooltip(new Tooltip());
-        lblLanguageValue.getTooltip().textProperty().bind(language);
+        lblLanguageValue.getTooltip().textProperty().bind(time);
         lblLanguageValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblLanguage, 0, 1, 1, 1);
         grid.add(lblLanguageValue, 1, 1, 1, 1);
         
-        Label lblSource = new Label(Translations.get("bible.properties.source"));
+        Label lblSource = new Label(Translations.get("slide.properties.totalTime"));
         Label lblSourceValue = new Label();
-        lblSourceValue.textProperty().bind(source);
+        lblSourceValue.textProperty().bind(totalTime);
         lblSourceValue.setTooltip(new Tooltip());
-        lblSourceValue.getTooltip().textProperty().bind(source);
+        lblSourceValue.getTooltip().textProperty().bind(totalTime);
         lblSourceValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblSource, 0, 2, 1, 1);
         grid.add(lblSourceValue, 1, 2, 1, 1);
         
-        Label lblImportDate = new Label(Translations.get("bible.properties.importDate"));
+        Label lblImportDate = new Label(Translations.get("slide.properties.createDate"));
         Label lblImportDateValue = new Label();
-        lblImportDateValue.textProperty().bind(importDate);
+        lblImportDateValue.textProperty().bind(createDate);
         lblImportDateValue.setTooltip(new Tooltip());
-        lblImportDateValue.getTooltip().textProperty().bind(importDate);
+        lblImportDateValue.getTooltip().textProperty().bind(createDate);
         lblImportDateValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblImportDate, 0, 3, 1, 1);
         grid.add(lblImportDateValue, 1, 3, 1, 1);
         
-        Label lblUpdatedDate = new Label(Translations.get("bible.properties.updatedDate"));
+        Label lblUpdatedDate = new Label(Translations.get("slide.properties.updatedDate"));
         Label lblUpdatedDateValue = new Label();
         lblUpdatedDateValue.textProperty().bind(updatedDate);
         lblUpdatedDateValue.setTooltip(new Tooltip());
@@ -156,66 +158,45 @@ final class BibleInfoPane extends VBox {
         grid.add(lblUpdatedDate, 0, 4, 1, 1);
         grid.add(lblUpdatedDateValue, 1, 4, 1, 1);
         
-        Label lblCopyright = new Label(Translations.get("bible.properties.copyright"));
-        Label lblCopyrightValue = new Label();
-        lblCopyrightValue.textProperty().bind(copyright);
-        lblCopyrightValue.setTooltip(new Tooltip());
-        lblCopyrightValue.getTooltip().textProperty().bind(copyright);
-        lblCopyrightValue.getStyleClass().add(Styles.VALUE_LABEL);
-        grid.add(lblCopyright, 0, 5, 1, 1);
-        grid.add(lblCopyrightValue, 1, 5, 1, 1);
-        
-        Label lblVerseCount = new Label(Translations.get("bible.properties.verseCount"));
-        Label lblVerseCountValue = new Label();
-        lblVerseCountValue.textProperty().bind(verseCount);
-        lblVerseCountValue.setTooltip(new Tooltip());
-        lblVerseCountValue.getTooltip().textProperty().bind(verseCount);
-        lblVerseCountValue.getStyleClass().add(Styles.VALUE_LABEL);
-        grid.add(lblVerseCount, 0, 6, 1, 1);
-        grid.add(lblVerseCountValue, 1, 6, 1, 1);
-        
-        Label lblImportErrors = new Label(Translations.get("bible.properties.importWarnings"));
-        Label lblImportErrorsValue = new Label();
-        lblImportErrorsValue.textProperty().bind(hadImportErrors);
-        lblImportErrorsValue.setTooltip(new Tooltip());
-        lblImportErrorsValue.getTooltip().setText(Translations.get("bible.properties.importWarnings.tooltip"));
-        lblImportErrorsValue.getStyleClass().add(Styles.VALUE_LABEL);
-        grid.add(lblImportErrors, 0, 7, 1, 1);
-        grid.add(lblImportErrorsValue, 1, 7, 1, 1);
+        this.tagView = new TagListView(allTags);
+        // handle when an action is perfomed on the tag view
+        this.tagView.addEventHandler(TagEvent.ALL, new EventHandler<TagEvent>() {
+			@Override
+			public void handle(TagEvent event) {
+				SlideListItem media = SlideInfoPane.this.slide.get();
+				Tag tag = event.getTag();
+				// bubble up the event
+				if (event.getEventType() == TagEvent.ADDED) {
+					fireEvent(new SlideTagEvent(tagView, SlideInfoPane.this, SlideMetadataEvent.ADD_TAG, media, tag));
+				} else if (event.getEventType() == TagEvent.REMOVED) {
+					fireEvent(new SlideTagEvent(tagView, SlideInfoPane.this, SlideMetadataEvent.REMOVE_TAG, media, tag));
+				}
+			}
+        });
         
         // handle when the media is changed
-        this.bible.addListener(new ChangeListener<BibleListItem>() {
+        this.slide.addListener(new ChangeListener<SlideListItem>() {
         	@Override
-        	public void changed(ObservableValue<? extends BibleListItem> ob, BibleListItem oldValue, BibleListItem newValue) {
-        		BibleListItem item = newValue;
+        	public void changed(ObservableValue<? extends SlideListItem> ob, SlideListItem oldValue, SlideListItem newValue) {
+        		SlideListItem item = newValue;
         		
         		if (item == null || !item.isLoaded()) {
         			name.set("");
-        			language.set("");
-        			source.set("");
+        			time.set("");
+        			totalTime.set("");
         	        updatedDate.set("");
-        	        importDate.set("");
-        	        copyright.set("");
-        	        verseCount.set("");
-        	        hadImportErrors.set("");
+        	        createDate.set("");
         			setDisable(true);
         		} else {
         			setDisable(false);
-        			String yes = Translations.get("yes");
-        			String no = Translations.get("no");
-        			String unknown = Translations.get("unknown");
+        			Slide slide = item.getSlide();
         			
-        			Bible bible = item.getBible();
-        			
-        			name.set(bible.getName());
-        			language.set(bible.getLanguage());
-        			source.set(bible.getSource());
-        	        updatedDate.set(bible.getLastModifiedDate() != null ? DATETIME_FORMATTER.format(bible.getLastModifiedDate()) : null);
-        	        importDate.set(bible.getImportDate() != null ? DATETIME_FORMATTER.format(bible.getImportDate()) : null);
-        			String copy = bible.getCopyright();
-        	        copyright.set(copy != null && copy.length() > 0 ? copy : unknown);
-        	        verseCount.set(String.valueOf(bible.getVerseCount()));
-        	        hadImportErrors.set(bible.hadImportWarning() ? yes : no);
+        			name.set(slide.getName());
+        			time.set(slide.getTime() == Slide.TIME_FOREVER ? "" : String.valueOf(slide.getTime()));
+        			long total = slide.getTotalTime();
+        			totalTime.set(total == Slide.TIME_FOREVER ? "" : String.valueOf(total));
+        	        updatedDate.set(slide.getLastModifiedDate() != null ? DATETIME_FORMATTER.format(slide.getLastModifiedDate()) : null);
+        	        createDate.set(slide.getCreatedDate() != null ? DATETIME_FORMATTER.format(slide.getCreatedDate()) : null);
         		}
         	}
 		});
@@ -224,26 +205,26 @@ final class BibleInfoPane extends VBox {
 	}
 	
 	/**
-	 * Returns the current bible.
-	 * @return {@link BibleListItem} or null
+	 * Returns the current slide.
+	 * @return {@link SlideListItem} or null
 	 */
-	public BibleListItem getBible() {
-		return this.bible.get();
+	public SlideListItem getSlide() {
+		return this.slide.get();
 	}
 	
 	/**
-	 * Sets the current bible.
-	 * @param bible the bible
+	 * Sets the current slide.
+	 * @param slide the slide
 	 */
-	public void setBible(BibleListItem bible) {
-		this.bible.set(bible);
+	public void setSlide(SlideListItem slide) {
+		this.slide.set(slide);
 	}
 	
 	/**
-	 * Returns the current bible property.
-	 * @return ObjectProperty&lt;{@link BibleListItem}&gt;
+	 * Returns the current slide property.
+	 * @return ObjectProperty&lt;{@link SlideListItem}&gt;
 	 */
-	public ObjectProperty<BibleListItem> bibleProperty() {
-		return this.bible;
+	public ObjectProperty<SlideListItem> slideProperty() {
+		return this.slide;
 	}
 }

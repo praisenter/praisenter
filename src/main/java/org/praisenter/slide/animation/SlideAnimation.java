@@ -53,6 +53,8 @@ import org.praisenter.slide.easing.Linear;
 	Zoom.class
 })
 public abstract class SlideAnimation {
+	public static final int INFINITE = -1;
+	
 	/** The id of the object being animated */
 	@XmlElement(name = "id", required = false)
 	UUID id;
@@ -69,6 +71,12 @@ public abstract class SlideAnimation {
 	@XmlElement(name = "delay", required = false)
 	long delay;
 	
+	// FIXME add to JAXB and add to the animation editor and generated JavaFX animations
+	
+	int repeatCount;
+	
+	boolean autoReverse;
+	
 	/** The easing function */
 	@XmlElement(name = "easing", required = false)
 	Easing easing;
@@ -81,6 +89,8 @@ public abstract class SlideAnimation {
 		this.type = AnimationType.IN;
 		this.duration = 300;
 		this.delay = 0;
+		this.repeatCount = 1;
+		this.autoReverse = false;
 		this.easing = new Linear();
 	}
 	
@@ -94,6 +104,8 @@ public abstract class SlideAnimation {
 		other.duration = this.duration;
 		other.easing = this.easing.copy();
 		other.id = id;
+		other.autoReverse = this.autoReverse;
+		other.repeatCount = this.repeatCount;
 		other.type = this.type;
 	}
 	
@@ -166,6 +178,22 @@ public abstract class SlideAnimation {
 	 */
 	public void setDelay(long delay) {
 		this.delay = delay;
+	}
+	
+	public int getRepeatCount() {
+		return this.repeatCount;
+	}
+	
+	public void setRepeatCount(int repeatCount) {
+		this.repeatCount = repeatCount;
+	}
+	
+	public boolean isAutoReverse() {
+		return this.autoReverse;
+	}
+	
+	public void setAutoReverse(boolean autoReverse) {
+		this.autoReverse = autoReverse;
 	}
 	
 	/**

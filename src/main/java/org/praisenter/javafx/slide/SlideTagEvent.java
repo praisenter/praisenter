@@ -22,48 +22,57 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.bible;
+package org.praisenter.javafx.slide;
 
-import org.praisenter.javafx.themes.Styles;
+import java.io.Serializable;
 
-import javafx.scene.control.Label;
-import javafx.scene.control.TreeCell;
+import org.praisenter.Tag;
+
+import javafx.event.EventTarget;
+import javafx.event.EventType;
 
 /**
- * Specialized TreeCell for the bible editor.
+ * Event fired when a slide has a tag added or removed.
  * @author William Bittle
  * @version 3.0.0
- * @since 3.0.0
  */
-final class BibleTreeCell extends TreeCell<TreeData> {
-	/** The tree cell graphic */
-	private final Label graphic;
+final class SlideTagEvent extends SlideMetadataEvent implements Serializable {
+	/** The serialization id */
+	private static final long serialVersionUID = -3118652971303002560L;
+
+	/** The slide list item */
+	private final SlideListItem slideListItem;
+	
+	/** The new name */
+	private final Tag tag;
 	
 	/**
-	 * Default constructor.
+	 * Full constructor.
+	 * @param source the event source
+	 * @param target the event target
+	 * @param type the event type
+	 * @param slideListItem the slide list item
+	 * @param tag the tag added or removed
 	 */
-	public BibleTreeCell() {
-		// styled for verse
-		this.graphic = new Label();
-		this.graphic.getStyleClass().add(Styles.BIBLE_VERSE_NUMBER);
+	public SlideTagEvent(Object source, EventTarget target, EventType<? extends SlideTagEvent> type, SlideListItem slideListItem, Tag tag) {
+		super(source, target, type);
+		this.slideListItem = slideListItem;
+		this.tag = tag;
 	}
-	
-	/* (non-Javadoc)
-	 * @see javafx.scene.control.Cell#updateItem(java.lang.Object, boolean)
+
+	/**
+	 * Returns the slide list item.
+	 * @return {@link SlideListItem}
 	 */
-    @Override
-    protected void updateItem(TreeData item, boolean empty) {
-        super.updateItem(item, empty);
-        this.textProperty().unbind();
-        this.graphic.textProperty().unbind();
-        if (!empty && item != null) {
-            this.textProperty().bind(item.label);
-            this.graphic.textProperty().bind(item.number);
-            this.setGraphic(this.graphic);
-        } else {
-        	this.setText(null);
-        	this.graphic.setText(null);
-        	this.setGraphic(null);
-        }
-    }
+	public SlideListItem getSlideListItem() {
+		return this.slideListItem;
+	}
+
+	/**
+	 * Returns the tag.
+	 * @return {@link Tag}
+	 */
+	public Tag getTag() {
+		return this.tag;
+	}
 }
