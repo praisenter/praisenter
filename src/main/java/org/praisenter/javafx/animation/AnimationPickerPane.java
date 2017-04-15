@@ -64,9 +64,11 @@ import javafx.collections.ObservableSet;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Background;
@@ -180,6 +182,12 @@ public final class AnimationPickerPane extends BorderPane {
 	
 	/** The easing type selector (in/out/both) */
 	private final ChoiceBox<Option<EasingType>> cbEasingType;
+
+	/** The repeat count */
+	private final Spinner<Integer> spnRepeatCount;
+
+	/** The auto reverse flag */
+	private final CheckBox chkAutoReverse;
 	
 	/** The orientation selector */
 	private final ChoiceBox<Option<Orientation>> cbOrientation;
@@ -269,7 +277,16 @@ public final class AnimationPickerPane extends BorderPane {
 		Label lblEasingType = new Label("Easing Type");
 		cbEasingType = new ChoiceBox<>(EASING_TYPE_OPTIONS);
 		cbEasingType.setValue(EASING_TYPE_OPTIONS.get(0));
-						
+		
+		Label lblRepeatCount = new Label("Repeat Count");
+		spnRepeatCount = new Spinner<>(0, Integer.MAX_VALUE, 1, 1);
+		spnRepeatCount.getValueFactory().setValue(1);
+		spnRepeatCount.setEditable(true);
+		
+		Label lblAutoReverse = new Label("Auto-Reverse");
+		chkAutoReverse = new CheckBox();
+		chkAutoReverse.setSelected(false);
+		
 		Label lblOrientation = new Label("Orientation");
 		cbOrientation = new ChoiceBox<>(ORIENTATION_OPTIONS);
 		cbOrientation.setValue(ORIENTATION_OPTIONS.get(0));
@@ -294,103 +311,29 @@ public final class AnimationPickerPane extends BorderPane {
 		txtBlindCount.setTextFormatter(blindCountFormatter);
 		blindCountFormatter.setValue(12);
 		
-		// value bindings
-		
-		easingListPane.getSelectionModel().selectionProperty().addListener(listener);
-		txtDuration.textProperty().addListener(listener);
-		txtDelay.textProperty().addListener(listener);
-		cbAnimationType.valueProperty().addListener(listener);
-		cbDirection.valueProperty().addListener(listener);
-		cbEasingType.valueProperty().addListener(listener);
-		cbOperation.valueProperty().addListener(listener);
-		cbOrientation.valueProperty().addListener(listener);
-		cbShapeType.valueProperty().addListener(listener);
-		txtBlindCount.textProperty().addListener(listener);
-		cmbObjects.valueProperty().addListener(listener);
-		
-		// hide/show logic
-		
-		animationListPane.getSelectionModel().selectionProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
-			mutating = true;
-			// remove controls
-			grid.getChildren().removeAll(
-					lblDirection, cbDirection,
-					lblOrientation, cbOrientation,
-					lblOperation, cbOperation,
-					lblShapeType, cbShapeType,
-					lblBlindCount, txtBlindCount);
-			// hide show based on animation type
-			if (nv != null) {
-				Class<?> type = nv.getType();
-				if (Blinds.class.isAssignableFrom(type)) {
-					grid.add(lblOrientation, 0, 5);
-					grid.add(cbOrientation, 1, 5);
-					grid.add(lblBlindCount, 0, 6);
-					grid.add(txtBlindCount, 1, 6);
-				} else if (Push.class.isAssignableFrom(type)) {
-					grid.add(lblDirection, 0, 5);
-					grid.add(cbDirection, 1, 5);
-					DIRECTION_OPTIONS.setPredicate((f) -> {
-						return f.getValue() == Direction.UP || 
-							   f.getValue() == Direction.RIGHT || 
-							   f.getValue() == Direction.LEFT || 
-							   f.getValue() == Direction.DOWN;
-					});
-					cbDirection.setValue(DIRECTION_OPTIONS.get(0));
-				} else if (Shaped.class.isAssignableFrom(type)) {
-					grid.add(lblShapeType, 0, 5);
-					grid.add(cbShapeType, 1, 5);
-					grid.add(lblOperation, 0, 6);
-					grid.add(cbOperation, 1, 6);
-				} else if (Split.class.isAssignableFrom(type)) {
-					grid.add(lblOrientation, 0, 5);
-					grid.add(cbOrientation, 1, 5);
-					grid.add(lblOperation, 0, 6);
-					grid.add(cbOperation, 1, 6);
-				} else if (Swipe.class.isAssignableFrom(type)) {
-					grid.add(lblDirection, 0, 5);
-					grid.add(cbDirection, 1, 5);
-					DIRECTION_OPTIONS.setPredicate((f) -> { return true; });
-					cbDirection.setValue(DIRECTION_OPTIONS.get(0));
-				} else {
-					// otherwise all the options remain hidden
-					LOGGER.warn("Unhandled animation type " + type.getName() + " in " + getClass().getName());
-				}
-			}
-			value.set(getControlValues());
-			mutating = false;
-		});
-		
-		// set the default
-		this.mutating = true;
-		this.value.set(getControlValues());
-		this.mutating = false;
-		
-		// listen for changes directly to the animation
-		this.value.addListener((obs, ov, nv) -> {
-			if (mutating) return;
-			mutating = true;
-			setControlValues(nv);
-			mutating = false;
-		});
-		
 		// UI
 		
-		grid.add(lblObjects, 0, 0);
-		grid.add(cmbObjects, 1, 0);
+		int row = 0;
+		grid.add(lblObjects, 0, row);
+		grid.add(cmbObjects, 1, row++);
 		
-		grid.add(lblDuration, 0, 1);
-		grid.add(txtDuration, 1, 1);
+		grid.add(lblDuration, 0, row);
+		grid.add(txtDuration, 1, row++);
 		
-		grid.add(lblDelay, 0, 2);
-		grid.add(txtDelay, 1, 2);
+		grid.add(lblDelay, 0, row);
+		grid.add(txtDelay, 1, row++);
+
+		grid.add(lblRepeatCount, 0, row);
+		grid.add(spnRepeatCount, 1, row++);
 		
-		grid.add(lblAnimationType, 0, 3);
-		grid.add(cbAnimationType, 1, 3);
+		grid.add(lblAutoReverse, 0, row);
+		grid.add(chkAutoReverse, 1, row++);
 		
-		grid.add(lblEasingType, 0, 4);
-		grid.add(cbEasingType, 1, 4);
+		grid.add(lblAnimationType, 0, row);
+		grid.add(cbAnimationType, 1, row++);
+		
+		grid.add(lblEasingType, 0, row);
+		grid.add(cbEasingType, 1, row++);
 		
 		Pane panePreview = new Pane();
 		Fx.setSize(panePreview, PREVIEW_WIDTH, PREVIEW_HEIGHT);
@@ -446,6 +389,92 @@ public final class AnimationPickerPane extends BorderPane {
 		this.setCenter(left);
 		this.setRight(right);
 		this.setMinHeight(420);
+		
+		// value bindings
+		
+		easingListPane.getSelectionModel().selectionProperty().addListener(listener);
+		txtDuration.textProperty().addListener(listener);
+		txtDelay.textProperty().addListener(listener);
+		cbAnimationType.valueProperty().addListener(listener);
+		spnRepeatCount.valueProperty().addListener(listener);
+		chkAutoReverse.selectedProperty().addListener(listener);
+		cbDirection.valueProperty().addListener(listener);
+		cbEasingType.valueProperty().addListener(listener);
+		cbOperation.valueProperty().addListener(listener);
+		cbOrientation.valueProperty().addListener(listener);
+		cbShapeType.valueProperty().addListener(listener);
+		txtBlindCount.textProperty().addListener(listener);
+		cmbObjects.valueProperty().addListener(listener);
+		
+		// hide/show logic
+		
+		final int start = row;
+		animationListPane.getSelectionModel().selectionProperty().addListener((obs, ov, nv) -> {
+			if (mutating) return;
+			mutating = true;
+			
+			int subRow = start;
+			// remove controls
+			grid.getChildren().removeAll(
+					lblDirection, cbDirection,
+					lblOrientation, cbOrientation,
+					lblOperation, cbOperation,
+					lblShapeType, cbShapeType,
+					lblBlindCount, txtBlindCount);
+			// hide show based on animation type
+			if (nv != null) {
+				Class<?> type = nv.getType();
+				if (Blinds.class.isAssignableFrom(type)) {
+					grid.add(lblOrientation, 0, subRow);
+					grid.add(cbOrientation, 1, subRow++);
+					grid.add(lblBlindCount, 0, subRow);
+					grid.add(txtBlindCount, 1, subRow++);
+				} else if (Push.class.isAssignableFrom(type)) {
+					grid.add(lblDirection, 0, subRow);
+					grid.add(cbDirection, 1, subRow++);
+					DIRECTION_OPTIONS.setPredicate((f) -> {
+						return f.getValue() == Direction.UP || 
+							   f.getValue() == Direction.RIGHT || 
+							   f.getValue() == Direction.LEFT || 
+							   f.getValue() == Direction.DOWN;
+					});
+					cbDirection.setValue(DIRECTION_OPTIONS.get(0));
+				} else if (Shaped.class.isAssignableFrom(type)) {
+					grid.add(lblShapeType, 0, subRow);
+					grid.add(cbShapeType, 1, subRow++);
+					grid.add(lblOperation, 0, subRow);
+					grid.add(cbOperation, 1, subRow++);
+				} else if (Split.class.isAssignableFrom(type)) {
+					grid.add(lblOrientation, 0, subRow);
+					grid.add(cbOrientation, 1, subRow++);
+					grid.add(lblOperation, 0, subRow);
+					grid.add(cbOperation, 1, subRow++);
+				} else if (Swipe.class.isAssignableFrom(type)) {
+					grid.add(lblDirection, 0, subRow);
+					grid.add(cbDirection, 1, subRow++);
+					DIRECTION_OPTIONS.setPredicate((f) -> { return true; });
+					cbDirection.setValue(DIRECTION_OPTIONS.get(0));
+				} else {
+					// otherwise all the options remain hidden
+					LOGGER.warn("Unhandled animation type " + type.getName() + " in " + getClass().getName());
+				}
+			}
+			value.set(getControlValues());
+			mutating = false;
+		});
+		
+		// set the default
+		this.mutating = true;
+		this.value.set(getControlValues());
+		this.mutating = false;
+		
+		// listen for changes directly to the animation
+		this.value.addListener((obs, ov, nv) -> {
+			if (mutating) return;
+			mutating = true;
+			setControlValues(nv);
+			mutating = false;
+		});
 	}
 	
 	/**
@@ -463,6 +492,8 @@ public final class AnimationPickerPane extends BorderPane {
 			txtDelay.setText(String.valueOf(animation.getDelay()));
 			cbAnimationType.setValue(getOption(ANIMATION_TYPE_OPTIONS, animation.getType()));
 			cbEasingType.setValue(getOption(EASING_TYPE_OPTIONS, animation.getEasing().getType()));
+			spnRepeatCount.getValueFactory().setValue(animation.getRepeatCount() == SlideAnimation.INFINITE ? 0 : animation.getRepeatCount());
+			chkAutoReverse.setSelected(animation.isAutoReverse());
 			// specific animation settings
 			// custom animation options
 			if (animation instanceof Blinds) {
@@ -519,6 +550,7 @@ public final class AnimationPickerPane extends BorderPane {
 			Long delay = longConverter.fromString(this.txtDelay.getText());
 			Long duration = longConverter.fromString(this.txtDuration.getText());
 			Integer blinds = intConverter.fromString(this.txtBlindCount.getText());
+			Integer repeat = this.spnRepeatCount.getValue();
 			
 			// animation
 			SlideAnimation animation = (SlideAnimation)animationClass.newInstance();
@@ -526,6 +558,8 @@ public final class AnimationPickerPane extends BorderPane {
 			animation.setDuration(duration != null ? duration : 500);
 			animation.setId(this.cmbObjects.getValue().getObjectId());
 			animation.setType(this.cbAnimationType.getValue().getValue());
+			animation.setRepeatCount(repeat == 0 ? SlideAnimation.INFINITE : repeat);
+			animation.setAutoReverse(this.chkAutoReverse.isSelected());
 			
 			// custom animation options
 			if (animation instanceof Blinds) {

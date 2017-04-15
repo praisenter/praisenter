@@ -7,6 +7,7 @@ import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 

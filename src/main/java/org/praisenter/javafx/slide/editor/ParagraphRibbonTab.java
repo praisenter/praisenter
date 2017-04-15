@@ -13,6 +13,7 @@ import org.praisenter.slide.text.VerticalTextAlignment;
 
 import javafx.scene.control.Spinner;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -59,6 +60,18 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 		this.spnPadding = new Spinner<Double>(0.0, Double.MAX_VALUE, 0.0, 1.0);
 		this.spnPadding.setPrefWidth(70);
 		this.spnPadding.setEditable(true);
+		
+		// tooltips
+		
+		tglLeft.setTooltip(new Tooltip("Align left"));
+		tglRight.setTooltip(new Tooltip("Align right"));
+		tglCenter.setTooltip(new Tooltip("Align center"));
+		tglJustify.setTooltip(new Tooltip("Align justify"));
+		tglTop.setTooltip(new Tooltip("Align top"));
+		tglMiddle.setTooltip(new Tooltip("Align middle"));
+		tglBottom.setTooltip(new Tooltip("Align bottom"));
+		this.tglTextWrapping.setTooltip(new Tooltip("Toggle text wrapping"));
+		this.spnPadding.setTooltip(new Tooltip("The padding between the text and the component edges"));
 		
 		// layout
 		

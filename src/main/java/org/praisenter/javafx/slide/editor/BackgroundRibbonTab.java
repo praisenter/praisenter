@@ -28,6 +28,7 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -108,6 +109,19 @@ class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 		this.cmbTypes.setValue(new Option<PaintType>("", PaintType.NONE));
 		
 		togglePaintType(PaintType.NONE);
+		
+		// tooltips
+		
+		this.cmbTypes.setTooltip(new Tooltip("The backgound type"));
+		this.pkrColor.setTooltip(new Tooltip("Choose the background color"));
+		this.pkrGradient.setTooltip(new Tooltip("Choose the background gradient"));
+		this.pkrImage.setTooltip(new Tooltip("Choose the background image"));
+		this.pkrVideo.setTooltip(new Tooltip("Choose the background video"));
+		tglImageScaleNone.setTooltip(new Tooltip("No scaling"));
+		tglImageScaleUniform.setTooltip(new Tooltip("Keep aspect ratio"));
+		tglImageScaleNonUniform.setTooltip(new Tooltip("Scale to fit"));
+		this.tglLoop.setTooltip(new Tooltip("Toggles looping of the media"));
+		this.tglMute.setTooltip(new Tooltip("Toggles muting the media"));
 		
 		// layout
 

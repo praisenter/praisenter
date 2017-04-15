@@ -40,6 +40,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Tag;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.async.AsyncChainedTask;
@@ -472,5 +473,64 @@ public final class SlideActions {
 		}
 		return AsyncTaskFactory.group();
 	}
+
+	/**
+	 * Returns a task that will add the given tag to the given slide.
+	 * @param library the library the given slide is a part of
+	 * @param owner the window owner
+	 * @param slide the slide
+	 * @param tag the tag to add
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
+	public static final AsyncTask<Void> slideAddTag(ObservableSlideLibrary library, Window owner, Slide slide, Tag tag) {
+		// sanity check
+		if (slide != null && tag != null) {
+			AsyncTask<Void> task = library.addTag(slide, tag);
+			task.addCancelledOrFailedHandler((e) -> {
+				Throwable error = task.getException();
+				// log the error
+				LOGGER.error("Failed to add tag '{}' to '{}': {}", tag.getName(), slide.getName(), error.getMessage());
+				// show an error to the user
+				Alert alert = Alerts.exception(
+						owner,
+						null, 
+						null, 
+						MessageFormat.format(Translations.get("tags.add.error"), tag.getName()), 
+						error);
+				alert.show();
+			});
+			return task;
+		}
+		return AsyncTaskFactory.single();
+	}
 	
+	/**
+	 * Returns a task that will remove the given tag from the given slide.
+	 * @param library the library the slide is a part of
+	 * @param owner the window owner
+	 * @param slide the slide
+	 * @param tag the tag to remove
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
+	public static final AsyncTask<Void> slideRemoveTag(ObservableSlideLibrary library, Window owner, Slide slide, Tag tag) {
+		// sanity check
+		if (slide != null && tag != null) {
+			AsyncTask<Void> task = library.removeTag(slide, tag);
+			task.addCancelledOrFailedHandler((e) -> {
+				Throwable error = task.getException();
+				// log the error
+				LOGGER.error("Failed to remove tag '{}' from '{}': {}", tag.getName(), slide.getName(), error.getMessage());
+				// show an error to the user
+				Alert alert = Alerts.exception(
+						owner,
+						null, 
+						null, 
+						MessageFormat.format(Translations.get("tags.remove.error"), tag.getName()), 
+						error);
+				alert.show();
+			});
+			return task;
+		}
+		return AsyncTaskFactory.single();
+	}
 }

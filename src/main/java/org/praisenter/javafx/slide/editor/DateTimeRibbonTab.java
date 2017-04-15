@@ -8,6 +8,7 @@ import org.praisenter.javafx.slide.ObservableSlideRegion;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -33,6 +34,10 @@ class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 		this.cmbDateTimeFormat.setPrefWidth(175);
 		this.cmbDateTimeFormat.setEditable(true);
 		this.cmbDateTimeFormat.setValue(dateTimeFormats.get(0));
+		
+		// tooltip
+		
+		this.cmbDateTimeFormat.setTooltip(new Tooltip("The format of the date and time"));
 		
 		// layout
 		

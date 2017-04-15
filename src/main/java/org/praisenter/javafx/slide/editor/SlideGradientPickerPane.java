@@ -72,6 +72,7 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
 // FEATURE Add ability to configure any number of gradient stops
+// FIXME when you click the color button and choose custom color, everything is closed, then when you go back, the color button doesn't work any more
 
 /**
  * Pane for configuring a gradient pattern.

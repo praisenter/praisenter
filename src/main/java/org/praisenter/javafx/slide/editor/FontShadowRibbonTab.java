@@ -14,6 +14,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -72,6 +73,14 @@ class FontShadowRibbonTab extends ComponentEditorRibbonTab {
 		this.spnY.setDisable(true);
 		this.spnRadius.setDisable(true);
 		this.spnSpread.setDisable(true);
+
+		// tooltips
+		this.pkrColor.setTooltip(new Tooltip("Shadow Color"));
+		this.spnX.setTooltip(new Tooltip("The shadow offset along the x-axis"));
+		this.spnY.setTooltip(new Tooltip("The shadow offset along the y-axis"));
+		this.cmbType.setTooltip(new Tooltip("Whether it's an inner or outer shadow"));
+		this.spnRadius.setTooltip(new Tooltip("The shadow radius"));
+		this.spnSpread.setTooltip(new Tooltip("The shadow spread"));
 		
 		// layout
 		

@@ -167,11 +167,14 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		this.animations = new ArrayList<SlideAnimation>();
 		this.placeholderData = other.placeholderData != null ? other.placeholderData.copy() : null;
 		this.tags = new TreeSet<Tag>();
-		this.createdDate = Instant.now();
-		this.lastModifiedDate = this.createdDate;
 		
 		if (exact) {
 			this.path = other.path;
+			this.createdDate = other.createdDate;
+			this.lastModifiedDate = other.lastModifiedDate;
+		} else {
+			this.createdDate = Instant.now();
+			this.lastModifiedDate = this.createdDate;
 		}
 		
 		this.time = other.time;
@@ -341,8 +344,8 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 					return Slide.TIME_FOREVER;
 				}
 				if (animation.getType() == AnimationType.IN) {
-					long tx = Math.max(0, animation.getDelay()) + 
-							  Math.max(0, animation.getDuration()) * Math.max(1, animation.getRepeatCount());
+					long tx = Math.max(0, animation.getDuration()) * Math.max(1, animation.getRepeatCount()) * (animation.isAutoReverse() ? 2 : 1);
+					tx += Math.max(0, animation.getDelay());
 					if (tx > max) {
 						max = tx;
 					}

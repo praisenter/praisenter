@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.Tag;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
@@ -26,6 +27,7 @@ import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.SelectionEvent;
 import org.praisenter.javafx.SortGraphic;
+import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
@@ -43,6 +45,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
@@ -117,6 +121,8 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 		
 		this.context = context;
 
+		final ObservableSet<Tag> tags = context.getTags();
+		
         // add sorting and filtering capabilities
 		ObservableList<SlideListItem> theList = context.getSlideLibrary().getItems();
         FilteredList<SlideListItem> filtered = theList.filtered(p -> true);
@@ -129,10 +135,18 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 				String text = textFilter.get();
 				SlideSortField field = sortField.get().getValue();
 				boolean desc = sortDescending.get();
-				filtered.setPredicate(b -> {
-					if (!b.isLoaded() || 
-						((text == null || text.length() == 0 || b.getName().toLowerCase().contains(text.toLowerCase())))) {
+				filtered.setPredicate(s -> {
+					if (!s.isLoaded()) {
 						return true;
+					}
+					if (s.isLoaded()) {
+						if (text == null || text.length() == 0) {
+							return true;
+						} else if (s.getName().toLowerCase().contains(text.toLowerCase())) { // search name
+							return true;
+						} else if (s.getTags().stream().anyMatch(t -> t.getName().toLowerCase().contains(text))) { // search tags
+							return true;
+						}
 					}
 					return false;
 				});
@@ -143,8 +157,8 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 						if (field == SlideSortField.NAME) {
 							value = COLLATOR.compare(o1.getName(), o2.getName());
 						} else {
-							// check for loaded vs. not loaded bibles
-							// sort non-loaded bibles to the end
+							// check for loaded vs. not loaded slides
+							// sort non-loaded slides to the end
 							if (o1.getSlide() == null && o2.getSlide() == null) return 0;
 							if (o1.getSlide() == null && o2.getSlide() != null) return 1;
 							if (o1.getSlide() != null && o2.getSlide() == null) return -1;
@@ -214,10 +228,10 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 
 		SlideInfoPane sip = new SlideInfoPane(context.getTags());
 
-		TitledPane ttlImport = new TitledPane(Translations.get("bible.import.howto.title"), importSteps);
-		TitledPane ttlMetadata = new TitledPane(Translations.get("bible.properties.title"), sip);
+		//TitledPane ttlImport = new TitledPane(Translations.get("slide.import.howto.title"), importSteps);
+		TitledPane ttlMetadata = new TitledPane(Translations.get("slide.properties.title"), sip);
 		
-		right.getChildren().addAll(ttlImport, ttlMetadata);
+		right.getChildren().addAll(/*ttlImport, */ttlMetadata);
 		
         ScrollPane rightScroller = new ScrollPane();
         rightScroller.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
@@ -233,7 +247,26 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
         		.stream()
         		.map(t -> new Option<SlideSortField>(t.getName(), t))
         		.collect(Collectors.toList()));
-        		
+        
+		ObservableList<Option<Tag>> opTags = FXCollections.observableArrayList();
+        // add the all option
+        opTags.add(new Option<>());
+        // add the current options
+        opTags.addAll(tags.stream().map(t -> new Option<Tag>(t.getName(), t)).collect(Collectors.toList()));
+        // add a listener for more tags being added
+        tags.addListener(new SetChangeListener<Tag>() {
+        	@Override
+        	public void onChanged(SetChangeListener.Change<? extends Tag> change) {
+        		if (change.wasRemoved()) {
+        			opTags.removeIf(fo -> fo.getValue().equals(change.getElementRemoved()));
+        		}
+        		if (change.wasAdded()) {
+        			Tag tag = change.getElementAdded();
+        			opTags.add(new Option<Tag>(tag.getName(), tag));
+        		}
+        	}
+		});
+		
         Label lblSort = new Label(Translations.get("field.sort"));
         ChoiceBox<Option<SlideSortField>> cbSort = new ChoiceBox<Option<SlideSortField>>(sortFields);
         cbSort.valueProperty().bindBidirectional(this.sortField);
@@ -246,7 +279,8 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
         txtSearch.setPromptText(Translations.get("field.search.placeholder"));
         txtSearch.textProperty().bindBidirectional(this.textFilter);
         
-        HBox pFilter = new HBox(txtSearch); 
+        Label lblFilter = new Label(Translations.get("field.filter"));
+        HBox pFilter = new HBox(lblFilter, txtSearch); 
         pFilter.setAlignment(Pos.BASELINE_LEFT);
         pFilter.setSpacing(5);
         
@@ -305,6 +339,9 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 	    	}
 		});
 		
+		sip.addEventHandler(SlideMetadataEvent.ADD_TAG, this::onSlideTagAdded);
+        sip.addEventHandler(SlideMetadataEvent.REMOVE_TAG, this::onSlideTagRemoved);
+		
 		// setup the context menu
 		ApplicationContextMenu menu = new ApplicationContextMenu(this);
 		menu.getItems().addAll(
@@ -325,7 +362,7 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 				menu.createMenuItem(ApplicationAction.SELECT_INVERT));
 		this.lstSlides.setContextMenu(menu);
 
-        // wire up the selected bible to the bible metadata view with a unidirectional binding
+        // wire up the selected slide to the slide info view with a unidirectional binding
         sip.slideProperty().bind(this.lstSlides.getSelectionModel().selectionProperty());
         
         // setup the event handler for application events
@@ -371,6 +408,51 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 		}
 		event.setDropCompleted(true);
 		event.consume();
+	}
+	
+	/**
+	 * Handles the tag added event for a slide.
+	 * @param event the event
+	 */
+	private void onSlideTagAdded(SlideTagEvent event) {
+		SlideListItem item = event.getSlideListItem();
+    	Slide slide = item.getSlide();
+    	Tag tag = event.getTag();
+    	
+    	AsyncTask<Void> task = SlideActions.slideAddTag(
+			this.context.getSlideLibrary(), 
+			this.getScene().getWindow(), 
+			slide,
+			tag);
+    	task.addSuccessHandler((e) -> {
+			this.context.getTags().add(tag);
+		});
+		task.addCancelledOrFailedHandler((e) -> {
+			// remove it from the tags
+			item.getTags().remove(tag);
+		});
+		task.execute(this.context.getExecutorService());
+	}
+	
+	/**
+	 * Handles the tag removed event for a slide.
+	 * @param event the event
+	 */
+	private void onSlideTagRemoved(SlideTagEvent event) {
+		SlideListItem item = event.getSlideListItem();
+    	Slide slide = item.getSlide();
+    	Tag tag = event.getTag();
+    	
+		AsyncTask<Void> task = SlideActions.slideRemoveTag(
+    			this.context.getSlideLibrary(), 
+    			this.getScene().getWindow(), 
+    			slide, 
+    			tag);
+		task.addCancelledOrFailedHandler((e) -> {
+			// add it back to the item
+			item.getTags().add(tag);
+		});
+		task.execute(this.context.getExecutorService());
 	}
 	
 	/**

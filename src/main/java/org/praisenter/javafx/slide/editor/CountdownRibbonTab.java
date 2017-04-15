@@ -12,6 +12,7 @@ import org.praisenter.javafx.slide.ObservableSlideRegion;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Pair;
@@ -53,6 +54,10 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 		this.cmbCountdownFormat.setValue(countdownFormats.get(2));
 		
 		this.pkrCountdownTime = new DateTimePicker();
+		
+		// tooltips
+		
+		this.cmbCountdownFormat.setTooltip(new Tooltip("The format of the countdown"));
 		
 		// layout
 		

@@ -163,22 +163,24 @@ final class SlideInfoPane extends VBox {
         this.tagView.addEventHandler(TagEvent.ALL, new EventHandler<TagEvent>() {
 			@Override
 			public void handle(TagEvent event) {
-				SlideListItem media = SlideInfoPane.this.slide.get();
+				SlideListItem slide = SlideInfoPane.this.slide.get();
 				Tag tag = event.getTag();
 				// bubble up the event
 				if (event.getEventType() == TagEvent.ADDED) {
-					fireEvent(new SlideTagEvent(tagView, SlideInfoPane.this, SlideMetadataEvent.ADD_TAG, media, tag));
+					fireEvent(new SlideTagEvent(tagView, SlideInfoPane.this, SlideMetadataEvent.ADD_TAG, slide, tag));
 				} else if (event.getEventType() == TagEvent.REMOVED) {
-					fireEvent(new SlideTagEvent(tagView, SlideInfoPane.this, SlideMetadataEvent.REMOVE_TAG, media, tag));
+					fireEvent(new SlideTagEvent(tagView, SlideInfoPane.this, SlideMetadataEvent.REMOVE_TAG, slide, tag));
 				}
 			}
         });
         
-        // handle when the media is changed
+        // handle when the slide is changed
         this.slide.addListener(new ChangeListener<SlideListItem>() {
         	@Override
         	public void changed(ObservableValue<? extends SlideListItem> ob, SlideListItem oldValue, SlideListItem newValue) {
         		SlideListItem item = newValue;
+        		
+        		tagView.setText(null);
         		
         		if (item == null || !item.isLoaded()) {
         			name.set("");
@@ -186,6 +188,7 @@ final class SlideInfoPane extends VBox {
         			totalTime.set("");
         	        updatedDate.set("");
         	        createDate.set("");
+        	        tagView.tagsProperty().set(null);
         			setDisable(true);
         		} else {
         			setDisable(false);
@@ -197,11 +200,13 @@ final class SlideInfoPane extends VBox {
         			totalTime.set(total == Slide.TIME_FOREVER ? "" : String.valueOf(total));
         	        updatedDate.set(slide.getLastModifiedDate() != null ? DATETIME_FORMATTER.format(slide.getLastModifiedDate()) : null);
         	        createDate.set(slide.getCreatedDate() != null ? DATETIME_FORMATTER.format(slide.getCreatedDate()) : null);
+        	        
+        	        tagView.tagsProperty().set(item.getTags());
         		}
         	}
 		});
         
-        this.getChildren().addAll(grid);
+        this.getChildren().addAll(grid, tagView);
 	}
 	
 	/**

@@ -1,17 +1,13 @@
 package org.praisenter.javafx.slide.editor;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Iterator;
 import java.util.UUID;
 
-import javax.xml.bind.JAXBException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.TextType;
-import org.praisenter.bible.Bible;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
@@ -19,7 +15,6 @@ import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.async.AsyncTask;
-import org.praisenter.javafx.bible.BibleActions;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
@@ -28,6 +23,7 @@ import org.praisenter.javafx.slide.SlideActions;
 import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.media.MediaType;
 import org.praisenter.slide.AbstractSlideComponent;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.MediaComponent;
@@ -375,11 +371,13 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				selected.set(component);
 				
 				// if the component type is media, then show the media dialog
-				if (component instanceof ObservableMediaComponent) {
+				if (e instanceof MediaComponentAddEvent) {
+					MediaType type = ((MediaComponentAddEvent)e).getMediaType();
 					ObservableMediaComponent omc = (ObservableMediaComponent)component;
 					MediaLibraryDialog dialog = new MediaLibraryDialog(
 							getScene().getWindow(), 
-							context);
+							context,
+							type);
 					dialog.valueProperty().addListener((obs, ov, nv) -> {
 						MediaObject mo = null;
 						if (nv != null) {

@@ -53,12 +53,25 @@ final class SlideListItem implements Comparable<SlideListItem> {
 
 	/** An observable list of tags to maintain */
 	private final ObservableSet<Tag> tags = FXCollections.observableSet();
+
+	/**
+	 * Sets up some dependencies.
+	 */
+	private SlideListItem() {
+		slide.addListener((obs, ov, nv) -> {
+			tags.clear();
+			if (nv != null) {
+				tags.addAll(nv.getTags());
+			}
+		});
+	}
 	
 	/**
 	 * Optional constructor for pending items.
 	 * @param name the name
 	 */
 	public SlideListItem(String name) {
+		this();
 		this.name.set(name);
 		this.slide.set(null);
 		this.loaded.set(false);
@@ -69,6 +82,7 @@ final class SlideListItem implements Comparable<SlideListItem> {
 	 * @param slide the slide
 	 */
 	public SlideListItem(Slide slide) {
+		this();
 		this.name.set(slide.getName());
 		this.slide.set(slide);
 		this.loaded.set(true);
@@ -169,5 +183,13 @@ final class SlideListItem implements Comparable<SlideListItem> {
 	 */
 	public BooleanProperty loadedProperty() {
 		return this.loaded;
+	}
+
+	/**
+	 * Returns this item's set of tags.
+	 * @return ObservableSet&lt;{@link Tag}&gt;
+	 */
+	public ObservableSet<Tag> getTags() {
+		return this.tags;
 	}
 }

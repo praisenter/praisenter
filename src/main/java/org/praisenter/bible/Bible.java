@@ -26,7 +26,6 @@ package org.praisenter.bible;
 
 import java.io.Serializable;
 import java.nio.file.Path;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -178,16 +177,17 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 		this.notes = bible.notes;
 		this.source = bible.source;
 		this.hadImportWarning = bible.hadImportWarning;
-		this.lastModifiedDate = Instant.now(Clock.systemDefaultZone());
 		
 		if (exact) {
 			this.id = bible.id;
 			this.path = bible.path;
 			this.importDate = bible.importDate;
+			this.lastModifiedDate = bible.lastModifiedDate;
 		} else {
 			this.id = UUID.randomUUID();
 			this.path = null;
-			this.importDate = null;
+			this.importDate = Instant.now();
+			this.lastModifiedDate = this.importDate;
 		}
 		
 		for (Book book : bible.books) {

@@ -15,6 +15,7 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -55,6 +56,14 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 		
 		this.tglMute = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_OFF));
 		this.tglMute.setSelected(false);
+		
+		// tooltips
+		this.pkrMedia.setTooltip(new Tooltip("Choose the media"));
+		tglImageScaleNone.setTooltip(new Tooltip("No scaling"));
+		tglImageScaleUniform.setTooltip(new Tooltip("Keep aspect ratio"));
+		tglImageScaleNonUniform.setTooltip(new Tooltip("Scale to fit"));
+		this.tglLoop.setTooltip(new Tooltip("Toggles looping of the media"));
+		this.tglMute.setTooltip(new Tooltip("Toggles muting the media"));
 		
 		// layout
 

@@ -25,6 +25,7 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -48,6 +49,12 @@ public class InsertTextRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 		countdown.setContentDisplay(ContentDisplay.TOP);
 		datetime.setContentDisplay(ContentDisplay.TOP);
 		placeholder.setContentDisplay(ContentDisplay.TOP);
+		
+		// tooltips
+		text.setTooltip(new Tooltip("Add a new text box"));
+		countdown.setTooltip(new Tooltip("Add a new component that counts\ndown to a given date and/or time"));
+		datetime.setTooltip(new Tooltip("Add a new component that shows\nthe current date and/or time"));
+		placeholder.setTooltip(new Tooltip("Add a new component that serves\nas a placeholder for bible, song, or notification\ntext"));
 		
 		// layout
 		

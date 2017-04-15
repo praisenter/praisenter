@@ -53,6 +53,7 @@ import org.praisenter.slide.easing.Linear;
 	Zoom.class
 })
 public abstract class SlideAnimation {
+	/** Value for a constantly repeating animation */
 	public static final int INFINITE = -1;
 	
 	/** The id of the object being animated */
@@ -71,10 +72,12 @@ public abstract class SlideAnimation {
 	@XmlElement(name = "delay", required = false)
 	long delay;
 	
-	// FIXME add to JAXB and add to the animation editor and generated JavaFX animations
-	
+	/** The number of times to repeat the animation */
+	@XmlElement(name = "repeatCount", required = false)
 	int repeatCount;
 	
+	/** Whether the animation should reverse or not */
+	@XmlElement(name = "autoReverse", required = false)
 	boolean autoReverse;
 	
 	/** The easing function */
@@ -180,18 +183,36 @@ public abstract class SlideAnimation {
 		this.delay = delay;
 	}
 	
+	/**
+	 * Returns the number of times the animation should repeat.
+	 * @return int
+	 * @see #INFINITE
+	 */
 	public int getRepeatCount() {
 		return this.repeatCount;
 	}
 	
+	/**
+	 * Sets the number of times the animation should repeat.
+	 * @param repeatCount the count
+	 * @see #INFINITE
+	 */
 	public void setRepeatCount(int repeatCount) {
 		this.repeatCount = repeatCount;
 	}
 	
+	/**
+	 * Returns true if the animation should reverse before playing again.
+	 * @return boolean
+	 */
 	public boolean isAutoReverse() {
 		return this.autoReverse;
 	}
 	
+	/**
+	 * Sets whether the animation should reverse before playing again.
+	 * @param autoReverse true if the animation should reverse
+	 */
 	public void setAutoReverse(boolean autoReverse) {
 		this.autoReverse = autoReverse;
 	}

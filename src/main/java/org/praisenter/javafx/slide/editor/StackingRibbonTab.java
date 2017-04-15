@@ -4,6 +4,7 @@ import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 
 import javafx.scene.control.Button;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -63,6 +64,13 @@ class StackingRibbonTab extends ComponentEditorRibbonTab {
 		
 		this.btnMoveFront = new Button("", frontPane);
 		this.btnMoveBack = new Button("", backPane);
+		
+		// tooltips
+		
+		this.btnMoveBack.setTooltip(new Tooltip("Moves the selected component behind all other components."));
+		this.btnMoveFront.setTooltip(new Tooltip("Moves the selected component in front of all other components."));
+		this.btnMoveDown.setTooltip(new Tooltip("Moves the selected component down in the component stack."));
+		this.btnMoveUp.setTooltip(new Tooltip("Moves the selected component up in the component stack."));
 		
 		// layout
 		

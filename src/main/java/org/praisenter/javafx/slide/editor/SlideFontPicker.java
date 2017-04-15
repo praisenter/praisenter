@@ -43,6 +43,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
@@ -114,16 +115,19 @@ final class SlideFontPicker extends HBox {
 		this.cmbFamily = new ComboBox<>(this.families);
 		this.cmbFamily.setPrefWidth(100);
 		this.cmbFamily.setValue(base.getFamily());
+		this.cmbFamily.setTooltip(new Tooltip("The text font"));
 		
 		this.tglBold = new ToggleButton("b");
 		Font def = this.tglBold.getFont();
 		this.tglBold.setFont(Font.font(def.getFamily(), FontWeight.BOLD, FontPosture.REGULAR, def.getSize()));
 		this.tglBold.managedProperty().bind(this.tglBold.visibleProperty());
+		this.tglBold.setTooltip(new Tooltip("Bold"));
 		
 		this.tglItalic = new ToggleButton("i");
 		def = this.tglItalic.getFont();
 		this.tglItalic.setFont(Font.font(def.getFamily(), FontWeight.NORMAL, FontPosture.ITALIC, def.getSize()));
 		this.tglItalic.managedProperty().bind(this.tglItalic.visibleProperty());
+		this.tglItalic.setTooltip(new Tooltip("Italic"));
 		
 		this.spnSize = new Spinner<>(1, Double.MAX_VALUE, 20, 1);
 		this.spnSize.setPrefWidth(65);
@@ -133,6 +137,7 @@ final class SlideFontPicker extends HBox {
 		this.spnSize.editorProperty().get().textProperty().addListener((obs, ov, nv) -> {
 			spnSize.editorProperty().get().commitValue();
 		});
+		this.spnSize.setTooltip(new Tooltip("Font Size"));
 		
 		// set the cell factory to use the font to display the font name
 		this.cmbFamily.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {

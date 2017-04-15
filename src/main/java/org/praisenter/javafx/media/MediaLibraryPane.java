@@ -128,9 +128,6 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 	/** The media type filter */
 	private final ObjectProperty<Option<MediaType>> typeFilter = new SimpleObjectProperty<>(new Option<MediaType>());
 	
-	/** The tag filter */
-	private final ObjectProperty<Option<Tag>> tagFilter = new SimpleObjectProperty<>(new Option<Tag>());
-	
 	/** The search */
 	private final StringProperty textFilter = new SimpleStringProperty();
 	
@@ -180,15 +177,13 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 			@Override
 			public void invalidated(Observable obs) {
 				MediaType type = typeFilter.get().getValue();
-				Tag tag = tagFilter.get().getValue();
 				String text = textFilter.get();
 				MediaSortField field = sortField.get().getValue();
 				boolean desc = sortDescending.get();
 				filtered.setPredicate(m -> {
 					if (!m.isLoaded() || 
 						((type == null || m.getMedia().getType() == type) &&
-						 (tag == null || m.getMedia().getTags().contains(tag)) &&
-						 (text == null || text.length() == 0 || m.getMedia().getName().toLowerCase().contains(text.toLowerCase())))) {
+						 (text == null || text.length() == 0 || m.getMedia().getName().toLowerCase().contains(text.toLowerCase()) || m.getTags().stream().anyMatch(t -> t.getName().toLowerCase().contains(text))))) {
 						// make sure its in the available types
 						if (types != null && types.length > 0 && m.isLoaded()) {
 							for (MediaType t : types) {
@@ -228,7 +223,6 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 		};
 		this.textFilter.addListener(filterListener);
 		this.typeFilter.addListener(filterListener);
-		this.tagFilter.addListener(filterListener);
 		this.sortField.addListener(filterListener);
 		this.sortDescending.addListener(filterListener);
 		filterListener.invalidated(null);
@@ -397,10 +391,6 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         cbTypes.setValue(new Option<>());
         cbTypes.valueProperty().bindBidirectional(this.typeFilter);
         
-        ComboBox<Option<Tag>> cbTags = new ComboBox<Option<Tag>>(opTags);
-        cbTags.valueProperty().bindBidirectional(this.tagFilter);
-        cbTags.setValue(new Option<>());
-        
         Label lblSort = new Label(Translations.get("field.sort"));
         ChoiceBox<Option<MediaSortField>> cbSort = new ChoiceBox<Option<MediaSortField>>(sortFields);
         cbSort.valueProperty().bindBidirectional(this.sortField);
@@ -422,7 +412,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         if (types == null || types.length != 1) {
         	pFilter.getChildren().add(cbTypes);
         }
-        pFilter.getChildren().addAll(cbTags, txtSearch);
+        pFilter.getChildren().addAll(txtSearch);
         
         HBox pSort = new HBox();
         pSort.setAlignment(Pos.CENTER_LEFT);
@@ -563,7 +553,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     	Media media = item.getMedia();
     	Tag tag = event.getTag();
     	
-    	AsyncTask<?> task = MediaActions.mediaDeleteTag(
+    	AsyncTask<?> task = MediaActions.mediaRemoveTag(
     			this.context.getMediaLibrary(), 
     			this.getScene().getWindow(), 
     			media, 

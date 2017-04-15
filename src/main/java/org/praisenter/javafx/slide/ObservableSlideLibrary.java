@@ -256,6 +256,58 @@ public final class ObservableSlideLibrary {
 		}
 		return AsyncTaskFactory.single();
 	}
+	
+	/**
+	 * Attempts to add the given tag to the given slide.
+	 * @param slide the slide
+	 * @param tag the tag to add
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
+	public AsyncTask<Void> addTag(Slide slide, Tag tag) {
+		if (slide != null) {
+			// execute the add on a different thread
+			AsyncTask<Void> task = new AsyncTask<Void>() {
+				@Override
+				protected Void call() throws Exception {
+					this.updateProgress(-1, 0);
+					library.addTag(slide, tag);
+					return null;
+				}
+			};
+			task.setOnFailed((e) -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to add tag " + tag.getName() + " to slide " + slide.getName(), ex);
+			});
+			return task;
+		}
+		return AsyncTaskFactory.single();
+	}
+
+	/**
+	 * Attempts to remove the given tag from the given slide.
+	 * @param slide the slide
+	 * @param tag the tag to remove
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
+	public AsyncTask<Void> removeTag(Slide slide, Tag tag) {
+		if (slide != null) {
+			// execute the add on a different thread
+			AsyncTask<Void> task = new AsyncTask<Void>() {
+				@Override
+				protected Void call() throws Exception {
+					this.updateProgress(-1, 0);
+					library.removeTag(slide, tag);
+					return null;
+				}
+			};
+			task.setOnFailed((e) -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to remove tag " + tag.getName() + " from slide " + slide.getName(), ex);
+			});
+			return task;
+		}
+		return AsyncTaskFactory.single();
+	}
 
 	/**
 	 * Exports the given slides to the given file.

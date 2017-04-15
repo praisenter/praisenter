@@ -4,6 +4,7 @@ import org.praisenter.javafx.slide.ObservableSlideRegion;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -22,6 +23,10 @@ class ContainerRibbonTab extends ComponentEditorRibbonTab {
 		this.sldOpacity.setMaxWidth(60);
 		lblOpacity.setGraphic(sldOpacity);
 		lblOpacity.setGraphicTextGap(5);
+		
+		// tooltips
+		
+		this.sldOpacity.setTooltip(new Tooltip("The opacity of the entire component"));
 		
 		// layout
 		

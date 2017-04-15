@@ -56,10 +56,23 @@ final class MediaListItem implements Comparable<MediaListItem> {
 	private final ObservableSet<Tag> tags = FXCollections.observableSet();
 	
 	/**
+	 * Sets up some dependencies.
+	 */
+	private MediaListItem() {
+		media.addListener((obs, ov, nv) -> {
+			tags.clear();
+			if (nv != null) {
+				tags.addAll(nv.getTags());
+			}
+		});
+	}
+	
+	/**
 	 * Optional constructor for pending items.
 	 * @param name the name
 	 */
 	public MediaListItem(String name) {
+		this();
 		this.name.set(name);
 		this.media.set(null);
 		this.loaded.set(false);
@@ -70,6 +83,7 @@ final class MediaListItem implements Comparable<MediaListItem> {
 	 * @param media the media
 	 */
 	public MediaListItem(Media media) {
+		this();
 		this.name.set(media.getName());
 		this.media.set(media);
 		this.loaded.set(true);

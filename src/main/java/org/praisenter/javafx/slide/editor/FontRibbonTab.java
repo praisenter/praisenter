@@ -27,6 +27,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -106,6 +107,13 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 		
 		this.pkrGradient.managedProperty().bind(this.pkrGradient.visibleProperty());
 		this.pkrGradient.setVisible(false);
+		
+		// tooltips
+		this.cbFontScaling.setTooltip(new Tooltip("The font resizing method"));
+		this.spnLineSpacing.setTooltip(new Tooltip("The spacing between each line of text"));
+		mnuPaintType.setTooltip(new Tooltip("The font color"));
+		this.pkrColor.setTooltip(new Tooltip("The font color"));
+		this.pkrGradient.setTooltip(new Tooltip("The font gradient"));
 		
 		// layout
 		

@@ -6,7 +6,7 @@ import org.praisenter.javafx.slide.ObservableSlideComponent;
 
 import javafx.event.EventTarget;
 
-final class SlideComponentAddEvent extends SlideEditorEvent implements Serializable {
+class SlideComponentAddEvent extends SlideEditorEvent implements Serializable {
 	final ObservableSlideComponent<?> component;
 	final boolean centered;
 	final boolean selected;

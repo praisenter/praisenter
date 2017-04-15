@@ -33,11 +33,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
 import javax.xml.bind.JAXBException;
@@ -47,6 +50,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.LockMap;
+import org.praisenter.Tag;
 import org.praisenter.UnknownFormatException;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
@@ -297,6 +301,208 @@ public final class SlideLibrary {
 			}
 			// remove it from the map
 			this.slides.remove(id);
+		}
+	}
+
+	/**
+	 * Adds the given tag to the given slide and saves it.
+	 * @param slide the slide
+	 * @param tag the new tag
+	 * @return boolean true if the tag was added successfully
+	 * @throws JAXBException if the slide failed to save
+	 * @throws IOException if an IO error occurs
+	 */
+	public boolean addTag(Slide slide, Tag tag) throws JAXBException, IOException {
+		// obtain the lock for this slide item
+		synchronized(this.getSlideLock(slide)) {
+			// sanity check, it's possible that while this thread
+			// was waiting for the lock, that this slide was deleted
+			// or renamed. the slide map will contain the latest 
+			// object for us to update
+			Slide latest = this.slides.get(slide.getId());
+			// make sure the slide wasn't removed
+			if (latest != null) {
+				LOGGER.debug("Adding tag '{}' to slide '{}'.", tag, slide.getName());
+				// see if adding the tag really does add it...
+				boolean added = latest.getTags().add(tag);
+				if (added) {
+					try {
+						XmlIO.save(slide.getPath(), slide);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save slide after adding tag '{}' to slide '{}'.", tag, slide.getName());
+						// remove the tag due to not being able to save
+						latest.getTags().remove(tag);
+						// rethrow the exception
+						throw ex;
+					}
+				}
+				return added;
+			}
+			return false;			
+		}
+	}
+
+	/**
+	 * Adds the given tags to the given slide and saves it.
+	 * @param slide the slide
+	 * @param tags the new tags
+	 * @return boolean true if the tags were added successfully
+	 * @throws JAXBException if the slide failed to save
+	 * @throws IOException if an IO error occurs
+	 */	
+	public boolean addTags(Slide slide, Collection<Tag> tags) throws JAXBException, IOException {
+		// obtain the lock for this slide item
+		synchronized(this.getSlideLock(slide)) {
+			// sanity check, it's possible that while this thread
+			// was waiting for the lock, that this slide was deleted
+			// or renamed. the slide map will contain the latest 
+			// slide for us to update
+			Slide latest = this.slides.get(slide.getId());
+			// make sure the slide wasn't removed
+			if (latest != null) {
+				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
+				LOGGER.debug("Adding tags '{}' to slide '{}'.", ts, slide.getName());
+				// keep the old set just in case the new set fails to save
+				TreeSet<Tag> old = new TreeSet<Tag>(latest.getTags());
+				// attempt to add all of the tags
+				boolean added = latest.getTags().addAll(tags);
+				if (added) {
+					try {
+						XmlIO.save(slide.getPath(), slide);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save slide after adding tags '{}' to slide '{}'.", ts, slide.getName());
+						// reset to initial state
+						latest.getTags().retainAll(old);
+						// rethrow the exception
+						throw ex;
+					}
+				}
+				return added;
+			}
+			return false;
+		}
+	}
+	
+	/**
+	 * Sets the given tags on the given slide and saves it.
+	 * @param slide the slide
+	 * @param tags the new tags
+	 * @return boolean true if the tags were set successfully
+	 * @throws JAXBException if the slide failed to save
+	 * @throws IOException if an IO error occurs
+	 */	
+	public boolean setTags(Slide slide, Collection<Tag> tags) throws JAXBException, IOException {
+		// obtain the lock for this slide item
+		synchronized(this.getSlideLock(slide)) {
+			// sanity check, it's possible that while this thread
+			// was waiting for the lock, that this slide was deleted
+			// or renamed. the slide map will contain the latest 
+			// slide for us to update
+			Slide latest = this.slides.get(slide.getId());
+			// make sure the slide wasn't removed
+			if (latest != null) {
+				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
+				LOGGER.debug("Setting tags '{}' on slide '{}'.", ts, slide.getName());
+				// keep the old set just in case the new set fails to save
+				TreeSet<Tag> old = new TreeSet<Tag>(latest.getTags());
+				// attempt to set the tags
+				boolean changed = latest.getTags().addAll(tags);
+				changed |= latest.getTags().retainAll(tags);
+				if (changed) {
+					try {
+						// attempt to save
+						XmlIO.save(slide.getPath(), slide);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save slide after setting tags '{}' on slide '{}'.", ts, slide.getName());
+						// reset to initial state
+						latest.getTags().clear();
+						latest.getTags().addAll(old);
+						// rethrow the exception
+						throw ex;
+					}
+				}
+				return changed;
+			}
+			return false;
+		}
+	}
+	
+	/**
+	 * Removes the given tag from the given slide and saves it.
+	 * @param slide the slide
+	 * @param tag the tag to remove
+	 * @return boolean true if the tag was removed successfully
+	 * @throws JAXBException if the slide failed to save
+	 * @throws IOException if an IO error occurs
+	 */	
+	public boolean removeTag(Slide slide, Tag tag) throws JAXBException, IOException {
+		// obtain the lock for this slide item
+		synchronized(this.getSlideLock(slide)) {
+			// sanity check, it's possible that while this thread
+			// was waiting for the lock, that this slide was deleted
+			// or renamed. the slide map will contain the latest 
+			// slide for us to update
+			Slide latest = this.slides.get(slide.getId());
+			// make sure the slide wasn't removed
+			if (latest != null) {
+				LOGGER.debug("Removing tag '{}' from slide '{}'.", tag, slide.getName());
+				boolean removed = latest.getTags().remove(tag);
+				if (removed) {
+					try {
+						XmlIO.save(slide.getPath(), slide);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save slide after removing tag '{}' from slide '{}'.", tag, slide.getName());
+						// reset to initial state
+						latest.getTags().add(tag);
+						// rethrow the exception
+						throw ex;
+					}
+				}
+				return removed;
+			}
+			return false;
+		}
+	}
+
+	/**
+	 * Removes the given tags from the given slide and saves it.
+	 * @param slide the slide
+	 * @param tags the tags to remove
+	 * @return boolean true if the tags were removed successfully
+	 * @throws JAXBException if the slide failed to save
+	 * @throws IOException if an IO error occurs
+	 */	
+	public boolean removeTags(Slide slide, Collection<Tag> tags) throws JAXBException, IOException {
+		// obtain the lock for this slide item
+		synchronized(this.getSlideLock(slide)) {
+			// sanity check, it's possible that while this thread
+			// was waiting for the lock, that this slide was deleted
+			// or renamed. the slide map will contain the latest 
+			// slide for us to update
+			Slide latest = this.slides.get(slide.getId());
+			// make sure the slide wasn't removed
+			if (latest != null) {
+				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
+				LOGGER.debug("Removing tags '{}' from slide '{}'.", ts, slide.getName());
+				// keep the old set just in case the new set fails to save
+				TreeSet<Tag> old = new TreeSet<Tag>(latest.getTags());
+				// attempt to set the tags
+				boolean removed = latest.getTags().removeAll(tags);
+				if (removed) {
+					try {
+						XmlIO.save(slide.getPath(), slide);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save slide after removing tags '{}' from slide '{}'.", ts, slide.getName());
+						// reset to initial state
+						latest.getTags().clear();
+						latest.getTags().addAll(old);
+						// rethrow the exception
+						throw ex;
+					}
+				}
+				return removed;
+			}
+			return false;
 		}
 	}
 

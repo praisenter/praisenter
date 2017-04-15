@@ -23,6 +23,7 @@ final class SlideEditorRibbon extends TabPane implements EventHandler<SlideRibbo
 	public SlideEditorRibbon(PraisenterContext context) {
 		// slide
 		this.slideTab = new SlideRibbonTab(context);
+		TagsRibbonTab tags = new TagsRibbonTab(context);
 		
 		// insert
 		InsertTextRibbonTab insertText = new InsertTextRibbonTab(context);
@@ -53,6 +54,7 @@ final class SlideEditorRibbon extends TabPane implements EventHandler<SlideRibbo
 		this.addEventHandler(SlideRibbonEvent.ALL, this);
 		
 		this.slideTab.componentProperty().bind(this.slide);
+		tags.componentProperty().bind(this.slide);
 		
 		// bind the component property
 		
@@ -98,7 +100,7 @@ final class SlideEditorRibbon extends TabPane implements EventHandler<SlideRibbo
 		
 		// build the UI
 		
-		HBox ribSlide = new HBox(this.slideTab);
+		HBox ribSlide = new HBox(this.slideTab, tags);
 		ribSlide.setPadding(new Insets(0, 0, 0, 2));
 		Tab tabSlide = new Tab(" Slide ", ribSlide);
 		tabSlide.setClosable(false);

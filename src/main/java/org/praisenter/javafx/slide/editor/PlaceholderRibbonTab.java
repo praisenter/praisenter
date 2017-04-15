@@ -9,6 +9,7 @@ import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -38,6 +39,9 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 		this.cmbTextVariant.setValue(placeholderVariants.get(0));
 		this.cmbTextVariant.setMaxWidth(175);
 		this.cmbTextVariant.setPrefWidth(175);
+		
+		this.cmbTextType.setTooltip(new Tooltip("The type of text that will be placed\nin this placeholder"));
+		this.cmbTextVariant.setTooltip(new Tooltip("The variant of the text, primary\nor secondary language for example"));
 		
 		// layout
 		

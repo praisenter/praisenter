@@ -69,10 +69,19 @@ public abstract class CustomTransition<T extends SlideAnimation> extends Transit
 			throw new NullPointerException("The animation parameter is null.");
 		}
 		
+		int cycleCount = animation.getRepeatCount();
+		if (cycleCount == SlideAnimation.INFINITE) {
+			cycleCount = Transition.INDEFINITE;
+		} else if (animation.isAutoReverse()) {
+			cycleCount = cycleCount * 2 - 1;
+		}
+		
 		this.animation = animation;
 		this.setInterpolator(new CustomInterpolator(animation.getEasing()));
 		this.setDelay(Duration.millis(Math.max(0, animation.getDelay())));
 		this.setCycleDuration(Duration.millis(Math.max(0, animation.getDuration())));
+		this.setAutoReverse(animation.isAutoReverse());
+		this.setCycleCount(cycleCount);
 	}
 	
 	/**

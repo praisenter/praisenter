@@ -289,7 +289,7 @@ public final class MediaActions {
 
 	/**
 	 * Returns a task that will add the given tag to the given media.
-	 * @param library the library to import into
+	 * @param library the library the media is a part of
 	 * @param owner the window owner
 	 * @param media the media
 	 * @param tag the tag to add
@@ -302,7 +302,7 @@ public final class MediaActions {
 			task.addCancelledOrFailedHandler((e) -> {
 				Throwable error = task.getException();
 				// log the error
-				LOGGER.error("Failed to add tag '{}' for '{}': {}", tag.getName(), media.getPath().toAbsolutePath().toString(), error.getMessage());
+				LOGGER.error("Failed to add tag '{}' to '{}': {}", tag.getName(), media.getName(), error.getMessage());
 				// show an error to the user
 				Alert alert = Alerts.exception(
 						owner,
@@ -318,21 +318,21 @@ public final class MediaActions {
 	}
 	
 	/**
-	 * Returns a task that will delete the given tag from the given media.
-	 * @param library the library to import into
+	 * Returns a task that will remove the given tag from the given media.
+	 * @param library the library the media is a part of
 	 * @param owner the window owner
 	 * @param media the media
 	 * @param tag the tag to remove
 	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
-	public static final AsyncTask<Void> mediaDeleteTag(ObservableMediaLibrary library, Window owner, Media media, Tag tag) {
+	public static final AsyncTask<Void> mediaRemoveTag(ObservableMediaLibrary library, Window owner, Media media, Tag tag) {
 		// sanity check
 		if (media != null && tag != null) {
 			AsyncTask<Void> task = library.removeTag(media, tag);
 			task.addCancelledOrFailedHandler((e) -> {
 				Throwable error = task.getException();
 				// log the error
-				LOGGER.error("Failed to remove tag '{}' for '{}': {}", tag.getName(), media.getPath().toAbsolutePath().toString(), error.getMessage());
+				LOGGER.error("Failed to remove tag '{}' from '{}': {}", tag.getName(), media.getName(), error.getMessage());
 				// show an error to the user
 				Alert alert = Alerts.exception(
 						owner,

@@ -25,6 +25,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -117,6 +118,17 @@ class BorderRibbonTab extends ComponentEditorRibbonTab {
 		this.pkrGradient.managedProperty().bind(pkrGradient.visibleProperty());
 		
 		toggleMode(true, true);
+
+		// tooltips
+		
+		mnuPaintType.setTooltip(new Tooltip("The border color"));
+		this.cbCap.setTooltip(new Tooltip("The border end type"));
+		this.cbDashes.setTooltip(new Tooltip("The border pattern"));
+		this.cbJoin.setTooltip(new Tooltip("The border's corner join type"));
+		this.spnRadius.setTooltip(new Tooltip("The border's corner radius"));
+		this.spnWidth.setTooltip(new Tooltip("The border width"));
+		
+		// layout
 		
 		HBox row1 = new HBox(2, mnuPaintType, pkrColor, pkrGradient, spnWidth);
 		HBox row2 = new HBox(2, cbJoin, cbCap);

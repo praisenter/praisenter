@@ -13,6 +13,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -71,6 +72,14 @@ class GlowRibbonTab extends ComponentEditorRibbonTab {
 		this.spnY.setDisable(true);
 		this.spnRadius.setDisable(true);
 		this.spnSpread.setDisable(true);
+		
+		// tooltips
+		this.pkrColor.setTooltip(new Tooltip("Glow Color"));
+		this.spnX.setTooltip(new Tooltip("The glow offset along the x-axis"));
+		this.spnY.setTooltip(new Tooltip("The glow offset along the y-axis"));
+		this.cmbType.setTooltip(new Tooltip("Whether it's an inner or outer glow"));
+		this.spnRadius.setTooltip(new Tooltip("The glow radius"));
+		this.spnSpread.setTooltip(new Tooltip("The glow spread"));
 		
 		// layout
 		
