@@ -44,13 +44,31 @@ import javax.xml.bind.annotation.XmlRootElement;
 public final class ResolutionSet implements Iterable<Resolution>, Collection<Resolution>, Set<Resolution> {
 	/** The resolutions */
 	@XmlElement(name = "resolution", required = false)
-	private final Set<Resolution> resolutions;
+	private final TreeSet<Resolution> resolutions;
 	
 	/**
 	 * Default constructor.
 	 */
 	public ResolutionSet() {
 		this.resolutions = new TreeSet<Resolution>();
+	}
+	
+	public Resolution getPreviousResolution(Resolution resolution) {
+		if (resolution == null) return this.resolutions.first();
+		return this.resolutions.lower(resolution);
+	}
+	
+	public Resolution getNextResolution(Resolution resolution) {
+		if (resolution == null) return this.resolutions.first();
+		return this.resolutions.higher(resolution);
+	}
+	
+	public Resolution getClosestResolution(Resolution resolution) {
+		Resolution r = this.getPreviousResolution(resolution);
+		if (r == null) {
+			r = this.getNextResolution(resolution);
+		}
+		return r;
 	}
 	
 	/* (non-Javadoc)
