@@ -36,6 +36,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "sinusoidal")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Sinusoidal extends Easing {
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Sinusoidal() {
+		super(EasingType.IN);
+	}
+	
+	/**
+	 * Minimal constructor.
+	 * @param type the easing type
+	 */
+	public Sinusoidal(EasingType type) {
+		super(type);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.easing.Easing#baseCurve(double)
 	 */
@@ -49,8 +64,6 @@ public final class Sinusoidal extends Easing {
 	 */
 	@Override
 	public Sinusoidal copy() {
-		Sinusoidal easing = new Sinusoidal();
-		copy(easing);
-		return easing;
+		return new Sinusoidal(this.type);
 	}
 }

@@ -24,11 +24,11 @@
  */
 package org.praisenter.slide.animation;
 
-import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.praisenter.slide.easing.Easing;
 
 /**
  * A fade transition.
@@ -37,14 +37,50 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "zoom")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Zoom extends SlideAnimation {
+public final class Zoom extends Animation {
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Zoom() {
+		super(AnimationType.IN);
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param type the animation type
+	 * @param duration the duration (in milliseconds)
+	 * @param delay the delay (in milliseconds)
+	 * @param repeatCount the repeat count; 1 or higher
+	 * @param autoReverse true if auto-reverse should occur when repeat count is greater than 1
+	 * @param easing the easing
+	 */
+	public Zoom(AnimationType type,
+			long duration,
+			long delay,
+			int repeatCount,
+			boolean autoReverse,
+			Easing easing) {
+		super(type, duration, delay, repeatCount, autoReverse, easing);
+	}
+	
+	/**
+	 * Copy constructor.
+	 * @param other the animation to copy
+	 */
+	public Zoom(Zoom other) {
+		this(other.type,
+			 other.duration,
+			 other.delay,
+			 other.repeatCount,
+			 other.autoReverse,
+			 other.easing);
+	}
+	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.SlideAnimation#copy(java.util.UUID)
+	 * @see org.praisenter.slide.animation.SlideAnimation#copy()
 	 */
 	@Override
-	public Zoom copy(UUID id) {
-		Zoom animation = new Zoom();
-		copy(animation, id);
-		return animation;
+	public Zoom copy() {
+		return new Zoom(this);
 	}
 }

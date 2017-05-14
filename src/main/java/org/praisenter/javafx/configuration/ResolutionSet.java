@@ -53,16 +53,43 @@ public final class ResolutionSet implements Iterable<Resolution>, Collection<Res
 		this.resolutions = new TreeSet<Resolution>();
 	}
 	
+	/**
+	 * Returns the resolution before the given resolution.
+	 * <p>
+	 * If the given resolution is null, the first resolution in the list is returned.
+	 * <p>
+	 * If the given resolution is the first resolution, then null is returned.
+	 * @param resolution the resolution to search by
+	 * @return {@link Resolution}
+	 */
 	public Resolution getPreviousResolution(Resolution resolution) {
 		if (resolution == null) return this.resolutions.first();
 		return this.resolutions.lower(resolution);
 	}
 	
+	/**
+	 * Returns the resolution after the given resolution.
+	 * <p>
+	 * If the given resolution is null, the first resolution in the list is returned.
+	 * <p>
+	 * If the given resolution is the last resolution, then null is returned.
+	 * @param resolution the resolution to search by
+	 * @return {@link Resolution}
+	 */
 	public Resolution getNextResolution(Resolution resolution) {
 		if (resolution == null) return this.resolutions.first();
 		return this.resolutions.higher(resolution);
 	}
 	
+	/**
+	 * Returns the closest resolution to the given resolution.
+	 * <p>
+	 * If the given resolution is null, the first resolution in the list is returned.
+	 * <p>
+	 * If there are no resolutions left in the set, then null is returned.
+	 * @param resolution the resolution to search by
+	 * @return {@link Resolution}
+	 */
 	public Resolution getClosestResolution(Resolution resolution) {
 		Resolution r = this.getPreviousResolution(resolution);
 		if (r == null) {

@@ -63,6 +63,11 @@ public class AsyncChainedTask<T extends AsyncTask<?>> extends AsyncTask<List<T>>
 		this.latch = new CountDownLatch(1);
 	}
 	
+	/**
+	 * Setups up the completion handler.
+	 * @param i the index in the chained task set
+	 * @param service the pool to execute the task on
+	 */
 	private void setupCompletionHandler(final int i, AsyncTaskExecutor service) {
 		if (this.tasks == null || i >= this.tasks.size()) {
 			// no more to execute
@@ -77,8 +82,7 @@ public class AsyncChainedTask<T extends AsyncTask<?>> extends AsyncTask<List<T>>
 				// failure
 				this.latch.countDown();
 			}
-		});
-		task.execute(service);
+		}).execute(service);
 	}
 	
 	/* (non-Javadoc)
@@ -102,7 +106,7 @@ public class AsyncChainedTask<T extends AsyncTask<?>> extends AsyncTask<List<T>>
 	@Override
 	public void execute(AsyncTaskExecutor service) {
 		this.setupCompletionHandler(0, service);
-		// then execute this task
+		// then execute this task (which will wait for the chained set to finish)
 		service.execute(this);
 	}
 }

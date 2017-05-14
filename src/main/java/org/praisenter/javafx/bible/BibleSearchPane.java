@@ -319,22 +319,22 @@ public final class BibleSearchPane extends BorderPane {
 			
 			if (text != null && text.length() != 0 && type != null) {
 				overlay.setVisible(true);
+				
 				BibleSearchCriteria criteria = new BibleSearchCriteria(
 						item != null ? item.getBible().getId() : null, 
 						book != null ? book.getNumber() : null,
 						text, 
 						type.getValue());
+				
 				AsyncTask<List<BibleSearchResult>> task = library.search(criteria);
 				task.addSuccessHandler(evt -> {
 					List<BibleSearchResult> results = task.getValue();
 					this.table.setItems(FXCollections.observableArrayList(results));
 					int size = results.size();
 					lblResults.setText(MessageFormat.format(Translations.get("bible.search.results.output"), size > BibleSearchCriteria.MAXIMUM_RESULTS ? BibleSearchCriteria.MAXIMUM_RESULTS + "+" : size));
-				});
-				task.addCompletedHandler(evt -> {
+				}).addCompletedHandler(evt -> {
 					overlay.setVisible(false);
-				});
-				task.execute(context.getExecutorService());
+				}).execute(context.getExecutorService());
 			}
 		};
 		

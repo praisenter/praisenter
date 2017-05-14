@@ -36,6 +36,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "cubic")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Cubic extends Easing {
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Cubic() {
+		super(EasingType.IN);
+	}
+	
+	/**
+	 * Minimal constructor.
+	 * @param type the easing type
+	 */
+	public Cubic(EasingType type) {
+		super(type);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.easing.Easing#baseCurve(double)
 	 */
@@ -49,8 +64,6 @@ public final class Cubic extends Easing {
 	 */
 	@Override
 	public Cubic copy() {
-		Cubic easing = new Cubic();
-		copy(easing);
-		return easing;
+		return new Cubic(this.type);
 	}
 }

@@ -536,12 +536,10 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 			tag);
 		task.addSuccessHandler((e) -> {
 			this.context.getTags().add(tag);
-		});
-		task.addCancelledOrFailedHandler((e) -> {
+		}).addCancelledOrFailedHandler((e) -> {
 			// remove it from the tags
 			item.getTags().remove(tag);
-		});
-		task.execute(this.context.getExecutorService());
+		}).execute(this.context.getExecutorService());
     }
     
     /**
@@ -561,8 +559,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 		task.addCancelledOrFailedHandler((e) -> {
 			// add it back to the item
 			item.getTags().add(tag);
-		});
-		task.execute(this.context.getExecutorService());
+		}).execute(this.context.getExecutorService());
     }
     
     /**

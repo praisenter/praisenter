@@ -22,11 +22,11 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.animation;
+package org.praisenter.javafx.slide.animation;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.slide.animation.SlideAnimation;
+import org.praisenter.slide.animation.Animation;
 
 import javafx.animation.Transition;
 import javafx.geometry.Bounds;
@@ -39,13 +39,13 @@ import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 
 /**
- * Represents a custom Java FX transition defined by a {@link SlideAnimation}.
+ * Represents a custom Java FX transition defined by a {@link Animation}.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
- * @param <T> the {@link SlideAnimation} type
+ * @param <T> the {@link Animation} type
  */
-public abstract class CustomTransition<T extends SlideAnimation> extends Transition {
+public abstract class CustomTransition<T extends Animation> extends Transition {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -70,7 +70,7 @@ public abstract class CustomTransition<T extends SlideAnimation> extends Transit
 		}
 		
 		int cycleCount = animation.getRepeatCount();
-		if (cycleCount == SlideAnimation.INFINITE) {
+		if (cycleCount == Animation.INFINITE) {
 			cycleCount = Transition.INDEFINITE;
 		} else if (animation.isAutoReverse()) {
 			cycleCount = cycleCount * 2 - 1;
@@ -91,7 +91,6 @@ public abstract class CustomTransition<T extends SlideAnimation> extends Transit
 	protected Rectangle2D getBounds() {
 		Rectangle2D bounds = EMPTY_BOUNDS;
 		if (this.node == null) {
-			LOGGER.warn("Node to animate is null for animation: " + this.animation.getId());
 			return bounds;
 		}
 		
@@ -107,12 +106,10 @@ public abstract class CustomTransition<T extends SlideAnimation> extends Transit
 	protected Rectangle2D getParentBounds() {
 		Rectangle2D bounds = EMPTY_BOUNDS;
 		if (this.node == null) {
-			LOGGER.warn("Node to animate is null for animation: " + this.animation.getId());
 			return bounds;
 		}
 		
 		if (this.node.getParent() == null) {
-			LOGGER.warn("Node to animate's parent is null for animation: " + this.animation.getId());
 			return bounds;
 		}
 		

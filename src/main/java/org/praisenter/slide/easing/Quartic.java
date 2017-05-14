@@ -36,6 +36,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "quartic")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Quartic extends Easing {
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Quartic() {
+		super(EasingType.IN);
+	}
+	
+	/**
+	 * Minimal constructor.
+	 * @param type the easing type
+	 */
+	public Quartic(EasingType type) {
+		super(type);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.easing.Easing#baseCurve(double)
 	 */
@@ -49,8 +64,6 @@ public final class Quartic extends Easing {
 	 */
 	@Override
 	public Quartic copy() {
-		Quartic easing = new Quartic();
-		copy(easing);
-		return easing;
+		return new Quartic(this.type);
 	}
 }

@@ -28,8 +28,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-//FEATURE Allow the bounce settings to be configurable
-
 /**
  * Represents a bounce easing.
  * @author William Bittle
@@ -38,6 +36,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "bounce")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Bounce extends Easing {
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Bounce() {
+		super(EasingType.IN);
+	}
+	
+	/**
+	 * Minimal constructor.
+	 * @param type the easing type
+	 */
+	public Bounce(EasingType type) {
+		super(type);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.easing.Easing#baseCurve(double)
 	 */
@@ -56,8 +69,6 @@ public final class Bounce extends Easing {
 	 */
 	@Override
 	public Bounce copy() {
-		Bounce easing = new Bounce();
-		copy(easing);
-		return easing;
+		return new Bounce(this.type);
 	}
 }

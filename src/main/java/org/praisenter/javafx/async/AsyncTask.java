@@ -72,46 +72,56 @@ public abstract class AsyncTask<T> extends Task<T> {
 	/**
 	 * Helper method for adding a success handler.
 	 * @param handler the handler
+	 * @return {@link AsyncTask}&lt;T&gt;
 	 */
-	public final void addSuccessHandler(EventHandler<WorkerStateEvent> handler) {
+	public final AsyncTask<T> addSuccessHandler(EventHandler<WorkerStateEvent> handler) {
 		this.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, handler);
+		return this;
 	}
 	
 	/**
 	 * Helper method for adding a cancelled handler.
 	 * @param handler the handler
+	 * @return {@link AsyncTask}&lt;T&gt;
 	 */
-	public final void addCancelledHandler(EventHandler<WorkerStateEvent> handler) {
+	public final AsyncTask<T> addCancelledHandler(EventHandler<WorkerStateEvent> handler) {
 		this.addEventHandler(WorkerStateEvent.WORKER_STATE_CANCELLED, handler);
+		return this;
 	}
 	
 	/**
 	 * Helper method for adding a failed handler.
 	 * @param handler the handler
+	 * @return {@link AsyncTask}&lt;T&gt;
 	 */
-	public final void addFailedHandler(EventHandler<WorkerStateEvent> handler) {
+	public final AsyncTask<T> addFailedHandler(EventHandler<WorkerStateEvent> handler) {
 		this.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, handler);
+		return this;
 	}
 	
 	/**
 	 * Helper method for adding a handler that gets called if the task is cancelled
 	 * or if the task fails.
 	 * @param handler the handler
+	 * @return {@link AsyncTask}&lt;T&gt;
 	 */
-	public final void addCancelledOrFailedHandler(EventHandler<WorkerStateEvent> handler) {
+	public final AsyncTask<T> addCancelledOrFailedHandler(EventHandler<WorkerStateEvent> handler) {
 		this.addEventHandler(WorkerStateEvent.WORKER_STATE_CANCELLED, handler);
 		this.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, handler);
+		return this;
 	}
 	
 	/**
 	 * Helper method for adding a handler that gets called if the task is cancelled,
 	 * has failed, or has succeeded.
 	 * @param handler the handler
+	 * @return {@link AsyncTask}&lt;T&gt;
 	 */
-	public final void addCompletedHandler(EventHandler<WorkerStateEvent> handler) {
+	public final AsyncTask<T> addCompletedHandler(EventHandler<WorkerStateEvent> handler) {
 		this.addEventHandler(WorkerStateEvent.WORKER_STATE_CANCELLED, handler);
 		this.addEventHandler(WorkerStateEvent.WORKER_STATE_FAILED, handler);
 		this.addEventHandler(WorkerStateEvent.WORKER_STATE_SUCCEEDED, handler);
+		return this;
 	}
 	
 	/**

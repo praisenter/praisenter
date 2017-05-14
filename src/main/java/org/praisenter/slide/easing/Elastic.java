@@ -28,8 +28,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-//FEATURE Allow the elastic settings to be configurable
-
 /**
  * Represents an elastic easing.
  * @author William Bittle
@@ -43,6 +41,21 @@ public final class Elastic extends Easing {
 	
 	/** The number of oscillations */
 	private static final double o = 3;
+	
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Elastic() {
+		super(EasingType.IN);
+	}
+	
+	/**
+	 * Minimal constructor.
+	 * @param type the easing type
+	 */
+	public Elastic(EasingType type) {
+		super(type);
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.easing.Easing#baseCurve(double)
@@ -72,8 +85,6 @@ public final class Elastic extends Easing {
 	 */
 	@Override
 	public Elastic copy() {
-		Elastic easing = new Elastic();
-		copy(easing);
-		return easing;
+		return new Elastic(this.type);
 	}
 }

@@ -24,12 +24,12 @@
  */
 package org.praisenter.slide.animation;
 
-import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.praisenter.slide.easing.Easing;
 
 /**
  * Represents a split animation.
@@ -38,33 +38,75 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "split")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Split extends SlideAnimation {
+public final class Split extends Animation {
+	/** The default orientation */
+	public static final Orientation DEFAULT_ORIENTATION = Orientation.VERTICAL;
+	
+	/** The default operation */
+	public static final Operation DEFAULT_OPERATION = Operation.EXPAND;
+	
 	/** The orientation */
 	@XmlElement(name = "orientation", required = false)
-	Orientation orientation;
+	final Orientation orientation;
 	
 	/** The operation */
 	@XmlElement(name = "operation", required = false)
-	Operation operation;
+	final Operation operation;
+
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Split() {
+		super(AnimationType.IN);
+		this.orientation = DEFAULT_ORIENTATION;
+		this.operation = DEFAULT_OPERATION;
+	}
 	
 	/**
-	 * Default constructor.
+	 * Full constructor.
+	 * @param type the animation type
+	 * @param duration the duration (in milliseconds)
+	 * @param delay the delay (in milliseconds)
+	 * @param repeatCount the repeat count; 1 or higher
+	 * @param autoReverse true if auto-reverse should occur when repeat count is greater than 1
+	 * @param easing the easing
+	 * @param orientation the orientation of the split
+	 * @param operation the type of split
 	 */
-	public Split() {
-		this.orientation = Orientation.HORIZONTAL;
-		this.operation = Operation.COLLAPSE;
+	public Split(AnimationType type,
+			long duration,
+			long delay,
+			int repeatCount,
+			boolean autoReverse,
+			Easing easing,
+			Orientation orientation,
+			Operation operation) {
+		super(type, duration, delay, repeatCount, autoReverse, easing);
+		this.orientation = orientation == null ? DEFAULT_ORIENTATION : orientation;
+		this.operation = operation == null ? DEFAULT_OPERATION : operation;
+	}
+	
+	/**
+	 * Copy constructor.
+	 * @param other the animation to copy
+	 */
+	public Split(Split other) {
+		this(other.type,
+			 other.duration,
+			 other.delay,
+			 other.repeatCount,
+			 other.autoReverse,
+			 other.easing,
+			 other.orientation,
+			 other.operation);
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.SlideAnimation#copy(java.util.UUID)
+	 * @see org.praisenter.slide.animation.SlideAnimation#copy()
 	 */
 	@Override
-	public Split copy(UUID id) {
-		Split animation = new Split();
-		copy(animation, id);
-		animation.orientation = this.orientation;
-		animation.operation = this.operation;
-		return animation;
+	public Split copy() {
+		return new Split(this);
 	}
 	
 	/**
@@ -76,26 +118,10 @@ public final class Split extends SlideAnimation {
 	}
 
 	/**
-	 * Sets the orientation.
-	 * @param orientation the orientation
-	 */
-	public void setOrientation(Orientation orientation) {
-		this.orientation = orientation;
-	}
-
-	/**
 	 * Returns the operation.
 	 * @return {@link Operation}
 	 */
 	public Operation getOperation() {
 		return this.operation;
-	}
-
-	/**
-	 * Sets the operation.
-	 * @param operation the operation
-	 */
-	public void setOperation(Operation operation) {
-		this.operation = operation;
 	}
 }

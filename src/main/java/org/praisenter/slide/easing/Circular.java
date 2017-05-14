@@ -36,6 +36,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "circular")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Circular extends Easing {
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Circular() {
+		super(EasingType.IN);
+	}
+	
+	/**
+	 * Minimal constructor.
+	 * @param type the easing type
+	 */
+	public Circular(EasingType type) {
+		super(type);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.easing.Easing#baseCurve(double)
 	 */
@@ -49,8 +64,6 @@ public final class Circular extends Easing {
 	 */
 	@Override
 	public Circular copy() {
-		Circular easing = new Circular();
-		copy(easing);
-		return easing;
+		return new Circular(this.type);
 	}
 }

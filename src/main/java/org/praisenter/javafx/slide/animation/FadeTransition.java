@@ -22,26 +22,26 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.animation;
+package org.praisenter.javafx.slide.animation;
 
 import org.praisenter.slide.animation.AnimationType;
-import org.praisenter.slide.animation.Zoom;
+import org.praisenter.slide.animation.Fade;
 
 /**
- * Represents a zoom transition.
+ * Represents a fade transition.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class ZoomTransition extends CustomTransition<Zoom> {
+public final class FadeTransition extends CustomTransition<Fade> {
 	/**
 	 * Full constructor.
 	 * @param animation the animation configuration
 	 */
-	public ZoomTransition(Zoom animation) {
+	public FadeTransition(Fade animation) {
 		super(animation);
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see javafx.animation.Animation#stop()
 	 */
@@ -49,8 +49,7 @@ public final class ZoomTransition extends CustomTransition<Zoom> {
 	public void stop() {
 		super.stop();
 		if (this.node != null) {
-			this.node.setScaleX(1);
-			this.node.setScaleY(1);
+			this.node.setOpacity(1);
 		}
 	}
 	
@@ -61,39 +60,11 @@ public final class ZoomTransition extends CustomTransition<Zoom> {
 	protected void interpolate(double frac) {
 		if (this.node == null) return;
 		
-		// FIXME need to do testing with zoom in/out transitions
-//		Bounds bounds = node.getBoundsInParent();
-//		double w = bounds.getWidth();
-//		double h = bounds.getHeight();
-		
+		double alpha = clamp(frac, 0.0, 1.0);
 		if (this.animation.getType() == AnimationType.IN) {
-			node.setScaleX(Math.max(frac, 0));
-			node.setScaleY(Math.max(frac, 0));
-		} 
-//		else {
-//			// for the out transition we'll just clip the center
-////			double w = this.node.getPrefWidth();
-////			double h = this.node.getPrefHeight();
-//			double hw = w * 0.5;
-//			double hh = h * 0.5;
-//			Shape clip = new Rectangle(0, 0, w, h);
-//			Shape center = new Rectangle(hw * (1.0 - frac), hh * (1.0 - frac), h * frac, h * frac);
-//			node.setClip(Shape.subtract(clip, center));
-//		}
-		
-//		if (this.type == AnimationType.IN) {
-//			// for the out transition we'll just clip the center
-////			double w = this.node.getPrefWidth();
-////			double h = this.node.getPrefHeight();
-//			double hw = w * 0.5;
-//			double hh = h * 0.5;
-//			Shape clip = new Rectangle(0, 0, w, h);
-//			Shape center = new Rectangle(hw * frac, hh * frac, h * (1.0 - frac), h * (1.0 - frac));
-//			node.setClip(Shape.subtract(clip, center));
-//		} 
-		else {
-			node.setScaleX(Math.max(0.0, 1.0 - frac));
-			node.setScaleY(Math.max(0.0, 1.0 - frac));
+			this.node.setOpacity(alpha);
+		} else {
+			this.node.setOpacity(1.0 - alpha);
 		}
 	}
 }

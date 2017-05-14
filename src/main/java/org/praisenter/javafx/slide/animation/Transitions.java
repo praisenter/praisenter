@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.animation;
+package org.praisenter.javafx.slide.animation;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -39,7 +39,7 @@ import org.praisenter.slide.animation.Blinds;
 import org.praisenter.slide.animation.Fade;
 import org.praisenter.slide.animation.Push;
 import org.praisenter.slide.animation.Shaped;
-import org.praisenter.slide.animation.SlideAnimation;
+import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.animation.Split;
 import org.praisenter.slide.animation.Swap;
 import org.praisenter.slide.animation.Swipe;
@@ -68,7 +68,7 @@ public final class Transitions {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The mapping */
-	private static final Map<Class<? extends SlideAnimation>, Class<? extends CustomTransition<?>>> MAPPING;
+	private static final Map<Class<? extends Animation>, Class<? extends CustomTransition<?>>> MAPPING;
 	
 	/** The animation options */
 	private static final Set<AnimationOption> ANIMATION_OPTIONS = new TreeSet<>();
@@ -135,7 +135,7 @@ public final class Transitions {
 	 * @param animation the animation
 	 * @return String
 	 */
-	public static final String getName(SlideAnimation animation) {
+	public static final String getName(Animation animation) {
 		if (animation == null) return "";
 		
 		StringBuilder sb = new StringBuilder();
@@ -159,7 +159,7 @@ public final class Transitions {
 	 * @param animation the animation
 	 * @return {@link CustomTransition}
 	 */
-	public static final CustomTransition<?> createCustomTransition(SlideAnimation animation) {
+	public static final CustomTransition<?> createCustomTransition(Animation animation) {
 		Class<? extends CustomTransition<?>> clazz = MAPPING.get(animation.getClass());
 		try {
 			Constructor<? extends CustomTransition<?>> constructor = clazz.getConstructor(animation.getClass());
@@ -177,6 +177,6 @@ public final class Transitions {
 		} catch (InvocationTargetException e) {
 			LOGGER.error("Failed to call the constructor.", e);
 		}
-		return new SwapTransition(new Swap());
+		return new SwapTransition();
 	}
 }

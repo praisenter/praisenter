@@ -57,16 +57,21 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 	}
 	
 	public void hover(MouseEvent event) {
-		Region node = region.getDisplayPane();
+		double x = event.getX();
+		double y = event.getY();
+		double w = 0;
+		double h = 0;
+		
+		Node node = region.getDisplayPane();
+		if (node instanceof Region) {
+			Region region = (Region)node;
+			w = region.getWidth();
+			h = region.getHeight();
+		}
 		
 		Cursor cursor = Cursor.DEFAULT;
 		Scene scene = node.getScene();
 		if (region instanceof ObservableSlideComponent) {
-			double x = event.getX();
-			double y = event.getY();
-			double w = node.getWidth();
-			double h = node.getHeight();
-			
 			cursor = CursorPosition.getCursorForPosition(x, y, w, h);
 		}
 		

@@ -286,7 +286,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			
 			if (nv != null) {
 				// add the slide node to the slideCanvas
-				Pane rootEditPane = nv.getDisplayPane();
+				Node rootEditPane = nv.getDisplayPane();
 				slideCanvas.getChildren().add(rootEditPane);
 				// bind the scale factor
 				nv.scalingProperty().bind(scaleFactor);
@@ -300,7 +300,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				Iterator<ObservableSlideComponent<?>> components = nv.componentIterator();
 				while (components.hasNext()) {
 					ObservableSlideComponent<?> osr = components.next();
-					Pane pane = osr.getDisplayPane();
+					Node pane = osr.getDisplayPane();
 					// bind the scale factor
 					osr.scalingProperty().bind(scaleFactor);
 					// setup the mouse event handler
@@ -354,7 +354,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				component.setY((sh - h) * 0.5);
 			}
 			
-			Pane pane = component.getDisplayPane();
+			Node pane = component.getDisplayPane();
 			slide.get().addComponent(component);
 			
 			// bind the scale factor
@@ -597,11 +597,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 //				// flag it as unsaved
 //				this.unsavedChanges = false;
 //			}
-		});
-		task.addCancelledOrFailedHandler(e -> {
+		}).addCancelledOrFailedHandler(e -> {
 			//this.unsavedChanges = true;
-		});
-		task.execute(this.context.getExecutorService());
+		}).execute(this.context.getExecutorService());
 	}
 	
 	private final void copy(boolean cut) {

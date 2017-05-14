@@ -54,6 +54,7 @@ import org.praisenter.TextVariant;
 import org.praisenter.bible.BibleReferenceTextStore;
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.SlideAnimation;
+import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
@@ -340,12 +341,13 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		List<SlideAnimation> animations = this.getAnimations(this.id);
 		if (animations != null && !animations.isEmpty()) {
 			for (SlideAnimation animation : animations) {
-				if (animation.getRepeatCount() == SlideAnimation.INFINITE) {
+				Animation ani = animation.getAnimation();
+				if (ani.getRepeatCount() == Animation.INFINITE) {
 					return Slide.TIME_FOREVER;
 				}
-				if (animation.getType() == AnimationType.IN) {
-					long tx = Math.max(0, animation.getDuration()) * Math.max(1, animation.getRepeatCount()) * (animation.isAutoReverse() ? 2 : 1);
-					tx += Math.max(0, animation.getDelay());
+				if (ani.getType() == AnimationType.IN) {
+					long tx = Math.max(0, ani.getDuration()) * Math.max(1, ani.getRepeatCount()) * (ani.isAutoReverse() ? 2 : 1);
+					tx += Math.max(0, ani.getDelay());
 					if (tx > max) {
 						max = tx;
 					}

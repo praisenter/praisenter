@@ -22,49 +22,36 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.animation;
+package org.praisenter.javafx.slide.animation;
 
-import org.praisenter.slide.animation.AnimationType;
-import org.praisenter.slide.animation.Fade;
+import org.praisenter.slide.easing.Easing;
+import org.praisenter.slide.easing.Linear;
+
+import javafx.animation.Interpolator;
 
 /**
- * Represents a fade transition.
+ * Represents a custom interpolator defined by an {@link Easing}.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class FadeTransition extends CustomTransition<Fade> {
+public class CustomInterpolator extends Interpolator {
+	/** The easing function */
+	final Easing easing;
+	
 	/**
 	 * Full constructor.
-	 * @param animation the animation configuration
+	 * @param easing the easing function
 	 */
-	public FadeTransition(Fade animation) {
-		super(animation);
+	public CustomInterpolator(Easing easing) {
+		this.easing = easing != null ? easing : new Linear();
 	}
 	
 	/* (non-Javadoc)
-	 * @see javafx.animation.Animation#stop()
+	 * @see javafx.animation.Interpolator#curve(double)
 	 */
 	@Override
-	public void stop() {
-		super.stop();
-		if (this.node != null) {
-			this.node.setOpacity(1);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see javafx.animation.Transition#interpolate(double)
-	 */
-	@Override
-	protected void interpolate(double frac) {
-		if (this.node == null) return;
-		
-		double alpha = clamp(frac, 0.0, 1.0);
-		if (this.animation.getType() == AnimationType.IN) {
-			this.node.setOpacity(alpha);
-		} else {
-			this.node.setOpacity(1.0 - alpha);
-		}
+	protected double curve(double t) {
+		return this.easing.curve(t);
 	}
 }

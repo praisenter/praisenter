@@ -24,12 +24,12 @@
  */
 package org.praisenter.slide.animation;
 
-import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.praisenter.slide.easing.Easing;
 
 /**
  * Represents a push animation.
@@ -38,27 +38,63 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "push")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Push extends SlideAnimation {
+public final class Push extends Animation {
+	/** The default direction */
+	public static final Direction DEFAULT_DIRECTION = Direction.LEFT;
+	
 	/** The direction */
 	@XmlElement(name = "direction", required = false)
-	Direction direction;
+	final Direction direction;
+
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Push() {
+		super(AnimationType.IN);
+		this.direction = DEFAULT_DIRECTION;
+	}
 	
 	/**
-	 * Default constructor.
+	 * Full constructor.
+	 * @param type the animation type
+	 * @param duration the duration (in milliseconds)
+	 * @param delay the delay (in milliseconds)
+	 * @param repeatCount the repeat count; 1 or higher
+	 * @param autoReverse true if auto-reverse should occur when repeat count is greater than 1
+	 * @param easing the easing
+	 * @param direction the direction of the push
 	 */
-	public Push() {
-		this.direction = Direction.UP;
+	public Push(AnimationType type,
+			long duration,
+			long delay,
+			int repeatCount,
+			boolean autoReverse,
+			Easing easing,
+			Direction direction) {
+		super(type, duration, delay, repeatCount, autoReverse, easing);
+		this.direction = direction == null ? DEFAULT_DIRECTION : direction;
+	}
+	
+	/**
+	 * Copy constructor.
+	 * @param other the animation to copy
+	 */
+	public Push(Push other) {
+		this(other.type,
+			 other.duration,
+			 other.delay,
+			 other.repeatCount,
+			 other.autoReverse,
+			 other.easing,
+			 other.direction);
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.SlideAnimation#copy(java.util.UUID)
+	 * @see org.praisenter.slide.animation.SlideAnimation#copy()
 	 */
 	@Override
-	public Push copy(UUID id) {
-		Push animation = new Push();
-		copy(animation, id);
-		animation.direction = this.direction;
-		return animation;
+	public Push copy() {
+		return new Push(this);
 	}
 	
 	/**
@@ -67,13 +103,5 @@ public final class Push extends SlideAnimation {
 	 */
 	public Direction getDirection() {
 		return this.direction;
-	}
-	
-	/**
-	 * Sets the direction.
-	 * @param direction the direction
-	 */
-	public void setDirection(Direction direction) {
-		this.direction = direction;
 	}
 }

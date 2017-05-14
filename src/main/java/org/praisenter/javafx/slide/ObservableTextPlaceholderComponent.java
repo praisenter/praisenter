@@ -11,8 +11,8 @@ import javafx.beans.property.SimpleObjectProperty;
 
 public final class ObservableTextPlaceholderComponent extends ObservableTextComponent<TextPlaceholderComponent> {
 	
-	final ObjectProperty<TextType> placeholderType = new SimpleObjectProperty<TextType>();
-	final ObjectProperty<TextVariant> placeholderVariant = new SimpleObjectProperty<TextVariant>();
+	private final ObjectProperty<TextType> placeholderType = new SimpleObjectProperty<TextType>();
+	private final ObjectProperty<TextVariant> placeholderVariant = new SimpleObjectProperty<TextVariant>();
 	
 	public ObservableTextPlaceholderComponent(TextPlaceholderComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
@@ -25,17 +25,17 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 			this.mode == SlideMode.PREVIEW ||
 			this.mode == SlideMode.PREVIEW_NO_AUDIO ||
 			this.mode == SlideMode.SNAPSHOT) {
-			this.text.set(this.getText());
+			this.setText(this.getText());
 		}
 		
 		this.placeholderType.addListener((obs, ov, nv) -> { 
 			this.region.setPlaceholderType(nv); 
-			this.text.set(this.getText());
+			this.setText(this.getText());
 		});
 		
 		this.placeholderVariant.addListener((obs, ov, nv) -> {
 			this.region.setPlaceholderVariant(nv); 
-			this.text.set(this.getText());
+			this.setText(this.getText());
 		});
 
 		this.build();

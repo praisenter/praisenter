@@ -216,7 +216,7 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	 */
 	public abstract long getTotalTime();
 	
-	// component animations
+	// animations
 	
 	/**
 	 * Returns the list of animations for the attached components.

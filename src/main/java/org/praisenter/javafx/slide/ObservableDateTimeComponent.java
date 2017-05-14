@@ -14,11 +14,11 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 	final AnimationTimer timer = new AnimationTimer() {
 		@Override
 		public void handle(long now) {
-			text.set(region.getText());
+			setText(region.getText());
 		}
 	};
 	
-	final ObjectProperty<SimpleDateFormat> dateTimeFormat = new SimpleObjectProperty<SimpleDateFormat>();
+	private final ObjectProperty<SimpleDateFormat> dateTimeFormat = new SimpleObjectProperty<SimpleDateFormat>();
 	
 	public ObservableDateTimeComponent(DateTimeComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
@@ -30,7 +30,7 @@ public final class ObservableDateTimeComponent extends ObservableTextComponent<D
 		this.dateTimeFormat.addListener((obs, ov, nv) -> { 
 			this.region.setDateTimeFormat(nv);
 			String text = this.region.getText();
-			this.text.set(text);
+			this.setText(text);
 		});
 		
 		this.build();

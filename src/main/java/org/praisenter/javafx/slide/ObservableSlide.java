@@ -17,6 +17,7 @@ import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.CountdownComponent;
@@ -44,6 +45,8 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	private final ObjectProperty<TextStore> placeholderData = new SimpleObjectProperty<TextStore>();
 	
 	private final ObservableList<ObservableSlideComponent<?>> components = FXCollections.observableArrayList();
+	
+	private final ObservableList<SlideAnimation> animations = FXCollections.observableArrayList();
 
 	// Node hierarchy:
 	// +-----------------------+--------------+-------------------------------+
@@ -82,6 +85,10 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 			}
 		}
 		
+		for (SlideAnimation animation : slide.getAnimations()) {
+			this.animations.add(animation);
+		}
+		
 		// setup listeners
 		this.name.addListener((obs, ov, nv) -> { 
 			slide.setName(nv); 
@@ -96,24 +103,12 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 			slide.setPlaceholderData(nv);
 		});
 		
-		this.build();
+		this.build(null, this.componentCanvas);
 	}
 
-	void build() {
-		super.build(null);
-		this.rootPane.getChildren().add(this.componentCanvas);
-	}
-	
 	@Override
-	void updateSize() {
-		super.updateSize();
-		
-		// also update the size and scaling for the component canvas
-		double w = this.width.get();
-		double h = this.height.get();
-		
-		Scaling s = this.scale.get();
-		Fx.setSize(this.componentCanvas, Math.ceil(w * s.factor), Math.ceil(h * s.factor));
+	protected void onSizeUpdate(double width, double height, Scaling scaling) {
+		Fx.setSize(this.componentCanvas, Math.ceil(width * scaling.factor), Math.ceil(height * scaling.factor));
 	}
 	
 	public List<Node> getComponentDisplayPanes() {
@@ -145,17 +140,17 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	
 	public void fit(int width, int height) {
 		this.region.fit(width, height);
-		this.x.set(this.region.getX());
-		this.y.set(this.region.getY());
-		this.width.set(this.region.getWidth());
-		this.height.set(this.region.getHeight());
+		this.setX(this.region.getX());
+		this.setY(this.region.getY());
+		this.setWidth(this.region.getWidth());
+		this.setHeight(this.region.getHeight());
 		updatePosition();
 		updateSize();
 		for (ObservableSlideComponent<?> component : this.components) {
-			component.x.set(component.region.getX());
-			component.y.set(component.region.getY());
-			component.width.set(component.region.getWidth());
-			component.height.set(component.region.getHeight());
+			component.setX(component.region.getX());
+			component.setY(component.region.getY());
+			component.setWidth(component.region.getWidth());
+			component.setHeight(component.region.getHeight());
 			component.updatePosition();
 			component.updateSize();
 		}

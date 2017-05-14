@@ -475,7 +475,9 @@ public final class BibleNavigationPane extends BorderPane {
 			if (bible2 != null && bible2.getId() != triplet.getCurrent().getBible().getId()) {
 				LocatedVerseTriplet matchingTriplet = bible2.getMatchingTriplet(triplet);
 				if (matchingTriplet != null) {
-					value.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getCurrent()));
+					if (matchingTriplet.getCurrent() != null) {
+						value.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getCurrent()));
+					}
 					if (matchingTriplet.getPrevious() != null) {
 						previous.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getPrevious()));
 					}

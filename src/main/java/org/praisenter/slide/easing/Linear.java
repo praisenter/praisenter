@@ -36,6 +36,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "linear")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Linear extends Easing {
+	/**
+	 * Minimal constructor.
+	 */
+	public Linear() {
+		super(EasingType.IN);
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param type the easing type
+	 */
+	public Linear(EasingType type) {
+		super(type);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.easing.Easing#baseCurve(double)
 	 */
@@ -49,8 +64,6 @@ public final class Linear extends Easing {
 	 */
 	@Override
 	public Linear copy() {
-		Linear easing = new Linear();
-		copy(easing);
-		return easing;
+		return new Linear(this.type);
 	}
 }

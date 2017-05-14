@@ -28,8 +28,6 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
-//FEATURE Allow the overshoot parameter to be configured
-
 /**
  * Represents a back easing.
  * @author William Bittle
@@ -40,6 +38,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 public final class Back extends Easing {
 	/** The over-shoot factor */
 	private static final double s = 1.70158;
+	
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Back() {
+		super(EasingType.IN);
+	}
+	
+	/**
+	 * Minimal constructor.
+	 * @param type the easing type
+	 */
+	public Back(EasingType type) {
+		super(type);
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.easing.Easing#baseCurve(double)
@@ -54,8 +67,6 @@ public final class Back extends Easing {
 	 */
 	@Override
 	public Back copy() {
-		Back easing = new Back();
-		copy(easing);
-		return easing;
+		return new Back(this.type);
 	}
 }

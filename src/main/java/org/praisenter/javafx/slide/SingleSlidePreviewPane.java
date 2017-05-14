@@ -38,6 +38,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -177,7 +178,7 @@ public final class SingleSlidePreviewPane extends StackPane {
 
 			if (nv != null) {
 				ObservableSlide<Slide> os = new ObservableSlide<>(nv, context, this.mode.get() == null ? SlideMode.PREVIEW : this.mode.get());
-				Pane rootPane = os.getDisplayPane();
+				Node rootPane = os.getDisplayPane();
 				slideCanvas.getChildren().add(rootPane);
 				os.scalingProperty().bind(scaleFactor);
 				

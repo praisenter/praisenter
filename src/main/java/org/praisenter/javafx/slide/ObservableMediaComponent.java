@@ -4,17 +4,18 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.object.MediaObject;
+import org.praisenter.utility.Scaling;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 public final class ObservableMediaComponent extends ObservableSlideComponent<MediaComponent> {
 
-	final ObjectProperty<MediaObject> media = new SimpleObjectProperty<MediaObject>();
+	private final ObjectProperty<MediaObject> media = new SimpleObjectProperty<MediaObject>();
 	
 	// nodes
 	
-	final FillPane mediaNode;
+	private final FillPane mediaNode;
 	
 	public ObservableMediaComponent(MediaComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
@@ -40,29 +41,22 @@ public final class ObservableMediaComponent extends ObservableSlideComponent<Med
 		super.build(this.mediaNode);
 	}
 	
-	@Override
-	void updateSize() {
-		super.updateSize();
-		
-		double w = this.width.get();
-		double h = this.height.get();
-		this.mediaNode.setSize(w, h);
-	}
-	
-	@Override
-	void updateBorder() {
-		super.updateBorder();
-		
-		SlideStroke ss = this.border.get();
-		double r = ss != null ? ss.getRadius() : 0.0;
-		this.mediaNode.setBorderRadius(r);
-	}
-	
-	private void updateMedia() {
+	protected final void updateMedia() {
 		MediaObject mo = this.media.get();
 		this.mediaNode.setPaint(mo);
 	}
 
+	@Override
+	protected void onSizeUpdate(double w, double h, Scaling scaling) {
+		this.mediaNode.setSize(w, h);
+	}
+	
+	@Override
+	protected void onBorderUpdate(SlideStroke ss) {
+		double r = ss != null ? ss.getRadius() : 0.0;
+		this.mediaNode.setBorderRadius(r);
+	}
+	
 	// playable stuff
 	
 	public void play() {

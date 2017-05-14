@@ -24,12 +24,12 @@
  */
 package org.praisenter.slide.animation;
 
-import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.praisenter.slide.easing.Easing;
 
 /**
  * Represents a blinds animation.
@@ -38,33 +38,75 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "blinds")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Blinds extends SlideAnimation {
+public final class Blinds extends Animation {
+	/** The default orientation */
+	public static final Orientation DEFAULT_ORIENTATION = Orientation.VERTICAL;
+	
+	/** The default blind count */
+	public static final int DEFAULT_BLIND_COUNT = 12;
+	
 	/** The orientation of the blinds */
 	@XmlElement(name = "orientation", required = false)
-	Orientation orientation;
+	final Orientation orientation;
 	
 	/** The blind count */
 	@XmlElement(name = "blindCount", required = false)
-	int blindCount;
+	final int blindCount;
 	
 	/**
-	 * Default constructor.
+	 * Default constructor for JAXB.
 	 */
-	public Blinds() {
-		this.orientation = Orientation.HORIZONTAL;
-		this.blindCount = 12;
+	Blinds() {
+		super(AnimationType.IN);
+		this.orientation = DEFAULT_ORIENTATION;
+		this.blindCount = DEFAULT_BLIND_COUNT;
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param type the animation type
+	 * @param duration the duration (in milliseconds)
+	 * @param delay the delay (in milliseconds)
+	 * @param repeatCount the repeat count; 1 or higher
+	 * @param autoReverse true if auto-reverse should occur when repeat count is greater than 1
+	 * @param easing the easing
+	 * @param orientation the orientation of the blinds
+	 * @param blindCount the number of blinds
+	 */
+	public Blinds(AnimationType type,
+			long duration,
+			long delay,
+			int repeatCount,
+			boolean autoReverse,
+			Easing easing,
+			Orientation orientation,
+			int blindCount) {
+		super(type, duration, delay, repeatCount, autoReverse, easing);
+		this.orientation = orientation == null ? DEFAULT_ORIENTATION : orientation;
+		this.blindCount = blindCount < 2 ? DEFAULT_BLIND_COUNT : blindCount;
+	}
+	
+	/**
+	 * Copy constructor.
+	 * @param other the blinds animation to copy
+	 */
+	public Blinds(Blinds other) {
+		this(other.type,
+			 other.duration,
+			 other.delay,
+			 other.repeatCount,
+			 other.autoReverse,
+			 other.easing,
+			 other.orientation,
+			 other.blindCount);
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.SlideAnimation#copy(java.util.UUID)
+	 * @see org.praisenter.slide.animation.SlideAnimation#copy()
 	 */
 	@Override
-	public Blinds copy(UUID id) {
-		Blinds animation = new Blinds();
-		copy(animation, id);
-		animation.orientation = this.orientation;
-		animation.blindCount = this.blindCount;
-		return animation;
+	public Blinds copy() {
+		return new Blinds(this);
 	}
 	
 	/**
@@ -76,26 +118,10 @@ public final class Blinds extends SlideAnimation {
 	}
 
 	/**
-	 * Sets the orientation of the blinds.
-	 * @param orientation the orientation
-	 */
-	public void setOrientation(Orientation orientation) {
-		this.orientation = orientation;
-	}
-
-	/**
 	 * Returns the number of blinds.
 	 * @return int
 	 */
 	public int getBlindCount() {
 		return this.blindCount;
-	}
-
-	/**
-	 * Sets the number of blinds.
-	 * @param blindCount the number of blinds
-	 */
-	public void setBlindCount(int blindCount) {
-		this.blindCount = blindCount;
 	}
 }

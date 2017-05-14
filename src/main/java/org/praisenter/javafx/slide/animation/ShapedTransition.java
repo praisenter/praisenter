@@ -22,23 +22,30 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.animation;
+package org.praisenter.javafx.slide.animation;
 
 import org.praisenter.slide.animation.AnimationType;
-import org.praisenter.slide.animation.Swap;
+import org.praisenter.slide.animation.Operation;
+import org.praisenter.slide.animation.ShapeType;
+import org.praisenter.slide.animation.Shaped;
+
+import javafx.geometry.Rectangle2D;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 
 /**
- * A simple transition where the object is immediately shown.
+ * Represents a transition where a clip shape is used.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class SwapTransition extends CustomTransition<Swap> {
+public final class ShapedTransition extends CustomTransition<Shaped> {
 	/**
 	 * Full constructor.
 	 * @param animation the animation configuration
 	 */
-	public SwapTransition(Swap animation) {
+	public ShapedTransition(Shaped animation) {
 		super(animation);
 	}
 
@@ -49,7 +56,7 @@ public final class SwapTransition extends CustomTransition<Swap> {
 	public void stop() {
 		super.stop();
 		if (this.node != null) {
-			this.node.setVisible(true);
+			this.node.setClip(null);
 		}
 	}
 	
@@ -60,10 +67,56 @@ public final class SwapTransition extends CustomTransition<Swap> {
 	protected void interpolate(double frac) {
 		if (this.node == null) return;
 		
-		if (this.animation.getType() != AnimationType.IN) {
-			this.node.setVisible(false);
-		} else {
-			this.node.setVisible(true);
+		Shape clip = null;
+		
+		Rectangle2D bounds = this.getBounds();
+		
+		// circle collapse/expand
+		if (this.animation.getShapeType() == ShapeType.CIRCLE) {
+			clip = this.getCircleClip(bounds, frac);
 		}
+		
+		node.setClip(clip);
+	}
+	
+	/**
+	 * Returns a circle clip shape.
+	 * @param bounds the bounds of the node
+	 * @param frac the position in the animation
+	 * @return Shape
+	 */
+	private Shape getCircleClip(Rectangle2D bounds, double frac) {
+		double w = bounds.getWidth();
+		double h = bounds.getHeight();
+
+		if (this.animation.getOperation() == Operation.COLLAPSE) {
+			double hw = w * 0.5;
+			double hh = h * 0.5;
+			double r = Math.sqrt(hw * hw + hh * hh) * (1.0 - frac);
+			Rectangle all = new Rectangle(0, 0, w, h);
+			Circle circle = new Circle(hw, hh, r);
+			
+			// create the clip shape
+			if (this.animation.getType() == AnimationType.IN) {
+				return Shape.subtract(all, circle);
+			} else {
+				return circle;
+			}
+		} else if (this.animation.getOperation() == Operation.EXPAND) {
+			double hw = w * 0.5;
+			double hh = h * 0.5;
+			double r = Math.sqrt(hw * hw + hh * hh) * frac;
+			Rectangle all = new Rectangle(0, 0, w, h);
+			Circle circle = new Circle(hw, hh, r);
+			
+			// create the clip shape
+			if (this.animation.getType() == AnimationType.IN) {
+				return circle;
+			} else {
+				return Shape.subtract(all, circle);
+			}
+		}
+		
+		return null;
 	}
 }

@@ -30,97 +30,60 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-
-import org.praisenter.slide.easing.Easing;
-import org.praisenter.slide.easing.Linear;
 
 /**
- * Represents an animation that can be applied to slides and components.
+ * Represents a relationship between an animation and a component.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "animation")
+@XmlRootElement(name = "componentAnimation")
 @XmlAccessorType(XmlAccessType.NONE)
-@XmlSeeAlso(value = {
-	Blinds.class,
-	Fade.class,
-	Push.class,
-	Shaped.class,
-	Split.class,
-	Swap.class,
-	Swipe.class,
-	Zoom.class
-})
-public abstract class SlideAnimation {
-	/** Value for a constantly repeating animation */
-	public static final int INFINITE = -1;
-	
-	/** The id of the object being animated */
+public final class SlideAnimation {
+	/** The id of the component being animated */
 	@XmlElement(name = "id", required = false)
-	UUID id;
+	final UUID id;
 	
-	/** The animation type */
-	@XmlElement(name = "type", required = false)
-	AnimationType type;
-	
-	/** The animation duration */
-	@XmlElement(name = "duration", required = false)
-	long duration;
-	
-	/** The animation delay */
-	@XmlElement(name = "delay", required = false)
-	long delay;
-	
-	/** The number of times to repeat the animation */
-	@XmlElement(name = "repeatCount", required = false)
-	int repeatCount;
-	
-	/** Whether the animation should reverse or not */
-	@XmlElement(name = "autoReverse", required = false)
-	boolean autoReverse;
-	
-	/** The easing function */
-	@XmlElement(name = "easing", required = false)
-	Easing easing;
+	/** The animation */
+	@XmlElement(name = "animation", required = false)
+	final Animation animation;
 	
 	/**
-	 * Default constructor.
+	 * Default constructor for JAXB.
 	 */
-	public SlideAnimation() {
+	SlideAnimation() {
 		this.id = null;
-		this.type = AnimationType.IN;
-		this.duration = 300;
-		this.delay = 0;
-		this.repeatCount = 1;
-		this.autoReverse = false;
-		this.easing = new Linear();
+		this.animation = null;
 	}
 	
 	/**
-	 * Copies over the default animation properties to the given other animation.
-	 * @param other the new animation to copy to
-	 * @param id the id that the new animation applies to
+	 * Minimal constructor.
+	 * @param id the component id
+	 * @param animation the animation
 	 */
-	public void copy(SlideAnimation other, UUID id) {
-		other.delay = this.delay;
-		other.duration = this.duration;
-		other.easing = this.easing.copy();
-		other.id = id;
-		other.autoReverse = this.autoReverse;
-		other.repeatCount = this.repeatCount;
-		other.type = this.type;
+	public SlideAnimation(UUID id, Animation animation) {
+		this.id = id;
+		this.animation = animation;
 	}
 	
 	/**
-	 * Returns a copy of this animation.
-	 * @param id the new id for the animation; can be null
+	 * Makes a copy of this slide animation.
 	 * @return {@link SlideAnimation}
 	 */
-	public abstract SlideAnimation copy(UUID id);
+	public SlideAnimation copy() {
+		return this.copy(this.id);
+	}
 	
 	/**
-	 * Returns the id of the object to that this animation applies to.
+	 * Makes a copy for the given id.
+	 * @param id the id
+	 * @return {@link SlideAnimation}
+	 */
+	public SlideAnimation copy(UUID id) {
+		return new SlideAnimation(id, this.animation);
+	}
+	
+	/**
+	 * Returns the id.
 	 * @return UUID
 	 */
 	public UUID getId() {
@@ -128,108 +91,10 @@ public abstract class SlideAnimation {
 	}
 	
 	/**
-	 * Sets the id of the object to that this animation applies to.
-	 * @param id the id
+	 * Returns the animation.
+	 * @return {@link Animation}
 	 */
-	public void setId(UUID id) {
-		this.id = id;
-	}
-	
-	/**
-	 * Returns the animation type.
-	 * @return {@link AnimationType}
-	 */
-	public AnimationType getType() {
-		return this.type;
-	}
-
-	/**
-	 * Sets the animation type.
-	 * @param type the type
-	 */
-	public void setType(AnimationType type) {
-		this.type = type;
-	}
-	
-	/**
-	 * Returns the animation duration in milliseconds
-	 * @return long
-	 */
-	public long getDuration() {
-		return this.duration;
-	}
-	
-	/**
-	 * Sets the duration.
-	 * @param duration the duration in milliseconds
-	 */
-	public void setDuration(long duration) {
-		this.duration = duration;
-	}
-	
-	/**
-	 * Returns the animation delay in milliseconds
-	 * @return long
-	 */
-	public long getDelay() {
-		return this.delay;
-	}
-	
-	/**
-	 * Sets the delay.
-	 * @param delay the delay in milliseconds
-	 */
-	public void setDelay(long delay) {
-		this.delay = delay;
-	}
-	
-	/**
-	 * Returns the number of times the animation should repeat.
-	 * @return int
-	 * @see #INFINITE
-	 */
-	public int getRepeatCount() {
-		return this.repeatCount;
-	}
-	
-	/**
-	 * Sets the number of times the animation should repeat.
-	 * @param repeatCount the count
-	 * @see #INFINITE
-	 */
-	public void setRepeatCount(int repeatCount) {
-		this.repeatCount = repeatCount;
-	}
-	
-	/**
-	 * Returns true if the animation should reverse before playing again.
-	 * @return boolean
-	 */
-	public boolean isAutoReverse() {
-		return this.autoReverse;
-	}
-	
-	/**
-	 * Sets whether the animation should reverse before playing again.
-	 * @param autoReverse true if the animation should reverse
-	 */
-	public void setAutoReverse(boolean autoReverse) {
-		this.autoReverse = autoReverse;
-	}
-	
-	/**
-	 * Returns the animation easing function.
-	 * @return Easing
-	 */
-	public Easing getEasing() {
-		return this.easing;
-	}
-	
-	/**
-	 * Sets the animation easing function.
-	 * @param easing the easing function
-	 */
-	public void setEasing(Easing easing) {
-		this.easing = easing;
+	public Animation getAnimation() {
+		return this.animation;
 	}
 }

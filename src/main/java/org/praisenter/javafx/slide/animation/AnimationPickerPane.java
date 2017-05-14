@@ -22,8 +22,9 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.animation;
+package org.praisenter.javafx.slide.animation;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,7 @@ import org.praisenter.javafx.LongTextFormatter;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
+import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Blinds;
 import org.praisenter.slide.animation.Direction;
@@ -44,7 +46,6 @@ import org.praisenter.slide.animation.Orientation;
 import org.praisenter.slide.animation.Push;
 import org.praisenter.slide.animation.ShapeType;
 import org.praisenter.slide.animation.Shaped;
-import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.animation.Split;
 import org.praisenter.slide.animation.Swap;
 import org.praisenter.slide.animation.Swipe;
@@ -59,14 +60,11 @@ import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
@@ -155,15 +153,12 @@ public final class AnimationPickerPane extends BorderPane {
 	// the output
 	
 	/** The configured animation */
-	private final ObjectProperty<SlideAnimation> value = new SimpleObjectProperty<SlideAnimation>();
+	private final ObjectProperty<Animation> value = new SimpleObjectProperty<Animation>();
 
 	/** True if the value is being changed */
 	private boolean mutating = false;
 	
 	// nodes
-	
-	/** The objects (slide/components) selector */
-	private final ComboBox<AnimatedObject> cmbObjects;
 	
 	/** The animation selector */
 	private final FlowListView<AnimationOption> animationListPane;
@@ -211,26 +206,12 @@ public final class AnimationPickerPane extends BorderPane {
 	
 	/**
 	 * Creates a new animation picker pane.
-	 * @param objects the list of objects the animation can be applied to
 	 */
-	public AnimationPickerPane(ObservableSet<AnimatedObject> objects) {
+	public AnimationPickerPane() {
 		GridPane grid = new GridPane();
 		grid.setPadding(new Insets(5));
 		grid.setHgap(3);
 		grid.setVgap(3);
-		
-		ObservableList<AnimatedObject> objs = FXCollections.observableArrayList(objects);
-		
-		Label lblObjects = new Label("For");
-		cmbObjects = new ComboBox<>(objs);
-		
-		if (objects.size() == 0) {
-			// TODO throw error, we should always at least have the slide
-		}
-		if (objects.size() == 1) {
-			cmbObjects.setValue(objs.get(0));
-			cmbObjects.setDisable(true);
-		}
 		
 		InvalidationListener listener = new InvalidationListener() {
 			@Override
@@ -314,8 +295,6 @@ public final class AnimationPickerPane extends BorderPane {
 		// UI
 		
 		int row = 0;
-		grid.add(lblObjects, 0, row);
-		grid.add(cmbObjects, 1, row++);
 		
 		grid.add(lblDuration, 0, row);
 		grid.add(txtDuration, 1, row++);
@@ -370,7 +349,7 @@ public final class AnimationPickerPane extends BorderPane {
 		VBox boxPreview = new VBox();
 		Button btnPreview = new Button("Preview");
 		btnPreview.setOnAction((e) -> {
-			SlideAnimation animation = this.value.get();
+			Animation animation = this.value.get();
 			CustomTransition<?> ct = Transitions.createCustomTransition(animation);
 			ct.setNode(pane2);
 			if (transition != null) {
@@ -404,7 +383,6 @@ public final class AnimationPickerPane extends BorderPane {
 		cbOrientation.valueProperty().addListener(listener);
 		cbShapeType.valueProperty().addListener(listener);
 		txtBlindCount.textProperty().addListener(listener);
-		cmbObjects.valueProperty().addListener(listener);
 		
 		// hide/show logic
 		
@@ -481,18 +459,16 @@ public final class AnimationPickerPane extends BorderPane {
 	 * Sets the values of the controls based on the given animation.
 	 * @param animation the animation
 	 */
-	private void setControlValues(SlideAnimation animation) {
+	private void setControlValues(Animation animation) {
 		if (animation != null) {
     		// assign all the controls their values
-			// FIXME we don't know the animated object type at this time
-			cmbObjects.setValue(new AnimatedObject(animation.getId(), AnimatedObjectType.COMPONENT, "test"));
 			animationListPane.getSelectionModel().selectOnly(new AnimationOption(animation.getClass(), 0));
 			easingListPane.getSelectionModel().selectOnly(new AnimationOption(animation.getEasing().getClass(), 0));
 			txtDuration.setText(String.valueOf(animation.getDuration()));
 			txtDelay.setText(String.valueOf(animation.getDelay()));
 			cbAnimationType.setValue(getOption(ANIMATION_TYPE_OPTIONS, animation.getType()));
 			cbEasingType.setValue(getOption(EASING_TYPE_OPTIONS, animation.getEasing().getType()));
-			spnRepeatCount.getValueFactory().setValue(animation.getRepeatCount() == SlideAnimation.INFINITE ? 0 : animation.getRepeatCount());
+			spnRepeatCount.getValueFactory().setValue(animation.getRepeatCount() == Animation.INFINITE ? 0 : animation.getRepeatCount());
 			chkAutoReverse.setSelected(animation.isAutoReverse());
 			// specific animation settings
 			// custom animation options
@@ -526,9 +502,9 @@ public final class AnimationPickerPane extends BorderPane {
 	
 	/**
 	 * Returns an animation using the current values of the controls.
-	 * @return {@link SlideAnimation}
+	 * @return {@link Animation}
 	 */
-	private SlideAnimation getControlValues() {
+	private Animation getControlValues() {
 		AnimationOption animationOption = this.animationListPane.getSelectionModel().selectionProperty().get();
 		if (animationOption == null) {
 			// return null if an animation type hasn't been selected
@@ -541,81 +517,80 @@ public final class AnimationPickerPane extends BorderPane {
 			easingOption = new AnimationOption(Linear.class, 0);
 		}
 		
+		Option<AnimationType> animationTypeOption = this.cbAnimationType.getValue();
+		Option<Orientation> orientationOption = this.cbOrientation.getValue();
+		Option<Operation> operationOption = this.cbOperation.getValue();
+		Option<Direction> directionOption = this.cbDirection.getValue();
+		Option<ShapeType> shapeTypeOption = this.cbShapeType.getValue();
+		
 		StringConverter<Integer> intConverter = new IntegerStringConverter();
 		StringConverter<Long> longConverter = new LongStringConverter();
 		
 		Class<?> animationClass = animationOption.getType();
 		Class<?> easingClass = easingOption.getType();
 		try {
+			AnimationType type = animationTypeOption != null ? animationTypeOption.getValue() : null;
 			Long delay = longConverter.fromString(this.txtDelay.getText());
 			Long duration = longConverter.fromString(this.txtDuration.getText());
-			Integer blinds = intConverter.fromString(this.txtBlindCount.getText());
 			Integer repeat = this.spnRepeatCount.getValue();
-			
-			// animation
-			SlideAnimation animation = (SlideAnimation)animationClass.newInstance();
-			animation.setDelay(delay != null ? delay : 0);
-			animation.setDuration(duration != null ? duration : 500);
-			animation.setId(this.cmbObjects.getValue().getObjectId());
-			animation.setType(this.cbAnimationType.getValue().getValue());
-			animation.setRepeatCount(repeat == 0 ? SlideAnimation.INFINITE : repeat);
-			animation.setAutoReverse(this.chkAutoReverse.isSelected());
-			
-			// custom animation options
-			if (animation instanceof Blinds) {
-				Blinds a = (Blinds)animation;
-				a.setOrientation(this.cbOrientation.getValue().getValue());
-				a.setBlindCount(blinds != null ? blinds : 10);
-			} else if (animation instanceof Push) {
-				Push a = (Push)animation;
-				a.setDirection(this.cbDirection.getValue().getValue());
-			} else if (animation instanceof Shaped) {
-				Shaped a = (Shaped)animation;
-				a.setOperation(this.cbOperation.getValue().getValue());
-				a.setShapeType(this.cbShapeType.getValue().getValue());
-			} else if (animation instanceof Split) {
-				Split a = (Split)animation;
-				a.setOrientation(this.cbOrientation.getValue().getValue());
-				a.setOperation(this.cbOperation.getValue().getValue());
-			} else if (animation instanceof Swipe) {
-				Swipe a = (Swipe)animation;
-				a.setDirection(this.cbDirection.getValue().getValue());
-			} else if (animation instanceof Swap ||
-					   animation instanceof Fade ||
-					   animation instanceof Zoom) {
-				// Swap/Fade/Zoom don't have extra options at this time
-			} else {
-				LOGGER.warn("Unhandled SlideAnimation type " + animation.getClass().getName());
-			}
+			boolean autoReverse = this.chkAutoReverse.isSelected();
+
+			Orientation orientation = orientationOption != null ? orientationOption.getValue() : null;
+			Operation operation = operationOption != null ? operationOption.getValue() : null;
+			Direction direction = directionOption != null ? directionOption.getValue() : null;
+			ShapeType shapeType = shapeTypeOption != null ? shapeTypeOption.getValue() : null;
 			
 			// easing
-			Easing easing = (Easing)easingClass.newInstance();
-			easing.setType(this.cbEasingType.getValue().getValue());
-			// easings don't have extra options at this time
-			animation.setEasing(easing);
+			// NOTE: all easings have the same single argument constructor so we will instantiate via reflection
+			EasingType easingType = this.cbEasingType.getValue().getValue();
+			Easing easing = (Easing)easingClass.getConstructor(EasingType.class).newInstance(easingType);
+			
+			// animation
+			Animation animation = null;
+			
+			// custom animation options
+			if (animationClass == Blinds.class) {
+				Integer blinds = intConverter.fromString(this.txtBlindCount.getText());
+				animation = new Blinds(type, duration, delay, repeat, autoReverse, easing, orientation, blinds);
+			} else if (animationClass == Push.class) {
+				animation = new Push(type, duration, delay, repeat, autoReverse, easing, direction);
+			} else if (animationClass == Shaped.class) {
+				animation = new Shaped(type, duration, delay, repeat, autoReverse, easing, shapeType, operation);
+			} else if (animationClass == Split.class) {
+				animation = new Split(type, duration, delay, repeat, autoReverse, easing, orientation, operation);
+			} else if (animationClass == Swipe.class) {
+				animation = new Swipe(type, duration, delay, repeat, autoReverse, easing, direction);
+			} else if (animationClass == Fade.class) {
+				animation = new Fade(type, duration, delay, repeat, autoReverse, easing);
+			} else if (animationClass == Zoom.class) {
+				animation = new Zoom(type, duration, delay, repeat, autoReverse, easing);
+			} else if (animationClass == Swap.class) {
+				animation = new Swap(type, duration, delay, repeat, autoReverse, easing);
+			} else {
+				LOGGER.warn("Unhandled SlideAnimation type " + animationClass.getName());
+			}
 			
 			return animation;
-		} catch (InstantiationException | IllegalAccessException e) {
+		} catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
 			LOGGER.warn("Failed to create a new animation/easing of type " + animationClass.getName() + "/" + easingClass.getName() + ". The class must have a zero-argument constructor.");
 		}
 		
-		// last ditch effort
-		return new Swap();
+		return null;
 	}
 
 	/**
 	 * Returns the value property.
-	 * @return ObjectProperty&lt;{@link SlideAnimation}&gt;
+	 * @return ObjectProperty&lt;{@link Animation}&gt;
 	 */
-	public ObjectProperty<SlideAnimation> valueProperty() {
+	public ObjectProperty<Animation> valueProperty() {
 		return this.value;
 	}
 	
 	/**
 	 * Returns the current value.
-	 * @return {@link SlideAnimation}
+	 * @return {@link Animation}
 	 */
-	public SlideAnimation getValue() {
+	public Animation getValue() {
 		return this.value.get();
 	}
 	
@@ -623,7 +598,7 @@ public final class AnimationPickerPane extends BorderPane {
 	 * Sets the current value.
 	 * @param animation the animation
 	 */
-	public void setValue(SlideAnimation animation) {
+	public void setValue(Animation animation) {
 		this.value.set(animation);
 	}
 }

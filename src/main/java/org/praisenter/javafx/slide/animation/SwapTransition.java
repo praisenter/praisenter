@@ -22,36 +22,62 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.animation;
+package org.praisenter.javafx.slide.animation;
 
-import org.praisenter.slide.easing.Easing;
-import org.praisenter.slide.easing.Linear;
-
-import javafx.animation.Interpolator;
+import org.praisenter.slide.animation.Animation;
+import org.praisenter.slide.animation.AnimationType;
+import org.praisenter.slide.animation.Swap;
 
 /**
- * Represents a custom interpolator defined by an {@link Easing}.
+ * A simple transition where the object is immediately shown.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
  */
-public class CustomInterpolator extends Interpolator {
-	/** The easing function */
-	final Easing easing;
+public final class SwapTransition extends CustomTransition<Swap> {
+	/**
+	 * Default constructor.
+	 */
+	public SwapTransition() {
+		super(new Swap(
+				AnimationType.IN,
+				Animation.DEFAULT_DURATION,
+				Animation.DEFAULT_DELAY,
+				Animation.DEFAULT_REPEAT_COUNT,
+				Animation.DEFAULT_AUTO_REVERSE,
+				Animation.DEFAULT_EASING));
+	}
 	
 	/**
 	 * Full constructor.
-	 * @param easing the easing function
+	 * @param animation the animation configuration
 	 */
-	public CustomInterpolator(Easing easing) {
-		this.easing = easing != null ? easing : new Linear();
+	public SwapTransition(Swap animation) {
+		super(animation);
+	}
+
+	/* (non-Javadoc)
+	 * @see javafx.animation.Animation#stop()
+	 */
+	@Override
+	public void stop() {
+		super.stop();
+		if (this.node != null) {
+			this.node.setVisible(true);
+		}
 	}
 	
 	/* (non-Javadoc)
-	 * @see javafx.animation.Interpolator#curve(double)
+	 * @see javafx.animation.Transition#interpolate(double)
 	 */
 	@Override
-	protected double curve(double t) {
-		return this.easing.curve(t);
+	protected void interpolate(double frac) {
+		if (this.node == null) return;
+		
+		if (this.animation.getType() != AnimationType.IN) {
+			this.node.setVisible(false);
+		} else {
+			this.node.setVisible(true);
+		}
 	}
 }

@@ -13,6 +13,7 @@ import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.TextComponent;
 import org.praisenter.slide.text.VerticalTextAlignment;
+import org.praisenter.utility.Scaling;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -27,6 +28,7 @@ import javafx.scene.effect.InnerShadow;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextBoundsType;
 
 // JAVABUG 06/30/16 HIGH Right/Center/Justify alignment bugs https://bugs.openjdk.java.net/browse/JDK-8145496 -- http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8145496
@@ -36,23 +38,23 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 
 	// editable
 	
-	final StringProperty text = new SimpleStringProperty("");  // NOTE: this should be static text for the most part
-	final ObjectProperty<SlidePaint> textPaint = new SimpleObjectProperty<SlidePaint>();
-	final ObjectProperty<SlideStroke> textBorder = new SimpleObjectProperty<SlideStroke>();
-	final ObjectProperty<SlideFont> font = new SimpleObjectProperty<SlideFont>();
-	final ObjectProperty<HorizontalTextAlignment> horizontalTextAlignment = new SimpleObjectProperty<HorizontalTextAlignment>();
-	final ObjectProperty<VerticalTextAlignment> verticalTextAlignment = new SimpleObjectProperty<VerticalTextAlignment>();
-	final ObjectProperty<FontScaleType> fontScaleType = new SimpleObjectProperty<FontScaleType>();
-	final ObjectProperty<SlidePadding> padding = new SimpleObjectProperty<SlidePadding>();
-	final DoubleProperty lineSpacing = new SimpleDoubleProperty();
-	final BooleanProperty textWrapping = new SimpleBooleanProperty();
-	final ObjectProperty<SlideShadow> textShadow = new SimpleObjectProperty<SlideShadow>();
-	final ObjectProperty<SlideShadow> textGlow = new SimpleObjectProperty<SlideShadow>();
+	private final StringProperty text = new SimpleStringProperty("");  // NOTE: this should be static text for the most part
+	private final ObjectProperty<SlidePaint> textPaint = new SimpleObjectProperty<SlidePaint>();
+	private final ObjectProperty<SlideStroke> textBorder = new SimpleObjectProperty<SlideStroke>();
+	private final ObjectProperty<SlideFont> font = new SimpleObjectProperty<SlideFont>();
+	private final ObjectProperty<HorizontalTextAlignment> horizontalTextAlignment = new SimpleObjectProperty<HorizontalTextAlignment>();
+	private final ObjectProperty<VerticalTextAlignment> verticalTextAlignment = new SimpleObjectProperty<VerticalTextAlignment>();
+	private final ObjectProperty<FontScaleType> fontScaleType = new SimpleObjectProperty<FontScaleType>();
+	private final ObjectProperty<SlidePadding> padding = new SimpleObjectProperty<SlidePadding>();
+	private final DoubleProperty lineSpacing = new SimpleDoubleProperty();
+	private final BooleanProperty textWrapping = new SimpleBooleanProperty();
+	private final ObjectProperty<SlideShadow> textShadow = new SimpleObjectProperty<SlideShadow>();
+	private final ObjectProperty<SlideShadow> textGlow = new SimpleObjectProperty<SlideShadow>();
 	
 	// nodes
 	
-	final VBox textWrapper;
-	final Text textNode;
+	private final VBox textWrapper;
+	private final Text textNode;
 	
 	public ObservableTextComponent(T component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
@@ -107,7 +109,8 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		});
 		this.padding.addListener((obs, ov, nv) -> { 
 			this.region.setPadding(nv);
-			updateSize();
+			updatePadding();
+			updateFont();
 		});
 		this.lineSpacing.addListener((obs, ov, nv) -> { 
 			this.region.setLineSpacing(nv.doubleValue());
@@ -115,7 +118,8 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		});
 		this.textWrapping.addListener((obs, ov, nv) -> {
 			this.region.setTextWrapping(nv);
-			this.updateSize();
+			updatePadding();
+			updateFont();
 		});
 		this.textShadow.addListener((obs, ov, nv) -> {
 			this.region.setTextShadow(nv);
@@ -138,7 +142,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		updateText();
 	}
 	
-	void updateTextBorder() {
+	protected final void updateTextBorder() {
 		SlideStroke nv = this.textBorder.get();
 		if (nv != null) {
 			this.textNode.setStroke(JavaFXTypeConverter.toJavaFX(nv.getPaint()));
@@ -165,27 +169,31 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 			this.textNode.setStrokeDashOffset(0);
 			this.textNode.setStrokeWidth(0);
 		}
+		
+		this.onTextBorderUpdate(nv);
 	}
 
-	void updateTextPaint() {
-		this.textNode.setFill(JavaFXTypeConverter.toJavaFX(this.textPaint.get()));
+	protected final void updateTextPaint() {
+		SlidePaint paint = this.textPaint.get();
+		this.textNode.setFill(JavaFXTypeConverter.toJavaFX(paint));
+		
+		this.onTextPaintUpdate(paint);
 	}
 	
-	void updateAlignment() {
-		this.textNode.setTextAlignment(JavaFXTypeConverter.toJavaFX(this.horizontalTextAlignment.get()));
+	protected final void updateAlignment() {
+		HorizontalTextAlignment hAlignment = this.horizontalTextAlignment.get();
+		VerticalTextAlignment vAlignment = this.verticalTextAlignment.get();
 		
+		this.textNode.setTextAlignment(JavaFXTypeConverter.toJavaFX(hAlignment));
 		// NOTE: this is required since single line text nodes horizontal alignment does nothing
-		this.textWrapper.setAlignment(JavaFXTypeConverter.toJavaFX(this.verticalTextAlignment.get(), this.horizontalTextAlignment.get()));
+		this.textWrapper.setAlignment(JavaFXTypeConverter.toJavaFX(vAlignment, hAlignment));
+		
+		this.onTextAlignmentUpdate(vAlignment, hAlignment);
 	}
 	
-	@Override
-	void updateSize() {
-		super.updateSize();
-		
-		double w = this.width.get();
-		double h = this.height.get();
-		
-		Fx.setSize(this.textWrapper, w, h);
+	protected final void updatePadding() {
+		double w = this.getWidth();
+		double h = this.getHeight();
 		
 		this.textWrapper.setPadding(JavaFXTypeConverter.toJavaFX(this.padding.get()));
 		
@@ -199,35 +207,36 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		} else {
 			this.textNode.setWrappingWidth(0);
 		}
-		
-		this.updateFont();
 	}
 	
-	void updateFont() {
-		double w = this.width.get();
-		double h = this.height.get();
+	protected final void updateFont() {
+		double w = this.getWidth();
+		double h = this.getHeight();
 		
 		// compute the bounding text width and height so 
 		// we can compute an accurate font size
 		SlidePadding padding = this.padding.get();
 		double pw = Math.max(1.0, w - padding.getLeft() - padding.getRight());
 		double ph = Math.max(1.0, h - padding.getTop() - padding.getBottom());
+		
 		FontScaleType scaleType = this.fontScaleType.get();
 		double lineSpacing = this.lineSpacing.get();
+		boolean isWrapping = this.textWrapping.get();
 		
 		String str = this.text.get();
 		
 		// compute a fitting font, if necessary
-		Font base = JavaFXTypeConverter.toJavaFX(this.font.get());
+		SlideFont sf = this.font.get();
+		Font base = JavaFXTypeConverter.toJavaFX(sf);
 		Font font = base;
 		if (scaleType == FontScaleType.REDUCE_SIZE_ONLY) {
-			if (this.textWrapping.get()) {
+			if (isWrapping) {
 				font = TextMeasurer.getFittingFontForParagraph(str, base, base.getSize(), pw, ph, lineSpacing, TextBoundsType.LOGICAL);
 			} else {
 				font = TextMeasurer.getFittingFontForLine(str, base, base.getSize(), pw, TextBoundsType.LOGICAL);
 			}
 		} else if (scaleType == FontScaleType.BEST_FIT) {
-			if (this.textWrapping.get()) {
+			if (isWrapping) {
 				font = TextMeasurer.getFittingFontForParagraph(str, base, Double.MAX_VALUE, pw, ph, lineSpacing, TextBoundsType.LOGICAL);
 			} else {
 				font = TextMeasurer.getFittingFontForLine(str, base, Double.MAX_VALUE, pw, TextBoundsType.LOGICAL);
@@ -236,9 +245,11 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		
 		this.textNode.setFont(font);
 		this.textNode.setLineSpacing(lineSpacing);
+		
+		this.onFontUpdate(sf, scaleType, lineSpacing, isWrapping);
 	}
 	
-	void updateText() {
+	protected final void updateText() {
 		String text = this.text.get();
 		// set a default text so that there's something visible when the component is created
 		if (this.mode == SlideMode.EDIT && (text == null || text.trim().length() <= 0)) {
@@ -249,16 +260,43 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		if (this.fontScaleType.get() != FontScaleType.NONE) {
 			this.updateFont();
 		}
+		
+		this.onTextUpdate(text);
 	}
 	
-	void updateTextEffects() {
+	protected final void updateTextEffects() {
+		SlideShadow ss = this.textShadow.get();
+		SlideShadow sg = this.textGlow.get();
+		
 		EffectBuilder builder = EffectBuilder.create();
-		Effect shadow = JavaFXTypeConverter.toJavaFX(this.textShadow.get());
-		Effect glow = JavaFXTypeConverter.toJavaFX(this.textGlow.get());
+		Effect shadow = JavaFXTypeConverter.toJavaFX(ss);
+		Effect glow = JavaFXTypeConverter.toJavaFX(sg);
 		builder.add(shadow, shadow != null && shadow instanceof InnerShadow ? 10 : 30);
 		builder.add(glow, glow != null && glow instanceof InnerShadow ? 20 : 40);
 		Effect effect = builder.build();
 		this.textNode.setEffect(effect);
+		
+		this.onTextEffectsUpdate(ss, sg);
+	}
+	
+	// events
+
+	protected void onTextBorderUpdate(SlideStroke border) {}
+	protected void onTextPaintUpdate(SlidePaint paint) {}
+	protected void onTextAlignmentUpdate(VerticalTextAlignment vAlignment, HorizontalTextAlignment hAlignment) {}
+	protected void onFontUpdate(SlideFont font, FontScaleType scaleType, double lineSpacing, boolean textWrapping) {}
+	protected void onTextUpdate(String text) {}
+	protected void onTextEffectsUpdate(SlideShadow shadow, SlideShadow glow) {}
+
+	@Override
+	protected void onSizeUpdate(double w, double h, Scaling scaling) {
+		Fx.setSize(this.textWrapper, w, h);
+		
+		// when the size changes we need to adjust the wrapping width
+		this.updatePadding();
+		
+		// when the size changes we may need to change the font size
+		this.updateFont();
 	}
 	
 	// text

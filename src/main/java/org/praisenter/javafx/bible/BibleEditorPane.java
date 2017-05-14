@@ -899,8 +899,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			this.getBible());
 		task.addCancelledOrFailedHandler(e -> {
 			this.unsavedChanges = true;
-		});
-		task.execute(this.context.getExecutorService());
+		}).execute(this.context.getExecutorService());
 	}
 	
 	/**
@@ -931,11 +930,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				// flag it as unsaved
 				this.unsavedChanges = false;
 			}
-		});
-		task.addCancelledOrFailedHandler(e -> {
+		}).addCancelledOrFailedHandler(e -> {
 			this.unsavedChanges = true;
-		});
-		task.execute(this.context.getExecutorService());
+		}).execute(this.context.getExecutorService());
 	}
 	
 	/**

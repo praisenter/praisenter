@@ -24,12 +24,12 @@
  */
 package org.praisenter.slide.animation;
 
-import java.util.UUID;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import org.praisenter.slide.easing.Easing;
 
 //FEATURE Add more shape types (Star, Rect, etc)
 
@@ -40,33 +40,75 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement(name = "shaped")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Shaped extends SlideAnimation {
+public final class Shaped extends Animation {
+	/** The default shape type */
+	public static final ShapeType DEFAULT_SHAPE_TYPE = ShapeType.CIRCLE;
+	
+	/** The default operation */
+	public static final Operation DEFAULT_OPERATION = Operation.EXPAND;
+	
 	/** The shape */
 	@XmlElement(name = "shapeType", required = false)
-	ShapeType shapeType;
+	final ShapeType shapeType;
 	
 	/** The operation */
 	@XmlElement(name = "operation", required = false)
-	Operation operation;
+	final Operation operation;
+
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Shaped() {
+		super(AnimationType.IN);
+		this.shapeType = DEFAULT_SHAPE_TYPE;
+		this.operation = DEFAULT_OPERATION;
+	}
 	
 	/**
-	 * Default constructor.
+	 * Full constructor.
+	 * @param type the animation type
+	 * @param duration the duration (in milliseconds)
+	 * @param delay the delay (in milliseconds)
+	 * @param repeatCount the repeat count; 1 or higher
+	 * @param autoReverse true if auto-reverse should occur when repeat count is greater than 1
+	 * @param easing the easing
+	 * @param shapeType the shape
+	 * @param operation the operation
 	 */
-	public Shaped() {
-		this.shapeType = ShapeType.CIRCLE;
-		this.operation = Operation.COLLAPSE;
+	public Shaped(AnimationType type,
+			long duration,
+			long delay,
+			int repeatCount,
+			boolean autoReverse,
+			Easing easing,
+			ShapeType shapeType,
+			Operation operation) {
+		super(type, duration, delay, repeatCount, autoReverse, easing);
+		this.shapeType = shapeType == null ? DEFAULT_SHAPE_TYPE : shapeType;
+		this.operation = operation == null ? DEFAULT_OPERATION : operation;
+	}
+	
+	/**
+	 * Copy constructor.
+	 * @param other the animation to copy
+	 */
+	public Shaped(Shaped other) {
+		this(other.type,
+			 other.duration,
+			 other.delay,
+			 other.repeatCount,
+			 other.autoReverse,
+			 other.easing,
+			 other.shapeType,
+			 other.operation);
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.SlideAnimation#copy(java.util.UUID)
+	 * @see org.praisenter.slide.animation.SlideAnimation#copy()
 	 */
 	@Override
-	public Shaped copy(UUID id) {
-		Shaped animation = new Shaped();
-		copy(animation, id);
-		animation.shapeType = this.shapeType;
-		animation.operation = this.operation;
-		return animation;
+	public Shaped copy() {
+		return new Shaped(this);
 	}
 	
 	/**
@@ -76,28 +118,12 @@ public final class Shaped extends SlideAnimation {
 	public ShapeType getShapeType() {
 		return this.shapeType;
 	}
-	
-	/**
-	 * Sets the shape type.
-	 * @param shapeType the shape type
-	 */
-	public void setShapeType(ShapeType shapeType) {
-		this.shapeType = shapeType;
-	}
-	
+
 	/**
 	 * Returns the operation.
 	 * @return {@link Operation}
 	 */
 	public Operation getOperation() {
 		return this.operation;
-	}
-	
-	/**
-	 * Sets the operation.
-	 * @param operation the operation
-	 */
-	public void setOperation(Operation operation) {
-		this.operation = operation;
 	}
 }

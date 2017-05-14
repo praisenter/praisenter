@@ -2,17 +2,14 @@
 
 import java.util.UUID;
 
-import org.praisenter.javafx.animation.AnimatedObject;
-import org.praisenter.javafx.animation.AnimatedObjectType;
-import org.praisenter.javafx.animation.AnimationPickerPane;
+import org.praisenter.javafx.slide.animation.AnimationPickerPane;
+import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.Direction;
 import org.praisenter.slide.animation.Swipe;
 import org.praisenter.slide.easing.Linear;
 
 import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -25,26 +22,19 @@ public class TestAnimationPicker extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Animation Picker");
         UUID id = UUID.randomUUID();
+
+        AnimationPickerPane root = new AnimationPickerPane();
         
-        ObservableSet<AnimatedObject> objects = FXCollections.observableSet(new AnimatedObject(id, AnimatedObjectType.COMPONENT, "test"));
-        
-        AnimationPickerPane root = new AnimationPickerPane(objects);
-        
-//        Blinds animation = new Blinds();
-//        Fade animation = new Fade();
-        Swipe animation = new Swipe();
-        animation.setId(id);
-        animation.setDelay(100);
-        animation.setDuration(300);
-        animation.setEasing(new Linear());
-//        animation.setEasing(new Back());
-        animation.setDirection(Direction.UP);
-//        animation.setOrientation(Orientation.HORIZONTAL);
-        animation.setType(AnimationType.IN);
+        Swipe animation = new Swipe(AnimationType.IN,
+        		300,
+        		100,
+        		Animation.DEFAULT_REPEAT_COUNT,
+        		Animation.DEFAULT_AUTO_REVERSE,
+        		new Linear(),
+        		Direction.UP);
         root.setValue(animation);
         
         Scene scene = new Scene(root);
-//        scene.getStylesheets().add(Praisenter.THEME_CSS);
         
         primaryStage.setScene(scene);
         primaryStage.show();

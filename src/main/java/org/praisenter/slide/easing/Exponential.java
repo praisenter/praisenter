@@ -36,6 +36,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "exponential")
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Exponential extends Easing {
+	/**
+	 * Default constructor for JAXB.
+	 */
+	Exponential() {
+		super(EasingType.IN);
+	}
+	
+	/**
+	 * Minimal constructor.
+	 * @param type the easing type
+	 */
+	public Exponential(EasingType type) {
+		super(type);
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.easing.Easing#baseCurve(double)
 	 */
@@ -50,8 +65,6 @@ public final class Exponential extends Easing {
 	 */
 	@Override
 	public Exponential copy() {
-		Exponential easing = new Exponential();
-		copy(easing);
-		return easing;
+		return new Exponential(this.type);
 	}
 }

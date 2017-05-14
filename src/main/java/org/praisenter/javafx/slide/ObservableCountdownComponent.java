@@ -16,12 +16,12 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 	final AnimationTimer timer = new AnimationTimer() {
 		@Override
 		public void handle(long now) {
-			text.set(region.getText());
+			setText(region.getText());
 		}
 	};
 	
-	final ObjectProperty<LocalDateTime> countdownTarget = new SimpleObjectProperty<LocalDateTime>();
-	final StringProperty countdownFormat = new SimpleStringProperty();
+	private final ObjectProperty<LocalDateTime> countdownTarget = new SimpleObjectProperty<LocalDateTime>();
+	private final StringProperty countdownFormat = new SimpleStringProperty();
 	
 	public ObservableCountdownComponent(CountdownComponent component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
@@ -32,11 +32,11 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 		
 		this.countdownTarget.addListener((obs, ov, nv) -> { 
 			this.region.setCountdownTarget(nv); 
-			this.text.set(this.region.getText());
+			this.setText(this.region.getText());
 		});
 		this.countdownFormat.addListener((obs, ov, nv) -> { 
 			this.region.setCountdownFormat(nv);
-			this.text.set(this.region.getText());
+			this.setText(this.region.getText());
 		});
 				
 		this.build();

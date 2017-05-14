@@ -31,7 +31,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 /**
- * The base class for custom easings.
+ * The base class for immutable custom easings.
  * @author William Bittle
  * @version 3.0.0
  */
@@ -52,24 +52,27 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 })
 public abstract class Easing {
 	/** The easing type */
-	@XmlElement(name = "type")
-	EasingType type;
+	@XmlElement(name = "type", required = false)
+	final EasingType type;
 
 	/**
-	 * Default constructor.
+	 * Default constructor for JAXB.
 	 */
-    public Easing() {
-        this.type = EasingType.IN;
+	Easing() {
+		this.type = EasingType.IN;
+	}
+	
+	/**
+	 * Minimal constructor.
+	 * @param type the easing type
+	 */
+    public Easing(EasingType type) {
+        if (type == null) {
+        	type = EasingType.IN;
+        }
+        this.type = type;
     }
 
-    /**
-     * Copies the easing properties to the given easing.
-     * @param other the new easing
-     */
-    void copy(Easing other) {
-    	other.type = this.type;
-    }
-    
     /**
      * Makes a copy of this easing.
      * @return Easing
@@ -113,13 +116,4 @@ public abstract class Easing {
     public EasingType getType() {
         return this.type;
     }
-
-    /**
-     * Sets the easing type.
-     * @param type the type
-     */
-    public void setType(EasingType type) {
-		this.type = type;
-	}
-    
 }

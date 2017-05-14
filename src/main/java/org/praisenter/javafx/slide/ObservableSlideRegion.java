@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.slide;
 
 import java.util.UUID;
@@ -5,7 +29,6 @@ import java.util.UUID;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.SlideRegion;
-import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
@@ -24,28 +47,57 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.transform.Scale;
 
+/**
+ * Represents an observable wrapper of a {@link SlideRegion}.
+ * @author William Bittle
+ * @version 3.0.0
+ * @param <T> the {@link SlideRegion} type
+ */
 public abstract class ObservableSlideRegion<T extends SlideRegion> {
+	/** The context */
 	protected final PraisenterContext context;
+	
+	/** The slide mode */
 	protected final SlideMode mode;
 	
 	// the data
 	
+	/** The region */
 	protected final T region;
 	
 	// editable properties
 	
-	protected final DoubleProperty x = new SimpleDoubleProperty();
-	protected final DoubleProperty y = new SimpleDoubleProperty();
-	protected final DoubleProperty width = new SimpleDoubleProperty();
-	protected final DoubleProperty height = new SimpleDoubleProperty();
+	/** The x coordinate */
+	private final DoubleProperty x = new SimpleDoubleProperty();
 	
-	protected final ObjectProperty<SlidePaint> background = new SimpleObjectProperty<SlidePaint>();
-	protected final ObjectProperty<SlideStroke> border = new SimpleObjectProperty<SlideStroke>();
-	protected final DoubleProperty opacity = new SimpleDoubleProperty();
-	protected final ObjectProperty<SlideShadow> shadow = new SimpleObjectProperty<SlideShadow>();
-	protected final ObjectProperty<SlideShadow> glow = new SimpleObjectProperty<SlideShadow>();
+	/** The y coordinate */
+	private final DoubleProperty y = new SimpleDoubleProperty();
 	
-	protected final ObjectProperty<Scaling> scale = new SimpleObjectProperty<Scaling>();
+	/** The width coordinate */
+	private final DoubleProperty width = new SimpleDoubleProperty();
+	
+	/** The height coordinate */
+	private final DoubleProperty height = new SimpleDoubleProperty();
+	
+	/** The background */
+	private final ObjectProperty<SlidePaint> background = new SimpleObjectProperty<SlidePaint>();
+	
+	/** The border */
+	private final ObjectProperty<SlideStroke> border = new SimpleObjectProperty<SlideStroke>();
+	
+	/** The global opacity */
+	private final DoubleProperty opacity = new SimpleDoubleProperty();
+	
+	/** The shadow */
+	private final ObjectProperty<SlideShadow> shadow = new SimpleObjectProperty<SlideShadow>();
+	
+	/** The glow */
+	private final ObjectProperty<SlideShadow> glow = new SimpleObjectProperty<SlideShadow>();
+	
+	// for preview/editing
+	
+	/** The scaling factor for edit and preview modes */
+	private final ObjectProperty<Scaling> scale = new SimpleObjectProperty<Scaling>();
 	
 	// nodes
 	
@@ -61,17 +113,33 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	// | +- editBorderNode     | Region       | The edit border               |
 	// +-----------------------+--------------+-------------------------------+
 	
-	protected final Pane rootPane;
-	protected final Region editBorderNode;
+	/** The root node */
+	private final Pane displayPane;
+	
+	/** The container node for the background, content, and border */
 	private final Pane container;
+	
+	/** The background node */
 	private final FillPane backgroundNode;
+	
+	/** The border node */
 	private final Region borderNode;
 	
+	/** The edit-border node (only for edit mode) */
+	private final Region editBorderNode;
+	
+	/**
+	 * Minimal constructor.
+	 * @param region the slide region
+	 * @param context the context
+	 * @param mode the mode
+	 */
 	public ObservableSlideRegion(T region, PraisenterContext context, SlideMode mode) {
 		this.region = region;
 		this.context = context;
 		this.mode = mode;
 		
+		// set the default scaling
 		this.scale.set(Scaling.getNoScaling(region.getWidth(), region.getHeight()));
 		
 		// set initial values
@@ -106,16 +174,16 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.backgroundNode.setMouseTransparent(true);
 		this.backgroundNode.setSnapToPixel(true);
 		
-		this.rootPane = new Pane(this.container);
-		this.rootPane.setSnapToPixel(true);
+		this.displayPane = new Pane(this.container);
+		this.displayPane.setSnapToPixel(true);
 		
 		if (this.mode == SlideMode.EDIT) {
 			this.editBorderNode = new Region();
 			this.editBorderNode.setSnapToPixel(true);
-			this.editBorderNode.prefWidthProperty().bind(this.rootPane.widthProperty());
-			this.editBorderNode.prefHeightProperty().bind(this.rootPane.heightProperty());
+			this.editBorderNode.prefWidthProperty().bind(this.displayPane.widthProperty());
+			this.editBorderNode.prefHeightProperty().bind(this.displayPane.heightProperty());
 			this.editBorderNode.getStyleClass().add("slide-edit-region");
-			this.rootPane.getChildren().add(this.editBorderNode);
+			this.displayPane.getChildren().add(this.editBorderNode);
 		} else {
 			this.editBorderNode = null;
 		}
@@ -139,7 +207,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		});
 		this.background.addListener((obs, ov, nv) -> { 
 			this.region.setBackground(nv);
-			updateFill();
+			updateBackground();
 		});
 		this.border.addListener((obs, ov, nv) -> { 
 			this.region.setBorder(nv);
@@ -157,7 +225,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 			this.region.setGlow(nv);
 			updateEffects();
 		});
-		
 		this.scale.addListener((obs, ov, nv) -> {
 			// scale from the top left corner of the node
 			this.container.getTransforms().clear();
@@ -167,8 +234,47 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 			updateSize();
 		});
 	}
+
+	/**
+	 * Returns the node that should be placed on a Java FX scene to render the region.
+	 * @return Node
+	 */
+	public Node getDisplayPane() {
+		return this.displayPane;
+	}
+
+	/**
+	 * Returns the node that displays a border during edit mode.
+	 * <p>
+	 * Returns null if not in edit mode.
+	 * @return Node
+	 */
+	public Node getEditBorderNode() {
+		return this.editBorderNode;
+	}
 	
-	void updatePosition() {
+	/**
+	 * Returns the region being wrapped.
+	 * @return T
+	 */
+	public T getRegion() {
+		return this.region;
+	}
+
+	/**
+	 * Returns the id of the region.
+	 * @return UUID
+	 */
+	public UUID getId() {
+		return this.region.getId();
+	}
+
+	// actions
+	
+	/**
+	 * Updates the Java FX component when the position changes.
+	 */
+	protected final void updatePosition() {
 		// set position
 		
 		// get the coordinates in slide space
@@ -179,11 +285,16 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		// to slide coordinates transformed into the parent node coordinates
 		Scaling s = this.scale.get();
 		
-		this.rootPane.setLayoutX(Math.floor(x * s.factor));
-		this.rootPane.setLayoutY(Math.floor(y * s.factor));
+		this.displayPane.setLayoutX(Math.floor(x * s.factor));
+		this.displayPane.setLayoutY(Math.floor(y * s.factor));
+		
+		this.onPositionUpdate(x, y, s);
 	}
 	
-	void updateSize() {
+	/**
+	 * Updates the Java FX component when the size changes.
+	 */
+	protected final void updateSize() {
 		double w = this.width.get();
 		double h = this.height.get();
 		
@@ -193,10 +304,15 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		this.backgroundNode.setSize(w, h);
 		
 		Scaling s = this.scale.get();
-		Fx.setSize(this.rootPane, Math.ceil(w * s.factor), Math.ceil(h * s.factor));
+		Fx.setSize(this.displayPane, Math.ceil(w * s.factor), Math.ceil(h * s.factor));
+		
+		this.onSizeUpdate(w, h, s);
 	}
 	
-	void updateBorder() {
+	/**
+	 * Updates the Java FX component when the border changes.
+	 */
+	protected final void updateBorder() {
 		SlideStroke ss = this.border.get();
 		
 		// create new border
@@ -208,32 +324,102 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		
 		double r = ss != null ? ss.getRadius() : 0.0;
 		this.backgroundNode.setBorderRadius(r);
+		
+		this.onBorderUpdate(ss);
 	}
 	
-	void updateFill() {
+	/**
+	 * Updates the Java FX component when the background fill changes.
+	 */
+	protected final void updateBackground() {
 		SlidePaint paint = this.background.get();
 		this.backgroundNode.setPaint(paint);
+		
+		this.onBackgroundUpdate(paint);
 	}
 	
-	void updateOpacity() {
-		this.container.setOpacity(this.opacity.get());
+	/**
+	 * Updates the Java FX component when the opacity changes.
+	 */
+	protected final void updateOpacity() {
+		double o = this.opacity.get();
+		this.container.setOpacity(o);
+		
+		this.onOpacityUpdate(o);
 	}
 	
-	void updateEffects() {
+	/**
+	 * Updates the Java FX component when the effects changes.
+	 */
+	protected final void updateEffects() {
+		SlideShadow ss = this.shadow.get();
+		SlideShadow sg = this.glow.get();
 		EffectBuilder builder = EffectBuilder.create();
-		Effect shadow = JavaFXTypeConverter.toJavaFX(this.shadow.get());
-		Effect glow = JavaFXTypeConverter.toJavaFX(this.glow.get());
+		Effect shadow = JavaFXTypeConverter.toJavaFX(ss);
+		Effect glow = JavaFXTypeConverter.toJavaFX(sg);
 		builder.add(shadow, shadow != null && shadow instanceof InnerShadow ? 10 : 30);
 		builder.add(glow, glow != null && glow instanceof InnerShadow ? 20 : 40);
 		Effect effect = builder.build();
 		this.backgroundNode.setEffect(effect);
+		
+		this.onEffectsUpdate(ss, sg);
 	}
 	
-	void build(Node content) {
+	// events
+	
+	/**
+	 * Called after the position is updated.
+	 * @param x the new x coordinate
+	 * @param y the new y coordinate
+	 * @param scaling the scaling
+	 */
+	protected void onPositionUpdate(double x, double y, Scaling scaling) {}
+	
+	/**
+	 * Called after the size is updated.
+	 * @param width the new width
+	 * @param height the new height
+	 * @param scaling the scaling
+	 */
+	protected void onSizeUpdate(double width, double height, Scaling scaling) {}
+	
+	/**
+	 * Called after the border is updated.
+	 * @param stroke the border
+	 */
+	protected void onBorderUpdate(SlideStroke stroke) {}
+	
+	/**
+	 * Called after the background fill is updated.
+	 * @param paint the new fill
+	 */
+	protected void onBackgroundUpdate(SlidePaint paint) {}
+	
+	/**
+	 * Called after the global opacity is updated.
+	 * @param opacity the new opacity
+	 */
+	protected void onOpacityUpdate(double opacity) {}
+	
+	/**
+	 * Called after the effects are updated.
+	 * @param shadow the new shadow
+	 * @param glow the new glow
+	 */
+	protected void onEffectsUpdate(SlideShadow shadow, SlideShadow glow) {}
+	
+	// building
+	
+	/**
+	 * Sets up the region for display and modification.
+	 * @param content the content of the region
+	 * @param more other nodes
+	 */
+	protected final void build(Node content, Node... more) {
 		// set initial node properties
 		this.updatePosition();
 		this.updateBorder();
-		this.updateFill();
+		this.updateBackground();
 		this.updateSize();
 		this.updateOpacity();
 		this.updateEffects();
@@ -248,209 +434,305 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 					this.backgroundNode,
 					this.borderNode);
 		}
+		
+		if (more != null && more.length > 0) {
+			for (Node node : more) {
+				this.displayPane.getChildren().add(node);
+			}
+		}
 	}
+
+	// playable
 	
 	/**
-	 * Returns the root node of this slide to be placed in an
-	 * scene using any {@link SlideMode}.
-	 * @return Pane
+	 * Plays any animations or media.
 	 */
-	public Pane getDisplayPane() {
-		return this.rootPane;
-	}
-	
-	public Region getEditBorderNode() {
-		return this.editBorderNode;
-	}
-	
-	// playable stuff
-	
 	public void play() {
 		this.backgroundNode.play();
 	}
 	
+	/**
+	 * Stops any animations or media.
+	 */
 	public void stop() {
 		this.backgroundNode.stop();
 	}
 	
+	/**
+	 * Disposes of any resources used for playing.
+	 */
 	public void dispose() {
 		this.backgroundNode.dispose();
 	}
 	
-	public UUID getId() {
-		return this.region.getId();
-	}
-
+	/**
+	 * Returns true if the backgrounds of this region and the given region
+	 * are identical, indicating that they do not need to be transitioned
+	 * with the rest of the region content.
+	 * @param region the other region
+	 * @return boolean
+	 */
 	public boolean isBackgroundTransitionRequired(SlideRegion region) {
 		return this.region.isBackgroundTransitionRequired(region);
 	}
 	
-	public void adjust(double pw, double ph) {
-		this.region.adjust(pw, ph);
-		this.x.set(this.region.getX());
-		this.y.set(this.region.getY());
-		this.width.set(this.region.getWidth());
-		this.height.set(this.region.getHeight());
-	}
-	
-	public Rectangle resize(int dw, int dh) {
-		Rectangle r = this.region.resize(dw, dh);
-		this.x.set(this.region.getX());
-		this.y.set(this.region.getY());
-		this.width.set(this.region.getWidth());
-		this.height.set(this.region.getHeight());
-		return r;
-	}
-	
-	public void translate(int dx, int dy) {
-		this.region.translate(dx, dy);
-		this.x.set(this.region.getX());
-		this.y.set(this.region.getY());
-	}
-
 	// x
 	
+	/**
+	 * Returns the x coordinate.
+	 * @return double
+	 */
 	public double getX() {
 		return this.x.get();
 	}
 	
+	/**
+	 * Sets the x coordinate.
+	 * @param x the x
+	 */
 	public void setX(double x) {
 		this.x.set(x);
 	}
 	
+	/**
+	 * Returns the x property.
+	 * @return DoubleProperty
+	 */
 	public DoubleProperty xProperty() {
 		return this.x;
 	}
 	
 	// y
 	
+	/**
+	 * Returns the y coordinate.
+	 * @return double
+	 */
 	public double getY() {
 		return this.y.get();
 	}
 	
+	/**
+	 * Sets the y coordinate.
+	 * @param y the y
+	 */
 	public void setY(double y) {
 		this.y.set(y);
 	}
 	
+	/**
+	 * Returns the y property.
+	 * @return DoubleProperty
+	 */
 	public DoubleProperty yProperty() {
 		return this.y;
 	}
 	
 	// width
 
+	/**
+	 * Returns the width.
+	 * @return double
+	 */
 	public double getWidth() {
 		return this.width.get();
 	}
 	
+	/**
+	 * Sets the width.
+	 * @param width the width
+	 */
 	public void setWidth(double width) {
 		this.width.set(width);
 	}
 	
+	/**
+	 * Returns the width property.
+	 * @return DoubleProperty
+	 */
 	public DoubleProperty widthProperty() {
 		return this.width;
 	}
 	
 	// height
 
+	/**
+	 * Returns the height.
+	 * @return double
+	 */
 	public double getHeight() {
 		return this.height.get();
 	}
-	
+
+	/**
+	 * Sets the height.
+	 * @param height the height
+	 */
 	public void setHeight(double height) {
 		this.height.set(height);
 	}
 	
+	/**
+	 * Returns the height property.
+	 * @return DoubleProperty
+	 */
 	public DoubleProperty heightProperty() {
 		return this.height;
 	}
 	
 	// background
-	
+
+	/**
+	 * Sets the background.
+	 * @param background the background
+	 */	
 	public void setBackground(SlidePaint background) {
 		this.background.set(background);
 	}
-	
+
+	/**
+	 * Returns the background paint.
+	 * @return {@link SlidePaint}
+	 */
 	public SlidePaint getBackground() {
 		return this.background.get();
 	}
-	
+
+	/**
+	 * Returns the background property.
+	 * @return ObjectProperty
+	 */
 	public ObjectProperty<SlidePaint> backgroundProperty() {
 		return this.background;
 	}
 	
 	// border
-	
+
+	/**
+	 * Sets the border.
+	 * @param border the border
+	 */
 	public void setBorder(SlideStroke border) {
 		this.border.set(border);
 	}
-	
+
+	/**
+	 * Returns the border.
+	 * @return {@link SlideStroke}
+	 */
 	public SlideStroke getBorder() {
 		return this.border.get();
 	}
 	
+	/**
+	 * Returns the border property.
+	 * @return ObjectProperty
+	 */
 	public ObjectProperty<SlideStroke> borderProperty() {
 		return this.border;
 	}
 
 	// opacity
-	
+
+	/**
+	 * Sets the opacity.
+	 * @param opacity the opacity
+	 */
 	public void setOpacity(double opacity) {
 		this.opacity.set(opacity);
 	}
-	
+
+	/**
+	 * Returns the opacity.
+	 * @return double
+	 */
 	public double getOpacity() {
 		return this.opacity.get();
 	}
 	
+	/**
+	 * Returns the opacity property.
+	 * @return DoubleProperty
+	 */
 	public DoubleProperty opacityProperty() {
 		return this.opacity;
 	}
 
 	// shadow
-	
+
+	/**
+	 * Sets the shadow.
+	 * @param shadow the shadow
+	 */
 	public void setShadow(SlideShadow shadow) {
 		this.shadow.set(shadow);
 	}
-	
+
+	/**
+	 * Returns the shadow.
+	 * @return {@link SlideShadow}
+	 */
 	public SlideShadow getShadow() {
 		return this.shadow.get();
 	}
 	
+	/**
+	 * Returns the shadow property.
+	 * @return ObjectProperty
+	 */
 	public ObjectProperty<SlideShadow> shadowProperty() {
 		return this.shadow;
 	}
 
 	// opacity
 
+	/**
+	 * Sets the glow.
+	 * @param glow the glow
+	 */
 	public void setGlow(SlideShadow glow) {
 		this.glow.set(glow);
 	}
-	
+
+	/**
+	 * Returns the glow.
+	 * @return {@link SlideShadow}
+	 */
 	public SlideShadow getGlow() {
 		return this.glow.get();
 	}
 	
+	/**
+	 * Returns the glow property.
+	 * @return ObjectProperty
+	 */
 	public ObjectProperty<SlideShadow> glowProperty() {
 		return this.glow;
 	}
 	
 	// scale
 	
+	/**
+	 * Sets the scaling.
+	 * @param scaling the scaling
+	 */
 	public void setScaling(Scaling scaling) {
 		this.scale.set(scaling);
 	}
-	
+
+	/**
+	 * Returns the scaling.
+	 * @return {@link Scaling}
+	 */
 	public Scaling getScaling() {
 		return this.scale.get();
 	}
 	
+	/**
+	 * Returns the scaling property.
+	 * @return ObjectProperty
+	 */
 	public ObjectProperty<Scaling> scalingProperty() {
 		return this.scale;
-	}
-	
-	// the slide
-	
-	public T getRegion() {
-		return this.region;
 	}
 }

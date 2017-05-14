@@ -426,12 +426,10 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 			tag);
     	task.addSuccessHandler((e) -> {
 			this.context.getTags().add(tag);
-		});
-		task.addCancelledOrFailedHandler((e) -> {
+		}).addCancelledOrFailedHandler((e) -> {
 			// remove it from the tags
 			item.getTags().remove(tag);
-		});
-		task.execute(this.context.getExecutorService());
+		}).execute(this.context.getExecutorService());
 	}
 	
 	/**
@@ -451,8 +449,7 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 		task.addCancelledOrFailedHandler((e) -> {
 			// add it back to the item
 			item.getTags().add(tag);
-		});
-		task.execute(this.context.getExecutorService());
+		}).execute(this.context.getExecutorService());
 	}
 	
 	/**
