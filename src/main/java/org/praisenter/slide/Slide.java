@@ -131,6 +131,13 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	public abstract <E extends SlideComponent> List<E> getComponents(Class<E> clazz);
 	
 	/**
+	 * Returns the {@link SlideComponent} for the given id or null if not found.
+	 * @param id the id
+	 * @return {@link SlideComponent}
+	 */
+	public abstract SlideComponent getComponent(UUID id);
+	
+	/**
 	 * Moves the given component up by one.
 	 * <p>
 	 * If the given component is not on this slide, this method does nothing.
@@ -320,4 +327,15 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	 * @param thumbnail the thumbnail
 	 */
 	public abstract void setThumbnail(BufferedImage thumbnail);
+
+	// transition
+	
+	/**
+	 * Returns false if the backgrounds of this slide and the given slide
+	 * are identical, indicating that their animations should not be played
+	 * and the old background node should remain.
+	 * @param slide the other slide
+	 * @return boolean
+	 */
+	public abstract boolean isBackgroundTransitionRequired(Slide slide);
 }

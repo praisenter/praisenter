@@ -22,79 +22,50 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.animation;
+package org.praisenter.javafx.slide.converters;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.praisenter.slide.graphics.ShadowType;
+import org.praisenter.slide.graphics.SlideShadow;
 
-import org.praisenter.slide.easing.Easing;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.InnerShadow;
 
 /**
- * A fade transition.
+ * Class with a collection of effect related conversion methods for Java FX and Praisenter.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "zoom")
-@XmlAccessorType(XmlAccessType.NONE)
-public final class Zoom extends Animation {
-	/**
-	 * Default constructor for JAXB.
-	 */
-	Zoom() {
-		super(AnimationType.IN);
-	}
+public final class EffectConverter {
+	/** private constructor */
+	private EffectConverter() {}
 	
 	/**
-	 * Full constructor.
-	 * @param type the animation type
-	 * @param duration the duration (in milliseconds)
-	 * @param delay the delay (in milliseconds)
-	 * @param repeatCount the repeat count; 1 or higher
-	 * @param autoReverse true if auto-reverse should occur when repeat count is greater than 1
-	 * @param easing the easing
+	 * Returns an Effect for the given {@link SlideShadow}.
+	 * @param shadow the shadow or glow
+	 * @return Effect
 	 */
-	public Zoom(AnimationType type,
-			long duration,
-			long delay,
-			int repeatCount,
-			boolean autoReverse,
-			Easing easing) {
-		super(type, duration, delay, repeatCount, autoReverse, easing);
-	}
-	
-	/**
-	 * Copy constructor.
-	 * @param other the animation to copy
-	 */
-	public Zoom(Zoom other) {
-		this(other.type,
-			 other.duration,
-			 other.delay,
-			 other.repeatCount,
-			 other.autoReverse,
-			 other.easing);
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.Animation#copy()
-	 */
-	@Override
-	public Zoom copy() {
-		return new Zoom(this);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.Animation#copy(org.praisenter.slide.animation.AnimationType)
-	 */
-	@Override
-	public Zoom copy(AnimationType type) {
-		return new Zoom(
-				type,
-				this.duration,
-				this.delay,
-				this.repeatCount,
-				this.autoReverse,
-				this.easing);
+	public static Effect toJavaFX(SlideShadow shadow) {
+		if (shadow == null) {
+			return null;
+		}
+		
+		if (shadow.getType() == ShadowType.INNER) {
+			InnerShadow s = new InnerShadow(
+					shadow.getRadius(),
+					shadow.getOffsetX(),
+					shadow.getOffsetY(),
+					PaintConverter.toJavaFX(shadow.getColor()));
+			s.setChoke(shadow.getSpread());
+			return s;
+		} else {
+			DropShadow s = new DropShadow(
+					shadow.getRadius(),
+					shadow.getOffsetX(),
+					shadow.getOffsetY(),
+					PaintConverter.toJavaFX(shadow.getColor()));
+			s.setSpread(shadow.getSpread());
+			return s;
+		}
 	}
 }

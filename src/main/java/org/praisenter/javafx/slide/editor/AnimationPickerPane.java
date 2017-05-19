@@ -22,9 +22,8 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.slide.animation;
+package org.praisenter.javafx.slide.editor;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +33,8 @@ import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.IntegerTextFormatter;
 import org.praisenter.javafx.LongTextFormatter;
 import org.praisenter.javafx.Option;
+import org.praisenter.javafx.slide.animation.Animations;
+import org.praisenter.javafx.slide.animation.CustomTransition;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.animation.Animation;
@@ -50,9 +51,19 @@ import org.praisenter.slide.animation.Split;
 import org.praisenter.slide.animation.Swap;
 import org.praisenter.slide.animation.Swipe;
 import org.praisenter.slide.animation.Zoom;
+import org.praisenter.slide.easing.Back;
+import org.praisenter.slide.easing.Bounce;
+import org.praisenter.slide.easing.Circular;
+import org.praisenter.slide.easing.Cubic;
 import org.praisenter.slide.easing.Easing;
 import org.praisenter.slide.easing.EasingType;
+import org.praisenter.slide.easing.Elastic;
+import org.praisenter.slide.easing.Exponential;
 import org.praisenter.slide.easing.Linear;
+import org.praisenter.slide.easing.Quadratic;
+import org.praisenter.slide.easing.Quartic;
+import org.praisenter.slide.easing.Quintic;
+import org.praisenter.slide.easing.Sinusoidal;
 
 import javafx.animation.Transition;
 import javafx.beans.InvalidationListener;
@@ -60,6 +71,7 @@ import javafx.beans.Observable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -91,7 +103,7 @@ import javafx.util.converter.LongStringConverter;
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class AnimationPickerPane extends BorderPane {
+final class AnimationPickerPane extends BorderPane {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -223,16 +235,42 @@ public final class AnimationPickerPane extends BorderPane {
 			}
 		};
 		
+		
+		// setup the animation options
+		int i = 0;
+		ObservableList<AnimationOption> animationOptions = FXCollections.observableArrayList();
+		animationOptions.add(new AnimationOption(Swap.class, i++));
+		animationOptions.add(new AnimationOption(Fade.class, i++));
+		animationOptions.add(new AnimationOption(Swipe.class, i++));
+		animationOptions.add(new AnimationOption(Push.class, i++));
+		animationOptions.add(new AnimationOption(Split.class, i++));
+		animationOptions.add(new AnimationOption(Shaped.class, i++));
+		animationOptions.add(new AnimationOption(Blinds.class, i++));
+		animationOptions.add(new AnimationOption(Zoom.class, i++));
+		
+		// setup the easing options
+		i = 0;
+		ObservableList<AnimationOption> easingOptions = FXCollections.observableArrayList();
+		easingOptions.add(new AnimationOption(Linear.class, i++));
+		easingOptions.add(new AnimationOption(Quadratic.class, i++));
+		easingOptions.add(new AnimationOption(Cubic.class, i++));
+		easingOptions.add(new AnimationOption(Quartic.class, i++));
+		easingOptions.add(new AnimationOption(Quintic.class, i++));
+		easingOptions.add(new AnimationOption(Exponential.class, i++));
+		easingOptions.add(new AnimationOption(Sinusoidal.class, i++));
+		easingOptions.add(new AnimationOption(Circular.class, i++));
+		easingOptions.add(new AnimationOption(Back.class, i++));
+		easingOptions.add(new AnimationOption(Bounce.class, i++));
+		easingOptions.add(new AnimationOption(Elastic.class, i++));
+		
 		// setup the animation selection
-		List<AnimationOption> animationOptions = new ArrayList<AnimationOption>(Transitions.getAnimationOptions());
-		List<AnimationOption> easingOptions = new ArrayList<AnimationOption>(Transitions.getEasingOptions());
 		
 		animationListPane = new FlowListView<AnimationOption>(javafx.geometry.Orientation.HORIZONTAL, new AnimationOptionCellFactory());
-		animationListPane.itemsProperty().set(FXCollections.observableArrayList(animationOptions));
+		animationListPane.itemsProperty().set(animationOptions);
 		animationListPane.getSelectionModel().selectOnly(new AnimationOption(Swap.class, 0));
 				
 		easingListPane = new FlowListView<AnimationOption>(javafx.geometry.Orientation.VERTICAL, new AnimationOptionCellFactory());
-		easingListPane.itemsProperty().set(FXCollections.observableArrayList(easingOptions));
+		easingListPane.itemsProperty().set(easingOptions);
 		easingListPane.getSelectionModel().selectOnly(new AnimationOption(Linear.class, 0));
 		
 		// setup the animation config
@@ -350,7 +388,7 @@ public final class AnimationPickerPane extends BorderPane {
 		Button btnPreview = new Button("Preview");
 		btnPreview.setOnAction((e) -> {
 			Animation animation = this.value.get();
-			CustomTransition<?> ct = Transitions.createCustomTransition(animation);
+			CustomTransition<?> ct = Animations.createCustomTransition(animation);
 			ct.setNode(pane2);
 			if (transition != null) {
 				transition.stop();
@@ -402,7 +440,11 @@ public final class AnimationPickerPane extends BorderPane {
 			// hide show based on animation type
 			if (nv != null) {
 				Class<?> type = nv.getType();
-				if (Blinds.class.isAssignableFrom(type)) {
+				if (Swap.class.isAssignableFrom(type) ||
+					Zoom.class.isAssignableFrom(type) ||
+					Fade.class.isAssignableFrom(type)) {
+					// nothing to show for these
+				} else if (Blinds.class.isAssignableFrom(type)) {
 					grid.add(lblOrientation, 0, subRow);
 					grid.add(cbOrientation, 1, subRow++);
 					grid.add(lblBlindCount, 0, subRow);
@@ -434,7 +476,7 @@ public final class AnimationPickerPane extends BorderPane {
 					cbDirection.setValue(DIRECTION_OPTIONS.get(0));
 				} else {
 					// otherwise all the options remain hidden
-					LOGGER.warn("Unhandled animation type " + type.getName() + " in " + getClass().getName());
+					LOGGER.error("Unhandled animation type " + type.getName() + " in " + getClass().getName());
 				}
 			}
 			value.set(getControlValues());
@@ -495,7 +537,7 @@ public final class AnimationPickerPane extends BorderPane {
 					   animation instanceof Zoom) {
 				// Swap/Fade/Zoom don't have extra options at this time
 			} else {
-				LOGGER.warn("Unhandled SlideAnimation type " + animation.getClass().getName());
+				LOGGER.error("Unhandled SlideAnimation type " + animation.getClass().getName());
 			}
     	}
 	}
@@ -535,6 +577,9 @@ public final class AnimationPickerPane extends BorderPane {
 			Integer repeat = this.spnRepeatCount.getValue();
 			boolean autoReverse = this.chkAutoReverse.isSelected();
 
+			long de = delay != null ? delay : -1;
+			long du = duration != null ? duration : -1;
+			int n = repeat != null ? repeat : 1;
 			Orientation orientation = orientationOption != null ? orientationOption.getValue() : null;
 			Operation operation = operationOption != null ? operationOption.getValue() : null;
 			Direction direction = directionOption != null ? directionOption.getValue() : null;
@@ -551,28 +596,28 @@ public final class AnimationPickerPane extends BorderPane {
 			// custom animation options
 			if (animationClass == Blinds.class) {
 				Integer blinds = intConverter.fromString(this.txtBlindCount.getText());
-				animation = new Blinds(type, duration, delay, repeat, autoReverse, easing, orientation, blinds);
+				animation = new Blinds(type, du, de, n, autoReverse, easing, orientation, blinds);
 			} else if (animationClass == Push.class) {
-				animation = new Push(type, duration, delay, repeat, autoReverse, easing, direction);
+				animation = new Push(type, du, de, n, autoReverse, easing, direction);
 			} else if (animationClass == Shaped.class) {
-				animation = new Shaped(type, duration, delay, repeat, autoReverse, easing, shapeType, operation);
+				animation = new Shaped(type, du, de, n, autoReverse, easing, shapeType, operation);
 			} else if (animationClass == Split.class) {
-				animation = new Split(type, duration, delay, repeat, autoReverse, easing, orientation, operation);
+				animation = new Split(type, du, de, n, autoReverse, easing, orientation, operation);
 			} else if (animationClass == Swipe.class) {
-				animation = new Swipe(type, duration, delay, repeat, autoReverse, easing, direction);
+				animation = new Swipe(type, du, de, n, autoReverse, easing, direction);
 			} else if (animationClass == Fade.class) {
-				animation = new Fade(type, duration, delay, repeat, autoReverse, easing);
+				animation = new Fade(type, du, de, n, autoReverse, easing);
 			} else if (animationClass == Zoom.class) {
-				animation = new Zoom(type, duration, delay, repeat, autoReverse, easing);
+				animation = new Zoom(type, du, de, n, autoReverse, easing);
 			} else if (animationClass == Swap.class) {
-				animation = new Swap(type, duration, delay, repeat, autoReverse, easing);
+				animation = new Swap(type, du, de, n, autoReverse, easing);
 			} else {
 				LOGGER.warn("Unhandled SlideAnimation type " + animationClass.getName());
 			}
 			
 			return animation;
-		} catch (InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-			LOGGER.warn("Failed to create a new animation/easing of type " + animationClass.getName() + "/" + easingClass.getName() + ". The class must have a zero-argument constructor.");
+		} catch (Exception e) {
+			LOGGER.error("Failed to create a new animation/easing of type " + animationClass.getName() + "/" + easingClass.getName() + ".", e);
 		}
 		
 		return null;

@@ -90,11 +90,26 @@ public final class Push extends Animation {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.SlideAnimation#copy()
+	 * @see org.praisenter.slide.animation.Animation#copy()
 	 */
 	@Override
 	public Push copy() {
 		return new Push(this);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.animation.Animation#copy(org.praisenter.slide.animation.AnimationType)
+	 */
+	@Override
+	public Push copy(AnimationType type) {
+		return new Push(
+				type,
+				this.duration,
+				this.delay,
+				this.repeatCount,
+				this.autoReverse,
+				this.easing,
+				this.direction);
 	}
 	
 	/**

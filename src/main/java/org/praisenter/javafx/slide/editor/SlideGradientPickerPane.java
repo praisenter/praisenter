@@ -26,7 +26,7 @@ package org.praisenter.javafx.slide.editor;
 
 import java.util.List;
 
-import org.praisenter.javafx.slide.JavaFXTypeConverter;
+import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.graphics.SlideGradient;
@@ -241,14 +241,14 @@ final class SlideGradientPickerPane extends HBox {
         this.preview = new Pane();
         Fx.setSize(this.preview, WIDTH, HEIGHT);
         this.preview.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(1))));
-        this.preview.setBackground(new Background(new BackgroundFill(JavaFXTypeConverter.toJavaFX(this.gradient.get()), null, null)));
+        this.preview.setBackground(new Background(new BackgroundFill(PaintConverter.toJavaFX(this.gradient.get()), null, null)));
         this.preview.backgroundProperty().bind(new ObjectBinding<Background>() {
             {
             	// when the paint changes, update the background
                 bind(gradient);
             }
             @Override protected Background computeValue() {
-                return new Background(new BackgroundFill(JavaFXTypeConverter.toJavaFX(gradient.get()), CornerRadii.EMPTY, Insets.EMPTY));
+                return new Background(new BackgroundFill(PaintConverter.toJavaFX(gradient.get()), CornerRadii.EMPTY, Insets.EMPTY));
             }
         }); 
         
@@ -358,16 +358,16 @@ final class SlideGradientPickerPane extends HBox {
     				this.handle2X.get(), 
     				this.handle2Y.get(), 
     				(SlideGradientCycleType)this.grpCycleTypes.getSelectedToggle().getUserData(), 
-    				new SlideGradientStop(this.sldStop1.getValue(), JavaFXTypeConverter.fromJavaFX(this.pkrStop1.getValue())), 
-    				new SlideGradientStop(this.sldStop2.getValue(), JavaFXTypeConverter.fromJavaFX(this.pkrStop2.getValue())));
+    				new SlideGradientStop(this.sldStop1.getValue(), PaintConverter.fromJavaFX(this.pkrStop1.getValue())), 
+    				new SlideGradientStop(this.sldStop2.getValue(), PaintConverter.fromJavaFX(this.pkrStop2.getValue())));
     	} else {
     		return new SlideRadialGradient(
     				this.handle1X.get(), 
     				this.handle1Y.get(), 
     				this.radius.get(), 
     				(SlideGradientCycleType)this.grpCycleTypes.getSelectedToggle().getUserData(), 
-    				new SlideGradientStop(this.sldStop1.getValue(), JavaFXTypeConverter.fromJavaFX(this.pkrStop1.getValue())), 
-    				new SlideGradientStop(this.sldStop2.getValue(), JavaFXTypeConverter.fromJavaFX(this.pkrStop2.getValue())));
+    				new SlideGradientStop(this.sldStop1.getValue(), PaintConverter.fromJavaFX(this.pkrStop1.getValue())), 
+    				new SlideGradientStop(this.sldStop2.getValue(), PaintConverter.fromJavaFX(this.pkrStop2.getValue())));
     	}
     }
     
@@ -405,11 +405,11 @@ final class SlideGradientPickerPane extends HBox {
     		if (stops != null && stops.size() > 0) {
     			SlideGradientStop s1 = stops.get(0);
     			sldStop1.setValue(s1.getOffset());
-    			pkrStop1.setValue(JavaFXTypeConverter.toJavaFX(s1.getColor()));
+    			pkrStop1.setValue(PaintConverter.toJavaFX(s1.getColor()));
     			if (stops.size() > 1) {
     				SlideGradientStop s2 = stops.get(1);
     				sldStop2.setValue(s2.getOffset());
-    				pkrStop2.setValue(JavaFXTypeConverter.toJavaFX(s2.getColor()));
+    				pkrStop2.setValue(PaintConverter.toJavaFX(s2.getColor()));
     			}
     		}
     		
@@ -456,11 +456,11 @@ final class SlideGradientPickerPane extends HBox {
     		if (stops != null && stops.size() > 0) {
     			SlideGradientStop s1 = stops.get(0);
     			sldStop1.setValue(s1.getOffset());
-    			pkrStop1.setValue(JavaFXTypeConverter.toJavaFX(s1.getColor()));
+    			pkrStop1.setValue(PaintConverter.toJavaFX(s1.getColor()));
     			if (stops.size() > 1) {
     				SlideGradientStop s2 = stops.get(1);
     				sldStop2.setValue(s2.getOffset());
-    				pkrStop2.setValue(JavaFXTypeConverter.toJavaFX(s2.getColor()));
+    				pkrStop2.setValue(PaintConverter.toJavaFX(s2.getColor()));
     			}
     		}
     		

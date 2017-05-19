@@ -50,6 +50,12 @@ public interface SlideRegion {
 	public abstract UUID getId();
 	
 	/**
+	 * Attempts to return a human readable name for this region.
+	 * @return String
+	 */
+	public abstract String getName();
+	
+	/**
 	 * Returns the x coordinate of this region.
 	 * @return double
 	 */
@@ -192,17 +198,6 @@ public interface SlideRegion {
 	 */
 	public abstract void translate(double dx, double dy);
 	
-	// transition
-	
-	/**
-	 * Returns true if the backgrounds of this region and the given region
-	 * are identical, indicating that they do not need to be transitioned
-	 * with the rest of the region content.
-	 * @param region the other region
-	 * @return boolean
-	 */
-	public abstract boolean isBackgroundTransitionRequired(SlideRegion region);
-
 	/**
 	 * Returns true if any of the given media ids are used on this slide region.
 	 * @param ids the media ids

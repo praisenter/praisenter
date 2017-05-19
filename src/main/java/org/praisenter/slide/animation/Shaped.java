@@ -104,11 +104,27 @@ public final class Shaped extends Animation {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.SlideAnimation#copy()
+	 * @see org.praisenter.slide.animation.Animation#copy()
 	 */
 	@Override
 	public Shaped copy() {
 		return new Shaped(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.animation.Animation#copy(org.praisenter.slide.animation.AnimationType)
+	 */
+	@Override
+	public Shaped copy(AnimationType type) {
+		return new Shaped(
+				type,
+				this.duration,
+				this.delay,
+				this.repeatCount,
+				this.autoReverse,
+				this.easing,
+				this.shapeType,
+				this.operation);
 	}
 	
 	/**

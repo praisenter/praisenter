@@ -22,25 +22,20 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.slide;
-
-import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.slide.SlideComponent;
+package org.praisenter.javafx;
 
 /**
- * Represents an observable {@link SlideComponent}.
+ * An enumeration of {@link ImageCacheKey} types.
  * @author William Bittle
  * @version 3.0.0
- * @param <T> {@link SlideComponent}
  */
-public abstract class ObservableSlideComponent<T extends SlideComponent> extends ObservableSlideRegion<T> implements Playable {
-	/**
-	 * Minimal constructor.
-	 * @param component the slide region
-	 * @param context the context
-	 * @param mode the mode
-	 */
-	public ObservableSlideComponent(T component, PraisenterContext context, SlideMode mode) {
-		super(component, context, mode);
-	}
+public enum ImageCacheKeyType {
+	/** An application level image */
+	APPLICATION_IMAGE,
+	
+	/** An image from the media library */
+	MEDIA_IMAGE,
+	
+	/** A video frame image from the media library */
+	MEDIA_VIDEO
 }

@@ -113,7 +113,7 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 			return null;
 		}
 		
-		return new MediaObject(media.getId(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
+		return new MediaObject(media.getId(), media.getName(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
 	}
 	
 	private void setControlValues(MediaObject mediaObject) {

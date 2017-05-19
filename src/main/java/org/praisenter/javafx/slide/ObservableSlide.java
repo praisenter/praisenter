@@ -1,6 +1,29 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.slide;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -11,13 +34,11 @@ import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
-import org.praisenter.TextStore;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.CountdownComponent;
@@ -26,9 +47,7 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.utility.Scaling;
 
 import javafx.beans.property.LongProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleLongProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -36,19 +55,30 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 
-public final class ObservableSlide<T extends Slide> extends ObservableSlideRegion<T> {
+/**
+ * Represents an observable {@link Slide}.
+ * @author William Bittle
+ * @version 3.0.0
+ * @param <T> the slide type
+ */
+public final class ObservableSlide<T extends Slide> extends ObservableSlideRegion<T> implements Playable {
+	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	/** The slide name */
 	private final StringProperty name = new SimpleStringProperty();
-	private final ObjectProperty<Path> path = new SimpleObjectProperty<Path>();
-	private final LongProperty time = new SimpleLongProperty();
-	private final ObjectProperty<TextStore> placeholderData = new SimpleObjectProperty<TextStore>();
 	
+	/** The slide time */
+	private final LongProperty time = new SimpleLongProperty();
+	
+	/** The list of components */
 	private final ObservableList<ObservableSlideComponent<?>> components = FXCollections.observableArrayList();
 	
+	/** The list of animations */
 	private final ObservableList<SlideAnimation> animations = FXCollections.observableArrayList();
 
-	// Node hierarchy:
+	// nodes
+	
 	// +-----------------------+--------------+-------------------------------+
 	// | Name                  | Type         | Role                          |
 	// +-----------------------+--------------+-------------------------------+
@@ -62,8 +92,15 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	// |    +- ....            | Pane         | Component N                   |
 	// +-----------------------+--------------+-------------------------------+
 	
+	/** The container for all the components */
 	private final Pane componentCanvas;
 	
+	/**
+	 * Minimal constructor.
+	 * @param slide the slide
+	 * @param context the context
+	 * @param mode the mode
+	 */
 	public ObservableSlide(T slide, PraisenterContext context, SlideMode mode) {
 		super(slide, context, mode);
 		
@@ -73,9 +110,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		
 		// set initial values
 		this.name.set(slide.getName());
-		this.path.set(slide.getPath());
 		this.time.set(slide.getTime());
-		this.placeholderData.set(slide.getPlaceholderData());
 		
 		for (SlideComponent component : slide.getComponents(SlideComponent.class)) {
 			ObservableSlideComponent<?> comp = this.observableSlideComponent(component);
@@ -93,24 +128,34 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.name.addListener((obs, ov, nv) -> { 
 			slide.setName(nv); 
 		});
-		this.path.addListener((obs, ov, nv) -> { 
-			slide.setPath(nv); 
-		});
 		this.time.addListener((obs, ov, nv) -> { 
 			slide.setTime(nv.longValue()); 
 		});
-		this.placeholderData.addListener((obs, ov, nv) -> {
-			slide.setPlaceholderData(nv);
-		});
 		
-		this.build(null, this.componentCanvas);
+		this.build(null);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.ObservableSlideRegion#onBuild(javafx.scene.layout.Pane, javafx.scene.layout.Pane)
+	 */
+	@Override
+	protected void onBuild(Pane displayPane, Pane container) {
+		// add all the components
+		displayPane.getChildren().add(this.componentCanvas);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.ObservableSlideRegion#onSizeUpdate(double, double, org.praisenter.utility.Scaling)
+	 */
 	@Override
 	protected void onSizeUpdate(double width, double height, Scaling scaling) {
 		Fx.setSize(this.componentCanvas, Math.ceil(width * scaling.factor), Math.ceil(height * scaling.factor));
 	}
 	
+	/**
+	 * Returns a list of all the component display panes.
+	 * @return List&lt;Node&gt;
+	 */
 	public List<Node> getComponentDisplayPanes() {
 		List<Node> panes = new ArrayList<Node>();
 		for (ObservableSlideComponent<?> component : this.components) {
@@ -119,6 +164,12 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		return panes;
 	}
 
+	/**
+	 * Returns a new {@link ObservableSlideComponent} for the given {@link SlideComponent} using this
+	 * {@link ObservableSlide}'s context and slide mode.
+	 * @param component the component
+	 * @return {@link ObservableSlideComponent}
+	 */
 	public ObservableSlideComponent<?> observableSlideComponent(SlideComponent component) {
 		// now create its respective observable one
 		if (component instanceof MediaComponent) {
@@ -130,7 +181,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		} else if (component instanceof CountdownComponent) {
 			return new ObservableCountdownComponent((CountdownComponent)component, this.context, this.mode);
 		} else if (component instanceof BasicTextComponent) {
-			return new ObservableBasicTextComponent<BasicTextComponent>((BasicTextComponent)component, this.context, this.mode);
+			return new ObservableBasicTextComponent((BasicTextComponent)component, this.context, this.mode);
 		} else {
 			// just log the error
 			LOGGER.warn("Component type not supported " + component.getClass().getName());
@@ -138,6 +189,11 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		return null;
 	}
 	
+	/**
+	 * Adjusts the slide and it's components to fit on the given width and height.
+	 * @param width the new width; in pixels
+	 * @param height the new height; in pixels
+	 */
 	public void fit(int width, int height) {
 		this.region.fit(width, height);
 		this.setX(this.region.getX());
@@ -158,6 +214,9 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	
 	// playable
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.ObservableSlideRegion#play()
+	 */
 	public void play() {
 		super.play();
 		for (ObservableSlideComponent<?> comp : this.components) {
@@ -165,16 +224,52 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.ObservableSlideRegion#stop()
+	 */
+	@Override
+	public void stop() {
+		super.stop();
+		for (ObservableSlideComponent<?> comp : this.components) {
+			comp.stop();
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.ObservableSlideRegion#dispose()
+	 */
+	@Override
+	public void dispose() {
+		super.dispose();
+		for (ObservableSlideComponent<?> comp : this.components) {
+			comp.dispose();
+		}
+	}
+	
 	// tags
 	
+	/**
+	 * Returns an unmodifiable set of the tags for this slide.
+	 * @return Set&lt;{@link Tag}&gt;
+	 */
 	public Set<Tag> getTags() {
 		return Collections.unmodifiableSet(this.region.getTags()); 
 	}
 	
+	/**
+	 * Adds the given tag to this slide.
+	 * @param tag the tag
+	 * @return boolean true if the tag was added
+	 */
 	public boolean addTag(Tag tag) {
 		return this.region.getTags().add(tag);
 	}
 	
+	/**
+	 * Removes the given tag from this slide.
+	 * @param tag the tag
+	 * @return boolean true if the tag was removed
+	 */
 	public boolean removeTag(Tag tag) {
 		return this.region.getTags().remove(tag);
 	}
@@ -199,10 +294,32 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	
 	// components
 
+	/**
+	 * Returns the component with the given id or null if not found.
+	 * @param id the id
+	 * @return {@link ObservableSlideComponent}&lt;?&gt;
+	 */
+	public ObservableSlideComponent<?> getComponent(UUID id) {
+		for (ObservableSlideComponent<?> component : this.components) {
+			if (component.getId().equals(id)) {
+				return component;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns an iterator for all the slide components.
+	 * @return Iterator&lt;{@link ObservableSlideComponent}&lt;?&gt;&gt;
+	 */
 	public Iterator<ObservableSlideComponent<?>> componentIterator() {
 		return this.components.listIterator();
 	}
 	
+	/**
+	 * Adds the given component to this slide.
+	 * @param component the component
+	 */
 	public void addComponent(ObservableSlideComponent<?> component) {
 		// this sets the order, so must be done first
 		this.region.addComponent(component.region);
@@ -212,6 +329,11 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.componentCanvas.getChildren().add(component.getDisplayPane());
 	}
 
+	/**
+	 * Removes the given component from this slide.
+	 * @param component the component
+	 * @return boolean true if it was removed
+	 */
 	public boolean removeComponent(ObservableSlideComponent<?> component) {
 		// remove the component
 		if (this.region.removeComponent(component.region)) {
@@ -222,6 +344,10 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		return false;
 	}
 	
+	/**
+	 * Moves the given component down in the list of all components.
+	 * @param component the component
+	 */
 	public void moveComponentDown(ObservableSlideComponent<?> component) {
 		// this will set the order of the components and sort them
 		this.region.moveComponentDown(component.region);
@@ -237,6 +363,10 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		}
 	}
 	
+	/**
+	 * Moves the given component up in the list of all components.
+	 * @param component the component
+	 */
 	public void moveComponentUp(ObservableSlideComponent<?> component) {
 		// this will set the order of the components and sort them
 		this.region.moveComponentUp(component.region);
@@ -252,6 +382,10 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		}
 	}
 	
+	/**
+	 * Moves the given component to the top of the list of all components.
+	 * @param component the component
+	 */
 	public void moveComponentFront(ObservableSlideComponent<?> component) {
 		// this will set the order of the components and sort them
 		this.region.moveComponentFront(component.region);
@@ -265,6 +399,10 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		componentCanvas.getChildren().addAll(getComponentDisplayPanes());
 	}
 	
+	/**
+	 * Moves the given component to the bottom of the list of all components.
+	 * @param component the component
+	 */
 	public void moveComponentBack(ObservableSlideComponent<?> component) {
 		// this will set the order of the components and sort them
 		this.region.moveComponentBack(component.region);
@@ -277,67 +415,12 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
 		componentCanvas.getChildren().addAll(getComponentDisplayPanes());
 	}
-	
-	// name
-	
-	public String getName() {
-		return this.name.get();
-	}
-
-	public void setName(String name) {
-		this.name.set(name);
-	}
-	
-	public StringProperty nameProperty() {
-		return this.name;
-	}
-
-	// path
-	
-	public Path getPath() {
-		return this.path.get();
-	}
-
-	public void setPath(Path path) {
-		this.path.set(path);
-	}
-
-	public ObjectProperty<Path> pathProperty() {
-		return this.path;
-	}
-
-	// time
-	
-	public long getTime() {
-		return this.time.get();
-	}
-
-	public void setTime(long time) {
-		this.time.set(time);
-	}
-	
-	public LongProperty timeProperty() {
-		return this.time;
-	}
 
 	// placeholder
 	
-	public TextStore getPlaceholderData() {
-		return this.placeholderData.get();
-	}
-	
-	public void setPlaceholderData(TextStore data) {
-		this.placeholderData.set(data);
-	}
-	
-	public ObjectProperty<TextStore> placeholderDataProperty() {
-		return this.placeholderData;
-	}
-	
-	public boolean hasPlaceholders() {
-		return this.region.hasPlaceholders();
-	}
-	
+	/**
+	 * Updates the placeholders.
+	 */
 	public void updatePlaceholders() {
 		this.region.updatePlaceholders();
 		// iterate all the placeholders
@@ -349,9 +432,55 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		}
 	}
 	
-	// others
+	// name
 	
-	public String getVersion() {
-		return this.region.getVersion();
+	/**
+	 * Returns the name.
+	 * @return String
+	 */
+	public String getName() {
+		return this.name.get();
+	}
+
+	/**
+	 * Sets the name.
+	 * @param name the name
+	 */
+	public void setName(String name) {
+		this.name.set(name);
+	}
+	
+	/**
+	 * Returns the name property.
+	 * @return StringProperty
+	 */
+	public StringProperty nameProperty() {
+		return this.name;
+	}
+
+	// time
+	
+	/**
+	 * Returns the time in milliseconds.
+	 * @return long
+	 */
+	public long getTime() {
+		return this.time.get();
+	}
+
+	/**
+	 * Sets the time.
+	 * @param time the time in milliseconds
+	 */
+	public void setTime(long time) {
+		this.time.set(time);
+	}
+	
+	/**
+	 * Returns the time property.
+	 * @return LongProperty
+	 */
+	public LongProperty timeProperty() {
+		return this.time;
 	}
 }

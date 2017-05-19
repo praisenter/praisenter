@@ -1,7 +1,7 @@
 package org.praisenter.javafx.slide.editor;
 
-import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
+import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradient;
@@ -345,7 +345,7 @@ class BorderRibbonTab extends ComponentEditorRibbonTab {
 	private SlideStroke getControlValues() {
 		SlidePaint paint = null;
 		if (this.pkrColor.isVisible()) {
-			paint = JavaFXTypeConverter.fromJavaFX(this.pkrColor.getValue());
+			paint = PaintConverter.fromJavaFX(this.pkrColor.getValue());
 		} else {
 			paint = this.pkrGradient.getValue();
 		}
@@ -372,7 +372,7 @@ class BorderRibbonTab extends ComponentEditorRibbonTab {
 				toggleMode(false, true);
 			} else if (paint instanceof SlideColor) {
 				toggleMode(false, true);
-				this.pkrColor.setValue(JavaFXTypeConverter.toJavaFX((SlideColor)paint));
+				this.pkrColor.setValue(PaintConverter.toJavaFX((SlideColor)paint));
 			} else if (paint instanceof SlideGradient) {
 				toggleMode(false, false);
 				this.pkrGradient.setValue((SlideGradient)paint);

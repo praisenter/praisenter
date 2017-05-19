@@ -71,7 +71,7 @@ public class InsertTextRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 			btc.setText("New Text Component");
 			btc.setTextPaint(new SlideColor(0, 0, 0, 1));
 			btc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50));
-			fireEvent(new SlideComponentAddEvent(text, InsertTextRibbonTab.this, new ObservableBasicTextComponent<>(btc, context, SlideMode.EDIT)));
+			fireEvent(new SlideComponentAddEvent(text, InsertTextRibbonTab.this, new ObservableBasicTextComponent(btc, context, SlideMode.EDIT)));
 		});
 		
 		countdown.setOnAction((e) -> {

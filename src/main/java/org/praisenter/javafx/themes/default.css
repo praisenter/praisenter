@@ -113,3 +113,7 @@
 	-fx-border-style: segments(4, 4) phase 0 outside line-join miter 2 line-cap butt, segments(4, 4) phase 4 outside line-join miter 2 line-cap butt;
 	-fx-border-width: 1, 1;
 }
+
+.slide-edit-region:animation-hovered {
+	-fx-background-color: rgba(255, 255, 0, 0.2);
+}

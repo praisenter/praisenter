@@ -63,6 +63,17 @@ public class MediaComponent extends AbstractSlideComponent implements SlideRegio
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#generateName()
+	 */
+	@Override
+	public String getName() {
+		if (this.media != null) {
+			return this.media.getName();
+		}
+		return "";
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideRegion#copy()
 	 */
 	@Override

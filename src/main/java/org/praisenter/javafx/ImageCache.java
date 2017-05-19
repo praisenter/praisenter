@@ -24,12 +24,15 @@
  */
 package org.praisenter.javafx;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
+import java.util.function.Supplier;
 
 import javax.imageio.ImageIO;
 
@@ -50,38 +53,93 @@ public final class ImageCache {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The cache */
-	private final Map<Path, SoftReference<Image>> images;
+	private final Map<ImageCacheKey, SoftReference<Image>> images;
 	
 	/**
 	 * Constructor.
 	 */
 	public ImageCache() {
-		this.images = new HashMap<Path, SoftReference<Image>>();
+		this.images = new HashMap<ImageCacheKey, SoftReference<Image>>();
 	}
 	
 	/**
 	 * Returns the image for the given path, loading it if necessary.
 	 * <p>
 	 * Returns null in the event that an error occurs.
-	 * @param path the path
+	 * @param key the image cache key
+	 * @param supplier the function to load the image if it doesn't exist
 	 * @return Image
 	 */
-	public synchronized Image get(Path path) {
+	public synchronized Image getOrLoad(ImageCacheKey key, Supplier<Image> supplier) {
 		this.evict();
-		if (this.images.containsKey(path)) {
-			Image image = this.images.get(path).get();
+		if (this.images.containsKey(key)) {
+			Image image = this.images.get(key).get();
 			if (image != null) {
+				LOGGER.debug("Image for key: {} found in cache.", key);
 				return image;
 			}
 		}
-		try {
-			Image image = this.load(path);
-			this.images.put(path, new SoftReference<Image>(image));
-			return image;
-		} catch (IOException ex) {
-			LOGGER.error("Failed to load image " + path.toAbsolutePath().toString(), ex);
+		LOGGER.debug("Image for key: {} was not found in the cache. Loading...", key);
+		Image image = supplier.get();
+		LOGGER.debug("Image loaded for key: {}", key);
+		if (image != null) {
+			this.images.put(key, new SoftReference<Image>(image));
 		}
-		return null;
+		return image;
+	}
+	
+	// helpers
+
+	/**
+	 * Returns the cached image for the given image or loads the image given the path
+	 * if the image is not in the cache.
+	 * <p>
+	 * This should be used for application images.
+	 * @param path the path to the image
+	 * @return Image
+	 */
+	public synchronized Image getOrLoadApplicationImage(Path path) {
+		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.APPLICATION_IMAGE, path.toAbsolutePath().toString());
+		return getOrLoad(key, () -> {
+			try {
+				return this.load(path);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to load image from path '" + path.toAbsolutePath().toString() + "'", ex);
+			}
+			return null;
+		});
+	}
+	
+	/**
+	 * Returns the cached image for the given image media or loads the image given the path
+	 * if the image is not in the cache.
+	 * @param id the id
+	 * @param path the path to the image
+	 * @return Image
+	 */
+	public synchronized Image getOrLoadImageMediaImage(UUID id, Path path) {
+		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.MEDIA_IMAGE, id.toString());
+		return getOrLoad(key, () -> {
+			try {
+				return this.load(path);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to load image from path '" + path.toAbsolutePath().toString() + "'", ex);
+			}
+			return null;
+		});
+	}
+	
+	/**
+	 * Returns the cached video frame for the given video media or converts the given image to a Java FX image.
+	 * @param id the id
+	 * @param image the image
+	 * @return Image
+	 */
+	public synchronized Image getOrLoadVideoMediaFrame(UUID id, BufferedImage image) {
+		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.MEDIA_VIDEO, id.toString());
+		return getOrLoad(key, () -> {
+			return SwingFXUtils.toFXImage(image, null);
+		});
 	}
 	
 	/**

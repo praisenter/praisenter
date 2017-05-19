@@ -22,79 +22,51 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.animation;
+package org.praisenter.javafx.slide.editor;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
+import org.praisenter.javafx.FlowListCell;
 
-import org.praisenter.slide.easing.Easing;
+import javafx.geometry.Insets;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.ImageView;
+import javafx.scene.text.TextAlignment;
+import javafx.util.Callback;
 
 /**
- * A fade transition.
+ * A custom cell factory for animation options.
  * @author William Bittle
  * @version 3.0.0
+ * @since 3.0.0
  */
-@XmlRootElement(name = "zoom")
-@XmlAccessorType(XmlAccessType.NONE)
-public final class Zoom extends Animation {
-	/**
-	 * Default constructor for JAXB.
-	 */
-	Zoom() {
-		super(AnimationType.IN);
-	}
-	
-	/**
-	 * Full constructor.
-	 * @param type the animation type
-	 * @param duration the duration (in milliseconds)
-	 * @param delay the delay (in milliseconds)
-	 * @param repeatCount the repeat count; 1 or higher
-	 * @param autoReverse true if auto-reverse should occur when repeat count is greater than 1
-	 * @param easing the easing
-	 */
-	public Zoom(AnimationType type,
-			long duration,
-			long delay,
-			int repeatCount,
-			boolean autoReverse,
-			Easing easing) {
-		super(type, duration, delay, repeatCount, autoReverse, easing);
-	}
-	
-	/**
-	 * Copy constructor.
-	 * @param other the animation to copy
-	 */
-	public Zoom(Zoom other) {
-		this(other.type,
-			 other.duration,
-			 other.delay,
-			 other.repeatCount,
-			 other.autoReverse,
-			 other.easing);
-	}
-	
+final class AnimationOptionCellFactory implements Callback<AnimationOption, FlowListCell<AnimationOption>> {
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.Animation#copy()
+	 * @see javafx.util.Callback#call(java.lang.Object)
 	 */
 	@Override
-	public Zoom copy() {
-		return new Zoom(this);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.Animation#copy(org.praisenter.slide.animation.AnimationType)
-	 */
-	@Override
-	public Zoom copy(AnimationType type) {
-		return new Zoom(
-				type,
-				this.duration,
-				this.delay,
-				this.repeatCount,
-				this.autoReverse,
-				this.easing);
+	public FlowListCell<AnimationOption> call(AnimationOption option) {
+		FlowListCell<AnimationOption> cell = new FlowListCell<AnimationOption>(option);
+		
+		cell.setPrefSize(100, 80);
+		
+		String name = null;
+		
+		name = option.name;
+    	// setup the thumbnail image
+    	final ImageView thumb = new ImageView(option.image);
+    	cell.getChildren().add(thumb);
+    	
+    	// setup the media name label
+    	final Label label = new Label();
+    	label.setText(name);
+    	label.setWrapText(true);
+    	label.setTextAlignment(TextAlignment.CENTER);
+    	label.setTooltip(new Tooltip(name));
+    	label.setPadding(new Insets(5, 0, 0, 0));
+		
+    	// add the image and label to the cell
+    	cell.getChildren().addAll(label);
+    	
+		return cell;
 	}
 }

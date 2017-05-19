@@ -122,6 +122,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	private final ObjectProperty<ObservableSlideRegion<?>> selected = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 
 	private final SlideEditorRibbon ribbon;
+	private final AnimationsPane animations;
 	private final StackPane slidePreview;
 	
 	public SlideEditorPane(PraisenterContext context) {
@@ -134,6 +135,10 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		VBox top = new VBox(this.ribbon);
 		top.setBorder(new Border(new BorderStroke(null, null, Color.GRAY, null, null, null, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, null, new BorderWidths(0, 0, 1, 0), null)));
 		this.setTop(top);
+		
+		// create the animation picker
+		this.animations = new AnimationsPane(context);
+		this.setRight(this.animations);
 		
 		// Node hierarchy:
 		// +-------------------------------+--------------+---------------------------------------------------------+
@@ -384,9 +389,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 							UUID id = nv.getId();
 							MediaObject omo = omc.getMedia();
 							if (omo != null) {
-								mo = new MediaObject(id, omo.getScaling(), omo.isLoop(), omo.isMute());
+								mo = new MediaObject(id, nv.getName(), omo.getScaling(), omo.isLoop(), omo.isMute());
 							} else {
-								mo = new MediaObject(id, ScaleType.UNIFORM, false, false);
+								mo = new MediaObject(id, nv.getName(), ScaleType.UNIFORM, false, false);
 							}
 						}
 						omc.setMedia(mo);
@@ -400,151 +405,14 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 
 		ribbon.slideProperty().bind(this.slide);
 		ribbon.componentProperty().bind(this.selected);
+		animations.slideProperty().bind(this.slide);
+		animations.componentProperty().bind(this.selected);
 		
 		// set values		
-		
-		Slide s = createTestSlide();
-		this.slide.set(new ObservableSlide<Slide>(s, context, SlideMode.EDIT));
 		
 		this.addEventHandler(ApplicationEvent.ALL, e -> {
 			handleApplicationEvent(e.getAction());
 		});
-	}
-	
-	private static final Slide createTestSlide() {
-		BasicSlide slide = new BasicSlide();
-		slide.setWidth(800);
-		slide.setHeight(600);
-		
-		SlideColor color = new SlideColor(0, 0, 0.8, 0.7);
-		
-		SlideLinearGradient gradient = new SlideLinearGradient(
-				0, 0, 1, 1, 
-				SlideGradientCycleType.NONE, 
-				new SlideGradientStop(0, new SlideColor(0, 1, 0, 1)),
-				new SlideGradientStop(1, new SlideColor(0, 0, 1, 1)));
-		
-		SlideStroke stroke = new SlideStroke(
-				gradient, 
-				new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, 5.0, 10.0), 
-				1, 
-				0);
-		
-		SlideStroke thick = new SlideStroke(
-				new SlideColor(0.5, 0, 0, 1), 
-				new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, DashPattern.DASH.getDashes()), 
-				5, 
-				5);
-		
-		SlideRadialGradient radial = new SlideRadialGradient(
-				0.5, 0.5, 0.707, 
-				SlideGradientCycleType.NONE, 
-				new SlideGradientStop(0, new SlideColor(0, 0, 0, 0.8)),
-				new SlideGradientStop(1, new SlideColor(0, 1, 1, 0.8)));
-		
-		BasicTextComponent txt = new BasicTextComponent();
-		txt.setFont(new SlideFont("Impact", SlideFontWeight.BOLD, SlideFontPosture.REGULAR, 20));
-		txt.setFontScaleType(FontScaleType.REDUCE_SIZE_ONLY);
-		txt.setWidth(400);
-		txt.setHeight(400);
-		txt.setX(20);
-		txt.setY(100);
-		txt.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
-		txt.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
-		txt.setPadding(new SlidePadding(10));
-		txt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
-		txt.setBorder(thick);
-		txt.setTextPaint(radial);
-		txt.setTextBorder(stroke);
-		txt.setLineSpacing(10);
-		txt.setText("Lorem ipsum dolor \n\nsit amet, consectetur adipiscing elit. Nam viverra tristique mauris. Suspendisse potenti. Etiam justo erat, mollis eget mi nec, euismod interdum magna. Aenean ac nulla fermentum, ullamcorper arcu sed, fermentum orci. Donec varius neque eget sapien cursus maximus. Fusce mauris lectus, pellentesque vel sem cursus, dapibus vehicula est. In tincidunt ultrices est nec finibus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Curabitur eu nisi augue. Integer commodo enim sed rutrum rutrum. Quisque tristique id ipsum sed malesuada. Maecenas non diam eget felis pulvinar sodales.");
-		txt.setShadow(new SlideShadow(ShadowType.OUTER, new SlideColor(0, 0, 0, 1), 0, 0, 10, 0.0));
-		
-		MediaObject img = new MediaObject(
-				UUID.fromString("f6668fb0-3a40-4590-99a4-1ba474315dca"),
-//				UUID.fromString("245d1e2a-9b82-431d-8dd9-bac0ed0a7aca"),
-				ScaleType.UNIFORM,
-				false,
-				true);
-		txt.setBackground(img);
-		
-		MediaObject vid = new MediaObject(
-				UUID.fromString("a5d7dab1-8c59-4103-87cf-a13db23152f3"),
-//				UUID.fromString("abe57410-81b9-4226-a15f-95f0bedcea89"),
-				ScaleType.NONUNIFORM,
-				false,
-				true);
-		
-		MediaComponent mc = new MediaComponent();
-		mc.setBackground(img);
-		mc.setBorder(thick);
-		mc.setWidth(100);
-		mc.setHeight(100);
-		mc.setX(100);
-		mc.setY(200);
-		mc.setMedia(vid);
-		
-		DateTimeComponent dt = new DateTimeComponent();
-		dt.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 20));
-		dt.setFontScaleType(FontScaleType.NONE);
-		dt.setWidth(600);
-		dt.setHeight(200);
-		dt.setX(0);
-		dt.setY(0);
-		dt.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT);
-		dt.setVerticalTextAlignment(VerticalTextAlignment.TOP);
-		dt.setPadding(new SlidePadding(20));
-		dt.setBackground(new SlideColor(0.5, 0, 0, 0.5));
-		dt.setTextPaint(new SlideColor(1.0, 0, 0, 1));
-		dt.setDateTimeFormat(new SimpleDateFormat("M/d/yyyy h:mm a z"));
-		
-		TextPlaceholderComponent tp = new TextPlaceholderComponent();
-		tp.setFont(new SlideFont("Verdana", SlideFontWeight.NORMAL, SlideFontPosture.ITALIC, 5));
-		tp.setFontScaleType(FontScaleType.BEST_FIT);
-		tp.setWidth(200);
-		tp.setHeight(400);
-		tp.setX(200);
-		tp.setY(0);
-		tp.setHorizontalTextAlignment(HorizontalTextAlignment.RIGHT);
-		tp.setVerticalTextAlignment(VerticalTextAlignment.BOTTOM);
-		tp.setPadding(new SlidePadding(10));
-		//tp.setBackground(new SlideColor(0.5, 0, 0.5, 0.5));
-		tp.setTextPaint(gradient);
-		tp.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE), 1, 0));
-		tp.setLineSpacing(2);
-		tp.setPlaceholderType(TextType.TITLE);
-		//tp.setVariants(variants);
-		
-		CountdownComponent cd = new CountdownComponent();
-		cd.setFont(new SlideFont("Segoe UI Light", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 100));
-		cd.setFontScaleType(FontScaleType.BEST_FIT);
-		cd.setWidth(400);
-		cd.setHeight(100);
-		cd.setX(200);
-		cd.setY(0);
-		cd.setTextWrapping(false);
-		cd.setHorizontalTextAlignment(HorizontalTextAlignment.CENTER);
-		cd.setVerticalTextAlignment(VerticalTextAlignment.CENTER);
-		cd.setPadding(new SlidePadding(10));
-		//tp.setBackground(new SlideColor(0.5, 0, 0.5, 0.5));
-		cd.setTextPaint(gradient);
-		cd.setTextBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE, new Double[] { 10.0, 10.0, 5.0 }), 1, 0));
-//		cd.setLineSpacing(2);
-		cd.setCountdownTarget(LocalDateTime.now().plusYears(1).plusMonths(2).plusDays(3).plusHours(4).plusMinutes(5).plusSeconds(6));
-		//tp.setVariants(variants);
-		
-		slide.addComponent(txt);
-		slide.addComponent(mc);
-		slide.addComponent(dt);
-		slide.addComponent(tp);
-		slide.addComponent(cd);
-
-//		slide.setBackground(vid);
-		slide.setBackground(new SlideColor(0, 0, 1.0, 0.5));
-		//slide.setBorder(thick);
-		
-		
-		return slide;
 	}
 	
 	public void setSlide(Slide slide) {

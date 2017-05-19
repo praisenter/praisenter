@@ -77,10 +77,24 @@ public final class Fade extends Animation {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.SlideAnimation#copy()
+	 * @see org.praisenter.slide.animation.Animation#copy()
 	 */
 	@Override
 	public Fade copy() {
 		return new Fade(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.animation.Animation#copy(org.praisenter.slide.animation.AnimationType)
+	 */
+	@Override
+	public Fade copy(AnimationType type) {
+		return new Fade(
+				type,
+				this.duration,
+				this.delay,
+				this.repeatCount,
+				this.autoReverse,
+				this.easing);
 	}
 }

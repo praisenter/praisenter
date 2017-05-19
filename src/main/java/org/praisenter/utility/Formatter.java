@@ -66,11 +66,39 @@ public final class Formatter {
 	 * @param length the length in milliseconds
 	 * @return String
 	 */
+	public static final String getTimeMillisecondsFormattedString(long length) {
+		long minutes = length / 60000;
+		long seconds = (length % 60000) / 1000;
+		long milliseconds = (length % 60000) % 1000;
+		return String.format("%d:%02d.%03d", minutes, seconds, milliseconds);
+	}
+	
+	/**
+	 * Returns a formatted time string for the given length.
+	 * @param length the length in milliseconds
+	 * @return String
+	 */
 	public static final String getMillisecondsFormattedString(long length) {
 		long minutes = length / 60000;
-		long seconds = (length % 60000) / 60;
+		long seconds = (length % 60000) / 1000;
 		long milliseconds = (length % 60000) % 1000;
-		return TIME_FORMAT.format(minutes) + ":" + TIME_FORMAT.format(seconds) + ":" + TIME_FORMAT.format(milliseconds);
+		if (minutes > 0) {
+			if (milliseconds > 0) {
+				return String.format("%d:%02d.%03d", minutes, seconds, milliseconds);
+			} else {
+				return String.format("%d:%02d", minutes, seconds);
+			}
+		} else if (seconds > 0) {
+			if (length % 1000  > 0) {
+				return String.format("%.1fs", length / 1000.0);
+			} else {
+				return String.format("%ds", length / 1000);
+			}
+		} else if (milliseconds > 0) {
+			return String.format("%dms", milliseconds);
+		} else {
+			return "0";
+		}
 	}
 	
 	/**

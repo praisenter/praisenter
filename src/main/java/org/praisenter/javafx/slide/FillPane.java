@@ -29,11 +29,14 @@ import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.slide.converters.MediaConverter;
+import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
+import org.praisenter.slide.graphics.SlideGradient;
 import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideRadialGradient;
@@ -49,6 +52,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -58,7 +62,7 @@ import javafx.scene.shape.Rectangle;
  * @author William Bittle
  * @version 3.0.0
  */
-final class FillPane extends StackPane {
+final class FillPane extends StackPane implements Playable {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -98,6 +102,11 @@ final class FillPane extends StackPane {
 	/** The border radius */
 	private double borderRadius;
 	
+	/**
+	 * Minimal constructor.
+	 * @param context the context
+	 * @param mode the slide mode
+	 */
 	public FillPane(PraisenterContext context, SlideMode mode) {
 		this.context = context;
 		this.mode = mode;
@@ -110,22 +119,36 @@ final class FillPane extends StackPane {
 		this.getChildren().addAll(this.paintView, this.mediaView);
 	}
 	
-	public void setSize(double w, double h) {
-		this.setPrefSize(w, h);
-		this.setMinSize(w, h);
-		this.setMaxSize(w, h);
-		this.width = w;
-		this.height = h;
+	/**
+	 * Sets the size of the pane to the desired width and height.
+	 * @param width the width
+	 * @param height the height
+	 */
+	public void setSize(double width, double height) {
+		this.setPrefSize(width, height);
+		this.setMinSize(width, height);
+		this.setMaxSize(width, height);
+		this.width = width;
+		this.height = height;
 		this.setPaintViewSize();
 		this.setMediaViewSize();
 	}
 	
-	public void setBorderRadius(double r) {
-		this.borderRadius = r;
+	/**
+	 * Sets the border radius of the pane.
+	 * @param radius the radius
+	 */
+	public void setBorderRadius(double radius) {
+		this.borderRadius = radius;
 		this.setPaintViewSize();
 		this.setMediaViewSize();
 	}
 	
+	/**
+	 * Sets the paint of the pane, which could be a {@link SlideColor},
+	 * {@link SlideGradient}, or {@link MediaObject}.
+	 * @param paint the paint
+	 */
 	public void setPaint(SlidePaint paint) {
 		if (paint == null) {
 			removePaint();
@@ -144,6 +167,10 @@ final class FillPane extends StackPane {
 		}
 	}
 
+	/**
+	 * Removes both the paint and the media and clears
+	 * any other values for the current display.
+	 */
 	private void removePaint() {
 		MediaPlayer player = this.mediaView.getMediaPlayer();
 		if (player != null) {
@@ -157,6 +184,9 @@ final class FillPane extends StackPane {
 		this.scaleType = null;
 	}
 	
+	/**
+	 * Sets the paint view's size.
+	 */
 	private void setPaintViewSize() {
 		Fx.setSize(this.paintView, this.width, this.height);
 		Rectangle r = new Rectangle(0, 0, this.width, this.height);
@@ -167,6 +197,10 @@ final class FillPane extends StackPane {
 		this.paintView.setClip(r);
 	}
 	
+	/**
+	 * Sets the MediaView's size based on the desired height, width and
+	 * scale type.
+	 */
 	private void setMediaViewSize() {
 		double w = this.width;
 		double h = this.height;
@@ -213,14 +247,22 @@ final class FillPane extends StackPane {
 		this.mediaView.setClip(clip);
 	}
 	
+	/**
+	 * Sets the paint for this pane - which will override any media.
+	 * @param paint the paint
+	 */
 	private void setBackgroundPaint(SlidePaint paint) {
 		this.removePaint();
 		
-		Paint bgPaint = JavaFXTypeConverter.toJavaFX(paint);
+		Paint bgPaint = PaintConverter.toJavaFX(paint);
 		Background background = new Background(new BackgroundFill(bgPaint, new CornerRadii(this.borderRadius), null));
 		this.paintView.setBackground(background);
 	}
 	
+	/**
+	 * Sets the media for this pane - which will override any paint.
+	 * @param mo the media object
+	 */
 	private void setMediaObject(MediaObject mo) {
 		// get the media
 		Media media = null;
@@ -250,17 +292,17 @@ final class FillPane extends StackPane {
 					this.mode == SlideMode.SNAPSHOT ||
 					this.mode == SlideMode.PREVIEW ||
 					type == MediaType.IMAGE) {
-					this.image = JavaFXTypeConverter.toJavaFXImage(this.context.getMediaLibrary(), this.context.getImageCache(), media);
+					this.image = MediaConverter.toJavaFXImage(this.context.getImageCache(), media);
 					Background background = new Background(new BackgroundImage(
 							this.image, 
 							BackgroundRepeat.NO_REPEAT, 
 							BackgroundRepeat.NO_REPEAT, 
 							BackgroundPosition.CENTER, 
-							JavaFXTypeConverter.toJavaFX(mo.getScaling())));
+							MediaConverter.toJavaFX(mo.getScaling())));
 					this.paintView.setBackground(background);
 				} else {
 					// otherwise create a media player
-					MediaPlayer player = JavaFXTypeConverter.toJavaFXMediaPlayer(media, mo.isLoop(), mo.isMute());
+					MediaPlayer player = MediaConverter.toJavaFXMediaPlayer(media, mo.isLoop(), mo.isMute());
 					this.mediaView.setMediaPlayer(player);
 					setMediaViewSize();
 				}
@@ -280,7 +322,7 @@ final class FillPane extends StackPane {
 							BackgroundRepeat.NO_REPEAT, 
 							BackgroundRepeat.NO_REPEAT, 
 							BackgroundPosition.CENTER, 
-							JavaFXTypeConverter.toJavaFX(mo.getScaling())));
+							MediaConverter.toJavaFX(mo.getScaling())));
 					this.paintView.setBackground(background);
 				}
 			}
@@ -289,24 +331,45 @@ final class FillPane extends StackPane {
 
 	// playable stuff
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.Playable#play()
+	 */
 	public void play() {
 		MediaPlayer player = this.mediaView.getMediaPlayer();
-		if (player != null) {
-			player.play();
+		if (player != null && player.getStatus() != Status.PLAYING) {
+			try {
+				player.play();
+			} catch (Exception ex) {
+				LOGGER.error("Failed to play media " + this.media.getName() + " at " + this.media.getFileName(), ex);
+			}
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.Playable#stop()
+	 */
 	public void stop() {
 		MediaPlayer player = this.mediaView.getMediaPlayer();
 		if (player != null) {
-			player.stop();
+			try {
+				player.stop();
+			} catch (Exception ex) {
+				LOGGER.error("Failed to stop media " + this.media.getName() + " at " + this.media.getFileName(), ex);
+			}
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.Playable#dispose()
+	 */
 	public void dispose() {
 		MediaPlayer player = this.mediaView.getMediaPlayer();
 		if (player != null) {
-			player.dispose();
+			try {
+				player.dispose();
+			} catch (Exception ex) {
+				LOGGER.error("Failed to dispose media " + this.media.getName() + " at " + this.media.getFileName(), ex);
+			}
 		}
 	}
 }

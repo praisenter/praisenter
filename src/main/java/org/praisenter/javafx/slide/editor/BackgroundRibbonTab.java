@@ -6,8 +6,8 @@ import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
+import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.media.Media;
 import org.praisenter.media.MediaType;
 import org.praisenter.resources.OpenIconic;
@@ -236,17 +236,17 @@ class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 		switch (this.cmbTypes.getValue().getValue()) {
 			case COLOR:
 				Color color = this.pkrColor.getValue();
-				return JavaFXTypeConverter.fromJavaFX(color);
+				return PaintConverter.fromJavaFX(color);
 			case GRADIENT:
 				return this.pkrGradient.getValue();
 			case IMAGE:
 				if (this.pkrImage.getValue() != null) {
-					return new MediaObject(this.pkrImage.getValue().getId(), scaleType, false, false);
+					return new MediaObject(this.pkrImage.getValue().getId(), this.pkrImage.getValue().getName(), scaleType, false, false);
 				}
 				return null;
 			case VIDEO:
 				if (this.pkrVideo.getValue() != null) {
-					return new MediaObject(this.pkrVideo.getValue().getId(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
+					return new MediaObject(this.pkrVideo.getValue().getId(), this.pkrVideo.getValue().getName(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
 				}
 				return null;
 			case AUDIO:
@@ -285,7 +285,7 @@ class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 			} else if (paint instanceof SlideColor) {
 				SlideColor sc = (SlideColor)paint;
 				cmbTypes.setValue(new Option<PaintType>("", PaintType.COLOR));
-				pkrColor.setValue(JavaFXTypeConverter.toJavaFX(sc));
+				pkrColor.setValue(PaintConverter.toJavaFX(sc));
 			} else if (paint instanceof SlideLinearGradient) {
 				SlideLinearGradient lg = (SlideLinearGradient)paint;
 				cmbTypes.setValue(new Option<PaintType>("", PaintType.GRADIENT));

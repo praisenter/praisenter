@@ -27,6 +27,8 @@ package org.praisenter.javafx.slide;
 import java.util.UUID;
 
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.slide.converters.BorderConverter;
+import org.praisenter.javafx.slide.converters.EffectConverter;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.SlidePaint;
@@ -53,7 +55,7 @@ import javafx.scene.transform.Scale;
  * @version 3.0.0
  * @param <T> the {@link SlideRegion} type
  */
-public abstract class ObservableSlideRegion<T extends SlideRegion> {
+public abstract class ObservableSlideRegion<T extends SlideRegion> implements Playable {
 	/** The context */
 	protected final PraisenterContext context;
 	
@@ -317,7 +319,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		
 		// create new border
 		if (ss != null) {
-			this.borderNode.setBorder(new Border(JavaFXTypeConverter.toJavaFX(ss)));
+			this.borderNode.setBorder(new Border(BorderConverter.toJavaFX(ss)));
 		} else {
 			this.borderNode.setBorder(null);
 		}
@@ -355,8 +357,8 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 		SlideShadow ss = this.shadow.get();
 		SlideShadow sg = this.glow.get();
 		EffectBuilder builder = EffectBuilder.create();
-		Effect shadow = JavaFXTypeConverter.toJavaFX(ss);
-		Effect glow = JavaFXTypeConverter.toJavaFX(sg);
+		Effect shadow = EffectConverter.toJavaFX(ss);
+		Effect glow = EffectConverter.toJavaFX(sg);
 		builder.add(shadow, shadow != null && shadow instanceof InnerShadow ? 10 : 30);
 		builder.add(glow, glow != null && glow instanceof InnerShadow ? 20 : 40);
 		Effect effect = builder.build();
@@ -413,9 +415,8 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 	/**
 	 * Sets up the region for display and modification.
 	 * @param content the content of the region
-	 * @param more other nodes
 	 */
-	protected final void build(Node content, Node... more) {
+	protected final void build(Node content) {
 		// set initial node properties
 		this.updatePosition();
 		this.updateBorder();
@@ -435,45 +436,37 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> {
 					this.borderNode);
 		}
 		
-		if (more != null && more.length > 0) {
-			for (Node node : more) {
-				this.displayPane.getChildren().add(node);
-			}
-		}
+		this.onBuild(this.displayPane, this.container);
 	}
+	
+	/**
+	 * Called after the basic node hiearchy has been built.
+	 * @param displayPane the root display pane
+	 * @param container the container for the content
+	 */
+	protected void onBuild(Pane displayPane, Pane container) {}
 
 	// playable
 	
-	/**
-	 * Plays any animations or media.
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.Playable#play()
 	 */
 	public void play() {
 		this.backgroundNode.play();
 	}
 	
-	/**
-	 * Stops any animations or media.
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.Playable#stop()
 	 */
 	public void stop() {
 		this.backgroundNode.stop();
 	}
 	
-	/**
-	 * Disposes of any resources used for playing.
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.Playable#dispose()
 	 */
 	public void dispose() {
 		this.backgroundNode.dispose();
-	}
-	
-	/**
-	 * Returns true if the backgrounds of this region and the given region
-	 * are identical, indicating that they do not need to be transitioned
-	 * with the rest of the region content.
-	 * @param region the other region
-	 * @return boolean
-	 */
-	public boolean isBackgroundTransitionRequired(SlideRegion region) {
-		return this.region.isBackgroundTransitionRequired(region);
 	}
 	
 	// x

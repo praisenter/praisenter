@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -401,6 +402,19 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getComponent(java.util.UUID)
+	 */
+	@Override
+	public SlideComponent getComponent(UUID id) {
+		for (SlideComponent component : this.components) {
+			if (component.getId().equals(id)) {
+				return component;
+			}
+		}
+		return null;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#moveComponentUp(org.praisenter.slide.SlideComponent)
 	 */
 	@Override
@@ -620,5 +634,28 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 			media.addAll(component.getReferencedMedia());
 		}
 		return media;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#isBackgroundTransitionRequired(org.praisenter.slide.Slide)
+	 */
+	@Override
+	public boolean isBackgroundTransitionRequired(Slide slide) {
+		if (slide == null) return true;
+		if (slide == this) return false;
+		
+		// we need a transition if the position, size, background
+		// or border are different
+		if (this.x != slide.getX() ||
+			this.y != slide.getY() ||
+			this.width != slide.getWidth() || 
+			this.height != slide.getHeight() ||
+			!Objects.equals(this.background, slide.getBackground()) ||
+			!Objects.equals(this.border, slide.getBorder()) ||
+			this.opacity != slide.getOpacity()) {
+			return true;
+		}
+		
+		return false;
 	}
 }

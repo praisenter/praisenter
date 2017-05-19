@@ -25,6 +25,7 @@
 package org.praisenter.slide.text;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -65,6 +66,14 @@ public class DateTimeComponent extends AbstractTextComponent implements SlideReg
 		if (other.dateTimeFormat != null) {
 			this.dateTimeFormat = new SimpleDateFormat(other.dateTimeFormat.toPattern());
 		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getName()
+	 */
+	@Override
+	public String getName() {
+		return SimpleDateFormat.getDateInstance().format(LocalDate.of(1970, 1, 1));
 	}
 	
 	/* (non-Javadoc)

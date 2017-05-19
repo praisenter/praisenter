@@ -22,79 +22,26 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide.animation;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.praisenter.slide.easing.Easing;
+package org.praisenter.javafx.slide;
 
 /**
- * A fade transition.
+ * Represents a component that is playable.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "zoom")
-@XmlAccessorType(XmlAccessType.NONE)
-public final class Zoom extends Animation {
+public interface Playable {
 	/**
-	 * Default constructor for JAXB.
+	 * Plays any animations or media.
 	 */
-	Zoom() {
-		super(AnimationType.IN);
-	}
+	public void play();
 	
 	/**
-	 * Full constructor.
-	 * @param type the animation type
-	 * @param duration the duration (in milliseconds)
-	 * @param delay the delay (in milliseconds)
-	 * @param repeatCount the repeat count; 1 or higher
-	 * @param autoReverse true if auto-reverse should occur when repeat count is greater than 1
-	 * @param easing the easing
+	 * Stops any animations or media.
 	 */
-	public Zoom(AnimationType type,
-			long duration,
-			long delay,
-			int repeatCount,
-			boolean autoReverse,
-			Easing easing) {
-		super(type, duration, delay, repeatCount, autoReverse, easing);
-	}
+	public void stop();
 	
 	/**
-	 * Copy constructor.
-	 * @param other the animation to copy
+	 * Disposes of any resources used for playing.
 	 */
-	public Zoom(Zoom other) {
-		this(other.type,
-			 other.duration,
-			 other.delay,
-			 other.repeatCount,
-			 other.autoReverse,
-			 other.easing);
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.Animation#copy()
-	 */
-	@Override
-	public Zoom copy() {
-		return new Zoom(this);
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.Animation#copy(org.praisenter.slide.animation.AnimationType)
-	 */
-	@Override
-	public Zoom copy(AnimationType type) {
-		return new Zoom(
-				type,
-				this.duration,
-				this.delay,
-				this.repeatCount,
-				this.autoReverse,
-				this.easing);
-	}
+	public void dispose();
 }

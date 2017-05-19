@@ -148,6 +148,13 @@ public abstract class Animation {
 	 * @return {@link Animation}
 	 */
 	public abstract Animation copy();
+
+	/**
+	 * Returns a copy of this animation.
+	 * @param type the new animation type
+	 * @return {@link Animation}
+	 */
+	public abstract Animation copy(AnimationType type);
 	
 	/**
 	 * Returns the animation type.

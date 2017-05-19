@@ -22,51 +22,78 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.slide.animation;
-
-import org.praisenter.javafx.FlowListCell;
-
-import javafx.geometry.Insets;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
-import javafx.scene.image.ImageView;
-import javafx.scene.text.TextAlignment;
-import javafx.util.Callback;
+package org.praisenter.javafx;
 
 /**
- * A custom cell factory for animation options.
+ * Represents a key in the image cache.
+ * <p>
+ * The key is composed of a {@link ImageCacheKeyType} and a string value.
  * @author William Bittle
  * @version 3.0.0
- * @since 3.0.0
  */
-final class AnimationOptionCellFactory implements Callback<AnimationOption, FlowListCell<AnimationOption>> {
+public final class ImageCacheKey {
+	private final ImageCacheKeyType type;
+	private final String key;
+	
+	/**
+	 * Full constructor.
+	 * @param type the type
+	 * @param key the key
+	 */
+	public ImageCacheKey(ImageCacheKeyType type, String key) {
+		if (type == null || key == null) throw new NullPointerException("The type and key parameters cannot be null.");
+		this.type = type;
+		this.key = key;
+	}
+
 	/* (non-Javadoc)
-	 * @see javafx.util.Callback#call(java.lang.Object)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
-	public FlowListCell<AnimationOption> call(AnimationOption option) {
-		FlowListCell<AnimationOption> cell = new FlowListCell<AnimationOption>(option);
-		
-		cell.setPrefSize(100, 80);
-		
-		String name = null;
-		
-		name = option.name;
-    	// setup the thumbnail image
-    	final ImageView thumb = new ImageView(option.image);
-    	cell.getChildren().add(thumb);
-    	
-    	// setup the media name label
-    	final Label label = new Label();
-    	label.setText(name);
-    	label.setWrapText(true);
-    	label.setTextAlignment(TextAlignment.CENTER);
-    	label.setTooltip(new Tooltip(name));
-    	label.setPadding(new Insets(5, 0, 0, 0));
-		
-    	// add the image and label to the cell
-    	cell.getChildren().addAll(label);
-    	
-		return cell;
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		if (obj == this) return true;
+		if (obj instanceof ImageCacheKey) {
+			ImageCacheKey key = (ImageCacheKey)obj;
+			return key.key.equals(this.key) && key.type == this.type;
+		}
+		return false;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		int hash = 1;
+		hash = hash * 31 + type.hashCode();
+		hash = hash * 31 + key.hashCode();
+		return hash;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("[").append(this.type).append("|").append(this.key).append("]");
+		return sb.toString();
+	}
+	
+	/**
+	 * Returns the type.
+	 * @return {@link ImageCacheKeyType}
+	 */
+	public ImageCacheKeyType getType() {
+		return this.type;
+	}
+	
+	/**
+	 * Return the key.
+	 * @return String
+	 */
+	public String getKey() {
+		return this.key;
 	}
 }

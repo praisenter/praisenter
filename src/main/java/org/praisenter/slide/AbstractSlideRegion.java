@@ -25,7 +25,6 @@
 package org.praisenter.slide;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -336,29 +335,6 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	public void translate(double dx, double dy) {
 		this.x += dx;
 		this.y += dy;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideRegion#isBackgroundTransitionRequired(org.praisenter.slide.SlideRegion)
-	 */
-	@Override
-	public boolean isBackgroundTransitionRequired(SlideRegion region) {
-		if (region == null) return true;
-		if (region == this) return false;
-		
-		// we need a transition if the position, size, background
-		// or border are different
-		if (this.x != region.getX() ||
-			this.y != region.getY() ||
-			this.width != region.getWidth() || 
-			this.height != region.getHeight() ||
-			!Objects.equals(this.background, region.getBackground()) ||
-			!Objects.equals(this.border, region.getBorder()) ||
-			this.opacity != region.getOpacity()) {
-			return true;
-		}
-		
-		return false;
 	}
 	
 	/* (non-Javadoc)

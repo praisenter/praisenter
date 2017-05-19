@@ -102,11 +102,27 @@ public final class Split extends Animation {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.SlideAnimation#copy()
+	 * @see org.praisenter.slide.animation.Animation#copy()
 	 */
 	@Override
 	public Split copy() {
 		return new Split(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.animation.Animation#copy(org.praisenter.slide.animation.AnimationType)
+	 */
+	@Override
+	public Split copy(AnimationType type) {
+		return new Split(
+				type,
+				this.duration,
+				this.delay,
+				this.repeatCount,
+				this.autoReverse,
+				this.easing,
+				this.orientation,
+				this.operation);
 	}
 	
 	/**

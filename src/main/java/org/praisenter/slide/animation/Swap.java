@@ -77,10 +77,24 @@ public final class Swap extends Animation {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.animation.SlideAnimation#copy()
+	 * @see org.praisenter.slide.animation.Animation#copy()
 	 */
 	@Override
 	public Swap copy() {
 		return new Swap(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.animation.Animation#copy(org.praisenter.slide.animation.AnimationType)
+	 */
+	@Override
+	public Swap copy(AnimationType type) {
+		return new Swap(
+				type,
+				this.duration,
+				this.delay,
+				this.repeatCount,
+				this.autoReverse,
+				this.easing);
 	}
 }

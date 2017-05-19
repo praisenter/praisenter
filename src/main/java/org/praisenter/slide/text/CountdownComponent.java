@@ -76,6 +76,14 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getName()
+	 */
+	@Override
+	public String getName() {
+		return formatCountdown(DEFAULT_FORMAT, LocalDateTime.now());
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideRegion#copy()
 	 */
 	@Override

@@ -4,9 +4,9 @@ import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFont;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.Option;
-import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
+import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradient;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
@@ -131,7 +131,7 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-				tc.setTextPaint(JavaFXTypeConverter.fromJavaFX(this.pkrColor.getValue()));
+				tc.setTextPaint(PaintConverter.fromJavaFX(this.pkrColor.getValue()));
 			}
 		});
 		itmGradient.setOnAction((e) -> {
@@ -153,7 +153,7 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 				SlidePaint paint = otc.getTextPaint();
 				if (paint != null) {
 					if (paint instanceof SlideColor) {
-						this.pkrColor.setValue(JavaFXTypeConverter.toJavaFX((SlideColor)paint));
+						this.pkrColor.setValue(PaintConverter.toJavaFX((SlideColor)paint));
 						this.pkrColor.setVisible(true);
 						this.pkrGradient.setVisible(false);
 					} else if (paint instanceof SlideGradient) {
@@ -189,7 +189,7 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-				tc.setTextPaint(JavaFXTypeConverter.fromJavaFX(nv));
+				tc.setTextPaint(PaintConverter.fromJavaFX(nv));
 			}
 		});
 		

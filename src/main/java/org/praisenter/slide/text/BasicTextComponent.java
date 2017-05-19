@@ -60,6 +60,14 @@ public class BasicTextComponent extends AbstractTextComponent implements SlideRe
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getName()
+	 */
+	@Override
+	public String getName() {
+		return this.text;
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideRegion#copy()
 	 */
 	@Override

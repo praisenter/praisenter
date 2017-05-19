@@ -24,7 +24,7 @@
  */
 package org.praisenter.javafx.slide.editor;
 
-import org.praisenter.javafx.slide.JavaFXTypeConverter;
+import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.slide.graphics.SlideGradient;
 
 import javafx.beans.property.ObjectProperty;
@@ -69,7 +69,7 @@ final class SlideGradientPicker extends SplitMenuButton {
 		// update the rect background
 		this.value.addListener((obs, ov, nv) -> {
 			if (nv != null) {
-				rect.setFill(JavaFXTypeConverter.toJavaFX(nv));
+				rect.setFill(PaintConverter.toJavaFX(nv));
 			}
 		});
 	}

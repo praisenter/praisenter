@@ -60,6 +60,10 @@ public final class MediaObject extends AbstractSlidePaint implements SlidePaint 
 	@XmlElement(name = "id", required = false)
 	final UUID id;
 
+	/** The media name */
+	@XmlElement(name = "name", required = false)
+	final String name;
+	
 	/** The media scaling type */
 	@XmlElement(name = "scaling", required = false)
 	final ScaleType scaling;
@@ -81,6 +85,7 @@ public final class MediaObject extends AbstractSlidePaint implements SlidePaint 
 	@SuppressWarnings("unused")
 	private MediaObject() {
 		this.id = null;
+		this.name = null;
 		this.scaling = ScaleType.UNIFORM;
 		this.loop = false;
 		this.mute = false;
@@ -89,13 +94,15 @@ public final class MediaObject extends AbstractSlidePaint implements SlidePaint 
 	/**
 	 * Creates a new media object.
 	 * @param id the referenced media id
+	 * @param name the referenced media name
 	 * @param scaling the scaling type
 	 * @param loop true if the media should loop
 	 * @param mute true if the media should be muted
 	 */
-	public MediaObject(UUID id, ScaleType scaling, boolean loop, boolean mute) {
+	public MediaObject(UUID id, String name, ScaleType scaling, boolean loop, boolean mute) {
 		if (id == null) throw new NullPointerException();
 		this.id = id;
+		this.name = name;
 		this.scaling = scaling != null ? scaling : ScaleType.UNIFORM;
 		this.loop = loop;
 		this.mute = mute;
@@ -137,6 +144,14 @@ public final class MediaObject extends AbstractSlidePaint implements SlidePaint 
 	 */
 	public UUID getId() {
 		return this.id;
+	}
+	
+	/**
+	 * Returns the name of the referenced media.
+	 * @return String
+	 */
+	public String getName() {
+		return this.name;
 	}
 
 	/**

@@ -1,8 +1,8 @@
 package org.praisenter.javafx.slide.editor;
 
 import org.praisenter.javafx.Option;
-import org.praisenter.javafx.slide.JavaFXTypeConverter;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
+import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.slide.graphics.ShadowType;
 import org.praisenter.slide.graphics.SlideShadow;
 
@@ -131,7 +131,7 @@ class GlowRibbonTab extends ComponentEditorRibbonTab {
 		if (type != null && type.getValue() != ShadowOption.NONE) {
 			return new SlideShadow(
 					type.getValue() == ShadowOption.INNER ? ShadowType.INNER : ShadowType.OUTER,
-					JavaFXTypeConverter.fromJavaFX(this.pkrColor.getValue()), 
+					PaintConverter.fromJavaFX(this.pkrColor.getValue()), 
 					this.spnX.getValue(), 
 					this.spnY.getValue(), 
 					this.spnRadius.getValue(),
@@ -144,7 +144,7 @@ class GlowRibbonTab extends ComponentEditorRibbonTab {
 	private void setControlValues(SlideShadow shadow) {
 		if (shadow != null) {
 			cmbType.setValue(new Option<ShadowOption>(null, shadow.getType() == ShadowType.INNER ? ShadowOption.INNER : ShadowOption.OUTER));
-			pkrColor.setValue(JavaFXTypeConverter.toJavaFX(shadow.getColor()));
+			pkrColor.setValue(PaintConverter.toJavaFX(shadow.getColor()));
 			spnX.getValueFactory().setValue(shadow.getOffsetX());
 			spnY.getValueFactory().setValue(shadow.getOffsetY());
 			spnRadius.getValueFactory().setValue(shadow.getRadius());
