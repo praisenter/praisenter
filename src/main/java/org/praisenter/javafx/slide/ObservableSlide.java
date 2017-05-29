@@ -26,7 +26,6 @@ package org.praisenter.javafx.slide;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -66,7 +65,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The slide name */
-	private final StringProperty name = new SimpleStringProperty();
+	private final StringProperty slideName = new SimpleStringProperty();
 	
 	/** The slide time */
 	private final LongProperty time = new SimpleLongProperty();
@@ -109,7 +108,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.componentCanvas.setSnapToPixel(true);
 		
 		// set initial values
-		this.name.set(slide.getName());
+		this.slideName.set(slide.getName());
 		this.time.set(slide.getTime());
 		
 		for (SlideComponent component : slide.getComponents(SlideComponent.class)) {
@@ -120,13 +119,12 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 			}
 		}
 		
-		for (SlideAnimation animation : slide.getAnimations()) {
-			this.animations.add(animation);
-		}
+		this.animations.addAll(slide.getAnimations());
 		
 		// setup listeners
-		this.name.addListener((obs, ov, nv) -> { 
-			slide.setName(nv); 
+		this.slideName.addListener((obs, ov, nv) -> { 
+			slide.setName(nv);
+			updateName();
 		});
 		this.time.addListener((obs, ov, nv) -> { 
 			slide.setTime(nv.longValue()); 
@@ -276,20 +274,32 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	
 	// animations
 	
-	public List<SlideAnimation> getAnimations() {
-		return Collections.unmodifiableList(this.region.getAnimations());
+	/**
+	 * Returns an observable list of all the animations.
+	 * <p>
+	 * Do not modify this list directly.
+	 * @return ObservableList&lt;{@link SlideAnimation}&gt;
+	 */
+	public ObservableList<SlideAnimation> getAnimations() {
+		return this.animations;
 	}
 	
-	public List<SlideAnimation> getAnimations(UUID id) {
-		return Collections.unmodifiableList(this.region.getAnimations(id));
-	}
-	
+	/**
+	 * Adds an animation to the slide.
+	 * @param animation the animation
+	 * @return boolean true if it was added successfully
+	 */
 	public boolean addAnimation(SlideAnimation animation) {
-		return this.region.getAnimations().add(animation);
+		return this.region.getAnimations().add(animation) && this.animations.add(animation);
 	}
 	
+	/**
+	 * Removes the animation from this slide.
+	 * @param animation the animation
+	 * @return boolean true if it was removed successfully
+	 */
 	public boolean removeAnimation(SlideAnimation animation) {
-		return this.region.getAnimations().remove(animation);
+		return this.region.getAnimations().remove(animation) && this.animations.remove(animation);
 	}
 	
 	// components
@@ -309,11 +319,13 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	}
 	
 	/**
-	 * Returns an iterator for all the slide components.
-	 * @return Iterator&lt;{@link ObservableSlideComponent}&lt;?&gt;&gt;
+	 * Returns an observable list of all the slide components.
+	 * <p>
+	 * Do not modify this list directly.
+	 * @return ObservableList&lt;{@link ObservableSlideComponent}&lt;?&gt;&gt;
 	 */
-	public Iterator<ObservableSlideComponent<?>> componentIterator() {
-		return this.components.listIterator();
+	public ObservableList<ObservableSlideComponent<?>> getComponents() {
+		return this.components;
 	}
 	
 	/**
@@ -339,6 +351,8 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		if (this.region.removeComponent(component.region)) {
 			this.components.removeIf(c -> c.getId().equals(component.getId()));
 			this.componentCanvas.getChildren().remove(component.getDisplayPane());
+			this.region.getAnimations().removeIf(a -> a != null && component.getId().equals(a.getId()));
+			this.animations.removeIf(a -> a != null && component.getId().equals(a.getId()));
 			return true;
 		}
 		return false;
@@ -439,7 +453,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	 * @return String
 	 */
 	public String getName() {
-		return this.name.get();
+		return this.slideName.get();
 	}
 
 	/**
@@ -447,7 +461,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	 * @param name the name
 	 */
 	public void setName(String name) {
-		this.name.set(name);
+		this.slideName.set(name);
 	}
 	
 	/**
@@ -455,7 +469,7 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 	 * @return StringProperty
 	 */
 	public StringProperty nameProperty() {
-		return this.name;
+		return this.slideName;
 	}
 
 	// time

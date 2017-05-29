@@ -31,9 +31,6 @@ import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.TextVariant;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleReferenceTextStore;
@@ -44,6 +41,7 @@ import org.praisenter.bible.Chapter;
 import org.praisenter.bible.LocatedVerse;
 import org.praisenter.bible.LocatedVerseTriplet;
 import org.praisenter.bible.Verse;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.AutoCompleteComboBox;
 import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.PraisenterContext;
@@ -66,7 +64,6 @@ import javafx.scene.control.Spinner;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 
 /**
  * A pane used to navigate bible verses.
@@ -77,9 +74,6 @@ public final class BibleNavigationPane extends BorderPane {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
 	// actions
 	
 	/** The find action */
@@ -117,7 +111,7 @@ public final class BibleNavigationPane extends BorderPane {
 	private final Label lblVerses;
 	
 	/** Node used to show a red x when controls are in an invalid state */
-	private final Node invalid = FONT_AWESOME.create(FontAwesome.Glyph.CLOSE).color(Color.RED);
+	private final Node invalid = ApplicationGlyphs.BIBLE_NAV_INVALID.duplicate();
 	
 	// value
 	

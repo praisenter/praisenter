@@ -26,9 +26,6 @@ package org.praisenter.javafx;
 
 import java.util.function.Supplier;
 
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.scene.Node;
@@ -56,27 +53,27 @@ public enum ApplicationAction {
 	
 	/** Close the current editor */
 	CLOSE(Translations.get("action.close"), () -> {
-		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.CLOSE);
+		return ApplicationGlyphs.MENU_CLOSE.duplicate();
 	}),
 	
 	/** Save the current document */
 	SAVE(Translations.get("action.save"), () -> { 
-		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.SAVE); 
+		return ApplicationGlyphs.MENU_SAVE.duplicate(); 
 	}, new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN)),
 	
 	/** Save the current document with a different name  */
 	SAVE_AS(Translations.get("action.saveas"), () -> { 
-		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.SAVE); 
+		return ApplicationGlyphs.MENU_SAVE_AS.duplicate();
 	}, new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN)),
 
 	/** Rename the item */
 	RENAME(Translations.get("action.rename"), () -> { 
-		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.TERMINAL); 
+		return ApplicationGlyphs.MENU_RENAME.duplicate();
 	}, new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN)),
 	
 	/** Delete the item */
 	DELETE(Translations.get("action.delete"), () -> { 
-		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.CLOSE); 
+		return ApplicationGlyphs.MENU_DELETE.duplicate(); 
 	}, new KeyCodeCombination(KeyCode.DELETE)),
 	
 	/** Select all the items */
@@ -90,24 +87,24 @@ public enum ApplicationAction {
 	
 	/** Copy the item */
 	COPY(Translations.get("action.copy"), () -> { 
-		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.COPY); 
+		return ApplicationGlyphs.MENU_COPY.duplicate();
 	}, new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN)),
 	
 	/** Cut the item */
 	CUT(Translations.get("action.cut"), () -> { 
-		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.CUT); 
+		return ApplicationGlyphs.MENU_CUT.duplicate();
 	}, new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN)),
 	
 	/** Paste the item */
 	PASTE(Translations.get("action.paste"), () -> { 
-		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.PASTE); 
+		return ApplicationGlyphs.MENU_PASTE.duplicate();
 	}, new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN)),
 	
 	// root level
 	
 	/** Show the preferences view */
 	PREFERENCES(Translations.get("action.preferences"), () -> { 
-		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.GEAR); 
+		return ApplicationGlyphs.MENU_PREFERENCES.duplicate();
 	}),
 	
 	/** Prompt to import slides */
@@ -124,7 +121,7 @@ public enum ApplicationAction {
 	
 	/** Prompt to export */
 	EXPORT(Translations.get("action.export"), () -> { 
-		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.LEVEL_UP); 
+		return ApplicationGlyphs.MENU_EXPORT.duplicate();
 	}),
 
 	/** Prompt to import media */
@@ -141,7 +138,7 @@ public enum ApplicationAction {
 	
 	/** Show the about info */
 	ABOUT(Translations.get("action.about"), () -> { 
-		return Initializer.FONT_AWESOME.create(FontAwesome.Glyph.INFO); 
+		return ApplicationGlyphs.MENU_ABOUT.duplicate();
 	}),
 	
 	/** View the application logs */
@@ -286,19 +283,6 @@ public enum ApplicationAction {
 		button.setGraphic(graphic);
 		button.setUserData(this);
 		return button;
-	}
-	
-	/**
-	 * This is a hack for sure.  The Java spec says that the enums have to be first
-	 * in the definition of an enum.  As such we need something that gets initialized
-	 * first to store the Font Awesome glyph refrences.
-	 * @author William Bittle
-	 * @version 3.0.0
-	 * @since 3.0.0
-	 */
-	private final static class Initializer {
-		/** The font-awesome glyph-font pack */
-		private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	}
 	
 	/**

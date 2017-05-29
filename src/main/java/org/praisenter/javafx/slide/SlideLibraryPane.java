@@ -11,13 +11,11 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Tag;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
@@ -81,9 +79,6 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 	
 	/** The collator for locale dependent sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
-	
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	// selection
 	
@@ -354,7 +349,7 @@ public class SlideLibraryPane extends BorderPane implements ApplicationPane {
 				menu.createMenuItem(ApplicationAction.RENAME),
 				menu.createMenuItem(ApplicationAction.DELETE),
 				new SeparatorMenuItem(),
-				menu.createMenuItem(ApplicationAction.IMPORT_SLIDES, Translations.get("action.import"), FONT_AWESOME.create(FontAwesome.Glyph.LEVEL_DOWN)),
+				menu.createMenuItem(ApplicationAction.IMPORT_SLIDES, Translations.get("action.import"), ApplicationGlyphs.MENU_IMPORT.duplicate()),
 				menu.createMenuItem(ApplicationAction.EXPORT),
 				new SeparatorMenuItem(),
 				menu.createMenuItem(ApplicationAction.SELECT_ALL),

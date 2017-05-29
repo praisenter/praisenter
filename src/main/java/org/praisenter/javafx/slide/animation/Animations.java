@@ -27,7 +27,6 @@ package org.praisenter.javafx.slide.animation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -141,6 +140,10 @@ public final class Animations {
 	public static final Transition buildSlideTransition(ObservableSlide<?> out, ObservableSlide<?> in) {
 		boolean transitionBackground = true;
 		
+		// FIXME we need to test the slide transitions with multiple animations - may not work very well
+		// PP transitions, then plays animations - regardless if they are at the same start time
+		// PP only allows a single transition
+		
 		ParallelTransition inTransitions = new ParallelTransition();
 		ParallelTransition outTransitions = new ParallelTransition();
 		
@@ -148,7 +151,7 @@ public final class Animations {
 			Map<UUID, Node> inNodes = mapNodes(in);
 			
 			// check if we need to animate the slide itself
-			transitionBackground = in.getRegion().isBackgroundTransitionRequired(out.getRegion());
+			transitionBackground = out == null ? true : in.getRegion().isBackgroundTransitionRequired(out.getRegion());
 			UUID slideId = in.getId();
 			
 			for (SlideAnimation animation : in.getAnimations()) {
@@ -179,6 +182,7 @@ public final class Animations {
 				animations = in.getAnimations();
 			}
 			
+			// TODO some transition's out-going animation may not be compatible with the in-coming animation(s); Zoom is a good example.
 			for (SlideAnimation animation : animations) {
 				if (animation != null && 
 					animation.getAnimation() != null && 
@@ -200,9 +204,7 @@ public final class Animations {
 					// all the components of the out-going slide individually with all the animations
 					// that are for the slide
 					} else {
-						Iterator<ObservableSlideComponent<?>> componentIterator = out.componentIterator();
-						while (componentIterator.hasNext()) {
-							ObservableSlideComponent<?> component = componentIterator.next();
+						for (ObservableSlideComponent<?> component : out.getComponents()) {
 							// set the node
 							transition.setNode(component.getDisplayPane());
 							// add it to the parallel transition
@@ -224,9 +226,7 @@ public final class Animations {
 	private static final Map<UUID, Node> mapNodes(ObservableSlide<?> slide) {
 		Map<UUID, Node> nodes = new HashMap<>();
 		nodes.put(slide.getId(), slide.getDisplayPane());
-		Iterator<ObservableSlideComponent<?>> componentIterator = slide.componentIterator();
-		while (componentIterator.hasNext()) {
-			ObservableSlideComponent<?> component = componentIterator.next();
+		for (ObservableSlideComponent<?> component : slide.getComponents()) {
 			nodes.put(component.getId(), component.getDisplayPane());
 		}
 		return nodes;

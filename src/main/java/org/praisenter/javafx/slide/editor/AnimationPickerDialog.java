@@ -33,6 +33,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -53,6 +54,7 @@ final class AnimationPickerDialog extends BorderPane {
 	/** The configured animation */
 	private final ObjectProperty<Animation> value = new SimpleObjectProperty<Animation>();
 	
+	/** The callback to call when the animation is configured */
 	private Consumer<Animation> callback = null;
 	
 	/**
@@ -69,8 +71,6 @@ final class AnimationPickerDialog extends BorderPane {
 		this.dialog.setTitle("Animation Picker");
 		this.dialog.initModality(Modality.WINDOW_MODAL);
 		this.dialog.initStyle(StageStyle.UTILITY);
-//		this.dialog.setWidth(800);
-//		this.dialog.setHeight(450);
 		// NOTE: this makes the title portion of the modal shorter
 		this.dialog.setResizable(false);
 		
@@ -87,10 +87,16 @@ final class AnimationPickerDialog extends BorderPane {
 			if (this.callback != null) {
 				this.callback.accept(this.value.get());
 			}
+			this.dialog.close();
+		});
+		
+		Button btnCancel = new Button("Cancel");
+		btnCancel.setOnAction(e -> {
+			this.dialog.close();
 		});
 		
 		this.setCenter(this.animationPickerPane);
-		this.setBottom(btnAccept);
+		this.setBottom(new HBox(2, btnAccept, btnCancel));
 		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));
 	}
 	

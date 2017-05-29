@@ -40,6 +40,7 @@ import javax.imageio.stream.ImageInputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.MediaType;
 import org.praisenter.utility.ImageManipulator;
 import org.praisenter.utility.StringManipulator;
 

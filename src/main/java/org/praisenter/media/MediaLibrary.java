@@ -56,6 +56,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.LockMap;
+import org.praisenter.MediaType;
 import org.praisenter.Tag;
 import org.praisenter.ThumbnailSettings;
 import org.praisenter.utility.MimeType;

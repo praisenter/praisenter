@@ -28,9 +28,9 @@ import java.nio.file.Paths;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.MediaType;
 import org.praisenter.javafx.ImageCache;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
 import org.praisenter.slide.graphics.ScaleType;
 
 import javafx.scene.image.Image;

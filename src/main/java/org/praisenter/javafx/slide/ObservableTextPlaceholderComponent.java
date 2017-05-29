@@ -135,8 +135,13 @@ public final class ObservableTextPlaceholderComponent extends ObservableTextComp
 	 */
 	public String getText() {
 		String text = this.region.getText();
-		if (this.mode == SlideMode.EDIT && (text == null || text.length() == 0)) {
-			text = this.getTextFor(this.placeholderType.get(), this.placeholderVariant.get());
+		if (this.mode == SlideMode.EDIT ||
+			this.mode == SlideMode.PREVIEW ||
+			this.mode == SlideMode.PREVIEW_NO_AUDIO ||
+			this.mode == SlideMode.SNAPSHOT) {
+			if (text == null || text.length() == 0) {
+				text = this.getTextFor(this.placeholderType.get(), this.placeholderVariant.get());
+			}
 		}
 		return text;
 	}

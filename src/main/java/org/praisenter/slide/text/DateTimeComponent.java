@@ -26,6 +26,7 @@ package org.praisenter.slide.text;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -73,7 +74,10 @@ public class DateTimeComponent extends AbstractTextComponent implements SlideReg
 	 */
 	@Override
 	public String getName() {
-		return SimpleDateFormat.getDateInstance().format(LocalDate.of(1970, 1, 1));
+		return SimpleDateFormat.getDateInstance().format(Date.from(LocalDate.of(1970, 1, 1)
+																			.atStartOfDay()
+																			.atZone(ZoneId.systemDefault())
+																			.toInstant()));
 	}
 	
 	/* (non-Javadoc)

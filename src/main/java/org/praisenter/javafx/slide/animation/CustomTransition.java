@@ -128,7 +128,7 @@ public abstract class CustomTransition<T extends Animation> extends Transition {
 		
 		if (node instanceof Region) {
 			Region r = (Region)node;
-			bounds = new Rectangle2D(r.getLayoutX(), r.getLayoutY(), r.getPrefWidth(), r.getPrefHeight());
+			bounds = new Rectangle2D(r.getLayoutX(), r.getLayoutY(), r.getWidth(), r.getHeight());
 		} else if (node instanceof MediaView) {
 			MediaView m = (MediaView)node;
 			bounds = new Rectangle2D(m.getX(), m.getY(), m.getFitWidth(), m.getFitHeight());

@@ -1,16 +1,13 @@
 package org.praisenter.javafx.slide.editor;
 
 import org.controlsfx.control.SegmentedButton;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.MediaType;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
-import org.praisenter.resources.OpenIconic;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientCycleType;
@@ -33,13 +30,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-class BackgroundRibbonTab extends ComponentEditorRibbonTab {
-
-	private static final GlyphFont OPEN_ICONIC = GlyphFontRegistry.font("Icons");
-	
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
+final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 	private final PraisenterContext context;
 	
 	private final ComboBox<Option<PaintType>> cmbTypes;
@@ -87,19 +78,19 @@ class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 		this.pkrVideo.setValue(null);
 		this.pkrVideo.managedProperty().bind(pkrVideo.visibleProperty());
 		
-		ToggleButton tglImageScaleNone = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.CROP));
-		ToggleButton tglImageScaleNonUniform = new ToggleButton("", OPEN_ICONIC.create(OpenIconic.Glyph.RESIZE_BOTH));
-		ToggleButton tglImageScaleUniform = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ARROWS));
+		ToggleButton tglImageScaleNone = new ToggleButton("", ApplicationGlyphs.MEDIA_SCALE_NONE.duplicate());
+		ToggleButton tglImageScaleNonUniform = new ToggleButton("", ApplicationGlyphs.MEDIA_SCALE_NONUNIFORM.duplicate());
+		ToggleButton tglImageScaleUniform = new ToggleButton("", ApplicationGlyphs.MEDIA_SCALE_UNIFORM.duplicate());
 		tglImageScaleNone.setSelected(true);
 		tglImageScaleNone.setUserData(ScaleType.NONE);
 		tglImageScaleNonUniform.setUserData(ScaleType.NONUNIFORM);
 		tglImageScaleUniform.setUserData(ScaleType.UNIFORM);
 		this.segScaling = new SegmentedButton(tglImageScaleNone, tglImageScaleNonUniform, tglImageScaleUniform);
 		
-		this.tglLoop = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.REPEAT));
+		this.tglLoop = new ToggleButton("", ApplicationGlyphs.MEDIA_LOOP.duplicate());
 		this.tglLoop.setSelected(false);
 		
-		this.tglMute = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_OFF));
+		this.tglMute = new ToggleButton("", ApplicationGlyphs.MEDIA_MUTE.duplicate());
 		this.tglMute.setSelected(false);
 		
 		this.pkrColor.setVisible(false);
@@ -241,15 +232,16 @@ class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 				return this.pkrGradient.getValue();
 			case IMAGE:
 				if (this.pkrImage.getValue() != null) {
-					return new MediaObject(this.pkrImage.getValue().getId(), this.pkrImage.getValue().getName(), scaleType, false, false);
+					return new MediaObject(this.pkrImage.getValue().getId(), this.pkrImage.getValue().getName(), this.pkrImage.getValue().getType(), scaleType, false, false);
 				}
 				return null;
 			case VIDEO:
 				if (this.pkrVideo.getValue() != null) {
-					return new MediaObject(this.pkrVideo.getValue().getId(), this.pkrVideo.getValue().getName(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
+					return new MediaObject(this.pkrVideo.getValue().getId(), this.pkrVideo.getValue().getName(), this.pkrImage.getValue().getType(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
 				}
 				return null;
 			case AUDIO:
+				return null;
 			default:
 				return null;
 		}

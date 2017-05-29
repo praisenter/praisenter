@@ -28,12 +28,12 @@ import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.MediaType;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.slide.converters.MediaConverter;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradient;
@@ -202,29 +202,33 @@ final class FillPane extends StackPane implements Playable {
 	 * scale type.
 	 */
 	private void setMediaViewSize() {
+		// get the viewport dimensions
 		double w = this.width;
 		double h = this.height;
 		double br = this.borderRadius;
 		
-		double mw = 0.0;
-		double mh = 0.0;
-		MediaPlayer player = this.mediaView.getMediaPlayer();
-		if (player != null) {
-			mw = player.getMedia().getWidth();
-			mh = player.getMedia().getHeight();
-		}
-		
+		// build a clip based on the border radius
 		Rectangle clip = new Rectangle(0, 0, w, h);
 		if (br > 0) {
 			clip.setArcHeight(br * 2);
 			clip.setArcWidth(br * 2);
 		}
 		
+		// get the media dimensions
+		double mw = 0.0;
+		double mh = 0.0;
+		if (this.media != null) {
+			mw = this.media.getWidth();
+			mh = this.media.getHeight();
+		}
+
 		// reset
 		this.mediaView.setFitWidth(0);
 		this.mediaView.setFitHeight(0);
 		this.mediaView.setPreserveRatio(true);
 		
+		// determine how to position and present the video
+		// based on the scale type
 		if (this.scaleType == ScaleType.NONUNIFORM) { 
 			this.mediaView.setFitWidth(w);
 			this.mediaView.setFitHeight(h);
@@ -275,14 +279,13 @@ final class FillPane extends StackPane implements Playable {
 			// this could happen if the media is moved or deleted
 			this.removePaint();
 		} else {
-			MediaType type = media.getType();
-			// they are the same media item
-			this.scaleType = mo.getScaling();
-			
 			// did the media change
 			if (!media.equals(this.media)) {
 				// if so, we need to just start from scratch
 				this.removePaint();
+			
+				MediaType type = media.getType();
+				this.scaleType = mo.getScaling();
 				
 				// set data
 				this.media = media;
@@ -302,16 +305,21 @@ final class FillPane extends StackPane implements Playable {
 					this.paintView.setBackground(background);
 				} else {
 					// otherwise create a media player
-					MediaPlayer player = MediaConverter.toJavaFXMediaPlayer(media, mo.isLoop(), mo.isMute());
+					MediaPlayer player = MediaConverter.toJavaFXMediaPlayer(
+							media, 
+							mo.isLoop(), 
+							this.mode == SlideMode.PREVIEW_NO_AUDIO ? true : mo.isMute());
 					this.mediaView.setMediaPlayer(player);
 					setMediaViewSize();
 				}
 			} else {
+				this.scaleType = mo.getScaling();
+				
 				// set player settings based on the given media
 				MediaPlayer player = this.mediaView.getMediaPlayer();
 				if (player != null) {
 					player.setCycleCount(mo.isLoop() ? MediaPlayer.INDEFINITE : 1);
-					player.setMute(mo.isMute());
+					player.setMute(this.mode == SlideMode.PREVIEW_NO_AUDIO ? true : mo.isMute());
 				}
 				setMediaViewSize();
 				
@@ -336,7 +344,16 @@ final class FillPane extends StackPane implements Playable {
 	 */
 	public void play() {
 		MediaPlayer player = this.mediaView.getMediaPlayer();
-		if (player != null && player.getStatus() != Status.PLAYING) {
+		if (player != null) {
+			if (player.getStatus() == Status.PLAYING || 
+				player.getStatus() == Status.PAUSED ||
+				player.getStatus() == Status.STALLED) {
+				try {
+					player.stop();
+				} catch (Exception ex) {
+					LOGGER.error("Failed to stop playing media " + this.media.getName() + " at " + this.media.getFileName() + " on request to play.", ex);
+				}
+			}
 			try {
 				player.play();
 			} catch (Exception ex) {
@@ -367,6 +384,7 @@ final class FillPane extends StackPane implements Playable {
 		if (player != null) {
 			try {
 				player.dispose();
+				this.mediaView.setMediaPlayer(null);
 			} catch (Exception ex) {
 				LOGGER.error("Failed to dispose media " + this.media.getName() + " at " + this.media.getFileName(), ex);
 			}

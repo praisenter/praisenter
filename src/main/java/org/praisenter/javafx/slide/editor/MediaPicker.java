@@ -24,9 +24,9 @@
  */
 package org.praisenter.javafx.slide.editor;
 
+import org.praisenter.MediaType;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
@@ -70,7 +70,9 @@ final class MediaPicker extends Button {
 				value.bindBidirectional(this.dialog.valueProperty());
 			}
 			// show the dialog
-			dialog.show();
+			dialog.show(m -> {
+				value.set(m);
+			});
 		});
 	}
 	

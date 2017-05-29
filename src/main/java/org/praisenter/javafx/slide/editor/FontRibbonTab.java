@@ -1,8 +1,6 @@
 package org.praisenter.javafx.slide.editor;
 
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
@@ -43,9 +41,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
 class FontRibbonTab extends ComponentEditorRibbonTab {
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
 	private final SlideFontPicker pkrFont;
 	private final ComboBox<Option<FontScaleType>> cbFontScaling;
 	private final Spinner<Double> spnLineSpacing;
@@ -76,7 +71,7 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 			@Override
 			protected void updateItem(Option<FontScaleType> item, boolean empty) {
 				super.updateItem(item, empty);
-				setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.TEXT_HEIGHT).color((Color)getTextFill()));
+				setGraphic(ApplicationGlyphs.FONT_SCALING.duplicate().color((Color)getTextFill()));
 				if (item != null) {
 					setText(item.getName());
 				}

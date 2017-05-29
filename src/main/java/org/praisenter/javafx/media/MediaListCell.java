@@ -24,10 +24,10 @@
  */
 package org.praisenter.javafx.media;
 
+import org.praisenter.MediaType;
 import org.praisenter.ThumbnailSettings;
 import org.praisenter.javafx.FlowListCell;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;

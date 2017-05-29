@@ -1,12 +1,9 @@
 package org.praisenter.javafx.slide.editor;
 
 import org.controlsfx.control.SegmentedButton;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
-import org.praisenter.resources.OpenIconic;
 import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 import org.praisenter.slide.text.VerticalTextAlignment;
@@ -18,12 +15,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 class ParagraphRibbonTab extends ComponentEditorRibbonTab {
-
-	private static final GlyphFont OPEN_ICONIC = GlyphFontRegistry.font("Icons");
-	
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
 	private final SegmentedButton segHorizontalAlignment;
 	private final SegmentedButton segVerticalAlignment;
 	private final ToggleButton tglTextWrapping;
@@ -33,10 +24,10 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 		super("Paragraph");
 
 		// h-align
-		ToggleButton tglLeft = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_LEFT));
-		ToggleButton tglRight = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_RIGHT));
-		ToggleButton tglCenter = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_CENTER));
-		ToggleButton tglJustify = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_JUSTIFY));
+		ToggleButton tglLeft = new ToggleButton("", ApplicationGlyphs.HALIGN_LEFT.duplicate());
+		ToggleButton tglRight = new ToggleButton("", ApplicationGlyphs.HALIGN_RIGHT.duplicate());
+		ToggleButton tglCenter = new ToggleButton("", ApplicationGlyphs.HALIGN_CENTER.duplicate());
+		ToggleButton tglJustify = new ToggleButton("", ApplicationGlyphs.HALIGN_JUSTIFY.duplicate());
 		tglLeft.setSelected(true);
 		tglLeft.setUserData(HorizontalTextAlignment.LEFT);
 		tglRight.setUserData(HorizontalTextAlignment.RIGHT);
@@ -44,9 +35,9 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 		tglJustify.setUserData(HorizontalTextAlignment.JUSTIFY);
 		this.segHorizontalAlignment = new SegmentedButton(tglLeft, tglCenter, tglRight, tglJustify);
 		// v-align
-		ToggleButton tglTop = new ToggleButton("", OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_TOP));
-		ToggleButton tglMiddle = new ToggleButton("", OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_CENTER));
-		ToggleButton tglBottom = new ToggleButton("", OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_BOTTOM));
+		ToggleButton tglTop = new ToggleButton("", ApplicationGlyphs.VALIGN_TOP.duplicate());
+		ToggleButton tglMiddle = new ToggleButton("", ApplicationGlyphs.VALIGN_CENTER.duplicate());
+		ToggleButton tglBottom = new ToggleButton("", ApplicationGlyphs.VALIGN_BOTTOM.duplicate());
 		tglTop.setSelected(true);
 		tglTop.setUserData(VerticalTextAlignment.TOP);
 		tglMiddle.setUserData(VerticalTextAlignment.CENTER);
@@ -54,7 +45,7 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 		this.segVerticalAlignment = new SegmentedButton(tglTop, tglMiddle, tglBottom);
 		
 		// text wrapping
-		this.tglTextWrapping = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.PARAGRAPH));
+		this.tglTextWrapping = new ToggleButton("", ApplicationGlyphs.WRAP_TEXT.duplicate());
 		this.tglTextWrapping.setSelected(true);
 		
 		this.spnPadding = new Spinner<Double>(0.0, Double.MAX_VALUE, 0.0, 1.0);

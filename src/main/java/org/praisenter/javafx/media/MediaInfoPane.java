@@ -28,12 +28,12 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
+import org.praisenter.MediaType;
 import org.praisenter.Tag;
 import org.praisenter.javafx.TagEvent;
 import org.praisenter.javafx.TagListView;
 import org.praisenter.javafx.themes.Styles;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.Formatter;
 

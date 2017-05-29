@@ -26,11 +26,10 @@ package org.praisenter.javafx.media;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.controlsfx.glyphfont.Glyph;
+import org.praisenter.MediaType;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.themes.Styles;
-import org.praisenter.media.MediaType;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -63,9 +62,6 @@ public final class MediaPlayerPane extends BorderPane {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
     /** The current media duration */
     private Duration duration;
     
@@ -92,6 +88,22 @@ public final class MediaPlayerPane extends BorderPane {
     /** The container for all the media playback controls */
     private final HBox controlsBar;
 
+    // glyphs
+    // since we are toggling them back and forth, lets use the
+    // same glyph nodes for better memory usage and performance
+    
+    /** A glyph for play */
+    private final Glyph play = ApplicationGlyphs.PLAYER_PLAY.duplicate();
+    
+    /** A glyph for pause */
+    private final Glyph pause = ApplicationGlyphs.PLAYER_PAUSE.duplicate();
+    
+    /** A glyph for mute */
+    private final Glyph mute = ApplicationGlyphs.PLAYER_VOLUME_MUTE.duplicate();
+    
+    /** A glyph for the volume control */
+    private final Glyph control = ApplicationGlyphs.PLAYER_VOLUME_CONTROL.duplicate();
+    
     /**
      * Default constructor.
      */
@@ -109,7 +121,7 @@ public final class MediaPlayerPane extends BorderPane {
         BorderPane.setAlignment(this.controlsBar, Pos.CENTER);
 
         // play/pause button
-        this.btnPlay = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
+        this.btnPlay = new Button("", play);
         this.btnPlay.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(ActionEvent e) {
             	MediaPlayer player = mediaView.getMediaPlayer();
@@ -167,17 +179,17 @@ public final class MediaPlayerPane extends BorderPane {
         this.lblTime.setMinWidth(Label.USE_PREF_SIZE);
 
         // mute button
-        this.btnMute = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_UP));
+        this.btnMute = new Button("", control);
         this.btnMute.setOnAction((e) -> {
         	MediaPlayer player = mediaView.getMediaPlayer();
         	if (player == null) return;
         	// toggle mute state
         	if (player.isMute()) {
         		player.setMute(false);
-        		btnMute.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_UP));
+        		btnMute.setGraphic(control);
         	} else {
         		player.setMute(true);
-        		btnMute.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_OFF));
+        		btnMute.setGraphic(mute);
         	}
         });
         
@@ -227,7 +239,7 @@ public final class MediaPlayerPane extends BorderPane {
     	}
     	
     	// reset the controls bar
-    	this.btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
+    	this.btnPlay.setGraphic(play);
 		this.sldTime.setValue(0);
 		
 		// set the new player
@@ -250,17 +262,17 @@ public final class MediaPlayerPane extends BorderPane {
             });
             player.setOnPlaying(new Runnable() {
                 public void run() {
-                	btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PAUSE));
+                	btnPlay.setGraphic(pause);
                 }
             });
             player.setOnPaused(new Runnable() {
                 public void run() {
-                    btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
+                    btnPlay.setGraphic(play);
                 }
             });
             player.setOnStopped(new Runnable() {
                 public void run() {
-                    btnPlay.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.PLAY));
+                    btnPlay.setGraphic(play);
                 }
             });
             player.setOnReady(new Runnable() {

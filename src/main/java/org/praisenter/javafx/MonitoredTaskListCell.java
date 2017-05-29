@@ -24,9 +24,6 @@
  */
 package org.praisenter.javafx;
 
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.async.AsyncTask;
 
 import javafx.beans.property.ObjectProperty;
@@ -38,7 +35,6 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.Tooltip;
-import javafx.scene.paint.Color;
 
 /**
  * A list cell specifically for {@link AsyncTask}s.
@@ -47,9 +43,6 @@ import javafx.scene.paint.Color;
  * @since 3.0.0
  */
 final class MonitoredTaskListCell extends ListCell<AsyncTask<?>> {
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
 	/** The task status */
 	private final ObjectProperty<Worker.State> status = new SimpleObjectProperty<>(Worker.State.READY);
 	
@@ -87,11 +80,11 @@ final class MonitoredTaskListCell extends ListCell<AsyncTask<?>> {
 		if (nv == Worker.State.RUNNING || nv == Worker.State.READY || nv == Worker.State.SCHEDULED) {
 			this.setGraphic(this.indicator);
 		} else if (nv == Worker.State.CANCELLED) {
-			this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.REMOVE).color(Color.LIGHTGRAY));
+			this.setGraphic(ApplicationGlyphs.TASK_CANCELED.duplicate());
 		} else if (nv == Worker.State.FAILED) {
-			this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.REMOVE).color(Color.RED));
+			this.setGraphic(ApplicationGlyphs.TASK_FAILURE.duplicate());
 		} else if (nv == Worker.State.SUCCEEDED) {
-			this.setGraphic(FONT_AWESOME.create(FontAwesome.Glyph.CHECK).color(Color.LIMEGREEN));
+			this.setGraphic(ApplicationGlyphs.TASK_SUCCESS.duplicate());
 		} else {
 			this.setGraphic(null);
 		}

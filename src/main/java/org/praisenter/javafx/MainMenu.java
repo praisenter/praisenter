@@ -5,9 +5,6 @@ import java.util.LinkedList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -31,9 +28,6 @@ import javafx.scene.layout.VBox;
 
 class MainMenu extends VBox implements EventHandler<ActionEvent> {
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	private final MainPane mainPane;
 	private final MenuBar menu;
@@ -92,7 +86,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		fNewBibleRoot.getItems().addAll(fNewBible, new SeparatorMenuItem(), fNewBook, fNewChapter, fNewVerse);
 		fNew.getItems().addAll(fNewSlide, fNewSlideShow, fNewSong, fNewBibleRoot);
 		
-		Menu fImport = new Menu("Import", FONT_AWESOME.create(FontAwesome.Glyph.LEVEL_DOWN));
+		Menu fImport = new Menu("Import", ApplicationGlyphs.MENU_IMPORT.duplicate());
 		MenuItem fImportMedia = createMenuItem(ApplicationAction.IMPORT_MEDIA);
 		MenuItem fImportSlides = createMenuItem(ApplicationAction.IMPORT_SLIDES);
 		MenuItem fImportSongs = createMenuItem(ApplicationAction.IMPORT_SONGS);

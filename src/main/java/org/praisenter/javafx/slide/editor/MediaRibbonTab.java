@@ -1,13 +1,11 @@
 package org.praisenter.javafx.slide.editor;
 
 import org.controlsfx.control.SegmentedButton;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.controlsfx.glyphfont.Glyph;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.media.Media;
-import org.praisenter.resources.OpenIconic;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.object.MediaObject;
 
@@ -20,12 +18,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 class MediaRibbonTab extends ComponentEditorRibbonTab {
-
-	private static final GlyphFont OPEN_ICONIC = GlyphFontRegistry.font("Icons");
-	
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
 	private final PraisenterContext context;
 	
 	private final MediaPicker pkrMedia;
@@ -33,6 +25,9 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 	private final ToggleButton tglLoop;
 	private final ToggleButton tglMute;
 
+	private final Glyph mute = ApplicationGlyphs.MEDIA_MUTE.duplicate();
+	private final Glyph volume = ApplicationGlyphs.MEDIA_VOLUME.duplicate();
+	
 	public MediaRibbonTab(PraisenterContext context) {
 		super("Media");
 		
@@ -42,19 +37,19 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 		this.pkrMedia.setValue(null);
 		this.pkrMedia.managedProperty().bind(pkrMedia.visibleProperty());
 		
-		ToggleButton tglImageScaleNone = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.CROP));
-		ToggleButton tglImageScaleNonUniform = new ToggleButton("", OPEN_ICONIC.create(OpenIconic.Glyph.RESIZE_BOTH));
-		ToggleButton tglImageScaleUniform = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.ARROWS));
+		ToggleButton tglImageScaleNone = new ToggleButton("", ApplicationGlyphs.MEDIA_SCALE_NONE.duplicate());
+		ToggleButton tglImageScaleNonUniform = new ToggleButton("", ApplicationGlyphs.MEDIA_SCALE_NONUNIFORM.duplicate());
+		ToggleButton tglImageScaleUniform = new ToggleButton("", ApplicationGlyphs.MEDIA_SCALE_UNIFORM.duplicate());
 		tglImageScaleNone.setSelected(true);
 		tglImageScaleNone.setUserData(ScaleType.NONE);
 		tglImageScaleNonUniform.setUserData(ScaleType.NONUNIFORM);
 		tglImageScaleUniform.setUserData(ScaleType.UNIFORM);
 		this.segScaling = new SegmentedButton(tglImageScaleNone, tglImageScaleNonUniform, tglImageScaleUniform);
 		
-		this.tglLoop = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.REPEAT));
+		this.tglLoop = new ToggleButton("", ApplicationGlyphs.MEDIA_LOOP.duplicate());
 		this.tglLoop.setSelected(false);
 		
-		this.tglMute = new ToggleButton("", FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_OFF));
+		this.tglMute = new ToggleButton("", volume);
 		this.tglMute.setSelected(false);
 		
 		// tooltips
@@ -102,6 +97,14 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 		this.segScaling.getToggleGroup().selectedToggleProperty().addListener(listener);
 		this.tglLoop.selectedProperty().addListener(listener);
 		this.tglMute.selectedProperty().addListener(listener);
+		
+		this.tglMute.selectedProperty().addListener((obs, ov, nv) -> {
+			if (nv) {
+				this.tglMute.setGraphic(mute);
+			} else {
+				this.tglMute.setGraphic(volume);
+			}
+		});
 	}
 	
 	private MediaObject getControlValues() {
@@ -113,7 +116,7 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 			return null;
 		}
 		
-		return new MediaObject(media.getId(), media.getName(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
+		return new MediaObject(media.getId(), media.getName(), media.getType(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
 	}
 	
 	private void setControlValues(MediaObject mediaObject) {

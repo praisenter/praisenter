@@ -27,7 +27,9 @@ package org.praisenter.javafx;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.praisenter.Constants;
 import org.praisenter.Tag;
+import org.praisenter.ThumbnailSettings;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.bible.ObservableBibleLibrary;
@@ -103,8 +105,8 @@ public final class PraisenterContext {
 
 		this.mediaLibrary = new ObservableMediaLibrary(media);
 		this.bibleLibrary = new ObservableBibleLibrary(bibles);
-		// FIXME move the thumbnail settings to the normal SlideLibrary
-		JavaFXSlideThumbnailGenerator jfxThumbnailGenerator = new JavaFXSlideThumbnailGenerator(100, 100, this);
+		JavaFXSlideThumbnailGenerator jfxThumbnailGenerator = new JavaFXSlideThumbnailGenerator(this, 
+				new ThumbnailSettings(Constants.THUMBNAIL_SIZE, Constants.THUMBNAIL_SIZE));
 		this.slideLibrary = new ObservableSlideLibrary(slides, jfxThumbnailGenerator);
 		
 		Set<Tag> tags = new TreeSet<Tag>();

@@ -6,7 +6,9 @@ import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.javafx.slide.SingleSlidePreviewPane;
 import org.praisenter.slide.Slide;
 
+import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class SlideDataPane extends BorderPane {
@@ -31,10 +33,24 @@ public class SlideDataPane extends BorderPane {
 		
 		VBox editor = new VBox();
 		
+		Button btnPlay = new Button("Play");
+		Button btnStop = new Button("Stop");
+		
 		editor.getChildren().add(this.cmbTemplate);
+		editor.getChildren().add(new HBox(btnPlay, btnStop));
 		editor.getChildren().add(this.bibleNavigationPane);
 		
 		this.setCenter(editor);
+		
+		btnPlay.setOnAction(e -> {
+			this.slidePreviewPane.setMode(SlideMode.PREVIEW_NO_AUDIO);
+			this.slidePreviewPane.play();
+		});
+		
+		btnStop.setOnAction(e -> {
+			this.slidePreviewPane.stop();
+			this.slidePreviewPane.setMode(SlideMode.PREVIEW);
+		});
 		
 		this.cmbTemplate.valueProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {

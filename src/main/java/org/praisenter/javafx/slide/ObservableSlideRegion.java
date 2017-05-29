@@ -38,8 +38,11 @@ import org.praisenter.utility.Scaling;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
 import javafx.scene.effect.Effect;
@@ -68,6 +71,9 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 	protected final T region;
 	
 	// editable properties
+	
+	/** The region name */
+	private final StringProperty name = new SimpleStringProperty();
 	
 	/** The x coordinate */
 	private final DoubleProperty x = new SimpleDoubleProperty();
@@ -145,6 +151,7 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 		this.scale.set(Scaling.getNoScaling(region.getWidth(), region.getHeight()));
 		
 		// set initial values
+		this.name.set(region.getName());
 		this.x.set(region.getX());
 		this.y.set(region.getY());
 		this.width.set(region.getWidth());
@@ -272,6 +279,13 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 	}
 
 	// actions
+	
+	/**
+	 * Updates the name property based on the state of the region.
+	 */
+	protected final void updateName() {
+		this.name.set(this.region.getName());
+	}
 	
 	/**
 	 * Updates the Java FX component when the position changes.
@@ -420,8 +434,8 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 		// set initial node properties
 		this.updatePosition();
 		this.updateBorder();
-		this.updateBackground();
 		this.updateSize();
+		this.updateBackground();
 		this.updateOpacity();
 		this.updateEffects();
 		
@@ -727,5 +741,23 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 	 */
 	public ObjectProperty<Scaling> scalingProperty() {
 		return this.scale;
+	}
+	
+	// name
+	
+	/**
+	 * Returns the name of the region.
+	 * @return String
+	 */
+	public String getName() {
+		return this.name.get();
+	}
+	
+	/**
+	 * Returns the name property.
+	 * @return ReadOnlyStringProperty
+	 */
+	public ReadOnlyStringProperty nameProperty() {
+		return this.name;
 	}
 }

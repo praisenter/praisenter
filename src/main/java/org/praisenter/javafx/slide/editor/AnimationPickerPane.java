@@ -225,17 +225,6 @@ final class AnimationPickerPane extends BorderPane {
 		grid.setHgap(3);
 		grid.setVgap(3);
 		
-		InvalidationListener listener = new InvalidationListener() {
-			@Override
-			public void invalidated(Observable observable) {
-				if (mutating) return;
-				mutating = true;
-				value.set(getControlValues());
-				mutating = false;
-			}
-		};
-		
-		
 		// setup the animation options
 		int i = 0;
 		ObservableList<AnimationOption> animationOptions = FXCollections.observableArrayList();
@@ -408,6 +397,16 @@ final class AnimationPickerPane extends BorderPane {
 		this.setMinHeight(420);
 		
 		// value bindings
+
+		InvalidationListener listener = new InvalidationListener() {
+			@Override
+			public void invalidated(Observable observable) {
+				if (mutating) return;
+				mutating = true;
+				value.set(getControlValues());
+				mutating = false;
+			}
+		};
 		
 		easingListPane.getSelectionModel().selectionProperty().addListener(listener);
 		txtDuration.textProperty().addListener(listener);
@@ -425,10 +424,9 @@ final class AnimationPickerPane extends BorderPane {
 		// hide/show logic
 		
 		final int start = row;
+		
+		// toggling of visibility based on the animation should always occur
 		animationListPane.getSelectionModel().selectionProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
-			mutating = true;
-			
 			int subRow = start;
 			// remove controls
 			grid.getChildren().removeAll(
@@ -479,14 +477,14 @@ final class AnimationPickerPane extends BorderPane {
 					LOGGER.error("Unhandled animation type " + type.getName() + " in " + getClass().getName());
 				}
 			}
+		});
+		
+		animationListPane.getSelectionModel().selectionProperty().addListener((obs, ov, nv) -> {
+			if (mutating) return;
+			mutating = true;
 			value.set(getControlValues());
 			mutating = false;
 		});
-		
-		// set the default
-		this.mutating = true;
-		this.value.set(getControlValues());
-		this.mutating = false;
 		
 		// listen for changes directly to the animation
 		this.value.addListener((obs, ov, nv) -> {
@@ -495,6 +493,11 @@ final class AnimationPickerPane extends BorderPane {
 			setControlValues(nv);
 			mutating = false;
 		});
+
+		// set the default
+		this.mutating = true;
+		this.value.set(getControlValues());
+		this.mutating = false;
 	}
 	
 	/**

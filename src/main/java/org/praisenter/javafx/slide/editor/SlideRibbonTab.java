@@ -1,10 +1,8 @@
 package org.praisenter.javafx.slide.editor;
 
 import org.controlsfx.control.PopOver;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Tag;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.TagEvent;
 import org.praisenter.javafx.TagListView;
@@ -26,12 +24,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 
 final class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
 	private final PraisenterContext context;
 	
 	private final TextField name;
@@ -60,8 +54,8 @@ final class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 		});
 		cmbResolutions = new ComboBox<Resolution>(sorted);
 		
-		Button btnNewResolution = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.PLUS).color(Color.LIMEGREEN));
-		Button btnRemoveResolution = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.MINUS).color(Color.RED));
+		Button btnNewResolution = new Button("", ApplicationGlyphs.ADD.duplicate());
+		Button btnRemoveResolution = new Button("", ApplicationGlyphs.REMOVE.duplicate());
 		
 		btnNewResolution.setTooltip(new Tooltip("Add a new resolution target."));
 		btnRemoveResolution.setTooltip(new Tooltip("Remove the selected resolution target."));

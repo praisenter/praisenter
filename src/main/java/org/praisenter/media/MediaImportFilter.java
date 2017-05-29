@@ -27,6 +27,8 @@ package org.praisenter.media;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.praisenter.MediaType;
+
 /**
  * Interface for performing filtering on media before being added to a {@link MediaLibrary}.
  * @author William Bittle

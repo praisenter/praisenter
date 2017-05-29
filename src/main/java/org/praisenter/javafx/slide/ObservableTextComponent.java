@@ -148,6 +148,7 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 		this.text.addListener((obs, ov, nv) -> { 
 			this.region.setText(nv); 
 			updateText();
+			updateName();
 		});
 		this.textPaint.addListener((obs, ov, nv) -> { 
 			this.region.setTextPaint(nv);

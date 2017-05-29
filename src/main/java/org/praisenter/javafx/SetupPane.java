@@ -7,9 +7,6 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Display;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
@@ -39,7 +36,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
@@ -51,9 +47,6 @@ import javafx.stage.Screen;
 public final class SetupPane extends BorderPane {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	public SetupPane(PraisenterContext context) {
 		this.getStyleClass().add(Styles.SETUP_PANE);
@@ -83,7 +76,7 @@ public final class SetupPane extends BorderPane {
 		Label lblLocale = new Label("Language");
 		ComboBox<Option<Locale>> cmbLocale = new ComboBox<Option<Locale>>(FXCollections.observableArrayList(locales));
 		cmbLocale.setValue(new Option<Locale>(null, locale));
-		Button btnRefreshLocales = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.REFRESH));
+		Button btnRefreshLocales = new Button("", ApplicationGlyphs.REFRESH.duplicate());
 		gridGeneral.add(lblLocale, 0, 0);
 		gridGeneral.add(cmbLocale, 1, 0);
 		gridGeneral.add(btnRefreshLocales, 2, 0);
@@ -94,7 +87,7 @@ public final class SetupPane extends BorderPane {
 		Label lblTheme = new Label("Theme");
 		ComboBox<Theme> cmbTheme = new ComboBox<Theme>(FXCollections.observableArrayList(Theme.getAvailableThemes()));
 		cmbTheme.setValue(theme);
-		Button btnRefreshThemes = new Button("", FONT_AWESOME.create(FontAwesome.Glyph.REFRESH));
+		Button btnRefreshThemes = new Button("", ApplicationGlyphs.REFRESH.duplicate());
 		gridGeneral.add(lblTheme, 0, 1);
 		gridGeneral.add(cmbTheme, 1, 1);
 		gridGeneral.add(btnRefreshThemes, 2, 1);
@@ -108,7 +101,7 @@ public final class SetupPane extends BorderPane {
 		gridGeneral.add(lblDebugMode, 0, 2);
 		gridGeneral.add(chkDebugMode, 1, 2);
 
-		Label lblRestartWarning = new Label("Changing the Theme, Language, or Debug Mode requires the application to be restarted to take effect.", FONT_AWESOME.create(FontAwesome.Glyph.INFO_CIRCLE).color(Color.DODGERBLUE));
+		Label lblRestartWarning = new Label("Changing the Theme, Language, or Debug Mode requires the application to be restarted to take effect.", ApplicationGlyphs.INFO.duplicate());
 		lblRestartWarning.setPadding(new Insets(0, 0, 5, 0));
 		
 		VBox vboxGeneral = new VBox(lblRestartWarning, gridGeneral);
@@ -150,7 +143,7 @@ public final class SetupPane extends BorderPane {
 		
 		// SCREENS
 		
-		Label lblScreenWarning = new Label("Changing the screen assignment will close any currently displayed slides or notifications.", FONT_AWESOME.create(FontAwesome.Glyph.WARNING).color(Color.ORANGE));
+		Label lblScreenWarning = new Label("Changing the screen assignment will close any currently displayed slides or notifications.", ApplicationGlyphs.WARN.duplicate());
 		Label lblScreenHowTo = new Label("Drag and drop the screen to assign its role.");
 		lblScreenHowTo.setPadding(new Insets(0, 0, 10, 0));
 		lblScreenWarning.setPadding(new Insets(0, 0, 10, 0));

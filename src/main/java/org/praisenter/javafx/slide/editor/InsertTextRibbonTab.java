@@ -2,11 +2,9 @@ package org.praisenter.javafx.slide.editor;
 
 import java.time.LocalDateTime;
 
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.TextType;
 import org.praisenter.TextVariant;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.slide.ObservableBasicTextComponent;
 import org.praisenter.javafx.slide.ObservableCountdownComponent;
@@ -30,9 +28,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class InsertTextRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
 	private final PraisenterContext context;
 	
 	public InsertTextRibbonTab(PraisenterContext context) {
@@ -40,10 +35,10 @@ public class InsertTextRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 		
 		this.context = context;
 		
-		Button text = new Button("Text", FONT_AWESOME.create(FontAwesome.Glyph.FONT).size(40));
-		Button countdown = new Button("Countdown", FONT_AWESOME.create(FontAwesome.Glyph.CLOCK_ALT).size(40));
-		Button datetime = new Button("Date/Time", FONT_AWESOME.create(FontAwesome.Glyph.CALENDAR_ALT).size(40));
-		Button placeholder = new Button("Placeholder", FONT_AWESOME.create(FontAwesome.Glyph.TERMINAL).size(40));
+		Button text = new Button("Text", ApplicationGlyphs.BASIC_TEXT_COMPONENT.duplicate().size(40));
+		Button countdown = new Button("Countdown", ApplicationGlyphs.COUNTDOWN_COMPONENT.duplicate().size(40));
+		Button datetime = new Button("Date/Time", ApplicationGlyphs.DATETIME_COMPONENT.duplicate().size(40));
+		Button placeholder = new Button("Placeholder", ApplicationGlyphs.PLACEHOLDER_COMPONENT.duplicate().size(40));
 		
 		text.setContentDisplay(ContentDisplay.TOP);
 		countdown.setContentDisplay(ContentDisplay.TOP);

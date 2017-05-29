@@ -30,7 +30,9 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.text.CountdownComponent;
 
 import javafx.animation.AnimationTimer;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -52,6 +54,9 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 	/** The countdown target date/time */
 	private final ObjectProperty<LocalDateTime> countdownTarget = new SimpleObjectProperty<LocalDateTime>();
 	
+	/** The time only count down flag */
+	private final BooleanProperty countdownTimeOnly = new SimpleBooleanProperty();
+	
 	/** The countdown format */
 	private final StringProperty countdownFormat = new SimpleStringProperty();
 	
@@ -66,10 +71,15 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 		
 		// set initial values
 		this.countdownTarget.set(component.getCountdownTarget());
+		this.countdownTimeOnly.set(component.isCountdownTimeOnly());
 		this.countdownFormat.set(component.getCountdownFormat());
 		
 		this.countdownTarget.addListener((obs, ov, nv) -> { 
 			this.region.setCountdownTarget(nv); 
+			this.setText(this.region.getText());
+		});
+		this.countdownTimeOnly.addListener((obs, ov, nv) -> {
+			this.region.setCountdownTimeOnly(nv);
 			this.setText(this.region.getText());
 		});
 		this.countdownFormat.addListener((obs, ov, nv) -> { 
@@ -122,6 +132,32 @@ public final class ObservableCountdownComponent extends ObservableTextComponent<
 	 */
 	public ObjectProperty<LocalDateTime> countdownTargetProperty() {
 		return this.countdownTarget;
+	}
+	
+	// time only
+
+	/**
+	 * Returns true if the countdown is time-only.
+	 * @return boolean
+	 */
+	public boolean isCountdownTimeOnly() {
+		return this.countdownTimeOnly.get();
+	}
+	
+	/**
+	 * Sets the count down to ignore or reflect the target's date.
+	 * @param flag true if the target's date portion should be ignored
+	 */
+	public void setCountdownTimeOnly(boolean flag) {
+		this.countdownTimeOnly.set(flag);
+	}
+	
+	/**
+	 * Returns the count down time-only property.
+	 * @return BooleanProperty
+	 */
+	public BooleanProperty countdownTimeOnlyProperty() {
+		return this.countdownTimeOnly;
 	}
 	
 	// format

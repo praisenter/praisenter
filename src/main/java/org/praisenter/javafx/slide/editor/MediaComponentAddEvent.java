@@ -2,8 +2,8 @@ package org.praisenter.javafx.slide.editor;
 
 import java.io.Serializable;
 
+import org.praisenter.MediaType;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
-import org.praisenter.media.MediaType;
 
 import javafx.event.EventTarget;
 

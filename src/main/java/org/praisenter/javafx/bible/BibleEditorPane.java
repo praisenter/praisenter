@@ -33,9 +33,6 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.Book;
@@ -45,6 +42,7 @@ import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
@@ -102,9 +100,6 @@ import javafx.util.StringConverter;
 public final class BibleEditorPane extends BorderPane implements ApplicationPane {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	// data
 	
@@ -200,7 +195,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		txtNotes.setWrapText(true);
 		txtNotes.setPrefHeight(250);
 		
-		Label lblEditMessage = new Label(Translations.get("bible.edit.message"), FONT_AWESOME.create(FontAwesome.Glyph.ARROW_LEFT));
+		Label lblEditMessage = new Label(Translations.get("bible.edit.message"), ApplicationGlyphs.BIBLE_EDIT_ARROW_LEFT.duplicate());
 		
 		// book
 		Label lblBookName = new Label(Translations.get("bible.edit.bookname"));

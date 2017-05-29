@@ -58,6 +58,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
+// FEATURE Replace the current loading background image
+
 /**
  * Pane for showing a loading indicator and other animations while building
  * a {@link PraisenterContext}
@@ -112,9 +114,8 @@ final class LoadingPane extends Pane {
 		
 		// create the loading task
 		this.loading = new LoadingTask(javaFXContext, configuration);
-		this.loadingThread = new Thread(this.loading);
+		this.loadingThread = new Thread(this.loading, "Praisenter Loading Thread");
 		
-		// FEATURE Replace the current loading background image
 		// FIXME Add "Praisenter" text or logo to the loading pane
 		// set the background image
     	setBackground(new Background(

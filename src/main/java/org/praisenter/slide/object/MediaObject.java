@@ -32,6 +32,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.praisenter.MediaType;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.graphics.AbstractSlidePaint;
@@ -39,6 +40,8 @@ import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlidePaint;
 
 // FEATURE Add ColorAdjust options for video/images
+// FEATURE Add a repeat property that will tile an image
+// FEATURE Evaluate supporting JavaFX http live streaming
 
 /**
  * Represents a media object for audio, video, and images coming from the {@link MediaLibrary}.
@@ -64,6 +67,10 @@ public final class MediaObject extends AbstractSlidePaint implements SlidePaint 
 	@XmlElement(name = "name", required = false)
 	final String name;
 	
+	/** The media type */
+	@XmlElement(name = "type", required = false)
+	final MediaType type;
+	
 	/** The media scaling type */
 	@XmlElement(name = "scaling", required = false)
 	final ScaleType scaling;
@@ -76,9 +83,6 @@ public final class MediaObject extends AbstractSlidePaint implements SlidePaint 
 	@XmlElement(name = "mute", required = false)
 	final boolean mute;
 
-	// FEATURE Add a repeat property that will tile an image
-	// FEATURE Evaluate supporting JavaFX http live streaming
-	
 	/**
 	 * Constructor for JAXB.
 	 */
@@ -86,6 +90,7 @@ public final class MediaObject extends AbstractSlidePaint implements SlidePaint 
 	private MediaObject() {
 		this.id = null;
 		this.name = null;
+		this.type = null;
 		this.scaling = ScaleType.UNIFORM;
 		this.loop = false;
 		this.mute = false;
@@ -95,14 +100,16 @@ public final class MediaObject extends AbstractSlidePaint implements SlidePaint 
 	 * Creates a new media object.
 	 * @param id the referenced media id
 	 * @param name the referenced media name
+	 * @param type the referenced media type
 	 * @param scaling the scaling type
 	 * @param loop true if the media should loop
 	 * @param mute true if the media should be muted
 	 */
-	public MediaObject(UUID id, String name, ScaleType scaling, boolean loop, boolean mute) {
+	public MediaObject(UUID id, String name, MediaType type, ScaleType scaling, boolean loop, boolean mute) {
 		if (id == null) throw new NullPointerException();
 		this.id = id;
 		this.name = name;
+		this.type = type;
 		this.scaling = scaling != null ? scaling : ScaleType.UNIFORM;
 		this.loop = loop;
 		this.mute = mute;
@@ -154,6 +161,14 @@ public final class MediaObject extends AbstractSlidePaint implements SlidePaint 
 		return this.name;
 	}
 
+	/**
+	 * Returns the media type.
+	 * @return {@link MediaType}
+	 */
+	public MediaType getType() {
+		return this.type;
+	}
+	
 	/**
 	 * Returns the scaling type.
 	 * @return {@link ScaleType}

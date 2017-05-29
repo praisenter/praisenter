@@ -24,7 +24,9 @@
  */
 package org.praisenter.slide.text;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -45,6 +47,7 @@ import org.praisenter.xml.adapters.LocalDateTimeXmlAdapter;
 @XmlRootElement(name = "countdownComponent")
 @XmlAccessorType(XmlAccessType.NONE)
 public class CountdownComponent extends AbstractTextComponent implements SlideRegion, SlideComponent, TextComponent {
+	/** The default format */
 	private static final String DEFAULT_FORMAT = "%1$02d:%2$02d:%3$02d:%4$02d:%5$02d:%6$02d";
 	
 	/** The target countdown time */
@@ -52,6 +55,10 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	@XmlJavaTypeAdapter(value = LocalDateTimeXmlAdapter.class)
 	LocalDateTime countdownTarget;
 
+	/** Whether to consider the time only */
+	@XmlElement(name = "countdownTimeOnly", required = false)
+	boolean countdownTimeOnly;
+	
 	/** The duration format */
 	@XmlElement(name = "countdownFormat", required = false)
 	String countdownFormat;
@@ -61,6 +68,7 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	 */
 	public CountdownComponent() {
 		this.countdownTarget = null;
+		this.countdownTimeOnly = false;
 		this.countdownFormat = DEFAULT_FORMAT;
 	}
 	
@@ -72,6 +80,7 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	public CountdownComponent(CountdownComponent other, boolean exact) {
 		super(other, exact);
 		this.countdownTarget = other.countdownTarget;
+		this.countdownTimeOnly = other.countdownTimeOnly;
 		this.countdownFormat = other.countdownFormat;
 	}
 	
@@ -113,6 +122,12 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	 */
 	@Override
 	public String getText() {
+		if (this.countdownTimeOnly) {
+			// get the time of the target only
+			LocalTime timeOnly = this.countdownTarget.toLocalTime();
+			LocalDateTime target = timeOnly.atDate(LocalDate.now());
+			return formatCountdown(this.countdownFormat, target);
+		}
 		return formatCountdown(this.countdownFormat, this.countdownTarget);
 	}
 	
@@ -179,6 +194,23 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 		this.countdownTarget = target;
 	}
 
+	/**
+	 * Returns true if we only count down to the time
+	 * and ignore the date.
+	 * @return boolean
+	 */
+	public boolean isCountdownTimeOnly() {
+		return this.countdownTimeOnly;
+	}
+	
+	/**
+	 * Toggles the time only-ness of the countdown.
+	 * @param flag true if only the time of the target should be used
+	 */
+	public void setCountdownTimeOnly(boolean flag) {
+		this.countdownTimeOnly = flag;
+	}
+	
 	/**
 	 * Gets the count down format.
 	 * @return String

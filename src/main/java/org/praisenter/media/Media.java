@@ -45,6 +45,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.MediaType;
 import org.praisenter.Tag;
 import org.praisenter.utility.MimeType;
 import org.praisenter.xml.adapters.BufferedImageJpegTypeAdapter;

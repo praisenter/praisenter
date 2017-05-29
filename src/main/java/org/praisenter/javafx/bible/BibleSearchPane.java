@@ -169,6 +169,16 @@ public final class BibleSearchPane extends BorderPane {
 			this.cmbBiblePrimary.getSelectionModel().select(primaryBible);
 		}
 		
+		this.cmbBook = new AutoCompleteComboBox<Book>(books, new AutoCompleteComparator<Book>() {
+			public boolean matches(String typedText, Book objectToCompare) {
+				Pattern pattern = Pattern.compile("^" + Pattern.quote(typedText) + ".*", Pattern.CASE_INSENSITIVE);
+				if (pattern.matcher(objectToCompare.getName()).matches()) {
+					return true;
+				}
+				return false;
+			}
+		});
+		
 		this.cmbBiblePrimary.valueProperty().addListener((obs, ov, nv) -> {
 			try {
 				if (nv != null) {
@@ -193,15 +203,6 @@ public final class BibleSearchPane extends BorderPane {
 			}
 		});
 		
-		this.cmbBook = new AutoCompleteComboBox<Book>(books, new AutoCompleteComparator<Book>() {
-			public boolean matches(String typedText, Book objectToCompare) {
-				Pattern pattern = Pattern.compile("^" + Pattern.quote(typedText) + ".*", Pattern.CASE_INSENSITIVE);
-				if (pattern.matcher(objectToCompare.getName()).matches()) {
-					return true;
-				}
-				return false;
-			}
-		});
 		this.cmbBook.setPromptText(Translations.get("bible.book.placeholder"));
 		
 		Button btnSearch = new Button(Translations.get("search.button"));

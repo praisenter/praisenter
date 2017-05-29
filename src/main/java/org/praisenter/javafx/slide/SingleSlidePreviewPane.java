@@ -24,14 +24,14 @@
  */
 package org.praisenter.javafx.slide;
 
-import java.util.Iterator;
-
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.slide.animation.Animations;
 import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.Slide;
 import org.praisenter.utility.Scaling;
 
+import javafx.animation.Transition;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ObjectProperty;
@@ -63,6 +63,9 @@ public final class SingleSlidePreviewPane extends StackPane {
 
 	/** The mode to render the slide in */
 	private final ObjectProperty<SlideMode> mode = new SimpleObjectProperty<SlideMode>();
+	
+	private final ObjectProperty<Transition> transition = new SimpleObjectProperty<Transition>();
+	private final ObjectProperty<ObservableSlide<?>> slide = new SimpleObjectProperty<ObservableSlide<?>>();
 	
 	/**
 	 * Minimal constructor.
@@ -135,6 +138,7 @@ public final class SingleSlidePreviewPane extends StackPane {
 		slideBounds.maxHeightProperty().bind(heightSizing);
 		
 		Pane slideCanvas = new Pane();
+		slideCanvas.getStyleClass().add("animation-anchor");
 		slideCanvas.setMinSize(0, 0);
 		slideCanvas.setSnapToPixel(true);
 		slideCanvas.setBackground(null);
@@ -174,19 +178,49 @@ public final class SingleSlidePreviewPane extends StackPane {
 		
 		// setup of the editor when the slide being edited changes
 		this.value.addListener((obs, ov, nv) -> {
+			// clean up
+			Transition oldTx = this.transition.get();
+			ObservableSlide<?> oldSlide = this.slide.get();
+			if (oldTx != null) {
+				oldTx.stop();
+			}
+			if (oldSlide != null) {
+				oldSlide.stop();
+				oldSlide.dispose();
+			}
+			
+			// remove all the nodes
 			slideCanvas.getChildren().clear();
-
+			
+			// get the current mode
+			SlideMode sm = this.mode.get() == null ? SlideMode.PREVIEW : this.mode.get();
+			
+			// setup
 			if (nv != null) {
-				ObservableSlide<Slide> os = new ObservableSlide<>(nv, context, this.mode.get() == null ? SlideMode.PREVIEW : this.mode.get());
+				// create the observable slide
+				ObservableSlide<Slide> os = new ObservableSlide<>(nv, context, sm);
+				this.slide.set(os);
+				
+				if (sm == SlideMode.PREVIEW_NO_AUDIO || sm == SlideMode.PRESENT) {
+					// build a transition for it
+					Transition tx = Animations.buildSlideTransition(null, os);
+					this.transition.set(tx);
+				} else {
+					this.transition.set(null);
+				}
+				
+				// add all the nodes
 				Node rootPane = os.getDisplayPane();
 				slideCanvas.getChildren().add(rootPane);
-				os.scalingProperty().bind(scaleFactor);
 				
-				Iterator<ObservableSlideComponent<?>> components = os.componentIterator();
-				while (components.hasNext()) {
-					ObservableSlideComponent<?> osr = components.next();
-					osr.scalingProperty().bind(scaleFactor);
+				// bind the scaling
+				os.scalingProperty().bind(scaleFactor);
+				for (ObservableSlideComponent<?> component : os.getComponents()) {
+					component.scalingProperty().bind(scaleFactor);
 				}
+			} else {
+				this.transition.set(null);
+				this.slide.set(null);
 			}
 			
 			// since the width/height of the slides could be different
@@ -202,6 +236,28 @@ public final class SingleSlidePreviewPane extends StackPane {
 			this.value.set(null);
 			this.value.set(slide);
 		});
+	}
+	
+	public void play() {
+		Transition oldTx = this.transition.get();
+		ObservableSlide<?> oldSlide = this.slide.get();
+		if (oldTx != null) {
+			oldTx.play();
+		}
+		if (oldSlide != null) {
+			oldSlide.play();
+		}
+	}
+	
+	public void stop() { 
+		Transition oldTx = this.transition.get();
+		ObservableSlide<?> oldSlide = this.slide.get();
+		if (oldTx != null) {
+			oldTx.stop();
+		}
+		if (oldSlide != null) {
+			oldSlide.stop();
+		}
 	}
 	
 	// slide

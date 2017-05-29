@@ -35,14 +35,13 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.praisenter.MediaType;
 import org.praisenter.Tag;
 import org.praisenter.ThumbnailSettings;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.FlowListCell;
@@ -54,7 +53,6 @@ import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.InvalidationListener;
@@ -107,9 +105,6 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 	/** The collator for locale dependent sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
 
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
-	
 	// data
 	
 	/** The praisenter context */
@@ -290,9 +285,8 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         this.selected.addListener((obs, ov, nv) -> {
         	if (selecting) return;
         	this.selecting = true;
-        	if (nv == null) {
-        		lstMedia.getSelectionModel().clear();
-        	} else {
+        	lstMedia.getSelectionModel().clear();
+        	if (nv != null) {
         		lstMedia.getSelectionModel().select(library.getListItem(nv.getId()));
         	}
         	this.selecting = false;
@@ -305,7 +299,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 				menu.createMenuItem(ApplicationAction.RENAME),
 				menu.createMenuItem(ApplicationAction.DELETE),
 				new SeparatorMenuItem(),
-				menu.createMenuItem(ApplicationAction.IMPORT_MEDIA, Translations.get("action.import"), FONT_AWESOME.create(FontAwesome.Glyph.LEVEL_DOWN)),
+				menu.createMenuItem(ApplicationAction.IMPORT_MEDIA, Translations.get("action.import"), ApplicationGlyphs.MENU_IMPORT.duplicate()),
 				menu.createMenuItem(ApplicationAction.EXPORT),
 				new SeparatorMenuItem(),
 				menu.createMenuItem(ApplicationAction.SELECT_ALL),

@@ -24,7 +24,6 @@
  */
 package org.praisenter.javafx.slide;
 
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -32,6 +31,7 @@ import java.util.concurrent.CountDownLatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Reference;
+import org.praisenter.ThumbnailSettings;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideThumbnailGenerator;
@@ -58,25 +58,20 @@ import javafx.scene.paint.Color;
 public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenerator {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The width of the thumbnail */
-	private final int width;
-	
-	/** The height of the thumbnail */
-	private final int height;
-	
+
 	/** The context */
 	private final PraisenterContext context;
 	
+	/** The thumbnail settings */
+	private final ThumbnailSettings settings;
+	
 	/**
 	 * Minimal constructor.
-	 * @param width the width of the thumbnails
-	 * @param height the height of the thumbnails
 	 * @param context the context
+	 * @param settings the thumbnail settings
 	 */
-	public JavaFXSlideThumbnailGenerator(int width, int height, PraisenterContext context) {
-		this.width = width;
-		this.height = height;
+	public JavaFXSlideThumbnailGenerator(PraisenterContext context, ThumbnailSettings settings) {
+		this.settings = settings;
 		this.context = context;
 	}
 	
@@ -112,7 +107,7 @@ public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenera
 				// make sure its a in the right format for scaling
 				image = ImageUtil.toBuffered(image, BufferedImage.TYPE_INT_ARGB);
 				// we use the FILTER_LANCZOS because it gives good results for text at high resize ratios
-				return ImageManipulator.getUniformScaledImage(image, width, height, ResampleOp.FILTER_LANCZOS);
+				return ImageManipulator.getUniformScaledImage(image, this.settings.getWidth(), this.settings.getHeight(), ResampleOp.FILTER_LANCZOS);
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to generate image", ex);
 				return null;
@@ -130,7 +125,7 @@ public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenera
 				LOGGER.warn("Failed to generate image", ex);
 			} finally {
 				// regardless of it working or not, we need to coundDown
-				// so we don't spin forever
+				// so we don't wait forever
 				latch.countDown();
 			}
 		});
@@ -141,9 +136,10 @@ public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenera
 			// then convert it to an BufferedImage and return
 			Image image = imageRef.get();
 			if (image != null) {
-				BufferedImage bi = ImageManipulator.getUniformScaledImage(SwingFXUtils.fromFXImage(image, null), width, height, AffineTransformOp.TYPE_BICUBIC);
-				// scale it down
-				return ImageManipulator.getUniformScaledImage(bi, this.width, this.height, AffineTransformOp.TYPE_BICUBIC);
+				// make sure its a in the right format for scaling
+				BufferedImage bi = ImageUtil.toBuffered(SwingFXUtils.fromFXImage(image, null), BufferedImage.TYPE_INT_ARGB);
+				// we use the FILTER_LANCZOS because it gives good results for text at high resize ratios
+				return ImageManipulator.getUniformScaledImage(bi, this.settings.getWidth(), this.settings.getHeight(), ResampleOp.FILTER_LANCZOS);
 			}
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to generate image", ex);

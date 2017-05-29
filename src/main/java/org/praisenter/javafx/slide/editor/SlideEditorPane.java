@@ -1,13 +1,10 @@
 package org.praisenter.javafx.slide.editor;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.Iterator;
 import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.TextType;
+import org.praisenter.MediaType;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationPane;
@@ -23,38 +20,11 @@ import org.praisenter.javafx.slide.SlideActions;
 import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.utility.Fx;
-import org.praisenter.media.MediaType;
 import org.praisenter.slide.AbstractSlideComponent;
-import org.praisenter.slide.BasicSlide;
-import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.ScaleType;
-import org.praisenter.slide.graphics.ShadowType;
-import org.praisenter.slide.graphics.SlideColor;
-import org.praisenter.slide.graphics.SlideGradientCycleType;
-import org.praisenter.slide.graphics.SlideGradientStop;
-import org.praisenter.slide.graphics.SlideLinearGradient;
-import org.praisenter.slide.graphics.SlidePadding;
-import org.praisenter.slide.graphics.SlideRadialGradient;
-import org.praisenter.slide.graphics.SlideShadow;
-import org.praisenter.slide.graphics.SlideStroke;
-import org.praisenter.slide.graphics.SlideStrokeCap;
-import org.praisenter.slide.graphics.SlideStrokeJoin;
-import org.praisenter.slide.graphics.SlideStrokeStyle;
-import org.praisenter.slide.graphics.SlideStrokeType;
 import org.praisenter.slide.object.MediaObject;
-import org.praisenter.slide.text.BasicTextComponent;
-import org.praisenter.slide.text.CountdownComponent;
-import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.FontScaleType;
-import org.praisenter.slide.text.HorizontalTextAlignment;
-import org.praisenter.slide.text.SlideFont;
-import org.praisenter.slide.text.SlideFontPosture;
-import org.praisenter.slide.text.SlideFontWeight;
-import org.praisenter.slide.text.TextPlaceholderComponent;
-import org.praisenter.slide.text.VerticalTextAlignment;
 import org.praisenter.utility.Scaling;
 import org.praisenter.xml.XmlIO;
 
@@ -94,7 +64,6 @@ import javafx.scene.shape.StrokeType;
 // JAVABUG 06/30/16 LOW Text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option
 // JAVABUG 02/04/17 MEDIUM DropShadow and Glow effects cannot be mouse transparent - https://bugs.openjdk.java.net/browse/JDK-8092268, https://bugs.openjdk.java.net/browse/JDK-8101376
 
-// FIXME show the appropriate ribbon when creating a new node
 // FIXME show the media selection dialog before adding a the media component
 
 // TODO slide presentation:
@@ -282,10 +251,8 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			// unbind the scaling from the old value
 			if (ov != null) {
 				ov.scalingProperty().unbind();
-				Iterator<ObservableSlideComponent<?>> components = ov.componentIterator();
-				while (components.hasNext()) {
-					ObservableSlideComponent<?> osr = components.next();
-					osr.scalingProperty().unbind();
+				for (ObservableSlideComponent<?> component : ov.getComponents()) {
+					component.scalingProperty().unbind();
 				}
 			}
 			
@@ -302,17 +269,14 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 					selected.set(nv);
 				});
 				
-				Iterator<ObservableSlideComponent<?>> components = nv.componentIterator();
-				while (components.hasNext()) {
-					ObservableSlideComponent<?> osr = components.next();
-					Node pane = osr.getDisplayPane();
+				for (ObservableSlideComponent<?> component : nv.getComponents()) {
 					// bind the scale factor
-					osr.scalingProperty().bind(scaleFactor);
+					component.scalingProperty().bind(scaleFactor);
 					// setup the mouse event handler
-					SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(nv, osr);
-					osr.getEditBorderNode().addEventHandler(MouseEvent.ANY, mouseHandler);
-					osr.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
-						selected.set(osr);
+					SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(nv, component);
+					component.getEditBorderNode().addEventHandler(MouseEvent.ANY, mouseHandler);
+					component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
+						selected.set(component);
 					});
 				}
 				
@@ -372,9 +336,6 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			});
 			
 			if (e.isSelected()) {
-				// set it as the selected component
-				selected.set(component);
-				
 				// if the component type is media, then show the media dialog
 				if (e instanceof MediaComponentAddEvent) {
 					MediaType type = ((MediaComponentAddEvent)e).getMediaType();
@@ -383,20 +344,31 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 							getScene().getWindow(), 
 							context,
 							type);
-					dialog.valueProperty().addListener((obs, ov, nv) -> {
+					
+					dialog.show(m -> {
 						MediaObject mo = null;
-						if (nv != null) {
-							UUID id = nv.getId();
+						if (m != null) {
+							UUID id = m.getId();
 							MediaObject omo = omc.getMedia();
 							if (omo != null) {
-								mo = new MediaObject(id, nv.getName(), omo.getScaling(), omo.isLoop(), omo.isMute());
+								// copy old settings
+								mo = new MediaObject(id, m.getName(), m.getType(), omo.getScaling(), omo.isLoop(), omo.isMute());
 							} else {
-								mo = new MediaObject(id, nv.getName(), ScaleType.UNIFORM, false, false);
+								// default settings
+								mo = new MediaObject(id, m.getName(), m.getType(), ScaleType.UNIFORM, false, false);
 							}
 						}
 						omc.setMedia(mo);
+						
+						// set it as the selected component after the user has chosen a media
+						// item (if we don't then the media ribbon doesn't know that this media
+						// was selected and therefore clears it when they change anything about it
+						// like the scaling)
+						selected.set(component);
 					});
-					dialog.show();
+				} else {
+					// set it as the selected component
+					selected.set(component);
 				}
 			}
 		});
@@ -519,8 +491,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		ObservableSlideRegion<?> selected = this.selected.get();
 		
 		if (selected != null && selected instanceof ObservableSlideComponent) {
-			slide.removeComponent((ObservableSlideComponent<?>)selected);
-			this.selected.set(slide);
+			if (slide.removeComponent((ObservableSlideComponent<?>)selected)) {
+				this.selected.set(slide);
+			}
 		}
 	}
 	

@@ -24,16 +24,21 @@
  */
 package org.praisenter.javafx.slide.editor;
 
+import java.util.function.Consumer;
+
+import org.praisenter.MediaType;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
-import org.praisenter.media.MediaType;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
+import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -51,6 +56,12 @@ final class MediaLibraryDialog extends BorderPane {
 	/** The media library pane */
 	private final MediaLibraryPane mediaLibraryPane;
 
+	/** The selected media */
+	private final ObjectProperty<Media> value = new SimpleObjectProperty<Media>();
+	
+	/** The callback to call when the media is selected */
+	private Consumer<Media> callback = null;
+	
 	/**
 	 * Full constructor.
 	 * @param owner the owner of this dialog
@@ -77,14 +88,36 @@ final class MediaLibraryDialog extends BorderPane {
 		// build the media library pane
 		this.mediaLibraryPane = new MediaLibraryPane(context, Orientation.HORIZONTAL, types);
 
+		// when our value changes, update the media pane
+		this.value.addListener((obs, ov, nv) -> {
+			this.mediaLibraryPane.setSelected(nv);
+		});
+		
+		Button btnAccept = new Button("OK");
+		btnAccept.setOnAction(e -> {
+			this.value.setValue(this.mediaLibraryPane.getSelected());
+			if (this.callback != null) {
+				this.callback.accept(this.value.get());
+			}
+			this.dialog.close();
+		});
+
+		Button btnCancel = new Button("Cancel");
+		btnCancel.setOnAction(e -> {
+			this.dialog.close();
+		});
+		
 		this.setCenter(this.mediaLibraryPane);
+		this.setBottom(new HBox(2, btnAccept, btnCancel));
 		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));
 	}
-	
+
 	/**
 	 * Shows this dialog.
+	 * @param callback called when the dialog is closed
 	 */
-	public void show() {
+	public void show(Consumer<Media> callback) {
+		this.callback = callback;
 		this.dialog.show();
 	}
 	
@@ -93,7 +126,7 @@ final class MediaLibraryDialog extends BorderPane {
 	 * @return ObjectProperty&lt;{@link Media}&gt;
 	 */
 	public ObjectProperty<Media> valueProperty() {
-		return this.mediaLibraryPane.selectedProperty();
+		return this.value;
 	}
 	
 	/**
@@ -101,7 +134,7 @@ final class MediaLibraryDialog extends BorderPane {
 	 * @return {@link Media}
 	 */
 	public Media getValue() {
-		return this.mediaLibraryPane.getSelected();
+		return this.value.get();
 	}
 	
 	/**
@@ -109,6 +142,6 @@ final class MediaLibraryDialog extends BorderPane {
 	 * @param media the media
 	 */
 	public void setValue(Media media) {
-		this.mediaLibraryPane.setSelected(media);
+		this.value.set(media);
 	}
 }

@@ -34,13 +34,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFont;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.bible.Bible;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEvent;
+import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
@@ -101,9 +99,6 @@ import javafx.util.Callback;
 public final class BibleLibraryPane extends BorderPane implements ApplicationPane {
 	/** The collator for locale dependent sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
-	
-	/** The font-awesome glyph-font pack */
-	private static final GlyphFont FONT_AWESOME	= GlyphFontRegistry.font("FontAwesome");
 	
 	// selection
 	
@@ -345,7 +340,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				menu.createMenuItem(ApplicationAction.RENAME),
 				menu.createMenuItem(ApplicationAction.DELETE),
 				new SeparatorMenuItem(),
-				menu.createMenuItem(ApplicationAction.IMPORT_BIBLES, Translations.get("action.import"), FONT_AWESOME.create(FontAwesome.Glyph.LEVEL_DOWN)),
+				menu.createMenuItem(ApplicationAction.IMPORT_BIBLES, Translations.get("action.import"), ApplicationGlyphs.MENU_IMPORT.duplicate()),
 				menu.createMenuItem(ApplicationAction.EXPORT),
 				new SeparatorMenuItem(),
 				menu.createMenuItem(ApplicationAction.SELECT_ALL),
