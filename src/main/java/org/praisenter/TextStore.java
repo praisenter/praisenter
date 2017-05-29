@@ -42,14 +42,14 @@ public interface TextStore {
 	 * @param type the type
 	 * @return String
 	 */
-	public abstract String get(TextVariant variant, TextType type);
+	public abstract TextItem get(TextVariant variant, TextType type);
 	
 	/**
 	 * Returns a map from the text type to the text for the given variant.
 	 * @param variant the variant
 	 * @return Map&lt;{@link TextType}, String&gt;
 	 */
-	public abstract Map<TextType, String> get(TextVariant variant);
+	public abstract Map<TextType, TextItem> get(TextVariant variant);
 	
 	/**
 	 * Returns a deep copy of this text store.

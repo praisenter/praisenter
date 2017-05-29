@@ -31,6 +31,8 @@ import org.praisenter.slide.animation.Animation;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -95,8 +97,14 @@ final class AnimationPickerDialog extends BorderPane {
 			this.dialog.close();
 		});
 		
+		btnAccept.setPadding(new Insets(5, 15, 5, 15));
+		btnCancel.setPadding(new Insets(5, 15, 5, 15));
+		HBox bottom = new HBox(5, btnAccept, btnCancel);
+		bottom.setAlignment(Pos.BASELINE_RIGHT);
+		bottom.setPadding(new Insets(5));
+		
 		this.setCenter(this.animationPickerPane);
-		this.setBottom(new HBox(2, btnAccept, btnCancel));
+		this.setBottom(bottom);
 		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));
 	}
 	

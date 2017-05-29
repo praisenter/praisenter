@@ -64,8 +64,6 @@ import javafx.scene.shape.StrokeType;
 // JAVABUG 06/30/16 LOW Text border really slows when the stroke style is INSIDE or OUTSIDE - may just want to not offer this option
 // JAVABUG 02/04/17 MEDIUM DropShadow and Glow effects cannot be mouse transparent - https://bugs.openjdk.java.net/browse/JDK-8092268, https://bugs.openjdk.java.net/browse/JDK-8101376
 
-// FIXME show the media selection dialog before adding a the media component
-
 // TODO slide presentation:
 //		user selects slide
 //		if slide has placeholders
@@ -323,9 +321,6 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				component.setY((sh - h) * 0.5);
 			}
 			
-			Node pane = component.getDisplayPane();
-			slide.get().addComponent(component);
-			
 			// bind the scale factor
 			component.scalingProperty().bind(scaleFactor);
 			// setup the mouse event handler
@@ -335,41 +330,44 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				selected.set(component);
 			});
 			
-			if (e.isSelected()) {
-				// if the component type is media, then show the media dialog
-				if (e instanceof MediaComponentAddEvent) {
-					MediaType type = ((MediaComponentAddEvent)e).getMediaType();
-					ObservableMediaComponent omc = (ObservableMediaComponent)component;
-					MediaLibraryDialog dialog = new MediaLibraryDialog(
-							getScene().getWindow(), 
-							context,
-							type);
-					
-					dialog.show(m -> {
+			// if the component type is media, then show the media dialog
+			// before adding the component to the slide
+			if (e instanceof MediaComponentAddEvent) {
+				MediaType type = ((MediaComponentAddEvent)e).getMediaType();
+				ObservableMediaComponent omc = (ObservableMediaComponent)component;
+				MediaLibraryDialog dialog = new MediaLibraryDialog(
+						getScene().getWindow(), 
+						context,
+						type);
+				
+				dialog.show(m -> {
+					// don't add the component unless they choose a
+					// media item
+					if (m != null) {
+						UUID id = m.getId();
 						MediaObject mo = null;
-						if (m != null) {
-							UUID id = m.getId();
-							MediaObject omo = omc.getMedia();
-							if (omo != null) {
-								// copy old settings
-								mo = new MediaObject(id, m.getName(), m.getType(), omo.getScaling(), omo.isLoop(), omo.isMute());
-							} else {
-								// default settings
-								mo = new MediaObject(id, m.getName(), m.getType(), ScaleType.UNIFORM, false, false);
-							}
+						MediaObject omo = omc.getMedia();
+						if (omo != null) {
+							// copy old settings
+							mo = new MediaObject(id, m.getName(), m.getType(), omo.getScaling(), omo.isLoop(), omo.isMute());
+						} else {
+							// default settings
+							mo = new MediaObject(id, m.getName(), m.getType(), ScaleType.UNIFORM, false, false);
 						}
+						
 						omc.setMedia(mo);
+						slide.get().addComponent(component);
 						
 						// set it as the selected component after the user has chosen a media
 						// item (if we don't then the media ribbon doesn't know that this media
 						// was selected and therefore clears it when they change anything about it
 						// like the scaling)
 						selected.set(component);
-					});
-				} else {
-					// set it as the selected component
-					selected.set(component);
-				}
+					}
+				});
+			} else {
+				slide.get().addComponent(component);
+				selected.set(component);
 			}
 		});
 		

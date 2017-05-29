@@ -76,6 +76,15 @@ public final class SlideFont {
 		this.posture = posture;
 		this.size = size;
 	}
+	
+	/**
+	 * Returns a new font exactly like this one, but with the given font size.
+	 * @param size the new font size
+	 * @return {@link SlideFont}
+	 */
+	public SlideFont size(double size) {
+		return new SlideFont(this.family, this.weight, this.posture, size);
+	}
 
 	/**
 	 * Returns the font family.

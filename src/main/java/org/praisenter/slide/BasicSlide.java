@@ -49,6 +49,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.praisenter.Constants;
 import org.praisenter.ReadonlyIterator;
 import org.praisenter.Tag;
+import org.praisenter.TextItem;
 import org.praisenter.TextStore;
 import org.praisenter.TextType;
 import org.praisenter.TextVariant;
@@ -605,8 +606,13 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	public void updatePlaceholders() {
 		// iterate all the placeholders
 		for (TextPlaceholderComponent tpc : this.getComponents(TextPlaceholderComponent.class)) {
-			String text = this.getPlaceholderText(tpc.getPlaceholderType(), tpc.getPlaceholderVariant());
-			tpc.setText(text);
+			TextItem data = this.getPlaceholderText(tpc.getPlaceholderType(), tpc.getPlaceholderVariant());
+			// override the text
+			tpc.setText(data.getText());
+			// override the font size if necessary
+			if (data.getFontSize() != TextItem.DEFAULT_FONT_SIZE) {
+				tpc.setFont(tpc.getFont().size(data.getFontSize()));
+			}
 		}
 	}
 	
@@ -616,7 +622,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	 * @param variant the variant
 	 * @return String
 	 */
-	protected String getPlaceholderText(TextType type, TextVariant variant) {
+	protected TextItem getPlaceholderText(TextType type, TextVariant variant) {
 		if (this.placeholderData == null) {
 			return null;
 		}

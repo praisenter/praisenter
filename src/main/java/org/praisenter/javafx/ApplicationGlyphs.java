@@ -79,7 +79,7 @@ public final class ApplicationGlyphs {
 	public static final Glyph MEDIA_SCALE_NONE = FONT_AWESOME.create(FontAwesome.Glyph.CROP);
 	public static final Glyph MEDIA_SCALE_NONUNIFORM = OPEN_ICONIC.create(OpenIconic.Glyph.RESIZE_BOTH);
 	public static final Glyph MEDIA_SCALE_UNIFORM = FONT_AWESOME.create(FontAwesome.Glyph.ARROWS);
-	public static final Glyph MEDIA_LOOP = FONT_AWESOME.create(FontAwesome.Glyph.REPEAT);
+	public static final Glyph MEDIA_LOOP = OPEN_ICONIC.create(OpenIconic.Glyph.LOOP);
 	public static final Glyph MEDIA_MUTE = FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_OFF);
 	public static final Glyph MEDIA_VOLUME = FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_UP);
 	

@@ -33,6 +33,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.praisenter.TextItem;
 import org.praisenter.TextStore;
 import org.praisenter.TextType;
 import org.praisenter.TextVariant;
@@ -75,12 +76,12 @@ public final class BibleReferenceTextStore implements TextStore {
 	 * @see org.praisenter.TextStore#get(org.praisenter.TextVariant)
 	 */
 	@Override
-	public Map<TextType, String> get(TextVariant variant) {
-		Map<TextType, String> data = new HashMap<TextType, String>();
+	public Map<TextType, TextItem> get(TextVariant variant) {
+		Map<TextType, TextItem> data = new HashMap<TextType, TextItem>();
 		BibleReferenceSet brs = this.data.get(variant);
 		if (brs != null) {
 			for (TextType type : TextType.values()) {
-				data.put(type, brs.getText(type));
+				data.put(type, new TextItem(brs.getText(type)));
 			}
 		}
 		return data;
@@ -90,10 +91,10 @@ public final class BibleReferenceTextStore implements TextStore {
 	 * @see org.praisenter.TextStore#get(org.praisenter.TextVariant, org.praisenter.TextType)
 	 */
 	@Override
-	public String get(TextVariant variant, TextType type) {
+	public TextItem get(TextVariant variant, TextType type) {
 		BibleReferenceSet brs = this.data.get(variant);
 		if (brs != null) {
-			return brs.getText(type);
+			return new TextItem(brs.getText(type));
 		}
 		return null;
 	}

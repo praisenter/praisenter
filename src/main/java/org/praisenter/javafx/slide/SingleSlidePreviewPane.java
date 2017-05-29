@@ -64,8 +64,11 @@ public final class SingleSlidePreviewPane extends StackPane {
 	/** The mode to render the slide in */
 	private final ObjectProperty<SlideMode> mode = new SimpleObjectProperty<SlideMode>();
 	
-	private final ObjectProperty<Transition> transition = new SimpleObjectProperty<Transition>();
+	/** An observable slide created when the slide is set */
 	private final ObjectProperty<ObservableSlide<?>> slide = new SimpleObjectProperty<ObservableSlide<?>>();
+	
+	/** The transition for the observable slide (if preview is called) */
+	private final ObjectProperty<Transition> transition = new SimpleObjectProperty<Transition>();
 	
 	/**
 	 * Minimal constructor.
@@ -238,6 +241,11 @@ public final class SingleSlidePreviewPane extends StackPane {
 		});
 	}
 	
+	/**
+	 * Plays the slide.
+	 * <p>
+	 * Note that the {@link #getMode()} should be {@link SlideMode#PREVIEW_NO_AUDIO} first.
+	 */
 	public void play() {
 		Transition oldTx = this.transition.get();
 		ObservableSlide<?> oldSlide = this.slide.get();
@@ -249,6 +257,9 @@ public final class SingleSlidePreviewPane extends StackPane {
 		}
 	}
 	
+	/**
+	 * Stops playback of the slide.
+	 */
 	public void stop() { 
 		Transition oldTx = this.transition.get();
 		ObservableSlide<?> oldSlide = this.slide.get();
