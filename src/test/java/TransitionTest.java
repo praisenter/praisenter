@@ -58,7 +58,6 @@ public class TransitionTest extends Application {
 		stack.getChildren().add(s1);
 		
 		// now say we want to transition a new piece
-		// TODO scaling to fit window bounds
 		VBox s2 = new VBox();
 		s2.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0, 0.5), null, null)));
 		Fx.setSize(s2, bounds.getWidth(), bounds.getHeight());

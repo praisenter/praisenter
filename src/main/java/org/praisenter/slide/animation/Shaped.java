@@ -31,7 +31,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.slide.easing.Easing;
 
-//FEATURE Add more shape types (Star, Rect, etc)
+//FEATURE (L) Add more shape types (Star, Rect, etc)
 
 /**
  * An animation where a shape is used to reveal or hide.

@@ -27,6 +27,7 @@ package org.praisenter.javafx;
 import java.util.function.Supplier;
 
 import org.praisenter.resources.translations.Translations;
+import org.praisenter.utility.RuntimeProperties;
 
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -50,6 +51,20 @@ public enum ApplicationAction {
 	
 	/** Open the editor for the event's data */
 	EDIT(Translations.get("action.edit")),
+	
+	/** The undo action */
+	UNDO(Translations.get("action.undo"), () -> { 
+		return ApplicationGlyphs.MENU_UNDO.duplicate();
+	}, new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN)),
+	
+	/** The redo action */
+	REDO(Translations.get("action.redo"), () -> { 
+		return ApplicationGlyphs.MENU_REDO.duplicate();
+	}, RuntimeProperties.IS_WINDOWS_OS
+			// windows
+			? new KeyCodeCombination(KeyCode.Y, KeyCombination.SHORTCUT_DOWN)
+			// mac/ubuntu
+			: new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)),
 	
 	/** Close the current editor */
 	CLOSE(Translations.get("action.close"), () -> {
@@ -124,7 +139,12 @@ public enum ApplicationAction {
 		return ApplicationGlyphs.MENU_EXPORT.duplicate();
 	}),
 
-	/** Prompt to import media */
+	// navigation
+	
+	/** Show the present view */
+	PRESENT(Translations.get("action.present")),
+	
+	/** Show the media list view */
 	MANAGE_MEDIA(Translations.get("action.manage.media")),
 	
 	/** Show the bibles list view */

@@ -45,6 +45,11 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Screen;
 
 /**
@@ -189,6 +194,15 @@ public final class ScreenView extends StackPane {
 				LOGGER.warn("Failed to generate screenshot for screen " + device.getIDstring(), ex);
 				buildUnassignedOrError(this.display.toString());
 			}
+			
+			// TODO may need to resize this based on font size?
+			Rectangle rect = new Rectangle(55, 50);
+			rect.setFill(Color.rgb(255, 255, 255, 0.7));
+			this.getChildren().add(rect);
+			
+			Text number = new Text(String.valueOf(this.display.getId() + 1));
+			number.setFont(Font.font(number.getFont().getFamily(), FontWeight.BOLD, 30));
+			this.getChildren().add(number);
 		}
 
 		this.setOnDragDetected(e -> {

@@ -1,5 +1,11 @@
 package org.praisenter.javafx;
 
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -7,6 +13,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Constants;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Display;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
@@ -22,6 +29,7 @@ import org.praisenter.resources.translations.Translations;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
@@ -39,10 +47,14 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Screen;
 
 // TODO translate
-// FEATURE option to export theme and translation to create new ones
+// TODO fix UI - i don't like the layout - maybe change to treeview on left, then setting config on right?
+// FEATURE (M) Add options to remove themes or translations
+// FEATURE (L) Edit tags (like rename, remove)
 
 public final class SetupPane extends BorderPane {
 	/** The class level logger */
@@ -77,9 +89,13 @@ public final class SetupPane extends BorderPane {
 		ComboBox<Option<Locale>> cmbLocale = new ComboBox<Option<Locale>>(FXCollections.observableArrayList(locales));
 		cmbLocale.setValue(new Option<Locale>(null, locale));
 		Button btnRefreshLocales = new Button("", ApplicationGlyphs.REFRESH.duplicate());
+		Button btnDownloadLocale = new Button("", ApplicationGlyphs.EXPORT.duplicate());
+		Button btnUploadLocale = new Button("", ApplicationGlyphs.IMPORT.duplicate());
 		gridGeneral.add(lblLocale, 0, 0);
 		gridGeneral.add(cmbLocale, 1, 0);
 		gridGeneral.add(btnRefreshLocales, 2, 0);
+		gridGeneral.add(btnDownloadLocale, 3, 0);
+		gridGeneral.add(btnUploadLocale, 4, 0);
 		cmbLocale.setMaxWidth(Double.MAX_VALUE);
 		GridPane.setFillWidth(cmbLocale, true);
 		
@@ -88,9 +104,13 @@ public final class SetupPane extends BorderPane {
 		ComboBox<Theme> cmbTheme = new ComboBox<Theme>(FXCollections.observableArrayList(Theme.getAvailableThemes()));
 		cmbTheme.setValue(theme);
 		Button btnRefreshThemes = new Button("", ApplicationGlyphs.REFRESH.duplicate());
+		Button btnDownloadTheme = new Button("", ApplicationGlyphs.EXPORT.duplicate());
+		Button btnUploadTheme = new Button("", ApplicationGlyphs.IMPORT.duplicate());
 		gridGeneral.add(lblTheme, 0, 1);
 		gridGeneral.add(cmbTheme, 1, 1);
 		gridGeneral.add(btnRefreshThemes, 2, 1);
+		gridGeneral.add(btnDownloadTheme, 3, 1);
+		gridGeneral.add(btnUploadTheme, 4, 1);
 		cmbTheme.setMaxWidth(Double.MAX_VALUE);
 		GridPane.setFillWidth(cmbTheme, true);
 		
@@ -219,11 +239,57 @@ public final class SetupPane extends BorderPane {
 		});
 		
 		btnRefreshLocales.setOnAction(e -> {
-			List<Option<Locale>> locs = new ArrayList<Option<Locale>>();
-			for (Locale loc : Translations.getAvailableLocales()) {
-				locs.add(new Option<Locale>(loc.getDisplayName(), loc));
-			}
-			cmbLocale.setItems(FXCollections.observableArrayList(locs));
+			cmbLocale.setItems(refreshLocales());
+		});
+		
+		btnDownloadLocale.setOnAction(e -> {
+			Path path = null;
+	    	Option<Locale> selected = cmbLocale.getValue();
+	    	if (selected != null) {
+	    		Locale loc = selected.getValue();
+	    		if (!loc.equals(Locale.ENGLISH)) {
+		    		String tag = loc.toLanguageTag();
+		    		path = Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH).resolve("messages_" + tag + ".properties");
+	    		}
+	    	}
+			
+			FileChooser chooser = new FileChooser();
+	    	chooser.setInitialFileName(path != null ? path.getFileName().toString() : "messages.properties");
+	    	chooser.setTitle("Export Translation");
+	    	chooser.getExtensionFilters().add(new ExtensionFilter("Java Translations", "*.properties"));
+	    	File file = chooser.showSaveDialog(getScene().getWindow());
+	    	
+	    	if (file != null) {
+		    	if (path != null) {
+			    	try {
+			    		Files.copy(path, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			    	} catch (Exception ex) {
+			    		LOGGER.error("Failed to export translation", ex);
+			    	}
+		    	} else {
+		    		try (InputStream def = SetupPane.class.getResourceAsStream("/org/praisenter/resources/translations/messages.properties")) {
+		    			Files.copy(def, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		    		} catch (Exception ex) {
+		    			LOGGER.error("Failed to export default translation", ex);
+		    		}
+		    	}
+	    	}
+		});
+		
+		btnUploadLocale.setOnAction(e -> {
+			FileChooser chooser = new FileChooser();
+	    	chooser.setTitle("Import Translation");
+	    	chooser.getExtensionFilters().add(new ExtensionFilter("Java Translations", "*.properties"));
+	    	File file = chooser.showOpenDialog(getScene().getWindow());
+	    	if (file != null) {
+	    		try {
+	    			Path path = Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH).resolve(file.getName());
+		    		Files.copy(file.toPath(), path, StandardCopyOption.REPLACE_EXISTING);
+		    	} catch (Exception ex) {
+		    		LOGGER.error("Failed to import translation", ex);
+		    	}
+	    		cmbLocale.setItems(refreshLocales());
+	    	}
 		});
 		
 		cmbTheme.valueProperty().addListener((obs, ov, nv) -> {
@@ -236,6 +302,50 @@ public final class SetupPane extends BorderPane {
 		
 		btnRefreshThemes.setOnAction(e -> {
 			cmbTheme.setItems(FXCollections.observableArrayList(Theme.getAvailableThemes()));
+		});
+		
+		btnDownloadTheme.setOnAction(e -> {
+			Path path = null;
+	    	Theme selected = cmbTheme.getValue();
+	    	if (selected != null && !selected.equals(Theme.DEFAULT) && !selected.equals(Theme.DARK)) {
+	    		path = Paths.get(Constants.THEMES_ABSOLUTE_FILE_PATH).resolve(selected.getName() + ".css");
+	    	}
+			
+			FileChooser chooser = new FileChooser();
+	    	chooser.setInitialFileName(path != null ? path.getFileName().toString() : "default.css");
+	    	chooser.setTitle("Export Theme");
+	    	chooser.getExtensionFilters().add(new ExtensionFilter("Cascading Style Sheet", "*.css"));
+	    	File file = chooser.showSaveDialog(getScene().getWindow());
+	    	
+	    	if (path != null) {
+		    	try {
+		    		Files.copy(path, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		    	} catch (Exception ex) {
+		    		LOGGER.error("Failed to export theme", ex);
+		    	}
+	    	} else {
+	    		try (InputStream def = SetupPane.class.getResourceAsStream("/org/praisenter/javafx/themes/" + selected.getName() + ".css")) {
+	    			Files.copy(def, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+	    		} catch (Exception ex) {
+	    			LOGGER.error("Failed to export default theme", ex);
+	    		}
+	    	}
+		});
+		
+		btnUploadTheme.setOnAction(e -> {
+			FileChooser chooser = new FileChooser();
+	    	chooser.setTitle("Import Theme");
+	    	chooser.getExtensionFilters().add(new ExtensionFilter("Cascading Style Sheet", "*.css"));
+	    	File file = chooser.showOpenDialog(getScene().getWindow());
+	    	if (file != null) {
+	    		try {
+	    			Path path = Paths.get(Constants.THEMES_ABSOLUTE_FILE_PATH).resolve(file.getName());
+		    		Files.copy(file.toPath(), path, StandardCopyOption.REPLACE_EXISTING);
+		    	} catch (Exception ex) {
+		    		LOGGER.error("Failed to import theme", ex);
+		    	}
+	    		cmbTheme.setItems(FXCollections.observableArrayList(Theme.getAvailableThemes()));
+	    	}
 		});
 		
 		chkDebugMode.selectedProperty().addListener((obs, ov, nv) -> {
@@ -291,6 +401,8 @@ public final class SetupPane extends BorderPane {
 			}
 		};
 		
+		// TODO add an identify button so that if all the screens look the same the user can know which is which
+		
 		// listener for updating the screen views when the 
 		// screens change or when the parent node changes
 		InvalidationListener screenListener = new InvalidationListener() {
@@ -342,7 +454,7 @@ public final class SetupPane extends BorderPane {
 				int i = 0;
 				int j = 3;
 				for (ScreenView view : views.values()) {
-					Label lblUnused = new Label("Unassigned");
+					Label lblUnused = new Label("Alternate Output");
 					lblUnused.setFont(Font.font("System", FontWeight.BOLD, 15));
 					screenPane.add(view, i, j);
 					screenPane.add(lblUnused, i, j + 1);
@@ -362,5 +474,13 @@ public final class SetupPane extends BorderPane {
 		// update when the screens change
 		Screen.getScreens().addListener(screenListener);
 		
+	}
+	
+	private ObservableList<Option<Locale>> refreshLocales() {
+		List<Option<Locale>> locs = new ArrayList<Option<Locale>>();
+		for (Locale loc : Translations.getAvailableLocales()) {
+			locs.add(new Option<Locale>(loc.getDisplayName(), loc));
+		}
+		return FXCollections.observableArrayList(locs);
 	}
 }

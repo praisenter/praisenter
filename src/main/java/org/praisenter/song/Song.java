@@ -45,6 +45,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.praisenter.Constants;
 import org.praisenter.Tag;
 
+// FIXME we need to re-evaluate this format
+
 /**
  * Represents a song.
  * <p>

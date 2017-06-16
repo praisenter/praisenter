@@ -59,7 +59,7 @@ public abstract class ScreenViewDragDropManager {
 		Dragboard db = screen.startDragAndDrop(TransferMode.MOVE);
 		ClipboardContent cc = new ClipboardContent();
 		// we have to put something in there to make sure the d&d works
-		cc.put(DataFormat.PLAIN_TEXT, screen.toString());
+		cc.putString(screen.toString());
 		db.setContent(cc);
         db.setDragView(screen.snapshot(null, null));
 	}

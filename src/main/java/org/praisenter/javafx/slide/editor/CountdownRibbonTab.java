@@ -169,27 +169,6 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 		
 		this.managedProperty().bind(this.visibleProperty());
 		
-		this.chkTimeOnly.selectedProperty().addListener((obs, ov, nv) -> {
-			// disable the date picker if this is checked
-			this.pkrDate.setDisable(nv);
-			if (mutating) return;
-			ObservableSlideRegion<?> comp = this.component.get();
-			if (comp != null && comp instanceof ObservableCountdownComponent) {
-				ObservableCountdownComponent otc = (ObservableCountdownComponent)comp;
-				otc.setCountdownTimeOnly(nv);
-			}
-		});
-		
-		this.cmbCountdownFormat.getEditor().textProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
-			String format = getFormat(nv);
-			ObservableSlideRegion<?> comp = this.component.get();
-			if (comp != null && comp instanceof ObservableCountdownComponent) {
-				ObservableCountdownComponent otc = (ObservableCountdownComponent)comp;
-				otc.setCountdownFormat(format);
-			}
-		});
-		
 		this.component.addListener((obs, ov, nv) -> {
 			mutating = true;
 			
@@ -214,6 +193,29 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 			
 			mutating = false;
 		});
+
+		this.chkTimeOnly.selectedProperty().addListener((obs, ov, nv) -> {
+			// disable the date picker if this is checked
+			this.pkrDate.setDisable(nv);
+			if (mutating) return;
+			ObservableSlideRegion<?> comp = this.component.get();
+			if (comp != null && comp instanceof ObservableCountdownComponent) {
+				ObservableCountdownComponent otc = (ObservableCountdownComponent)comp;
+				otc.setCountdownTimeOnly(nv);
+				notifyComponentChanged();
+			}
+		});
+		
+		this.cmbCountdownFormat.getEditor().textProperty().addListener((obs, ov, nv) -> {
+			if (mutating) return;
+			String format = getFormat(nv);
+			ObservableSlideRegion<?> comp = this.component.get();
+			if (comp != null && comp instanceof ObservableCountdownComponent) {
+				ObservableCountdownComponent otc = (ObservableCountdownComponent)comp;
+				otc.setCountdownFormat(format);
+				notifyComponentChanged();
+			}
+		});
 		
 		InvalidationListener listener = (obs) -> {
 			if (mutating) return;
@@ -229,6 +231,7 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 			if (comp != null && comp instanceof ObservableCountdownComponent) {
 				ObservableCountdownComponent otc = (ObservableCountdownComponent)comp;
 				otc.setCountdownTarget(nv);
+				notifyComponentChanged();
 			}
 		};
 		

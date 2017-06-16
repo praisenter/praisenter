@@ -64,12 +64,15 @@ import javafx.util.Duration;
 // FIXME testing on High DPI screens
 // FIXME fix dark theme
 
-// FEATURE Evaluate detecting text language for better indexing (a field per language) in lucene; Apache Tika or LangDetect; This would also be used in the searches to know what indexed fields to use
-// FEATURE Use Apache POI to read powerpoint files
-// FEATURE Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
+// FEATURE (L) Evaluate detecting text language for better indexing (a field per language) in lucene; Apache Tika or LangDetect; This would also be used in the searches to know what indexed fields to use
+// FEATURE (L) Use Apache POI to read powerpoint files
+// FEATURE (M) Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
+// FEATURE (H) Undo/Redo - Will need to convert code to Command Pattern 
+// FEATURE (H) Quick send to display - any place in the app when the context contains something that could be displayed offer a Quick Display button to allow the user to quickly get it shown
 
-// JAVABUG 09/28/16 MEDIUM [fixed-9] High DPI https://bugs.openjdk.java.net/browse/JDK-8091832
-// JAVABUG 11/03/16 MEDIUM [fixed-9] Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946
+// JAVABUG (M) 09/28/16 [fixed-9] High DPI https://bugs.openjdk.java.net/browse/JDK-8091832
+// JAVABUG (M) 11/03/16 [fixed-9] Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946
+// JAVABUG (L) 05/31/17 Java FX just chooses the last image in the set of stage icons rather than choosing the best bugs.openjdk.java.net/browse/JDK-8091186, bugs.openjdk.java.net/browse/JDK-8087459
 
 /**
  * This is the entry point for the application.
@@ -124,12 +127,12 @@ public final class Praisenter extends Application {
 			LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
 			org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
 			LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME); 
-			loggerConfig.setLevel(Level.DEBUG);
+			loggerConfig.setLevel(Level.TRACE);
 			ctx.updateLoggers();
 		}
 	}
 
-	// FEATURE We should look at making some of the Java FX features "optional" instead of required
+	// FEATURE (L) We should look at making some of the Java FX features "optional" instead of required
 	/** The array of Java FX features that Praisenter uses */
 	private static final ConditionalFeature[] REQUIRED_JAVAFX_FEATURES = new ConditionalFeature[] {
 		ConditionalFeature.TRANSPARENT_WINDOW,
@@ -209,7 +212,7 @@ public final class Praisenter extends Application {
     	stage.setTitle(Constants.NAME + " " + Constants.VERSION);
     	
     	// icons
-    	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon16x16.png"));
+    	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon16x16alt.png", 16, 16, true, true));
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon32x32.png"));
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon48x48.png"));
     	stage.getIcons().add(new Image("org/praisenter/resources/logo/icon64x64.png"));

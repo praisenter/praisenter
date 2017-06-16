@@ -78,7 +78,6 @@ public enum SlideMode {
 	 * This will show all animations and videos and play audio.
 	 * <p>
 	 * Quality: DEFAULT
-	 * TODO quality?
 	 */
 	PRESENT,
 

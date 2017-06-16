@@ -40,6 +40,9 @@ public class SlideDataPane extends BorderPane {
 		editor.getChildren().add(new HBox(btnPlay, btnStop));
 		editor.getChildren().add(this.bibleNavigationPane);
 		
+		// TODO show button
+		// TODO select-display combobox
+		
 		this.setCenter(editor);
 		
 		btnPlay.setOnAction(e -> {

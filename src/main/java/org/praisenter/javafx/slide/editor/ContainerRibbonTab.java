@@ -53,6 +53,7 @@ class ContainerRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlideRegion<?> component = this.component.get();
 			if (component != null) {
 				component.setOpacity(nv.doubleValue());
+				notifyComponentChanged();
 			}
 		});
 	}

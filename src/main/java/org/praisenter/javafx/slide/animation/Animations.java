@@ -51,7 +51,6 @@ import org.praisenter.slide.animation.Zoom;
 import org.praisenter.utility.Formatter;
 
 import javafx.animation.ParallelTransition;
-import javafx.animation.SequentialTransition;
 import javafx.animation.Transition;
 import javafx.scene.Node;
 
@@ -141,8 +140,8 @@ public final class Animations {
 		boolean transitionBackground = true;
 		
 		// FIXME we need to test the slide transitions with multiple animations - may not work very well
-		// PP transitions, then plays animations - regardless if they are at the same start time
-		// PP only allows a single transition
+		// TODO PP transitions, then plays animations - regardless if they are at the same start time
+		// TODO PP only allows a single transition
 		
 		ParallelTransition inTransitions = new ParallelTransition();
 		ParallelTransition outTransitions = new ParallelTransition();
@@ -182,7 +181,7 @@ public final class Animations {
 				animations = in.getAnimations();
 			}
 			
-			// TODO some transition's out-going animation may not be compatible with the in-coming animation(s); Zoom is a good example.
+			// TODO some transition's out-going animation may not be compatible with the in-coming animation(s); Zoom is a good example.  --- need to test this
 			for (SlideAnimation animation : animations) {
 				if (animation != null && 
 					animation.getAnimation() != null && 
@@ -190,6 +189,16 @@ public final class Animations {
 					animation.getId().equals(slideId)) {
 					
 					// create the transition
+					
+					// if there's an incoming slide and the animation is a zoom or fade, and we are transitioning the background
+					// then ignore this animation
+					if (in != null && 
+					   (Zoom.class.isAssignableFrom(animation.getClass()) || Fade.class.isAssignableFrom(animation.getClass())) &&
+						transitionBackground) {
+						continue;
+					}
+					
+					// else take the inverse of the animation
 					CustomTransition<?> transition = createCustomTransition(animation.getAnimation().copy(AnimationType.OUT));
 					
 					// if we are transitioning the background, then all we need to do is
@@ -200,10 +209,10 @@ public final class Animations {
 						transition.setNode(out.getDisplayPane());
 						// add it to the parallel transition
 						outTransitions.getChildren().add(transition);
-					// if we are not transitioning the background, then we need to transition
-					// all the components of the out-going slide individually with all the animations
-					// that are for the slide
 					} else {
+						// if we are not transitioning the background, then we need to transition
+						// all the components of the out-going slide individually with all the animations
+						// that are for the slide
 						for (ObservableSlideComponent<?> component : out.getComponents()) {
 							// set the node
 							transition.setNode(component.getDisplayPane());
@@ -215,7 +224,7 @@ public final class Animations {
 			}
 		}
 		
-		return new SequentialTransition(outTransitions, inTransitions);
+		return new ParallelTransition(outTransitions, inTransitions);
 	}
 	
 	/**

@@ -89,6 +89,7 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 				ObservableMediaComponent comp = (ObservableMediaComponent)component.get();
 				if (comp != null) {
 					comp.setMedia(getControlValues());
+					notifyComponentChanged();
 				}
 			}
 		};

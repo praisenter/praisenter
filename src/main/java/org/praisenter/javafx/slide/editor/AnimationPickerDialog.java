@@ -79,11 +79,13 @@ final class AnimationPickerDialog extends BorderPane {
 		// build the animation picker pane
 		this.animationPickerPane = new AnimationPickerPane();
 		
+		Button btnAccept = new Button("OK");
+		Button btnCancel = new Button("Cancel");
+		
 		this.value.addListener((obs, ov, nv) -> {
 			this.animationPickerPane.setValue(nv);
 		});
-		
-		Button btnAccept = new Button("OK");
+
 		btnAccept.setOnAction(e -> {
 			this.value.setValue(this.animationPickerPane.getValue());
 			if (this.callback != null) {
@@ -92,7 +94,6 @@ final class AnimationPickerDialog extends BorderPane {
 			this.dialog.close();
 		});
 		
-		Button btnCancel = new Button("Cancel");
 		btnCancel.setOnAction(e -> {
 			this.dialog.close();
 		});

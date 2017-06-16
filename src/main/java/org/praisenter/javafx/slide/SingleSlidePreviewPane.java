@@ -49,8 +49,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
-// TODO Add to slide show button
-// TODO Show now button
+// TODO Add multi-slide preview pane (primarily for songs)
 
 /**
  * A pane to preview any given slide.

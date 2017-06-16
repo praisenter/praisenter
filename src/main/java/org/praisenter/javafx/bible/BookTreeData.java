@@ -33,7 +33,7 @@ import org.praisenter.bible.Book;
  * @version 3.0.0
  * @since 3.0.0
  */
-final class BookTreeData extends TreeData {
+public final class BookTreeData extends TreeData {
 	/** The bible */
 	final Bible bible;
 	
@@ -70,5 +70,21 @@ final class BookTreeData extends TreeData {
 	@Override
 	public void update() {
 		this.label.set(this.book.getName());
+	}
+
+	/**
+	 * Returns the bible.
+	 * @return {@link Bible}
+	 */
+	public Bible getBible() {
+		return this.bible;
+	}
+
+	/**
+	 * Returns the book.
+	 * @return {@link Book}
+	 */
+	public Book getBook() {
+		return this.book;
 	}
 }

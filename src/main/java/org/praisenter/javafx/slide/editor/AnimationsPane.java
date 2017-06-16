@@ -1,33 +1,44 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.slide.editor;
 
+import java.text.Collator;
 import java.util.Comparator;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.MediaType;
-import org.praisenter.javafx.ApplicationGlyphs;
-import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.slide.ObservableBasicTextComponent;
-import org.praisenter.javafx.slide.ObservableCountdownComponent;
-import org.praisenter.javafx.slide.ObservableDateTimeComponent;
-import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
-import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 import org.praisenter.javafx.slide.animation.Animations;
 import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.animation.SlideAnimation;
-import org.praisenter.slide.object.MediaObject;
 
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
@@ -54,27 +65,43 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 
+// FEATURE (M) Show a timeline-view of the animations for a slide
+
+/**
+ * A pane used to list and edit the animations for an {@link ObservableSlide}.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 final class AnimationsPane extends BorderPane {
-	private static final Logger LOGGER = LogManager.getLogger();
-	
+	/** The class to apply to the animated region when an animation is hovered over */
 	private static final PseudoClass ANIMATION_HOVERED = PseudoClass.getPseudoClass("animation-hovered");
 	
-	private final PraisenterContext context;
+	/** A collator for string comparison for the current locale */
+	private static final Collator COLLATOR = Collator.getInstance();
 	
+	// data
+	
+	/** The slide being edited */
 	private final ObjectProperty<ObservableSlide<?>> slide = new SimpleObjectProperty<ObservableSlide<?>>(null);
+	
+	/** The currently selected component */
 	private final ObjectProperty<ObservableSlideRegion<?>> component = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 	
+	/** The list of all animations */
 	private final ObservableList<SlideAnimation> animations = FXCollections.observableArrayList();
 	
+	// nodes
+	
+	/** The dialog for configuring animations */
 	private AnimationPickerDialog dlgAnimationPicker;
+	
+	/** The list view of all the animations */
 	private final ListView<SlideAnimation> lstAnimations;
 	
-	public AnimationsPane(PraisenterContext context) {
-		this.context = context;
-		
-		// vertical listing of all animations a slide has
-		// options to add, edit, or remove
-		
+	// TODO translate
+	
+	public AnimationsPane() {
+		// sort the animations by their delay
 		SortedList<SlideAnimation> ordered = new SortedList<>(this.animations, new Comparator<SlideAnimation>() {
 			@Override
 			public int compare(SlideAnimation o1, SlideAnimation o2) {
@@ -86,102 +113,63 @@ final class AnimationsPane extends BorderPane {
 				} else if (diff > 0) {
 					return 1;
 				} else {
-					// if they are the same, then compare the type and sort slide first
-					return o1.getId().compareTo(o2.getId());
+					ObservableSlideRegion<?> c1 = slide.get().getComponent(o1.getId());
+					ObservableSlideRegion<?> c2 = slide.get().getComponent(o2.getId());
+					
+					// are the ids the same?
+					if (o1.getId().equals(o2.getId())) {
+						// then compare by animation name
+						String a1 = Animations.getName(o1.getAnimation());
+						String a2 = Animations.getName(o2.getAnimation());
+						if (a1 == null) a1 = "";
+						if (a2 == null) a2 = "";
+						return COLLATOR.compare(a1, a2);
+					}
+					
+					// if ids are not the same, check if either id is for the slide itself
+					UUID slideId = slide.get().getId();
+					if (slideId.equals(o1.getId())) {
+						return -1;
+					} else if (slideId.equals(o2.getId())) {
+						return 1;
+					}
+					
+					// otherwise, neither is the slide, so order by component name
+					if (c1 != null && c2 != null) {
+						String n1 = c1.getName();
+						String n2 = c2.getName();
+						if (n1 == null) n1 = "";
+						if (n2 == null) n2 = "";
+						return COLLATOR.compare(n1, n2);
+					} else if (c1 == null) {
+						return 1;
+					} else if (c2 == null) {
+						return -1;
+					} else {
+						return o1.getId().compareTo(o2.getId());
+					}
 				}
 			}
 		});
 		
-		// TODO move this ListCell into it's own class
 		this.lstAnimations = new ListView<SlideAnimation>(ordered);
 		this.lstAnimations.setCellFactory(new Callback<ListView<SlideAnimation>, ListCell<SlideAnimation>>() {
 			@Override
 			public ListCell<SlideAnimation> call(ListView<SlideAnimation> param) {
-				return new ListCell<SlideAnimation>() {
-					private final StringProperty animationName = new SimpleStringProperty();
-					private final StringProperty componentName = new SimpleStringProperty();
-					private final StringBinding name = new StringBinding() {
-						{
-							bind(animationName, componentName);
-						}
-						@Override
-						protected String computeValue() {
-							String an = animationName.get();
-							String cn = componentName.get();
-							if (an != null && cn != null) {
-								return an + " " + cn;
-							} else if (an != null) {
-								return an;
-							}
-							return null;
-						}
-					};
-					{
-						this.textProperty().bind(name);
+				AnimationListCell cell = new AnimationListCell();
+				cell.slideProperty().bind(slide);
+				cell.setOnMouseClicked(e -> {
+					if (e.getClickCount() >= 2) {
+						editHandler(null);
 					}
-					@Override
-					protected void updateItem(SlideAnimation item, boolean empty) {
-						super.updateItem(item, empty);
-						this.componentName.unbind();
-						if (item != null && !empty) {
-							this.animationName.set(Animations.getName(item.getAnimation()));
-							
-							// set the name and graphic
-							UUID id = item.getId();
-							if (id.equals(slide.get().getId())) {
-								this.componentName.bind(slide.get().nameProperty());
-								this.setGraphic(ApplicationGlyphs.SLIDE.duplicate());
-							} else {
-								ObservableSlideComponent<?> component = slide.get().getComponent(id);
-								if (component != null) {
-									this.componentName.bind(component.nameProperty());
-									if (component instanceof ObservableTextPlaceholderComponent) {
-										this.setGraphic(ApplicationGlyphs.PLACEHOLDER_COMPONENT.duplicate());
-									} else if (component instanceof ObservableDateTimeComponent) {
-										this.setGraphic(ApplicationGlyphs.DATETIME_COMPONENT.duplicate());
-									} else if (component instanceof ObservableCountdownComponent) {
-										this.setGraphic(ApplicationGlyphs.COUNTDOWN_COMPONENT.duplicate());
-									} else if (component instanceof ObservableBasicTextComponent) {
-										this.setGraphic(ApplicationGlyphs.BASIC_TEXT_COMPONENT.duplicate());
-									} else if (component instanceof ObservableMediaComponent) {
-										MediaObject mo = ((ObservableMediaComponent)component).getMedia();
-										if (mo == null || mo.getType() == null) {
-											this.setGraphic(ApplicationGlyphs.MEDIA_COMPONENT.duplicate());
-										} else if (mo.getType() == MediaType.AUDIO) {
-											this.setGraphic(ApplicationGlyphs.AUDIO_MEDIA_COMPONENT.duplicate());
-										} else if (mo.getType() == MediaType.IMAGE) {
-											this.setGraphic(ApplicationGlyphs.IMAGE_MEDIA_COMPONENT.duplicate());
-										}  else if (mo.getType() == MediaType.VIDEO) {
-											this.setGraphic(ApplicationGlyphs.VIDEO_MEDIA_COMPONENT.duplicate());
-										} else {
-											LOGGER.warn("Unknown media type {} when choosing icon for animation.", mo.getType());
-										}
-									} else {
-										// just log it
-										LOGGER.warn("Unknown type {} when choosing icon for animation.", component.getClass());
-									}
-								}
-							}
-							
-							this.setOnMouseClicked(e -> {
-								if (e.getClickCount() >= 2) {
-									editHandler(null);
-								}
-							});
-						} else {
-							this.componentName.set(null);
-							this.animationName.set(null);
-							this.setOnMouseClicked(null);
-							this.setGraphic(null);
-						}
-						this.setOnMouseEntered(e -> {
-							highlightNodeOnHover(item);
-						});
-						this.setOnMouseExited(e -> {
-							highlightNodeOnHover(null);
-						});
-					}
-				};
+				});
+				cell.setOnMouseEntered(e -> {
+					highlightNodeOnHover(cell.getItem());
+				});
+				cell.setOnMouseExited(e -> {
+					highlightNodeOnHover(null);
+				});
+				return cell;
 			}
 		});
 
@@ -221,6 +209,10 @@ final class AnimationsPane extends BorderPane {
 		});
 	}
 	
+	/**
+	 * Called when an item from the list of animations is entered by the mouse or exited.
+	 * @param nv the item
+	 */
 	private void highlightNodeOnHover(SlideAnimation nv) {
 		if (this.slide.get() == null) {
 			return;
@@ -250,6 +242,10 @@ final class AnimationsPane extends BorderPane {
 		}
 	}
 	
+	/**
+	 * Called when the add button is clicked.
+	 * @param e the event
+	 */
 	private void addHandler(ActionEvent e) {
 		addOrEdit(null, a -> {
 			UUID id = null;
@@ -265,6 +261,10 @@ final class AnimationsPane extends BorderPane {
 		});
 	}
 	
+	/**
+	 * Called when the edit button is clicked or if an animation is double clicked.
+	 * @param e the event
+	 */
 	private void editHandler(ActionEvent e) {
 		SlideAnimation selected = this.lstAnimations.getSelectionModel().getSelectedItem();
 		if (selected != null) {
@@ -279,6 +279,10 @@ final class AnimationsPane extends BorderPane {
 		}
 	}
 	
+	/**
+	 * Called when the remove button is clicked.
+	 * @param e the event
+	 */
 	private void removeHandler(ActionEvent e) {
 		SlideAnimation sa = this.lstAnimations.getSelectionModel().getSelectedItem();
 		if (sa != null) {
@@ -286,6 +290,12 @@ final class AnimationsPane extends BorderPane {
 		}
 	}
 	
+	// helpers
+	
+	/**
+	 * Removes the slide animation.
+	 * @param animation the animation to remove
+	 */
 	private void remove(SlideAnimation animation) {
 		if (this.slide.get() == null) {
 			return;
@@ -294,6 +304,10 @@ final class AnimationsPane extends BorderPane {
 		this.slide.get().removeAnimation(animation);
 	}
 	
+	/**
+	 * Adds the slide animation.
+	 * @param animation the animation to add
+	 */
 	private void add(SlideAnimation animation) {
 		if (this.slide.get() == null) {
 			return;
@@ -302,6 +316,11 @@ final class AnimationsPane extends BorderPane {
 		this.slide.get().addAnimation(animation);
 	}
 	
+	/**
+	 * Adds or edits the slide animation.
+	 * @param value the animation; or null in the case of add
+	 * @param callback the callback for when the user is satisfied with what they've configured
+	 */
 	private void addOrEdit(Animation value, Consumer<Animation> callback) {
 		if (this.dlgAnimationPicker == null) {
 			this.dlgAnimationPicker = new AnimationPickerDialog(getScene().getWindow());

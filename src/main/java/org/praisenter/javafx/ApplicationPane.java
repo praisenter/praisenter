@@ -49,6 +49,7 @@ public interface ApplicationPane {
 	 * @param action the action
 	 * @return boolean
 	 */
+	// TODO remove - I don't think this will be needed
 	public boolean isApplicationActionVisible(ApplicationAction action);
 	
 	// toggling disabled/enabled
@@ -62,4 +63,9 @@ public interface ApplicationPane {
 	 * @return boolean
 	 */
 	public boolean isApplicationActionEnabled(ApplicationAction action);
+	
+	/**
+	 * Performs some basic clean up but should still be re-usable.
+	 */
+	public void cleanup();
 }

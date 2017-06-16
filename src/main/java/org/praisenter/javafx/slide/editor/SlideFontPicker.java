@@ -50,8 +50,8 @@ import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 
-// JAVABUG 03/15/16 LOW Java FX does not have a facility to derive fonts; If this is added in the future, update this class to always show the bold/italic buttons https://bugs.openjdk.java.net/browse/JDK-8091064
-// JAVABUG 03/15/16 LOW Java FX does not have a facility to derive fonts; If this is added in the future, consider changing the bold button to a drop down of values https://bugs.openjdk.java.net/browse/JDK-8091064
+// JAVABUG (L) 03/15/16 Java FX does not have a facility to derive fonts; If this is added in the future, update this class to always show the bold/italic buttons https://bugs.openjdk.java.net/browse/JDK-8091064
+// JAVABUG (L) 03/15/16 Java FX does not have a facility to derive fonts; If this is added in the future, consider changing the bold button to a drop down of values https://bugs.openjdk.java.net/browse/JDK-8091064
 // see also https://bitbucket.org/controlsfx/controlsfx/src/13e52b38df16842b71a4c9df1cadbeba6087742a/controlsfx/src/main/java/org/controlsfx/dialog/FontSelectorDialog.java?at=default&fileviewer=file-view-default
 
 /**

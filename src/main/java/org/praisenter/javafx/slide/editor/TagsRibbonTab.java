@@ -53,6 +53,7 @@ final class TagsRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 					} else if (event.getEventType() == TagEvent.REMOVED) {
 						slide.removeTag(tag);
 					}
+					notifyComponentChanged();
 				}
 			}
         });

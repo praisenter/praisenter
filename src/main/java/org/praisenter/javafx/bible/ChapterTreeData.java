@@ -37,7 +37,7 @@ import org.praisenter.resources.translations.Translations;
  * @version 3.0.0
  * @since 3.0.0
  */
-final class ChapterTreeData extends TreeData {
+public final class ChapterTreeData extends TreeData {
 	/** The bible */
 	final Bible bible;
 	
@@ -78,5 +78,29 @@ final class ChapterTreeData extends TreeData {
 	@Override
 	public void update() {
 		this.label.set(MessageFormat.format(Translations.get("bible.chapter"), chapter.getNumber()));
+	}
+
+	/**
+	 * Returns the bible.
+	 * @return {@link Bible}
+	 */
+	public Bible getBible() {
+		return this.bible;
+	}
+
+	/**
+	 * Returns the book.
+	 * @return {@link Book}
+	 */
+	public Book getBook() {
+		return this.book;
+	}
+
+	/**
+	 * Returns the chapter.
+	 * @return {@link Chapter}
+	 */
+	public Chapter getChapter() {
+		return this.chapter;
 	}
 }

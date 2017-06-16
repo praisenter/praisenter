@@ -100,6 +100,7 @@ class GlowRibbonTab extends ComponentEditorRibbonTab {
 				ObservableSlideRegion<?> comp = component.get();
 				if (comp != null) {
 					comp.setGlow(getControlValues());
+					notifyComponentChanged();
 				}
 			}
 		};

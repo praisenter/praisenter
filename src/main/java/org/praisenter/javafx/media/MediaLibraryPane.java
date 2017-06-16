@@ -424,15 +424,6 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         
         this.setTop(top);
         this.setCenter(split);
-        
-        // when this node is removed from the scene
-        // stop the media player if its playing
-        this.parentProperty().addListener((obs, ov, nv) -> {
-        	if (nv == null && ov != null) {
-        		// stop any playing media
-        		this.pnePlayer.stop();
-        	}
-        });
     }
 
     /**
@@ -674,6 +665,25 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     @Override
     public boolean isApplicationActionVisible(ApplicationAction action) {
     	return true;
+    }
+    
+    /* (non-Javadoc)
+     * @see org.praisenter.javafx.ApplicationPane#cleanup()
+     */
+    @Override
+    public void cleanup() {
+    	// clear any selections
+    	this.lstMedia.getSelectionModel().clear();
+    	
+    	// clear sorting/filtering
+    	this.textFilter.set(null);
+    	this.typeFilter.set(new Option<MediaType>());
+    	this.sortDescending.set(true);
+    	this.sortField.set(new Option<MediaSortField>(MediaSortField.NAME.getName(), MediaSortField.NAME));
+    	
+    	// make sure the media player is stopped and cleaned up
+    	this.pnePlayer.stop();
+    	this.pnePlayer.setMediaPlayer(null, null);
     }
     
     /**

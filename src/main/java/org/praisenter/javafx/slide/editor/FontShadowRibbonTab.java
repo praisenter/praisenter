@@ -102,6 +102,7 @@ class FontShadowRibbonTab extends ComponentEditorRibbonTab {
 				if (comp != null && comp instanceof ObservableTextComponent) {
 					ObservableTextComponent<?> tc =(ObservableTextComponent<?>)comp;
 					tc.setTextShadow(getControlValues());
+					notifyComponentChanged();
 				}
 			}
 		};

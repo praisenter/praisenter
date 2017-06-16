@@ -75,7 +75,7 @@ import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
 
-// FEATURE Add duplicate detection and merge features
+// FEATURE (M) Add duplicate detection and merge features
 
 /**
  * A collection of songs that has been loaded into a specific location and converted

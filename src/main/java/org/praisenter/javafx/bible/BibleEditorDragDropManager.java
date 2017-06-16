@@ -31,6 +31,16 @@ import org.praisenter.Constants;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.Verse;
+import org.praisenter.javafx.bible.commands.AddBookEditCommand;
+import org.praisenter.javafx.bible.commands.AddChapterEditCommand;
+import org.praisenter.javafx.bible.commands.AddVerseEditCommand;
+import org.praisenter.javafx.bible.commands.RemoveBookEditCommand;
+import org.praisenter.javafx.bible.commands.RemoveChapterEditCommand;
+import org.praisenter.javafx.bible.commands.RemoveVerseEditCommand;
+import org.praisenter.javafx.command.CommandFactory;
+import org.praisenter.javafx.command.EditCommand;
+import org.praisenter.javafx.command.OrderedWrappedEditCommand;
+import org.praisenter.javafx.command.RemoveEditCommand;
 
 import javafx.css.PseudoClass;
 import javafx.scene.Scene;
@@ -38,13 +48,12 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 
-// JAVABUG 11/03/16 LOW Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
+// JAVABUG (L) 11/03/16 Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
 
 /**
  * Class used to managed the drag and drop features of the {@link BibleEditorPane}.
@@ -127,7 +136,7 @@ final class BibleEditorDragDropManager {
 				Dragboard db = cell.startDragAndDrop(TransferMode.COPY_OR_MOVE);
 				ClipboardContent cc = new ClipboardContent();
 				// we have to put something in there to make sure the d&d works
-				cc.put(DataFormat.PLAIN_TEXT, text.toString().trim());
+				cc.putString(text.toString().trim());
 				db.setContent(cc);
 				
 				Label label = new Label(cell.getText());
@@ -166,10 +175,10 @@ final class BibleEditorDragDropManager {
 		if (!cell.isEmpty()) {
 			TreeItem<TreeData> item = cell.getTreeItem();
 			TreeData data = cell.getItem();
+			boolean parent = false;
 			boolean allowed = false;
 			
 			if (!this.selected.contains(item)) {
-				boolean parent = false;
 				if (data instanceof ChapterTreeData && VerseTreeData.class.equals(this.selectedType)) {
 					allowed = true;
 					parent = true;
@@ -191,15 +200,12 @@ final class BibleEditorDragDropManager {
 					e.acceptTransferModes(TransferMode.MOVE);
 					
 					if (parent) {
-//						cell.setBackground(DRAG_BACKGROUND);
 						cell.pseudoClassStateChanged(DRAG_OVER_PARENT, true);
 					} else {
 						if (e.getY() < cell.getHeight() * 0.75) {
-//							cell.setBorder(DRAG_TOP);
 							cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_TOP, true);
 							cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_BOTTOM, false);
 						} else {
-//							cell.setBorder(DRAG_BOTTOM);
 							cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_BOTTOM, true);
 							cell.pseudoClassStateChanged(DRAG_OVER_SIBLING_TOP, false);
 						}
@@ -211,40 +217,47 @@ final class BibleEditorDragDropManager {
 	
 	/**
 	 * Called when the drag is dropped.
+	 * <p>
+	 * Returns an {@link EditCommand} that captures the operations to perform.
 	 * @param cell the cell that had the drag dropped on
 	 * @param e the drag event
+	 * @return {@link EditCommand}
 	 */
-	public void dragDropped(BibleTreeCell cell, DragEvent e) {
+	public EditCommand dragDropped(BibleTreeCell cell, DragEvent e) {
 		TreeItem<TreeData> toNode = cell.getTreeItem();
 		
 		// make sure we don't paste onto ourself
 		if (this.selected.contains(toNode)) {
-			return;
+			return null;
 		}
 		
 		TreeData data = toNode.getValue();
 		boolean after = e.getY() >= cell.getHeight() * 0.75;
 		
+		// compute the index of the target node
+		int index = toNode.getParent().getChildren().indexOf(toNode);
+		
 		// remove all the nodes first so that the indexes don't get jacked
+		List<RemoveEditCommand> removeCommands = new ArrayList<RemoveEditCommand>();
 		for (TreeItem<TreeData> item : this.selected) {
-			// remove it from the tree
-			item.getParent().getChildren().remove(item);
-			// remove it from the bible
+			// is the item in the toNode's children list?
+			int iIndex = toNode.getParent().getChildren().indexOf(item);
+			// is it before the index we are going to insert at?
+			if (iIndex >= 0 && iIndex < index) {
+				// if so, we need to account for the fact that it will be removed and
+				// the index will change by 1
+				index--;
+			}
 			TreeData td = item.getValue();
 			if (td instanceof VerseTreeData) {
-				VerseTreeData vtd = (VerseTreeData)td;
-				vtd.chapter.getVerses().remove(vtd.verse);
+				removeCommands.add(new RemoveVerseEditCommand(item));
 			} else if (td instanceof ChapterTreeData) {
-				ChapterTreeData ctd = (ChapterTreeData)td;
-				ctd.book.getChapters().remove(ctd.chapter);
+				removeCommands.add(new RemoveChapterEditCommand(item));
 			} else if (td instanceof BookTreeData) {
-				BookTreeData btd = (BookTreeData)td;
-				btd.bible.getBooks().remove(btd.book);
+				removeCommands.add(new RemoveBookEditCommand(item));
 			}
 		}
 		
-		// compute the index of the target node
-		int index = toNode.getParent().getChildren().indexOf(toNode);
 		if (after) {
 			index++;
 		}
@@ -257,44 +270,23 @@ final class BibleEditorDragDropManager {
 		} else {
 			// if we drag it to the same type, then get the parent
 			toNode = toNode.getParent();
+			toNode.getParent().getChildren();
 		}
 		
+		List<OrderedWrappedEditCommand> addCommands = new ArrayList<OrderedWrappedEditCommand>();
 		for (TreeItem<TreeData> item : this.selected) {
-			// add the node at the target
-			if (index < 0) {
-				toNode.getChildren().add(item);
-			} else {
-				toNode.getChildren().add(index, item);
-			}
-			
-			// add the data
 			if (VerseTreeData.class.equals(this.selectedType)) {
 				// moving verses onto a chapter
-				ChapterTreeData ctd = (ChapterTreeData)toNode.getValue();
 				Verse verse = ((VerseTreeData)item.getValue()).verse;
-				if (index < 0) {
-					ctd.chapter.getVerses().add(verse);
-				} else {
-					ctd.chapter.getVerses().add(index, verse);
-				}
+				addCommands.add(new OrderedWrappedEditCommand(new AddVerseEditCommand(cell.getTreeView(), toNode, verse, index), 2));
 			} else if (ChapterTreeData.class.equals(this.selectedType)) {
 				// moving chapters onto a book
-				BookTreeData btd = (BookTreeData)toNode.getValue();
 				Chapter chapter = ((ChapterTreeData)item.getValue()).chapter;
-				if (index < 0) {
-					btd.book.getChapters().add(chapter);
-				} else {
-					btd.book.getChapters().add(index, chapter);
-				}
+				addCommands.add(new OrderedWrappedEditCommand(new AddChapterEditCommand(cell.getTreeView(), toNode, chapter, index), 1));
 			} else if (BookTreeData.class.equals(this.selectedType)) {
 				// moving books onto a bible
-				BibleTreeData btd = (BibleTreeData)toNode.getValue();
 				Book book = ((BookTreeData)item.getValue()).book;
-				if (index < 0) {
-					btd.bible.getBooks().add(book);
-				} else {
-					btd.bible.getBooks().add(index, book);
-				}
+				addCommands.add(new OrderedWrappedEditCommand(new AddBookEditCommand(cell.getTreeView(), toNode, book, index), 0));
 			}
 			
 			if (index >= 0) {
@@ -303,6 +295,10 @@ final class BibleEditorDragDropManager {
 		}
 		
 		e.setDropCompleted(true);
+
+		return CommandFactory.chain(
+				CommandFactory.sequence(removeCommands),
+				CommandFactory.sequence(addCommands));
 	}
 	
 	/**

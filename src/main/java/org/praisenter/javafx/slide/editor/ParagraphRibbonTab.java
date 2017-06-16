@@ -131,6 +131,7 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 				} else {
 					tc.setHorizontalTextAlignment(HorizontalTextAlignment.LEFT);
 				}
+				notifyComponentChanged();
 			}
 		});
 		
@@ -149,6 +150,7 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 				} else {
 					tc.setVerticalTextAlignment(VerticalTextAlignment.TOP);
 				}
+				notifyComponentChanged();
 			}
 		});
 		
@@ -158,6 +160,7 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setPadding(new SlidePadding(nv.doubleValue()));
+				notifyComponentChanged();
 			}
 		});
 		
@@ -167,11 +170,8 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setTextWrapping(nv);
+				notifyComponentChanged();
 			}
 		});
-		
-		// other tabs
-		// text shadow
-		// text glow
 	}
 }

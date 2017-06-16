@@ -90,6 +90,9 @@ public enum Setting {
 	
 	// displays
 	
+	/** The number of displays */
+	DISPLAY_COUNT,
+	
 	/** The primary display */
 	DISPLAY_PRIMARY,
 	

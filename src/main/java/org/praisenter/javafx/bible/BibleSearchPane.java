@@ -77,7 +77,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
-// FEATURE add searching to the bible editor for finding and editing easily
+// FEATURE (M) add searching to the bible editor for finding and editing easily
 
 /**
  * A pane for searching for bible verses.

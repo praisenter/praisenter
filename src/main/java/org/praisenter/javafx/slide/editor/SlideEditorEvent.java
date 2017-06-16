@@ -41,12 +41,17 @@ class SlideEditorEvent extends Event implements Serializable {
 	
 	/** Event type to catch any event */
 	public static final EventType<SlideEditorEvent> ANY = new EventType<SlideEditorEvent>("SLIDE");
+
+	/** Event type to catch changes to a slide */
+	public static final EventType<SlideEditorEvent> CHANGED = new EventType<SlideEditorEvent>("SLIDE_CHANGED");
 	
 	/** Event type to catch only order events */
 	public static final EventType<SlideComponentOrderEvent> ORDER = new EventType<SlideComponentOrderEvent>("SLIDE_COMPONENT_ORDER");
 	
+	/** Event type to catch only target resolution change events */
 	public static final EventType<SlideTargetResolutionEvent> TARGET_RESOLUTION = new EventType<SlideTargetResolutionEvent>("SLIDE_TARGET_RESOLUTION");
 	
+	/** Event type to catch only new component change events */
 	public static final EventType<SlideComponentAddEvent> ADD_COMPONENT = new EventType<SlideComponentAddEvent>("SLIDE_ADD_COMPONENT");
 	
 	/**

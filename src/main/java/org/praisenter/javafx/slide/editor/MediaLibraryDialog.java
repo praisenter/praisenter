@@ -82,20 +82,28 @@ final class MediaLibraryDialog extends BorderPane {
 		this.dialog.setTitle(Translations.get("media.library.title"));
 		this.dialog.initModality(Modality.WINDOW_MODAL);
 		this.dialog.initStyle(StageStyle.UTILITY);
-		this.dialog.setWidth(800);
-		this.dialog.setHeight(450);
+//		this.dialog.setWidth(800);
+//		this.dialog.setHeight(450);
 		// NOTE: this makes the title portion of the modal shorter
 		this.dialog.setResizable(false);
 		
 		// build the media library pane
 		this.mediaLibraryPane = new MediaLibraryPane(context, Orientation.HORIZONTAL, types);
 
+		Button btnAccept = new Button("OK");
+		Button btnCancel = new Button("Cancel");
+		
+		btnAccept.setDisable(true);
+		
 		// when our value changes, update the media pane
 		this.value.addListener((obs, ov, nv) -> {
 			this.mediaLibraryPane.setSelected(nv);
 		});
 		
-		Button btnAccept = new Button("OK");
+		this.mediaLibraryPane.selectedProperty().addListener((obs, ov, nv) -> {
+			btnAccept.setDisable(nv == null);
+		});
+		
 		btnAccept.setOnAction(e -> {
 			this.value.setValue(this.mediaLibraryPane.getSelected());
 			if (this.callback != null) {
@@ -104,7 +112,6 @@ final class MediaLibraryDialog extends BorderPane {
 			this.dialog.close();
 		});
 
-		Button btnCancel = new Button("Cancel");
 		btnCancel.setOnAction(e -> {
 			this.dialog.close();
 		});

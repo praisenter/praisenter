@@ -102,6 +102,7 @@ class FontGlowRibbonTab extends ComponentEditorRibbonTab {
 				if (comp != null && comp instanceof ObservableTextComponent) {
 					ObservableTextComponent<?> tc =(ObservableTextComponent<?>)comp;
 					tc.setTextGlow(getControlValues());
+					notifyComponentChanged();
 				}
 			}
 		};

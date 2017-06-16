@@ -1,5 +1,9 @@
 package org.praisenter.javafx.slide.editor;
 
+import org.praisenter.MediaType;
+import org.praisenter.javafx.slide.ObservableMediaComponent;
+import org.praisenter.javafx.slide.SlideMode;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
@@ -36,6 +40,10 @@ abstract class EditorRibbonTab<T> extends HBox {
 		this.setSpacing(4);
 		
 		this.container.setMinWidth(USE_PREF_SIZE);
+	}
+	
+	protected void notifyComponentChanged() {
+		fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.CHANGED));
 	}
 	
 	public T getComponent() {

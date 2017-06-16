@@ -158,7 +158,9 @@ public final class BibleActions {
 			});
 	    	return task;
 		}
-		return AsyncTaskFactory.single();
+		AsyncTask<Bible> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -210,7 +212,9 @@ public final class BibleActions {
 	    	}
 	    	// user cancellation
 		}
-		return AsyncTaskFactory.single();
+		AsyncTask<Bible> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -251,7 +255,9 @@ public final class BibleActions {
 	    	}
 		}
 		// user cancellation
-		return AsyncTaskFactory.single();
+		AsyncTask<Void> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -274,7 +280,9 @@ public final class BibleActions {
 					.collect(Collectors.toList());
 			return bibleImport(library, owner, paths);
 		}
-		return AsyncTaskFactory.group();
+		AsyncGroupTask<AsyncTask<List<Bible>>> task = AsyncTaskFactory.group();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -297,7 +305,7 @@ public final class BibleActions {
 	    	task.addCancelledOrFailedHandler((e) -> {
 	    		Throwable error = task.getException();
 	    		// log the error
-				LOGGER.error("Failed to copy bible.", error);
+				LOGGER.error("Failed to copy bible '" + bible.getName() + "' " + bible.getId(), error);
 				// present message to user
 				Alert alert = Alerts.exception(
 						owner,
@@ -309,7 +317,9 @@ public final class BibleActions {
 			});
 	    	return task;
 		}
-		return AsyncTaskFactory.single();
+		AsyncTask<Bible> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -357,7 +367,9 @@ public final class BibleActions {
 		    	return task;
 	    	}
 		}
-		return AsyncTaskFactory.single();
+		AsyncTask<Bible> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -411,7 +423,9 @@ public final class BibleActions {
 				return task;
 			}
 		}
-		return AsyncTaskFactory.group();
+		AsyncGroupTask<AsyncTask<Void>> task = AsyncTaskFactory.group();
+		task.cancel();
+		return task;
 	}
 	
 }

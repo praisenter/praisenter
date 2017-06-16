@@ -25,7 +25,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 		placeholderTypes.add(new Option<TextType>("Text", TextType.TEXT));
 		placeholderTypes.add(new Option<TextType>("Title", TextType.TITLE));
 		
-		// FEATURE Add more variant options other than Primary/Secondary
+		// FEATURE (L) Add more variant options other than Primary/Secondary
 		ObservableList<Option<TextVariant>> placeholderVariants = FXCollections.observableArrayList();
 		placeholderVariants.add(new Option<TextVariant>("Primary", TextVariant.PRIMARY));
 		placeholderVariants.add(new Option<TextVariant>("Secondary", TextVariant.SECONDARY));
@@ -62,6 +62,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
 				tc.setPlaceholderType(nv.getValue());
 				fireEvent(new SlideRibbonEvent(this.cmbTextType, this.cmbTextType, SlideRibbonEvent.PLACEHOLDER));
+				notifyComponentChanged();
 			}
 		});
 		
@@ -72,6 +73,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
 				tc.setPlaceholderVariant(nv.getValue());
 				fireEvent(new SlideRibbonEvent(this.cmbTextVariant, this.cmbTextVariant, SlideRibbonEvent.PLACEHOLDER));
+				notifyComponentChanged();
 			}
 		});
 		

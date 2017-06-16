@@ -3,7 +3,9 @@ package org.praisenter.javafx;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.Locale;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,15 +20,18 @@ import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.slide.SlideActions;
 import org.praisenter.javafx.slide.SlideLibraryPane;
 import org.praisenter.javafx.slide.editor.SlideEditorPane;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.Slide;
 
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Modality;
 
 public final class MainPane extends BorderPane implements ApplicationPane {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -36,6 +41,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 	private final MainMenu menu;
 	private final MainStatusBar status;
 	
+	private final SlideDataPane presentPane;
 	private final SetupPane setupPane;
 	private final BibleLibraryPane bibleLibraryPane;
 	private final BibleEditorPane bibleEditorPane;
@@ -53,7 +59,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		this.menu = new MainMenu(this);
 		
 //		VBox top = new VBox(menu);
-		this.setTop(menu);
+		this.setTop(this.menu);
 		
 		this.status = new MainStatusBar(context);
 		this.setBottom(this.status);
@@ -69,9 +75,17 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			handleApplicationEvent(e);
 		});
 		
-		this.setCenter(new SlideDataPane(context));
+		this.presentPane = new SlideDataPane(context);
 		
-//		this.sceneProperty().addListener((obs, ov, nv) -> {
+		this.setCenter(this.presentPane);
+
+		this.mainContent.addListener((obs, ov, nv) -> {
+			if (ov != null && ov instanceof ApplicationPane) {
+				((ApplicationPane)ov).cleanup();
+			}
+		});
+		
+		//		this.sceneProperty().addListener((obs, ov, nv) -> {
 //			if (nv != null) {
 //				this.defaultAccelerators.clear();
 //				this.defaultAccelerators.putAll(nv.getAccelerators());
@@ -94,6 +108,9 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			case IMPORT_SLIDES:
 				this.promptSlideImport();
 				break;
+			case PRESENT:
+				this.navigate(this.presentPane);
+				break;
 			case PREFERENCES:
 				this.navigate(this.setupPane);
 				break;
@@ -108,10 +125,12 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			case EDIT:
 				// get the data to know what to do
 				if (data instanceof Bible) {
+					this.bibleEditorPane.setBible(null);
 					this.bibleEditorPane.setBible(((Bible)data).copy(true));
 					this.navigate(this.bibleEditorPane);
 				}
 				if (data instanceof Slide) {
+					this.slideEditorPane.setSlide(null);
 					this.slideEditorPane.setSlide(((Slide)data).copy(true));
 					this.navigate(this.slideEditorPane);
 				}
@@ -163,6 +182,10 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationPane#isApplicationActionEnabled(org.praisenter.javafx.ApplicationAction)
+	 */
+	@Override
 	public boolean isApplicationActionEnabled(ApplicationAction action) {
     	switch (action) {
 			case ABOUT:
@@ -186,13 +209,25 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationPane#isApplicationActionVisible(org.praisenter.javafx.ApplicationAction)
+	 */
+	@Override
 	public boolean isApplicationActionVisible(ApplicationAction action) {
 		return true;
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationPane#setDefaultFocus()
+	 */
 	@Override
 	public void setDefaultFocus() {
-		this.requestFocus();
+		Node content = this.mainContent.get();
+		if (content != null && content instanceof ApplicationPane) {
+			((ApplicationPane)content).setDefaultFocus();
+		} else {
+			this.requestFocus();
+		}
 	}
 
     /**
@@ -227,15 +262,49 @@ public final class MainPane extends BorderPane implements ApplicationPane {
     
 	// NAVIGATION
 	
+    private ButtonType checkForUnsavedChanges() {
+    	Node current = this.getCenter();
+    	if (current instanceof ApplicationEditorPane) {
+    		ApplicationEditorPane aep = (ApplicationEditorPane)current;
+    		// check for any unsaved changes
+    		if (aep.hasUnsavedChanges()) {
+    			String target = aep.getEditTargetName();
+    			LOGGER.info("Unsaved changes detected for '{}'", target);
+				Alert alert = Alerts.yesNoCancel(
+						getScene().getWindow(),
+						Modality.WINDOW_MODAL,
+						Translations.get("warning.modified.title"), 
+						MessageFormat.format(Translations.get("warning.modified.header"), target), 
+						Translations.get("warning.modified.content"));
+				Optional<ButtonType> result = alert.showAndWait();
+				
+				if (result.get() == ButtonType.YES) {
+					LOGGER.info("The user requested that the changes to '{}' be saved.", target);
+					aep.saveChanges();
+				} else if (result.get() == ButtonType.NO) {
+					LOGGER.info("The user requested that the changes to '{}' be discarded.", target);
+				}
+				return result.get();
+    		}
+		}
+    	return null;
+    }
+    
 	private void navigate(Node node) { 
+		ButtonType result = checkForUnsavedChanges();
+		// if the user canceled, we need to stop the navigation
+		if (result == ButtonType.CANCEL) {
+			return;
+		}
+		
 		this.setCenter(null);
 		this.setCenter(node);
 		
-		// JAVABUG 10/24/16 MEDIUM [workaround] Duplicated accelerators https://bugs.openjdk.java.net/browse/JDK-8088068
+		// JAVABUG (M) 10/24/16 [workaround] Duplicated accelerators https://bugs.openjdk.java.net/browse/JDK-8088068
 		// we need to do this so that any accelerators on the content area (the center node) are overridden 
 		// by the accelerators in the menu
 		this.setTop(null);
-		this.setTop(menu);
+		this.setTop(this.menu);
 		
 		this.mainContent.set(node);
 
@@ -248,11 +317,11 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		}
 	}
 	
-	public Node getMainContent() {
-		return this.mainContent.get();
-	}
-	
-	public ReadOnlyObjectProperty<Node> mainContentProperty() {
-		return this.mainContent;
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationPane#cleanup()
+	 */
+	@Override
+	public void cleanup() {
+		// no-op
 	}
 }

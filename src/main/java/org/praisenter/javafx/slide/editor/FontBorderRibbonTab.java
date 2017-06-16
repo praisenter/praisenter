@@ -171,6 +171,7 @@ class FontBorderRibbonTab extends ComponentEditorRibbonTab {
 				if (comp != null && comp instanceof ObservableTextComponent) {
 					ObservableTextComponent<?> tc =(ObservableTextComponent<?>)comp;
 					tc.setTextBorder(getControlValues());
+					notifyComponentChanged();
 				}
 			}
 		};

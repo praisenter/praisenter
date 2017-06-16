@@ -168,6 +168,7 @@ class BorderRibbonTab extends ComponentEditorRibbonTab {
 				ObservableSlideRegion<?> comp = component.get();
 				if (comp != null) {
 					comp.setBorder(getControlValues());
+					notifyComponentChanged();
 				}
 			}
 		};

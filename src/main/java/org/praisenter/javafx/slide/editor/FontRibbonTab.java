@@ -185,6 +185,7 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setTextPaint(PaintConverter.fromJavaFX(nv));
+				notifyComponentChanged();
 			}
 		});
 		
@@ -194,6 +195,7 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setTextPaint(nv);
+				notifyComponentChanged();
 			}
 		});
 		
@@ -203,6 +205,7 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setFont(nv);
+				notifyComponentChanged();
 			}
 		});
 		
@@ -212,6 +215,7 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setFontScaleType(nv.getValue());
+				notifyComponentChanged();
 			}
 		});
 		
@@ -221,14 +225,8 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setLineSpacing(nv);
+				notifyComponentChanged();
 			}
 		});
-		
-		// other tabs
-		// text border fill
-		// text border style
-		// paragraph
-		// text shadow
-		// text glow
 	}
 }

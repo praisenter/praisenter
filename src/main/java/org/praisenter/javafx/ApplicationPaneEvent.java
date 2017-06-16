@@ -42,8 +42,9 @@ public class ApplicationPaneEvent extends Event implements Serializable {
 	/** Event type for the state of the application pane changing */
 	public static final EventType<ApplicationPaneEvent> STATE_CHANGED = new EventType<ApplicationPaneEvent>("APPLICATION_PANE_STATE_CHANGED");
 	
-	public static final String REASON_SELECTION_CHANGED = "Selection Changed";
+	public static final String REASON_SELECTION_CHANGED = "Selection changed";
 	public static final String REASON_DATA_COPIED = "Data copied or cut";
+	public static final String REASON_UNDO_REDO_STATE_CHANGED = "Undo/redo state changed";
 	
 	/** The application pane */
 	private final ApplicationPane pane;

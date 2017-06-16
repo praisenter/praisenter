@@ -67,7 +67,7 @@ public final class Verse implements SongOutput {
 	public Verse() {
 		this.name = "c1";
 		this.fragments = new ArrayList<VerseFragment>();
-		this.fontSize = 60;
+		this.fontSize = -1;
 	}
 	
 	/* (non-Javadoc)

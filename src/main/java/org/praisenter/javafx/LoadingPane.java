@@ -56,9 +56,10 @@ import javafx.scene.shape.Path;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.util.Duration;
 
-// FEATURE Replace the current loading background image
+// FEATURE (L) Replace the current loading background image
 
 /**
  * Pane for showing a loading indicator and other animations while building
@@ -250,17 +251,13 @@ final class LoadingPane extends Pane {
 						// stop the circle animation
 						circleAnimation.stop();
 						
-						// notify that loading is complete
-						if (this.onComplete != null) {
-							try {
-								PraisenterContext context = loading.get();
-								onPraisenterContextCreated(context);
-							} catch (Exception ex) {
-								LOGGER.error("Failed to get PraisenterContext due to the following.", ex);
-								showExecptionAlertThenExit(ex);
-							}
-						} else {
-							LOGGER.warn("Loading has completed, but there's no event handler set to call.");
+						try {
+							// now load the stuff that has to be done on the FX thread
+							PraisenterContext context = loading.get();
+							onPraisenterContextCreated(context);
+						} catch (Exception ex) {
+							LOGGER.error("Failed to get PraisenterContext due to the following.", ex);
+							showExecptionAlertThenExit(ex);
 						}
 					}
 				});
@@ -300,7 +297,9 @@ final class LoadingPane extends Pane {
 		
 		// setup the screen manager
 		LOGGER.info("Initializing the screen manager.");
-		context.getDisplayManager().initialize();
+		if (context.getDisplayManager().initialize()) {
+			notifyOfScreenAssignmentChange();
+		}
 		
 		// load fonts
 		LOGGER.info("Loading fonts.");
@@ -313,8 +312,12 @@ final class LoadingPane extends Pane {
 		}
 		LOGGER.info("Fonts loaded.");
 
-		// notify any listeners
-		this.onComplete.handle(new CompleteEvent<PraisenterContext>(LoadingPane.this, LoadingPane.this, context));
+		if (this.onComplete != null) {
+			// notify any listeners
+			this.onComplete.handle(new CompleteEvent<PraisenterContext>(LoadingPane.this, LoadingPane.this, context));
+		} else {
+			LOGGER.warn("Loading has completed, but there's no event handler set to call.");
+		}
 	}
 	
 	/**
@@ -337,6 +340,21 @@ final class LoadingPane extends Pane {
 			// then exit the app
 			Platform.exit();
 		});
+	}
+	
+	/**
+	 * Shows a non-blocking information dialog notifying the user that we detected a change in the
+	 * screens and made an automatic adjustment to the screen assignments and that they should review
+	 * by going to Preferences.
+	 */
+	private void notifyOfScreenAssignmentChange() {
+		Alert a = Alerts.info(
+				getScene().getWindow(),
+				Modality.WINDOW_MODAL,
+				Translations.get("init.screenAssignmentChanged.title"), 
+				Translations.get("init.screenAssignmentChanged.header"),
+				Translations.get("init.screenAssignmentChanged.content"));
+		a.show();
 	}
 	
 	/**

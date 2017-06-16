@@ -26,7 +26,7 @@ package org.praisenter.slide.animation;
 
 import javax.xml.bind.annotation.XmlEnum;
 
-// FEATURE Add corner directions
+// FEATURE (L) Add corner directions
 
 /**
  * Represents a transition direction.

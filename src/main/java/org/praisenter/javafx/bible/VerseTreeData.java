@@ -35,15 +35,15 @@ import org.praisenter.bible.Verse;
  * @version 3.0.0
  * @since 3.0.0
  */
-final class VerseTreeData extends TreeData {
+public final class VerseTreeData extends TreeData {
 	/** The bible */
 	final Bible bible;
 	
 	/** The book this verse is a member of */
-	Book book;
+	final Book book;
 	
 	/** The chapter this verse is a member of */
-	Chapter chapter;
+	final Chapter chapter;
 	
 	/** The verse data */
 	final Verse verse;
@@ -84,5 +84,37 @@ final class VerseTreeData extends TreeData {
 	public void update() {
 		this.label.set(verse.getText());
 		this.number.set(String.valueOf(verse.getNumber()));
+	}
+
+	/**
+	 * Returns the bible.
+	 * @return {@link Bible}
+	 */
+	public Bible getBible() {
+		return this.bible;
+	}
+
+	/**
+	 * Returns the book.
+	 * @return {@link Book}
+	 */
+	public Book getBook() {
+		return this.book;
+	}
+
+	/**
+	 * Returns the chapter.
+	 * @return {@link Chapter}
+	 */
+	public Chapter getChapter() {
+		return this.chapter;
+	}
+
+	/**
+	 * Returns the verse.
+	 * @return {@link Verse}
+	 */
+	public Verse getVerse() {
+		return this.verse;
 	}
 }

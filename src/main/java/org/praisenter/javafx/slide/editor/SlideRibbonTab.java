@@ -110,6 +110,7 @@ final class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 			if (comp != null && comp instanceof ObservableSlide) {
 				ObservableSlide<?> slide = (ObservableSlide<?>)comp;
 				slide.setName(nv);
+				notifyComponentChanged();
 			}
 		});
 		
@@ -122,6 +123,7 @@ final class SlideRibbonTab extends EditorRibbonTab<ObservableSlide<?>> {
 				slide.fit(nv.getWidth(), nv.getHeight());
 				// then we need to update all the Java FX nodes
 				fireEvent(new SlideTargetResolutionEvent(this.cmbResolutions, SlideRibbonTab.this, slide, nv));
+				notifyComponentChanged();
 			}
 		});
 		

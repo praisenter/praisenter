@@ -80,7 +80,6 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -441,7 +440,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				ids.add(item.getBible().getId());
 			}
 		}
-		content.put(DataFormat.PLAIN_TEXT, String.join(", ", names));
+		content.putString(String.join(", ", names));
 		content.put(DataFormats.BIBLES, ids);
 		cb.setContent(content);
 		this.stateChanged(ApplicationPaneEvent.REASON_DATA_COPIED);
@@ -628,5 +627,19 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 	@Override
 	public boolean isApplicationActionVisible(ApplicationAction action) {
 		return true;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationPane#cleanup()
+	 */
+	@Override
+	public void cleanup() {
+		// reset the selections
+		this.lstBibles.getSelectionModel().clear();
+		
+		// clear any sorting/filtering
+		this.textFilter.set(null);
+		this.sortDescending.set(true);
+		this.sortField.set(new Option<BibleSortField>(BibleSortField.NAME.getName(), BibleSortField.NAME));
 	}
 }

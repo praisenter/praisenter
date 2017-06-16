@@ -96,6 +96,7 @@ class StackingRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableSlideComponent) {
 				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)component;
 				fireEvent(new SlideComponentOrderEvent(this.btnMoveUp, StackingRibbonTab.this, osc, SlideComponentOrderEvent.OPERATION_FORWARD));
+				notifyComponentChanged();
 			}
 		});
 		this.btnMoveDown.setOnAction((e) -> {
@@ -103,6 +104,7 @@ class StackingRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableSlideComponent) {
 				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)component;
 				fireEvent(new SlideComponentOrderEvent(this.btnMoveDown, StackingRibbonTab.this, osc, SlideComponentOrderEvent.OPERATION_BACKWARD));
+				notifyComponentChanged();
 			}
 		});
 		this.btnMoveFront.setOnAction((e) -> {
@@ -110,6 +112,7 @@ class StackingRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableSlideComponent) {
 				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)component;
 				fireEvent(new SlideComponentOrderEvent(this.btnMoveFront, StackingRibbonTab.this, osc, SlideComponentOrderEvent.OPERATION_FRONT));
+				notifyComponentChanged();
 			}
 		});
 		this.btnMoveBack.setOnAction((e) -> {
@@ -117,6 +120,7 @@ class StackingRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableSlideComponent) {
 				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)component;
 				fireEvent(new SlideComponentOrderEvent(this.btnMoveBack, StackingRibbonTab.this, osc, SlideComponentOrderEvent.OPERATION_BACK));
+				notifyComponentChanged();
 			}
 		});
 	}

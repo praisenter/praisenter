@@ -30,9 +30,6 @@ package org.praisenter;
  * @version 3.0.0
  */
 public final class TextItem {
-	/** The default font size (meaning do not override) */
-	public static final int DEFAULT_FONT_SIZE = -1;
-	
 	/** The text */
 	private final String text;
 	
@@ -45,7 +42,7 @@ public final class TextItem {
 	 */
 	public TextItem(String text) {
 		this.text = text;
-		this.fontSize = DEFAULT_FONT_SIZE;
+		this.fontSize = -1;
 	}
 	
 	/**
@@ -69,7 +66,6 @@ public final class TextItem {
 	/**
 	 * Returns the font size.
 	 * @return int
-	 * @see #DEFAULT_FONT_SIZE
 	 */
 	public int getFontSize() {
 		return this.fontSize;

@@ -610,7 +610,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 			// override the text
 			tpc.setText(data.getText());
 			// override the font size if necessary
-			if (data.getFontSize() != TextItem.DEFAULT_FONT_SIZE) {
+			if (data.getFontSize() > 0) {
 				tpc.setFont(tpc.getFont().size(data.getFontSize()));
 			}
 		}

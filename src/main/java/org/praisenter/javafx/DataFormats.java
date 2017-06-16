@@ -1,7 +1,5 @@
 package org.praisenter.javafx;
 
-import java.util.UUID;
-
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
@@ -13,9 +11,7 @@ import javafx.scene.input.DataFormat;
 
 public final class DataFormats {
 	private DataFormats() {}
-	
-	public static final DataFormat UUID = DataFormats.forSerializedClass(UUID.class);
-	
+
 	public static final DataFormat BIBLES = DataFormats.forSerializedList(Bible.class);
 	public static final DataFormat BOOKS = DataFormats.forXmlSerializedList(Book.class);
 	public static final DataFormat CHAPTERS = DataFormats.forXmlSerializedList(Chapter.class);

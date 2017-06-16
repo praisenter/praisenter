@@ -55,6 +55,7 @@ class TextRibbonTab extends ComponentEditorRibbonTab {
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
 				tc.setText(nv);
+				notifyComponentChanged();
 			}
 		});
 	}

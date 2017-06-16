@@ -143,6 +143,7 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 				ObservableSlideRegion<?> comp = component.get();
 				if (comp != null) {
 					comp.setBackground(getControlValues());
+					notifyComponentChanged();
 				}
 			}
 		};

@@ -127,7 +127,9 @@ public final class SlideActions {
 			// return the 
 			return task;
 		}
-		return AsyncTaskFactory.group();
+		AsyncGroupTask<AsyncTask<?>> task = AsyncTaskFactory.group();
+		task.cancel();
+		return task;
 	}
 	
 	/**
@@ -156,7 +158,9 @@ public final class SlideActions {
 			});
 	    	return task;
 		}
-		return AsyncTaskFactory.single();
+		AsyncTask<Slide> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -208,7 +212,9 @@ public final class SlideActions {
 	    	}
 	    	// user cancellation
 		}
-		return AsyncTaskFactory.single();
+		AsyncTask<Slide> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -311,7 +317,9 @@ public final class SlideActions {
 	    	}
 		}
 		// user cancellation
-		return AsyncTaskFactory.chain();
+		AsyncChainedTask<AsyncTask<Void>> task = AsyncTaskFactory.chain();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -334,7 +342,9 @@ public final class SlideActions {
 					.collect(Collectors.toList());
 			return slideImport(context, owner, paths);
 		}
-		return AsyncTaskFactory.group();
+		AsyncGroupTask<AsyncTask<?>> task = AsyncTaskFactory.group();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -369,7 +379,9 @@ public final class SlideActions {
 			});
 	    	return task;
 		}
-		return AsyncTaskFactory.single();
+		AsyncTask<Slide> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -417,7 +429,9 @@ public final class SlideActions {
 		    	return task;
 	    	}
 		}
-		return AsyncTaskFactory.single();
+		AsyncTask<Slide> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -471,7 +485,9 @@ public final class SlideActions {
 				return task;
 			}
 		}
-		return AsyncTaskFactory.group();
+		AsyncGroupTask<AsyncTask<Void>> task = AsyncTaskFactory.group();
+		task.cancel();
+		return task;
 	}
 
 	/**
@@ -501,7 +517,9 @@ public final class SlideActions {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.single();
+		AsyncTask<Void> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
 	}
 	
 	/**
@@ -531,6 +549,8 @@ public final class SlideActions {
 			});
 			return task;
 		}
-		return AsyncTaskFactory.single();
+		AsyncTask<Void> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
 	}
 }

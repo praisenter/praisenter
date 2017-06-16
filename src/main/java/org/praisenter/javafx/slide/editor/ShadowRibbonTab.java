@@ -100,6 +100,7 @@ class ShadowRibbonTab extends ComponentEditorRibbonTab {
 				ObservableSlideRegion<?> comp = component.get();
 				if (comp != null) {
 					comp.setShadow(getControlValues());
+					notifyComponentChanged();
 				}
 			}
 		};

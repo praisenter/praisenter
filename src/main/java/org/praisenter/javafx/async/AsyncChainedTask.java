@@ -59,7 +59,6 @@ public class AsyncChainedTask<T extends AsyncTask<?>> extends AsyncTask<List<T>>
 	public AsyncChainedTask(String name, List<T> tasks) {
 		super(name);
 		this.tasks = tasks;
-		// TODO use a more appropriate threading object
 		this.latch = new CountDownLatch(1);
 	}
 	

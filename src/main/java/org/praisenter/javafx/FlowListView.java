@@ -44,7 +44,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.TilePane;
 import javafx.util.Callback;
 
-// FEATURE Add the ability to do mouse click+drag area selection
+// FEATURE (L) Add the ability to do mouse click+drag area selection
 
 /**
  * Represents a list view whose items are laid out vertically or horizontally

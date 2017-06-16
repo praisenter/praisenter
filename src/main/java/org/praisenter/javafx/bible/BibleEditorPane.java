@@ -24,7 +24,6 @@
  */
 package org.praisenter.javafx.bible;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +40,7 @@ import org.praisenter.bible.Verse;
 import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationContextMenu;
+import org.praisenter.javafx.ApplicationEditorPane;
 import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.ApplicationPane;
@@ -48,7 +48,31 @@ import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.PreventUndoRedoEventFilter;
 import org.praisenter.javafx.async.AsyncTask;
+import org.praisenter.javafx.bible.commands.AddBookEditCommand;
+import org.praisenter.javafx.bible.commands.AddChapterEditCommand;
+import org.praisenter.javafx.bible.commands.AddVerseEditCommand;
+import org.praisenter.javafx.bible.commands.BibleCopyrightEditCommand;
+import org.praisenter.javafx.bible.commands.BibleLanguageEditCommand;
+import org.praisenter.javafx.bible.commands.BibleNameEditCommand;
+import org.praisenter.javafx.bible.commands.BibleNotesEditCommand;
+import org.praisenter.javafx.bible.commands.BibleSourceEditCommand;
+import org.praisenter.javafx.bible.commands.BookNameEditCommand;
+import org.praisenter.javafx.bible.commands.BookNumberEditCommand;
+import org.praisenter.javafx.bible.commands.ChapterNumberEditCommand;
+import org.praisenter.javafx.bible.commands.RemoveBookEditCommand;
+import org.praisenter.javafx.bible.commands.RemoveChapterEditCommand;
+import org.praisenter.javafx.bible.commands.RemoveVerseEditCommand;
+import org.praisenter.javafx.bible.commands.RenumberEditCommand;
+import org.praisenter.javafx.bible.commands.ReorderEditCommand;
+import org.praisenter.javafx.bible.commands.VerseNumberEditCommand;
+import org.praisenter.javafx.bible.commands.VerseTextEditCommand;
+import org.praisenter.javafx.command.CommandFactory;
+import org.praisenter.javafx.command.EditCommand;
+import org.praisenter.javafx.command.EditManager;
+import org.praisenter.javafx.command.RemoveEditCommand;
+import org.praisenter.javafx.command.UndorderedCompositeEditCommand;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.utility.Fx;
@@ -85,6 +109,7 @@ import javafx.scene.control.TreeView;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -92,12 +117,17 @@ import javafx.stage.Modality;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 
+// FEATURE (L) Add glyphicons to nodes to help distinguish book & chapter
+// FEATURE (L) Add ability to create N number of books, chapters, verses with default text
+
+// FIXME copy/cut operations don't copy the contents of the node
+
 /**
  * A pane for editing {@link Bible}s.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class BibleEditorPane extends BorderPane implements ApplicationPane {
+public final class BibleEditorPane extends BorderPane implements ApplicationPane, ApplicationEditorPane {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -119,11 +149,11 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	
 	// state
 	
+	/** The editing manager */
+	private final EditManager manager = new EditManager();
+	
 	/** True when the bible property is being set */
 	private boolean mutating = false;
-	
-	/** True if there is unsaved changes */
-	private boolean unsavedChanges = false;
 	
 	/**
 	 * Minimal constructor.
@@ -143,9 +173,12 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		// bible
 		Label lblName = new Label(Translations.get("bible.edit.name"));
 		this.txtName = new TextField();
+		this.txtName.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		
 		Label lblLanguage = new Label(Translations.get("bible.edit.language"));
 		ComboBox<Option<Locale>> cmbLanguage = new ComboBox<Option<Locale>>(locales);
 		cmbLanguage.setEditable(true);
+		cmbLanguage.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		cmbLanguage.setCellFactory(new Callback<ListView<Option<Locale>>, ListCell<Option<Locale>>>() {
 			public ListCell<Option<Locale>> call(ListView<Option<Locale>> param) {
 				ListCell<Option<Locale>> cell = new ListCell<Option<Locale>>() {
@@ -186,37 +219,50 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			}
 		});
 		cmbLanguage.setMaxWidth(Double.MAX_VALUE);
+		
 		Label lblSource = new Label(Translations.get("bible.edit.source"));
 		TextField txtSource = new TextField();
+		txtSource.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		
 		Label lblCopyright = new Label(Translations.get("bible.edit.copyright"));
 		TextField txtCopyright = new TextField();
+		txtCopyright.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		
 		Label lblNotes = new Label(Translations.get("bible.edit.notes"));
 		TextArea txtNotes = new TextArea();
 		txtNotes.setWrapText(true);
 		txtNotes.setPrefHeight(250);
+		txtNotes.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		
 		Label lblEditMessage = new Label(Translations.get("bible.edit.message"), ApplicationGlyphs.BIBLE_EDIT_ARROW_LEFT.duplicate());
 		
 		// book
 		Label lblBookName = new Label(Translations.get("bible.edit.bookname"));
 		TextField txtBookName = new TextField();
+		txtBookName.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		
 		Label lblBookNumber = new Label(Translations.get("bible.edit.booknumber"));
 		Spinner<Integer> spnBookNumber = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnBookNumber.setEditable(true);
+		spnBookNumber.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		
 		// chapter
 		Label lblChapter = new Label(Translations.get("bible.edit.chapternumber"));
 		Spinner<Integer> spnChapter = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnChapter.setEditable(true);
+		spnChapter.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		
 		// verse
 		Label lblVerse = new Label(Translations.get("bible.edit.versenumber"));
 		Spinner<Integer> spnVerse = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnVerse.setEditable(true);
+		spnVerse.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		
 		Label lblVerseText = new Label(Translations.get("bible.edit.versetext"));
 		TextArea txtText = new TextArea();
 		txtText.setWrapText(true);
 		txtText.setPrefHeight(350);
+		txtText.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		
 		VBox editorFields = new VBox();
 		editorFields.setSpacing(2);
@@ -280,7 +326,8 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
         			manager.dragOver(cell, e);
         		});
             	cell.setOnDragDropped(e -> {
-        			manager.dragDropped(cell, e);
+        			EditCommand command = manager.dragDropped(cell, e);
+        			applyCommand(command);
         		});
             	cell.setOnDragDone(e -> {
             		manager.dragDone(cell, e);
@@ -333,8 +380,10 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		
 		// EVENTS & BINDINGS
 		this.bible.addListener((obs, ov, nv) -> {
-			this.mutating = true;
 			this.bibleTree.getSelectionModel().clearSelection();
+			this.mutating = true;
+			this.manager.reset();
+			
 			if (nv != null) {
 				// create the root node
 				TreeItem<TreeData> root = this.forBible(nv);
@@ -370,7 +419,6 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				txtCopyright.setText(null);
 				txtNotes.setText(null);
 			}
-			this.unsavedChanges = false;
 			this.mutating = false;
 		});
 		
@@ -428,122 +476,116 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			this.mutating = false;
 		});
 		
+		// editing events
+		
+		// bible name
 		this.txtName.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
-			Bible bible = this.bible.get();
-			if (bible != null) {
-				this.unsavedChanges = true;
-				bible.setName(nv);
-				TreeItem<TreeData> root = this.bibleTree.getRoot();
-				if (root != null) {
-					TreeData data = root.getValue();
-					if (data != null && data instanceof BibleTreeData) {
-						((BibleTreeData)data).update();
-					}
-				}
-			}
+			TreeItem<TreeData> item = this.bibleTree.getRoot();
+			applyCommand(new BibleNameEditCommand(
+					item,
+					CommandFactory.changed(ov, nv),
+					CommandFactory.select(this.bibleTree, item),
+					CommandFactory.text(this.txtName)));
 		});
+		
+		// bible language
 		cmbLanguage.valueProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
-			Bible bible = this.bible.get();
-			if (bible != null) {
-				String language = null;
-				if (nv != null) {
-					Locale locale = nv.getValue();
-					language = locale != null ? locale.toLanguageTag() : nv.getName();
-				}
-				bible.setLanguage(language);
-				this.unsavedChanges = true;
-			}
+			TreeItem<TreeData> item = this.bibleTree.getRoot();
+			applyCommand(new BibleLanguageEditCommand(
+					item,
+					CommandFactory.changed(ov, nv),
+					CommandFactory.select(this.bibleTree, item),
+					CommandFactory.combo(cmbLanguage)));
 		});
+		
+		// bible source
 		txtSource.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
-			Bible bible = this.bible.get();
-			if (bible != null) {
-				bible.setSource(nv);
-				this.unsavedChanges = true;
-			}
+			TreeItem<TreeData> item = this.bibleTree.getRoot();
+			applyCommand(new BibleSourceEditCommand(
+					item,
+					CommandFactory.changed(ov, nv),
+					CommandFactory.select(this.bibleTree, item),
+					CommandFactory.text(txtSource)));
 		});
+		
+		// bible copyright
 		txtCopyright.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
-			Bible bible = this.bible.get();
-			if (bible != null) {
-				bible.setCopyright(nv);
-				this.unsavedChanges = true;
-			}
+			TreeItem<TreeData> item = this.bibleTree.getRoot();
+			applyCommand(new BibleCopyrightEditCommand(
+					item,
+					CommandFactory.changed(ov, nv),
+					CommandFactory.select(this.bibleTree, item),
+					CommandFactory.text(txtCopyright)));
 		});
+		
+		// bible notes
 		txtNotes.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
-			Bible bible = this.bible.get();
-			if (bible != null) {
-				bible.setNotes(nv);
-				this.unsavedChanges = true;
-			}
+			TreeItem<TreeData> item = this.bibleTree.getRoot();
+			applyCommand(new BibleNotesEditCommand(
+					item,
+					CommandFactory.changed(ov, nv),
+					CommandFactory.select(this.bibleTree, item),
+					CommandFactory.text(txtNotes)));
 		});
+		
+		// book name
 		txtBookName.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
-			if (item != null) {
-				TreeData data = item.getValue();
-				if (data != null && data instanceof BookTreeData) {
-					BookTreeData td = (BookTreeData)data;
-					td.book.setName(nv);
-					td.update();
-					this.unsavedChanges = true;
-				}
-			}
+			applyCommand(new BookNameEditCommand(
+					item,
+					CommandFactory.changed(ov, nv),
+					CommandFactory.select(this.bibleTree, item),
+					CommandFactory.text(txtBookName)));
 		});
+		
+		// book number
 		spnBookNumber.valueProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
-			if (item != null) {
-				TreeData data = item.getValue();
-				if (data != null && data instanceof BookTreeData) {
-					BookTreeData btd = (BookTreeData)data;
-					btd.book.setNumber(nv.shortValue());
-					btd.update();
-					this.unsavedChanges = true;
-				}
-			}
+			applyCommand(new BookNumberEditCommand(
+					item,
+					CommandFactory.changed(ov, nv),
+					CommandFactory.select(this.bibleTree, item),
+					CommandFactory.spinner(spnBookNumber)));
 		});
+		
+		// chapter number
 		spnChapter.valueProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
-			if (item != null) {
-				TreeData data = item.getValue();
-				if (data != null && data instanceof ChapterTreeData) {
-					ChapterTreeData ctd = (ChapterTreeData)data;
-					ctd.chapter.setNumber(nv.shortValue());
-					ctd.update();
-					this.unsavedChanges = true;
-				}
-			}
+			applyCommand(new ChapterNumberEditCommand(
+					item,
+					CommandFactory.changed(ov, nv),
+					CommandFactory.select(this.bibleTree, item),
+					CommandFactory.spinner(spnChapter)));
 		});
+		
+		// verse number
 		spnVerse.valueProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
-			if (item != null) {
-				TreeData data = item.getValue();
-				if (data != null && data instanceof VerseTreeData) {
-					VerseTreeData vtd = (VerseTreeData)data;
-					vtd.verse.setNumber(nv.shortValue());
-					vtd.update();
-					this.unsavedChanges = true;
-				}
-			}
+			applyCommand(new VerseNumberEditCommand(
+					item,
+					CommandFactory.changed(ov, nv),
+					CommandFactory.select(this.bibleTree, item),
+					CommandFactory.spinner(spnVerse)));
 		});
+		
+		// verse text
 		txtText.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
-			if (item != null) {
-				TreeData data = item.getValue();
-				if (data != null && data instanceof VerseTreeData) {
-					VerseTreeData vtd = (VerseTreeData)data;
-					vtd.verse.setText(nv);
-					vtd.update();
-					this.unsavedChanges = true;
-				}
-			}
+			applyCommand(new VerseTextEditCommand(
+					item,
+					CommandFactory.changed(ov, nv),
+					CommandFactory.select(this.bibleTree, item),
+					CommandFactory.text(txtText)));
 		});
 		
 		// listen for application events
@@ -596,6 +638,15 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	// METHODS
 	
 	/**
+	 * Applies the given edit command.
+	 * @param command the command
+	 */
+	private void applyCommand(EditCommand command) {
+		this.manager.execute(command);
+		stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
+	}
+	
+	/**
 	 * Copies the selected items.
 	 * @param cut true if they should be cut instead of copied
 	 */
@@ -603,7 +654,25 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		// get the selection(s)
 		List<TreeItem<TreeData>> items = new ArrayList<TreeItem<TreeData>>(this.bibleTree.getSelectionModel().getSelectedItems());
 		
-		if (items.size() > 0) {
+		// make sure the selections are all the same type (all books or all chapters or all verses)
+		Class<?> type = null;
+		if (!items.isEmpty()) {
+			TreeItem<TreeData> item = items.get(0);
+			if (item != null) {
+				type = item.getValue().getClass();
+				for (TreeItem<TreeData> other : items) {
+					if (!other.getValue().getClass().equals(type)) {
+						// different types, so exit
+						// TODO warn user with alert
+						LOGGER.warn("Selections were of different types. Copy/Cut action cancelled.");
+						return;
+					}
+				}
+			}
+		}
+		
+		List<RemoveEditCommand> commands = new ArrayList<RemoveEditCommand>();
+		if (!items.isEmpty()) {
 			DataFormat format = null;
 			StringBuilder text = new StringBuilder();
 			
@@ -618,7 +687,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 						format = DataFormats.BOOKS;
 						text.append(book.getName()).append(Constants.NEW_LINE);
 						if (cut) {
-							btd.bible.getBooks().remove(book);
+							commands.add(new RemoveBookEditCommand(item));
 						}
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to add the book '" + book.getName() + "' to the clipboard.", ex);
@@ -631,7 +700,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 						format = DataFormats.CHAPTERS;
 						text.append(chapter.getNumber()).append(Constants.NEW_LINE);
 						if (cut) {
-							ctd.book.getChapters().remove(chapter);
+							commands.add(new RemoveChapterEditCommand(item));
 						}
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to add the chapter '" + chapter.getNumber() + "' to the clipboard.", ex);
@@ -644,7 +713,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 						format = DataFormats.VERSES;
 						text.append(verse.getText()).append(Constants.NEW_LINE);
 						if (cut) {
-							vtd.chapter.getVerses().remove(verse);
+							commands.add(new RemoveVerseEditCommand(item));
 						}
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to add the verse '" + verse.getText() + "' to the clipboard.", ex);
@@ -652,18 +721,29 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				}
 			}
 			
-			for (TreeItem<TreeData> item : items) {
-				if (cut) {
-					// remove from the tree
-					item.getParent().getChildren().remove(item);
-				}
-			}
-			
 			Clipboard cb = Clipboard.getSystemClipboard();
 			ClipboardContent cc = new ClipboardContent();
-			cc.put(DataFormat.PLAIN_TEXT, text.toString().trim());
+			cc.putString(text.toString().trim());
 			cc.put(format, data);
 			cb.setContent(cc);
+			
+			// was anything removed? (a cut command)
+			if (!commands.isEmpty()) {
+				// build the command
+				EditCommand command = CommandFactory.chain(
+						// first perform the removes
+						CommandFactory.sequence(commands),
+						// then do some UI stuff
+						CommandFactory.chain(
+								// focus the TreeView
+								CommandFactory.focus(this.bibleTree),
+								// select the appropriate TreeItem
+								commands.size() == 1
+									? CommandFactory.selectRemoved(this.bibleTree, items.get(0))
+									: CommandFactory.select(this.bibleTree, this.bibleTree.getRoot())));
+				// apply it
+				applyCommand(command);
+			}
 			
 			// notify we changed
 			this.stateChanged(ApplicationPaneEvent.REASON_DATA_COPIED);
@@ -677,80 +757,55 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	private void paste() {
 		// get the selection(s)
 		ObservableList<TreeItem<TreeData>> items = this.bibleTree.getSelectionModel().getSelectedItems();
+		List<EditCommand> commands = new ArrayList<EditCommand>();
 		
 		Clipboard cb = Clipboard.getSystemClipboard();
 		if (items.size() == 1) {
 			TreeItem<TreeData> node = items.get(0);
 			Class<?> type = node.getValue().getClass();
 			if (type.equals(BibleTreeData.class)) {
-				Bible bible = ((BibleTreeData)node.getValue()).bible;
 				// then we can paste books
 				Object data = cb.getContent(DataFormats.BOOKS);
 				if (data != null && data instanceof List) {
 					List<String> books = (List<String>)data;
-					short max = bible.getMaxBookNumber();
 					for (String book : books) {
 						try {
 							Book copy = XmlIO.read(book, Book.class);
-							copy.setNumber(++max);
-							// add the book to the bible
-							bible.getBooks().add(copy);
-							// add the tree node
-							node.getChildren().add(this.forBook(bible, copy));
-							this.unsavedChanges = true;
+							commands.add(new AddBookEditCommand(this.bibleTree, node, copy));
 						} catch (Exception ex) {
 							LOGGER.warn("Failed to paste the book '" + book + "'.", ex);
 						}
 					}
 				}
 			} else if (type.equals(BookTreeData.class)) {
-				BookTreeData td = (BookTreeData)node.getValue();
-				Bible bible = td.bible;
-				Book book = td.book;
-				// then we can paste books
+				// then we can paste chapters
 				Object data = cb.getContent(DataFormats.CHAPTERS);
 				if (data != null && data instanceof List) {
 					List<String> chapters = (List<String>)data;
 					for (String chapter : chapters) {
 						try {
 							Chapter copy = XmlIO.read(chapter, Chapter.class);
-							// add the book to the bible
-							book.getChapters().add(copy);
-							// add the tree node
-							node.getChildren().add(this.forChapter(bible, book, copy));
+							commands.add(new AddChapterEditCommand(this.bibleTree, node, copy));
 						} catch (Exception ex) {
-							LOGGER.warn("Failed to paste the book '" + book + "'.", ex);
+							LOGGER.warn("Failed to paste the chapter '" + chapter + "'.", ex);
 						}
 					}
-					this.unsavedChanges = true;
 				}
 			} else if (type.equals(ChapterTreeData.class)) {
-				ChapterTreeData td = (ChapterTreeData)node.getValue();
-				Bible bible = td.bible;
-				Book book = td.book;
-				Chapter chapter = td.chapter;
-				// then we can paste books
+				// then we can paste verses
 				Object data = cb.getContent(DataFormats.VERSES);
 				if (data != null && data instanceof List) {
 					List<String> verses = (List<String>)data;
 					for (String verse : verses) {
 						try {
 							Verse copy = XmlIO.read(verse, Verse.class);
-							// add the book to the bible
-							chapter.getVerses().add(copy);
-							// add the tree node
-							node.getChildren().add(this.forVerse(bible, book, chapter, copy));
+							commands.add(new AddVerseEditCommand(this.bibleTree, node, copy));
 						} catch (Exception ex) {
-							LOGGER.warn("Failed to paste the book '" + book + "'.", ex);
+							LOGGER.warn("Failed to paste the verse '" + verse + "'.", ex);
 						}
 					}
-					this.unsavedChanges = true;
 				}
 			} else if (type.equals(VerseTreeData.class)) {
-				VerseTreeData td = (VerseTreeData)node.getValue();
-				Bible bible = td.bible;
-				Book book = td.book;
-				Chapter chapter = td.chapter;
 				// then we can paste books
 				Object data = cb.getContent(DataFormats.VERSES);
 				if (data != null && data instanceof List) {
@@ -758,18 +813,16 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					for (String verse : verses) {
 						try {
 							Verse copy = XmlIO.read(verse, Verse.class);
-							// add the book to the bible
-							chapter.getVerses().add(copy);
-							// add the tree node
-							node.getParent().getChildren().add(this.forVerse(bible, book, chapter, copy));
+							commands.add(new AddVerseEditCommand(this.bibleTree, node, copy));
 						} catch (Exception ex) {
-							LOGGER.warn("Failed to paste the book '" + book + "'.", ex);
+							LOGGER.warn("Failed to paste the verse '" + verse + "'.", ex);
 						}
 					}
-					this.unsavedChanges = true;
 				}
 			}
 		}
+		
+		applyCommand(new UndorderedCompositeEditCommand(commands));
 	}
 	
 	/**
@@ -788,23 +841,47 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.get() == ButtonType.OK) {
+				List<RemoveEditCommand> commands = new ArrayList<RemoveEditCommand>();
 				for (TreeItem<TreeData> item : items) {
-					// remove the data
 					TreeData td = item.getValue();
 					if (td instanceof BookTreeData) {
-						BookTreeData btd = (BookTreeData)td;
-						btd.bible.getBooks().remove(btd.book);
+						commands.add(new RemoveBookEditCommand(item));
 					} else if (td instanceof ChapterTreeData) {
-						ChapterTreeData ctd = (ChapterTreeData)td;
-						ctd.book.getChapters().remove(ctd.chapter);
+						commands.add(new RemoveChapterEditCommand(item));
 					} else if (td instanceof VerseTreeData) {
-						VerseTreeData vtd = (VerseTreeData)td;
-						vtd.chapter.getVerses().remove(vtd.verse);
+						commands.add(new RemoveVerseEditCommand(item));
 					}
-					// remove the node
-					item.getParent().getChildren().remove(item);
 				}
-				this.unsavedChanges = true;
+				
+				// was anything removed? (a cut command)
+				if (!commands.isEmpty()) {
+					// build the command
+					EditCommand command = CommandFactory.chain(
+							// first perform the removes
+							CommandFactory.sequence(commands),
+							// then do some UI stuff
+							CommandFactory.chain(
+									// focus the TreeView
+									CommandFactory.focus(this.bibleTree),
+									// select the appropriate TreeItem
+									commands.size() == 1
+										? CommandFactory.selectRemoved(this.bibleTree, items.get(0))
+										: CommandFactory.select(this.bibleTree, this.bibleTree.getRoot())));
+					// apply it
+					applyCommand(command);
+					
+//					applyCommand(new OrderedCompositeEditCommand<OrderedWrappedEditCommand>(
+//						// execute the remove(s) first
+//						new OrderedWrappedEditCommand(new OrderedCompositeEditCommand<RemoveEditCommand>(commands), 0),
+//						// then do some focus and selection stuff
+//						new OrderedWrappedEditCommand(new ActionsOnlyEditCommand<>(
+//								// focus the tree
+//								new FocusNodeCommandAction<CommandOperation>(this.bibleTree),
+//								// then select the node's parent or the root element
+//								commands.size() == 1 
+//									? new SelectTreeItemRemovedCommandAction<TreeData, CommandOperation>(this.bibleTree, items.get(0).getParent())
+//									: new SelectTreeItemCommandAction<TreeData, CommandOperation>(this.bibleTree, this.bibleTree.getRoot())), 1)));
+				}
 			}
 		}
 	}
@@ -816,69 +893,16 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
 		
 		if (item == null || item.getValue() == null) return;
-		Class<?> type = item.getValue().getClass();
-		TreeItem<TreeData> newItem = null;
 		
-		if (VerseTreeData.class.equals(type)) {
-			// add new verse
-			VerseTreeData vd = (VerseTreeData)item.getValue();
-			short number = (short)(vd.verse.getNumber() + 1);
-			Verse verse = new Verse(number, Translations.get("bible.edit.verse.default"));
-			// add to data
-			vd.chapter.getVerses().add(verse);
-			// add to view
-			int index = item.getParent().getChildren().indexOf(item);
-			newItem = new TreeItem<TreeData>(new VerseTreeData(vd.bible, vd.book, vd.chapter, verse));
-			item.getParent().getChildren().add(index + 1, newItem);
-		} else if (ChapterTreeData.class.equals(type)) {
-			// add new verse
-			ChapterTreeData cd = (ChapterTreeData)item.getValue();
-			short number = cd.chapter.getMaxVerseNumber();
-			Verse verse = new Verse(++number, Translations.get("bible.edit.verse.default"));
-			// add to data
-			cd.chapter.getVerses().add(verse);
-			// add to view
-			newItem = new TreeItem<TreeData>(new VerseTreeData(cd.bible, cd.book, cd.chapter, verse));
-			item.getChildren().add(newItem);
-			item.setExpanded(true);
-		} else if (BookTreeData.class.equals(type)) {
-			// add new chapter
-			BookTreeData bd = (BookTreeData)item.getValue();
-			short number = bd.book.getMaxChapterNumber();
-			Chapter chapter = new Chapter(++number);
-			// add to data
-			bd.book.getChapters().add(chapter);
-			// add to view
-			newItem = new TreeItem<TreeData>(new ChapterTreeData(bd.bible, bd.book, chapter));
-			item.getChildren().add(newItem);
-			item.setExpanded(true);
-		} else if (BibleTreeData.class.equals(type)) {
-			// add new book
-			BibleTreeData bd = (BibleTreeData)item.getValue();
-			short number = bd.bible.getMaxBookNumber();
-			Book book = new Book(Translations.get("bible.edit.book.default"), ++number);
-			// add to data
-			bd.bible.getBooks().add(book);
-			// add to view
-			newItem = new TreeItem<TreeData>(new BookTreeData(bd.bible, book));
-			item.getChildren().add(newItem);
-			item.setExpanded(true);
-		}
-		
-		// did we create an item?
-		if (newItem != null) {
-			this.unsavedChanges = true;
-			// if so, then get it's index
-			int index = this.bibleTree.getRow(newItem);
-			if (index > 0) {
-				// selected it
-				this.bibleTree.getSelectionModel().clearAndSelect(index);
-				final int offset = 10;
-				// scroll to it (we'll close to it, we don't want it at the top)
-				if (index - offset > 0) {
-					this.bibleTree.scrollTo(index - offset);
-				}
-			}
+		TreeData data = item.getValue();
+		if (data instanceof VerseTreeData) {
+			applyCommand(new AddVerseEditCommand(this.bibleTree, item));
+		} else if (data instanceof ChapterTreeData) {
+			applyCommand(new AddVerseEditCommand(this.bibleTree, item));
+		} else if (data instanceof BookTreeData) {
+			applyCommand(new AddChapterEditCommand(this.bibleTree, item));
+		} else if (data instanceof BibleTreeData) {
+			applyCommand(new AddBookEditCommand(this.bibleTree, item));
 		}
 	}
 	
@@ -886,14 +910,13 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * Saves the current bible.
 	 */
 	private void save() {
-		this.unsavedChanges = false;
-		
+		this.manager.mark();
 		AsyncTask<Bible> task = BibleActions.bibleSave(
 			this.context.getBibleLibrary(), 
 			this.getScene().getWindow(), 
 			this.getBible());
 		task.addCancelledOrFailedHandler(e -> {
-			this.unsavedChanges = true;
+			this.manager.unmark();
 		}).execute(this.context.getExecutorService());
 	}
 	
@@ -901,32 +924,26 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * Saves the current bible.
 	 */
 	private void promptSaveAs() {
-		this.unsavedChanges = false;
-
+		this.manager.mark();
 		AsyncTask<Bible> task = BibleActions.biblePromptSaveAs(
 			this.context.getBibleLibrary(), 
 			this.getScene().getWindow(), 
 			this.getBible());
 		task.addSuccessHandler(e -> {
 			Bible saved = task.getValue();
-			// make the current bible being edited act
-			// as the one we saved so that any subsequent
-			// saves save to this one and so that we don't
-			// lose any changes made by the user in the
-			// while the save as action was processing
+			// we need to update the bible that is currently
+			// being edited to make sure that if the name changed
+			// that the name and other metadata is updated so when
+			// subsequent changes are saved, they are saved to the
+			// appropriate place.  It's also possible that the 
+			// bible has been changed since the save completed
 			this.bible.get().as(saved);
-			// store the value of unsavedChanges
-			boolean moreChanges = this.unsavedChanges;
+			this.mutating = true;
 			// manually update the name field
 			this.txtName.setText(saved.getName());
-			// did the user make changes while the save was happening?
-			if (!moreChanges) {
-				// make sure changing the name field doesn't
-				// flag it as unsaved
-				this.unsavedChanges = false;
-			}
+			this.mutating = false;
 		}).addCancelledOrFailedHandler(e -> {
-			this.unsavedChanges = true;
+			this.manager.unmark();
 		}).execute(this.context.getExecutorService());
 	}
 	
@@ -944,90 +961,26 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			boolean verify = this.context.getConfiguration().getBoolean(Setting.BIBLE_SHOW_REORDER_WARNING, true);
 			if (verify) {
 				Alert alert = Alerts.optOut(
-						getScene().getWindow(),
-						Modality.WINDOW_MODAL,
-						AlertType.CONFIRMATION, 
-						Translations.get("action.bible.reorder"), 
-						Translations.get("bible.edit.reorder.header"), 
-						Translations.get("bible.edit.reorder.content"), 
-						Translations.get("optout"), 
-						(d) -> {
-							this.context.getConfiguration()
-								.setBoolean(Setting.BIBLE_SHOW_REORDER_WARNING, false)
-								.execute(this.context.getExecutorService());
-						});
+					getScene().getWindow(),
+					Modality.WINDOW_MODAL,
+					AlertType.CONFIRMATION, 
+					Translations.get("action.bible.reorder"), 
+					Translations.get("bible.edit.reorder.header"), 
+					Translations.get("bible.edit.reorder.content"), 
+					Translations.get("optout"), 
+					(d) -> {
+						this.context.getConfiguration()
+							.setBoolean(Setting.BIBLE_SHOW_REORDER_WARNING, false)
+							.execute(this.context.getExecutorService());
+					});
 	
 				result = alert.showAndWait();
 			}
 			
 			if (result.get() == ButtonType.OK){
-				// remove the data
-				TreeData td = item.getValue();
-				if (td instanceof BibleTreeData) {
-					reorderBooks(item);
-				} else if (td instanceof BookTreeData) {
-					reorderChapters(item);
-				} else if (td instanceof ChapterTreeData) {
-					reorderVerses(item);
-				} else if (td instanceof VerseTreeData) {
-					reorderVerses(item.getParent());
-				}
-				this.unsavedChanges = true;
+				applyCommand(new ReorderEditCommand(this.bibleTree, item));
 			}
 		}
-	}
-
-	/**
-	 * Reorders the books in the given bible.
-	 * @param node the bible node
-	 */
-	private void reorderBooks(TreeItem<TreeData> node) {
-		// sort the chapters in each book
-		for (TreeItem<TreeData> item : node.getChildren()) {
-			reorderChapters(item);
-		}
-		// sort the books
-		Bible bible = ((BibleTreeData)node.getValue()).bible;
-		Collections.sort(bible.getBooks());
-		// sort the nodes
-		node.getChildren().sort((TreeItem<TreeData> b1, TreeItem<TreeData> b2) -> {
-			if (b1 == null) return 1;
-			if (b2 == null) return -1;
-			return b1.getValue().compareTo(b2.getValue());
-		});
-	}
-	
-	/**
-	 * Reorders the chapters in the given book.
-	 * @param node the book node.
-	 */
-	private void reorderChapters(TreeItem<TreeData> node) {
-		for (TreeItem<TreeData> item : node.getChildren()) {
-			reorderVerses(item);
-		}
-		// make sure the data is sorted the same way
-		Collections.sort(((BookTreeData)node.getValue()).book.getChapters());
-		// sort the nodes
-		node.getChildren().sort((TreeItem<TreeData> b1, TreeItem<TreeData> b2) -> {
-			if (b1 == null) return 1;
-			if (b2 == null) return -1;
-			return b1.getValue().compareTo(b2.getValue());
-		});
-	}
-	
-	/**
-	 * Reorders the verses in the given chapter.
-	 * @param node the chapter node
-	 */
-	private void reorderVerses(TreeItem<TreeData> node) {
-		// make sure the data is sorted the same way
-		Collections.sort(((ChapterTreeData)node.getValue()).chapter.getVerses());
-		// sort the nodes
-		node.getChildren().sort((TreeItem<TreeData> b1, TreeItem<TreeData> b2) -> {
-			if (b1 == null) return 1;
-			if (b2 == null) return -1;
-			return b1.getValue().compareTo(b2.getValue());
-		});
 	}
 
 	/**
@@ -1061,77 +1014,11 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			}
 			
 			if (result.get() == ButtonType.OK){
-				// remove the data
-				TreeData td = item.getValue();
-				if (td instanceof BibleTreeData) {
-					renumberBible(item);
-				} else if (td instanceof BookTreeData) {
-					renumberBook(item);
-				} else if (td instanceof ChapterTreeData) {
-					renumberChapter(item);
-				} else if (td instanceof VerseTreeData) {
-					renumberChapter(item.getParent());
-				}
-				this.unsavedChanges = true;
+				applyCommand(new RenumberEditCommand(this.bibleTree, item));
 			}
 		}
 	}
 	
-	/**
-	 * Renumbers the books in the given bible.
-	 * @param node the bible node
-	 */
-	private void renumberBible(TreeItem<TreeData> node) {
-		short i = 1;
-		for (TreeItem<TreeData> item : node.getChildren()) {
-			BookTreeData td = (BookTreeData)item.getValue();
-			// update the data
-			td.book.setNumber(i++);
-			// update the label
-			td.update();
-			// update children
-			renumberBook(item);
-		}
-		// make sure the data is sorted the same way
-		Collections.sort(((BibleTreeData)node.getValue()).bible.getBooks());
-	}
-	
-	/**
-	 * Renumbers the chapters in the given book.
-	 * @param node the book node.
-	 */
-	private void renumberBook(TreeItem<TreeData> node) {
-		short i = 1;
-		for (TreeItem<TreeData> item : node.getChildren()) {
-			ChapterTreeData td = (ChapterTreeData)item.getValue();
-			// update the data
-			td.chapter.setNumber(i++);
-			// update the label
-			td.update();
-			// update children
-			renumberChapter(item);
-		}
-		// make sure the data is sorted the same way
-		Collections.sort(((BookTreeData)node.getValue()).book.getChapters());
-	}
-	
-	/**
-	 * Renumbers the verses in the given chapter.
-	 * @param node the chapter node
-	 */
-	private void renumberChapter(TreeItem<TreeData> node) {
-		short i = 1;
-		for (TreeItem<TreeData> item : node.getChildren()) {
-			VerseTreeData td = (VerseTreeData)item.getValue();
-			// update the data
-			td.verse.setNumber(i++);
-			// update the label
-			td.update();
-		}
-		// make sure the data is sorted the same way
-		Collections.sort(((ChapterTreeData)node.getValue()).chapter.getVerses());
-	}
-
     /**
      * Event handler for application events.
      * @param event the event
@@ -1141,21 +1028,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
     	ApplicationAction action = event.getAction();
     	switch (action) {
 	    	case NEW_BOOK:
+	    	case NEW_CHAPTER:
+	    	case NEW_VERSE:
 	    		// we only want to execute this if the current focus
-				// is within the bibleTree
-				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
-					add();
-				}
-	    		break;
-			case NEW_CHAPTER:
-				// we only want to execute this if the current focus
-				// is within the bibleTree
-				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
-					add();
-				}
-				break;
-			case NEW_VERSE:
-				// we only want to execute this if the current focus
 				// is within the bibleTree
 				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
 					add();
@@ -1196,24 +1071,8 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				this.promptSaveAs();
 				break;
 			case CLOSE:
-				// TODO this doesn't get called when switching panes
-				if (this.unsavedChanges) {
-					Alert alert = Alerts.yesNoCancel(
-							getScene().getWindow(),
-							Modality.WINDOW_MODAL,
-							Translations.get("warning.modified.title"), 
-							MessageFormat.format(Translations.get("warning.modified.header"), this.bible.get().getName()), 
-							Translations.get("warning.modified.content"));
-					Optional<ButtonType> result = alert.showAndWait();
-					if (result.get() == ButtonType.YES) {
-						this.save();
-						this.fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.MANAGE_BIBLES));
-					} else if (result.get() == ButtonType.NO) {
-						this.fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.MANAGE_BIBLES));
-					}
-				} else {
-					this.fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.MANAGE_BIBLES));
-				}
+				// go back to the bible library
+				this.fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.MANAGE_BIBLES));
 				break;
 			case RENUMBER:
 				// we only want to execute this if the current focus
@@ -1228,6 +1087,15 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				if (Fx.isNodeInFocusChain(focused, this.bibleTree)) {
 					this.promptReorder();
 				}
+				break;
+			case UNDO:
+				// FIXME we need to swap the view so that the user sees what is undone
+				this.manager.undo();
+				this.stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
+				break;
+			case REDO:
+				this.manager.redo();
+				this.stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
 				break;
     		default:
     			break;
@@ -1246,6 +1114,9 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
     	}
     }
     
+    /* (non-Javadoc)
+     * @see org.praisenter.javafx.ApplicationPane#setDefaultFocus()
+     */
     @Override
     public void setDefaultFocus() {
     	this.requestFocus();
@@ -1337,6 +1208,10 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			case SAVE_AS:
 			case CLOSE:
 				return true;
+			case UNDO:
+				return this.manager.isUndoAvailable();
+			case REDO:
+				return this.manager.isRedoAvailable();
 			default:
 				break;
 		}
@@ -1349,6 +1224,38 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	@Override
 	public boolean isApplicationActionVisible(ApplicationAction action) {
 		return true;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationPane#cleanup()
+	 */
+	@Override
+	public void cleanup() {
+		this.bible.set(null);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationEditorPane#hasUnsavedChanges()
+	 */
+	@Override
+	public boolean hasUnsavedChanges() {
+		return !this.manager.isTopMarked();
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationEditorPane#saveChanges()
+	 */
+	@Override
+	public void saveChanges() {
+		this.save();
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.ApplicationEditorPane#getTargetName()
+	 */
+	@Override
+	public String getEditTargetName() {
+		return this.bible.get().getName();
 	}
 	
 	/**

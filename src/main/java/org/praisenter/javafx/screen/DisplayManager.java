@@ -86,11 +86,12 @@ public final class DisplayManager {
 	}
 	
 	/**
-	 * Initializes the screen manager.
+	 * Initializes the screen manager and returns true if automatic assignment of screens was performed.
 	 * <p>
 	 * NOTE: This method should be called on the Java FX UI thread.
+	 * @return boolean
 	 */
-	public void initialize() {
+	public boolean initialize() {
 		// listen for screen changes
 		Screen.getScreens().addListener(new ListChangeListener<Screen>() {
 			@Override
@@ -115,7 +116,7 @@ public final class DisplayManager {
 			}
 		});
 		
-		screensChanged();
+		return screensChanged();
 	}
 	
 	/**
@@ -154,7 +155,14 @@ public final class DisplayManager {
 		return primary;
 	}
 	
-	private void screensChanged() {
+	/**
+	 * Helper method to perform the automatic screen assignment and adjustment when the screens
+	 * change, move, added, etc.
+	 * <p>
+	 * Returns true if this process automatically assigns a screen.
+	 * @return boolean
+	 */
+	private boolean screensChanged() {
 		mutating = true;
 		
 		Screen primary = Screen.getPrimary();
@@ -162,52 +170,106 @@ public final class DisplayManager {
 		int size = screens.size();
 		
 		// get the configured displays
-		Display pDisplay = this.configuration.getObject(Setting.DISPLAY_PRIMARY, Display.class, null);
-		Display oDisplay = this.configuration.getObject(Setting.DISPLAY_OPERATOR, Display.class, null);
-		Display dDisplay = this.configuration.getObject(Setting.DISPLAY_MAIN, Display.class, null);
-		Display mDisplay = this.configuration.getObject(Setting.DISPLAY_MUSICIAN, Display.class, null);
+		int n = this.configuration.getInt(Setting.DISPLAY_COUNT, -1);
+		Display primaryDisplay = this.configuration.getObject(Setting.DISPLAY_PRIMARY, Display.class, null);
+		Display operatorDisplay = this.configuration.getObject(Setting.DISPLAY_OPERATOR, Display.class, null);
+		Display mainDisplay = this.configuration.getObject(Setting.DISPLAY_MAIN, Display.class, null);
+		Display musicianDisplay = this.configuration.getObject(Setting.DISPLAY_MUSICIAN, Display.class, null);
 		
-		// verify that the primary display is still the same
-		boolean primaryChanged = false;
-		if (!isValid(pDisplay, screens)) {
-			// this indicates that all of them should be invalidated
-			primaryChanged = true;
-			LOGGER.info("The primary screen changed. Resetting screen assignment.");
+		// log begin state
+		LOGGER.debug("Current Screen Assignment:");
+		LOGGER.debug("Screens:  {}", n);
+		LOGGER.debug("Primary:  {}", primaryDisplay);
+		LOGGER.debug("Operator: {}", operatorDisplay);
+		LOGGER.debug("Main:     {}", mainDisplay);
+		LOGGER.debug("Musician: {}", musicianDisplay);
+
+		// if the number of screens changed, then log it
+		// they may have only removed an unused screen
+		if (n != -1 && n != size) {
+			LOGGER.info("The number of screens has changed from {} to {}.", n, size);
 		}
+		
+		// get the primary display state
+		DisplayState primaryState = this.getScreenState(primaryDisplay, screens);
+		
+		// check if the primary screen moved, doesn't exist, or has not been assigned
+		if (primaryState == DisplayState.POSITION_CHANGED || 
+			primaryState == DisplayState.SCREEN_INDEX_DOESNT_EXIT ||
+			primaryState == DisplayState.SCREEN_NOT_ASSIGNED) {
+			// if any of these occur, we need to reset the screen assignment
+			LOGGER.info("Resetting screen assignment.");
+			primaryDisplay = null;
+			operatorDisplay = null;
+			mainDisplay = null;
+			musicianDisplay = null;
+		} else if (primaryState == DisplayState.RESOLUTION_CHANGED) {
+			// just reset the primary display
+			primaryDisplay = null;
+		}
+		
+		// get the states for the other screens (now that the primary has been validated or invalidated)
+		DisplayState operatorState = this.getScreenState(operatorDisplay, screens);
+		DisplayState mainState = this.getScreenState(mainDisplay, screens);
+		DisplayState musicianState = this.getScreenState(musicianDisplay, screens);
 		
 		// verify that the screens are still the way we left them
-		if (primaryChanged || !isValid(oDisplay, screens)) {
-			oDisplay = null;
+		if (operatorState == DisplayState.POSITION_CHANGED ||
+			operatorState == DisplayState.SCREEN_INDEX_DOESNT_EXIT) {
+			LOGGER.info("The operator display is invalid.");
+			operatorDisplay = null;
 		}
-		if (primaryChanged || !isValid(dDisplay, screens)) {
-			dDisplay = null;
+		
+		if (mainState == DisplayState.POSITION_CHANGED ||
+			mainState == DisplayState.RESOLUTION_CHANGED ||
+			mainState == DisplayState.SCREEN_INDEX_DOESNT_EXIT) {
+			LOGGER.info("The main display is invalid.");
+			mainDisplay = null;
+			// we need to invalidate the musician assignment
+			// if we have 2 or less screens
+			if (screens.size() <= 2) {
+				LOGGER.info("The main display was invalid and the screen size is 2 or less, unassigning the musician display.");
+				musicianDisplay = null;
+			}
 		}
-		if (primaryChanged || !isValid(mDisplay, screens)) {
-			mDisplay = null;
+		
+		if (musicianState == DisplayState.POSITION_CHANGED ||
+			musicianState == DisplayState.RESOLUTION_CHANGED ||
+			musicianState == DisplayState.SCREEN_INDEX_DOESNT_EXIT) {
+			LOGGER.info("The musician display is invalid.");
+			musicianDisplay = null;
 		}
 		
 		// now verify that no screen is reused
 		Map<Integer, Boolean> assigned = new HashMap<>();
+		
 		// then the main display
-		if (dDisplay != null) {
-			if (assigned.containsKey(dDisplay.getId())) {
-				LOGGER.info("The display assigned to " + dDisplay + " is already assigned. Removing assignment.");
-				dDisplay = null;
-			} else {
-				assigned.put(dDisplay.getId(), true);
-			}
+		if (mainDisplay != null) {
+			// always reserve the main display if it hasn't been invalidated
+			assigned.put(mainDisplay.getId(), true);
 		}
+		
+		// then the operator display
+		if (operatorDisplay != null) {
+			// reserve the operator display
+			// so that the musician display doesn't take it
+			// the operator display can be assigned to the same screen as the main display
+			assigned.put(operatorDisplay.getId(), true);
+		}
+		
 		// then the musician display
-		if (mDisplay != null) {
-			if (assigned.containsKey(mDisplay.getId())) {
-				LOGGER.info("The display assigned to " + mDisplay + " is already assigned. Removing assignment.");
-				mDisplay = null;
+		if (musicianDisplay != null) {
+			if (assigned.containsKey(musicianDisplay.getId())) {
+				LOGGER.info("The display assigned to {} is already assigned. Removing assignment.", musicianDisplay);
+				musicianDisplay = null;
 			} else {
-				assigned.put(mDisplay.getId(), true);
+				assigned.put(musicianDisplay.getId(), true);
 			}
 		}
 		
-		// now we need to assign displays if they aren't already
+		// now, iterate all screens and make sure any unassigned screens are 
+		// assigned if there are any displays to assign
+		boolean screensChanged = false;
 		ResolutionSet resolutions = new ResolutionSet();
 		resolutions.addAll(this.configuration.getResolutions());
 		for (int i = 0; i < size; i++) {
@@ -222,7 +284,7 @@ public final class DisplayManager {
 			
 			// regardless always update the primary display
 			if (primary.equals(screen)) {
-				pDisplay = new Display(i, screen);
+				primaryDisplay = new Display(i, screen);
 			}
 			
 			// skip if already assigned
@@ -233,27 +295,40 @@ public final class DisplayManager {
 			// set it to assigned
 			assigned.put(i, true);
 			
-			// check for the primary screen
-			if (oDisplay == null) {
-				// set it to the primary screen index
-				oDisplay = new Display(i, screen);
-				LOGGER.info("Assigning the operator screen to " + oDisplay + ".");
-			} else if (dDisplay == null) {
-				dDisplay = new Display(i, screen);
-				LOGGER.info("Assigning the main screen to " + dDisplay + ".");
-			} else if (mDisplay == null) {
-				mDisplay = new Display(i, screen);
-				LOGGER.info("Assigning the musician screen to " + mDisplay + ".");
+			// is the operator screen assigned?
+			if (operatorDisplay == null) {
+				operatorDisplay = new Display(i, screen);
+				screensChanged = true;
+				LOGGER.info("Assigning the operator screen to " + operatorDisplay + ".");
+			// is the main screen assigned?
+			} else if (mainDisplay == null) {
+				mainDisplay = new Display(i, screen);
+				screensChanged = true;
+				LOGGER.info("Assigning the main screen to " + mainDisplay + ".");
+			// is the musician screen assigned?
+			} else if (musicianDisplay == null) {
+				musicianDisplay = new Display(i, screen);
+				screensChanged = true;
+				LOGGER.info("Assigning the musician screen to " + musicianDisplay + ".");
 			}
 		}
 		
+		// log new state
+		LOGGER.debug("New Screen Assignment:");
+		LOGGER.debug("Screens:  {}", size);
+		LOGGER.debug("Primary:  {}", primaryDisplay);
+		LOGGER.debug("Operator: {}", operatorDisplay);
+		LOGGER.debug("Main:     {}", mainDisplay);
+		LOGGER.debug("Musician: {}", musicianDisplay);
+		
 		// set the configuration
 		this.configuration.createBatch()
-			.setObject(Setting.DISPLAY_PRIMARY, pDisplay)
-			.setObject(Setting.DISPLAY_MAIN, dDisplay)
-			.setObject(Setting.DISPLAY_OPERATOR, oDisplay)
-			.setObject(Setting.DISPLAY_MUSICIAN, mDisplay)
+			.setObject(Setting.DISPLAY_PRIMARY, primaryDisplay)
+			.setObject(Setting.DISPLAY_MAIN, mainDisplay)
+			.setObject(Setting.DISPLAY_OPERATOR, operatorDisplay)
+			.setObject(Setting.DISPLAY_MUSICIAN, musicianDisplay)
 			.setObject(Setting.DISPLAY_RESOLUTIONS, resolutions)
+			.setInt(Setting.DISPLAY_COUNT, size)
 		.commitBatch()
 		.execute(this.executor);
 		
@@ -261,14 +336,18 @@ public final class DisplayManager {
 		this.updateDisplays();
 		
 		mutating = false;
+		
+		return screensChanged;
 	}
 	
+	/**
+	 * Updates the current set of screens for presentation based on the current screen assignment.
+	 */
 	private void updateDisplays() {
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
 		Display dDisplay = this.configuration.getObject(Setting.DISPLAY_MAIN, Display.class, null);
 		Display mDisplay = this.configuration.getObject(Setting.DISPLAY_MUSICIAN, Display.class, null);
-		
-		LOGGER.info("Releasing existing displays.");
+
 		// release any existing stages
 		this.release();
 		
@@ -282,24 +361,41 @@ public final class DisplayManager {
 		}
 	}
 	
-	private boolean isValid(Display display, List<Screen> screens) {
-		// if it's not assigned, then its valid by default
-		if (display == null || display.getId() < 0 || screens.size() <= display.getId()) {
-			return true;
+	/**
+	 * Returns the state of the given display.
+	 * @param display the display
+	 * @param screens the list of all screens
+	 * @return {@link DisplayState}
+	 */
+	private DisplayState getScreenState(Display display, List<Screen> screens) {
+		// if it's not assigned
+		if (display == null || display.getId() < 0) {
+			LOGGER.info("Display has not been assigned.");
+			return DisplayState.SCREEN_NOT_ASSIGNED;
+		}
+		
+		// check if the screen index still exists
+		if (display.getId() >= screens.size()) {
+			LOGGER.info("Display {} no longer exists.", display);
+			return DisplayState.SCREEN_INDEX_DOESNT_EXIT;
 		}
 		
 		// otherwise, it needs to be in the list of screens with the
-		// same index and must have the same dimensions
+		// same index and must have the same dimensions and position
 		Screen screen = screens.get(display.getId());
 		Rectangle2D bounds = screen.getBounds();
-		if ((int)bounds.getMinX() == display.getX() &&
-			(int)bounds.getMinY() == display.getY() &&
-			(int)bounds.getWidth() == display.getWidth() &&
-			(int)bounds.getHeight() == display.getHeight()) {
-			return true;
+		if ((int)bounds.getMinX() != display.getX() ||
+			(int)bounds.getMinY() != display.getY()) {
+			LOGGER.info("Display {} position has changed.", display);
+			return DisplayState.POSITION_CHANGED;
 		}
 		
-		LOGGER.info("Display " + display + " no longer valid. It's resolution or position has changed.");
-		return false;
+		if ((int)bounds.getWidth() != display.getWidth() ||
+			(int)bounds.getHeight() != display.getHeight()) {
+			LOGGER.info("Display {} resolution has changed.", display);
+			return DisplayState.RESOLUTION_CHANGED;
+		}
+		
+		return DisplayState.VALID;
 	}
 }

@@ -39,9 +39,9 @@ import org.praisenter.slide.graphics.AbstractSlidePaint;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.graphics.SlidePaint;
 
-// FEATURE Add ColorAdjust options for video/images
-// FEATURE Add a repeat property that will tile an image
-// FEATURE Evaluate supporting JavaFX http live streaming
+// FEATURE (M) Add ColorAdjust options for video/images
+// FEATURE (L) Add a repeat property that will tile an image
+// FEATURE (L) Evaluate supporting JavaFX http live streaming
 
 /**
  * Represents a media object for audio, video, and images coming from the {@link MediaLibrary}.

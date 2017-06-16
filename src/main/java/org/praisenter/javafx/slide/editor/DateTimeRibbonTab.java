@@ -2,6 +2,8 @@ package org.praisenter.javafx.slide.editor;
 
 import java.text.SimpleDateFormat;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.slide.ObservableDateTimeComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 
@@ -13,6 +15,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 class DateTimeRibbonTab extends ComponentEditorRibbonTab {
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	private final ComboBox<String> cmbDateTimeFormat;
 	
@@ -57,6 +60,7 @@ class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 			if (comp != null && comp instanceof ObservableDateTimeComponent) {
 				ObservableDateTimeComponent otc = (ObservableDateTimeComponent)comp;
 				otc.setDateTimeFormat(format);
+				notifyComponentChanged();
 			}
 		});
 		
@@ -70,6 +74,7 @@ class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 					format = fmt.toPattern();
 				}
 				this.cmbDateTimeFormat.setValue(format);
+				notifyComponentChanged();
 				this.setVisible(true);
 			} else {
 				this.setVisible(false);
@@ -83,7 +88,7 @@ class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 			try {
 				return new SimpleDateFormat(format);
 			} catch (Exception e) {
-				// TODO log
+				LOGGER.error("Failed to create SimpleDateFormat for format '" + format + "'.", e);
 			}
 		}
 		return null;

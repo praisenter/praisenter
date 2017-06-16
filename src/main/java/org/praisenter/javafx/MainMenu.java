@@ -14,7 +14,10 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -24,14 +27,15 @@ import javafx.scene.control.TextInputControl;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 
-class MainMenu extends VBox implements EventHandler<ActionEvent> {
+class MainMenu extends HBox implements EventHandler<ActionEvent> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final MainPane mainPane;
 	private final MenuBar menu;
-	private final HBox toolbar;
 
 	private final BooleanProperty windowFocused = new SimpleBooleanProperty();
 	private final ObjectProperty<Node> focusOwner = new SimpleObjectProperty<Node>();
@@ -106,6 +110,8 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		MenuItem fCopy = createMenuItem(ApplicationAction.COPY);
 		MenuItem fCut = createMenuItem(ApplicationAction.CUT);
 		MenuItem fPaste = createMenuItem(ApplicationAction.PASTE);
+		MenuItem fUndo = createMenuItem(ApplicationAction.UNDO);
+		MenuItem fRedo = createMenuItem(ApplicationAction.REDO);
 		MenuItem fRename = createMenuItem(ApplicationAction.RENAME);
 		MenuItem fDelete = createMenuItem(ApplicationAction.DELETE);
 		MenuItem fReorder = createMenuItem(ApplicationAction.REORDER);
@@ -113,7 +119,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		MenuItem fSelectAll = createMenuItem(ApplicationAction.SELECT_ALL);
 		MenuItem fSelectNone = createMenuItem(ApplicationAction.SELECT_NONE);
 		MenuItem fSelectInvert = createMenuItem(ApplicationAction.SELECT_INVERT);
-		edit.getItems().addAll(fOpen, new SeparatorMenuItem(), fCopy, fCut, fPaste, new SeparatorMenuItem(), fReorder, fRenumber, new SeparatorMenuItem(), fRename, fDelete, new SeparatorMenuItem(), fSelectAll, fSelectNone, fSelectInvert);
+		edit.getItems().addAll(fOpen, new SeparatorMenuItem(), fCopy, fCut, fPaste, new SeparatorMenuItem(), fUndo, fRedo, new SeparatorMenuItem(), fReorder, fRenumber, new SeparatorMenuItem(), fRename, fDelete, new SeparatorMenuItem(), fSelectAll, fSelectNone, fSelectInvert);
 		
 		// Media
 		MenuItem mManage = createMenuItem(ApplicationAction.MANAGE_MEDIA);
@@ -135,10 +141,6 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		MenuItem hAbout = createMenuItem(ApplicationAction.ABOUT);
 		MenuItem hLogs = createMenuItem(ApplicationAction.LOGS);
 		help.getItems().addAll(hLogs, hAbout);
-		
-		// TOOLBAR
-		
-		this.toolbar = new HBox();
 		
 		// EVENTS
 		
@@ -191,7 +193,14 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 		
 		// LAYOUT
 		
-		this.getChildren().addAll(this.menu, this.toolbar);
+		Button btnHome = new Button(ApplicationAction.PRESENT.getLabel());
+		btnHome.setGraphic(ApplicationGlyphs.MENU_HOME.duplicate());
+		btnHome.setOnAction(e -> {
+			fireEvent(new ApplicationEvent(this, btnHome, ApplicationEvent.ALL, ApplicationAction.PRESENT));
+		});
+		
+		this.getChildren().addAll(btnHome, this.menu);
+		HBox.setHgrow(this.menu, Priority.ALWAYS);
 		
 		// INITIALIZATION
 		
@@ -310,7 +319,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 					if (ApplicationAction.COPY == action) {
 						control.copy();
 					} else if (ApplicationAction.CUT == action) {
-						// JAVABUG 11/09/16 LOW [workaround] for java.lang.StringIndexOutOfBoundsException when only using control.cut();
+						// JAVABUG (L) 11/09/16 [workaround] for java.lang.StringIndexOutOfBoundsException when only using control.cut();
 						control.copy();
 						IndexRange selection = control.getSelection();
 						control.deselect();
@@ -318,7 +327,7 @@ class MainMenu extends VBox implements EventHandler<ActionEvent> {
 					} else if (ApplicationAction.PASTE == action) {
 						control.paste();
 					} else if (ApplicationAction.DELETE == action) {
-						// JAVABUG 11/09/16 LOW [workaround] workaround for java.lang.StringIndexOutOfBoundsException when only using control.deleteText(control.getSelection());
+						// JAVABUG (L) 11/09/16 [workaround] workaround for java.lang.StringIndexOutOfBoundsException when only using control.deleteText(control.getSelection());
 						IndexRange selection = control.getSelection();
 						control.deselect();
 						control.deleteText(selection);
