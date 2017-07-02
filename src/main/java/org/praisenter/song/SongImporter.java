@@ -27,6 +27,7 @@ package org.praisenter.song;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Represents an importer of songs in a specified format.
@@ -42,4 +43,30 @@ public interface SongImporter {
 	 * @throws SongImportException if the file is in an unrecognized format
 	 */
 	public List<Song> read(Path path) throws IOException, SongImportException;
+	
+
+	/**
+	 * Returns the locale for the given language.
+	 * <p>
+	 * The language should be in the BCP 47 format (xx-YY) using
+	 * ISO-639 language codes and ISO-3166-1 country codes.
+	 * <p>
+	 * At this time variants and other designations not supported.
+	 * @param language the language
+	 * @return Locale
+	 */
+	public static Locale getLocale(String language) {
+		// converts the language to a locale
+		if (language != null && language.length() > 0) {
+			String[] parts = language.split("[-]");
+			if (parts.length == 1) {
+				return new Locale(parts[0]);
+			} else if (parts.length == 2) {
+				return new Locale(parts[0], parts[1]);
+			} else {
+				return null;
+			}
+		}
+		return null;
+	}
 }

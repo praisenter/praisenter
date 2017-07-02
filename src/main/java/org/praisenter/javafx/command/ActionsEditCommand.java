@@ -24,8 +24,8 @@
  */
 package org.praisenter.javafx.command;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.praisenter.javafx.command.action.CommandAction;
@@ -54,7 +54,7 @@ public abstract class ActionsEditCommand<T extends CommandOperation> implements 
 	 */
 	public ActionsEditCommand(T operation, List<CommandAction<T>> actions) {
 		this.operation = operation;
-		this.actions = actions != null ? Collections.unmodifiableList(actions) : null;
+		this.actions = actions != null ? actions : new ArrayList<CommandAction<T>>();
 	}
 	
 	/**

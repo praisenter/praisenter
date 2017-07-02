@@ -98,6 +98,7 @@ public final class PraisenterSlideImporter implements SlideImporter {
 						try {
 							// make a copy to ensure the id is changed
 							Slide slide = XmlIO.read(new ByteArrayInputStream(data), BasicSlide.class).copy(false);
+							slide.updatePlaceholders();
 							slides.add(slide);
 						} catch (Exception ex) {
 							throwable = ex;
@@ -116,6 +117,7 @@ public final class PraisenterSlideImporter implements SlideImporter {
 				try (FileInputStream stream = new FileInputStream(path.toFile())) {
 					// make a copy to ensure the id is changed
 					Slide slide = XmlIO.read(stream, BasicSlide.class).copy(false);
+					slide.updatePlaceholders();
 					slides.add(slide);
 				}
 			}

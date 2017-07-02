@@ -210,8 +210,8 @@ final class BibleInfoPane extends VBox {
         			name.set(bible.getName());
         			language.set(bible.getLanguage());
         			source.set(bible.getSource());
-        	        updatedDate.set(bible.getLastModifiedDate() != null ? DATETIME_FORMATTER.format(bible.getLastModifiedDate()) : null);
-        	        importDate.set(bible.getImportDate() != null ? DATETIME_FORMATTER.format(bible.getImportDate()) : null);
+        	        updatedDate.set(bible.getModifiedDate() != null ? DATETIME_FORMATTER.format(bible.getModifiedDate()) : null);
+        	        importDate.set(bible.getCreatedDate() != null ? DATETIME_FORMATTER.format(bible.getCreatedDate()) : null);
         			String copy = bible.getCopyright();
         	        copyright.set(copy != null && copy.length() > 0 ? copy : unknown);
         	        verseCount.set(String.valueOf(bible.getVerseCount()));

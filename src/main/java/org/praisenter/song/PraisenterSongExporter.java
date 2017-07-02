@@ -48,11 +48,11 @@ public final class PraisenterSongExporter implements SongExporter {
 	@Override
 	public void write(Path path, List<Song> songs) throws IOException, SongExportException {
 		for (Song song : songs) {
-			Title title = song.getDefaultTitle();
+			String title = song.getDefaultTitle();
 			String variant = song.variant;
 			
 			// replace any non-alpha-numeric characters that might not be valid for a file name
-			String name = title.text.replaceAll("\\W+", "") + "_" + variant.replaceAll("\\W+", "");
+			String name = title.replaceAll("\\W+", "") + "_" + variant.replaceAll("\\W+", "");
 			Path file = path.resolve(name + ".xml");
 			
 			// see if it exists

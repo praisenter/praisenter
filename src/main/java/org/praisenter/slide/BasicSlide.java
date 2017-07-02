@@ -607,11 +607,13 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		// iterate all the placeholders
 		for (TextPlaceholderComponent tpc : this.getComponents(TextPlaceholderComponent.class)) {
 			TextItem data = this.getPlaceholderText(tpc.getPlaceholderType(), tpc.getPlaceholderVariant());
-			// override the text
-			tpc.setText(data.getText());
-			// override the font size if necessary
-			if (data.getFontSize() > 0) {
-				tpc.setFont(tpc.getFont().size(data.getFontSize()));
+			if (data != null) {
+				// override the text
+				tpc.setText(data.getText());
+				// override the font size if necessary
+				if (data.getFontSize() > 0) {
+					tpc.setFont(tpc.getFont().size(data.getFontSize()));
+				}
 			}
 		}
 	}

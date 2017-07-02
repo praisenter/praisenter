@@ -546,6 +546,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 				if (slide instanceof String) {
 					try {
 						Slide copy = XmlIO.read((String)slide, BasicSlide.class);
+						copy.updatePlaceholders();
 						SlideActions.slideCopy(
 								this.context.getSlideLibrary(),
 								this.getScene().getWindow(),

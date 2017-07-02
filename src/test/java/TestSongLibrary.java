@@ -13,7 +13,6 @@ import org.praisenter.SearchType;
 import org.praisenter.song.Author;
 import org.praisenter.song.Song;
 import org.praisenter.song.SongLibrary;
-import org.praisenter.song.Title;
 import org.praisenter.song.openlyrics.OpenLyricsSongImporter;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
@@ -54,13 +53,13 @@ public class TestSongLibrary {
 			}
 			
 			for (Song song : songs) {
-				Title title = song.getDefaultTitle();
+				String title = song.getDefaultTitle();
 				String variant = song.getVariant();
 				Author author = song.getDefaultAuthor();
 				
 				StringBuilder sb = new StringBuilder();
 				if (title != null) {
-					String ttl = StringManipulator.toFileName(title.getText());
+					String ttl = StringManipulator.toFileName(title);
 					if (ttl.length() == 0) {
 						ttl = "Untitled";
 					}

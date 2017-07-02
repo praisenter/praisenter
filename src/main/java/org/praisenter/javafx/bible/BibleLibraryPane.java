@@ -174,7 +174,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 							if (field == BibleSortField.SOURCE) {
 								value = COLLATOR.compare(o1.getBible().getSource(), o2.getBible().getSource());
 							} else if (field == BibleSortField.LAST_MODIFIED_DATE) {
-								value = -1 * (o1.getBible().getLastModifiedDate().compareTo(o2.getBible().getLastModifiedDate()));
+								value = -1 * (o1.getBible().getModifiedDate().compareTo(o2.getBible().getModifiedDate()));
 							}
 						}
 						return (desc ? 1 : -1) * value;

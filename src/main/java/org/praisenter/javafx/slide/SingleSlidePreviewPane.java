@@ -24,6 +24,7 @@
  */
 package org.praisenter.javafx.slide;
 
+import org.praisenter.TextStore;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.slide.animation.Animations;
 import org.praisenter.javafx.themes.Styles;
@@ -294,6 +295,14 @@ public final class SingleSlidePreviewPane extends StackPane {
 	 */
 	public ObjectProperty<Slide> valueProperty() {
 		return this.value;
+	}
+	
+	public void setPlaceholderData(TextStore data) {
+		ObservableSlide<?> slide = this.slide.get();
+		if (slide != null) {
+			slide.getRegion().setPlaceholderData(data);
+			slide.updatePlaceholders();
+		}
 	}
 	
 	// mode

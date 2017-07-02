@@ -38,6 +38,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.song.Br;
@@ -46,7 +47,6 @@ import org.praisenter.song.Song;
 import org.praisenter.song.SongImportException;
 import org.praisenter.song.SongImporter;
 import org.praisenter.song.TextFragment;
-import org.praisenter.song.Title;
 import org.praisenter.song.Verse;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -119,7 +119,8 @@ public final class ChurchViewSongImporter extends DefaultHandler implements Song
 			// when we see the <Songs> tag we create a new song
 			this.song = new Song();
 			this.lyrics = new Lyrics();
-			this.song.getLyrics().add(lyrics);
+			this.song.setPrimaryLyrics(this.lyrics.getId());
+			this.song.getLyrics().add(this.lyrics);
 		}
 	}
 	
@@ -152,10 +153,7 @@ public final class ChurchViewSongImporter extends DefaultHandler implements Song
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				// set the song title
-				Title title = new Title();
-				title.setOriginal(true);
-				title.setText(this.dataBuilder.toString().trim());
-				this.song.getTitles().add(title);
+				this.lyrics.setTitle(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
 			}
 		} else if ("Song".equalsIgnoreCase(qName) ||
 				"Bridge".equalsIgnoreCase(qName) ||

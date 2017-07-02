@@ -24,34 +24,86 @@
  */
 package org.praisenter.javafx.bible.commands;
 
+import java.util.ArrayList;
+
+import org.praisenter.bible.Bible;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
+import org.praisenter.bible.Verse;
 import org.praisenter.javafx.bible.BookTreeData;
 import org.praisenter.javafx.bible.ChapterTreeData;
 import org.praisenter.javafx.bible.TreeData;
+import org.praisenter.javafx.bible.VerseTreeData;
+import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
+import org.praisenter.javafx.command.action.SelectTreeItemAddedCommandAction;
+import org.praisenter.javafx.command.operation.CommandOperation;
 
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 
-public class AddChapterEditCommand implements EditCommand {
+/**
+ * Command for adding a new, copying an existing, or moving an existing chapter.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+public final class AddChapterEditCommand extends ActionsEditCommand<CommandOperation> implements EditCommand {
+	/** The tree */
 	private final TreeView<TreeData> tree;
+	
+	/** The target item that the new chapter will be placed under */
 	private final TreeItem<TreeData> item;
 	
+	/** The new item (and it's sub items) */
 	private final TreeItem<TreeData> newItem;
+	
+	/** The index in the item's children to place the new item */
 	private final int index;
+	
+	/** The target book for the chapter */
 	private final Book book;
+	
+	/** The chapter to add */
 	private final Chapter chapter;
 	
+	/**
+	 * Minimal constructor (for a new chapter).
+	 * <p>
+	 * This will add a new chapter to the given item (book node) at the end with a chapter number of 
+	 * the maximum chapter number in the book plus one.
+	 * @param tree the tree
+	 * @param item the item
+	 */
 	public AddChapterEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item) {
 		this(tree, item, null, -1);
 	}
 	
+	/**
+	 * Optional constructor (for copying).
+	 * <p>
+	 * This will add the given chapter to the given (book) item.  The chapter will be added at the end
+	 * of the list of chapters.
+	 * @param tree the tree
+	 * @param item the item
+	 * @param chapter the chapter
+	 */
 	public AddChapterEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item, Chapter chapter) {
 		this(tree, item, chapter, -1);
 	}
 	
+	/**
+	 * Optional constructor (for drag-drop).
+	 * <p>
+	 * This will add the given chapter to the given (book) item.  The chapter will be placed at the given index
+	 * in the list of chapters.
+	 * @param tree the tree
+	 * @param item the item
+	 * @param chapter the chapter
+	 * @param index the index
+	 */
 	public AddChapterEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item, Chapter chapter, int index) {
+		super(null, new ArrayList<>());
+		
 		this.tree = tree;
 		this.item = item;
 		this.index = index;
@@ -65,12 +117,12 @@ public class AddChapterEditCommand implements EditCommand {
 				if (td instanceof BookTreeData) {
 					// add new chapter
 					BookTreeData bd = (BookTreeData)item.getValue();
-					short number = bd.getBook().getMaxChapterNumber();
 					book = bd.getBook();
+					short number = book.getMaxChapterNumber();
 					if (chapter == null) {
 						chapter = new Chapter(++number);
 					}
-					newItem = new TreeItem<TreeData>(new ChapterTreeData(bd.getBible(), bd.getBook(), chapter));
+					newItem = createChapterItem(bd.getBible(), book, chapter);
 				}
 			}
 		}
@@ -78,6 +130,23 @@ public class AddChapterEditCommand implements EditCommand {
 		this.book = book;
 		this.chapter = chapter;
 		this.newItem = newItem;
+		
+		this.actions.add(new SelectTreeItemAddedCommandAction<>(tree, newItem, item));
+	}
+	
+	/**
+	 * Creates a new tree item for the given chapter.
+	 * @param bible the target bible
+	 * @param book the target book
+	 * @param chapter the source chapter
+	 * @return TreeItem&lt;{@link TreeData}&gt;
+	 */
+	private TreeItem<TreeData> createChapterItem(Bible bible, Book book, Chapter chapter) {
+		TreeItem<TreeData> item = new TreeItem<TreeData>(new ChapterTreeData(bible, book, chapter));
+		for (Verse verse : chapter.getVerses()) {
+			item.getChildren().add(new TreeItem<TreeData>(new VerseTreeData(bible, book, chapter, verse)));
+		}
+		return item;
 	}
 	
 	/* (non-Javadoc)
@@ -117,19 +186,7 @@ public class AddChapterEditCommand implements EditCommand {
 			this.item.getChildren().add(this.index, this.newItem);
 		}
 		
-		this.item.setExpanded(true);
-		
-		int index = this.tree.getRow(this.newItem);
-		if (index > 0) {
-			// selected it
-			this.tree.getSelectionModel().clearAndSelect(index);
-			final int offset = 5;
-			// scroll to it (well, close to it, we don't want it at the top)
-			if (index - offset > 0) {
-				this.tree.scrollTo(index - offset);
-			}
-		}
-		this.tree.requestFocus();
+		super.redo();
 	}
 	
 	/* (non-Javadoc)
@@ -139,6 +196,7 @@ public class AddChapterEditCommand implements EditCommand {
 	public void undo() {
 		this.book.getChapters().remove(this.chapter);
 		this.item.getChildren().remove(this.newItem);
+		super.undo();
 	}
 	
 	/* (non-Javadoc)
@@ -153,5 +211,6 @@ public class AddChapterEditCommand implements EditCommand {
 			this.book.getChapters().add(this.index, this.chapter);
 			this.item.getChildren().add(this.index, this.newItem);
 		}
+		super.redo();
 	}
 }

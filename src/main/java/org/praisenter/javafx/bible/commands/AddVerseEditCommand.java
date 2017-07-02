@@ -24,35 +24,84 @@
  */
 package org.praisenter.javafx.bible.commands;
 
+import java.util.ArrayList;
+
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.Verse;
 import org.praisenter.javafx.bible.ChapterTreeData;
 import org.praisenter.javafx.bible.TreeData;
 import org.praisenter.javafx.bible.VerseTreeData;
+import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
+import org.praisenter.javafx.command.action.SelectTreeItemAddedCommandAction;
+import org.praisenter.javafx.command.operation.CommandOperation;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 
-public class AddVerseEditCommand implements EditCommand {
+/**
+ * Command for adding a new, copying an existing, or moving an existing verse.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+public final class AddVerseEditCommand extends ActionsEditCommand<CommandOperation> implements EditCommand {
+	/** The tree */
 	private final TreeView<TreeData> tree;
+	
+	/** The target item that the new chapter will be placed under */
 	private final TreeItem<TreeData> item;
 	
+	/** The new item (and it's sub items) */
 	private final TreeItem<TreeData> newItem;
+	
+	/** The index in the item's children to place the new item */
 	private final int index;
+	
+	/** The target chapter for the verse */
 	private final Chapter chapter;
+	
+	/** The verse to add */
 	private final Verse verse;
 	
+	/**
+	 * Minimal constructor (for a new verse).
+	 * <p>
+	 * This will add a new verse to the given item (chapter node) at the end with a verse number of 
+	 * the maximum verse number in the chapter plus one.
+	 * @param tree the tree
+	 * @param item the item
+	 */
 	public AddVerseEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item) {
 		this(tree, item, null, -1);
 	}
 	
+	/**
+	 * Optional constructor (for copying).
+	 * <p>
+	 * This will add the given verse to the given (chapter) item.  The verse will be added at the end
+	 * of the list of verses.
+	 * @param tree the tree
+	 * @param item the item
+	 * @param verse the verse
+	 */
 	public AddVerseEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item, Verse verse) {
 		this(tree, item, verse, -1);
 	}
 	
+	/**
+	 * Optional constructor (for drag-drop).
+	 * <p>
+	 * This will add the given verse to the given (chapter) item.  The verse will be placed at the given index
+	 * in the list of verses.
+	 * @param tree the tree
+	 * @param item the item
+	 * @param verse the verse
+	 * @param index the index
+	 */
 	public AddVerseEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item, Verse verse, int index) {
+		super(null, new ArrayList<>());
+		
 		this.tree = tree;
 		
 		TreeItem<TreeData> newItem = null;
@@ -92,6 +141,8 @@ public class AddVerseEditCommand implements EditCommand {
 		this.chapter = chapter;
 		this.index = index;
 		this.newItem = newItem;
+
+		this.actions.add(new SelectTreeItemAddedCommandAction<>(tree, newItem, item));
 	}
 	
 	/* (non-Javadoc)
@@ -130,20 +181,7 @@ public class AddVerseEditCommand implements EditCommand {
 			this.chapter.getVerses().add(this.index, this.verse);
 			this.item.getChildren().add(this.index, this.newItem);
 		}
-		
-		this.item.setExpanded(true);
-		
-		int index = this.tree.getRow(this.newItem);
-		if (index > 0) {
-			// selected it
-			this.tree.getSelectionModel().clearAndSelect(index);
-			final int offset = 5;
-			// scroll to it (well, close to it, we don't want it at the top)
-			if (index - offset > 0) {
-				this.tree.scrollTo(index - offset);
-			}
-		}
-		this.tree.requestFocus();
+		super.redo();
 	}
 	
 	/* (non-Javadoc)
@@ -153,6 +191,7 @@ public class AddVerseEditCommand implements EditCommand {
 	public void undo() {
 		this.chapter.getVerses().remove(this.verse);
 		this.item.getChildren().remove(this.newItem);
+		super.undo();
 	}
 	
 	/* (non-Javadoc)
@@ -167,5 +206,6 @@ public class AddVerseEditCommand implements EditCommand {
 			this.chapter.getVerses().add(this.index, this.verse);
 			this.item.getChildren().add(this.index, this.newItem);
 		}
+		super.redo();
 	}
 }

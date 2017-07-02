@@ -275,9 +275,6 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 				this.verseContent = true;
 			} else if (qName.equalsIgnoreCase("note") ||
 					   qName.equalsIgnoreCase("n") ||
-					   qName.equalsIgnoreCase("gram") ||
-					   qName.equalsIgnoreCase("gr") ||
-					   qName.equalsIgnoreCase("g") ||
 					   qName.equalsIgnoreCase("xref") ||
 					   qName.equalsIgnoreCase("xr")) {
 				this.ignoreContent = true;
@@ -308,7 +305,7 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			if (qName.equalsIgnoreCase("vers") ||
 				qName.equalsIgnoreCase("v")) {
-				this.chapter.verses.add(new Verse(this.verse, this.dataBuilder.toString().trim()));
+				this.chapter.verses.add(new Verse(this.verse, this.dataBuilder.toString().replaceAll("\\n|\\r", "").replaceAll("\\s+", " ").trim()));
 				this.verseContent = false;
 			} else if (qName.equalsIgnoreCase("title")) {
 				String name = this.dataBuilder.toString();
@@ -324,9 +321,6 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 				this.bible.copyright = this.dataBuilder.toString().trim();
 			} else if (qName.equalsIgnoreCase("note") ||
 					   qName.equalsIgnoreCase("n") ||
-					   qName.equalsIgnoreCase("gram") ||
-					   qName.equalsIgnoreCase("gr") ||
-					   qName.equalsIgnoreCase("g") ||
 					   qName.equalsIgnoreCase("xref") ||
 					   qName.equalsIgnoreCase("xr")) {
 				this.ignoreContent = false;

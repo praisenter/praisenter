@@ -84,7 +84,7 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 							// make a copy to ensure the id is changed
 							Bible bible = XmlIO.read(new ByteArrayInputStream(data), Bible.class).copy(false);
 							// update the import date
-							bible.importDate = Instant.now();
+							bible.createdDate = Instant.now();
 							bibles.add(bible);
 						} catch (Exception ex) {
 							throwable = ex;
@@ -104,7 +104,7 @@ public final class PraisenterBibleImporter extends AbstractBibleImporter impleme
 					// make a copy to ensure the id is changed
 					Bible bible = XmlIO.read(stream, Bible.class).copy(false);
 					// update the import date
-					bible.importDate = Instant.now();
+					bible.createdDate = Instant.now();
 					bibles.add(bible);
 				}
 			}

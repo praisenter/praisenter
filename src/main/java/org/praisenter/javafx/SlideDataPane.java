@@ -67,11 +67,15 @@ public class SlideDataPane extends BorderPane {
 		
 		// TODO show prev/next
 		this.bibleNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
-			Slide slide = this.cmbTemplate.getValue();
-			if (slide != null) {
-				slide = slide.copy();
-				slide.setPlaceholderData(nv);
-				this.slidePreviewPane.setValue(slide);
+			if (this.slidePreviewPane.getValue() != null) {
+				this.slidePreviewPane.setPlaceholderData(nv);
+			} else {
+				Slide slide = this.cmbTemplate.getValue();
+				if (slide != null) {
+					slide = slide.copy();
+					slide.setPlaceholderData(nv);
+					this.slidePreviewPane.setValue(slide);
+				}
 			}
 		});
 	}

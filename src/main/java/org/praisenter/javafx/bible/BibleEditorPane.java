@@ -120,8 +120,6 @@ import javafx.util.StringConverter;
 // FEATURE (L) Add glyphicons to nodes to help distinguish book & chapter
 // FEATURE (L) Add ability to create N number of books, chapters, verses with default text
 
-// FIXME copy/cut operations don't copy the contents of the node
-
 /**
  * A pane for editing {@link Bible}s.
  * @author William Bittle
@@ -869,18 +867,6 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 										: CommandFactory.select(this.bibleTree, this.bibleTree.getRoot())));
 					// apply it
 					applyCommand(command);
-					
-//					applyCommand(new OrderedCompositeEditCommand<OrderedWrappedEditCommand>(
-//						// execute the remove(s) first
-//						new OrderedWrappedEditCommand(new OrderedCompositeEditCommand<RemoveEditCommand>(commands), 0),
-//						// then do some focus and selection stuff
-//						new OrderedWrappedEditCommand(new ActionsOnlyEditCommand<>(
-//								// focus the tree
-//								new FocusNodeCommandAction<CommandOperation>(this.bibleTree),
-//								// then select the node's parent or the root element
-//								commands.size() == 1 
-//									? new SelectTreeItemRemovedCommandAction<TreeData, CommandOperation>(this.bibleTree, items.get(0).getParent())
-//									: new SelectTreeItemCommandAction<TreeData, CommandOperation>(this.bibleTree, this.bibleTree.getRoot())), 1)));
 				}
 			}
 		}
@@ -978,7 +964,11 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			}
 			
 			if (result.get() == ButtonType.OK){
-				applyCommand(new ReorderEditCommand(this.bibleTree, item));
+				applyCommand(CommandFactory.chain(
+					new ReorderEditCommand(this.bibleTree, item),
+					CommandFactory.chain(
+						CommandFactory.focus(this.bibleTree),
+						CommandFactory.select(this.bibleTree, item))));
 			}
 		}
 	}
@@ -1014,7 +1004,11 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			}
 			
 			if (result.get() == ButtonType.OK){
-				applyCommand(new RenumberEditCommand(this.bibleTree, item));
+				applyCommand(CommandFactory.chain(
+						new RenumberEditCommand(this.bibleTree, item),
+						CommandFactory.chain(
+							CommandFactory.focus(this.bibleTree),
+							CommandFactory.select(this.bibleTree, item))));
 			}
 		}
 	}
@@ -1089,7 +1083,6 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				}
 				break;
 			case UNDO:
-				// FIXME we need to swap the view so that the user sees what is undone
 				this.manager.undo();
 				this.stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
 				break;

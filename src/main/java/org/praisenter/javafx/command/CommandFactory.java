@@ -27,21 +27,31 @@ package org.praisenter.javafx.command;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
+import org.praisenter.javafx.command.action.CheckboxCommandAction;
 import org.praisenter.javafx.command.action.ComboCommandAction;
 import org.praisenter.javafx.command.action.CommandAction;
+import org.praisenter.javafx.command.action.FireEventCommandAction;
 import org.praisenter.javafx.command.action.FocusNodeCommandAction;
+import org.praisenter.javafx.command.action.FunctionCommandAction;
 import org.praisenter.javafx.command.action.SelectTreeItemCommandAction;
 import org.praisenter.javafx.command.action.SelectTreeItemRemovedCommandAction;
+import org.praisenter.javafx.command.action.SliderCommandAction;
 import org.praisenter.javafx.command.action.SpinnerCommandAction;
 import org.praisenter.javafx.command.action.TextInputCommandAction;
+import org.praisenter.javafx.command.action.ToggleButtonCommandAction;
 import org.praisenter.javafx.command.operation.CommandOperation;
 import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 
+import javafx.event.Event;
 import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 
@@ -163,7 +173,58 @@ public final class CommandFactory {
 	public static final <T> ComboCommandAction<T> combo(ComboBox<T> input) {
 		return new ComboCommandAction<>(input);
 	}
+	
+	/**
+	 * Returns a focus and set value action for the given toggle button.
+	 * @param input the input
+	 * @return {@link ToggleButtonCommandAction}
+	 */
+	public static final ToggleButtonCommandAction toggle(ToggleButton input) {
+		return new ToggleButtonCommandAction(input);
+	}
 
+	/**
+	 * Returns a focus and set value action for the given check box.
+	 * @param input the input
+	 * @return {@link CheckboxCommandAction}
+	 */
+	public static final CheckboxCommandAction check(CheckBox input) {
+		return new CheckboxCommandAction(input);
+	}
+	
+	/**
+	 * Returns a focus and set value action for the given slider.
+	 * @param input the input
+	 * @return {@link SliderCommandAction}
+	 */
+	public static final SliderCommandAction slider(Slider input) {
+		return new SliderCommandAction(input);
+	}
+
+	public static final <T extends Node, E extends CommandOperation> FireEventCommandAction<T, E> event(T node, Event event) {
+		return new FireEventCommandAction<>(node, event);
+	}
+	
+	public static final <T extends Node, E extends CommandOperation> FireEventCommandAction<T, E> event(T node, Event redo, Event undo) {
+		return new FireEventCommandAction<>(node, redo, undo);
+	}
+	
+	public static final <T extends CommandOperation> FunctionCommandAction<T> func(Consumer<T> action) {
+		return new FunctionCommandAction<T>(action, action);
+	}
+	
+	public static final <T extends CommandOperation> FunctionCommandAction<T> undo(Consumer<T> action) {
+		return new FunctionCommandAction<T>(action, null);
+	}
+	
+	public static final <T extends CommandOperation> FunctionCommandAction<T> redo(Consumer<T> action) {
+		return new FunctionCommandAction<T>(null, action);
+	}
+	
+	public static final <T extends CommandOperation> FunctionCommandAction<T> func(Consumer<T> undo, Consumer<T> redo) {
+		return new FunctionCommandAction<T>(undo, redo);
+	}
+	
 	// operations
 	
 	/**

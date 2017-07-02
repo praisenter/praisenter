@@ -41,15 +41,16 @@ import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
 import javafx.stage.Screen;
 
 /**
@@ -195,14 +196,12 @@ public final class ScreenView extends StackPane {
 				buildUnassignedOrError(this.display.toString());
 			}
 			
-			// TODO may need to resize this based on font size?
-			Rectangle rect = new Rectangle(55, 50);
-			rect.setFill(Color.rgb(255, 255, 255, 0.7));
-			this.getChildren().add(rect);
-			
-			Text number = new Text(String.valueOf(this.display.getId() + 1));
-			number.setFont(Font.font(number.getFont().getFamily(), FontWeight.BOLD, 30));
-			this.getChildren().add(number);
+			Label label = new Label(String.valueOf(this.display.getId() + 1));
+			label.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+			label.setPadding(new Insets(10, 20, 10, 20));
+			label.setFont(Font.font(label.getFont().getFamily(), FontWeight.BOLD, 30));
+			label.setTextFill(Color.WHITE);
+			this.getChildren().add(label);
 		}
 
 		this.setOnDragDetected(e -> {

@@ -28,6 +28,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -50,25 +51,49 @@ public final class Lyrics implements SongOutput, Localized {
 	/** The edit format */
 	private static final String EDIT_FORMAT = "<verse name=\"{0}\" />";
 	
-	// TODO auto-complete text box
+	// for internal use
+	/** The id of the lyrics */
+	final UUID id;
+	
+	/** True if this set of lyrics are the original set */
+	@XmlAttribute(name = "original", required = false)
+	boolean original;
+	
 	/** The language */
 	@XmlAttribute(name = "language", required = false)
 	String language;
 
-	// TODO auto-complete text box
 	/** The transliteration */
 	@XmlAttribute(name = "transliteration", required = false)
 	String transliteration;
 
+	/** The title */
+	@XmlElement(name = "title", required = false)
+	String title;
+	
+	/** The authors */
+	@XmlElement(name = "author", required = false)
+	@XmlElementWrapper(name = "authors", required = false)
+	final List<Author> authors;
+
+	/** The song books that contain these lyrics */
+	@XmlElement(name = "songbook", required = false)
+	@XmlElementWrapper(name = "songbooks", required = false)
+	final List<Songbook> songbooks;
+	
 	/** The verses */
 	@XmlElement(name = "verse", required = false)
 	@XmlElementWrapper(name = "verses", required = false)
-	List<Verse> verses;
+	final List<Verse> verses;
 
 	/**
 	 * Default constructor.
 	 */
 	public Lyrics() {
+		this.id = UUID.randomUUID();
+		this.original = false;
+		this.authors = new ArrayList<>();
+		this.songbooks = new ArrayList<>();
 		this.verses = new ArrayList<>();
 	}
 	
@@ -77,7 +102,10 @@ public final class Lyrics implements SongOutput, Localized {
 	 */
 	@Override
 	public Locale getLocale() {
-		return Song.getLocale(this.language);
+		if (this.language != null) {
+			return Locale.forLanguageTag(this.language);
+		}
+		return null;
 	}
 	
 	/* (non-Javadoc)
@@ -104,6 +132,48 @@ public final class Lyrics implements SongOutput, Localized {
 		}
 		return sb.toString();
 	}
+
+	/**
+	 * Returns the default author for the lyrics.
+	 * <br>
+	 * The first non-empty author to match:
+	 * <ol>
+	 * <li>No type attribute</li>
+	 * <li>The type == words</li>
+	 * <li>The type == music</li>
+	 * <li>The first author in the list</li>
+	 * </ol>
+	 * @return {@link Author}
+	 */
+	public Author getDefaultAuthor() {
+		Author author = null;
+		int matchType = 0;
+		if (this.authors.size() > 0) {
+			// default to the first one
+			author = this.authors.get(0);
+			// try to find the best one
+			for (Author auth : this.authors) {
+				// don't choose an empty one
+				if (auth.name == null || auth.name.length() <= 0) {
+					continue;
+				}
+				// otherwise its the first one without a type setting
+				if (auth.type == null || auth.type.length() == 0) {
+					return auth;
+				// otherwise its the first with type words
+				} else if (Author.TYPE_WORDS.equals(auth.type) && matchType < 1) {
+					auth = author;
+					matchType = 1;
+				// otherwise its the first with type music
+				} else if (Author.TYPE_MUSIC.equals(auth.type) && matchType < 2) {
+					auth = author;
+					matchType = 2;
+				}
+				// otherwise its the first
+			}
+		}
+		return author;
+	}
 	
 	/**
 	 * Returns the verse for the given name.
@@ -117,6 +187,30 @@ public final class Lyrics implements SongOutput, Localized {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Returns the id for this lyric set.
+	 * @return UUID
+	 */
+	public UUID getId() {
+		return this.id;
+	}
+	
+	/**
+	 * Returns true if this set of lyrics is the original set.
+	 * @return boolean
+	 */
+	public boolean isOriginal() {
+		return this.original;
+	}
+	
+	/**
+	 * Sets this lyrics to the original if given true.
+	 * @param original true if this set of lyrics is the original
+	 */
+	public void setOriginal(boolean original) {
+		this.original = original;
 	}
 	
 	/**
@@ -152,18 +246,42 @@ public final class Lyrics implements SongOutput, Localized {
 	}
 
 	/**
+	 * Returns the title.
+	 * @return String
+	 */
+	public String getTitle() {
+		return this.title;
+	}
+	
+	/**
+	 * Sets the title.
+	 * @param title the title
+	 */
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	
+	/**
+	 * Returns the set of authors for this set of lyrics.
+	 * @return List&lt;{@link Author}&gt;
+	 */
+	public List<Author> getAuthors() {
+		return this.authors;
+	}
+	
+	/**
+	 * Returns the set of songbooks this set of lyrics are in.
+	 * @return List&lt;{@link Songbook}&gt;
+	 */
+	public List<Songbook> getSongbooks() {
+		return this.songbooks;
+	}
+	
+	/**
 	 * Returns the verses.
 	 * @return List&lt;{@link Verse}&gt;
 	 */
 	public List<Verse> getVerses() {
 		return this.verses;
-	}
-
-	/**
-	 * Sets the verses.
-	 * @param verses the verses
-	 */
-	public void setVerses(List<Verse> verses) {
-		this.verses = verses;
 	}
 }

@@ -75,6 +75,7 @@ import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
 
+// FIXME update for multi-threading and other features added to slide and bible libraries
 // FEATURE (M) Add duplicate detection and merge features
 
 /**
@@ -195,7 +196,7 @@ public final class SongLibrary {
 									// once the song has been loaded successfully
 									// and added to the lucene index successfully
 									// then we'll add it to the song map
-									this.songs.put(song.id, song);
+									this.songs.put(song.getId(), song);
 								} catch (Exception e) {
 									// make sure its not in the index
 									// we don't want to be able to find the song
@@ -228,27 +229,33 @@ public final class SongLibrary {
 		// store the path so we know where to get the song
 		Field pathField = new StringField(FIELD_PATH, song.path.toAbsolutePath().toString(), Field.Store.YES);
 		document.add(pathField);
+		
 		// store the id so we can lookup the song in the cache
-		Field idField = new StringField(FIELD_ID, song.id.toString(), Field.Store.YES);
+		Field idField = new StringField(FIELD_ID, song.getId().toString(), Field.Store.YES);
 		document.add(idField);
 		
-		// keywords
-		if (song.keywords != null) {
-			Field keyWordsField = new TextField(FIELD_TEXT, song.keywords, Field.Store.YES);
-			document.add(keyWordsField);
+		// search on keywords too
+		if (!StringManipulator.isNullOrEmpty(song.keywords)) {
+			Field keywordsField = new StringField(FIELD_TEXT, song.keywords, Field.Store.YES);
+			document.add(keywordsField);
 		}
 		
-		// title fields
-		for (Title title : song.titles) {
-			Field titleField = new TextField(FIELD_TEXT, title.text, Field.Store.YES);
-			document.add(titleField);
-		}
-		
-		// verse fields
+		// iterate the lyrics
 		for (Lyrics lyrics : song.lyrics) {
+			
+			// title fields
+			if (!StringManipulator.isNullOrEmpty(lyrics.title)) {
+				Field titleField = new TextField(FIELD_TEXT, lyrics.title, Field.Store.YES);
+				document.add(titleField);
+			}
+			
+			// verse fields
 			for (Verse verse : lyrics.verses) {
-				Field verseField = new TextField(FIELD_TEXT, verse.getOutput(SongOutputType.TEXT), Field.Store.YES);
-				document.add(verseField);
+				String text = verse.getOutput(SongOutputType.TEXT);
+				if (!StringManipulator.isNullOrEmpty(text)) {
+					Field verseField = new TextField(FIELD_TEXT, text, Field.Store.YES);
+					document.add(verseField);
+				}
 			}
 		}
 		
@@ -268,7 +275,7 @@ public final class SongLibrary {
 					// add the data to the document
 					Document document = createDocument(song);
 					// update the document
-					writer.updateDocument(new Term(FIELD_ID, song.id.toString()), document);
+					writer.updateDocument(new Term(FIELD_ID, song.getId().toString()), document);
 				} catch (Exception e) {
 					// make sure its not in the index
 					LOGGER.warn("Failed to update the song in the lucene index '" + song.path.toAbsolutePath().toString() + "'", e);
@@ -319,8 +326,8 @@ public final class SongLibrary {
 	 * @return boolean
 	 */
 	public synchronized boolean contains(Song song) {
-		if (song == null || song.id == null) return false;
-		return this.songs.containsKey(song.id);
+		if (song == null || song.getId() == null) return false;
+		return this.songs.containsKey(song.getId());
 	}
 	
 	/**
@@ -330,9 +337,9 @@ public final class SongLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized void save(Song song) throws JAXBException, IOException {
-		if (this.songs.containsKey(song.id)) {
+		if (this.songs.containsKey(song.getId())) {
 			// technically an update
-			song.path = this.songs.get(song.id).path;
+			song.path = this.songs.get(song.getId()).path;
 		}
 		
 		if (song.path == null) {
@@ -341,7 +348,7 @@ public final class SongLibrary {
 			// verify there doesn't exist a song with this name already
 			if (Files.exists(path)) {
 				// just use the guid
-				path = this.path.resolve(song.id.toString().replaceAll("-", "") + EXTENSION);
+				path = this.path.resolve(song.getId().toString().replaceAll("-", "") + EXTENSION);
 			}
 			song.path = path;
 		}
@@ -357,10 +364,10 @@ public final class SongLibrary {
 			Document document = createDocument(song);
 			
 			// update the document
-			writer.updateDocument(new Term(FIELD_ID, song.id.toString()), document);
+			writer.updateDocument(new Term(FIELD_ID, song.getId().toString()), document);
 		}
 		
-		this.songs.put(song.id, song);
+		this.songs.put(song.getId(), song);
 	}
 	
 	/**
@@ -396,8 +403,8 @@ public final class SongLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public synchronized void remove(Song song) throws IOException {
-		if (song == null || song.id == null) return;
-		remove(song.id);
+		if (song == null || song.getId() == null) return;
+		remove(song.getId());
 	}
 	
 	/**
@@ -407,13 +414,13 @@ public final class SongLibrary {
 	 * @return String
 	 */
 	public static final String createFileName(Song song) {
-		Title title = song.getDefaultTitle();
+		String title = song.getDefaultTitle();
 		String variant = song.getVariant();
 		Author author = song.getDefaultAuthor();
 		
 		StringBuilder sb = new StringBuilder();
 		if (title != null) {
-			String ttl = StringManipulator.toFileName(title.getText());
+			String ttl = StringManipulator.toFileName(title);
 			if (ttl.length() == 0) {
 				ttl = "Untitled";
 			}

@@ -215,6 +215,14 @@ public abstract class AbstractSlideRegion implements SlideRegion {
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getBounds()
+	 */
+	@Override
+	public Rectangle getBounds() {
+		return new Rectangle(this.x, this.y, this.width, this.height);
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideRegion#getBackground()
 	 */
 	@Override

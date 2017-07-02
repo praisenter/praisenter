@@ -27,7 +27,9 @@ package org.praisenter.song.openlyrics;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
@@ -43,7 +45,6 @@ import org.praisenter.song.SongExportException;
 import org.praisenter.song.SongExporter;
 import org.praisenter.song.Songbook;
 import org.praisenter.song.TextFragment;
-import org.praisenter.song.Title;
 import org.praisenter.song.Verse;
 import org.praisenter.song.VerseFragment;
 import org.praisenter.xml.XmlIO;
@@ -60,11 +61,11 @@ public final class OpenLyricsSongExporter implements SongExporter {
 	@Override
 	public void write(Path path, List<Song> songs) throws IOException, SongExportException {
 		for (Song song : songs) {
-			Title ttl = song.getDefaultTitle();
+			String ttl = song.getDefaultTitle();
 			String variant = song.getVariant();
 			
 			// replace any non-alpha-numeric characters that might not be valid for a file name
-			String name = ttl.getText().replaceAll("\\W+", "") + "_" + variant.replaceAll("\\W+", "");
+			String name = ttl.replaceAll("\\W+", "") + "_" + variant.replaceAll("\\W+", "");
 			Path file = path.resolve(name + ".xml");
 			
 			// see if it exists
@@ -76,9 +77,9 @@ public final class OpenLyricsSongExporter implements SongExporter {
 			// convert the song to openlyrics format
 			OpenLyricsSong olsong = new OpenLyricsSong();
 			
-			olsong.createdIn = song.getCreatedIn();
-			olsong.modifiedDate = song.getLastModifiedDate();
-			olsong.modifiedIn = song.getLastModifiedIn();
+			olsong.createdIn = song.getSource();
+			olsong.modifiedDate = Date.from(song.getModifiedDate());
+			olsong.modifiedIn = song.getSource();
 			olsong.properties.ccli = song.getCcli();
 			olsong.properties.copyright = song.getCopyright();
 			olsong.properties.key = song.getKey();
@@ -89,32 +90,13 @@ public final class OpenLyricsSongExporter implements SongExporter {
 			olsong.properties.tempo.text = song.getTempo();
 			olsong.properties.transposition = song.getTransposition();
 			olsong.properties.variant = song.getVariant();
-			olsong.properties.verseOrder = song.getSequence();
-			olsong.properties.version = song.getVersion();
-			
-			// titles
-			for (Title title : song.getTitles()) {
-				OpenLyricsTitle t = new OpenLyricsTitle();
-				t.language = title.getLanguage();
-				t.original = title.isOriginal();
-				t.text = title.getText();
-				t.transliteration = title.getTransliteration();
-				olsong.properties.titles.add(t);
-			}
+			olsong.properties.verseOrder = String.join(" ", song.getSequence());
 			
 			// themes
 			for (Tag tag : song.getTags()) {
 				OpenLyricsTheme t = new OpenLyricsTheme();
 				t.text = tag.getName();
 				olsong.properties.themes.add(t);
-			}
-			
-			// songbooks
-			for (Songbook book : song.getSongbooks()) {
-				OpenLyricsSongbook b = new OpenLyricsSongbook();
-				b.entry = book.getEntry();
-				b.name = book.getName();
-				olsong.properties.songbooks.add(b);
 			}
 			
 			// comments
@@ -124,17 +106,40 @@ public final class OpenLyricsSongExporter implements SongExporter {
 				olsong.properties.comments.add(comment);
 			}
 			
-			// comments
-			for (Author author : song.getAuthors()) {
-				OpenLyricsAuthor a = new OpenLyricsAuthor();
-				a.language = author.getLanguage();
-				a.name = author.getName();
-				a.type = author.getType();
-				olsong.properties.authors.add(a);
-			}
-			
 			// verses
 			for (Lyrics lyrics : song.getLyrics()) {
+				// songbooks
+				for (Songbook book : lyrics.getSongbooks()) {
+					// check for "duplicates"
+					if (olsong.properties.songbooks.stream().anyMatch(s -> Objects.equals(s.name, book.getName()) && Objects.equals(s.entry, book.getEntry()))) {
+						continue;
+					}
+					OpenLyricsSongbook b = new OpenLyricsSongbook();
+					b.entry = book.getEntry();
+					b.name = book.getName();
+					olsong.properties.songbooks.add(b);
+				}
+				
+				// comments
+				for (Author author : lyrics.getAuthors()) {
+					// check for "duplicates"
+					if (olsong.properties.authors.stream().anyMatch(a -> Objects.equals(a.name, author.getName()) && Objects.equals(a.type, author.getType()))) {
+						continue;
+					}
+					OpenLyricsAuthor a = new OpenLyricsAuthor();
+					a.name = author.getName();
+					a.type = author.getType();
+					olsong.properties.authors.add(a);
+				}
+				
+				// should be unique
+				OpenLyricsTitle title = new OpenLyricsTitle();
+				title.language = lyrics.getLanguage();
+				title.transliteration = lyrics.getTransliteration();
+				title.original = lyrics.isOriginal();
+				title.text = lyrics.getTitle();
+				olsong.properties.titles.add(title);
+				
 				for (Verse verse : lyrics.getVerses()) {
 					OpenLyricsVerse v = new OpenLyricsVerse();
 					

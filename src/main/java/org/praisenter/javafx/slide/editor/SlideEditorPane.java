@@ -16,12 +16,20 @@ import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.async.AsyncTask;
+import org.praisenter.javafx.command.CommandFactory;
+import org.praisenter.javafx.command.EditCommand;
+import org.praisenter.javafx.media.MediaLibraryDialog;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.SlideActions;
 import org.praisenter.javafx.slide.SlideMode;
+import org.praisenter.javafx.slide.editor.events.MediaComponentAddEvent;
+import org.praisenter.javafx.slide.editor.events.SlideComponentAddEvent;
+import org.praisenter.javafx.slide.editor.events.SlideComponentOrderEvent;
+import org.praisenter.javafx.slide.editor.events.SlideEditorEvent;
+import org.praisenter.javafx.slide.editor.ribbon.SlideEditorRibbon;
 import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
@@ -35,8 +43,6 @@ import org.praisenter.xml.XmlIO;
 
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -65,7 +71,7 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
 // FEATURE (L) Allow grouping of components to easily move them together
-// JAVABUG (L) 06/30/16 Text border really slows when the stroke style is INSIDE or OUTSIDE - https://bugs.openjdk.java.net/browse/JDK-8089081
+// JAVABUG (L) 06/30/16 Text border really slow when the stroke style is INSIDE or OUTSIDE - https://bugs.openjdk.java.net/browse/JDK-8089081
 // JAVABUG (M) 02/04/17 DropShadow and Glow effects cannot be mouse transparent - https://bugs.openjdk.java.net/browse/JDK-8092268, https://bugs.openjdk.java.net/browse/JDK-8101376
 
 public final class SlideEditorPane extends BorderPane implements ApplicationPane, ApplicationEditorPane {
@@ -73,24 +79,21 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	
 	private static final PseudoClass SELECTED = PseudoClass.getPseudoClass("edit-selected");
 	
-	private final PraisenterContext context;
+	private final SlideEditorContext context;
 	
-	private final ObjectProperty<ObservableSlide<Slide>> slide = new SimpleObjectProperty<ObservableSlide<Slide>>();
-	private final ObjectProperty<ObservableSlideRegion<?>> selected = new SimpleObjectProperty<ObservableSlideRegion<?>>();
-
 	private final SlideEditorRibbon ribbon;
 	private final AnimationsPane animations;
 	private final StackPane slidePreview;
 	
-	private boolean hasUnsavedChanges = false;
+//	private boolean hasUnsavedChanges = false;
 	
 	public SlideEditorPane(PraisenterContext context) {
 		this.getStyleClass().add(Styles.SLIDE_EDITOR_PANE);
 		
-		this.context = context;
+		this.context = new SlideEditorContext(context);
 		
 		// create the ribbon
-		this.ribbon = new SlideEditorRibbon(context);
+		this.ribbon = new SlideEditorRibbon(this.context);
 		VBox top = new VBox(this.ribbon);
 		top.setBorder(new Border(new BorderStroke(null, null, Color.GRAY, null, null, null, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, null, new BorderWidths(0, 0, 1, 0), null)));
 		this.setTop(top);
@@ -153,7 +156,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			}
 			@Override
 			protected double computeValue() {
-				ObservableSlide<?> s = slide.get();
+				ObservableSlide<?> s = SlideEditorPane.this.context.getSlide();
 				if (s != null) {
 					double w = s.getWidth();
 					double h = s.getHeight();
@@ -171,7 +174,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			}
 			@Override
 			protected double computeValue() {
-				ObservableSlide<?> s = slide.get();
+				ObservableSlide<?> s = SlideEditorPane.this.context.getSlide();
 				if (s != null) {
 					double w = s.getWidth();
 					double h = s.getHeight();
@@ -200,7 +203,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		// events
 		
 		// listener for selection changes
-		this.selected.addListener((obs, ov, nv) -> {
+		this.context.selectedProperty().addListener((obs, ov, nv) -> {
 			if (ov != null) {
 				ov.getEditBorderNode().pseudoClassStateChanged(SELECTED, false);
 			}
@@ -221,7 +224,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				double tw = slidePreview.getWidth() - padding * 2;
 				double th = slidePreview.getHeight() - padding * 2;
 				
-				ObservableSlide<?> s = slide.get();
+				ObservableSlide<?> s = SlideEditorPane.this.context.getSlide();
 				if (s == null) {
 					return Scaling.getNoScaling(tw, th);
 				}
@@ -234,9 +237,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		};
 		
 		// setup of the editor when the slide being edited changes
-		this.slide.addListener((obs, ov, nv) -> {
+		this.context.slideProperty().addListener((obs, ov, nv) -> {
 			slideCanvas.getChildren().clear();
-			this.selected.set(null);
+			this.context.setSelected(null);
 			
 			// unbind the scaling from the old value
 			if (ov != null) {
@@ -256,7 +259,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				SlideRegionMouseEventHandler slideMouseHandler = new SlideRegionMouseEventHandler(nv, nv);
 				rootEditPane.addEventHandler(MouseEvent.ANY, slideMouseHandler);
 				rootEditPane.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
-					selected.set(nv);
+					this.context.setSelected(nv);
 				});
 				// track mouse drag events
 				rootEditPane.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> { 
@@ -270,7 +273,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 					SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(nv, component);
 					component.getEditBorderNode().addEventHandler(MouseEvent.ANY, mouseHandler);
 					component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
-						selected.set(component);
+						this.context.setSelected(component);
 					});
 					// track mouse drag events
 					component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> { 
@@ -288,20 +291,6 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			this.hasUnsavedChanges = false;
 		});
 		
-		// reordering components
-		this.ribbon.addEventHandler(SlideEditorEvent.ORDER, (e) -> {
-			ObservableSlideComponent<?> component = e.component;
-			if (e.operation == SlideComponentOrderEvent.OPERATION_BACK) {
-				slide.get().moveComponentBack(component);
-			} else if (e.operation == SlideComponentOrderEvent.OPERATION_FRONT) {
-				slide.get().moveComponentFront(component);			
-			} else if (e.operation == SlideComponentOrderEvent.OPERATION_BACKWARD) {
-				slide.get().moveComponentDown(component);
-			} else if (e.operation == SlideComponentOrderEvent.OPERATION_FORWARD) {
-				slide.get().moveComponentUp(component);
-			}
-		});
-		
 		// setting the target resolution
 		this.ribbon.addEventHandler(SlideEditorEvent.TARGET_RESOLUTION, (e) -> {
 			scaleFactor.invalidate();
@@ -311,18 +300,22 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 
 		// change tracking
 		this.ribbon.addEventHandler(SlideEditorEvent.CHANGED, (e) -> {
-			this.hasUnsavedChanges = true;
-			this.stateChanged("New undo or redo state.");
+			this.stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
+//			EditCommand command = e.getCommand();
+//			// always add a select component action
+//			EditCommand wrapper = CommandFactory.chain(command, );
+//			applyCommand(wrapper);
 		});
 		
 		// adding components
 		this.ribbon.addEventHandler(SlideEditorEvent.ADD_COMPONENT, (e) -> {
+			ObservableSlide<?> slide = this.context.getSlide();
 			ObservableSlideComponent<?> component = e.getComponent();
 			
 			if (e.isCentered()) {
 				// compute the location (center it)
-				double sw = slide.get().getWidth();
-				double sh = slide.get().getHeight();
+				double sw = slide.getWidth();
+				double sh = slide.getHeight();
 				double w = component.getWidth();
 				double h = component.getHeight();
 				component.setX((sw - w) * 0.5);
@@ -332,10 +325,10 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			// bind the scale factor
 			component.scalingProperty().bind(scaleFactor);
 			// setup the mouse event handler
-			SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(slide.get(), component);
+			SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(slide, component);
 			component.getEditBorderNode().addEventHandler(MouseEvent.ANY, mouseHandler);
 			component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_PRESSED, ev -> {
-				selected.set(component);
+				this.context.setSelected(component);
 			});
 			// track mouse drag events
 			component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_DRAGGED, ev -> { 
@@ -368,31 +361,30 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 						}
 						
 						omc.setMedia(mo);
-						slide.get().addComponent(component);
+						slide.addComponent(component);
 						
 						// set it as the selected component after the user has chosen a media
 						// item (if we don't then the media ribbon doesn't know that this media
 						// was selected and therefore clears it when they change anything about it
 						// like the scaling)
-						selected.set(component);
+						this.context.setSelected(component);
 						fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.CHANGED));
 					}
 				});
 			} else {
-				slide.get().addComponent(component);
-				selected.set(component);
+				slide.addComponent(component);
+				slide.updatePlaceholders();
+				this.context.setSelected(component);
 				fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.CHANGED));
 			}
 		});
 		
 		// bindings
 
-		this.ribbon.slideProperty().bind(this.slide);
-		this.ribbon.componentProperty().bind(this.selected);
-		this.animations.slideProperty().bind(this.slide);
-		this.animations.componentProperty().bind(this.selected);
+		this.animations.slideProperty().bind(this.context.slideProperty());
+		this.animations.componentProperty().bind(this.context.selectedProperty());
 		
-		// set values		
+		// set values
 		
 		this.addEventHandler(ApplicationEvent.ALL, e -> {
 			handleApplicationEvent(e.getAction());
@@ -401,31 +393,32 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	
 	public void setSlide(Slide slide) {
 		if (slide == null) {
-			this.slide.set(null);
+			this.context.setSlide(null);
 		} else {
-			this.slide.set(new ObservableSlide<Slide>(slide, context, SlideMode.EDIT));
+			this.context.setSlide(new ObservableSlide<Slide>(slide, this.context.getContext(), SlideMode.EDIT));
 		}
 	}
 	
 	public Slide getSlide() {
-		return this.slide.get().getRegion();
+		return this.context.getSlide().getRegion();
 	}
 	
 	// METHODS
 	
 	private final void save(boolean saveAs) {
-		ObservableSlide<Slide> os = this.slide.get();
+		ObservableSlide<?> os = this.context.getSlide();
 		Slide slide = os.getRegion();
+		PraisenterContext context = this.context.getContext();
 		
 		AsyncTask<Slide> task = null;
 		if (saveAs) {
 			task = SlideActions.slidePromptSaveAs(
-					this.context.getSlideLibrary(), 
+					context.getSlideLibrary(), 
 					this.getScene().getWindow(), 
 					slide);
 		} else {
 			task = SlideActions.slideSave(
-					this.context.getSlideLibrary(), 
+					context.getSlideLibrary(), 
 					this.getScene().getWindow(), 
 					slide);
 		}
@@ -442,7 +435,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			boolean moreChanges = this.hasUnsavedChanges;
 			// NOTE: these will change the hasUnsavedChanges value, so
 			//       we store the current value before we call these
-			this.slide.get().getRegion().as(saved);
+			this.context.getSlide().getRegion().as(saved);
 			// manually update the name field
 			this.ribbon.setSlideName(saved.getName());
 			// did the user make changes while the save was happening?
@@ -453,12 +446,13 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		}).addCancelledOrFailedHandler(e -> {
 			// if the save fails, make sure it gets set back to it's original value
 			this.hasUnsavedChanges = hasChanged;
-		}).execute(this.context.getExecutorService());
+		}).execute(context.getExecutorService());
 	}
 	
 	private final void copy(boolean cut) {
-		ObservableSlide<?> slide = this.slide.get();
-		ObservableSlideRegion<?> selected = this.selected.get();
+		ObservableSlide<?> slide = this.context.getSlide();
+		ObservableSlideRegion<?> selected = this.context.getSelected();
+		PraisenterContext context = this.context.getContext();
 		
 		if (selected != null) {
 			Clipboard cb = Clipboard.getSystemClipboard();
@@ -505,7 +499,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	}
 	
 	private final void paste() {
-		ObservableSlide<?> slide = this.slide.get();
+		ObservableSlide<?> slide = this.context.getSlide();
 		
 		Clipboard cb = Clipboard.getSystemClipboard();
 		Object data = cb.getContent(DataFormats.SLIDE_COMPONENT);
@@ -524,12 +518,12 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	}
 	
 	private final void delete() {
-		ObservableSlide<?> slide = this.slide.get();
-		ObservableSlideRegion<?> selected = this.selected.get();
+		ObservableSlide<?> slide = this.context.getSlide();
+		ObservableSlideRegion<?> selected = this.context.getSelected();
 		
 		if (selected != null && selected instanceof ObservableSlideComponent) {
 			if (slide.removeComponent((ObservableSlideComponent<?>)selected)) {
-				this.selected.set(slide);
+				this.context.setSelected(slide);
 			}
 		}
 	}
@@ -565,7 +559,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	@Override
 	public boolean isApplicationActionEnabled(ApplicationAction action) {
 		Node focused = this.getScene().getFocusOwner();
-		ObservableSlideRegion<?> selected = this.selected.get();
+		ObservableSlideRegion<?> selected = this.context.getSelected();
 		
 		switch (action) {
 			case SAVE:
@@ -611,8 +605,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	 */
 	@Override
 	public void cleanup() {
-		this.slide.set(null);
-		this.selected.set(null);
+		this.context.setSlide(null);
+		this.context.setSelected(null);
+		this.context.getEditManager().reset();
 	}
 	
     /**
@@ -632,7 +627,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
      */
     @Override
     public String getEditTargetName() {
-    	ObservableSlide<?> slide = this.slide.get();
+    	ObservableSlide<?> slide = this.context.getSlide();
     	String name = "Untitled";
     	if (slide != null) {
     		String sn = slide.getName();

@@ -24,15 +24,11 @@
  */
 package org.praisenter.song;
 
-import java.util.Locale;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
-
-import org.praisenter.Localized;
 
 /**
  * Represents an author of a song.
@@ -41,7 +37,7 @@ import org.praisenter.Localized;
  */
 @XmlRootElement(name = "author")
 @XmlAccessorType(XmlAccessType.NONE)
-public final class Author implements Localized {
+public final class Author {
 	/** Author type = words */
 	public static final String TYPE_WORDS = "words";
 	
@@ -55,22 +51,10 @@ public final class Author implements Localized {
 	@XmlAttribute(name = "type", required = false)
 	String type;
 	
-	/** The author's language */
-	@XmlAttribute(name = "language", required = false)
-	String language;
-	
 	/** The author's name */
 	@XmlValue
 	String name;
 
-	/* (non-Javadoc)
-	 * @see org.praisenter.Localized#getLocale()
-	 */
-	@Override
-	public Locale getLocale() {
-		return Song.getLocale(this.language);
-	}
-	
 	/**
 	 * Returns the author type.
 	 * @return String
@@ -85,22 +69,6 @@ public final class Author implements Localized {
 	 */
 	public void setType(String type) {
 		this.type = type;
-	}
-
-	/**
-	 * Returns the language.
-	 * @return String
-	 */
-	public String getLanguage() {
-		return this.language;
-	}
-
-	/**
-	 * Sets the language.
-	 * @param language the language
-	 */
-	public void setLanguage(String language) {
-		this.language = language;
 	}
 
 	/**

@@ -192,6 +192,12 @@ public interface SlideRegion {
 	public abstract Rectangle resize(double dw, double dh);
 	
 	/**
+	 * Returns the rectangular bounds of this region.
+	 * @return Rectangle
+	 */
+	public abstract Rectangle getBounds();
+	
+	/**
 	 * Translates this region by the given change in x and y.
 	 * @param dx the change in x
 	 * @param dy the change in y

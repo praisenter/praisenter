@@ -71,7 +71,7 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	// special case
 	
 	/** The bible id */
-	@XmlAttribute(name = "id", required = false)
+	@XmlElement(name = "id", required = false)
 	private UUID id;
 
 	// internally modifiable
@@ -79,18 +79,18 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	/** The path to the XML document */
 	Path path;
 
-	/** The date the bible was imported */
-	@XmlAttribute(name = "importDate", required = false)
+	/** The date the bible was created or imported */
+	@XmlElement(name = "createdDate", required = false)
 	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
-	Instant importDate;
+	Instant createdDate;
 
-	/** The date the bible was imported */
-	@XmlAttribute(name = "lastModifiedDate", required = false)
+	/** The date the bible was last modified */
+	@XmlElement(name = "modifiedDate", required = false)
 	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
-	Instant lastModifiedDate;
+	Instant modifiedDate;
 
 	/** True if a warning was found during import */
-	@XmlAttribute(name = "hadImportWarning", required = false)
+	@XmlElement(name = "hadImportWarning", required = false)
 	boolean hadImportWarning;
 	
 	/** The name of the bible */
@@ -137,7 +137,7 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	 * @param name the bible name
 	 * @param language the bible language
 	 * @param source the bible source
-	 * @param importDate the import date
+	 * @param importDate the import date; can be null
 	 * @param copyright the copyright (if any)
 	 * @param notes bible notes
 	 * @param hadImportWarning true if a warning occurred during import
@@ -156,8 +156,8 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 		this.name = name;
 		this.language = language;
 		this.source = source;
-		this.importDate = importDate != null ? importDate : Instant.now();
-		this.lastModifiedDate = importDate;
+		this.createdDate = importDate != null ? importDate : Instant.now();
+		this.modifiedDate = this.createdDate;
 		this.copyright = copyright;
 		this.notes = notes;
 		this.hadImportWarning = hadImportWarning;
@@ -181,13 +181,13 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 		if (exact) {
 			this.id = bible.id;
 			this.path = bible.path;
-			this.importDate = bible.importDate;
-			this.lastModifiedDate = bible.lastModifiedDate;
+			this.createdDate = bible.createdDate;
+			this.modifiedDate = bible.modifiedDate;
 		} else {
 			this.id = UUID.randomUUID();
 			this.path = null;
-			this.importDate = Instant.now();
-			this.lastModifiedDate = this.importDate;
+			this.createdDate = Instant.now();
+			this.modifiedDate = this.createdDate;
 		}
 		
 		for (Book book : bible.books) {
@@ -247,9 +247,9 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 		this.id = bible.id;
 		this.name = bible.name;
 		this.path = bible.path;
-		this.importDate = bible.importDate;
+		this.createdDate = bible.createdDate;
 		this.hadImportWarning = bible.hadImportWarning;
-		this.lastModifiedDate = bible.lastModifiedDate;
+		this.modifiedDate = bible.modifiedDate;
 	}
 	
 	/**
@@ -323,27 +323,27 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	}
 
 	/**
-	 * Returns the import date.
+	 * Returns the created date.
 	 * @return Instant
 	 */
-	public Instant getImportDate() {
-		return this.importDate;
+	public Instant getCreatedDate() {
+		return this.createdDate;
 	}
 
 	/**
 	 * Returns the last modified date.
 	 * @return Instant
 	 */
-	public Instant getLastModifiedDate() {
-		return this.lastModifiedDate;
+	public Instant getModifiedDate() {
+		return this.modifiedDate;
 	}
 
 	/**
 	 * Sets the last modified date.
 	 * @param date the last modified date
 	 */
-	public void setLastModifiedDate(Instant date) {
-		this.lastModifiedDate = date;
+	public void setModifiedDate(Instant date) {
+		this.modifiedDate = date;
 	}
 	
 	/**

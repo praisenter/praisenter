@@ -234,14 +234,23 @@ final class BibleEditorDragDropManager {
 		TreeData data = toNode.getValue();
 		boolean after = e.getY() >= cell.getHeight() * 0.75;
 		
-		// compute the index of the target node
-		int index = toNode.getParent().getChildren().indexOf(toNode);
+		int index = -1;
+		// if we drag it to the parent type, then always add the nodes/data to the end
+		if (data instanceof ChapterTreeData && VerseTreeData.class.equals(this.selectedType) ||
+			data instanceof BookTreeData && ChapterTreeData.class.equals(this.selectedType) ||
+			data instanceof BibleTreeData && BookTreeData.class.equals(this.selectedType)) {
+			index = -1;
+		} else {
+			// if we drag it to the same type, then get the parent
+			index = toNode.getParent().getChildren().indexOf(toNode);
+			toNode = toNode.getParent();
+		}
 		
 		// remove all the nodes first so that the indexes don't get jacked
 		List<RemoveEditCommand> removeCommands = new ArrayList<RemoveEditCommand>();
 		for (TreeItem<TreeData> item : this.selected) {
 			// is the item in the toNode's children list?
-			int iIndex = toNode.getParent().getChildren().indexOf(item);
+			int iIndex = toNode.getChildren().indexOf(item);
 			// is it before the index we are going to insert at?
 			if (iIndex >= 0 && iIndex < index) {
 				// if so, we need to account for the fact that it will be removed and
@@ -258,19 +267,8 @@ final class BibleEditorDragDropManager {
 			}
 		}
 		
-		if (after) {
+		if (index >= 0 && after) {
 			index++;
-		}
-		
-		// if we drag it to the parent type, then always add the nodes/data to the end
-		if (data instanceof ChapterTreeData && VerseTreeData.class.equals(this.selectedType) ||
-			data instanceof BookTreeData && ChapterTreeData.class.equals(this.selectedType) ||
-			data instanceof BibleTreeData && BookTreeData.class.equals(this.selectedType)) {
-			index = -1;
-		} else {
-			// if we drag it to the same type, then get the parent
-			toNode = toNode.getParent();
-			toNode.getParent().getChildren();
 		}
 		
 		List<OrderedWrappedEditCommand> addCommands = new ArrayList<OrderedWrappedEditCommand>();
@@ -311,10 +309,5 @@ final class BibleEditorDragDropManager {
 		// clear the local state
 		this.selected.clear();
 		this.selectedType = null;
-		
-		// this indicates the transfer was successful
-		if (e.getTransferMode() != null) {
-			cell.getTreeView().getSelectionModel().clearSelection();
-		}
 	}
 }

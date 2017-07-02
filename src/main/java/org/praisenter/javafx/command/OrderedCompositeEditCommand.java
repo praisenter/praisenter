@@ -42,10 +42,7 @@ public final class OrderedCompositeEditCommand<T extends EditCommand & Comparabl
 	 */
 	public OrderedCompositeEditCommand(List<T> commands) {
 		super(commands);
-		// sort the commands before operating
-		if (this.commands != null) {
-			Collections.sort(this.commands);
-		}
+		Collections.sort(commands);
 	}
 	
 	/**
@@ -54,11 +51,7 @@ public final class OrderedCompositeEditCommand<T extends EditCommand & Comparabl
 	 */
 	@SafeVarargs
 	public OrderedCompositeEditCommand(T... commands) {
-		super(Arrays.asList(commands));
-		// sort the commands before operating
-		if (this.commands != null) {
-			Collections.sort(this.commands);
-		}
+		this(Arrays.asList(commands));
 	}
 	
 	/* (non-Javadoc)

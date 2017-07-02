@@ -44,7 +44,11 @@ import org.praisenter.slide.SlideRegion;
  */
 @XmlRootElement(name = "textPlaceholderComponent")
 @XmlAccessorType(XmlAccessType.NONE)
-public class TextPlaceholderComponent extends BasicTextComponent implements SlideRegion, SlideComponent, TextComponent {
+public class TextPlaceholderComponent extends AbstractTextComponent implements SlideRegion, SlideComponent, TextComponent {
+	// NOTE: the text for a placeholder component should not be serialized
+	/** The text */
+	String text;
+
 	/** The placeholder type */
 	@XmlElement(name = "placeholderType", required = false)
 	TextType placeholderType;
@@ -57,6 +61,7 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	 * Default constructor.
 	 */
 	public TextPlaceholderComponent() {
+		this.text = null;
 		this.placeholderType = TextType.TEXT;
 		this.placeholderVariant = TextVariant.PRIMARY;
 	}
@@ -68,6 +73,7 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 	 */
 	public TextPlaceholderComponent(TextPlaceholderComponent other, boolean exact) {
 		super(other, exact);
+		this.text = other.text;
 		this.placeholderType = other.placeholderType;
 		this.placeholderVariant = other.placeholderVariant;
 	}
@@ -88,6 +94,30 @@ public class TextPlaceholderComponent extends BasicTextComponent implements Slid
 		return new TextPlaceholderComponent(this, exact);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getName()
+	 */
+	@Override
+	public String getName() {
+		return this.text;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.text.TextComponent#setText(java.lang.String)
+	 */
+	@Override
+	public void setText(String text) {
+		this.text = text;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.text.TextComponent#getText()
+	 */
+	@Override
+	public String getText() {
+		return this.text;
+	}
+	
 	/**
 	 * Returns the placeholder type.
 	 * @return {@link TextType}

@@ -140,6 +140,7 @@ public final class SlideLibrary {
 							try {
 								// read in the xml
 								BasicSlide slide = XmlIO.read(is, BasicSlide.class);
+								slide.updatePlaceholders();
 								slide.path = file;
 								
 								// we can't attempt generating thumbnails at this time

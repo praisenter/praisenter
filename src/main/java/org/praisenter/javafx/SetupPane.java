@@ -26,43 +26,93 @@ import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.themes.Theme;
 import org.praisenter.resources.translations.Translations;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.geometry.VPos;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Modality;
 import javafx.stage.Screen;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.util.Duration;
 
 // TODO translate
-// TODO fix UI - i don't like the layout - maybe change to treeview on left, then setting config on right?
+// TODO fix UI - layout looks good, now just need a good way to group stuff - maybe add some text about each item
 // FEATURE (M) Add options to remove themes or translations
 // FEATURE (L) Edit tags (like rename, remove)
 
 public final class SetupPane extends BorderPane {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
+
+	private static final String ROOT = "root";
+	private static final String GENERAL = "general";
+	private static final String DISPLAYS = "displays";
+	private static final String MEDIA = "media";
+	
+	// the layout
+	
+	private final TreeView<SetupTreeData> setupTree;
+	
+	// for identifying the displays
+	
+	/** The windows doing the identification */
+	private List<Stage> identifiers = new ArrayList<Stage>();
+	
+	/** A timeline to play to make sure they close after x amount time */
+	private Timeline identifierClose = null;
 	
 	public SetupPane(PraisenterContext context) {
 		this.getStyleClass().add(Styles.SETUP_PANE);
 		
+		TreeItem<SetupTreeData> root = new TreeItem<SetupTreeData>(new SetupTreeData(ROOT, "Preferences"));
+		TreeItem<SetupTreeData> general = new TreeItem<SetupTreeData>(new SetupTreeData(GENERAL, "General"));
+		TreeItem<SetupTreeData> displays = new TreeItem<SetupTreeData>(new SetupTreeData(DISPLAYS, "Displays"));
+		TreeItem<SetupTreeData> media = new TreeItem<SetupTreeData>(new SetupTreeData(MEDIA, "Media"));
+		root.getChildren().add(general);
+		root.getChildren().add(displays);
+		root.getChildren().add(media);
+		
+		this.setupTree = new TreeView<SetupTreeData>(root);
+		this.setupTree.setShowRoot(false);
+		this.setupTree.getSelectionModel().select(general);
+		this.setupTree.setMaxHeight(Double.MAX_VALUE);
+		
+		// GENERAL
+
 		List<Option<Locale>> locales = new ArrayList<Option<Locale>>();
 		for (Locale locale : Translations.getAvailableLocales()) {
 			locales.add(new Option<Locale>(locale.getDisplayName(), locale));
@@ -77,8 +127,6 @@ public final class SetupPane extends BorderPane {
 		if (theme == null) {
 			theme = Theme.DEFAULT;
 		}
-		
-		// GENERAL
 		
 		GridPane gridGeneral = new GridPane();
 		gridGeneral.setHgap(5);
@@ -125,6 +173,7 @@ public final class SetupPane extends BorderPane {
 		lblRestartWarning.setPadding(new Insets(0, 0, 5, 0));
 		
 		VBox vboxGeneral = new VBox(lblRestartWarning, gridGeneral);
+		vboxGeneral.setPadding(new Insets(10));
 		
 		// MEDIA
 		
@@ -160,6 +209,7 @@ public final class SetupPane extends BorderPane {
 		gridMedia.add(txtAudioCommand, 2, 2);
 		
 		VBox vboxMedia = new VBox(gridMedia);
+		vboxMedia.setPadding(new Insets(10));
 		
 		// SCREENS
 		
@@ -168,10 +218,15 @@ public final class SetupPane extends BorderPane {
 		lblScreenHowTo.setPadding(new Insets(0, 0, 10, 0));
 		lblScreenWarning.setPadding(new Insets(0, 0, 10, 0));
 		
-		// get a screenshot of all the screens
+		Button btnIdentify = new Button("Identify Displays");
+		Label lblIdentifyWarning = new Label("A number will show on each screen.", ApplicationGlyphs.WARN.duplicate());
+		HBox boxIdentify = new HBox(5, btnIdentify, lblIdentifyWarning);
+		boxIdentify.setAlignment(Pos.BASELINE_LEFT);
+		
 		GridPane screenPane = new GridPane();
 		screenPane.setHgap(10);
 		screenPane.setVgap(10);
+		screenPane.setPadding(new Insets(0, 0, 10, 0));
 		
 		Label lblOperatorScreen = new Label("Operator");
 		Label lblPrimaryScreen = new Label("Primary");
@@ -210,23 +265,20 @@ public final class SetupPane extends BorderPane {
 		GridPane.setHalignment(lblPrimaryScreen, HPos.CENTER);
 		GridPane.setHalignment(lblMusicianScreen, HPos.CENTER);
 		
-		VBox vboxScreens = new VBox(lblScreenHowTo, lblScreenWarning, screenPane);
+		VBox vboxScreens = new VBox(lblScreenHowTo, lblScreenWarning, screenPane, boxIdentify);
+		vboxScreens.setPadding(new Insets(10));
 
 		// LAYOUT
 		
-		TitledPane ttlGeneral = new TitledPane("General", vboxGeneral);
-		TitledPane ttlMedia = new TitledPane("Media", vboxMedia);
-		TitledPane ttlScreens = new TitledPane("Screens", vboxScreens);
+		BorderPane right = new BorderPane();
+		right.setCenter(vboxGeneral);
 		
-		ttlGeneral.setCollapsible(false);
-		ttlMedia.setCollapsible(false);
-		ttlScreens.setCollapsible(false);
+		SplitPane split = new SplitPane(this.setupTree, right);
+		split.setOrientation(Orientation.HORIZONTAL);
+		split.setDividerPositions(0.15);
+		SplitPane.setResizableWithParent(this.setupTree, false);
 		
-		VBox layout = new VBox(ttlGeneral, ttlScreens, ttlMedia);
-		ScrollPane scroller = new ScrollPane(layout);
-		scroller.setFitToWidth(true);
-		
-		this.setCenter(scroller);
+		this.setCenter(split);
 		
 		// EVENTS
 
@@ -359,7 +411,63 @@ public final class SetupPane extends BorderPane {
 					.execute(context.getExecutorService());
 			}
 		});
-
+		
+		btnIdentify.setOnAction(e -> {
+			// show a window for each screen with a number on it
+			List<Screen> screens = Screen.getScreens();
+			
+			if (identifierClose != null) {
+				identifierClose.stop();
+			}
+			for (Stage stage : this.identifiers) {
+				stage.close();
+			}
+			identifiers.clear();
+			identifierClose = new Timeline(new KeyFrame(Duration.seconds(3), 
+					ae -> {
+						for (Stage stage : this.identifiers) {
+							stage.close();
+						}
+					}));
+			
+			int i = 1;
+			for (Screen screen : screens) {
+				Stage stage = new Stage(StageStyle.TRANSPARENT);
+				stage.initOwner(getScene().getWindow());
+				stage.initModality(Modality.NONE);
+				stage.setTitle("IDENTIFY-" + i);
+				stage.setAlwaysOnTop(true);
+				stage.setResizable(false);
+				// position and size
+				Rectangle2D bounds = screen.getBounds();
+				stage.setX(bounds.getMinX());
+				stage.setY(bounds.getMinY());
+				stage.setWidth(bounds.getWidth());
+				stage.setHeight(bounds.getHeight());
+				// content
+				Pane container = new Pane();
+				container.setBackground(null);
+				StackPane block = new StackPane();
+				block.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
+				block.setPadding(new Insets(50));
+				block.setTranslateX(50);
+				block.setTranslateY(50);
+				Text text = new Text(String.valueOf(i));
+				text.setFill(Color.WHITE);
+				text.setFont(Font.font(text.getFont().getName(), 80));
+				block.getChildren().add(text);
+				container.getChildren().add(block);
+				
+				stage.setScene(new Scene(container, null));
+				identifiers.add(stage);
+				
+				stage.show();
+				i++;
+			}
+			
+			identifierClose.play();
+		});
+		
 		// create a custom manager
 		ScreenViewDragDropManager manager = new ScreenViewDragDropManager() {
 			@Override
@@ -401,8 +509,6 @@ public final class SetupPane extends BorderPane {
 			}
 		};
 		
-		// TODO add an identify button so that if all the screens look the same the user can know which is which
-		
 		// listener for updating the screen views when the 
 		// screens change or when the parent node changes
 		InvalidationListener screenListener = new InvalidationListener() {
@@ -419,6 +525,7 @@ public final class SetupPane extends BorderPane {
 				ScreenView operator = null;
 				ScreenView main = null;
 				ScreenView musician = null;
+				
 				if (os != null) {
 					operator = views.remove(os.getId());
 				}
@@ -467,13 +574,36 @@ public final class SetupPane extends BorderPane {
 				}
 			}
 		};
+
+		this.setupTree.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
+			if (nv != null) {
+				switch (nv.getValue().getName()) {
+				case GENERAL:
+					right.setCenter(vboxGeneral);
+					break;
+				case DISPLAYS:
+					right.setCenter(vboxScreens);
+					screenListener.invalidated(obs);
+					break;
+				case MEDIA:
+					right.setCenter(vboxMedia);
+					break;
+				default:
+					break;
+				}
+			}
+		});
 		
 		// update when the parent changes
-		parentProperty().addListener(screenListener);
+		parentProperty().addListener((obs, ov, nv) -> {
+			TreeItem<SetupTreeData> selected = this.setupTree.getSelectionModel().getSelectedItem();
+			if (nv != null && selected != null && selected.getValue().getName() == DISPLAYS) {
+				screenListener.invalidated(obs);
+			}
+		});
 		
 		// update when the screens change
 		Screen.getScreens().addListener(screenListener);
-		
 	}
 	
 	private ObservableList<Option<Locale>> refreshLocales() {

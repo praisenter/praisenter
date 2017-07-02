@@ -165,6 +165,7 @@ public final class DisplayManager {
 	private boolean screensChanged() {
 		mutating = true;
 		
+		boolean screensChanged = false;
 		Screen primary = Screen.getPrimary();
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
 		int size = screens.size();
@@ -222,14 +223,21 @@ public final class DisplayManager {
 		
 		if (mainState == DisplayState.POSITION_CHANGED ||
 			mainState == DisplayState.RESOLUTION_CHANGED ||
-			mainState == DisplayState.SCREEN_INDEX_DOESNT_EXIT) {
+			mainState == DisplayState.SCREEN_INDEX_DOESNT_EXIT ||
+			mainState == DisplayState.SCREEN_NOT_ASSIGNED) {
 			LOGGER.info("The main display is invalid.");
 			mainDisplay = null;
 			// we need to invalidate the musician assignment
 			// if we have 2 or less screens
-			if (screens.size() <= 2) {
-				LOGGER.info("The main display was invalid and the screen size is 2 or less, unassigning the musician display.");
+			if (screens.size() <= 2 && musicianDisplay != null) {
+				LOGGER.info("The main display was invalid and the display count is 2 or less, unassigning the musician display.");
 				musicianDisplay = null;
+				screensChanged = true;
+			}
+			if (screens.size() <= 1 && operatorDisplay != null) {
+				LOGGER.info("The main display was invalid and the display count is 1 or less, unassigning the operator display.");
+				operatorDisplay = null;
+				screensChanged = true;
 			}
 		}
 		
@@ -269,7 +277,6 @@ public final class DisplayManager {
 		
 		// now, iterate all screens and make sure any unassigned screens are 
 		// assigned if there are any displays to assign
-		boolean screensChanged = false;
 		ResolutionSet resolutions = new ResolutionSet();
 		resolutions.addAll(this.configuration.getResolutions());
 		for (int i = 0; i < size; i++) {
@@ -287,6 +294,14 @@ public final class DisplayManager {
 				primaryDisplay = new Display(i, screen);
 			}
 			
+			// the first one we come across will be the operator
+			// display if it isn't already assigned
+			if (operatorDisplay == null) {
+				operatorDisplay = new Display(i, screen);
+				screensChanged = true;
+				LOGGER.info("Assigning the operator screen to " + operatorDisplay + ".");
+			}
+			
 			// skip if already assigned
 			if (assigned.containsKey(i)) {
 				continue;
@@ -296,12 +311,7 @@ public final class DisplayManager {
 			assigned.put(i, true);
 			
 			// is the operator screen assigned?
-			if (operatorDisplay == null) {
-				operatorDisplay = new Display(i, screen);
-				screensChanged = true;
-				LOGGER.info("Assigning the operator screen to " + operatorDisplay + ".");
-			// is the main screen assigned?
-			} else if (mainDisplay == null) {
+			if (mainDisplay == null) {
 				mainDisplay = new Display(i, screen);
 				screensChanged = true;
 				LOGGER.info("Assigning the main screen to " + mainDisplay + ".");

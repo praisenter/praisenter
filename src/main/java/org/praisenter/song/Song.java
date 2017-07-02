@@ -26,8 +26,8 @@ package org.praisenter.song;
 
 import java.nio.file.Path;
 import java.text.Collator;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -40,12 +40,14 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.praisenter.Constants;
 import org.praisenter.Tag;
+import org.praisenter.xml.adapters.InstantXmlAdapter;
 
-// FIXME we need to re-evaluate this format
+// FIXME evaluate song edit formats, they seem really verbose
 
 /**
  * Represents a song.
@@ -91,7 +93,7 @@ import org.praisenter.Tag;
  * <li>The first author in the list</li>
  * </ol>
  * Apart from these, the song will contain a number of metadata that can assist with searching
- * and cataloging, {@link #getKeywords()} and {@link #getTags()} in particular.
+ * and cataloging, {@link #getTags()} in particular.
  * <p>
  * Creating a new song defaults the created and modified properties to be created in Praisenter
  * and today.
@@ -107,33 +109,40 @@ public final class Song implements SongOutput, Comparable<Song> {
 	/** For string comparison (current locale) */
 	static final Collator COLLATOR = Collator.getInstance();
 
+	/** The current version number */
+	public static final int CURRENT_VERSION = 3;
+
+	// final
+	
+	/** The format (for format identification only) */
+	@XmlAttribute(name = "format", required = false)
+	private final String format = Constants.FORMAT_NAME;
+	
+	/** The version number */
+	@XmlAttribute(name = "version", required = false)
+	private final int version = CURRENT_VERSION;
+	
 	// for internal use really
 	/** The file path */
 	Path path;
 	
-	/** The format version */
-	@XmlAttribute(name = "format", required = false)
-	final String format = Constants.VERSION;
-	
 	/** The song unique id */
 	@XmlElement(name = "id", required = false)
-	final UUID id;
+	private UUID id;
 	
 	/** The created on date */
 	@XmlElement(name = "createdDate", required = false)
-	Date createdDate;
+	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
+	Instant createdDate;
 	
-	/** The created in application */
-	@XmlElement(name = "createdIn", required = false)
-	String createdIn;
-	
-	/** The last modified in application */
-	@XmlElement(name = "lastModifiedIn", required = false)
-	String lastModifiedIn;
-
 	/** The last modified date */
-	@XmlElement(name = "lastModifiedDate", required = false)
-	Date lastModifiedDate;
+	@XmlElement(name = "modifiedData", required = false)
+	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
+	Instant modifiedDate;
+
+	/** The created in application */
+	@XmlElement(name = "source", required = false)
+	String source;
 
 	/** The song's copyright information */
 	@XmlElement(name = "copyright", required = false)
@@ -167,48 +176,34 @@ public final class Song implements SongOutput, Comparable<Song> {
 	@XmlElement(name = "publisher", required = false)
 	String publisher;
 	
-	/** The version of this song */
-	@XmlElement(name = "version", required = false)
-	String version;
-	
-	/** A space separated list of keywords for searching */
-	@XmlElement(name = "keywords", required = false)
-	String keywords;
-
-	/** The sequence of verses space separated */
-	@XmlElement(name = "sequence", required = false)
-	String sequence;
-
 	/** The comments */
 	@XmlElement(name = "comments", required = false)
 	String comments;
 
-	// lists
+	/** The keywords to aid in searching */
+	@XmlElement(name = "keywords", required = false)
+	String keywords;
 	
-	/** The titles */
-	@XmlElement(name = "title", required = false)
-	@XmlElementWrapper(name = "titles", required = false)
-	List<Title> titles;
-	
-	/** The authors */
-	@XmlElement(name = "author", required = false)
-	@XmlElementWrapper(name = "authors", required = false)
-	List<Author> authors;
+	/** The comments */
+	@XmlElement(name = "primaryLyrics", required = false)
+	UUID primaryLyrics;
 
-	/** The tags; useful for searching or grouping */
-	@XmlElement(name = "tag", required = false)
-	@XmlElementWrapper(name = "tags", required = false)
-	Set<Tag> tags;
-	
-	/** The song books that this song is in */
-	@XmlElement(name = "songbook", required = false)
-	@XmlElementWrapper(name = "songbooks", required = false)
-	List<Songbook> songbooks;
+	// lists
 	
 	/** The lyrics */
 	@XmlElement(name = "lyrics", required = false)
 	@XmlElementWrapper(name = "lyricsets", required = false)
 	List<Lyrics> lyrics;
+
+	/** The sequence of verses space separated */
+	@XmlElement(name = "name", required = false)
+	@XmlElementWrapper(name = "sequence", required = false)
+	List<String> sequence;
+
+	/** The tags; useful for searching or grouping */
+	@XmlElement(name = "tag", required = false)
+	@XmlElementWrapper(name = "tags", required = false)
+	Set<Tag> tags;
 	
 	/**
 	 * Default constructor.
@@ -216,42 +211,16 @@ public final class Song implements SongOutput, Comparable<Song> {
 	public Song() {
 		this.path = null;
 		this.id = UUID.randomUUID();
-		this.createdDate = new Date();
-		this.createdIn = Constants.NAME + " " + Constants.VERSION;
-		this.lastModifiedDate = this.createdDate;
-		this.lastModifiedIn = this.createdIn;
+		this.createdDate = Instant.now();
+		this.source = Constants.NAME + " " + Constants.VERSION;
+		this.modifiedDate = this.createdDate;
 		this.ccli = -1;
 		this.transposition = 0;
-		this.titles = new ArrayList<>();
-		this.authors = new ArrayList<>();
-		this.tags = new TreeSet<>();
-		this.songbooks = new ArrayList<>();
+		this.primaryLyrics = null;
+		
 		this.lyrics = new ArrayList<>();
-	}
-	
-	/**
-	 * Returns the locale for the given language.
-	 * <p>
-	 * The language should be in the BCP 47 format (xx-YY) using
-	 * ISO-639 language codes and ISO-3166-1 country codes.
-	 * <p>
-	 * At this time variants and other designations not supported.
-	 * @param language the language
-	 * @return Locale
-	 */
-	static final Locale getLocale(String language) {
-		// converts the language to a locale
-		if (language != null && language.length() > 0) {
-			String[] parts = language.split("[-]");
-			if (parts.length == 1) {
-				return new Locale(parts[0]);
-			} else if (parts.length == 2) {
-				return new Locale(parts[0], parts[1]);
-			} else {
-				return null;
-			}
-		}
-		return null;
+		this.sequence = new ArrayList<>();
+		this.tags = new TreeSet<>();
 	}
 	
 	/* (non-Javadoc)
@@ -290,11 +259,11 @@ public final class Song implements SongOutput, Comparable<Song> {
 	 */
 	@Override
 	public String toString() {
-		Title title = this.getDefaultTitle();
+		String title = this.getDefaultTitle();
 		if (title == null) {
 			return "Untitled";
 		}
-		return title.text;
+		return title;
 	}
 	
 	/* (non-Javadoc)
@@ -303,11 +272,9 @@ public final class Song implements SongOutput, Comparable<Song> {
 	@Override
 	public int compareTo(Song o) {
 		// sort by title first
-		Title t0 = this.getDefaultTitle();
-		Title t1 = o.getDefaultTitle();
-		String s0 = t0 == null ? "" : t0.text;
-		String s1 = t1 == null ? "" : t1.text;
-		int diff = COLLATOR.compare(s0, s1);
+		String t0 = this.getDefaultTitle();
+		String t1 = o.getDefaultTitle();
+		int diff = COLLATOR.compare(t0, t1);
 		if (diff == 0) {
 			// then sort by variant
 			diff = COLLATOR.compare(this.variant, o.variant);
@@ -315,8 +282,8 @@ public final class Song implements SongOutput, Comparable<Song> {
 				// then sort by author
 				Author a0 = this.getDefaultAuthor();
 				Author a1 = o.getDefaultAuthor();
-				s0 = a0 == null ? "" : a0.name;
-				s1 = a1 == null ? "" : a1.name;
+				String s0 = a0 == null ? "" : a0.name;
+				String s1 = a1 == null ? "" : a1.name;
 				diff = COLLATOR.compare(s0, s1);
 				if (diff == 0) {
 					// then by added date
@@ -328,112 +295,42 @@ public final class Song implements SongOutput, Comparable<Song> {
 	}
 	
 	/**
-	 * Returns the default author based on the following criteria:
-	 * <br>
-	 * The first non-empty author to match:
-	 * <ol>
-	 * <li>No type attribute</li>
-	 * <li>The type == words</li>
-	 * <li>The type == music</li>
-	 * <li>The first author in the list</li>
-	 * </ol>
+	 * Returns the default author for the default lyrics.
 	 * @return {@link Author}
+	 * @see Lyrics#getDefaultAuthor()
 	 */
 	public Author getDefaultAuthor() {
-		Author author = null;
-		int matchType = 0;
-		if (this.authors.size() > 0) {
-			// default to the first one
-			author = this.authors.get(0);
-			// try to find the best one
-			for (Author auth : this.authors) {
-				// don't choose an empty one
-				if (auth.name == null || auth.name.length() <= 0) {
-					continue;
-				}
-				// otherwise its the first one without a type setting
-				if (auth.type == null || auth.type.length() == 0) {
-					return auth;
-				// otherwise its the first with type words
-				} else if (Author.TYPE_WORDS.equals(auth.type) && matchType < 1) {
-					auth = author;
-					matchType = 1;
-				// otherwise its the first with type music
-				} else if (Author.TYPE_MUSIC.equals(auth.type) && matchType < 2) {
-					auth = author;
-					matchType = 2;
-				}
-				// otherwise its the first
-			}
+		Lyrics lyrics = this.getDefaultLyrics();
+		if (lyrics != null) {
+			lyrics.getDefaultAuthor();
 		}
-		return author;
+		return null;
 	}
 	
 	/**
-	 * Returns the default title for the song using the following criteria:
-	 * <br>
-	 * The first non-empty title to match:
-	 * <ol>
-	 * <li>No language or transliteration</li>
-	 * <li>The language/country that matches the current locale</li>
-	 * <li>The language that matches the current locale</li>
-	 * <li>The first title in the list</li>
-	 * </ol>
-	 * @return {@link Title}
+	 * Returns the title for the default lyrics.
+	 * @return String
+	 * @see #getDefaultLyrics()
 	 */
-	public Title getDefaultTitle() {
-		Locale locale = Locale.getDefault();
-		Title title = null;
-		int matchLevel = 0;
-		if (this.titles.size() > 0) {
-			// default to the first one
-			title = this.titles.get(0);
-			// try to find the best one
-			for (Title ttl : this.titles) {
-				Locale tl = ttl.getLocale();
-				// don't choose an empty one
-				if (ttl.text == null || ttl.text.isEmpty()) {
-					continue;
-				}
-				// the original trumps all
-				if (ttl.isOriginal()) {
-					return ttl;
-				// otherwise its the first one without a language setting
-				} else if (ttl.language == null || ttl.language.isEmpty()) {
-					return ttl;
-				// otherwise its the first one that matches the current locale
-				// check the current match level to make sure we get the last one 
-				// (we want the first)
-				} else if (tl != null && 
-						   locale.getLanguage().equals(tl.getLanguage()) &&
-						   locale.getCountry().equals(tl.getCountry()) &&
-						   matchLevel < 2) {
-					title = ttl;
-					matchLevel = 2;
-				// otherwise its the first one that matches the current language
-				// check the current match level to make sure we don't replace one
-			    // that is more locale specific or get the last one (we want the first)
-				} else if (tl != null && 
-						   locale.getLanguage().equals(tl.getLanguage()) &&
-						   matchLevel < 1) {
-					title = ttl;
-					matchLevel = 1;
-				}
-				// or the first if we don't find any of the above
-			}
+	public String getDefaultTitle() {
+		Lyrics lyrics = this.getDefaultLyrics();
+		if (lyrics != null) {
+			return lyrics.title;
 		}
-		return title;
+		return null;
 	}
 	
 	/**
 	 * Returns the default set of lyrics using the following criteria:
 	 * <br>
-	 * The first non-empty author to match:
+	 * The first non-empty set of lyrics that matches:
 	 * <ol>
-	 * <li>No type attribute</li>
-	 * <li>The type == words</li>
-	 * <li>The type == music</li>
-	 * <li>The first author in the list</li>
+	 * <li>The primary flag equals true</li>
+	 * <li>The original flag equals true</li>
+	 * <li>The language is empty</li>
+	 * <li>The language and country equals the current locale</li>
+	 * <li>The language equals the current locale</li>
+	 * <li>The one with the most verses</li>
 	 * </ol>
 	 * @return {@link Lyrics}
 	 */
@@ -453,8 +350,14 @@ public final class Song implements SongOutput, Comparable<Song> {
 				if (vc == 0) {
 					continue;
 				}
+				// see if it's the primary set (set by the user)
+				if (this.primaryLyrics != null && this.primaryLyrics.equals(lrcs.id)) {
+					return lrcs;
+				// see if it's the original set of lyrics
+				} else if (lrcs.original) {
+					return lrcs;
 				// otherwise its the one without a language setting
-				if (lrcs.language == null || lrcs.language.isEmpty()) {
+				} else if (lrcs.language == null || lrcs.language.isEmpty()) {
 					return lrcs;
 				// otherwise its the first one that matches the current locale
 				// check the current match level to make sure we get the last one 
@@ -501,15 +404,11 @@ public final class Song implements SongOutput, Comparable<Song> {
 	}
 	
 	/**
-	 * Returns a list of locales in this song's lyrics and titles.
+	 * Returns a list of locales in this song's lyrics.
 	 * @return List&lt;Locale&gt;
 	 */
 	public Set<Locale> getLocales() {
 		Set<Locale> locales = new TreeSet<Locale>();
-		// loop over the titles
-		for (Title title : this.titles) {
-			locales.add(title.getLocale());
-		}
 		// loop over the lyrics
 		for (Lyrics lyrics : this.lyrics) {
 			locales.add(lyrics.getLocale());
@@ -529,64 +428,40 @@ public final class Song implements SongOutput, Comparable<Song> {
 	 * Returns the created on date.
 	 * @return Date
 	 */
-	public Date getCreatedDate() {
+	public Instant getCreatedDate() {
 		return this.createdDate;
 	}
 
 	/**
-	 * Sets the created date.
-	 * @param createdDate the created date
-	 */
-	public void setCreatedDate(Date createdDate) {
-		this.createdDate = createdDate;
-	}
-
-	/**
-	 * Returns the created in application.
+	 * Returns the source.
 	 * @return String
 	 */
-	public String getCreatedIn() {
-		return this.createdIn;
+	public String getSource() {
+		return this.source;
 	}
 
 	/**
-	 * Sets the created in application.
-	 * @param createdIn the created in application
+	 * Sets the source.
+	 * @param source the source
 	 */
-	public void setCreatedIn(String createdIn) {
-		this.createdIn = createdIn;
-	}
-
-	/**
-	 * Returns the last modified in application.
-	 * @return String
-	 */
-	public String getLastModifiedIn() {
-		return this.lastModifiedIn;
-	}
-
-	/**
-	 * Sets the last modified in application.
-	 * @param lastModifiedIn the last modified in application
-	 */
-	public void setLastModifiedIn(String lastModifiedIn) {
-		this.lastModifiedIn = lastModifiedIn;
+	public void setSource(String source) {
+		this.source = source;
 	}
 
 	/**
 	 * Returns the last modified date.
-	 * @return Date
+	 * @return Instant
 	 */
-	public Date getLastModifiedDate() {
-		return this.lastModifiedDate;
+	public Instant getModifiedDate() {
+		return this.modifiedDate;
 	}
 
 	/**
 	 * Sets the last modified date.
-	 * @param lastModifiedDate the last modified date
+	 * @param modifiedDate the last modified date
 	 */
-	public void setLastModifiedDate(Date lastModifiedDate) {
-		this.lastModifiedDate = lastModifiedDate;
+	public void setModifiedDate(Instant modifiedDate) {
+		this.modifiedDate = modifiedDate;
 	}
 
 	/**
@@ -718,54 +593,6 @@ public final class Song implements SongOutput, Comparable<Song> {
 	}
 
 	/**
-	 * Returns the version.
-	 * @return String
-	 */
-	public String getVersion() {
-		return this.version;
-	}
-
-	/**
-	 * Sets the version.
-	 * @param version the version
-	 */
-	public void setVersion(String version) {
-		this.version = version;
-	}
-
-	/**
-	 * Returns the keywords in a space separated string.
-	 * @return String
-	 */
-	public String getKeywords() {
-		return this.keywords;
-	}
-
-	/**
-	 * Sets the keywords.
-	 * @param keywords the keywords in a space separated string
-	 */
-	public void setKeywords(String keywords) {
-		this.keywords = keywords;
-	}
-
-	/**
-	 * Returns the verse sequence space separated.
-	 * @return String
-	 */
-	public String getSequence() {
-		return this.sequence;
-	}
-
-	/**
-	 * Sets the verse sequence.
-	 * @param sequence the verse sequence space separated
-	 */
-	public void setSequence(String sequence) {
-		this.sequence = sequence;
-	}
-
-	/**
 	 * Returns the comments.
 	 * @return String
 	 */
@@ -780,71 +607,39 @@ public final class Song implements SongOutput, Comparable<Song> {
 	public void setComments(String comments) {
 		this.comments = comments;
 	}
-
+	
 	/**
-	 * Returns the titles.
-	 * @return List&lt;{@link Title}&gtl;
+	 * Returns the keywords.
+	 * @return String
 	 */
-	public List<Title> getTitles() {
-		return this.titles;
+	public String getKeywords() {
+		return this.keywords;
+	}
+	
+	/**
+	 * Sets the keywords.
+	 * @param keywords the keywords
+	 */
+	public void setKeywords(String keywords) {
+		this.keywords = keywords;
 	}
 
 	/**
-	 * Sets the titles.
-	 * @param titles the titles
+	 * Returns the primary lyrics id.
+	 * @return UUID
 	 */
-	public void setTitles(List<Title> titles) {
-		this.titles = titles;
+	public UUID getPrimaryLyrics() {
+		return this.primaryLyrics;
 	}
-
+	
 	/**
-	 * Returns the authors.
-	 * @return List&lt;{@link Author}&gt;
+	 * Sets the primary lyrics id.
+	 * @param primaryLyrics the primary lyrics id
 	 */
-	public List<Author> getAuthors() {
-		return this.authors;
+	public void setPrimaryLyrics(UUID primaryLyrics) {
+		this.primaryLyrics = primaryLyrics;
 	}
-
-	/**
-	 * Sets the authors.
-	 * @param authors the authors
-	 */
-	public void setAuthors(List<Author> authors) {
-		this.authors = authors;
-	}
-
-	/**
-	 * Returns the tags.
-	 * @return Set&lt;{@link Tag}&gt;
-	 */
-	public Set<Tag> getTags() {
-		return this.tags;
-	}
-
-	/**
-	 * Sets the tags.
-	 * @param tags the tags
-	 */
-	public void setTags(Set<Tag> tags) {
-		this.tags = tags;
-	}
-
-	/**
-	 * Returns the song books.
-	 * @return List&lt;{@link Songbook}&gt;
-	 */
-	public List<Songbook> getSongbooks() {
-		return this.songbooks;
-	}
-
-	/**
-	 * Sets the song books.
-	 * @param songbooks the song books
-	 */
-	public void setSongbooks(List<Songbook> songbooks) {
-		this.songbooks = songbooks;
-	}
-
+	
 	/**
 	 * Returns the lyrics.
 	 * @return List&lt;{@link Lyrics}&gt;
@@ -854,10 +649,18 @@ public final class Song implements SongOutput, Comparable<Song> {
 	}
 
 	/**
-	 * Sets the lyrics.
-	 * @param lyrics the lyrics
+	 * Returns the verse sequence.
+	 * @return List&lt;String&gt;
 	 */
-	public void setLyrics(List<Lyrics> lyrics) {
-		this.lyrics = lyrics;
+	public List<String> getSequence() {
+		return this.sequence;
+	}
+
+	/**
+	 * Returns the tags.
+	 * @return Set&lt;{@link Tag}&gt;
+	 */
+	public Set<Tag> getTags() {
+		return this.tags;
 	}
 }

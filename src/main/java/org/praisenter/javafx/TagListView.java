@@ -201,6 +201,14 @@ public final class TagListView extends BorderPane {
     	return x;
 	}
 	
+	/* (non-Javadoc)
+	 * @see javafx.scene.Node#requestFocus()
+	 */
+	@Override
+	public void requestFocus() {
+		this.textField.requestFocus();
+	}
+	
 	/**
 	 * Sets the text of the text field.
 	 * @param text the text

@@ -25,6 +25,7 @@
 package org.praisenter.javafx.command.action;
 
 import org.praisenter.javafx.command.operation.CommandOperation;
+import org.praisenter.utility.Numbers;
 
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -56,14 +57,25 @@ public abstract class TreeItemCommandAction<T, V extends CommandOperation> imple
 		this.item = item;
 		this.parent = item != null ? item.getParent() : null;
 	}
+
+	/**
+	 * Minimal constructor.
+	 * @param tree the tree
+	 * @param item the item
+	 * @param parent the parent item (if not currently the parent)
+	 */
+	public TreeItemCommandAction(TreeView<T> tree, TreeItem<T> item, TreeItem<T> parent) {
+		this.tree = tree;
+		this.item = item;
+		this.parent = parent;
+	}
 	
 	/**
 	 * Selects the tree item in the tree view.
 	 */
 	public void selectItem() {
 		if (this.item != null && this.tree != null) {
-			this.tree.getSelectionModel().clearSelection();
-			this.tree.getSelectionModel().select(this.item);
+			this.selectItem(this.item);
 		}
 	}
 	
@@ -72,9 +84,22 @@ public abstract class TreeItemCommandAction<T, V extends CommandOperation> imple
 	 */
 	public void selectParent() {
 		if (this.parent != null && this.tree != null) {
-			int index = this.tree.getRow(this.parent);
-			this.tree.getSelectionModel().clearAndSelect(index);
-			this.tree.requestFocus();
+			this.selectItem(this.parent);
 		}
+	}
+	
+	/**
+	 * Selects the given item.
+	 * @param item the item
+	 */
+	protected void selectItem(TreeItem<T> item) {
+		item.setExpanded(true);
+		
+		int index = this.tree.getRow(item);
+		this.tree.getSelectionModel().clearAndSelect(index);
+		
+		// scroll to it (well, close to it, we don't want it at the top)
+		index = Numbers.clamp(index - 5, 0, index);
+		this.tree.scrollTo(index);
 	}
 }

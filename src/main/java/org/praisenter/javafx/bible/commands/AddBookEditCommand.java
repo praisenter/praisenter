@@ -24,39 +24,87 @@
  */
 package org.praisenter.javafx.bible.commands;
 
+import java.util.ArrayList;
+
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
+import org.praisenter.bible.Verse;
 import org.praisenter.javafx.bible.BibleTreeData;
 import org.praisenter.javafx.bible.BookTreeData;
 import org.praisenter.javafx.bible.ChapterTreeData;
 import org.praisenter.javafx.bible.TreeData;
+import org.praisenter.javafx.bible.VerseTreeData;
+import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
+import org.praisenter.javafx.command.action.SelectTreeItemAddedCommandAction;
+import org.praisenter.javafx.command.operation.CommandOperation;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 
-// FIXME in general, really need a way to handle focus
-
-public class AddBookEditCommand implements EditCommand {
+/**
+ * Command for adding a new, copying an existing, or moving an existing book.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+public final class AddBookEditCommand extends ActionsEditCommand<CommandOperation> implements EditCommand {
+	/** The tree */
 	private final TreeView<TreeData> tree;
+	
+	/** The target item that the book will be placed under */
 	private final TreeItem<TreeData> item;
 	
+	/** The new item (and it's sub items) */
 	private final TreeItem<TreeData> newItem;
+	
+	/** The index in the item's children to place the new item */
 	private final int index;
+	
+	/** The bible to place the book in */
 	private final Bible bible;
+	
+	/** The book to added */
 	private final Book book;
 	
+	/**
+	 * Minimal constructor (for a new book).
+	 * <p>
+	 * This will add a new book to the given item (bible node) at the end with a book number of 
+	 * the maximum book number in the bible plus one.
+	 * @param tree the tree
+	 * @param item the item
+	 */
 	public AddBookEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item) {
 		this(tree, item, null, -1);
 	}
 	
+	/**
+	 * Optional constructor (for copying).
+	 * <p>
+	 * This will add the given book to the given (bible) item.  The book will be added at the end
+	 * of the list of books.
+	 * @param tree the tree
+	 * @param item the item
+	 * @param book the book
+	 */
 	public AddBookEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item, Book book) {
 		this(tree, item, book, -1);
 	}
 	
+	/**
+	 * Optional constructor (for drag-drop).
+	 * <p>
+	 * This will add the given book to the given (bible) item.  The book will be placed at the given index
+	 * in the list of books.
+	 * @param tree the tree
+	 * @param item the item
+	 * @param book the book
+	 * @param index the index
+	 */
 	public AddBookEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item, Book book, int index) {
+		super(null, new ArrayList<>());
 		this.tree = tree;
 		this.item = item;
 		
@@ -73,7 +121,7 @@ public class AddBookEditCommand implements EditCommand {
 					if (book == null) {
 						book = new Book(Translations.get("bible.edit.book.default"), ++number);
 					}
-					newItem = new TreeItem<TreeData>(new BookTreeData(bible, book));
+					newItem = createBookItem(bible, book);
 				}
 			}
 		}
@@ -82,6 +130,26 @@ public class AddBookEditCommand implements EditCommand {
 		this.book = book;
 		this.newItem = newItem;
 		this.index = index;
+		
+		this.actions.add(new SelectTreeItemAddedCommandAction<>(tree, newItem, item));
+	}
+
+	/**
+	 * Creates a new tree item for the given book.
+	 * @param bible the target bible
+	 * @param book the source book
+	 * @return TreeItem&lt;{@link TreeData}&gt;
+	 */
+	private TreeItem<TreeData> createBookItem(Bible bible, Book book) {
+		TreeItem<TreeData> item = new TreeItem<TreeData>(new BookTreeData(bible, book));
+		for (Chapter chapter : book.getChapters()) {
+			TreeItem<TreeData> cItem = new TreeItem<TreeData>(new ChapterTreeData(bible, book, chapter));
+			item.getChildren().add(cItem);
+			for (Verse verse : chapter.getVerses()) {
+				cItem.getChildren().add(new TreeItem<TreeData>(new VerseTreeData(bible, book, chapter, verse)));
+			}
+		}
+		return item;
 	}
 	
 	/* (non-Javadoc)
@@ -120,20 +188,7 @@ public class AddBookEditCommand implements EditCommand {
 			this.bible.getBooks().add(this.index, this.book);
 			this.item.getChildren().add(this.index, this.newItem);
 		}
-		
-		this.item.setExpanded(true);
-		
-		int index = this.tree.getRow(this.newItem);
-		if (index > 0) {
-			// selected it
-			this.tree.getSelectionModel().clearAndSelect(index);
-			final int offset = 5;
-			// scroll to it (well, close to it, we don't want it at the top)
-			if (index - offset > 0) {
-				this.tree.scrollTo(index - offset);
-			}
-		}
-		this.tree.requestFocus();
+		super.redo();
 	}
 	
 	/* (non-Javadoc)
@@ -143,6 +198,7 @@ public class AddBookEditCommand implements EditCommand {
 	public void undo() {
 		this.bible.getBooks().remove(this.book);
 		this.item.getChildren().remove(this.newItem);
+		super.undo();
 	}
 	
 	/* (non-Javadoc)
@@ -157,5 +213,6 @@ public class AddBookEditCommand implements EditCommand {
 			this.bible.getBooks().add(this.index, this.book);
 			this.item.getChildren().add(this.index, this.newItem);
 		}
+		super.redo();
 	}
 }

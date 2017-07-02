@@ -45,7 +45,6 @@ import org.praisenter.song.Song;
 import org.praisenter.song.SongImportException;
 import org.praisenter.song.SongImporter;
 import org.praisenter.song.TextFragment;
-import org.praisenter.song.Title;
 import org.praisenter.song.Verse;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -112,7 +111,8 @@ public class PraisenterSongImporter_v2_0_0 extends DefaultHandler implements Son
 			// when we see the <Songs> tag we create a new song
 			this.song = new Song();
 			this.lyrics = new Lyrics();
-			this.song.getLyrics().add(lyrics);
+			this.song.setPrimaryLyrics(this.lyrics.getId());
+			this.song.getLyrics().add(this.lyrics);
 		} else if (qName.equalsIgnoreCase("Part")) {
 			this.verse = new Verse();
 			String type = getType(attributes.getValue("Type"));
@@ -164,10 +164,7 @@ public class PraisenterSongImporter_v2_0_0 extends DefaultHandler implements Son
 			// make sure the tag was not self terminating
 			if (this.dataBuilder != null) {
 				// set the song title
-				Title title = new Title();
-				title.setOriginal(true);
-				title.setText(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
-				this.song.getTitles().add(title);
+				this.lyrics.setTitle(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
 			}
 		} else if ("Notes".equalsIgnoreCase(qName)) {
 			// make sure the tag was not self terminating

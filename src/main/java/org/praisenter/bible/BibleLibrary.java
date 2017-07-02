@@ -360,7 +360,7 @@ public final class BibleLibrary {
 	 */
 	public void save(Bible bible) throws JAXBException, IOException {
 		// update the last modified date
-		bible.setLastModifiedDate(Instant.now());
+		bible.setModifiedDate(Instant.now());
 		
 		// calling this method could indicate one of the following:
 		// 1. New
