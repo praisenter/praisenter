@@ -1,41 +1,29 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.slide.object.MediaObject;
 
-public class MediaEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<MediaObject>> {
-	private final ObservableMediaComponent component;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.Node;
+
+public final class MediaEditCommand extends SlideRegionValueChangedEditCommand<MediaObject, ObservableMediaComponent> implements EditCommand {
+	private final Node focusNode;
 	
-	@SafeVarargs
-	public MediaEditCommand(ObservableMediaComponent component, ValueChangedCommandOperation<MediaObject> operation, CommandAction<ValueChangedCommandOperation<MediaObject>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public MediaEditCommand(ObservableMediaComponent component, ValueChangedCommandOperation<MediaObject> operation, List<CommandAction<ValueChangedCommandOperation<MediaObject>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public MediaEditCommand(MediaObject oldValue, MediaObject newValue, ObservableMediaComponent component, ObjectProperty<ObservableSlideRegion<?>> selection, Node focusNode) {
+		super(oldValue, newValue, component, selection);
+		this.focusNode = focusNode;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setMedia(this.operation.getNewValue());
+		this.region.setMedia(this.newValue);
 	}
 	
 	@Override
 	public boolean isMergeSupported(EditCommand command) {
 		return false;
-	}
-	
-	@Override
-	public boolean isValid() {
-		return this.component != null;
 	}
 	
 	@Override
@@ -45,13 +33,17 @@ public class MediaEditCommand extends ActionsEditCommand<ValueChangedCommandOper
 	
 	@Override
 	public void undo() {
-		this.component.setMedia(this.operation.getOldValue());
-		super.undo();
+		this.region.setMedia(this.oldValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setMedia(this.operation.getNewValue());
-		super.redo();
+		this.region.setMedia(this.newValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 }

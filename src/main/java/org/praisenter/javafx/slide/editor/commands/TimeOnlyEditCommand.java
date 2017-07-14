@@ -1,34 +1,23 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 import org.praisenter.javafx.slide.ObservableCountdownComponent;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 
-public class TimeOnlyEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<Boolean>> {
-	private static final Logger LOGGER = LogManager.getLogger();
-	
-	private final ObservableCountdownComponent component;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.control.CheckBox;
 
-	@SafeVarargs
-	public TimeOnlyEditCommand(ObservableCountdownComponent component, ValueChangedCommandOperation<Boolean> operation, CommandAction<ValueChangedCommandOperation<Boolean>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public TimeOnlyEditCommand(ObservableCountdownComponent component, ValueChangedCommandOperation<Boolean> operation, List<CommandAction<ValueChangedCommandOperation<Boolean>>> actions) {
-		super(operation, actions);
-		this.component = component;
+public final class TimeOnlyEditCommand extends SlideRegionValueChangedEditCommand<Boolean, ObservableCountdownComponent> implements EditCommand {
+	private final CheckBox control;
+
+	public TimeOnlyEditCommand(Boolean oldValue, Boolean newValue, ObservableCountdownComponent component, ObjectProperty<ObservableSlideRegion<?>> selection, CheckBox control) {
+		super(oldValue, newValue, component, selection);
+		this.control = control;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setCountdownTimeOnly(this.operation.getNewValue());
+		this.region.setCountdownTimeOnly(this.newValue);
 	}
 	
 	@Override
@@ -38,7 +27,7 @@ public class TimeOnlyEditCommand extends ActionsEditCommand<ValueChangedCommandO
 	
 	@Override
 	public boolean isValid() {
-		return this.component != null;
+		return super.isValid() && this.control != null;
 	}
 	
 	@Override
@@ -48,13 +37,17 @@ public class TimeOnlyEditCommand extends ActionsEditCommand<ValueChangedCommandO
 	
 	@Override
 	public void undo() {
-		this.component.setCountdownTimeOnly(this.operation.getOldValue());
-		super.undo();
+		this.region.setCountdownTimeOnly(this.oldValue);
+		
+		this.selectRegion();
+		this.check(this.control, this.oldValue);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setCountdownTimeOnly(this.operation.getNewValue());
-		super.redo();
+		this.region.setCountdownTimeOnly(this.newValue);
+		
+		this.selectRegion();
+		this.check(this.control, this.newValue);
 	}
 }

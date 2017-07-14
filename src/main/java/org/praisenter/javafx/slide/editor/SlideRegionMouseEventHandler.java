@@ -1,14 +1,14 @@
 package org.praisenter.javafx.slide.editor;
 
-import org.praisenter.javafx.slide.ObservableSlide;
+import java.util.function.BiConsumer;
+
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
+import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.utility.Scaling;
 
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
-import javafx.event.EventTarget;
-import javafx.event.EventType;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -16,12 +16,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 
 class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
-
 	private static final PseudoClass HOVER = PseudoClass.getPseudoClass("edit-hover");
 	private static final int MIN_DIMENSION = 50;
 	
-	private final ObservableSlide<?> slide;
 	private final ObservableSlideRegion<?> region;
+	private final BiConsumer<ObservableSlideRegion<?>, Rectangle> positionChanged;
+	private final BiConsumer<ObservableSlideRegion<?>, Rectangle> sizeChanged;
 	
 	private Scene scene = null;
 	private Cursor cursor = null;
@@ -34,9 +34,10 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 	private double w;
 	private double h;
 	
-	public SlideRegionMouseEventHandler(ObservableSlide<?> slide, ObservableSlideRegion<?> region) {
-		this.slide = slide;
+	public SlideRegionMouseEventHandler(ObservableSlideRegion<?> region, BiConsumer<ObservableSlideRegion<?>, Rectangle> positionChanged, BiConsumer<ObservableSlideRegion<?>, Rectangle> sizeChanged) {
 		this.region = region;
+		this.positionChanged = positionChanged;
+		this.sizeChanged = sizeChanged;
 	}
 	
 	public void entered(MouseEvent event) {
@@ -126,48 +127,57 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 			// are we moving the node?
 			if (cursor == Cursor.MOVE) {				
 				// we SET the x/y for accuracy
-				region.setX(x + dxi);
-				region.setY(y + dyi);
+//				region.setX(x + dxi);
+//				region.setY(y + dyi);
+				this.positionChanged(x + dxi, y + dyi);
 			}
 			
 			if (cursor == Cursor.E_RESIZE) {
 				dxi = clamp(w, dxi);
-				region.setWidth(w + dxi);
+//				region.setWidth(w + dxi);
+				this.sizeChanged(x, y, w + dxi, h);
 			} else if (cursor == Cursor.S_RESIZE) {
 				dyi = clamp(h, dyi);
-				region.setHeight(h + dyi);
+//				region.setHeight(h + dyi);
+				this.sizeChanged(x, y, w, h + dyi);
 			} else if (cursor == Cursor.N_RESIZE) {
 				dyi = -clamp(h, -dyi);
-				region.setY(y + dyi);
-				region.setHeight(h - dyi);
+//				region.setY(y + dyi);
+//				region.setHeight(h - dyi);
+				this.sizeChanged(x, y + dyi, w, h - dyi);
 			} else if (cursor == Cursor.W_RESIZE) {
 				dxi = -clamp(w, -dxi);
-				region.setX(x + dxi);
-				region.setWidth(w - dxi);
+//				region.setX(x + dxi);
+//				region.setWidth(w - dxi);
+				this.sizeChanged(x + dxi, y, w - dxi, h);
 			} else if (cursor == Cursor.SE_RESIZE) {
 				dxi = clamp(w, dxi);
 				dyi = clamp(h, dyi);
-				region.setWidth(w + dxi);
-				region.setHeight(h + dyi);
+//				region.setWidth(w + dxi);
+//				region.setHeight(h + dyi);
+				this.sizeChanged(x, y, w + dxi, h + dyi);
 			} else if (cursor == Cursor.SW_RESIZE) {
 				dxi = -clamp(w, -dxi);
 				dyi = clamp(h, dyi);
-				region.setX(x + dxi);
-				region.setWidth(w - dxi);
-				region.setHeight(h + dyi);
+//				region.setX(x + dxi);
+//				region.setWidth(w - dxi);
+//				region.setHeight(h + dyi);
+				this.sizeChanged(x + dxi, y, w - dxi, h + dyi);
 			} else if (cursor == Cursor.NE_RESIZE) {
 				dxi = clamp(w, dxi);
 				dyi = -clamp(h, -dyi);
-				region.setWidth(w + dxi);
-				region.setY(y + dyi);
-				region.setHeight(h - dyi);
+//				region.setWidth(w + dxi);
+//				region.setY(y + dyi);
+//				region.setHeight(h - dyi);
+				this.sizeChanged(x, y + dyi, w + dxi, h - dyi);
 			} else if (cursor == Cursor.NW_RESIZE) {
 				dxi = -clamp(w, -dxi);
 				dyi = -clamp(h, -dyi);
-				region.setX(x + dxi);
-				region.setWidth(w - dxi);
-				region.setY(y + dyi);
-				region.setHeight(h - dyi);
+//				region.setX(x + dxi);
+//				region.setWidth(w - dxi);
+//				region.setY(y + dyi);
+//				region.setHeight(h - dyi);
+				this.sizeChanged(x + dxi, y + dyi, w - dxi, h - dyi);
 			}
 		}
 		
@@ -188,6 +198,14 @@ class SlideRegionMouseEventHandler implements EventHandler<MouseEvent> {
 			}
 		}
 		return Math.floor(value);
+	}
+	
+	private void positionChanged(double x, double y) {
+		this.positionChanged.accept(this.region, new Rectangle(x, y, 0, 0));
+	}
+	
+	private void sizeChanged(double x, double y, double w, double h) {
+		this.sizeChanged.accept(this.region, new Rectangle(x, y, w, h));
 	}
 	
 	@Override

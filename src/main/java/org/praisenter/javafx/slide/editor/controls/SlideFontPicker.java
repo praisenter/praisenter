@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.PreventUndoRedoEventFilter;
 import org.praisenter.slide.text.SlideFont;
 import org.praisenter.slide.text.SlideFontPosture;
 import org.praisenter.slide.text.SlideFontWeight;
@@ -44,6 +45,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
@@ -138,6 +140,7 @@ public final class SlideFontPicker extends HBox {
 			spnSize.editorProperty().get().commitValue();
 		});
 		this.spnSize.setTooltip(new Tooltip("Font Size"));
+		this.spnSize.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		
 		// set the cell factory to use the font to display the font name
 		this.cmbFamily.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {

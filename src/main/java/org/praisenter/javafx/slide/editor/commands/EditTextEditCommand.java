@@ -1,67 +1,66 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.ActionsEditCommand;
-import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 
-public class EditTextEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<String>> {
-	private final ObservableTextComponent<?> component;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.control.TextInputControl;
+
+public final class EditTextEditCommand extends SlideRegionValueChangedEditCommand<String, ObservableTextComponent<?>> implements EditCommand {
+	private final TextInputControl control;
 	
-	@SafeVarargs
-	public EditTextEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<String> operation, CommandAction<ValueChangedCommandOperation<String>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public EditTextEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<String> operation, List<CommandAction<ValueChangedCommandOperation<String>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public EditTextEditCommand(String oldValue, String newValue, ObservableTextComponent<?> component, ObjectProperty<ObservableSlideRegion<?>> selection, TextInputControl control) {
+		super(oldValue, newValue, component, selection);
+		this.control = control;
 	}
 	
 	@Override
 	public void execute() {
-		component.setText(this.operation.getNewValue());
+		this.region.setText(this.newValue);
 	}
 	
 	@Override
 	public boolean isMergeSupported(EditCommand command) {
 		if (command != null && command instanceof EditTextEditCommand) {
-			ObservableTextComponent<?> component = ((EditTextEditCommand)command).component;
-			return this.component == component;
+			ObservableTextComponent<?> region = ((EditTextEditCommand)command).region;
+			return this.region == region;
 		}
 		return false;
 	}
 	
 	@Override
 	public boolean isValid() {
-		return this.component != null;
+		return super.isValid() && this.control != null;
 	}
 	
 	@Override
 	public EditCommand merge(EditCommand command) {
-		if (this.isMergeSupported(command)) {
+		if (command != null && command instanceof EditTextEditCommand) {
+			EditTextEditCommand other = (EditTextEditCommand)command;
 			return new EditTextEditCommand(
-				this.component,
-				CommandFactory.changed(((EditTextEditCommand)command).operation.getOldValue(), this.operation.getNewValue()), 
-				this.actions);
+				other.oldValue,
+				this.newValue,
+				this.region,
+				this.selection,
+				this.control);
 		}
 		return null;
 	}
 	
 	@Override
 	public void undo() {
-		component.setText(this.operation.getOldValue());
-		super.undo();
+		this.region.setText(this.oldValue);
+		
+		this.selectRegion();
+		this.text(this.control, this.oldValue);
 	}
 	
 	@Override
 	public void redo() {
-		component.setText(this.operation.getNewValue());
-		super.redo();
+		this.region.setText(this.newValue);
+		
+		this.selectRegion();
+		this.text(this.control, this.newValue);
 	}
 }

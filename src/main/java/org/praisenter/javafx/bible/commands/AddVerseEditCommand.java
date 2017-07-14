@@ -24,17 +24,13 @@
  */
 package org.praisenter.javafx.bible.commands;
 
-import java.util.ArrayList;
-
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.Verse;
 import org.praisenter.javafx.bible.ChapterTreeData;
 import org.praisenter.javafx.bible.TreeData;
 import org.praisenter.javafx.bible.VerseTreeData;
-import org.praisenter.javafx.command.ActionsEditCommand;
+import org.praisenter.javafx.command.AbstractEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.SelectTreeItemAddedCommandAction;
-import org.praisenter.javafx.command.operation.CommandOperation;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.scene.control.TreeItem;
@@ -45,7 +41,7 @@ import javafx.scene.control.TreeView;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class AddVerseEditCommand extends ActionsEditCommand<CommandOperation> implements EditCommand {
+public final class AddVerseEditCommand extends AbstractEditCommand implements EditCommand {
 	/** The tree */
 	private final TreeView<TreeData> tree;
 	
@@ -100,10 +96,6 @@ public final class AddVerseEditCommand extends ActionsEditCommand<CommandOperati
 	 * @param index the index
 	 */
 	public AddVerseEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item, Verse verse, int index) {
-		super(null, new ArrayList<>());
-		
-		this.tree = tree;
-		
 		TreeItem<TreeData> newItem = null;
 		Chapter chapter = null;
 		
@@ -136,13 +128,12 @@ public final class AddVerseEditCommand extends ActionsEditCommand<CommandOperati
 			}
 		}
 		
+		this.tree = tree;
 		this.item = item;
 		this.verse = verse;
 		this.chapter = chapter;
 		this.index = index;
 		this.newItem = newItem;
-
-		this.actions.add(new SelectTreeItemAddedCommandAction<>(tree, newItem, item));
 	}
 	
 	/* (non-Javadoc)
@@ -174,14 +165,7 @@ public final class AddVerseEditCommand extends ActionsEditCommand<CommandOperati
 	 */
 	@Override
 	public void execute() {
-		if (this.index < 0) {
-			this.chapter.getVerses().add(this.verse);
-			this.item.getChildren().add(this.newItem);
-		} else {
-			this.chapter.getVerses().add(this.index, this.verse);
-			this.item.getChildren().add(this.index, this.newItem);
-		}
-		super.redo();
+		this.redo();
 	}
 	
 	/* (non-Javadoc)
@@ -191,7 +175,9 @@ public final class AddVerseEditCommand extends ActionsEditCommand<CommandOperati
 	public void undo() {
 		this.chapter.getVerses().remove(this.verse);
 		this.item.getChildren().remove(this.newItem);
-		super.undo();
+		
+		// select the parent on undo
+		this.select(this.tree, this.item);
 	}
 	
 	/* (non-Javadoc)
@@ -206,6 +192,8 @@ public final class AddVerseEditCommand extends ActionsEditCommand<CommandOperati
 			this.chapter.getVerses().add(this.index, this.verse);
 			this.item.getChildren().add(this.index, this.newItem);
 		}
-		super.redo();
+		
+		// select the new item on redo
+		this.select(this.tree, this.newItem);
 	}
 }

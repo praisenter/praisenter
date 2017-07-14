@@ -19,11 +19,6 @@ public final class SlideEditorContext {
 		this.context = context;
 	}
 	
-	public void applyCommand(EditCommand command) {
-		this.manager.execute(command);
-		// FIXME need to fire change event
-	}
-	
 	public PraisenterContext getContext() {
 		return this.context;
 	}

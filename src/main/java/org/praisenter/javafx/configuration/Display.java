@@ -27,6 +27,7 @@ package org.praisenter.javafx.configuration;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import javafx.geometry.Rectangle2D;
@@ -46,6 +47,12 @@ public final class Display {
 	/** The id (index) of the display */
 	@XmlAttribute(name = "id")
 	private final int id;
+	
+	@XmlAttribute(name = "role")
+	private final DisplayRole role;
+	
+	@XmlElement(name = "name", required = false)
+	private final String name;
 	
 	/** The x coordinate of the top left corner of this display */
 	@XmlAttribute(name = "x")
@@ -68,6 +75,8 @@ public final class Display {
 	 */
 	Display() {
 		this.id = 0;
+		this.role = null;
+		this.name = null;
 		this.x = 0;
 		this.y = 0;
 		this.width = 0;
@@ -77,10 +86,14 @@ public final class Display {
 	/**
 	 * Full constructor.
 	 * @param id the screen id (index)
+	 * @param role the display role
 	 * @param screen the screen
+	 * @param name the display name
 	 */
-	public Display(int id, Screen screen) {
+	public Display(int id, DisplayRole role, Screen screen, String name) {
 		this.id = id;
+		this.role = role;
+		this.name = name;
 		
 		Rectangle2D bounds = screen.getBounds();
 		this.x = (int)bounds.getMinX();
@@ -89,12 +102,81 @@ public final class Display {
 		this.height = (int)bounds.getHeight();
 	}
 	
+	/**
+	 * Optional constructor.
+	 * @param id the screen id (index)
+	 * @param role the display role
+	 * @param screen the screen
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @param w the width
+	 * @param h the height
+	 * @param name the display name
+	 */
+	private Display(int id, DisplayRole role, int x, int y, int w, int h, String name) {
+		this.id = id;
+		this.role = role;
+		this.name = name;
+		this.x = x;
+		this.y = y;
+		this.width = w;
+		this.height = h;
+	}
+	
+	/**
+	 * Creates a display like this one with the given role.
+	 * @param role the new role
+	 * @return {@link Display}
+	 */
+	public final Display withRole(DisplayRole role) {
+		return new Display(
+			this.id,
+			role,
+			this.x,
+			this.y,
+			this.width,
+			this.height,
+			this.name);
+	}
+	
+	/**
+	 * Creates a display like this one with the given name.
+	 * @param name the new name
+	 * @return {@link Display}
+	 */
+	public final Display withName(String name) {
+		return new Display(
+			this.id,
+			this.role,
+			this.x,
+			this.y,
+			this.width,
+			this.height,
+			name);
+	}
+	
+	/**
+	 * Creates a display like this one with the given bounds.
+	 * @param bounds the new screen bounds
+	 * @return {@link Display}
+	 */
+	public final Display withBounds(Rectangle2D bounds) {
+		return new Display(
+			this.id,
+			this.role,
+			(int)bounds.getMinX(),
+			(int)bounds.getMinY(),
+			(int)bounds.getWidth(),
+			(int)bounds.getHeight(),
+			this.name);
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "#" + this.id + " (" + this.x + "," + this.y + ") " + this.width + "x" + this.height;
+		return this.name + " #" + this.id + " " + this.role + " (" + this.x + "," + this.y + ") " + this.width + "x" + this.height;
 	}
 	
 	/**
@@ -103,6 +185,22 @@ public final class Display {
 	 */
 	public int getId() {
 		return this.id;
+	}
+	
+	/**
+	 * Returns the display's role.
+	 * @return {@link DisplayRole}
+	 */
+	public DisplayRole getRole() {
+		return this.role;
+	}
+	
+	/**
+	 * Returns the name for the display.
+	 * @return String
+	 */
+	public String getName() {
+		return this.name;
 	}
 	
 	/**

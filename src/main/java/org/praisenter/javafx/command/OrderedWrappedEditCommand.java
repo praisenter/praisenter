@@ -31,7 +31,7 @@ package org.praisenter.javafx.command;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class OrderedWrappedEditCommand implements EditCommand, Comparable<OrderedWrappedEditCommand> {
+public final class OrderedWrappedEditCommand extends AbstractEditCommand implements EditCommand, Comparable<OrderedWrappedEditCommand> {
 	/** The command */
 	private final EditCommand command;
 	

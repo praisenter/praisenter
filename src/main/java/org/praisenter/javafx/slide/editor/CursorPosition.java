@@ -7,7 +7,6 @@ final class CursorPosition {
 	
 	private static final double RESIZE_WIDTH = 10;
 	
-	
 	public static final Cursor getCursorForPosition(double x, double y, double w, double h) {
 		if (x <= RESIZE_WIDTH && y <= RESIZE_WIDTH) { 
 			// top left corner

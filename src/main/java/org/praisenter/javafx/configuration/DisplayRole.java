@@ -22,11 +22,27 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.command.operation;
+package org.praisenter.javafx.configuration;
+
+import javax.xml.bind.annotation.XmlEnum;
 
 /**
- * Represents a command operation, a change of a value, for example.
+ * Represents the role that a screen plays in presentation.
  * @author William Bittle
  * @version 3.0.0
+ * @since 3.0.0
  */
-public interface CommandOperation {}
+@XmlEnum
+public enum DisplayRole {
+	/** Not used */
+	NONE,
+	
+	/** The main output */
+	MAIN,
+	
+	/** Specific screen showing song specialized slides */
+	MUSICIAN,
+	
+	/** An alternate screen */
+	OTHER
+}

@@ -118,7 +118,7 @@ public class DefaultMediaImportFilter implements MediaImportFilter {
 				LOGGER.debug("Correcting orientation of '{}'.", source);
 				BufferedImage image = ImageManipulator.correctExifOrientation(reader.read(0), orientation);
 				
-				// TODO does this need to be done all the time or only if we correct the orientation?
+				// convert so that saving a JPG with alpha doesn't alter the image
 				if (image.getColorModel().hasAlpha() && ("JPG".equals(reader.getFormatName().toUpperCase()) || "JPEG".equals(reader.getFormatName().toUpperCase()))) {
 					LOGGER.debug("Converting color model of '{}'.", source);
 					BufferedImage bi = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);

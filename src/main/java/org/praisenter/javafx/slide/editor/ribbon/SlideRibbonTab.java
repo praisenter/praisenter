@@ -2,6 +2,8 @@ package org.praisenter.javafx.slide.editor.ribbon;
 
 import org.controlsfx.control.PopOver;
 import org.praisenter.javafx.ApplicationGlyphs;
+import org.praisenter.javafx.PreventUndoRedoEventFilter;
+import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.configuration.Resolution;
 import org.praisenter.javafx.configuration.ResolutionSet;
@@ -9,7 +11,6 @@ import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
-import org.praisenter.javafx.slide.editor.commands.SlideEditorCommandFactory;
 import org.praisenter.javafx.slide.editor.commands.SlideNameEditCommand;
 import org.praisenter.javafx.slide.editor.commands.SlideResolutionEditCommand;
 import org.praisenter.javafx.slide.editor.events.SlideEditorEvent;
@@ -22,6 +23,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -40,9 +42,11 @@ final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 		
 		name = new TextField();
 		name.setPromptText("Name");
+		name.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		
 		time = new TextField();
 		time.setPromptText("00:00");
+		time.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		
 		// target resolution
 		SortedList<Resolution> sorted = context.getContext().getConfiguration().getResolutions().sorted((a, b) -> {
@@ -86,63 +90,45 @@ final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 	
 		// events
 		
-		this.context.selectedProperty().addListener((obs, ov, nv) -> {
-			mutating = true;
-			ObservableSlideRegion<?> comp = this.context.getSelected();
-			if (comp != null && comp instanceof ObservableSlide) {
-				ObservableSlide<?> slide = (ObservableSlide<?>)comp;
-				this.name.setText(slide.getName());
-//				this.time.setText(slide.getTime());
-				this.cmbResolutions.setValue(new Resolution((int)slide.getWidth(), (int)slide.getHeight()));
+		this.context.slideProperty().addListener((obs, ov, nv) -> {
+			this.mutating = true;
+			if (nv != null) {
+				this.name.setText(nv.getName());
+				this.cmbResolutions.setValue(new Resolution((int)nv.getWidth(), (int)nv.getHeight()));
 			}
-			mutating = false;
+			this.mutating = false;
 		});
 		
-		name.textProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
+		this.name.textProperty().addListener((obs, ov, nv) -> {
+			if (this.mutating) return;
 			ObservableSlide<?> slide = this.context.getSlide();
-			this.context.applyCommand(new SlideNameEditCommand(
-				slide, 
-				CommandFactory.changed(ov, nv), 
-				SlideEditorCommandFactory.select(this.context.selectedProperty(), slide),
-				CommandFactory.text(name)));
+			this.applyCommand(new SlideNameEditCommand(ov, nv, slide, this.context.selectedProperty(), this.name));
 		});
 		
 		// TODO time editing
 		
-		cmbResolutions.valueProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
-//			ObservableSlideRegion<?> comp = this.selected.get();
-//			if (comp != null && comp instanceof ObservableSlide && nv != null) {
-				ObservableSlide<?> slide = this.context.getSlide();
-				
-				this.context.applyCommand(new SlideResolutionEditCommand(
-						slide, 
-						CommandFactory.changed(ov, nv), 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), slide),
-						CommandFactory.event(this, new SlideEditorEvent(this.cmbResolutions, this, SlideEditorEvent.TARGET_RESOLUTION)),
-						CommandFactory.combo(cmbResolutions)));
-				
-//				
-//				// when this changes we need to adjust all the sizes of the controls in the slide
-//				slide.fit(nv.getWidth(), nv.getHeight());
-//				// then we need to update all the Java FX nodes
-//				fireEvent(new SlideTargetResolutionEvent(this.cmbResolutions, SlideRibbonTab.this, slide, nv));
-//			}
+		this.cmbResolutions.valueProperty().addListener((obs, ov, nv) -> {
+			if (this.mutating) return;
+			ObservableSlide<?> slide = this.context.getSlide();
+			this.applyCommand(CommandFactory.chain(
+					new SlideResolutionEditCommand(ov, nv, slide, this.context.selectedProperty(), this.cmbResolutions),
+					new ActionEditCommand(self -> {
+						fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.TARGET_RESOLUTION));
+					})));
 		});
 		
 		btnNewResolution.setOnAction((e) -> {
-			Resolution r = cmbResolutions.getValue();
+			Resolution r = this.cmbResolutions.getValue();
 			if (r != null) {
-				spnWidth.getValueFactory().setValue(r.getWidth());
-				spnHeight.getValueFactory().setValue(r.getHeight());
+				this.spnWidth.getValueFactory().setValue(r.getWidth());
+				this.spnHeight.getValueFactory().setValue(r.getHeight());
 			}
-			popAddResolution.show(btnNewResolution);
+			this.popAddResolution.show(btnNewResolution);
 		});
 		
 		btnAdd.setOnAction(e -> {
-			int w = spnWidth.getValue();
-			int h = spnHeight.getValue();
+			int w = this.spnWidth.getValue();
+			int h = this.spnHeight.getValue();
 			Resolution r = new Resolution(w, h);
 			ResolutionSet resolutions = context.getContext().getConfiguration().getObject(Setting.DISPLAY_RESOLUTIONS, ResolutionSet.class, new ResolutionSet());
 			resolutions.add(r);
@@ -150,16 +136,16 @@ final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 				.setObject(Setting.DISPLAY_RESOLUTIONS, resolutions)
 				.execute(context.getContext().getExecutorService());
 			
-			cmbResolutions.setValue(r);
-			popAddResolution.hide();
+			this.cmbResolutions.setValue(r);
+			this.popAddResolution.hide();
 		});
 		
 		btnCancel.setOnAction(e -> {
-			popAddResolution.hide();
+			this.popAddResolution.hide();
 		});
 		
 		btnRemoveResolution.setOnAction(e -> {
-			Resolution r = cmbResolutions.getValue();
+			Resolution r = this.cmbResolutions.getValue();
 			if (r != null) {
 				ResolutionSet resolutions = context.getContext().getConfiguration().getObject(Setting.DISPLAY_RESOLUTIONS, ResolutionSet.class, new ResolutionSet());
 				Resolution other = resolutions.getClosestResolution(r);
@@ -168,14 +154,15 @@ final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 						.setObject(Setting.DISPLAY_RESOLUTIONS, resolutions)
 						.execute(context.getContext().getExecutorService());
 				
-					cmbResolutions.setValue(other);
+					this.cmbResolutions.setValue(other);
 				}
 			}
 		});
 	}
 	
 	public void setName(String name) {
+		this.mutating = true;
 		this.name.setText(name);
+		this.mutating = false;
 	}
-	
 }

@@ -27,31 +27,45 @@ package org.praisenter.javafx.bible.commands;
 import org.praisenter.bible.Chapter;
 import org.praisenter.javafx.bible.ChapterTreeData;
 import org.praisenter.javafx.bible.TreeData;
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
+import org.praisenter.javafx.command.ValueChangedEditCommand;
 
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 
 /**
  * Represents an edit to the number of a {@link Chapter}.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class ChapterNumberEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<Integer>> implements EditCommand {
+public final class ChapterNumberEditCommand extends ValueChangedEditCommand<Integer> implements EditCommand {
+	/** The tree view */
+	private final TreeView<TreeData> tree;
+	
+	/** The tree item */
+	private final TreeItem<TreeData> item;
+	
+	/** The editor control */
+	private final Spinner<Integer> editor;
+	
 	/** The chapter data */
 	private final ChapterTreeData data;
 	
 	/**
-	 * Minimal constructor.
-	 * @param item the item
-	 * @param operation the operation
-	 * @param actions the actions
+	 * Constructor.
+	 * @param oldValue the old value
+	 * @param newValue the new value
+	 * @param tree the tree view
+	 * @param item the tree item
+	 * @param editor the editor
 	 */
-	@SafeVarargs
-	public ChapterNumberEditCommand(TreeItem<TreeData> item, ValueChangedCommandOperation<Integer> operation, CommandAction<ValueChangedCommandOperation<Integer>>... actions) {
-		super(operation, actions);
+	public ChapterNumberEditCommand(Integer oldValue, Integer newValue, TreeView<TreeData> tree, TreeItem<TreeData> item, Spinner<Integer> editor) {
+		super(oldValue, newValue);
+		
+		this.tree = tree;
+		this.item = item;
+		this.editor = editor;
 		
 		ChapterTreeData data = null;
 		if (item != null) {
@@ -93,7 +107,7 @@ public final class ChapterNumberEditCommand extends ActionsEditCommand<ValueChan
 	 */
 	@Override
 	public void execute() {
-		this.data.getChapter().setNumber(this.operation.getNewValue().shortValue());
+		this.data.getChapter().setNumber(this.newValue.shortValue());
 		this.data.update();
 	}
 	
@@ -102,9 +116,12 @@ public final class ChapterNumberEditCommand extends ActionsEditCommand<ValueChan
 	 */
 	@Override
 	public void undo() {
-		this.data.getChapter().setNumber(this.operation.getOldValue().shortValue());
+		this.data.getChapter().setNumber(this.oldValue.shortValue());
 		this.data.update();
-		super.undo();
+
+		// perform actions
+		this.select(this.tree, this.item);
+		this.spinner(this.editor, this.oldValue);
 	}
 	
 	/* (non-Javadoc)
@@ -112,8 +129,11 @@ public final class ChapterNumberEditCommand extends ActionsEditCommand<ValueChan
 	 */
 	@Override
 	public void redo() {
-		this.data.getChapter().setNumber(this.operation.getNewValue().shortValue());
+		this.data.getChapter().setNumber(this.newValue.shortValue());
 		this.data.update();
-		super.redo();
+
+		// perform actions
+		this.select(this.tree, this.item);
+		this.spinner(this.editor, this.newValue);
 	}
 }

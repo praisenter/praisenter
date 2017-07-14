@@ -68,6 +68,7 @@ import org.praisenter.javafx.bible.commands.RenumberEditCommand;
 import org.praisenter.javafx.bible.commands.ReorderEditCommand;
 import org.praisenter.javafx.bible.commands.VerseNumberEditCommand;
 import org.praisenter.javafx.bible.commands.VerseTextEditCommand;
+import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.command.EditCommand;
 import org.praisenter.javafx.command.EditManager;
@@ -480,110 +481,70 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		this.txtName.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getRoot();
-			applyCommand(new BibleNameEditCommand(
-					item,
-					CommandFactory.changed(ov, nv),
-					CommandFactory.select(this.bibleTree, item),
-					CommandFactory.text(this.txtName)));
+			applyCommand(new BibleNameEditCommand(ov, nv, this.bibleTree, item, this.txtName));
 		});
 		
 		// bible language
 		cmbLanguage.valueProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getRoot();
-			applyCommand(new BibleLanguageEditCommand(
-					item,
-					CommandFactory.changed(ov, nv),
-					CommandFactory.select(this.bibleTree, item),
-					CommandFactory.combo(cmbLanguage)));
+			applyCommand(new BibleLanguageEditCommand(ov, nv, this.bibleTree, item, cmbLanguage));
 		});
 		
 		// bible source
 		txtSource.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getRoot();
-			applyCommand(new BibleSourceEditCommand(
-					item,
-					CommandFactory.changed(ov, nv),
-					CommandFactory.select(this.bibleTree, item),
-					CommandFactory.text(txtSource)));
+			applyCommand(new BibleSourceEditCommand(ov, nv, this.bibleTree, item, txtSource));
 		});
 		
 		// bible copyright
 		txtCopyright.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getRoot();
-			applyCommand(new BibleCopyrightEditCommand(
-					item,
-					CommandFactory.changed(ov, nv),
-					CommandFactory.select(this.bibleTree, item),
-					CommandFactory.text(txtCopyright)));
+			applyCommand(new BibleCopyrightEditCommand(ov, nv, this.bibleTree, item, txtCopyright));
 		});
 		
 		// bible notes
 		txtNotes.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getRoot();
-			applyCommand(new BibleNotesEditCommand(
-					item,
-					CommandFactory.changed(ov, nv),
-					CommandFactory.select(this.bibleTree, item),
-					CommandFactory.text(txtNotes)));
+			applyCommand(new BibleNotesEditCommand(ov, nv, this.bibleTree, item, txtNotes));
 		});
 		
 		// book name
 		txtBookName.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
-			applyCommand(new BookNameEditCommand(
-					item,
-					CommandFactory.changed(ov, nv),
-					CommandFactory.select(this.bibleTree, item),
-					CommandFactory.text(txtBookName)));
+			applyCommand(new BookNameEditCommand(ov, nv, this.bibleTree, item, txtBookName));
 		});
 		
 		// book number
 		spnBookNumber.valueProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
-			applyCommand(new BookNumberEditCommand(
-					item,
-					CommandFactory.changed(ov, nv),
-					CommandFactory.select(this.bibleTree, item),
-					CommandFactory.spinner(spnBookNumber)));
+			applyCommand(new BookNumberEditCommand(ov, nv, this.bibleTree, item, spnBookNumber));
 		});
 		
 		// chapter number
 		spnChapter.valueProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
-			applyCommand(new ChapterNumberEditCommand(
-					item,
-					CommandFactory.changed(ov, nv),
-					CommandFactory.select(this.bibleTree, item),
-					CommandFactory.spinner(spnChapter)));
+			applyCommand(new ChapterNumberEditCommand(ov, nv, this.bibleTree, item, spnChapter));
 		});
 		
 		// verse number
 		spnVerse.valueProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
-			applyCommand(new VerseNumberEditCommand(
-					item,
-					CommandFactory.changed(ov, nv),
-					CommandFactory.select(this.bibleTree, item),
-					CommandFactory.spinner(spnVerse)));
+			applyCommand(new VerseNumberEditCommand(ov, nv, this.bibleTree, item, spnVerse));
 		});
 		
 		// verse text
 		txtText.textProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
 			TreeItem<TreeData> item = this.bibleTree.getSelectionModel().getSelectedItem();
-			applyCommand(new VerseTextEditCommand(
-					item,
-					CommandFactory.changed(ov, nv),
-					CommandFactory.select(this.bibleTree, item),
-					CommandFactory.text(txtText)));
+			applyCommand(new VerseTextEditCommand(ov, nv, this.bibleTree, item, txtText));
 		});
 		
 		// listen for application events
@@ -661,7 +622,6 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				for (TreeItem<TreeData> other : items) {
 					if (!other.getValue().getClass().equals(type)) {
 						// different types, so exit
-						// TODO warn user with alert
 						LOGGER.warn("Selections were of different types. Copy/Cut action cancelled.");
 						return;
 					}
@@ -732,13 +692,21 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 						// first perform the removes
 						CommandFactory.sequence(commands),
 						// then do some UI stuff
-						CommandFactory.chain(
-								// focus the TreeView
-								CommandFactory.focus(this.bibleTree),
-								// select the appropriate TreeItem
-								commands.size() == 1
-									? CommandFactory.selectRemoved(this.bibleTree, items.get(0))
-									: CommandFactory.select(this.bibleTree, this.bibleTree.getRoot())));
+						new ActionEditCommand((self) -> {
+							self.focus(this.bibleTree);
+							if (commands.size() == 1) {
+								self.select(this.bibleTree, items.get(0).getParent());
+							} else {
+								self.select(this.bibleTree, this.bibleTree.getRoot());
+							}
+						}, (self) -> {
+							self.focus(this.bibleTree);
+							if (commands.size() == 1) {
+								self.select(this.bibleTree, items.get(0));
+							} else {
+								self.select(this.bibleTree, this.bibleTree.getRoot());
+							}
+						}));
 				// apply it
 				applyCommand(command);
 			}
@@ -858,13 +826,21 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 							// first perform the removes
 							CommandFactory.sequence(commands),
 							// then do some UI stuff
-							CommandFactory.chain(
-									// focus the TreeView
-									CommandFactory.focus(this.bibleTree),
-									// select the appropriate TreeItem
-									commands.size() == 1
-										? CommandFactory.selectRemoved(this.bibleTree, items.get(0))
-										: CommandFactory.select(this.bibleTree, this.bibleTree.getRoot())));
+							new ActionEditCommand((self) -> {
+								self.focus(this.bibleTree);
+								if (commands.size() == 1) {
+									self.select(this.bibleTree, items.get(0).getParent());
+								} else {
+									self.select(this.bibleTree, this.bibleTree.getRoot());
+								}
+							}, (self) -> {
+								self.focus(this.bibleTree);
+								if (commands.size() == 1) {
+									self.select(this.bibleTree, items.get(0));
+								} else {
+									self.select(this.bibleTree, this.bibleTree.getRoot());
+								}
+							}));
 					// apply it
 					applyCommand(command);
 				}
@@ -966,9 +942,10 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			if (result.get() == ButtonType.OK){
 				applyCommand(CommandFactory.chain(
 					new ReorderEditCommand(this.bibleTree, item),
-					CommandFactory.chain(
-						CommandFactory.focus(this.bibleTree),
-						CommandFactory.select(this.bibleTree, item))));
+					new ActionEditCommand((self) -> {
+						self.focus(this.bibleTree);
+						self.select(this.bibleTree, item);
+					})));
 			}
 		}
 	}
@@ -1006,9 +983,10 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			if (result.get() == ButtonType.OK){
 				applyCommand(CommandFactory.chain(
 						new RenumberEditCommand(this.bibleTree, item),
-						CommandFactory.chain(
-							CommandFactory.focus(this.bibleTree),
-							CommandFactory.select(this.bibleTree, item))));
+						new ActionEditCommand((self) -> {
+							self.focus(this.bibleTree);
+							self.select(this.bibleTree, item);
+						})));
 			}
 		}
 	}

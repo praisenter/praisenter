@@ -11,6 +11,8 @@ import javafx.scene.control.TabPane;
 import javafx.scene.layout.HBox;
 
 public final class SlideEditorRibbon extends TabPane {
+	private final SlideEditorContext context;
+	
 	private final SlideRibbonTab slideTab;
 	private final TagsRibbonTab tagsTab;
 	
@@ -26,9 +28,9 @@ public final class SlideEditorRibbon extends TabPane {
 	
 	private final FontRibbonTab fontTab;
 	private final ParagraphRibbonTab paragraphTab;
-	private final FontBorderRibbonTab fontBorderTab;
-	private final FontShadowRibbonTab fontShadowTab;
-	private final FontGlowRibbonTab fontGlowTab;
+	private final TextBorderRibbonTab fontBorderTab;
+	private final TextShadowRibbonTab fontShadowTab;
+	private final TextGlowRibbonTab fontGlowTab;
 	private final TextRibbonTab textTab;
 	private final DateTimeRibbonTab dateTimeTab;
 	private final CountdownRibbonTab countdownTab;
@@ -37,6 +39,8 @@ public final class SlideEditorRibbon extends TabPane {
 	private final MediaRibbonTab mediaTab;
 	
 	public SlideEditorRibbon(SlideEditorContext context) {
+		this.context = context;
+		
 		// create the tab content
 		
 		this.slideTab = new SlideRibbonTab(context);
@@ -54,9 +58,9 @@ public final class SlideEditorRibbon extends TabPane {
 		
 		this.fontTab = new FontRibbonTab(context);
 		this.paragraphTab = new ParagraphRibbonTab(context);
-		this.fontBorderTab = new FontBorderRibbonTab(context);
-		this.fontShadowTab = new FontShadowRibbonTab(context);
-		this.fontGlowTab = new FontGlowRibbonTab(context);
+		this.fontBorderTab = new TextBorderRibbonTab(context);
+		this.fontShadowTab = new TextShadowRibbonTab(context);
+		this.fontGlowTab = new TextGlowRibbonTab(context);
 		this.textTab = new TextRibbonTab(context);
 		this.dateTimeTab = new DateTimeRibbonTab(context);
 		this.countdownTab = new CountdownRibbonTab(context);
@@ -116,9 +120,6 @@ public final class SlideEditorRibbon extends TabPane {
 
 		// events
 		
-		// FIXME may not need this
-//		this.addEventHandler(SlideRibbonEvent.ALL, this);
-
 		context.selectedProperty().addListener((obs, ov, nv) -> {
 			// switch focus to the likely tab given the component type
 			if (nv != null) {
@@ -132,7 +133,7 @@ public final class SlideEditorRibbon extends TabPane {
 			}
 		});
 	}
-	
+
 	// other
 	
 	public void setSlideName(String name) {

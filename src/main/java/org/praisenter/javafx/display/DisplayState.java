@@ -22,52 +22,26 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.command.operation;
+package org.praisenter.javafx.display;
 
 /**
- * Represents a single value changed operation.
+ * An enumeration of possible display states when performing automatic screen assignment.
  * @author William Bittle
  * @version 3.0.0
- * @param <T> the value type
  */
-public class ValueChangedCommandOperation<T> implements CommandOperation {
-	/** The old value */
-	protected final T oldValue;
+enum DisplayState {
+	/** The current assignment is valid */
+	VALID,
 	
-	/** The new value */
-	protected final T newValue;
+	/** The screen isn't assigned */
+	SCREEN_NOT_ASSIGNED,
 	
-	/**
-	 * Minimal constructor.
-	 * @param oldValue the old value
-	 * @param newValue the new value
-	 */
-	public ValueChangedCommandOperation(T oldValue, T newValue) {
-		this.oldValue = oldValue;
-		this.newValue = newValue;
-	}
+	/** The current assignment is invalid because the screen index no longer exists (a screen was removed) */
+	SCREEN_INDEX_DOESNT_EXIST,
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return this.oldValue + " -> " + this.newValue;
-	}
+	/** The current assignment is invalid because the screen's position changed (a screen was moved) */
+	POSITION_CHANGED,
 	
-	/**
-	 * Returns the old value.
-	 * @return T
-	 */
-	public T getOldValue() {
-		return this.oldValue;
-	}
-
-	/**
-	 * Returns the new value.
-	 * @return T
-	 */
-	public T getNewValue() {
-		return this.newValue;
-	}
+	/** The current assignment is invalid because the screen's resolution changed */
+	RESOLUTION_CHANGED
 }

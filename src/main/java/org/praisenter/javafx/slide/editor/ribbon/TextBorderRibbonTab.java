@@ -1,12 +1,13 @@
 package org.praisenter.javafx.slide.editor.ribbon;
 
+import org.praisenter.javafx.PreventUndoRedoEventFilter;
+import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.FontBorderEditCommand;
-import org.praisenter.javafx.slide.editor.commands.SlideEditorCommandFactory;
 import org.praisenter.javafx.slide.editor.controls.SlideGradientPicker;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.SlideColor;
@@ -22,7 +23,6 @@ import org.praisenter.slide.graphics.SlideStrokeStyle;
 import org.praisenter.slide.graphics.SlideStrokeType;
 
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
@@ -32,6 +32,7 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -45,7 +46,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.util.Callback;
 
-class FontBorderRibbonTab extends ComponentEditorRibbonTab {
+class TextBorderRibbonTab extends ComponentEditorRibbonTab {
 
 	private static final Color DEFAULT_PAINT = new Color(0, 0, 0, 1);
 	private static final SlideLinearGradient DEFAULT_GRADIENT = new SlideLinearGradient(0, 0, 0, 1, SlideGradientCycleType.NONE, new SlideGradientStop(0, 0, 0, 0, 1), new SlideGradientStop(1, 0, 0, 0, 0.5));
@@ -58,7 +59,7 @@ class FontBorderRibbonTab extends ComponentEditorRibbonTab {
 	private final Spinner<Double> spnWidth;
 	private final Spinner<Double> spnRadius;
 	
-	public FontBorderRibbonTab(SlideEditorContext context) {
+	public TextBorderRibbonTab(SlideEditorContext context) {
 		super(context, "Font Border");
 
 		MenuItem itmNone = new MenuItem("None");
@@ -114,9 +115,11 @@ class FontBorderRibbonTab extends ComponentEditorRibbonTab {
 		this.spnWidth = new Spinner<Double>(0, Double.MAX_VALUE, 1, 0.25);
 		this.spnWidth.setMaxWidth(55);
 		this.spnWidth.setEditable(true);
+		this.spnWidth.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		this.spnRadius = new Spinner<Double>(0, Double.MAX_VALUE, 0, 0.25);
 		this.spnRadius.setMaxWidth(55);
 		this.spnRadius.setEditable(true);
+		this.spnRadius.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		
 		this.pkrColor.getStyleClass().add(ColorPicker.STYLE_CLASS_SPLIT_BUTTON);
 		this.pkrColor.setStyle("-fx-color-label-visible: false;");
@@ -144,19 +147,10 @@ class FontBorderRibbonTab extends ComponentEditorRibbonTab {
 		
 		this.container.setCenter(layout);
 		
-		// events
-		itmNone.setOnAction((e) -> {
-			toggleMode(true, true);
-		});
-		itmColor.setOnAction((e) -> {
-			toggleMode(false, true);
-		});
-		itmGradient.setOnAction((e) -> {
-			toggleMode(false, false);
-		});
+		// EVENTS
 		
 		this.context.selectedProperty().addListener((obs, ov, nv) -> {
-			mutating = true;
+			this.mutating = true;
 			if (nv != null && nv instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> otc = (ObservableTextComponent<?>)nv;
 				setControlValues(otc.getTextBorder());
@@ -165,30 +159,49 @@ class FontBorderRibbonTab extends ComponentEditorRibbonTab {
 				setControlValues(null);
 				setDisable(true);
 			}
-			mutating = false;
+			this.mutating = false;
 		});
 		
-		InvalidationListener listener = new InvalidationListener() {
-			@Override
-			public void invalidated(Observable observable) {
-				if (mutating) return;
-				ObservableSlideRegion<?> comp = context.getSelected();
-				if (comp != null && comp instanceof ObservableTextComponent) {
-					ObservableTextComponent<?> tc =(ObservableTextComponent<?>)comp;
-					SlideStroke nv = getControlValues();
-					
-					context.applyCommand(new FontBorderEditCommand(
-						tc, 
-						CommandFactory.changed(tc.getTextBorder(), nv), 
-						SlideEditorCommandFactory.select(context.selectedProperty(), tc),
-						CommandFactory.func(op -> {
-							setControlValues(op.getOldValue());
-						}, op -> {
-							setControlValues(op.getNewValue());
-						})));
-				}
+		InvalidationListener listener = obs -> {
+			if (this.mutating) return;
+			ObservableSlideRegion<?> comp = context.getSelected();
+			if (comp != null && comp instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)comp;
+				
+				SlideStroke oldValue = tc.getTextBorder();
+				SlideStroke newValue = this.getControlValues();
+				
+				applyCommand(CommandFactory.chain(
+					new FontBorderEditCommand(oldValue, newValue, tc, context.selectedProperty(), mnuPaintType),
+					new ActionEditCommand(null, self -> {
+						this.setControlValues(oldValue);
+					}, self -> {
+						this.setControlValues(newValue);
+					})));
 			}
 		};
+		
+		itmNone.setOnAction((e) -> {
+			this.toggleMode(true, true);
+			this.mutating = true;
+			this.setControlValues(this.getControlValues());
+			this.mutating = false;
+			listener.invalidated(null);
+		});
+		itmColor.setOnAction((e) -> {
+			this.toggleMode(false, true);
+			this.mutating = true;
+			this.setControlValues(this.getControlValues());
+			this.mutating = false;
+			listener.invalidated(null);
+		});
+		itmGradient.setOnAction((e) -> {
+			this.toggleMode(false, false);
+			this.mutating = true;
+			this.setControlValues(this.getControlValues());
+			this.mutating = false;
+			listener.invalidated(null);
+		});
 		
 		this.pkrColor.valueProperty().addListener(listener);
 		this.pkrGradient.valueProperty().addListener(listener);
@@ -353,19 +366,13 @@ class FontBorderRibbonTab extends ComponentEditorRibbonTab {
 		this.cbDashes.setDisable(off);
 		this.spnRadius.setDisable(off);
 		this.spnWidth.setDisable(off);
-		if (mutating) return;
-		ObservableSlideRegion<?> component = this.context.getSelected();
-		if (component != null && component instanceof ObservableTextComponent) {
-			ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-			tc.setTextBorder(off ? null : getControlValues());
-		}
 	}
 	
 	private SlideStroke getControlValues() {
 		SlidePaint paint = null;
-		if (this.pkrColor.isVisible()) {
+		if (this.pkrColor.isVisible() && !this.pkrColor.isDisabled()) {
 			paint = PaintConverter.fromJavaFX(this.pkrColor.getValue());
-		} else {
+		} else if (this.pkrGradient.isVisible() && !this.pkrGradient.isDisabled()) {
 			paint = this.pkrGradient.getValue();
 		}
 		// if the slide paint is null then this means

@@ -1,34 +1,25 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.praisenter.javafx.Option;
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.slide.text.FontScaleType;
 
-public class FontScalingEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<Option<FontScaleType>>> {
-	private final ObservableTextComponent<?> component;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.control.ComboBox;
+
+public final class FontScalingEditCommand extends SlideRegionValueChangedEditCommand<Option<FontScaleType>, ObservableTextComponent<?>> implements EditCommand {
+	private final ComboBox<Option<FontScaleType>> control;
 	
-	@SafeVarargs
-	public FontScalingEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<Option<FontScaleType>> operation, CommandAction<ValueChangedCommandOperation<Option<FontScaleType>>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public FontScalingEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<Option<FontScaleType>> operation, List<CommandAction<ValueChangedCommandOperation<Option<FontScaleType>>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public FontScalingEditCommand(Option<FontScaleType> oldValue, Option<FontScaleType> newValue, ObservableTextComponent<?> component, ObjectProperty<ObservableSlideRegion<?>> selection, ComboBox<Option<FontScaleType>> control) {
+		super(oldValue, newValue, component, selection);
+		this.control = control;
 	}
 	
 	@Override
 	public void execute() {
-		Option<FontScaleType> option = this.operation.getNewValue();
-		FontScaleType type = option != null ? option.getValue() : null;
-		this.component.setFontScaleType(type != null ? type : FontScaleType.NONE);
+		this.setValue(this.newValue);
 	}
 	
 	@Override
@@ -38,7 +29,7 @@ public class FontScalingEditCommand extends ActionsEditCommand<ValueChangedComma
 	
 	@Override
 	public boolean isValid() {
-		return this.component != null;
+		return super.isValid() && this.control != null;
 	}
 	
 	@Override
@@ -48,17 +39,22 @@ public class FontScalingEditCommand extends ActionsEditCommand<ValueChangedComma
 	
 	@Override
 	public void undo() {
-		Option<FontScaleType> option = this.operation.getOldValue();
-		FontScaleType type = option != null ? option.getValue() : null;
-		this.component.setFontScaleType(type != null ? type : FontScaleType.NONE);
-		super.undo();
+		this.setValue(this.oldValue);
+		
+		this.selectRegion();
+		this.combo(this.control, this.oldValue);
 	}
 	
 	@Override
 	public void redo() {
-		Option<FontScaleType> option = this.operation.getNewValue();
+		this.setValue(this.newValue);
+		
+		this.selectRegion();
+		this.combo(this.control, this.newValue);
+	}
+	
+	private void setValue(Option<FontScaleType> option) {
 		FontScaleType type = option != null ? option.getValue() : null;
-		this.component.setFontScaleType(type != null ? type : FontScaleType.NONE);
-		super.redo();
+		this.region.setFontScaleType(type != null ? type : FontScaleType.NONE);
 	}
 }

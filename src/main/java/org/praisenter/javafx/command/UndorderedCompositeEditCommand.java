@@ -32,7 +32,7 @@ import java.util.List;
  * @author William Bittle
  * @version 3.0.0
  */
-public class UndorderedCompositeEditCommand extends AbstractCompositeEditCommand<EditCommand> {
+public final class UndorderedCompositeEditCommand extends AbstractCompositeEditCommand<EditCommand> {
 	/**
 	 * Minimal constructor.
 	 * @param commands the commands

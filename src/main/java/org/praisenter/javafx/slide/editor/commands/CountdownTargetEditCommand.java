@@ -1,45 +1,30 @@
 package org.praisenter.javafx.slide.editor.commands;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 import org.praisenter.javafx.slide.ObservableCountdownComponent;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 
-public class CountdownTargetEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<LocalDateTime>> {
-	private static final Logger LOGGER = LogManager.getLogger();
-	
-	private final ObservableCountdownComponent component;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.Node;
 
-	@SafeVarargs
-	public CountdownTargetEditCommand(ObservableCountdownComponent component, ValueChangedCommandOperation<LocalDateTime> operation, CommandAction<ValueChangedCommandOperation<LocalDateTime>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
+public final class CountdownTargetEditCommand extends SlideRegionValueChangedEditCommand<LocalDateTime, ObservableCountdownComponent> implements EditCommand {
+	private final Node focusNode;
 	
-	public CountdownTargetEditCommand(ObservableCountdownComponent component, ValueChangedCommandOperation<LocalDateTime> operation, List<CommandAction<ValueChangedCommandOperation<LocalDateTime>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public CountdownTargetEditCommand(LocalDateTime oldValue, LocalDateTime newValue, ObservableCountdownComponent component, ObjectProperty<ObservableSlideRegion<?>> selection, Node focusNode) {
+		super(oldValue, newValue, component, selection);
+		this.focusNode = focusNode;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setCountdownTarget(this.operation.getNewValue());
+		this.region.setCountdownTarget(this.newValue);
 	}
 	
 	@Override
 	public boolean isMergeSupported(EditCommand command) {
 		return false;
-	}
-	
-	@Override
-	public boolean isValid() {
-		return this.component != null;
 	}
 	
 	@Override
@@ -49,13 +34,17 @@ public class CountdownTargetEditCommand extends ActionsEditCommand<ValueChangedC
 	
 	@Override
 	public void undo() {
-		this.component.setCountdownTarget(this.operation.getOldValue());
-		super.undo();
+		this.region.setCountdownTarget(this.oldValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setCountdownTarget(this.operation.getNewValue());
-		super.redo();
+		this.region.setCountdownTarget(this.newValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 }

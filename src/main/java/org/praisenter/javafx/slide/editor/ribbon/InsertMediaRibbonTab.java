@@ -2,10 +2,10 @@ package org.praisenter.javafx.slide.editor.ribbon;
 
 import org.praisenter.MediaType;
 import org.praisenter.javafx.ApplicationGlyphs;
-import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.SlideMode;
+import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.events.MediaComponentAddEvent;
 import org.praisenter.slide.MediaComponent;
 
@@ -15,12 +15,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class InsertMediaRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
-	private final PraisenterContext context;
-	
-	public InsertMediaRibbonTab(PraisenterContext context) {
-		super("Media");
-		
-		this.context = context;
+
+	public InsertMediaRibbonTab(SlideEditorContext context) {
+		super(context, "Media");
 		
 		Button image = new Button("Image", ApplicationGlyphs.IMAGE_MEDIA_COMPONENT.duplicate().size(40));
 		Button video = new Button("Video", ApplicationGlyphs.VIDEO_MEDIA_COMPONENT.duplicate().size(40));
@@ -42,19 +39,19 @@ public class InsertMediaRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?
 			MediaComponent mc = new MediaComponent();
 			mc.setWidth(400);
 			mc.setHeight(300);
-			fireEvent(new MediaComponentAddEvent(image, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, context, SlideMode.EDIT), MediaType.IMAGE));
+			fireEvent(new MediaComponentAddEvent(image, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, this.context.getContext(), SlideMode.EDIT), MediaType.IMAGE));
 		});
 		video.setOnAction((e) -> {
 			MediaComponent mc = new MediaComponent();
 			mc.setWidth(400);
 			mc.setHeight(300);
-			fireEvent(new MediaComponentAddEvent(video, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, context, SlideMode.EDIT), MediaType.VIDEO));
+			fireEvent(new MediaComponentAddEvent(video, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, this.context.getContext(), SlideMode.EDIT), MediaType.VIDEO));
 		});
 		audio.setOnAction((e) -> {
 			MediaComponent mc = new MediaComponent();
 			mc.setWidth(400);
 			mc.setHeight(300);
-			fireEvent(new MediaComponentAddEvent(audio, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, context, SlideMode.EDIT), MediaType.AUDIO));
+			fireEvent(new MediaComponentAddEvent(audio, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, this.context.getContext(), SlideMode.EDIT), MediaType.AUDIO));
 		});
 	}
 }

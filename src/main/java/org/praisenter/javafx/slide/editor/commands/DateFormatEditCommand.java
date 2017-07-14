@@ -1,35 +1,28 @@
 package org.praisenter.javafx.slide.editor.commands;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 import org.praisenter.javafx.slide.ObservableDateTimeComponent;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 
-public class DateFormatEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<String>> {
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.control.ComboBox;
+
+public final class DateFormatEditCommand extends SlideRegionValueChangedEditCommand<String, ObservableDateTimeComponent> implements EditCommand {
 	private static final Logger LOGGER = LogManager.getLogger();
+	private final ComboBox<String> control;
 	
-	private final ObservableDateTimeComponent component;
-	
-	@SafeVarargs
-	public DateFormatEditCommand(ObservableDateTimeComponent component, ValueChangedCommandOperation<String> operation, CommandAction<ValueChangedCommandOperation<String>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public DateFormatEditCommand(ObservableDateTimeComponent component, ValueChangedCommandOperation<String> operation, List<CommandAction<ValueChangedCommandOperation<String>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public DateFormatEditCommand(String oldValue, String newValue, ObservableDateTimeComponent component, ObjectProperty<ObservableSlideRegion<?>> selection, ComboBox<String> control) {
+		super(oldValue, newValue, component, selection);
+		this.control = control;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setDateTimeFormat(getFormat(this.operation.getNewValue()));
+		this.region.setDateTimeFormat(getFormat(this.newValue));
 	}
 	
 	@Override
@@ -39,7 +32,7 @@ public class DateFormatEditCommand extends ActionsEditCommand<ValueChangedComman
 	
 	@Override
 	public boolean isValid() {
-		return this.component != null;
+		return super.isValid() && this.control != null;
 	}
 	
 	@Override
@@ -49,14 +42,18 @@ public class DateFormatEditCommand extends ActionsEditCommand<ValueChangedComman
 	
 	@Override
 	public void undo() {
-		this.component.setDateTimeFormat(getFormat(this.operation.getOldValue()));
-		super.undo();
+		this.region.setDateTimeFormat(getFormat(this.oldValue));
+		
+		this.selectRegion();
+		this.combo(this.control, this.oldValue);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setDateTimeFormat(getFormat(this.operation.getNewValue()));
-		super.redo();
+		this.region.setDateTimeFormat(getFormat(this.newValue));
+		
+		this.selectRegion();
+		this.combo(this.control, this.newValue);
 	}
 
 	private SimpleDateFormat getFormat(String format) {

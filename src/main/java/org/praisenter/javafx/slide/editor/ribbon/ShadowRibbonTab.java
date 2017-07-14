@@ -1,23 +1,24 @@
 package org.praisenter.javafx.slide.editor.ribbon;
 
 import org.praisenter.javafx.Option;
+import org.praisenter.javafx.PreventUndoRedoEventFilter;
+import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.ShadowEditCommand;
-import org.praisenter.javafx.slide.editor.commands.SlideEditorCommandFactory;
 import org.praisenter.slide.graphics.ShadowType;
 import org.praisenter.slide.graphics.SlideShadow;
 
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -70,6 +71,11 @@ class ShadowRibbonTab extends ComponentEditorRibbonTab {
 		this.spnRadius.setTooltip(new Tooltip("The shadow radius"));
 		this.spnSpread.setTooltip(new Tooltip("The shadow spread"));
 		
+		this.spnRadius.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnSpread.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnX.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnY.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		
 		this.cmbType.valueProperty().addListener((obs, ov, nv) -> {
 			boolean flag = nv.getValue() == ShadowOption.NONE;
 			pkrColor.setDisable(flag);
@@ -96,25 +102,20 @@ class ShadowRibbonTab extends ComponentEditorRibbonTab {
 		// events
 
 		// when the control values change
-		InvalidationListener listener = new InvalidationListener() {
-			@Override
-			public void invalidated(Observable observable) {
-				if (mutating) return;
-				// set the value
-				ObservableSlideRegion<?> comp = context.getSelected();
-				if (comp != null) {
-					context.applyCommand(new ShadowEditCommand(
-							comp, 
-							CommandFactory.changed(comp.getShadow(), getControlValues()), 
-							SlideEditorCommandFactory.select(context.selectedProperty(), comp),
-							CommandFactory.func((op) -> {
-								setControlValues(op.getOldValue());
-							}, (op) -> {
-								setControlValues(op.getNewValue());
-							})));
-//					comp.setShadow(getControlValues());
-//					notifyComponentChanged();
-				}
+		InvalidationListener listener = obs -> {
+			if (this.mutating) return;
+			// set the value
+			ObservableSlideRegion<?> comp = context.getSelected();
+			if (comp != null) {
+				SlideShadow oldValue = comp.getShadow();
+				SlideShadow newValue = this.getControlValues();
+				applyCommand(CommandFactory.chain(
+						new ShadowEditCommand(oldValue, newValue, comp, context.selectedProperty(), this.cmbType),
+						new ActionEditCommand(null, self -> {
+							this.setControlValues(oldValue);
+						}, self -> {
+							this.setControlValues(newValue);
+						})));
 			}
 		};
 		
@@ -128,7 +129,7 @@ class ShadowRibbonTab extends ComponentEditorRibbonTab {
 		// when the value is changed externally
 		this.context.selectedProperty().addListener((obs, ov, nv) -> {
 			// update controls
-			mutating = true;
+			this.mutating = true;
 			if (nv != null) {
 				this.setDisable(false);
 				setControlValues(nv.getShadow());
@@ -136,7 +137,7 @@ class ShadowRibbonTab extends ComponentEditorRibbonTab {
 				this.setDisable(true);
 				setControlValues(null);
 			}
-			mutating = false;
+			this.mutating = false;
 		});
 	}
 

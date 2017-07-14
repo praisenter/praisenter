@@ -1,37 +1,26 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.praisenter.Tag;
 import org.praisenter.javafx.TagListView;
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.CommandOperation;
 import org.praisenter.javafx.slide.ObservableSlide;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 
-public final class RemoveTagEditCommand extends ActionsEditCommand<CommandOperation> implements EditCommand {
+import javafx.beans.property.ObjectProperty;
+
+public final class RemoveTagEditCommand extends SlideRegionEditCommand<ObservableSlide<?>> implements EditCommand {
 	private final TagListView tagView;
-	private final ObservableSlide<?> slide;
 	private final Tag tag;
-	// FIXME add other properties so that we can redo/undo the command
 	
-	@SafeVarargs
-	public RemoveTagEditCommand(TagListView tagView, ObservableSlide<?> slide, Tag tag, CommandAction<CommandOperation>... actions) {
-		this(tagView, slide, tag, Arrays.asList(actions));
-	}
-
-	public RemoveTagEditCommand(TagListView tagView, ObservableSlide<?> slide, Tag tag, List<CommandAction<CommandOperation>> actions) {
-		super(null, actions);
+	public RemoveTagEditCommand(ObservableSlide<?> slide, Tag tag, ObjectProperty<ObservableSlideRegion<?>> selection, TagListView tagView) {
+		super(slide, selection);
 		this.tagView = tagView;
-		this.slide = slide;
 		this.tag = tag;
 	}
 
 	@Override
 	public void execute() {
-		this.slide.removeTag(this.tag);
+		this.region.removeTag(this.tag);
 	}
 	
 	@Override
@@ -41,7 +30,7 @@ public final class RemoveTagEditCommand extends ActionsEditCommand<CommandOperat
 	
 	@Override
 	public boolean isValid() {
-		return this.slide != null && this.tag != null && this.slide.getTags().contains(this.tag);
+		return super.isValid() && this.tag != null && this.tagView != null && this.region.getTags().contains(this.tag);
 	}
 	
 	@Override
@@ -51,15 +40,19 @@ public final class RemoveTagEditCommand extends ActionsEditCommand<CommandOperat
 	
 	@Override
 	public void undo() {
-		this.slide.addTag(this.tag);
+		this.region.addTag(this.tag);
 		this.tagView.tagsProperty().remove(this.tag);
-		super.undo();
+		
+		this.selectRegion();
+		this.focus(this.tagView);
 	}
 	
 	@Override
 	public void redo() {
-		this.slide.removeTag(this.tag);
+		this.region.removeTag(this.tag);
 		this.tagView.tagsProperty().add(this.tag);
-		super.redo();
+		
+		this.selectRegion();
+		this.focus(this.tagView);
 	}
 }

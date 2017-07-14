@@ -36,7 +36,7 @@ import java.util.List;
  * @version 3.0.0
  * @param <T> the {@link EditCommand} type
  */
-public abstract class AbstractCompositeEditCommand<T extends EditCommand> implements EditCommand {
+public abstract class AbstractCompositeEditCommand<T extends EditCommand> extends AbstractEditCommand implements EditCommand {
 	/** The list of commands */
 	protected final List<T> commands;
 	

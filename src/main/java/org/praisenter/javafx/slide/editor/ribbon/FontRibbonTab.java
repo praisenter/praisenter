@@ -1,12 +1,10 @@
 package org.praisenter.javafx.slide.editor.ribbon;
 
-import java.util.function.Consumer;
-
 import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.Option;
+import org.praisenter.javafx.PreventUndoRedoEventFilter;
+import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.CommandFactory;
-import org.praisenter.javafx.command.action.FunctionCommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.converters.PaintConverter;
@@ -14,7 +12,6 @@ import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.FontEditCommand;
 import org.praisenter.javafx.slide.editor.commands.FontScalingEditCommand;
 import org.praisenter.javafx.slide.editor.commands.LineSpacingEditCommand;
-import org.praisenter.javafx.slide.editor.commands.SlideEditorCommandFactory;
 import org.praisenter.javafx.slide.editor.commands.TextPaintEditCommand;
 import org.praisenter.javafx.slide.editor.controls.SlideFontPicker;
 import org.praisenter.javafx.slide.editor.controls.SlideGradientPicker;
@@ -39,6 +36,7 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -55,7 +53,7 @@ import javafx.scene.text.Text;
 
 class FontRibbonTab extends ComponentEditorRibbonTab {
 	private final SlideFontPicker pkrFont;
-	private final ComboBox<Option<FontScaleType>> cbFontScaling;
+	private final ComboBox<Option<FontScaleType>> cmbFontScaling;
 	private final Spinner<Double> spnLineSpacing;
 	private final ColorPicker pkrColor;
 	private final SlideGradientPicker pkrGradient;
@@ -77,10 +75,10 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 		this.pkrFont.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50));
 		this.pkrFont.setMaxWidth(200);
 		
-		this.cbFontScaling = new ComboBox<>(fontScaleTypes);
-		this.cbFontScaling.setMaxWidth(120);
-		this.cbFontScaling.setValue(new Option<FontScaleType>(null, FontScaleType.NONE));
-		this.cbFontScaling.setButtonCell(new ListCell<Option<FontScaleType>>(){
+		this.cmbFontScaling = new ComboBox<>(fontScaleTypes);
+		this.cmbFontScaling.setMaxWidth(120);
+		this.cmbFontScaling.setValue(new Option<FontScaleType>(null, FontScaleType.NONE));
+		this.cmbFontScaling.setButtonCell(new ListCell<Option<FontScaleType>>(){
 			@Override
 			protected void updateItem(Option<FontScaleType> item, boolean empty) {
 				super.updateItem(item, empty);
@@ -94,6 +92,7 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 		this.spnLineSpacing = new Spinner<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, 0, 0.5);
 		this.spnLineSpacing.setEditable(true);
 		this.spnLineSpacing.setMaxWidth(60);
+		this.spnLineSpacing.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		
 		MenuItem itmColor = new MenuItem("Color");
 		MenuItem itmGradient = new MenuItem("Gradient");
@@ -117,7 +116,7 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 		this.pkrGradient.setVisible(false);
 		
 		// tooltips
-		this.cbFontScaling.setTooltip(new Tooltip("The font resizing method"));
+		this.cmbFontScaling.setTooltip(new Tooltip("The font resizing method"));
 		this.spnLineSpacing.setTooltip(new Tooltip("The spacing between each line of text"));
 		mnuPaintType.setTooltip(new Tooltip("The font color"));
 		this.pkrColor.setTooltip(new Tooltip("The font color"));
@@ -126,39 +125,33 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 		// layout
 		
 		HBox row1 = new HBox(2, this.pkrFont);
-		HBox row2 = new HBox(2, this.cbFontScaling, this.spnLineSpacing);
+		HBox row2 = new HBox(2, this.cmbFontScaling, this.spnLineSpacing);
 		HBox row3 = new HBox(2, mnuPaintType, this.pkrColor, this.pkrGradient);
 		VBox layout = new VBox(2, row1, row2, row3);
 		this.container.setCenter(layout);
 	
 		// events
 		
-		Consumer<SlidePaint> setPaintValues = (paint) -> {
-			if (paint != null) {
-				if (paint instanceof SlideColor) {
-					this.pkrColor.setValue(PaintConverter.toJavaFX((SlideColor)paint));
-					this.pkrColor.setVisible(true);
-					this.pkrGradient.setVisible(false);
-				} else if (paint instanceof SlideGradient) {
-					this.pkrGradient.setValue((SlideGradient)paint);
-					this.pkrColor.setVisible(false);
-					this.pkrGradient.setVisible(true);
-				} else {
-					this.pkrColor.setValue(DEFAULT_PAINT);
-					this.pkrColor.setVisible(true);
-					this.pkrGradient.setVisible(false);
-				}
+		this.context.selectedProperty().addListener((obs, ov, nv) -> {
+			this.mutating = true;
+			if (nv != null && nv instanceof ObservableTextComponent) {
+				this.setDisable(false);
+				ObservableTextComponent<?> otc = (ObservableTextComponent<?>)nv;
+				this.pkrFont.setFont(otc.getFont());
+				SlidePaint paint = otc.getTextPaint();
+				this.setPaintValues(paint);
+				this.cmbFontScaling.setValue(new Option<FontScaleType>(null, otc.getFontScaleType()));
+				this.spnLineSpacing.getValueFactory().setValue(otc.getLineSpacing()); 
 			} else {
+				this.pkrFont.setFont(new SlideFont());
 				this.pkrColor.setValue(DEFAULT_PAINT);
 				this.pkrColor.setVisible(true);
 				this.pkrGradient.setVisible(false);
+				this.cmbFontScaling.setValue(new Option<FontScaleType>(null, FontScaleType.NONE));
+				this.spnLineSpacing.getValueFactory().setValue(0.0); 
+				this.setDisable(true);
 			}
-		};
-		
-		FunctionCommandAction<ValueChangedCommandOperation<SlidePaint>> paintChanged = CommandFactory.func(op -> {
-			setPaintValues.accept(op.getOldValue());
-		}, op -> {
-			setPaintValues.accept(op.getNewValue());
+			this.mutating = false;
 		});
 		
 		itmColor.setOnAction((e) -> {
@@ -167,13 +160,16 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlideRegion<?> component = this.context.getSelected();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-//				tc.setTextPaint(PaintConverter.fromJavaFX(this.pkrColor.getValue()));
-				
-				this.context.applyCommand(new TextPaintEditCommand(
-						tc, 
-						CommandFactory.changed(tc.getTextPaint(), PaintConverter.fromJavaFX(this.pkrColor.getValue())), 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), tc),
-						paintChanged));
+
+				SlidePaint oldValue = tc.getTextPaint();
+				SlidePaint newValue = PaintConverter.fromJavaFX(this.pkrColor.getValue());
+				this.applyCommand(CommandFactory.chain(
+						new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrColor),
+						new ActionEditCommand(null, self -> {
+							this.setPaintValues(oldValue);
+						}, self -> {
+							this.setPaintValues(newValue);
+						})));
 			}
 		});
 		itmGradient.setOnAction((e) -> {
@@ -182,120 +178,102 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlideRegion<?> component = this.context.getSelected();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-				//tc.setTextPaint(pkrGradient.getValue());
 				
-				this.context.applyCommand(new TextPaintEditCommand(
-						tc, 
-						CommandFactory.changed(tc.getTextPaint(), this.pkrGradient.getValue()), 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), tc),
-						paintChanged));
-			}
-		});
-		
-		this.context.selectedProperty().addListener((obs, ov, nv) -> {
-			mutating = true;
-			if (nv != null && nv instanceof ObservableTextComponent) {
-				this.setDisable(false);
-				ObservableTextComponent<?> otc = (ObservableTextComponent<?>)nv;
-				this.pkrFont.setFont(otc.getFont());
-				SlidePaint paint = otc.getTextPaint();
-				setPaintValues.accept(paint);
-				this.cbFontScaling.setValue(new Option<FontScaleType>(null, otc.getFontScaleType()));
-				this.spnLineSpacing.getValueFactory().setValue(otc.getLineSpacing()); 
-			} else {
-				this.pkrFont.setFont(new SlideFont());
-				this.pkrColor.setValue(DEFAULT_PAINT);
-				this.pkrColor.setVisible(true);
-				this.pkrGradient.setVisible(false);
-				this.cbFontScaling.setValue(new Option<FontScaleType>(null, FontScaleType.NONE));
-				this.spnLineSpacing.getValueFactory().setValue(0.0); 
-				this.setDisable(true);
-			}
-			mutating = false;
-		});
-		
-		this.pkrColor.valueProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
-			ObservableSlideRegion<?> component = this.context.getSelected();
-			if (component != null && component instanceof ObservableTextComponent) {
-				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-				SlidePaint value = PaintConverter.fromJavaFX(nv);
-				
-				this.context.applyCommand(new TextPaintEditCommand(
-					tc, 
-					CommandFactory.changed(tc.getTextPaint(), value), 
-					SlideEditorCommandFactory.select(this.context.selectedProperty(), tc),
-					paintChanged));
-				
-//				tc.setTextPaint(PaintConverter.fromJavaFX(nv));
-//				notifyComponentChanged();
-			}
-		});
-		
-		this.pkrGradient.valueProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
-			ObservableSlideRegion<?> component = this.context.getSelected();
-			if (component != null && component instanceof ObservableTextComponent) {
-				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-
-				this.context.applyCommand(new TextPaintEditCommand(
-						tc, 
-						CommandFactory.changed(tc.getTextPaint(), nv), 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), tc),
-						paintChanged));
-			}
-		});
-		
-		this.pkrFont.fontProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
-			ObservableSlideRegion<?> component = this.context.getSelected();
-			if (component != null && component instanceof ObservableTextComponent) {
-				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-//				tc.setFont(nv);
-//				notifyComponentChanged();
-				
-				this.context.applyCommand(new FontEditCommand(
-						tc, 
-						CommandFactory.changed(tc.getFont(), nv), 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), tc),
-						CommandFactory.func(op -> {
-							this.pkrFont.setFont(op.getOldValue());
-						}, op -> {
-							this.pkrFont.setFont(op.getNewValue());
+				SlidePaint oldValue = tc.getTextPaint();
+				SlidePaint newValue = this.pkrGradient.getValue();
+				this.applyCommand(CommandFactory.chain(
+						new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrGradient),
+						new ActionEditCommand(null, self -> {
+							this.setPaintValues(oldValue);
+						}, self -> {
+							this.setPaintValues(newValue);
 						})));
 			}
 		});
 		
-		this.cbFontScaling.valueProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
+		this.pkrColor.valueProperty().addListener((obs, ov, nv) -> {
+			if (this.mutating) return;
 			ObservableSlideRegion<?> component = this.context.getSelected();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-//				tc.setFontScaleType(nv.getValue());
-//				notifyComponentChanged();
 				
-				this.context.applyCommand(new FontScalingEditCommand(
-						tc, 
-						CommandFactory.changed(ov, nv), 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), tc),
-						CommandFactory.combo(this.cbFontScaling)));
+				SlidePaint oldValue = tc.getTextPaint();
+				SlidePaint newValue = PaintConverter.fromJavaFX(nv);
+				this.applyCommand(CommandFactory.chain(
+						new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrColor),
+						new ActionEditCommand(null, self -> {
+							this.setPaintValues(oldValue);
+						}, self -> {
+							this.setPaintValues(newValue);
+						})));
+			}
+		});
+		
+		this.pkrGradient.valueProperty().addListener((obs, ov, nv) -> {
+			if (this.mutating) return;
+			ObservableSlideRegion<?> component = this.context.getSelected();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+
+				SlidePaint oldValue = tc.getTextPaint();
+				SlidePaint newValue = nv;
+				this.applyCommand(CommandFactory.chain(
+						new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrGradient),
+						new ActionEditCommand(null, self -> {
+							this.setPaintValues(oldValue);
+						}, self -> {
+							this.setPaintValues(newValue);
+						})));
+			}
+		});
+		
+		this.pkrFont.fontProperty().addListener((obs, ov, nv) -> {
+			if (this.mutating) return;
+			ObservableSlideRegion<?> component = this.context.getSelected();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				this.applyCommand(new FontEditCommand(ov, nv, tc, this.context.selectedProperty(), this.pkrFont));
+			}
+		});
+		
+		this.cmbFontScaling.valueProperty().addListener((obs, ov, nv) -> {
+			if (this.mutating) return;
+			ObservableSlideRegion<?> component = this.context.getSelected();
+			if (component != null && component instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
+				this.applyCommand(new FontScalingEditCommand(ov, nv, tc, this.context.selectedProperty(), this.cmbFontScaling));
 			}
 		});
 		
 		this.spnLineSpacing.valueProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
+			if (this.mutating) return;
 			ObservableSlideRegion<?> component = this.context.getSelected();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-//				tc.setLineSpacing(nv);
-//				notifyComponentChanged();
-				
-				this.context.applyCommand(new LineSpacingEditCommand(
-						tc, 
-						CommandFactory.changed(ov, nv), 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), tc),
-						CommandFactory.spinner(this.spnLineSpacing)));
+				this.applyCommand(new LineSpacingEditCommand(ov, nv, tc, this.context.selectedProperty(), this.spnLineSpacing));
 			}
 		});
 	}
+	
+	private void setPaintValues(SlidePaint paint) {
+		if (paint != null) {
+			if (paint instanceof SlideColor) {
+				this.pkrColor.setValue(PaintConverter.toJavaFX((SlideColor)paint));
+				this.pkrColor.setVisible(true);
+				this.pkrGradient.setVisible(false);
+			} else if (paint instanceof SlideGradient) {
+				this.pkrGradient.setValue((SlideGradient)paint);
+				this.pkrColor.setVisible(false);
+				this.pkrGradient.setVisible(true);
+			} else {
+				this.pkrColor.setValue(DEFAULT_PAINT);
+				this.pkrColor.setVisible(true);
+				this.pkrGradient.setVisible(false);
+			}
+		} else {
+			this.pkrColor.setValue(DEFAULT_PAINT);
+			this.pkrColor.setVisible(true);
+			this.pkrGradient.setVisible(false);
+		}
+	};
 }

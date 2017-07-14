@@ -47,8 +47,6 @@ import org.praisenter.Constants;
 import org.praisenter.Tag;
 import org.praisenter.xml.adapters.InstantXmlAdapter;
 
-// FIXME evaluate song edit formats, they seem really verbose
-
 /**
  * Represents a song.
  * <p>

@@ -24,34 +24,51 @@
  */
 package org.praisenter.javafx.command;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.CommandOperation;
+import java.util.function.Consumer;
 
 /**
- * Represents an {@link ActionsEditCommand} that only executes actions.
+ * Represents an edit command that performs arbitrary actions.  This is primarily used to perform
+ * UI related actions after a chain of other commands has been executed.
  * @author William Bittle
  * @version 3.0.0
- * @param <T> the {@link CommandOperation} type
  */
-public final class ActionsOnlyEditCommand<T extends CommandOperation> extends ActionsEditCommand<T> implements EditCommand {
+public final class ActionEditCommand extends AbstractEditCommand implements EditCommand {
+	/** The execute action */
+	private final Consumer<ActionEditCommand> executeAction;
+	
+	/** The undo action */
+	private final Consumer<ActionEditCommand> undoAction;
+	
+	/** The redo action */
+	private final Consumer<ActionEditCommand> redoAction;
+
 	/**
-	 * Optional constructor.
-	 * @param actions the actions
+	 * Minimal constructor.
+	 * @param action an action to perform for execute, undo, and redo; can be null
 	 */
-	public ActionsOnlyEditCommand(List<CommandAction<T>> actions) {
-		super(null, actions);
+	public ActionEditCommand(Consumer<ActionEditCommand> action) {
+		this(action, action, action);
 	}
 	
 	/**
 	 * Optional constructor.
-	 * @param actions the actions
+	 * @param executeAndRedoAction an action to perform for execute and redo; can be null
+	 * @param undoAction an action to perform for undo; can be null
 	 */
-	@SafeVarargs
-	public ActionsOnlyEditCommand(CommandAction<T>... actions) {
-		this(actions != null ? Arrays.asList(actions) : null);
+	public ActionEditCommand(Consumer<ActionEditCommand> executeAndRedoAction, Consumer<ActionEditCommand> undoAction) {
+		this(executeAndRedoAction, undoAction, executeAndRedoAction);
+	}
+	
+	/**
+	 * Optional constructor.
+	 * @param executeAction an action to perform for execute; can be null
+	 * @param undoAction an action to perform for undo; can be null
+	 * @param redoAction an action to perform for redo; can be null
+	 */
+	public ActionEditCommand(Consumer<ActionEditCommand> executeAction, Consumer<ActionEditCommand> undoAction, Consumer<ActionEditCommand> redoAction) {
+		this.executeAction = executeAction;
+		this.undoAction = undoAction;
+		this.redoAction = redoAction;
 	}
 	
 	/* (non-Javadoc)
@@ -59,7 +76,9 @@ public final class ActionsOnlyEditCommand<T extends CommandOperation> extends Ac
 	 */
 	@Override
 	public void execute() {
-		this.redo();
+		if (this.executeAction != null) {
+			this.executeAction.accept(this);
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -75,7 +94,8 @@ public final class ActionsOnlyEditCommand<T extends CommandOperation> extends Ac
 	 */
 	@Override
 	public boolean isValid() {
-		return this.actions != null && !this.actions.isEmpty();
+		// one of the actions must be non-null
+		return this.executeAction != null || this.redoAction != null || this.undoAction != null;
 	}
 	
 	/* (non-Javadoc)
@@ -84,5 +104,24 @@ public final class ActionsOnlyEditCommand<T extends CommandOperation> extends Ac
 	@Override
 	public EditCommand merge(EditCommand command) {
 		return null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.command.EditCommand#redo()
+	 */
+	@Override
+	public void redo() {
+		if (this.redoAction != null) {
+			this.redoAction.accept(this);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.command.EditCommand#undo()
+	 */
+	public void undo() {
+		if (this.undoAction != null) {
+			this.undoAction.accept(this);
+		}
 	}
 }

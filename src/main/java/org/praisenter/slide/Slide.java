@@ -194,6 +194,26 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	public abstract void moveComponentBack(SlideComponent component);
 
 	/**
+	 * Moves the given component to the given index
+	 * <p>
+	 * If the given component is not on this slide, this method does nothing.
+	 * <p>
+	 * If the given component is already at the given position, then this method does nothing.
+	 * <p>
+	 * If the index is less than 0, the component is moved to the bottom. If the index is
+	 * greater than the number of components, the component is moved to the top.
+	 * <p>
+	 * Otherwise the given component is moved to the given position.
+	 * <p>
+	 * Returns the index where the component was moved to or -1 if the component didn't
+	 * exist on this slide.
+	 * @param component the component to move
+	 * @param index the index to move to
+	 * @return int the index
+	 */
+	public abstract int moveComponent(SlideComponent component, int index);
+
+	/**
 	 * Returns true if this slide contains any {@link TextPlaceholderComponent}s.
 	 * @return boolean
 	 */

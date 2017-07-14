@@ -1,41 +1,29 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.slide.text.HorizontalTextAlignment;
 
-public class HorizontalTextAlignmentEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<HorizontalTextAlignment>> {
-	private final ObservableTextComponent<?> component;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.Node;
+
+public final class HorizontalTextAlignmentEditCommand extends SlideRegionValueChangedEditCommand<HorizontalTextAlignment, ObservableTextComponent<?>> implements EditCommand {
+	private final Node focusNode;
 	
-	@SafeVarargs
-	public HorizontalTextAlignmentEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<HorizontalTextAlignment> operation, CommandAction<ValueChangedCommandOperation<HorizontalTextAlignment>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public HorizontalTextAlignmentEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<HorizontalTextAlignment> operation, List<CommandAction<ValueChangedCommandOperation<HorizontalTextAlignment>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public HorizontalTextAlignmentEditCommand(HorizontalTextAlignment oldValue, HorizontalTextAlignment newValue, ObservableTextComponent<?> region, ObjectProperty<ObservableSlideRegion<?>> selection, Node focusNode) {
+		super(oldValue, newValue, region, selection);
+		this.focusNode = focusNode;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setHorizontalTextAlignment(this.operation.getNewValue());
+		this.region.setHorizontalTextAlignment(this.newValue);
 	}
 	
 	@Override
 	public boolean isMergeSupported(EditCommand command) {
 		return false;
-	}
-	
-	@Override
-	public boolean isValid() {
-		return this.component != null;
 	}
 	
 	@Override
@@ -45,13 +33,17 @@ public class HorizontalTextAlignmentEditCommand extends ActionsEditCommand<Value
 	
 	@Override
 	public void undo() {
-		this.component.setHorizontalTextAlignment(this.operation.getOldValue());
-		super.undo();
+		this.region.setHorizontalTextAlignment(this.oldValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setHorizontalTextAlignment(this.operation.getNewValue());
-		super.redo();
+		this.region.setHorizontalTextAlignment(this.newValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 }

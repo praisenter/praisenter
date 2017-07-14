@@ -27,31 +27,45 @@ package org.praisenter.javafx.bible.commands;
 import org.praisenter.bible.Verse;
 import org.praisenter.javafx.bible.TreeData;
 import org.praisenter.javafx.bible.VerseTreeData;
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
+import org.praisenter.javafx.command.ValueChangedEditCommand;
 
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 
 /**
  * Represents an edit to the text of a {@link Verse}.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class VerseTextEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<String>> implements EditCommand {
+public final class VerseTextEditCommand extends ValueChangedEditCommand<String> implements EditCommand {
+	/** The tree view */
+	private final TreeView<TreeData> tree;
+	
+	/** The tree item */
+	private final TreeItem<TreeData> item;
+	
+	/** The editor control */
+	private final TextInputControl editor;
+	
 	/** The tree data for the verse */
 	private final VerseTreeData data;
 
 	/**
-	 * Minimal constructor.
-	 * @param item the item being changed
-	 * @param operation the operation being performed
-	 * @param actions the actions
+	 * Constructor.
+	 * @param oldValue the old value
+	 * @param newValue the new value
+	 * @param tree the tree view
+	 * @param item the tree item
+	 * @param editor the text editor
 	 */
-	@SafeVarargs
-	public VerseTextEditCommand(TreeItem<TreeData> item, ValueChangedCommandOperation<String> operation, CommandAction<ValueChangedCommandOperation<String>>... actions) {
-		super(operation, actions);
+	public VerseTextEditCommand(String oldValue, String newValue, TreeView<TreeData> tree, TreeItem<TreeData> item, TextInputControl editor) {
+		super(oldValue, newValue);
+		
+		this.tree = tree;
+		this.item = item;
+		this.editor = editor;
 		
 		VerseTreeData data = null;
 		if (item != null) {
@@ -64,22 +78,13 @@ public final class VerseTextEditCommand extends ActionsEditCommand<ValueChangedC
 		this.data = data;
 	}
 	
-	/**
-	 * Merge constructor.
-	 * @param c1 the previous command
-	 * @param c2 the new command
-	 */
-	private VerseTextEditCommand(VerseTextEditCommand c1, VerseTextEditCommand c2) {
-		super(new ValueChangedCommandOperation<>(c1.operation.getOldValue(), c2.operation.getNewValue()), c2.actions);
-		this.data = c2.data;
-	}
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.command.EditCommand#isValid()
 	 */
 	@Override
 	public boolean isValid() {
-		return this.data != null && this.data.getVerse() != null;
+		return this.data != null && 
+			   this.data.getVerse() != null;
 	}
 	
 	/* (non-Javadoc)
@@ -103,7 +108,7 @@ public final class VerseTextEditCommand extends ActionsEditCommand<ValueChangedC
 	public EditCommand merge(EditCommand command) {
 		if (command instanceof VerseTextEditCommand) {
 			VerseTextEditCommand other = (VerseTextEditCommand)command;
-			return new VerseTextEditCommand(other, this);
+			return new VerseTextEditCommand(other.oldValue, this.newValue, this.tree, this.item, this.editor);
 		}
 		return null;
 	}
@@ -113,7 +118,8 @@ public final class VerseTextEditCommand extends ActionsEditCommand<ValueChangedC
 	 */
 	@Override
 	public void execute() {
-		this.data.getVerse().setText(this.operation.getNewValue());
+		// update the data
+		this.data.getVerse().setText(this.newValue);
 		this.data.update();
 	}
 	
@@ -122,9 +128,13 @@ public final class VerseTextEditCommand extends ActionsEditCommand<ValueChangedC
 	 */
 	@Override
 	public void undo() {
-		this.data.getVerse().setText(this.operation.getOldValue());
+		// update the data
+		this.data.getVerse().setText(this.oldValue);
 		this.data.update();
-		super.undo();
+		
+		// perform actions
+		this.select(this.tree, this.item);
+		this.text(this.editor, this.oldValue);
 	}
 	
 	/* (non-Javadoc)
@@ -132,8 +142,12 @@ public final class VerseTextEditCommand extends ActionsEditCommand<ValueChangedC
 	 */
 	@Override
 	public void redo() {
-		this.data.getVerse().setText(this.operation.getNewValue());
+		// update the data
+		this.data.getVerse().setText(this.newValue);
 		this.data.update();
-		super.redo();
+
+		// perform actions
+		this.select(this.tree, this.item);
+		this.text(this.editor, this.newValue);
 	}
 }

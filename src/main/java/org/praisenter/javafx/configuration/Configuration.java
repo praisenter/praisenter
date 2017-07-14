@@ -59,6 +59,7 @@ import org.praisenter.xml.XmlIO;
 // we have to define any custom types that might be saved in settings
 @XmlSeeAlso({
 	Display.class,
+	Displays.class,
 	Resolution.class,
 	ResolutionSet.class,
 	UUID.class

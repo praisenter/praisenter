@@ -1,41 +1,28 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.slide.graphics.SlideStroke;
 
-public class BorderEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<SlideStroke>> {
-	private final ObservableSlideRegion<?> component;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.Node;
+
+public final class BorderEditCommand extends SlideRegionValueChangedEditCommand<SlideStroke, ObservableSlideRegion<?>> implements EditCommand {
+	private final Node focusNode;
 	
-	@SafeVarargs
-	public BorderEditCommand(ObservableSlideRegion<?> component, ValueChangedCommandOperation<SlideStroke> operation, CommandAction<ValueChangedCommandOperation<SlideStroke>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public BorderEditCommand(ObservableSlideRegion<?> component, ValueChangedCommandOperation<SlideStroke> operation, List<CommandAction<ValueChangedCommandOperation<SlideStroke>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public BorderEditCommand(SlideStroke oldValue, SlideStroke newValue, ObservableSlideRegion<?> region, ObjectProperty<ObservableSlideRegion<?>> selection, Node focusNode) {
+		super(oldValue, newValue, region, selection);
+		this.focusNode = focusNode;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setBorder(this.operation.getNewValue());
+		this.region.setBorder(this.newValue);
 	}
 	
 	@Override
 	public boolean isMergeSupported(EditCommand command) {
 		return false;
-	}
-	
-	@Override
-	public boolean isValid() {
-		return this.component != null;
 	}
 	
 	@Override
@@ -45,13 +32,17 @@ public class BorderEditCommand extends ActionsEditCommand<ValueChangedCommandOpe
 	
 	@Override
 	public void undo() {
-		this.component.setBorder(this.operation.getOldValue());
-		super.undo();
+		this.region.setBorder(this.oldValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setBorder(this.operation.getNewValue());
-		super.redo();
+		this.region.setBorder(this.newValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 }

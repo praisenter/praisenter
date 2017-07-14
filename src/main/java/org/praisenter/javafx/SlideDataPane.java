@@ -65,7 +65,6 @@ public class SlideDataPane extends BorderPane {
 			}
 		});
 		
-		// TODO show prev/next
 		this.bibleNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
 			if (this.slidePreviewPane.getValue() != null) {
 				this.slidePreviewPane.setPlaceholderData(nv);

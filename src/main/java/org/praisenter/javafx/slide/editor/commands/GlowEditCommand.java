@@ -1,42 +1,28 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.slide.graphics.SlideShadow;
 
-public class GlowEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<SlideShadow>> {
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.Node;
+
+public final class GlowEditCommand extends SlideRegionValueChangedEditCommand<SlideShadow, ObservableSlideRegion<?>> implements EditCommand {
+	private final Node focusNode;
 	
-	private final ObservableSlideRegion<?> region;
-	
-	@SafeVarargs
-	public GlowEditCommand(ObservableSlideRegion<?> region, ValueChangedCommandOperation<SlideShadow> operation, CommandAction<ValueChangedCommandOperation<SlideShadow>>... actions) {
-		this(region, operation, Arrays.asList(actions));
-	}
-	
-	public GlowEditCommand(ObservableSlideRegion<?> region, ValueChangedCommandOperation<SlideShadow> operation, List<CommandAction<ValueChangedCommandOperation<SlideShadow>>> actions) {
-		super(operation, actions);
-		this.region = region;
+	public GlowEditCommand(SlideShadow oldValue, SlideShadow newValue, ObservableSlideRegion<?> region, ObjectProperty<ObservableSlideRegion<?>> selection, Node focusNode) {
+		super(oldValue, newValue, region, selection);
+		this.focusNode = focusNode;
 	}
 	
 	@Override
 	public void execute() {
-		this.region.setGlow(this.operation.getNewValue());
+		this.region.setGlow(this.newValue);
 	}
 	
 	@Override
 	public boolean isMergeSupported(EditCommand command) {
 		return false;
-	}
-	
-	@Override
-	public boolean isValid() {
-		return this.region != null;
 	}
 	
 	@Override
@@ -46,13 +32,17 @@ public class GlowEditCommand extends ActionsEditCommand<ValueChangedCommandOpera
 	
 	@Override
 	public void undo() {
-		this.region.setGlow(this.operation.getOldValue());
-		super.undo();
+		this.region.setGlow(this.oldValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 	
 	@Override
 	public void redo() {
-		this.region.setGlow(this.operation.getNewValue());
-		super.redo();
+		this.region.setGlow(this.newValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 }

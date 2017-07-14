@@ -64,14 +64,19 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	/** An observable version of the settings */
 	private final ObservableMap<Setting, Object> settings = FXCollections.observableHashMap();
 	
-	/** A readonly version of the observable settings for clients to listen on */
-	private final ObservableMap<Setting, Object> readonlySettings = FXCollections.unmodifiableObservableMap(this.settings);
-	
 	/** An observable list of resolutions (stored in settings but not observable as such) */
 	private final ObservableList<Resolution> resolutions = FXCollections.observableArrayList();
 	
-	/** A readonly version of the observable list of resolutions for clients to listen on */
+	/** Ah observable list of display assignments (stored in settings but not observable as such) */
+	private final ObservableList<Display> displays = FXCollections.observableArrayList();
+	
+	// to make sure callers don't modify the lists directly
+	
+	/** An observable list of resolutions (stored in settings but not observable as such) */
 	private final ObservableList<Resolution> readonlyResolutions = FXCollections.unmodifiableObservableList(this.resolutions);
+	
+	/** Ah observable list of display assignments (stored in settings but not observable as such) */
+	private final ObservableList<Display> readonlyDisplays = FXCollections.unmodifiableObservableList(this.displays);
 	
 	/**
 	 * Minimal constructor.
@@ -103,6 +108,12 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 		if (resolutions != null) {
 			this.resolutions.addAll(resolutions);
 		}
+		
+		// add all display assignments
+		Displays displays = this.configuration.getObject(Setting.DISPLAY_ASSIGNMENTS, Displays.class, null);
+		if (displays != null) {
+			this.displays.addAll(displays);
+		}
 	}
 	
 	/**
@@ -114,16 +125,20 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 		if (setting == null) {
 			return;
 		}
-		
 		this.settings.put(setting, value);
 		this.configuration.set(setting, value);
 		
 		if (setting == Setting.DISPLAY_RESOLUTIONS) {
 			if (value != null && value instanceof ResolutionSet) {
-				ResolutionSet resolutions = (ResolutionSet)value;
-				this.resolutions.setAll(resolutions);
+				this.resolutions.setAll((ResolutionSet)value);
 			} else {
 				this.resolutions.clear();
+			}
+		} else if (setting == Setting.DISPLAY_ASSIGNMENTS) {
+			if (value != null && value instanceof Displays) {
+				this.displays.setAll((Displays)value);
+			} else {
+				this.displays.clear();
 			}
 		}
 	}
@@ -136,17 +151,15 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 		if (settings == null) {
 			return;
 		}
-		
-		this.configuration.setAll(settings);
 		this.settings.putAll(settings);
+		this.configuration.setAll(settings);
 		
-		if (settings.containsKey(Setting.DISPLAY_RESOLUTIONS)) {
-			Object value = settings.get(Setting.DISPLAY_RESOLUTIONS);
-			if (value != null && value instanceof ResolutionSet) {
-				ResolutionSet resolutions = (ResolutionSet)value;
-				this.resolutions.setAll(resolutions);
-			} else {
-				this.resolutions.clear();
+		for (Setting setting : settings.keySet()) {
+			Object value = settings.get(setting);
+			if (setting == Setting.DISPLAY_RESOLUTIONS) {
+				ObservableConfiguration.this.resolutions.setAll((ResolutionSet)value);
+			} else if (setting == Setting.DISPLAY_ASSIGNMENTS) {
+				ObservableConfiguration.this.displays.setAll((Displays)value);
 			}
 		}
 	}
@@ -159,17 +172,25 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	@Override
 	protected AsyncTask<Void> set(Setting setting, Object value) {
 		this.update(setting, value);
+		return this.save();
+	}
+
+	/**
+	 * Saves the current configuration.
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
+	public AsyncTask<Void> save() {
 		return AsyncTaskFactory.single(() -> {
 			try {
 				this.configuration.save();
 			} catch (Exception ex) {
-				LOGGER.error("Failed to save configuration after assigning '" + setting + "' to '" + value + "'.", ex);
+				LOGGER.error("Failed to save configuration.", ex);
 				throw ex;
 			}
 			return null;
 		});
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.configuration.SettingMap#get(org.praisenter.javafx.configuration.Setting)
 	 */
@@ -192,15 +213,7 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	@Override
 	protected AsyncTask<Void> setAll(Map<Setting, Object> settings) {
 		this.update(settings);
-		return AsyncTaskFactory.single(() -> {
-			try {
-				this.configuration.save();
-			} catch (Exception ex) {
-				LOGGER.error("Failed to save configuration after committing a batch.");
-				throw ex;
-			}
-			return null;
-		});
+		return this.save();
 	}
 	
 	/* (non-Javadoc)
@@ -216,15 +229,7 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	 */
 	public AsyncTask<Void> remove(Setting setting) {
 		this.update(setting, null);
-		return AsyncTaskFactory.single(() -> {
-			try {
-				this.configuration.save();
-			} catch (Exception ex) {
-				LOGGER.error("Failed to save configuration after removing '" + setting + "'.", ex);
-				throw ex;
-			}
-			return null;
-		});
+		return this.save();
 	}
 	
 	// observables
@@ -234,8 +239,10 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	 * @return ObservableMap&lt;{@link Setting}, Object&gt;
 	 */
 	public ObservableMap<Setting, Object> getSettings() {
-		return this.readonlySettings;
+		return this.settings;
 	}
+	
+	// helpers
 	
 	/**
 	 * Returns an observable list of resolutions.
@@ -243,6 +250,14 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	 */
 	public ObservableList<Resolution> getResolutions() {
 		return this.readonlyResolutions;
+	}
+	
+	/**
+	 * Returns an observable list of display assignments.
+	 * @return ObservableList&lt;{@link Display}&gt;
+	 */
+	public ObservableList<Display> getDisplays() {
+		return this.readonlyDisplays;
 	}
 
 	// restart required

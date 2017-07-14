@@ -1,30 +1,23 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 
-public class TextWrappingEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<Boolean>> {
-	private final ObservableTextComponent<?> component;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.control.ToggleButton;
+
+public final class TextWrappingEditCommand extends SlideRegionValueChangedEditCommand<Boolean, ObservableTextComponent<?>> implements EditCommand {
+	private final ToggleButton control;
 	
-	@SafeVarargs
-	public TextWrappingEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<Boolean> operation, CommandAction<ValueChangedCommandOperation<Boolean>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public TextWrappingEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<Boolean> operation, List<CommandAction<ValueChangedCommandOperation<Boolean>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public TextWrappingEditCommand(Boolean oldValue, Boolean newValue, ObservableTextComponent<?> component, ObjectProperty<ObservableSlideRegion<?>> selection, ToggleButton control) {
+		super(oldValue, newValue, component, selection);
+		this.control = control;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setTextWrapping(this.operation.getNewValue());
+		this.region.setTextWrapping(this.newValue);
 	}
 	
 	@Override
@@ -34,7 +27,7 @@ public class TextWrappingEditCommand extends ActionsEditCommand<ValueChangedComm
 	
 	@Override
 	public boolean isValid() {
-		return this.component != null;
+		return super.isValid() && this.control != null;
 	}
 	
 	@Override
@@ -44,13 +37,17 @@ public class TextWrappingEditCommand extends ActionsEditCommand<ValueChangedComm
 	
 	@Override
 	public void undo() {
-		this.component.setTextWrapping(this.operation.getOldValue());
-		super.undo();
+		this.region.setTextWrapping(this.oldValue);
+		
+		this.selectRegion();
+		this.toggle(this.control, this.oldValue);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setTextWrapping(this.operation.getNewValue());
-		super.redo();
+		this.region.setTextWrapping(this.newValue);
+		
+		this.selectRegion();
+		this.toggle(this.control, this.newValue);
 	}
 }

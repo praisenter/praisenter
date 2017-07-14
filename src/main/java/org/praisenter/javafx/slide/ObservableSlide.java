@@ -372,8 +372,8 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		if (index > 0) {
 			Collections.swap(this.components, index, index - 1);
 			
-			componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
-			componentCanvas.getChildren().addAll(getComponentDisplayPanes());
+			this.componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
+			this.componentCanvas.getChildren().addAll(getComponentDisplayPanes());
 		}
 	}
 	
@@ -391,8 +391,8 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		if (index >= 0 && index < this.components.size() - 1) {
 			Collections.swap(this.components, index, index + 1);
 			
-			componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
-			componentCanvas.getChildren().addAll(getComponentDisplayPanes());
+			this.componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
+			this.componentCanvas.getChildren().addAll(getComponentDisplayPanes());
 		}
 	}
 	
@@ -409,8 +409,8 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.components.remove(component);
 		this.components.add(component);
 		
-		componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
-		componentCanvas.getChildren().addAll(getComponentDisplayPanes());
+		this.componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
+		this.componentCanvas.getChildren().addAll(getComponentDisplayPanes());
 	}
 	
 	/**
@@ -426,8 +426,26 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 		this.components.remove(component);
 		this.components.add(0, component);
 		
-		componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
-		componentCanvas.getChildren().addAll(getComponentDisplayPanes());
+		this.componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
+		this.componentCanvas.getChildren().addAll(getComponentDisplayPanes());
+	}
+	
+	/**
+	 * Moves the given component to the given index.
+	 * @param component the component
+	 * @param index the position to move the component
+	 */
+	public void moveComponent(ObservableSlideComponent<?> component, int index) {
+		// this will set the order of the components and sort them
+		index = this.region.moveComponent(component.region, index);
+		
+		// now we need to reflect those changes in the observable objects
+		
+		this.components.remove(component);
+		this.components.add(index, component);
+		
+		this.componentCanvas.getChildren().removeAll(getComponentDisplayPanes());
+		this.componentCanvas.getChildren().addAll(getComponentDisplayPanes());
 	}
 
 	// placeholder

@@ -4,13 +4,13 @@ import org.controlsfx.control.SegmentedButton;
 import org.praisenter.MediaType;
 import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.Option;
+import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.media.MediaPicker;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.BackgroundEditCommand;
-import org.praisenter.javafx.slide.editor.commands.SlideEditorCommandFactory;
 import org.praisenter.javafx.slide.editor.controls.SlideGradientPicker;
 import org.praisenter.media.Media;
 import org.praisenter.slide.graphics.ScaleType;
@@ -23,7 +23,6 @@ import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.slide.object.MediaObject;
 
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ColorPicker;
@@ -126,7 +125,7 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 		// events
 		
 		this.context.selectedProperty().addListener((obs, ov, nv) -> {
-			mutating = true;
+			this.mutating = true;
 			if (nv != null) {
 				setControlValues(nv.getBackground());
 				setDisable(false);
@@ -134,24 +133,22 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 				setControlValues(null);
 				setDisable(true);
 			}
-			mutating = false;
+			this.mutating = false;
 		});
 		
-		InvalidationListener listener = new InvalidationListener() {
-			@Override
-			public void invalidated(Observable observable) {
-				if (mutating) return;
-				ObservableSlideRegion<?> comp = context.getSelected();
-				if (comp != null) {
-//					comp.setBackground(getControlValues());
-//					notifyComponentChanged();
-					
-					context.applyCommand(new BackgroundEditCommand(
-							comp, 
-							CommandFactory.changed(comp.getBackground(), getControlValues()), 
-							SlideEditorCommandFactory.select(context.selectedProperty(), comp),
-							CommandFactory.focus(cmbTypes)));
-				}
+		InvalidationListener listener = obs -> {
+			if (this.mutating) return;
+			ObservableSlideRegion<?> comp = context.getSelected();
+			if (comp != null) {
+				SlidePaint oldValue = comp.getBackground();
+				SlidePaint newValue = getControlValues();
+				this.applyCommand(CommandFactory.chain(
+						new BackgroundEditCommand(oldValue, newValue, comp, context.selectedProperty(), this.cmbTypes),
+						new ActionEditCommand(null, (self) -> { 
+								setControlValues(oldValue); 
+							}, (self) -> { 
+								setControlValues(newValue); 
+							})));
 			}
 		};
 		

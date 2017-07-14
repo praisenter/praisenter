@@ -47,6 +47,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.shape.LineTo;
@@ -113,6 +114,7 @@ public final class TagListView extends BorderPane {
 		// create an autocomplete field
 		this.textField = new TextField();
 		this.textField.setPromptText(Translations.get("tags.add.placeholder"));
+		this.textField.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		
 		// apply the auto completion binding
 		TextFields.bindAutoCompletion(

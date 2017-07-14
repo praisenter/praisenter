@@ -1,29 +1,30 @@
 package org.praisenter.javafx.slide.editor.ribbon;
 
 import org.praisenter.javafx.Option;
+import org.praisenter.javafx.PreventUndoRedoEventFilter;
+import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
-import org.praisenter.javafx.slide.editor.commands.SlideEditorCommandFactory;
 import org.praisenter.javafx.slide.editor.commands.TextGlowEditCommand;
 import org.praisenter.slide.graphics.ShadowType;
 import org.praisenter.slide.graphics.SlideShadow;
 
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-class FontGlowRibbonTab extends ComponentEditorRibbonTab {
+class TextGlowRibbonTab extends ComponentEditorRibbonTab {
 
 	private final ComboBox<Option<ShadowOption>> cmbType;
 	private final ColorPicker pkrColor;
@@ -32,7 +33,7 @@ class FontGlowRibbonTab extends ComponentEditorRibbonTab {
 	private final Spinner<Double> spnRadius;
 	private final Spinner<Double> spnSpread;
 
-	public FontGlowRibbonTab(SlideEditorContext context) {
+	public TextGlowRibbonTab(SlideEditorContext context) {
 		super(context, "Font Glow");
 
 		ObservableList<Option<ShadowOption>> types = FXCollections.observableArrayList();
@@ -86,6 +87,11 @@ class FontGlowRibbonTab extends ComponentEditorRibbonTab {
 		this.spnRadius.setTooltip(new Tooltip("The glow radius"));
 		this.spnSpread.setTooltip(new Tooltip("The glow spread"));
 		
+		this.spnRadius.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnSpread.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnX.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnY.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		
 		// layout
 		
 		HBox row1 = new HBox(2, this.cmbType, this.pkrColor);
@@ -97,26 +103,22 @@ class FontGlowRibbonTab extends ComponentEditorRibbonTab {
 		// events
 
 		// when the control values change
-		InvalidationListener listener = new InvalidationListener() {
-			@Override
-			public void invalidated(Observable observable) {
-				if (mutating) return;
-				// set the value
-				ObservableSlideRegion<?> comp = context.getSelected();
-				if (comp != null && comp instanceof ObservableTextComponent) {
-					ObservableTextComponent<?> tc =(ObservableTextComponent<?>)comp;
-//					tc.setTextShadow(getControlValues());
-//					notifyComponentChanged();
-					context.applyCommand(new TextGlowEditCommand(
-							tc, 
-							CommandFactory.changed(tc.getTextGlow(), getControlValues()), 
-							SlideEditorCommandFactory.select(context.selectedProperty(), tc),
-							CommandFactory.func((op) -> {
-								setControlValues(op.getOldValue());
-							}, (op) -> {
-								setControlValues(op.getNewValue());
-							})));
-				}
+		InvalidationListener listener = obs -> {
+			if (this.mutating) return;
+			// set the value
+			ObservableSlideRegion<?> comp = context.getSelected();
+			if (comp != null && comp instanceof ObservableTextComponent) {
+				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)comp;
+				
+				SlideShadow oldValue = tc.getTextGlow();
+				SlideShadow newValue = this.getControlValues();
+				applyCommand(CommandFactory.chain(
+						new TextGlowEditCommand(oldValue, newValue, tc, context.selectedProperty(), this.cmbType),
+						new ActionEditCommand(null, self -> {
+							this.setControlValues(oldValue);
+						}, self -> {
+							this.setControlValues(newValue);
+						})));
 			}
 		};
 		
@@ -130,7 +132,7 @@ class FontGlowRibbonTab extends ComponentEditorRibbonTab {
 		// when the value is changed externally
 		this.context.selectedProperty().addListener((obs, ov, nv) -> {
 			// update controls
-			mutating = true;
+			this.mutating = true;
 			if (nv != null && nv instanceof ObservableTextComponent) {
 				this.setDisable(false);
 				ObservableTextComponent<?> tc = (ObservableTextComponent<?>)nv;
@@ -140,7 +142,7 @@ class FontGlowRibbonTab extends ComponentEditorRibbonTab {
 				this.setDisable(true);
 				setControlValues(null);
 			}
-			mutating = false;
+			this.mutating = false;
 		});
 	}
 

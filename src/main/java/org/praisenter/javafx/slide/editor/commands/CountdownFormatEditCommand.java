@@ -1,35 +1,24 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 import org.praisenter.javafx.slide.ObservableCountdownComponent;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.converters.TimeFormatConverter;
 
-public class CountdownFormatEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<String>> {
-	private static final Logger LOGGER = LogManager.getLogger();
-	
-	private final ObservableCountdownComponent component;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.control.ComboBox;
 
-	@SafeVarargs
-	public CountdownFormatEditCommand(ObservableCountdownComponent component, ValueChangedCommandOperation<String> operation, CommandAction<ValueChangedCommandOperation<String>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
+public final class CountdownFormatEditCommand extends SlideRegionValueChangedEditCommand<String, ObservableCountdownComponent> implements EditCommand {
+	private final ComboBox<String> control;
 	
-	public CountdownFormatEditCommand(ObservableCountdownComponent component, ValueChangedCommandOperation<String> operation, List<CommandAction<ValueChangedCommandOperation<String>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public CountdownFormatEditCommand(String oldValue, String newValue, ObservableCountdownComponent component, ObjectProperty<ObservableSlideRegion<?>> selection, ComboBox<String> control) {
+		super(oldValue, newValue, component, selection);
+		this.control = control;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setCountdownFormat(TimeFormatConverter.getFormat(this.operation.getNewValue()));
+		this.region.setCountdownFormat(TimeFormatConverter.getFormat(this.newValue));
 	}
 	
 	@Override
@@ -39,7 +28,7 @@ public class CountdownFormatEditCommand extends ActionsEditCommand<ValueChangedC
 	
 	@Override
 	public boolean isValid() {
-		return this.component != null;
+		return super.isValid() && this.control != null;
 	}
 	
 	@Override
@@ -49,13 +38,17 @@ public class CountdownFormatEditCommand extends ActionsEditCommand<ValueChangedC
 	
 	@Override
 	public void undo() {
-		this.component.setCountdownFormat(TimeFormatConverter.getFormat(this.operation.getOldValue()));
-		super.undo();
+		this.region.setCountdownFormat(TimeFormatConverter.getFormat(this.oldValue));
+		
+		this.selectRegion();
+		this.combo(this.control, this.oldValue);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setCountdownFormat(TimeFormatConverter.getFormat(this.operation.getNewValue()));
-		super.redo();
+		this.region.setCountdownFormat(TimeFormatConverter.getFormat(this.newValue));
+		
+		this.selectRegion();
+		this.combo(this.control, this.newValue);
 	}
 }

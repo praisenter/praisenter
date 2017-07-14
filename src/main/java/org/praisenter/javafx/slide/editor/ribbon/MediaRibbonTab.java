@@ -3,19 +3,18 @@ package org.praisenter.javafx.slide.editor.ribbon;
 import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.glyphfont.Glyph;
 import org.praisenter.javafx.ApplicationGlyphs;
+import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.media.MediaPicker;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.MediaEditCommand;
-import org.praisenter.javafx.slide.editor.commands.SlideEditorCommandFactory;
 import org.praisenter.media.Media;
 import org.praisenter.slide.graphics.ScaleType;
 import org.praisenter.slide.object.MediaObject;
 
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
@@ -83,25 +82,21 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 			mutating = false;
 		});
 		
-		InvalidationListener listener = new InvalidationListener() {
-			@Override
-			public void invalidated(Observable observable) {
-				if (mutating) return;
-				ObservableSlideRegion<?> comp = context.getSelected();
-				if (comp != null && comp instanceof ObservableMediaComponent) {
-					ObservableMediaComponent omc = (ObservableMediaComponent)comp;
-					
-					MediaObject nv = getControlValues();
-					context.applyCommand(new MediaEditCommand(
-							omc, 
-							CommandFactory.changed(omc.getMedia(), nv), 
-							SlideEditorCommandFactory.select(context.selectedProperty(), omc),
-							CommandFactory.func((op) -> {
-								setControlValues(op.getOldValue());
-							}, (op) -> {
-								setControlValues(op.getNewValue());
-							})));
-				}
+		InvalidationListener listener = obs -> {
+			if (this.mutating) return;
+			ObservableSlideRegion<?> comp = context.getSelected();
+			if (comp != null && comp instanceof ObservableMediaComponent) {
+				ObservableMediaComponent omc = (ObservableMediaComponent)comp;
+				
+				MediaObject oldValue = omc.getMedia();
+				MediaObject newValue = this.getControlValues();
+				applyCommand(CommandFactory.chain(
+						new MediaEditCommand(oldValue, newValue, omc, context.selectedProperty(), this.pkrMedia),
+						new ActionEditCommand(null, self -> {
+							this.setControlValues(oldValue);
+						}, self -> {
+							this.setControlValues(newValue);
+						})));
 			}
 		};
 		

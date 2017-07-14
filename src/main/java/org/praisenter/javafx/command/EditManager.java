@@ -115,6 +115,8 @@ public final class EditManager {
 		
 		this.undos.push(command);
 		this.redos.clear();
+		
+		this.printCounts();
 	}
 	
 	/**
@@ -138,6 +140,7 @@ public final class EditManager {
 			this.redos.push(undo);
 		}
 		
+		this.printCounts();
 		this.isOperating = false;
 		
 		return undo;
@@ -164,9 +167,14 @@ public final class EditManager {
 			this.undos.push(redo);
 		}
 		
+		this.printCounts();
 		this.isOperating = false;
 		
 		return redo;
+	}
+	
+	private void printCounts() {
+		LOGGER.debug("U(" + this.undos.size() + ") R(" + this.redos.size() + ")");
 	}
 	
 	/**
@@ -245,5 +253,21 @@ public final class EditManager {
 	public void reset() {
 		this.undos.clear();
 		this.redos.clear();
+	}
+	
+	/**
+	 * Returns the number of undos currently being managed.
+	 * @return int
+	 */
+	public int getUndoCount() {
+		return this.undos.size();
+	}
+	
+	/**
+	 * Returns the number of redos currently being managed.
+	 * @return int
+	 */
+	public int getRedoCount() {
+		return this.redos.size();
 	}
 }

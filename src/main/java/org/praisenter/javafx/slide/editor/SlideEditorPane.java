@@ -16,6 +16,7 @@ import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.async.AsyncTask;
+import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.command.EditCommand;
 import org.praisenter.javafx.media.MediaLibraryDialog;
@@ -25,9 +26,12 @@ import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.SlideActions;
 import org.praisenter.javafx.slide.SlideMode;
+import org.praisenter.javafx.slide.editor.commands.PositionEditCommand;
+import org.praisenter.javafx.slide.editor.commands.RemoveComponentEditCommand;
+import org.praisenter.javafx.slide.editor.commands.SizeEditCommand;
 import org.praisenter.javafx.slide.editor.events.MediaComponentAddEvent;
 import org.praisenter.javafx.slide.editor.events.SlideComponentAddEvent;
-import org.praisenter.javafx.slide.editor.events.SlideComponentOrderEvent;
+import org.praisenter.javafx.slide.editor.events.SlideComponentRemoveEvent;
 import org.praisenter.javafx.slide.editor.events.SlideEditorEvent;
 import org.praisenter.javafx.slide.editor.ribbon.SlideEditorRibbon;
 import org.praisenter.javafx.themes.Styles;
@@ -44,6 +48,7 @@ import org.praisenter.xml.XmlIO;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.css.PseudoClass;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -73,6 +78,8 @@ import javafx.scene.shape.StrokeType;
 // FEATURE (L) Allow grouping of components to easily move them together
 // JAVABUG (L) 06/30/16 Text border really slow when the stroke style is INSIDE or OUTSIDE - https://bugs.openjdk.java.net/browse/JDK-8089081
 // JAVABUG (M) 02/04/17 DropShadow and Glow effects cannot be mouse transparent - https://bugs.openjdk.java.net/browse/JDK-8092268, https://bugs.openjdk.java.net/browse/JDK-8101376
+
+// FIXME we need to manage focus so that undo/redo works; right now undo works, but then focus goes to something to where the redo doesn't
 
 public final class SlideEditorPane extends BorderPane implements ApplicationPane, ApplicationEditorPane {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -209,7 +216,6 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			}
 			if (nv != null) {
 				nv.getEditBorderNode().pseudoClassStateChanged(SELECTED, true);
-				nv.getEditBorderNode().requestFocus();
 			}
 		});
 		
@@ -256,28 +262,20 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				// bind the scale factor
 				nv.scalingProperty().bind(scaleFactor);
 				// setup the mouse event handler
-				SlideRegionMouseEventHandler slideMouseHandler = new SlideRegionMouseEventHandler(nv, nv);
+				SlideRegionMouseEventHandler slideMouseHandler = new SlideRegionMouseEventHandler(nv, this::onPositionChanged, this::onSizeChanged);
 				rootEditPane.addEventHandler(MouseEvent.ANY, slideMouseHandler);
 				rootEditPane.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
 					this.context.setSelected(nv);
-				});
-				// track mouse drag events
-				rootEditPane.addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> { 
-					fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.CHANGED));
 				});
 				
 				for (ObservableSlideComponent<?> component : nv.getComponents()) {
 					// bind the scale factor
 					component.scalingProperty().bind(scaleFactor);
 					// setup the mouse event handler
-					SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(nv, component);
+					SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(component, this::onPositionChanged, this::onSizeChanged);
 					component.getEditBorderNode().addEventHandler(MouseEvent.ANY, mouseHandler);
 					component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_PRESSED, (e) -> {
 						this.context.setSelected(component);
-					});
-					// track mouse drag events
-					component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_DRAGGED, e -> { 
-						fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.CHANGED));
 					});
 				}
 				
@@ -288,7 +286,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				heightSizing.invalidate();
 			}
 			
-			this.hasUnsavedChanges = false;
+			this.context.getEditManager().reset();
 		});
 		
 		// setting the target resolution
@@ -301,10 +299,21 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		// change tracking
 		this.ribbon.addEventHandler(SlideEditorEvent.CHANGED, (e) -> {
 			this.stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
-//			EditCommand command = e.getCommand();
-//			// always add a select component action
-//			EditCommand wrapper = CommandFactory.chain(command, );
-//			applyCommand(wrapper);
+		});
+
+		// removing components
+		this.addEventHandler(SlideEditorEvent.REMOVE_COMPONENT, (e) -> {
+			ObservableSlide<?> slide = this.context.getSlide();
+			ObservableSlideComponent<?> component = e.getComponent();
+			// TODO would be nice to remove event handlers too, but we would need references to them
+			EditCommand command = CommandFactory.chain(
+					new RemoveComponentEditCommand(slide, component, this.context.selectedProperty(), this.ribbon),
+					new ActionEditCommand(null, self -> {
+						component.scalingProperty().bind(scaleFactor);
+					}, self -> {
+						component.scalingProperty().unbind();
+					}));
+			this.context.getEditManager().execute(command);
 		});
 		
 		// adding components
@@ -322,18 +331,38 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				component.setY((sh - h) * 0.5);
 			}
 			
-			// bind the scale factor
-			component.scalingProperty().bind(scaleFactor);
 			// setup the mouse event handler
-			SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(slide, component);
-			component.getEditBorderNode().addEventHandler(MouseEvent.ANY, mouseHandler);
-			component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_PRESSED, ev -> {
-				this.context.setSelected(component);
-			});
-			// track mouse drag events
-			component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_DRAGGED, ev -> { 
-				fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.CHANGED));
-			});
+			final SlideRegionMouseEventHandler mouseHandler = new SlideRegionMouseEventHandler(component, this::onPositionChanged, this::onSizeChanged);
+			final EventHandler<MouseEvent> clickedHandler = ev -> { 
+				this.context.setSelected(component); 
+			};
+			
+			EditCommand command = new ActionEditCommand(
+					self -> {
+						// add it to the slide
+						slide.addComponent(component);
+						
+						// update any placeholders
+						slide.updatePlaceholders();
+						
+						// bind the scale factor
+						component.scalingProperty().bind(scaleFactor);
+
+						// setup the mouse event handlers
+						component.getEditBorderNode().addEventHandler(MouseEvent.ANY, mouseHandler);
+						component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_PRESSED, clickedHandler);
+					},
+					self -> {
+						// remove scaling
+						component.scalingProperty().unbind();
+						
+						// remove mouse event handlers
+						component.getEditBorderNode().removeEventHandler(MouseEvent.ANY, mouseHandler);
+						component.getEditBorderNode().removeEventHandler(MouseEvent.MOUSE_PRESSED, clickedHandler);
+						
+						// remove the component from the slide
+						slide.removeComponent(component);
+					});
 			
 			// if the component type is media, then show the media dialog
 			// before adding the component to the slide
@@ -361,21 +390,16 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 						}
 						
 						omc.setMedia(mo);
-						slide.addComponent(component);
 						
 						// set it as the selected component after the user has chosen a media
 						// item (if we don't then the media ribbon doesn't know that this media
 						// was selected and therefore clears it when they change anything about it
 						// like the scaling)
-						this.context.setSelected(component);
-						fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.CHANGED));
+						this.applyCommand(command);
 					}
 				});
 			} else {
-				slide.addComponent(component);
-				slide.updatePlaceholders();
-				this.context.setSelected(component);
-				fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.CHANGED));
+				this.applyCommand(command);
 			}
 		});
 		
@@ -403,6 +427,21 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		return this.context.getSlide().getRegion();
 	}
 	
+	private void onPositionChanged(ObservableSlideRegion<?> region, org.praisenter.slide.graphics.Rectangle newValue) {
+		org.praisenter.slide.graphics.Rectangle oldValue = region.getRegion().getBounds();
+		this.applyCommand(new PositionEditCommand(oldValue, newValue, region, this.context.selectedProperty(), this.ribbon));
+	}
+	
+	private void onSizeChanged(ObservableSlideRegion<?> region, org.praisenter.slide.graphics.Rectangle newValue) {
+		org.praisenter.slide.graphics.Rectangle oldValue = region.getRegion().getBounds();
+		this.applyCommand(new SizeEditCommand(oldValue, newValue, region, this.context.selectedProperty(), this.ribbon));
+	}
+	
+	private void applyCommand(EditCommand command) {
+		this.context.getEditManager().execute(command);
+		this.stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
+	}
+	
 	// METHODS
 	
 	private final void save(boolean saveAs) {
@@ -423,29 +462,21 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 					slide);
 		}
 		
-		final boolean hasChanged = this.hasUnsavedChanges;
-		this.hasUnsavedChanges = false;
+		this.context.getEditManager().mark();
 		task.addSuccessHandler(e -> {
 			Slide saved = (Slide)e.getSource().getValue();
-			// make the current slide being edited act
-			// as the one we saved so that any subsequent
-			// saves save to this one and so that we don't
-			// lose any changes made by the user
-			// while the save action was processing
-			boolean moreChanges = this.hasUnsavedChanges;
-			// NOTE: these will change the hasUnsavedChanges value, so
-			//       we store the current value before we call these
+			// we need to update the slide that is currently
+			// being edited to make sure that if the name changed
+			// that the name and other metadata is updated so when
+			// subsequent changes are saved, they are saved to the
+			// appropriate place.  It's also possible that the 
+			// slide has been changed since the save completed
 			this.context.getSlide().getRegion().as(saved);
 			// manually update the name field
 			this.ribbon.setSlideName(saved.getName());
-			// did the user make changes while the save was happening?
-			if (!moreChanges) {
-				// if not, then force the unsaved changes flag to false
-				this.hasUnsavedChanges = false;
-			}
 		}).addCancelledOrFailedHandler(e -> {
 			// if the save fails, make sure it gets set back to it's original value
-			this.hasUnsavedChanges = hasChanged;
+			this.context.getEditManager().unmark();
 		}).execute(context.getExecutorService());
 	}
 	
@@ -486,8 +517,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				cb.setContent(cc);
 				
 				if (cut) {
+					this.fireEvent(new SlideComponentRemoveEvent(this, this, (ObservableSlideComponent<?>) selected));
 					// remove the component
-					slide.removeComponent((ObservableSlideComponent<?>)selected);
+					//slide.removeComponent((ObservableSlideComponent<?>)selected);
 				}
 				
 				// notify we changed
@@ -518,13 +550,10 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	}
 	
 	private final void delete() {
-		ObservableSlide<?> slide = this.context.getSlide();
 		ObservableSlideRegion<?> selected = this.context.getSelected();
 		
 		if (selected != null && selected instanceof ObservableSlideComponent) {
-			if (slide.removeComponent((ObservableSlideComponent<?>)selected)) {
-				this.context.setSelected(slide);
-			}
+			this.fireEvent(new SlideComponentRemoveEvent(this, this, (ObservableSlideComponent<?>) selected));
 		}
 	}
 	
@@ -547,6 +576,14 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				break;
 			case DELETE:
 				this.delete();
+				break;
+			case UNDO:
+				this.context.getEditManager().undo();
+				this.stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
+				break;
+			case REDO:
+				this.context.getEditManager().redo();
+				this.stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
 				break;
 			default:
 				return;
@@ -575,6 +612,10 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 					return cb.hasContent(DataFormats.SLIDE_COMPONENT);
 				}
 				return false;
+			case UNDO:
+				return this.context.getEditManager().isUndoAvailable();
+			case REDO:
+				return this.context.getEditManager().isRedoAvailable();
 			default:
 				return false;
 		}
@@ -643,7 +684,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
      */
     @Override
     public boolean hasUnsavedChanges() {
-    	return this.hasUnsavedChanges;
+    	return !this.context.getEditManager().isTopMarked();
     }
     
     /* (non-Javadoc)

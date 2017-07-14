@@ -4,7 +4,6 @@ import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
-import org.praisenter.javafx.slide.editor.commands.SlideEditorCommandFactory;
 import org.praisenter.javafx.slide.editor.commands.StackOrderEditCommand;
 
 import javafx.scene.control.Button;
@@ -100,9 +99,10 @@ class StackingRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlide<?> slide = this.context.getSlide();
 			if (component != null && component instanceof ObservableSlideComponent) {
 				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)component;
-				this.context.applyCommand(new StackOrderEditCommand(
-						slide, osc, 1, 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), osc)));
+				
+				int oldValue = slide.getComponents().indexOf(component);
+				int newValue = oldValue + 1;
+				this.applyCommand(new StackOrderEditCommand(oldValue, newValue, slide, osc, this.context.selectedProperty(), this.btnMoveUp));
 			}
 		});
 		this.btnMoveDown.setOnAction((e) -> {
@@ -110,9 +110,10 @@ class StackingRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlide<?> slide = this.context.getSlide();
 			if (component != null && component instanceof ObservableSlideComponent) {
 				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)component;
-				this.context.applyCommand(new StackOrderEditCommand(
-						slide, osc, -1, 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), osc)));
+				
+				int oldValue = slide.getComponents().indexOf(component);
+				int newValue = oldValue - 1;
+				this.applyCommand(new StackOrderEditCommand(oldValue, newValue, slide, osc, this.context.selectedProperty(), this.btnMoveDown));
 			}
 		});
 		this.btnMoveFront.setOnAction((e) -> {
@@ -120,9 +121,10 @@ class StackingRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlide<?> slide = this.context.getSlide();
 			if (component != null && component instanceof ObservableSlideComponent) {
 				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)component;
-				this.context.applyCommand(new StackOrderEditCommand(
-						slide, osc, Integer.MAX_VALUE, 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), osc)));
+				
+				int oldValue = slide.getComponents().indexOf(component);
+				int newValue = Integer.MAX_VALUE;
+				this.applyCommand(new StackOrderEditCommand(oldValue, newValue, slide, osc, this.context.selectedProperty(), this.btnMoveFront));
 			}
 		});
 		this.btnMoveBack.setOnAction((e) -> {
@@ -130,9 +132,10 @@ class StackingRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlide<?> slide = this.context.getSlide();
 			if (component != null && component instanceof ObservableSlideComponent) {
 				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)component;
-				this.context.applyCommand(new StackOrderEditCommand(
-						slide, osc, -Integer.MAX_VALUE, 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), osc)));
+				
+				int oldValue = slide.getComponents().indexOf(component);
+				int newValue = 0;
+				this.applyCommand(new StackOrderEditCommand(oldValue, newValue, slide, osc, this.context.selectedProperty(), this.btnMoveBack));
 			}
 		});
 	}

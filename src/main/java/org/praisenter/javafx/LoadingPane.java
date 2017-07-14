@@ -56,7 +56,6 @@ import javafx.scene.shape.Path;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.stage.Modality;
 import javafx.util.Duration;
 
 // FEATURE (L) Replace the current loading background image
@@ -297,9 +296,7 @@ final class LoadingPane extends Pane {
 		
 		// setup the screen manager
 		LOGGER.info("Initializing the screen manager.");
-		if (context.getDisplayManager().initialize()) {
-			notifyOfScreenAssignmentChange();
-		}
+		context.getDisplayManager().initialize(context.getJavaFXContext().getStage().getScene());
 		
 		// load fonts
 		LOGGER.info("Loading fonts.");
@@ -340,21 +337,6 @@ final class LoadingPane extends Pane {
 			// then exit the app
 			Platform.exit();
 		});
-	}
-	
-	/**
-	 * Shows a non-blocking information dialog notifying the user that we detected a change in the
-	 * screens and made an automatic adjustment to the screen assignments and that they should review
-	 * by going to Preferences.
-	 */
-	private void notifyOfScreenAssignmentChange() {
-		Alert a = Alerts.info(
-				getScene().getWindow(),
-				Modality.WINDOW_MODAL,
-				Translations.get("init.screenAssignmentChanged.title"), 
-				Translations.get("init.screenAssignmentChanged.header"),
-				Translations.get("init.screenAssignmentChanged.content"));
-		a.show();
 	}
 	
 	/**

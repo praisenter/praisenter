@@ -1,67 +1,66 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.ActionsEditCommand;
-import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 import org.praisenter.javafx.slide.ObservableSlide;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 
-public class SlideNameEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<String>> {
-	private final ObservableSlide<?> slide;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.control.TextInputControl;
+
+public final class SlideNameEditCommand  extends SlideRegionValueChangedEditCommand<String, ObservableSlide<?>> implements EditCommand {
+	private final TextInputControl control;
 	
-	@SafeVarargs
-	public SlideNameEditCommand(ObservableSlide<?> slide, ValueChangedCommandOperation<String> operation, CommandAction<ValueChangedCommandOperation<String>>... actions) {
-		this(slide, operation, Arrays.asList(actions));
-	}
-	
-	public SlideNameEditCommand(ObservableSlide<?> slide, ValueChangedCommandOperation<String> operation, List<CommandAction<ValueChangedCommandOperation<String>>> actions) {
-		super(operation, actions);
-		this.slide = slide;
+	public SlideNameEditCommand(String oldValue, String newValue, ObservableSlide<?> slide, ObjectProperty<ObservableSlideRegion<?>> selection, TextInputControl control) {
+		super(oldValue, newValue, slide, selection);
+		this.control = control;
 	}
 	
 	@Override
 	public void execute() {
-		slide.setName(this.operation.getNewValue());
+		this.region.setName(this.newValue);
 	}
 	
 	@Override
 	public boolean isMergeSupported(EditCommand command) {
 		if (command != null && command instanceof SlideNameEditCommand) {
-			ObservableSlide<?> slide = ((SlideNameEditCommand)command).slide;
-			return this.slide == slide;
+			ObservableSlide<?> region = ((SlideNameEditCommand)command).region;
+			return this.region == region;
 		}
 		return false;
 	}
 	
 	@Override
 	public boolean isValid() {
-		return this.slide != null;
+		return super.isValid() && this.control != null;
 	}
 	
 	@Override
 	public EditCommand merge(EditCommand command) {
-		if (this.isMergeSupported(command)) {
+		if (command != null && command instanceof SlideNameEditCommand) {
+			SlideNameEditCommand other = (SlideNameEditCommand)command;
 			return new SlideNameEditCommand(
-				this.slide,
-				CommandFactory.changed(((SlideNameEditCommand)command).operation.getOldValue(), this.operation.getNewValue()), 
-				this.actions);
+				other.oldValue,
+				this.newValue,
+				this.region,
+				this.selection,
+				this.control);
 		}
 		return null;
 	}
 	
 	@Override
 	public void undo() {
-		slide.setName(this.operation.getOldValue());
-		super.undo();
+		this.region.setName(this.oldValue);
+		
+		this.selectRegion();
+		this.text(this.control, this.oldValue);
 	}
 	
 	@Override
 	public void redo() {
-		slide.setName(this.operation.getNewValue());
-		super.redo();
+		this.region.setName(this.newValue);
+		
+		this.selectRegion();
+		this.text(this.control, this.newValue);
 	}
 }

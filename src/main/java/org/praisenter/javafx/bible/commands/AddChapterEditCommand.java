@@ -24,8 +24,6 @@
  */
 package org.praisenter.javafx.bible.commands;
 
-import java.util.ArrayList;
-
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
@@ -34,10 +32,8 @@ import org.praisenter.javafx.bible.BookTreeData;
 import org.praisenter.javafx.bible.ChapterTreeData;
 import org.praisenter.javafx.bible.TreeData;
 import org.praisenter.javafx.bible.VerseTreeData;
-import org.praisenter.javafx.command.ActionsEditCommand;
+import org.praisenter.javafx.command.AbstractEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.SelectTreeItemAddedCommandAction;
-import org.praisenter.javafx.command.operation.CommandOperation;
 
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -47,7 +43,7 @@ import javafx.scene.control.TreeView;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class AddChapterEditCommand extends ActionsEditCommand<CommandOperation> implements EditCommand {
+public final class AddChapterEditCommand extends AbstractEditCommand implements EditCommand {
 	/** The tree */
 	private final TreeView<TreeData> tree;
 	
@@ -102,12 +98,6 @@ public final class AddChapterEditCommand extends ActionsEditCommand<CommandOpera
 	 * @param index the index
 	 */
 	public AddChapterEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item, Chapter chapter, int index) {
-		super(null, new ArrayList<>());
-		
-		this.tree = tree;
-		this.item = item;
-		this.index = index;
-		
 		TreeItem<TreeData> newItem = null;
 		Book book = null;
 		
@@ -127,11 +117,12 @@ public final class AddChapterEditCommand extends ActionsEditCommand<CommandOpera
 			}
 		}
 		
+		this.tree = tree;
+		this.item = item;
+		this.index = index;
 		this.book = book;
 		this.chapter = chapter;
 		this.newItem = newItem;
-		
-		this.actions.add(new SelectTreeItemAddedCommandAction<>(tree, newItem, item));
 	}
 	
 	/**
@@ -178,15 +169,7 @@ public final class AddChapterEditCommand extends ActionsEditCommand<CommandOpera
 	 */
 	@Override
 	public void execute() {
-		if (this.index < 0) {
-			this.book.getChapters().add(this.chapter);
-			this.item.getChildren().add(this.newItem);
-		} else {
-			this.book.getChapters().add(this.index, this.chapter);
-			this.item.getChildren().add(this.index, this.newItem);
-		}
-		
-		super.redo();
+		this.redo();
 	}
 	
 	/* (non-Javadoc)
@@ -196,7 +179,9 @@ public final class AddChapterEditCommand extends ActionsEditCommand<CommandOpera
 	public void undo() {
 		this.book.getChapters().remove(this.chapter);
 		this.item.getChildren().remove(this.newItem);
-		super.undo();
+
+		// select the parent on undo
+		this.select(this.tree, this.item);
 	}
 	
 	/* (non-Javadoc)
@@ -211,6 +196,8 @@ public final class AddChapterEditCommand extends ActionsEditCommand<CommandOpera
 			this.book.getChapters().add(this.index, this.chapter);
 			this.item.getChildren().add(this.index, this.newItem);
 		}
-		super.redo();
+
+		// select the new item on redo
+		this.select(this.tree, this.newItem);
 	}
 }

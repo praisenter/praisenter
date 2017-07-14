@@ -66,6 +66,7 @@ import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 
 // FEATURE (M) Show a timeline-view of the animations for a slide
+// FIXME change to edit commands
 
 /**
  * A pane used to list and edit the animations for an {@link ObservableSlide}.

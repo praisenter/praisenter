@@ -1,36 +1,28 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.praisenter.TextType;
 import org.praisenter.javafx.Option;
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 import org.praisenter.javafx.slide.ObservableSlide;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 
-public class PlaceholderTypeEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<Option<TextType>>> {
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.control.ComboBox;
+
+public final class PlaceholderTypeEditCommand extends SlideRegionValueChangedEditCommand<Option<TextType>, ObservableTextPlaceholderComponent> implements EditCommand {
 	private final ObservableSlide<?> slide;
-	private final ObservableTextPlaceholderComponent component;
+	private final ComboBox<Option<TextType>> control;
 	
-	@SafeVarargs
-	public PlaceholderTypeEditCommand(ObservableSlide<?> slide, ObservableTextPlaceholderComponent component, ValueChangedCommandOperation<Option<TextType>> operation, CommandAction<ValueChangedCommandOperation<Option<TextType>>>... actions) {
-		this(slide, component, operation, Arrays.asList(actions));
-	}
-	
-	public PlaceholderTypeEditCommand(ObservableSlide<?> slide, ObservableTextPlaceholderComponent component, ValueChangedCommandOperation<Option<TextType>> operation, List<CommandAction<ValueChangedCommandOperation<Option<TextType>>>> actions) {
-		super(operation, actions);
+	public PlaceholderTypeEditCommand(Option<TextType> oldValue, Option<TextType> newValue, ObservableSlide<?> slide, ObservableTextPlaceholderComponent component, ObjectProperty<ObservableSlideRegion<?>> selection, ComboBox<Option<TextType>> control) {
+		super(oldValue, newValue, component, selection);
 		this.slide = slide;
-		this.component = component;
+		this.control = control;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setPlaceholderType(this.operation.getNewValue().getValue());
-		this.slide.updatePlaceholders();
+		this.setPlaceholderType(this.newValue);
 	}
 	
 	@Override
@@ -40,9 +32,7 @@ public class PlaceholderTypeEditCommand extends ActionsEditCommand<ValueChangedC
 	
 	@Override
 	public boolean isValid() {
-		return this.component != null &&  this.slide != null &&
-				this.operation.getNewValue() != null && this.operation.getNewValue().getValue() != null &&
-				this.operation.getOldValue() != null && this.operation.getOldValue().getValue() != null;
+		return super.isValid() &&  this.slide != null;
 	}
 	
 	@Override
@@ -52,15 +42,29 @@ public class PlaceholderTypeEditCommand extends ActionsEditCommand<ValueChangedC
 	
 	@Override
 	public void undo() {
-		this.component.setPlaceholderType(this.operation.getOldValue().getValue());
-		this.slide.updatePlaceholders();
-		super.undo();
+		this.setPlaceholderType(this.oldValue);
+		
+		this.selectRegion();
+		this.combo(this.control, this.oldValue);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setPlaceholderType(this.operation.getNewValue().getValue());
+		this.setPlaceholderType(this.newValue);
+		
+		this.selectRegion();
+		this.combo(this.control, this.newValue);
+	}
+	
+	private void setPlaceholderType(Option<TextType> option) {
+		TextType type = TextType.TEXT;
+		if (option != null) {
+			TextType temp = option.getValue();
+			if (temp != null) {
+				type = temp;
+			}
+		}
+		this.region.setPlaceholderType(type);
 		this.slide.updatePlaceholders();
-		super.redo();
 	}
 }

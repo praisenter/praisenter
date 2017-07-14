@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -14,14 +15,13 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Display;
+import org.praisenter.javafx.configuration.DisplayRole;
+import org.praisenter.javafx.configuration.Displays;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
+import org.praisenter.javafx.configuration.DisplayView;
 import org.praisenter.javafx.configuration.Setting;
-import org.praisenter.javafx.configuration.SettingBatch;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
-import org.praisenter.javafx.screen.ScreenView;
-import org.praisenter.javafx.screen.ScreenViewDragDropManager;
 import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.themes.Theme;
 import org.praisenter.resources.translations.Translations;
@@ -32,12 +32,10 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
-import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -53,14 +51,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
@@ -214,8 +210,6 @@ public final class SetupPane extends BorderPane {
 		// SCREENS
 		
 		Label lblScreenWarning = new Label("Changing the screen assignment will close any currently displayed slides or notifications.", ApplicationGlyphs.WARN.duplicate());
-		Label lblScreenHowTo = new Label("Drag and drop the screen to assign its role.");
-		lblScreenHowTo.setPadding(new Insets(0, 0, 10, 0));
 		lblScreenWarning.setPadding(new Insets(0, 0, 10, 0));
 		
 		Button btnIdentify = new Button("Identify Displays");
@@ -223,49 +217,54 @@ public final class SetupPane extends BorderPane {
 		HBox boxIdentify = new HBox(5, btnIdentify, lblIdentifyWarning);
 		boxIdentify.setAlignment(Pos.BASELINE_LEFT);
 		
-		GridPane screenPane = new GridPane();
-		screenPane.setHgap(10);
-		screenPane.setVgap(10);
-		screenPane.setPadding(new Insets(0, 0, 10, 0));
+//		GridPane screenPane = new GridPane();
+//		screenPane.setHgap(10);
+//		screenPane.setVgap(10);
+//		screenPane.setPadding(new Insets(0, 0, 10, 0));
+//		
+//		Label lblOperatorScreen = new Label("Operator");
+//		Label lblPrimaryScreen = new Label("Primary");
+//		Label lblMusicianScreen = new Label("Musician");
+//		lblOperatorScreen.setFont(Font.font("System", FontWeight.BOLD, 15));
+//		lblPrimaryScreen.setFont(Font.font("System", FontWeight.BOLD, 15));
+//		lblMusicianScreen.setFont(Font.font("System", FontWeight.BOLD, 15));
+//		
+//		Label lblOperatorDescription = new Label("This is the screen that you will be operating from with the Praisenter application and any other tools. Typically your default desktop.");
+//		Label lblPrimaryDescription = new Label("This is the screen that will show the presentations and notifications.");
+//		Label lblMusicianDescription = new Label("This is the screen that will show specialized musician or song related information (optional).");
+//		
+//		lblOperatorDescription.setWrapText(true);
+//		lblOperatorDescription.setTextAlignment(TextAlignment.CENTER);
+//		GridPane.setHgrow(lblOperatorDescription, Priority.NEVER);
+//		GridPane.setValignment(lblOperatorDescription, VPos.TOP);
+//		
+//		lblPrimaryDescription.setWrapText(true);
+//		lblPrimaryDescription.setTextAlignment(TextAlignment.CENTER);
+//		GridPane.setHgrow(lblPrimaryDescription, Priority.NEVER);
+//		GridPane.setValignment(lblPrimaryDescription, VPos.TOP);
+//
+//		lblMusicianDescription.setWrapText(true);
+//		lblMusicianDescription.setTextAlignment(TextAlignment.CENTER);
+//		GridPane.setHgrow(lblMusicianDescription, Priority.NEVER);
+//		GridPane.setValignment(lblMusicianDescription, VPos.TOP);
+//		
+//		screenPane.add(lblOperatorScreen, 0, 1);
+//		screenPane.add(lblPrimaryScreen, 1, 1);
+//		screenPane.add(lblMusicianScreen, 2, 1);
+//		screenPane.add(lblOperatorDescription, 0, 2);
+//		screenPane.add(lblPrimaryDescription, 1, 2);
+//		screenPane.add(lblMusicianDescription, 2, 2);
+//		
+//		GridPane.setHalignment(lblOperatorScreen, HPos.CENTER);
+//		GridPane.setHalignment(lblPrimaryScreen, HPos.CENTER);
+//		GridPane.setHalignment(lblMusicianScreen, HPos.CENTER);
 		
-		Label lblOperatorScreen = new Label("Operator");
-		Label lblPrimaryScreen = new Label("Primary");
-		Label lblMusicianScreen = new Label("Musician");
-		lblOperatorScreen.setFont(Font.font("System", FontWeight.BOLD, 15));
-		lblPrimaryScreen.setFont(Font.font("System", FontWeight.BOLD, 15));
-		lblMusicianScreen.setFont(Font.font("System", FontWeight.BOLD, 15));
+		TilePane screenPane = new TilePane(Orientation.HORIZONTAL);
+		screenPane.setHgap(5);
+		screenPane.setVgap(5);
 		
-		Label lblOperatorDescription = new Label("This is the screen that you will be operating from with the Praisenter application and any other tools. Typically your default desktop.");
-		Label lblPrimaryDescription = new Label("This is the screen that will show the presentations and notifications.");
-		Label lblMusicianDescription = new Label("This is the screen that will show specialized musician or song related information (optional).");
-		
-		lblOperatorDescription.setWrapText(true);
-		lblOperatorDescription.setTextAlignment(TextAlignment.CENTER);
-		GridPane.setHgrow(lblOperatorDescription, Priority.NEVER);
-		GridPane.setValignment(lblOperatorDescription, VPos.TOP);
-		
-		lblPrimaryDescription.setWrapText(true);
-		lblPrimaryDescription.setTextAlignment(TextAlignment.CENTER);
-		GridPane.setHgrow(lblPrimaryDescription, Priority.NEVER);
-		GridPane.setValignment(lblPrimaryDescription, VPos.TOP);
-
-		lblMusicianDescription.setWrapText(true);
-		lblMusicianDescription.setTextAlignment(TextAlignment.CENTER);
-		GridPane.setHgrow(lblMusicianDescription, Priority.NEVER);
-		GridPane.setValignment(lblMusicianDescription, VPos.TOP);
-		
-		screenPane.add(lblOperatorScreen, 0, 1);
-		screenPane.add(lblPrimaryScreen, 1, 1);
-		screenPane.add(lblMusicianScreen, 2, 1);
-		screenPane.add(lblOperatorDescription, 0, 2);
-		screenPane.add(lblPrimaryDescription, 1, 2);
-		screenPane.add(lblMusicianDescription, 2, 2);
-		
-		GridPane.setHalignment(lblOperatorScreen, HPos.CENTER);
-		GridPane.setHalignment(lblPrimaryScreen, HPos.CENTER);
-		GridPane.setHalignment(lblMusicianScreen, HPos.CENTER);
-		
-		VBox vboxScreens = new VBox(lblScreenHowTo, lblScreenWarning, screenPane, boxIdentify);
+		VBox vboxScreens = new VBox(lblScreenWarning, screenPane, boxIdentify);
+		// TODO move identify to top of UI so that it doesn't go off screen when there are a bunch of displays
 		vboxScreens.setPadding(new Insets(10));
 
 		// LAYOUT
@@ -469,45 +468,45 @@ public final class SetupPane extends BorderPane {
 		});
 		
 		// create a custom manager
-		ScreenViewDragDropManager manager = new ScreenViewDragDropManager() {
-			@Override
-			public void swap(ScreenView view1, ScreenView view2) {
-				int col1 = GridPane.getColumnIndex(view1);
-				int row1 = GridPane.getRowIndex(view1);
-				int col2 = GridPane.getColumnIndex(view2);
-				int row2 = GridPane.getRowIndex(view2);
-				screenPane.getChildren().removeAll(view1, view2);
-				screenPane.add(view2, col1, row1);
-				screenPane.add(view1, col2, row2);
-				
-				// record the changes (will save automatically)
-				ObservableConfiguration conf = context.getConfiguration();
-				SettingBatch<AsyncTask<Void>> batch = conf.createBatch();
-				if (col1 == 0) {
-					batch.setObject(Setting.DISPLAY_OPERATOR, view2.getDisplay());
-					lblOperatorDescription.setPrefWidth(view2.getPrefWidth());
-				} else if (col1 == 1) {
-					batch.setObject(Setting.DISPLAY_MAIN, view2.getDisplay());
-					lblPrimaryDescription.setPrefWidth(view2.getPrefWidth());
-				} else if (col1 == 2) {
-					batch.setObject(Setting.DISPLAY_MUSICIAN, view2.getDisplay());
-					lblMusicianDescription.setPrefWidth(view2.getPrefWidth());
-				}
-				if (col2 == 0) {
-					batch.setObject(Setting.DISPLAY_OPERATOR, view1.getDisplay());
-					lblOperatorDescription.setPrefWidth(view1.getPrefWidth());
-				} else if (col2 == 1) {
-					batch.setObject(Setting.DISPLAY_MAIN, view1.getDisplay());
-					lblPrimaryDescription.setPrefWidth(view1.getPrefWidth());
-				} else if (col2 == 2) {
-					batch.setObject(Setting.DISPLAY_MUSICIAN, view1.getDisplay());
-					lblMusicianDescription.setPrefWidth(view1.getPrefWidth());
-				}
-				
-				batch.commitBatch()
-					.execute(context.getExecutorService());
-			}
-		};
+//		ScreenViewDragDropManager manager = new ScreenViewDragDropManager() {
+//			@Override
+//			public void swap(ScreenView view1, ScreenView view2) {
+//				int col1 = GridPane.getColumnIndex(view1);
+//				int row1 = GridPane.getRowIndex(view1);
+//				int col2 = GridPane.getColumnIndex(view2);
+//				int row2 = GridPane.getRowIndex(view2);
+//				screenPane.getChildren().removeAll(view1, view2);
+//				screenPane.add(view2, col1, row1);
+//				screenPane.add(view1, col2, row2);
+//				
+//				// record the changes (will save automatically)
+//				ObservableConfiguration conf = context.getConfiguration();
+//				SettingBatch<AsyncTask<Void>> batch = conf.createBatch();
+//				if (col1 == 0) {
+//					batch.setObject(Setting.DISPLAY_OPERATOR, view2.getDisplay());
+//					lblOperatorDescription.setPrefWidth(view2.getPrefWidth());
+//				} else if (col1 == 1) {
+//					batch.setObject(Setting.DISPLAY_MAIN, view2.getDisplay());
+//					lblPrimaryDescription.setPrefWidth(view2.getPrefWidth());
+//				} else if (col1 == 2) {
+//					batch.setObject(Setting.DISPLAY_MUSICIAN, view2.getDisplay());
+//					lblMusicianDescription.setPrefWidth(view2.getPrefWidth());
+//				}
+//				if (col2 == 0) {
+//					batch.setObject(Setting.DISPLAY_OPERATOR, view1.getDisplay());
+//					lblOperatorDescription.setPrefWidth(view1.getPrefWidth());
+//				} else if (col2 == 1) {
+//					batch.setObject(Setting.DISPLAY_MAIN, view1.getDisplay());
+//					lblPrimaryDescription.setPrefWidth(view1.getPrefWidth());
+//				} else if (col2 == 2) {
+//					batch.setObject(Setting.DISPLAY_MUSICIAN, view1.getDisplay());
+//					lblMusicianDescription.setPrefWidth(view1.getPrefWidth());
+//				}
+//				
+//				batch.commitBatch()
+//					.execute(context.getExecutorService());
+//			}
+//		};
 		
 		// listener for updating the screen views when the 
 		// screens change or when the parent node changes
@@ -516,60 +515,102 @@ public final class SetupPane extends BorderPane {
 			public void invalidated(Observable observable) {
 				ObservableConfiguration conf = context.getConfiguration();
 				
-				Display os = conf.getObject(Setting.DISPLAY_OPERATOR, Display.class, null);
-				Display ms = conf.getObject(Setting.DISPLAY_MAIN, Display.class, null);
-				Display cs = conf.getObject(Setting.DISPLAY_MUSICIAN, Display.class, null);
+				// snapshot at this moment
+				List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
+				int n = screens.size();
 				
-				Map<Integer, ScreenView> views = ScreenView.createScreenViews(manager);
+				// get the configuration
+				List<Display> assignments = conf.getDisplays();
 				
-				ScreenView operator = null;
-				ScreenView main = null;
-				ScreenView musician = null;
-				
-				if (os != null) {
-					operator = views.remove(os.getId());
-				}
-				if (ms != null) {
-					main = views.remove(ms.getId());
-				}
-				if (cs != null) {
-					musician = views.remove(cs.getId());
+				// setup displays
+				Map<Integer, DisplayView> views = new HashMap<Integer, DisplayView>();
+				for (int i = 0; i < assignments.size(); i++) {
+					Display display = assignments.get(i);
+					if (!views.containsKey(display.getId()) && display.getId() < n) {
+						views.put(display.getId(), new DisplayView(display));
+					}
 				}
 				
-				if (operator == null) {
-					operator = ScreenView.createUnassignedScreenView(manager);
-				}
-				if (main == null) {
-					main = ScreenView.createUnassignedScreenView(manager);
-				}
-				if (musician == null) {
-					musician = ScreenView.createUnassignedScreenView(manager);
+				// fill in gaps
+				for (int i = 0; i < n; i++) {
+					if (!views.containsKey(i)) {
+						views.put(i, new DisplayView(new Display(i, DisplayRole.NONE, screens.get(i), "Unassigned")));
+					}
 				}
 				
-				screenPane.add(operator, 0, 0);
-				screenPane.add(main, 1, 0);
-				screenPane.add(musician, 2, 0);
+				for (DisplayView view : views.values()) {
+					view.displayProperty().addListener((obs, ov, nv) -> {
+						Displays displays = context.getConfiguration().getObject(Setting.DISPLAY_ASSIGNMENTS, Displays.class, new Displays());
+						
+						if (ov != null) {
+							displays.remove(ov);
+						}
+						
+						if (nv != null) {
+							// add it
+							displays.add(nv);
+							// save it
+							context.getConfiguration().setObject(Setting.DISPLAY_ASSIGNMENTS, displays)
+								.execute(context.getExecutorService());
+						}
+					});
+				}
 				
-				GridPane.setHalignment(operator, HPos.CENTER);
-				GridPane.setHalignment(main, HPos.CENTER);
-				GridPane.setHalignment(musician, HPos.CENTER);
-				
-				lblOperatorDescription.setPrefWidth(operator.getPrefWidth());
-				lblPrimaryDescription.setPrefWidth(main.getPrefWidth());
-				lblMusicianDescription.setPrefWidth(musician.getPrefWidth());
-				
+//				
+//				
+//				
+//				Display os = conf.getObject(Setting.DISPLAY_OPERATOR, Display.class, null);
+//				Display ms = conf.getObject(Setting.DISPLAY_MAIN, Display.class, null);
+//				Display cs = conf.getObject(Setting.DISPLAY_MUSICIAN, Display.class, null);
+//				
+//				Map<Integer, ScreenView> views = ScreenView.createScreenViews(manager);
+//				
+//				ScreenView operator = null;
+//				ScreenView main = null;
+//				ScreenView musician = null;
+//				
+//				if (os != null) {
+//					operator = views.remove(os.getId());
+//				}
+//				if (ms != null) {
+//					main = views.remove(ms.getId());
+//				}
+//				if (cs != null) {
+//					musician = views.remove(cs.getId());
+//				}
+//				
+//				if (operator == null) {
+//					operator = ScreenView.createUnassignedScreenView(manager);
+//				}
+//				if (main == null) {
+//					main = ScreenView.createUnassignedScreenView(manager);
+//				}
+//				if (musician == null) {
+//					musician = ScreenView.createUnassignedScreenView(manager);
+//				}
+//				
+//				screenPane.add(operator, 0, 0);
+//				screenPane.add(main, 1, 0);
+//				screenPane.add(musician, 2, 0);
+//				
+//				GridPane.setHalignment(operator, HPos.CENTER);
+//				GridPane.setHalignment(main, HPos.CENTER);
+//				GridPane.setHalignment(musician, HPos.CENTER);
+//				
+//				lblOperatorDescription.setPrefWidth(operator.getPrefWidth());
+//				lblPrimaryDescription.setPrefWidth(main.getPrefWidth());
+//				lblMusicianDescription.setPrefWidth(musician.getPrefWidth());
+//				
 				int i = 0;
-				int j = 3;
-				for (ScreenView view : views.values()) {
-					Label lblUnused = new Label("Alternate Output");
-					lblUnused.setFont(Font.font("System", FontWeight.BOLD, 15));
-					screenPane.add(view, i, j);
-					screenPane.add(lblUnused, i, j + 1);
-					GridPane.setHalignment(lblUnused, HPos.CENTER);
+				for (DisplayView view : views.values()) {
+//					Label lblUnused = new Label("Alternate Output");
+//					lblUnused.setFont(Font.font("System", FontWeight.BOLD, 15));
+					screenPane.getChildren().add(view);
+//					screenPane.add(lblUnused, i, j + 1);
+//					GridPane.setHalignment(lblUnused, HPos.CENTER);
 					i++;
 					if (i % 3 == 0) {
 						i = 0;
-						j += 2;
 					}
 				}
 			}

@@ -1,7 +1,9 @@
 package org.praisenter.javafx.slide.editor.ribbon;
 
+import org.praisenter.javafx.command.EditCommand;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
+import org.praisenter.javafx.slide.editor.events.SlideEditorEvent;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -48,8 +50,8 @@ abstract class SlideRegionRibbonTab<T extends ObservableSlideRegion<?>> extends 
 		this.container.setMinWidth(USE_PREF_SIZE);
 	}
 	
-	// FIXME don't think this is needed
-//	protected void notifyComponentChanged(EditCommand command) {
-//		fireEvent(new SlideChangedEvent(this, this, command));
-//	}
+	public void applyCommand(EditCommand command) {
+		this.context.getEditManager().execute(command);
+		fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.CHANGED));
+	}
 }

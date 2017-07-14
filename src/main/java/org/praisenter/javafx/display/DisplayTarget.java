@@ -1,15 +1,17 @@
-package org.praisenter.javafx.screen;
+package org.praisenter.javafx.display;
 
 import java.util.ArrayList;
 
 import org.praisenter.Constants;
+import org.praisenter.javafx.configuration.Display;
 import org.praisenter.javafx.slide.ObservableSlide;
 
 import javafx.animation.Animation.Status;
 import javafx.animation.ParallelTransition;
 import javafx.animation.Transition;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.EventHandler;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Border;
@@ -22,15 +24,12 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import javafx.stage.Modality;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
-public final class DisplayScreen {
-	private final int id;
-	private final ScreenRole role;
-	private final Screen screen;
+public final class DisplayTarget {
+	private final ObjectProperty<Display> display = new SimpleObjectProperty<>();
 	private final boolean debugMode;
 	
 	private final Stage stage;
@@ -43,10 +42,7 @@ public final class DisplayScreen {
 	
 	private ObservableSlide<?> slide;
 	
-	public DisplayScreen(int id, ScreenRole role, Screen screen, boolean debug) {
-		this.id = id;
-		this.role = role;
-		this.screen = screen;
+	public DisplayTarget(Display display, boolean debug) {
 		this.stage = new Stage(StageStyle.TRANSPARENT);
 
     	// icons
@@ -61,16 +57,7 @@ public final class DisplayScreen {
     	
 		this.debugMode = debug;
 		
-		Rectangle2D bounds = screen.getBounds();
 		this.stage.initModality(Modality.NONE);
-		this.stage.setX(bounds.getMinX());
-		this.stage.setY(bounds.getMinY());
-		this.stage.setWidth(bounds.getWidth());
-		this.stage.setHeight(bounds.getHeight());
-		this.stage.setMinWidth(bounds.getWidth());
-		this.stage.setMinHeight(bounds.getHeight());
-		this.stage.setMaxWidth(bounds.getWidth());
-		this.stage.setMaxHeight(bounds.getHeight());
 		this.stage.setResizable(false);
 		
 		// prevent the user from closing or hiding the window
@@ -94,7 +81,6 @@ public final class DisplayScreen {
 					new BorderWidths(10))));
 		}
 		this.stage.setScene(new Scene(this.surface, Color.TRANSPARENT));
-		this.stage.setTitle(Constants.NAME + " (" + role + ")");
 		this.stage.show();
 		
 		this.slideSurface0 = new Pane();
@@ -102,6 +88,37 @@ public final class DisplayScreen {
 		
 		this.slideSurface0.setBackground(null);
 		this.slideSurface1.setBackground(null);
+		
+		// events
+		
+		this.display.addListener((obs, ov, nv) -> {
+			if (nv != null) {
+				this.stage.setX(nv.getX());
+				this.stage.setY(nv.getY());
+				this.stage.setWidth(nv.getWidth());
+				this.stage.setHeight(nv.getHeight());
+				this.stage.setMinWidth(nv.getWidth());
+				this.stage.setMinHeight(nv.getHeight());
+				this.stage.setMaxWidth(nv.getWidth());
+				this.stage.setMaxHeight(nv.getHeight());
+				
+				this.stage.setTitle(Constants.NAME + " " + nv.getName() + " (" + nv.getRole() + ")");
+			}
+		});
+		
+		this.display.set(display);
+	}
+	
+	public Display getDisplay() {
+		return this.display.get();
+	}
+	
+	public void setDisplay(Display display) {
+		this.display.set(display);
+	}
+	
+	public ObjectProperty<Display> displayProperty() {
+		return this.display;
 	}
 	
 	public synchronized void send(final ObservableSlide<?> slide) {

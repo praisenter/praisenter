@@ -3,14 +3,12 @@ package org.praisenter.javafx.slide.editor.ribbon;
 import org.praisenter.TextType;
 import org.praisenter.TextVariant;
 import org.praisenter.javafx.Option;
-import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.PlaceholderTypeEditCommand;
 import org.praisenter.javafx.slide.editor.commands.PlaceholderVariantEditCommand;
-import org.praisenter.javafx.slide.editor.commands.SlideEditorCommandFactory;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -62,41 +60,27 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 		this.managedProperty().bind(this.visibleProperty());
 
 		this.cmbTextType.valueProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
+			if (this.mutating) return;
 			ObservableSlide<?> slide = this.context.getSlide();
 			ObservableSlideRegion<?> component = this.context.getSelected();
 			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
 				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
-				this.context.applyCommand(new PlaceholderTypeEditCommand(
-						slide, tc, 
-						CommandFactory.changed(ov, nv), 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), component),
-						CommandFactory.combo(this.cmbTextType)));
-//				tc.setPlaceholderType(nv.getValue());
-//				fireEvent(new SlideRibbonEvent(this.cmbTextType, this.cmbTextType, SlideRibbonEvent.PLACEHOLDER));
-//				notifyComponentChanged();
+				this.applyCommand(new PlaceholderTypeEditCommand(ov, nv, slide, tc, this.context.selectedProperty(), this.cmbTextType));
 			}
 		});
 		
 		this.cmbTextVariant.valueProperty().addListener((obs, ov, nv) -> {
-			if (mutating) return;
+			if (this.mutating) return;
 			ObservableSlide<?> slide = this.context.getSlide();
 			ObservableSlideRegion<?> component = this.context.getSelected();
 			if (component != null && component instanceof ObservableTextPlaceholderComponent) {
 				ObservableTextPlaceholderComponent tc = (ObservableTextPlaceholderComponent)component;
-				this.context.applyCommand(new PlaceholderVariantEditCommand(
-						slide, tc, 
-						CommandFactory.changed(ov, nv), 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), component),
-						CommandFactory.combo(this.cmbTextVariant)));
-//				tc.setPlaceholderVariant(nv.getValue());
-//				fireEvent(new SlideRibbonEvent(this.cmbTextVariant, this.cmbTextVariant, SlideRibbonEvent.PLACEHOLDER));
-//				notifyComponentChanged();
+				this.applyCommand(new PlaceholderVariantEditCommand(ov, nv, slide, tc, this.context.selectedProperty(), this.cmbTextVariant));
 			}
 		});
 		
 		this.context.selectedProperty().addListener((obs, ov, nv) -> {
-			mutating = true;
+			this.mutating = true;
 			if (nv != null && nv instanceof ObservableTextPlaceholderComponent) {
 				ObservableTextPlaceholderComponent otpc = (ObservableTextPlaceholderComponent)nv;
 				this.cmbTextType.setValue(new Option<TextType>(null, otpc.getPlaceholderType()));
@@ -107,7 +91,7 @@ class PlaceholderRibbonTab extends ComponentEditorRibbonTab {
 				this.cmbTextVariant.setValue(placeholderVariants.get(0));
 				this.setVisible(false);
 			}
-			mutating = false;
+			this.mutating = false;
 		});
 	}
 }

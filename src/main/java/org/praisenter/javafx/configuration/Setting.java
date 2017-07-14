@@ -92,18 +92,9 @@ public enum Setting {
 	
 	/** The number of displays */
 	DISPLAY_COUNT,
-	
-	/** The primary display */
-	DISPLAY_PRIMARY,
-	
-	/** The main display */
-	DISPLAY_MAIN,
-	
-	/** The musician display */
-	DISPLAY_MUSICIAN,
-	
-	/** The operator display */
-	DISPLAY_OPERATOR,
+
+	/** A mapping of alternate displays */
+	DISPLAY_ASSIGNMENTS,
 	
 	/** The set of resolutions */
 	DISPLAY_RESOLUTIONS,

@@ -24,8 +24,6 @@
  */
 package org.praisenter.javafx.bible.commands;
 
-import java.util.ArrayList;
-
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
@@ -35,10 +33,8 @@ import org.praisenter.javafx.bible.BookTreeData;
 import org.praisenter.javafx.bible.ChapterTreeData;
 import org.praisenter.javafx.bible.TreeData;
 import org.praisenter.javafx.bible.VerseTreeData;
-import org.praisenter.javafx.command.ActionsEditCommand;
+import org.praisenter.javafx.command.AbstractEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.SelectTreeItemAddedCommandAction;
-import org.praisenter.javafx.command.operation.CommandOperation;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.scene.control.TreeItem;
@@ -49,7 +45,7 @@ import javafx.scene.control.TreeView;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class AddBookEditCommand extends ActionsEditCommand<CommandOperation> implements EditCommand {
+public final class AddBookEditCommand extends AbstractEditCommand implements EditCommand {
 	/** The tree */
 	private final TreeView<TreeData> tree;
 	
@@ -104,10 +100,6 @@ public final class AddBookEditCommand extends ActionsEditCommand<CommandOperatio
 	 * @param index the index
 	 */
 	public AddBookEditCommand(TreeView<TreeData> tree, TreeItem<TreeData> item, Book book, int index) {
-		super(null, new ArrayList<>());
-		this.tree = tree;
-		this.item = item;
-		
 		TreeItem<TreeData> newItem = null;
 		Bible bible = null;
 		
@@ -126,12 +118,12 @@ public final class AddBookEditCommand extends ActionsEditCommand<CommandOperatio
 			}
 		}
 		
+		this.tree = tree;
+		this.item = item;
 		this.bible = bible;
 		this.book = book;
 		this.newItem = newItem;
 		this.index = index;
-		
-		this.actions.add(new SelectTreeItemAddedCommandAction<>(tree, newItem, item));
 	}
 
 	/**
@@ -181,14 +173,7 @@ public final class AddBookEditCommand extends ActionsEditCommand<CommandOperatio
 	 */
 	@Override
 	public void execute() {
-		if (this.index < 0) {
-			this.bible.getBooks().add(this.book);
-			this.item.getChildren().add(this.newItem);
-		} else {
-			this.bible.getBooks().add(this.index, this.book);
-			this.item.getChildren().add(this.index, this.newItem);
-		}
-		super.redo();
+		this.redo();
 	}
 	
 	/* (non-Javadoc)
@@ -198,7 +183,9 @@ public final class AddBookEditCommand extends ActionsEditCommand<CommandOperatio
 	public void undo() {
 		this.bible.getBooks().remove(this.book);
 		this.item.getChildren().remove(this.newItem);
-		super.undo();
+
+		// select the parent on undo
+		this.select(this.tree, this.item);
 	}
 	
 	/* (non-Javadoc)
@@ -213,6 +200,8 @@ public final class AddBookEditCommand extends ActionsEditCommand<CommandOperatio
 			this.bible.getBooks().add(this.index, this.book);
 			this.item.getChildren().add(this.index, this.newItem);
 		}
-		super.redo();
+
+		// select the new item on redo
+		this.select(this.tree, this.newItem);
 	}
 }

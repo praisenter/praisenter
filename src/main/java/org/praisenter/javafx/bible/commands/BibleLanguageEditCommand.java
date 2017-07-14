@@ -30,31 +30,45 @@ import org.praisenter.bible.Bible;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.bible.BibleTreeData;
 import org.praisenter.javafx.bible.TreeData;
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
+import org.praisenter.javafx.command.ValueChangedEditCommand;
 
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 
 /**
  * Represents an edit to the language of a {@link Bible}.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class BibleLanguageEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<Option<Locale>>> implements EditCommand {
+public final class BibleLanguageEditCommand extends ValueChangedEditCommand<Option<Locale>> implements EditCommand {
+	/** The tree view */
+	private final TreeView<TreeData> tree;
+	
+	/** The tree item */
+	private final TreeItem<TreeData> item;
+	
+	/** The editor control */
+	private final ComboBox<Option<Locale>> editor;
+	
 	/** The data */
 	private final BibleTreeData data;
 	
 	/**
-	 * Minimal constructor.
-	 * @param item the item being changed
-	 * @param operation the operation being performed
-	 * @param actions the actions
+	 * Constructor.
+	 * @param oldValue the old value
+	 * @param newValue the new value
+	 * @param tree the tree view
+	 * @param item the tree item
+	 * @param editor the editor
 	 */
-	@SafeVarargs
-	public BibleLanguageEditCommand(TreeItem<TreeData> item, ValueChangedCommandOperation<Option<Locale>> operation, CommandAction<ValueChangedCommandOperation<Option<Locale>>>... actions) {
-		super(operation, actions);
+	public BibleLanguageEditCommand(Option<Locale> oldValue, Option<Locale> newValue, TreeView<TreeData> tree, TreeItem<TreeData> item, ComboBox<Option<Locale>> editor) {
+		super(oldValue, newValue);
+		
+		this.tree = tree;
+		this.item = item;
+		this.editor = editor;
 		
 		BibleTreeData data = null;
 		if (item != null) {
@@ -96,7 +110,7 @@ public final class BibleLanguageEditCommand extends ActionsEditCommand<ValueChan
 	 */
 	@Override
 	public void execute() {
-		this.data.getBible().setLanguage(this.getLanguage(this.operation.getNewValue()));
+		this.data.getBible().setLanguage(this.getLanguage(this.newValue));
 	}
 	
 	/* (non-Javadoc)
@@ -104,8 +118,11 @@ public final class BibleLanguageEditCommand extends ActionsEditCommand<ValueChan
 	 */
 	@Override
 	public void undo() {
-		this.data.getBible().setLanguage(this.getLanguage(this.operation.getOldValue()));
-		super.undo();
+		this.data.getBible().setLanguage(this.getLanguage(this.oldValue));
+
+		// perform actions
+		this.select(this.tree, this.item);
+		this.combo(this.editor, this.oldValue);
 	}
 	
 	/* (non-Javadoc)
@@ -113,8 +130,11 @@ public final class BibleLanguageEditCommand extends ActionsEditCommand<ValueChan
 	 */
 	@Override
 	public void redo() {
-		this.data.getBible().setLanguage(this.getLanguage(this.operation.getNewValue()));
-		super.redo();
+		this.data.getBible().setLanguage(this.getLanguage(this.newValue));
+
+		// perform actions
+		this.select(this.tree, this.item);
+		this.combo(this.editor, this.newValue);
 	}
 	
 	/**

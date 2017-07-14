@@ -1,42 +1,29 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.slide.graphics.SlideShadow;
 
-public class TextShadowEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<SlideShadow>> {
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.Node;
+
+public final class TextShadowEditCommand extends SlideRegionValueChangedEditCommand<SlideShadow, ObservableTextComponent<?>> implements EditCommand {
+	private final Node focusNode;
 	
-	private final ObservableTextComponent<?> component;
-	
-	@SafeVarargs
-	public TextShadowEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<SlideShadow> operation, CommandAction<ValueChangedCommandOperation<SlideShadow>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public TextShadowEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<SlideShadow> operation, List<CommandAction<ValueChangedCommandOperation<SlideShadow>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public TextShadowEditCommand(SlideShadow oldValue, SlideShadow newValue, ObservableTextComponent<?> region, ObjectProperty<ObservableSlideRegion<?>> selection, Node focusNode) {
+		super(oldValue, newValue, region, selection);
+		this.focusNode = focusNode;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setTextShadow(this.operation.getNewValue());
+		this.region.setTextShadow(this.newValue);
 	}
 	
 	@Override
 	public boolean isMergeSupported(EditCommand command) {
 		return false;
-	}
-	
-	@Override
-	public boolean isValid() {
-		return this.component != null;
 	}
 	
 	@Override
@@ -46,13 +33,17 @@ public class TextShadowEditCommand extends ActionsEditCommand<ValueChangedComman
 	
 	@Override
 	public void undo() {
-		this.component.setTextShadow(this.operation.getOldValue());
-		super.undo();
+		this.region.setTextShadow(this.oldValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setTextShadow(this.operation.getNewValue());
-		super.redo();
+		this.region.setTextShadow(this.newValue);
+		
+		this.selectRegion();
+		this.focus(this.focusNode);
 	}
 }

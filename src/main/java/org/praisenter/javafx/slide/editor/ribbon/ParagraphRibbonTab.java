@@ -4,13 +4,14 @@ import java.util.function.Consumer;
 
 import org.controlsfx.control.SegmentedButton;
 import org.praisenter.javafx.ApplicationGlyphs;
+import org.praisenter.javafx.PreventUndoRedoEventFilter;
+import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.HorizontalTextAlignmentEditCommand;
 import org.praisenter.javafx.slide.editor.commands.PaddingEditCommand;
-import org.praisenter.javafx.slide.editor.commands.SlideEditorCommandFactory;
 import org.praisenter.javafx.slide.editor.commands.TextWrappingEditCommand;
 import org.praisenter.javafx.slide.editor.commands.VerticalTextAlignmentEditCommand;
 import org.praisenter.slide.text.HorizontalTextAlignment;
@@ -19,6 +20,7 @@ import org.praisenter.slide.text.VerticalTextAlignment;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -59,6 +61,7 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 		this.spnPadding = new Spinner<Double>(0.0, Double.MAX_VALUE, 0.0, 1.0);
 		this.spnPadding.setPrefWidth(70);
 		this.spnPadding.setEditable(true);
+		this.spnPadding.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
 		
 		// tooltips
 		
@@ -143,15 +146,16 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 					value = HorizontalTextAlignment.LEFT;
 				}
 				
-				this.context.applyCommand(new HorizontalTextAlignmentEditCommand(
-					tc, 
-					CommandFactory.changed(tc.getHorizontalTextAlignment(), (HorizontalTextAlignment)value), 
-					SlideEditorCommandFactory.select(this.context.selectedProperty(), tc),
-					CommandFactory.func((op) -> {
-						haChanged.accept(op.getOldValue());
-					}, (op) -> {
-						haChanged.accept(op.getNewValue());
-					})));
+				HorizontalTextAlignment oldValue = tc.getHorizontalTextAlignment();
+				HorizontalTextAlignment newValue = (HorizontalTextAlignment)value;
+				
+				this.applyCommand(CommandFactory.chain(
+						new HorizontalTextAlignmentEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.segHorizontalAlignment),
+						new ActionEditCommand(null, self -> {
+							haChanged.accept(oldValue);
+						}, self -> {
+							haChanged.accept(newValue);
+						})));
 			}
 		});
 		
@@ -166,15 +170,16 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 					value = VerticalTextAlignment.TOP;
 				}
 				
-				this.context.applyCommand(new VerticalTextAlignmentEditCommand(
-					tc, 
-					CommandFactory.changed(tc.getVerticalTextAlignment(), (VerticalTextAlignment)value), 
-					SlideEditorCommandFactory.select(this.context.selectedProperty(), tc),
-					CommandFactory.func((op) -> {
-						vaChanged.accept(op.getOldValue());
-					}, (op) -> {
-						vaChanged.accept(op.getNewValue());
-					})));
+				VerticalTextAlignment oldValue = tc.getVerticalTextAlignment();
+				VerticalTextAlignment newValue = (VerticalTextAlignment)value;
+				
+				this.applyCommand(CommandFactory.chain(
+						new VerticalTextAlignmentEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.segVerticalAlignment),
+						new ActionEditCommand(null, self -> {
+							vaChanged.accept(oldValue);
+						}, self -> {
+							vaChanged.accept(newValue);
+						})));
 			}
 		});
 		
@@ -183,12 +188,7 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlideRegion<?> component = this.context.getSelected();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-				
-				this.context.applyCommand(new PaddingEditCommand(
-					tc, 
-					CommandFactory.changed(ov, nv), 
-					SlideEditorCommandFactory.select(this.context.selectedProperty(), tc),
-					CommandFactory.spinner(this.spnPadding)));
+				this.applyCommand(new PaddingEditCommand(ov, nv, tc, this.context.selectedProperty(), this.spnPadding));
 			}
 		});
 		
@@ -197,14 +197,7 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 			ObservableSlideRegion<?> component = this.context.getSelected();
 			if (component != null && component instanceof ObservableTextComponent) {
 				ObservableTextComponent<?> tc =(ObservableTextComponent<?>)component;
-//				tc.setTextWrapping(nv);
-//				notifyComponentChanged();
-				
-				this.context.applyCommand(new TextWrappingEditCommand(
-					tc, 
-					CommandFactory.changed(ov, nv), 
-					SlideEditorCommandFactory.select(this.context.selectedProperty(), tc),
-					CommandFactory.toggle(this.tglTextWrapping)));
+				this.applyCommand(new TextWrappingEditCommand(ov, nv, tc, this.context.selectedProperty(), this.tglTextWrapping));
 			}
 		});
 	}

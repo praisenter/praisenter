@@ -1,60 +1,64 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.slide.graphics.Rectangle;
 
-public class SizeEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<Rectangle>> {
-	private final ObservableSlideRegion<?> component;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.Node;
+
+public final class SizeEditCommand extends SlideRegionValueChangedEditCommand<Rectangle, ObservableSlideRegion<?>> implements EditCommand {
+	private final Node focusNode;
 	
-	@SafeVarargs
-	public SizeEditCommand(ObservableSlideRegion<?> component, ValueChangedCommandOperation<Rectangle> operation, CommandAction<ValueChangedCommandOperation<Rectangle>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public SizeEditCommand(ObservableSlideRegion<?> component, ValueChangedCommandOperation<Rectangle> operation, List<CommandAction<ValueChangedCommandOperation<Rectangle>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public SizeEditCommand(Rectangle oldValue, Rectangle newValue, ObservableSlideRegion<?> component, ObjectProperty<ObservableSlideRegion<?>> selection, Node focusNode) {
+		super(oldValue, newValue, component, selection);
+		this.focusNode = focusNode;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setWidth(this.operation.getNewValue().getWidth());
-		this.component.setHeight(this.operation.getNewValue().getHeight());
+		this.region.setX(this.newValue.getX());
+		this.region.setY(this.newValue.getY());
+		this.region.setWidth(this.newValue.getWidth());
+		this.region.setHeight(this.newValue.getHeight());
 	}
 	
 	@Override
 	public boolean isMergeSupported(EditCommand command) {
+		if (command != null && command instanceof SizeEditCommand) {
+			SizeEditCommand sec = (SizeEditCommand)command;
+			return sec.region == this.region;
+		}
 		return false;
 	}
 	
 	@Override
-	public boolean isValid() {
-		return this.component != null;
-	}
-	
-	@Override
 	public EditCommand merge(EditCommand command) {
+		if (command != null && command instanceof SizeEditCommand) {
+			SizeEditCommand sec = (SizeEditCommand)command;
+			return new SizeEditCommand(
+					sec.oldValue,
+					this.newValue,
+					this.region,
+					this.selection,
+					this.focusNode);
+		}
 		return null;
 	}
 	
 	@Override
 	public void undo() {
-		this.component.setWidth(this.operation.getOldValue().getWidth());
-		this.component.setHeight(this.operation.getOldValue().getHeight());
-		super.undo();
+		this.region.setX(this.oldValue.getX());
+		this.region.setY(this.oldValue.getY());
+		this.region.setWidth(this.oldValue.getWidth());
+		this.region.setHeight(this.oldValue.getHeight());
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setWidth(this.operation.getNewValue().getWidth());
-		this.component.setHeight(this.operation.getNewValue().getHeight());
-		super.redo();
+		this.region.setX(this.newValue.getX());
+		this.region.setY(this.newValue.getY());
+		this.region.setWidth(this.newValue.getWidth());
+		this.region.setHeight(this.newValue.getHeight());
 	}
 }

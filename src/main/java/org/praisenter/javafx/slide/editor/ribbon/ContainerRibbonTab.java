@@ -1,10 +1,8 @@
 package org.praisenter.javafx.slide.editor.ribbon;
 
-import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.OpacityEditCommand;
-import org.praisenter.javafx.slide.editor.commands.SlideEditorCommandFactory;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -56,14 +54,7 @@ class ContainerRibbonTab extends ComponentEditorRibbonTab {
 			if (mutating) return;
 			ObservableSlideRegion<?> component = this.context.getSelected();
 			if (component != null) {
-//				component.setOpacity(nv.doubleValue());
-//				notifyComponentChanged();
-				
-				this.context.applyCommand(new OpacityEditCommand(
-						component, 
-						CommandFactory.changed(ov.doubleValue(), nv.doubleValue()), 
-						SlideEditorCommandFactory.select(this.context.selectedProperty(), component),
-						CommandFactory.slider(this.sldOpacity)));
+				this.applyCommand(new OpacityEditCommand(ov.doubleValue(), nv.doubleValue(), component, this.context.selectedProperty(), this.sldOpacity));
 			}
 		});
 	}

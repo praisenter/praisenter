@@ -1,31 +1,24 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
+import org.praisenter.javafx.slide.editor.controls.SlideFontPicker;
 import org.praisenter.slide.text.SlideFont;
 
-public class FontEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<SlideFont>> {
-	private final ObservableTextComponent<?> component;
+import javafx.beans.property.ObjectProperty;
+
+public final class FontEditCommand extends SlideRegionValueChangedEditCommand<SlideFont, ObservableTextComponent<?>> implements EditCommand {
+	private final SlideFontPicker fontPicker;
 	
-	@SafeVarargs
-	public FontEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<SlideFont> operation, CommandAction<ValueChangedCommandOperation<SlideFont>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public FontEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<SlideFont> operation, List<CommandAction<ValueChangedCommandOperation<SlideFont>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public FontEditCommand(SlideFont oldValue, SlideFont newValue, ObservableTextComponent<?> component, ObjectProperty<ObservableSlideRegion<?>> selection, SlideFontPicker fontPicker) {
+		super(oldValue, newValue, component, selection);
+		this.fontPicker = fontPicker;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setFont(this.operation.getNewValue());
+		this.region.setFont(this.newValue);
 	}
 	
 	@Override
@@ -35,7 +28,7 @@ public class FontEditCommand extends ActionsEditCommand<ValueChangedCommandOpera
 	
 	@Override
 	public boolean isValid() {
-		return this.component != null;
+		return super.isValid() && this.fontPicker != null;
 	}
 	
 	@Override
@@ -45,13 +38,19 @@ public class FontEditCommand extends ActionsEditCommand<ValueChangedCommandOpera
 	
 	@Override
 	public void undo() {
-		this.component.setFont(this.operation.getOldValue());
-		super.undo();
+		this.region.setFont(this.oldValue);
+		
+		this.selectRegion();
+		this.focus(this.fontPicker);
+		this.fontPicker.setFont(this.oldValue);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setFont(this.operation.getNewValue());
-		super.redo();
+		this.region.setFont(this.newValue);
+		
+		this.selectRegion();
+		this.focus(this.fontPicker);
+		this.fontPicker.setFont(this.newValue);
 	}
 }

@@ -22,26 +22,44 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.screen;
+package org.praisenter.javafx.command;
 
 /**
- * An enumeration of possible display states when performing automatic screen assignment.
+ * Represents an edit command that encapsulates a value change.
  * @author William Bittle
  * @version 3.0.0
+ * @param <T> the value type
  */
-enum DisplayState {
-	/** The current assignment is valid */
-	VALID,
+public abstract class ValueChangedEditCommand<T> extends AbstractEditCommand implements EditCommand {
+	/** The old value */
+	protected final T oldValue;
 	
-	/** The screen isn't assigned */
-	SCREEN_NOT_ASSIGNED,
+	/** The new value */
+	protected final T newValue;
 	
-	/** The current assignment is invalid because the screen index no longer exists (a screen was removed) */
-	SCREEN_INDEX_DOESNT_EXIT,
+	/**
+	 * Constructor.
+	 * @param oldValue the old value
+	 * @param newValue the new value
+	 */
+	public ValueChangedEditCommand(T oldValue, T newValue) {
+		this.oldValue = oldValue;
+		this.newValue = newValue;
+	}
 	
-	/** The current assignment is invalid because the screen's position changed (a screen was moved) */
-	POSITION_CHANGED,
+	/**
+	 * Returns the old value.
+	 * @return T
+	 */
+	public T getOldValue() {
+		return this.oldValue;
+	}
 	
-	/** The current assignment is invalid because the screen's resolution changed */
-	RESOLUTION_CHANGED
+	/**
+	 * Returns the new value.
+	 * @return T
+	 */
+	public T getNewValue() {
+		return this.newValue;
+	}
 }

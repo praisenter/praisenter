@@ -27,31 +27,45 @@ package org.praisenter.javafx.bible.commands;
 import org.praisenter.bible.Book;
 import org.praisenter.javafx.bible.BookTreeData;
 import org.praisenter.javafx.bible.TreeData;
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
+import org.praisenter.javafx.command.ValueChangedEditCommand;
 
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 
 /**
  * Represents an edit to the name of a {@link Book}.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class BookNameEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<String>> implements EditCommand {
+public final class BookNameEditCommand extends ValueChangedEditCommand<String> implements EditCommand {
+	/** The tree view */
+	private final TreeView<TreeData> tree;
+	
+	/** The tree item */
+	private final TreeItem<TreeData> item;
+	
+	/** The editor control */
+	private final TextInputControl editor;
+	
 	/** The tree data for the verse */
 	private final BookTreeData data;
 
 	/**
-	 * Minimal constructor.
-	 * @param item the item being changed
-	 * @param operation the operation being performed
-	 * @param actions the actions
+	 * Constructor.
+	 * @param oldValue the old value
+	 * @param newValue the new value
+	 * @param tree the tree view
+	 * @param item the tree item
+	 * @param editor the text editor
 	 */
-	@SafeVarargs
-	public BookNameEditCommand(TreeItem<TreeData> item, ValueChangedCommandOperation<String> operation, CommandAction<ValueChangedCommandOperation<String>>... actions) {
-		super(operation, actions);
+	public BookNameEditCommand(String oldValue, String newValue, TreeView<TreeData> tree, TreeItem<TreeData> item, TextInputControl editor) {
+		super(oldValue, newValue);
+		
+		this.tree = tree;
+		this.item = item;
+		this.editor = editor;
 		
 		BookTreeData data = null;
 		if (item != null) {
@@ -64,16 +78,6 @@ public final class BookNameEditCommand extends ActionsEditCommand<ValueChangedCo
 		this.data = data;
 	}
 	
-	/**
-	 * Merge constructor.
-	 * @param c1 the previous command
-	 * @param c2 the new command
-	 */
-	private BookNameEditCommand(BookNameEditCommand c1, BookNameEditCommand c2) {
-		super(new ValueChangedCommandOperation<>(c1.operation.getOldValue(), c2.operation.getNewValue()), c2.actions);
-		this.data = c2.data;
-	}
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.command.EditCommand#isValid()
 	 */
@@ -101,7 +105,7 @@ public final class BookNameEditCommand extends ActionsEditCommand<ValueChangedCo
 	public EditCommand merge(EditCommand command) {
 		if (command instanceof BookNameEditCommand) {
 			BookNameEditCommand other = (BookNameEditCommand)command;
-			return new BookNameEditCommand(other, this);
+			return new BookNameEditCommand(other.oldValue, this.newValue, this.tree, this.item, this.editor);
 		}
 		return null;
 	}
@@ -111,7 +115,7 @@ public final class BookNameEditCommand extends ActionsEditCommand<ValueChangedCo
 	 */
 	@Override
 	public void execute() {
-		this.data.getBook().setName(this.operation.getNewValue());
+		this.data.getBook().setName(this.newValue);
 		this.data.update();
 	}
 	
@@ -120,9 +124,12 @@ public final class BookNameEditCommand extends ActionsEditCommand<ValueChangedCo
 	 */
 	@Override
 	public void undo() {
-		this.data.getBook().setName(this.operation.getOldValue());
+		this.data.getBook().setName(this.oldValue);
 		this.data.update();
-		super.undo();
+
+		// perform actions
+		this.select(this.tree, this.item);
+		this.text(this.editor, this.oldValue);
 	}
 	
 	/* (non-Javadoc)
@@ -130,8 +137,11 @@ public final class BookNameEditCommand extends ActionsEditCommand<ValueChangedCo
 	 */
 	@Override
 	public void redo() {
-		this.data.getBook().setName(this.operation.getNewValue());
+		this.data.getBook().setName(this.newValue);
 		this.data.update();
-		super.redo();
+
+		// perform actions
+		this.select(this.tree, this.item);
+		this.text(this.editor, this.newValue);
 	}
 }

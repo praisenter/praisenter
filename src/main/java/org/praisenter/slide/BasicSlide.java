@@ -232,6 +232,9 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		this.id = slide.getId();
 		this.name = slide.getName();
 		this.path = slide.getPath();
+		this.createdDate = slide.getCreatedDate();
+		this.lastModifiedDate = slide.getLastModifiedDate();
+		this.thumbnail = slide.getThumbnail();
 	}
 	
 	/* (non-Javadoc)
@@ -503,6 +506,29 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 				components.add(0, component);
 			}
 		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#moveComponent(org.praisenter.slide.SlideComponent, int)
+	 */
+	@Override
+	public int moveComponent(SlideComponent component, int index) {
+		// get all the components
+		List<SlideComponent> components = this.components;
+		int size = components.size();
+		
+		// validate the index
+		if (index < 0) index = 0;
+		if (index >= size) index = size -1; 
+		
+		// verify the component exists on this slide
+		if (components.contains(component) && components.size() > 0) {
+			this.components.remove(component);
+			this.components.add(index, component);
+			return index;
+		}
+		
+		return -1;
 	}
 
 	/* (non-Javadoc)

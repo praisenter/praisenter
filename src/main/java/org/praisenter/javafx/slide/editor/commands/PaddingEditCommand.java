@@ -1,31 +1,24 @@
 package org.praisenter.javafx.slide.editor.commands;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.praisenter.javafx.command.ActionsEditCommand;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.command.action.CommandAction;
-import org.praisenter.javafx.command.operation.ValueChangedCommandOperation;
+import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.slide.graphics.SlidePadding;
 
-public class PaddingEditCommand extends ActionsEditCommand<ValueChangedCommandOperation<Double>> {
-	private final ObservableTextComponent<?> component;
+import javafx.beans.property.ObjectProperty;
+import javafx.scene.control.Spinner;
+
+public final class PaddingEditCommand extends SlideRegionValueChangedEditCommand<Double, ObservableTextComponent<?>> implements EditCommand {
+	private final Spinner<Double> control;
 	
-	@SafeVarargs
-	public PaddingEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<Double> operation, CommandAction<ValueChangedCommandOperation<Double>>... actions) {
-		this(component, operation, Arrays.asList(actions));
-	}
-	
-	public PaddingEditCommand(ObservableTextComponent<?> component, ValueChangedCommandOperation<Double> operation, List<CommandAction<ValueChangedCommandOperation<Double>>> actions) {
-		super(operation, actions);
-		this.component = component;
+	public PaddingEditCommand(Double oldValue, Double newValue, ObservableTextComponent<?> component, ObjectProperty<ObservableSlideRegion<?>> selection, Spinner<Double> control) {
+		super(oldValue, newValue, component, selection);
+		this.control = control;
 	}
 	
 	@Override
 	public void execute() {
-		this.component.setPadding(new SlidePadding(this.operation.getNewValue()));
+		this.region.setPadding(new SlidePadding(this.newValue));
 	}
 	
 	@Override
@@ -35,7 +28,7 @@ public class PaddingEditCommand extends ActionsEditCommand<ValueChangedCommandOp
 	
 	@Override
 	public boolean isValid() {
-		return this.component != null;
+		return super.isValid() && this.control != null;
 	}
 	
 	@Override
@@ -45,13 +38,17 @@ public class PaddingEditCommand extends ActionsEditCommand<ValueChangedCommandOp
 	
 	@Override
 	public void undo() {
-		this.component.setPadding(new SlidePadding(this.operation.getOldValue()));
-		super.undo();
+		this.region.setPadding(new SlidePadding(this.oldValue));
+		
+		this.selectRegion();
+		this.spinner(this.control, this.oldValue);
 	}
 	
 	@Override
 	public void redo() {
-		this.component.setPadding(new SlidePadding(this.operation.getNewValue()));
-		super.redo();
+		this.region.setPadding(new SlidePadding(this.newValue));
+		
+		this.selectRegion();
+		this.spinner(this.control, this.newValue);
 	}
 }
