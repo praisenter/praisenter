@@ -25,6 +25,7 @@ import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.Slide;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -323,5 +324,9 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 	@Override
 	public void cleanup() {
 		// no-op
+	}
+	
+	public ReadOnlyObjectProperty<Node> mainContentProperty() {
+		return this.mainContent;
 	}
 }

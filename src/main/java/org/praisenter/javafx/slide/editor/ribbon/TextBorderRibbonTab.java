@@ -2,12 +2,11 @@ package org.praisenter.javafx.slide.editor.ribbon;
 
 import org.praisenter.javafx.PreventUndoRedoEventFilter;
 import org.praisenter.javafx.command.ActionEditCommand;
-import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
-import org.praisenter.javafx.slide.editor.commands.FontBorderEditCommand;
+import org.praisenter.javafx.slide.editor.commands.TextBorderEditCommand;
 import org.praisenter.javafx.slide.editor.controls.SlideGradientPicker;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.SlideColor;
@@ -171,13 +170,12 @@ class TextBorderRibbonTab extends ComponentEditorRibbonTab {
 				SlideStroke oldValue = tc.getTextBorder();
 				SlideStroke newValue = this.getControlValues();
 				
-				applyCommand(CommandFactory.chain(
-					new FontBorderEditCommand(oldValue, newValue, tc, context.selectedProperty(), mnuPaintType),
-					new ActionEditCommand(null, self -> {
-						this.setControlValues(oldValue);
-					}, self -> {
-						this.setControlValues(newValue);
-					})));
+				applyCommand(new TextBorderEditCommand(oldValue, newValue, tc, context.selectedProperty(), mnuPaintType,
+								new ActionEditCommand(null, self -> {
+									this.setControlValues(oldValue);
+								}, self -> {
+									this.setControlValues(newValue);
+								})));
 			}
 		};
 		

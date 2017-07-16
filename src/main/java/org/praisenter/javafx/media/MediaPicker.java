@@ -66,8 +66,6 @@ public final class MediaPicker extends Button {
 						types);
 				// set the value
 				dialog.valueProperty().set(value.get());
-				// bind the values
-				value.bindBidirectional(this.dialog.valueProperty());
 			}
 			// show the dialog
 			dialog.show(m -> {

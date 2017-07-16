@@ -24,12 +24,22 @@
  */
 package org.praisenter.javafx.slide.editor.controls;
 
-import org.controlsfx.control.PopOver;
+import java.util.function.Consumer;
+
+import org.praisenter.javafx.utility.Fx;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.graphics.SlideGradient;
 
 import javafx.beans.property.ObjectProperty;
-import javafx.scene.Node;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
 /**
@@ -39,36 +49,78 @@ import javafx.stage.Window;
  */
 final class SlideGradientPickerDialog extends BorderPane {
 	/** The dialog */
-//	private final Stage dialog;
-	
-	private final PopOver dialog;
+	private final Stage dialog;
 	
 	/** The media library pane */
 	private final SlideGradientPickerPane gradientPane;
 
+	/** The selected gradient */
+	private final ObjectProperty<SlideGradient> value = new SimpleObjectProperty<SlideGradient>();
+	
+	/** The callback to call when the gradient is selected */
+	private Consumer<SlideGradient> callback = null;
+	
 	/**
 	 * Full constructor.
 	 * @param owner the owner of this dialog
 	 */
 	public SlideGradientPickerDialog(Window owner) {
 		// build the dialog
-		this.dialog = new PopOver();
-		this.dialog.setDetachable(false);
-		this.dialog.setAutoFix(false);
+		this.dialog = new Stage();
+		if (owner != null) {
+			this.dialog.initOwner(owner);
+		}
+		this.dialog.setTitle(Translations.get(""));
+		this.dialog.initModality(Modality.WINDOW_MODAL);
+		this.dialog.initStyle(StageStyle.UTILITY);
+		// NOTE: this makes the title portion of the modal shorter
+		this.dialog.setResizable(false);
 		
 		// build the media library pane
 		this.gradientPane = new SlideGradientPickerPane();
-		this.setCenter(this.gradientPane);
+
+		Button btnAccept = new Button("OK");
+		Button btnCancel = new Button("Cancel");
 		
-		this.dialog.setContentNode(this);
+		// when our value changes, update the media pane
+		this.value.addListener((obs, ov, nv) -> {
+			this.gradientPane.setGradient(nv);
+		});
+		
+		btnAccept.setOnAction(e -> {
+			this.value.setValue(this.gradientPane.getGradient());
+			if (this.callback != null) {
+				this.callback.accept(this.value.get());
+			}
+			this.dialog.close();
+		});
+
+		btnCancel.setOnAction(e -> {
+			this.dialog.close();
+		});
+		
+		btnAccept.setPadding(new Insets(5, 15, 5, 15));
+		btnCancel.setPadding(new Insets(5, 15, 5, 15));
+		HBox bottom = new HBox(5, btnAccept, btnCancel);
+		bottom.setAlignment(Pos.BASELINE_RIGHT);
+		bottom.setPadding(new Insets(5));
+		
+		this.setCenter(this.gradientPane);
+		this.setBottom(bottom);
+		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));
 	}
 	
 	/**
 	 * Shows this dialog.
-	 * @param owner the owning node
+	 * @param x the screen x for the dialog
+	 * @param y the screen y for the dialog
+	 * @param callback called when the dialog is closed
 	 */
-	public void show(Node owner) {
-		this.dialog.show(owner);
+	public void show(double x, double y, Consumer<SlideGradient> callback) {
+		this.callback = callback;
+		this.dialog.setX(x);
+		this.dialog.setY(y);
+		this.dialog.show();
 	}
 	
 	/**

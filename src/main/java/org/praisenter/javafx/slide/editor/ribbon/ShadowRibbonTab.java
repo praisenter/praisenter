@@ -3,7 +3,6 @@ package org.praisenter.javafx.slide.editor.ribbon;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PreventUndoRedoEventFilter;
 import org.praisenter.javafx.command.ActionEditCommand;
-import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
@@ -109,13 +108,12 @@ class ShadowRibbonTab extends ComponentEditorRibbonTab {
 			if (comp != null) {
 				SlideShadow oldValue = comp.getShadow();
 				SlideShadow newValue = this.getControlValues();
-				applyCommand(CommandFactory.chain(
-						new ShadowEditCommand(oldValue, newValue, comp, context.selectedProperty(), this.cmbType),
-						new ActionEditCommand(null, self -> {
-							this.setControlValues(oldValue);
-						}, self -> {
-							this.setControlValues(newValue);
-						})));
+				applyCommand(new ShadowEditCommand(oldValue, newValue, comp, context.selectedProperty(), this.cmbType,
+								new ActionEditCommand(null, self -> {
+									this.setControlValues(oldValue);
+								}, self -> {
+									this.setControlValues(newValue);
+								})));
 			}
 		};
 		

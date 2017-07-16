@@ -111,6 +111,18 @@ public final class EditManager {
 			top = this.undos.pop();
 			// merge the commands
 			command = command.merge(top);
+			
+			if (command == null) {
+				LOGGER.warn("Command null - Skipping operation.");
+				return;
+			}
+			
+			if (!command.isValid()) {
+				LOGGER.warn("Command invalid - Skipping operation.");
+				return;
+			}
+			
+			LOGGER.debug("Commands merged");
 		}
 		
 		this.undos.push(command);
@@ -174,7 +186,7 @@ public final class EditManager {
 	}
 	
 	private void printCounts() {
-		LOGGER.debug("U(" + this.undos.size() + ") R(" + this.redos.size() + ")");
+		LOGGER.debug("UNDO(" + this.undos.size() + ") REDO(" + this.redos.size() + ")");
 	}
 	
 	/**

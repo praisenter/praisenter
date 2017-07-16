@@ -91,6 +91,7 @@ final class SlideGradientPickerPane extends HBox {
     
     /** The configured gradient paint */
 	private final ObjectProperty<SlideGradient> gradient = new SimpleObjectProperty<SlideGradient>();
+	private final ObjectProperty<SlideGradient> temp = new SimpleObjectProperty<SlideGradient>();
 
 	/** True if the controls are being set */
 	private boolean mutating = false;
@@ -177,6 +178,7 @@ final class SlideGradientPickerPane extends HBox {
 				if (mutating) return;
 				mutating = true;
 				gradient.set(getControlValues());
+				temp.set(getControlValues());
 				mutating = false;
 			}
 		};
@@ -215,7 +217,21 @@ final class SlideGradientPickerPane extends HBox {
         // stop 1 offset slider
         this.sldStop1 = new Slider(0, 1, 0);
         this.sldStop1.setPrefWidth(50);
-        this.sldStop1.valueProperty().addListener(listener);
+        this.sldStop1.valueProperty().addListener((obs, ov, nv) -> {
+        	if (!this.sldStop1.isValueChanging()) {
+        		listener.invalidated(obs);
+        	} else {
+            	if (mutating) return;
+    			mutating = true;
+    			temp.set(getControlValues());
+    			mutating = false;
+        	}
+        });
+        this.sldStop1.valueChangingProperty().addListener((obs, ov, nv) -> {
+        	if (!nv) {
+        		listener.invalidated(obs);
+        	}
+        });
         
         // stop 1 color
         this.pkrStop1 = new ColorPicker(Color.BLACK);
@@ -224,7 +240,21 @@ final class SlideGradientPickerPane extends HBox {
         // stop 2 offset slider
         this.sldStop2 = new Slider(0, 1, 1);
         this.sldStop2.setPrefWidth(50);
-        this.sldStop2.valueProperty().addListener(listener);
+        this.sldStop2.valueProperty().addListener((obs, ov, nv) -> {
+        	if (!this.sldStop2.isValueChanging()) {
+        		listener.invalidated(obs);
+        	} else {
+            	if (mutating) return;
+    			mutating = true;
+    			temp.set(getControlValues());
+    			mutating = false;
+        	}
+        });
+        this.sldStop2.valueChangingProperty().addListener((obs, ov, nv) -> {
+        	if (!nv) {
+        		listener.invalidated(obs);
+        	}
+        });
         
         // stop 2 color
         this.pkrStop2 = new ColorPicker(Color.WHITE);
@@ -242,14 +272,14 @@ final class SlideGradientPickerPane extends HBox {
         this.preview = new Pane();
         Fx.setSize(this.preview, WIDTH, HEIGHT);
         this.preview.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(1))));
-        this.preview.setBackground(new Background(new BackgroundFill(PaintConverter.toJavaFX(this.gradient.get()), null, null)));
+        this.preview.setBackground(new Background(new BackgroundFill(PaintConverter.toJavaFX(this.temp.get()), null, null)));
         this.preview.backgroundProperty().bind(new ObjectBinding<Background>() {
             {
             	// when the paint changes, update the background
-                bind(gradient);
+                bind(temp);
             }
             @Override protected Background computeValue() {
-                return new Background(new BackgroundFill(PaintConverter.toJavaFX(gradient.get()), CornerRadii.EMPTY, Insets.EMPTY));
+                return new Background(new BackgroundFill(PaintConverter.toJavaFX(temp.get()), CornerRadii.EMPTY, Insets.EMPTY));
             }
         }); 
         
@@ -296,7 +326,8 @@ final class SlideGradientPickerPane extends HBox {
         	// move the handle
         	handle1.setLayoutX(clamp(handle1.getLayoutX() + x, 0, WIDTH));
         	handle1.setLayoutY(clamp(handle1.getLayoutY() + y, 0, HEIGHT));
-        	this.gradient.set(getControlValues());
+        	// set the temp value so the user can see the change
+        	this.temp.set(getControlValues());
         	mutating = false;
         };
 
@@ -320,7 +351,8 @@ final class SlideGradientPickerPane extends HBox {
             // move the handle
             handle2.setLayoutX(clamp(handle2.getLayoutX() + x, 0, WIDTH));
         	handle2.setLayoutY(clamp(handle2.getLayoutY() + y, 0, HEIGHT));
-        	this.gradient.set(getControlValues());
+        	// set the temp value so the user can see the change
+        	this.temp.set(getControlValues());
         	mutating = false;
         };
         
@@ -334,6 +366,9 @@ final class SlideGradientPickerPane extends HBox {
         // set the handlers
         this.handle1.setOnMouseDragged(handle1MouseHandler);
         this.handle2.setOnMouseDragged(handle2MouseHandler);
+        // when the mouse pointer is released, then change the primary value of the control
+        this.handle1.setOnMouseReleased(e -> { this.gradient.set(this.getControlValues()); });
+        this.handle2.setOnMouseReleased(e -> { this.gradient.set(this.getControlValues()); });
         // change the cursor based on hover over the handles
         this.handle1.setOnMouseEntered(handleEnter);
         this.handle1.setOnMouseExited(handleExit);
@@ -471,6 +506,8 @@ final class SlideGradientPickerPane extends HBox {
     		handle2.setLayoutX(x2 * WIDTH);
     		handle2.setLayoutY(y2 * HEIGHT);
     	}
+    	
+    	this.temp.set(this.gradient.get());
     }
     
     /**

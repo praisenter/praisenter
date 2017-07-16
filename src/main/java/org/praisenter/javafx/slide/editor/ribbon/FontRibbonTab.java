@@ -4,7 +4,6 @@ import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PreventUndoRedoEventFilter;
 import org.praisenter.javafx.command.ActionEditCommand;
-import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.converters.PaintConverter;
@@ -163,13 +162,12 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 
 				SlidePaint oldValue = tc.getTextPaint();
 				SlidePaint newValue = PaintConverter.fromJavaFX(this.pkrColor.getValue());
-				this.applyCommand(CommandFactory.chain(
-						new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrColor),
-						new ActionEditCommand(null, self -> {
-							this.setPaintValues(oldValue);
-						}, self -> {
-							this.setPaintValues(newValue);
-						})));
+				this.applyCommand(new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrColor,
+									new ActionEditCommand(null, self -> {
+										this.setPaintValues(oldValue);
+									}, self -> {
+										this.setPaintValues(newValue);
+									})));
 			}
 		});
 		itmGradient.setOnAction((e) -> {
@@ -181,13 +179,12 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 				
 				SlidePaint oldValue = tc.getTextPaint();
 				SlidePaint newValue = this.pkrGradient.getValue();
-				this.applyCommand(CommandFactory.chain(
-						new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrGradient),
-						new ActionEditCommand(null, self -> {
-							this.setPaintValues(oldValue);
-						}, self -> {
-							this.setPaintValues(newValue);
-						})));
+				this.applyCommand(new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrGradient,
+									new ActionEditCommand(null, self -> {
+										this.setPaintValues(oldValue);
+									}, self -> {
+										this.setPaintValues(newValue);
+									})));
 			}
 		});
 		
@@ -199,13 +196,12 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 				
 				SlidePaint oldValue = tc.getTextPaint();
 				SlidePaint newValue = PaintConverter.fromJavaFX(nv);
-				this.applyCommand(CommandFactory.chain(
-						new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrColor),
-						new ActionEditCommand(null, self -> {
-							this.setPaintValues(oldValue);
-						}, self -> {
-							this.setPaintValues(newValue);
-						})));
+				this.applyCommand(new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrColor,
+									new ActionEditCommand(null, self -> {
+										this.setPaintValues(oldValue);
+									}, self -> {
+										this.setPaintValues(newValue);
+									})));
 			}
 		});
 		
@@ -217,13 +213,12 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 
 				SlidePaint oldValue = tc.getTextPaint();
 				SlidePaint newValue = nv;
-				this.applyCommand(CommandFactory.chain(
-						new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrGradient),
-						new ActionEditCommand(null, self -> {
-							this.setPaintValues(oldValue);
-						}, self -> {
-							this.setPaintValues(newValue);
-						})));
+				this.applyCommand(new TextPaintEditCommand(oldValue, newValue, tc, this.context.selectedProperty(), this.pkrGradient,
+									new ActionEditCommand(null, self -> {
+										this.setPaintValues(oldValue);
+									}, self -> {
+										this.setPaintValues(newValue);
+									})));
 			}
 		});
 		

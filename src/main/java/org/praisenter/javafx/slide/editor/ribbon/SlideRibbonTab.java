@@ -9,7 +9,6 @@ import org.praisenter.javafx.configuration.Resolution;
 import org.praisenter.javafx.configuration.ResolutionSet;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.slide.ObservableSlide;
-import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.SlideNameEditCommand;
 import org.praisenter.javafx.slide.editor.commands.SlideResolutionEditCommand;

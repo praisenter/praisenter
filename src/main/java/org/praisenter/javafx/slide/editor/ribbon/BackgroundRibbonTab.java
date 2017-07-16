@@ -5,7 +5,6 @@ import org.praisenter.MediaType;
 import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.command.ActionEditCommand;
-import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.media.MediaPicker;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.converters.PaintConverter;
@@ -142,8 +141,8 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 			if (comp != null) {
 				SlidePaint oldValue = comp.getBackground();
 				SlidePaint newValue = getControlValues();
-				this.applyCommand(CommandFactory.chain(
-						new BackgroundEditCommand(oldValue, newValue, comp, context.selectedProperty(), this.cmbTypes),
+				this.applyCommand(
+						new BackgroundEditCommand(oldValue, newValue, comp, context.selectedProperty(), this.cmbTypes,
 						new ActionEditCommand(null, (self) -> { 
 								setControlValues(oldValue); 
 							}, (self) -> { 

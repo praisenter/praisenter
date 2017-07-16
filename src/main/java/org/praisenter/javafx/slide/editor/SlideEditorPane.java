@@ -79,8 +79,6 @@ import javafx.scene.shape.StrokeType;
 // JAVABUG (L) 06/30/16 Text border really slow when the stroke style is INSIDE or OUTSIDE - https://bugs.openjdk.java.net/browse/JDK-8089081
 // JAVABUG (M) 02/04/17 DropShadow and Glow effects cannot be mouse transparent - https://bugs.openjdk.java.net/browse/JDK-8092268, https://bugs.openjdk.java.net/browse/JDK-8101376
 
-// FIXME we need to manage focus so that undo/redo works; right now undo works, but then focus goes to something to where the redo doesn't
-
 public final class SlideEditorPane extends BorderPane implements ApplicationPane, ApplicationEditorPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -106,7 +104,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		this.setTop(top);
 		
 		// create the animation picker
-		this.animations = new AnimationsPane();
+		this.animations = new AnimationsPane(this.context);
 		this.setRight(this.animations);
 		
 		// Node hierarchy:
@@ -217,6 +215,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			if (nv != null) {
 				nv.getEditBorderNode().pseudoClassStateChanged(SELECTED, true);
 			}
+			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
 		});
 		
 		// scaling must be applied to the slide and components separately so that
@@ -402,11 +401,6 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				this.applyCommand(command);
 			}
 		});
-		
-		// bindings
-
-		this.animations.slideProperty().bind(this.context.slideProperty());
-		this.animations.componentProperty().bind(this.context.selectedProperty());
 		
 		// set values
 		
@@ -608,7 +602,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				return selected != null && selected instanceof ObservableSlideComponent;
 			case PASTE:
 				Clipboard cb = Clipboard.getSystemClipboard();
-				if (Fx.isNodeInFocusChain(focused, this.slidePreview)) {
+				if (Fx.isNodeInFocusChain(focused, this)) {
 					return cb.hasContent(DataFormats.SLIDE_COMPONENT);
 				}
 				return false;

@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import org.praisenter.TextType;
 import org.praisenter.TextVariant;
 import org.praisenter.javafx.ApplicationGlyphs;
-import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.slide.ObservableBasicTextComponent;
 import org.praisenter.javafx.slide.ObservableCountdownComponent;
 import org.praisenter.javafx.slide.ObservableDateTimeComponent;

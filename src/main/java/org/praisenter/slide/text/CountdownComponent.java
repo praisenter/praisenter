@@ -126,7 +126,7 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 			// get the time of the target only
 			LocalTime timeOnly = this.countdownTarget.toLocalTime();
 			LocalDateTime target = timeOnly.atDate(LocalDate.now());
-			if (target.isBefore(LocalDateTime.now())); {
+			if (target.isBefore(LocalDateTime.now())) {
 				target = target.plusDays(1);
 			}
 			return formatCountdown(this.countdownFormat, target);

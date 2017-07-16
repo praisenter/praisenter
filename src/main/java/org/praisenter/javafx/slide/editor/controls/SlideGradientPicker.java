@@ -29,6 +29,7 @@ import org.praisenter.slide.graphics.SlideGradient;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Bounds;
 import javafx.scene.control.SplitMenuButton;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
@@ -84,11 +85,13 @@ public final class SlideGradientPicker extends SplitMenuButton {
 			dialog = new SlideGradientPickerDialog(getScene().getWindow());
 			// set the value
 			dialog.valueProperty().set(value.get());
-			// bind the values
-			value.bindBidirectional(this.dialog.valueProperty());
 		}
+		
 		// show the dialog
-		dialog.show(this);
+		Bounds bounds = this.localToScreen(this.getBoundsInLocal());
+		dialog.show(bounds.getMinX(), bounds.getMaxY() + 4, (value) -> {
+			this.value.set(value);
+		});
 	}
 	
 	/**

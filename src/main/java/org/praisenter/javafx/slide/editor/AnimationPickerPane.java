@@ -363,7 +363,8 @@ final class AnimationPickerPane extends BorderPane {
 		
 //		ScrollPane scrAnimations = new ScrollPane(animationListPane);
 //		scrAnimations.setFitToWidth(true);
-		animationListPane.setPrefHeight(300);
+		animationListPane.setPrefHeight(350);
+		
 		
 //		ScrollPane scrEasings = new ScrollPane(easingListPane);
 //		scrEasings.setFitToHeight(true);
@@ -394,7 +395,7 @@ final class AnimationPickerPane extends BorderPane {
 		
 		this.setCenter(left);
 		this.setRight(right);
-		this.setMinHeight(420);
+//		this.setMinHeight(420);
 		
 		// value bindings
 

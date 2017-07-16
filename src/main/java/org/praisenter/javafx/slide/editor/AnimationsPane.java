@@ -29,27 +29,36 @@ import java.util.Comparator;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+import org.praisenter.javafx.ApplicationAction;
+import org.praisenter.javafx.ApplicationEvent;
+import org.praisenter.javafx.PreventUndoRedoEventFilter;
+import org.praisenter.javafx.command.EditCommand;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.animation.Animations;
+import org.praisenter.javafx.slide.editor.commands.AddAnimationEditCommand;
+import org.praisenter.javafx.slide.editor.commands.EditAnimationEditCommand;
+import org.praisenter.javafx.slide.editor.commands.RemoveAnimationEditCommand;
+import org.praisenter.javafx.slide.editor.events.SlideEditorEvent;
 import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.animation.SlideAnimation;
 
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
@@ -80,13 +89,12 @@ final class AnimationsPane extends BorderPane {
 	/** A collator for string comparison for the current locale */
 	private static final Collator COLLATOR = Collator.getInstance();
 	
+	// context
+	
+	/** The editor context */
+	private final SlideEditorContext context;
+	
 	// data
-	
-	/** The slide being edited */
-	private final ObjectProperty<ObservableSlide<?>> slide = new SimpleObjectProperty<ObservableSlide<?>>(null);
-	
-	/** The currently selected component */
-	private final ObjectProperty<ObservableSlideRegion<?>> component = new SimpleObjectProperty<ObservableSlideRegion<?>>();
 	
 	/** The list of all animations */
 	private final ObservableList<SlideAnimation> animations = FXCollections.observableArrayList();
@@ -101,7 +109,9 @@ final class AnimationsPane extends BorderPane {
 	
 	// TODO translate
 	
-	public AnimationsPane() {
+	public AnimationsPane(SlideEditorContext context) {
+		this.context = context;
+		
 		// sort the animations by their delay
 		SortedList<SlideAnimation> ordered = new SortedList<>(this.animations, new Comparator<SlideAnimation>() {
 			@Override
@@ -114,8 +124,8 @@ final class AnimationsPane extends BorderPane {
 				} else if (diff > 0) {
 					return 1;
 				} else {
-					ObservableSlideRegion<?> c1 = slide.get().getComponent(o1.getId());
-					ObservableSlideRegion<?> c2 = slide.get().getComponent(o2.getId());
+					ObservableSlideRegion<?> c1 = context.getSlide().getComponent(o1.getId());
+					ObservableSlideRegion<?> c2 = context.getSlide().getComponent(o2.getId());
 					
 					// are the ids the same?
 					if (o1.getId().equals(o2.getId())) {
@@ -128,7 +138,7 @@ final class AnimationsPane extends BorderPane {
 					}
 					
 					// if ids are not the same, check if either id is for the slide itself
-					UUID slideId = slide.get().getId();
+					UUID slideId = context.getSlide().getId();
 					if (slideId.equals(o1.getId())) {
 						return -1;
 					} else if (slideId.equals(o2.getId())) {
@@ -158,7 +168,7 @@ final class AnimationsPane extends BorderPane {
 			@Override
 			public ListCell<SlideAnimation> call(ListView<SlideAnimation> param) {
 				AnimationListCell cell = new AnimationListCell();
-				cell.slideProperty().bind(slide);
+				cell.slideProperty().bind(context.slideProperty());
 				cell.setOnMouseClicked(e -> {
 					if (e.getClickCount() >= 2) {
 						editHandler(null);
@@ -200,7 +210,11 @@ final class AnimationsPane extends BorderPane {
 		btnEditAnimation.setOnAction(this::editHandler);
 		btnRemoveAnimation.setOnAction(this::removeHandler);
 		
-		slide.addListener((obs, ov, nv) -> {
+		btnAddAnimation.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
+		btnEditAnimation.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
+		btnRemoveAnimation.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
+		
+		context.slideProperty().addListener((obs, ov, nv) -> {
 			if (ov != null) {
 				Bindings.unbindContent(this.animations, ov.getAnimations());
 			}
@@ -215,7 +229,8 @@ final class AnimationsPane extends BorderPane {
 	 * @param nv the item
 	 */
 	private void highlightNodeOnHover(SlideAnimation nv) {
-		if (this.slide.get() == null) {
+		ObservableSlide<?> slide = this.context.getSlide();
+		if (slide == null) {
 			return;
 		}
 		
@@ -227,14 +242,14 @@ final class AnimationsPane extends BorderPane {
 		}
 		
 		// is it the slide?
-		if (this.slide.get().getId().equals(id)) {
-			this.slide.get().getEditBorderNode().pseudoClassStateChanged(ANIMATION_HOVERED, true);
+		if (slide.getId().equals(id)) {
+			slide.getEditBorderNode().pseudoClassStateChanged(ANIMATION_HOVERED, true);
 		} else {
-			this.slide.get().getEditBorderNode().pseudoClassStateChanged(ANIMATION_HOVERED, false);
+			slide.getEditBorderNode().pseudoClassStateChanged(ANIMATION_HOVERED, false);
 		}
 		
 		// is it a component?
-		for (ObservableSlideComponent<?> component : this.slide.get().getComponents()) {
+		for (ObservableSlideComponent<?> component : slide.getComponents()) {
 			if (component.getId().equals(id)) {
 				component.getEditBorderNode().pseudoClassStateChanged(ANIMATION_HOVERED, true);
 			} else {
@@ -248,12 +263,14 @@ final class AnimationsPane extends BorderPane {
 	 * @param e the event
 	 */
 	private void addHandler(ActionEvent e) {
+		ObservableSlideRegion<?> selected = this.context.getSelected();
+		ObservableSlide<?> slide = this.context.getSlide();
 		addOrEdit(null, a -> {
 			UUID id = null;
-			if (this.component.get() != null) {
-				id = this.component.get().getId();
-			} else if (this.slide.get() != null) {
-				id = this.slide.get().getId();
+			if (selected != null) {
+				id = selected.getId();
+			} else if (slide != null) {
+				id = slide.getId();
 			}
 			if (a != null && id != null) {
 				SlideAnimation sa = new SlideAnimation(id, a);
@@ -273,8 +290,7 @@ final class AnimationsPane extends BorderPane {
 				UUID id = selected.getId();
 				if (a != null) {
 					SlideAnimation sa = new SlideAnimation(id, a);
-					this.remove(selected);
-					this.add(sa);
+					this.edit(selected, sa);
 				}
 			});
 		}
@@ -293,16 +309,27 @@ final class AnimationsPane extends BorderPane {
 	
 	// helpers
 	
+	private void edit(SlideAnimation oldValue, SlideAnimation newValue) {
+		this.applyCommand(new EditAnimationEditCommand(
+				oldValue,
+				newValue,
+				this.context.getSlide(), 
+				this.context.getSelected(),  
+				this.context.selectedProperty(), 
+				this.lstAnimations));
+	}
+	
 	/**
 	 * Removes the slide animation.
 	 * @param animation the animation to remove
 	 */
 	private void remove(SlideAnimation animation) {
-		if (this.slide.get() == null) {
-			return;
-		}
-		
-		this.slide.get().removeAnimation(animation);
+		this.applyCommand(new RemoveAnimationEditCommand(
+				animation, 
+				this.context.getSlide(), 
+				this.context.getSelected(), 
+				this.context.selectedProperty(), 
+				this.lstAnimations));
 	}
 	
 	/**
@@ -310,11 +337,12 @@ final class AnimationsPane extends BorderPane {
 	 * @param animation the animation to add
 	 */
 	private void add(SlideAnimation animation) {
-		if (this.slide.get() == null) {
-			return;
-		}
-		
-		this.slide.get().addAnimation(animation);
+		this.applyCommand(new AddAnimationEditCommand(
+				animation, 
+				this.context.getSlide(), 
+				this.context.getSelected(), 
+				this.context.selectedProperty(), 
+				this.lstAnimations));
 	}
 	
 	/**
@@ -332,27 +360,8 @@ final class AnimationsPane extends BorderPane {
 		}
 	}
 	
-	public ObservableSlide<?> getSlide() {
-		return this.slide.get();
-	}
-	
-	public void setSlide(ObservableSlide<?> slide) {
-		this.slide.set(slide);
-	}
-	
-	public ObjectProperty<ObservableSlide<?>> slideProperty() {
-		return this.slide;
-	}
-	
-	public ObservableSlideRegion<?> getComponent() {
-		return this.component.get();
-	}
-	
-	public void setComponent(ObservableSlideRegion<?> component) {
-		this.component.set(component);
-	}
-	
-	public ObjectProperty<ObservableSlideRegion<?>> componentProperty() {
-		return this.component;
+	public void applyCommand(EditCommand command) {
+		this.context.getEditManager().execute(command);
+		fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.CHANGED));
 	}
 }

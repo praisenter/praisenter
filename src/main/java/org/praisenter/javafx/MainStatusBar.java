@@ -11,6 +11,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -69,6 +70,15 @@ class MainStatusBar extends HBox {
 		button.setOnAction(e -> {
 			// show task detail view
 			pop.show(button);
+		});
+		
+		button.addEventFilter(KeyEvent.ANY, e -> {
+			for (ApplicationAction action : ApplicationAction.values()) {
+				if (action.getAccelerator() != null && action.getAccelerator().match(e)) {
+					e.consume();
+					fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, action));
+				}
+			}
 		});
 		
 		this.setSpacing(2);

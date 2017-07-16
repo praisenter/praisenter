@@ -26,6 +26,7 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -197,6 +198,14 @@ class MainMenu extends HBox implements EventHandler<ActionEvent> {
 		btnHome.setGraphic(ApplicationGlyphs.MENU_HOME.duplicate());
 		btnHome.setOnAction(e -> {
 			fireEvent(new ApplicationEvent(this, btnHome, ApplicationEvent.ALL, ApplicationAction.PRESENT));
+		});
+		btnHome.addEventFilter(KeyEvent.ANY, e -> {
+			for (ApplicationAction action : ApplicationAction.values()) {
+				if (action.getAccelerator() != null && action.getAccelerator().match(e)) {
+					e.consume();
+					fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, action));
+				}
+			}
 		});
 		
 		this.getChildren().addAll(btnHome, this.menu);

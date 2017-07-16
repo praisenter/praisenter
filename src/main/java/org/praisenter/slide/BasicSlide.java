@@ -640,6 +640,8 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 				if (data.getFontSize() > 0) {
 					tpc.setFont(tpc.getFont().size(data.getFontSize()));
 				}
+			} else {
+				tpc.setText(null);
 			}
 		}
 	}

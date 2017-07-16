@@ -9,5 +9,4 @@ public abstract class SlideRegionEditCommand<V extends ObservableSlideRegion<?>>
 	public SlideRegionEditCommand(V region, ObjectProperty<ObservableSlideRegion<?>> selection) {
 		super(null, null, region, selection);
 	}
-
 }

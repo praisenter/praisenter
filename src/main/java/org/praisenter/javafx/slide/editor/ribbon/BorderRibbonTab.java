@@ -2,7 +2,6 @@ package org.praisenter.javafx.slide.editor.ribbon;
 
 import org.praisenter.javafx.PreventUndoRedoEventFilter;
 import org.praisenter.javafx.command.ActionEditCommand;
-import org.praisenter.javafx.command.CommandFactory;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
@@ -166,13 +165,12 @@ class BorderRibbonTab extends ComponentEditorRibbonTab {
 			if (comp != null) {
 				SlideStroke oldValue = comp.getBorder();
 				SlideStroke newValue = getControlValues();
-				applyCommand(CommandFactory.chain(
-						new BorderEditCommand(oldValue, newValue, comp, context.selectedProperty(), mnuPaintType),
-						new ActionEditCommand(null, self -> {
-							setControlValues(oldValue);
-						}, self -> {
-							setControlValues(newValue);
-						})));
+				applyCommand(new BorderEditCommand(oldValue, newValue, comp, context.selectedProperty(), mnuPaintType,
+								new ActionEditCommand(null, self -> {
+									setControlValues(oldValue);
+								}, self -> {
+									setControlValues(newValue);
+								})));
 			}
 		};
 		
