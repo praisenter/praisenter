@@ -18,7 +18,7 @@ final class TagsRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 	public TagsRibbonTab(SlideEditorContext context) {
 		super(context, "Tags");
 		
-		this.lstTags = new TagListView(context.getContext().getTags());
+		this.lstTags = new TagListView(context.getPraisenterContext().getTags());
 		
 		// layout
 		

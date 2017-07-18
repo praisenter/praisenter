@@ -65,7 +65,7 @@ public final class MediaPicker extends Button {
 						context,
 						types);
 				// set the value
-				dialog.valueProperty().set(value.get());
+				dialog.setValue(value.get());
 			}
 			// show the dialog
 			dialog.show(m -> {

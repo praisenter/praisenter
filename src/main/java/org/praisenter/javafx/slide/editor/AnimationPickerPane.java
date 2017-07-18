@@ -436,6 +436,20 @@ final class AnimationPickerPane extends BorderPane {
 					lblOperation, cbOperation,
 					lblShapeType, cbShapeType,
 					lblBlindCount, txtBlindCount);
+			// enable controls
+			boolean disabled = nv == null;
+			txtDuration.setDisable(disabled);
+			txtDelay.setDisable(disabled);
+			cbAnimationType.setDisable(disabled);
+			spnRepeatCount.setDisable(disabled);
+			chkAutoReverse.setDisable(disabled);
+			cbDirection.setDisable(disabled);
+			cbEasingType.setDisable(disabled);
+			cbOperation.setDisable(disabled);
+			cbOrientation.setDisable(disabled);
+			cbShapeType.setDisable(disabled);
+			txtBlindCount.setDisable(disabled);
+			btnPreview.setDisable(disabled);
 			// hide show based on animation type
 			if (nv != null) {
 				Class<?> type = nv.getType();
@@ -554,13 +568,13 @@ final class AnimationPickerPane extends BorderPane {
 		AnimationOption animationOption = this.animationListPane.getSelectionModel().selectionProperty().get();
 		if (animationOption == null) {
 			// return null if an animation type hasn't been selected
-			animationOption = new AnimationOption(Swap.class, 10);
+			return null;
 		}
 		
 		AnimationOption easingOption = this.easingListPane.getSelectionModel().selectionProperty().get();
 		if (easingOption == null) {
 			// return null if an easing hasn't been selected
-			easingOption = new AnimationOption(Linear.class, 0);
+			return null;
 		}
 		
 		Option<AnimationType> animationTypeOption = this.cbAnimationType.getValue();

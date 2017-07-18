@@ -350,6 +350,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 						// setup the mouse event handlers
 						component.getEditBorderNode().addEventHandler(MouseEvent.ANY, mouseHandler);
 						component.getEditBorderNode().addEventHandler(MouseEvent.MOUSE_PRESSED, clickedHandler);
+						
+						// select it
+						this.context.selectedProperty().set(component);
 					},
 					self -> {
 						// remove scaling
@@ -361,6 +364,8 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 						
 						// remove the component from the slide
 						slide.removeComponent(component);
+						
+						this.context.selectedProperty().set(null);
 					});
 			
 			// if the component type is media, then show the media dialog
@@ -413,7 +418,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		if (slide == null) {
 			this.context.setSlide(null);
 		} else {
-			this.context.setSlide(new ObservableSlide<Slide>(slide, this.context.getContext(), SlideMode.EDIT));
+			this.context.setSlide(new ObservableSlide<Slide>(slide, this.context.getPraisenterContext(), SlideMode.EDIT));
 		}
 	}
 	
@@ -441,7 +446,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	private final void save(boolean saveAs) {
 		ObservableSlide<?> os = this.context.getSlide();
 		Slide slide = os.getRegion();
-		PraisenterContext context = this.context.getContext();
+		PraisenterContext context = this.context.getPraisenterContext();
 		
 		AsyncTask<Slide> task = null;
 		if (saveAs) {
@@ -465,7 +470,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			// subsequent changes are saved, they are saved to the
 			// appropriate place.  It's also possible that the 
 			// slide has been changed since the save completed
-			this.context.getSlide().getRegion().as(saved);
+			os.getRegion().as(saved);
 			// manually update the name field
 			this.ribbon.setSlideName(saved.getName());
 		}).addCancelledOrFailedHandler(e -> {
@@ -477,7 +482,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	private final void copy(boolean cut) {
 		ObservableSlide<?> slide = this.context.getSlide();
 		ObservableSlideRegion<?> selected = this.context.getSelected();
-		PraisenterContext context = this.context.getContext();
+		PraisenterContext context = this.context.getPraisenterContext();
 		
 		if (selected != null) {
 			Clipboard cb = Clipboard.getSystemClipboard();
@@ -512,8 +517,6 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				
 				if (cut) {
 					this.fireEvent(new SlideComponentRemoveEvent(this, this, (ObservableSlideComponent<?>) selected));
-					// remove the component
-					//slide.removeComponent((ObservableSlideComponent<?>)selected);
 				}
 				
 				// notify we changed

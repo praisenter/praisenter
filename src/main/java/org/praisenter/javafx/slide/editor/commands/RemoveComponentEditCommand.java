@@ -29,6 +29,7 @@ public final class RemoveComponentEditCommand  extends SlideRegionEditCommand<Ob
 	public void execute() {
 		// note: this will automatically remove animations
 		this.slide.removeComponent(this.region);
+		this.select(this.slide);
 	}
 	
 	@Override

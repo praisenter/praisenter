@@ -93,16 +93,13 @@ public final class MediaLibraryDialog extends BorderPane {
 		btnAccept.setDisable(true);
 		
 		// when our value changes, update the media pane
-		this.value.addListener((obs, ov, nv) -> {
-			this.mediaLibraryPane.setSelected(nv);
-		});
+		this.value.bindBidirectional(this.mediaLibraryPane.selectedProperty());
 		
 		this.mediaLibraryPane.selectedProperty().addListener((obs, ov, nv) -> {
 			btnAccept.setDisable(nv == null);
 		});
 		
 		btnAccept.setOnAction(e -> {
-			this.value.setValue(this.mediaLibraryPane.getSelected());
 			if (this.callback != null) {
 				this.callback.accept(this.value.get());
 			}
@@ -131,14 +128,6 @@ public final class MediaLibraryDialog extends BorderPane {
 	public void show(Consumer<Media> callback) {
 		this.callback = callback;
 		this.dialog.show();
-	}
-	
-	/**
-	 * Returns the selected value property.
-	 * @return ObjectProperty&lt;{@link Media}&gt;
-	 */
-	public ObjectProperty<Media> valueProperty() {
-		return this.value;
 	}
 	
 	/**

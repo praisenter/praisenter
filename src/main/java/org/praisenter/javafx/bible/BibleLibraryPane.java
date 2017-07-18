@@ -234,7 +234,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 				new HBox(lblOpenSong),
 				new HBox(lblStep2, lblStep2Text));
 
-		BibleInfoPane bmp = new BibleInfoPane();
+		BiblePropertiesPane bmp = new BiblePropertiesPane();
 
 		TitledPane ttlImport = new TitledPane(Translations.get("bible.import.howto.title"), importSteps);
 		TitledPane ttlMetadata = new TitledPane(Translations.get("bible.properties.title"), bmp);

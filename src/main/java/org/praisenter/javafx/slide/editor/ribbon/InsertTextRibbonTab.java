@@ -64,7 +64,7 @@ public class InsertTextRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>
 			btc.setText("New Text Component");
 			btc.setTextPaint(new SlideColor(0, 0, 0, 1));
 			btc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50));
-			fireEvent(new SlideComponentAddEvent(text, InsertTextRibbonTab.this, new ObservableBasicTextComponent(btc, this.context.getContext(), SlideMode.EDIT)));
+			fireEvent(new SlideComponentAddEvent(text, InsertTextRibbonTab.this, new ObservableBasicTextComponent(btc, this.context.getPraisenterContext(), SlideMode.EDIT)));
 		});
 		
 		countdown.setOnAction((e) -> {
@@ -75,7 +75,7 @@ public class InsertTextRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>
 			cdc.setCountdownFormat("%4$02d:%5$02d:%6$02d");
 			cdc.setTextPaint(new SlideColor(0, 0, 0, 1));
 			cdc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50));
-			fireEvent(new SlideComponentAddEvent(countdown, InsertTextRibbonTab.this, new ObservableCountdownComponent(cdc, this.context.getContext(), SlideMode.EDIT)));
+			fireEvent(new SlideComponentAddEvent(countdown, InsertTextRibbonTab.this, new ObservableCountdownComponent(cdc, this.context.getPraisenterContext(), SlideMode.EDIT)));
 		});
 		
 		datetime.setOnAction((e) -> {
@@ -84,7 +84,7 @@ public class InsertTextRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>
 			dtc.setHeight(300);
 			dtc.setTextPaint(new SlideColor(0, 0, 0, 1));
 			dtc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50));
-			fireEvent(new SlideComponentAddEvent(datetime, InsertTextRibbonTab.this, new ObservableDateTimeComponent(dtc, this.context.getContext(), SlideMode.EDIT)));
+			fireEvent(new SlideComponentAddEvent(datetime, InsertTextRibbonTab.this, new ObservableDateTimeComponent(dtc, this.context.getPraisenterContext(), SlideMode.EDIT)));
 		});
 		
 		placeholder.setOnAction((e) -> {
@@ -95,7 +95,7 @@ public class InsertTextRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>
 			phc.setPlaceholderVariant(TextVariant.PRIMARY);
 			phc.setTextPaint(new SlideColor(0, 0, 0, 1));
 			phc.setFont(new SlideFont("Arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50));
-			fireEvent(new SlideComponentAddEvent(placeholder, InsertTextRibbonTab.this, new ObservableTextPlaceholderComponent(phc, this.context.getContext(), SlideMode.EDIT)));
+			fireEvent(new SlideComponentAddEvent(placeholder, InsertTextRibbonTab.this, new ObservableTextPlaceholderComponent(phc, this.context.getPraisenterContext(), SlideMode.EDIT)));
 		});
 	}
 }

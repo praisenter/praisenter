@@ -6,23 +6,23 @@ import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.slide.animation.SlideAnimation;
 
 import javafx.beans.property.ObjectProperty;
-import javafx.scene.Node;
+import javafx.scene.control.ListView;
 
 public final class RemoveAnimationEditCommand extends SlideRegionEditCommand<ObservableSlide<?>> implements EditCommand {
 	private final SlideAnimation animation;
-	private final ObservableSlideRegion<?> selected;
-	private final Node focusNode;
+	private final ListView<SlideAnimation> list;
 
-	public RemoveAnimationEditCommand(SlideAnimation animation, ObservableSlide<?> slide, ObservableSlideRegion<?> selected, ObjectProperty<ObservableSlideRegion<?>> selection, Node focusNode) {
+	public RemoveAnimationEditCommand(SlideAnimation animation, ObservableSlide<?> slide, ObjectProperty<ObservableSlideRegion<?>> selection, ListView<SlideAnimation> list) {
 		super(slide, selection);
 		this.animation = animation;
-		this.selected = selected;
-		this.focusNode = focusNode;
+		this.list = list;
 	}
 
 	@Override
 	public void execute() {
 		this.region.removeAnimation(this.animation);
+		this.list.getSelectionModel().selectFirst();
+		this.focus(this.list);
 	}
 	
 	@Override
@@ -43,26 +43,14 @@ public final class RemoveAnimationEditCommand extends SlideRegionEditCommand<Obs
 	@Override
 	public void undo() {
 		this.region.addAnimation(this.animation);
-		
-		if (this.selected == null) {
-			this.selectRegion();
-		} else {
-			this.select(this.selected);
-		}
-		
-		this.focus(this.focusNode);
+		this.list.getSelectionModel().select(this.animation);
+		this.focus(this.list);
 	}
 	
 	@Override
 	public void redo() {
 		this.region.removeAnimation(this.animation);
-		
-		if (this.selected == null) {
-			this.selectRegion();
-		} else {
-			this.select(this.selected);
-		}
-		
-		this.focus(this.focusNode);
+		this.list.getSelectionModel().selectFirst();
+		this.focus(this.list);
 	}
 }

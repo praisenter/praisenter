@@ -120,6 +120,7 @@ import javafx.util.StringConverter;
 
 // FEATURE (L) Add glyphicons to nodes to help distinguish book & chapter
 // FEATURE (L) Add ability to create N number of books, chapters, verses with default text
+// FEATURE (H) Add ability to create the basic 66 book bible layout; all books, chapters and verses with numbers and maybe default or english names or empty text
 
 /**
  * A pane for editing {@link Bible}s.
@@ -873,11 +874,17 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 */
 	private void save() {
 		this.manager.mark();
+		Bible bible = this.getBible();
 		AsyncTask<Bible> task = BibleActions.bibleSave(
 			this.context.getBibleLibrary(), 
 			this.getScene().getWindow(), 
-			this.getBible());
-		task.addCancelledOrFailedHandler(e -> {
+			bible);
+		task.addSuccessHandler(e -> {
+			Bible saved = task.getValue();
+			// make sure metadata in the currently being edited
+			// bible is updated on save
+			bible.as(saved);
+		}).addCancelledOrFailedHandler(e -> {
 			this.manager.unmark();
 		}).execute(this.context.getExecutorService());
 	}

@@ -1,5 +1,9 @@
 package org.praisenter.javafx.slide.editor.ribbon;
 
+import java.text.NumberFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.controlsfx.control.PopOver;
 import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.PreventUndoRedoEventFilter;
@@ -12,6 +16,8 @@ import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.SlideNameEditCommand;
 import org.praisenter.javafx.slide.editor.commands.SlideResolutionEditCommand;
+import org.praisenter.javafx.slide.editor.commands.SlideTimeEditCommand;
+import org.praisenter.javafx.slide.editor.controls.TimeStringConverter;
 import org.praisenter.javafx.slide.editor.events.SlideEditorEvent;
 
 import javafx.collections.transformation.SortedList;
@@ -21,11 +27,13 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
 
 final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 	private final TextField name;
@@ -35,6 +43,8 @@ final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 	private final PopOver popAddResolution;
 	private final Spinner<Integer> spnWidth;
 	private final Spinner<Integer> spnHeight;
+	
+	private final TimeStringConverter timeConverter = new TimeStringConverter();
 	
 	public SlideRibbonTab(SlideEditorContext context) {
 		super(context, "Slide");
@@ -46,9 +56,10 @@ final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 		time = new TextField();
 		time.setPromptText("00:00");
 		time.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		time.setTextFormatter(new TextFormatter<Long>(this.timeConverter));
 		
 		// target resolution
-		SortedList<Resolution> sorted = context.getContext().getConfiguration().getResolutions().sorted((a, b) -> {
+		SortedList<Resolution> sorted = context.getPraisenterContext().getConfiguration().getResolutions().sorted((a, b) -> {
 			return a.compareTo(b);
 		});
 		cmbResolutions = new ComboBox<Resolution>(sorted);
@@ -93,6 +104,7 @@ final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 			this.mutating = true;
 			if (nv != null) {
 				this.name.setText(nv.getName());
+				this.time.setText(this.timeConverter.toString(nv.getTime()));
 				this.cmbResolutions.setValue(new Resolution((int)nv.getWidth(), (int)nv.getHeight()));
 			}
 			this.mutating = false;
@@ -104,7 +116,11 @@ final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 			this.applyCommand(new SlideNameEditCommand(ov, nv, slide, this.context.selectedProperty(), this.name));
 		});
 		
-		// TODO time editing
+		this.time.textProperty().addListener((obs, ov, nv) -> {
+			if (this.mutating) return;
+			ObservableSlide<?> slide = this.context.getSlide();
+			this.applyCommand(new SlideTimeEditCommand(ov, nv, slide, this.context.selectedProperty(), this.time));
+		});
 		
 		this.cmbResolutions.valueProperty().addListener((obs, ov, nv) -> {
 			if (this.mutating) return;
@@ -129,11 +145,11 @@ final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 			int w = this.spnWidth.getValue();
 			int h = this.spnHeight.getValue();
 			Resolution r = new Resolution(w, h);
-			ResolutionSet resolutions = context.getContext().getConfiguration().getObject(Setting.DISPLAY_RESOLUTIONS, ResolutionSet.class, new ResolutionSet());
+			ResolutionSet resolutions = context.getPraisenterContext().getConfiguration().getObject(Setting.DISPLAY_RESOLUTIONS, ResolutionSet.class, new ResolutionSet());
 			resolutions.add(r);
-			context.getContext().getConfiguration()
+			context.getPraisenterContext().getConfiguration()
 				.setObject(Setting.DISPLAY_RESOLUTIONS, resolutions)
-				.execute(context.getContext().getExecutorService());
+				.execute(context.getPraisenterContext().getExecutorService());
 			
 			this.cmbResolutions.setValue(r);
 			this.popAddResolution.hide();
@@ -146,12 +162,12 @@ final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 		btnRemoveResolution.setOnAction(e -> {
 			Resolution r = this.cmbResolutions.getValue();
 			if (r != null) {
-				ResolutionSet resolutions = context.getContext().getConfiguration().getObject(Setting.DISPLAY_RESOLUTIONS, ResolutionSet.class, new ResolutionSet());
+				ResolutionSet resolutions = context.getPraisenterContext().getConfiguration().getObject(Setting.DISPLAY_RESOLUTIONS, ResolutionSet.class, new ResolutionSet());
 				Resolution other = resolutions.getClosestResolution(r);
 				if (resolutions.remove(r)) {
-					context.getContext().getConfiguration()
+					context.getPraisenterContext().getConfiguration()
 						.setObject(Setting.DISPLAY_RESOLUTIONS, resolutions)
-						.execute(context.getContext().getExecutorService());
+						.execute(context.getPraisenterContext().getExecutorService());
 				
 					this.cmbResolutions.setValue(other);
 				}

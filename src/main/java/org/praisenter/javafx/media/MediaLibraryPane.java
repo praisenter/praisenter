@@ -140,7 +140,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 	private final FlowListView<MediaListItem> lstMedia;
 	
 	/** The media metadata pane */
-	private final MediaInfoPane pneMetadata;
+	private final MediaPropertiesPane pneMetadata;
 	
 	/** The media preview player */
 	private final MediaPlayerPane pnePlayer;
@@ -307,7 +307,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
 				menu.createMenuItem(ApplicationAction.SELECT_INVERT));
 		this.lstMedia.setContextMenu(menu);
         
-        this.pneMetadata = new MediaInfoPane(tags);
+        this.pneMetadata = new MediaPropertiesPane(tags);
         // wire up the selected media to the media metadata view with a unidirectional binding
         this.pneMetadata.mediaProperty().bind(this.lstMedia.getSelectionModel().selectionProperty());
         this.pneMetadata.addEventHandler(MediaMetadataEvent.RENAME, e -> {

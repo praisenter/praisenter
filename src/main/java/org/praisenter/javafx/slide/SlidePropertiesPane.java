@@ -58,7 +58,7 @@ import javafx.scene.layout.VBox;
  * @author William Bittle
  * @version 3.0.0
  */
-final class SlideInfoPane extends VBox {
+final class SlidePropertiesPane extends VBox {
 	/** The date formatter */
 	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault());
 	
@@ -93,7 +93,7 @@ final class SlideInfoPane extends VBox {
 	 * Creates a new metadata pane.
 	 * @param allTags the observable list of all tags
 	 */
-	public SlideInfoPane(ObservableSet<Tag> allTags) {
+	public SlidePropertiesPane(ObservableSet<Tag> allTags) {
 		this.getStyleClass().add(Styles.SLIDE_INFO_PANE);
 		
 		this.setPadding(new Insets(0, 5, 10, 5));
@@ -163,13 +163,13 @@ final class SlideInfoPane extends VBox {
         this.tagView.addEventHandler(TagEvent.ALL, new EventHandler<TagEvent>() {
 			@Override
 			public void handle(TagEvent event) {
-				SlideListItem slide = SlideInfoPane.this.slide.get();
+				SlideListItem slide = SlidePropertiesPane.this.slide.get();
 				Tag tag = event.getTag();
 				// bubble up the event
 				if (event.getEventType() == TagEvent.ADDED) {
-					fireEvent(new SlideTagEvent(tagView, SlideInfoPane.this, SlideMetadataEvent.ADD_TAG, slide, tag));
+					fireEvent(new SlideTagEvent(tagView, SlidePropertiesPane.this, SlideMetadataEvent.ADD_TAG, slide, tag));
 				} else if (event.getEventType() == TagEvent.REMOVED) {
-					fireEvent(new SlideTagEvent(tagView, SlideInfoPane.this, SlideMetadataEvent.REMOVE_TAG, slide, tag));
+					fireEvent(new SlideTagEvent(tagView, SlidePropertiesPane.this, SlideMetadataEvent.REMOVE_TAG, slide, tag));
 				}
 			}
         });

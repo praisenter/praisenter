@@ -53,7 +53,7 @@ import javafx.scene.layout.VBox;
  * @author William Bittle
  * @version 3.0.0
  */
-final class BibleInfoPane extends VBox {
+final class BiblePropertiesPane extends VBox {
 	/** The date formatter */
 	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withZone(ZoneId.systemDefault());
 	
@@ -91,7 +91,7 @@ final class BibleInfoPane extends VBox {
 	/**
 	 * Creates a new metadata pane.
 	 */
-	public BibleInfoPane() {
+	public BiblePropertiesPane() {
 		this.getStyleClass().add(Styles.BIBLE_INFO_PANE);
 		
 		this.setPadding(new Insets(0, 5, 10, 5));

@@ -33,7 +33,7 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 	public MediaRibbonTab(SlideEditorContext context) {
 		super(context, "Media");
 		
-		this.pkrMedia = new MediaPicker(context.getContext());
+		this.pkrMedia = new MediaPicker(context.getPraisenterContext());
 		this.pkrMedia.setValue(null);
 		this.pkrMedia.managedProperty().bind(pkrMedia.visibleProperty());
 		
@@ -128,7 +128,7 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 	
 	private void setControlValues(MediaObject mediaObject) {
 		if (mediaObject != null) {
-			Media media = this.context.getContext().getMediaLibrary().get(mediaObject.getId());
+			Media media = this.context.getPraisenterContext().getMediaLibrary().get(mediaObject.getId());
 			// the media could have been removed, so check for null
 			if (media == null) {
 				this.pkrMedia.setValue(null);

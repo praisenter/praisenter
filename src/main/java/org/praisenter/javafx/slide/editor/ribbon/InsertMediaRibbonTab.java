@@ -39,19 +39,19 @@ public class InsertMediaRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?
 			MediaComponent mc = new MediaComponent();
 			mc.setWidth(400);
 			mc.setHeight(300);
-			fireEvent(new MediaComponentAddEvent(image, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, this.context.getContext(), SlideMode.EDIT), MediaType.IMAGE));
+			fireEvent(new MediaComponentAddEvent(image, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, this.context.getPraisenterContext(), SlideMode.EDIT), MediaType.IMAGE));
 		});
 		video.setOnAction((e) -> {
 			MediaComponent mc = new MediaComponent();
 			mc.setWidth(400);
 			mc.setHeight(300);
-			fireEvent(new MediaComponentAddEvent(video, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, this.context.getContext(), SlideMode.EDIT), MediaType.VIDEO));
+			fireEvent(new MediaComponentAddEvent(video, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, this.context.getPraisenterContext(), SlideMode.EDIT), MediaType.VIDEO));
 		});
 		audio.setOnAction((e) -> {
 			MediaComponent mc = new MediaComponent();
 			mc.setWidth(400);
 			mc.setHeight(300);
-			fireEvent(new MediaComponentAddEvent(audio, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, this.context.getContext(), SlideMode.EDIT), MediaType.AUDIO));
+			fireEvent(new MediaComponentAddEvent(audio, InsertMediaRibbonTab.this, new ObservableMediaComponent(mc, this.context.getPraisenterContext(), SlideMode.EDIT), MediaType.AUDIO));
 		});
 	}
 }

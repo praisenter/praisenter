@@ -122,7 +122,7 @@ public final class EditManager {
 				return;
 			}
 			
-			LOGGER.debug("Commands merged");
+			LOGGER.trace("Commands merged");
 		}
 		
 		this.undos.push(command);
@@ -186,7 +186,7 @@ public final class EditManager {
 	}
 	
 	private void printCounts() {
-		LOGGER.debug("UNDO(" + this.undos.size() + ") REDO(" + this.redos.size() + ")");
+		LOGGER.trace("UNDO(" + this.undos.size() + ") REDO(" + this.redos.size() + ")");
 	}
 	
 	/**

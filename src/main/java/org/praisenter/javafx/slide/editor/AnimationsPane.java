@@ -29,8 +29,6 @@ import java.util.Comparator;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import org.praisenter.javafx.ApplicationAction;
-import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.PreventUndoRedoEventFilter;
 import org.praisenter.javafx.command.EditCommand;
 import org.praisenter.javafx.slide.ObservableSlide;
@@ -50,8 +48,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
-import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -75,7 +71,6 @@ import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 
 // FEATURE (M) Show a timeline-view of the animations for a slide
-// FIXME change to edit commands
 
 /**
  * A pane used to list and edit the animations for an {@link ObservableSlide}.
@@ -314,7 +309,6 @@ final class AnimationsPane extends BorderPane {
 				oldValue,
 				newValue,
 				this.context.getSlide(), 
-				this.context.getSelected(),  
 				this.context.selectedProperty(), 
 				this.lstAnimations));
 	}
@@ -327,7 +321,6 @@ final class AnimationsPane extends BorderPane {
 		this.applyCommand(new RemoveAnimationEditCommand(
 				animation, 
 				this.context.getSlide(), 
-				this.context.getSelected(), 
 				this.context.selectedProperty(), 
 				this.lstAnimations));
 	}
@@ -340,7 +333,6 @@ final class AnimationsPane extends BorderPane {
 		this.applyCommand(new AddAnimationEditCommand(
 				animation, 
 				this.context.getSlide(), 
-				this.context.getSelected(), 
 				this.context.selectedProperty(), 
 				this.lstAnimations));
 	}

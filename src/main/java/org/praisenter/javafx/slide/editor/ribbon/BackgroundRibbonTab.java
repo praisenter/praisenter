@@ -69,11 +69,11 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 		this.pkrGradient.setValue(new SlideLinearGradient());
 		this.pkrGradient.managedProperty().bind(pkrGradient.visibleProperty());
 		
-		this.pkrImage = new MediaPicker(context.getContext(), MediaType.IMAGE);
+		this.pkrImage = new MediaPicker(context.getPraisenterContext(), MediaType.IMAGE);
 		this.pkrImage.setValue(null);
 		this.pkrImage.managedProperty().bind(pkrImage.visibleProperty());
 		
-		this.pkrVideo = new MediaPicker(context.getContext(), MediaType.VIDEO);
+		this.pkrVideo = new MediaPicker(context.getPraisenterContext(), MediaType.VIDEO);
 		this.pkrVideo.setValue(null);
 		this.pkrVideo.managedProperty().bind(pkrVideo.visibleProperty());
 		
@@ -257,7 +257,7 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 		} else {
 			if (paint instanceof MediaObject) {
 				MediaObject mo = ((MediaObject)paint);
-				Media media = this.context.getContext().getMediaLibrary().get(mo.getId());
+				Media media = this.context.getPraisenterContext().getMediaLibrary().get(mo.getId());
 				// the media could have been removed, so check for null
 				if (media == null) {
 					cmbTypes.setValue(new Option<PaintType>("", PaintType.NONE));

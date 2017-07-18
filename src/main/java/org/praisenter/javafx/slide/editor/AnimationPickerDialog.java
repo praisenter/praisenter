@@ -82,12 +82,12 @@ final class AnimationPickerDialog extends BorderPane {
 		Button btnAccept = new Button("OK");
 		Button btnCancel = new Button("Cancel");
 		
-		this.value.addListener((obs, ov, nv) -> {
-			this.animationPickerPane.setValue(nv);
+		this.value.bindBidirectional(this.animationPickerPane.valueProperty());
+		this.animationPickerPane.valueProperty().addListener((obs, ov, nv) -> {
+			btnAccept.setDisable(nv == null);
 		});
 
 		btnAccept.setOnAction(e -> {
-			this.value.setValue(this.animationPickerPane.getValue());
 			if (this.callback != null) {
 				this.callback.accept(this.value.get());
 			}
@@ -116,14 +116,6 @@ final class AnimationPickerDialog extends BorderPane {
 	public void show(Consumer<Animation> callback) {
 		this.callback = callback;
 		this.dialog.show();
-	}
-	
-	/**
-	 * Returns the selected value property.
-	 * @return ObjectProperty&lt;{@link Animation}&gt;
-	 */
-	public ObjectProperty<Animation> valueProperty() {
-		return this.value;
 	}
 	
 	/**

@@ -61,7 +61,7 @@ import javafx.scene.layout.VBox;
  * @author William Bittle
  * @version 3.0.0
  */
-final class MediaInfoPane extends VBox {
+final class MediaPropertiesPane extends VBox {
 	/** The value used for non-applicable fields (like the length for an image) */
 	private static final String NOT_APPLICABLE = "";
 	
@@ -105,7 +105,7 @@ final class MediaInfoPane extends VBox {
 	 * Creates a new media metadata pane.
 	 * @param allTags the set of all tags
 	 */
-	public MediaInfoPane(ObservableSet<Tag> allTags) {
+	public MediaPropertiesPane(ObservableSet<Tag> allTags) {
 		this.getStyleClass().add(Styles.MEDIA_INFO_PANE);
 		this.setPadding(new Insets(0, 5, 10, 5));
 		this.setDisable(true);
@@ -195,13 +195,13 @@ final class MediaInfoPane extends VBox {
         this.tagView.addEventHandler(TagEvent.ALL, new EventHandler<TagEvent>() {
 			@Override
 			public void handle(TagEvent event) {
-				MediaListItem media = MediaInfoPane.this.media.get();
+				MediaListItem media = MediaPropertiesPane.this.media.get();
 				Tag tag = event.getTag();
 				// bubble up the event
 				if (event.getEventType() == TagEvent.ADDED) {
-					fireEvent(new MediaTagEvent(tagView, MediaInfoPane.this, MediaMetadataEvent.ADD_TAG, media, tag));
+					fireEvent(new MediaTagEvent(tagView, MediaPropertiesPane.this, MediaMetadataEvent.ADD_TAG, media, tag));
 				} else if (event.getEventType() == TagEvent.REMOVED) {
-					fireEvent(new MediaTagEvent(tagView, MediaInfoPane.this, MediaMetadataEvent.REMOVE_TAG, media, tag));
+					fireEvent(new MediaTagEvent(tagView, MediaPropertiesPane.this, MediaMetadataEvent.REMOVE_TAG, media, tag));
 				}
 			}
         });

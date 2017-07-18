@@ -252,7 +252,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 //				new HBox(lblOpenSong),
 //				new HBox(lblStep2, lblStep2Text));
 
-		SlideInfoPane sip = new SlideInfoPane(context.getTags());
+		SlidePropertiesPane sip = new SlidePropertiesPane(context.getTags());
 
 		//TitledPane ttlImport = new TitledPane(Translations.get("slide.import.howto.title"), importSteps);
 		TitledPane ttlMetadata = new TitledPane(Translations.get("slide.properties.title"), sip);

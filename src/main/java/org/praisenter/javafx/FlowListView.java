@@ -45,7 +45,7 @@ import javafx.scene.layout.TilePane;
 import javafx.util.Callback;
 
 // FEATURE (L) Add the ability to do mouse click+drag area selection
-// FEATURE (L) Arrow key navigation (or keyboard navigation in general)
+// FEATURE (M) Arrow key navigation (or keyboard navigation in general)
 
 /**
  * Represents a list view whose items are laid out vertically or horizontally
