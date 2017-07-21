@@ -312,7 +312,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 					}, self -> {
 						component.scalingProperty().unbind();
 					}));
-			this.context.getEditManager().execute(command);
+			this.applyCommand(command);
 		});
 		
 		// adding components

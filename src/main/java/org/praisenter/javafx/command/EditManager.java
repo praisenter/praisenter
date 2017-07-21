@@ -88,6 +88,7 @@ public final class EditManager {
 		// prevent this affecting the manager if they are
 		// being spawned by the call of undo or redo
 		if (this.isOperating) {
+			LOGGER.trace("An undo or redo action is in progress. Dropping command.");
 			return;
 		}
 		
@@ -136,26 +137,31 @@ public final class EditManager {
 	 * @return {@link EditCommand}
 	 */
 	public EditCommand undo() {
-		this.isOperating = true;
+		if (this.isOperating) return null;
 		
-		if (this.undos.isEmpty()) { 
-			return null;
-		}
-		
-		EditCommand undo = this.undos.pop();
-		undo.undo();
-		this.redos.push(undo);
-		
-		if (undo == MARK) {
-			undo = this.undos.pop();
+		try {
+			this.isOperating = true;
+			
+			if (this.undos.isEmpty()) { 
+				return null;
+			}
+			
+			EditCommand undo = this.undos.pop();
 			undo.undo();
 			this.redos.push(undo);
+			
+			if (undo == MARK) {
+				undo = this.undos.pop();
+				undo.undo();
+				this.redos.push(undo);
+			}
+	
+			return undo;
+		} finally {
+			this.printCounts();
+			this.isOperating = false;
 		}
 		
-		this.printCounts();
-		this.isOperating = false;
-		
-		return undo;
 	}
 	
 	/**
@@ -163,26 +169,30 @@ public final class EditManager {
 	 * @return {@link EditCommand}
 	 */
 	public EditCommand redo() {
-		this.isOperating = true;
+		if (this.isOperating) return null;
 		
-		if (this.redos.isEmpty()) {
-			return null;
-		}
-		
-		EditCommand redo = this.redos.pop();
-		redo.redo();
-		this.undos.push(redo);
-		
-		if (redo == MARK) {
-			redo = this.redos.pop();
+		try {
+			this.isOperating = true;
+			
+			if (this.redos.isEmpty()) {
+				return null;
+			}
+			
+			EditCommand redo = this.redos.pop();
 			redo.redo();
 			this.undos.push(redo);
+			
+			if (redo == MARK) {
+				redo = this.redos.pop();
+				redo.redo();
+				this.undos.push(redo);
+			}
+			
+			return redo;
+		} finally {
+			this.printCounts();
+			this.isOperating = false;
 		}
-		
-		this.printCounts();
-		this.isOperating = false;
-		
-		return redo;
 	}
 	
 	private void printCounts() {
@@ -265,6 +275,7 @@ public final class EditManager {
 	public void reset() {
 		this.undos.clear();
 		this.redos.clear();
+		this.isOperating = false;
 	}
 	
 	/**

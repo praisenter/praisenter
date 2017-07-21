@@ -253,7 +253,7 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 	}
 	
 	private void setTargetValues(LocalDateTime dt) {
-		this.pkrDate.setValue(dt.toLocalDate());
+		this.pkrDate.setValue(dt != null ? dt.toLocalDate() : LocalDate.now());
 		LocalTime t = dt.toLocalTime();
 		this.spnHours.getValueFactory().setValue(t.getHour());
 		this.spnMinutes.getValueFactory().setValue(t.getMinute());
