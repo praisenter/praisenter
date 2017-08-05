@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.javafx.utility.Fx;
 
 import javafx.application.Platform;
@@ -99,10 +100,16 @@ final class ShutdownDialog extends VBox {
 		
 		this.progress = new ProgressIndicator();
 
+		Label lblMessage = new Label("Allowing background processes to complete...");
+		
 		this.setPadding(new Insets(20));
 		this.setSpacing(10);
-		this.getChildren().addAll(new Label("Allowing background processes to complete..."), this.progress);
+		this.getChildren().addAll(lblMessage, this.progress);
 		this.dialog.setScene(Fx.newSceneInheritCss(this, owner));
+		
+		this.getStyleClass().add("shutdown-dialog");
+		this.progress.getStyleClass().add("shutdown-dialog-progress");
+		lblMessage.getStyleClass().add("shutdown-dialog-message");
 	}
 	
 	/**

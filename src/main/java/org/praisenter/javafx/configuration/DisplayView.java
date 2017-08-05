@@ -32,7 +32,6 @@ import java.awt.image.BufferedImage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.javafx.Option;
-import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
@@ -42,21 +41,14 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 /**
  * Represents a view for showing a screenshot of a screen.
@@ -91,9 +83,7 @@ public final class DisplayView extends VBox {
 	 * @param display the display
 	 */
 	public DisplayView(Display display) {
-		this.getStyleClass().add(Styles.SCREEN_VIEW);
-		this.setSpacing(5);
-		this.setAlignment(Pos.TOP_CENTER);
+		this.getStyleClass().add("display-view");
 		
 		this.display.set(display);
 		
@@ -161,13 +151,10 @@ public final class DisplayView extends VBox {
 		img.setLayoutY(BORDER_WIDTH);
 		
 		Label label = new Label(String.valueOf(display.getId() + 1));
-		label.setBackground(new Background(new BackgroundFill(Color.BLACK, null, null)));
-		label.setPadding(new Insets(10, 20, 10, 20));
-		label.setFont(Font.font(label.getFont().getFamily(), FontWeight.BOLD, 30));
-		label.setTextFill(Color.WHITE);
+		label.getStyleClass().add("display-view-number");
 
 		StackPane ui = new StackPane(img, label);
-		ui.getStyleClass().add("monitor");
+		ui.getStyleClass().add("display-view-monitor");
 		Fx.setSize(ui, sw + 2 * BORDER_WIDTH, sh + 2 * BORDER_WIDTH);
 				
 		// LAYOUT

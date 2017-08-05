@@ -20,6 +20,8 @@ public class SlideDataPane extends BorderPane {
 	private BibleNavigationPane bibleNavigationPane;
 	
 	public SlideDataPane(PraisenterContext context) {
+		this.getStyleClass().add("slide-data-pane");
+		
 		this.context = context;
 		
 		this.slidePreviewPane = new SingleSlidePreviewPane(context, SlideMode.PREVIEW);
@@ -46,6 +48,8 @@ public class SlideDataPane extends BorderPane {
 		this.setCenter(editor);
 		
 		btnPlay.setOnAction(e -> {
+			//this.slidePreviewPane.stop();
+			// FIXME pressing play in a row can mess things up because components get altered during the transition. we may need to just recreate the slide by changing the mode to make it work
 			this.slidePreviewPane.setMode(SlideMode.PREVIEW_NO_AUDIO);
 			this.slidePreviewPane.play();
 		});

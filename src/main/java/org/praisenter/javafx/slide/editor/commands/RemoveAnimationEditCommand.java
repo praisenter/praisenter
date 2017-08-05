@@ -50,7 +50,7 @@ public final class RemoveAnimationEditCommand extends SlideRegionEditCommand<Obs
 	@Override
 	public void redo() {
 		this.region.removeAnimation(this.animation);
-		this.list.getSelectionModel().selectFirst();
+		this.list.getSelectionModel().selectPrevious();
 		this.focus(this.list);
 	}
 }

@@ -44,13 +44,12 @@ import org.praisenter.javafx.ApplicationEvent;
 import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
-import org.praisenter.javafx.FlowListCell;
-import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.SortGraphic;
 import org.praisenter.javafx.async.AsyncTask;
-import org.praisenter.javafx.themes.Styles;
+import org.praisenter.javafx.controls.FlowListCell;
+import org.praisenter.javafx.controls.FlowListView;
+import org.praisenter.javafx.controls.SortGraphic;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
@@ -157,7 +156,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
     		MediaType... types) {
     	this.context = context;
     	
-    	this.getStyleClass().add(Styles.MEDIA_LIBRARY_PANE);
+    	this.getStyleClass().add("media-library-pane");
     	
 		final ObservableMediaLibrary library = context.getMediaLibrary();
 		final ObservableSet<Tag> tags = context.getTags();

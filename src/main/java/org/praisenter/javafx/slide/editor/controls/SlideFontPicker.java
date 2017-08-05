@@ -140,7 +140,7 @@ public final class SlideFontPicker extends HBox {
 			spnSize.editorProperty().get().commitValue();
 		});
 		this.spnSize.setTooltip(new Tooltip("Font Size"));
-		this.spnSize.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnSize.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		// set the cell factory to use the font to display the font name
 		this.cmbFamily.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {

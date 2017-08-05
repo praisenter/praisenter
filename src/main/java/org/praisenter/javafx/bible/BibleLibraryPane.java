@@ -42,13 +42,12 @@ import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.ApplicationPane;
 import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
-import org.praisenter.javafx.FlowListCell;
-import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.SelectionEvent;
-import org.praisenter.javafx.SortGraphic;
-import org.praisenter.javafx.themes.Styles;
+import org.praisenter.javafx.controls.FlowListCell;
+import org.praisenter.javafx.controls.FlowListView;
+import org.praisenter.javafx.controls.SelectionEvent;
+import org.praisenter.javafx.controls.SortGraphic;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 
@@ -135,7 +134,7 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 	 * @param context the praisenter context
 	 */
 	public BibleLibraryPane(PraisenterContext context) {
-		this.getStyleClass().add(Styles.BIBLE_LIBRARY_PANE);
+		this.getStyleClass().add("bible-library-pane");
 		
 		this.context = context;
 		

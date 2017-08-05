@@ -1,9 +1,9 @@
 package org.praisenter.javafx.slide.editor.ribbon;
 
 import org.praisenter.Tag;
-import org.praisenter.javafx.TagEvent;
-import org.praisenter.javafx.TagListView;
 import org.praisenter.javafx.command.EditCommand;
+import org.praisenter.javafx.controls.TagEvent;
+import org.praisenter.javafx.controls.TagListView;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.AddTagEditCommand;

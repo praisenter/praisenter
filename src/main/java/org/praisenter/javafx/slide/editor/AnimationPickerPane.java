@@ -29,10 +29,10 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.FlowListView;
 import org.praisenter.javafx.IntegerTextFormatter;
 import org.praisenter.javafx.LongTextFormatter;
 import org.praisenter.javafx.Option;
+import org.praisenter.javafx.controls.FlowListView;
 import org.praisenter.javafx.slide.animation.Animations;
 import org.praisenter.javafx.slide.animation.CustomTransition;
 import org.praisenter.javafx.utility.Fx;
@@ -94,8 +94,6 @@ import javafx.scene.text.Text;
 import javafx.util.StringConverter;
 import javafx.util.converter.IntegerStringConverter;
 import javafx.util.converter.LongStringConverter;
-
-// FIXME translate
 
 /**
  * Represents a control to configure animations.
@@ -264,57 +262,57 @@ final class AnimationPickerPane extends BorderPane {
 		
 		// setup the animation config
 		
-		Label lblDuration = new Label("Duration");
+		Label lblDuration = new Label(Translations.get("slide.animation.duration"));
 		txtDuration = new TextField();
-		txtDuration.setPromptText("in milliseconds");
+		txtDuration.setPromptText(Translations.get("slide.animation.duration.placeholder"));
 		LongTextFormatter durationFormatter = new LongTextFormatter();
 		txtDuration.setTextFormatter(durationFormatter);
 		durationFormatter.setValue(500l);
 		
-		Label lblDelay = new Label("Delay");
+		Label lblDelay = new Label(Translations.get("slide.animation.delay"));
 		txtDelay = new TextField();
-		txtDelay.setPromptText("in milliseconds");
+		txtDelay.setPromptText(Translations.get("slide.animation.delay.placeholder"));
 		LongTextFormatter delayFormatter = new LongTextFormatter();
 		txtDelay.setTextFormatter(delayFormatter);
 		delayFormatter.setValue(0l);
 		
-		Label lblAnimationType = new Label("Animation Type");
+		Label lblAnimationType = new Label(Translations.get("slide.animation.type"));
 		cbAnimationType = new ChoiceBox<>(ANIMATION_TYPE_OPTIONS);
 		cbAnimationType.setValue(ANIMATION_TYPE_OPTIONS.get(0));
 		
-		Label lblEasingType = new Label("Easing Type");
+		Label lblEasingType = new Label(Translations.get("slide.animation.easing"));
 		cbEasingType = new ChoiceBox<>(EASING_TYPE_OPTIONS);
 		cbEasingType.setValue(EASING_TYPE_OPTIONS.get(0));
 		
-		Label lblRepeatCount = new Label("Repeat Count");
+		Label lblRepeatCount = new Label(Translations.get("slide.animation.repeat"));
 		spnRepeatCount = new Spinner<>(0, Integer.MAX_VALUE, 1, 1);
 		spnRepeatCount.getValueFactory().setValue(1);
 		spnRepeatCount.setEditable(true);
 		
-		Label lblAutoReverse = new Label("Auto-Reverse");
+		Label lblAutoReverse = new Label(Translations.get("slide.animation.reverse"));
 		chkAutoReverse = new CheckBox();
 		chkAutoReverse.setSelected(false);
 		
-		Label lblOrientation = new Label("Orientation");
+		Label lblOrientation = new Label(Translations.get("slide.animation.orientation"));
 		cbOrientation = new ChoiceBox<>(ORIENTATION_OPTIONS);
 		cbOrientation.setValue(ORIENTATION_OPTIONS.get(0));
 		
-		Label lblDirection = new Label("Direction");
+		Label lblDirection = new Label(Translations.get("slide.animation.direction"));
 		cbDirection = new ChoiceBox<>(DIRECTION_OPTIONS);
 		cbDirection.setValue(DIRECTION_OPTIONS.get(0));
 		cbDirection.setPrefWidth(100);
 		
-		Label lblShapeType = new Label("Shape Type");
+		Label lblShapeType = new Label(Translations.get("slide.animation.shape"));
 		cbShapeType = new ChoiceBox<>(SHAPE_TYPE_OPTIONS);
 		cbShapeType.setValue(SHAPE_TYPE_OPTIONS.get(0));
 				
-		Label lblOperation = new Label("Operation");
+		Label lblOperation = new Label(Translations.get("slide.animation.operation"));
 		cbOperation = new ChoiceBox<>(OPERATION_OPTIONS);
 		cbOperation.setValue(OPERATION_OPTIONS.get(0));
 		
-		Label lblBlindCount = new Label("Blind Count");
+		Label lblBlindCount = new Label(Translations.get("slide.animation.blinds"));
 		txtBlindCount = new TextField();
-		txtBlindCount.setPromptText("number of blinds");
+		txtBlindCount.setPromptText(Translations.get("slide.animation.blinds.placeholder"));
 		IntegerTextFormatter blindCountFormatter = new IntegerTextFormatter();
 		txtBlindCount.setTextFormatter(blindCountFormatter);
 		blindCountFormatter.setValue(12);
@@ -354,20 +352,14 @@ final class AnimationPickerPane extends BorderPane {
 		Pane pane2 = new StackPane();
 		pane2.setBorder(Fx.newBorder(Color.BLACK));
 		pane2.setBackground(new Background(new BackgroundFill(Color.rgb(255, 0, 0, 0.5), null, null)));
-		Text content = new Text("Content");
+		Text content = new Text(Translations.get("slide.animation.example.content"));
 		content.setFill(Color.WHITE);
 		pane2.getChildren().add(content);
 		Fx.setSize(pane2, PREVIEW_WIDTH, PREVIEW_HEIGHT);
 		
 		panePreview.getChildren().addAll(pane1, pane2);
 		
-//		ScrollPane scrAnimations = new ScrollPane(animationListPane);
-//		scrAnimations.setFitToWidth(true);
 		animationListPane.setPrefHeight(350);
-		
-		
-//		ScrollPane scrEasings = new ScrollPane(easingListPane);
-//		scrEasings.setFitToHeight(true);
 		easingListPane.setPrefHeight(115);
 
 		BorderPane left = new BorderPane();
@@ -375,7 +367,7 @@ final class AnimationPickerPane extends BorderPane {
 		left.setBottom(easingListPane);
 		
 		VBox boxPreview = new VBox();
-		Button btnPreview = new Button("Preview");
+		Button btnPreview = new Button(Translations.get("slide.animation.preview"));
 		btnPreview.setOnAction((e) -> {
 			Animation animation = this.value.get();
 			CustomTransition<?> ct = Animations.createCustomTransition(animation);
@@ -388,8 +380,8 @@ final class AnimationPickerPane extends BorderPane {
 		});
 		boxPreview.getChildren().addAll(btnPreview, panePreview);
 		
-		TitledPane ttlProperties = new TitledPane("Settings", grid);
-		TitledPane ttlPreview = new TitledPane("Preview", boxPreview);
+		TitledPane ttlProperties = new TitledPane(Translations.get("slide.animation.properties"), grid);
+		TitledPane ttlPreview = new TitledPane(Translations.get("slide.animation.example"), boxPreview);
 		VBox right = new VBox();
 		right.getChildren().addAll(ttlProperties, ttlPreview);
 		

@@ -37,7 +37,6 @@ import org.praisenter.bible.Bible;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.Verse;
-import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.ApplicationAction;
 import org.praisenter.javafx.ApplicationContextMenu;
 import org.praisenter.javafx.ApplicationEditorPane;
@@ -75,7 +74,7 @@ import org.praisenter.javafx.command.EditManager;
 import org.praisenter.javafx.command.RemoveEditCommand;
 import org.praisenter.javafx.command.UndorderedCompositeEditCommand;
 import org.praisenter.javafx.configuration.Setting;
-import org.praisenter.javafx.themes.Styles;
+import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.xml.XmlIO;
@@ -160,7 +159,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * @param context the context
 	 */
 	public BibleEditorPane(PraisenterContext context) {
-		this.getStyleClass().add(Styles.BIBLE_EDITOR_PANE);
+		this.getStyleClass().add("bible-editor-pane");
 		
 		this.context = context;
 
@@ -173,12 +172,12 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		// bible
 		Label lblName = new Label(Translations.get("bible.edit.name"));
 		this.txtName = new TextField();
-		this.txtName.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.txtName.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		Label lblLanguage = new Label(Translations.get("bible.edit.language"));
 		ComboBox<Option<Locale>> cmbLanguage = new ComboBox<Option<Locale>>(locales);
 		cmbLanguage.setEditable(true);
-		cmbLanguage.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		cmbLanguage.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		cmbLanguage.setCellFactory(new Callback<ListView<Option<Locale>>, ListCell<Option<Locale>>>() {
 			public ListCell<Option<Locale>> call(ListView<Option<Locale>> param) {
 				ListCell<Option<Locale>> cell = new ListCell<Option<Locale>>() {
@@ -222,47 +221,47 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		
 		Label lblSource = new Label(Translations.get("bible.edit.source"));
 		TextField txtSource = new TextField();
-		txtSource.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		txtSource.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		Label lblCopyright = new Label(Translations.get("bible.edit.copyright"));
 		TextField txtCopyright = new TextField();
-		txtCopyright.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		txtCopyright.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		Label lblNotes = new Label(Translations.get("bible.edit.notes"));
 		TextArea txtNotes = new TextArea();
 		txtNotes.setWrapText(true);
 		txtNotes.setPrefHeight(250);
-		txtNotes.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		txtNotes.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		Label lblEditMessage = new Label(Translations.get("bible.edit.message"), ApplicationGlyphs.BIBLE_EDIT_ARROW_LEFT.duplicate());
 		
 		// book
 		Label lblBookName = new Label(Translations.get("bible.edit.bookname"));
 		TextField txtBookName = new TextField();
-		txtBookName.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		txtBookName.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		Label lblBookNumber = new Label(Translations.get("bible.edit.booknumber"));
 		Spinner<Integer> spnBookNumber = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnBookNumber.setEditable(true);
-		spnBookNumber.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		spnBookNumber.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		// chapter
 		Label lblChapter = new Label(Translations.get("bible.edit.chapternumber"));
 		Spinner<Integer> spnChapter = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnChapter.setEditable(true);
-		spnChapter.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		spnChapter.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		// verse
 		Label lblVerse = new Label(Translations.get("bible.edit.versenumber"));
 		Spinner<Integer> spnVerse = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnVerse.setEditable(true);
-		spnVerse.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		spnVerse.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		Label lblVerseText = new Label(Translations.get("bible.edit.versetext"));
 		TextArea txtText = new TextArea();
 		txtText.setWrapText(true);
 		txtText.setPrefHeight(350);
-		txtText.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		txtText.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		VBox editorFields = new VBox();
 		editorFields.setSpacing(2);
@@ -304,6 +303,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 		BibleEditorDragDropManager manager = new BibleEditorDragDropManager();
 		
 		this.bibleTree = new TreeView<TreeData>();
+		this.bibleTree.getStyleClass().add("bible-editor-pane-tree");
 		this.bibleTree.setEditable(true);
 		this.bibleTree.setShowRoot(true);
 		// allow multiple selection

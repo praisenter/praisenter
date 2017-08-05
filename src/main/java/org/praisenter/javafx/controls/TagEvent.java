@@ -22,56 +22,58 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.bible;
+package org.praisenter.javafx.controls;
 
-import org.praisenter.javafx.controls.FlowListCell;
+import java.io.Serializable;
 
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.VBox;
+import org.praisenter.Tag;
+
+import javafx.event.Event;
+import javafx.event.EventTarget;
+import javafx.event.EventType;
 
 /**
- * Custom list cell for {@link BibleListItem}s.
+ * An event when tags are added or removed.
  * @author William Bittle
  * @version 3.0.0
- * @since 3.0.0
  */
-final class BibleListCell extends FlowListCell<BibleListItem> {
+public final class TagEvent extends Event implements Serializable {
+	/** The serialization id */
+	private static final long serialVersionUID = 837797201591141937L;
+	
+	// types
+	
+	/** For all Tag events */
+	public static final EventType<TagEvent> ALL = new EventType<TagEvent>("TAG_ALL");
+	
+	/** For all added tag events */
+	public static final EventType<TagEvent> ADDED = new EventType<TagEvent>(ALL, "ADDED");
+	
+	/** For all removed tag events */
+	public static final EventType<TagEvent> REMOVED = new EventType<TagEvent>(ALL, "REMOVED");
+	
+	// data
+	
+	/** The tag */
+	final Tag tag;
+	
 	/**
-	 * Minimal constructor.
-	 * @param item the bible item
+	 * Full constructor.
+	 * @param source the event source
+	 * @param target the event target
+	 * @param type the event type
+	 * @param tag the tag
 	 */
-	public BibleListCell(BibleListItem item) {
-		super(item);
-		this.getStyleClass().add("bible-list-cell");
-		
-    	// setup the thumbnail image
-    	final ImageView thumb = new ImageView();
-    	thumb.getStyleClass().add("bible-list-cell-thumbnail");
-    	thumb.setFitHeight(100);
-    	thumb.setPreserveRatio(true);
-		thumb.managedProperty().bind(thumb.visibleProperty());
-		
-		// setup an indeterminant progress bar
-		ProgressIndicator progress = new ProgressIndicator();
-		progress.getStyleClass().add("bible-list-cell-progress");
-		progress.managedProperty().bind(progress.visibleProperty());
-		
-		// place it in a VBox for good positioning
-    	final VBox wrapper = new VBox(thumb, progress);
-    	wrapper.getStyleClass().add("bible-list-cell-wrapper");
-    	this.getChildren().add(wrapper);
-		
-		thumb.visibleProperty().bind(item.loadedProperty());
-		progress.visibleProperty().bind(item.loadedProperty().not());
-    	
-    	// setup the media name label
-    	final Label label = new Label();
-    	label.getStyleClass().add("bible-list-cell-name");
-    	label.textProperty().bind(item.nameProperty());
-		
-    	// add the image and label to the cell
-    	this.getChildren().addAll(label);
+	public TagEvent(Object source, EventTarget target, EventType<TagEvent> type, Tag tag) {
+		super(source, target, type);
+		this.tag = tag;
+	}
+	
+	/**
+	 * Returns the tag involved in the event.
+	 * @return {@link Tag}
+	 */
+	public Tag getTag() {
+		return this.tag;
 	}
 }

@@ -22,38 +22,38 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx;
+package org.praisenter.javafx.controls;
 
-import java.io.Serializable;
-
-import javafx.event.Event;
 import javafx.event.EventTarget;
-import javafx.event.EventType;
+import javafx.scene.layout.VBox;
 
 /**
- * Event fired for selection and deselection.
+ * Represents a cell in a {@link FlowListView}.
  * @author William Bittle
  * @version 3.0.0
+ * @param <T> the item type
  */
-public final class SelectionEvent extends Event implements Serializable {
-	/** The serialization id */
-	private static final long serialVersionUID = -7638832493983231255L;
-	
-	// types
-	
-	/** The base selection event type */
-	public static final EventType<SelectionEvent> ALL = new EventType<SelectionEvent>("SELECTION_ALL");
-	
-	/** The selection event for double clicking on an item */
-	public static final EventType<SelectionEvent> DOUBLE_CLICK = new EventType<SelectionEvent>("SELECTION_DOUBLE_CLICK");
+public class FlowListCell<T> extends VBox implements EventTarget {
+	/** The item's data */
+	private final T data;
 	
 	/**
 	 * Full constructor.
-	 * @param source the event source
-	 * @param target the event target
-	 * @param type the event type
+	 * @param data the data for this item
 	 */
-	public SelectionEvent(Object source, EventTarget target, EventType<SelectionEvent> type) {
-		super(source, target, type);
+	public FlowListCell(T data) {
+		this.data = data;
+		
+		// setup the cell
+		this.getStyleClass().add("flow-list-view-cell");
+		this.setFocusTraversable(false);
+	}
+	
+	/**
+	 * Returns the data for this item.
+	 * @return T
+	 */
+	public T getData() {
+		return this.data;
 	}
 }

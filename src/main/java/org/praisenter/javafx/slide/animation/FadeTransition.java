@@ -59,6 +59,7 @@ public final class FadeTransition extends CustomTransition<Fade> {
 	@Override
 	protected void interpolate(double frac) {
 		if (this.node == null) return;
+		//if (this.skipInterpolation()) return;
 		
 		double alpha = clamp(frac, 0.0, 1.0);
 		if (this.animation.getType() == AnimationType.IN) {

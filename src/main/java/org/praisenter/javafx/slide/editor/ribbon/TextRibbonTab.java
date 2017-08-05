@@ -27,7 +27,7 @@ class TextRibbonTab extends ComponentEditorRibbonTab {
 		this.text.setMaxHeight(75);
 		this.text.setWrapText(true);
 		this.text.setMaxWidth(175);
-		this.text.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.text.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		// layout
 		

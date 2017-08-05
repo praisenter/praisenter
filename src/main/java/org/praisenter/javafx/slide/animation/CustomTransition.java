@@ -78,7 +78,7 @@ public abstract class CustomTransition<T extends Animation> extends Transition {
 		
 		this.animation = animation;
 		this.setInterpolator(new CustomInterpolator(animation.getEasing()));
-		this.setDelay(Duration.millis(Math.max(0, animation.getDelay())));
+//		this.setDelay(Duration.millis(Math.max(0, animation.getDelay())));
 		this.setCycleDuration(Duration.millis(Math.max(0, animation.getDuration())));
 		this.setAutoReverse(animation.isAutoReverse());
 		this.setCycleCount(cycleCount);

@@ -71,22 +71,23 @@ public final class PushTransition extends CustomTransition<Push> {
 		switch(this.animation.getDirection()) {
 			case UP:
 				dp = getUpPosition(nb, pb, frac);
+				node.setTranslateY(dp.getY());
 				break;
 			case RIGHT:
 				dp = getRightPosition(nb, pb, frac);
+				node.setTranslateX(dp.getX());
 				break;
 			case DOWN:
 				dp = getDownPosition(nb, pb, frac);
+				node.setTranslateY(dp.getY());
 				break;
 			case LEFT:
 				dp = getLeftPosition(nb, pb, frac);
+				node.setTranslateX(dp.getX());
 				break;
 			default:
 				break;
 		}
-		
-		node.setTranslateX(dp.getX());
-		node.setTranslateY(dp.getY());
 	}
 	
 	/**

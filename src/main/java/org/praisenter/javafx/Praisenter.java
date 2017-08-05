@@ -39,6 +39,7 @@ import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.configuration.Configuration;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.resources.OpenIconic;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.RuntimeProperties;
@@ -53,22 +54,22 @@ import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
 // FIXME fix the manifest
 // FIXME explore deployment options
 // FIXME testing on High DPI screens
 // FIXME fix dark theme
-// FIXME check for unsaved changes on close of the application
 
 // FEATURE (L) Evaluate detecting text language for better indexing (a field per language) in lucene; Apache Tika or LangDetect; This would also be used in the searches to know what indexed fields to use
 // FEATURE (L) Use Apache POI to read powerpoint files
 // FEATURE (M) Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
-// FEATURE (H) Undo/Redo - Will need to convert code to Command Pattern 
 // FEATURE (H) Quick send to display - any place in the app when the context contains something that could be displayed offer a Quick Display button to allow the user to quickly get it shown - with configurable settings
 // FEATURE (L) Quick send any image/video from file system
 // FEATURE (M) From selected media items, generate slides or slide show
@@ -284,6 +285,16 @@ public final class Praisenter extends Application {
     		
     		stack.getChildren().add(0, main);
     		
+    		// set what to do when the app is closed
+    		stage.setOnCloseRequest(we -> {
+    			// check for unsaved changes
+	    		ButtonType result = main.checkForUnsavedChanges();
+	    		if (result == ButtonType.CANCEL) {
+	    			we.consume();
+	    		}
+    		});
+    		stage.setOnHiding(this::onHiding);
+    		
 			// fade out the loader
 			FadeTransition fade = new FadeTransition(Duration.millis(600), loading);
 			fade.setFromValue(1.0);
@@ -318,68 +329,129 @@ public final class Praisenter extends Application {
     	// NOTE: this should be the only place where this is done, every other window needs to inherit the css from the parent
     	scene.getStylesheets().add(configuration.getTheme().getCss());
     	stage.setScene(scene);
-    	stage.setOnHiding((e) -> {
-			// close the presentation screens
-			this.context.getDisplayManager().release();
-			
-    		// save some application info
-    		LOGGER.debug("Saving application location and size: ({}, {}) {}x{}", stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
-    		if (!stage.isMaximized()) {
-	    		CONFIGURATION.setDouble(Setting.APP_X, stage.getX());
-	    		CONFIGURATION.setDouble(Setting.APP_Y, stage.getY());
-	    		CONFIGURATION.setDouble(Setting.APP_WIDTH, stage.getWidth());
-	    		CONFIGURATION.setDouble(Setting.APP_HEIGHT, stage.getHeight());
-    		}
-    		CONFIGURATION.setBoolean(Setting.APP_MAXIMIZED, stage.isMaximized());
-    		
-    		try {
-    			// save the configuration synchronously
-    			CONFIGURATION.save();
-    		} catch (Exception ex) {
-    			LOGGER.warn("Failed to save application x,y and width,height when the application closed.", ex);
-    		}
-    		
-    		LOGGER.info("Checking for background threads that have not completed yet.");
-    		// this stuff could be null if we blow up before its created
-    		AsyncTaskExecutor executor = context != null ? context.getExecutorService() : null;
-    		if (executor != null) {
-    			
-    			// for testing shutdown waiting
-//        		context.getWorkers().submit(() -> { 
-//        			try {
-//    					Thread.sleep(5 * 1000);
-//    				} catch (Exception e1) {
-//    					e1.printStackTrace();
-//    				} 
-//        		});
-    			
-    			executor.shutdown();
-	    		int activeThreads = executor.getActiveCount();
-	    		if (activeThreads > 0) {
-	    			LOGGER.info("{} background threads awaiting completion.", activeThreads);
-	    			e.consume();
-	    			
-	    			ShutdownDialog shutdown = new ShutdownDialog(stage, executor);
-	    			shutdown.completeProperty().addListener((obs, ov, nv) -> {
-	    				if (nv) {
-	    					LOGGER.info("Shutdown complete. Exiting the platform.");
-	    					Platform.exit();
-	    				}
-	    			});
-	    			shutdown.show();
-	    		} else {
-	    			LOGGER.info("No active background threads running. Exiting the platform.");
-		    		Platform.exit();
-	    		}
-    		} else {
-    			LOGGER.info("No active background threads running. Exiting the platform.");
-	    		Platform.exit();
-    		}
-    	});
+//    	stage.setOnHiding((e) -> {
+//			// close the presentation screens
+//			this.context.getDisplayManager().release();
+//			
+//    		// save some application info
+//    		LOGGER.debug("Saving application location and size: ({}, {}) {}x{}", stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+//    		if (!stage.isMaximized()) {
+//	    		CONFIGURATION.setDouble(Setting.APP_X, stage.getX());
+//	    		CONFIGURATION.setDouble(Setting.APP_Y, stage.getY());
+//	    		CONFIGURATION.setDouble(Setting.APP_WIDTH, stage.getWidth());
+//	    		CONFIGURATION.setDouble(Setting.APP_HEIGHT, stage.getHeight());
+//    		}
+//    		CONFIGURATION.setBoolean(Setting.APP_MAXIMIZED, stage.isMaximized());
+//    		
+//    		try {
+//    			// save the configuration synchronously
+//    			CONFIGURATION.save();
+//    		} catch (Exception ex) {
+//    			LOGGER.warn("Failed to save application x,y and width,height when the application closed.", ex);
+//    		}
+//    		
+//    		LOGGER.info("Checking for background threads that have not completed yet.");
+//    		// this stuff could be null if we blow up before its created
+//    		AsyncTaskExecutor executor = context != null ? context.getExecutorService() : null;
+//    		if (executor != null) {
+//    			
+//    			// for testing shutdown waiting
+////        		context.getWorkers().submit(() -> { 
+////        			try {
+////    					Thread.sleep(5 * 1000);
+////    				} catch (Exception e1) {
+////    					e1.printStackTrace();
+////    				} 
+////        		});
+//    			
+//    			executor.shutdown();
+//	    		int activeThreads = executor.getActiveCount();
+//	    		if (activeThreads > 0) {
+//	    			LOGGER.info("{} background threads awaiting completion.", activeThreads);
+//	    			e.consume();
+//	    			
+//	    			ShutdownDialog shutdown = new ShutdownDialog(stage, executor);
+//	    			shutdown.completeProperty().addListener((obs, ov, nv) -> {
+//	    				if (nv) {
+//	    					LOGGER.info("Shutdown complete. Exiting the platform.");
+//	    					Platform.exit();
+//	    				}
+//	    			});
+//	    			shutdown.show();
+//	    		} else {
+//	    			LOGGER.info("No active background threads running. Exiting the platform.");
+//		    		Platform.exit();
+//	    		}
+//    		} else {
+//    			LOGGER.info("No active background threads running. Exiting the platform.");
+//	    		Platform.exit();
+//    		}
+//    	});
     	stage.show();
     	
     	// start the loading
     	LOGGER.info("Starting load");
     	loading.start();
+    }
+    
+    private void onHiding(WindowEvent e) {
+    	Stage stage = this.context.getJavaFXContext().getStage();
+    	
+    	// close the presentation screens
+		this.context.getDisplayManager().release();
+		
+		// save some application info
+		LOGGER.debug("Saving application location and size: ({}, {}) {}x{}", stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+		if (!stage.isMaximized()) {
+    		CONFIGURATION.setDouble(Setting.APP_X, stage.getX());
+    		CONFIGURATION.setDouble(Setting.APP_Y, stage.getY());
+    		CONFIGURATION.setDouble(Setting.APP_WIDTH, stage.getWidth());
+    		CONFIGURATION.setDouble(Setting.APP_HEIGHT, stage.getHeight());
+		}
+		CONFIGURATION.setBoolean(Setting.APP_MAXIMIZED, stage.isMaximized());
+		
+		try {
+			// save the configuration synchronously
+			CONFIGURATION.save();
+		} catch (Exception ex) {
+			LOGGER.warn("Failed to save application x,y and width,height when the application closed.", ex);
+		}
+		
+		LOGGER.info("Checking for background threads that have not completed yet.");
+		// this stuff could be null if we blow up before its created
+		AsyncTaskExecutor executor = context != null ? context.getExecutorService() : null;
+		if (executor != null) {
+			
+			// for testing shutdown waiting
+//    	        		context.getWorkers().submit(() -> { 
+//    	        			try {
+//    	    					Thread.sleep(5 * 1000);
+//    	    				} catch (Exception e1) {
+//    	    					e1.printStackTrace();
+//    	    				} 
+//    	        		});
+			
+			executor.shutdown();
+    		int activeThreads = executor.getActiveCount();
+    		if (activeThreads > 0) {
+    			LOGGER.info("{} background threads awaiting completion.", activeThreads);
+    			e.consume();
+    			
+    			ShutdownDialog shutdown = new ShutdownDialog(stage, executor);
+    			shutdown.completeProperty().addListener((obs, ov, nv) -> {
+    				if (nv) {
+    					LOGGER.info("Shutdown complete. Exiting the platform.");
+    					Platform.exit();
+    				}
+    			});
+    			shutdown.show();
+    		} else {
+    			LOGGER.info("No active background threads running. Exiting the platform.");
+	    		Platform.exit();
+    		}
+		} else {
+			LOGGER.info("No active background threads running. Exiting the platform.");
+    		Platform.exit();
+		}
     }
 }

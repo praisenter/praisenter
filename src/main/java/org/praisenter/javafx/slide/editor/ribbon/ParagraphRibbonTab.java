@@ -61,7 +61,7 @@ class ParagraphRibbonTab extends ComponentEditorRibbonTab {
 		this.spnPadding = new Spinner<Double>(0.0, Double.MAX_VALUE, 0.0, 1.0);
 		this.spnPadding.setPrefWidth(70);
 		this.spnPadding.setEditable(true);
-		this.spnPadding.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnPadding.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		// tooltips
 		

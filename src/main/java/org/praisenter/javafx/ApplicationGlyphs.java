@@ -57,6 +57,9 @@ public final class ApplicationGlyphs {
 	
 	/** Warn icon */
 	public static final Glyph WARN = FONT_AWESOME.create(FontAwesome.Glyph.WARNING).color(Color.ORANGE);
+
+	/** Error icon */
+	public static final Glyph ERROR = FONT_AWESOME.create(FontAwesome.Glyph.TIMES_CIRCLE).color(Color.RED);
 	
 	/** Add icon */
 	public static final Glyph ADD = FONT_AWESOME.create(FontAwesome.Glyph.PLUS).color(Color.LIMEGREEN);

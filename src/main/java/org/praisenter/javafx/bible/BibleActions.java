@@ -37,10 +37,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.BibleLibrary;
-import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.async.AsyncGroupTask;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
+import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.scene.control.Alert;

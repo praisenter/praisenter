@@ -79,7 +79,7 @@ public final class BibleSearchButton extends Button {
 				dialog.initStyle(StageStyle.UTILITY);
 				dialog.setWidth(800);
 				dialog.setHeight(450);
-				dialog.setResizable(false);
+				dialog.setResizable(true);
 				
 				// build the media library pane
 				BibleSearchPane bsp = new BibleSearchPane(context);

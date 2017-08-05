@@ -56,7 +56,9 @@ final class MonitoredTaskListCell extends ListCell<AsyncTask<?>> {
 	 * Default constructor.
 	 */
 	public MonitoredTaskListCell() {
+		this.getStyleClass().add("monitored-task-list-cell");
 		this.indicator.setPrefSize(10, 10);
+		this.indicator.getStyleClass().add("monitored-task-list-cell-indicator");
 		this.setTooltip(this.tooltip);
 		this.setPrefWidth(180);
 		this.setMaxWidth(USE_PREF_SIZE);

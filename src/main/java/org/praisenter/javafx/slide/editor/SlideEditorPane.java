@@ -34,7 +34,6 @@ import org.praisenter.javafx.slide.editor.events.SlideComponentAddEvent;
 import org.praisenter.javafx.slide.editor.events.SlideComponentRemoveEvent;
 import org.praisenter.javafx.slide.editor.events.SlideEditorEvent;
 import org.praisenter.javafx.slide.editor.ribbon.SlideEditorRibbon;
-import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.media.Media;
 import org.praisenter.slide.AbstractSlideComponent;
@@ -93,7 +92,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 //	private boolean hasUnsavedChanges = false;
 	
 	public SlideEditorPane(PraisenterContext context) {
-		this.getStyleClass().add(Styles.SLIDE_EDITOR_PANE);
+		this.getStyleClass().add("slide-editor-pane");
 		
 		this.context = new SlideEditorContext(context);
 		
@@ -296,7 +295,10 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		});
 
 		// change tracking
-		this.ribbon.addEventHandler(SlideEditorEvent.CHANGED, (e) -> {
+		this.ribbon.addEventHandler(SlideEditorEvent.CHANGED, e -> {
+			this.stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
+		});
+		this.animations.addEventHandler(SlideEditorEvent.CHANGED, e -> {
 			this.stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
 		});
 

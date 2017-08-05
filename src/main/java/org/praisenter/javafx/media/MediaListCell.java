@@ -26,22 +26,17 @@ package org.praisenter.javafx.media;
 
 import org.praisenter.MediaType;
 import org.praisenter.ThumbnailSettings;
-import org.praisenter.javafx.FlowListCell;
+import org.praisenter.javafx.controls.FlowListCell;
 import org.praisenter.media.Media;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.TextAlignment;
 
 /**
  * Represents a {@link FlowListCell} for {@link MediaListItem}s.
@@ -63,20 +58,21 @@ final class MediaListCell extends FlowListCell<MediaListItem> {
 		
 		final int maxHeight = thumbnailSettings.getHeight();
 		
-		this.setPrefWidth(110);
-		this.setAlignment(Pos.TOP_CENTER);
+		this.getStyleClass().add("media-list-cell");
 		
 		// setup an image view for loaded items
     	final ImageView thumb = new ImageView();
+    	thumb.getStyleClass().add("media-list-cell-thumbnail");
     	thumb.managedProperty().bind(thumb.visibleProperty());
     	
 		// setup an indeterminant progress bar for pending items
 		final ProgressIndicator progress = new ProgressIndicator();
+		progress.getStyleClass().add("media-list-cell-progress");
 		progress.managedProperty().bind(progress.visibleProperty());
 		
 		// place it in a VBox for good positioning
 		final VBox wrapper = new VBox(thumb, progress);
-    	wrapper.setAlignment(Pos.BOTTOM_CENTER);
+		wrapper.getStyleClass().add("media-list-cell-wrapper");
     	wrapper.setPrefHeight(maxHeight);
     	wrapper.setMaxHeight(maxHeight);
     	wrapper.setMinHeight(maxHeight);
@@ -84,8 +80,16 @@ final class MediaListCell extends FlowListCell<MediaListItem> {
 		
 		this.media.addListener((obs, ov, nv) -> {
 			// setup the thumbnail image
+			String clazz = null;
 			Image image = null;
 			if (nv != null) {
+				if (nv.getType() == MediaType.IMAGE) {
+					clazz = "media-list-cell-thumbnail-image";
+				} else if (nv.getType() == MediaType.VIDEO) {
+					clazz = "media-list-cell-thumbnail-video";
+				} else if (nv.getType() == MediaType.AUDIO) {
+					clazz = "media-list-cell-thumbnail-audio";
+				}
 				if (nv.getThumbnail() == null) {
 					if (nv.getType() == MediaType.IMAGE) {
 						image = defaultThumbnails.getDefaultImageThumbnail();
@@ -99,13 +103,11 @@ final class MediaListCell extends FlowListCell<MediaListItem> {
 				}
 			}
 			
+			thumb.getStyleClass().setAll("media-list-cell-thumbnail");
+			if (clazz != null) {
+				thumb.getStyleClass().add(clazz);
+			}
 			thumb.setImage(image);
-			
-			if (nv != null && nv.getType() == MediaType.IMAGE) {
-	    		thumb.setEffect(new DropShadow(2, 2, 2, Color.rgb(0, 0, 0, 0.25)));
-	    	} else {
-	    		thumb.setEffect(null);
-	    	}
 		});
 		
 		thumb.visibleProperty().bind(item.loadedProperty());
@@ -114,10 +116,8 @@ final class MediaListCell extends FlowListCell<MediaListItem> {
 		
     	// setup the media name label
     	final Label label = new Label();
+    	label.getStyleClass().add("media-list-cell-name");
     	label.textProperty().bind(item.nameProperty());
-    	label.setWrapText(true);
-    	label.setTextAlignment(TextAlignment.CENTER);
-    	label.setPadding(new Insets(5, 0, 0, 0));
 		
     	// add the image and label to the cell
     	this.getChildren().addAll(label);

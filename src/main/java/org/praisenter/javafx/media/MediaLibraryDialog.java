@@ -45,6 +45,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
+// TODO translate
+
 /**
  * A dialog for selecting media.
  * @author William Bittle

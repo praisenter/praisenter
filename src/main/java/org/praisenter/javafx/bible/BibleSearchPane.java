@@ -37,13 +37,13 @@ import org.praisenter.bible.BibleSearchCriteria;
 import org.praisenter.bible.BibleSearchResult;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Verse;
-import org.praisenter.javafx.AutoCompleteComboBox;
-import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Setting;
-import org.praisenter.javafx.themes.Styles;
+import org.praisenter.javafx.controls.AutoCompleteComboBox;
+import org.praisenter.javafx.controls.AutoCompleteComparator;
+import org.praisenter.javafx.controls.ProgressOverlay;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
@@ -62,20 +62,16 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 
 // FEATURE (M) add searching to the bible editor for finding and editing easily
 
@@ -118,7 +114,7 @@ public final class BibleSearchPane extends BorderPane {
 	 * @param context the context
 	 */
 	public BibleSearchPane(PraisenterContext context) {
-		this.getStyleClass().add(Styles.BIBLE_SEARCH_PANE);
+		this.getStyleClass().add("bible-search-pane");
 		
 		this.setPadding(new Insets(5));
 		
@@ -297,11 +293,7 @@ public final class BibleSearchPane extends BorderPane {
 		});
 		
 		// loading
-		ProgressIndicator progress = new ProgressIndicator();
-		progress.setMaxSize(50, 50);
-		StackPane overlay = new StackPane(progress);
-		// TODO css
-		overlay.setBackground(new Background(new BackgroundFill(Color.rgb(255, 255, 255, 0.2), null, null)));
+		ProgressOverlay overlay = new ProgressOverlay();
 		StackPane stack = new StackPane(this.table, overlay);
 		
 		this.setCenter(stack);

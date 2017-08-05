@@ -24,27 +24,18 @@
  */
 package org.praisenter.javafx.slide;
 
-import org.praisenter.javafx.FlowListCell;
-import org.praisenter.javafx.utility.Fx;
+import org.praisenter.javafx.controls.FlowListCell;
 import org.praisenter.slide.Slide;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.TextAlignment;
 
 /**
  * Custom list cell for {@link SlideListItem}s.
@@ -64,17 +55,17 @@ final class SlideListCell extends FlowListCell<SlideListItem> {
 	public SlideListCell(SlideListItem item, int maxHeight) {
 		super(item);
 		
-		this.setPrefWidth(110);
-		this.setAlignment(Pos.TOP_CENTER);
+		this.getStyleClass().add("slide-list-cell");
 		
 		final Pane pane = new Pane();
-		pane.setBackground(new Background(new BackgroundImage(Fx.TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
+		pane.getStyleClass().add("slide-list-cell-thumbnail");
 		
     	final ImageView thumb = new ImageView();
     	pane.getChildren().add(thumb);
+    	
     	// place it in a VBox for good positioning
     	final VBox wrapper = new VBox(pane);
-    	wrapper.setAlignment(Pos.BOTTOM_CENTER);
+    	wrapper.getStyleClass().add("slide-list-cell-wrapper");
     	wrapper.setPrefHeight(maxHeight);
     	wrapper.setMaxHeight(maxHeight);
     	wrapper.setMinHeight(maxHeight);
@@ -83,6 +74,7 @@ final class SlideListCell extends FlowListCell<SlideListItem> {
 
 		// setup an indeterminant progress bar
 		ProgressIndicator progress = new ProgressIndicator();
+		progress.getStyleClass().add("slide-list-cell-progress");
 		progress.managedProperty().bind(progress.visibleProperty());
 		this.getChildren().add(progress);
 		
@@ -96,7 +88,6 @@ final class SlideListCell extends FlowListCell<SlideListItem> {
 			}
 			
 			thumb.setImage(image);
-    		thumb.setEffect(new DropShadow(2, 2, 2, Color.rgb(0, 0, 0, 0.25)));
     		pane.setMaxWidth(image.getWidth());
 		});
 		
@@ -106,10 +97,8 @@ final class SlideListCell extends FlowListCell<SlideListItem> {
 		
     	// setup the slide name label
     	final Label label = new Label();
+    	label.getStyleClass().add("slide-list-cell-name");
     	label.textProperty().bind(item.nameProperty());
-    	label.setWrapText(true);
-    	label.setTextAlignment(TextAlignment.CENTER);
-    	label.setPadding(new Insets(5, 0, 0, 0));
 		
     	// add the image and label to the cell
     	this.getChildren().addAll(label);

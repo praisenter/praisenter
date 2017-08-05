@@ -69,6 +69,7 @@ public final class PlaceholderSlideComboBox extends Pane implements Callback<Lis
 	 */
 	public PlaceholderSlideComboBox(PraisenterContext context) {
 		this.cmbSlides = new ComboBox<SlideListItem>();
+		this.cmbSlides.getStyleClass().add("placeholder-slide-combobox");
 		
 		ObservableList<SlideListItem> theList = context.getSlideLibrary().getItems();
         FilteredList<SlideListItem> filtered = theList.filtered(p -> {

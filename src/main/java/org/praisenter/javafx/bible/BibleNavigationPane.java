@@ -42,11 +42,10 @@ import org.praisenter.bible.LocatedVerse;
 import org.praisenter.bible.LocatedVerseTriplet;
 import org.praisenter.bible.Verse;
 import org.praisenter.javafx.ApplicationGlyphs;
-import org.praisenter.javafx.AutoCompleteComboBox;
-import org.praisenter.javafx.AutoCompleteComparator;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.configuration.Setting;
-import org.praisenter.javafx.themes.Styles;
+import org.praisenter.javafx.controls.AutoCompleteComboBox;
+import org.praisenter.javafx.controls.AutoCompleteComparator;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
@@ -129,7 +128,7 @@ public final class BibleNavigationPane extends BorderPane {
 	 * @param context the context.
 	 */
 	public BibleNavigationPane(PraisenterContext context) {
-		this.getStyleClass().add(Styles.BIBLE_NAVIGATION_PANE);
+		this.getStyleClass().add("bible-navigation-pane");
 		
 		this.value.set(new BibleReferenceTextStore());
 		this.previous.set(new BibleReferenceTextStore());

@@ -32,6 +32,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 
+// TODO translate
+
 class MainMenu extends HBox implements EventHandler<ActionEvent> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	

@@ -51,11 +51,11 @@ final class SlideRibbonTab extends SlideRegionRibbonTab<ObservableSlide<?>> {
 		
 		name = new TextField();
 		name.setPromptText("Name");
-		name.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		name.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		time = new TextField();
 		time.setPromptText("00:00");
-		time.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		time.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		time.setTextFormatter(new TextFormatter<Long>(this.timeConverter));
 		
 		// target resolution

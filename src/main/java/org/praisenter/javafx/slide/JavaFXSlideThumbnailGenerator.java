@@ -83,7 +83,7 @@ public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenera
 		if (slide == null) return null;
 		
 		// create a callable for generating the slide thumbnail
-		Callable<Image> r = () -> {
+		Callable<Image> snapshot = () -> {
 			ObservableSlide<?> nSlide = new ObservableSlide<>(slide, context, SlideMode.SNAPSHOT);
 			
 			SnapshotParameters sp = new SnapshotParameters();
@@ -103,13 +103,13 @@ public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenera
 		if (Platform.isFxApplicationThread()) {
 			try {
 				// if we are already on the Java FX thread then just generate the thumbnail
-				BufferedImage image = SwingFXUtils.fromFXImage(r.call(), null);
+				BufferedImage image = SwingFXUtils.fromFXImage(snapshot.call(), null);
 				// make sure its a in the right format for scaling
 				image = ImageUtil.toBuffered(image, BufferedImage.TYPE_INT_ARGB);
 				// we use the FILTER_LANCZOS because it gives good results for text at high resize ratios
 				return ImageManipulator.getUniformScaledImage(image, this.settings.getWidth(), this.settings.getHeight(), ResampleOp.FILTER_LANCZOS);
 			} catch (Exception ex) {
-				LOGGER.warn("Failed to generate image", ex);
+				LOGGER.warn("Failed to generate snapshot of slide '" + slide.getName() + "'", ex);
 				return null;
 			} 
 		}
@@ -120,9 +120,9 @@ public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenera
 		final CountDownLatch latch = new CountDownLatch(1);
 		Platform.runLater(() -> {
 			try {
-				imageRef.set(r.call());
+				imageRef.set(snapshot.call());
 			} catch (Exception ex) {
-				LOGGER.warn("Failed to generate image", ex);
+				LOGGER.warn("Failed to generate snapshot of slide '" + slide.getName() + "'", ex);
 			} finally {
 				// regardless of it working or not, we need to coundDown
 				// so we don't wait forever
@@ -142,7 +142,7 @@ public final class JavaFXSlideThumbnailGenerator implements SlideThumbnailGenera
 				return ImageManipulator.getUniformScaledImage(bi, this.settings.getWidth(), this.settings.getHeight(), ResampleOp.FILTER_LANCZOS);
 			}
 		} catch (Exception ex) {
-			LOGGER.warn("Failed to generate image", ex);
+			LOGGER.warn("Failed to convert snapshot of slide '" + slide.getName() + "' to a buffered image.", ex);
 		}
 		
 		return null;

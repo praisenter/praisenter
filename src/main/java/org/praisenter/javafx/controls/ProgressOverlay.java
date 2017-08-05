@@ -22,56 +22,35 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.bible;
+package org.praisenter.javafx.controls;
 
-import org.praisenter.javafx.controls.FlowListCell;
-
-import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.StackPane;
 
 /**
- * Custom list cell for {@link BibleListItem}s.
+ * A simple translucent overlay with progress indicator.
  * @author William Bittle
  * @version 3.0.0
- * @since 3.0.0
  */
-final class BibleListCell extends FlowListCell<BibleListItem> {
+public final class ProgressOverlay extends StackPane {
+	/** The progress indicator */
+	private final ProgressIndicator progress = new ProgressIndicator();
+	
 	/**
-	 * Minimal constructor.
-	 * @param item the bible item
+	 * Constructor.
 	 */
-	public BibleListCell(BibleListItem item) {
-		super(item);
-		this.getStyleClass().add("bible-list-cell");
+	public ProgressOverlay() {
+		this.getStyleClass().add("progress-overlay");
+		this.progress.getStyleClass().add("progress-overlay-indicator");
 		
-    	// setup the thumbnail image
-    	final ImageView thumb = new ImageView();
-    	thumb.getStyleClass().add("bible-list-cell-thumbnail");
-    	thumb.setFitHeight(100);
-    	thumb.setPreserveRatio(true);
-		thumb.managedProperty().bind(thumb.visibleProperty());
-		
-		// setup an indeterminant progress bar
-		ProgressIndicator progress = new ProgressIndicator();
-		progress.getStyleClass().add("bible-list-cell-progress");
-		progress.managedProperty().bind(progress.visibleProperty());
-		
-		// place it in a VBox for good positioning
-    	final VBox wrapper = new VBox(thumb, progress);
-    	wrapper.getStyleClass().add("bible-list-cell-wrapper");
-    	this.getChildren().add(wrapper);
-		
-		thumb.visibleProperty().bind(item.loadedProperty());
-		progress.visibleProperty().bind(item.loadedProperty().not());
-    	
-    	// setup the media name label
-    	final Label label = new Label();
-    	label.getStyleClass().add("bible-list-cell-name");
-    	label.textProperty().bind(item.nameProperty());
-		
-    	// add the image and label to the cell
-    	this.getChildren().addAll(label);
+		this.getChildren().add(this.progress);
+	}
+	
+	/**
+	 * Returns the progress indicator.
+	 * @return ProgressIndicator
+	 */
+	public ProgressIndicator getProgressIndicator() {
+		return this.progress;
 	}
 }

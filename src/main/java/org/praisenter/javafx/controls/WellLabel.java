@@ -22,56 +22,48 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.bible;
+package org.praisenter.javafx.controls;
 
-import org.praisenter.javafx.controls.FlowListCell;
-
+import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.VBox;
 
 /**
- * Custom list cell for {@link BibleListItem}s.
+ * Represents a label that is styled like a bootstrap well.
  * @author William Bittle
  * @version 3.0.0
- * @since 3.0.0
  */
-final class BibleListCell extends FlowListCell<BibleListItem> {
+public final class WellLabel extends Label {
 	/**
-	 * Minimal constructor.
-	 * @param item the bible item
+	 * Default constructor.
 	 */
-	public BibleListCell(BibleListItem item) {
-		super(item);
-		this.getStyleClass().add("bible-list-cell");
-		
-    	// setup the thumbnail image
-    	final ImageView thumb = new ImageView();
-    	thumb.getStyleClass().add("bible-list-cell-thumbnail");
-    	thumb.setFitHeight(100);
-    	thumb.setPreserveRatio(true);
-		thumb.managedProperty().bind(thumb.visibleProperty());
-		
-		// setup an indeterminant progress bar
-		ProgressIndicator progress = new ProgressIndicator();
-		progress.getStyleClass().add("bible-list-cell-progress");
-		progress.managedProperty().bind(progress.visibleProperty());
-		
-		// place it in a VBox for good positioning
-    	final VBox wrapper = new VBox(thumb, progress);
-    	wrapper.getStyleClass().add("bible-list-cell-wrapper");
-    	this.getChildren().add(wrapper);
-		
-		thumb.visibleProperty().bind(item.loadedProperty());
-		progress.visibleProperty().bind(item.loadedProperty().not());
-    	
-    	// setup the media name label
-    	final Label label = new Label();
-    	label.getStyleClass().add("bible-list-cell-name");
-    	label.textProperty().bind(item.nameProperty());
-		
-    	// add the image and label to the cell
-    	this.getChildren().addAll(label);
+	public WellLabel() {
+		super();
+		this.setup();
+	}
+
+	/**
+	 * Optional constructor.
+	 * @param text the label text
+	 * @param graphic the graphic
+	 */
+	public WellLabel(String text, Node graphic) {
+		super(text, graphic);
+		this.setup();
+	}
+
+	/**
+	 * Primary constructor.
+	 * @param text the label text
+	 */
+	public WellLabel(String text) {
+		super(text);
+		this.setup();
+	}
+
+	/**
+	 * Sets up the well styling.
+	 */
+	private void setup() {
+		this.getStyleClass().add("well");
 	}
 }

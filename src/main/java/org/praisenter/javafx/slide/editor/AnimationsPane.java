@@ -39,6 +39,7 @@ import org.praisenter.javafx.slide.editor.commands.AddAnimationEditCommand;
 import org.praisenter.javafx.slide.editor.commands.EditAnimationEditCommand;
 import org.praisenter.javafx.slide.editor.commands.RemoveAnimationEditCommand;
 import org.praisenter.javafx.slide.editor.events.SlideEditorEvent;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.animation.SlideAnimation;
 
@@ -54,6 +55,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
@@ -113,6 +115,8 @@ final class AnimationsPane extends BorderPane {
 			public int compare(SlideAnimation o1, SlideAnimation o2) {
 				if (o1 == null) return 1;
 				if (o2 == null) return -1;
+				
+				// sort by the start time first
 				long diff = o1.getAnimation().getDelay() - o2.getAnimation().getDelay();
 				if (diff < 0) {
 					return -1;
@@ -179,14 +183,15 @@ final class AnimationsPane extends BorderPane {
 			}
 		});
 
-		Button btnAddAnimation = new Button("Add");
-		Button btnEditAnimation = new Button("Edit");
-		Button btnRemoveAnimation = new Button("Remove");
+		Button btnAddAnimation = new Button(Translations.get("slide.animations.add"));
+		Button btnEditAnimation = new Button(Translations.get("slide.animations.edit"));
+		Button btnRemoveAnimation = new Button(Translations.get("slide.animations.remove"));
 		
 		HBox btns = new HBox(btnAddAnimation, btnEditAnimation, btnRemoveAnimation);
 		btns.setSpacing(5);
+		btns.setAlignment(Pos.BASELINE_CENTER);
 		
-		Label title = new Label("Animations");
+		Label title = new Label(Translations.get("slide.animations.title"));
 		title.setAlignment(Pos.BASELINE_CENTER);
 		title.setMaxWidth(Double.MAX_VALUE);
 		title.setFont(Font.font("System", FontWeight.BOLD, 10));
@@ -205,9 +210,13 @@ final class AnimationsPane extends BorderPane {
 		btnEditAnimation.setOnAction(this::editHandler);
 		btnRemoveAnimation.setOnAction(this::removeHandler);
 		
-		btnAddAnimation.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
-		btnEditAnimation.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
-		btnRemoveAnimation.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
+		this.lstAnimations.setOnKeyReleased(e -> {
+			if (e.getCode() == KeyCode.DELETE) {
+				this.removeHandler(null);
+			}
+		});
+
+		this.lstAnimations.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this.lstAnimations));
 		
 		context.slideProperty().addListener((obs, ov, nv) -> {
 			if (ov != null) {
@@ -304,6 +313,11 @@ final class AnimationsPane extends BorderPane {
 	
 	// helpers
 	
+	/**
+	 * Performs an edit.
+	 * @param oldValue the old value
+	 * @param newValue the new value
+	 */
 	private void edit(SlideAnimation oldValue, SlideAnimation newValue) {
 		this.applyCommand(new EditAnimationEditCommand(
 				oldValue,
@@ -352,7 +366,11 @@ final class AnimationsPane extends BorderPane {
 		}
 	}
 	
-	public void applyCommand(EditCommand command) {
+	/**
+	 * Applies the given command.
+	 * @param command the command
+	 */
+	private void applyCommand(EditCommand command) {
 		this.context.getEditManager().execute(command);
 		fireEvent(new SlideEditorEvent(this, this, SlideEditorEvent.CHANGED));
 	}

@@ -15,6 +15,7 @@ import org.praisenter.javafx.bible.BibleActions;
 import org.praisenter.javafx.bible.BibleEditorPane;
 import org.praisenter.javafx.bible.BibleLibraryPane;
 import org.praisenter.javafx.configuration.Display;
+import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.javafx.media.MediaActions;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.slide.SlideActions;
@@ -25,7 +26,6 @@ import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.Slide;
 
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -263,7 +263,20 @@ public final class MainPane extends BorderPane implements ApplicationPane {
     
 	// NAVIGATION
 	
-    private ButtonType checkForUnsavedChanges() {
+    /**
+     * Checks the current main content {@link ApplicationEditorPane} for unsaved changes
+     * and prompts the user if they want to save or discard the changes.
+     * <p>
+     * If the user chooses to save, this method will call the {@link ApplicationEditorPane#saveChanges}
+     * method on the {@link ApplicationEditorPane}.
+     * <p>
+     * If the user chooses to discard the changes or cancel, nothing will occur.
+     * <p>
+     * In all cases the user's choice is returned to the caller or null in the case the
+     * current main content node is not an {@link ApplicationEditorPane}.
+     * @return ButtonType
+     */
+    public ButtonType checkForUnsavedChanges() {
     	Node current = this.getCenter();
     	if (current instanceof ApplicationEditorPane) {
     		ApplicationEditorPane aep = (ApplicationEditorPane)current;
@@ -324,9 +337,5 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 	@Override
 	public void cleanup() {
 		// no-op
-	}
-	
-	public ReadOnlyObjectProperty<Node> mainContentProperty() {
-		return this.mainContent;
 	}
 }

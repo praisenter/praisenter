@@ -122,7 +122,7 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 		this.cmbCountdownFormat.setPrefWidth(175);
 		this.cmbCountdownFormat.setEditable(true);
 		this.cmbCountdownFormat.setValue(countdownFormats.get(2));
-		this.cmbCountdownFormat.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.cmbCountdownFormat.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		this.chkTimeOnly = new CheckBox("Time Only?");
 
@@ -130,7 +130,7 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 		
 		this.pkrDate = new DatePicker(LocalDate.now());
 		this.pkrDate.setMaxWidth(110);
-		this.pkrDate.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.pkrDate.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		this.spnHours = new Spinner<Integer>(0, 23, 0, 1);
 		this.spnHours.getEditor().setTextFormatter(new TextFormatter<Integer>(converter, 0, op));
@@ -138,7 +138,7 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 		this.spnHours.getValueFactory().setWrapAround(true);
 		this.spnHours.setEditable(true);
 		this.spnHours.setPrefWidth(55);
-		this.spnHours.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnHours.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		this.spnMinutes = new Spinner<Integer>(0, 59, 0, 1);
 		this.spnMinutes.getEditor().setTextFormatter(new TextFormatter<Integer>(converter, 0, op));
@@ -146,7 +146,7 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 		this.spnMinutes.getValueFactory().setWrapAround(true);
 		this.spnMinutes.setEditable(true);
 		this.spnMinutes.setPrefWidth(55);
-		this.spnMinutes.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnMinutes.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		this.spnSeconds = new Spinner<Integer>(0, 59, 0, 1);
 		this.spnSeconds.getEditor().setTextFormatter(new TextFormatter<Integer>(converter, 0, op));
@@ -154,7 +154,7 @@ class CountdownRibbonTab extends ComponentEditorRibbonTab {
 		this.spnSeconds.getValueFactory().setWrapAround(true);
 		this.spnSeconds.setEditable(true);
 		this.spnSeconds.setPrefWidth(55);
-		this.spnSeconds.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnSeconds.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		// tooltips
 		

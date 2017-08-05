@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx;
+package org.praisenter.javafx.controls;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
 import org.controlsfx.control.textfield.TextFields;
 import org.praisenter.Tag;
+import org.praisenter.javafx.PreventUndoRedoEventFilter;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.binding.Bindings;
@@ -62,12 +63,6 @@ import javafx.util.StringConverter;
  * @version 3.0.0
  */
 public final class TagListView extends BorderPane {
-	/** The CSS class name for styling */
-	private static final String CLASS_NAME = "tag-list-view";
-	
-	/** The CSS class name for styling the "x" on the tag node */
-	private static final String X_CLASS_NAME = "tag-list-view-x";
-	
 	/** The set of tags */
 	private final SimpleSetProperty<Tag> tags;
 	
@@ -87,11 +82,10 @@ public final class TagListView extends BorderPane {
 		this.tags = new SimpleSetProperty<Tag>(FXCollections.observableSet());
 		this.tagNodes = FXCollections.observableArrayList();
 		
+		this.getStyleClass().add("tag-list-view");
+		
 		FlowPane btns = new FlowPane();
-		btns.getStyleClass().add(CLASS_NAME);
-//		btns.setHgap(2);
-//		btns.setVgap(2);
-//		btns.setPadding(new Insets(5, 0, 0, 0));
+		btns.getStyleClass().add("tag-list-view-tags");
 		
 		// bind the children of this view to the tagNode list
 		Bindings.bindContent(btns.getChildren(), this.tagNodes);
@@ -114,7 +108,7 @@ public final class TagListView extends BorderPane {
 		// create an autocomplete field
 		this.textField = new TextField();
 		this.textField.setPromptText(Translations.get("tags.add.placeholder"));
-		this.textField.addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.textField.addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		// apply the auto completion binding
 		TextFields.bindAutoCompletion(
@@ -168,8 +162,8 @@ public final class TagListView extends BorderPane {
 	 */
 	private final Button generateTagNode(Tag tag) {
 		Button btn = new Button(tag.getName(), generateX());
+		btn.getStyleClass().add("tag");
 		btn.setTooltip(new Tooltip(tag.getName()));
-		btn.setMinWidth(0);
 		btn.setUserData(tag);
 		
 		// set the click action
@@ -192,14 +186,14 @@ public final class TagListView extends BorderPane {
 	 * Generates an X like icon.
 	 * @return Path
 	 */
-	private static final Path generateX() {
+	private static final Node generateX() {
 		Path x = new Path();
     	MoveTo m1 = new MoveTo(0, 0);
-    	LineTo l1 = new LineTo(10, 10);
-    	MoveTo m2 = new MoveTo(10, 0);
-    	LineTo l2 = new LineTo(0, 10);
+    	LineTo l1 = new LineTo(7, 7);
+    	MoveTo m2 = new MoveTo(7, 0);
+    	LineTo l2 = new LineTo(0, 7);
     	x.getElements().addAll(m1, l1, m2, l2);
-    	x.getStyleClass().add(X_CLASS_NAME);
+    	x.getStyleClass().add("tag-list-view-tag-x");
     	return x;
 	}
 	

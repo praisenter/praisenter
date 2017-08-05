@@ -1,4 +1,4 @@
-package org.praisenter.javafx;
+package org.praisenter.javafx.controls;
 
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
@@ -12,6 +12,9 @@ public class AutoCompleteComboBox<T> extends ComboBox<T> {
 	private boolean mutating = false;
 	public AutoCompleteComboBox(ObservableList<T> items, AutoCompleteComparator<T> comparator) {
 		super(items);
+		
+		this.getStyleClass().add("auto-complete-combobox");
+		
 		this.comparator = comparator;
 		
 		setEditable(true);

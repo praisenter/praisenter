@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx;
+package org.praisenter.javafx.controls;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +35,6 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -58,9 +57,6 @@ import javafx.util.Callback;
  * @param <T> the item type
  */
 public final class FlowListView<T> extends ScrollPane {
-	/** The class name for this node */
-	private static final String CLASS_NAME = "flow-list-view";
-
     /** The :hover CSS pseudo class for styling */
     private static final PseudoClass HOVER = PseudoClass.getPseudoClass("hover");
     
@@ -91,6 +87,8 @@ public final class FlowListView<T> extends ScrollPane {
 	 * @param cellFactory the cell factory
 	 */
 	public FlowListView(Orientation orientation, Callback<T, FlowListCell<T>> cellFactory) {
+		this.getStyleClass().add("flow-list-view");
+		
 		this.cellFactory = cellFactory;
 
 		this.layout = new TilePane();
@@ -109,11 +107,8 @@ public final class FlowListView<T> extends ScrollPane {
         this.setFocusTraversable(true);
         this.setContent(this.layout);
         
+        this.layout.getStyleClass().add("flow-list-view-tiles");
         this.layout.setOrientation(orientation);
-        this.layout.getStyleClass().add(CLASS_NAME);
-        this.layout.setPadding(new Insets(5, 5, 5, 5));
-        this.layout.setVgap(5);
-        this.layout.setHgap(5);
         
         // make the min height of the listing pane the height of the split pane 
  		this.layout.minHeightProperty().bind(this.heightProperty().subtract(20));

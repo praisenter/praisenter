@@ -41,7 +41,7 @@ class DateTimeRibbonTab extends ComponentEditorRibbonTab {
 		this.cmbDateTimeFormat.setPrefWidth(175);
 		this.cmbDateTimeFormat.setEditable(true);
 		this.cmbDateTimeFormat.setValue(dateTimeFormats.get(0));
-		this.cmbDateTimeFormat.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.cmbDateTimeFormat.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		// tooltip
 		

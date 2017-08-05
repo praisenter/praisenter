@@ -29,9 +29,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
 import org.praisenter.Tag;
-import org.praisenter.javafx.TagEvent;
-import org.praisenter.javafx.TagListView;
-import org.praisenter.javafx.themes.Styles;
+import org.praisenter.javafx.controls.TagEvent;
+import org.praisenter.javafx.controls.TagListView;
+import org.praisenter.javafx.controls.ValueLabel;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.Slide;
 
@@ -46,7 +46,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.ConstraintsBase;
 import javafx.scene.layout.GridPane;
@@ -94,7 +93,7 @@ final class SlidePropertiesPane extends VBox {
 	 * @param allTags the observable list of all tags
 	 */
 	public SlidePropertiesPane(ObservableSet<Tag> allTags) {
-		this.getStyleClass().add(Styles.SLIDE_INFO_PANE);
+		this.getStyleClass().add("slide-properties-pane");
 		
 		this.setPadding(new Insets(0, 5, 10, 5));
 		this.setDisable(true);
@@ -114,47 +113,37 @@ final class SlidePropertiesPane extends VBox {
         //this.setGridLinesVisible(true);
         
         Label lblName = new Label(Translations.get("slide.properties.name"));
-        Label lblNameValue = new Label();
+        Label lblNameValue = new ValueLabel();
         lblNameValue.textProperty().bind(name);
-        lblNameValue.setTooltip(new Tooltip());
         lblNameValue.getTooltip().textProperty().bind(name);
-        lblNameValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblName, 0, 0, 1, 1);
         grid.add(lblNameValue, 1, 0, 1, 1);
         
         Label lblLanguage = new Label(Translations.get("slide.properties.time"));
-        Label lblLanguageValue = new Label();
+        Label lblLanguageValue = new ValueLabel();
         lblLanguageValue.textProperty().bind(time);
-        lblLanguageValue.setTooltip(new Tooltip());
         lblLanguageValue.getTooltip().textProperty().bind(time);
-        lblLanguageValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblLanguage, 0, 1, 1, 1);
         grid.add(lblLanguageValue, 1, 1, 1, 1);
         
         Label lblSource = new Label(Translations.get("slide.properties.totalTime"));
-        Label lblSourceValue = new Label();
+        Label lblSourceValue = new ValueLabel();
         lblSourceValue.textProperty().bind(totalTime);
-        lblSourceValue.setTooltip(new Tooltip());
         lblSourceValue.getTooltip().textProperty().bind(totalTime);
-        lblSourceValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblSource, 0, 2, 1, 1);
         grid.add(lblSourceValue, 1, 2, 1, 1);
         
         Label lblImportDate = new Label(Translations.get("slide.properties.createDate"));
-        Label lblImportDateValue = new Label();
+        Label lblImportDateValue = new ValueLabel();
         lblImportDateValue.textProperty().bind(createDate);
-        lblImportDateValue.setTooltip(new Tooltip());
         lblImportDateValue.getTooltip().textProperty().bind(createDate);
-        lblImportDateValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblImportDate, 0, 3, 1, 1);
         grid.add(lblImportDateValue, 1, 3, 1, 1);
         
         Label lblUpdatedDate = new Label(Translations.get("slide.properties.updatedDate"));
-        Label lblUpdatedDateValue = new Label();
+        Label lblUpdatedDateValue = new ValueLabel();
         lblUpdatedDateValue.textProperty().bind(updatedDate);
-        lblUpdatedDateValue.setTooltip(new Tooltip());
         lblUpdatedDateValue.getTooltip().textProperty().bind(updatedDate);
-        lblUpdatedDateValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblUpdatedDate, 0, 4, 1, 1);
         grid.add(lblUpdatedDateValue, 1, 4, 1, 1);
         

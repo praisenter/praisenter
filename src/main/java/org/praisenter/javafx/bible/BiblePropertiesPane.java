@@ -29,7 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
 import org.praisenter.bible.Bible;
-import org.praisenter.javafx.themes.Styles;
+import org.praisenter.javafx.controls.ValueLabel;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
@@ -41,7 +41,6 @@ import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.ConstraintsBase;
 import javafx.scene.layout.GridPane;
@@ -92,7 +91,7 @@ final class BiblePropertiesPane extends VBox {
 	 * Creates a new metadata pane.
 	 */
 	public BiblePropertiesPane() {
-		this.getStyleClass().add(Styles.BIBLE_INFO_PANE);
+		this.getStyleClass().add("bible-properties-pane");
 		
 		this.setPadding(new Insets(0, 5, 10, 5));
 		this.setDisable(true);
@@ -112,74 +111,58 @@ final class BiblePropertiesPane extends VBox {
         //this.setGridLinesVisible(true);
         
         Label lblName = new Label(Translations.get("bible.properties.name"));
-        Label lblNameValue = new Label();
+        Label lblNameValue = new ValueLabel();
         lblNameValue.textProperty().bind(name);
-        lblNameValue.setTooltip(new Tooltip());
         lblNameValue.getTooltip().textProperty().bind(name);
-        lblNameValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblName, 0, 0, 1, 1);
         grid.add(lblNameValue, 1, 0, 1, 1);
         
         Label lblLanguage = new Label(Translations.get("bible.properties.language"));
-        Label lblLanguageValue = new Label();
+        Label lblLanguageValue = new ValueLabel();
         lblLanguageValue.textProperty().bind(language);
-        lblLanguageValue.setTooltip(new Tooltip());
         lblLanguageValue.getTooltip().textProperty().bind(language);
-        lblLanguageValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblLanguage, 0, 1, 1, 1);
         grid.add(lblLanguageValue, 1, 1, 1, 1);
         
         Label lblSource = new Label(Translations.get("bible.properties.source"));
-        Label lblSourceValue = new Label();
+        Label lblSourceValue = new ValueLabel();
         lblSourceValue.textProperty().bind(source);
-        lblSourceValue.setTooltip(new Tooltip());
         lblSourceValue.getTooltip().textProperty().bind(source);
-        lblSourceValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblSource, 0, 2, 1, 1);
         grid.add(lblSourceValue, 1, 2, 1, 1);
         
         Label lblImportDate = new Label(Translations.get("bible.properties.importDate"));
-        Label lblImportDateValue = new Label();
+        Label lblImportDateValue = new ValueLabel();
         lblImportDateValue.textProperty().bind(importDate);
-        lblImportDateValue.setTooltip(new Tooltip());
         lblImportDateValue.getTooltip().textProperty().bind(importDate);
-        lblImportDateValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblImportDate, 0, 3, 1, 1);
         grid.add(lblImportDateValue, 1, 3, 1, 1);
         
         Label lblUpdatedDate = new Label(Translations.get("bible.properties.updatedDate"));
-        Label lblUpdatedDateValue = new Label();
+        Label lblUpdatedDateValue = new ValueLabel();
         lblUpdatedDateValue.textProperty().bind(updatedDate);
-        lblUpdatedDateValue.setTooltip(new Tooltip());
         lblUpdatedDateValue.getTooltip().textProperty().bind(updatedDate);
-        lblUpdatedDateValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblUpdatedDate, 0, 4, 1, 1);
         grid.add(lblUpdatedDateValue, 1, 4, 1, 1);
         
         Label lblCopyright = new Label(Translations.get("bible.properties.copyright"));
-        Label lblCopyrightValue = new Label();
+        Label lblCopyrightValue = new ValueLabel();
         lblCopyrightValue.textProperty().bind(copyright);
-        lblCopyrightValue.setTooltip(new Tooltip());
         lblCopyrightValue.getTooltip().textProperty().bind(copyright);
-        lblCopyrightValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblCopyright, 0, 5, 1, 1);
         grid.add(lblCopyrightValue, 1, 5, 1, 1);
         
         Label lblVerseCount = new Label(Translations.get("bible.properties.verseCount"));
-        Label lblVerseCountValue = new Label();
+        Label lblVerseCountValue = new ValueLabel();
         lblVerseCountValue.textProperty().bind(verseCount);
-        lblVerseCountValue.setTooltip(new Tooltip());
         lblVerseCountValue.getTooltip().textProperty().bind(verseCount);
-        lblVerseCountValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblVerseCount, 0, 6, 1, 1);
         grid.add(lblVerseCountValue, 1, 6, 1, 1);
         
         Label lblImportErrors = new Label(Translations.get("bible.properties.importWarnings"));
-        Label lblImportErrorsValue = new Label();
+        Label lblImportErrorsValue = new ValueLabel();
         lblImportErrorsValue.textProperty().bind(hadImportErrors);
-        lblImportErrorsValue.setTooltip(new Tooltip());
         lblImportErrorsValue.getTooltip().setText(Translations.get("bible.properties.importWarnings.tooltip"));
-        lblImportErrorsValue.getStyleClass().add(Styles.VALUE_LABEL);
         grid.add(lblImportErrors, 0, 7, 1, 1);
         grid.add(lblImportErrorsValue, 1, 7, 1, 1);
         

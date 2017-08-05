@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx;
+package org.praisenter.javafx.controls;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -58,6 +58,8 @@ public final class SortGraphic extends Pane {
 	 * @param spacing the spacing of the lines
 	 */
 	public SortGraphic(double width, double x, double y, double lineWidth, double spacing) {
+		this.getStyleClass().add("sort-graphic");
+		
 		final double w = width;
 		final double h = lineWidth * 3 + spacing * 2;
 		final double dx = Math.floor(0.30 * width);

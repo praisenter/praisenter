@@ -70,10 +70,10 @@ class ShadowRibbonTab extends ComponentEditorRibbonTab {
 		this.spnRadius.setTooltip(new Tooltip("The shadow radius"));
 		this.spnSpread.setTooltip(new Tooltip("The shadow spread"));
 		
-		this.spnRadius.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
-		this.spnSpread.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
-		this.spnX.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
-		this.spnY.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnRadius.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
+		this.spnSpread.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
+		this.spnX.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
+		this.spnY.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		this.cmbType.valueProperty().addListener((obs, ov, nv) -> {
 			boolean flag = nv.getValue() == ShadowOption.NONE;

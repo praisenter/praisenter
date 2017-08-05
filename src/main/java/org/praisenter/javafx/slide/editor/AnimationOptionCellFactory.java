@@ -24,7 +24,7 @@
  */
 package org.praisenter.javafx.slide.editor;
 
-import org.praisenter.javafx.FlowListCell;
+import org.praisenter.javafx.controls.FlowListCell;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;

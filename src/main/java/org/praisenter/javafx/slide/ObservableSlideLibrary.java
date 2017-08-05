@@ -173,23 +173,27 @@ public final class ObservableSlideLibrary {
 	/**
 	 * Attempts to save the given slide in this slide library.
 	 * @param slide the slide
+	 * @param generateThumbnail true if a thumbnail of the slide should be generated
 	 * @return {@link AsyncTask}&lt;{@link Slide}&gt;
 	 */
-	public AsyncTask<Slide> save(Slide slide) {
-		return this.save(MessageFormat.format(Translations.get("task.save"), slide.getName()), slide);
+	public AsyncTask<Slide> save(Slide slide, boolean generateThumbnail) {
+		return this.save(MessageFormat.format(Translations.get("task.save"), slide.getName()), slide, generateThumbnail);
 	}
 	
 	/**
 	 * Attempts to save the given slide in this slide library.
 	 * @param action a simple string describing the save action if it's something more specific than "Save"
 	 * @param slide the slide
+	 * @param generateThumbnail true if a thumbnail of the slide should be generated
 	 * @return {@link AsyncTask}&lt;{@link Slide}&gt;
 	 */
-	public AsyncTask<Slide> save(String action, Slide slide) {
+	public AsyncTask<Slide> save(String action, Slide slide, boolean generateThumbnail) {
 		if (slide != null) {
-			// generate a thumbnail on the FX thread
-			final BufferedImage image = this.thumbnailGenerator.generate(slide);
-			slide.setThumbnail(image);
+			if (generateThumbnail) {
+				// generate a thumbnail on the FX thread
+				final BufferedImage image = this.thumbnailGenerator.generate(slide);
+				slide.setThumbnail(image);
+			}
 			// synchronously make a copy
 			final Slide copy = slide.copy(true);
 			

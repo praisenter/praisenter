@@ -29,7 +29,6 @@ import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.Glyph;
 import org.praisenter.MediaType;
 import org.praisenter.javafx.ApplicationGlyphs;
-import org.praisenter.javafx.themes.Styles;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -108,7 +107,7 @@ public final class MediaPlayerPane extends BorderPane {
      * Default constructor.
      */
     public MediaPlayerPane() {
-    	this.getStyleClass().add(Styles.MEDIA_PLAYER_PANE);
+    	this.getStyleClass().add("media-player-pane");
         this.mediaView = new MediaView();
         this.mediaView.setPreserveRatio(true);
         

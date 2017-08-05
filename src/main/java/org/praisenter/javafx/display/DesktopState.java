@@ -22,56 +22,26 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.bible;
-
-import org.praisenter.javafx.controls.FlowListCell;
-
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.VBox;
+package org.praisenter.javafx.display;
 
 /**
- * Custom list cell for {@link BibleListItem}s.
+ * An enumeration of possible desktop states when checking screen assignment.
  * @author William Bittle
  * @version 3.0.0
- * @since 3.0.0
  */
-final class BibleListCell extends FlowListCell<BibleListItem> {
-	/**
-	 * Minimal constructor.
-	 * @param item the bible item
-	 */
-	public BibleListCell(BibleListItem item) {
-		super(item);
-		this.getStyleClass().add("bible-list-cell");
-		
-    	// setup the thumbnail image
-    	final ImageView thumb = new ImageView();
-    	thumb.getStyleClass().add("bible-list-cell-thumbnail");
-    	thumb.setFitHeight(100);
-    	thumb.setPreserveRatio(true);
-		thumb.managedProperty().bind(thumb.visibleProperty());
-		
-		// setup an indeterminant progress bar
-		ProgressIndicator progress = new ProgressIndicator();
-		progress.getStyleClass().add("bible-list-cell-progress");
-		progress.managedProperty().bind(progress.visibleProperty());
-		
-		// place it in a VBox for good positioning
-    	final VBox wrapper = new VBox(thumb, progress);
-    	wrapper.getStyleClass().add("bible-list-cell-wrapper");
-    	this.getChildren().add(wrapper);
-		
-		thumb.visibleProperty().bind(item.loadedProperty());
-		progress.visibleProperty().bind(item.loadedProperty().not());
-    	
-    	// setup the media name label
-    	final Label label = new Label();
-    	label.getStyleClass().add("bible-list-cell-name");
-    	label.textProperty().bind(item.nameProperty());
-		
-    	// add the image and label to the cell
-    	this.getChildren().addAll(label);
-	}
+enum DesktopState {
+	/** The number of displays increased */
+	DISPLAY_COUNT_INCREASED,
+	
+	/** The number of displays decreased */
+	DISPLAY_COUNT_DECREASED,
+	
+	/** The display order changed */
+	DISPLAY_POSITION_CHANGED,
+	
+	/** There was no initial configuration */
+	NO_INITIAL_CONFIGURATION,
+	
+	/** There was no change */
+	NO_CHANGE
 }

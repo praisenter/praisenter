@@ -26,6 +26,7 @@ package org.praisenter.javafx.slide.animation;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,8 +52,10 @@ import org.praisenter.slide.animation.Zoom;
 import org.praisenter.utility.Formatter;
 
 import javafx.animation.ParallelTransition;
+import javafx.animation.SequentialTransition;
 import javafx.animation.Transition;
 import javafx.scene.Node;
+import javafx.util.Duration;
 
 /**
  * Helper class for mapping animation configuration with Java FX animation classes.
@@ -153,24 +156,68 @@ public final class Animations {
 			transitionBackground = out == null ? true : in.getRegion().isBackgroundTransitionRequired(out.getRegion());
 			UUID slideId = in.getId();
 			
-			for (SlideAnimation animation : in.getAnimations()) {
-				if (animation != null && 
-					animation.getAnimation() != null && 
-					animation.getId() != null && 
-					inNodes.containsKey(animation.getId())) {
-					// if we are not transitioning the background, then don't add any
-					// animations that are associated with the background to the transition
-					if (!transitionBackground && animation.getId().equals(slideId)) {
-						continue;
+			Map<UUID, List<Animation>> inAnimations = mapAnimations(in);
+			for (UUID key : inAnimations.keySet()) {
+				List<Animation> animations = inAnimations.get(key);
+				if (animations == null || animations.isEmpty()) {
+					continue;
+				}
+				
+				// find the first animation for this region based on the delay
+				long first = Long.MAX_VALUE;
+				for (Animation animation: animations) {
+					if (animation.getDelay() < first) {
+						first = animation.getDelay();
 					}
-					// create the transition
-					CustomTransition<?> transition = createCustomTransition(animation.getAnimation());
-					// set the node
-					transition.setNode(inNodes.get(animation.getId()));
-					// add it to the parallel transition
-					inTransitions.getChildren().add(transition);
+				}
+				
+				for (Animation animation: animations) {
+					if (animation != null && inNodes.containsKey(key)) {
+						// if we are not transitioning the background, then don't add any
+						// animations that are associated with the background to the transition
+						if (!transitionBackground && key.equals(slideId)) {
+							continue;
+						}
+						// create the transition
+						CustomTransition<?> transition = createCustomTransition(animation);
+						// set the node
+						transition.setNode(inNodes.get(key));
+						// set the skipFirst
+//						transition.setSkipFirst(animation.getDelay() > 0 && animations.size() > 1 && animation.getDelay() > first);
+						
+						// add it to the parallel transition
+						if (animation.getDelay() <= 0) {
+							inTransitions.getChildren().add(transition);
+						} else {
+							// NOTE: this is a hack in my eyes. Basically, I couldn't find any other way to make the
+							//       animation delay entirely until a certain time unless I used a SequentialTransition
+							//		 a delay of it's own. Other attempts always had the animation run the first iteration
+							// 		 regardless of the delay. This can cause problems when chaining animations together
+							SequentialTransition sq = new SequentialTransition(transition);
+							sq.setDelay(Duration.millis(animation.getDelay()));
+							inTransitions.getChildren().add(sq);
+						}
+					}
 				}
 			}
+//			for (SlideAnimation animation : in.getAnimations()) {
+//				if (animation != null && 
+//					animation.getAnimation() != null && 
+//					animation.getId() != null && 
+//					inNodes.containsKey(animation.getId())) {
+//					// if we are not transitioning the background, then don't add any
+//					// animations that are associated with the background to the transition
+//					if (!transitionBackground && animation.getId().equals(slideId)) {
+//						continue;
+//					}
+//					// create the transition
+//					CustomTransition<?> transition = createCustomTransition(animation.getAnimation());
+//					// set the node
+//					transition.setNode(inNodes.get(animation.getId()));
+//					// add it to the parallel transition
+//					inTransitions.getChildren().add(transition);
+//				}
+//			}
 		}
 		
 		if (out != null) {
@@ -224,7 +271,8 @@ public final class Animations {
 			}
 		}
 		
-		return new ParallelTransition(outTransitions, inTransitions);
+		Transition tx = new ParallelTransition(outTransitions, inTransitions);
+		return tx;
 	}
 	
 	/**
@@ -239,5 +287,20 @@ public final class Animations {
 			nodes.put(component.getId(), component.getDisplayPane());
 		}
 		return nodes;
+	}
+	
+	private static final Map<UUID, List<Animation>> mapAnimations(ObservableSlide<?> slide) {
+		Map<UUID, List<Animation>> map = new HashMap<>();
+		for (SlideAnimation animation : slide.getAnimations()) {
+			if (animation != null && animation.getId() != null && animation.getAnimation() != null) {
+				List<Animation> anis = map.get(animation.getId());
+				if (anis == null) {
+					anis = new ArrayList<Animation>();
+					map.put(animation.getId(), anis);
+				}
+				anis.add(animation.getAnimation());
+			}
+		}
+		return map;
 	}
 }

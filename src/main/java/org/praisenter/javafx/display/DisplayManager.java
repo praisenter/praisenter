@@ -30,13 +30,13 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.configuration.Display;
 import org.praisenter.javafx.configuration.DisplayRole;
 import org.praisenter.javafx.configuration.Displays;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.collections.ListChangeListener;
@@ -86,19 +86,19 @@ public final class DisplayManager {
 	}
 	
 	/**
-	 * Initializes the screen manager and returns true if automatic assignment of screens was performed.
+	 * Initializes the screen manager.
 	 * <p>
 	 * NOTE: This method should be called on the Java FX UI thread.
 	 * @param scene the scene to use as the parent for showing screen changed messages
-	 * @return boolean
 	 */
-	public boolean initialize(Scene scene) {
+	public void initialize(Scene scene) {
 		// listen for screen changes
 		Screen.getScreens().addListener(new ListChangeListener<Screen>() {
 			@Override
 			public void onChanged(ListChangeListener.Change<? extends Screen> c) {
-				if (screensChanged()) {
-					notifyOfScreenAssignmentChange(scene);
+				DesktopState state = screensChanged();
+				if (state != DesktopState.NO_CHANGE) {
+					notifyOfScreenAssignmentChange(scene, state);
 				}
 			}
 		});
@@ -114,26 +114,26 @@ public final class DisplayManager {
 			}
 		});
 		
-		boolean changed = screensChanged();
-		if (changed) {
-			notifyOfScreenAssignmentChange(scene);
+		DesktopState state = screensChanged();
+		if (state != DesktopState.NO_CHANGE) {
+			notifyOfScreenAssignmentChange(scene, state);
 		}
-		
-		return changed;
 	}
 	
 	/**
 	 * Shows a non-blocking information dialog notifying the user that we detected a change in the
 	 * screens and made an automatic adjustment to the screen assignments and that they should review
 	 * by going to Preferences.
+	 * @param scene the scene for modality
+	 * @param state the state
 	 */
-	private void notifyOfScreenAssignmentChange(Scene scene) {
+	private void notifyOfScreenAssignmentChange(Scene scene, DesktopState state) {
 		Alert a = Alerts.info(
 				scene.getWindow(),
 				Modality.WINDOW_MODAL,
-				Translations.get("init.displaysChanged.title"), 
-				Translations.get("init.displaysChanged.header"),
-				Translations.get("init.displaysChanged.content"));
+				state == DesktopState.NO_INITIAL_CONFIGURATION ? Translations.get("init.displaysSet.title") : Translations.get("init.displaysChanged.title"), 
+				state == DesktopState.NO_INITIAL_CONFIGURATION ? Translations.get("init.displaysSet.header") : Translations.get("init.displaysChanged.header"),
+				state == DesktopState.NO_INITIAL_CONFIGURATION ? Translations.get("init.displaysSet.content") : Translations.get("init.displaysChanged.content"));
 		a.show();
 	}
 	
@@ -172,12 +172,12 @@ public final class DisplayManager {
 	 * change, move, added, etc.
 	 * <p>
 	 * Returns true if this process automatically assigns a screen.
-	 * @return boolean
+	 * @return DisplayCollectionState
 	 */
-	private boolean screensChanged() {
+	private DesktopState screensChanged() {
 		mutating = true;
 		
-		boolean screensChanged = false;
+		DesktopState whatHappened = DesktopState.NO_CHANGE;
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
 		int size = screens.size();
 		
@@ -193,7 +193,7 @@ public final class DisplayManager {
 		
 		// check if the screen count changed
 		if (n != size) {
-			screensChanged = true;
+			whatHappened = size < n ? DesktopState.DISPLAY_COUNT_DECREASED : DesktopState.DISPLAY_COUNT_INCREASED;
 		}
 		
 		if (n == -1) {
@@ -211,7 +211,7 @@ public final class DisplayManager {
 					this.screens.add(new DisplayTarget(display, this.debugMode));
 				}
 			}
-			screensChanged = true;
+			whatHappened = DesktopState.NO_INITIAL_CONFIGURATION;
 		} else {
 			// just verify each display's state
 			for (final Display display : displays) {
@@ -222,7 +222,7 @@ public final class DisplayManager {
 				if (state == DisplayState.SCREEN_INDEX_DOESNT_EXIST) {
 					// then remove the display
 					ds.remove(display);
-					screensChanged = true;
+					whatHappened = DesktopState.DISPLAY_COUNT_DECREASED;
 					this.screens.removeIf(s -> s.getDisplay().getId() == display.getId());
 					newDisplay = null;
 				} else if (state == DisplayState.POSITION_CHANGED) {
@@ -230,7 +230,7 @@ public final class DisplayManager {
 					newDisplay = display.withBounds(screens.get(display.getId()).getBounds());
 					ds.remove(display);
 					ds.add(newDisplay);
-					screensChanged = true;
+					whatHappened = DesktopState.DISPLAY_POSITION_CHANGED;
 				} else if (state == DisplayState.RESOLUTION_CHANGED) {
 					// update the display screen
 					newDisplay = display.withBounds(screens.get(display.getId()).getBounds());
@@ -271,7 +271,7 @@ public final class DisplayManager {
 		
 		mutating = false;
 		
-		return screensChanged;
+		return whatHappened;
 	}
 	
 	/**

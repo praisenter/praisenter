@@ -72,7 +72,6 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
 // FEATURE (L) Add ability to configure any number of gradient stops
-// FIXME when you click the color button and choose custom color, everything is closed, then when you go back, the color button doesn't work any more;  See bug below - need a workaround
 // JAVABUG (L) 06/14/17 Color picker in context menu (or other dialog) doesn't work if you click the "Custom Color" link https://bugs.openjdk.java.net/browse/JDK-8175803
 
 /**

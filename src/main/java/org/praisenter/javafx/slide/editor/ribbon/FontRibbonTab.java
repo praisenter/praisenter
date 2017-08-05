@@ -91,7 +91,7 @@ class FontRibbonTab extends ComponentEditorRibbonTab {
 		this.spnLineSpacing = new Spinner<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, 0, 0.5);
 		this.spnLineSpacing.setEditable(true);
 		this.spnLineSpacing.setMaxWidth(60);
-		this.spnLineSpacing.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnLineSpacing.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		MenuItem itmColor = new MenuItem("Color");
 		MenuItem itmGradient = new MenuItem("Gradient");

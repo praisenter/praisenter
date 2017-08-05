@@ -22,58 +22,22 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx;
+package org.praisenter.javafx.controls;
 
-import java.io.Serializable;
-
-import org.praisenter.Tag;
-
-import javafx.event.Event;
-import javafx.event.EventTarget;
-import javafx.event.EventType;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 
 /**
- * An event when tags are added or removed.
+ * A custom styled value label.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class TagEvent extends Event implements Serializable {
-	/** The serialization id */
-	private static final long serialVersionUID = 837797201591141937L;
-	
-	// types
-	
-	/** For all Tag events */
-	public static final EventType<TagEvent> ALL = new EventType<TagEvent>("TAG_ALL");
-	
-	/** For all added tag events */
-	public static final EventType<TagEvent> ADDED = new EventType<TagEvent>(ALL, "ADDED");
-	
-	/** For all removed tag events */
-	public static final EventType<TagEvent> REMOVED = new EventType<TagEvent>(ALL, "REMOVED");
-	
-	// data
-	
-	/** The tag */
-	final Tag tag;
-	
+public final class ValueLabel extends Label {
 	/**
-	 * Full constructor.
-	 * @param source the event source
-	 * @param target the event target
-	 * @param type the event type
-	 * @param tag the tag
+	 * Constructor.
 	 */
-	public TagEvent(Object source, EventTarget target, EventType<TagEvent> type, Tag tag) {
-		super(source, target, type);
-		this.tag = tag;
-	}
-	
-	/**
-	 * Returns the tag involved in the event.
-	 * @return {@link Tag}
-	 */
-	public Tag getTag() {
-		return this.tag;
+	public ValueLabel() {
+		this.getStyleClass().add("value-label");
+		this.setTooltip(new Tooltip());
 	}
 }

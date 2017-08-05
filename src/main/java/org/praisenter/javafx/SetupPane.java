@@ -17,12 +17,14 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.javafx.configuration.Display;
 import org.praisenter.javafx.configuration.DisplayRole;
+import org.praisenter.javafx.configuration.DisplayView;
 import org.praisenter.javafx.configuration.Displays;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
-import org.praisenter.javafx.configuration.DisplayView;
 import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.javafx.controls.MessageLabel;
+import org.praisenter.javafx.controls.SectionHeader;
+import org.praisenter.javafx.controls.WellLabel;
 import org.praisenter.javafx.media.JavaFXMediaImportFilter;
-import org.praisenter.javafx.themes.Styles;
 import org.praisenter.javafx.themes.Theme;
 import org.praisenter.resources.translations.Translations;
 
@@ -34,9 +36,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -49,7 +51,6 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
@@ -66,9 +67,8 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 // TODO translate
-// TODO fix UI - layout looks good, now just need a good way to group stuff - maybe add some text about each item
 // FEATURE (M) Add options to remove themes or translations
-// FEATURE (L) Edit tags (like rename, remove)
+// FEATURE (L) Edit tags globally (like rename, remove)
 
 public final class SetupPane extends BorderPane {
 	/** The class level logger */
@@ -92,7 +92,7 @@ public final class SetupPane extends BorderPane {
 	private Timeline identifierClose = null;
 	
 	public SetupPane(PraisenterContext context) {
-		this.getStyleClass().add(Styles.SETUP_PANE);
+		this.getStyleClass().add("setup-pane");
 		
 		TreeItem<SetupTreeData> root = new TreeItem<SetupTreeData>(new SetupTreeData(ROOT, "Preferences"));
 		TreeItem<SetupTreeData> general = new TreeItem<SetupTreeData>(new SetupTreeData(GENERAL, "General"));
@@ -106,6 +106,7 @@ public final class SetupPane extends BorderPane {
 		this.setupTree.setShowRoot(false);
 		this.setupTree.getSelectionModel().select(general);
 		this.setupTree.setMaxHeight(Double.MAX_VALUE);
+		this.setupTree.getStyleClass().add("setup-pane-list");
 		
 		// GENERAL
 
@@ -165,17 +166,18 @@ public final class SetupPane extends BorderPane {
 		gridGeneral.add(lblDebugMode, 0, 2);
 		gridGeneral.add(chkDebugMode, 1, 2);
 
-		Label lblRestartWarning = new Label("Changing the Theme, Language, or Debug Mode requires the application to be restarted to take effect.", ApplicationGlyphs.INFO.duplicate());
-		lblRestartWarning.setPadding(new Insets(0, 0, 5, 0));
-		
-		VBox vboxGeneral = new VBox(lblRestartWarning, gridGeneral);
+		VBox vboxGeneral = new VBox(
+				new SectionHeader("Language & Theme"),
+				new MessageLabel("Changing the Theme, Language, or Debug Mode requires the application to be restarted to take effect.", AlertType.INFORMATION, false),
+				gridGeneral);
 		vboxGeneral.setPadding(new Insets(10));
+		vboxGeneral.setSpacing(10);
 		
 		// MEDIA
 		
 		GridPane gridMedia = new GridPane();
 		gridMedia.setHgap(5);
-		gridMedia.setVgap(5);
+		gridMedia.setVgap(7);
 
 		// transcoding
 		Label lblTranscodeAudioVideo = new Label("Transcode");
@@ -204,26 +206,30 @@ public final class SetupPane extends BorderPane {
 		gridMedia.add(txtAudioExtension, 1, 2);
 		gridMedia.add(txtAudioCommand, 2, 2);
 		
-		VBox vboxMedia = new VBox(gridMedia);
+		VBox vboxMedia = new VBox(
+				new SectionHeader("Transcoding", "Audio and video media is transcoded into a common format that is supported by Praisenter. Transcoding is the process of converting one media file format to another. You can turn off transcoding if your media is already in the set of supported media formats."),
+				new MessageLabel("The commands below are used to perform the transcoding. The {ffmpeg}, {source}, {target} should not be changed, but all other command text can be. The command should be a valid FFmpeg command line command.", AlertType.INFORMATION, true),
+				gridMedia);
 		vboxMedia.setPadding(new Insets(10));
+		vboxMedia.setSpacing(10);
 		
 		// SCREENS
 		
-		Label lblScreenWarning = new Label("Changing the screen assignment will close any currently displayed slides or notifications.", ApplicationGlyphs.WARN.duplicate());
-		lblScreenWarning.setPadding(new Insets(0, 0, 10, 0));
-		
 		Button btnIdentify = new Button("Identify Displays");
-		Label lblIdentifyWarning = new Label("A number will show on each screen.", ApplicationGlyphs.WARN.duplicate());
-		HBox boxIdentify = new HBox(5, btnIdentify, lblIdentifyWarning);
-		boxIdentify.setAlignment(Pos.BASELINE_LEFT);
 		
 		TilePane screenPane = new TilePane(Orientation.HORIZONTAL);
 		screenPane.setHgap(5);
 		screenPane.setVgap(5);
 		
-		VBox vboxScreens = new VBox(lblScreenWarning, screenPane, boxIdentify);
-		// TODO move identify to top of UI so that it doesn't go off screen when there are a bunch of displays
+		VBox vboxScreens = new VBox(
+				new SectionHeader("Display Setup", "Praisenter allows the use of multiple displays. Each display can be assigned a role and name. The role defines the type of content that will show there, while the name help you know which screen to send content to."), 
+				new WellLabel("The display assignment will be automatically set when Praisenter opens for the first time. Afterwhich the screens are detected to for changes continuously. You will be notified if the screens change in such a way that you need to reassign their role/name."), 
+				new MessageLabel("Clicking this button will show a number on each screen.", AlertType.WARNING, false),
+				btnIdentify, 
+				new MessageLabel("Changing the screen assignment will close any currently displayed slides or notifications.", AlertType.WARNING, false), 
+				screenPane);
 		vboxScreens.setPadding(new Insets(10));
+		vboxScreens.setSpacing(10);
 
 		// LAYOUT
 		

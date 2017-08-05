@@ -113,11 +113,11 @@ class BorderRibbonTab extends ComponentEditorRibbonTab {
 		this.spnWidth = new Spinner<Double>(0, Double.MAX_VALUE, 1, 0.25);
 		this.spnWidth.setMaxWidth(55);
 		this.spnWidth.setEditable(true);
-		this.spnWidth.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnWidth.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		this.spnRadius = new Spinner<Double>(0, Double.MAX_VALUE, 0, 0.25);
 		this.spnRadius.setMaxWidth(55);
 		this.spnRadius.setEditable(true);
-		this.spnRadius.getEditor().addEventFilter(KeyEvent.KEY_PRESSED, new PreventUndoRedoEventFilter(this));
+		this.spnRadius.getEditor().addEventFilter(KeyEvent.ANY, new PreventUndoRedoEventFilter(this));
 		
 		this.pkrColor.getStyleClass().add(ColorPicker.STYLE_CLASS_SPLIT_BUTTON);
 		this.pkrColor.setStyle("-fx-color-label-visible: false;");

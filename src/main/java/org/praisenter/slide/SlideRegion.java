@@ -139,6 +139,8 @@ public interface SlideRegion {
 	 */
 	public abstract double getOpacity();
 	
+	// FIXME Convert the Shadow/Glow to a list of effects for forward compatibility for other effects
+	
 	/**
 	 * Sets the shadow of the region.
 	 * @param shadow the shadow

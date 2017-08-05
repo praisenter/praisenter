@@ -27,8 +27,6 @@ package org.praisenter.javafx.slide;
 import org.praisenter.TextStore;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.slide.animation.Animations;
-import org.praisenter.javafx.themes.Styles;
-import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.Slide;
 import org.praisenter.utility.Scaling;
 
@@ -40,14 +38,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 // TODO Add multi-slide preview pane (primarily for songs)
@@ -76,14 +68,13 @@ public final class SingleSlidePreviewPane extends StackPane {
 	 * @param mode the initial slide mode
 	 */
 	public SingleSlidePreviewPane(PraisenterContext context, SlideMode mode) {
-		this.getStyleClass().add(Styles.SLIDE_PREVIEW_PANE);
+		this.getStyleClass().add("single-slide-preview-pane");
 		
 		this.mode.set(mode);
 		
 		final int padding = 20;
 		
 		this.setPadding(new Insets(padding));
-		this.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
 		this.setSnapToPixel(true);
 		
 		// clip by the slide Preview area
@@ -93,11 +84,7 @@ public final class SingleSlidePreviewPane extends StackPane {
 		this.setClip(clipRect);
 		
 		Pane slideBounds = new Pane();
-		slideBounds.setBackground(new Background(new BackgroundImage(Fx.TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
-		DropShadow sdw = new DropShadow();
-		sdw.setRadius(5);
-		sdw.setColor(Color.rgb(0, 0, 0, 0.3));
-		slideBounds.setEffect(sdw);
+		slideBounds.getStyleClass().add("slide-preview-container");
 		
 		// we resize and position canvasBack based on the target width/height 
 		// and the available width height using a uniform scale factor
@@ -141,7 +128,6 @@ public final class SingleSlidePreviewPane extends StackPane {
 		slideBounds.maxHeightProperty().bind(heightSizing);
 		
 		Pane slideCanvas = new Pane();
-		slideCanvas.getStyleClass().add("animation-anchor");
 		slideCanvas.setMinSize(0, 0);
 		slideCanvas.setSnapToPixel(true);
 		slideCanvas.setBackground(null);
@@ -250,7 +236,7 @@ public final class SingleSlidePreviewPane extends StackPane {
 		Transition oldTx = this.transition.get();
 		ObservableSlide<?> oldSlide = this.slide.get();
 		if (oldTx != null) {
-			oldTx.play();
+			oldTx.playFromStart();
 		}
 		if (oldSlide != null) {
 			oldSlide.play();
@@ -297,6 +283,10 @@ public final class SingleSlidePreviewPane extends StackPane {
 		return this.value;
 	}
 	
+	/**
+	 * Sets the placeholder data for the current slide (if present).
+	 * @param data the data
+	 */
 	public void setPlaceholderData(TextStore data) {
 		ObservableSlide<?> slide = this.slide.get();
 		if (slide != null) {

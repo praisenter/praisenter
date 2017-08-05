@@ -41,12 +41,12 @@ import java.util.zip.ZipOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
-import org.praisenter.javafx.Alerts;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.async.AsyncChainedTask;
 import org.praisenter.javafx.async.AsyncGroupTask;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
+import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
@@ -144,7 +144,7 @@ public final class SlideActions {
 	public static final AsyncTask<Slide> slideSave(ObservableSlideLibrary library, Window owner, Slide slide) {
 		// sanity check
 		if (slide != null) {
-			AsyncTask<Slide> task = library.save(slide);
+			AsyncTask<Slide> task = library.save(slide, true);
 	    	task.addCancelledOrFailedHandler((e) -> {
 	    		Throwable error = task.getException();
 	    		LOGGER.error("Failed to save slide " + slide.getName() + " " + slide.getId() + " due to: " + error.getMessage(), error);
@@ -191,7 +191,7 @@ public final class SlideActions {
 	    		if (!Objects.equals(old, name)) {
 		        	// update the slide's name
 		    		slide.setName(name);
-		    		AsyncTask<Slide> task = library.save(MessageFormat.format(Translations.get("task.rename"), old, name), slide);
+		    		AsyncTask<Slide> task = library.save(MessageFormat.format(Translations.get("task.rename"), old, name), slide, false);
 		        	task.addCancelledOrFailedHandler((e) -> {
 		        		Throwable error = task.getException();
 		        		slide.setName(old);
@@ -363,7 +363,7 @@ public final class SlideActions {
 			// set the name to something else
 			copy.setName(MessageFormat.format(Translations.get("copyof"), slide.getName()));
 			// save it
-			AsyncTask<Slide> task = library.save(copy);
+			AsyncTask<Slide> task = library.save(copy, false);
 	    	task.addCancelledOrFailedHandler((e) -> {
 	    		Throwable error = task.getException();
 	    		// log the error
@@ -412,7 +412,7 @@ public final class SlideActions {
 	    		// set the name
 	    		copy.setName(name);
 	    		// save it
-	    		AsyncTask<Slide> task = library.save(copy);
+	    		AsyncTask<Slide> task = library.save(copy, true);
 		    	task.addCancelledOrFailedHandler((e) -> {
 		    		Throwable error = task.getException();
 		    		// log the error
