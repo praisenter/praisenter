@@ -45,8 +45,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
-// TODO translate
-
 /**
  * A dialog for selecting media.
  * @author William Bittle
@@ -89,8 +87,8 @@ public final class MediaLibraryDialog extends BorderPane {
 		// build the media library pane
 		this.mediaLibraryPane = new MediaLibraryPane(context, Orientation.HORIZONTAL, types);
 
-		Button btnAccept = new Button("OK");
-		Button btnCancel = new Button("Cancel");
+		Button btnAccept = new Button(Translations.get("ok"));
+		Button btnCancel = new Button(Translations.get("cancel"));
 		
 		btnAccept.setDisable(true);
 		

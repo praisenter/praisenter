@@ -41,7 +41,11 @@ import org.praisenter.javafx.slide.editor.commands.RemoveAnimationEditCommand;
 import org.praisenter.javafx.slide.editor.events.SlideEditorEvent;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.animation.Animation;
+import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.SlideAnimation;
+import org.praisenter.slide.animation.Swap;
+import org.praisenter.slide.easing.EasingType;
+import org.praisenter.slide.easing.Linear;
 
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -49,7 +53,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -57,19 +60,9 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.util.Callback;
 
 // FEATURE (M) Show a timeline-view of the animations for a slide
@@ -79,12 +72,16 @@ import javafx.util.Callback;
  * @author William Bittle
  * @version 3.0.0
  */
-final class AnimationsPane extends BorderPane {
+final class AnimationListPane extends BorderPane {
 	/** The class to apply to the animated region when an animation is hovered over */
 	private static final PseudoClass ANIMATION_HOVERED = PseudoClass.getPseudoClass("animation-hovered");
 	
 	/** A collator for string comparison for the current locale */
 	private static final Collator COLLATOR = Collator.getInstance();
+	
+	/** The default animation when adding a new one */
+	private static final Animation DEFAULT_ANIMATION = new Swap(
+			AnimationType.IN, 500, 0, 1, false, new Linear(EasingType.IN));
 	
 	// context
 	
@@ -104,9 +101,13 @@ final class AnimationsPane extends BorderPane {
 	/** The list view of all the animations */
 	private final ListView<SlideAnimation> lstAnimations;
 	
-	// TODO translate
-	
-	public AnimationsPane(SlideEditorContext context) {
+	/**
+	 * A pane to show the animations for the selected slide.
+	 * @param context the editor context
+	 */
+	public AnimationListPane(SlideEditorContext context) {
+		this.getStyleClass().add("animation-list-pane");
+		
 		this.context = context;
 		
 		// sort the animations by their delay
@@ -163,10 +164,13 @@ final class AnimationsPane extends BorderPane {
 		});
 		
 		this.lstAnimations = new ListView<SlideAnimation>(ordered);
+		this.lstAnimations.getStyleClass().add("animation-list-pane-list");
 		this.lstAnimations.setCellFactory(new Callback<ListView<SlideAnimation>, ListCell<SlideAnimation>>() {
 			@Override
 			public ListCell<SlideAnimation> call(ListView<SlideAnimation> param) {
 				AnimationListCell cell = new AnimationListCell();
+				// for text ellipsis
+				cell.prefWidthProperty().bind(lstAnimations.widthProperty().subtract(2));
 				cell.slideProperty().bind(context.slideProperty());
 				cell.setOnMouseClicked(e -> {
 					if (e.getClickCount() >= 2) {
@@ -192,14 +196,11 @@ final class AnimationsPane extends BorderPane {
 		btns.setAlignment(Pos.BASELINE_CENTER);
 		
 		Label title = new Label(Translations.get("slide.animations.title"));
-		title.setAlignment(Pos.BASELINE_CENTER);
+		title.getStyleClass().add("animation-list-pane-title");
 		title.setMaxWidth(Double.MAX_VALUE);
-		title.setFont(Font.font("System", FontWeight.BOLD, 10));
 		
 		VBox top = new VBox(title, btns);
-		top.setPadding(new Insets(5));
-		top.setSpacing(5);
-		top.setBorder(new Border(new BorderStroke(Color.GRAY, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1, 0, null), null, new BorderWidths(0, 1, 0, 1))));
+		top.getStyleClass().add("animation-list-pane-top");
 		
 		this.setTop(top);
 		this.setCenter(this.lstAnimations);
@@ -269,7 +270,7 @@ final class AnimationsPane extends BorderPane {
 	private void addHandler(ActionEvent e) {
 		ObservableSlideRegion<?> selected = this.context.getSelected();
 		ObservableSlide<?> slide = this.context.getSlide();
-		addOrEdit(null, a -> {
+		addOrEdit(DEFAULT_ANIMATION, a -> {
 			UUID id = null;
 			if (selected != null) {
 				id = selected.getId();

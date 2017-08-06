@@ -18,7 +18,7 @@ public final class CountdownFormatEditCommand extends SlideRegionValueChangedEdi
 	
 	@Override
 	public void execute() {
-		this.region.setCountdownFormat(TimeFormatConverter.getFormat(this.newValue));
+		this.region.setCountdownFormat(TimeFormatConverter.toPattern(this.newValue));
 	}
 	
 	@Override
@@ -38,7 +38,7 @@ public final class CountdownFormatEditCommand extends SlideRegionValueChangedEdi
 	
 	@Override
 	public void undo() {
-		this.region.setCountdownFormat(TimeFormatConverter.getFormat(this.oldValue));
+		this.region.setCountdownFormat(TimeFormatConverter.toPattern(this.oldValue));
 		
 		this.selectRegion();
 		this.combo(this.control, this.oldValue);
@@ -46,7 +46,7 @@ public final class CountdownFormatEditCommand extends SlideRegionValueChangedEdi
 	
 	@Override
 	public void redo() {
-		this.region.setCountdownFormat(TimeFormatConverter.getFormat(this.newValue));
+		this.region.setCountdownFormat(TimeFormatConverter.toPattern(this.newValue));
 		
 		this.selectRegion();
 		this.combo(this.control, this.newValue);

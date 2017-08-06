@@ -25,48 +25,36 @@
 package org.praisenter.javafx.slide.editor;
 
 import org.praisenter.javafx.controls.FlowListCell;
+import org.praisenter.slide.animation.Animation;
 
-import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
-import javafx.scene.text.TextAlignment;
-import javafx.util.Callback;
 
 /**
- * A custom cell factory for animation options.
+ * Represents an animation option list cell.
  * @author William Bittle
  * @version 3.0.0
- * @since 3.0.0
  */
-final class AnimationOptionCellFactory implements Callback<AnimationOption, FlowListCell<AnimationOption>> {
-	/* (non-Javadoc)
-	 * @see javafx.util.Callback#call(java.lang.Object)
+final class AnimationOptionListCell extends FlowListCell<AnimationOption> {
+	/**
+	 * Constructor.
+	 * @param option the option
 	 */
-	@Override
-	public FlowListCell<AnimationOption> call(AnimationOption option) {
-		FlowListCell<AnimationOption> cell = new FlowListCell<AnimationOption>(option);
+	public AnimationOptionListCell(AnimationOption option) {
+		super(option);
 		
-		cell.setPrefSize(100, 80);
+		this.getStyleClass().add("animation-option-list-cell");
 		
-		String name = null;
-		
-		name = option.name;
     	// setup the thumbnail image
-    	final ImageView thumb = new ImageView(option.image);
-    	cell.getChildren().add(thumb);
+    	final ImageView thumb = new ImageView();
+    	thumb.getStyleClass().add("animation-option-list-cell-thumbnail");
+    	thumb.getStyleClass().add("animation-option-" + (Animation.class.isAssignableFrom(option.type) ? "animation-" : "easing-") + option.type.getSimpleName());
+    	this.getChildren().add(thumb);
     	
     	// setup the media name label
     	final Label label = new Label();
-    	label.setText(name);
-    	label.setWrapText(true);
-    	label.setTextAlignment(TextAlignment.CENTER);
-    	label.setTooltip(new Tooltip(name));
-    	label.setPadding(new Insets(5, 0, 0, 0));
-		
-    	// add the image and label to the cell
-    	cell.getChildren().addAll(label);
-    	
-		return cell;
+    	label.setText(option.name);
+    	label.getStyleClass().add("animation-option-list-cell-name");
+    	this.getChildren().addAll(label);
 	}
 }

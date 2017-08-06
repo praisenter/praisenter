@@ -27,6 +27,7 @@ package org.praisenter.javafx.slide.editor;
 import java.util.function.Consumer;
 
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.animation.Animation;
 
 import javafx.beans.property.ObjectProperty;
@@ -69,18 +70,17 @@ final class AnimationPickerDialog extends BorderPane {
 		if (owner != null) {
 			this.dialog.initOwner(owner);
 		}
-		// TODO translate
-		this.dialog.setTitle("Animation Picker");
+		
+		this.dialog.setTitle(Translations.get("slide.animation.title"));
 		this.dialog.initModality(Modality.WINDOW_MODAL);
 		this.dialog.initStyle(StageStyle.UTILITY);
-		// NOTE: this makes the title portion of the modal shorter
 		this.dialog.setResizable(false);
 		
 		// build the animation picker pane
 		this.animationPickerPane = new AnimationPickerPane();
 		
-		Button btnAccept = new Button("OK");
-		Button btnCancel = new Button("Cancel");
+		Button btnAccept = new Button(Translations.get("ok"));
+		Button btnCancel = new Button(Translations.get("cancel"));
 		
 		this.value.bindBidirectional(this.animationPickerPane.valueProperty());
 		this.animationPickerPane.valueProperty().addListener((obs, ov, nv) -> {

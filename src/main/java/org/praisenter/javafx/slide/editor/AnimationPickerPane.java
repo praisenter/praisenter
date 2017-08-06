@@ -85,7 +85,9 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -222,6 +224,7 @@ final class AnimationPickerPane extends BorderPane {
 		grid.setPadding(new Insets(5));
 		grid.setHgap(3);
 		grid.setVgap(3);
+		grid.setMinHeight(250);
 		
 		// setup the animation options
 		int i = 0;
@@ -252,11 +255,15 @@ final class AnimationPickerPane extends BorderPane {
 		
 		// setup the animation selection
 		
-		animationListPane = new FlowListView<AnimationOption>(javafx.geometry.Orientation.HORIZONTAL, new AnimationOptionCellFactory());
+		animationListPane = new FlowListView<AnimationOption>(javafx.geometry.Orientation.HORIZONTAL, option -> {
+			return new AnimationOptionListCell(option);
+		});
 		animationListPane.itemsProperty().set(animationOptions);
 		animationListPane.getSelectionModel().selectOnly(new AnimationOption(Swap.class, 0));
 				
-		easingListPane = new FlowListView<AnimationOption>(javafx.geometry.Orientation.VERTICAL, new AnimationOptionCellFactory());
+		easingListPane = new FlowListView<AnimationOption>(javafx.geometry.Orientation.HORIZONTAL, option -> {
+			return new AnimationOptionListCell(option);
+		});
 		easingListPane.itemsProperty().set(easingOptions);
 		easingListPane.getSelectionModel().selectOnly(new AnimationOption(Linear.class, 0));
 		
@@ -359,14 +366,7 @@ final class AnimationPickerPane extends BorderPane {
 		
 		panePreview.getChildren().addAll(pane1, pane2);
 		
-		animationListPane.setPrefHeight(350);
-		easingListPane.setPrefHeight(115);
-
-		BorderPane left = new BorderPane();
-		left.setCenter(animationListPane);
-		left.setBottom(easingListPane);
-		
-		VBox boxPreview = new VBox();
+		VBox boxPreview = new VBox(3);
 		Button btnPreview = new Button(Translations.get("slide.animation.preview"));
 		btnPreview.setOnAction((e) -> {
 			Animation animation = this.value.get();
@@ -382,12 +382,33 @@ final class AnimationPickerPane extends BorderPane {
 		
 		TitledPane ttlProperties = new TitledPane(Translations.get("slide.animation.properties"), grid);
 		TitledPane ttlPreview = new TitledPane(Translations.get("slide.animation.example"), boxPreview);
+		ttlProperties.setCollapsible(false);
+		ttlPreview.setCollapsible(false);
+		ttlProperties.setMaxHeight(Double.MAX_VALUE);
+		
 		VBox right = new VBox();
 		right.getChildren().addAll(ttlProperties, ttlPreview);
+		VBox.setVgrow(ttlProperties, Priority.ALWAYS);
 		
-		this.setCenter(left);
-		this.setRight(right);
-//		this.setMinHeight(420);
+		TitledPane ttlAnimations = new TitledPane("Animation", animationListPane);
+		TitledPane ttlEasings = new TitledPane("Easing", easingListPane);
+		ttlAnimations.setCollapsible(false);
+		ttlEasings.setCollapsible(false);
+		
+		HBox columns = new HBox(ttlAnimations, ttlEasings, right);
+		HBox.setHgrow(ttlAnimations, Priority.ALWAYS);
+		
+		this.setCenter(columns);
+		
+		animationListPane.setPrefSize(330, 445);
+		easingListPane.setPrefSize(130, 445);
+		animationListPane.setMinWidth(130);
+		animationListPane.setMaxHeight(Double.MAX_VALUE);
+		easingListPane.setMinWidth(130);
+		easingListPane.setMaxHeight(Double.MAX_VALUE);
+		
+		ttlAnimations.setMaxHeight(Double.MAX_VALUE);
+		ttlEasings.setMaxHeight(Double.MAX_VALUE);
 		
 		// value bindings
 

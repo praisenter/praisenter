@@ -73,6 +73,7 @@ import javafx.util.Duration;
 // FEATURE (H) Quick send to display - any place in the app when the context contains something that could be displayed offer a Quick Display button to allow the user to quickly get it shown - with configurable settings
 // FEATURE (L) Quick send any image/video from file system
 // FEATURE (M) From selected media items, generate slides or slide show
+// FEATURE (H) Auto-update feature
 
 // JAVABUG (M) 09/28/16 [fixed-9] High DPI https://bugs.openjdk.java.net/browse/JDK-8091832
 // JAVABUG (M) 11/03/16 [fixed-9] Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946

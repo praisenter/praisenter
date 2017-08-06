@@ -42,7 +42,6 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.controls.AutoCompleteComboBox;
-import org.praisenter.javafx.controls.AutoCompleteComparator;
 import org.praisenter.javafx.controls.ProgressOverlay;
 import org.praisenter.resources.translations.Translations;
 
@@ -165,14 +164,12 @@ public final class BibleSearchPane extends BorderPane {
 			this.cmbBiblePrimary.getSelectionModel().select(primaryBible);
 		}
 		
-		this.cmbBook = new AutoCompleteComboBox<Book>(books, new AutoCompleteComparator<Book>() {
-			public boolean matches(String typedText, Book objectToCompare) {
-				Pattern pattern = Pattern.compile("^" + Pattern.quote(typedText) + ".*", Pattern.CASE_INSENSITIVE);
-				if (pattern.matcher(objectToCompare.getName()).matches()) {
-					return true;
-				}
-				return false;
+		this.cmbBook = new AutoCompleteComboBox<Book>(books, (typedText, objectToCompare) -> {
+			Pattern pattern = Pattern.compile("^" + Pattern.quote(typedText) + ".*", Pattern.CASE_INSENSITIVE);
+			if (pattern.matcher(objectToCompare.getName()).matches()) {
+				return true;
 			}
+			return false;
 		});
 		
 		this.cmbBiblePrimary.valueProperty().addListener((obs, ov, nv) -> {

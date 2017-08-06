@@ -1,4 +1,30 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.controls;
+
+import java.util.function.BiFunction;
 
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
@@ -7,30 +33,32 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.StringConverter;
 
-public class AutoCompleteComboBox<T> extends ComboBox<T> {
-	private final AutoCompleteComparator comparator;
-	private boolean mutating = false;
-	public AutoCompleteComboBox(ObservableList<T> items, AutoCompleteComparator<T> comparator) {
+/**
+ * Represents a ComboBox with an auto-complete feature.
+ * @author William Bittle
+ * @version 3.0.0
+ * @param <T> the value type
+ */
+public final class AutoCompleteComboBox<T> extends ComboBox<T> {
+	/**
+	 * Constructor.
+	 * @param items the item list
+	 * @param matcher the auto-complete matcher
+	 */
+	public AutoCompleteComboBox(ObservableList<T> items, BiFunction<String, T, Boolean> matcher) {
 		super(items);
 		
 		this.getStyleClass().add("auto-complete-combobox");
+		this.setEditable(true);
 		
-		this.comparator = comparator;
-		
-		setEditable(true);
-//		getEditor().focusedProperty().addListener(obs -> {
-//			if (getSelectionModel().getSelectedIndex() < 0) {
-//				getEditor().setText(null);
-//			}
-//		});
-		
-		addEventHandler(KeyEvent.KEY_RELEASED, (e) -> {
+		this.addEventHandler(KeyEvent.KEY_RELEASED, (e) -> {
 			TextField editor = getEditor();
 			String text = editor.getText();
 			int start = editor.getCaretPosition();
 			if (text == null || text.length() == 0) {
 				return;
 			}
+			// try to allow some keys
 			if (e.getCode() == KeyCode.BACK_SPACE ||
 				e.getCode() == KeyCode.DELETE ||
 				e.getCode() == KeyCode.SHIFT ||
@@ -40,7 +68,7 @@ public class AutoCompleteComboBox<T> extends ComboBox<T> {
 				return;
 			}
 			for (T item : items) {
-				if (comparator.matches(text, item)) {
+				if (matcher.apply(text, item)) {
 					String newText = item.toString();
 					editor.setText(newText);
 					editor.commitValue();
@@ -50,7 +78,7 @@ public class AutoCompleteComboBox<T> extends ComboBox<T> {
 			}
 		});
 		
-		setConverter(new StringConverter<T>() {
+		this.setConverter(new StringConverter<T>() {
 			@Override
 			public T fromString(String string) {
 				for (T item : items) {
@@ -68,77 +96,5 @@ public class AutoCompleteComboBox<T> extends ComboBox<T> {
 				return null;
 			}
 		});
-		
-//		addEventHandler(KeyEvent.KEY_PRESSED, t -> hide());
-//        addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
-//
-//            private boolean moveCaretToPos = false;
-//            private int caretPos;
-//
-//            @Override
-//            public void handle(KeyEvent event) {
-//                if (event.getCode() == KeyCode.UP) {
-//                    caretPos = -1;
-//                    moveCaret(getEditor().getText().length());
-//                    return;
-//                } else if (event.getCode() == KeyCode.DOWN) {
-//                    if (!isShowing()) {
-//                        show();
-//                    }
-//                    caretPos = -1;
-//                    moveCaret(getEditor().getText().length());
-//                    return;
-//                } else if (event.getCode() == KeyCode.BACK_SPACE) {
-//                    moveCaretToPos = true;
-//                    caretPos = getEditor().getCaretPosition();
-//                } else if (event.getCode() == KeyCode.DELETE) {
-//                    moveCaretToPos = true;
-//                    caretPos = getEditor().getCaretPosition();
-//                } else if (event.getCode() == KeyCode.ENTER) {
-//                    return;
-//                }
-//
-//                if (event.getCode() == KeyCode.RIGHT || event.getCode() == KeyCode.LEFT || event.getCode().equals(KeyCode.SHIFT) || event.getCode().equals(KeyCode.CONTROL)
-//                        || event.isControlDown() || event.getCode() == KeyCode.HOME
-//                        || event.getCode() == KeyCode.END || event.getCode() == KeyCode.TAB) {
-//                    return;
-//                }
-//
-//                ObservableList<T> list = FXCollections.observableArrayList();
-//                for (T aData : items) {
-//                    if (aData != null && getEditor().getText() != null && comparator.matches(getEditor().getText(), aData)) {
-//                        list.add(aData);
-//                    }
-//                }
-//                String t = getEditor().getText();
-//
-//                setItems(list);
-//                getEditor().setText(t);
-//                if (!moveCaretToPos) {
-//                    caretPos = -1;
-//                }
-//                moveCaret(t.length());
-//                if (!list.isEmpty()) {
-//                    show();
-//                }
-//            }
-//
-//            private void moveCaret(int textLength) {
-//                if (caretPos == -1) {
-//                    getEditor().positionCaret(textLength);
-//                } else {
-//                    getEditor().positionCaret(caretPos);
-//                }
-//                moveCaretToPos = false;
-//            }
-//        });
 	}
-	
-	public T getComboBoxValue(ComboBox<T> comboBox){
-        if (comboBox.getSelectionModel().getSelectedIndex() < 0) {
-            return null;
-        } else {
-            return comboBox.getItems().get(comboBox.getSelectionModel().getSelectedIndex());
-        }
-    }
 }

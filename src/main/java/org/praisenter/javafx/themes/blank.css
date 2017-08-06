@@ -151,5 +151,44 @@
 /* SlideEditorPane */
 .slide-editor-pane {}
 
+/* AnimationListCell */
+.animation-list-cell {}
+
+/* AnimationListPane */
+.animation-list-pane {}
+.animation-list-pane-top {}
+.animation-list-pane-list {}
+.animation-list-pane-title {}
+
+/* AnimationOptionListCell */
+.animation-option-list-cell {}
+.animation-option-list-cell-thumbnail {}
+.animation-option-list-cell-name {}
+
+/* AnimationOption */
+.animation-option-animation-Swap {}
+.animation-option-animation-Fade {}
+.animation-option-animation-Swipe {}
+.animation-option-animation-Push {}
+.animation-option-animation-Split {}
+.animation-option-animation-Shaped {}
+.animation-option-animation-Blinds {}
+.animation-option-animation-Zoom {}
+.animation-option-easing-Linear {}
+.animation-option-easing-Quadratic {}
+.animation-option-easing-Cubic {}
+.animation-option-easing-Quartic {}
+.animation-option-easing-Quintic {}
+.animation-option-easing-Exponential {}
+.animation-option-easing-Circular {}
+.animation-option-easing-Sinusoidal {}
+.animation-option-easing-Back {}
+.animation-option-easing-Bounce {}
+.animation-option-easing-Elastic {}
+
+/* Slide editing */
+.slide-edit-region:edit-hover {}
+.slide-edit-region:edit-selected {}
+.slide-edit-region:animation-hovered {}
 
 

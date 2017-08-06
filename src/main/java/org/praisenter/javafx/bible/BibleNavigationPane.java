@@ -45,7 +45,6 @@ import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.controls.AutoCompleteComboBox;
-import org.praisenter.javafx.controls.AutoCompleteComparator;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
@@ -196,14 +195,12 @@ public final class BibleNavigationPane extends BorderPane {
 		
 		this.cmbBiblePrimary = new ComboBox<BibleListItem>(bibles);
 		this.cmbBibleSecondary = new ComboBox<BibleListItem>(bibles);
-		this.cmbBook = new AutoCompleteComboBox<Book>(books, new AutoCompleteComparator<Book>() {
-			public boolean matches(String typedText, Book objectToCompare) {
-				Pattern pattern = Pattern.compile("^" + Pattern.quote(typedText) + ".*", Pattern.CASE_INSENSITIVE);
-				if (pattern.matcher(objectToCompare.getName()).matches()) {
-					return true;
-				}
-				return false;
+		this.cmbBook = new AutoCompleteComboBox<Book>(books, (typedText, objectToCompare) -> {
+			Pattern pattern = Pattern.compile("^" + Pattern.quote(typedText) + ".*", Pattern.CASE_INSENSITIVE);
+			if (pattern.matcher(objectToCompare.getName()).matches()) {
+				return true;
 			}
+			return false;
 		});
 		this.cmbBook.setPromptText(Translations.get("bible.book.placeholder"));
 		

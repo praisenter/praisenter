@@ -24,12 +24,7 @@
  */
 package org.praisenter.javafx.slide.editor;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.praisenter.resources.translations.Translations;
-import org.praisenter.slide.animation.Swap;
-
-import javafx.scene.image.Image;
 
 /**
  * Represents an animation option (animation or easing) primary used to map a class
@@ -41,14 +36,6 @@ import javafx.scene.image.Image;
  * @since 3.0.0
  */
 final class AnimationOption implements Comparable<AnimationOption> {
-	/** The class-level logger */
-	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The default image */
-	private static final Image DEFAULT_IMAGE = new Image("/org/praisenter/resources/" + Swap.class.getName() + ".png");
-	
-	// fieldss
-	
 	/** The option's class */
 	final Class<?> type;
 	
@@ -57,9 +44,6 @@ final class AnimationOption implements Comparable<AnimationOption> {
 	
 	/** The option's name */
 	final String name;
-	
-	/** The options's image */
-	final Image image;
 	
 	/**
 	 * Full constructor.
@@ -70,13 +54,6 @@ final class AnimationOption implements Comparable<AnimationOption> {
 		this.type = type;
 		this.order = order;
 		this.name = Translations.get(type.getName());
-		Image image = DEFAULT_IMAGE;
-		try {
-			image = new Image("/org/praisenter/resources/" + type.getName() + ".png");
-		} catch (Exception e) {
-			LOGGER.warn("Image for class was not found: '/org/praisenter/resources/" + type.getName() + ".png' was not found");
-		}
-		this.image = image;
 	}
 
 	/* (non-Javadoc)
@@ -139,13 +116,5 @@ final class AnimationOption implements Comparable<AnimationOption> {
 	 */
 	public String getName() {
 		return this.name;
-	}
-	
-	/**
-	 * Returns the image for this option.
-	 * @return Image
-	 */
-	public Image getImage() {
-		return this.image;
 	}
 }

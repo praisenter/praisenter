@@ -141,6 +141,23 @@ public interface SlideRegion {
 	
 	// FIXME Convert the Shadow/Glow to a list of effects for forward compatibility for other effects
 	
+	// Eventually it would be nice to support all of the below.  However, we need to confirm that
+	// each is chainable and that the input for each is easily configurable.  We also need to consider
+	// that some of these aren't really transferable between applications and later version may not
+	// support them either.
+	//	Bloom
+	//  Glow
+	//  ColorAdjust
+	//  DisplacementMap
+	//  GaussianBlur
+	//  DropShadow
+	//  InnerShadow
+	//  MotionBlur
+	//  Lighting
+	//  PerspectiveTransform
+	//  Reflection
+	//  SepiaTone
+	
 	/**
 	 * Sets the shadow of the region.
 	 * @param shadow the shadow

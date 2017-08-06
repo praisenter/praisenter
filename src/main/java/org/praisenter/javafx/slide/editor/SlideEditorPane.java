@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.javafx.slide.editor;
 
 import java.io.File;
@@ -75,22 +99,41 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
 // FEATURE (L) Allow grouping of components to easily move them together
-// JAVABUG (L) 06/30/16 Text border really slow when the stroke style is INSIDE or OUTSIDE - https://bugs.openjdk.java.net/browse/JDK-8089081
+// JAVABUG (L) 06/30/16 [workaround] Text border really slow when the stroke style is INSIDE or OUTSIDE - https://bugs.openjdk.java.net/browse/JDK-8089081
 // JAVABUG (M) 02/04/17 DropShadow and Glow effects cannot be mouse transparent - https://bugs.openjdk.java.net/browse/JDK-8092268, https://bugs.openjdk.java.net/browse/JDK-8101376
 
+/**
+ * Represents the main pane for editing slides.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class SlideEditorPane extends BorderPane implements ApplicationPane, ApplicationEditorPane {
+	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	/** The selected pseudo class */
 	private static final PseudoClass SELECTED = PseudoClass.getPseudoClass("edit-selected");
 	
+	// context
+	
+	/** The editor context */
 	private final SlideEditorContext context;
 	
+	// nodes
+	
+	/** The editor ribbon */
 	private final SlideEditorRibbon ribbon;
-	private final AnimationsPane animations;
+	
+	/** The animation editor */
+	private final AnimationListPane animations;
+	
+	/** The slide preview pane */
 	private final StackPane slidePreview;
 	
-//	private boolean hasUnsavedChanges = false;
-	
+	/**
+	 * Constructor.
+	 * @param context the praisenter context
+	 */
 	public SlideEditorPane(PraisenterContext context) {
 		this.getStyleClass().add("slide-editor-pane");
 		
@@ -99,11 +142,12 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		// create the ribbon
 		this.ribbon = new SlideEditorRibbon(this.context);
 		VBox top = new VBox(this.ribbon);
+		// TODO move to CSS
 		top.setBorder(new Border(new BorderStroke(null, null, Color.GRAY, null, null, null, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, null, new BorderWidths(0, 0, 1, 0), null)));
 		this.setTop(top);
 		
 		// create the animation picker
-		this.animations = new AnimationsPane(this.context);
+		this.animations = new AnimationListPane(this.context);
 		this.setRight(this.animations);
 		
 		// Node hierarchy:
@@ -131,6 +175,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		this.slidePreview = new StackPane();
 		this.slidePreview.setPrefSize(500, 400);
 		this.slidePreview.setPadding(new Insets(padding));
+		// TODO move to CSS
 		this.slidePreview.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
 		this.slidePreview.setSnapToPixel(true);
 		
@@ -143,6 +188,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		// create the slideBounds area for the
 		// unscaled transparency background
 		Pane slideBounds = new Pane();
+		// move to CSS
 		slideBounds.setBackground(new Background(new BackgroundImage(Fx.TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
 		// add a drop shadow effect for better looks
 		DropShadow sdw = new DropShadow();
@@ -306,12 +352,12 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		this.addEventHandler(SlideEditorEvent.REMOVE_COMPONENT, (e) -> {
 			ObservableSlide<?> slide = this.context.getSlide();
 			ObservableSlideComponent<?> component = e.getComponent();
-			// TODO would be nice to remove event handlers too, but we would need references to them
 			EditCommand command = CommandFactory.chain(
 					new RemoveComponentEditCommand(slide, component, this.context.selectedProperty(), this.ribbon),
 					new ActionEditCommand(null, self -> {
 						component.scalingProperty().bind(scaleFactor);
 					}, self -> {
+						// would be nice to remove event handlers too, but we would need references to them
 						component.scalingProperty().unbind();
 					}));
 			this.applyCommand(command);
@@ -409,13 +455,15 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			}
 		});
 		
-		// set values
-		
 		this.addEventHandler(ApplicationEvent.ALL, e -> {
 			handleApplicationEvent(e.getAction());
 		});
 	}
 	
+	/**
+	 * Sets the slide to edit.
+	 * @param slide the slide
+	 */
 	public void setSlide(Slide slide) {
 		if (slide == null) {
 			this.context.setSlide(null);
@@ -424,27 +472,51 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		}
 	}
 	
+	/**
+	 * Gets the slide being edited.
+	 * @return {@link Slide}
+	 */
 	public Slide getSlide() {
 		return this.context.getSlide().getRegion();
 	}
 	
+	// handlers
+	
+	/**
+	 * Called when the position of a region has changed.
+	 * @param region the region
+	 * @param newValue the new value
+	 */
 	private void onPositionChanged(ObservableSlideRegion<?> region, org.praisenter.slide.graphics.Rectangle newValue) {
 		org.praisenter.slide.graphics.Rectangle oldValue = region.getRegion().getBounds();
 		this.applyCommand(new PositionEditCommand(oldValue, newValue, region, this.context.selectedProperty(), this.ribbon));
 	}
 	
+	/**
+	 * Called when the size of a region has changed.
+	 * @param region the region
+	 * @param newValue the new value
+	 */
 	private void onSizeChanged(ObservableSlideRegion<?> region, org.praisenter.slide.graphics.Rectangle newValue) {
 		org.praisenter.slide.graphics.Rectangle oldValue = region.getRegion().getBounds();
 		this.applyCommand(new SizeEditCommand(oldValue, newValue, region, this.context.selectedProperty(), this.ribbon));
 	}
 	
+	// METHODS
+
+	/**
+	 * Applies the given command and notifies of the change in undo/redo state.
+	 * @param command the command
+	 */
 	private void applyCommand(EditCommand command) {
 		this.context.getEditManager().execute(command);
 		this.stateChanged(ApplicationPaneEvent.REASON_UNDO_REDO_STATE_CHANGED);
 	}
 	
-	// METHODS
-	
+	/**
+	 * Saves the slide.
+	 * @param saveAs true if a save as operation should be performed.
+	 */
 	private final void save(boolean saveAs) {
 		ObservableSlide<?> os = this.context.getSlide();
 		Slide slide = os.getRegion();
@@ -481,8 +553,11 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		}).execute(context.getExecutorService());
 	}
 	
+	/**
+	 * Copies the currently selected region.
+	 * @param cut true if a cut operation should be performed.
+	 */
 	private final void copy(boolean cut) {
-		ObservableSlide<?> slide = this.context.getSlide();
 		ObservableSlideRegion<?> selected = this.context.getSelected();
 		PraisenterContext context = this.context.getPraisenterContext();
 		
@@ -529,6 +604,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		}
 	}
 	
+	/**
+	 * Pastes the the component in the clipboard if any.
+	 */
 	private final void paste() {
 		ObservableSlide<?> slide = this.context.getSlide();
 		
@@ -548,6 +626,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		}
 	}
 	
+	/**
+	 * Deletes the selected component.
+	 */
 	private final void delete() {
 		ObservableSlideRegion<?> selected = this.context.getSelected();
 		
@@ -555,7 +636,11 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			this.fireEvent(new SlideComponentRemoveEvent(this, this, (ObservableSlideComponent<?>) selected));
 		}
 	}
-	
+
+	/**
+	 * Called when an application event occurs.
+	 * @param action the action
+	 */
 	private void handleApplicationEvent(ApplicationAction action) {
 		switch (action) {
 			case SAVE:
@@ -588,6 +673,20 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 				return;
 		}
 	}
+
+    /**
+     * Called when the state of this pane changes.
+     * @param reason the reason
+     */
+    private final void stateChanged(String reason) {
+    	Scene scene = this.getScene();
+    	// don't bother if there's no place to send the event to
+    	if (scene != null) {
+    		fireEvent(new ApplicationPaneEvent(this, this, ApplicationPaneEvent.STATE_CHANGED, this, reason));
+    	}
+    }
+    
+	// overrides
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.ApplicationPane#isApplicationActionEnabled(org.praisenter.javafx.ApplicationAction)
@@ -650,18 +749,6 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		this.context.getEditManager().reset();
 	}
 	
-    /**
-     * Called when the state of this pane changes.
-     * @param reason the reason
-     */
-    private final void stateChanged(String reason) {
-    	Scene scene = this.getScene();
-    	// don't bother if there's no place to send the event to
-    	if (scene != null) {
-    		fireEvent(new ApplicationPaneEvent(this, this, ApplicationPaneEvent.STATE_CHANGED, this, reason));
-    	}
-    }
-    
     /* (non-Javadoc)
      * @see org.praisenter.javafx.ApplicationEditorPane#getTargetName()
      */

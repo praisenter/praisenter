@@ -49,7 +49,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.Node;
 import javafx.scene.control.ListCell;
-import javafx.scene.control.OverrunStyle;
+import javafx.scene.control.Tooltip;
 
 /**
  * A list cell for a {@link SlideAnimation}.
@@ -116,8 +116,7 @@ final class AnimationListCell extends ListCell<SlideAnimation> {
 	 * Default constructor.
 	 */
 	public AnimationListCell() {
-		this.setTextOverrun(OverrunStyle.ELLIPSIS);
-		this.setWrapText(false);
+		this.getStyleClass().add("animation-list-cell");
 		
 		// the name of the animation is the concatenation of the
 		// animation name and the component name, however, the 
@@ -126,6 +125,22 @@ final class AnimationListCell extends ListCell<SlideAnimation> {
 		// of the region and use a string binding to bind the two
 		// together to produce the name we display
 		this.textProperty().bind(this.name);
+		
+		Tooltip tooltip = new Tooltip();
+		tooltip.textProperty().bind(this.name);
+		tooltipProperty().bind(new ObjectBinding<Tooltip>() {
+			{
+				bind(name);
+			}
+			@Override
+			protected Tooltip computeValue() {
+				String n = name.get();
+				if (n == null || n.isEmpty()) {
+					return null;
+				}
+				return tooltip;
+			}
+		});
 		
 		// the graphic
 		this.graphicProperty().bind(this.graphic);

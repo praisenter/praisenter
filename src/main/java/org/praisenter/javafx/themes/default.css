@@ -307,24 +307,109 @@
 /* SlideEditorPane */
 .slide-editor-pane {}
 
+/* AnimationListCell */
+.animation-list-cell {
+	-fx-wrap-text: false;
+	-fx-text-overrun: ellipsis;
+}
 
+/* AnimationListPane */
+.animation-list-pane {}
+.animation-list-pane-top {
+	-fx-padding: 5;
+	-fx-spacing: 5;
+	-fx-border-color: -fx-box-border;
+	-fx-border-width: 0 1 0 1;
+}
+.animation-list-pane-list {}
+.animation-list-pane-title {
+	-fx-alignment: baseline-center;
+	-fx-font-weight: bold;
+}
 
+/* AnimationOptionListCell */
+.animation-option-list-cell {
+	-fx-pref-width: 100;
+	-fx-pref-height: 80;
+}
+.animation-option-list-cell-thumbnail {}
+.animation-option-list-cell-name {
+	-fx-text-alignment: center;
+	-fx-padding: 5 0 0 0;
+	-fx-wrap-text: true;
+}
 
+/* AnimationOption */
+.animation-option-animation-Swap {
+	-fx-image: url("/org/praisenter/resources/animation.Swap.png");
+}
+.animation-option-animation-Fade {
+	-fx-image: url("/org/praisenter/resources/animation.Fade.png");
+}
+.animation-option-animation-Swipe {
+	-fx-image: url("/org/praisenter/resources/animation.Swipe.png");
+}
+.animation-option-animation-Push {
+	-fx-image: url("/org/praisenter/resources/animation.Push.png");
+}
+.animation-option-animation-Split {
+	-fx-image: url("/org/praisenter/resources/animation.Split.png");
+}
+.animation-option-animation-Shaped {
+	-fx-image: url("/org/praisenter/resources/animation.Shaped.png");
+}
+.animation-option-animation-Blinds {
+	-fx-image: url("/org/praisenter/resources/animation.Blinds.png");
+}
+.animation-option-animation-Zoom {
+	-fx-image: url("/org/praisenter/resources/animation.Zoom.png");
+}
+.animation-option-easing-Linear {
+	-fx-image: url("/org/praisenter/resources/easing.Linear.png");
+}
+.animation-option-easing-Quadratic {
+	-fx-image: url("/org/praisenter/resources/easing.Quadratic.png");
+}
+.animation-option-easing-Cubic {
+	-fx-image: url("/org/praisenter/resources/easing.Cubic.png");
+}
+.animation-option-easing-Quartic {
+	-fx-image: url("/org/praisenter/resources/easing.Quartic.png");
+}
+.animation-option-easing-Quintic {
+	-fx-image: url("/org/praisenter/resources/easing.Quintic.png");
+}
+.animation-option-easing-Exponential {
+	-fx-image: url("/org/praisenter/resources/easing.Exponential.png");
+}
+.animation-option-easing-Circular {
+	-fx-image: url("/org/praisenter/resources/easing.Circular.png");
+}
+.animation-option-easing-Sinusoidal {
+	-fx-image: url("/org/praisenter/resources/easing.Sinusoidal.png");
+}
+.animation-option-easing-Back {
+	-fx-image: url("/org/praisenter/resources/easing.Back.png");
+}
+.animation-option-easing-Bounce {
+	-fx-image: url("/org/praisenter/resources/easing.Bounce.png");
+}
+.animation-option-easing-Elastic {
+	-fx-image: url("/org/praisenter/resources/easing.Elastic.png");
+}
 
-
-/** slide editing */
+/* Slide editing */
 .slide-edit-region:edit-hover {
 	-fx-border-color: black, white;
 	-fx-border-style: segments(2, 2) phase 0 outside line-join miter 2 line-cap butt, segments(2, 2) phase 2 outside line-join miter 2 line-cap butt;
 	-fx-border-width: 1, 1;
 }
-
 .slide-edit-region:edit-selected {
 	-fx-border-color: black, white;
 	-fx-border-style: segments(4, 4) phase 0 outside line-join miter 2 line-cap butt, segments(4, 4) phase 4 outside line-join miter 2 line-cap butt;
 	-fx-border-width: 1, 1;
 }
-
 .slide-edit-region:animation-hovered {
 	-fx-background-color: rgba(255, 255, 0, 0.2);
 }
+

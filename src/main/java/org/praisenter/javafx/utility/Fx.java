@@ -27,6 +27,7 @@ package org.praisenter.javafx.utility;
 import org.praisenter.utility.ClasspathLoader;
 
 import javafx.application.Platform;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -124,5 +125,44 @@ public final class Fx {
 			focused = focused.getParent();
 		}
 		return isFocused;
+	}
+	
+	/**
+	 * Returns a Java FX cursor for the current x-y location.
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 * @param w the width
+	 * @param h the height
+	 * @param rw the resize-width
+	 * @return Cursor
+	 */
+	public static final Cursor getCursorForPosition(double x, double y, double w, double h, double rw) {
+		if (x <= rw && y <= rw) { 
+			// top left corner
+			return Cursor.NW_RESIZE;
+		} else if (x >= w - rw && y >= h - rw) {
+			// bottom right corner
+			return Cursor.SE_RESIZE;
+		} else if (x <= rw && y >= h - rw) {
+			// bottom left corner
+			return Cursor.SW_RESIZE;
+		} else if (x >= w - rw &&	y <= rw) {
+			// top right corner
+			return Cursor.NE_RESIZE;
+		} else if (x <= rw) {
+			// left
+			return Cursor.W_RESIZE;
+		} else if (x >= w - rw) {
+			// right
+			return Cursor.E_RESIZE;
+		} else if (y <= rw) {
+			// top
+			return Cursor.N_RESIZE;
+		} else if (y >= h - rw) {
+			// bottom
+			return Cursor.S_RESIZE;
+		} else {
+			return Cursor.MOVE;
+		}
 	}
 }
