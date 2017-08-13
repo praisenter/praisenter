@@ -76,8 +76,8 @@ import org.praisenter.javafx.command.UndorderedCompositeEditCommand;
 import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.json.JsonIO;
 import org.praisenter.resources.translations.Translations;
-import org.praisenter.xml.XmlIO;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -642,7 +642,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					BookTreeData btd = (BookTreeData)td;
 					Book book = btd.book;
 					try {
-						data.add(XmlIO.save(book));
+						data.add(JsonIO.write(book));
 						format = DataFormats.BOOKS;
 						text.append(book.getName()).append(Constants.NEW_LINE);
 						if (cut) {
@@ -655,7 +655,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					ChapterTreeData ctd = (ChapterTreeData)td;
 					Chapter chapter = ctd.chapter;
 					try {
-						data.add(XmlIO.save(chapter));
+						data.add(JsonIO.write(chapter));
 						format = DataFormats.CHAPTERS;
 						text.append(chapter.getNumber()).append(Constants.NEW_LINE);
 						if (cut) {
@@ -668,7 +668,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					VerseTreeData vtd = (VerseTreeData)td;
 					Verse verse = vtd.verse;
 					try {
-						data.add(XmlIO.save(verse));
+						data.add(JsonIO.write(verse));
 						format = DataFormats.VERSES;
 						text.append(verse.getText()).append(Constants.NEW_LINE);
 						if (cut) {
@@ -737,7 +737,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					List<String> books = (List<String>)data;
 					for (String book : books) {
 						try {
-							Book copy = XmlIO.read(book, Book.class);
+							Book copy = JsonIO.read(book, Book.class);
 							commands.add(new AddBookEditCommand(this.bibleTree, node, copy));
 						} catch (Exception ex) {
 							LOGGER.warn("Failed to paste the book '" + book + "'.", ex);
@@ -751,7 +751,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					List<String> chapters = (List<String>)data;
 					for (String chapter : chapters) {
 						try {
-							Chapter copy = XmlIO.read(chapter, Chapter.class);
+							Chapter copy = JsonIO.read(chapter, Chapter.class);
 							commands.add(new AddChapterEditCommand(this.bibleTree, node, copy));
 						} catch (Exception ex) {
 							LOGGER.warn("Failed to paste the chapter '" + chapter + "'.", ex);
@@ -765,7 +765,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					List<String> verses = (List<String>)data;
 					for (String verse : verses) {
 						try {
-							Verse copy = XmlIO.read(verse, Verse.class);
+							Verse copy = JsonIO.read(verse, Verse.class);
 							commands.add(new AddVerseEditCommand(this.bibleTree, node, copy));
 						} catch (Exception ex) {
 							LOGGER.warn("Failed to paste the verse '" + verse + "'.", ex);
@@ -779,7 +779,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 					List<String> verses = (List<String>)data;
 					for (String verse : verses) {
 						try {
-							Verse copy = XmlIO.read(verse, Verse.class);
+							Verse copy = JsonIO.read(verse, Verse.class);
 							commands.add(new AddVerseEditCommand(this.bibleTree, node, copy));
 						} catch (Exception ex) {
 							LOGGER.warn("Failed to paste the verse '" + verse + "'.", ex);

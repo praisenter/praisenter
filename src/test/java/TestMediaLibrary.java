@@ -6,7 +6,7 @@ import org.praisenter.ThumbnailSettings;
 import org.praisenter.javafx.ImageCache;
 import org.praisenter.javafx.JavaFXContext;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.media.JavaFXMediaImportFilter;
+import org.praisenter.javafx.media.JavaFXMediaImportProcessor;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.media.MediaLibrary;
 
@@ -29,7 +29,7 @@ public class TestMediaLibrary extends Application {
 				100, 100);
     	MediaLibrary library = null;
 		try {
-			library = MediaLibrary.open(path, new JavaFXMediaImportFilter(path, null), settings);
+			library = MediaLibrary.open(path, new JavaFXMediaImportProcessor(path, null), settings);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

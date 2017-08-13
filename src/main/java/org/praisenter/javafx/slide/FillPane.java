@@ -30,6 +30,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.MediaType;
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.slide.converters.EffectConverter;
 import org.praisenter.javafx.slide.converters.MediaConverter;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.utility.Fx;
@@ -40,8 +41,9 @@ import org.praisenter.slide.graphics.SlideGradient;
 import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideRadialGradient;
-import org.praisenter.slide.object.MediaObject;
+import org.praisenter.slide.media.MediaObject;
 
+import javafx.scene.effect.Effect;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -178,7 +180,9 @@ final class FillPane extends StackPane implements Playable {
 			player.dispose();
 		}
 		this.mediaView.setMediaPlayer(null);
+		this.mediaView.setEffect(null);
 		this.paintView.setBackground(null);
+		this.paintView.setEffect(null);
 		this.image = null;
 		this.media = null;
 		this.scaleType = null;
@@ -334,6 +338,11 @@ final class FillPane extends StackPane implements Playable {
 					this.paintView.setBackground(background);
 				}
 			}
+			
+			// either way lets update the color adjust effect
+			Effect effect = EffectConverter.toJavaFX(mo.getColorAdjust());
+			this.paintView.setEffect(effect);
+			this.mediaView.setEffect(effect);
 		}
 	}
 

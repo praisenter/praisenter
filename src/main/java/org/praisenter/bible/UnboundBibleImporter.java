@@ -42,8 +42,6 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.xml.bind.JAXBException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.InvalidFormatException;
@@ -56,7 +54,7 @@ import org.praisenter.NoContentException;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class UnboundBibleImporter extends AbstractBibleImporter implements BibleImporter {
+final class UnboundBibleImporter extends AbstractBibleImporter implements BibleImporter {
 	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -64,7 +62,7 @@ public final class UnboundBibleImporter extends AbstractBibleImporter implements
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public List<Bible> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException {
+	public List<Bible> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
 		// get the file name
 		String fileName = path.getFileName().toString();
 		int d = fileName.lastIndexOf(".");

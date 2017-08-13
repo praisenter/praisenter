@@ -34,6 +34,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a set of resolutions.
  * @author William Bittle
@@ -43,6 +45,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class ResolutionSet implements Iterable<Resolution>, Collection<Resolution>, Set<Resolution> {
 	/** The resolutions */
+	@JsonProperty
 	@XmlElement(name = "resolution", required = false)
 	private final TreeSet<Resolution> resolutions;
 	

@@ -24,14 +24,11 @@
  */
 package org.praisenter.media;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * An enumeration of codec types.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum CodecType {
 	/** A video codec */
 	VIDEO,

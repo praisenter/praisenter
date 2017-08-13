@@ -29,6 +29,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a resolution.
  * @author William Bittle
@@ -38,10 +40,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Resolution implements Comparable<Resolution> {
 	/** The width in pixels */
+	@JsonProperty
 	@XmlAttribute(name = "width")
 	private final int width;
 	
 	/** The height in pixels */
+	@JsonProperty
 	@XmlAttribute(name = "height")
 	private final int height;
 

@@ -31,6 +31,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a linear gradient paint.
  * @author William Bittle
@@ -40,22 +42,27 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideLinearGradient extends SlideGradient implements SlidePaint {
 	/** The start x between 0 and 1 */
+	@JsonProperty
 	@XmlElement(name = "sx", required = false)
 	final double startX;
 	
 	/** The start y between 0 and 1 */
+	@JsonProperty
 	@XmlElement(name = "sy", required = false)
 	final double startY;
 	
 	/** The end x between 0 and 1 */
+	@JsonProperty
 	@XmlElement(name = "ex", required = false)
 	final double endX;
 	
 	/** The end y between 0 and 1 */
+	@JsonProperty
 	@XmlElement(name = "ey", required = false)
 	final double endY;
 	
 	/** The cycle type */
+	@JsonProperty
 	@XmlElement(name = "cycle", required = false)
 	final SlideGradientCycleType cycleType;
 	
@@ -102,6 +109,26 @@ public final class SlideLinearGradient extends SlideGradient implements SlidePai
 		this.cycleType = cycleType;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("LINEAR_GRADIENT")
+		  .append("[(")
+		  .append(this.startX).append(", ")
+		  .append(this.startY).append("), (")
+		  .append(this.endX).append(", ")
+		  .append(this.endY).append("), ")
+		  .append(this.cycleType).append(", [");
+		for (SlideGradientStop stop : stops) {
+			sb.append(stop).append(", ");
+		}
+		sb.append("]]");
+		return sb.toString();
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.graphics.SlideGradient#hashCode()
 	 */

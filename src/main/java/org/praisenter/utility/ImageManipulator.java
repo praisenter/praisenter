@@ -46,7 +46,7 @@ public final class ImageManipulator {
 	private ImageManipulator() {}
 	
 	/**
-	 * Returns the "brightness" of the given image.
+	 * Returns the "brightness" of the given image between 0.0 and 1.0.
 	 * @param image the image
 	 * @return double
 	 * @see <a href="http://stackoverflow.com/questions/21205871/java-bufferedimage-get-single-pixel-brightness">Log Average Luminance</a>

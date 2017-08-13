@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.praisenter.Constants;
 import org.praisenter.Tag;
@@ -29,6 +30,7 @@ import org.praisenter.song.TextFragment;
 import org.praisenter.song.Verse;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
+import org.xml.sax.SAXException;
 
 public final class OpenLyricsSongImporter implements SongImporter {
 	private static final Pattern PATTERN_VERSE_NAME = Pattern.compile("^([a-zA-Z]+)(\\d+)?([a-zA-Z]+)?$");
@@ -36,7 +38,16 @@ public final class OpenLyricsSongImporter implements SongImporter {
 	@Override
 	public List<Song> read(Path path) throws IOException, SongImportException {
 		try {
-			OpenLyricsSong olsong = XmlIO.read(path, OpenLyricsSong.class);
+			OpenLyricsSong olsong = null;
+			try {
+				olsong = XmlIO.read(path, OpenLyricsSong.class);
+			} catch (SAXException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (ParserConfigurationException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			
 			// clean it up
 			olsong.prepare();

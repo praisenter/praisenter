@@ -32,9 +32,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.praisenter.utility.MimeType;
 import org.praisenter.xml.XmlIO;
+import org.xml.sax.SAXException;
 
 // TODO create a formatidentifyingimporter
 // FIXME Allow reading of a zip file with multiple songs in it
@@ -62,6 +64,12 @@ public final class PraisenterSongImporter implements SongImporter {
 						songs.add(song);
 					} catch (JAXBException e) {
 						throw new SongImportException(e);
+					} catch (SAXException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (ParserConfigurationException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}
 			}

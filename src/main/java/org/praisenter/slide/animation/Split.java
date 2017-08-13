@@ -31,6 +31,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.slide.easing.Easing;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a split animation.
  * @author William Bittle
@@ -46,10 +48,12 @@ public final class Split extends Animation {
 	public static final Operation DEFAULT_OPERATION = Operation.EXPAND;
 	
 	/** The orientation */
+	@JsonProperty
 	@XmlElement(name = "orientation", required = false)
 	final Orientation orientation;
 	
 	/** The operation */
+	@JsonProperty
 	@XmlElement(name = "operation", required = false)
 	final Operation operation;
 

@@ -29,5 +29,5 @@ package org.praisenter.bible;
  * @author William Bittle
  * @version 3.0.0
  */
-public abstract class AbstractBibleImporter implements BibleImporter {
+abstract class AbstractBibleImporter implements BibleImporter {
 }

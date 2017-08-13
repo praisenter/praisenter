@@ -34,6 +34,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import org.praisenter.slide.SlidePaintXmlAdapter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a stroke.
  * @author William Bittle
@@ -43,19 +45,23 @@ import org.praisenter.slide.SlidePaintXmlAdapter;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideStroke {
 	/** The stroke paint */
+	@JsonProperty
 	@XmlElement(name = "paint", required = false)
 	@XmlJavaTypeAdapter(value = SlidePaintXmlAdapter.class)
 	final SlidePaint paint;
 	
 	/** The stroke style */
+	@JsonProperty
 	@XmlElement(name = "style", required = false)
 	final SlideStrokeStyle style;
 	
 	/** The stroke width */
+	@JsonProperty
 	@XmlElement(name = "width", required = false)
 	final double width;
 	
 	/** The stroke radius */
+	@JsonProperty
 	@XmlElement(name = "radius", required = false)
 	final double radius;
 	
@@ -82,6 +88,22 @@ public final class SlideStroke {
 		this.style = style;
 		this.width = width;
 		this.radius = radius;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("STROKE")
+		  .append("[")
+		  .append(this.paint).append(", ")
+		  .append(this.style).append(", ")
+		  .append(this.width).append(", ")
+		  .append(this.radius)
+		  .append("]");
+		return sb.toString();
 	}
 	
 	/* (non-Javadoc)

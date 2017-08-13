@@ -24,14 +24,11 @@
  */
 package org.praisenter;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * An enumeration of the types of text.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum TextType {
 	/** Represents text that is a title */
 	TITLE,

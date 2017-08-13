@@ -27,13 +27,15 @@ package org.praisenter.slide;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javax.xml.bind.JAXBException;
-
-import org.praisenter.xml.XmlIO;
+import org.praisenter.Constants;
+import org.praisenter.json.JsonIO;
+import org.praisenter.utility.StringManipulator;
 
 /**
  * Exporter for the Praisenter bible format.
@@ -46,14 +48,22 @@ public final class PraisenterSlideExporter implements SlideExporter {
 	 * @see org.praisenter.slide.SlideExporter#execute(java.nio.file.Path, java.util.List)
 	 */
 	@Override
-	public void execute(Path path, List<Slide> slides) throws IOException, JAXBException {
+	public void execute(Path path, List<Slide> slides) throws IOException {
+		Map<String, Integer> names = new HashMap<String, Integer>();
 		try (FileOutputStream fos = new FileOutputStream(path.toFile());
 			 ZipOutputStream zos = new ZipOutputStream(fos)) {
 			for (Slide slide : slides) {
+				int n = 1;
+				String fileName = StringManipulator.toFileName(slide.getName(), slide.getId());
+				// make sure it's unique
+				if (names.containsKey(fileName)) {
+					n = names.get(fileName);
+					fileName += String.valueOf(++n);
+				}
 				Slide copy = slide.copy(true);
-				ZipEntry entry = new ZipEntry(copy.getPath().getFileName().toString());
+				ZipEntry entry = new ZipEntry(fileName + Constants.SLIDE_FILE_EXTENSION);
 				zos.putNextEntry(entry);
-				XmlIO.save(zos, copy);
+				JsonIO.write(zos, copy);
 				zos.closeEntry();
 			}
 		}
@@ -63,17 +73,25 @@ public final class PraisenterSlideExporter implements SlideExporter {
 	 * @see org.praisenter.slide.SlideExporter#execute(java.util.zip.ZipOutputStream, java.lang.String, java.util.List)
 	 */
 	@Override
-	public void execute(ZipOutputStream stream, String folder, List<Slide> slides) throws IOException, JAXBException {
+	public void execute(ZipOutputStream stream, String folder, List<Slide> slides) throws IOException {
 		String root = "";
 		if (folder != null) {
 			root = folder + "/";
 		}
 		
+		Map<String, Integer> names = new HashMap<String, Integer>();
 		for (Slide slide : slides) {
+			int n = 1;
+			String fileName = StringManipulator.toFileName(slide.getName(), slide.getId());
+			// make sure it's unique
+			if (names.containsKey(fileName)) {
+				n = names.get(fileName);
+				fileName += String.valueOf(++n);
+			}
 			Slide copy = slide.copy(true);
-			ZipEntry entry = new ZipEntry(root + copy.getPath().getFileName().toString());
+			ZipEntry entry = new ZipEntry(root + fileName + Constants.SLIDE_FILE_EXTENSION);
 			stream.putNextEntry(entry);
-			XmlIO.save(stream, copy);
+			JsonIO.write(stream, copy);
 			stream.closeEntry();
 		}
 	}

@@ -30,30 +30,23 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.TextType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a set of {@link BibleReferenceVerse}s.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "bibleReferenceSet")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class BibleReferenceSet {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/** The references */
-	@XmlElement(name = "reference")
-	@XmlElementWrapper(name = "references")
+	@JsonProperty
 	private final Set<BibleReferenceVerse> references;
 	
 	/**

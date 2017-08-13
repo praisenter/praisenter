@@ -26,11 +26,7 @@ package org.praisenter.bible;
 
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a reference to a bible verse.
@@ -39,38 +35,36 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "referenceVerse")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class BibleReferenceVerse implements Comparable<BibleReferenceVerse> {
 	/** The not set flag */
 	public static final short NOT_SET = -1;
 	
 	/** The id of the bible */
-	@XmlAttribute(name = "bibleId", required = false)
+	@JsonProperty
 	private final UUID bibleId;
 	
 	/** The name of the bible */
-	@XmlAttribute(name = "bibleName", required = false)
+	@JsonProperty
 	private final String bibleName;
 	
 	/** The name of the book */
-	@XmlAttribute(name = "bookName", required = false)
+	@JsonProperty
 	private final String bookName;
 	
 	/** The book number */
-	@XmlAttribute(name = "bookNumber", required = false)
+	@JsonProperty
 	private final short bookNumber;
 	
 	/** The chapter number */
-	@XmlAttribute(name = "chapterNumber", required = false)
+	@JsonProperty
 	private final short chapterNumber;
 	
 	/** The verse number */
-	@XmlAttribute(name = "verseNumber", required = false)
+	@JsonProperty
 	private final short verseNumber;
 	
 	/** The verse text */
-	@XmlElement(name = "text", required = false)
+	@JsonProperty
 	private final String text;
 	
 	/**

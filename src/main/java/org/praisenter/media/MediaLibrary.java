@@ -59,15 +59,19 @@ import org.praisenter.LockMap;
 import org.praisenter.MediaType;
 import org.praisenter.Tag;
 import org.praisenter.ThumbnailSettings;
+import org.praisenter.json.JsonIO;
+import org.praisenter.tools.ToolExecutionException;
 import org.praisenter.utility.MimeType;
-import org.praisenter.utility.Zip;
-import org.praisenter.xml.XmlIO;
+import org.praisenter.utility.Streams;
+
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
  * A collection of media that has been loaded into a specific location and converted
  * into supported formats with additional files generated for enhanced performance.
  * <p>
- * Obtain a {@link MediaLibrary} instance by calling the {@link #open(Path, ThumbnailSettings)}
+ * Obtain a {@link MediaLibrary} instance by calling the {@link #open(Path, MediaLibraryContext, MediaImportProcessor)}
  * static method. Only one instance should be created for each path. Multiple instances
  * modifying the same path can have unexpected results and can show different sets of media.
  * <p>
@@ -89,16 +93,13 @@ public final class MediaLibrary {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	// constants
-	
+
 	/** The directory to store the metadata files */
 	private static final String METADATA_DIR = "_metadata";
 	
-	/** The suffix added to a media file for metadata */
-	private static final String METADATA_EXT = "_metadata.xml";
-	
 	/** The directory to store media when exported with other data */
 	private static final String ZIP_DIR = "media";
-	
+
 	// instance variables
 	
 	/** The root path to the media library */
@@ -107,11 +108,11 @@ public final class MediaLibrary {
 	/** The full path to the metatdata */
 	private final Path metadataPath;
 	
-	/** The import filter */
-	private final MediaImportFilter importFilter;
+	/** The context */
+	private final MediaLibraryContext context;
 	
-	/** The thumbnail settings */
-	private final ThumbnailSettings thumbnailSettings;
+	/** The import filter */
+	private final MediaImportProcessor importFilter;
 	
 	// loaded
 	
@@ -130,28 +131,16 @@ public final class MediaLibrary {
 	private final StampedLock exportLock;
 	
 	/**
-	 * Sets up a new {@link MediaLibrary} at the given path using the {@link DefaultMediaImportFilter}
+	 * Sets up a new {@link MediaLibrary} at the given path using the {@link DefaultMediaImportProcessor}
 	 * with the given {@link ThumbnailSettings}.
 	 * @param path the root path to the media library
-	 * @param thumbnailSettings the thumbnail settings
+	 * @param context the context
+	 * @param processor the media import processor
 	 * @return {@link MediaLibrary}
 	 * @throws IOException if an IO error occurs
 	 */
-	public static final MediaLibrary open(Path path, ThumbnailSettings thumbnailSettings) throws IOException {
-		return open(path, null, thumbnailSettings);
-	}
-	
-	/**
-	 * Sets up a new {@link MediaLibrary} at the given path using the {@link DefaultMediaImportFilter}
-	 * with the given {@link ThumbnailSettings}.
-	 * @param path the root path to the media library
-	 * @param importFilter the import filter
-	 * @param thumbnailSettings the thumbnail settings
-	 * @return {@link MediaLibrary}
-	 * @throws IOException if an IO error occurs
-	 */
-	public static final MediaLibrary open(Path path, MediaImportFilter importFilter, ThumbnailSettings thumbnailSettings) throws IOException {
-		MediaLibrary library = new MediaLibrary(path, importFilter, thumbnailSettings);
+	public static final MediaLibrary open(Path path, MediaLibraryContext context, MediaImportProcessor processor) throws IOException {
+		MediaLibrary library = new MediaLibrary(path, context, processor);
 		library.initialize();
 		return library;
 	}
@@ -162,17 +151,16 @@ public final class MediaLibrary {
 	 * @param importFilter the import filter
 	 * @param settings the thumbnail settings
 	 */
-	private MediaLibrary(Path path, MediaImportFilter importFilter, ThumbnailSettings thumbnailSettings) {
+	private MediaLibrary(Path path, MediaLibraryContext context, MediaImportProcessor processor) {
 		this.path = path;
 		this.metadataPath = path.resolve(METADATA_DIR);
-		this.thumbnailSettings = thumbnailSettings;
-		
-		this.importFilter = importFilter == null ? new DefaultMediaImportFilter() : importFilter;
+		this.context = context;
+		this.importFilter = processor == null ? new DefaultMediaImportProcessor() : processor;
 		
 		this.loaders = new MediaLoader[] {
-			new ImageMediaLoader(thumbnailSettings),
-			new VideoMediaLoader(thumbnailSettings),
-			new AudioMediaLoader(thumbnailSettings)
+			new ImageMediaLoader(context),
+			new VideoMediaLoader(context),
+			new AudioMediaLoader(context)
 		};
 		
 		this.media = new ConcurrentHashMap<UUID, Media>();
@@ -197,9 +185,9 @@ public final class MediaLibrary {
 		try (DirectoryStream<Path> dir = Files.newDirectoryStream(this.metadataPath)) {
 			for (Path path : dir) {
 				if (Files.isRegularFile(path)) {
-					if (MimeType.XML.check(path)) {
+					if (MimeType.JSON.check(path)) {
 						try {
-							Media media = XmlIO.read(path, Media.class);
+							Media media = JsonIO.read(path, Media.class);
 							// when we read the metadata we need to update it with
 							// the path to the media file since we don't store it
 							media.path = this.path.resolve(media.fileName);
@@ -296,7 +284,7 @@ public final class MediaLibrary {
 			}
 		}
 	}
-
+	
 	/**
 	 * Returns a lock for the given path.
 	 * @param path the path
@@ -331,7 +319,7 @@ public final class MediaLibrary {
 	 * @return String
 	 */
 	private final String getMetadataFileName(Path path) {
-		return path.getFileName().toString() + METADATA_EXT;
+		return path.getFileName().toString() + Constants.MEDIA_METADATA_FILE_EXTENSION;
 	}
 	
 	/**
@@ -367,13 +355,14 @@ public final class MediaLibrary {
 	/**
 	 * Saves the metadata of the given media.
 	 * @param media the media
-	 * @throws JAXBException if an error occurs serializing to XML
+	 * @throws JsonMappingException if an error occurs mapping the object to JSON
+	 * @throws JsonGenerationException if an error occurs generating the JSON
 	 * @throws IOException if an IO error occurs
 	 */
-	private final void saveMetadata(Media media) throws JAXBException, IOException {
+	private final void saveMetadata(Media media) throws JsonGenerationException, JsonMappingException, IOException {
 		Path path = media.getPath();
 		Path mPath = this.getMetadataPath(path);
-		XmlIO.save(mPath, media);
+		JsonIO.write(mPath, media);
 	}
 
 	/**
@@ -440,11 +429,7 @@ public final class MediaLibrary {
 				// the first successful loader wins
 				media = loader.load(path);
 				break;
-			} catch (IOException e) {
-				LOGGER.warn("Failed to load file '" + path.toAbsolutePath().toString() + "': ", e);
-				errors.add(e.getMessage());
-			} catch (InvalidFormatException e) {
-				LOGGER.warn("Unsupported media format for '" + path.toAbsolutePath().toString() + "' using media loader '" + loader.getClass().getName() + "'.", e);
+			} catch (MediaImportException e) {
 				errors.add(e.getMessage());
 			}
 		}
@@ -466,10 +451,10 @@ public final class MediaLibrary {
 	 * @throws FileNotFoundException if the given source file isn't found
 	 * @throws FileAlreadyExistsException if a file with the same name already exists
 	 * @throws UnknownMediaTypeException if the media's mime type was not discernible
-	 * @throws TranscodeException if the media failed to be transcoded into a supported format
+	 * @throws MediaImportException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	private final Path copy(Path source) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, UnknownMediaTypeException {
+	private final Path copy(Path source) throws FileAlreadyExistsException, FileNotFoundException, IOException, UnknownMediaTypeException, MediaImportException {
 		Path target = null;
 		// make sure it exists and is a file
 		if (Files.exists(source) && Files.isRegularFile(source)) {
@@ -495,7 +480,7 @@ public final class MediaLibrary {
 						throw new FileAlreadyExistsException(target.getFileName().toString());
 					}
 					// get the media file into the library
-					this.importFilter.filter(source, target, type);
+					this.importFilter.process(source, target, type);
 				}
 				// return the library path
 				return target;
@@ -574,7 +559,7 @@ public final class MediaLibrary {
 	 * @throws JAXBException if the metadata fails to save
 	 * @throws IOException if an IO error occurs
 	 */
-	private final Media move(Media media, String name) throws FileAlreadyExistsException, IOException, JAXBException {
+	private final Media move(Media media, String name) throws FileAlreadyExistsException, IOException {
 		Path source = media.getPath();
 		String name0 = source.getFileName().toString();
 		String name1 = name;
@@ -617,7 +602,7 @@ public final class MediaLibrary {
 			}
 
 			// remove old metadata
-			Path smPath = this.metadataPath.resolve(name0 + METADATA_EXT);
+			Path smPath = this.metadataPath.resolve(name0 + Constants.MEDIA_METADATA_FILE_EXTENSION);
 			try {
 				LOGGER.debug("Removing the old metadata '{}'.", smPath);
 				Files.delete(smPath);
@@ -704,10 +689,10 @@ public final class MediaLibrary {
 	 * @throws FileAlreadyExistsException if a file with the same name already exists
 	 * @throws UnknownMediaTypeException if the media's mime type was not discernible
 	 * @throws InvalidFormatException if the media format isn't something recognized or readable
-	 * @throws TranscodeException if the media failed to be transcoded into a supported format
+	 * @throws ToolExecutionException if the media failed to be transcoded into a supported format
 	 * @throws IOException if an IO error occurs
 	 */
-	public Media add(Path path) throws FileAlreadyExistsException, FileNotFoundException, IOException, TranscodeException, UnknownMediaTypeException, InvalidFormatException {
+	public Media add(Path path) throws FileAlreadyExistsException, FileNotFoundException, IOException, ToolExecutionException, UnknownMediaTypeException, InvalidFormatException {
 		LOGGER.debug("Adding media '{}'", path);
 		// lock on the incoming file name
 		synchronized(this.getPathLock(path)) {
@@ -752,13 +737,13 @@ public final class MediaLibrary {
 			 ZipInputStream zis = new ZipInputStream(fis)) {
 			ZipEntry entry = null;
 			while ((entry = zis.getNextEntry()) != null) {
-				if (entry.isDirectory() && ZIP_DIR.equals(entry.getName())) {
-					root = ZIP_DIR;
+				// does any entry start with the ZIP_DIR
+				if (entry.getName().toLowerCase().startsWith(ZIP_DIR)) {
+					root = ZIP_DIR + "/";
 					break;
 				}
 			}
 		}
-		root = root.toUpperCase();
 		
 		// for an import, we verify that it's a zip file
 		// and then import whatever media has metadata as is 
@@ -767,6 +752,8 @@ public final class MediaLibrary {
 		// this allows a user to do the transcoding, reading
 		// thumbnail & frame generation on a different computer
 		// and then transfer to the primary
+		
+		String metadataRoot = root + METADATA_DIR;
 		
 		// read all metadata in the zip first
 		Map<String, Media> metadata = new HashMap<String, Media>();
@@ -777,18 +764,18 @@ public final class MediaLibrary {
 				if (!entry.isDirectory()) {
 					String name = entry.getName();
 					// verify that the media is in the correct folder
-					if (name.toUpperCase().startsWith(root)) {
-						// check for xml entries
+					if (name.toLowerCase().startsWith(metadataRoot)) {
+						// check for (metadata) entries
 						// this is the best we can do here since ZipInputStream doesn't
-						// support mark/reset
-						if (MimeType.XML.check(name)) {
+						// support mark/reset; looking at the file name is the best we can do
+						if (MimeType.JSON.check(name)) {
 							// its a metadata file, try to read and parse it
 							try {
-								byte[] data = Zip.read(zis);
-								Media media = XmlIO.read(new ByteArrayInputStream(data), Media.class);
-								metadata.put(media.fileName, media);
+								byte[] data = Streams.read(zis);
+								Media media = JsonIO.read(new ByteArrayInputStream(data), Media.class);
+								metadata.put(root + media.fileName, media);
 							} catch (Exception ex) {
-								// it failed, might be some other type of xml file
+								// it failed, might be some other type of json file
 								LOGGER.warn("Failed to read '" + name + "' as media metadata.", ex);
 							}
 						}
@@ -802,10 +789,11 @@ public final class MediaLibrary {
 			 ZipInputStream zis = new ZipInputStream(fis)) {
 			ZipEntry entry = null;
 			while ((entry = zis.getNextEntry()) != null) {
-				if (!entry.isDirectory()) {
+				// make sure it's not a directory and not a JSON file
+				if (!entry.isDirectory() && !MimeType.JSON.check(entry.getName())) {
 					String name = entry.getName();
 					// verify that the media is in the correct folder
-					if (name.toUpperCase().startsWith(root)) {
+					if (name.toLowerCase().startsWith(root)) {
 						// does it have associated metadata?
 						Media media = metadata.get(name);
 						if (media != null) {
@@ -813,7 +801,7 @@ public final class MediaLibrary {
 								// get a lock for the source file name
 								synchronized (this.locks.get(name)) {
 									// get the target name based on the import filter
-									Path target = this.importFilter.getTarget(this.path, name, media.type);
+									Path target = this.importFilter.getTarget(this.path, media.getFileName(), media.type);
 									// get a lock for the target file name
 									synchronized (this.getPathLock(target)) {
 										// make sure the target doesn't exist
@@ -821,8 +809,6 @@ public final class MediaLibrary {
 											LOGGER.warn("Unable to import '{}' because the file '{}' already exists.", name, target);
 											continue;
 										}
-										// update the media after being renamed
-										media = Media.forRenamed(target, media);
 										
 										// copy the media to the library
 										try (FileOutputStream fos = new FileOutputStream(target.toFile())) {
@@ -831,6 +817,9 @@ public final class MediaLibrary {
 												fos.write(buffer, 0, length);
 											}
 										}
+										
+										// update the media after being renamed
+										media = Media.forRenamed(target, media);
 										
 										try {
 											// write the metadata
@@ -980,10 +969,9 @@ public final class MediaLibrary {
 	 * @param name the new name
 	 * @return {@link Media}
 	 * @throws FileAlreadyExistsException if a file already exists with the given name
-	 * @throws JAXBException if the metadata fails to save
 	 * @throws IOException if an IO error occurs
 	 */
-	public Media rename(Media media, String name) throws FileAlreadyExistsException, IOException, JAXBException {
+	public Media rename(Media media, String name) throws FileAlreadyExistsException, IOException {
 		// get the export lock so an export doesn't occur
 		// during rename
 		long stamp = this.exportLock.readLock();
@@ -1013,10 +1001,9 @@ public final class MediaLibrary {
 	 * @param media the media
 	 * @param tag the new tag
 	 * @return boolean true if the tag was added successfully
-	 * @throws JAXBException if the media metadata failed to save
 	 * @throws IOException if an IO error occurs
 	 */
-	public boolean addTag(Media media, Tag tag) throws JAXBException, IOException {
+	public boolean addTag(Media media, Tag tag) throws IOException {
 		// obtain the lock for this media item
 		synchronized(this.getMediaLock(media)) {
 			// sanity check, it's possible that while this thread
@@ -1051,10 +1038,9 @@ public final class MediaLibrary {
 	 * @param media the media
 	 * @param tags the new tags
 	 * @return boolean true if the tags were added successfully
-	 * @throws JAXBException if the media metadata failed to save
 	 * @throws IOException if an IO error occurs
 	 */	
-	public boolean addTags(Media media, Collection<Tag> tags) throws JAXBException, IOException {
+	public boolean addTags(Media media, Collection<Tag> tags) throws IOException {
 		// obtain the lock for this media item
 		synchronized(this.getMediaLock(media)) {
 			// sanity check, it's possible that while this thread
@@ -1093,10 +1079,9 @@ public final class MediaLibrary {
 	 * @param media the media
 	 * @param tags the new tags
 	 * @return boolean true if the tags were set successfully
-	 * @throws JAXBException if the media metadata failed to save
 	 * @throws IOException if an IO error occurs
 	 */	
-	public boolean setTags(Media media, Collection<Tag> tags) throws JAXBException, IOException {
+	public boolean setTags(Media media, Collection<Tag> tags) throws IOException {
 		// obtain the lock for this media item
 		synchronized(this.getMediaLock(media)) {
 			// sanity check, it's possible that while this thread
@@ -1137,10 +1122,9 @@ public final class MediaLibrary {
 	 * @param media the media
 	 * @param tag the tag to remove
 	 * @return boolean true if the tag was removed successfully
-	 * @throws JAXBException if the media metadata failed to save
 	 * @throws IOException if an IO error occurs
 	 */	
-	public boolean removeTag(Media media, Tag tag) throws JAXBException, IOException {
+	public boolean removeTag(Media media, Tag tag) throws IOException {
 		// obtain the lock for this media item
 		synchronized(this.getMediaLock(media)) {
 			// sanity check, it's possible that while this thread
@@ -1174,10 +1158,9 @@ public final class MediaLibrary {
 	 * @param media the media
 	 * @param tags the tags to remove
 	 * @return boolean true if the tags were removed successfully
-	 * @throws JAXBException if the media metadata failed to save
 	 * @throws IOException if an IO error occurs
 	 */	
-	public boolean removeTags(Media media, Collection<Tag> tags) throws JAXBException, IOException {
+	public boolean removeTags(Media media, Collection<Tag> tags) throws IOException {
 		// obtain the lock for this media item
 		synchronized(this.getMediaLock(media)) {
 			// sanity check, it's possible that while this thread
@@ -1216,6 +1199,6 @@ public final class MediaLibrary {
 	 * @return {@link ThumbnailSettings}
 	 */
 	public ThumbnailSettings getThumbnailSettings() {
-		return this.thumbnailSettings;
+		return this.context.getThumbnailSettings();
 	}
 }

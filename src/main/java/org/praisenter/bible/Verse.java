@@ -26,29 +26,23 @@ package org.praisenter.bible;
 
 import java.io.Serializable;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a {@link Verse} of the {@link Bible}.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "verse")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Verse implements Comparable<Verse>, Serializable {
 	/** The serialization id */
 	private static final long serialVersionUID = 1013677325712981189L;
 
 	/** The verse number */
-	@XmlAttribute(name = "number", required = false)
+	@JsonProperty
 	short number;
 	
 	/** The verse text */
-	@XmlElement(name = "text", required = false)
+	@JsonProperty
 	String text;
 	
 	/**

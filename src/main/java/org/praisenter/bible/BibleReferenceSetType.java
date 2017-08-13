@@ -24,14 +24,11 @@
  */
 package org.praisenter.bible;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Represents an enumeration of bible reference set types.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum BibleReferenceSetType {
 	/** A single verse */
 	SINGLE,

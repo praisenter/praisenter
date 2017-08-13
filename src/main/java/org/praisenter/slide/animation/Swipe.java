@@ -31,6 +31,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.slide.easing.Easing;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a swipe/wipe animation.
  * @author William Bittle
@@ -43,6 +45,7 @@ public final class Swipe extends Animation {
 	public static final Direction DEFAULT_DIRECTION = Direction.UP;
 	
 	/** The direction */
+	@JsonProperty
 	@XmlElement(name = "direction", required = false)
 	final Direction direction;
 

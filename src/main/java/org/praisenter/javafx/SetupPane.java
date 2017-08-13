@@ -24,7 +24,7 @@ import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.controls.MessageLabel;
 import org.praisenter.javafx.controls.SectionHeader;
 import org.praisenter.javafx.controls.WellLabel;
-import org.praisenter.javafx.media.JavaFXMediaImportFilter;
+import org.praisenter.javafx.media.JavaFXMediaImportProcessor;
 import org.praisenter.javafx.themes.Theme;
 import org.praisenter.resources.translations.Translations;
 
@@ -188,8 +188,8 @@ public final class SetupPane extends BorderPane {
 		
 		// transcoding video
 		Label lblVideo = new Label("Video");
-		TextField txtVideoExtension = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_VIDEO_EXTENSION, JavaFXMediaImportFilter.DEFAULT_VIDEO_EXTENSION));
-		TextField txtVideoCommand = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_VIDEO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND));
+		TextField txtVideoExtension = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_VIDEO_EXTENSION, JavaFXMediaImportProcessor.DEFAULT_VIDEO_EXTENSION));
+		TextField txtVideoCommand = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_VIDEO_COMMAND, JavaFXMediaImportProcessor.DEFAULT_TRANSCODE_COMMAND));
 		txtVideoExtension.setPrefWidth(75);
 		txtVideoCommand.setPrefWidth(600);
 		gridMedia.add(lblVideo, 0, 1);
@@ -198,8 +198,8 @@ public final class SetupPane extends BorderPane {
 
 		// transcoding audio
 		Label lblAudio = new Label("Audio");
-		TextField txtAudioExtension = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_AUDIO_EXTENSION, JavaFXMediaImportFilter.DEFAULT_AUDIO_EXTENSION));
-		TextField txtAudioCommand = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_AUDIO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND));
+		TextField txtAudioExtension = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_AUDIO_EXTENSION, JavaFXMediaImportProcessor.DEFAULT_AUDIO_EXTENSION));
+		TextField txtAudioCommand = new TextField(context.getConfiguration().getString(Setting.MEDIA_TRANSCODING_AUDIO_COMMAND, JavaFXMediaImportProcessor.DEFAULT_TRANSCODE_COMMAND));
 		txtAudioExtension.setPrefWidth(75);
 		txtAudioCommand.setPrefWidth(600);
 		gridMedia.add(lblAudio, 0, 2);

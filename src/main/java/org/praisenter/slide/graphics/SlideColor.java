@@ -29,6 +29,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a solid color paint.
  * @author William Bittle
@@ -38,18 +40,22 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideColor extends AbstractSlidePaint implements SlidePaint {
 	/** The red component */
+	@JsonProperty
 	@XmlElement(name = "r", required = false)
 	final double red;
 	
 	/** The green component */
+	@JsonProperty
 	@XmlElement(name = "g", required = false)
 	final double green;
 	
 	/** The blue component */
+	@JsonProperty
 	@XmlElement(name = "b", required = false)
 	final double blue;
 	
 	/** The alpha component */
+	@JsonProperty
 	@XmlElement(name = "a", required = false)
 	final double alpha;
 	
@@ -77,7 +83,23 @@ public final class SlideColor extends AbstractSlidePaint implements SlidePaint {
 		this.blue = blue;
 		this.alpha = alpha;
 	}
-
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("COLOR")
+		  .append("[")
+		  .append(this.red).append(", ")
+		  .append(this.green).append(", ")
+		  .append(this.blue).append(", ")
+		  .append(this.alpha)
+		  .append("]");
+		return sb.toString();
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */

@@ -420,35 +420,24 @@ public final class SongLibrary {
 		
 		StringBuilder sb = new StringBuilder();
 		if (title != null) {
-			String ttl = StringManipulator.toFileName(title);
-			if (ttl.length() == 0) {
-				ttl = "Untitled";
-			}
-			sb.append(ttl);
+			sb.append(title);
 		}
-		if (variant != null) {
-			String var = StringManipulator.toFileName(variant);
-			if (var.length() != 0) {
-				sb.append("_").append(var);
-			}
+		if (variant != null && variant.length() != 0) {
+			sb.append(variant);
 		}
-		if (author != null) {
-			String auth = StringManipulator.toFileName(author.getName());
-			if (auth.length() != 0) {
-				sb.append("_").append(auth);
-			}
+		if (author != null && author.name != null && author.name.length() != 0) {
+			sb.append(author.name);
 		}
-		
 		String name = sb.toString();
 		
-		// truncate the name to certain length
-		int max = Constants.MAX_FILE_NAME_CODEPOINTS - EXTENSION.length();
-		if (name.length() > max) {
-			LOGGER.warn("File name too long '{}', truncating.", name);
-			name = name.substring(0, Math.min(name.length() - 1, max));
-		}
+//		// truncate the name to certain length
+//		int max = Constants.MAX_FILE_NAME_CODEPOINTS - EXTENSION.length();
+//		if (name.length() > max) {
+//			LOGGER.warn("File name too long '{}', truncating.", name);
+//			name = name.substring(0, Math.min(name.length() - 1, max));
+//		}
 		
-		return name;
+		return StringManipulator.toFileName(name, song.getId());
 	}
 	
 	// searching

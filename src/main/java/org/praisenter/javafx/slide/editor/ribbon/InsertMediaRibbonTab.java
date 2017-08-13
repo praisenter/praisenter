@@ -7,7 +7,7 @@ import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.SlideMode;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.events.MediaComponentAddEvent;
-import org.praisenter.slide.MediaComponent;
+import org.praisenter.slide.media.MediaComponent;
 
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;

@@ -24,14 +24,11 @@
  */
 package org.praisenter;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Represents a variant of text (a translation for example).
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum TextVariant {
 	/** The primary text */
 	PRIMARY,

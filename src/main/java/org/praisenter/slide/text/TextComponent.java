@@ -28,16 +28,29 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
+import org.praisenter.slide.effects.SlideShadow;
 import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
-import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Represents a component of a slide that displays text.
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = BasicTextComponent.class, name = "text"),
+	@Type(value = CountdownComponent.class, name = "countdown"),
+	@Type(value = DateTimeComponent.class, name = "datetime"),
+	@Type(value = TextPlaceholderComponent.class, name = "placeholder")
+})
 @XmlSeeAlso({
 	BasicTextComponent.class,
 	DateTimeComponent.class,

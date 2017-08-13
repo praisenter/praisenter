@@ -27,37 +27,30 @@ package org.praisenter.bible;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.praisenter.TextItem;
 import org.praisenter.TextStore;
 import org.praisenter.TextType;
 import org.praisenter.TextVariant;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A {@link TextStore} specifically for bible verses.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "bibleReferenceTextStore")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class BibleReferenceTextStore implements TextStore {
 	/** The bible verse data */
-	@XmlElement(name = "dataVariant", required = false)
-	@XmlElementWrapper(name = "data", required = false)
-	private final Map<TextVariant, BibleReferenceSet> data;
+	@JsonProperty
+	private final Map<TextVariant, BibleReferenceSet> variants;
 	
 	/**
 	 * Creates an new empty store.
 	 */
 	public BibleReferenceTextStore() {
-		this.data = new HashMap<TextVariant, BibleReferenceSet>();
+		this.variants = new HashMap<TextVariant, BibleReferenceSet>();
 		for (TextVariant variant : TextVariant.values()) {
-			this.data.put(variant, new BibleReferenceSet());
+			this.variants.put(variant, new BibleReferenceSet());
 		}
 	}
 	
@@ -67,8 +60,8 @@ public final class BibleReferenceTextStore implements TextStore {
 	 */
 	public BibleReferenceTextStore(BibleReferenceTextStore store) {
 		this();
-		for (TextVariant variant : store.data.keySet()) {
-			this.data.put(variant, store.data.get(variant).copy());
+		for (TextVariant variant : store.variants.keySet()) {
+			this.variants.put(variant, store.variants.get(variant).copy());
 		}
 	}
 	
@@ -78,7 +71,7 @@ public final class BibleReferenceTextStore implements TextStore {
 	@Override
 	public Map<TextType, TextItem> get(TextVariant variant) {
 		Map<TextType, TextItem> data = new HashMap<TextType, TextItem>();
-		BibleReferenceSet brs = this.data.get(variant);
+		BibleReferenceSet brs = this.variants.get(variant);
 		if (brs != null) {
 			for (TextType type : TextType.values()) {
 				data.put(type, new TextItem(brs.getText(type)));
@@ -92,7 +85,7 @@ public final class BibleReferenceTextStore implements TextStore {
 	 */
 	@Override
 	public TextItem get(TextVariant variant, TextType type) {
-		BibleReferenceSet brs = this.data.get(variant);
+		BibleReferenceSet brs = this.variants.get(variant);
 		if (brs != null) {
 			return new TextItem(brs.getText(type));
 		}
@@ -113,7 +106,7 @@ public final class BibleReferenceTextStore implements TextStore {
 	 * @return {@link BibleReferenceSet}
 	 */
 	public BibleReferenceSet getVariant(TextVariant variant) {
-		return this.data.get(variant);
+		return this.variants.get(variant);
 	}
 	
 	/**
@@ -122,14 +115,14 @@ public final class BibleReferenceTextStore implements TextStore {
 	 * @param data the reference set
 	 */
 	public void setVariant(TextVariant variant, BibleReferenceSet data) {
-		this.data.put(variant, data);
+		this.variants.put(variant, data);
 	}
 	
 	/**
 	 * Clear's this text store.
 	 */
 	public void clear() {
-		for (BibleReferenceSet set : this.data.values()) {
+		for (BibleReferenceSet set : this.variants.values()) {
 			set.clear();
 		}
 	}

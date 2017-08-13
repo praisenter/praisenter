@@ -30,11 +30,32 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
  * The base class for immutable custom easings.
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = Back.class, name = "back"),
+	@Type(value = Bounce.class, name = "bounce"),
+	@Type(value = Circular.class, name = "circular"),
+	@Type(value = Cubic.class, name = "cubic"),
+	@Type(value = Elastic.class, name = "elastic"),
+	@Type(value = Exponential.class, name = "exponential"),
+	@Type(value = Linear.class, name = "linear"),
+	@Type(value = Quadratic.class, name = "quadratic"),
+	@Type(value = Quartic.class, name = "quartic"),
+	@Type(value = Quintic.class, name = "quintic"),
+	@Type(value = Sinusoidal.class, name = "sinusoidal")
+})
 @XmlRootElement(name = "easing")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso(value = {
@@ -52,6 +73,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 })
 public abstract class Easing {
 	/** The easing type */
+	@JsonProperty
 	@XmlElement(name = "type", required = false)
 	final EasingType type;
 
@@ -72,7 +94,20 @@ public abstract class Easing {
         }
         this.type = type;
     }
-
+    
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(this.getClass().getSimpleName())
+		  .append("[")
+		  .append(this.type)
+		  .append("]");
+		return sb.toString();
+	}
+	
     /**
      * Makes a copy of this easing.
      * @return Easing

@@ -31,6 +31,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.slide.easing.Easing;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 //FEATURE (L) Add more shape types (Star, Rect, etc)
 
 /**
@@ -48,10 +50,12 @@ public final class Shaped extends Animation {
 	public static final Operation DEFAULT_OPERATION = Operation.EXPAND;
 	
 	/** The shape */
+	@JsonProperty
 	@XmlElement(name = "shapeType", required = false)
 	final ShapeType shapeType;
 	
 	/** The operation */
+	@JsonProperty
 	@XmlElement(name = "operation", required = false)
 	final Operation operation;
 

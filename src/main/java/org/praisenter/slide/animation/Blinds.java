@@ -31,6 +31,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.praisenter.slide.easing.Easing;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a blinds animation.
  * @author William Bittle
@@ -46,10 +48,12 @@ public final class Blinds extends Animation {
 	public static final int DEFAULT_BLIND_COUNT = 12;
 	
 	/** The orientation of the blinds */
+	@JsonProperty
 	@XmlElement(name = "orientation", required = false)
 	final Orientation orientation;
 	
 	/** The blind count */
+	@JsonProperty
 	@XmlElement(name = "blindCount", required = false)
 	final int blindCount;
 	

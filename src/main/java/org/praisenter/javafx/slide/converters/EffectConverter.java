@@ -24,9 +24,11 @@
  */
 package org.praisenter.javafx.slide.converters;
 
+import org.praisenter.slide.effects.SlideColorAdjust;
+import org.praisenter.slide.effects.SlideShadow;
 import org.praisenter.slide.graphics.ShadowType;
-import org.praisenter.slide.graphics.SlideShadow;
 
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Effect;
 import javafx.scene.effect.InnerShadow;
@@ -67,5 +69,21 @@ public final class EffectConverter {
 			s.setSpread(shadow.getSpread());
 			return s;
 		}
+	}
+	
+	/**
+	 * Returns an Effect for the given {@link SlideColorAdjust}.
+	 * @param colorAdjust the color adjustment
+	 * @return Effect
+	 */
+	public static Effect toJavaFX(SlideColorAdjust colorAdjust) {
+		if (colorAdjust == null) {
+			return null;
+		}
+		return new ColorAdjust(
+				colorAdjust.getHue(),
+				colorAdjust.getSaturation(),
+				colorAdjust.getBrightness(),
+				colorAdjust.getContrast());
 	}
 }

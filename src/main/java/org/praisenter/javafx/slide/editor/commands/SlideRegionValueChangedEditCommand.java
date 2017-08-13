@@ -6,12 +6,12 @@ import org.praisenter.javafx.command.EditCommand;
 import org.praisenter.javafx.command.ValueChangedEditCommand;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.effects.SlideShadow;
 import org.praisenter.slide.graphics.SlideColor;
 import org.praisenter.slide.graphics.SlideGradientStop;
 import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideRadialGradient;
-import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.utility.Colors;
 

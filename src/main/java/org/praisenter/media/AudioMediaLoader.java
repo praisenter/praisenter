@@ -31,15 +31,8 @@ import java.nio.file.Path;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.InvalidFormatException;
-import org.praisenter.ThumbnailSettings;
-
-import io.humble.video.Codec;
-import io.humble.video.Decoder;
-import io.humble.video.Demuxer;
-import io.humble.video.DemuxerFormat;
-import io.humble.video.DemuxerStream;
-import io.humble.video.MediaDescriptor;
+import org.praisenter.tools.ToolExecutionException;
+import org.praisenter.tools.ffmpeg.FFprobeMediaMetadata;
 
 /**
  * {@link MediaLoader} that loads audio media.
@@ -48,14 +41,14 @@ import io.humble.video.MediaDescriptor;
  */
 public final class AudioMediaLoader extends AbstractMediaLoader implements MediaLoader {
 	/** The class-level logger */
-	private static Logger LOGGER = LogManager.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/**
 	 * Minimal constructor.
-	 * @param thumbnailSettings the thumbnail generation settings
+	 * @param context the context
 	 */
-	public AudioMediaLoader(ThumbnailSettings thumbnailSettings) {
-		super(thumbnailSettings);
+	public AudioMediaLoader(MediaLibraryContext context) {
+		super(context);
 	}
 	
 	/* (non-Javadoc)
@@ -63,7 +56,7 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 	 */
 	@Override
 	public boolean isSupported(String mimeType) {
-		if (mimeType != null && mimeType.contains("audio")) {
+		if (mimeType != null && mimeType.startsWith("audio")) {
 			// ffmpeg/humble does not support midi
 			if (mimeType.contains("midi")) {
 				return false;
@@ -78,50 +71,34 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
 	 */
 	@Override
-	public Media load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
+	public Media load(Path path) throws MediaImportException {
 		if (Files.exists(path) && Files.isRegularFile(path)) {
-			Demuxer demuxer = null;
+			// get the metadata
 			try {
-				demuxer = Demuxer.make();
-				demuxer.open(path.toString(), null, false, true, null, null);
-				
-				final DemuxerFormat format = demuxer.getFormat();
-				final long length = demuxer.getDuration() / 1000 / 1000;
-				
-				final int streams = demuxer.getNumStreams();
-				for (int i = 0; i < streams; i++) {
-					final DemuxerStream stream = demuxer.getStream(i);
-					final Decoder decoder = stream.getDecoder();
-					if (decoder.getCodecType() == MediaDescriptor.Type.MEDIA_AUDIO) {
-						final Codec codec = decoder.getCodec();
-						
-						final MediaCodec mc = new MediaCodec(CodecType.AUDIO, codec.getName(), codec.getLongName());
-						final MediaFormat mf = new MediaFormat(format.getName().toLowerCase(), format.getLongName(), mc);
-						final Media media = Media.forAudio(path, mf, length, null);
-						
-						// FEATURE (L) Add call to an album art web service
-						
-						return media;
-					}
+				FFprobeMediaMetadata metadata = this.context.getTools().ffprobeExtractMetadata(path);
+
+				if (!metadata.hasAudio()) {
+					LOGGER.error("No audio stream present in file: '{}'", path.toAbsolutePath().toString());
+					throw new MediaImportException("No audio stream was found in the file '" + path.toAbsolutePath().toString() + "'.");
 				}
 				
-				LOGGER.warn("No audio stream present on file: '{}'", path.toAbsolutePath().toString());
-				// no audio stream present
-				throw new NoAudioInMediaException(path.toAbsolutePath().toString());
-			} catch (InterruptedException ex) {
-				throw new IOException(ex.getMessage(), ex);
-			} finally {
-				if (demuxer != null) {
-					try {
-						demuxer.close();
-					} catch (Exception e) {
-						// just eat them
-						LOGGER.warn("Failed to close demuxer on: '{}': {}.", path.toAbsolutePath().toString(), e.getMessage());
-					}
-				}
+				final Media media = Media.forAudio(
+						path, 
+						metadata.getFormat(), 
+						metadata.getLength(), 
+						null);
+				
+				LOGGER.debug("Audio media '{}' loaded", path);
+				return media;
+			} catch (InterruptedException e) {
+				LOGGER.error("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' was interrupted.", e);
+				throw new MediaImportException("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' was interrupted.", e);
+			} catch (ToolExecutionException | IOException e) {
+				LOGGER.error("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' failed.", e);
+				throw new MediaImportException("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' failed.", e);
 			}
 		} else {
-			throw new FileNotFoundException(path.toAbsolutePath().toString());
+			throw new MediaImportException(new FileNotFoundException(path.toAbsolutePath().toString()));
 		}
 	}
 }

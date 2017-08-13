@@ -230,9 +230,13 @@ public final class MediaPlayerPane extends BorderPane {
      */
     public void setMediaPlayer(MediaPlayer player, MediaType type) {
     	// if the current player isn't null
+    	MediaPlayer old = this.mediaView.getMediaPlayer();
+    	
+		// set the new player
+    	this.mediaView.setMediaPlayer(player);
+    	
     	// then make sure we clean up the
     	// current one right away
-    	MediaPlayer old = mediaView.getMediaPlayer();
     	if (old != null) {
     		old.dispose();
     	}
@@ -241,16 +245,10 @@ public final class MediaPlayerPane extends BorderPane {
     	this.btnPlay.setGraphic(play);
 		this.sldTime.setValue(0);
 		
-		// set the new player
-    	this.mediaView.setMediaPlayer(player);
-    	
     	// perform more setup
     	if (player != null) {
     		// enable the controls
     		this.controlsBar.setDisable(false);
-    		
-    		// set the mediaview's player
-    		this.mediaView.setMediaPlayer(player);
     		
     		// wire up events
     		player.setCycleCount(1);

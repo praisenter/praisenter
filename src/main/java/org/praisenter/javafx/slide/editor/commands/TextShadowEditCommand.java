@@ -4,7 +4,7 @@ import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.EditCommand;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextComponent;
-import org.praisenter.slide.graphics.SlideShadow;
+import org.praisenter.slide.effects.SlideShadow;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.Node;

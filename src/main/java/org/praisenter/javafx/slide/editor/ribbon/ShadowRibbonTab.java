@@ -3,12 +3,13 @@ package org.praisenter.javafx.slide.editor.ribbon;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PreventUndoRedoEventFilter;
 import org.praisenter.javafx.command.ActionEditCommand;
+import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.ShadowEditCommand;
+import org.praisenter.slide.effects.SlideShadow;
 import org.praisenter.slide.graphics.ShadowType;
-import org.praisenter.slide.graphics.SlideShadow;
 
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
@@ -105,10 +106,11 @@ class ShadowRibbonTab extends ComponentEditorRibbonTab {
 			if (this.mutating) return;
 			// set the value
 			ObservableSlideRegion<?> comp = context.getSelected();
-			if (comp != null) {
-				SlideShadow oldValue = comp.getShadow();
+			if (comp != null && comp instanceof ObservableSlideComponent) {
+				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)comp;
+				SlideShadow oldValue = osc.getShadow();
 				SlideShadow newValue = this.getControlValues();
-				applyCommand(new ShadowEditCommand(oldValue, newValue, comp, context.selectedProperty(), this.cmbType,
+				applyCommand(new ShadowEditCommand(oldValue, newValue, osc, context.selectedProperty(), this.cmbType,
 								new ActionEditCommand(null, self -> {
 									this.setControlValues(oldValue);
 								}, self -> {
@@ -124,14 +126,19 @@ class ShadowRibbonTab extends ComponentEditorRibbonTab {
 		this.spnRadius.valueProperty().addListener(listener);
 		this.spnSpread.valueProperty().addListener(listener);
 		
+		this.managedProperty().bind(this.visibleProperty());
+		
 		// when the value is changed externally
 		this.context.selectedProperty().addListener((obs, ov, nv) -> {
 			// update controls
 			this.mutating = true;
-			if (nv != null) {
+			if (nv != null && nv instanceof ObservableSlideComponent) {
+				ObservableSlideComponent<?> osc = (ObservableSlideComponent<?>)nv;
+				this.setVisible(true);
 				this.setDisable(false);
-				setControlValues(nv.getShadow());
+				setControlValues(osc.getShadow());
 			} else {
+				this.setVisible(false);
 				this.setDisable(true);
 				setControlValues(null);
 			}

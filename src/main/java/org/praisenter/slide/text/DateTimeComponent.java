@@ -35,9 +35,15 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.praisenter.json.SimpleDateFormatJsonDeserializer;
+import org.praisenter.json.SimpleDateFormatJsonSerializer;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.xml.adapters.SimpleDateFormatTypeAdapter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * A component to show the current date and time based on a given format.
@@ -48,6 +54,9 @@ import org.praisenter.xml.adapters.SimpleDateFormatTypeAdapter;
 @XmlAccessorType(XmlAccessType.NONE)
 public class DateTimeComponent extends AbstractTextComponent implements SlideRegion, SlideComponent, TextComponent {
 	/** The date/time format */
+	@JsonProperty
+	@JsonSerialize(using = SimpleDateFormatJsonSerializer.class)
+	@JsonDeserialize(using = SimpleDateFormatJsonDeserializer.class)
 	@XmlElement(name = "dateTimeFormat", required = false)
 	@XmlJavaTypeAdapter(value = SimpleDateFormatTypeAdapter.class)
 	SimpleDateFormat dateTimeFormat;

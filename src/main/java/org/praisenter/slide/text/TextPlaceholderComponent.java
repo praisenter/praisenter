@@ -34,6 +34,8 @@ import org.praisenter.TextVariant;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a text component whose text will be supplied from an external source.
  * <p>
@@ -50,10 +52,12 @@ public class TextPlaceholderComponent extends AbstractTextComponent implements S
 	String text;
 
 	/** The placeholder type */
+	@JsonProperty
 	@XmlElement(name = "placeholderType", required = false)
 	TextType placeholderType;
 	
 	/** The placeholder variant */
+	@JsonProperty
 	@XmlElement(name = "placeholderVariant", required = false)
 	TextVariant placeholderVariant;
 

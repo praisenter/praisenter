@@ -24,14 +24,11 @@
  */
 package org.praisenter;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Media type enumeration.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum MediaType {
 	/** Images */
 	IMAGE,
@@ -49,11 +46,11 @@ public enum MediaType {
 	 * @return {@link MediaType}
 	 */
 	public static final MediaType getMediaTypeFromMimeType(String mimeType) {
-		if (mimeType.contains("image")) {
+		if (mimeType.startsWith("image")) {
 			return IMAGE;
-		} else if (mimeType.contains("video")) {
+		} else if (mimeType.startsWith("video")) {
 			return VIDEO;
-		} else if (mimeType.contains("audio")) {
+		} else if (mimeType.startsWith("audio")) {
 			return AUDIO;
 		}
 		return null;

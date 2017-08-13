@@ -29,8 +29,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.zip.ZipOutputStream;
 
-import javax.xml.bind.JAXBException;
-
 /**
  * Represents an exporter for {@link Slide}s stored within the application.
  * @author William Bittle
@@ -45,9 +43,8 @@ public interface SlideExporter {
 	 * @param path the path to export to
 	 * @param slides the slides to export
 	 * @throws IOException if an IO error occurs
-	 * @throws JAXBException if an error occurs while writing the XML
 	 */
-	public abstract void execute(Path path, List<Slide> slides) throws IOException, JAXBException;
+	public abstract void execute(Path path, List<Slide> slides) throws IOException;
 	
 	/**
 	 * Exports the given slides to the given zip stream.
@@ -55,7 +52,6 @@ public interface SlideExporter {
 	 * @param folder the folder in the zip to place the exported slides
 	 * @param slides the slides to export
 	 * @throws IOException if an IO error occurs
-	 * @throws JAXBException if an error occurs while writing the XML
 	 */
-	public abstract void execute(ZipOutputStream stream, String folder, List<Slide> slides) throws IOException, JAXBException;
+	public abstract void execute(ZipOutputStream stream, String folder, List<Slide> slides) throws IOException;
 }

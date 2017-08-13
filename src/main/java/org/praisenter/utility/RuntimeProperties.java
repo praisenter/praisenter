@@ -73,6 +73,10 @@ public final class RuntimeProperties {
 	/** The system architecture */
 	public static final String ARCHITECTURE = getArchitecture();
 	
+	public static final boolean IS_64 = is64Bit();
+	
+	public static final boolean IS_32 = is32Bit();
+	
 	/** 
 	 * The path to the user's home directory
 	 * <p>
@@ -201,6 +205,31 @@ public final class RuntimeProperties {
 		} catch (SecurityException e) {
 			return "";
 		}
+	}
+	
+	private static final boolean is64Bit() {
+		try{
+			String arch = System.getProperty("os.arch");
+			if (arch.contains("x86_64") ||
+				arch.contains("x64") ||
+				arch.contains("amd64")) {
+				return true;
+			}
+		} catch (SecurityException e) {
+		}
+		return false;
+	}
+	
+	private static final boolean is32Bit() {
+		try{
+			String arch = System.getProperty("os.arch");
+			if (arch.contains("x86") ||
+				arch.matches("i[3-6]86")) {
+				return true;
+			}
+		} catch (SecurityException e) {
+		}
+		return false;
 	}
 	
 	/**

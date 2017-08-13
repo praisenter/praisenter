@@ -30,6 +30,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents the style of a stroke.
  * @author William Bittle
@@ -39,18 +41,22 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideStrokeStyle {
 	/** The stroke type */
+	@JsonProperty
 	@XmlElement(name = "type", required = false)
 	final SlideStrokeType type;
 	
 	/** The stroke join */
+	@JsonProperty
 	@XmlElement(name = "join", required = false)
 	final SlideStrokeJoin join;
 	
 	/** The stroke cap */
+	@JsonProperty
 	@XmlElement(name = "cap", required = false)
 	final SlideStrokeCap cap;
 	
 	/** The dash array */
+	@JsonProperty
 	@XmlElement(name = "length", required = false)
 	@XmlElementWrapper(name = "dashes", required = false)
 	final Double[] dashes;
@@ -81,6 +87,22 @@ public final class SlideStrokeStyle {
 			dashes = new Double[0];
 		}
 		this.dashes = dashes;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("STYLE")
+		  .append("[")
+		  .append(this.type).append(", ")
+		  .append(this.join).append(", ")
+		  .append(this.cap).append(", ")
+		  .append(this.dashes)
+		  .append("]");
+		return sb.toString();
 	}
 	
 	/* (non-Javadoc)

@@ -3,7 +3,7 @@ package org.praisenter.javafx.slide.editor.commands;
 import org.praisenter.javafx.command.EditCommand;
 import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
-import org.praisenter.slide.object.MediaObject;
+import org.praisenter.slide.media.MediaObject;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.Node;

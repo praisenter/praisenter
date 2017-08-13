@@ -44,6 +44,9 @@ public enum MimeType {
 	/** XML mimetype */
 	XML("application/xml"),
 	
+	/** JSON mimetype */
+	JSON("application/json"),
+	
 	/** ZIP mimetype */
 	ZIP("application/zip");
 	
@@ -67,22 +70,53 @@ public enum MimeType {
 	private static final Tika TIKA = new Tika();
 	
 	/**
+	 * Attempts to reconcile the mime types detected by Tika and mime.types.
+	 * <p>
+	 * What we are looking here is whether we agree on image, audio, or video mostly.
+	 * The actual file types aren't really of concern.
+	 * @param mime the mime.types mime type
+	 * @param tika the Tika mime type
+	 * @return String
+	 */
+	private static final String reconcileMimeTypes(String mime, String tika) {
+		boolean hasTika = !StringManipulator.isNullOrEmpty(tika);
+		boolean hasMime = !StringManipulator.isNullOrEmpty(mime) && !mime.equals("application/octet-stream");
+		
+		if (hasTika && !hasMime) {
+			// this indicates mime.types didn't know what it is
+			// so use whatever tika gave us as long as it's non-null/empty
+			return tika;
+		} else if (hasTika && hasMime) {
+			if (mime.contains("ogg")) {
+				// then we can't trust tika (apparently it only detects ogg audio
+				// and when run against an ogg video it returns audio/xxx)
+				return mime;
+			}
+			return tika;
+		}
+		return mime;
+	}
+	
+	/**
 	 * Returns the mime-type for the given path.
 	 * @param path the path
 	 * @return String
 	 */
 	public static final String get(Path path) {
-		String mimeType = null;
+		// get the mime type based on the mime.types mapping
+		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
+		String mime = map.getContentType(path.toString());
+		
+		// get the mime type based on what Tika thinks
+		String tika = null;
 		try {
-			// try to use apache tika first
-			mimeType = TIKA.detect(path);
+			tika = TIKA.detect(path);
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to detect mime type using Tika.", ex);
-			// fallback to mime.types
-			FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
-			mimeType = map.getContentType(path.toString());
 		}
-		return mimeType;
+		
+		// try to reconcile
+		return reconcileMimeTypes(mime, tika);
 	}
 	
 	/**
@@ -91,14 +125,15 @@ public enum MimeType {
 	 * @return String
 	 */
 	public static final String get(String name) {
-		// try to use apache tika first
-		String mimeType = TIKA.detect(name);
-		// fallback to mime.types
-		if (mimeType == null) {
-			FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
-			mimeType = map.getContentType(name);
-		}
-		return mimeType;
+		// get the mime type based on the mime.types mapping
+		FileTypeMap map = MimetypesFileTypeMap.getDefaultFileTypeMap();
+		String mime = map.getContentType(name);
+		
+		// get the mime type based on what Tika thinks
+		String tika = TIKA.detect(name);
+		
+		// try to reconcile
+		return reconcileMimeTypes(mime, tika);
 	}
 	
 	/**

@@ -29,8 +29,16 @@ import java.util.UUID;
 
 import org.praisenter.slide.graphics.Rectangle;
 import org.praisenter.slide.graphics.SlidePaint;
-import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
+import org.praisenter.slide.media.MediaComponent;
+import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.CountdownComponent;
+import org.praisenter.slide.text.DateTimeComponent;
+import org.praisenter.slide.text.TextPlaceholderComponent;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
 // FEATURE (L) Add the ability to rotate components
 
@@ -39,6 +47,17 @@ import org.praisenter.slide.graphics.SlideStroke;
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = BasicSlide.class, name = "slide"),
+	@Type(value = BasicTextComponent.class, name = "text"),
+	@Type(value = CountdownComponent.class, name = "countdown"),
+	@Type(value = DateTimeComponent.class, name = "datetime"),
+	@Type(value = MediaComponent.class, name = "media"),
+	@Type(value = TextPlaceholderComponent.class, name = "placeholder")
+})
 public interface SlideRegion {
 	/** The minimum size of a region */
 	public static final double MIN_SIZE = 20.0;
@@ -138,49 +157,6 @@ public interface SlideRegion {
 	 * @return double
 	 */
 	public abstract double getOpacity();
-	
-	// FIXME Convert the Shadow/Glow to a list of effects for forward compatibility for other effects
-	
-	// Eventually it would be nice to support all of the below.  However, we need to confirm that
-	// each is chainable and that the input for each is easily configurable.  We also need to consider
-	// that some of these aren't really transferable between applications and later version may not
-	// support them either.
-	//	Bloom
-	//  Glow
-	//  ColorAdjust
-	//  DisplacementMap
-	//  GaussianBlur
-	//  DropShadow
-	//  InnerShadow
-	//  MotionBlur
-	//  Lighting
-	//  PerspectiveTransform
-	//  Reflection
-	//  SepiaTone
-	
-	/**
-	 * Sets the shadow of the region.
-	 * @param shadow the shadow
-	 */
-	public abstract void setShadow(SlideShadow shadow);
-	
-	/**
-	 * Returns the shadow of the region.
-	 * @return {@link SlideShadow}
-	 */
-	public abstract SlideShadow getShadow();
-
-	/**
-	 * Sets the glow of the region.
-	 * @param glow the glow
-	 */
-	public abstract void setGlow(SlideShadow glow);
-	
-	/**
-	 * Returns the glow of the region.
-	 * @return {@link SlideShadow}
-	 */
-	public abstract SlideShadow getGlow();
 	
 	// other
 	

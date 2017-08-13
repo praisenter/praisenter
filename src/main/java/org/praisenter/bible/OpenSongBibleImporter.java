@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -45,7 +44,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.InvalidFormatException;
-import org.praisenter.utility.Zip;
+import org.praisenter.utility.Streams;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -56,7 +55,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class OpenSongBibleImporter extends AbstractBibleImporter implements BibleImporter {
+final class OpenSongBibleImporter extends AbstractBibleImporter implements BibleImporter {
 	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -67,7 +66,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public List<Bible> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException {
+	public List<Bible> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
 		List<Bible> bibles = new ArrayList<Bible>();
 		
 		// make sure the file exists
@@ -144,7 +143,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 	 */
 	private Bible parse(InputStream stream, String name) throws IOException, InvalidFormatException {
 		try {
-			byte[] content = Zip.read(stream);
+			byte[] content = Streams.read(stream);
 			// read the bytes
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser parser = factory.newSAXParser();
@@ -287,6 +286,7 @@ public final class OpenSongBibleImporter extends AbstractBibleImporter implement
 			if ("v".equalsIgnoreCase(qName)) {
 				// check for embedded verses (n="1" t="4") ...why oh why...
 				if (this.verseTo > 0 && this.verseTo > this.number) {
+					LOGGER.warn("The bible included a verse that is a collection of verses with a range of {} to {}. These were imported as separate verses, all with the same text.", this.number, this.verseTo);
 					this.bible.hadImportWarning = true;
 					// just duplicate the verse content for each
 					for (short i = this.number; i <= this.verseTo; i++) {

@@ -26,13 +26,26 @@ package org.praisenter.slide.graphics;
 
 import javax.xml.bind.annotation.XmlSeeAlso;
 
-import org.praisenter.slide.object.MediaObject;
+import org.praisenter.slide.media.MediaObject;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Represents a paint like a color, image, etc.
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = SlideColor.class, name = "color"),
+	@Type(value = SlideLinearGradient.class, name = "linearGradient"),
+	@Type(value = SlideRadialGradient.class, name = "radialGradient"),
+	@Type(value = MediaObject.class, name = "mediaObject")
+})
 @XmlSeeAlso({
 	SlideColor.class,
 	SlideLinearGradient.class,

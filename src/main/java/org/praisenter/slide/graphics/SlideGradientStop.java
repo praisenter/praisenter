@@ -31,6 +31,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * A stop in a gradient based on an offset between 0 and 1.
  * @author William Bittle
@@ -40,10 +42,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideGradientStop {
 	/** The stop location from 0.0 - 1.0 inclusive */
+	@JsonProperty
 	@XmlElement(name = "offset", required = false)
 	final double offset;
 	
 	/** The stop color */
+	@JsonProperty
 	@XmlElement(name = "color", required = false)
 	final SlideColor color;
 	
@@ -76,6 +80,20 @@ public final class SlideGradientStop {
 	public SlideGradientStop(double offset, double red, double green, double blue, double alpha) {
 		this.offset = offset;
 		this.color = new SlideColor(red, green, blue, alpha);
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("STOP")
+		  .append("[")
+		  .append(this.offset).append(", ")
+		  .append(this.color)
+		  .append("]");
+		return sb.toString();
 	}
 
 	/* (non-Javadoc)

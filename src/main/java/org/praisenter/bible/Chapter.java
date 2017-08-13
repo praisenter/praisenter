@@ -28,12 +28,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a chapter of the bible.
@@ -41,19 +36,16 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @version 3.0.0
  * @since 3.0.0
  */
-@XmlRootElement(name = "chapter")
-@XmlAccessorType(XmlAccessType.NONE)
-public class Chapter implements Comparable<Chapter>, Serializable {
+public final class Chapter implements Comparable<Chapter>, Serializable {
 	/** The serialization id */
 	private static final long serialVersionUID = 9220452361686192242L;
 
 	/** The chapter number */
-	@XmlAttribute(name = "chapter", required = false)
+	@JsonProperty
 	short number;
 	
 	/** The verses in this chapter */
-	@XmlElement(name = "verse", required = false)
-	@XmlElementWrapper(name = "verses", required = false)
+	@JsonProperty
 	final List<Verse> verses;
 	
 	/**

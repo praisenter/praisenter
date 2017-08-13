@@ -37,16 +37,12 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamReader;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.UnknownFormatException;
-import org.praisenter.utility.Zip;
+import org.praisenter.utility.Streams;
 
 /**
  * A slide importer that attempts to determine the format of the given path using
@@ -63,7 +59,7 @@ public final class FormatIdentifingSlideImporter implements SlideImporter {
 	 * @see org.praisenter.slide.SlideImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public List<Slide> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException, UnknownFormatException {
+	public List<Slide> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException, UnknownFormatException {
 		// make sure the file exists
 		if (Files.exists(path)) {
 			SlideImporter importer = this.getImporter(path);
@@ -96,12 +92,15 @@ public final class FormatIdentifingSlideImporter implements SlideImporter {
 				while ((entry = zis.getNextEntry()) != null) {
 					// check for .xml extension, could be any kind of XML really
 					if (entry.getName().toLowerCase().endsWith(".xml")) {
-						byte[] content = Zip.read(zis);
+						byte[] content = Streams.read(zis);
 						return this.getImporterForXml(new ByteArrayInputStream(content));
+					// check for praisenter format
+					} else if (entry.getName().toLowerCase().endsWith(Constants.SLIDE_FILE_EXTENSION)) {
+						return new PraisenterSlideImporter();
 					// otherwise read the first line of the file to see
 					// if we can determine the file type that way
 					} else {
-						byte[] content = Zip.read(zis);
+						byte[] content = Streams.read(zis);
 						SlideImporter bi = this.getImporterForFile(new ByteArrayInputStream(content));
 						if (bi != null) {
 							return bi;
@@ -111,12 +110,15 @@ public final class FormatIdentifingSlideImporter implements SlideImporter {
 			}
 		// check for .xml extension, could be any kind of XML really
 		} else if (fileName.endsWith(".xml")) {
-			byte[] content = Zip.read(new FileInputStream(path.toFile()));
+			byte[] content = Streams.read(new FileInputStream(path.toFile()));
 			return this.getImporterForXml(new ByteArrayInputStream(content));
+		// check for praisenter format
+		} else if (fileName.endsWith(Constants.SLIDE_FILE_EXTENSION)) {
+			return new PraisenterSlideImporter();
 		// otherwise read the first line of the file to see
 		// if we can determine the file type that way
 		} else {
-			byte[] content = Zip.read(new FileInputStream(path.toFile()));
+			byte[] content = Streams.read(new FileInputStream(path.toFile()));
 			SlideImporter importer = this.getImporterForFile(new ByteArrayInputStream(content));
 			return importer;
 		}
@@ -127,28 +129,11 @@ public final class FormatIdentifingSlideImporter implements SlideImporter {
 	/**
 	 * Returns a {@link SlideImporter} for the given stream assuming its an XML document.
 	 * <p>
-	 * Returns null if the file was not an XML document.
+	 * Returns null if the file was not an XML document or the format is not known.
 	 * @param stream the file stream
 	 * @return {@link SlideImporter}
 	 */
 	private SlideImporter getImporterForXml(ByteArrayInputStream stream) {
-		try {
-			XMLInputFactory f = XMLInputFactory.newInstance();
-			XMLStreamReader r = f.createXMLStreamReader(stream);
-			while(r.hasNext()) {
-			    r.next();
-			    if (r.isStartElement()) {
-			    	if (r.getLocalName().equalsIgnoreCase("slide")) {
-			    		String format = r.getAttributeValue(null, "format");
-			    		if (format != null && format.toLowerCase().equals(Constants.FORMAT_NAME)) {
-			    			return new PraisenterSlideImporter();
-			    		}
-			    	}
-			    }
-			}
-		} catch (Exception ex) {
-			LOGGER.warn("An error occurred while trying read the file as an XML document.", ex);
-		}
 		return null;
 	}
 	
@@ -168,6 +153,9 @@ public final class FormatIdentifingSlideImporter implements SlideImporter {
 				// then its an xml document
 				stream.reset();
 				return getImporterForXml(stream);
+			} else if (line.startsWith("{")) {
+				// it's a json file
+				return new PraisenterSlideImporter();
 			}
 		} catch (IOException ex) {
 			LOGGER.warn("An error occurred while trying to determine the format of the file.", ex);

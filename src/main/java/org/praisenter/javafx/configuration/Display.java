@@ -30,6 +30,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 
@@ -45,28 +47,35 @@ import javafx.stage.Screen;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Display {
 	/** The id (index) of the display */
+	@JsonProperty
 	@XmlAttribute(name = "id")
 	private final int id;
 	
+	@JsonProperty
 	@XmlAttribute(name = "role")
 	private final DisplayRole role;
 	
+	@JsonProperty
 	@XmlElement(name = "name", required = false)
 	private final String name;
 	
 	/** The x coordinate of the top left corner of this display */
+	@JsonProperty
 	@XmlAttribute(name = "x")
 	private final int x;
 	
 	/** The y coordinate of the top left corner of this display */
+	@JsonProperty
 	@XmlAttribute(name = "y")
 	private final int y;
 	
 	/** The width of this display */
+	@JsonProperty
 	@XmlAttribute(name = "w")
 	private final int width;
 	
 	/** The height of this display */
+	@JsonProperty
 	@XmlAttribute(name = "h")
 	private final int height;
 

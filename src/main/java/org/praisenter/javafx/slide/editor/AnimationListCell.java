@@ -39,7 +39,7 @@ import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.ObservableTextPlaceholderComponent;
 import org.praisenter.javafx.slide.animation.Animations;
 import org.praisenter.slide.animation.SlideAnimation;
-import org.praisenter.slide.object.MediaObject;
+import org.praisenter.slide.media.MediaObject;
 
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.binding.StringBinding;

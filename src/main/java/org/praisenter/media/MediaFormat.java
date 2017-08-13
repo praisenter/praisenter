@@ -29,31 +29,24 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A media format.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "format")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class MediaFormat {
 	/** The format short name */
-	@XmlElement(name = "name", required = false)
+	@JsonProperty
 	final String name;
 	
 	/** The format long name */
-	@XmlElement(name = "description", required = false)
+	@JsonProperty
 	final String description;
 	
 	/** The media's contained codecs */
-	@XmlElementWrapper(name = "codecs", required = false)
-	@XmlElement(name = "codec", required = false)
+	@JsonProperty
 	final List<MediaCodec> codecs;
 	
 	/**
@@ -70,7 +63,7 @@ public final class MediaFormat {
 	 * @param name the format's short name 
 	 * @param description the format's long name
 	 */
-	MediaFormat(String name, String description) {
+	public MediaFormat(String name, String description) {
 		this.name = name;
 		this.description = description;
 		this.codecs = new ArrayList<MediaCodec>();
@@ -82,7 +75,7 @@ public final class MediaFormat {
 	 * @param description the format's long name
 	 * @param codecs a list of codecs
 	 */
-	MediaFormat(String name, String description, MediaCodec... codecs) {
+	public MediaFormat(String name, String description, MediaCodec... codecs) {
 		this.name = name;
 		this.description = description;
 		this.codecs = Arrays.asList(codecs);
@@ -94,7 +87,7 @@ public final class MediaFormat {
 	 * @param description the format's long name
 	 * @param codecs a list of codecs
 	 */
-	MediaFormat(String name, String description, List<MediaCodec> codecs) {
+	public MediaFormat(String name, String description, List<MediaCodec> codecs) {
 		this.name = name;
 		this.description = description;
 		this.codecs = codecs;

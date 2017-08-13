@@ -24,11 +24,7 @@
  */
 package org.praisenter.media;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.nio.file.Path;
-
-import org.praisenter.InvalidFormatException;
 
 /**
  * Interface for loading media.
@@ -51,9 +47,7 @@ public interface MediaLoader {
 	 * Loads the media from the media library.
 	 * @param path the path
 	 * @return {@link Media}
-	 * @throws IOException if an IO error occurs
-	 * @throws FileNotFoundException if the given file is not found
-	 * @throws InvalidFormatException if the media could not be read
+	 * @throws MediaImportException if the media failed to be loaded
 	 */
-	public abstract Media load(Path path) throws IOException, FileNotFoundException, InvalidFormatException;
+	public abstract Media load(Path path) throws MediaImportException;
 }

@@ -263,6 +263,7 @@ public final class Praisenter extends Application {
     	GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
 		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
 
+		// create the observable configuration
 		ObservableConfiguration configuration = new ObservableConfiguration(CONFIGURATION);
 		
     	// we'll have a stack of the main pane and the loading pane

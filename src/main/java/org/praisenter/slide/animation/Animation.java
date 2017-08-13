@@ -30,14 +30,33 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.easing.Easing;
 import org.praisenter.slide.easing.Linear;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
 /**
  * Represents an animation that can be applied to slides and components.
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = Blinds.class, name = "blinds"),
+	@Type(value = Fade.class, name = "fade"),
+	@Type(value = Push.class, name = "push"),
+	@Type(value = Shaped.class, name = "shaped"),
+	@Type(value = Split.class, name = "split"),
+	@Type(value = Swap.class, name = "swap"),
+	@Type(value = Swipe.class, name = "swipe"),
+	@Type(value = Zoom.class, name = "zoom")
+})
 @XmlRootElement(name = "animation")
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlSeeAlso(value = {
@@ -77,26 +96,32 @@ public abstract class Animation {
 	// members
 	
 	/** The animation type */
+	@JsonProperty
 	@XmlElement(name = "type", required = false)
 	final AnimationType type;
 	
 	/** The animation duration */
+	@JsonProperty
 	@XmlElement(name = "duration", required = false)
 	final long duration;
 	
 	/** The animation delay */
+	@JsonProperty
 	@XmlElement(name = "delay", required = false)
 	final long delay;
 	
 	/** The number of times to repeat the animation */
+	@JsonProperty
 	@XmlElement(name = "repeatCount", required = false)
 	final int repeatCount;
 	
 	/** Whether the animation should reverse or not */
+	@JsonProperty
 	@XmlElement(name = "autoReverse", required = false)
 	final boolean autoReverse;
 	
 	/** The easing function */
+	@JsonProperty
 	@XmlElement(name = "easing", required = false)
 	final Easing easing;
 
@@ -141,6 +166,24 @@ public abstract class Animation {
 		this.repeatCount = repeatCount < 1 ? DEFAULT_REPEAT_COUNT : repeatCount;
 		this.autoReverse = autoReverse;
 		this.easing = easing == null ? DEFAULT_EASING : easing;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(this.getClass().getSimpleName())
+		  .append("[")
+		  .append(this.type).append(", ")
+		  .append(this.duration).append(", ")
+		  .append(this.delay).append(", ")
+		  .append(this.repeatCount).append(", ")
+		  .append(this.autoReverse).append(", ")
+		  .append(this.easing)
+		  .append("]");
+		return sb.toString();
 	}
 	
 	/**

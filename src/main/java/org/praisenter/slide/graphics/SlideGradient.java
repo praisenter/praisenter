@@ -34,6 +34,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Base class for gradient paints.
  * @author William Bittle
@@ -48,6 +50,7 @@ public abstract class SlideGradient extends AbstractSlidePaint implements SlideP
 	};
 	
 	/** The list of stops */
+	@JsonProperty
 	@XmlElement(name = "stop", required = false)
 	@XmlElementWrapper(name = "stops", required = false)
 	final List<SlideGradientStop> stops;

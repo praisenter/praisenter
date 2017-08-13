@@ -29,6 +29,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a font.
  * @author William Bittle
@@ -38,18 +40,22 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideFont {
 	/** The font family */
+	@JsonProperty
 	@XmlElement(name = "family", required = false)
 	final String family;
 	
 	/** The font weight (bold, extra bold, etc) */
+	@JsonProperty
 	@XmlElement(name = "weight", required = false)
 	final SlideFontWeight weight;
 	
 	/** The font posture (italic, regular) */
+	@JsonProperty
 	@XmlElement(name = "posture", required = false)
 	final SlideFontPosture posture;
 	
 	/** The font size */
+	@JsonProperty
 	@XmlElement(name = "size", required = false)
 	final double size;
 	

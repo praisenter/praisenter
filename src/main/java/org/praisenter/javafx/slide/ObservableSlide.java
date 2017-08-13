@@ -35,10 +35,10 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Tag;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.utility.Fx;
-import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.animation.SlideAnimation;
+import org.praisenter.slide.media.MediaComponent;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
@@ -130,23 +130,22 @@ public final class ObservableSlide<T extends Slide> extends ObservableSlideRegio
 			slide.setTime(nv.longValue()); 
 		});
 		
-		this.build(null);
+		// update the graphics
+		this.updateAll();
+		
+		// build
+		this.container.getChildren().addAll(
+				this.backgroundNode,
+				this.borderNode);
+		this.displayPane.getChildren().add(this.componentCanvas);
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.javafx.slide.ObservableSlideRegion#onBuild(javafx.scene.layout.Pane, javafx.scene.layout.Pane)
-	 */
-	@Override
-	protected void onBuild(Pane displayPane, Pane container) {
-		// add all the components
-		displayPane.getChildren().add(this.componentCanvas);
-	}
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.slide.ObservableSlideRegion#onSizeUpdate(double, double, org.praisenter.utility.Scaling)
 	 */
 	@Override
 	protected void onSizeUpdate(double width, double height, Scaling scaling) {
+		// resize the component canvas
 		Fx.setSize(this.componentCanvas, Math.ceil(width * scaling.factor), Math.ceil(height * scaling.factor));
 	}
 	

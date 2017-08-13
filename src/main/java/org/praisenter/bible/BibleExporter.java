@@ -29,8 +29,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.zip.ZipOutputStream;
 
-import javax.xml.bind.JAXBException;
-
 /**
  * Represents an exporter for {@link Bible}s stored within the application.
  * @author William Bittle
@@ -45,9 +43,8 @@ public interface BibleExporter {
 	 * @param path the path to export to
 	 * @param bibles the bibles to export
 	 * @throws IOException if an IO error occurs
-	 * @throws JAXBException if an error occurs while writing the XML
 	 */
-	public abstract void execute(Path path, List<Bible> bibles) throws IOException, JAXBException;
+	public abstract void execute(Path path, List<Bible> bibles) throws IOException;
 	
 	/**
 	 * Exports the given bibles to the given zip stream.
@@ -55,7 +52,6 @@ public interface BibleExporter {
 	 * @param folder the folder in the stream to export to
 	 * @param bibles the bibles to export
 	 * @throws IOException if an IO error occurs
-	 * @throws JAXBException if an error occurs while writing the XML
 	 */
-	public abstract void execute(ZipOutputStream stream, String folder, List<Bible> bibles) throws IOException, JAXBException;
+	public abstract void execute(ZipOutputStream stream, String folder, List<Bible> bibles) throws IOException;
 }

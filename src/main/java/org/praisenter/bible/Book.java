@@ -28,35 +28,27 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a book in the Bible.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "book")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Book implements Comparable<Book>, Serializable {
 	/** The serialization id */
 	private static final long serialVersionUID = 8128626695273164169L;
 
 	/** The book name */
-	@XmlElement(name = "name", required = false)
+	@JsonProperty
 	String name;
 
 	/** The book number */
-	@XmlAttribute(name = "number", required = false)
+	@JsonProperty
 	short number;
 	
 	/** The chapters in this book */
-	@XmlElement(name = "chapter", required = false)
-	@XmlElementWrapper(name = "chapters", required = false)
+	@JsonProperty
 	final List<Chapter> chapters;
 	
 	/**

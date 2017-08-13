@@ -88,6 +88,9 @@ public enum Setting {
 	/** The audio media FFmpeg command */
 	MEDIA_TRANSCODING_AUDIO_COMMAND,
 	
+	/** The command used to extract frames from a video to use for thumbnails */
+	MEDIA_VIDEO_FRAME_EXTRACT_COMMAND,
+	
 	// displays
 	
 	/** The number of displays */

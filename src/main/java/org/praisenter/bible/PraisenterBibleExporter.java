@@ -27,13 +27,15 @@ package org.praisenter.bible;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javax.xml.bind.JAXBException;
-
-import org.praisenter.xml.XmlIO;
+import org.praisenter.Constants;
+import org.praisenter.json.JsonIO;
+import org.praisenter.utility.StringManipulator;
 
 /**
  * Exporter for the Praisenter bible format.
@@ -41,19 +43,28 @@ import org.praisenter.xml.XmlIO;
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class PraisenterBibleExporter implements BibleExporter {
+final class PraisenterBibleExporter implements BibleExporter {
 	/* (non-Javadoc)
 	 * @see org.praisenter.bible.BibleExporter#execute(java.nio.file.Path, java.util.List)
 	 */
 	@Override
-	public void execute(Path path, List<Bible> bibles) throws IOException, JAXBException {
+	public void execute(Path path, List<Bible> bibles) throws IOException {
+		Map<String, Integer> names = new HashMap<String, Integer>(); 
 		try (FileOutputStream fos = new FileOutputStream(path.toFile());
 			 ZipOutputStream zos = new ZipOutputStream(fos)) {
 			for (Bible bible : bibles) {
+				int n = 1;
+				String fileName = StringManipulator.toFileName(bible.name, bible.getId());
+				// make sure it's unique
+				if (names.containsKey(fileName)) {
+					n = names.get(fileName);
+					fileName += String.valueOf(++n);
+				}
+				names.put(fileName, n);
 				Bible copy = bible.copy(true);
-				ZipEntry entry = new ZipEntry(copy.path.getFileName().toString());
+				ZipEntry entry = new ZipEntry(fileName + Constants.BIBLE_FILE_EXTENSION);
 				zos.putNextEntry(entry);
-				XmlIO.save(zos, copy);
+				JsonIO.write(zos, copy);
 				zos.closeEntry();
 			}
 		}
@@ -63,17 +74,26 @@ public final class PraisenterBibleExporter implements BibleExporter {
 	 * @see org.praisenter.bible.BibleExporter#execute(java.util.zip.ZipOutputStream, java.lang.String, java.util.List)
 	 */
 	@Override
-	public void execute(ZipOutputStream stream, String folder, List<Bible> bibles) throws IOException, JAXBException {
+	public void execute(ZipOutputStream stream, String folder, List<Bible> bibles) throws IOException {
 		String root = "";
 		if (folder != null) {
 			root = folder + "/";
 		}
 		
+		Map<String, Integer> names = new HashMap<String, Integer>();
 		for (Bible bible : bibles) {
+			int n = 1;
+			String fileName = StringManipulator.toFileName(bible.name, bible.getId());
+			// make sure it's unique
+			if (names.containsKey(fileName)) {
+				n = names.get(fileName);
+				fileName += String.valueOf(++n);
+			}
+			names.put(fileName, n);
 			Bible copy = bible.copy(true);
-			ZipEntry entry = new ZipEntry(root + copy.path.getFileName().toString());
+			ZipEntry entry = new ZipEntry(root + fileName + Constants.BIBLE_FILE_EXTENSION);
 			stream.putNextEntry(entry);
-			XmlIO.save(stream, copy);
+			JsonIO.write(stream, copy);
 			stream.closeEntry();
 		}
 	}

@@ -25,7 +25,6 @@
 package org.praisenter.slide;
 
 import java.awt.image.BufferedImage;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,15 +53,28 @@ import org.praisenter.TextStore;
 import org.praisenter.TextType;
 import org.praisenter.TextVariant;
 import org.praisenter.bible.BibleReferenceTextStore;
+import org.praisenter.json.BufferedImagePngJsonDeserializer;
+import org.praisenter.json.BufferedImagePngJsonSerializer;
+import org.praisenter.json.InstantJsonDeserializer;
+import org.praisenter.json.InstantJsonSerializer;
+import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.SlideAnimation;
-import org.praisenter.slide.animation.Animation;
+import org.praisenter.slide.media.MediaComponent;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 import org.praisenter.xml.adapters.BufferedImagePngTypeAdapter;
 import org.praisenter.xml.adapters.InstantXmlAdapter;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Implementation of the {@link Slide} interface.
@@ -73,36 +85,43 @@ import org.praisenter.xml.adapters.InstantXmlAdapter;
 @XmlAccessorType(XmlAccessType.NONE)
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion, Comparable<Slide> {
 	/** The format (for format identification only) */
+	@JsonProperty
 	@XmlAttribute(name = "format", required = false)
-	final String format = Constants.FORMAT_NAME;
+	final String format;
 	
 	/** The slide format version */
+	@JsonProperty
 	@XmlAttribute(name = "version", required = false)
-	final String version = Slide.CURRENT_VERSION;
+	final String version;
 
-	// for internal use really
-	/** The slide path; can be null */
-	Path path;
-	
 	/** The slide name */
+	@JsonProperty
 	@XmlElement(name = "name")
 	String name;
 
 	/** The date the slide was created */
+	@JsonProperty
+	@JsonSerialize(using = InstantJsonSerializer.class)
+	@JsonDeserialize(using = InstantJsonDeserializer.class)
 	@XmlAttribute(name = "createdDate", required = false)
 	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
 	Instant createdDate;
 
 	/** The date the slide was last changed */
+	@JsonProperty
+	@JsonSerialize(using = InstantJsonSerializer.class)
+	@JsonDeserialize(using = InstantJsonDeserializer.class)
 	@XmlAttribute(name = "lastModifiedDate", required = false)
 	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
 	Instant lastModifiedDate;
 
 	/** The time the slide will show in milliseconds */
+	@JsonProperty
 	@XmlElement(name = "time", required = false)
 	long time;
 	
 	/** The slide components */
+	@JsonProperty
 	@XmlElementRefs({
 		@XmlElementRef(type = MediaComponent.class),
 		@XmlElementRef(type = BasicTextComponent.class),
@@ -114,22 +133,33 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	final List<SlideComponent> components;
 
 	/** The slide animations */
+	@JsonProperty
 	@XmlElement(name = "animation", required = false)
 	@XmlElementWrapper(name = "animations", required = false)
 	final List<SlideAnimation> animations;
 
 	/** Any placeholder data */
+	@JsonTypeInfo(
+		use = JsonTypeInfo.Id.NAME,
+		include = JsonTypeInfo.As.PROPERTY)
+	@JsonSubTypes({
+		@Type(value = BibleReferenceTextStore.class, name = "bibleTextStore")
+	})
 	@XmlElementRefs({
 		@XmlElementRef(type = BibleReferenceTextStore.class)
 	})
 	TextStore placeholderData;
 	
 	/** The tags */
+	@JsonProperty
 	@XmlElement(name = "tag", required = false)
 	@XmlElementWrapper(name = "tags", required = false)
 	final Set<Tag> tags;
 	
 	/** The thumbnail for this slide */
+	@JsonProperty
+	@JsonSerialize(using = BufferedImagePngJsonSerializer.class)
+	@JsonDeserialize(using = BufferedImagePngJsonDeserializer.class)
 	@XmlElement(name = "thumbnail", required = false)
 	@XmlJavaTypeAdapter(BufferedImagePngTypeAdapter.class)
 	BufferedImage thumbnail;
@@ -138,16 +168,36 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	 * Default constructor.
 	 */
 	public BasicSlide() {
+		this(Constants.FORMAT_NAME, Slide.CURRENT_VERSION);
+	}
+	
+	@JsonCreator
+	private BasicSlide(
+			@JsonProperty("format") String format, 
+			@JsonProperty("version") String version) {
 		// JAXB should overwrite the id
-		this(UUID.randomUUID());
+		this(format, version, UUID.randomUUID());
+	}
+
+	/**
+	 * Constructor for setting an explicit id.
+	 * @param id the id
+	 */
+	public BasicSlide(UUID id) {
+		this(Constants.FORMAT_NAME, Slide.CURRENT_VERSION, UUID.randomUUID());
 	}
 	
 	/**
 	 * Constructor for setting an explicit id.
 	 * @param id the id
 	 */
-	public BasicSlide(UUID id) {
+	private BasicSlide(
+			String format, 
+			String version, 
+			UUID id) {
 		super(id);
+		this.format = format;
+		this.version = version;
 		this.components = new ArrayList<SlideComponent>();
 		this.animations = new ArrayList<SlideAnimation>();
 		this.placeholderData = null;
@@ -166,13 +216,15 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		// copy over the super class stuff
 		super(other, exact);
 		
+		this.format = other.format;
+		this.version = other.version;
+		
 		this.components = new ArrayList<SlideComponent>();
 		this.animations = new ArrayList<SlideAnimation>();
 		this.placeholderData = other.placeholderData != null ? other.placeholderData.copy() : null;
 		this.tags = new TreeSet<Tag>();
 		
 		if (exact) {
-			this.path = other.path;
 			this.createdDate = other.createdDate;
 			this.lastModifiedDate = other.lastModifiedDate;
 		} else {
@@ -231,7 +283,6 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	public void as(Slide slide) {
 		this.id = slide.getId();
 		this.name = slide.getName();
-		this.path = slide.getPath();
 		this.createdDate = slide.getCreatedDate();
 		this.lastModifiedDate = slide.getLastModifiedDate();
 		this.thumbnail = slide.getThumbnail();
@@ -293,22 +344,6 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		this.lastModifiedDate = date;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#getPath()
-	 */
-	@Override
-	public Path getPath() {
-		return this.path;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#setPath(java.nio.file.Path)
-	 */
-	@Override
-	public void setPath(Path path) {
-		this.path = path;
-	}
-
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.Slide#getVersion()
 	 */

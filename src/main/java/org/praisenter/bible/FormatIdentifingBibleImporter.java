@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
@@ -46,7 +45,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.UnknownFormatException;
-import org.praisenter.utility.Zip;
+import org.praisenter.utility.Streams;
 
 /**
  * A bible importer that attempts to determine the format of the given path using
@@ -55,7 +54,7 @@ import org.praisenter.utility.Zip;
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class FormatIdentifingBibleImporter implements BibleImporter {
+final class FormatIdentifingBibleImporter extends AbstractBibleImporter implements BibleImporter {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -63,7 +62,7 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public List<Bible> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException, UnknownFormatException {
+	public List<Bible> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException, UnknownFormatException {
 		// make sure the file exists
 		if (Files.exists(path)) {
 			BibleImporter importer = this.getImporter(path);
@@ -102,12 +101,16 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 						return new OpenSongBibleImporter();
 					// check for .xml extension, could be any kind of XML really (Zefania)
 					} else if (entry.getName().toLowerCase().endsWith(".xml")) {
-						byte[] content = Zip.read(zis);
+						byte[] content = Streams.read(zis);
 						return this.getImporterForXml(new ByteArrayInputStream(content));
+					// check for praisenter
+					} else if (entry.getName().toLowerCase().endsWith(Constants.BIBLE_FILE_EXTENSION)) {
+						// praisenter
+						return new PraisenterBibleImporter();
 					// otherwise read the first line of the file to see
 					// if we can determine the file type that way
 					} else {
-						byte[] content = Zip.read(zis);
+						byte[] content = Streams.read(zis);
 						BibleImporter bi = this.getImporterForFile(new ByteArrayInputStream(content));
 						if (bi != null) {
 							return bi;
@@ -120,12 +123,16 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 			return new OpenSongBibleImporter();
 		// check for .xml extension, could be any kind of XML really (Zefania)
 		} else if (fileName.endsWith(".xml")) {
-			byte[] content = Zip.read(new FileInputStream(path.toFile()));
+			byte[] content = Streams.read(new FileInputStream(path.toFile()));
 			return this.getImporterForXml(new ByteArrayInputStream(content));
+		// check for praisenter
+		} else if (fileName.endsWith(Constants.BIBLE_FILE_EXTENSION)) {
+			// praisenter
+			return new PraisenterBibleImporter();
 		// otherwise read the first line of the file to see
 		// if we can determine the file type that way
 		} else {
-			byte[] content = Zip.read(new FileInputStream(path.toFile()));
+			byte[] content = Streams.read(new FileInputStream(path.toFile()));
 			BibleImporter importer = this.getImporterForFile(new ByteArrayInputStream(content));
 			if (importer instanceof UnboundBibleImporter) {
 				// we need two files for The Unbound Bible format, we can't just read one of them
@@ -156,10 +163,6 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 			    		r.getLocalName().equalsIgnoreCase("x")) {
 			    		return new ZefaniaBibleImporter();
 			    	} else if (r.getLocalName().equalsIgnoreCase("bible")) {
-			    		String format = r.getAttributeValue(null, "format");
-			    		if (format != null && format.toLowerCase().equals(Constants.FORMAT_NAME)) {
-			    			return new PraisenterBibleImporter();
-			    		}
 			    		return new OpenSongBibleImporter();
 			    	}
 			    }
@@ -184,6 +187,8 @@ public final class FormatIdentifingBibleImporter implements BibleImporter {
 			String line = reader.readLine();
 			if (line.toUpperCase().startsWith("#THE UNBOUND BIBLE")) {
 				return new UnboundBibleImporter();
+			} else if (line.startsWith("{")) {
+				return new PraisenterBibleImporter();
 			} else if (line.toUpperCase().startsWith("<?XML")) {
 				// then its an xml document
 				stream.reset();

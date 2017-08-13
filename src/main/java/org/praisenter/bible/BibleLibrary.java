@@ -39,9 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
-
-import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -79,13 +78,17 @@ import org.apache.lucene.search.spans.SpanQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.praisenter.Constants;
+import org.praisenter.FileData;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.LockMap;
 import org.praisenter.SearchType;
 import org.praisenter.UnknownFormatException;
+import org.praisenter.json.JsonIO;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
-import org.praisenter.xml.XmlIO;
+
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 /**
  * A collection of bibles that has been loaded into a specific location and converted
@@ -108,9 +111,9 @@ import org.praisenter.xml.XmlIO;
 public final class BibleLibrary {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The extension to use for the bible files */
-	private static final String EXTENSION = ".xml";
+
+	/** The sub folder in the zip to store bibles */
+	private static final String ZIP_DIR = "bibles";
 	
 	// lucene
 
@@ -138,9 +141,6 @@ public final class BibleLibrary {
 	/** The relative path to the directory containing the lucene index */
 	private static final String INDEX_DIR = "_index";
 	
-	/** The sub folder in the zip to store bibles */
-	private static final String ZIP_DIR = "bibles";
-	
 	// location
 	
 	/** The path to the bible library */
@@ -160,7 +160,7 @@ public final class BibleLibrary {
 	// loaded
 	
 	/** The bibles */
-	private final Map<UUID, Bible> bibles;
+	private final Map<UUID, FileData<Bible>> bibles;
 	
 	// locks
 	
@@ -186,7 +186,7 @@ public final class BibleLibrary {
 	private BibleLibrary(Path path) {
 		this.path = path;
 		this.indexPath = this.path.resolve(INDEX_DIR);
-		this.bibles = new ConcurrentHashMap<UUID, Bible>();
+		this.bibles = new ConcurrentHashMap<UUID, FileData<Bible>>();
 		this.locks = new LockMap<String>();
 	}
 	
@@ -216,18 +216,17 @@ public final class BibleLibrary {
 				for (Path file : stream) {
 					// only open files
 					if (Files.isRegularFile(file)) {
-						// only open xml files
-						if (MimeType.XML.check(file)) {
+						// only open json files
+						if (MimeType.JSON.check(file)) {
 							try (InputStream is = Files.newInputStream(file)) {
 								try {
-									// read in the xml
-									Bible bible = XmlIO.read(is, Bible.class);
-									bible.path = file;
+									// read in the bible
+									Bible bible = JsonIO.read(is, Bible.class);
 
 									// once the bible has been loaded successfully
 									// and added to the lucene index successfully
 									// then we'll add it to the bible map
-									this.bibles.put(bible.getId(), bible);
+									this.bibles.put(bible.getId(), new FileData<Bible>(bible, file));
 								} catch (Exception e) {
 									// make sure its not in the index
 									// we don't want to be able to find the bible
@@ -253,8 +252,9 @@ public final class BibleLibrary {
 	 * Returns a list of lucene documents that contains the fields for the given bible.
 	 * @param bible the bible
 	 */
-	private List<Document> createDocuments(Bible bible) {
+	private List<Document> createDocuments(FileData<Bible> fileData) {
 		List<Document> documents = new ArrayList<Document>();
+		Bible bible = fileData.getData();
 		// books
 		if (bible.books != null) {
 			for (Book book : bible.books) {
@@ -263,7 +263,7 @@ public final class BibleLibrary {
 						for (Verse verse : chapter.verses) {
 							Document document = new Document();
 							
-							Field pathField = new StringField(FIELD_PATH, bible.path.toAbsolutePath().toString(), Field.Store.YES);
+							Field pathField = new StringField(FIELD_PATH, fileData.getPath().toAbsolutePath().toString(), Field.Store.YES);
 							document.add(pathField);
 							
 							// allow filtering by the bible id
@@ -333,7 +333,8 @@ public final class BibleLibrary {
 	 */
 	public Bible get(UUID id) {
 		if (id == null) return null;
-		return this.bibles.get(id);
+		if (!this.bibles.containsKey(id)) return null;
+		return this.bibles.get(id).getData();
 	}
 	
 	/**
@@ -341,7 +342,7 @@ public final class BibleLibrary {
 	 * @return List&lt;{@link Bible}&gt;
 	 */
 	public List<Bible> all() {
-		return new ArrayList<Bible>(this.bibles.values());
+		return this.bibles.values().stream().map(f -> f.getData()).collect(Collectors.toList());
 	}
 	
 	/**
@@ -355,10 +356,11 @@ public final class BibleLibrary {
 	/**
 	 * Saves the given bible (either new or existing) to the bible library.
 	 * @param bible the bible to save
-	 * @throws JAXBException if an error occurs while writing the bible to XML
+	 * @throws JsonMappingException if an error occurs while mapping the object to JSON
+	 * @throws JsonGenerationException  if an error occurs while building the JSON
 	 * @throws IOException if an IO error occurs
 	 */
-	public void save(Bible bible) throws JAXBException, IOException {
+	public void save(Bible bible) throws JsonGenerationException, JsonMappingException, IOException {
 		// update the last modified date
 		bible.setModifiedDate(Instant.now());
 		
@@ -367,17 +369,22 @@ public final class BibleLibrary {
 		// 2. Save Existing
 		// 3. Save Existing + Rename
 		
+		FileData<Bible> fileData = null;
+		
 		// obtain the lock on the bible
 		synchronized (this.getBibleLock(bible)) {
 			LOGGER.debug("Saving bible '{}'.", bible.getName());
 			
+			// get the current file reference
+			fileData = this.bibles.get(bible.getId());
+			
 			// generate the file name and path
-			String name = BibleLibrary.createFileName(bible);
-			Path path = this.path.resolve(name + EXTENSION);
-			Path uuid = this.path.resolve(StringManipulator.toFileName(bible.getId()) + EXTENSION);
+			String name = StringManipulator.toFileName(bible.name, bible.getId());
+			Path path = this.path.resolve(name + Constants.BIBLE_FILE_EXTENSION);
+			Path uuid = this.path.resolve(StringManipulator.toFileName(bible.getId()) + Constants.BIBLE_FILE_EXTENSION);
 			
 			// check for operation
-			if (!this.bibles.containsKey(bible.getId())) {
+			if (fileData == null) {
 				LOGGER.debug("Adding bible '{}'.", bible.getName());
 				// then its a new
 				synchronized (this.getPathLock(path)) {
@@ -386,14 +393,14 @@ public final class BibleLibrary {
 						// just use the UUID (which shouldn't need a lock since it's unique)
 						path = uuid;
 					}
-					bible.path = path;
-					XmlIO.save(bible.path, bible);
-					LOGGER.debug("Bible '{}' saved to '{}'.", bible.getName(), bible.path);
+					JsonIO.write(path, bible);
+					fileData = new FileData<Bible>(bible, path);
+					LOGGER.debug("Bible '{}' saved to '{}'.", bible.getName(), path);
 				}
 			} else {
 				LOGGER.debug("Updating bible '{}'.", bible.getName());
 				// it's an existing one
-				Path original = bible.path;
+				Path original = fileData.getPath();
 				if (!original.equals(path)) {
 					// obtain the desired path lock
 					synchronized (this.getPathLock(path)) {
@@ -403,7 +410,7 @@ public final class BibleLibrary {
 							// it had a file name conflict)
 							if (original.equals(uuid)) {
 								// if so, this isn't really a rename, just save it
-								XmlIO.save(bible.path, bible);
+								JsonIO.write(original, bible);
 							} else {
 								// if the path already exists and the current path isn't the uuid path
 								// then we know that this was a rename to a different name that already exists
@@ -414,18 +421,19 @@ public final class BibleLibrary {
 							LOGGER.debug("Renaming bible '{}' to '{}'.", bible.getName(), path.getFileName());
 							// otherwise rename the file
 							Files.move(original, path);
-							bible.path = path;
-							XmlIO.save(bible.path, bible);
+							// update the path
+							fileData = new FileData<Bible>(bible, path);
+							JsonIO.write(path, bible);
 						}
 					}
 				} else {
 					// it's a normal save
-					XmlIO.save(bible.path, bible);
+					JsonIO.write(original, bible);
 				}
 			}
 			
-			// update the bible map
-			this.bibles.put(bible.getId(), bible);
+			// update the bible map (it may have changed)
+			this.bibles.put(bible.getId(), fileData);
 		}
 		
 		// add to/update the lucene index
@@ -435,7 +443,7 @@ public final class BibleLibrary {
 			config.setOpenMode(OpenMode.CREATE_OR_APPEND);
 			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
 				// update the fields
-				List<Document> documents = createDocuments(bible);
+				List<Document> documents = createDocuments(fileData);
 				
 				// update the document
 				writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.getId().toString()), documents);
@@ -460,10 +468,11 @@ public final class BibleLibrary {
 		if (id == null) return;
 		
 		synchronized (this.getBibleLock(bible)) {
+			FileData<Bible> fileData = this.bibles.get(bible.getId());
 			LOGGER.debug("Removing bible '{}'.", bible.getName());
 			// delete the file
-			if (bible.path != null) {
-				Files.deleteIfExists(bible.path);
+			if (fileData != null) {
+				Files.deleteIfExists(fileData.getPath());
 			}
 			// remove it from the map
 			this.bibles.remove(id);
@@ -491,9 +500,8 @@ public final class BibleLibrary {
 	 * @param path the file
 	 * @param bibles the bibles to export
 	 * @throws IOException if an IO error occurs
-	 * @throws JAXBException if a bible cannot be written to XML
 	 */
-	public void exportBibles(Path path, List<Bible> bibles) throws IOException, JAXBException {
+	public void exportBibles(Path path, List<Bible> bibles) throws IOException {
 		final PraisenterBibleExporter exporter = new PraisenterBibleExporter();
 		exporter.execute(path, bibles);
 	}
@@ -503,9 +511,8 @@ public final class BibleLibrary {
 	 * @param stream the zip stream to export to
 	 * @param bibles the bibles to export
 	 * @throws IOException if an IO error occurs
-	 * @throws JAXBException if a bible cannot be written to XML
 	 */
-	public void exportBibles(ZipOutputStream stream, List<Bible> bibles) throws IOException, JAXBException {
+	public void exportBibles(ZipOutputStream stream, List<Bible> bibles) throws IOException {
 		final PraisenterBibleExporter exporter = new PraisenterBibleExporter();
 		exporter.execute(stream, ZIP_DIR, bibles);
 	}
@@ -517,10 +524,9 @@ public final class BibleLibrary {
 	 * @throws FileNotFoundException if the given path is not found
 	 * @throws InvalidFormatException if the file wasn't in the format expected
 	 * @throws UnknownFormatException if the format of the file couldn't be determined
-	 * @throws JAXBException if an error occurs while reading XML
 	 * @throws IOException if an IO error occurs
 	 */
-	public List<Bible> importBibles(Path path) throws FileNotFoundException, IOException, JAXBException, InvalidFormatException, UnknownFormatException {
+	public List<Bible> importBibles(Path path) throws FileNotFoundException, IOException, InvalidFormatException, UnknownFormatException {
 		FormatIdentifingBibleImporter importer = new FormatIdentifingBibleImporter();
 		List<Bible> bibles = importer.execute(path);
 		
@@ -539,34 +545,6 @@ public final class BibleLibrary {
 	}
 	
 	/**
-	 * Creates a file name for the given bible based off the name.
-	 * @param bible the bible
-	 * @return String
-	 */
-	public static final String createFileName(Bible bible) {
-		StringBuilder sb = new StringBuilder();
-		if (bible != null) {
-			String name = bible.name;
-			String ttl = StringManipulator.toFileName(name == null ? "" : name);
-			if (ttl.length() == 0) {
-				ttl = "Untitled";
-			}
-			sb.append(ttl);
-		}
-		
-		String name = sb.toString();
-		
-		// truncate the name to certain length
-		int max = Constants.MAX_FILE_NAME_CODEPOINTS - EXTENSION.length();
-		if (name.length() > max) {
-			LOGGER.warn("File name too long '{}', truncating.", name);
-			name = name.substring(0, Math.min(name.length() - 1, max));
-		}
-		
-		return name;
-	}
-
-	/**
 	 * Re-indexes all bibles.
 	 * @throws IOException if an IO error occurs
 	 */
@@ -576,15 +554,16 @@ public final class BibleLibrary {
 			IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
 			config.setOpenMode(OpenMode.CREATE);
 			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-				for (Bible bible : this.bibles.values()) {
+				for (FileData<Bible> fileData : this.bibles.values()) {
+					Bible bible = fileData.getData();
 					try {
 						// add the data to the document
-						List<Document> documents = createDocuments(bible);
+						List<Document> documents = createDocuments(fileData);
 						// update the document
 						writer.updateDocuments(new Term(FIELD_BIBLE_ID, bible.getId().toString()), documents);
 					} catch (Exception e) {
 						// make sure its not in the index
-						LOGGER.warn("Failed to update the lucene index for bible '" + bible.path.toAbsolutePath().toString() + "'.", e);
+						LOGGER.warn("Failed to update the lucene index for bible '" + bible.getName() + "'.", e);
 					}
 				}
 			}
@@ -733,7 +712,7 @@ public final class BibleLibrary {
 				Document document = searcher.doc(doc.doc);
 				
 				// get the bible
-				Bible bible = this.bibles.get(UUID.fromString(document.get(FIELD_BIBLE_ID)));
+				Bible bible = this.bibles.get(UUID.fromString(document.get(FIELD_BIBLE_ID))).getData();
 				short bookNumber = document.getField(FIELD_BOOK_NUMBER).numericValue().shortValue();
 				short chapterNumber = document.getField(FIELD_VERSE_CHAPTER).numericValue().shortValue();
 				short verseNumber = document.getField(FIELD_VERSE_NUMBER).numericValue().shortValue();

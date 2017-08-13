@@ -41,6 +41,7 @@ import org.praisenter.javafx.slide.ObservableSlideLibrary;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.song.SongLibrary;
+import org.praisenter.tools.Tools;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
@@ -81,10 +82,14 @@ public final class PraisenterContext {
 	/** The worker thread pool */
 	private final AsyncTaskExecutor executor;
 	
+	/** The set of external tools */
+	private final Tools tools;
+	
 	/**
 	 * Full constructor.
 	 * @param javaFxContext the Java FX context
 	 * @param configuration the application configuration
+	 * @param tools the application tools
 	 * @param media the media library
 	 * @param bibles the bible library
 	 * @param songs the song library
@@ -93,12 +98,14 @@ public final class PraisenterContext {
 	public PraisenterContext(
 			JavaFXContext javaFxContext,
 			ObservableConfiguration configuration,
+			Tools tools,
 			MediaLibrary media,
 			BibleLibrary bibles,
 			SongLibrary songs, 
 			SlideLibrary slides) {
 		this.javaFXContext = javaFxContext;
 		this.configuration = configuration;
+		this.tools = tools;
 		
 		this.imageCache = new ImageCache();
 		this.executor = new AsyncTaskExecutor();
@@ -193,5 +200,13 @@ public final class PraisenterContext {
 	 */
 	public AsyncTaskExecutor getExecutorService() {
 		return this.executor;
+	}
+	
+	/**
+	 * Returns the application tools.
+	 * @return {@link Tools}
+	 */
+	public Tools getTools() {
+		return this.tools;
 	}
 }

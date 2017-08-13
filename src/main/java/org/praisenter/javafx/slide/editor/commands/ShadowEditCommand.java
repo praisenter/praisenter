@@ -2,17 +2,18 @@ package org.praisenter.javafx.slide.editor.commands;
 
 import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.EditCommand;
+import org.praisenter.javafx.slide.ObservableSlideComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
-import org.praisenter.slide.graphics.SlideShadow;
+import org.praisenter.slide.effects.SlideShadow;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.Node;
 
-public final class ShadowEditCommand extends SlideRegionValueChangedEditCommand<SlideShadow, ObservableSlideRegion<?>> implements EditCommand {
+public final class ShadowEditCommand extends SlideRegionValueChangedEditCommand<SlideShadow, ObservableSlideComponent<?>> implements EditCommand {
 	private final Node focusNode;
 	private final ActionEditCommand actions;
 	
-	public ShadowEditCommand(SlideShadow oldValue, SlideShadow newValue, ObservableSlideRegion<?> region, ObjectProperty<ObservableSlideRegion<?>> selection, Node focusNode, ActionEditCommand actions) {
+	public ShadowEditCommand(SlideShadow oldValue, SlideShadow newValue, ObservableSlideComponent<?> region, ObjectProperty<ObservableSlideRegion<?>> selection, Node focusNode, ActionEditCommand actions) {
 		super(oldValue, newValue, region, selection);
 		this.focusNode = focusNode;
 		this.actions = actions;

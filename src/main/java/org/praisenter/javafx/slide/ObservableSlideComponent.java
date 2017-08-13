@@ -25,7 +25,15 @@
 package org.praisenter.javafx.slide;
 
 import org.praisenter.javafx.PraisenterContext;
+import org.praisenter.javafx.slide.converters.EffectConverter;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.effects.SlideShadow;
+
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.scene.Node;
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.InnerShadow;
 
 /**
  * Represents an observable {@link SlideComponent}.
@@ -34,6 +42,12 @@ import org.praisenter.slide.SlideComponent;
  * @param <T> {@link SlideComponent}
  */
 public abstract class ObservableSlideComponent<T extends SlideComponent> extends ObservableSlideRegion<T> implements Playable {
+	/** The shadow */
+	private final ObjectProperty<SlideShadow> shadow = new SimpleObjectProperty<SlideShadow>();
+	
+	/** The glow */
+	private final ObjectProperty<SlideShadow> glow = new SimpleObjectProperty<SlideShadow>();
+	
 	/**
 	 * Minimal constructor.
 	 * @param component the slide region
@@ -42,5 +56,115 @@ public abstract class ObservableSlideComponent<T extends SlideComponent> extends
 	 */
 	public ObservableSlideComponent(T component, PraisenterContext context, SlideMode mode) {
 		super(component, context, mode);
+		
+		this.shadow.set(this.region.getShadow());
+		this.glow.set(this.region.getGlow());
+		
+		this.shadow.addListener((obs, ov, nv) -> {
+			this.region.setShadow(nv);
+			updateEffects();
+		});
+		this.glow.addListener((obs, ov, nv) -> {
+			this.region.setGlow(nv);
+			updateEffects();
+		});
+	}
+	
+	/**
+	 * Builds the component using the given content node.
+	 * @param content the content
+	 */
+	protected void build(Node content) {
+		this.updateAll();
+		
+		this.container.getChildren().addAll(
+				this.backgroundNode,
+				content,
+				this.borderNode);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.ObservableSlideRegion#updateAll()
+	 */
+	@Override
+	protected void updateAll() {
+		super.updateAll();
+		this.updateEffects();
+	}
+	
+	/**
+	 * Updates the Java FX component when the effects changes.
+	 */
+	protected final void updateEffects() {
+		SlideShadow ss = this.shadow.get();
+		SlideShadow sg = this.glow.get();
+		EffectBuilder builder = EffectBuilder.create();
+		Effect shadow = EffectConverter.toJavaFX(ss);
+		Effect glow = EffectConverter.toJavaFX(sg);
+		builder.add(shadow, shadow != null && shadow instanceof InnerShadow ? 10 : 30);
+		builder.add(glow, glow != null && glow instanceof InnerShadow ? 20 : 40);
+		Effect effect = builder.build();
+		this.backgroundNode.setEffect(effect);
+		
+		this.onEffectsUpdate(ss, sg);
+	}
+	
+	/**
+	 * Called after the effects are updated.
+	 * @param shadow the new shadow
+	 * @param glow the new glow
+	 */
+	protected void onEffectsUpdate(SlideShadow shadow, SlideShadow glow) {}
+	
+	// shadow
+
+	/**
+	 * Sets the shadow.
+	 * @param shadow the shadow
+	 */
+	public void setShadow(SlideShadow shadow) {
+		this.shadow.set(shadow);
+	}
+
+	/**
+	 * Returns the shadow.
+	 * @return {@link SlideShadow}
+	 */
+	public SlideShadow getShadow() {
+		return this.shadow.get();
+	}
+	
+	/**
+	 * Returns the shadow property.
+	 * @return ObjectProperty
+	 */
+	public ObjectProperty<SlideShadow> shadowProperty() {
+		return this.shadow;
+	}
+
+	// glow
+
+	/**
+	 * Sets the glow.
+	 * @param glow the glow
+	 */
+	public void setGlow(SlideShadow glow) {
+		this.glow.set(glow);
+	}
+
+	/**
+	 * Returns the glow.
+	 * @return {@link SlideShadow}
+	 */
+	public SlideShadow getGlow() {
+		return this.glow.get();
+	}
+	
+	/**
+	 * Returns the glow property.
+	 * @return ObjectProperty
+	 */
+	public ObjectProperty<SlideShadow> glowProperty() {
+		return this.glow;
 	}
 }

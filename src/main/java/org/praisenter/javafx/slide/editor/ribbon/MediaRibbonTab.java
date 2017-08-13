@@ -10,9 +10,10 @@ import org.praisenter.javafx.slide.ObservableMediaComponent;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.MediaEditCommand;
+import org.praisenter.javafx.slide.editor.controls.ColorAdjustPicker;
 import org.praisenter.media.Media;
 import org.praisenter.slide.graphics.ScaleType;
-import org.praisenter.slide.object.MediaObject;
+import org.praisenter.slide.media.MediaObject;
 
 import javafx.beans.InvalidationListener;
 import javafx.scene.control.Toggle;
@@ -26,6 +27,7 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 	private final SegmentedButton segScaling;
 	private final ToggleButton tglLoop;
 	private final ToggleButton tglMute;
+	private final ColorAdjustPicker pkrColorAdjust;
 
 	private final Glyph mute = ApplicationGlyphs.MEDIA_MUTE.duplicate();
 	private final Glyph volume = ApplicationGlyphs.MEDIA_VOLUME.duplicate();
@@ -35,7 +37,6 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 		
 		this.pkrMedia = new MediaPicker(context.getPraisenterContext());
 		this.pkrMedia.setValue(null);
-		this.pkrMedia.managedProperty().bind(pkrMedia.visibleProperty());
 		
 		ToggleButton tglImageScaleNone = new ToggleButton("", ApplicationGlyphs.MEDIA_SCALE_NONE.duplicate());
 		ToggleButton tglImageScaleNonUniform = new ToggleButton("", ApplicationGlyphs.MEDIA_SCALE_NONUNIFORM.duplicate());
@@ -52,6 +53,9 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 		this.tglMute = new ToggleButton("", volume);
 		this.tglMute.setSelected(false);
 		
+		this.pkrColorAdjust = new ColorAdjustPicker();
+		this.pkrColorAdjust.setValue(null);
+		
 		// tooltips
 		this.pkrMedia.setTooltip(new Tooltip("Choose the media"));
 		tglImageScaleNone.setTooltip(new Tooltip("No scaling"));
@@ -64,7 +68,8 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 
 		HBox row1 = new HBox(2, this.pkrMedia);
 		HBox row2 = new HBox(2, this.segScaling, this.tglLoop, this.tglMute);
-		VBox layout = new VBox(2, row1, row2);
+		HBox row3 = new HBox(2, this.pkrColorAdjust);
+		VBox layout = new VBox(2, row1, row2, row3);
 		this.container.setCenter(layout);
 	
 		// events
@@ -104,6 +109,7 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 		this.segScaling.getToggleGroup().selectedToggleProperty().addListener(listener);
 		this.tglLoop.selectedProperty().addListener(listener);
 		this.tglMute.selectedProperty().addListener(listener);
+		this.pkrColorAdjust.valueProperty().addListener(listener);
 		
 		this.tglMute.selectedProperty().addListener((obs, ov, nv) -> {
 			if (nv) {
@@ -123,7 +129,8 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 			return null;
 		}
 		
-		return new MediaObject(media.getId(), media.getName(), media.getType(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
+		// TODO allow coloradjust
+		return new MediaObject(media.getId(), media.getName(), media.getType(), scaleType, tglLoop.isSelected(), tglMute.isSelected(), this.pkrColorAdjust.getValue());
 	}
 	
 	private void setControlValues(MediaObject mediaObject) {
@@ -143,8 +150,11 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 					}
 				}
 			}
+			
+			this.pkrColorAdjust.setValue(mediaObject.getColorAdjust());
 		} else {
 			this.pkrMedia.setValue(null);
+			this.pkrColorAdjust.setValue(null);
 		}
 	}
 }

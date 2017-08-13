@@ -26,7 +26,6 @@ package org.praisenter.media;
 
 import java.awt.image.BufferedImage;
 
-import org.praisenter.ThumbnailSettings;
 import org.praisenter.utility.ImageManipulator;
 
 import com.twelvemonkeys.image.ImageUtil;
@@ -38,15 +37,15 @@ import com.twelvemonkeys.image.ResampleOp;
  * @version 3.0.0
  */
 public abstract class AbstractMediaLoader implements MediaLoader {
-	/** The thumbnail settings */
-	protected final ThumbnailSettings thumbnailSettings;
+	/** The context */
+	protected final MediaLibraryContext context;
 	
 	/**
 	 * Minimal constructor.
-	 * @param thumbnailSettings the thumbnail generation settings
+	 * @param context the context
 	 */
-	public AbstractMediaLoader(ThumbnailSettings thumbnailSettings) {
-		this.thumbnailSettings = thumbnailSettings;
+	public AbstractMediaLoader(MediaLibraryContext context) {
+		this.context = context;
 	}
 	
 	/**
@@ -61,8 +60,8 @@ public abstract class AbstractMediaLoader implements MediaLoader {
 		// then down scale
 		return ImageManipulator.getUniformScaledImage(
 				withTransparency, 
-				this.thumbnailSettings.getWidth(), 
-				this.thumbnailSettings.getHeight(), 
+				this.context.getThumbnailSettings().getWidth(), 
+				this.context.getThumbnailSettings().getHeight(), 
 				ResampleOp.FILTER_LANCZOS);
 	}
 }

@@ -26,6 +26,8 @@ package org.praisenter.utility;
 
 import java.util.UUID;
 
+import org.praisenter.Constants;
+
 /**
  * Class containing string manipulation methods.
  * @author William Bittle
@@ -50,26 +52,18 @@ public final class StringManipulator {
 	 * a cross platform list of white-listed characters (basically
 	 * any letter or digit, including unicode codepoints).
 	 * <p>
-	 * This method will replace those characters with '-'.
-	 * @param str the string
-	 * @return String
-	 */
-	public static String toFileName(String str) {
-		return toFileName(str, '-');
-	}
-	
-	/**
-	 * Strips invalid characters from the given string based on
-	 * a cross platform list of white-listed characters (basically
-	 * any letter or digit, including unicode codepoints).
-	 * @param str the string
+	 * Invalid codepoints are replaced by the given replacement character or empty string if
+	 * replacement is null.
+	 * @param string the string
 	 * @param replacement the string to replace invalid characters
 	 * @return String
 	 */
-	public static String toFileName(String str, char replacement) {
+	private static String toFileName(String string, String replacement) {
+		if (string == null) return null;
+		
 		StringBuilder filename = new StringBuilder();
 
-		int[] codes = str.codePoints().toArray();
+		int[] codes = string.codePoints().toArray();
 		for (int c : codes) {
 			if (Character.isLetterOrDigit(c)) {
 				filename.appendCodePoint(c);
@@ -78,10 +72,121 @@ public final class StringManipulator {
 			}
 		}
 		
-		// condense consecutive dashes
-		String name = filename.toString().replaceAll("[" + replacement + "]+", Character.toString(replacement));
+		String name = filename.toString();
+		// condense consecutive replacement characters with one
+		if (replacement != null && replacement.length() > 0) {
+			name = name.replaceAll("[" + replacement + "]+", replacement);
+		}
 		
 		return name;
+	}
+	
+	/**
+	 * Strips invalid characters from the given string based on
+	 * a cross platform white-list of characters (basically
+	 * any letter or digit, including unicode codepoints).
+	 * <p>
+	 * Invalid codepoints are replaced by the given replacement character or empty string if
+	 * replacement is null.
+	 * <p>
+	 * If the given string or the stripped string is null or empty, the given
+	 * default string is used instead. The default string is assumed to be
+	 * a valid file name already.
+	 * <p>
+	 * This method will also truncate the file name to the given maxLength.
+	 * @param string the string
+	 * @param defaultString the default string if string is null or empty or contains all invalid characters
+	 * @param maxLength the maximum length of the string
+	 * @param replacement the string to replace invalid characters
+	 * @return String
+	 */
+	public static String toFileName(String string, String defaultString, int maxLength, String replacement) {
+		// strip invalid characters
+		string = toFileName(string, replacement == null ? "" : replacement);
+		
+		// is it null or empty?
+		if (string == null || string.length() == 0) {
+			string = defaultString;
+		}
+		
+		// is it just the invalid character replacement string?
+		if (replacement != null && replacement.equals(string)) {
+			string = defaultString;
+		}
+		
+		// truncate the name to certain length
+		if (string.length() > maxLength) {
+			string = string.substring(0, Math.min(string.length() - 1, maxLength));
+		}
+		
+		return string;
+	}
+	
+	/**
+	 * Strips invalid characters from the given string based on
+	 * a cross platform white-list of characters (basically
+	 * any letter or digit, including unicode codepoints).
+	 * <p>
+	 * Invalid codepoints are replaced by the given replacement character or empty string if
+	 * replacement is null.
+	 * <p>
+	 * If the given string or the stripped string is null or empty, the given
+	 * id will be used.
+	 * <p>
+	 * This method will also truncate the file name to the given maxLength.
+	 * @param string the string
+	 * @param id a unique identifier
+	 * @param maxLength the maximum length of the string
+	 * @param replacement the string to replace invalid characters
+	 * @return String
+	 */
+	public static String toFileName(String string, UUID id, int maxLength, String replacement) {
+		return StringManipulator.toFileName(
+				string,
+				StringManipulator.toFileName(id),
+				maxLength,
+				replacement);
+	}
+	
+	/**
+	 * Strips invalid characters from the given string based on
+	 * a cross platform white-list of characters (basically
+	 * any letter or digit, including unicode codepoints).
+	 * <p>
+	 * If the given string or the stripped string is null or empty, the given
+	 * id will be used.
+	 * <p>
+	 * This method will also truncate the file name to the given maxLength.
+	 * @param string the string
+	 * @param id a unique identifier
+	 * @param maxLength the maximum length of the string
+	 * @return String
+	 */
+	public static String toFileName(String string, UUID id, int maxLength) {
+		return StringManipulator.toFileName(
+				string,
+				StringManipulator.toFileName(id),
+				maxLength,
+				null);
+	}
+	
+	/**
+	 * Strips invalid characters from the given string based on
+	 * a cross platform white-list of characters (basically
+	 * any letter or digit, including unicode codepoints).
+	 * <p>
+	 * If the given string or the stripped string is null or empty, the given
+	 * id will be used.
+	 * @param string the string
+	 * @param id a unique identifier
+	 * @return String
+	 */
+	public static String toFileName(String string, UUID id) {
+		return StringManipulator.toFileName(
+				string,
+				StringManipulator.toFileName(id),
+				Constants.MAX_FILE_NAME_CODEPOINTS,
+				null);
 	}
 	
 	/**

@@ -25,7 +25,6 @@
 package org.praisenter.slide;
 
 import java.awt.image.BufferedImage;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +40,10 @@ import org.praisenter.TextStore;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.TextPlaceholderComponent;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
  * Represents a slide.
  * <p>
@@ -49,6 +52,12 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = BasicSlide.class, name = "slide")
+})
 @XmlSeeAlso({
 	BasicSlide.class
 })
@@ -79,20 +88,6 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	 * @param name the slide name
 	 */
 	public abstract void setName(String name);
-	
-	/**
-	 * Returns the path where this slide is saved.
-	 * <p>
-	 * Returns null if the slide has not been saved.
-	 * @return Path
-	 */
-	public abstract Path getPath();
-	
-	/**
-	 * Sets the path where this slide is saved.
-	 * @param path the path
-	 */
-	public abstract void setPath(Path path);
 	
 	/**
 	 * Returns the slide version this slide was created with.

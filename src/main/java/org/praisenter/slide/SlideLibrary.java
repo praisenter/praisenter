@@ -32,7 +32,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -43,18 +42,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
-import javax.xml.bind.JAXBException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.FileData;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.LockMap;
 import org.praisenter.Tag;
 import org.praisenter.UnknownFormatException;
+import org.praisenter.json.JsonIO;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
-import org.praisenter.xml.XmlIO;
 
 /**
  * A collection of slides that has been created in Praisenter.
@@ -77,9 +75,6 @@ public final class SlideLibrary {
 	
 	// static
 
-	/** The extension to use for the slide files */
-	private static final String EXTENSION = ".xml";
-	
 	/** The directory used for slides when combined with other data */
 	static final String ZIP_DIR = "slides";
 	
@@ -89,7 +84,7 @@ public final class SlideLibrary {
 	private final Path path;
 	
 	/** The slides */
-	private final Map<UUID, Slide> slides;
+	private final Map<UUID, FileData<Slide>> slides;
 
 	// locks
 	
@@ -115,7 +110,7 @@ public final class SlideLibrary {
 	 */
 	private SlideLibrary(Path path) {
 		this.path = path;
-		this.slides = new ConcurrentHashMap<UUID, Slide>();
+		this.slides = new ConcurrentHashMap<UUID, FileData<Slide>>();
 		this.locks = new LockMap<String>();
 	}
 	
@@ -134,20 +129,19 @@ public final class SlideLibrary {
 			for (Path file : stream) {
 				// only open files
 				if (Files.isRegularFile(file)) {
-					// only open xml files
-					if (MimeType.XML.check(file)) {
+					// only open json files
+					if (MimeType.JSON.check(file)) {
 						try (InputStream is = Files.newInputStream(file)) {
 							try {
-								// read in the xml
-								BasicSlide slide = XmlIO.read(is, BasicSlide.class);
+								// read in the json
+								Slide slide = JsonIO.read(is, Slide.class);
 								slide.updatePlaceholders();
-								slide.path = file;
 								
 								// we can't attempt generating thumbnails at this time
 								// since it would rely on the caller's systems to be in place already
 								// for example, JavaFX
 								
-								this.slides.put(slide.getId(), slide);
+								this.slides.put(slide.getId(), new FileData<Slide>(slide, file));
 							} catch (Exception e) {
 								LOGGER.warn("Failed to load slide '" + file.toAbsolutePath().toString() + "'", e);
 							}
@@ -187,7 +181,8 @@ public final class SlideLibrary {
 	 */
 	public Slide get(UUID id) {
 		if (id == null) return null;
-		return this.slides.get(id);
+		if (!this.slides.containsKey(id)) return null;
+		return this.slides.get(id).getData();
 	}
 	
 	/**
@@ -195,7 +190,7 @@ public final class SlideLibrary {
 	 * @return List&lt;{@link Slide}&gt;
 	 */
 	public List<Slide> all() {
-		return new ArrayList<Slide>(this.slides.values());
+		return this.slides.values().stream().map(f -> f.getData()).collect(Collectors.toList());
 	}
 	
 	/**
@@ -209,29 +204,32 @@ public final class SlideLibrary {
 	/**
 	 * Saves the given slide to the slide library.
 	 * @param slide the slide to save
-	 * @throws JAXBException if an error occurs writing the XML
 	 * @throws IOException if an IO error occurs
 	 */
-	public void save(Slide slide) throws JAXBException, IOException {
+	public void save(Slide slide) throws IOException {
 		// calling this method could indicate one of the following:
 		// 1. New
 		// 2. Save Existing
 		// 3. Save Existing + Rename
 		
+		FileData<Slide> fileData = null;
+		
 		// obtain the lock on the slide
 		synchronized (this.getSlideLock(slide)) {
 			LOGGER.debug("Saving slide '{}'.", slide.getName());
+
+			fileData = this.slides.get(slide.getId());
 			
 			// update the last modified date
 			slide.setLastModifiedDate(Instant.now());
 			
 			// generate the file name and path
-			String name = SlideLibrary.createFileName(slide);
-			Path path = this.path.resolve(name + EXTENSION);
-			Path uuid = this.path.resolve(StringManipulator.toFileName(slide.getId()) + EXTENSION);
+			String name = StringManipulator.toFileName(slide.getName(), slide.getId());
+			Path path = this.path.resolve(name + Constants.SLIDE_FILE_EXTENSION);
+			Path uuid = this.path.resolve(StringManipulator.toFileName(slide.getId()) + Constants.SLIDE_FILE_EXTENSION);
 			
 			// check for operation
-			if (!this.slides.containsKey(slide.getId())) {
+			if (fileData == null) {
 				LOGGER.debug("Adding slide '{}'.", slide.getName());
 				// then its a new
 				synchronized (this.getPathLock(path)) {
@@ -240,14 +238,14 @@ public final class SlideLibrary {
 						// just use the UUID (which shouldn't need a lock since it's unique)
 						path = uuid;
 					}
-					slide.setPath(path);
-					XmlIO.save(path, slide);
+					JsonIO.write(path, slide);
+					fileData = new FileData<Slide>(slide, path);
 					LOGGER.debug("Slide '{}' saved to '{}'.", slide.getName(), path);
 				}
 			} else {
 				LOGGER.debug("Updating slide '{}'.", slide.getName());
 				// it's an existing one
-				Path original = slide.getPath();
+				Path original = fileData.getPath();
 				if (!original.equals(path)) {
 					// obtain the desired path lock
 					synchronized (this.getPathLock(path)) {
@@ -257,7 +255,7 @@ public final class SlideLibrary {
 							// it had a file name conflict)
 							if (original.equals(uuid)) {
 								// if so, this isn't really a rename, just save it
-								XmlIO.save(slide.getPath(), slide);
+								JsonIO.write(original, slide);
 							} else {
 								// if the path already exists and the current path isn't the uuid path
 								// then we know that this was a rename to a different name that already exists
@@ -268,18 +266,18 @@ public final class SlideLibrary {
 							LOGGER.debug("Renaming slide '{}' to '{}'.", slide.getName(), path.getFileName());
 							// otherwise rename the file
 							Files.move(original, path);
-							slide.setPath(path);
-							XmlIO.save(path, slide);
+							JsonIO.write(path, slide);
+							fileData = new FileData<Slide>(slide, path);
 						}
 					}
 				} else {
 					// it's a normal save
-					XmlIO.save(slide.getPath(), slide);
+					JsonIO.write(fileData.getPath(), slide);
 				}
 			}
 			
 			// update the slide map
-			this.slides.put(slide.getId(), slide);
+			this.slides.put(slide.getId(), fileData);
 		}
 	}
 	
@@ -296,9 +294,10 @@ public final class SlideLibrary {
 		
 		synchronized (this.getSlideLock(slide)) {
 			LOGGER.debug("Removing slide '{}'.", slide.getName());
+			FileData<Slide> fileData = this.slides.get(id);
 			// delete the file
-			if (slide.getPath() != null) {
-				Files.deleteIfExists(slide.getPath());
+			if (fileData != null && fileData.getPath() != null) {
+				Files.deleteIfExists(fileData.getPath());
 			}
 			// remove it from the map
 			this.slides.remove(id);
@@ -310,17 +309,17 @@ public final class SlideLibrary {
 	 * @param slide the slide
 	 * @param tag the new tag
 	 * @return boolean true if the tag was added successfully
-	 * @throws JAXBException if the slide failed to save
 	 * @throws IOException if an IO error occurs
 	 */
-	public boolean addTag(Slide slide, Tag tag) throws JAXBException, IOException {
+	public boolean addTag(Slide slide, Tag tag) throws IOException {
 		// obtain the lock for this slide item
 		synchronized(this.getSlideLock(slide)) {
 			// sanity check, it's possible that while this thread
 			// was waiting for the lock, that this slide was deleted
 			// or renamed. the slide map will contain the latest 
 			// object for us to update
-			Slide latest = this.slides.get(slide.getId());
+			FileData<Slide> fileData = this.slides.get(slide.getId());
+			Slide latest = fileData.getData();
 			// make sure the slide wasn't removed
 			if (latest != null) {
 				LOGGER.debug("Adding tag '{}' to slide '{}'.", tag, slide.getName());
@@ -328,7 +327,7 @@ public final class SlideLibrary {
 				boolean added = latest.getTags().add(tag);
 				if (added) {
 					try {
-						XmlIO.save(slide.getPath(), slide);
+						JsonIO.write(fileData.getPath(), slide);
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to save slide after adding tag '{}' to slide '{}'.", tag, slide.getName());
 						// remove the tag due to not being able to save
@@ -348,17 +347,17 @@ public final class SlideLibrary {
 	 * @param slide the slide
 	 * @param tags the new tags
 	 * @return boolean true if the tags were added successfully
-	 * @throws JAXBException if the slide failed to save
 	 * @throws IOException if an IO error occurs
 	 */	
-	public boolean addTags(Slide slide, Collection<Tag> tags) throws JAXBException, IOException {
+	public boolean addTags(Slide slide, Collection<Tag> tags) throws IOException {
 		// obtain the lock for this slide item
 		synchronized(this.getSlideLock(slide)) {
 			// sanity check, it's possible that while this thread
 			// was waiting for the lock, that this slide was deleted
 			// or renamed. the slide map will contain the latest 
 			// slide for us to update
-			Slide latest = this.slides.get(slide.getId());
+			FileData<Slide> fileData = this.slides.get(slide.getId());
+			Slide latest = fileData.getData();
 			// make sure the slide wasn't removed
 			if (latest != null) {
 				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
@@ -369,7 +368,7 @@ public final class SlideLibrary {
 				boolean added = latest.getTags().addAll(tags);
 				if (added) {
 					try {
-						XmlIO.save(slide.getPath(), slide);
+						JsonIO.write(fileData.getPath(), slide);
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to save slide after adding tags '{}' to slide '{}'.", ts, slide.getName());
 						// reset to initial state
@@ -389,17 +388,17 @@ public final class SlideLibrary {
 	 * @param slide the slide
 	 * @param tags the new tags
 	 * @return boolean true if the tags were set successfully
-	 * @throws JAXBException if the slide failed to save
 	 * @throws IOException if an IO error occurs
 	 */	
-	public boolean setTags(Slide slide, Collection<Tag> tags) throws JAXBException, IOException {
+	public boolean setTags(Slide slide, Collection<Tag> tags) throws IOException {
 		// obtain the lock for this slide item
 		synchronized(this.getSlideLock(slide)) {
 			// sanity check, it's possible that while this thread
 			// was waiting for the lock, that this slide was deleted
 			// or renamed. the slide map will contain the latest 
 			// slide for us to update
-			Slide latest = this.slides.get(slide.getId());
+			FileData<Slide> fileData = this.slides.get(slide.getId());
+			Slide latest = fileData.getData();
 			// make sure the slide wasn't removed
 			if (latest != null) {
 				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
@@ -412,7 +411,7 @@ public final class SlideLibrary {
 				if (changed) {
 					try {
 						// attempt to save
-						XmlIO.save(slide.getPath(), slide);
+						JsonIO.write(fileData.getPath(), slide);
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to save slide after setting tags '{}' on slide '{}'.", ts, slide.getName());
 						// reset to initial state
@@ -433,24 +432,24 @@ public final class SlideLibrary {
 	 * @param slide the slide
 	 * @param tag the tag to remove
 	 * @return boolean true if the tag was removed successfully
-	 * @throws JAXBException if the slide failed to save
 	 * @throws IOException if an IO error occurs
 	 */	
-	public boolean removeTag(Slide slide, Tag tag) throws JAXBException, IOException {
+	public boolean removeTag(Slide slide, Tag tag) throws IOException {
 		// obtain the lock for this slide item
 		synchronized(this.getSlideLock(slide)) {
 			// sanity check, it's possible that while this thread
 			// was waiting for the lock, that this slide was deleted
 			// or renamed. the slide map will contain the latest 
 			// slide for us to update
-			Slide latest = this.slides.get(slide.getId());
+			FileData<Slide> fileData = this.slides.get(slide.getId());
+			Slide latest = fileData.getData();
 			// make sure the slide wasn't removed
 			if (latest != null) {
 				LOGGER.debug("Removing tag '{}' from slide '{}'.", tag, slide.getName());
 				boolean removed = latest.getTags().remove(tag);
 				if (removed) {
 					try {
-						XmlIO.save(slide.getPath(), slide);
+						JsonIO.write(fileData.getPath(), slide);
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to save slide after removing tag '{}' from slide '{}'.", tag, slide.getName());
 						// reset to initial state
@@ -470,17 +469,17 @@ public final class SlideLibrary {
 	 * @param slide the slide
 	 * @param tags the tags to remove
 	 * @return boolean true if the tags were removed successfully
-	 * @throws JAXBException if the slide failed to save
 	 * @throws IOException if an IO error occurs
 	 */	
-	public boolean removeTags(Slide slide, Collection<Tag> tags) throws JAXBException, IOException {
+	public boolean removeTags(Slide slide, Collection<Tag> tags) throws IOException {
 		// obtain the lock for this slide item
 		synchronized(this.getSlideLock(slide)) {
 			// sanity check, it's possible that while this thread
 			// was waiting for the lock, that this slide was deleted
 			// or renamed. the slide map will contain the latest 
 			// slide for us to update
-			Slide latest = this.slides.get(slide.getId());
+			FileData<Slide> fileData = this.slides.get(slide.getId());
+			Slide latest = fileData.getData();
 			// make sure the slide wasn't removed
 			if (latest != null) {
 				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
@@ -491,7 +490,7 @@ public final class SlideLibrary {
 				boolean removed = latest.getTags().removeAll(tags);
 				if (removed) {
 					try {
-						XmlIO.save(slide.getPath(), slide);
+						JsonIO.write(fileData.getPath(), slide);
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to save slide after removing tags '{}' from slide '{}'.", ts, slide.getName());
 						// reset to initial state
@@ -512,9 +511,8 @@ public final class SlideLibrary {
 	 * @param path the file
 	 * @param slides the slides to export
 	 * @throws IOException if an IO error occurs
-	 * @throws JAXBException if a slide cannot be written to XML
 	 */
-	public void exportSlides(Path path, List<Slide> slides) throws IOException, JAXBException {
+	public void exportSlides(Path path, List<Slide> slides) throws IOException {
 		SlideExporter exporter = new PraisenterSlideExporter();
 		exporter.execute(path, slides);
 	}
@@ -524,9 +522,8 @@ public final class SlideLibrary {
 	 * @param stream the stream to write to
 	 * @param slides the slides to export
 	 * @throws IOException if an IO error occurs
-	 * @throws JAXBException if a slide cannot be written to XML
 	 */
-	public void exportSlides(ZipOutputStream stream, List<Slide> slides) throws IOException, JAXBException {
+	public void exportSlides(ZipOutputStream stream, List<Slide> slides) throws IOException {
 		SlideExporter exporter = new PraisenterSlideExporter();
 		exporter.execute(stream, ZIP_DIR, slides);
 	}
@@ -538,10 +535,9 @@ public final class SlideLibrary {
 	 * @throws FileNotFoundException if the given path is not found
 	 * @throws InvalidFormatException if the file wasn't in the format expected
 	 * @throws UnknownFormatException if the format of the file couldn't be determined
-	 * @throws JAXBException if an error occurs while reading XML
 	 * @throws IOException if an IO error occurs
 	 */
-	public List<Slide> importSlides(Path path) throws FileNotFoundException, IOException, JAXBException, InvalidFormatException, UnknownFormatException {
+	public List<Slide> importSlides(Path path) throws FileNotFoundException, IOException, InvalidFormatException, UnknownFormatException {
 		FormatIdentifingSlideImporter importer = new FormatIdentifingSlideImporter();
 		List<Slide> slides = importer.execute(path);
 		
@@ -570,33 +566,11 @@ public final class SlideLibrary {
 	 * @return boolean
 	 */
 	public boolean isMediaReferenced(UUID... ids) {
-		for (Slide slide : this.slides.values()) {
-			if (slide.isMediaReferenced(ids)) {
+		for (FileData<Slide> fileData : this.slides.values()) {
+			if (fileData.getData().isMediaReferenced(ids)) {
 				return true;
 			}
 		}
 		return false;
-	}
-	
-	/**
-	 * Creates a file name for the given slide name.
-	 * @param slide the slide
-	 * @return String
-	 */
-	public static final String createFileName(Slide slide) {
-		String name = slide.getName();
-		if (name == null) {
-			// just use the id
-			name = slide.getId().toString().replaceAll("-", "");
-		}
-		
-		// truncate the name to certain length
-		int max = Constants.MAX_FILE_NAME_CODEPOINTS - EXTENSION.length();
-		if (name.length() > max) {
-			LOGGER.warn("File name too long '{}', truncating.", name);
-			name = name.substring(0, Math.min(name.length() - 1, max));
-		}
-		
-		return name;
 	}
 }

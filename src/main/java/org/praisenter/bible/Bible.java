@@ -25,111 +25,97 @@
 package org.praisenter.bible;
 
 import java.io.Serializable;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
 import org.praisenter.Constants;
 import org.praisenter.Localized;
-import org.praisenter.xml.adapters.InstantXmlAdapter;
+import org.praisenter.json.InstantJsonDeserializer;
+import org.praisenter.json.InstantJsonSerializer;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Represents a Bible translation.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "bible")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	/** The serialization id */
 	private static final long serialVersionUID = 2081803110927884508L;
 
 	/** The current version number */
-	public static final int CURRENT_VERSION = 1;
+	public static final String CURRENT_VERSION = "1";
 
 	// final
 	
 	/** The format (for format identification only) */
-	@XmlAttribute(name = "format", required = false)
-	private final String format = Constants.FORMAT_NAME;
+	@JsonProperty
+	private final String format;
 	
 	/** The version number */
-	@XmlAttribute(name = "version", required = false)
-	private final int version = CURRENT_VERSION;
+	@JsonProperty
+	private final String version;
 	
-	// special case
-	
-	/** The bible id */
-	@XmlElement(name = "id", required = false)
-	private UUID id;
-
 	// internally modifiable
 
-	/** The path to the XML document */
-	Path path;
+	/** The bible id */
+	@JsonProperty
+	private UUID id;
 
 	/** The date the bible was created or imported */
-	@XmlElement(name = "createdDate", required = false)
-	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
+	@JsonProperty
+	@JsonSerialize(using = InstantJsonSerializer.class)
+	@JsonDeserialize(using = InstantJsonDeserializer.class)
 	Instant createdDate;
+	
+	// modifiable
 
 	/** The date the bible was last modified */
-	@XmlElement(name = "modifiedDate", required = false)
-	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
+	@JsonProperty
+	@JsonSerialize(using = InstantJsonSerializer.class)
+	@JsonDeserialize(using = InstantJsonDeserializer.class)
 	Instant modifiedDate;
 
 	/** True if a warning was found during import */
-	@XmlElement(name = "hadImportWarning", required = false)
+	@JsonProperty
 	boolean hadImportWarning;
 	
 	/** The name of the bible */
-	@XmlElement(name = "name", required = false)
+	@JsonProperty
 	String name;
 	
-	/** The language the bible is in (using ISO 639-2 and ISO 639-3 codes along with micro variants (but all three code it seems)) */
-	@XmlElement(name = "language", required = false)
+	/** The language the bible is in */
+	@JsonProperty
 	String language;
 
 	/** The source for the bible's contents */
-	@XmlElement(name = "source", required = false)
+	@JsonProperty
 	String source;
 	
 	/** The copyright */
-	@XmlElement(name = "copyright", required = false)
+	@JsonProperty
 	String copyright;
 	
 	/** The books in this bible */
-	@XmlElement(name = "book", required = false)
-	@XmlElementWrapper(name = "books", required = false)
+	@JsonProperty
 	final List<Book> books;
 	
 	/** Any notes */
-	@XmlElement(name = "notes", required = false)
+	@JsonProperty
 	String notes;
 	
 	/**
 	 * Default constructor.
 	 */
 	public Bible() {
-		this(null,
-			 null,
-			 null,
-			 null,
-			 null,
-			 null,
-			 false,
-			 null);
+		this(Constants.FORMAT_NAME, CURRENT_VERSION);
 	}
 	
 	/**
@@ -152,6 +138,66 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 		  String notes,
 		  boolean hadImportWarning,
 		  List<Book> books) {
+		this(
+			Constants.FORMAT_NAME,
+			CURRENT_VERSION,
+			name,
+			language,
+			source,
+			importDate,
+			copyright,
+			notes,
+			hadImportWarning,
+			books);
+	}
+
+	/**
+	 * Constructor for JSON deserialization.
+	 * @param format the format in the file
+	 * @param version the version in the flie
+	 */
+	@JsonCreator
+	private Bible(
+			@JsonProperty("format") String format,
+			@JsonProperty("version") String version) {
+		this(format,
+			version,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			false,
+			null);
+	}
+	
+	/**
+	 * Full constructor.
+	 * @param format the format
+	 * @param version the version
+	 * @param name the bible name
+	 * @param language the bible language
+	 * @param source the bible source
+	 * @param importDate the import date; can be null
+	 * @param copyright the copyright (if any)
+	 * @param notes bible notes
+	 * @param hadImportWarning true if a warning occurred during import
+	 * @param books the books for this bible
+	 */
+	private Bible(
+		  String format,
+		  String version,
+		  String name, 
+		  String language, 
+		  String source, 
+		  Instant importDate,
+		  String copyright,
+		  String notes,
+		  boolean hadImportWarning,
+		  List<Book> books) {
+		this.format = format;
+		this.version = version;
 		this.id = UUID.randomUUID();
 		this.name = name;
 		this.language = language;
@@ -170,6 +216,8 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	 * @param exact whether to make an exact copy or not
 	 */
 	public Bible(Bible bible, boolean exact) {
+		this.format = bible.format;
+		this.version = bible.version;
 		this.books = new ArrayList<Book>();
 		this.copyright = bible.copyright;
 		this.language = bible.language;
@@ -180,12 +228,10 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 		
 		if (exact) {
 			this.id = bible.id;
-			this.path = bible.path;
 			this.createdDate = bible.createdDate;
 			this.modifiedDate = bible.modifiedDate;
 		} else {
 			this.id = UUID.randomUUID();
-			this.path = null;
 			this.createdDate = Instant.now();
 			this.modifiedDate = this.createdDate;
 		}
@@ -246,7 +292,6 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	public void as(Bible bible) {
 		this.id = bible.id;
 		this.name = bible.name;
-		this.path = bible.path;
 		this.createdDate = bible.createdDate;
 		this.hadImportWarning = bible.hadImportWarning;
 		this.modifiedDate = bible.modifiedDate;
@@ -703,5 +748,21 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	 */
 	public boolean hadImportWarning() {
 		return this.hadImportWarning;
+	}
+	
+	/**
+	 * Returns the format.
+	 * @return String
+	 */
+	public String getFormat() {
+		return this.format;
+	}
+	
+	/**
+	 * Returns the version.
+	 * @return String
+	 */
+	public String getVersion() {
+		return this.version;
 	}
 }

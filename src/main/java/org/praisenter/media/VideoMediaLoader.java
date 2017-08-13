@@ -34,20 +34,9 @@ import java.nio.file.Path;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.InvalidFormatException;
-import org.praisenter.ThumbnailSettings;
-import org.praisenter.utility.ImageManipulator;
-
-import io.humble.video.Codec;
-import io.humble.video.Decoder;
-import io.humble.video.Demuxer;
-import io.humble.video.DemuxerFormat;
-import io.humble.video.DemuxerStream;
-import io.humble.video.MediaDescriptor;
-import io.humble.video.MediaPacket;
-import io.humble.video.MediaPicture;
-import io.humble.video.awt.MediaPictureConverter;
-import io.humble.video.awt.MediaPictureConverterFactory;
+import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.tools.ToolExecutionException;
+import org.praisenter.tools.ffmpeg.FFprobeMediaMetadata;
 
 /**
  * {@link MediaLoader} that loads video media.
@@ -56,14 +45,17 @@ import io.humble.video.awt.MediaPictureConverterFactory;
  */
 public final class VideoMediaLoader extends AbstractMediaLoader implements MediaLoader {
 	/** The class-level logger */
-	private static Logger LOGGER = LogManager.getLogger();
+	private static final Logger LOGGER = LogManager.getLogger();
+	
+	/** The default command */
+	public static final String DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND = "{ffmpeg} -v fatal -ss 3 -i {media} -vf \"select=gt(scene\\,0.2)\" -frames:v 10 -vsync vfr {frame}"; 
 	
 	/**
 	 * Minimal constructor.
-	 * @param thumbnailSettings the thumbnail settings
+	 * @param context the context
 	 */
-	public VideoMediaLoader(ThumbnailSettings thumbnailSettings) {
-		super(thumbnailSettings);
+	public VideoMediaLoader(MediaLibraryContext context) {
+		super(context);
 	}
 	
 	/* (non-Javadoc)
@@ -71,7 +63,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 	 */
 	@Override
 	public boolean isSupported(String mimeType) {
-		if (mimeType != null && mimeType.contains("video")) {
+		if (mimeType != null && mimeType.startsWith("video")) {
 			// handle any mimetype
 			return true;
 		}
@@ -82,207 +74,62 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
 	 */
 	@Override
-	public Media load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
+	public Media load(Path path) throws MediaImportException {
 		LOGGER.debug("Video media '{}' loading", path);
 		if (Files.exists(path) && Files.isRegularFile(path)) {
-			Demuxer demuxer = null;
+			BufferedImage frame = null;
+			BufferedImage thumb = null;
+			
 			try {
-				demuxer = Demuxer.make();
-				demuxer.open(path.toString(), null, false, true, null, null);
+				// get the command
+				String command = this.context.getConfiguration().getString(Setting.MEDIA_VIDEO_FRAME_EXTRACT_COMMAND, DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND);
 				
-				final DemuxerFormat format = demuxer.getFormat();
-				final long length = demuxer.getDuration() / 1000 / 1000;
-				
-				MediaCodec video = null;
-				MediaCodec audio = null;
-				int width = 0;
-				int height = 0;
-				BufferedImage image = null;
-				BufferedImage thumb = null;
-				
-				final int streams = demuxer.getNumStreams();
-				for (int i = 0; i < streams; i++) {
-					final DemuxerStream stream = demuxer.getStream(i);
-					final Decoder decoder = stream.getDecoder();
-					if (video == null && decoder.getCodecType() == MediaDescriptor.Type.MEDIA_VIDEO) {
-						// get the width and height
-						width = decoder.getWidth();
-						height = decoder.getHeight();
-						// get the codec
-						final Codec codec = decoder.getCodec();
-						video = new MediaCodec(CodecType.VIDEO, codec.getName(), codec.getLongName());
-						// attempt to read the first image of the stream
-						try {
-							LOGGER.debug("Video media '{}' - searching for best frame.", path);
-							image = readBestFrame(path, demuxer, decoder, i);
-							LOGGER.debug("Video media '{}' - creating thumbnail.", path);
-							thumb = createThumbnail(image);
-							
-							// draw on the thumb nail to make it look like
-							// a piece of film
-							drawFilmOnFrame(thumb);
-						} catch (Exception e) {
-							LOGGER.warn("Failed to read first frame of video '" + path.toAbsolutePath().toString() + ": " + e.getMessage(), e);
-							image = null;
-							thumb = null;
-						}
-					}
-					if (audio == null && decoder.getCodecType() == MediaDescriptor.Type.MEDIA_AUDIO) {
-						final Codec codec = decoder.getCodec();
-						audio = new MediaCodec(CodecType.AUDIO, codec.getName(), codec.getLongName());
-					}
+				// get the best frame
+				LOGGER.debug("Video media '{}' - searching for best frame.", path);
+				frame = this.context.getTools().ffmpegExtractFrame(command, path);
+			} catch (Exception ex) {
+				LOGGER.warn("Failed to extract frame from video '" + path.toAbsolutePath().toString() + "'.");
+			}
+
+			// create a thumbnail for it
+			if (frame != null) {
+				LOGGER.debug("Video media '{}' - creating thumbnail.", path);
+				thumb = this.createThumbnail(frame);
+				this.drawFilmOnFrame(thumb);
+			}
+			
+			// get the metadata
+			try {
+				FFprobeMediaMetadata metadata = this.context.getTools().ffprobeExtractMetadata(path);
+
+				if (!metadata.hasVideo()) {
+					LOGGER.error("No video stream present in file: '{}'", path.toAbsolutePath().toString());
+					throw new MediaImportException("No video stream was found in the file '" + path.toAbsolutePath().toString() + "'.");
 				}
 				
-				// we must have a video, audio is optional
-				if (video == null) {
-					LOGGER.error("No video stream present on file: '{}'", path.toAbsolutePath().toString());
-					throw new NoVideoInMediaException(path.toAbsolutePath().toString());
-				}
+				final Media media = Media.forVideo(
+						path, 
+						metadata.getFormat(), 
+						metadata.getWidth(), 
+						metadata.getHeight(), 
+						metadata.getLength(), 
+						metadata.hasAudio(), 
+						null, 
+						thumb, 
+						frame);
 				
-				final MediaCodec[] codecs;
-				if (audio != null) {
-					codecs = new MediaCodec[] { video, audio };
-				} else {
-					codecs = new MediaCodec[] { video };
-				}
-				
-				final MediaFormat mf = new MediaFormat(format.getName().toLowerCase(), format.getLongName(), codecs);
-				final Media media = Media.forVideo(path, mf, width, height, length, audio != null, null, thumb, image);
 				LOGGER.debug("Video media '{}' loaded", path);
 				return media;
-			} catch (InterruptedException ex) {
-				throw new IOException(ex);
-			} finally {
-				if (demuxer != null) {
-					try {
-						demuxer.close();
-					} catch (Exception e) {
-						// just eat them
-						LOGGER.warn("Failed to close demuxer on: '{}': {}", path.toAbsolutePath().toString(), e.getMessage());
-					}
-				}
+			} catch (InterruptedException e) {
+				LOGGER.error("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' was interrupted.", e);
+				throw new MediaImportException("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' was interrupted.", e);
+			} catch (ToolExecutionException | IOException e) {
+				LOGGER.error("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' failed.", e);
+				throw new MediaImportException("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' failed.", e);
 			}
 		} else {
-			throw new FileNotFoundException(path.toAbsolutePath().toString());
+			throw new MediaImportException(new FileNotFoundException(path.toAbsolutePath().toString()));
 		}
-	}
-	
-	/**
-	 * Returns a frame of the video that would be "best" for a thumbnail and frame.
-	 * <p>
-	 * Ideally this method will return a frame of the video that is not too light or dark with
-	 * enough detail to allow easy recognition.
-	 * @param path the path to the media
-	 * @param demuxer the demuxer
-	 * @param decoder the decoder
-	 * @param streamIndex the stream index
-	 * @return BufferedImage
-	 * @throws IOException if an IO error occurs
-	 * @throws InterruptedException if reading of a packet from the file is interrupted
-	 */
-	private static final BufferedImage readBestFrame(Path path, Demuxer demuxer, Decoder decoder, int streamIndex) throws IOException, InterruptedException {
-		
-		// we are using a lightness metric to determine the "best" frame for a video
-		// we will attempt to examine [max] number of frames before giving up and taking
-		// the best one
-		// if the video container doesn't support seeking then we'll just take the best
-		// one of the first [max] number of frames
-		
-		decoder.open(null, null);
-		
-	    final MediaPicture picture = MediaPicture.make(
-	    		decoder.getWidth(),
-	            decoder.getHeight(),
-	            decoder.getPixelFormat());
-	    
-	    final MediaPictureConverter converter = 
-	            MediaPictureConverterFactory.createConverter(
-	                MediaPictureConverterFactory.HUMBLE_BGR_24,
-	                decoder.getPixelFormat(),
-	                decoder.getWidth(),
-	                decoder.getHeight(),
-	                decoder.getWidth(),
-	                decoder.getHeight());
-	    
-        final MediaPacket packet = MediaPacket.make();
-        BufferedImage image = null;
-        BufferedImage highest = null;
-        
-        // lightness will be the metric choosen
-        double lightness = 0;
-        // the maximum frames to inspect
-        int max = 20;
-        
-        // duration in microseconds
-        long duration = demuxer.getDuration();
-        // look at roughly 20 frames of the video
-        long increment = duration / max;
-        long seekpos = 0;
-        
-        int iterations = 0;
-        boolean seekFailed = false;
-        
-		while (demuxer.read(packet) >= 0) {
-			/**
-			 * Now we have a packet, let's see if it belongs to our video stream
-			 */
-			if (packet.getStreamIndex() == streamIndex) {
-				/**
-				 * A packet can actually contain multiple sets of samples (or
-				 * frames of samples in decoding speak). So, we may need to call
-				 * decode multiple times at different offsets in the packet's
-				 * data. We capture that here.
-				 */
-				int offset = 0;
-				int bytesRead = 0;
-				do {
-					bytesRead += decoder.decode(picture, packet, offset);
-					if (picture.isComplete()) {
-						iterations++;
-						image = converter.toImage(image, picture);
-						double l = ImageManipulator.getLogAverageLuminance(image);
-						
-						// keep the one closest to the middle
-						double distance = Math.abs(l - 0.5);
-						if (distance < lightness || highest == null) {
-							lightness = distance;
-							// swap the storage
-							BufferedImage temp = highest;
-							highest = image;
-							image = temp;
-						}
-						
-						if (!seekFailed) {
-							seekpos += increment;
-							if (seekpos >= duration) {
-								if (LOGGER.isDebugEnabled()) {
-									LOGGER.debug("Best distance for '" + path.toAbsolutePath().toString() + "' is " + lightness + " at " + picture.getFormattedTimeStamp());
-								}
-								return highest;
-							}
-					        int r = demuxer.seek(-1, 0, seekpos, duration, 0);
-					        if (r < 0) {
-					        	seekFailed = true;
-					        	LOGGER.warn("Seek failed for '" + path.toAbsolutePath().toString() + "' with error code: " + r);
-					        }
-					        decoder.flush();
-						}
-						
-						if (iterations > max) {
-							if (LOGGER.isDebugEnabled()) {
-								LOGGER.debug("Best distance for '" + path.toAbsolutePath().toString() + "' is " + lightness + " at " + picture.getFormattedTimeStamp());
-							}
-							return highest;
-						}
-					}
-					offset += bytesRead;
-				} while (offset < packet.getSize());
-			}
-		}
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Best distance for '" + path.toAbsolutePath().toString() + "' is " + lightness + " at " + picture.getFormattedTimeStamp());
-		}
-		return highest;
 	}
 	
 	/**

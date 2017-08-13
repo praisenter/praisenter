@@ -24,34 +24,28 @@
  */
 package org.praisenter.media;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * A media codec.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "codec")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class MediaCodec {
 	/** The codec short name */
-	@XmlElement(name = "name", required = false)
+	@JsonProperty
 	final String name;
 	
 	/** The codec long name */
-	@XmlElement(name = "description", required = false)
+	@JsonProperty
 	final String description;
 	
 	/** The codec type */
-	@XmlElement(name = "type", required = false)
+	@JsonProperty
 	final CodecType type;
 	
 	/**
 	 * Default constructor.
-	 * Only used by JAXB.
 	 */
 	@SuppressWarnings("unused")
 	private MediaCodec() {
@@ -65,7 +59,7 @@ public final class MediaCodec {
 	 * @param name the codec short name
 	 * @param description the coded long name
 	 */
-	MediaCodec(CodecType type, String name, String description) {
+	public MediaCodec(CodecType type, String name, String description) {
 		this.type = type;
 		this.name = name;
 		this.description = description;

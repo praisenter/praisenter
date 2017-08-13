@@ -45,9 +45,12 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.javafx.media.JavaFXMediaImportFilter;
+import org.praisenter.javafx.media.JavaFXMediaImportProcessor;
 import org.praisenter.javafx.themes.Theme;
-import org.praisenter.xml.XmlIO;
+import org.praisenter.json.JsonIO;
+import org.praisenter.media.VideoMediaLoader;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents the storage mechanism for application settings.
@@ -69,6 +72,7 @@ public final class Configuration extends SettingMap<Void> {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	/** The other settings */
+	@JsonProperty
 	@XmlElement(name = "settings", required = false)
 	private final Map<Setting, Object> settings;
 	
@@ -86,10 +90,11 @@ public final class Configuration extends SettingMap<Void> {
 		this.settings.put(Setting.BIBLE_SHOW_RENUMBER_WARNING, true);
 		this.settings.put(Setting.BIBLE_SHOW_REORDER_WARNING, true);
 		this.settings.put(Setting.MEDIA_TRANSCODING_ENABLED, true);
-		this.settings.put(Setting.MEDIA_TRANSCODING_VIDEO_EXTENSION, JavaFXMediaImportFilter.DEFAULT_VIDEO_EXTENSION);
-		this.settings.put(Setting.MEDIA_TRANSCODING_AUDIO_EXTENSION, JavaFXMediaImportFilter.DEFAULT_AUDIO_EXTENSION);
-		this.settings.put(Setting.MEDIA_TRANSCODING_VIDEO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND);
-		this.settings.put(Setting.MEDIA_TRANSCODING_AUDIO_COMMAND, JavaFXMediaImportFilter.DEFAULT_COMMAND);
+		this.settings.put(Setting.MEDIA_TRANSCODING_VIDEO_EXTENSION, JavaFXMediaImportProcessor.DEFAULT_VIDEO_EXTENSION);
+		this.settings.put(Setting.MEDIA_TRANSCODING_AUDIO_EXTENSION, JavaFXMediaImportProcessor.DEFAULT_AUDIO_EXTENSION);
+		this.settings.put(Setting.MEDIA_TRANSCODING_VIDEO_COMMAND, JavaFXMediaImportProcessor.DEFAULT_TRANSCODE_COMMAND);
+		this.settings.put(Setting.MEDIA_TRANSCODING_AUDIO_COMMAND, JavaFXMediaImportProcessor.DEFAULT_TRANSCODE_COMMAND);
+		this.settings.put(Setting.MEDIA_VIDEO_FRAME_EXTRACT_COMMAND, VideoMediaLoader.DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND);
 		
 		ResolutionSet resolutions = new ResolutionSet();
 		resolutions.addAll(Arrays.asList(Resolution.DEFAULT_RESOLUTIONS));
@@ -104,7 +109,7 @@ public final class Configuration extends SettingMap<Void> {
 		Path path = Paths.get(Constants.CONFIG_ABSOLUTE_FILE_PATH);
 		if (Files.exists(path)) {
 			try {
-				return XmlIO.read(path, Configuration.class);
+				return JsonIO.read(path, Configuration.class);
 			} catch (Exception ex) {
 				LOGGER.info("Failed to load configuration. Using default configuration.", ex);
 			}
@@ -116,7 +121,7 @@ public final class Configuration extends SettingMap<Void> {
 		
 		// try to save it
 		try {
-			XmlIO.save(path, conf);
+			JsonIO.write(path, conf);
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to save default configuration.", ex);
 		}
@@ -131,7 +136,7 @@ public final class Configuration extends SettingMap<Void> {
 	 */
 	public final synchronized void save() throws JAXBException, IOException {
 		Path path = Paths.get(Constants.CONFIG_ABSOLUTE_FILE_PATH);
-		XmlIO.save(path, this);
+		JsonIO.write(path, this);
 	}
 	
 	// public interface

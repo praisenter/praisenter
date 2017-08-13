@@ -201,6 +201,9 @@ public final class ApplicationGlyphs {
 	/** Media non-muted icon */
 	public static final Glyph MEDIA_VOLUME = FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_UP);
 	
+	/** Media color adjust */
+	public static final Glyph MEDIA_COLOR_ADJUST = FONT_AWESOME.create(FontAwesome.Glyph.SLIDERS);
+	
 	
 	/** Font scale icon */
 	public static final Glyph FONT_SCALING = FONT_AWESOME.create(FontAwesome.Glyph.TEXT_HEIGHT);

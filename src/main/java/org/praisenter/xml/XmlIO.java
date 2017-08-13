@@ -25,6 +25,7 @@
 package org.praisenter.xml;
 
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -40,10 +41,17 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.PropertyException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.sax.SAXSource;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Reference;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
+// FIXME https://stackoverflow.com/questions/12977299/prevent-xxe-attack-with-jaxb
 
 /**
  * Helper class for reading and saving XML using JAXB.
@@ -59,6 +67,14 @@ public final class XmlIO {
 	
 	/** Hidden default constructor */
 	private XmlIO() {}
+	
+	private static final SAXSource getSecureSource(InputSource source) throws SAXException, ParserConfigurationException {
+		SAXParserFactory spf = SAXParserFactory.newInstance();
+		spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+		spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+		spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		return new SAXSource(spf.newSAXParser().getXMLReader(), source);
+	}
 	
 	/**
 	 * Returns the {@link XmlContext} for the given class.
@@ -99,12 +115,14 @@ public final class XmlIO {
 	 * @return E
 	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
 	 * @throws IOException thrown if an exception occurs while reading the XML
+	 * @throws ParserConfigurationException 
+	 * @throws SAXException 
 	 */
-	public static final <E> E read(String string, Class<E> clazz) throws JAXBException, IOException {
+	public static final <E> E read(String string, Class<E> clazz) throws JAXBException, IOException, SAXException, ParserConfigurationException {
 		// otherwise attempt to read the file
 		XmlContext context = getXmlContext(clazz);
 		Unmarshaller unmarshaller = context.getUnmarshaller();
-		return clazz.cast(unmarshaller.unmarshal(new StringReader(string)));
+		return clazz.cast(unmarshaller.unmarshal(getSecureSource(new InputSource(new StringReader(string)))));
 	}
 	
 	/**
@@ -115,8 +133,10 @@ public final class XmlIO {
 	 * @throws FileNotFoundException thrown if the given file is not found
 	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
 	 * @throws IOException thrown if an exception occurs while reading the XML file
+	 * @throws ParserConfigurationException 
+	 * @throws SAXException 
 	 */
-	public static final <E> E read(Path path, Class<E> clazz) throws FileNotFoundException, JAXBException, IOException {
+	public static final <E> E read(Path path, Class<E> clazz) throws FileNotFoundException, JAXBException, IOException, SAXException, ParserConfigurationException {
 		// see if the file exists
 		if (!Files.exists(path)) {
 			throw new FileNotFoundException("The file [" + path.toAbsolutePath().toString() + "] was not found.");
@@ -124,7 +144,7 @@ public final class XmlIO {
 		// otherwise attempt to read the file
 		XmlContext context = getXmlContext(clazz);
 		Unmarshaller unmarshaller = context.getUnmarshaller();
-		return clazz.cast(unmarshaller.unmarshal(path.toFile()));
+		return clazz.cast(unmarshaller.unmarshal(getSecureSource(new InputSource(new FileReader(path.toFile())))));
 	}
 	
 	/**
@@ -134,12 +154,14 @@ public final class XmlIO {
 	 * @return E
 	 * @throws JAXBException thrown if a JAXB context could not be created for the given type
 	 * @throws IOException thrown if an exception occurs while reading the XML file
+	 * @throws ParserConfigurationException 
+	 * @throws SAXException 
 	 */
-	public static final <E> E read(InputStream stream, Class<E> clazz) throws JAXBException, IOException {
+	public static final <E> E read(InputStream stream, Class<E> clazz) throws JAXBException, IOException, SAXException, ParserConfigurationException {
 		// otherwise attempt to read the file
 		XmlContext context = getXmlContext(clazz);
 		Unmarshaller unmarshaller = context.getUnmarshaller();
-		return clazz.cast(unmarshaller.unmarshal(stream));
+		return clazz.cast(unmarshaller.unmarshal(getSecureSource(new InputSource(stream))));
 	}
 	
 	/**

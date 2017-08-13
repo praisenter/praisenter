@@ -39,6 +39,7 @@ audio/3gp													3gpp 3GPP
 
 # other
 application/xml												xml XML xsl XSL
+application/json											json JSON
 
 # not supported by the media library but we still want to
 # show a correct mime type on the error report
@@ -51,7 +52,6 @@ application/xml-dtd											dtd DTD
 application/xslt+xml										xslt XSLT
 application/pdf 											pdf PDF
 application/javascript										js JS
-application/json											json JSON
 application/msword											doc DOC dot DOT
 application/postscript										ai AI eps EPS ps PS
 application/rss+xml											rss RSS

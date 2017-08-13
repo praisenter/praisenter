@@ -82,13 +82,18 @@ class StackingRibbonTab extends ComponentEditorRibbonTab {
 		VBox layout = new VBox(2, row1, row2);
 		this.container.setCenter(layout);
 	
+		this.managedProperty().bind(this.visibleProperty());
+		this.setVisible(false);
+		
 		// events
 		
 		this.context.selectedProperty().addListener((obs, ov, nv) -> {
 			mutating = true;
 			if (nv != null && nv instanceof ObservableSlideComponent) {
+				this.setVisible(true);
 				this.setDisable(false);
 			} else {
+				this.setVisible(false);
 				this.setDisable(true);
 			}
 			mutating = false;

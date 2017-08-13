@@ -51,8 +51,8 @@ import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.Slide;
-import org.praisenter.slide.SlideLibrary;
 import org.praisenter.utility.MimeType;
+import org.praisenter.utility.StringManipulator;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -229,8 +229,9 @@ public final class SlideActions {
 		if (slides != null && !slides.isEmpty()) {
 			String name = Translations.get("slide.export.multiple.filename"); 
 	    	if (slides.size() == 1) {
+	    		Slide slide = slides.get(0);
 	    		// make sure the file name doesn't have bad characters in it
-	    		name = SlideLibrary.createFileName(slides.get(0));
+	    		name = StringManipulator.toFileName(slide.getName(), slide.getId());
 	    	}
 	    	FileChooser chooser = new FileChooser();
 	    	chooser.setInitialFileName(name + ".zip");

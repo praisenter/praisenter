@@ -35,6 +35,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a set of displays.
  * @author William Bittle
@@ -44,6 +46,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class Displays implements Iterable<Display>, Collection<Display>, List<Display> {
 	/** The displays */
+	@JsonProperty
 	@XmlElement(name = "display", required = false)
 	private final List<Display> displays;
 	

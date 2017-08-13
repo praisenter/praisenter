@@ -28,11 +28,9 @@ import java.util.UUID;
 
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.slide.converters.BorderConverter;
-import org.praisenter.javafx.slide.converters.EffectConverter;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.graphics.SlidePaint;
-import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.utility.Scaling;
 
@@ -45,8 +43,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
-import javafx.scene.effect.Effect;
-import javafx.scene.effect.InnerShadow;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -96,12 +92,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 	/** The global opacity */
 	private final DoubleProperty opacity = new SimpleDoubleProperty();
 	
-	/** The shadow */
-	private final ObjectProperty<SlideShadow> shadow = new SimpleObjectProperty<SlideShadow>();
-	
-	/** The glow */
-	private final ObjectProperty<SlideShadow> glow = new SimpleObjectProperty<SlideShadow>();
-	
 	// for preview/editing
 	
 	/** The scaling factor for edit and preview modes */
@@ -122,19 +112,19 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 	// +-----------------------+--------------+-------------------------------+
 	
 	/** The root node */
-	private final Pane displayPane;
+	protected final Pane displayPane;
 	
 	/** The container node for the background, content, and border */
-	private final Pane container;
+	protected final Pane container;
 	
 	/** The background node */
-	private final FillPane backgroundNode;
+	protected final FillPane backgroundNode;
 	
 	/** The border node */
-	private final Region borderNode;
+	protected final Region borderNode;
 	
 	/** The edit-border node (only for edit mode) */
-	private final Region editBorderNode;
+	protected final Region editBorderNode;
 	
 	/**
 	 * Minimal constructor.
@@ -159,8 +149,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 		this.background.set(region.getBackground());
 		this.border.set(region.getBorder());
 		this.opacity.set(region.getOpacity());
-		this.shadow.set(region.getShadow());
-		this.glow.set(region.getGlow());
 		
 		// setup nodes
 		this.container = new Pane();
@@ -230,14 +218,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 		this.opacity.addListener((obs, ov, nv) -> {
 			this.region.setOpacity(nv.doubleValue());
 			updateOpacity();
-		});
-		this.shadow.addListener((obs, ov, nv) -> {
-			this.region.setShadow(nv);
-			updateEffects();
-		});
-		this.glow.addListener((obs, ov, nv) -> {
-			this.region.setGlow(nv);
-			updateEffects();
 		});
 		this.scale.addListener((obs, ov, nv) -> {
 			// scale from the top left corner of the node
@@ -370,20 +350,14 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 	}
 	
 	/**
-	 * Updates the Java FX component when the effects changes.
+	 * Performs all the updates.
 	 */
-	protected final void updateEffects() {
-		SlideShadow ss = this.shadow.get();
-		SlideShadow sg = this.glow.get();
-		EffectBuilder builder = EffectBuilder.create();
-		Effect shadow = EffectConverter.toJavaFX(ss);
-		Effect glow = EffectConverter.toJavaFX(sg);
-		builder.add(shadow, shadow != null && shadow instanceof InnerShadow ? 10 : 30);
-		builder.add(glow, glow != null && glow instanceof InnerShadow ? 20 : 40);
-		Effect effect = builder.build();
-		this.backgroundNode.setEffect(effect);
-		
-		this.onEffectsUpdate(ss, sg);
+	protected void updateAll() {
+		this.updatePosition();
+		this.updateBorder();
+		this.updateSize();
+		this.updateBackground();
+		this.updateOpacity();
 	}
 	
 	// events
@@ -422,49 +396,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 	 */
 	protected void onOpacityUpdate(double opacity) {}
 	
-	/**
-	 * Called after the effects are updated.
-	 * @param shadow the new shadow
-	 * @param glow the new glow
-	 */
-	protected void onEffectsUpdate(SlideShadow shadow, SlideShadow glow) {}
-	
-	// building
-	
-	/**
-	 * Sets up the region for display and modification.
-	 * @param content the content of the region
-	 */
-	protected final void build(Node content) {
-		// set initial node properties
-		this.updatePosition();
-		this.updateBorder();
-		this.updateSize();
-		this.updateBackground();
-		this.updateOpacity();
-		this.updateEffects();
-		
-		if (content != null) {
-			this.container.getChildren().addAll(
-					this.backgroundNode,
-					content,
-					this.borderNode);
-		} else {
-			this.container.getChildren().addAll(
-					this.backgroundNode,
-					this.borderNode);
-		}
-		
-		this.onBuild(this.displayPane, this.container);
-	}
-	
-	/**
-	 * Called after the basic node hiearchy has been built.
-	 * @param displayPane the root display pane
-	 * @param container the container for the content
-	 */
-	protected void onBuild(Pane displayPane, Pane container) {}
-
 	// playable
 	
 	/* (non-Javadoc)
@@ -670,58 +601,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 		return this.opacity;
 	}
 
-	// shadow
-
-	/**
-	 * Sets the shadow.
-	 * @param shadow the shadow
-	 */
-	public void setShadow(SlideShadow shadow) {
-		this.shadow.set(shadow);
-	}
-
-	/**
-	 * Returns the shadow.
-	 * @return {@link SlideShadow}
-	 */
-	public SlideShadow getShadow() {
-		return this.shadow.get();
-	}
-	
-	/**
-	 * Returns the shadow property.
-	 * @return ObjectProperty
-	 */
-	public ObjectProperty<SlideShadow> shadowProperty() {
-		return this.shadow;
-	}
-
-	// opacity
-
-	/**
-	 * Sets the glow.
-	 * @param glow the glow
-	 */
-	public void setGlow(SlideShadow glow) {
-		this.glow.set(glow);
-	}
-
-	/**
-	 * Returns the glow.
-	 * @return {@link SlideShadow}
-	 */
-	public SlideShadow getGlow() {
-		return this.glow.get();
-	}
-	
-	/**
-	 * Returns the glow property.
-	 * @return ObjectProperty
-	 */
-	public ObjectProperty<SlideShadow> glowProperty() {
-		return this.glow;
-	}
-	
 	// scale
 	
 	/**

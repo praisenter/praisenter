@@ -10,6 +10,7 @@ import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.BackgroundEditCommand;
+import org.praisenter.javafx.slide.editor.controls.ColorAdjustPicker;
 import org.praisenter.javafx.slide.editor.controls.SlideGradientPicker;
 import org.praisenter.media.Media;
 import org.praisenter.slide.graphics.ScaleType;
@@ -19,7 +20,7 @@ import org.praisenter.slide.graphics.SlideGradientStop;
 import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlidePaint;
 import org.praisenter.slide.graphics.SlideRadialGradient;
-import org.praisenter.slide.object.MediaObject;
+import org.praisenter.slide.media.MediaObject;
 
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
@@ -42,6 +43,7 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 	private final SegmentedButton segScaling;
 	private final ToggleButton tglLoop;
 	private final ToggleButton tglMute;
+	private final ColorAdjustPicker pkrColorAdjust;
 
 	private static final Color DEFAULT_PAINT = new Color(0, 0, 0, 1);
 	private static final SlideLinearGradient DEFAULT_GRADIENT = new SlideLinearGradient(0, 0, 0, 1, SlideGradientCycleType.NONE, new SlideGradientStop(0, 0, 0, 0, 1), new SlideGradientStop(1, 0, 0, 0, 0.5));
@@ -98,6 +100,9 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 
 		this.cmbTypes.setValue(new Option<PaintType>("", PaintType.NONE));
 		
+		this.pkrColorAdjust = new ColorAdjustPicker();
+		this.pkrColorAdjust.setValue(null);
+
 		togglePaintType(PaintType.NONE);
 		
 		// tooltips
@@ -117,8 +122,8 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 
 		HBox row1 = new HBox(2, this.cmbTypes, this.pkrColor, this.pkrGradient, this.pkrImage, this.pkrVideo);
 		HBox row2 = new HBox(2, this.segScaling, this.tglLoop, this.tglMute);
-		//HBox row3 = new HBox(2, mnuPaintType, this.pkrColor, this.pkrGradient);
-		VBox layout = new VBox(2, row1, row2);
+		HBox row3 = new HBox(2, this.pkrColorAdjust);
+		VBox layout = new VBox(2, row1, row2, row3);
 		this.container.setCenter(layout);
 	
 		// events
@@ -159,6 +164,7 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 		this.segScaling.getToggleGroup().selectedToggleProperty().addListener(listener);
 		this.tglLoop.selectedProperty().addListener(listener);
 		this.tglMute.selectedProperty().addListener(listener);
+		this.pkrColorAdjust.valueProperty().addListener(listener);
 		
 		this.cmbTypes.valueProperty().addListener((obs, ov, nv) -> {
 			togglePaintType(nv.getValue());
@@ -177,6 +183,7 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 				this.segScaling.setDisable(true);
 				this.tglLoop.setDisable(true);
 				this.tglMute.setDisable(true);
+				this.pkrColorAdjust.setDisable(true);
 				break;
 			case GRADIENT:
 				this.pkrColor.setVisible(false);
@@ -186,6 +193,7 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 				this.segScaling.setDisable(true);
 				this.tglLoop.setDisable(true);
 				this.tglMute.setDisable(true);
+				this.pkrColorAdjust.setDisable(true);
 				break;
 			case IMAGE:
 				this.pkrColor.setVisible(false);
@@ -195,6 +203,7 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 				this.segScaling.setDisable(false);
 				this.tglLoop.setDisable(true);
 				this.tglMute.setDisable(true);
+				this.pkrColorAdjust.setDisable(false);
 				break;
 			case VIDEO:
 				this.pkrColor.setVisible(false);
@@ -204,6 +213,7 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 				this.segScaling.setDisable(false);
 				this.tglLoop.setDisable(false);
 				this.tglMute.setDisable(false);
+				this.pkrColorAdjust.setDisable(false);
 				break;
 			case NONE:
 			default:
@@ -216,6 +226,7 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 				this.segScaling.setDisable(true);
 				this.tglLoop.setDisable(true);
 				this.tglMute.setDisable(true);
+				this.pkrColorAdjust.setDisable(true);
 				break;
 		}
 	}
@@ -236,12 +247,12 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 				return this.pkrGradient.getValue();
 			case IMAGE:
 				if (this.pkrImage.getValue() != null) {
-					return new MediaObject(this.pkrImage.getValue().getId(), this.pkrImage.getValue().getName(), this.pkrImage.getValue().getType(), scaleType, false, false);
+					return new MediaObject(this.pkrImage.getValue().getId(), this.pkrImage.getValue().getName(), this.pkrImage.getValue().getType(), scaleType, false, false, this.pkrColorAdjust.getValue());
 				}
 				return null;
 			case VIDEO:
 				if (this.pkrVideo.getValue() != null) {
-					return new MediaObject(this.pkrVideo.getValue().getId(), this.pkrVideo.getValue().getName(), this.pkrImage.getValue().getType(), scaleType, tglLoop.isSelected(), tglMute.isSelected());
+					return new MediaObject(this.pkrVideo.getValue().getId(), this.pkrVideo.getValue().getName(), this.pkrImage.getValue().getType(), scaleType, tglLoop.isSelected(), tglMute.isSelected(), this.pkrColorAdjust.getValue());
 				}
 				return null;
 			case AUDIO:
@@ -278,18 +289,23 @@ final class BackgroundRibbonTab extends ComponentEditorRibbonTab {
 						}
 					}
 				}
+				
+				this.pkrColorAdjust.setValue(mo.getColorAdjust());
 			} else if (paint instanceof SlideColor) {
 				SlideColor sc = (SlideColor)paint;
 				cmbTypes.setValue(new Option<PaintType>("", PaintType.COLOR));
 				pkrColor.setValue(PaintConverter.toJavaFX(sc));
+				pkrColorAdjust.setValue(null);
 			} else if (paint instanceof SlideLinearGradient) {
 				SlideLinearGradient lg = (SlideLinearGradient)paint;
 				cmbTypes.setValue(new Option<PaintType>("", PaintType.GRADIENT));
 				pkrGradient.setValue(lg);
+				pkrColorAdjust.setValue(null);
 			} else if (paint instanceof SlideRadialGradient) {
 				SlideRadialGradient rg = (SlideRadialGradient)paint;
 				cmbTypes.setValue(new Option<PaintType>("", PaintType.GRADIENT));
 				pkrGradient.setValue(rg);
+				pkrColorAdjust.setValue(null);
 			}
 		}
 	}

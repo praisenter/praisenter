@@ -36,12 +36,12 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.bible.Bible;
-import org.praisenter.bible.BibleLibrary;
 import org.praisenter.javafx.async.AsyncGroupTask;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.resources.translations.Translations;
+import org.praisenter.utility.StringManipulator;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -229,8 +229,9 @@ public final class BibleActions {
 		if (bibles != null && !bibles.isEmpty()) {
 			String name = Translations.get("bible.export.multiple.filename"); 
 	    	if (bibles.size() == 1) {
+	    		Bible bible = bibles.get(0);
 	    		// make sure the file name doesn't have bad characters in it
-	    		name = BibleLibrary.createFileName(bibles.get(0));
+	    		name = StringManipulator.toFileName(bible.getName(), bible.getId());
 	    	}
 	    	FileChooser chooser = new FileChooser();
 	    	chooser.setInitialFileName(name + ".zip");

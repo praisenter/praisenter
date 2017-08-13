@@ -8,8 +8,8 @@ import org.praisenter.javafx.slide.ObservableTextComponent;
 import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.TextShadowEditCommand;
+import org.praisenter.slide.effects.SlideShadow;
 import org.praisenter.slide.graphics.ShadowType;
-import org.praisenter.slide.graphics.SlideShadow;
 
 import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;

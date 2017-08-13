@@ -59,14 +59,14 @@ import org.praisenter.javafx.slide.editor.events.SlideComponentRemoveEvent;
 import org.praisenter.javafx.slide.editor.events.SlideEditorEvent;
 import org.praisenter.javafx.slide.editor.ribbon.SlideEditorRibbon;
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.json.JsonIO;
 import org.praisenter.media.Media;
 import org.praisenter.slide.AbstractSlideComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.graphics.ScaleType;
-import org.praisenter.slide.object.MediaObject;
+import org.praisenter.slide.media.MediaObject;
 import org.praisenter.utility.Scaling;
-import org.praisenter.xml.XmlIO;
 
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -435,10 +435,10 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 						MediaObject omo = omc.getMedia();
 						if (omo != null) {
 							// copy old settings
-							mo = new MediaObject(id, m.getName(), m.getType(), omo.getScaling(), omo.isLoop(), omo.isMute());
+							mo = new MediaObject(id, m.getName(), m.getType(), omo.getScaling(), omo.isLoop(), omo.isMute(), omo.getColorAdjust());
 						} else {
 							// default settings
-							mo = new MediaObject(id, m.getName(), m.getType(), ScaleType.UNIFORM, false, false);
+							mo = new MediaObject(id, m.getName(), m.getType(), ScaleType.UNIFORM, false, false, null);
 						}
 						
 						omc.setMedia(mo);
@@ -589,7 +589,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 			}
 			
 			try {
-				cc.put(DataFormats.SLIDE_COMPONENT, XmlIO.save(selected.getRegion().copy()));
+				cc.put(DataFormats.SLIDE_COMPONENT, JsonIO.write(selected.getRegion().copy()));
 				cb.setContent(cc);
 				
 				if (cut) {
@@ -615,7 +615,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		if (data != null && data instanceof String) {
 			SlideComponent sc;
 			try {
-				sc = (SlideComponent)XmlIO.read((String)data, AbstractSlideComponent.class);
+				sc = (SlideComponent)JsonIO.read((String)data, SlideComponent.class);
 				sc = sc.copy();
 				sc.translate(20, 20);
 				ObservableSlideComponent<?> osc = slide.observableSlideComponent(sc);

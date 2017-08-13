@@ -31,6 +31,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a relationship between an animation and a component.
  * @author William Bittle
@@ -40,10 +42,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlideAnimation {
 	/** The id of the component being animated */
+	@JsonProperty
 	@XmlElement(name = "id", required = false)
 	final UUID id;
 	
 	/** The animation */
+	@JsonProperty
 	@XmlElement(name = "animation", required = false)
 	final Animation animation;
 	

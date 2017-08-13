@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -45,7 +44,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.InvalidFormatException;
-import org.praisenter.utility.Zip;
+import org.praisenter.utility.Streams;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -58,7 +57,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * @see <a href="https://sourceforge.net/projects/zefania-sharp/?source=typ_redirect">Source Forge Project</a>
  * @see <a href="http://www.bgfdb.de/zefaniaxml/bml/">Format Documentation</a>
  */
-public final class ZefaniaBibleImporter extends AbstractBibleImporter implements BibleImporter {
+final class ZefaniaBibleImporter extends AbstractBibleImporter implements BibleImporter {
 	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -69,7 +68,7 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public List<Bible> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException {
+	public List<Bible> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
 		List<Bible> bibles = new ArrayList<Bible>();
 		
 		// make sure the file exists
@@ -148,7 +147,7 @@ public final class ZefaniaBibleImporter extends AbstractBibleImporter implements
 	 */
 	private Bible parse(InputStream stream, String name) throws IOException, InvalidFormatException {
 		try {
-			byte[] content = Zip.read(stream);
+			byte[] content = Streams.read(stream);
 			// read the bytes
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser parser = factory.newSAXParser();

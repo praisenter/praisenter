@@ -51,10 +51,10 @@ import org.praisenter.javafx.controls.FlowListView;
 import org.praisenter.javafx.controls.SelectionEvent;
 import org.praisenter.javafx.controls.SortGraphic;
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.json.JsonIO;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.Slide;
-import org.praisenter.xml.XmlIO;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -519,7 +519,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 		for (SlideListItem item : this.lstSlides.getSelectionModel().selectionsProperty()) {
 			if (item.isLoaded()) {
 				try {
-					data.add(XmlIO.save(item.getSlide()));
+					data.add(JsonIO.write(item.getSlide()));
 					names.add(item.getName());
 				} catch (Exception ex) {
 					LOGGER.warn("Failed to copy slide '" + item.getName() + "' to clipboard.", ex);
@@ -544,7 +544,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 			for (Object slide : slides) {
 				if (slide instanceof String) {
 					try {
-						Slide copy = XmlIO.read((String)slide, BasicSlide.class);
+						Slide copy = JsonIO.read((String)slide, Slide.class);
 						copy.updatePlaceholders();
 						SlideActions.slideCopy(
 								this.context.getSlideLibrary(),
@@ -695,6 +695,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 				}
 				break;
 			case IMPORT_SLIDES:
+			case NEW_SLIDE:
 				return true;
 			default:
 				break;

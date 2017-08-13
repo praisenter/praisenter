@@ -32,10 +32,10 @@ import org.praisenter.javafx.slide.converters.PaintConverter;
 import org.praisenter.javafx.slide.converters.TextAlignmentConverter;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.javafx.utility.TextMeasurer;
+import org.praisenter.slide.effects.SlideShadow;
 import org.praisenter.slide.graphics.DashPattern;
 import org.praisenter.slide.graphics.SlidePadding;
 import org.praisenter.slide.graphics.SlidePaint;
-import org.praisenter.slide.graphics.SlideShadow;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.text.FontScaleType;
 import org.praisenter.slide.text.HorizontalTextAlignment;
@@ -202,16 +202,23 @@ public abstract class ObservableTextComponent<T extends TextComponent> extends O
 	 * Builds the component.
 	 */
 	protected void build() {
+		super.build(this.textWrapper);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.javafx.slide.ObservableSlideComponent#updateAll()
+	 */
+	@Override
+	protected void updateAll() {
+		super.updateAll();
+		
 		updateTextPaint();
 		updateTextBorder();
 		updateAlignment();
 		updateTextEffects();
-		
-		super.build(this.textWrapper);
-		
 		updateText();
 	}
-	
+		
 	/**
 	 * Updates the Java FX component with the new text border.
 	 */

@@ -36,14 +36,13 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.xml.bind.JAXBException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Constants;
 import org.praisenter.InvalidFormatException;
 import org.praisenter.UnknownFormatException;
-import org.praisenter.utility.Zip;
-import org.praisenter.xml.XmlIO;
+import org.praisenter.json.JsonIO;
+import org.praisenter.utility.Streams;
 
 /**
  * {@link SlideImporter} for the Praisenter slide format.
@@ -58,7 +57,7 @@ public final class PraisenterSlideImporter implements SlideImporter {
 	 * @see org.praisenter.slide.SlideImporter#execute(java.nio.file.Path)
 	 */
 	@Override
-	public List<Slide> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException, UnknownFormatException {
+	public List<Slide> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException, UnknownFormatException {
 		List<Slide> slides = new ArrayList<Slide>();
 		
 		// make sure the file exists
@@ -66,20 +65,19 @@ public final class PraisenterSlideImporter implements SlideImporter {
 			LOGGER.debug("Reading file: " + path.toAbsolutePath().toString());
 
 			// get the root folder by inspecting what's in the zip
-			// if there's a media folder then look there only, otherwise
+			// if there's a 'slides' folder then look there only, otherwise
 			// look in the root
 			String root = "";
 			try (FileInputStream fis = new FileInputStream(path.toFile());
 				 ZipInputStream zis = new ZipInputStream(fis)) {
 				ZipEntry entry = null;
 				while ((entry = zis.getNextEntry()) != null) {
-					if (entry.isDirectory() && SlideLibrary.ZIP_DIR.equals(entry.getName())) {
-						root = SlideLibrary.ZIP_DIR + "/";
+					if (entry.isDirectory() && SlideLibrary.ZIP_DIR.equals(entry.getName().toLowerCase())) {
+						root = entry.getName() + "/";
 						break;
 					}
 				}
 			} catch (Exception ex) { }
-			root = root.toUpperCase();
 			
 			// try to read as zip
 			boolean read = false;
@@ -89,15 +87,16 @@ public final class PraisenterSlideImporter implements SlideImporter {
 				 BufferedInputStream bis = new BufferedInputStream(fis);
 				 ZipInputStream zis = new ZipInputStream(bis);) {
 				LOGGER.debug("Reading as zip file: " + path.toAbsolutePath().toString());
-				// read the entries (each should be a .xml file)
+				// read the entries
 				ZipEntry entry = null;
 				while ((entry = zis.getNextEntry()) != null) {
 					read = true;
-					if (!entry.isDirectory() && entry.getName().toLowerCase().startsWith(root)) {
-						byte[] data = Zip.read(zis);
+					if (!entry.isDirectory() && entry.getName().startsWith(root)) {
+						LOGGER.debug("Reading as '" + Constants.SLIDE_FILE_EXTENSION + "' file: " + entry.getName());
+						byte[] data = Streams.read(zis);
 						try {
 							// make a copy to ensure the id is changed
-							Slide slide = XmlIO.read(new ByteArrayInputStream(data), BasicSlide.class).copy(false);
+							Slide slide = JsonIO.read(new ByteArrayInputStream(data), Slide.class);
 							slide.updatePlaceholders();
 							slides.add(slide);
 						} catch (Exception ex) {
@@ -111,12 +110,11 @@ public final class PraisenterSlideImporter implements SlideImporter {
 			// check if we read an entry
 			// if not, that may mean the file was not a zip so try it as a normal file
 			if (!read) {
-				LOGGER.debug("Reading as XML file: " + path.toAbsolutePath().toString());
-				// hopefully its an .xml
+				LOGGER.debug("Reading as '" + Constants.SLIDE_FILE_EXTENSION + "' file: " + path.toAbsolutePath().toString());
 				// just read it
 				try (FileInputStream stream = new FileInputStream(path.toFile())) {
 					// make a copy to ensure the id is changed
-					Slide slide = XmlIO.read(stream, BasicSlide.class).copy(false);
+					Slide slide = JsonIO.read(stream, Slide.class);
 					slide.updatePlaceholders();
 					slides.add(slide);
 				}

@@ -29,6 +29,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Represents a rectangular padding.
  * @author William Bittle
@@ -39,18 +41,22 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.NONE)
 public final class SlidePadding {
 	/** The top padding */
+	@JsonProperty
 	@XmlElement(name = "top", required = false)
 	final double top;
 	
 	/** The right padding */
+	@JsonProperty
 	@XmlElement(name = "right", required = false)
 	final double right;
 	
 	/** The bottom padding */
+	@JsonProperty
 	@XmlElement(name = "bottom", required = false)
 	final double bottom;
 	
 	/** The left padding */
+	@JsonProperty
 	@XmlElement(name = "left", required = false)
 	final double left;
 	
@@ -86,6 +92,22 @@ public final class SlidePadding {
 		this.left = left;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("PADDING")
+		  .append("[")
+		  .append(this.top).append(", ")
+		  .append(this.right).append(", ")
+		  .append(this.bottom).append(", ")
+		  .append(this.left)
+		  .append("]");
+		return sb.toString();
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */

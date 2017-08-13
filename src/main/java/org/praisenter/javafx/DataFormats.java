@@ -13,19 +13,19 @@ public final class DataFormats {
 	private DataFormats() {}
 
 	public static final DataFormat BIBLES = DataFormats.forSerializedList(Bible.class);
-	public static final DataFormat BOOKS = DataFormats.forXmlSerializedList(Book.class);
-	public static final DataFormat CHAPTERS = DataFormats.forXmlSerializedList(Chapter.class);
-	public static final DataFormat VERSES = DataFormats.forXmlSerializedList(Verse.class);
+	public static final DataFormat BOOKS = DataFormats.forJsonSerializedList(Book.class);
+	public static final DataFormat CHAPTERS = DataFormats.forJsonSerializedList(Chapter.class);
+	public static final DataFormat VERSES = DataFormats.forJsonSerializedList(Verse.class);
 	
-	public static final DataFormat SLIDES = DataFormats.forXmlSerializedList(Slide.class);
-	public static final DataFormat SLIDE_COMPONENT = DataFormats.forXmlSerializedClass(SlideComponent.class);
+	public static final DataFormat SLIDES = DataFormats.forJsonSerializedList(Slide.class);
+	public static final DataFormat SLIDE_COMPONENT = DataFormats.forJsonSerializedClass(SlideComponent.class);
 
-	private static final DataFormat forXmlSerializedClass(Class<?> clazz) {
-		return new DataFormat("application/x-praisenter-xml;class=" + clazz.getName());
+	private static final DataFormat forJsonSerializedClass(Class<?> clazz) {
+		return new DataFormat("application/x-praisenter-json;class=" + clazz.getName());
 	}
 	
-	private static final DataFormat forXmlSerializedList(Class<?> clazz) {
-		return new DataFormat("application/x-praisenter-xml-list;class=" + clazz.getName());
+	private static final DataFormat forJsonSerializedList(Class<?> clazz) {
+		return new DataFormat("application/x-praisenter-json-list;class=" + clazz.getName());
 	}
 
 	private static final DataFormat forSerializedClass(Class<?> clazz) {

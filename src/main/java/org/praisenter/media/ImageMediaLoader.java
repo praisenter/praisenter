@@ -37,8 +37,6 @@ import javax.imageio.stream.ImageInputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.InvalidFormatException;
-import org.praisenter.ThumbnailSettings;
 
 /**
  * {@link MediaLoader} that loads image media.
@@ -51,10 +49,10 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 	
 	/**
 	 * Minimal constructor.
-	 * @param thumbnailSettings the thumbnail settings
+	 * @param context the context
 	 */
-	public ImageMediaLoader(ThumbnailSettings thumbnailSettings) {
-		super(thumbnailSettings);
+	public ImageMediaLoader(MediaLibraryContext context) {
+		super(context);
 	}
 	
 	/* (non-Javadoc)
@@ -75,12 +73,11 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
 	 */
 	@Override
-	public Media load(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
+	public Media load(Path path) throws MediaImportException {
 		LOGGER.debug("Image media '{}' loading", path);
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			// read the image
 			try (ImageInputStream in = ImageIO.createImageInputStream(path.toFile())) {
-				
 				Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
 				// loop through the readers until we find one that works
 				while (readers.hasNext()) {
@@ -103,10 +100,14 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 				}
 				
 				// no readers
-				throw new NoImageReaderAvailable(path.toAbsolutePath().toString());
+				LOGGER.error("No image reader was found for the file '{}'.", path.toAbsolutePath().toString());
+				throw new MediaImportException("No image reader was found for the file '" + path.toAbsolutePath().toString() + "'.");
+			} catch (IOException ex) {
+				LOGGER.error("Failed to read image file '" + path.toAbsolutePath().toString() + "'.", ex);
+				throw new MediaImportException("Failed to read image file '" + path.toAbsolutePath().toString() + "'.", ex);
 			}
 		} else {
-			throw new FileNotFoundException(path.toAbsolutePath().toString());
+			throw new MediaImportException(new FileNotFoundException(path.toAbsolutePath().toString()));
 		}
 	}
 	

@@ -24,11 +24,32 @@
  */
 package org.praisenter.slide;
 
+import org.praisenter.slide.effects.SlideShadow;
+import org.praisenter.slide.media.MediaComponent;
+import org.praisenter.slide.text.BasicTextComponent;
+import org.praisenter.slide.text.CountdownComponent;
+import org.praisenter.slide.text.DateTimeComponent;
+import org.praisenter.slide.text.TextPlaceholderComponent;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+
 /**
  * Represents a component or section of a slide.
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = BasicTextComponent.class, name = "text"),
+	@Type(value = CountdownComponent.class, name = "countdown"),
+	@Type(value = DateTimeComponent.class, name = "datetime"),
+	@Type(value = MediaComponent.class, name = "media"),
+	@Type(value = TextPlaceholderComponent.class, name = "placeholder")
+})
 public interface SlideComponent extends SlideRegion {
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideRegion#copy()
@@ -39,4 +60,28 @@ public interface SlideComponent extends SlideRegion {
 	 * @see org.praisenter.slide.SlideRegion#copy(boolean)
 	 */
 	public abstract SlideComponent copy(boolean exact);
+	
+	/**
+	 * Sets the shadow of the region.
+	 * @param shadow the shadow
+	 */
+	public abstract void setShadow(SlideShadow shadow);
+	
+	/**
+	 * Returns the shadow of the region.
+	 * @return {@link SlideShadow}
+	 */
+	public abstract SlideShadow getShadow();
+
+	/**
+	 * Sets the glow of the region.
+	 * @param glow the glow
+	 */
+	public abstract void setGlow(SlideShadow glow);
+	
+	/**
+	 * Returns the glow of the region.
+	 * @return {@link SlideShadow}
+	 */
+	public abstract SlideShadow getGlow();
 }

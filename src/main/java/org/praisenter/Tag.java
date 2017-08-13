@@ -26,39 +26,26 @@ package org.praisenter;
 
 import java.text.Collator;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
  * Represents a tag for grouping like objects.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "tag")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Tag implements Comparable<Tag> {
 	/** The default collator for sorting */
 	private static final Collator COLLATOR = Collator.getInstance();
 	
 	/** The tag name */
-	@XmlValue
 	private final String name;
-
-	/**
-	 * Default constructor.
-	 */
-	@SuppressWarnings("unused")
-	private Tag() {
-		// for jaxb
-		this(null);
-	}
 
 	/**
 	 * Full constructor.
 	 * @param name the tag name
 	 */
+	@JsonCreator
 	public Tag(String name) {
 		this.name = name;
 	}
@@ -99,6 +86,7 @@ public final class Tag implements Comparable<Tag> {
 	 * Returns the tag name.
 	 * @return String
 	 */
+	@JsonValue
 	public String getName() {
 		return this.name;
 	}

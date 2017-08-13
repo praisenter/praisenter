@@ -28,12 +28,17 @@ import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
+import org.praisenter.slide.effects.SlideShadow;
+import org.praisenter.slide.media.MediaComponent;
 import org.praisenter.slide.text.BasicTextComponent;
 import org.praisenter.slide.text.CountdownComponent;
 import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Abstract implementation of the {@link SlideComponent} interface.
@@ -49,10 +54,24 @@ import org.praisenter.slide.text.TextPlaceholderComponent;
 })
 @XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractSlideComponent extends AbstractSlideRegion implements SlideRegion, SlideComponent {
+
+	/** The overall shadow */
+	@JsonProperty
+	@XmlElement(name = "shadow", required = false)
+	SlideShadow shadow;
+
+	/** The overall glow */
+	@JsonProperty
+	@XmlElement(name = "glow", required = false)
+	SlideShadow glow;
+	
 	/**
 	 * Default constructor.
 	 */
-	public AbstractSlideComponent() {}
+	public AbstractSlideComponent() {
+		this.shadow = null;
+		this.glow = null;
+	}
 	
 	/**
 	 * Optional constructor.
@@ -60,6 +79,8 @@ public abstract class AbstractSlideComponent extends AbstractSlideRegion impleme
 	 */
 	public AbstractSlideComponent(UUID id) {
 		super(id);
+		this.shadow = null;
+		this.glow = null;
 	}
 	
 	/**
@@ -69,5 +90,40 @@ public abstract class AbstractSlideComponent extends AbstractSlideRegion impleme
 	 */
 	public AbstractSlideComponent(AbstractSlideComponent other, boolean exact) {
 		super(other, exact);
+		this.shadow = other.shadow;
+		this.glow = other.glow;
+	}
+	
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getShadow()
+	 */
+	@Override
+	public SlideShadow getShadow() {
+		return this.shadow;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#setShadow(org.praisenter.slide.graphics.SlideShadow)
+	 */
+	@Override
+	public void setShadow(SlideShadow shadow) {
+		this.shadow = shadow;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#getGlow()
+	 */
+	@Override
+	public SlideShadow getGlow() {
+		return this.glow;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideRegion#setGlow(org.praisenter.slide.graphics.SlideShadow)
+	 */
+	@Override
+	public void setGlow(SlideShadow glow) {
+		this.glow = glow;
 	}
 }

@@ -25,14 +25,13 @@
 package org.praisenter.javafx.slide;
 
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.slide.MediaComponent;
 import org.praisenter.slide.graphics.SlideStroke;
-import org.praisenter.slide.object.MediaObject;
+import org.praisenter.slide.media.MediaComponent;
+import org.praisenter.slide.media.MediaObject;
 import org.praisenter.utility.Scaling;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.layout.Pane;
 
 /**
  * Represents an observable {@link MediaComponent}.
@@ -70,7 +69,12 @@ public final class ObservableMediaComponent extends ObservableSlideComponent<Med
 			updateName();
 		});
 		
-		build(this.mediaNode);
+		this.build(this.mediaNode);
+	}
+	
+	protected void updateAll() {
+		super.updateAll();
+		this.updateMedia();
 	}
 	
 	/**
@@ -88,15 +92,6 @@ public final class ObservableMediaComponent extends ObservableSlideComponent<Med
 	 */
 	protected void onMediaUpdate(MediaObject media) {}
 
-	/* (non-Javadoc)
-	 * @see org.praisenter.javafx.slide.ObservableSlideRegion#onBuild(javafx.scene.layout.Pane, javafx.scene.layout.Pane)
-	 */
-	@Override
-	protected void onBuild(Pane displayPane, Pane container) {
-		super.onBuild(displayPane, container);
-		this.updateMedia();
-	}
-	
 	/* (non-Javadoc)
 	 * @see org.praisenter.javafx.slide.ObservableSlideRegion#onSizeUpdate(double, double, org.praisenter.utility.Scaling)
 	 */

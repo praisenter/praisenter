@@ -79,6 +79,7 @@ final class SlideGradientPickerDialog extends BorderPane {
 		// build the media library pane
 		this.gradientPane = new SlideGradientPickerPane();
 
+		// TODO translate
 		Button btnAccept = new Button("OK");
 		Button btnCancel = new Button("Cancel");
 		

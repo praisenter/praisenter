@@ -33,11 +33,14 @@ import org.praisenter.Constants;
 import org.praisenter.ThumbnailSettings;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
-import org.praisenter.javafx.media.JavaFXMediaImportFilter;
+import org.praisenter.javafx.media.JavaFXMediaImportProcessor;
+import org.praisenter.media.MediaImportProcessor;
 import org.praisenter.media.MediaLibrary;
+import org.praisenter.media.MediaLibraryContext;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.SlideLibrary;
 import org.praisenter.song.SongLibrary;
+import org.praisenter.tools.Tools;
 
 import javafx.concurrent.Task;
 
@@ -74,12 +77,28 @@ final class LoadingTask extends Task<PraisenterContext> {
 	protected PraisenterContext call() throws Exception {
 		long t0 = 0;
 		long t1 = 0;
+		int n = 5;
+		int i = 0;
 		
-		updateProgress(0, 4);
+		updateProgress(i++, n);
 		
+		// setup the thumbnail settings
 		ThumbnailSettings thumbnailSettings = new ThumbnailSettings(
 				Constants.THUMBNAIL_SIZE, 
 				Constants.THUMBNAIL_SIZE);
+		
+		// tools
+		LOGGER.info("Loading tools");
+		updateMessage(Translations.get("loading.tools"));
+		t0 = System.nanoTime();
+		Tools tools = Tools.open(Paths.get(Constants.TOOLS_ABSOLUTE_PATH));
+		t1 = System.nanoTime();
+		updateProgress(i++, n);
+		LOGGER.info("Tools loaded in {} seconds", (t1 - t0) / 1e9);
+		
+		// build the media context and import processor
+		MediaLibraryContext mediaLibraryContext = new MediaLibraryContext(this.configuration, thumbnailSettings, tools);
+		MediaImportProcessor mediaImportProcessor = new JavaFXMediaImportProcessor(mediaLibraryContext);
 		
 		// bible loading
 		LOGGER.info("Loading bible library");
@@ -87,7 +106,7 @@ final class LoadingTask extends Task<PraisenterContext> {
     	updateMessage(Translations.get("loading.library.bibles"));
 		BibleLibrary bibles = BibleLibrary.open(Paths.get(Constants.BIBLES_ABSOLUTE_PATH));
 		t1 = System.nanoTime();
-		updateProgress(1, 4);
+		updateProgress(i++, n);
 		LOGGER.info("Bible library loaded in {} seconds with {} bibles", (t1 - t0) / 1e9, bibles.size());
 		
 		// song loading
@@ -96,7 +115,7 @@ final class LoadingTask extends Task<PraisenterContext> {
 		t0 = System.nanoTime();
 		SongLibrary songs = SongLibrary.open(Paths.get(Constants.SONGS_ABSOLUTE_PATH));
 		t1 = System.nanoTime();
-		updateProgress(2, 4);
+		updateProgress(i++, n);
 		LOGGER.info("Song library loaded in {} seconds with {} songs", (t1 - t0) / 1e9, songs.size());
 
 		// media loading
@@ -104,9 +123,9 @@ final class LoadingTask extends Task<PraisenterContext> {
 		updateMessage(Translations.get("loading.library.media"));
 		t0 = System.nanoTime();
 		Path mediaPath = Paths.get(Constants.MEDIA_ABSOLUTE_PATH);
-    	MediaLibrary media = MediaLibrary.open(mediaPath, new JavaFXMediaImportFilter(mediaPath, this.configuration), thumbnailSettings);
+    	MediaLibrary media = MediaLibrary.open(mediaPath, mediaLibraryContext, mediaImportProcessor);
     	t1 = System.nanoTime();
-    	updateProgress(3, 4);
+    	updateProgress(i++, n);
     	LOGGER.info("Media library loaded in {} seconds with {} media items", (t1 - t0) / 1e9, media.size());
 		
     	// song loading (this is dependent on the media library and the image cache)
@@ -115,14 +134,15 @@ final class LoadingTask extends Task<PraisenterContext> {
 		t0 = System.nanoTime();
 		SlideLibrary slides = SlideLibrary.open(Paths.get(Constants.SLIDES_ABSOLUTE_PATH));
 		t1 = System.nanoTime();
-		updateProgress(4, 4);
+		updateProgress(i++, n);
 		LOGGER.info("Slide library loaded in {} seconds with {} slides", (t1 - t0) / 1e9, slides.size());
-    	
+		
 		LOGGER.info("Building the application context.");
 		// build the context
 		PraisenterContext context = new PraisenterContext(
 				this.javaFXContext,
 				this.configuration,
+				tools,
 				media,
 				bibles,
 				songs,

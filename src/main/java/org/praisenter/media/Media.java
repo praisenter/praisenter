@@ -36,21 +36,21 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.MediaType;
 import org.praisenter.Tag;
+import org.praisenter.json.BufferedImageJpegJsonDeserializer;
+import org.praisenter.json.BufferedImageJpegJsonSerializer;
+import org.praisenter.json.BufferedImagePngJsonDeserializer;
+import org.praisenter.json.BufferedImagePngJsonSerializer;
+import org.praisenter.json.InstantJsonDeserializer;
+import org.praisenter.json.InstantJsonSerializer;
 import org.praisenter.utility.MimeType;
-import org.praisenter.xml.adapters.BufferedImageJpegTypeAdapter;
-import org.praisenter.xml.adapters.BufferedImagePngTypeAdapter;
-import org.praisenter.xml.adapters.InstantXmlAdapter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * A media item in the media library.
@@ -67,8 +67,6 @@ import org.praisenter.xml.adapters.InstantXmlAdapter;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "media")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Media implements Comparable<Media> {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -80,74 +78,76 @@ public final class Media implements Comparable<Media> {
 	public static final int UNKNOWN = -1;
 	
 	/** The media's unique id */
-	@XmlElement(name = "id", required = false)
+	@JsonProperty
 	final UUID id;
 	
 	/** The path to the media file */
 	Path path;
 	
 	/** The media's file name */
-	@XmlElement(name = "fileName", required = false)
+	@JsonProperty
 	final String fileName;
 	
 	/** The media type */
-	@XmlElement(name = "type", required = false)
+	@JsonProperty
 	final MediaType type;
 	
 	/** The mime type */
-	@XmlElement(name = "mimeType", required = false)
+	@JsonProperty
 	final String mimeType;
 	
 	/** The file name */
-	@XmlElement(name = "name", required = false)
+	@JsonProperty
 	final String name;
 
 	/** The date the file was added to the library */
-	@XmlElement(name = "dateAdded", required = false)
-	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
+	@JsonProperty
+	@JsonSerialize(using = InstantJsonSerializer.class)
+	@JsonDeserialize(using = InstantJsonDeserializer.class)
 	final Instant dateAdded;
 	
 	/** The file's last modified timestamp */
-	@XmlElement(name = "lastModified", required = false)
+	@JsonProperty
 	final long lastModified;
 	
 	/** The file's size in bytes */
-	@XmlElement(name = "size", required = false)
+	@JsonProperty
 	final long size;
 	
 	/** The file's format */
-	@XmlElement(name = "format", required = false)
+	@JsonProperty
 	final MediaFormat format;
 	
 	/** The file's width in pixels (if applicable) */
-	@XmlElement(name = "width", required = false)
+	@JsonProperty
 	final int width;
 	
 	/** The file's height in pixels (if applicable) */
-	@XmlElement(name = "height", required = false)
+	@JsonProperty
 	final int height;
 	
 	/** The file's length in seconds (if applicable) */
-	@XmlElement(name = "length", required = false)
+	@JsonProperty
 	final long length;
 	
 	/** True if the media contains audio */
-	@XmlElement(name = "audio", required = false)
+	@JsonProperty
 	final boolean audio;
 	
 	/** The media's tags for searching/sorting */
-	@XmlElementWrapper(name = "tags", required = false)
-	@XmlElement(name = "tag", required = false)
+	@JsonProperty
 	final Set<Tag> tags;
 
 	/** The media thumbnail */
-	@XmlElement(name = "thumbnail", required = false)
-	@XmlJavaTypeAdapter(BufferedImagePngTypeAdapter.class)
+	@JsonProperty
+	@JsonSerialize(using = BufferedImagePngJsonSerializer.class)
+	@JsonDeserialize(using = BufferedImagePngJsonDeserializer.class)
 	final BufferedImage thumbnail;
  
 	/** The media frame (only for video) */
-	@XmlElement(name = "frame", required = false)
-	@XmlJavaTypeAdapter(BufferedImageJpegTypeAdapter.class)
+	@JsonProperty
+	@JsonSerialize(using = BufferedImageJpegJsonSerializer.class)
+	@JsonDeserialize(using = BufferedImageJpegJsonDeserializer.class)
 	final BufferedImage frame;
 
 	/**
@@ -216,7 +216,6 @@ public final class Media implements Comparable<Media> {
 	
 	/**
 	 * Default constructor.
-	 * Used by JAXB.
 	 */
 	private Media() {
 		// for jaxb

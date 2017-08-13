@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
-
 import org.praisenter.InvalidFormatException;
 import org.praisenter.UnknownFormatException;
 
@@ -45,10 +43,9 @@ public interface BibleImporter {
 	 * @param path the path
 	 * @return List&lt;{@link Bible}&gt; the bibles that were imported
 	 * @throws IOException if an IO error occurs
-	 * @throws JAXBException if an error occurs saving the bible
 	 * @throws FileNotFoundException if the given path doesn't exist
 	 * @throws InvalidFormatException if the file or files are not in the expected format
 	 * @throws UnknownFormatException if the file formats could not be determined
 	 */
-	public abstract List<Bible> execute(Path path) throws IOException, JAXBException, FileNotFoundException, InvalidFormatException, UnknownFormatException;
+	public abstract List<Bible> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException, UnknownFormatException;
 }
