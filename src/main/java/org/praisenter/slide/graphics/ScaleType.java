@@ -24,14 +24,11 @@
  */
 package org.praisenter.slide.graphics;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Specifies a scaling method.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum ScaleType {
 	/** No scaling performed */
 	NONE,

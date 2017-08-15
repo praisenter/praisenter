@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -49,6 +50,7 @@ import org.praisenter.song.Verse;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
@@ -68,8 +70,16 @@ public class PraisenterSongImporter_v1_0_0 extends DefaultHandler implements Son
 		try {
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser parser = factory.newSAXParser();
+			XMLReader reader = parser.getXMLReader();
 			
-			parser.parse(new InputSource(new BufferedReader(new InputStreamReader(new FileInputStream(path.toFile())))), this);
+			// FIXME apply globally and return a XMLReader class
+			factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+			parser.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+			parser.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+			parser.setProperty(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+			
+			reader.setContentHandler(this);
+			reader.parse(new InputSource(new BufferedReader(new InputStreamReader(new FileInputStream(path.toFile())))));
 			
 			return this.songs;
 		} catch (SAXException | ParserConfigurationException e) {

@@ -1,7 +1,7 @@
 package org.praisenter.javafx.slide.editor.commands;
 
+import org.praisenter.configuration.Resolution;
 import org.praisenter.javafx.command.EditCommand;
-import org.praisenter.javafx.configuration.Resolution;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.ObservableSlideRegion;
 import org.praisenter.javafx.slide.editor.events.SlideEditorEvent;

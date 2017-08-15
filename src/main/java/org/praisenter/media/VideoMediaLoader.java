@@ -34,7 +34,7 @@ import java.nio.file.Path;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.configuration.Setting;
 import org.praisenter.tools.ToolExecutionException;
 import org.praisenter.tools.ffmpeg.FFprobeMediaMetadata;
 

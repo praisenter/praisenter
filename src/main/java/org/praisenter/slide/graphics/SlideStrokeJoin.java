@@ -24,14 +24,11 @@
  */
 package org.praisenter.slide.graphics;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Specifies the style used when path segments are joined.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum SlideStrokeJoin {
 	/** Beveled joint */
 	BEVEL,

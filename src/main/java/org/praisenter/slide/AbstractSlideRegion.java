@@ -28,17 +28,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
 import org.praisenter.slide.graphics.Rectangle;
-import org.praisenter.slide.graphics.SlideColor;
-import org.praisenter.slide.graphics.SlideLinearGradient;
 import org.praisenter.slide.graphics.SlidePaint;
-import org.praisenter.slide.graphics.SlideRadialGradient;
 import org.praisenter.slide.graphics.SlideStroke;
 import org.praisenter.slide.media.MediaObject;
 
@@ -49,54 +40,37 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlSeeAlso({
-	SlideStroke.class,
-	SlideColor.class,
-	SlideLinearGradient.class,
-	SlideRadialGradient.class,
-	MediaObject.class
-})
 public abstract class AbstractSlideRegion implements SlideRegion {
 	/** The id */
 	@JsonProperty
-	@XmlElement(name = "id", required = false)
 	UUID id;
 	
 	/** The x coordinate */
 	@JsonProperty
-	@XmlElement(name = "x", required = false)
 	double x;
 	
 	/** The y coordinate */
 	@JsonProperty
-	@XmlElement(name = "y", required = false)
 	double y;
 	
 	/** The width */
 	@JsonProperty
-	@XmlElement(name = "width", required = false)
 	double width;
 	
 	/** The height */
 	@JsonProperty
-	@XmlElement(name = "height", required = false)
 	double height;
 	
 	/** The border */
 	@JsonProperty
-	@XmlElement(name = "border", required = false)
 	SlideStroke border;
 	
 	/** The background */
 	@JsonProperty
-	@XmlElement(name = "background", required = false)
-	@XmlJavaTypeAdapter(value = SlidePaintXmlAdapter.class)
 	SlidePaint background;
 	
 	/** The component level opacity */
 	@JsonProperty
-	@XmlElement(name = "opacity", required = false)
 	double opacity;
 	
 	/**

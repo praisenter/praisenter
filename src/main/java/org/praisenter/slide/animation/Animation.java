@@ -24,20 +24,13 @@
  */
 package org.praisenter.slide.animation;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-
-import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.easing.Easing;
 import org.praisenter.slide.easing.Linear;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Represents an animation that can be applied to slides and components.
@@ -56,18 +49,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 	@Type(value = Swap.class, name = "swap"),
 	@Type(value = Swipe.class, name = "swipe"),
 	@Type(value = Zoom.class, name = "zoom")
-})
-@XmlRootElement(name = "animation")
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlSeeAlso(value = {
-	Blinds.class,
-	Fade.class,
-	Push.class,
-	Shaped.class,
-	Split.class,
-	Swap.class,
-	Swipe.class,
-	Zoom.class
 })
 public abstract class Animation {
 	/** Value for a constantly repeating animation */
@@ -97,32 +78,26 @@ public abstract class Animation {
 	
 	/** The animation type */
 	@JsonProperty
-	@XmlElement(name = "type", required = false)
 	final AnimationType type;
 	
 	/** The animation duration */
 	@JsonProperty
-	@XmlElement(name = "duration", required = false)
 	final long duration;
 	
 	/** The animation delay */
 	@JsonProperty
-	@XmlElement(name = "delay", required = false)
 	final long delay;
 	
 	/** The number of times to repeat the animation */
 	@JsonProperty
-	@XmlElement(name = "repeatCount", required = false)
 	final int repeatCount;
 	
 	/** Whether the animation should reverse or not */
 	@JsonProperty
-	@XmlElement(name = "autoReverse", required = false)
 	final boolean autoReverse;
 	
 	/** The easing function */
 	@JsonProperty
-	@XmlElement(name = "easing", required = false)
 	final Easing easing;
 
 	/**

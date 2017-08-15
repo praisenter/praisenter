@@ -32,6 +32,8 @@ import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
 import org.xml.sax.SAXException;
 
+// FIXME convert to a SAX parser
+
 public final class OpenLyricsSongImporter implements SongImporter {
 	private static final Pattern PATTERN_VERSE_NAME = Pattern.compile("^([a-zA-Z]+)(\\d+)?([a-zA-Z]+)?$");
 	

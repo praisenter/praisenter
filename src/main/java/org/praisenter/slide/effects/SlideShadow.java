@@ -24,11 +24,6 @@
  */
 package org.praisenter.slide.effects;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.praisenter.slide.graphics.ShadowType;
 import org.praisenter.slide.graphics.SlideColor;
 
@@ -40,37 +35,29 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @version 3.0.0
  * @since 3.0.0
  */
-@XmlRootElement(name = "shadow")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class SlideShadow {
 	/** The shadow type */
 	@JsonProperty
-	@XmlElement(name = "type", required = false)
 	final ShadowType type;
 	
 	/** The color */
 	@JsonProperty
-	@XmlElement(name = "color", required = false)
 	final SlideColor color;
 	
 	/** The offset from the left */
 	@JsonProperty
-	@XmlElement(name = "offsetX", required = false)
 	final double offsetX;
 	
 	/** The offset from the top */
 	@JsonProperty
-	@XmlElement(name = "offsetY", required = false)
 	final double offsetY;
 	
 	/** The radius of the blur */
 	@JsonProperty
-	@XmlElement(name = "radius", required = false)
 	final double radius;
 
 	/** The portion of the radius that has 100% of the color */
 	@JsonProperty
-	@XmlElement(name = "spread", required = false)
 	final double spread;
 
 	/**

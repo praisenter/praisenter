@@ -24,14 +24,11 @@
  */
 package org.praisenter.slide.text;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Specifies the horizontal text alignment.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum HorizontalTextAlignment {
 	/** Text should be aligned to the left */
 	LEFT,

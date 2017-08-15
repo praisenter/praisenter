@@ -24,10 +24,6 @@
  */
 package org.praisenter.slide.animation;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.praisenter.slide.easing.Easing;
 
 /**
@@ -35,8 +31,6 @@ import org.praisenter.slide.easing.Easing;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "fade")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Fade extends Animation {
 	/**
 	 * Default constructor for JAXB.

@@ -23,7 +23,7 @@ import org.praisenter.bible.BibleReferenceVerse;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
 import org.praisenter.bible.Verse;
-import org.praisenter.javafx.configuration.Configuration;
+import org.praisenter.configuration.Configuration;
 import org.praisenter.json.JsonIO;
 import org.praisenter.media.Media;
 import org.praisenter.slide.BasicSlide;

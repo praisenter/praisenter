@@ -26,14 +26,6 @@ package org.praisenter.slide.graphics;
 
 import java.util.Objects;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
-import org.praisenter.slide.SlidePaintXmlAdapter;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -41,28 +33,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "paintStroke")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class SlideStroke {
 	/** The stroke paint */
 	@JsonProperty
-	@XmlElement(name = "paint", required = false)
-	@XmlJavaTypeAdapter(value = SlidePaintXmlAdapter.class)
 	final SlidePaint paint;
 	
 	/** The stroke style */
 	@JsonProperty
-	@XmlElement(name = "style", required = false)
 	final SlideStrokeStyle style;
 	
 	/** The stroke width */
 	@JsonProperty
-	@XmlElement(name = "width", required = false)
 	final double width;
 	
 	/** The stroke radius */
 	@JsonProperty
-	@XmlElement(name = "radius", required = false)
 	final double radius;
 	
 	/**

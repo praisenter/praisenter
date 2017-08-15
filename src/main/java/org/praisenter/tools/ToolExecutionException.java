@@ -25,7 +25,7 @@
 package org.praisenter.tools;
 
 /**
- * Exception thrown when a media file fails to be transcoded.
+ * Exception thrown when a tool fails to complete successfully.
  * @author William Bittle
  * @version 3.0.0
  */

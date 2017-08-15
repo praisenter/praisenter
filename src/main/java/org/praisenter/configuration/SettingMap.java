@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.configuration;
+package org.praisenter.configuration;
 
 import java.util.Map;
 import java.util.UUID;
@@ -33,16 +33,9 @@ import java.util.UUID;
  * @version 3.0.0
  * @param <T> the return type after making a change
  */
-abstract class SettingMap<T> {
+public abstract class SettingMap<T> {
 	
 	// internal
-	
-	/**
-	 * Sets all the given settings.
-	 * @param settings the settings to set
-	 * @return T
-	 */
-	protected abstract T setAll(Map<Setting, Object> settings);
 
 	/**
 	 * Sets the given setting to the given value.
@@ -58,14 +51,21 @@ abstract class SettingMap<T> {
 	 * @return String
 	 */
 	protected abstract Object get(Setting setting);
+	
+	// public interface
+
+	/**
+	 * Sets all the given settings.
+	 * @param settings the settings to set
+	 * @return T
+	 */
+	public abstract T setAll(Map<Setting, Object> settings);
 
 	/**
 	 * Returns an unmodifiable set of the settings.
 	 * @return Map&lt;{@link Setting}, String&gt;
 	 */
-	protected abstract Map<Setting, Object> getAll();
-	
-	// public interface
+	public abstract Map<Setting, Object> getAll();
 	
 	/**
 	 * Returns true if the given setting is present and non-null.

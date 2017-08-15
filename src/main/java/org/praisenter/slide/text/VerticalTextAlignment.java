@@ -24,14 +24,11 @@
  */
 package org.praisenter.slide.text;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Specifies the vertical text alignment.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum VerticalTextAlignment {
 	/** Text should be aligned at the top */
 	TOP,

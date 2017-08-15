@@ -24,8 +24,6 @@
  */
 package org.praisenter.slide.text;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
-
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.effects.SlideShadow;
@@ -50,12 +48,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	@Type(value = CountdownComponent.class, name = "countdown"),
 	@Type(value = DateTimeComponent.class, name = "datetime"),
 	@Type(value = TextPlaceholderComponent.class, name = "placeholder")
-})
-@XmlSeeAlso({
-	BasicTextComponent.class,
-	DateTimeComponent.class,
-	TextPlaceholderComponent.class,
-	CountdownComponent.class
 })
 public interface TextComponent extends SlideRegion, SlideComponent {
 	/**

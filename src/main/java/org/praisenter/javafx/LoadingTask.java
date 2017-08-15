@@ -32,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.ThumbnailSettings;
 import org.praisenter.bible.BibleLibrary;
+import org.praisenter.configuration.Configuration;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.media.JavaFXMediaImportProcessor;
 import org.praisenter.media.MediaImportProcessor;
@@ -58,14 +59,14 @@ final class LoadingTask extends Task<PraisenterContext> {
 	private final JavaFXContext javaFXContext;
 	
 	/** The configuration */
-	private final ObservableConfiguration configuration;
+	private final Configuration configuration;
 	
 	/**
 	 * Minimal constructor.
 	 * @param javaFXContext the JavaFX context information
 	 * @param configuration the configuration
 	 */
-	public LoadingTask(JavaFXContext javaFXContext, ObservableConfiguration configuration) {
+	public LoadingTask(JavaFXContext javaFXContext, Configuration configuration) {
 		this.javaFXContext = javaFXContext;
 		this.configuration = configuration;
 	}
@@ -81,6 +82,9 @@ final class LoadingTask extends Task<PraisenterContext> {
 		int i = 0;
 		
 		updateProgress(i++, n);
+		
+		// build the observable configuration
+		ObservableConfiguration configuration = new ObservableConfiguration(this.configuration);
 		
 		// setup the thumbnail settings
 		ThumbnailSettings thumbnailSettings = new ThumbnailSettings(
@@ -141,7 +145,7 @@ final class LoadingTask extends Task<PraisenterContext> {
 		// build the context
 		PraisenterContext context = new PraisenterContext(
 				this.javaFXContext,
-				this.configuration,
+				configuration,
 				tools,
 				media,
 				bibles,

@@ -41,9 +41,9 @@ import org.praisenter.bible.Chapter;
 import org.praisenter.bible.LocatedVerse;
 import org.praisenter.bible.LocatedVerseTriplet;
 import org.praisenter.bible.Verse;
+import org.praisenter.configuration.Setting;
 import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.controls.AutoCompleteComboBox;
 import org.praisenter.resources.translations.Translations;
 

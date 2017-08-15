@@ -24,11 +24,6 @@
  */
 package org.praisenter.slide.text;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.praisenter.TextType;
 import org.praisenter.TextVariant;
 import org.praisenter.slide.SlideComponent;
@@ -44,8 +39,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "textPlaceholderComponent")
-@XmlAccessorType(XmlAccessType.NONE)
 public class TextPlaceholderComponent extends AbstractTextComponent implements SlideRegion, SlideComponent, TextComponent {
 	// NOTE: the text for a placeholder component should not be serialized
 	/** The text */
@@ -53,12 +46,10 @@ public class TextPlaceholderComponent extends AbstractTextComponent implements S
 
 	/** The placeholder type */
 	@JsonProperty
-	@XmlElement(name = "placeholderType", required = false)
 	TextType placeholderType;
 	
 	/** The placeholder variant */
 	@JsonProperty
-	@XmlElement(name = "placeholderVariant", required = false)
 	TextVariant placeholderVariant;
 
 	/**

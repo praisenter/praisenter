@@ -26,11 +26,6 @@ package org.praisenter.slide.animation;
 
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -38,17 +33,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "componentAnimation")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class SlideAnimation {
 	/** The id of the component being animated */
 	@JsonProperty
-	@XmlElement(name = "id", required = false)
 	final UUID id;
 	
 	/** The animation */
 	@JsonProperty
-	@XmlElement(name = "animation", required = false)
 	final Animation animation;
 	
 	/**

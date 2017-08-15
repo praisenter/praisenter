@@ -5,13 +5,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.controlsfx.control.PopOver;
+import org.praisenter.configuration.Resolution;
+import org.praisenter.configuration.ResolutionSet;
+import org.praisenter.configuration.Setting;
 import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.javafx.PreventUndoRedoEventFilter;
 import org.praisenter.javafx.command.ActionEditCommand;
 import org.praisenter.javafx.command.CommandFactory;
-import org.praisenter.javafx.configuration.Resolution;
-import org.praisenter.javafx.configuration.ResolutionSet;
-import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.slide.ObservableSlide;
 import org.praisenter.javafx.slide.editor.SlideEditorContext;
 import org.praisenter.javafx.slide.editor.commands.SlideNameEditCommand;

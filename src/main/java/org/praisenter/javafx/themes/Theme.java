@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.utility.StringManipulator;
 
 /**
  * Represents a theme for the application using Java FX and css styling.
@@ -108,6 +109,23 @@ public final class Theme implements Comparable<Theme> {
 		
 		Collections.sort(themes);
 		return Collections.unmodifiableList(themes);
+	}
+	
+	/**
+	 * Returns the theme with the given name or the {@link #DEFAULT} if it's not found.
+	 * @param name the name
+	 * @return {@link Theme}
+	 */
+	public static final Theme getTheme(String name) {
+		if (StringManipulator.isNullOrEmpty(name)) {
+			return Theme.DEFAULT;
+		}
+		for (Theme theme : getAvailableThemes()) {
+			if (name.equalsIgnoreCase(theme.getName())) {
+				return theme;
+			}
+		}
+		return Theme.DEFAULT;
 	}
 	
 	/** The theme name */

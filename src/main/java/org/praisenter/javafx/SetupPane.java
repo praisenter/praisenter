@@ -15,12 +15,12 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.javafx.configuration.Display;
-import org.praisenter.javafx.configuration.DisplayRole;
+import org.praisenter.configuration.Display;
+import org.praisenter.configuration.DisplayRole;
+import org.praisenter.configuration.DisplayList;
+import org.praisenter.configuration.Setting;
 import org.praisenter.javafx.configuration.DisplayView;
-import org.praisenter.javafx.configuration.Displays;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
-import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.controls.MessageLabel;
 import org.praisenter.javafx.controls.SectionHeader;
 import org.praisenter.javafx.controls.WellLabel;
@@ -458,13 +458,14 @@ public final class SetupPane extends BorderPane {
 				// fill in gaps
 				for (int i = 0; i < n; i++) {
 					if (!views.containsKey(i)) {
-						views.put(i, new DisplayView(new Display(i, DisplayRole.NONE, screens.get(i), "Unassigned")));
+						Rectangle2D bounds = screens.get(i).getBounds();
+						views.put(i, new DisplayView(new Display(i, DisplayRole.NONE, "Unassigned", (int)bounds.getMinX(), (int)bounds.getMinY(), (int)bounds.getWidth(), (int)bounds.getHeight())));
 					}
 				}
 				
 				for (DisplayView view : views.values()) {
 					view.displayProperty().addListener((obs, ov, nv) -> {
-						Displays displays = context.getConfiguration().getObject(Setting.DISPLAY_ASSIGNMENTS, Displays.class, new Displays());
+						DisplayList displays = context.getConfiguration().getObject(Setting.DISPLAY_ASSIGNMENTS, DisplayList.class, new DisplayList());
 						
 						if (ov != null) {
 							displays.remove(ov);

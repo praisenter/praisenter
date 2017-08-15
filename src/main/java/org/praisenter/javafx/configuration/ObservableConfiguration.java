@@ -29,6 +29,13 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.configuration.Configuration;
+import org.praisenter.configuration.Display;
+import org.praisenter.configuration.DisplayList;
+import org.praisenter.configuration.Resolution;
+import org.praisenter.configuration.ResolutionSet;
+import org.praisenter.configuration.Setting;
+import org.praisenter.configuration.SettingMap;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.javafx.themes.Theme;
@@ -94,14 +101,7 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 		
 		// set theme
 		String name = configuration.getString(Setting.APP_THEME, null);
-		Theme theme = Theme.DEFAULT;
-		for (Theme t : Theme.getAvailableThemes()) {
-			if (t.getName().equalsIgnoreCase(name)) {
-				theme = t;
-				break;
-			}
-		}
-		this.theme = theme;
+		this.theme = Theme.getTheme(name);
 		
 		// add all resolutions to the observable list
 		ResolutionSet resolutions = this.configuration.getObject(Setting.DISPLAY_RESOLUTIONS, ResolutionSet.class, null);
@@ -110,7 +110,7 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 		}
 		
 		// add all display assignments
-		Displays displays = this.configuration.getObject(Setting.DISPLAY_ASSIGNMENTS, Displays.class, null);
+		DisplayList displays = this.configuration.getObject(Setting.DISPLAY_ASSIGNMENTS, DisplayList.class, null);
 		if (displays != null) {
 			this.displays.addAll(displays);
 		}
@@ -135,8 +135,8 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 				this.resolutions.clear();
 			}
 		} else if (setting == Setting.DISPLAY_ASSIGNMENTS) {
-			if (value != null && value instanceof Displays) {
-				this.displays.setAll((Displays)value);
+			if (value != null && value instanceof DisplayList) {
+				this.displays.setAll((DisplayList)value);
 			} else {
 				this.displays.clear();
 			}
@@ -159,7 +159,7 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 			if (setting == Setting.DISPLAY_RESOLUTIONS) {
 				ObservableConfiguration.this.resolutions.setAll((ResolutionSet)value);
 			} else if (setting == Setting.DISPLAY_ASSIGNMENTS) {
-				ObservableConfiguration.this.displays.setAll((Displays)value);
+				ObservableConfiguration.this.displays.setAll((DisplayList)value);
 			}
 		}
 	}
@@ -203,7 +203,7 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	 * @see org.praisenter.javafx.configuration.SettingMap#getAll()
 	 */
 	@Override
-	protected Map<Setting, Object> getAll() {
+	public Map<Setting, Object> getAll() {
 		return this.configuration.getAll();
 	}
 	
@@ -211,7 +211,7 @@ public final class ObservableConfiguration extends SettingMap<AsyncTask<Void>> {
 	 * @see org.praisenter.javafx.configuration.SettingMap#setAll(java.util.Map)
 	 */
 	@Override
-	protected AsyncTask<Void> setAll(Map<Setting, Object> settings) {
+	public AsyncTask<Void> setAll(Map<Setting, Object> settings) {
 		this.update(settings);
 		return this.save();
 	}

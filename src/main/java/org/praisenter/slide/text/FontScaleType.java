@@ -24,14 +24,11 @@
  */
 package org.praisenter.slide.text;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Specifies the font scaling operation.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum FontScaleType {
 	/** No scaling */
 	NONE,

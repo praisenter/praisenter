@@ -24,8 +24,6 @@
  */
 package org.praisenter.slide.graphics;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
-
 import org.praisenter.slide.media.MediaObject;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -45,11 +43,5 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	@Type(value = SlideLinearGradient.class, name = "linearGradient"),
 	@Type(value = SlideRadialGradient.class, name = "radialGradient"),
 	@Type(value = MediaObject.class, name = "mediaObject")
-})
-@XmlSeeAlso({
-	SlideColor.class,
-	SlideLinearGradient.class,
-	SlideRadialGradient.class,
-	MediaObject.class
 })
 public interface SlidePaint {}

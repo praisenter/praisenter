@@ -24,14 +24,11 @@
  */
 package org.praisenter.slide.animation;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Represents an orientation.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum Orientation {
 	/** Horizontal */
 	HORIZONTAL,

@@ -24,11 +24,6 @@
  */
 package org.praisenter.slide.animation;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.praisenter.slide.easing.Easing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -40,8 +35,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "shaped")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Shaped extends Animation {
 	/** The default shape type */
 	public static final ShapeType DEFAULT_SHAPE_TYPE = ShapeType.CIRCLE;
@@ -51,12 +44,10 @@ public final class Shaped extends Animation {
 	
 	/** The shape */
 	@JsonProperty
-	@XmlElement(name = "shapeType", required = false)
 	final ShapeType shapeType;
 	
 	/** The operation */
 	@JsonProperty
-	@XmlElement(name = "operation", required = false)
 	final Operation operation;
 
 	/**

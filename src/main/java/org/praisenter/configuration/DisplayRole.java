@@ -22,32 +22,24 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.slide;
-
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-
-import org.praisenter.slide.graphics.AbstractSlidePaint;
-import org.praisenter.slide.graphics.SlidePaint;
+package org.praisenter.configuration;
 
 /**
- * Xml adapter for the {@link SlidePaint} interface (JAXB doesn't work well with interfaces).
+ * Represents the role that a screen plays in presentation.
  * @author William Bittle
  * @version 3.0.0
+ * @since 3.0.0
  */
-public class SlidePaintXmlAdapter extends XmlAdapter<AbstractSlidePaint, SlidePaint> {
-	/* (non-Javadoc)
-	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#marshal(java.lang.Object)
-	 */
-	@Override
-	public AbstractSlidePaint marshal(SlidePaint paint) throws Exception {
-		return (AbstractSlidePaint)paint;
-	}
-
-	/* (non-Javadoc)
-	 * @see javax.xml.bind.annotation.adapters.XmlAdapter#unmarshal(java.lang.Object)
-	 */
-	@Override
-	public SlidePaint unmarshal(AbstractSlidePaint paint) throws Exception {
-		return paint;
-	}
+public enum DisplayRole {
+	/** Not used */
+	NONE,
+	
+	/** The main output */
+	MAIN,
+	
+	/** Specific screen showing song specialized slides */
+	MUSICIAN,
+	
+	/** An alternate screen */
+	OTHER
 }

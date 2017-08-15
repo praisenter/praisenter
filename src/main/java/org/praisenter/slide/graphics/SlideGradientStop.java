@@ -26,11 +26,6 @@ package org.praisenter.slide.graphics;
 
 import java.util.Objects;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -38,17 +33,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "stop")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class SlideGradientStop {
 	/** The stop location from 0.0 - 1.0 inclusive */
 	@JsonProperty
-	@XmlElement(name = "offset", required = false)
 	final double offset;
 	
 	/** The stop color */
 	@JsonProperty
-	@XmlElement(name = "color", required = false)
 	final SlideColor color;
 	
 	/**

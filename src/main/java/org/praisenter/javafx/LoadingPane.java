@@ -28,7 +28,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.configuration.ObservableConfiguration;
+import org.praisenter.configuration.Configuration;
 import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.RuntimeProperties;
@@ -109,7 +109,7 @@ final class LoadingPane extends Pane {
 	 * @param javaFXContext the JavaFX context
 	 * @param configuration the application configuration
 	 */
-	public LoadingPane(final double width, final double height, JavaFXContext javaFXContext, ObservableConfiguration configuration) {
+	public LoadingPane(final double width, final double height, JavaFXContext javaFXContext, Configuration configuration) {
 		this.setPrefWidth(width);
 		this.setPrefHeight(height);
 		

@@ -83,6 +83,8 @@ public final class FormatIdentifingSlideImporter implements SlideImporter {
 		String fileName = path.getFileName().toString().toLowerCase();
 		// we'll try by the file extension first
 		if (fileName.endsWith(".zip")) {
+			
+			// FIXME fix this to use json now
 			// read the contents to see what format we are looking at
 			try (FileInputStream fis = new FileInputStream(path.toFile());
 				 BufferedInputStream bis = new BufferedInputStream(fis);

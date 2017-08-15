@@ -24,14 +24,8 @@
  */
 package org.praisenter.slide.text;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
 import org.praisenter.slide.AbstractSlideComponent;
 import org.praisenter.slide.SlideComponent;
-import org.praisenter.slide.SlidePaintXmlAdapter;
 import org.praisenter.slide.SlideRegion;
 import org.praisenter.slide.effects.SlideShadow;
 import org.praisenter.slide.graphics.SlideColor;
@@ -46,62 +40,49 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractTextComponent extends AbstractSlideComponent implements SlideRegion, SlideComponent, TextComponent {
 	/** The text paint */
 	@JsonProperty
-	@XmlElement(name = "textPaint", required = false)
-	@XmlJavaTypeAdapter(value = SlidePaintXmlAdapter.class)
 	SlidePaint textPaint;
 	
 	/** The text border */
 	@JsonProperty
-	@XmlElement(name = "textBorder", required = false)
 	SlideStroke textBorder;
 	
 	/** The font */
 	@JsonProperty
-	@XmlElement(name = "font", required = false)
 	SlideFont font;
 	
 	/** The font scaling type */
 	@JsonProperty
-	@XmlElement(name = "fontScaleType", required = false)
 	FontScaleType fontScaleType;
 	
 	/** The text vertical alignment */
 	@JsonProperty
-	@XmlElement(name = "textVerticalAlignment", required = false)
 	VerticalTextAlignment verticalTextAlignment;
 	
 	/** The text horizontal alignment */
 	@JsonProperty
-	@XmlElement(name = "textHorizontalAlignment", required = false)
 	HorizontalTextAlignment horizontalTextAlignment;
 	
 	/** The bounds padding */
 	@JsonProperty
-	@XmlElement(name = "padding", required = false)
 	SlidePadding padding;
 	
 	/** The line spacing */
 	@JsonProperty
-	@XmlElement(name = "lineSpacing", required = false)
 	double lineSpacing;
 	
 	/** True if text should be wrapped */
 	@JsonProperty
-	@XmlElement(name = "textWrapping", required = false)
 	boolean textWrapping;
 
 	/** The text shadow */
 	@JsonProperty
-	@XmlElement(name = "textShadow", required = false)
 	SlideShadow textShadow;
 
 	/** The text glow */
 	@JsonProperty
-	@XmlElement(name = "textGlow", required = false)
 	SlideShadow textGlow;
 	
 	/**

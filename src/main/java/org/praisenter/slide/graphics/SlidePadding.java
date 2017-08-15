@@ -24,11 +24,6 @@
  */
 package org.praisenter.slide.graphics;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -37,27 +32,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @version 3.0.0
  * @since 3.0.0
  */
-@XmlRootElement(name = "padding")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class SlidePadding {
 	/** The top padding */
 	@JsonProperty
-	@XmlElement(name = "top", required = false)
 	final double top;
 	
 	/** The right padding */
 	@JsonProperty
-	@XmlElement(name = "right", required = false)
 	final double right;
 	
 	/** The bottom padding */
 	@JsonProperty
-	@XmlElement(name = "bottom", required = false)
 	final double bottom;
 	
 	/** The left padding */
 	@JsonProperty
-	@XmlElement(name = "left", required = false)
 	final double left;
 	
 	/**

@@ -24,12 +24,6 @@
  */
 package org.praisenter.slide.graphics;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -37,28 +31,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "strokeStyle")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class SlideStrokeStyle {
 	/** The stroke type */
 	@JsonProperty
-	@XmlElement(name = "type", required = false)
 	final SlideStrokeType type;
 	
 	/** The stroke join */
 	@JsonProperty
-	@XmlElement(name = "join", required = false)
 	final SlideStrokeJoin join;
 	
 	/** The stroke cap */
 	@JsonProperty
-	@XmlElement(name = "cap", required = false)
 	final SlideStrokeCap cap;
 	
 	/** The dash array */
 	@JsonProperty
-	@XmlElement(name = "length", required = false)
-	@XmlElementWrapper(name = "dashes", required = false)
 	final Double[] dashes;
 	
 	/**

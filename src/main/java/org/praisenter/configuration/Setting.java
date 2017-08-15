@@ -22,16 +22,13 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.configuration;
-
-import javax.xml.bind.annotation.XmlEnum;
+package org.praisenter.configuration;
 
 /**
  * Represents a simple application setting.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum Setting {
 	/** The application width */
 	APP_WIDTH,

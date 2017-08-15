@@ -3,7 +3,7 @@ package org.praisenter.javafx.display;
 import java.util.ArrayList;
 
 import org.praisenter.Constants;
-import org.praisenter.javafx.configuration.Display;
+import org.praisenter.configuration.Display;
 import org.praisenter.javafx.slide.ObservableSlide;
 
 import javafx.animation.Animation.Status;

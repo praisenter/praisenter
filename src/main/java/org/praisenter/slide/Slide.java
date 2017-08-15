@@ -31,10 +31,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlSeeAlso;
-
 import org.praisenter.Tag;
 import org.praisenter.TextStore;
 import org.praisenter.slide.animation.SlideAnimation;
@@ -58,10 +54,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonSubTypes({
 	@Type(value = BasicSlide.class, name = "slide")
 })
-@XmlSeeAlso({
-	BasicSlide.class
-})
-@XmlAccessorType(XmlAccessType.NONE)
 public interface Slide extends SlideRegion, Comparable<Slide> {
 	/** The version of the slide format */
 	public static final String CURRENT_VERSION = "1";

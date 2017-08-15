@@ -24,11 +24,6 @@
  */
 package org.praisenter.slide.animation;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.praisenter.slide.easing.Easing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -38,8 +33,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "blinds")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Blinds extends Animation {
 	/** The default orientation */
 	public static final Orientation DEFAULT_ORIENTATION = Orientation.VERTICAL;
@@ -49,12 +42,10 @@ public final class Blinds extends Animation {
 	
 	/** The orientation of the blinds */
 	@JsonProperty
-	@XmlElement(name = "orientation", required = false)
 	final Orientation orientation;
 	
 	/** The blind count */
 	@JsonProperty
-	@XmlElement(name = "blindCount", required = false)
 	final int blindCount;
 	
 	/**

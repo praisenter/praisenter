@@ -24,14 +24,11 @@
  */
 package org.praisenter.slide.graphics;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Specifies whether inside, outside or centered on the edge of a shape.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum SlideStrokeType {
 	/** The stroke is centered on the edge */
 	CENTERED,

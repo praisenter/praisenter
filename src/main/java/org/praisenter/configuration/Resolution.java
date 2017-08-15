@@ -22,12 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.configuration;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+package org.praisenter.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -36,17 +31,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "resolution")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Resolution implements Comparable<Resolution> {
 	/** The width in pixels */
 	@JsonProperty
-	@XmlAttribute(name = "width")
 	private final int width;
 	
 	/** The height in pixels */
 	@JsonProperty
-	@XmlAttribute(name = "height")
 	private final int height;
 
 	/** The list of common screen resolutions */

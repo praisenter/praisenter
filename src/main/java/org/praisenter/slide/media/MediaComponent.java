@@ -27,11 +27,6 @@ package org.praisenter.slide.media;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.praisenter.slide.AbstractSlideComponent;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
@@ -43,12 +38,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "mediaComponent")
-@XmlAccessorType(XmlAccessType.NONE)
 public class MediaComponent extends AbstractSlideComponent implements SlideRegion, SlideComponent {
 	/** The media object */
 	@JsonProperty
-	@XmlElement(name = "media", required = false)
 	MediaObject media;
 
 	/**

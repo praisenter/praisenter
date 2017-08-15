@@ -26,17 +26,7 @@ package org.praisenter.slide;
 
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-
 import org.praisenter.slide.effects.SlideShadow;
-import org.praisenter.slide.media.MediaComponent;
-import org.praisenter.slide.text.BasicTextComponent;
-import org.praisenter.slide.text.CountdownComponent;
-import org.praisenter.slide.text.DateTimeComponent;
-import org.praisenter.slide.text.TextPlaceholderComponent;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -45,24 +35,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlSeeAlso({
-	MediaComponent.class,
-	BasicTextComponent.class,
-	DateTimeComponent.class,
-	TextPlaceholderComponent.class,
-	CountdownComponent.class
-})
-@XmlAccessorType(XmlAccessType.NONE)
 public abstract class AbstractSlideComponent extends AbstractSlideRegion implements SlideRegion, SlideComponent {
 
 	/** The overall shadow */
 	@JsonProperty
-	@XmlElement(name = "shadow", required = false)
 	SlideShadow shadow;
 
 	/** The overall glow */
 	@JsonProperty
-	@XmlElement(name = "glow", required = false)
 	SlideShadow glow;
 	
 	/**

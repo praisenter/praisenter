@@ -24,15 +24,12 @@
  */
 package org.praisenter.slide.text;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * An enumeration of OS/2 table of the <a href="http://www.microsoft.com/typography/otspec/os2.htm#wtc">OpenType font spec</a>  
  * (matching Java FX's enumeration).
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum SlideFontWeight {
 	/** Represents a font weight of 900 */
 	BLACK,

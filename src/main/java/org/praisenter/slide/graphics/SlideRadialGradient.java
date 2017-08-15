@@ -26,11 +26,6 @@ package org.praisenter.slide.graphics;
 
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -38,27 +33,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "radialGradient")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class SlideRadialGradient extends SlideGradient implements SlidePaint {
 	/** The center x between 0 and 1 */
 	@JsonProperty
-	@XmlElement(name = "cx", required = false)
 	final double centerX;
 	
 	/** The center y between 0 and 1 */
 	@JsonProperty
-	@XmlElement(name = "cy", required = false)
 	final double centerY;
 	
 	/** The radius between 0 and 1 */
 	@JsonProperty
-	@XmlElement(name = "r", required = false)
 	final double radius;
 	
 	/** The cycle type */
 	@JsonProperty
-	@XmlElement(name = "cycle", required = false)
 	final SlideGradientCycleType cycleType;
 	
 	/**

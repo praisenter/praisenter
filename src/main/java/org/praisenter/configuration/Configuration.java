@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.configuration;
+package org.praisenter.configuration;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,15 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,23 +49,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "configuration")
-@XmlAccessorType(XmlAccessType.NONE)
-// we have to define any custom types that might be saved in settings
-@XmlSeeAlso({
-	Display.class,
-	Displays.class,
-	Resolution.class,
-	ResolutionSet.class,
-	UUID.class
-})
 public final class Configuration extends SettingMap<Void> {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	/** The other settings */
 	@JsonProperty
-	@XmlElement(name = "settings", required = false)
 	private final Map<Setting, Object> settings;
 	
 	/**
@@ -131,10 +112,9 @@ public final class Configuration extends SettingMap<Void> {
 	
 	/**
 	 * Saves this configuration.
-	 * @throws JAXBException if the configuration cannot be serialized
 	 * @throws IOException if an IO error occurs
 	 */
-	public final synchronized void save() throws JAXBException, IOException {
+	public final synchronized void save() throws IOException {
 		Path path = Paths.get(Constants.CONFIG_ABSOLUTE_FILE_PATH);
 		JsonIO.write(path, this);
 	}
@@ -179,7 +159,7 @@ public final class Configuration extends SettingMap<Void> {
 	 * @see org.praisenter.javafx.configuration.SettingMap#setAll(java.util.Map)
 	 */
 	@Override
-	protected Void setAll(Map<Setting, Object> settings) {
+	public Void setAll(Map<Setting, Object> settings) {
 		for (Setting key : settings.keySet()) {
 			Object value = settings.get(key);
 			if (value != null) {
@@ -195,7 +175,7 @@ public final class Configuration extends SettingMap<Void> {
 	 * @see org.praisenter.javafx.configuration.SettingMap#getAll()
 	 */
 	@Override
-	protected Map<Setting, Object> getAll() {
+	public Map<Setting, Object> getAll() {
 		return Collections.unmodifiableMap(this.settings);
 	}
 }

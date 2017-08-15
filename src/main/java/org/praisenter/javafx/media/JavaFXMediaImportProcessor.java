@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import org.praisenter.MediaType;
-import org.praisenter.javafx.configuration.Setting;
+import org.praisenter.configuration.Setting;
 import org.praisenter.media.DefaultMediaImportProcessor;
 import org.praisenter.media.MediaImportException;
 import org.praisenter.media.MediaImportProcessor;

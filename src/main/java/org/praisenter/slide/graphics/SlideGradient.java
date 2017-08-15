@@ -29,11 +29,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -41,7 +36,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlAccessorType(XmlAccessType.NONE)
 public abstract class SlideGradient extends AbstractSlidePaint implements SlidePaint {
 	/** The default stops */
 	static final SlideGradientStop[] DEFAULT_STOPS = new SlideGradientStop[] {
@@ -51,8 +45,6 @@ public abstract class SlideGradient extends AbstractSlidePaint implements SlideP
 	
 	/** The list of stops */
 	@JsonProperty
-	@XmlElement(name = "stop", required = false)
-	@XmlElementWrapper(name = "stops", required = false)
 	final List<SlideGradientStop> stops;
 
 	/**

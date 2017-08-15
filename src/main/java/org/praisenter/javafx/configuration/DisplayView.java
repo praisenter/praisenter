@@ -31,6 +31,8 @@ import java.awt.image.BufferedImage;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.configuration.Display;
+import org.praisenter.configuration.DisplayRole;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;

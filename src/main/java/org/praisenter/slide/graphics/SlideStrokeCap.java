@@ -24,14 +24,11 @@
  */
 package org.praisenter.slide.graphics;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Specifies the style used at the end of a path.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum SlideStrokeCap {
 	/** The butt cap type */
 	BUTT,

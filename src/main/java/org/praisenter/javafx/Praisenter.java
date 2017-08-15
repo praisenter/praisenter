@@ -35,11 +35,11 @@ import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
+import org.praisenter.configuration.Configuration;
+import org.praisenter.configuration.Setting;
 import org.praisenter.javafx.async.AsyncTaskExecutor;
-import org.praisenter.javafx.configuration.Configuration;
-import org.praisenter.javafx.configuration.ObservableConfiguration;
-import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.controls.Alerts;
+import org.praisenter.javafx.themes.Theme;
 import org.praisenter.resources.OpenIconic;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.utility.RuntimeProperties;
@@ -74,6 +74,36 @@ import javafx.util.Duration;
 // FEATURE (L) Quick send any image/video from file system
 // FEATURE (M) From selected media items, generate slides or slide show
 // FEATURE (H) Auto-update feature
+
+// a. Generate a self-signed public/private key pair
+// b. Generate a signature for the version-check.json and install.jar files
+
+// Upon start up
+// 0. Check for install.jar and install.jar.sig
+// 0a. If present perform verification again
+// 0b. If verified execute install.jar
+// 0c. Either way delete all update files
+// 0c. When complete continue startup
+
+// After startup and in the background
+// 1. Download {url}/v/{current-version}/version-check.json
+// 2. Download {url}/v/{current-version}/version-check.json.sig https://docs.oracle.com/javase/tutorial/security/apisign/step3.html
+// 3. Verify the signature of the version-check.json with the version-check.json.sig and the public key
+// 4. If it does not pass
+//		a. Ignore update and notify user
+//		b. Clean up files
+// 5. If it passes
+//		a. Check for a new version
+//			i.  If we are on the current version then stop
+//			ii. Otherwise
+// 				1. Download {url}/v/{current-version}/install.jar
+// 				2. Download {url}/v/{current-version}/install.jar.sig
+// 				3. Verify the signature of the install.jar with the install.jar.sig and the public key
+//				4. If it does not pass
+//					a. Ignore update and notify user
+//					b. clean up files
+//				5. If it passes
+//					a. Notify the user of the update with option to restart
 
 // JAVABUG (M) 09/28/16 [fixed-9] High DPI https://bugs.openjdk.java.net/browse/JDK-8091832
 // JAVABUG (M) 11/03/16 [fixed-9] Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946
@@ -263,14 +293,11 @@ public final class Praisenter extends Application {
     	GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/resources/fontawesome-webfont.ttf")));
 		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/resources/open-iconic.ttf")));
 
-		// create the observable configuration
-		ObservableConfiguration configuration = new ObservableConfiguration(CONFIGURATION);
-		
     	// we'll have a stack of the main pane and the loading pane
     	StackPane stack = new StackPane();
     	
     	// create the loading scene
-    	LoadingPane loading = new LoadingPane(MIN_WIDTH, MIN_HEIGHT, new JavaFXContext(this, stage), configuration);
+    	LoadingPane loading = new LoadingPane(MIN_WIDTH, MIN_HEIGHT, new JavaFXContext(this, stage), CONFIGURATION);
     	loading.setOnComplete((e) -> {
     		long t0 = 0;
     		long t1 = 0;
@@ -329,66 +356,8 @@ public final class Praisenter extends Application {
     	Scene scene = new Scene(stack);
     	// set the application look and feel
     	// NOTE: this should be the only place where this is done, every other window needs to inherit the css from the parent
-    	scene.getStylesheets().add(configuration.getTheme().getCss());
+    	scene.getStylesheets().add(Theme.getTheme(CONFIGURATION.getString(Setting.APP_THEME, null)).getCss());
     	stage.setScene(scene);
-//    	stage.setOnHiding((e) -> {
-//			// close the presentation screens
-//			this.context.getDisplayManager().release();
-//			
-//    		// save some application info
-//    		LOGGER.debug("Saving application location and size: ({}, {}) {}x{}", stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
-//    		if (!stage.isMaximized()) {
-//	    		CONFIGURATION.setDouble(Setting.APP_X, stage.getX());
-//	    		CONFIGURATION.setDouble(Setting.APP_Y, stage.getY());
-//	    		CONFIGURATION.setDouble(Setting.APP_WIDTH, stage.getWidth());
-//	    		CONFIGURATION.setDouble(Setting.APP_HEIGHT, stage.getHeight());
-//    		}
-//    		CONFIGURATION.setBoolean(Setting.APP_MAXIMIZED, stage.isMaximized());
-//    		
-//    		try {
-//    			// save the configuration synchronously
-//    			CONFIGURATION.save();
-//    		} catch (Exception ex) {
-//    			LOGGER.warn("Failed to save application x,y and width,height when the application closed.", ex);
-//    		}
-//    		
-//    		LOGGER.info("Checking for background threads that have not completed yet.");
-//    		// this stuff could be null if we blow up before its created
-//    		AsyncTaskExecutor executor = context != null ? context.getExecutorService() : null;
-//    		if (executor != null) {
-//    			
-//    			// for testing shutdown waiting
-////        		context.getWorkers().submit(() -> { 
-////        			try {
-////    					Thread.sleep(5 * 1000);
-////    				} catch (Exception e1) {
-////    					e1.printStackTrace();
-////    				} 
-////        		});
-//    			
-//    			executor.shutdown();
-//	    		int activeThreads = executor.getActiveCount();
-//	    		if (activeThreads > 0) {
-//	    			LOGGER.info("{} background threads awaiting completion.", activeThreads);
-//	    			e.consume();
-//	    			
-//	    			ShutdownDialog shutdown = new ShutdownDialog(stage, executor);
-//	    			shutdown.completeProperty().addListener((obs, ov, nv) -> {
-//	    				if (nv) {
-//	    					LOGGER.info("Shutdown complete. Exiting the platform.");
-//	    					Platform.exit();
-//	    				}
-//	    			});
-//	    			shutdown.show();
-//	    		} else {
-//	    			LOGGER.info("No active background threads running. Exiting the platform.");
-//		    		Platform.exit();
-//	    		}
-//    		} else {
-//    			LOGGER.info("No active background threads running. Exiting the platform.");
-//	    		Platform.exit();
-//    		}
-//    	});
     	stage.show();
     	
     	// start the loading

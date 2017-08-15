@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.tools;
 
 import java.awt.image.BufferedImage;
@@ -7,20 +31,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.LockMap;
-import org.praisenter.MediaType;
 import org.praisenter.json.JsonIO;
 import org.praisenter.media.CodecType;
 import org.praisenter.media.MediaCodec;
@@ -34,8 +55,13 @@ import org.praisenter.utility.StringManipulator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import javafx.scene.media.MediaPlayer;
+// FEATURE (M) To reduce the size of Praisenter, maybe we can compress the binaries and decompress when we start
 
+/**
+ * Helper class to perform operations supported by tools.
+ * @author William Bittle
+ * @version 3.0.0
+ */
 public final class Tools {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -43,13 +69,35 @@ public final class Tools {
 	/** The FFmpeg folder */
 	private static final String FFMPEG_DIR = "ffmpeg";
 	
+	// data
+	
+	/** The root path to the tools */
 	public final Path path;
 	
+	/** The locks for the tools */
 	public final LockMap<String> lockMap;
 	
+	/** The path to the ffmpeg binary */
 	public final Path ffmpeg;
+	
+	/** The path to the ffprobe binary */
 	public final Path ffprobe;
 	
+	/**
+	 * Creates a new tool library at the specified path.
+	 * @param path the path
+	 * @return {@link Tools}
+	 */
+	public static final Tools open(Path path) {
+		Tools tools = new Tools(path);
+		tools.initialize();
+		return tools;
+	}
+	
+	/**
+	 * Constructor.
+	 * @param path the root path
+	 */
 	private Tools(Path path) {
 		this.path = path;
 		
@@ -71,12 +119,9 @@ public final class Tools {
 		}
 	}
 	
-	public static final Tools open(Path path) {
-		Tools tools = new Tools(path);
-		tools.initialize();
-		return tools;
-	}
-	
+	/**
+	 * Make sure the tools exist on the file system.
+	 */
 	private void initialize() {
 		// extract the appropriate binary for the system
 		if (this.ffmpeg != null && this.ffprobe != null) {
@@ -107,14 +152,28 @@ public final class Tools {
 		}
 	}
 	
+	/**
+	 * Returns a lock for the ffmpeg binary.
+	 * @return Object
+	 */
 	private Object getFFmpegLock() {
 		return this.lockMap.get("ffmpeg");
 	}
 	
+	/**
+	 * Returns a lock for the ffprobe binary.
+	 * @return Object
+	 */
 	private Object getFFprobeLock() {
 		return this.lockMap.get("ffprobe");
 	}
 	
+	/**
+	 * Parses the given command and replaces parameters with their values.
+	 * @param template the command string
+	 * @param parameters the parameters
+	 * @return List&lt;String&gt;
+	 */
 	private List<String> parseCommand(String template, Map<String, String> parameters) {
 		// replace any tokens
 		String[] tokens = template.split("\\s+");
@@ -135,6 +194,15 @@ public final class Tools {
 		return command;
 	}
 	
+	/**
+	 * Uses the FFmpeg tool to transcode the given source file to the given target file using the given command template.
+	 * @param template the command template
+	 * @param source the source file
+	 * @param target the target file
+	 * @throws IOException if an IO error occurs
+	 * @throws InterruptedException if the process is interrupted while waiting for it to complete
+	 * @throws ToolExecutionException if the tools fails to perform its action
+	 */
 	public void ffmpegTranscode(String template, Path source, Path target) throws IOException, InterruptedException, ToolExecutionException {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("{ffmpeg}", this.ffmpeg.toAbsolutePath().toString());
@@ -146,11 +214,15 @@ public final class Tools {
 		}
 	}
 	
-	// for thumbnails
-	// ffmpeg -ss 3 -i "trailer_1080p.ogg.mp4" -vf "select=gt(scene\,0.2)" -frames:v 10 -vsync vfr out%02d.jpg
-	// {ffmpeg} -ss 3 -i {media}  -vf "select=gt(scene\,0.2)" -frames:v 10 -vsync vfr {frame}
-	// then read the out.jpgs and evaluate the log average luminance
-	
+	/**
+	 * Uses the FFmpeg tool to extract frames from the given video file and returns the best one based on a Luminance metric.
+	 * @param template the command template
+	 * @param media the video file
+	 * @return BufferedImage
+	 * @throws IOException if an IO error occurs
+	 * @throws InterruptedException if the process is interrupted while waiting for it to complete
+	 * @throws ToolExecutionException if the tools fails to perform its action
+	 */
 	public BufferedImage ffmpegExtractFrame(String template, Path media) throws IOException, InterruptedException, ToolExecutionException {
 		// create a unique identifer for naming;
 		String id = UUID.randomUUID().toString().replaceAll("-", "");
@@ -162,55 +234,60 @@ public final class Tools {
 		parameters.put("{frame}", tempArea.resolve("frame%02d.jpg").toAbsolutePath().toString());
 		
 		synchronized (this.getFFmpegLock()) {
-			// create the temp folder for easy clean up
-			Files.createDirectories(tempArea);
-			
-			// run the command
-			CommandLine.execute(this.parseCommand(template, parameters));
-			
-			// scan the frames and pick the best
-			BufferedImage best = null;
-			double score = 0;
-			try (DirectoryStream<Path> dir = Files.newDirectoryStream(tempArea)) {
-				for (Path path : dir) {
-					if (Files.isRegularFile(path) && path.getFileName().toString().startsWith("frame")) {
-						try {
-							BufferedImage image = ImageIO.read(path.toFile());
-							double logAvgLuminance = ImageManipulator.getLogAverageLuminance(image);
-							
-							// how far from the middle is the score?
-							double distance = Math.abs(logAvgLuminance - 0.5);
-							if (distance < score || best == null) {
-								LOGGER.debug("Best Log Average Luminance {} from {}.", logAvgLuminance, path.toAbsolutePath().toString());
-								best = image;
-								score = distance;
+			try {
+				// create the temp folder for easy clean up
+				Files.createDirectories(tempArea);
+				
+				// run the command
+				CommandLine.execute(this.parseCommand(template, parameters));
+				
+				// scan the frames and pick the best
+				BufferedImage best = null;
+				double score = 0;
+				try (DirectoryStream<Path> dir = Files.newDirectoryStream(tempArea)) {
+					for (Path path : dir) {
+						if (Files.isRegularFile(path) && path.getFileName().toString().startsWith("frame")) {
+							try {
+								BufferedImage image = ImageIO.read(path.toFile());
+								double logAvgLuminance = ImageManipulator.getLogAverageLuminance(image);
+								
+								// how far from the middle is the score?
+								double distance = Math.abs(logAvgLuminance - 0.5);
+								if (distance < score || best == null) {
+									LOGGER.debug("Best Log Average Luminance {} from {}.", logAvgLuminance, path.toAbsolutePath().toString());
+									best = image;
+									score = distance;
+								}
+							} catch (IOException ex) {
+								LOGGER.error("Failed to read frame from media '" + media.toAbsolutePath().toString() + "'.", ex);
 							}
-						} catch (IOException ex) {
-							LOGGER.error("Failed to read frame from media '" + media.toAbsolutePath().toString() + "'.", ex);
 						}
 					}
 				}
+				
+				return best;
 			} finally {
 				Files.walk(tempArea)
-				     .sorted((a, b) -> b.compareTo(a)) // reverse; files before dirs
-				     .forEach(p -> {
-				        try { 
-				        	Files.delete(p); 
-				        } catch(IOException e) {
-				        	LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
-				        }
-				     });
+			     .sorted((a, b) -> b.compareTo(a)) // reverse; files before dirs
+			     .forEach(p -> {
+			        try { 
+			        	Files.delete(p); 
+			        } catch(IOException e) {
+			        	LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
+			        }
+			     });
 			}
-			
-			return best;
 		}
 	}
 	
-
-	// for metadata
-	// ffprobe "Exotics Racing Experience.wmv.mp4" -print_format json -show_format -show_streams -unit > "test.json"
-	// then read the json for metadata, generate a UUID file name for collision avoidance
-	
+	/**
+	 * Uses the FFprobe tool to read the metadata of the given media.
+	 * @param media the media file
+	 * @return {@link FFprobeMediaMetadata}
+	 * @throws IOException if an IO error occurs
+	 * @throws InterruptedException if the process is interrupted while waiting for it to complete
+	 * @throws ToolExecutionException if the tools fails to perform its action
+	 */
 	public FFprobeMediaMetadata ffprobeExtractMetadata(Path media) throws IOException, InterruptedException, ToolExecutionException {
 		// create a unique identifer for naming;
 		String id = UUID.randomUUID().toString().replaceAll("-", "");
@@ -222,14 +299,14 @@ public final class Tools {
 		parameters.put("{output}", tempArea.resolve("metadata.json").toAbsolutePath().toString());
 		
 		synchronized (this.getFFprobeLock()) {
-			// create the temp folder for easy clean up
-			Files.createDirectories(tempArea);
-			
-			// run the command
-			String json = CommandLine.execute(this.parseCommand("{ffprobe} -v quiet -print_format json -show_format -show_streams {media}", parameters));
-			
 			// read the output json to get the metadata
 			try {
+				// create the temp folder for easy clean up
+				Files.createDirectories(tempArea);
+				
+				// run the command
+				String json = CommandLine.execute(this.parseCommand("{ffprobe} -v quiet -print_format json -show_format -show_streams {media}", parameters));
+				
 				JsonNode root = JsonIO.read(json, JsonNode.class);
 				
 				JsonNode format = root.get("format");

@@ -22,153 +22,101 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.configuration;
+package org.praisenter.configuration;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import java.util.List;
+import java.util.ListIterator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Represents a set of resolutions.
+ * Represents a set of displays.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "resolutions")
-@XmlAccessorType(XmlAccessType.NONE)
-public final class ResolutionSet implements Iterable<Resolution>, Collection<Resolution>, Set<Resolution> {
-	/** The resolutions */
+public final class DisplayList implements Iterable<Display>, Collection<Display>, List<Display> {
+	/** The displays */
 	@JsonProperty
-	@XmlElement(name = "resolution", required = false)
-	private final TreeSet<Resolution> resolutions;
+	private final List<Display> displays;
 	
 	/**
 	 * Default constructor.
 	 */
-	public ResolutionSet() {
-		this.resolutions = new TreeSet<Resolution>();
-	}
-	
-	/**
-	 * Returns the resolution before the given resolution.
-	 * <p>
-	 * If the given resolution is null, the first resolution in the list is returned.
-	 * <p>
-	 * If the given resolution is the first resolution, then null is returned.
-	 * @param resolution the resolution to search by
-	 * @return {@link Resolution}
-	 */
-	public Resolution getPreviousResolution(Resolution resolution) {
-		if (resolution == null) return this.resolutions.first();
-		return this.resolutions.lower(resolution);
-	}
-	
-	/**
-	 * Returns the resolution after the given resolution.
-	 * <p>
-	 * If the given resolution is null, the first resolution in the list is returned.
-	 * <p>
-	 * If the given resolution is the last resolution, then null is returned.
-	 * @param resolution the resolution to search by
-	 * @return {@link Resolution}
-	 */
-	public Resolution getNextResolution(Resolution resolution) {
-		if (resolution == null) return this.resolutions.first();
-		return this.resolutions.higher(resolution);
-	}
-	
-	/**
-	 * Returns the closest resolution to the given resolution.
-	 * <p>
-	 * If the given resolution is null, the first resolution in the list is returned.
-	 * <p>
-	 * If there are no resolutions left in the set, then null is returned.
-	 * @param resolution the resolution to search by
-	 * @return {@link Resolution}
-	 */
-	public Resolution getClosestResolution(Resolution resolution) {
-		Resolution r = this.getPreviousResolution(resolution);
-		if (r == null) {
-			r = this.getNextResolution(resolution);
-		}
-		return r;
+	public DisplayList() {
+		this.displays = new ArrayList<Display>();
 	}
 	
 	/* (non-Javadoc)
 	 * @see java.util.Collection#add(java.lang.Object)
 	 */
-	public boolean add(Resolution resolution) {
-		return this.resolutions.add(resolution);
+	public boolean add(Display display) {
+		return this.displays.add(display);
 	}
 	
 	/* (non-Javadoc)
 	 * @see java.util.Collection#addAll(java.util.Collection)
 	 */
-	public boolean addAll(Collection<? extends Resolution> resolutions) {
-		return this.resolutions.addAll(resolutions);
+	public boolean addAll(Collection<? extends Display> displays) {
+		return this.displays.addAll(displays);
 	}
 	
 	/* (non-Javadoc)
 	 * @see java.util.Collection#remove(java.lang.Object)
 	 */
 	public boolean remove(Object object) {
-		return this.resolutions.remove(object);
+		return this.displays.remove(object);
 	}
 	
 	/* (non-Javadoc)
 	 * @see java.util.Collection#removeAll(java.util.Collection)
 	 */
-	public boolean removeAll(Collection<?> resolutions) {
-		return this.resolutions.removeAll(resolutions);
+	public boolean removeAll(Collection<?> displays) {
+		return this.displays.removeAll(displays);
 	}
 	
 	/* (non-Javadoc)
 	 * @see java.util.Collection#contains(java.lang.Object)
 	 */
 	public boolean contains(Object object) {
-		return this.resolutions.contains(object);
+		return this.displays.contains(object);
 	}
 	
 	/* (non-Javadoc)
 	 * @see java.util.Collection#containsAll(java.util.Collection)
 	 */
-	public boolean containsAll(Collection<?> resolutions) {
-		return this.resolutions.containsAll(resolutions);
+	public boolean containsAll(Collection<?> displays) {
+		return this.displays.containsAll(displays);
 	}
 	
 	/* (non-Javadoc)
 	 * @see java.util.Collection#retainAll(java.util.Collection)
 	 */
-	public boolean retainAll(Collection<?> resolutions) {
-		return this.resolutions.retainAll(resolutions);
+	public boolean retainAll(Collection<?> displays) {
+		return this.displays.retainAll(displays);
 	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()
 	 */
-	public Iterator<Resolution> iterator() {
-		return this.resolutions.iterator();
+	public Iterator<Display> iterator() {
+		return this.displays.iterator();
 	}
 	
 	/* (non-Javadoc)
 	 * @see java.util.Collection#size()
 	 */
 	public int size() {
-		return this.resolutions.size();
+		return this.displays.size();
 	}
 	
 	/* (non-Javadoc)
 	 * @see java.util.Collection#isEmpty()
 	 */
 	public boolean isEmpty() {
-		return this.resolutions.isEmpty();
+		return this.displays.isEmpty();
 	}
 
 	/* (non-Javadoc)
@@ -176,7 +124,7 @@ public final class ResolutionSet implements Iterable<Resolution>, Collection<Res
 	 */
 	@Override
 	public Object[] toArray() {
-		return this.resolutions.toArray();
+		return this.displays.toArray();
 	}
 
 	/* (non-Javadoc)
@@ -184,7 +132,7 @@ public final class ResolutionSet implements Iterable<Resolution>, Collection<Res
 	 */
 	@Override
 	public <T> T[] toArray(T[] a) {
-		return this.resolutions.toArray(a);
+		return this.displays.toArray(a);
 	}
 
 	/* (non-Javadoc)
@@ -192,6 +140,56 @@ public final class ResolutionSet implements Iterable<Resolution>, Collection<Res
 	 */
 	@Override
 	public void clear() {
-		this.resolutions.clear();
+		this.displays.clear();
+	}
+
+	@Override
+	public void add(int index, Display element) {
+		this.displays.add(index, element);
+	}
+
+	@Override
+	public boolean addAll(int index, Collection<? extends Display> c) {
+		return this.displays.addAll(index, c);
+	}
+
+	@Override
+	public Display get(int index) {
+		return this.displays.get(index);
+	}
+
+	@Override
+	public int indexOf(Object o) {
+		return this.displays.indexOf(o);
+	}
+
+	@Override
+	public int lastIndexOf(Object o) {
+		return this.displays.lastIndexOf(o);
+	}
+
+	@Override
+	public ListIterator<Display> listIterator() {
+		return this.displays.listIterator();
+	}
+
+	@Override
+	public ListIterator<Display> listIterator(int index) {
+		return this.displays.listIterator(index);
+	}
+
+	@Override
+	public Display remove(int index) {
+		return this.displays.remove(index);
+	}
+
+	@Override
+	public Display set(int index, Display element) {
+		return this.displays.set(index, element);
+	}
+
+	@Override
+	public List<Display> subList(int fromIndex, int toIndex) {
+		return this.displays.subList(fromIndex, toIndex);
 	}
 }

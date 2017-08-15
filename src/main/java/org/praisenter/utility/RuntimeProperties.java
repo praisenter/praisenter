@@ -73,8 +73,10 @@ public final class RuntimeProperties {
 	/** The system architecture */
 	public static final String ARCHITECTURE = getArchitecture();
 	
+	/** True if the JVM is a 64 bit JVM */
 	public static final boolean IS_64 = is64Bit();
 	
+	/** True if the JVM is a 32 bit JVM */
 	public static final boolean IS_32 = is32Bit();
 	
 	/** 
@@ -207,6 +209,10 @@ public final class RuntimeProperties {
 		}
 	}
 	
+	/**
+	 * Returns true if the JVM is a 64 bit JVM.
+	 * @return boolean
+	 */
 	private static final boolean is64Bit() {
 		try{
 			String arch = System.getProperty("os.arch");
@@ -220,6 +226,10 @@ public final class RuntimeProperties {
 		return false;
 	}
 	
+	/**
+	 * Returns true if the JVM is a 32 bit JVM.
+	 * @return boolean
+	 */
 	private static final boolean is32Bit() {
 		try{
 			String arch = System.getProperty("os.arch");

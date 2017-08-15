@@ -24,11 +24,6 @@
  */
 package org.praisenter.slide.graphics;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -36,27 +31,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "color")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class SlideColor extends AbstractSlidePaint implements SlidePaint {
 	/** The red component */
 	@JsonProperty
-	@XmlElement(name = "r", required = false)
 	final double red;
 	
 	/** The green component */
 	@JsonProperty
-	@XmlElement(name = "g", required = false)
 	final double green;
 	
 	/** The blue component */
 	@JsonProperty
-	@XmlElement(name = "b", required = false)
 	final double blue;
 	
 	/** The alpha component */
 	@JsonProperty
-	@XmlElement(name = "a", required = false)
 	final double alpha;
 	
 	/**

@@ -30,12 +30,12 @@ import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.configuration.Display;
+import org.praisenter.configuration.DisplayRole;
+import org.praisenter.configuration.DisplayList;
+import org.praisenter.configuration.Setting;
 import org.praisenter.javafx.async.AsyncTaskExecutor;
-import org.praisenter.javafx.configuration.Display;
-import org.praisenter.javafx.configuration.DisplayRole;
-import org.praisenter.javafx.configuration.Displays;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
-import org.praisenter.javafx.configuration.Setting;
 import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.resources.translations.Translations;
 
@@ -164,7 +164,8 @@ public final class DisplayManager {
 			}
 		}
 		Screen primary = Screen.getPrimary();
-		return new Display(-1, null, primary, "Primary");
+		Rectangle2D bounds = primary.getBounds();
+		return new Display(-1, null, "Primary", (int)bounds.getMinX(), (int)bounds.getMinY(), (int)bounds.getWidth(), (int)bounds.getHeight());
 	}
 	
 	/**
@@ -184,7 +185,7 @@ public final class DisplayManager {
 		// get the configured displays
 		int n = this.configuration.getInt(Setting.DISPLAY_COUNT, -1);
 		List<Display> displays = new ArrayList<Display>(this.configuration.getDisplays());
-		Displays ds = this.configuration.getObject(Setting.DISPLAY_ASSIGNMENTS, Displays.class, new Displays());
+		DisplayList ds = this.configuration.getObject(Setting.DISPLAY_ASSIGNMENTS, DisplayList.class, new DisplayList());
 		
 		LOGGER.info("Current Screen Assignment: ");
 		for (Display display : displays) {
@@ -205,7 +206,8 @@ public final class DisplayManager {
 				if (i == 1 && size == 2) role = DisplayRole.MAIN;
 				if (i == 2 && size >= 3) role = DisplayRole.MUSICIAN;
 				if (i > 2) role = DisplayRole.OTHER;
-				Display display = new Display(i, role, Screen.getScreens().get(i), role == DisplayRole.OTHER ? role.toString() + (i - 2) : role.toString());
+				Rectangle2D bounds = screens.get(i).getBounds();
+				Display display = new Display(i, role, role == DisplayRole.OTHER ? role.toString() + (i - 2) : role.toString(), (int)bounds.getMinX(), (int)bounds.getMinY(), (int)bounds.getWidth(), (int)bounds.getHeight());
 				ds.add(display);
 				if (role != DisplayRole.NONE) {
 					this.screens.add(new DisplayTarget(display, this.debugMode));

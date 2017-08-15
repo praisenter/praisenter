@@ -24,14 +24,11 @@
  */
 package org.praisenter.slide.animation;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * The transition type.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum AnimationType {
 	/** Transition in */
 	IN,

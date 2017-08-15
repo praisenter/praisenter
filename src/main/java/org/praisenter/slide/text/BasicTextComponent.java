@@ -24,11 +24,6 @@
  */
 package org.praisenter.slide.text;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
 
@@ -39,12 +34,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "textComponent")
-@XmlAccessorType(XmlAccessType.NONE)
 public class BasicTextComponent extends AbstractTextComponent implements SlideRegion, SlideComponent, TextComponent {
 	/** The text */
 	@JsonProperty
-	@XmlElement(name = "text", required = false)
 	protected String text;
 
 	/**

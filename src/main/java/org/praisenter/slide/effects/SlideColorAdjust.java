@@ -1,33 +1,22 @@
 package org.praisenter.slide.effects;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@XmlRootElement(name = "colorAdjust")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class SlideColorAdjust {
 	/** The hue */
 	@JsonProperty
-	@XmlElement(name = "hue", required = false)
 	final double hue;
 	
 	/** The saturation */
 	@JsonProperty
-	@XmlElement(name = "saturation", required = false)
 	final double saturation;
 	
 	/** The brightness */
 	@JsonProperty
-	@XmlElement(name = "brightness", required = false)
 	final double brightness;
 
 	/** The contrast */
 	@JsonProperty
-	@XmlElement(name = "contrast", required = false)
 	final double contrast;
 	
 	public SlideColorAdjust() {

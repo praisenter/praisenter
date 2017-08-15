@@ -29,17 +29,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
 import org.praisenter.json.LocalDateTimeJsonDeserializer;
 import org.praisenter.json.LocalDateTimeJsonSerializer;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.SlideRegion;
-import org.praisenter.xml.adapters.LocalDateTimeXmlAdapter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -50,8 +43,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "countdownComponent")
-@XmlAccessorType(XmlAccessType.NONE)
 public class CountdownComponent extends AbstractTextComponent implements SlideRegion, SlideComponent, TextComponent {
 	/** The default format */
 	public static final String DEFAULT_FORMAT = "%1$02d:%2$02d:%3$02d:%4$02d:%5$02d:%6$02d";
@@ -60,18 +51,14 @@ public class CountdownComponent extends AbstractTextComponent implements SlideRe
 	@JsonProperty
 	@JsonSerialize(using = LocalDateTimeJsonSerializer.class)
 	@JsonDeserialize(using = LocalDateTimeJsonDeserializer.class)
-	@XmlElement(name = "countdownTarget", required = false)
-	@XmlJavaTypeAdapter(value = LocalDateTimeXmlAdapter.class)
 	LocalDateTime countdownTarget;
 
 	/** Whether to consider the time only */
 	@JsonProperty
-	@XmlElement(name = "countdownTimeOnly", required = false)
 	boolean countdownTimeOnly;
 	
 	/** The duration format */
 	@JsonProperty
-	@XmlElement(name = "countdownFormat", required = false)
 	String countdownFormat;
 	
 	/**

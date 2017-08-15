@@ -24,14 +24,11 @@
  */
 package org.praisenter.slide.animation;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Shape types.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum ShapeType {
 	/** Circle */
 	CIRCLE

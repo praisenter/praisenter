@@ -24,11 +24,6 @@
  */
 package org.praisenter.slide.animation;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.praisenter.slide.easing.Easing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -38,15 +33,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "push")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Push extends Animation {
 	/** The default direction */
 	public static final Direction DEFAULT_DIRECTION = Direction.LEFT;
 	
 	/** The direction */
 	@JsonProperty
-	@XmlElement(name = "direction", required = false)
 	final Direction direction;
 
 	/**

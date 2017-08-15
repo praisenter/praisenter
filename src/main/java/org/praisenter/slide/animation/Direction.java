@@ -24,8 +24,6 @@
  */
 package org.praisenter.slide.animation;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 // FEATURE (L) Add corner directions
 
 /**
@@ -33,7 +31,6 @@ import javax.xml.bind.annotation.XmlEnum;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum Direction {
 	// standard
 	

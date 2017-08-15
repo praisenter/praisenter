@@ -35,16 +35,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlElementRefs;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
 import org.praisenter.Constants;
 import org.praisenter.ReadonlyIterator;
 import org.praisenter.Tag;
@@ -60,13 +50,7 @@ import org.praisenter.json.InstantJsonSerializer;
 import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.SlideAnimation;
-import org.praisenter.slide.media.MediaComponent;
-import org.praisenter.slide.text.BasicTextComponent;
-import org.praisenter.slide.text.CountdownComponent;
-import org.praisenter.slide.text.DateTimeComponent;
 import org.praisenter.slide.text.TextPlaceholderComponent;
-import org.praisenter.xml.adapters.BufferedImagePngTypeAdapter;
-import org.praisenter.xml.adapters.InstantXmlAdapter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -81,61 +65,41 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "slide")
-@XmlAccessorType(XmlAccessType.NONE)
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion, Comparable<Slide> {
 	/** The format (for format identification only) */
 	@JsonProperty
-	@XmlAttribute(name = "format", required = false)
 	final String format;
 	
 	/** The slide format version */
 	@JsonProperty
-	@XmlAttribute(name = "version", required = false)
 	final String version;
 
 	/** The slide name */
 	@JsonProperty
-	@XmlElement(name = "name")
 	String name;
 
 	/** The date the slide was created */
 	@JsonProperty
 	@JsonSerialize(using = InstantJsonSerializer.class)
 	@JsonDeserialize(using = InstantJsonDeserializer.class)
-	@XmlAttribute(name = "createdDate", required = false)
-	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
 	Instant createdDate;
 
 	/** The date the slide was last changed */
 	@JsonProperty
 	@JsonSerialize(using = InstantJsonSerializer.class)
 	@JsonDeserialize(using = InstantJsonDeserializer.class)
-	@XmlAttribute(name = "lastModifiedDate", required = false)
-	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
 	Instant lastModifiedDate;
 
 	/** The time the slide will show in milliseconds */
 	@JsonProperty
-	@XmlElement(name = "time", required = false)
 	long time;
 	
 	/** The slide components */
 	@JsonProperty
-	@XmlElementRefs({
-		@XmlElementRef(type = MediaComponent.class),
-		@XmlElementRef(type = BasicTextComponent.class),
-		@XmlElementRef(type = DateTimeComponent.class),
-		@XmlElementRef(type = TextPlaceholderComponent.class),
-		@XmlElementRef(type = CountdownComponent.class)
-	})
-	@XmlElementWrapper(name = "components", required = false)
 	final List<SlideComponent> components;
 
 	/** The slide animations */
 	@JsonProperty
-	@XmlElement(name = "animation", required = false)
-	@XmlElementWrapper(name = "animations", required = false)
 	final List<SlideAnimation> animations;
 
 	/** Any placeholder data */
@@ -145,23 +109,16 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@JsonSubTypes({
 		@Type(value = BibleReferenceTextStore.class, name = "bibleTextStore")
 	})
-	@XmlElementRefs({
-		@XmlElementRef(type = BibleReferenceTextStore.class)
-	})
 	TextStore placeholderData;
 	
 	/** The tags */
 	@JsonProperty
-	@XmlElement(name = "tag", required = false)
-	@XmlElementWrapper(name = "tags", required = false)
 	final Set<Tag> tags;
 	
 	/** The thumbnail for this slide */
 	@JsonProperty
 	@JsonSerialize(using = BufferedImagePngJsonSerializer.class)
 	@JsonDeserialize(using = BufferedImagePngJsonDeserializer.class)
-	@XmlElement(name = "thumbnail", required = false)
-	@XmlJavaTypeAdapter(BufferedImagePngTypeAdapter.class)
 	BufferedImage thumbnail;
 	
 	/**

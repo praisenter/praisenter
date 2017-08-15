@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.configuration;
+package org.praisenter.configuration;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -91,7 +91,7 @@ public final class SettingBatch<T> extends SettingMap<SettingBatch<T>> {
 	 * @see org.praisenter.javafx.configuration.SettingMap#setAll(java.util.Map)
 	 */
 	@Override
-	protected SettingBatch<T> setAll(Map<Setting, Object> settings) {
+	public SettingBatch<T> setAll(Map<Setting, Object> settings) {
 		this.settings.putAll(settings);
 		return this;
 	}
@@ -100,7 +100,7 @@ public final class SettingBatch<T> extends SettingMap<SettingBatch<T>> {
 	 * @see org.praisenter.javafx.configuration.SettingMap#getAll()
 	 */
 	@Override
-	protected Map<Setting, Object> getAll() {
+	public Map<Setting, Object> getAll() {
 		return Collections.unmodifiableMap(this.settings);
 	}
 	

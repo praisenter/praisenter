@@ -27,11 +27,6 @@ package org.praisenter.slide.media;
 import java.util.Objects;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.praisenter.MediaType;
 import org.praisenter.media.MediaLibrary;
 import org.praisenter.slide.effects.SlideColorAdjust;
@@ -57,42 +52,33 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "media")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class MediaObject extends AbstractSlidePaint implements SlidePaint {
 	/** The media id */
 	@JsonProperty
-	@XmlElement(name = "id", required = false)
 	final UUID id;
 
 	/** The media name */
 	@JsonProperty
-	@XmlElement(name = "name", required = false)
 	final String name;
 	
 	/** The media type */
 	@JsonProperty
-	@XmlElement(name = "type", required = false)
 	final MediaType type;
 	
 	/** The media scaling type */
 	@JsonProperty
-	@XmlElement(name = "scaling", required = false)
 	final ScaleType scaling;
 	
 	/** True if the media should loop */
 	@JsonProperty
-	@XmlElement(name = "loop", required = false)
 	final boolean loop;
 	
 	/** True if the media should be muted */
 	@JsonProperty
-	@XmlElement(name = "mute", required = false)
 	final boolean mute;
 
 	/** The color adjustment, if any */
 	@JsonProperty
-	@XmlElement(name = "colorAdjust", required = false)
 	final SlideColorAdjust colorAdjust;
 	
 	/**

@@ -1,44 +1,65 @@
+/*
+ * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ * provided that the following conditions are met:
+ * 
+ *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
+ *     and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
+ *     and the following disclaimer in the documentation and/or other materials provided with the 
+ *     distribution.
+ *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
+ *     promote products derived from this software without specific prior written permission.
+ *     
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.praisenter.json;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.codec.binary.Base64InputStream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 
-public class BufferedImageJpegJsonDeserializer extends JsonDeserializer<BufferedImage> {
+/**
+ * Json deserializer for a BufferedImage that is a Base64 encoded string.
+ * @author William Bittle
+ * @version 3.0.0
+ */
+public final class BufferedImageJpegJsonDeserializer extends JsonDeserializer<BufferedImage> {
+	/** The class-level logger */
+	private static final Logger LOGGER = LogManager.getLogger();
+	
+	/* (non-Javadoc)
+	 * @see com.fasterxml.jackson.databind.JsonDeserializer#deserialize(com.fasterxml.jackson.core.JsonParser, com.fasterxml.jackson.databind.DeserializationContext)
+	 */
 	@Override
 	public BufferedImage deserialize(JsonParser parser, DeserializationContext context) throws IOException, JsonProcessingException {
-		String data = parser.readValueAs(String.class);
+		byte[] data = parser.getBinaryValue();
 		if (data != null) {
 			try {
-				return getBase64StringImage(data);
+				return ImageIO.read(new ByteArrayInputStream(data));
 			} catch (Exception ex) {
-				// TODO handle
+				LOGGER.warn("Failed to read byte array as image at '" + parser.getCurrentName() + "'.", ex);
 			}
 		}
 		return null;
-	}
-	
-	/**
-	 * Converts the given base 64 string into a BufferedImage object.
-	 * @param string the base 64 string
-	 * @return BufferedImage
-	 * @throws IOException if an exception occurs reading the image data
-	 */
-	private static final BufferedImage getBase64StringImage(String string) throws IOException {
-		try (ByteArrayInputStream bais = new ByteArrayInputStream(string.getBytes());
-			 BufferedInputStream bis = new BufferedInputStream(bais);
-			 Base64InputStream b64is = new Base64InputStream(bis, false, 0, null)) {
-			return ImageIO.read(b64is);
-		}
 	}
 }
